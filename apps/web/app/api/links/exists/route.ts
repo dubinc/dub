@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "edge";
 
-// GET /api/links/verify – run keyChecks on the key
+// GET /api/links/exists – run keyChecks on the key
 export const GET = async (req: NextRequest) => {
   try {
     const searchParams = getSearchParams(req.url);

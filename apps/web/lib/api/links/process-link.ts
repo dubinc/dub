@@ -29,7 +29,10 @@ export async function processLink<T extends Record<string, any>>({
   skipExternalIdChecks = false, // only skip when externalId doesn't change (e.g. when editing a link)
 }: {
   payload: NewLinkProps & T;
-  workspace?: Pick<WorkspaceProps, "id" | "plan" | "conversionEnabled">;
+  workspace?: Pick<
+    WorkspaceProps,
+    "id" | "plan" | "conversionEnabled" | "flags"
+  >;
   userId?: string;
   bulk?: boolean;
   skipKeyChecks?: boolean;
@@ -196,6 +199,15 @@ export async function processLink<T extends Record<string, any>>({
           .map((d) => `"${d}"`)
           .join(", ")}.`,
         code: "unprocessable_entity",
+      };
+    }
+
+    if (domain === "cal.link" && !workspace?.flags?.callink) {
+      return {
+        link: payload,
+        error:
+          "You can only use the cal.link domain if you have beta access to it. Contact support@dub.co to get access.",
+        code: "forbidden",
       };
     }
 
