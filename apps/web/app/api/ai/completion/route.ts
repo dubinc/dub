@@ -26,8 +26,6 @@ export const POST = withWorkspaceEdge(
         model,
       } = completionSchema.parse(await req.json());
 
-      console.log({ prompt });
-
       const result = await streamText({
         model: anthropic(model),
         messages: [
