@@ -1,13 +1,20 @@
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
 import { recordWebhookEvent } from "@/lib/tinybird/record-webhook-event";
+import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
 import {
   handleWebhookFailure,
   resetWebhookFailureCount,
 } from "@/lib/webhook/failure";
-import { webhookPayloadSchema } from "@/lib/webhook/schemas";
 import { webhookCallbackSchema } from "@/lib/zod/schemas/webhooks";
 import { getSearchParams } from "@dub/utils";
+import { z } from "zod";
+
+const searchParamsSchema = z.object({
+  webhookId: z.string(),
+  eventId: z.string(),
+  event: z.enum(WEBHOOK_TRIGGERS),
+});
 
 // POST /api/webhooks/callback – listen to webhooks status from QStash
 export const POST = async (req: Request) => {
@@ -18,7 +25,9 @@ export const POST = async (req: Request) => {
   const { url, status, body, sourceBody, sourceMessageId } =
     webhookCallbackSchema.parse(rawBody);
 
-  const { webhookId } = getSearchParams(req.url);
+  const { webhookId, eventId, event } = searchParamsSchema.parse(
+    getSearchParams(req.url),
+  );
 
   const webhook = await prisma.webhook.findUnique({
     where: { id: webhookId },
@@ -31,11 +40,6 @@ export const POST = async (req: Request) => {
 
   const request = Buffer.from(sourceBody, "base64").toString("utf-8");
   const response = Buffer.from(body, "base64").toString("utf-8");
-
-  const { id: eventId, event } = webhookPayloadSchema.parse(
-    JSON.parse(request),
-  );
-
   const isFailed = status >= 400;
 
   await Promise.all([

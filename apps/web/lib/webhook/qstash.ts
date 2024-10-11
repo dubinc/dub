@@ -7,6 +7,7 @@ import z from "../zod";
 import { createWebhookSignature } from "./signature";
 import { prepareWebhookPayload } from "./transform";
 import { EventDataProps } from "./types";
+import { identifyWebhookReceiver } from "./utils";
 
 // Send webhooks to multiple webhooks
 export const sendWebhooks = async ({
@@ -39,8 +40,13 @@ export const publishWebhookEventToQStash = async ({
   webhook: Pick<Webhook, "id" | "url" | "secret">;
   payload: z.infer<typeof webhookPayloadSchema>;
 }) => {
-  const callbackUrl = `${APP_DOMAIN_WITH_NGROK}/api/webhooks/callback?webhookId=${webhook.id}`;
+  const callbackUrl = new URL(`${APP_DOMAIN_WITH_NGROK}/api/webhooks/callback`);
+  callbackUrl.searchParams.append("webhookId", webhook.id);
+  callbackUrl.searchParams.append("eventId", payload.id);
+  callbackUrl.searchParams.append("event", payload.event);
+
   const signature = await createWebhookSignature(webhook.secret, payload);
+  const receiver = identifyWebhookReceiver(webhook.url);
 
   const response = await qstash.publishJSON({
     url: webhook.url,
@@ -49,8 +55,8 @@ export const publishWebhookEventToQStash = async ({
       "Dub-Signature": signature,
       "Upstash-Hide-Headers": "true",
     },
-    callback: callbackUrl,
-    failureCallback: callbackUrl,
+    callback: callbackUrl.href,
+    failureCallback: callbackUrl.href,
   });
 
   if (!response.messageId) {
@@ -59,3 +65,8 @@ export const publishWebhookEventToQStash = async ({
 
   return response;
 };
+
+// const finalPayload =
+// receiver === "slack"
+//   ? generateLinkTemplate(payload.data, payload.event)
+//   : payload;
