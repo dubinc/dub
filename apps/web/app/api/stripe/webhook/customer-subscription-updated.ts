@@ -84,6 +84,14 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
         rateLimit: plan.limits.api,
       },
     });
+
+    // Disable the webhooks if the plan is downgraded to free
+    if (newPlan === "free") {
+      await prisma.webhook.updateMany({
+        where: { projectId: workspace.id },
+        data: { disabled: true },
+      });
+    }
   }
 
   const subscriptionCanceled =

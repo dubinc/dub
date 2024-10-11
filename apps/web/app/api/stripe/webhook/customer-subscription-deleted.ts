@@ -135,5 +135,15 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     sendCancellationFeedback({
       owners: workspaceUsers,
     }),
+
+    // Disable the webhooks
+    prisma.webhook.updateMany({
+      where: {
+        projectId: workspace.id,
+      },
+      data: {
+        disabled: true,
+      },
+    }),
   ]);
 }
