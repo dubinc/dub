@@ -9,14 +9,13 @@ import {
   createDomainBodySchema,
   getDomainsQuerySchema,
 } from "@/lib/zod/schemas/domains";
-import { DEFAULT_LINK_PROPS, getSearchParams } from "@dub/utils";
+import { DEFAULT_LINK_PROPS } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 // GET /api/domains – get all domains for a workspace
 export const GET = withWorkspace(
-  async ({ req, workspace }) => {
-    const searchParams = getSearchParams(req.url);
+  async ({ workspace, searchParams }) => {
     const { search, archived, page, pageSize } =
       getDomainsQuerySchema.parse(searchParams);
 

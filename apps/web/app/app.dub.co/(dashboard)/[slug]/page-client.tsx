@@ -65,8 +65,15 @@ function WorkspaceLinks() {
   const { LinkBuilder, CreateLinkButton } = useLinkBuilder();
   const { AddEditTagModal, setShowAddEditTagModal } = useAddEditTagModal();
 
-  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
-    useLinkFilters();
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    setSearch,
+    setSelectedFilter,
+  } = useLinkFilters();
 
   const folderId = searchParams.get("folderId");
 
@@ -87,14 +94,13 @@ function WorkspaceLinks() {
 
             <div className="flex w-full grow gap-2 md:w-auto">
               <div className="grow basis-0 md:grow-0">
-                <LinkDisplay />
-              </div>
-              <div className="grow basis-0 md:grow-0">
                 <Filter.Select
                   filters={filters}
                   activeFilters={activeFilters}
                   onSelect={onSelect}
                   onRemove={onRemove}
+                  onSearchChange={setSearch}
+                  onSelectedFilterChange={setSelectedFilter}
                   className="w-full"
                   emptyState={{
                     tagId: (
@@ -141,6 +147,9 @@ function WorkspaceLinks() {
                     ),
                   }}
                 />
+              </div>
+              <div className="grow basis-0 md:grow-0">
+                <LinkDisplay />
               </div>
             </div>
             <div className="flex gap-x-2 max-md:w-full">

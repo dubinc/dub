@@ -109,7 +109,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
           copyLinkId();
           break;
         case "x":
-          setShowDeleteLinkModal(true);
+          if (link.key !== "_root") setShowDeleteLinkModal(true);
           break;
       }
     },
