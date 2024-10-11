@@ -4,6 +4,7 @@ import {
   CircleInfo,
   ConnectedDots,
   CubeSettings,
+  DiamondTurnRight,
   Gear2,
   Gift,
   Globe,
@@ -115,6 +116,11 @@ export const ITEMS: Record<
               },
             ]
           : []),
+        {
+          name: "UTM Templates",
+          icon: DiamondTurnRight,
+          href: `/${slug}/settings/utm-templates`,
+        },
       ],
     },
     {

@@ -1,7 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { UTMTemplateProps } from "@/lib/types";
+import { UtmTemplateProps } from "@/lib/types";
 import { AnimatedSizeContainer, Button, Popover, Xmark } from "@dub/ui";
 import {
   Book2,
@@ -25,7 +25,7 @@ export function UTMTemplatesButton({
   const { isMobile } = useMediaQuery();
   const { id: workspaceId } = useWorkspace();
 
-  let { data, isLoading } = useSWR<UTMTemplateProps[]>(
+  const { data, isLoading } = useSWR<UtmTemplateProps[]>(
     workspaceId && `/api/utm-templates?workspaceId=${workspaceId}`,
     fetcher,
     {
@@ -200,7 +200,7 @@ function UTMTemplateList({
   onLoad,
   onDelete,
 }: {
-  data: UTMTemplateProps[];
+  data: UtmTemplateProps[];
   onLoad: (params: Record<string, string>) => void;
   onDelete: () => void;
 }) {
@@ -262,7 +262,7 @@ function UTMTemplateOption({
   onClick,
   onDelete,
 }: {
-  template: UTMTemplateProps;
+  template: UtmTemplateProps;
   onClick: () => void;
   onDelete: () => Promise<void>;
 }) {

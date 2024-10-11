@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createUTMTemplateBodySchema } from "@/lib/zod/schemas/utm-templates";
@@ -12,6 +13,9 @@ export const GET = withWorkspace(
       },
       orderBy: {
         updatedAt: "desc",
+      },
+      include: {
+        user: true,
       },
       take: 50,
     });
@@ -28,19 +32,24 @@ export const POST = withWorkspace(
   async ({ req, workspace, session, headers }) => {
     const props = createUTMTemplateBodySchema.parse(await req.json());
 
-    const response = await prisma.utmTemplate.upsert({
+    const existingTemplate = await prisma.utmTemplate.findFirst({
       where: {
-        projectId_name: {
-          projectId: workspace.id,
-          name: props.name,
-        },
+        projectId: workspace.id,
+        name: props.name,
       },
-      create: {
+    });
+
+    if (existingTemplate) {
+      throw new DubApiError({
+        code: "conflict",
+        message: "A template with that name already exists.",
+      });
+    }
+
+    const response = await prisma.utmTemplate.create({
+      data: {
         projectId: workspace.id,
         userId: session?.user.id,
-        ...props,
-      },
-      update: {
         ...props,
       },
     });

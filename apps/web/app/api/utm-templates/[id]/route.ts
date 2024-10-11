@@ -1,7 +1,58 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { updateUTMTemplateBodySchema } from "@/lib/zod/schemas/utm-templates";
 import { NextResponse } from "next/server";
+
+// PATCH /api/utm-templates/[id] – update a UTM template
+export const PATCH = withWorkspace(
+  async ({ req, params, workspace }) => {
+    const { id } = params;
+    const props = updateUTMTemplateBodySchema.parse(await req.json());
+
+    const template = await prisma.utmTemplate.findFirst({
+      where: {
+        id,
+        projectId: workspace.id,
+      },
+    });
+
+    if (!template) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Template not found.",
+      });
+    }
+
+    try {
+      const response = await prisma.utmTemplate.update({
+        where: {
+          id,
+          projectId: workspace.id,
+        },
+        data: {
+          ...props,
+        },
+      });
+
+      return NextResponse.json(response);
+    } catch (error) {
+      if (error.code === "P2002") {
+        throw new DubApiError({
+          code: "conflict",
+          message: "A template with that name already exists.",
+        });
+      }
+
+      throw error;
+    }
+  },
+  {
+    requiredPermissions: ["links.write"],
+  },
+);
+
+export const PUT = PATCH;
 
 // DELETE /api/utm-templates/[id] – delete a UTM template for a workspace
 export const DELETE = withWorkspace(

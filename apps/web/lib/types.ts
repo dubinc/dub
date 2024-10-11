@@ -1,7 +1,7 @@
 import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
-import { Link, Project, UTMTemplate, Webhook } from "@prisma/client";
+import { Link, Project, UtmTemplate, Webhook } from "@prisma/client";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import { trackCustomerResponseSchema } from "./zod/schemas/customers";
 import { integrationSchema } from "./zod/schemas/integration";
@@ -60,7 +60,10 @@ export interface TagProps {
 
 export type TagColorProps = (typeof tagColors)[number];
 
-export type UTMTemplateProps = UTMTemplate;
+export type UtmTemplateProps = UtmTemplate;
+export type UtmTemplateWithUserProps = UtmTemplateProps & {
+  user?: UserProps;
+};
 
 export type PlanProps = (typeof plans)[number];
 

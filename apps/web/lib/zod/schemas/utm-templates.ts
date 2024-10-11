@@ -33,3 +33,5 @@ export const createUTMTemplateBodySchema = z.object({
     .transform((v) => v ?? null)
     .describe("The ref of the short link."),
 });
+
+export const updateUTMTemplateBodySchema = createUTMTemplateBodySchema;
