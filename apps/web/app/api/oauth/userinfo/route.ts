@@ -3,6 +3,8 @@ import { getAuthTokenOrThrow, hashToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/oauth/userinfo - get user info by access token
 export async function GET(req: NextRequest) {
   try {
