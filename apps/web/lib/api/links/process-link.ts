@@ -357,51 +357,88 @@ export async function processLink<T extends Record<string, any>>({
     // only perform tag validity checks if:
     // - not bulk creation (we do that check separately in the route itself)
     // - tagIds are present
-  } else if (tagIds && tagIds.length > 0) {
-    const tags = await prisma.tag.findMany({
-      select: {
-        id: true,
-      },
-      where: { projectId: workspace?.id, id: { in: tagIds } },
-    });
+  } else {
+    // Tag validity checks
+    if (tagIds && tagIds.length > 0) {
+      const tags = await prisma.tag.findMany({
+        select: {
+          id: true,
+        },
+        where: { projectId: workspace?.id, id: { in: tagIds } },
+      });
 
-    if (tags.length !== tagIds.length) {
-      return {
-        link: payload,
-        error:
-          "Invalid tagIds detected: " +
-          tagIds
-            .filter(
-              (tagId) => tags.find(({ id }) => tagId === id) === undefined,
-            )
-            .join(", "),
-        code: "unprocessable_entity",
-      };
+      if (tags.length !== tagIds.length) {
+        return {
+          link: payload,
+          error:
+            "Invalid tagIds detected: " +
+            tagIds
+              .filter(
+                (tagId) => tags.find(({ id }) => tagId === id) === undefined,
+              )
+              .join(", "),
+          code: "unprocessable_entity",
+        };
+      }
+    } else if (tagNames && tagNames.length > 0) {
+      const tags = await prisma.tag.findMany({
+        select: {
+          name: true,
+        },
+        where: {
+          projectId: workspace?.id,
+          name: { in: tagNames },
+        },
+      });
+
+      if (tags.length !== tagNames.length) {
+        return {
+          link: payload,
+          error:
+            "Invalid tagNames detected: " +
+            tagNames
+              .filter(
+                (tagName) =>
+                  tags.find(({ name }) => tagName === name) === undefined,
+              )
+              .join(", "),
+          code: "unprocessable_entity",
+        };
+      }
     }
-  } else if (tagNames && tagNames.length > 0) {
-    const tags = await prisma.tag.findMany({
-      select: {
-        name: true,
-      },
-      where: {
-        projectId: workspace?.id,
-        name: { in: tagNames },
-      },
-    });
 
-    if (tags.length !== tagNames.length) {
-      return {
-        link: payload,
-        error:
-          "Invalid tagNames detected: " +
-          tagNames
-            .filter(
-              (tagName) =>
-                tags.find(({ name }) => tagName === name) === undefined,
-            )
-            .join(", "),
-        code: "unprocessable_entity",
-      };
+    // Webhook validity checks
+    if (webhookIds && webhookIds.length > 0) {
+      if (!workspace || workspace.plan === "free" || workspace.plan === "pro") {
+        return {
+          link: payload,
+          error:
+            "You can only use webhooks on a Business plan and above. Upgrade to Business to use this feature.",
+          code: "forbidden",
+        };
+      }
+
+      webhookIds = [...new Set(webhookIds)];
+
+      const webhooks = await prisma.webhook.findMany({
+        select: {
+          id: true,
+        },
+        where: { projectId: workspace?.id, id: { in: webhookIds } },
+      });
+
+      if (webhooks.length !== webhookIds.length) {
+        const invalidWebhookIds = webhookIds.filter(
+          (webhookId) =>
+            webhooks.find(({ id }) => webhookId === id) === undefined,
+        );
+
+        return {
+          link: payload,
+          error: "Invalid webhookIds detected: " + invalidWebhookIds.join(", "),
+          code: "unprocessable_entity",
+        };
+      }
     }
   }
 
@@ -434,31 +471,6 @@ export async function processLink<T extends Record<string, any>>({
           code: "unprocessable_entity",
         };
       }
-    }
-  }
-
-  // Validate the webhooks
-  if (webhookIds && webhookIds.length > 0) {
-    webhookIds = [...new Set(webhookIds)];
-
-    const webhooks = await prisma.webhook.findMany({
-      select: {
-        id: true,
-      },
-      where: { projectId: workspace?.id, id: { in: webhookIds } },
-    });
-
-    if (webhooks.length !== webhookIds.length) {
-      const invalidWebhookIds = webhookIds.filter(
-        (webhookId) =>
-          webhooks.find(({ id }) => webhookId === id) === undefined,
-      );
-
-      return {
-        link: payload,
-        error: "Invalid webhookIds detected: " + invalidWebhookIds.join(", "),
-        code: "unprocessable_entity",
-      };
     }
   }
 
