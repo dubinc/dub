@@ -12,7 +12,6 @@ import {
   parseUrlSchema,
   parseUrlSchemaAllowEmpty,
 } from "./utils";
-import { webhookSchema } from "./webhooks";
 
 export const getUrlQuerySchema = z.object({
   url: parseUrlSchema,
@@ -68,8 +67,9 @@ const LinksQuerySchema = z.object({
     .optional()
     .default("false")
     .describe(
-      "Whether to include tags in the response. Defaults to `false` if not provided.",
-    ),
+      "DEPRECATED. Filter for links that have at least one tag assigned to them.",
+    )
+    .openapi({ deprecated: true }),
 });
 
 export const getLinksQuerySchema = LinksQuerySchema.merge(
@@ -491,11 +491,11 @@ export const LinkSchema = z
     tags: TagSchema.array()
       .nullable()
       .describe("The tags assigned to the short link."),
-    webhooks: webhookSchema
-      .pick({ id: true, name: true, url: true })
-      .array()
-      .nullable()
-      .describe("The webhooks assigned to the short link."),
+    webhookIds: z
+      .array(z.string())
+      .describe(
+        "The IDs of the webhooks that the short link is associated with.",
+      ),
     comments: z
       .string()
       .nullable()
@@ -589,6 +589,7 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
   z.object({
     // Only Dub UI uses the following query parameters
     includeUser: booleanQuerySchema.default("false"),
+    includeWebhooks: booleanQuerySchema.default("false"),
     linkIds: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))

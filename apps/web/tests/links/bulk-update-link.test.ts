@@ -2,10 +2,10 @@ import { Link, Tag } from "@prisma/client";
 import { afterAll, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
-import { link } from "../utils/resource";
+import { E2E_LINK } from "../utils/resource";
 import { expectedLink } from "../utils/schema";
 
-const { domain, url } = link;
+const { domain, url } = E2E_LINK;
 
 test("PATCH /links/bulk", async (ctx) => {
   const h = new IntegrationHarness(ctx);

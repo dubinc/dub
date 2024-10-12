@@ -94,6 +94,7 @@ export async function createLink(link: ProcessedLinkProps) {
           },
         },
       },
+      webhooks: webhookIds ? true : false,
     },
   });
 

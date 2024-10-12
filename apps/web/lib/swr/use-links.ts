@@ -13,7 +13,7 @@ export default function useLinks(
   opts: z.infer<typeof partialQuerySchema> = {},
   swrOpts: SWRConfiguration = {},
 ) {
-  const { id } = useWorkspace();
+  const { id, webhookEnabled } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
   const [admin, setAdmin] = useState(false);
@@ -30,7 +30,12 @@ export default function useLinks(
   >(
     id
       ? `/api/links${getQueryString(
-          { workspaceId: id, includeUser: "true", ...opts },
+          {
+            workspaceId: id,
+            includeUser: "true",
+            includeWebhooks: "true",
+            ...opts,
+          },
           {
             ignore: ["import", "upgrade", "newLink"],
           },

@@ -4,10 +4,10 @@ import { Link } from "@prisma/client";
 import { expect, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
-import { link } from "../utils/resource";
+import { E2E_LINK } from "../utils/resource";
 import { expectedLink } from "../utils/schema";
 
-const { domain } = link;
+const { domain } = E2E_LINK;
 
 test("POST /links/bulk", async (ctx) => {
   const h = new IntegrationHarness(ctx);

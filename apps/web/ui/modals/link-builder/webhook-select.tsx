@@ -11,7 +11,7 @@ export function WebhookSelect() {
   const { watch, setValue } = useFormContext<LinkFormData>();
 
   useKeyboardShortcut("w", () => setIsOpen(true), { modal: true });
-  const webhooks = watch("webhooks") || [];
+  const webhookIds = watch("webhookIds") as string[];
 
   const linkLevelWebhooks = availableWebhooks?.filter((webhook) =>
     webhook.triggers.includes("link.clicked"),
@@ -29,11 +29,11 @@ export function WebhookSelect() {
 
   const selectedWebhooks = useMemo(
     () =>
-      webhooks
-        .map(({ id }) => options?.find(({ value }) => value === id)!)
+      webhookIds
+        .map((id) => options?.find(({ value }) => value === id)!)
         .filter(Boolean),
 
-    [webhooks, options],
+    [webhookIds, options],
   );
 
   const hasSelectedWebhooks = selectedWebhooks.length > 0;
@@ -44,12 +44,7 @@ export function WebhookSelect() {
       selected={selectedWebhooks || []}
       setSelected={(webhooks) => {
         const selectedIds = webhooks.map(({ value }) => value);
-
-        setValue(
-          "webhooks",
-          selectedIds.map((id) => availableWebhooks?.find((t) => t.id === id)),
-          { shouldDirty: true },
-        );
+        setValue("webhookIds", selectedIds, { shouldDirty: true });
       }}
       options={options}
       icon={

@@ -1,6 +1,6 @@
 import { TrackLeadResponse, TrackSaleResponse } from "@/lib/types";
 import { randomCustomer, randomId } from "tests/utils/helpers";
-import { clickId } from "tests/utils/resource";
+import { E2E_CLICK_ID } from "tests/utils/resource";
 import { expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
@@ -20,7 +20,7 @@ test("POST /track/sale", async () => {
   const { data: lead } = await http.post<TrackLeadResponse>({
     path: "/track/lead",
     body: {
-      clickId,
+      clickId: E2E_CLICK_ID,
       eventName: "Signup",
       customerId: customer.id,
       customerName: customer.name,
