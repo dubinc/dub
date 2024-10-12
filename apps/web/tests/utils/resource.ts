@@ -4,5 +4,5 @@ export const E2E_LINK = {
 };
 
 export const E2E_CLICK_ID = "GWGrkftJdYlZD2mq";
-export const E2E_CUSTOMER_ID = "cm25o0ve700012ylhff1h42g6";
+export const E2E_CUSTOMER_ID = "cus_jTrfVKYN3Buc3F80JoqBiY0g";
 export const E2E_WEBHOOK_ID = "wh_1C78FQhIDgpPYpZmyFolg4qJg";
