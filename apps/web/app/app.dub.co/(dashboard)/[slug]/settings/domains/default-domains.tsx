@@ -115,7 +115,7 @@ export function DefaultDomains() {
                   setDefaultDomains(newDefaultDomains);
                   setSubmitting(true);
                   fetch(`/api/domains/default?workspaceId=${id}`, {
-                    method: "PUT",
+                    method: "PATCH",
                     body: JSON.stringify({
                       defaultDomains: newDefaultDomains.filter(
                         (d) => d !== null,
