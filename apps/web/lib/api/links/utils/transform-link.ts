@@ -10,7 +10,7 @@ export const transformLink = (link: LinkWithTags) => {
   const tags = (link.tags || []).map(({ tag }) => tag);
   const webhookIds = link.webhooks?.map(({ webhookId }) => webhookId) ?? [];
 
-  // remove webhooks from link
+  // remove webhooks array from link
   const { webhooks, ...rest } = link;
 
   return {
