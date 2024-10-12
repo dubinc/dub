@@ -425,6 +425,12 @@ describe.sequential("POST /links", async () => {
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
 
+    const { status: status2, data: webhook } = await http.get<any>({
+      path: `/webhooks/${E2E_WEBHOOK_ID}`,
+    });
+    expect(status2).toEqual(200);
+    expect(webhook.linkIds).toContain(link.id);
+
     afterAll(async () => {
       await h.deleteLink(link.id);
     });
