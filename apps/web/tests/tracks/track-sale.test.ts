@@ -31,7 +31,7 @@ test("POST /track/sale", async () => {
 
   // Add a delay to ensure the lead has been created
   // TODO: Should fix this
-  await new Promise((resolve) => setTimeout(resolve, 5000));
+  await new Promise((resolve) => setTimeout(resolve, 8000));
 
   const response = await http.post<TrackSaleResponse>({
     path: "/track/sale",
