@@ -1,5 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ClientOnly, Wordmark } from "@dub/ui";
+import AnimatedWordmark from "@/ui/shared/animated-wordmark";
+import { ClientOnly } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
@@ -9,6 +10,7 @@ import {
   ReactNode,
   Suspense,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import UserSurveyButton from "../user-survey";
@@ -16,7 +18,6 @@ import { ITEMS, type NavItem as NavItemType } from "./items";
 import { Usage } from "./usage";
 import UserDropdown from "./user-dropdown";
 import { WorkspaceDropdown } from "./workspace-dropdown";
-
 const AREAS = ["userSettings", "workspaceSettings", "default"] as const;
 
 export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
@@ -31,6 +32,8 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
         ? "workspaceSettings"
         : "default";
   }, [slug, pathname]);
+
+  const animationContainer = useRef<HTMLDivElement>(null);
 
   return (
     <ClientOnly className="scrollbar-hide relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden">
@@ -51,7 +54,7 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
               {...{ inert: area !== currentArea ? "" : undefined }}
             >
               {area === "default" ? (
-                <Wordmark className="h-6" />
+                <AnimatedWordmark />
               ) : (
                 <div className="py group -my-1 -ml-1 flex items-center gap-2 py-2 pr-1 text-sm font-medium text-neutral-900">
                   <ChevronLeft className="size-4 text-neutral-500 transition-transform duration-100 group-hover:-translate-x-0.5" />

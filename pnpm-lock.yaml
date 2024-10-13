@@ -59,6 +59,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^3.9.0
         version: 3.9.0(react-hook-form@7.52.1)
+      '@lottiefiles/dotlottie-react':
+        specifier: ^0.9.1
+        version: 0.9.1(react-dom@18.2.0)(react@18.2.0)
       '@next-auth/prisma-adapter':
         specifier: ^1.0.5
         version: 1.0.5(@prisma/client@5.18.0)(next-auth@4.24.4)
@@ -5053,6 +5056,21 @@ packages:
 
   /@juggle/resize-observer@3.4.0:
     resolution: {integrity: sha512-dfLbk+PwWvFzSxwk3n5ySL0hfBog779o8h68wK/7/APo/7cgyWp5jcXockbxdk5kFRkbeXWm4Fbi9FrdN381sA==}
+    dev: false
+
+  /@lottiefiles/dotlottie-react@0.9.1(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-2KAbT0sUu3fwbjTk1cfny9tVFg/8FTaitz64Dft+QV/Du6VHxWy3I1H83///UzAAU+rbbEN2Vn9s6GpuokJEAQ==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      '@lottiefiles/dotlottie-web': 0.35.0
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    dev: false
+
+  /@lottiefiles/dotlottie-web@0.35.0:
+    resolution: {integrity: sha512-dXyQzNGaNOovJ23skUaLs0RU1Hpr+e4JKCBW4Wq/HTVnTCqfhV4uYaG1lLloZy50QdPsUB3UyIgd656pcQwTQA==}
     dev: false
 
   /@mongodb-js/saslprep@1.1.6:
