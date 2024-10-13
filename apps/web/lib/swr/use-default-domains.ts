@@ -26,8 +26,6 @@ export default function useDefaultDomains({
       : data;
   }, [data, flags]);
 
-  console.log({ defaultDomains });
-
   return {
     defaultDomains,
     loading: !data && !error,

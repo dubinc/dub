@@ -44,7 +44,9 @@ export function AddEditDomainForm({
     },
   );
 
-  const { slug: domain, placeholder, expiredUrl } = data;
+  console.log({ props, data });
+
+  const { slug: domain, placeholder, expiredUrl, notFoundUrl } = data;
 
   const [lockDomain, setLockDomain] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -88,6 +90,8 @@ export function AddEditDomainForm({
   const [showDefaultExpirationUrl, setShowDefaultExpirationUrl] = useState(
     !!data.expiredUrl,
   );
+  const [showNotFoundUrl, setShowNotFoundUrl] = useState(!!data.notFoundUrl);
+
   const [showPlaceholderUrl, setShowPlaceholderUrl] = useState(
     !!data.placeholder,
   );
@@ -234,6 +238,51 @@ export function AddEditDomainForm({
                   value={expiredUrl}
                   onChange={(e) =>
                     setData((d) => ({ ...d, expiredUrl: e.target.value }))
+                  }
+                />
+              </div>
+            </motion.div>
+          </div>
+
+          <div>
+            <label className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-medium text-gray-900">
+                  Not Found URL
+                </h2>
+                <ProBadgeTooltip
+                  content={
+                    <SimpleTooltipContent
+                      title="Redirect users to a specific URL when a link under this domain doesn't exist."
+                      cta="Learn more."
+                      href="https://dub.co/help/article/not-found-url"
+                    />
+                  }
+                />
+              </div>
+              <Switch
+                checked={showNotFoundUrl}
+                fn={(checked) => {
+                  setShowNotFoundUrl(checked);
+                  if (!checked) setData((d) => ({ ...d, notFoundUrl: "" }));
+                }}
+              />
+            </label>
+            <motion.div
+              animate={{ height: showNotFoundUrl ? "auto" : 0 }}
+              transition={{ duration: 0.1 }}
+              initial={false}
+              className="-m-1 overflow-hidden p-1"
+            >
+              <div className="relative mt-2 rounded-md shadow-sm">
+                <input
+                  name="notFoundUrl"
+                  id="notFoundUrl"
+                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                  placeholder="https://yourwebsite.com"
+                  value={notFoundUrl}
+                  onChange={(e) =>
+                    setData((d) => ({ ...d, notFoundUrl: e.target.value }))
                   }
                 />
               </div>
