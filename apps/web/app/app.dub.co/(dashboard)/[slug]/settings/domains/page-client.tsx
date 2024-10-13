@@ -4,6 +4,7 @@ import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useDomains from "@/lib/swr/use-domains";
 import useDomainsCount from "@/lib/swr/use-domains-count";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
 import DomainCard from "@/ui/domains/domain-card";
 import DomainCardPlaceholder from "@/ui/domains/domain-card-placeholder";
 import { FreeDotLinkBanner } from "@/ui/domains/free-dot-link-banner";
@@ -45,7 +46,7 @@ export default function WorkspaceDomainsClient() {
   const { allWorkspaceDomains, loading } = useDomains({ includeParams: true });
   const { data: domainsCount } = useDomainsCount();
 
-  const { pagination, setPagination } = usePagination(50);
+  const { pagination, setPagination } = usePagination(DOMAINS_MAX_PAGE_SIZE);
 
   const archived = searchParams.get("archived");
   const search = searchParams.get("search");

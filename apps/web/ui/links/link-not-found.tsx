@@ -14,7 +14,7 @@ export default function LinkNotFound() {
         the wrong URL or don't have access to this link.
       </p>
       <img
-        src="/_static/illustrations/coffee-call.svg"
+        src="https://assets.dub.co/misc/not-found.svg"
         alt="No links yet"
         width={300}
         height={300}

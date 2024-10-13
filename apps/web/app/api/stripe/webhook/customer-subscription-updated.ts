@@ -58,40 +58,45 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
   }
 
   const newPlan = plan.name.toLowerCase();
+  const shouldDisableWebhooks = newPlan === "free" || newPlan === "pro";
 
   // If a workspace upgrades/downgrades their subscription, update their usage limit in the database.
   if (workspace.plan !== newPlan) {
-    await prisma.project.update({
-      where: {
-        stripeId,
-      },
-      data: {
-        plan: newPlan,
-        usageLimit: plan.limits.clicks!,
-        linksLimit: plan.limits.links!,
-        domainsLimit: plan.limits.domains!,
-        aiLimit: plan.limits.ai!,
-        tagsLimit: plan.limits.tags!,
-        usersLimit: plan.limits.users!,
-      },
-    });
+    await Promise.allSettled([
+      prisma.project.update({
+        where: {
+          stripeId,
+        },
+        data: {
+          plan: newPlan,
+          usageLimit: plan.limits.clicks!,
+          linksLimit: plan.limits.links!,
+          domainsLimit: plan.limits.domains!,
+          aiLimit: plan.limits.ai!,
+          tagsLimit: plan.limits.tags!,
+          usersLimit: plan.limits.users!,
+        },
+      }),
 
-    prisma.restrictedToken.updateMany({
-      where: {
-        projectId: workspace.id,
-      },
-      data: {
-        rateLimit: plan.limits.api,
-      },
-    });
+      prisma.restrictedToken.updateMany({
+        where: {
+          projectId: workspace.id,
+        },
+        data: {
+          rateLimit: plan.limits.api,
+        },
+      }),
 
-    // Disable the webhooks if the plan is downgraded to free
-    if (newPlan === "free") {
-      await prisma.webhook.updateMany({
-        where: { projectId: workspace.id },
-        data: { disabled: true },
-      });
-    }
+      // Disable the webhooks if the plan is downgraded to free
+      ...(shouldDisableWebhooks
+        ? [
+            prisma.webhook.updateMany({
+              where: { projectId: workspace.id },
+              data: { disabled: true },
+            }),
+          ]
+        : []),
+    ]);
   }
 
   const subscriptionCanceled =
