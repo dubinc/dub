@@ -250,15 +250,7 @@ export function AddEditDomainForm({
                 <h2 className="text-sm font-medium text-gray-900">
                   Not Found URL
                 </h2>
-                <ProBadgeTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="Redirect users to a specific URL when a link under this domain doesn't exist."
-                      cta="Learn more."
-                      href="https://dub.co/help/article/not-found-url"
-                    />
-                  }
-                />
+                <ProBadgeTooltip content="Redirect users to a specific URL when a link under this domain doesn't exist." />
               </div>
               <Switch
                 checked={showNotFoundUrl}
