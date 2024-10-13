@@ -17,7 +17,7 @@ export const trackSaleRequestSchema = z.object({
   amount: z
     .number({ required_error: "amount is required" })
     .int()
-    .positive()
+    .min(0, "amount cannot be negative")
     .describe("The amount of the sale. Should be passed in cents."),
   paymentProcessor: z
     .enum(["stripe", "shopify", "paddle"])

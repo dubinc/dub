@@ -192,7 +192,7 @@ const getCustomersMap = async (customerIds: string[]) => {
         email: customer.email || "",
         avatar:
           customer.avatar ||
-          `https://api.dicebear.com/7.x/micah/svg?seed=${customer.id}`,
+          `https://api.dicebear.com/9.x/notionists/png?seed=${customer.id}`,
         createdAt: customer.createdAt,
       });
       return acc;
