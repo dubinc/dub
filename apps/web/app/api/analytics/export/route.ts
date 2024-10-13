@@ -8,6 +8,7 @@ import { withWorkspace } from "@/lib/auth";
 import { getFolders } from "@/lib/folder/get-folders";
 import { checkFolderPermission } from "@/lib/folder/permissions";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
+import { Link } from "@prisma/client";
 import JSZip from "jszip";
 
 // GET /api/analytics/export – get export data for analytics
@@ -17,15 +18,24 @@ export const GET = withWorkspace(
 
     const parsedParams = analyticsQuerySchema.parse(searchParams);
 
-    const { interval, start, end, linkId, domain, key, folderId } =
+    const { interval, start, end, linkId, externalId, domain, key, folderId } =
       parsedParams;
+
+    let link: Link | null = null;
 
     if (domain) {
       await getDomainOrThrow({ workspace, domain });
     }
 
-    const link =
-      domain && key ? await getLinkOrThrow({ workspace, domain, key }) : null;
+    if (linkId || externalId || (domain && key)) {
+      link = await getLinkOrThrow({
+        workspace: workspace,
+        linkId,
+        externalId,
+        domain,
+        key,
+      });
+    }
 
     if (link && link.folderId) {
       await checkFolderPermission({
@@ -62,11 +72,11 @@ export const GET = withWorkspace(
 
     await Promise.all(
       VALID_ANALYTICS_ENDPOINTS.map(async (endpoint) => {
-        // no need to fetch top links data if linkId is defined
+        // no need to fetch top links data if there's a link specified
         // since this is just a single link
-        if (endpoint === "top_links" && linkId) return;
-        // we're not fetching top URLs data if linkId is not defined
-        if (endpoint === "top_urls" && !linkId) return;
+        if (endpoint === "top_links" && link) return;
+        // we're not fetching top URLs data if there's no link specified
+        if (endpoint === "top_urls" && !link) return;
         // skip clicks count
         if (endpoint === "count") return;
 

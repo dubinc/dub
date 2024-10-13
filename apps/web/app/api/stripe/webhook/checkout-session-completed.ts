@@ -85,15 +85,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     },
   });
 
-  await prisma.restrictedToken.updateMany({
-    where: {
-      projectId: workspaceId,
-    },
-    data: {
-      rateLimit: plan.limits.api,
-    },
-  });
-
   const users = workspace.users.map(({ user }) => ({
     id: user.id,
     name: user.name,
@@ -115,6 +106,24 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           marketing: true,
         }),
       );
+    }),
+    // update rate limits for restricted tokens for the workspace
+    prisma.restrictedToken.updateMany({
+      where: {
+        projectId: workspaceId,
+      },
+      data: {
+        rateLimit: plan.limits.api,
+      },
+    }),
+    // enable dub.link premium default domain for the workspace
+    prisma.defaultDomains.update({
+      where: {
+        projectId: workspaceId,
+      },
+      data: {
+        dublink: true,
+      },
     }),
   ]);
 }

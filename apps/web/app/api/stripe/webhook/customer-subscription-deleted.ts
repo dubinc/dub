@@ -101,6 +101,16 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       },
     }),
 
+    // disable dub.link premium default domain for the workspace
+    prisma.defaultDomains.update({
+      where: {
+        projectId: workspace.id,
+      },
+      data: {
+        dublink: false,
+      },
+    }),
+
     // remove root domain link for all domains from MySQL
     prisma.link.updateMany({
       where: {

@@ -14,7 +14,7 @@ export function HelpSection() {
 
   return (
     <motion.div
-      className="w-full overflow-scroll sm:w-[32rem]"
+      className="w-full overflow-y-scroll sm:w-[32rem]"
       animate={{
         height: resizeObserverEntry?.borderBoxSize[0].blockSize ?? "auto",
         maxHeight: "calc(100vh - 10rem)",
