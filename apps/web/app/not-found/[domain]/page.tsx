@@ -1,27 +1,26 @@
 import { getDomainViaEdge } from "@/lib/planetscale/get-domain-via-edge";
 import { Background, Footer, Nav, NavMobile } from "@dub/ui";
-import { CircleHalfDottedClock } from "@dub/ui/src/icons";
 import { constructMetadata } from "@dub/utils";
 import { redirect } from "next/navigation";
 
 export const runtime = "edge";
 
 export const metadata = constructMetadata({
-  title: "Expired Link – Dub.co",
+  title: "Link Not Found – Dub.co",
   description:
-    "This link has expired. Please contact the owner of this link to get a new one.",
+    "This link does not exist on Dub.co. Please check the URL and try again.",
   noIndex: true,
 });
 
-export default async function ExpiredLinkPage({
+export default async function NotFoundLinkPage({
   params,
 }: {
   params: { domain: string };
 }) {
   const domain = await getDomainViaEdge(params.domain);
 
-  if (domain?.expiredUrl) {
-    redirect(domain.expiredUrl);
+  if (domain?.notFoundUrl) {
+    redirect(domain.notFoundUrl);
   }
 
   return (
@@ -29,13 +28,12 @@ export default async function ExpiredLinkPage({
       <NavMobile />
       <Nav />
       <div className="z-10 mx-2 my-10 flex max-w-md flex-col items-center space-y-5 px-2.5 text-center sm:mx-auto sm:max-w-lg sm:px-0 lg:mb-16">
-        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-gray-300 bg-white/80">
-          <CircleHalfDottedClock className="h-6 w-6 text-gray-400" />
+        <div className="font-display mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-gray-300 bg-white/80 text-lg font-bold text-gray-400">
+          404
         </div>
-        <h1 className="font-display text-5xl font-bold">Expired Link</h1>
+        <h1 className="font-display text-5xl font-bold">Link Not Found</h1>
         <p className="text-lg text-gray-600">
-          This link has expired. Please contact the owner of this link to get a
-          new one.
+          This link does not exist. Please check the URL and try again.
         </p>
         <a
           href="https://dub.co/home"
