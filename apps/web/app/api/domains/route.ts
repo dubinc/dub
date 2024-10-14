@@ -47,7 +47,7 @@ export const GET = withWorkspace(
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
     const body = await parseRequestBody(req);
-    const { slug, placeholder, expiredUrl } =
+    const { slug, placeholder, expiredUrl, notFoundUrl } =
       createDomainBodySchema.parse(body);
 
     const totalDomains = await prisma.domain.count({
@@ -102,6 +102,7 @@ export const POST = withWorkspace(
           ...(placeholder && { placeholder }),
           ...(workspace.plan !== "free" && {
             expiredUrl,
+            notFoundUrl,
           }),
         },
       }),

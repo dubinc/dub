@@ -56,13 +56,10 @@ export default async function LinkMiddleware(
     const linkData = await getLinkViaEdge(domain, key);
 
     if (!linkData) {
-      // short link not found, redirect to root
+      // short link not found, rewrite to not-found page
       // TODO: log 404s (https://github.com/dubinc/dub/issues/559)
-      return NextResponse.redirect(new URL("/", req.url), {
-        headers: {
-          ...DUB_HEADERS,
-        },
-        status: 302,
+      return NextResponse.rewrite(new URL(`/not-found/${domain}`, req.url), {
+        headers: DUB_HEADERS,
       });
     }
 
