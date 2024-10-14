@@ -30,7 +30,12 @@ export default function useLinks(
   >(
     workspaceId
       ? `/api/links${getQueryString(
-          { workspaceId, includeUser: "true", ...opts },
+          {
+            workspaceId,
+            includeUser: "true",
+            includeWebhooks: "true",
+            ...opts,
+          },
           {
             ignore: ["import", "upgrade", "newLink"],
           },

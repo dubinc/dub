@@ -1,5 +1,11 @@
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
-import { bulkCreateLinks, combineTagIds, processLink } from "@/lib/api/links";
+import {
+  bulkCreateLinks,
+  checkIfLinksHaveTags,
+  checkIfLinksHaveWebhooks,
+  combineTagIds,
+  processLink,
+} from "@/lib/api/links";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { bulkUpdateLinks } from "@/lib/api/links/bulk-update-links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
@@ -86,49 +92,99 @@ export const POST = withWorkspace(
         code,
       }));
 
-    // filter out tags that don't belong to the workspace
-    const workspaceTags = await prisma.tag.findMany({
-      where: {
-        projectId: workspace.id,
-      },
-      select: {
-        id: true,
-        name: true,
-      },
-    });
-    const workspaceTagIds = workspaceTags.map(({ id }) => id);
-    const workspaceTagNames = workspaceTags.map(({ name }) => name);
-    validLinks.forEach((link, index) => {
-      const combinedTagIds =
-        combineTagIds({
-          tagId: link.tagId,
-          tagIds: link.tagIds,
-        }) ?? [];
-      const invalidTagIds = combinedTagIds.filter(
-        (id) => !workspaceTagIds.includes(id),
-      );
-      if (invalidTagIds.length > 0) {
-        // remove link from validLinks and add error to errorLinks
-        validLinks = validLinks.filter((_, i) => i !== index);
-        errorLinks.push({
-          error: `Invalid tagIds detected: ${invalidTagIds.join(", ")}`,
-          code: "unprocessable_entity",
-          link,
+    if (checkIfLinksHaveTags(validLinks)) {
+      // filter out tags that don't belong to the workspace
+      const tagIds = validLinks
+        .map((link) =>
+          combineTagIds({ tagId: link.tagId, tagIds: link.tagIds }),
+        )
+        .flat()
+        .filter(Boolean) as string[];
+      const tagNames = validLinks
+        .map((link) => link.tagNames)
+        .flat()
+        .filter(Boolean) as string[];
+
+      const workspaceTags = await prisma.tag.findMany({
+        where: {
+          projectId: workspace.id,
+          ...(tagIds.length > 0 ? { id: { in: tagIds } } : {}),
+          ...(tagNames.length > 0 ? { name: { in: tagNames } } : {}),
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      });
+      const workspaceTagIds = workspaceTags.map(({ id }) => id);
+      const workspaceTagNames = workspaceTags.map(({ name }) => name);
+      validLinks.forEach((link, index) => {
+        const combinedTagIds =
+          combineTagIds({
+            tagId: link.tagId,
+            tagIds: link.tagIds,
+          }) ?? [];
+        const invalidTagIds = combinedTagIds.filter(
+          (id) => !workspaceTagIds.includes(id),
+        );
+        if (invalidTagIds.length > 0) {
+          // remove link from validLinks and add error to errorLinks
+          validLinks = validLinks.filter((_, i) => i !== index);
+          errorLinks.push({
+            error: `Invalid tagIds detected: ${invalidTagIds.join(", ")}`,
+            code: "unprocessable_entity",
+            link,
+          });
+        }
+
+        const invalidTagNames = link.tagNames?.filter(
+          (name) => !workspaceTagNames.includes(name),
+        );
+        if (invalidTagNames?.length) {
+          validLinks = validLinks.filter((_, i) => i !== index);
+          errorLinks.push({
+            error: `Invalid tagNames detected: ${invalidTagNames.join(", ")}`,
+            code: "unprocessable_entity",
+            link,
+          });
+        }
+      });
+    }
+
+    if (checkIfLinksHaveWebhooks(validLinks)) {
+      if (workspace.plan === "free" || workspace.plan === "pro") {
+        throw new DubApiError({
+          code: "forbidden",
+          message:
+            "You can only use webhooks on a Business plan and above. Upgrade to Business to use this feature.",
         });
       }
 
-      const invalidTagNames = link.tagNames?.filter(
-        (name) => !workspaceTagNames.includes(name),
-      );
-      if (invalidTagNames?.length) {
-        validLinks = validLinks.filter((_, i) => i !== index);
-        errorLinks.push({
-          error: `Invalid tagNames detected: ${invalidTagNames.join(", ")}`,
-          code: "unprocessable_entity",
-          link,
-        });
-      }
-    });
+      const webhookIds = validLinks
+        .map((link) => link.webhookIds)
+        .flat()
+        .filter((id): id is string => id !== null);
+
+      const webhooks = await prisma.webhook.findMany({
+        where: { projectId: workspace.id, id: { in: webhookIds } },
+      });
+
+      const workspaceWebhookIds = webhooks.map(({ id }) => id);
+
+      validLinks.forEach((link, index) => {
+        const invalidWebhookIds = link.webhookIds?.filter(
+          (id) => !workspaceWebhookIds.includes(id),
+        );
+        if (invalidWebhookIds && invalidWebhookIds.length > 0) {
+          validLinks = validLinks.filter((_, i) => i !== index);
+          errorLinks.push({
+            error: `Invalid webhookIds detected: ${invalidWebhookIds.join(", ")}`,
+            code: "unprocessable_entity",
+            link,
+          });
+        }
+      });
+    }
 
     const validLinksResponse =
       validLinks.length > 0 ? await bulkCreateLinks({ links: validLinks }) : [];
