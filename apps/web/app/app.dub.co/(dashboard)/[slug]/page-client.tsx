@@ -21,7 +21,7 @@ import {
   TooltipContent,
   useMediaQuery,
 } from "@dub/ui";
-import { Download, TableIcon, Tag } from "@dub/ui/src/icons";
+import { Download, Globe, TableIcon, Tag } from "@dub/ui/src/icons";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
@@ -60,8 +60,15 @@ function WorkspaceLinks() {
 
   const { slug } = useWorkspace();
 
-  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
-    useLinkFilters();
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    setSearch,
+    setSelectedFilter,
+  } = useLinkFilters();
 
   const { isValidating } = useLinks();
 
@@ -74,20 +81,19 @@ function WorkspaceLinks() {
           <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
             <div className="flex w-full grow gap-2 md:w-auto">
               <div className="grow basis-0 md:grow-0">
-                <LinkDisplay />
-              </div>
-              <div className="grow basis-0 md:grow-0">
                 <Filter.Select
                   filters={filters}
                   activeFilters={activeFilters}
                   onSelect={onSelect}
                   onRemove={onRemove}
+                  onSearchChange={setSearch}
+                  onSelectedFilterChange={setSelectedFilter}
                   className="w-full"
                   emptyState={{
-                    tagId: (
+                    tagIds: (
                       <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
                         <div className="flex items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 p-3">
-                          <Tag className="h-8 w-8 text-gray-700" />
+                          <Tag className="size-6 text-gray-700" />
                         </div>
                         <p className="mt-2 font-medium text-gray-950">
                           No tags found
@@ -107,7 +113,7 @@ function WorkspaceLinks() {
                     domain: (
                       <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
                         <div className="flex items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 p-3">
-                          <Tag className="h-8 w-8 text-gray-700" />
+                          <Globe className="size-6 text-gray-700" />
                         </div>
                         <p className="mt-2 font-medium text-gray-950">
                           No domains found
@@ -128,6 +134,9 @@ function WorkspaceLinks() {
                     ),
                   }}
                 />
+              </div>
+              <div className="grow basis-0 md:grow-0">
+                <LinkDisplay />
               </div>
             </div>
             <div className="flex gap-x-2 max-md:w-full">

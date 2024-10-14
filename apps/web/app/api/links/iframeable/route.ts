@@ -4,17 +4,16 @@ import {
   getDomainQuerySchema,
   getUrlQuerySchema,
 } from "@/lib/zod/schemas/links";
-import { isIframeable } from "@dub/utils";
+import { getSearchParams, isIframeable } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "edge";
 
 export async function GET(req: NextRequest) {
   try {
-    const { url, domain } = getUrlQuerySchema.and(getDomainQuerySchema).parse({
-      url: req.nextUrl.searchParams.get("url"),
-      domain: req.nextUrl.searchParams.get("domain"),
-    });
+    const { url, domain } = getUrlQuerySchema
+      .and(getDomainQuerySchema)
+      .parse(getSearchParams(req.url));
 
     await ratelimitOrThrow(req, "iframeable");
 

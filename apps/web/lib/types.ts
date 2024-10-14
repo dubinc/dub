@@ -20,6 +20,7 @@ export type LinkProps = Link;
 
 export interface LinkWithTagsProps extends LinkProps {
   tags: TagProps[];
+  webhookIds: string[];
 }
 
 export interface SimpleLinkProps {
@@ -69,7 +70,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "referrals" | "webhooks";
+export type BetaFeatures = "callink" | "referrals" | "webhooks";
 
 export type AddOns = "conversion" | "sso";
 
@@ -125,7 +126,9 @@ export interface DomainProps {
   archived: boolean;
   placeholder?: string;
   expiredUrl?: string;
+  notFoundUrl?: string;
   projectId: string;
+  link?: LinkProps;
   registeredDomain?: RegisteredDomainProps;
 }
 

@@ -267,11 +267,11 @@ export function Combobox({
                       </CommandItem>
                     )}
                     {shouldFilter ? (
-                      <Empty className="flex h-12 items-center justify-center text-sm text-gray-500">
+                      <Empty className="flex min-h-12 items-center justify-center text-sm text-gray-500">
                         {emptyState ? emptyState : "No matches"}
                       </Empty>
                     ) : sortedOptions.length === 0 ? (
-                      <div className="flex h-12 items-center justify-center text-sm text-gray-500">
+                      <div className="flex min-h-12 items-center justify-center text-sm text-gray-500">
                         {emptyState ? emptyState : "No matches"}
                       </div>
                     ) : null}
@@ -334,7 +334,7 @@ const Scroll = ({ children }: PropsWithChildren) => {
   return (
     <>
       <div
-        className="scrollbar-hide max-h-[min(50vh,240px)] w-screen overflow-y-scroll sm:w-auto"
+        className="scrollbar-hide max-h-[min(50vh,250px)] w-screen overflow-y-scroll sm:w-auto"
         ref={ref}
         onScroll={updateScrollProgress}
       >
