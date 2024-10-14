@@ -120,6 +120,7 @@ export interface DomainProps {
   archived: boolean;
   placeholder?: string;
   expiredUrl?: string;
+  notFoundUrl?: string;
   projectId: string;
   link?: LinkProps;
   registeredDomain?: RegisteredDomainProps;

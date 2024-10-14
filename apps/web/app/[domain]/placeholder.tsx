@@ -74,7 +74,7 @@ export default function PlaceholderContent() {
         </motion.p>
         <motion.a
           variants={STAGGER_CHILD_VARIANTS}
-          href={createHref("/", domain, {
+          href={createHref("/home", domain, {
             utm_source: "Custom Domain",
             utm_medium: "Welcome Page",
             utm_campaign: domain,
