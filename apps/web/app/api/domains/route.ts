@@ -55,19 +55,16 @@ export const GET = withWorkspace(
       skip: (page - 1) * pageSize,
     });
 
-    const response = domains.map((domain) => {
-      const { links, ...rest } = domain;
-      return {
-        ...DomainSchema.parse(rest),
-        ...(includeLink &&
-          links.length > 0 && {
-            link: transformLink({
-              ...links[0],
-              tags: links[0]["tags"].map((tag) => tag),
-            }),
+    const response = domains.map((domain) => ({
+      ...DomainSchema.parse(domain),
+      ...(includeLink &&
+        domain.links.length > 0 && {
+          link: transformLink({
+            ...domain.links[0],
+            tags: domain.links[0]["tags"].map((tag) => tag),
           }),
-      };
-    });
+        }),
+    }));
 
     return NextResponse.json(response);
   },
