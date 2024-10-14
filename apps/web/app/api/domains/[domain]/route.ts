@@ -90,6 +90,9 @@ export const PATCH = withWorkspace(
           expiredUrl,
         }),
       },
+      include: {
+        registeredDomain: true,
+      },
     });
 
     waitUntil(

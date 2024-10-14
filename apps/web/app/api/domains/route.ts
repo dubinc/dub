@@ -135,6 +135,7 @@ export const POST = withWorkspace(
           }),
         },
       }),
+
       createLink({
         ...DEFAULT_LINK_PROPS,
         domain: slug,
@@ -146,9 +147,15 @@ export const POST = withWorkspace(
       }),
     ]);
 
-    return NextResponse.json(DomainSchema.parse(domainRecord), {
-      status: 201,
-    });
+    return NextResponse.json(
+      DomainSchema.parse({
+        ...domainRecord,
+        registeredDomain: null,
+      }),
+      {
+        status: 201,
+      },
+    );
   },
   {
     requiredPermissions: ["domains.write"],
