@@ -2,9 +2,11 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UtmTemplateProps } from "@/lib/types";
-import { Combobox } from "@dub/ui";
+import { UTM_PARAMETERS } from "@/ui/links/utm-builder";
+import { Combobox, Tooltip } from "@dub/ui";
 import { Note } from "@dub/ui/src/icons";
 import { fetcher, getParamsFromURL } from "@dub/utils";
+import { Fragment } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
@@ -26,7 +28,7 @@ export function UTMTemplatesCombo({
     },
   );
 
-  return data && data.length > 0 ? (
+  return data ? (
     <Combobox
       selected={null}
       setSelected={(option) => {
@@ -48,8 +50,40 @@ export function UTMTemplatesCombo({
         label: template.name,
         value: template.id,
       }))}
+      optionRight={({ value }) => {
+        const template = data.find((template) => template.id === value);
+        if (!template) return null;
+
+        const includedParams = UTM_PARAMETERS.filter(
+          ({ key }) => template[key],
+        );
+
+        return (
+          <Tooltip
+            content={
+              <div className="grid max-w-[225px] grid-cols-[1fr,minmax(0,min-content)] gap-x-2 gap-y-1 whitespace-nowrap p-2 text-sm sm:min-w-[150px]">
+                {includedParams.map(({ key, label, icon: Icon }) => (
+                  <Fragment key={key}>
+                    <span className="font-medium text-gray-600">{label}</span>
+                    <span className="truncate text-gray-500">
+                      {template[key]}
+                    </span>
+                  </Fragment>
+                ))}
+              </div>
+            }
+          >
+            <div className="ml-4 flex shrink-0 items-center gap-1 text-gray-500">
+              {includedParams.map(({ icon: Icon }) => (
+                <Icon className="size-3.5" />
+              ))}
+            </div>
+          </Tooltip>
+        );
+      }}
       placeholder="Templates"
       searchPlaceholder="Load or save a template..."
+      emptyState="No templates found"
       icon={Note}
       createLabel={(search) => `Save new template: "${search}"`}
       onCreate={async (search) => {
@@ -81,7 +115,8 @@ export function UTMTemplatesCombo({
         return false;
       }}
       buttonProps={{ className: "w-fit px-2" }}
-      optionClassName="sm:min-w-[200px] sm:max-w-[350px] animate-fade-in"
+      inputClassName="md:min-w-[200px]"
+      optionClassName="md:min-w-[250px] md:max-w-[350px] animate-fade-in"
       caret
     />
   ) : null;

@@ -1,7 +1,9 @@
 import { cn } from "@dub/utils";
-import { Command, CommandEmpty, CommandInput, CommandItem } from "cmdk";
+import { Command, CommandInput, CommandItem, useCommandState } from "cmdk";
 import { ChevronDown } from "lucide-react";
 import {
+  forwardRef,
+  HTMLProps,
   isValidElement,
   PropsWithChildren,
   ReactNode,
@@ -56,6 +58,8 @@ export type ComboboxProps<
   onOpenChange?: (open: boolean) => void;
   onSearchChange?: (search: string) => void;
   shouldFilter?: boolean;
+  inputClassName?: string;
+  optionRight?: (option: ComboboxOption) => ReactNode;
   optionClassName?: string;
   matchTriggerWidth?: boolean;
 }>;
@@ -86,6 +90,8 @@ export function Combobox({
   onOpenChange,
   onSearchChange,
   shouldFilter = true,
+  inputClassName,
+  optionRight,
   optionClassName,
   matchTriggerWidth,
   children,
@@ -193,7 +199,10 @@ export function Combobox({
                 placeholder={searchPlaceholder}
                 value={search}
                 onValueChange={setSearch}
-                className="grow border-0 py-3 pl-4 pr-2 outline-none placeholder:text-gray-400 focus:ring-0 sm:text-sm"
+                className={cn(
+                  "grow border-0 py-3 pl-4 pr-2 outline-none placeholder:text-gray-400 focus:ring-0 sm:text-sm",
+                  inputClassName,
+                )}
                 onKeyDown={(e) => {
                   if (
                     e.key === "Escape" ||
@@ -226,6 +235,7 @@ export function Combobox({
                           ({ value }) => value === option.value,
                         )}
                         onSelect={() => handleSelect(option)}
+                        right={optionRight?.(option)}
                         className={optionClassName}
                       />
                     ))}
@@ -257,9 +267,9 @@ export function Combobox({
                       </CommandItem>
                     )}
                     {shouldFilter ? (
-                      <CommandEmpty className="flex h-12 items-center justify-center text-sm text-gray-500">
+                      <Empty className="flex h-12 items-center justify-center text-sm text-gray-500">
                         {emptyState ? emptyState : "No matches"}
-                      </CommandEmpty>
+                      </Empty>
                     ) : sortedOptions.length === 0 ? (
                       <div className="flex h-12 items-center justify-center text-sm text-gray-500">
                         {emptyState ? emptyState : "No matches"}
@@ -344,12 +354,14 @@ function Option({
   onSelect,
   multiple,
   selected,
+  right,
   className,
 }: {
   option: ComboboxOption;
   onSelect: () => void;
   multiple: boolean;
   selected: boolean;
+  right?: ReactNode;
   className?: string;
 }) {
   return (
@@ -383,6 +395,7 @@ function Option({
         )}
         <span className="grow truncate">{option.label}</span>
       </div>
+      {right}
       {!multiple && selected && (
         <Check2 className="size-4 shrink-0 text-gray-600" />
       )}
@@ -392,3 +405,15 @@ function Option({
 
 const isReactNode = (element: any): element is ReactNode =>
   isValidElement(element);
+
+// Custom Empty component because our current cmdk version has an issue with first render (https://github.com/pacocoursey/cmdk/issues/149)
+const Empty = forwardRef<HTMLDivElement, HTMLProps<HTMLDivElement>>(
+  (props, forwardedRef) => {
+    const render = useCommandState((state) => state.filtered.count === 0);
+
+    if (!render) return null;
+    return (
+      <div ref={forwardedRef} cmdk-empty="" role="presentation" {...props} />
+    );
+  },
+);
