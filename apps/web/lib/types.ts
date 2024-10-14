@@ -121,6 +121,7 @@ export interface DomainProps {
   placeholder?: string;
   expiredUrl?: string;
   projectId: string;
+  link: LinkProps;
   registeredDomain?: RegisteredDomainProps;
 }
 

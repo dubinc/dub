@@ -101,7 +101,7 @@ export default function Toggle({
 
   // Determine whether tags and domains should be fetched async
   const { data: tagsCount } = useTagsCount();
-  const { data: domainsCount } = useDomainsCount({ includeParams: false });
+  const { data: domainsCount } = useDomainsCount({ ignoreParams: true });
   const tagsAsync = Boolean(tagsCount && tagsCount > TAGS_MAX_PAGE_SIZE);
   const domainsAsync = domainsCount && domainsCount > DOMAINS_MAX_PAGE_SIZE;
 
@@ -119,8 +119,8 @@ export default function Toggle({
     primaryDomain,
     loading: loadingDomains,
   } = useDomains({
-    includeParams: false,
-    query: {
+    ignoreParams: true,
+    params: {
       search:
         domainsAsync && selectedFilter === "domain" ? debouncedSearch : "",
     },

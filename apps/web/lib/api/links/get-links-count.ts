@@ -36,6 +36,9 @@ export async function getLinksCount({
         {
           url: { contains: search },
         },
+        {
+          comments: { contains: search },
+        },
       ],
     }),
     // when filtering by domain, only filter by domain if the filter group is not "Domains"

@@ -1,23 +1,22 @@
 import { addDomainToVercel, validateDomain } from "@/lib/api/domains";
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
-import { createLink } from "@/lib/api/links";
+import { createLink, transformLink } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   DomainSchema,
   createDomainBodySchema,
-  getDomainsQuerySchema,
+  getDomainsQuerySchemaExtended,
 } from "@/lib/zod/schemas/domains";
 import { DEFAULT_LINK_PROPS } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 // GET /api/domains – get all domains for a workspace
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const { search, archived, page, pageSize } =
-      getDomainsQuerySchema.parse(searchParams);
+    const { search, archived, page, pageSize, includeLink } =
+      getDomainsQuerySchemaExtended.parse(searchParams);
 
     const domains = await prisma.domain.findMany({
       where: {
@@ -31,12 +30,46 @@ export const GET = withWorkspace(
       },
       include: {
         registeredDomain: true,
+        ...(includeLink && {
+          links: {
+            where: {
+              key: "_root",
+            },
+            include: {
+              tags: {
+                select: {
+                  tag: {
+                    select: {
+                      id: true,
+                      name: true,
+                      color: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        }),
       },
       take: pageSize,
       skip: (page - 1) * pageSize,
     });
 
-    return NextResponse.json(z.array(DomainSchema).parse(domains));
+    const response = domains.map((domain) => {
+      const { links, ...rest } = domain;
+      return {
+        ...rest,
+        ...(includeLink &&
+          links.length > 0 && {
+            link: transformLink({
+              ...links[0],
+              tags: links[0]["tags"].map((tag) => tag),
+            }),
+          }),
+      };
+    });
+
+    return NextResponse.json(response);
   },
   {
     requiredPermissions: ["domains.read"],

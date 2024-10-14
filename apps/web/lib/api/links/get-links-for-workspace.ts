@@ -36,6 +36,9 @@ export async function getLinksForWorkspace({
           {
             url: { contains: search },
           },
+          {
+            comments: { contains: search },
+          },
         ],
       }),
       ...(withTags && {
