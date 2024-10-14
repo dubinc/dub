@@ -1,16 +1,18 @@
 import useWebhooks from "@/lib/swr/use-webhooks";
-import { Combobox, useKeyboardShortcut, Webhook } from "@dub/ui";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { Button, Combobox, Globe, useKeyboardShortcut, Webhook } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { LinkFormData } from ".";
 
 export function WebhookSelect() {
   const [isOpen, setIsOpen] = useState(false);
-  const { webhooks: availableWebhooks } = useWebhooks();
   const { watch, setValue } = useFormContext<LinkFormData>();
-
+  const { webhooks: availableWebhooks, isLoading } = useWebhooks();
   useKeyboardShortcut("w", () => setIsOpen(true), { modal: true });
+
   const webhookIds = watch("webhookIds") as string[];
 
   const linkLevelWebhooks = availableWebhooks?.filter((webhook) =>
@@ -65,6 +67,7 @@ export function WebhookSelect() {
       }}
       open={isOpen}
       onOpenChange={setIsOpen}
+      emptyState={<NoWebhooksFound />}
     >
       {selectedWebhooks.length > 0
         ? selectedWebhooks.length === 1
@@ -74,3 +77,27 @@ export function WebhookSelect() {
     </Combobox>
   );
 }
+
+const NoWebhooksFound = () => {
+  const router = useRouter();
+  const { slug } = useWorkspace();
+
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-2 p-2 text-center text-sm">
+      <div className="flex items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 p-3">
+        <Globe className="size-6 text-gray-700" />
+      </div>
+      <p className="mt-2 font-medium text-gray-950">No webhooks found</p>
+      <p className="mx-auto mt-1 w-full max-w-[180px] text-gray-700">
+        Add a webhook to receive click event when someone clicks your link.
+      </p>
+      <div>
+        <Button
+          className="mt-1 h-8"
+          onClick={() => router.push(`/${slug}/settings/webhooks`)}
+          text="Add webhook"
+        />
+      </div>
+    </div>
+  );
+};
