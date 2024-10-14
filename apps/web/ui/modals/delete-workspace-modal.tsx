@@ -1,6 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Logo, Modal, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Dispatch,
@@ -19,6 +20,7 @@ function DeleteWorkspaceModal({
   showDeleteWorkspaceModal: boolean;
   setShowDeleteWorkspaceModal: Dispatch<SetStateAction<boolean>>;
 }) {
+  const { update } = useSession();
   const router = useRouter();
   const { slug } = useParams() as { slug: string };
   const { id, isOwner } = useWorkspace();
@@ -35,7 +37,7 @@ function DeleteWorkspaceModal({
         },
       }).then(async (res) => {
         if (res.ok) {
-          await mutate("/api/workspaces");
+          await Promise.all([mutate("/api/workspaces"), update()]);
           router.push("/");
           resolve(null);
         } else {

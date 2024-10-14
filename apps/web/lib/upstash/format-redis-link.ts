@@ -2,7 +2,9 @@ import { isIframeable } from "@dub/utils";
 import { LinkProps, RedisLinkProps } from "../types";
 
 export async function formatRedisLink(
-  link: LinkProps & { webhookIds?: string[] },
+  link: LinkProps & {
+    webhooks?: { webhookId: string }[];
+  },
 ): Promise<RedisLinkProps> {
   const {
     id,
@@ -19,15 +21,16 @@ export async function formatRedisLink(
     geo,
     doIndex,
     projectId,
-    webhookIds,
+    webhooks,
   } = link;
-  const hasPassword = password && password.length > 0 ? true : false;
+
+  const webhookIds = webhooks?.map(({ webhookId }) => webhookId) ?? [];
 
   return {
     id,
     ...(url && { url }), // on free plans you cannot set a root domain redirect, hence URL is undefined
     ...(trackConversion && { trackConversion: true }),
-    ...(hasPassword && { password: true }),
+    ...(password && password.length > 0 && { password: true }),
     ...(proxy && { proxy: true }),
     ...(url &&
       rewrite && {
@@ -41,6 +44,6 @@ export async function formatRedisLink(
     ...(geo && { geo: geo as object }),
     ...(projectId && { projectId }), // projectId can be undefined for anonymous links
     ...(doIndex && { doIndex: true }),
-    ...(webhookIds && { webhookIds }),
+    ...(webhookIds.length > 0 && { webhookIds }),
   };
 }

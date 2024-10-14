@@ -1,7 +1,9 @@
 import { cn } from "@dub/utils";
-import { Command, CommandEmpty, CommandInput, CommandItem } from "cmdk";
+import { Command, CommandInput, CommandItem, useCommandState } from "cmdk";
 import { ChevronDown } from "lucide-react";
 import {
+  forwardRef,
+  HTMLProps,
   isValidElement,
   PropsWithChildren,
   ReactNode,
@@ -257,11 +259,11 @@ export function Combobox({
                       </CommandItem>
                     )}
                     {shouldFilter ? (
-                      <CommandEmpty className="flex h-12 items-center justify-center text-sm text-gray-500">
+                      <Empty className="flex min-h-12 items-center justify-center text-sm text-gray-500">
                         {emptyState ? emptyState : "No matches"}
-                      </CommandEmpty>
+                      </Empty>
                     ) : sortedOptions.length === 0 ? (
-                      <div className="flex h-12 items-center justify-center text-sm text-gray-500">
+                      <div className="flex min-h-12 items-center justify-center text-sm text-gray-500">
                         {emptyState ? emptyState : "No matches"}
                       </div>
                     ) : null}
@@ -324,7 +326,7 @@ const Scroll = ({ children }: PropsWithChildren) => {
   return (
     <>
       <div
-        className="scrollbar-hide max-h-[min(50vh,240px)] w-screen overflow-y-scroll sm:w-auto"
+        className="scrollbar-hide max-h-[min(50vh,250px)] w-screen overflow-y-scroll sm:w-auto"
         ref={ref}
         onScroll={updateScrollProgress}
       >
@@ -392,3 +394,15 @@ function Option({
 
 const isReactNode = (element: any): element is ReactNode =>
   isValidElement(element);
+
+// Custom Empty component because our current cmdk version has an issue with first render (https://github.com/pacocoursey/cmdk/issues/149)
+const Empty = forwardRef<HTMLDivElement, HTMLProps<HTMLDivElement>>(
+  (props, forwardedRef) => {
+    const render = useCommandState((state) => state.filtered.count === 0);
+
+    if (!render) return null;
+    return (
+      <div ref={forwardedRef} cmdk-empty="" role="presentation" {...props} />
+    );
+  },
+);
