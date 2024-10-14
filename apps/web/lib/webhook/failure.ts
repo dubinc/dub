@@ -17,19 +17,21 @@ export const handleWebhookFailure = async (webhookId: string) => {
       url: true,
       secret: true,
       triggers: true,
-      disabled: true,
+      disabledAt: true,
       consecutiveFailures: true,
       lastFailedAt: true,
       projectId: true,
     },
   });
 
-  if (webhook.disabled) {
+  if (webhook.disabledAt) {
     return;
   }
 
   const failureThresholdReached =
     webhook.consecutiveFailures >= WEBHOOK_FAILURE_NOTIFY_THRESHOLD;
+
+  const disabledAt = new Date();
 
   if (failureThresholdReached) {
     await Promise.allSettled([
@@ -37,7 +39,7 @@ export const handleWebhookFailure = async (webhookId: string) => {
       prisma.webhook.update({
         where: { id: webhookId },
         data: {
-          disabled: true,
+          disabledAt,
         },
       }),
 
@@ -45,7 +47,7 @@ export const handleWebhookFailure = async (webhookId: string) => {
       sendFailureNotification(webhook),
 
       // Update the webhook cache
-      webhookCache.set({ ...webhook, disabled: true }),
+      webhookCache.set({ ...webhook, disabledAt }),
     ]);
   }
 };
@@ -61,7 +63,7 @@ export const resetWebhookFailureCount = async (webhookId: string) => {
 };
 
 const sendFailureNotification = async (
-  webhook: Pick<Webhook, "id" | "url" | "triggers" | "disabled" | "projectId">,
+  webhook: Pick<Webhook, "id" | "url" | "projectId">,
 ) => {
   const workspaceOwners = await prisma.projectUsers.findFirst({
     where: { projectId: webhook.projectId, role: "owner" },

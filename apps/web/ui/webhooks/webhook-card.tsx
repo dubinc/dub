@@ -2,7 +2,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { WebhookProps } from "@/lib/types";
 import { TokenAvatar } from "@dub/ui";
 import Link from "next/link";
-import { WebhookDeliveryStatus } from "./webhook-delivery-status";
+import { WebhookStatus } from "./webhook-status";
 
 export default function WebhookCard(webhook: WebhookProps) {
   const { slug } = useWorkspace();
@@ -19,7 +19,7 @@ export default function WebhookCard(webhook: WebhookProps) {
         <div>
           <div className="flex items-center gap-1">
             <span className="font-semibold text-gray-700">{webhook.name}</span>
-            <WebhookDeliveryStatus disabled={webhook.disabled} />
+            <WebhookStatus webhook={webhook} />
           </div>
           <div className="flex items-center gap-1 text-sm text-gray-500">
             {webhook.url}

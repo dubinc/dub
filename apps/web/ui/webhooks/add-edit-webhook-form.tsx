@@ -170,7 +170,7 @@ export default function AddEditWebhookForm({
               {secret}
             </p>
             <div className="flex flex-col gap-2">
-              <CopyButton value={secret} className="rounded-md" />
+              <CopyButton value={secret!} className="rounded-md" />
             </div>
           </div>
         </div>

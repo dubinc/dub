@@ -7,7 +7,7 @@ export const webhookSchema = z.object({
   url: z.string(),
   secret: z.string(),
   triggers: z.array(z.enum(WEBHOOK_TRIGGERS)),
-  disabled: z.boolean().optional(),
+  disabledAt: z.date().nullable().optional(),
   linkIds: z.array(z.string()).optional(),
 });
 
@@ -19,9 +19,7 @@ export const createWebhookSchema = z.object({
   linkIds: z.array(z.string()).optional(),
 });
 
-export const updateWebhookSchema = createWebhookSchema.partial().extend({
-  disabled: z.boolean().optional(),
-});
+export const updateWebhookSchema = createWebhookSchema.partial();
 
 // Schema of response sent to the webhook callback URL by QStash
 export const webhookCallbackSchema = z.object({

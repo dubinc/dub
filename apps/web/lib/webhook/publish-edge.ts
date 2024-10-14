@@ -20,7 +20,7 @@ export const sendWorkspaceWebhookOnEdge = async ({
   const webhooks = await prismaEdge.webhook.findMany({
     where: {
       projectId: workspace.id,
-      disabled: false,
+      disabledAt: null,
       triggers: {
         array_contains: [trigger],
       },

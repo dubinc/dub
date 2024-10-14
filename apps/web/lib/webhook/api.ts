@@ -52,7 +52,7 @@ export async function addWebhook({
       secret: true,
       triggers: true,
       links: true,
-      disabled: true,
+      disabledAt: true,
     },
   });
 

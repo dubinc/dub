@@ -12,10 +12,10 @@ model Webhook {
   name                String
   url                 String
   secret              String
-  disabled            Boolean         @default(false)
   triggers            Json
   consecutiveFailures Int             @default(0)
   lastFailedAt        DateTime?
+  disabledAt          DateTime?
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
 

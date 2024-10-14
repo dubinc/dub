@@ -23,7 +23,7 @@ export const GET = withWorkspace(
         url: true,
         secret: true,
         triggers: true,
-        disabled: true,
+        disabledAt: true,
         links: true,
       },
       orderBy: {

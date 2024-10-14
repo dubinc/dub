@@ -92,7 +92,16 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
         ? [
             prisma.webhook.updateMany({
               where: { projectId: workspace.id },
-              data: { disabled: true },
+              data: { disabledAt: new Date() },
+            }),
+
+            prisma.project.update({
+              where: {
+                id: workspace.id,
+              },
+              data: {
+                webhookEnabled: false,
+              },
             }),
           ]
         : []),

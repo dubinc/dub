@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import useSWR from "swr";
 import { useDeleteWebhookModal } from "../modals/delete-webhook-modal";
 import { useSendTestWebhookModal } from "../modals/send-test-webhook-modal";
-import { WebhookDeliveryStatus } from "./webhook-delivery-status";
+import { WebhookStatus } from "./webhook-status";
 
 export default function WebhookHeader({ webhookId }: { webhookId: string }) {
   const router = useRouter();
@@ -111,7 +111,7 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
                   <span className="font-semibold text-gray-700">
                     {webhook.name}
                   </span>
-                  <WebhookDeliveryStatus disabled={webhook.disabled} />
+                  <WebhookStatus webhook={webhook} />
                 </div>
                 <a
                   href={webhook.url}
@@ -140,11 +140,11 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
 
                 <Button
                   text={
-                    webhook?.disabled ? "Enable webhook" : "Disable webhook"
+                    webhook?.disabledAt ? "Enable webhook" : "Disable webhook"
                   }
                   variant="outline"
                   icon={
-                    webhook?.disabled ? (
+                    webhook?.disabledAt ? (
                       <CircleX className="size-4" />
                     ) : (
                       <CircleCheck className="size-4" />
@@ -152,7 +152,7 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
                   }
                   className="h-9 justify-start px-2"
                   onClick={async () => {
-                    toggleWebhookStatus(!webhook?.disabled);
+                    toggleWebhookStatus(!webhook?.disabledAt);
                     setOpenPopover(false);
                   }}
                   disabled={!!permissionsError}

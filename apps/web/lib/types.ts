@@ -251,7 +251,7 @@ export type WebhookEventProps = z.infer<typeof webhookEventSchemaTB>;
 
 export type WebhookCacheProps = Pick<
   Webhook,
-  "id" | "url" | "secret" | "triggers" | "disabled"
+  "id" | "url" | "secret" | "triggers" | "disabledAt"
 >;
 
 export type TrackCustomerResponse = z.infer<typeof trackCustomerResponseSchema>;

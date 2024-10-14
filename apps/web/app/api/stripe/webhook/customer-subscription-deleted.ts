@@ -152,7 +152,16 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         projectId: workspace.id,
       },
       data: {
-        disabled: true,
+        disabledAt: new Date(),
+      },
+    }),
+
+    prisma.project.update({
+      where: {
+        id: workspace.id,
+      },
+      data: {
+        webhookEnabled: false,
       },
     }),
   ]);

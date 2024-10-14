@@ -26,7 +26,7 @@ export const GET = withWorkspace(
         url: true,
         secret: true,
         triggers: true,
-        disabled: true,
+        disabledAt: true,
         links: true,
       },
     });
@@ -51,8 +51,9 @@ export const PATCH = withWorkspace(
   async ({ workspace, params, req }) => {
     const { webhookId } = params;
 
-    const { name, url, triggers, linkIds, disabled } =
-      updateWebhookSchema.parse(await parseRequestBody(req));
+    const { name, url, triggers, linkIds } = updateWebhookSchema.parse(
+      await parseRequestBody(req),
+    );
 
     if (url) {
       const webhookUrlExists = await prisma.webhook.findFirst({
@@ -111,7 +112,6 @@ export const PATCH = withWorkspace(
         ...(name && { name }),
         ...(url && { url }),
         ...(triggers && { triggers }),
-        disabled,
         ...(linkIds && {
           links: {
             deleteMany: {},
@@ -127,7 +127,7 @@ export const PATCH = withWorkspace(
         url: true,
         secret: true,
         triggers: true,
-        disabled: true,
+        disabledAt: true,
         links: {
           select: {
             linkId: true,

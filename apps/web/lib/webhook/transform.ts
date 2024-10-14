@@ -15,7 +15,7 @@ import { leadWebhookEventSchema, saleWebhookEventSchema } from "./schemas";
 interface TransformWebhookProps
   extends Pick<
     Webhook,
-    "id" | "name" | "url" | "secret" | "triggers" | "disabled"
+    "id" | "name" | "url" | "secret" | "triggers" | "disabledAt"
   > {
   links: { linkId: string }[];
 }
