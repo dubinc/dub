@@ -13,7 +13,7 @@ export default function useLinks(
   opts: z.infer<typeof partialQuerySchema> = {},
   swrOpts: SWRConfiguration = {},
 ) {
-  const { id, webhookEnabled } = useWorkspace();
+  const { id } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
   const [admin, setAdmin] = useState(false);
