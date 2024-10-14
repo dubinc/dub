@@ -26,7 +26,7 @@ import {
   Tooltip,
   TooltipContent,
 } from "@dub/ui";
-import { Download, TableIcon, Tag } from "@dub/ui/src/icons";
+import { Download, Globe, TableIcon, Tag } from "@dub/ui/src/icons";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
@@ -103,10 +103,10 @@ function WorkspaceLinks() {
                   onSelectedFilterChange={setSelectedFilter}
                   className="w-full"
                   emptyState={{
-                    tagId: (
+                    tagIds: (
                       <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
                         <div className="flex items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 p-3">
-                          <Tag className="h-8 w-8 text-gray-700" />
+                          <Tag className="size-6 text-gray-700" />
                         </div>
                         <p className="mt-2 font-medium text-gray-950">
                           No tags found
@@ -126,7 +126,7 @@ function WorkspaceLinks() {
                     domain: (
                       <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
                         <div className="flex items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 p-3">
-                          <Tag className="h-8 w-8 text-gray-700" />
+                          <Globe className="size-6 text-gray-700" />
                         </div>
                         <p className="mt-2 font-medium text-gray-950">
                           No domains found
