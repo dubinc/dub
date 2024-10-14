@@ -8,7 +8,7 @@ https://github.com/user-attachments/assets/2ce9fe51-68ab-4e6d-b08d-4da09c17f90e
 
 | Command                   | Description                                                                                                                                                                                              |
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `dub login [key]`         | Configure your workspace API key                                                                                                                                                                         |
+| `dub login`               | Log into the DUB platform                                                                                                                                                                                |
 | `dub config`              | See your configured workspace credentials                                                                                                                                                                |
 | `dub domains`             | Configure your workspace domain                                                                                                                                                                          |
 | `dub shorten [url] [key]` | Create a short link. You can preemptively pass the URL and the generated short link key, or go through the CLI prompts.                                                                                  |
