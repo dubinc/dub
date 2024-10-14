@@ -109,7 +109,7 @@ function AddEditUtmTemplateModal({
       >
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-medium">
-            {props ? "Edit UTM Template" : "Add UTM Template"}
+            {props ? "Edit UTM Template" : "Create UTM Template"}
           </h3>
         </div>
         <div className="mt-6">
@@ -147,7 +147,7 @@ function AddEditUtmTemplateModal({
             // Check all dirty fields because `isDirty` doesn't seem to register for `ref`
             disabled={!Object.entries(dirtyFields).some(([_, dirty]) => dirty)}
             loading={isSubmitting || isSubmitSuccessful}
-            text={props ? "Save changes" : "Create Template"}
+            text={props ? "Save changes" : "Create template"}
             className="h-9 w-fit"
           />
         </div>
@@ -165,7 +165,7 @@ function AddUtmTemplateButton({
     <div>
       <Button
         variant="primary"
-        text="Add Template"
+        text="Create template"
         className="h-9 rounded-lg"
         onClick={() => setShowAddEditUtmTemplateModal(true)}
       />
