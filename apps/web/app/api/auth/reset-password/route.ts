@@ -40,6 +40,15 @@ export async function POST(req: NextRequest) {
 
     const { identifier } = tokenFound;
 
+    const user = await prisma.user.findUniqueOrThrow({
+      where: {
+        email: identifier,
+      },
+      select: {
+        emailVerified: true,
+      },
+    });
+
     await prisma.$transaction([
       // Delete the token
       prisma.passwordResetToken.deleteMany({
@@ -56,6 +65,7 @@ export async function POST(req: NextRequest) {
         data: {
           passwordHash: await hashPassword(password),
           lockedAt: null, // Unlock the account after a successful password reset
+          ...(!user.emailVerified && { emailVerified: new Date() }), // Mark the email as verified
         },
       }),
     ]);
