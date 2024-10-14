@@ -1,6 +1,6 @@
+import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
-import { redis } from "@/lib/upstash";
-import { R2_URL } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { storage } from "../../storage";
 import { recordLink } from "../../tinybird";
@@ -50,7 +50,13 @@ export async function deleteDomainAndLinks(domain: string) {
     (async () => {
       await Promise.allSettled([
         // delete all links from redis
-        redis.del(domain.toLowerCase()),
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/domains/delete`,
+          body: {
+            domain,
+          },
+        }),
+
         // record deletes in tinybird for domain & links
         recordLink([
           ...allLinks.map((link) => ({
