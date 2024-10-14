@@ -1,7 +1,7 @@
 import { AlertCircleFill, CheckCircleFill, X } from "@/ui/shared/icons";
 import { Tooltip, useMediaQuery } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/src/icons";
-import { fetcher, isValidUrl as isValidUrlFn } from "@dub/utils";
+import { cn, fetcher, isValidUrl as isValidUrlFn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ReactNode, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
@@ -132,26 +132,50 @@ function LinkCloakingToggleBadge({
     [data, isLoading],
   );
 
-  return data && !data?.iframeable ? (
+  return data ? (
     <Tooltip
       content={
-        <div className="block max-w-sm text-pretty px-4 py-2 text-center text-sm text-gray-700">
-          We will try to cloak it with{" "}
-          <a
-            href="https://nextjs.org/docs/pages/api-reference/functions/next-response#rewrite"
-            target="_blank"
-            className="text-gray-500 underline underline-offset-2 hover:text-gray-700"
-          >
-            Next.js Rewrites
-          </a>
-          , but it might not work as expected.{" "}
-          <a
-            href="https://dub.co/help/article/link-cloaking"
-            target="_blank"
-            className="text-gray-500 underline underline-offset-2 hover:text-gray-700"
-          >
-            Learn more.
-          </a>
+        <div
+          className={cn(
+            "block max-w-lg text-pretty p-4 text-center text-sm text-gray-700",
+            {
+              "max-w-sm": !data.iframeable,
+            },
+          )}
+        >
+          {data.iframeable ? (
+            <div className="grid gap-2">
+              <div className="h-[250px] w-[444px] overflow-hidden rounded-lg border border-gray-200">
+                <iframe
+                  src={url}
+                  style={{
+                    zoom: 0.5,
+                  }}
+                  className="h-[500px] w-[888px]"
+                />
+              </div>
+              <p>Your link will be successfully cloaked.</p>
+            </div>
+          ) : (
+            <span>
+              We will try to cloak it with{" "}
+              <a
+                href="https://nextjs.org/docs/pages/api-reference/functions/next-response#rewrite"
+                target="_blank"
+                className="text-gray-500 underline underline-offset-2 hover:text-gray-700"
+              >
+                Next.js Rewrites
+              </a>
+              , but it might not work as expected.{" "}
+              <a
+                href="https://dub.co/help/article/link-cloaking"
+                target="_blank"
+                className="text-gray-500 underline underline-offset-2 hover:text-gray-700"
+              >
+                Learn more.
+              </a>
+            </span>
+          )}
         </div>
       }
     >
