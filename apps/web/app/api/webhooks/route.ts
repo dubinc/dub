@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { addWebhook } from "@/lib/webhook/api";
+import { addWebhook, updateWebhookStatusForWorkspace } from "@/lib/webhook/api";
 import { transformWebhook } from "@/lib/webhook/transform";
 import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { waitUntil } from "@vercel/functions";
@@ -97,20 +97,24 @@ export const POST = withWorkspace(
     });
 
     waitUntil(
-      sendEmail({
-        email: session.user.email,
-        subject: "New webhook added",
-        react: WebhookAdded({
+      Promise.allSettled([
+        updateWebhookStatusForWorkspace({ workspace }),
+
+        sendEmail({
           email: session.user.email,
-          workspace: {
-            name: workspace.name,
-            slug: workspace.slug,
-          },
-          webhook: {
-            name,
-          },
+          subject: "New webhook added",
+          react: WebhookAdded({
+            email: session.user.email,
+            workspace: {
+              name: workspace.name,
+              slug: workspace.slug,
+            },
+            webhook: {
+              name,
+            },
+          }),
         }),
-      }),
+      ]),
     );
 
     return NextResponse.json(transformWebhook(webhook), { status: 201 });

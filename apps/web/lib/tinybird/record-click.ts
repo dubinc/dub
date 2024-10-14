@@ -15,6 +15,7 @@ import {
   getIdentityHash,
 } from "../middleware/utils";
 import { conn } from "../planetscale";
+import { WorkspaceProps } from "../types";
 import { redis } from "../upstash";
 import { webhookCache } from "../webhook/cache";
 import { sendWebhooks } from "../webhook/qstash";
@@ -30,6 +31,7 @@ export async function recordClick({
   url,
   webhookIds,
   skipRatelimit,
+  workspaceId,
 }: {
   req: Request;
   linkId: string;
@@ -37,6 +39,7 @@ export async function recordClick({
   url?: string;
   webhookIds?: string[];
   skipRatelimit?: boolean;
+  workspaceId: string | undefined;
 }) {
   const searchParams = new URL(req.url).searchParams;
 
@@ -119,7 +122,9 @@ export async function recordClick({
     referer_url: referer || "(direct)",
   };
 
-  await Promise.allSettled([
+  const hasWebhooks = webhookIds && webhookIds.length > 0;
+
+  const [, , , , workspaceRows] = await Promise.all([
     fetch(
       `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
       {
@@ -146,37 +151,74 @@ export async function recordClick({
     // and then we have a cron that will reset it at the start of new billing cycle
     url &&
       conn.execute(
-        "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1 WHERE l.id = ?",
+        "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1 WHERE l.id = ?;",
         [linkId],
       ),
+
+    // fetch the workspace usage for the workspace
+    workspaceId && hasWebhooks
+      ? conn.execute(
+          "SELECT usage, usageLimit FROM Project WHERE id = ? LIMIT 1",
+          [workspaceId],
+        )
+      : null,
   ]);
 
-  // Send webhook events if link has webhooks enabled
-  if (webhookIds && webhookIds.length > 0) {
-    const webhooks = await webhookCache.mget(webhookIds);
+  const workspace =
+    workspaceRows && workspaceRows.rows.length > 0
+      ? (workspaceRows.rows[0] as Pick<WorkspaceProps, "usage" | "usageLimit">)
+      : null;
 
-    const linkWebhooks = webhooks.filter(
-      (webhook) =>
-        webhook.disabledAt === null &&
-        webhook.triggers &&
-        Array.isArray(webhook.triggers) &&
-        webhook.triggers.includes("link.clicked"),
-    );
+  const hasExceededUsageLimit =
+    workspace && workspace.usage >= workspace.usageLimit;
 
-    if (linkWebhooks.length > 0) {
-      const link = await conn
-        .execute("SELECT * FROM Link WHERE id = ?", [linkId])
-        .then((res) => res.rows[0]);
-
-      await sendWebhooks({
-        trigger: "link.clicked",
-        webhooks: linkWebhooks,
-        // @ts-ignore – bot & qr should be boolean
-        data: transformClickEventData({
-          ...clickData,
-          link: transformLink(link as LinkWithTags),
-        }),
-      });
-    }
+  // Send webhook events if link has webhooks enabled and the workspace usage has not exceeded the limit
+  if (hasWebhooks && !hasExceededUsageLimit) {
+    await sendLinkClickWebhooks({ webhookIds, linkId, clickData });
   }
+}
+
+async function sendLinkClickWebhooks({
+  webhookIds,
+  linkId,
+  clickData,
+}: {
+  webhookIds: string[];
+  linkId: string;
+  clickData: any;
+}) {
+  const webhooks = await webhookCache.mget(webhookIds);
+
+  // Couldn't find webhooks in the cache
+  // TODO: Should we look them up in the database?
+  if (!webhooks || webhooks.length === 0) {
+    return;
+  }
+
+  const activeLinkWebhooks = webhooks.filter((webhook) => {
+    return (
+      !webhook.disabledAt &&
+      webhook.triggers &&
+      Array.isArray(webhook.triggers) &&
+      webhook.triggers.includes("link.clicked")
+    );
+  });
+
+  if (activeLinkWebhooks.length === 0) {
+    return;
+  }
+
+  const link = await conn
+    .execute("SELECT * FROM Link WHERE id = ?", [linkId])
+    .then((res) => res.rows[0]);
+
+  await sendWebhooks({
+    trigger: "link.clicked",
+    webhooks: activeLinkWebhooks,
+    // @ts-ignore – bot & qr should be boolean
+    data: transformClickEventData({
+      ...clickData,
+      link: transformLink(link as LinkWithTags),
+    }),
+  });
 }
