@@ -240,6 +240,7 @@ export type InstalledIntegrationInfoProps = Pick<
       image: string | null;
     };
   } | null;
+  credentials?: Record<string, string>;
 };
 
 export type WebhookTrigger = keyof typeof WEBHOOK_TRIGGER_DESCRIPTIONS;

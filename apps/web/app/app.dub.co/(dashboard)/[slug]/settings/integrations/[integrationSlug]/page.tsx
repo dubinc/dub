@@ -1,4 +1,6 @@
+import { SlackCredential } from "@/lib/integrations/slack/type";
 import { prisma } from "@/lib/prisma";
+import { SLACK_INTEGRATION_ID } from "@dub/utils";
 import { notFound } from "next/navigation";
 import IntegrationPageClient from "./page-client";
 
@@ -42,24 +44,36 @@ export default async function IntegrationPage({
     notFound();
   }
 
+  const installed = integration.installations.length > 0;
+  let credentials: Record<string, string> = {};
+
+  if (integration.id === SLACK_INTEGRATION_ID && installed) {
+    const slackCredentials = integration.installations[0]
+      .credentials as SlackCredential;
+
+    credentials = {
+      webhookId: slackCredentials?.incomingWebhook?.webhookId,
+    };
+  }
+
   return (
     <IntegrationPageClient
       integration={{
         ...integration,
         screenshots: integration.screenshots as string[],
         installations: integration._count.installations,
-        installed:
-          integration.installations.length > 0
-            ? {
-                id: integration.installations[0].id,
-                by: {
-                  id: integration.installations[0].userId,
-                  name: integration.installations[0].user.name,
-                  image: integration.installations[0].user.image,
-                },
-                createdAt: integration.installations[0].createdAt,
-              }
-            : null,
+        installed: installed
+          ? {
+              id: integration.installations[0].id,
+              by: {
+                id: integration.installations[0].userId,
+                name: integration.installations[0].user.name,
+                image: integration.installations[0].user.image,
+              },
+              createdAt: integration.installations[0].createdAt,
+            }
+          : null,
+        credentials,
       }}
     />
   );

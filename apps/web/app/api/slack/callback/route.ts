@@ -75,6 +75,13 @@ export const GET = async (req: Request) => {
 
     const data = await response.json();
 
+    const webhook = await addWebhook({
+      name: "Slack",
+      url: data.incoming_webhook.url,
+      triggers: ["link.created"],
+      workspace,
+    });
+
     const credentials: SlackCredential = {
       appId: data.app_id,
       botUserId: data.bot_user_id,
@@ -86,7 +93,7 @@ export const GET = async (req: Request) => {
       incomingWebhook: {
         channel: data.incoming_webhook.channel,
         channelId: data.incoming_webhook.channel_id,
-        url: data.incoming_webhook.url,
+        webhookId: webhook.id,
       },
     };
 
@@ -99,12 +106,6 @@ export const GET = async (req: Request) => {
 
     // Add the webhook if the installation was successful
     if (installation) {
-      await addWebhook({
-        name: "Slack",
-        url: credentials.incomingWebhook.url,
-        triggers: ["link.created", "link.updated", "link.deleted"],
-        workspace,
-      });
     }
   } catch (e: any) {
     return handleAndReturnErrorResponse(e);
