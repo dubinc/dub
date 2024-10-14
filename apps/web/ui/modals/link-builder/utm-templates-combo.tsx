@@ -116,7 +116,7 @@ export function UTMTemplatesCombo({
       }}
       buttonProps={{ className: "w-fit px-2" }}
       inputClassName="md:min-w-[200px]"
-      optionClassName="md:min-w-[250px] md:max-w-[350px] animate-fade-in"
+      optionClassName="md:min-w-[250px] md:max-w-[350px]"
       caret
     />
   );
