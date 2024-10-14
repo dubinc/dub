@@ -58,7 +58,7 @@ export const GET = withWorkspace(
     const response = domains.map((domain) => {
       const { links, ...rest } = domain;
       return {
-        ...rest,
+        ...DomainSchema.parse(rest),
         ...(includeLink &&
           links.length > 0 && {
             link: transformLink({

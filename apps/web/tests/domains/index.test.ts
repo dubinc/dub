@@ -21,7 +21,7 @@ const expectedDomain = {
   expiredUrl: domainRecord.expiredUrl,
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
-  registeredDomain: expect.any(Object).or(null),
+  registeredDomain: null,
 };
 
 describe.sequential("/domains/**", async () => {
@@ -50,7 +50,7 @@ describe.sequential("/domains/**", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(domain).toStrictEqual({ ...expectedDomain, registeredDomain: null });
+    expect(domain).toStrictEqual(expectedDomain);
   });
 
   test("GET /domains", async () => {
@@ -60,7 +60,9 @@ describe.sequential("/domains/**", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(domains).toContainEqual(expectedDomain);
+    expect(
+      domains.map((d) => ({ ...d, registeredDomain: null })),
+    ).toContainEqual(expectedDomain);
   });
 
   test("POST /domains/{slug}/primary", { retry: 3 }, async () => {
