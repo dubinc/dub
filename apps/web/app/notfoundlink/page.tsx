@@ -1,7 +1,5 @@
-import { getDomainViaEdge } from "@/lib/planetscale/get-domain-via-edge";
 import { Background, Footer, Nav, NavMobile } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
-import { redirect } from "next/navigation";
 
 export const runtime = "edge";
 
@@ -12,17 +10,7 @@ export const metadata = constructMetadata({
   noIndex: true,
 });
 
-export default async function NotFoundLinkPage({
-  params,
-}: {
-  params: { domain: string };
-}) {
-  const domain = await getDomainViaEdge(params.domain);
-
-  if (domain?.notFoundUrl) {
-    redirect(domain.notFoundUrl);
-  }
-
+export default async function NotFoundLinkPage() {
   return (
     <main className="flex min-h-screen flex-col justify-between">
       <NavMobile />

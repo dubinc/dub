@@ -40,6 +40,7 @@
     "start": "node dist/index.js "
   },
   "dependencies": {
+    "@badgateway/oauth2-client": "^2.4.2",
     "chalk": "^5.3.0",
     "commander": "^11.1.0",
     "configstore": "^6.0.0",
@@ -48,6 +49,7 @@
     "json-colorizer": "^2.2.2",
     "nanoid": "^5.0.7",
     "node-fetch": "^3.3.2",
+    "open": "^10.1.0",
     "ora": "^7.0.1",
     "package-json": "^8.1.1",
     "prompts": "^2.4.2",
