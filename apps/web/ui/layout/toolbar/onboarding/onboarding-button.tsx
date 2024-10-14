@@ -30,8 +30,10 @@ function OnboardingButtonInner({
 }) {
   const { slug } = useParams() as { slug: string };
 
-  const { data: domainsCount, loading: domainsLoading } = useDomainsCount();
-  const { data: linksCount, loading: linksLoading } = useLinksCount({
+  const { data: domainsCount, loading: domainsLoading } = useDomainsCount({
+    ignoreParams: true,
+  });
+  const { data: linksCount, loading: linksLoading } = useLinksCount<number>({
     ignoreParams: true,
   });
   const { users, loading: usersLoading } = useUsers();

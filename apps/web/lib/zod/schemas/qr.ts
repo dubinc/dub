@@ -13,9 +13,8 @@ export const getQRCodeQuerySchema = z.object({
   logo: z
     .string()
     .optional()
-    .default("https://assets.dub.co/logo.png")
     .describe(
-      "The logo to include in the QR code. Defaults to `https://assets.dub.co/logo.png` if not provided.",
+      "The logo to include in the QR code. Can only be used with a paid plan on Dub.co.",
     ),
   size: z.coerce
     .number()
@@ -44,6 +43,12 @@ export const getQRCodeQuerySchema = z.object({
     .default(DEFAULT_BGCOLOR)
     .describe(
       "The background color of the QR code in hex format. Defaults to `#ffffff` if not provided.",
+    ),
+  hideLogo: booleanQuerySchema
+    .optional()
+    .default("false")
+    .describe(
+      "Whether to hide the logo in the QR code. Can only be used with a paid plan on Dub.co.",
     ),
   includeMargin: booleanQuerySchema
     .optional()

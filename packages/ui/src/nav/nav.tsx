@@ -112,7 +112,7 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
           <div className="flex h-14 items-center justify-between">
             <Link
               className="grow basis-0"
-              href={createHref("/", domain, {
+              href={createHref("/home", domain, {
                 utm_source: "Custom Domain",
                 utm_medium: "Navbar",
                 utm_campaign: domain,

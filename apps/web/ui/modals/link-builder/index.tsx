@@ -3,7 +3,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkWithTagsProps } from "@/lib/types";
 import { DestinationUrlInput } from "@/ui/links/destination-url-input";
-import { ShortLinkInputNew } from "@/ui/links/short-link-input-new";
+import { ShortLinkInput } from "@/ui/links/short-link-input";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
 import { X } from "@/ui/shared/icons";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
@@ -60,6 +60,7 @@ import { TagSelect } from "./tag-select";
 import { useTargetingModal } from "./targeting-modal";
 import { useMetatags } from "./use-metatags";
 import { useUTMModal } from "./utm-modal";
+import { WebhookSelect } from "./webhook-select";
 
 export const LinkModalContext = createContext<{
   workspaceId?: string;
@@ -111,6 +112,7 @@ function LinkBuilderInner({
     plan,
     nextPlan,
     logo,
+    flags,
     conversionEnabled,
   } = useWorkspace();
 
@@ -260,12 +262,16 @@ function LinkBuilderInner({
                 });
 
                 if (res.status === 200) {
-                  await mutate(
-                    (key) =>
-                      typeof key === "string" && key.startsWith("/api/links"),
-                    undefined,
-                    { revalidate: true },
-                  );
+                  await Promise.all([
+                    mutate(
+                      (key) =>
+                        typeof key === "string" && key.startsWith("/api/links"),
+                      undefined,
+                      { revalidate: true },
+                    ),
+                    // Mutate workspace to update usage stats
+                    mutate(`/api/workspaces/${slug}`),
+                  ]);
                   const data = await res.json();
                   posthog.capture(
                     props ? "link_updated" : "link_created",
@@ -389,7 +395,7 @@ function LinkBuilderInner({
                   />
 
                   {key !== "_root" && (
-                    <ShortLinkInputNew
+                    <ShortLinkInput
                       ref={keyRef}
                       domain={domain}
                       _key={key}
@@ -469,6 +475,7 @@ function LinkBuilderInner({
                   <TargetingButton />
                   <PasswordButton />
                 </div>
+                {flags?.webhooks && <WebhookSelect />}
                 <MoreDropdown />
               </div>
               {homepageDemo ? (
@@ -565,7 +572,6 @@ export function useLinkBuilder({
   duplicateProps?: LinkWithTagsProps;
   homepageDemo?: boolean;
 } = {}) {
-  const { flags } = useWorkspace();
   const [showLinkBuilder, setShowLinkBuilder] = useState(false);
 
   const LinkBuilderCallback = useCallback(() => {

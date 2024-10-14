@@ -1,32 +1,21 @@
-import ChangelogPopup from "@/ui/layout/changelog-popup";
 import { MainNav } from "@/ui/layout/main-nav";
-import NavTabs from "@/ui/layout/nav-tabs";
+import { HelpButtonRSC } from "@/ui/layout/sidebar/help-button-rsc";
 import Toolbar from "@/ui/layout/toolbar/toolbar";
-import { MaxWidthWrapper } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
-import { ReactNode, Suspense } from "react";
+import { ReactNode } from "react";
 import Providers from "../../providers";
 
 export const dynamic = "force-static";
 export const metadata = constructMetadata();
 
-export default function Layout({ children }: { children: ReactNode }) {
+export default async function Layout({ children }: { children: ReactNode }) {
   return (
     <Providers>
-      <div className="min-h-screen w-full bg-gray-50/80">
-        <div className="sticky -top-16 z-20 border-b border-gray-200 bg-white">
-          <MaxWidthWrapper>
-            <MainNav />
-            <Suspense fallback={<div className="h-12 w-full" />}>
-              <NavTabs />
-            </Suspense>
-          </MaxWidthWrapper>
-        </div>
-        {children}
+      <div className="min-h-screen w-full bg-white">
+        <MainNav toolContent={<HelpButtonRSC />}>{children}</MainNav>
       </div>
-      {/* <UserSurveyPopup /> */}
-      <ChangelogPopup />
-      <Toolbar />
+      {/* <ChangelogPopup /> */}
+      <Toolbar show={["onboarding"]} />
     </Providers>
   );
 }

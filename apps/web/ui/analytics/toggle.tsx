@@ -2,13 +2,18 @@ import { generateFilters } from "@/lib/ai/generate-filters";
 import {
   INTERVAL_DATA,
   INTERVAL_DISPLAYS,
+  TRIGGER_DISPLAY,
   VALID_ANALYTICS_FILTERS,
 } from "@/lib/analytics/constants";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import useDomains from "@/lib/swr/use-domains";
+import useDomainsCount from "@/lib/swr/use-domains-count";
 import useTags from "@/lib/swr/use-tags";
+import useTagsCount from "@/lib/swr/use-tags-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { LinkProps } from "@/lib/types";
+import { LinkProps, TagProps } from "@/lib/types";
+import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
+import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import {
   BlurImage,
   DateRangePicker,
@@ -61,6 +66,7 @@ import {
   useState,
 } from "react";
 import useSWR from "swr";
+import { useDebounce } from "use-debounce";
 import { COLORS_LIST } from "../links/tag-badge";
 import AnalyticsOptions from "./analytics-options";
 import { AnalyticsContext } from "./analytics-provider";
@@ -93,8 +99,37 @@ export default function Toggle({
 
   const scrolled = useScroll(120);
 
-  const { tags } = useTags();
-  const { allDomains: domains, primaryDomain } = useDomains();
+  // Determine whether tags and domains should be fetched async
+  const { data: tagsCount } = useTagsCount();
+  const { data: domainsCount } = useDomainsCount({ ignoreParams: true });
+  const tagsAsync = Boolean(tagsCount && tagsCount > TAGS_MAX_PAGE_SIZE);
+  const domainsAsync = domainsCount && domainsCount > DOMAINS_MAX_PAGE_SIZE;
+
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 500);
+
+  const { tags, loading: loadingTags } = useTags({
+    query: {
+      search: tagsAsync && selectedFilter === "tagId" ? debouncedSearch : "",
+    },
+  });
+  const {
+    allDomains: domains,
+    primaryDomain,
+    loading: loadingDomains,
+  } = useDomains({
+    ignoreParams: true,
+    opts: {
+      search:
+        domainsAsync && selectedFilter === "domain" ? debouncedSearch : "",
+    },
+  });
+
+  const { tags: selectedTags } = useTags({
+    query: { ids: searchParamsObj.tagId ? [searchParamsObj.tagId] : [] },
+    enabled: tagsAsync,
+  });
 
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
@@ -103,13 +138,13 @@ export default function Toggle({
       domain,
       key,
       tagId,
-      qr,
       continent,
       country,
       city,
       device,
       browser,
       os,
+      trigger,
       referer,
       refererUrl,
       url,
@@ -126,13 +161,13 @@ export default function Toggle({
           ]
         : []),
       ...(tagId ? [{ key: "tagId", value: tagId }] : []),
-      ...(qr ? [{ key: "qr", value: qr === "true" }] : []),
       ...(continent ? [{ key: "continent", value: continent }] : []),
       ...(country ? [{ key: "country", value: country }] : []),
       ...(city ? [{ key: "city", value: city }] : []),
       ...(device ? [{ key: "device", value: device }] : []),
       ...(browser ? [{ key: "browser", value: browser }] : []),
       ...(os ? [{ key: "os", value: os }] : []),
+      ...(trigger ? [{ key: "trigger", value: trigger }] : []),
       ...(referer ? [{ key: "referer", value: referer }] : []),
       ...(refererUrl ? [{ key: "refererUrl", value: refererUrl }] : []),
       ...(url ? [{ key: "url", value: url }] : []),
@@ -167,6 +202,9 @@ export default function Toggle({
   });
   const os = useAnalyticsFilterOption("os", {
     cacheOnly: !isRequested("os"),
+  });
+  const triggers = useAnalyticsFilterOption("triggers", {
+    cacheOnly: !isRequested("trigger"),
   });
   const referers = useAnalyticsFilterOption("referers", {
     cacheOnly: !isRequested("referer"),
@@ -232,6 +270,7 @@ export default function Toggle({
               key: "domain",
               icon: Globe2,
               label: "Domain",
+              shouldFilter: !domainsAsync,
               getOptionIcon: (value) => (
                 <BlurImage
                   src={`${GOOGLE_FAVICON_URL}${value}`}
@@ -241,10 +280,25 @@ export default function Toggle({
                   height={16}
                 />
               ),
-              options: domains.map((domain) => ({
-                value: domain.slug,
-                label: domain.slug,
-              })),
+              options: loadingDomains
+                ? null
+                : [
+                    ...domains.map((domain) => ({
+                      value: domain.slug,
+                      label: domain.slug,
+                    })),
+                    // Add currently filtered domain if not already in the list
+                    ...(!searchParamsObj.domain ||
+                    domains.some((d) => d.slug === searchParamsObj.domain)
+                      ? []
+                      : [
+                          {
+                            value: searchParamsObj.domain,
+                            label: searchParamsObj.domain,
+                            hideDuringSearch: true,
+                          },
+                        ]),
+                  ],
             },
             {
               key: "link",
@@ -292,6 +346,7 @@ export default function Toggle({
               key: "tagId",
               icon: Tag,
               label: "Tag",
+              shouldFilter: !tagsAsync,
               getOptionIcon: (value, props) => {
                 const tagColor =
                   props.option?.data?.color ??
@@ -308,40 +363,52 @@ export default function Toggle({
                 ) : null;
               },
               options:
-                tags?.map((tag) => ({
-                  value: tag.id,
-                  icon: (
-                    <div
-                      className={cn(
-                        "rounded-md p-1.5",
-                        COLORS_LIST.find(({ color }) => color === tag.color)
-                          ?.css,
-                      )}
-                    >
-                      <Tag className="h-2.5 w-2.5" />
-                    </div>
-                  ),
-                  label: tag.name,
-                  data: { color: tag.color },
-                })) ?? null,
+                loadingTags ||
+                // Consider tags loading if we can't find the currently filtered tag
+                (searchParamsObj.tagId &&
+                  ![...(selectedTags ?? []), ...(tags ?? [])].some(
+                    (t) => t.id === searchParamsObj.tagId,
+                  ))
+                  ? null
+                  : [
+                      // Add selected tag to list if not already in tags
+                      ...(tags ?? []),
+                      ...(selectedTags
+                        ?.filter((st) => !tags?.some((t) => t.id === st.id))
+                        ?.map((st) => ({ ...st, hideDuringSearch: true })) ??
+                        []),
+                    ].map((tag) => ({
+                      value: tag.id,
+                      icon: (
+                        <div
+                          className={cn(
+                            "rounded-md p-1.5",
+                            COLORS_LIST.find(({ color }) => color === tag.color)
+                              ?.css,
+                          )}
+                        >
+                          <Tag className="h-2.5 w-2.5" />
+                        </div>
+                      ),
+                      label: tag.name,
+                      data: { color: tag.color },
+                      hideDuringSearch: (
+                        tag as TagProps & { hideDuringSearch?: boolean }
+                      ).hideDuringSearch,
+                    })) ?? null,
             },
           ]),
       {
-        key: "qr",
+        key: "trigger",
         icon: CursorRays,
         label: "Trigger",
-        options: [
-          {
-            value: false,
-            label: "Link click",
-            icon: CursorRays,
-          },
-          {
-            value: true,
-            label: "QR Scan",
-            icon: QRCode,
-          },
-        ],
+        options:
+          triggers?.map(({ trigger, count }) => ({
+            value: trigger,
+            label: TRIGGER_DISPLAY[trigger],
+            icon: trigger === "qr" ? QRCode : CursorRays,
+            right: nFormatter(count, { full: true }),
+          })) ?? null,
         separatorAfter: !isPublicStatsPage,
       },
       {
@@ -497,6 +564,7 @@ export default function Toggle({
       domains,
       links,
       tags,
+      selectedTags,
       countries,
       cities,
       devices,
@@ -505,21 +573,27 @@ export default function Toggle({
       referers,
       refererUrls,
       urls,
+      tagsAsync,
+      domainsAsync,
+      loadingTags,
+      loadingDomains,
+      searchParamsObj.tagId,
+      searchParamsObj.domain,
     ],
   );
 
   return (
     <>
       <div
-        className={cn("sticky top-11 z-10 bg-gray-50 py-3 md:py-3", {
-          "top-14": isPublicStatsPage,
-          "top-16": adminPage || demoPage,
-          "shadow-md": scrolled,
+        className={cn("py-3 md:py-3", {
+          "sticky top-14 z-10 bg-gray-50": isPublicStatsPage,
+          "sticky top-16 z-10 bg-gray-50": adminPage || demoPage,
+          "shadow-md": scrolled && isPublicStatsPage,
         })}
       >
         <div
           className={cn(
-            "mx-auto flex w-full max-w-screen-xl flex-col gap-2 px-2.5 lg:px-20",
+            "mx-auto flex w-full max-w-screen-xl flex-col gap-2 px-3 lg:px-10",
             {
               "md:h-10": key,
             },
@@ -534,7 +608,7 @@ export default function Toggle({
               },
             )}
           >
-            {isPublicStatsPage ? (
+            {isPublicStatsPage && (
               <a
                 className="group flex items-center text-lg font-semibold text-gray-800"
                 href={linkConstructor({ domain, key })}
@@ -561,21 +635,20 @@ export default function Toggle({
                 </p>
                 <ExpandingArrow className="h-5 w-5" />
               </a>
-            ) : (
-              <h1 className="text-2xl font-semibold tracking-tight text-black">
-                {page === "analytics" ? "Analytics" : "Events"}
-              </h1>
             )}
             <div
-              className={cn("flex items-center gap-2", {
-                "w-full flex-col min-[550px]:flex-row md:w-auto": !key,
-                "w-full md:w-auto": key,
-              })}
+              className={cn(
+                "flex w-full items-center gap-2",
+                isPublicStatsPage && "md:w-auto",
+                !key && "flex-col min-[550px]:flex-row",
+              )}
             >
               <Filter.Select
-                className="w-full"
+                className="w-full md:w-fit"
                 filters={filters}
                 activeFilters={activeFilters}
+                onSearchChange={setSearch}
+                onSelectedFilterChange={setSelectedFilter}
                 onSelect={async (key, value) => {
                   if (key === "ai") {
                     setStreaming(true);
@@ -627,14 +700,15 @@ export default function Toggle({
                 askAI
               />
               <div
-                className={cn("flex w-full items-center gap-2", {
+                className={cn("flex w-full grow items-center gap-2 md:w-auto", {
                   "min-[550px]:w-auto": !key,
                   "justify-end": key,
+                  "grow-0": isPublicStatsPage,
                 })}
               >
                 <DateRangePicker
-                  className="w-full sm:min-w-[200px]"
-                  align="end"
+                  className="w-full sm:min-w-[200px] md:w-fit"
+                  align="start"
                   value={
                     start && end
                       ? {
@@ -701,17 +775,19 @@ export default function Toggle({
                     },
                   )}
                 />
-                {!isPublicStatsPage && page === "analytics" && (
-                  <AnalyticsOptions />
+                {!isPublicStatsPage && (
+                  <div className="flex grow justify-end">
+                    {page === "analytics" && <AnalyticsOptions />}
+                    {page === "events" && <EventsOptions />}
+                  </div>
                 )}
-                {page === "events" && <EventsOptions />}
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-screen-xl px-2.5 lg:px-20">
+      <div className="mx-auto w-full max-w-screen-xl px-3 lg:px-10">
         <Filter.List
           filters={filters}
           activeFilters={[
@@ -740,7 +816,7 @@ export default function Toggle({
         <div
           className={cn(
             "transition-[height] duration-[300ms]",
-            streaming || activeFilters.length ? "h-6" : "h-0",
+            streaming || activeFilters.length ? "h-3" : "h-0",
           )}
         />
       </div>

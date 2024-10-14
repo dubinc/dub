@@ -74,7 +74,14 @@ export function DefaultDomains() {
         </p>
       </div>
       <div className="mt-2 grid grid-cols-1 gap-3">
-        {DUB_DOMAINS.map(({ slug, description }) => {
+        {DUB_DOMAINS.filter((domain) => {
+          if (domain.slug === "cal.link") {
+            return flags?.callink;
+          } else if (domain.slug === "loooooooo.ng") {
+            return false;
+          }
+          return true;
+        }).map(({ slug, description }) => {
           return (
             <div
               key={slug}
@@ -108,7 +115,7 @@ export function DefaultDomains() {
                   setDefaultDomains(newDefaultDomains);
                   setSubmitting(true);
                   fetch(`/api/domains/default?workspaceId=${id}`, {
-                    method: "PUT",
+                    method: "PATCH",
                     body: JSON.stringify({
                       defaultDomains: newDefaultDomains.filter(
                         (d) => d !== null,

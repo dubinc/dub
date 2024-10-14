@@ -44,6 +44,7 @@ const errorCodes = {
   "exceeded-login-attempts":
     "Account has been locked due to too many login attempts. Please contact support to unlock your account.",
   "too-many-login-attempts": "Too many login attempts. Please try again later.",
+  "email-not-verified": "Please verify your email address.",
 };
 
 const LoginFormContext = createContext<{
@@ -388,20 +389,13 @@ const SignInWithEmail = () => {
 
                 // Handle errors
                 if (!res.ok && res.error) {
-                  if (res.error === "email-not-verified") {
-                    router.push(
-                      `/register/verify-email?email=${encodeURIComponent(email)}`,
-                    );
-                    return;
-                  }
-
                   if (errorCodes[res.error]) {
                     toast.error(errorCodes[res.error]);
                   } else {
                     toast.error(res.error);
                   }
-                  setClickedMethod(undefined);
 
+                  setClickedMethod(undefined);
                   return;
                 }
 

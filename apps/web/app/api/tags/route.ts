@@ -1,16 +1,33 @@
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { TagSchema, createTagBodySchema } from "@/lib/zod/schemas/tags";
+import {
+  TagSchema,
+  createTagBodySchema,
+  getTagsQuerySchema,
+} from "@/lib/zod/schemas/tags";
 import { COLORS_LIST, randomBadgeColor } from "@/ui/links/tag-badge";
 import { NextResponse } from "next/server";
 
 // GET /api/tags - get all tags for a workspace
 export const GET = withWorkspace(
-  async ({ workspace, headers }) => {
+  async ({ workspace, headers, searchParams }) => {
+    const { search, ids, page, pageSize } =
+      getTagsQuerySchema.parse(searchParams);
+
     const tags = await prisma.tag.findMany({
       where: {
         projectId: workspace.id,
+        ...(search && {
+          name: {
+            contains: search,
+          },
+        }),
+        ...(ids && {
+          id: {
+            in: ids,
+          },
+        }),
       },
       select: {
         id: true,
@@ -20,6 +37,8 @@ export const GET = withWorkspace(
       orderBy: {
         name: "asc",
       },
+      take: pageSize,
+      skip: (page - 1) * pageSize,
     });
 
     return NextResponse.json(tags, { headers });
@@ -29,7 +48,7 @@ export const GET = withWorkspace(
   },
 );
 
-// POST /api/workspaces/[idOrSlug]/tags - create a tag for a workspace
+// POST /api/tags - create a tag for a workspace
 export const POST = withWorkspace(
   async ({ req, workspace, headers }) => {
     const tagsCount = await prisma.tag.count({

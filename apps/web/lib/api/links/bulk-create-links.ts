@@ -9,7 +9,13 @@ import {
 import { waitUntil } from "@vercel/functions";
 import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
 import { updateLinksUsage } from "./update-links-usage";
-import { combineTagIds, LinkWithTags, transformLink } from "./utils";
+import {
+  checkIfLinksHaveTags,
+  checkIfLinksHaveWebhooks,
+  combineTagIds,
+  LinkWithTags,
+  transformLink,
+} from "./utils";
 
 export async function bulkCreateLinks({
   links,
@@ -18,19 +24,18 @@ export async function bulkCreateLinks({
 }) {
   if (links.length === 0) return [];
 
-  const hasTags = links.some(
-    (link) => link.tagNames?.length || link.tagIds?.length || link.tagId,
-  );
+  const hasTags = checkIfLinksHaveTags(links);
+  const hasWebhooks = checkIfLinksHaveWebhooks(links);
 
   let createdLinks: LinkWithTags[] = [];
 
-  if (hasTags) {
+  if (hasTags || hasWebhooks) {
     // create links via Promise.all (because createMany doesn't return the created links)
     // @see https://github.com/prisma/prisma/issues/8131#issuecomment-997667070
     // there is createManyAndReturn but it's not available for MySQL :(
     // @see https://www.prisma.io/docs/orm/reference/prisma-client-reference#createmanyandreturn
     createdLinks = await Promise.all(
-      links.map(({ tagId, tagIds, tagNames, ...link }) => {
+      links.map(({ tagId, tagIds, tagNames, webhookIds, ...link }) => {
         const shortLink = linkConstructor({
           domain: link.domain,
           key: link.key,
@@ -82,6 +87,17 @@ export async function bulkCreateLinks({
                   },
                 },
               }),
+
+            ...(webhookIds &&
+              webhookIds.length > 0 && {
+                webhooks: {
+                  createMany: {
+                    data: webhookIds.map((webhookId) => ({
+                      webhookId,
+                    })),
+                  },
+                },
+              }),
           },
           include: {
             tags: {
@@ -95,6 +111,7 @@ export async function bulkCreateLinks({
                 },
               },
             },
+            webhooks: hasWebhooks,
           },
         });
       }),
@@ -102,7 +119,7 @@ export async function bulkCreateLinks({
   } else {
     // if there are no tags, we can use createMany to create the links
     await prisma.link.createMany({
-      data: links.map((link) => {
+      data: links.map(({ tagId, tagIds, tagNames, ...link }) => {
         const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
           getParamsFromURL(link.url);
 

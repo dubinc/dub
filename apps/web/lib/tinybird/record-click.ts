@@ -98,7 +98,7 @@ export async function recordClick({
       typeof ip === "string" && ip.trim().length > 0 && !isEuCountry ? ip : "",
     continent: continent || "",
     country: geo.country || "Unknown",
-    city: geo.city ? decodeURIComponent(geo.city) : "Unknown",
+    city: geo.city || "Unknown",
     region: geo.region || "Unknown",
     latitude: geo.latitude || "Unknown",
     longitude: geo.longitude || "Unknown",

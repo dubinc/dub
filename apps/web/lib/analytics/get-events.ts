@@ -24,7 +24,16 @@ import { EventsFilters } from "./types";
 
 // Fetch data for /api/events
 export const getEvents = async (params: EventsFilters) => {
-  let { event: eventType, workspaceId, interval, start, end, isDemo } = params;
+  let {
+    event: eventType,
+    workspaceId,
+    interval,
+    start,
+    end,
+    qr,
+    trigger,
+    isDemo,
+  } = params;
 
   if (start) {
     start = new Date(start);
@@ -38,6 +47,14 @@ export const getEvents = async (params: EventsFilters) => {
     interval = interval ?? "24h";
     start = INTERVAL_DATA[interval].startDate;
     end = new Date(Date.now());
+  }
+
+  if (trigger) {
+    if (trigger === "qr") {
+      qr = true;
+    } else if (trigger === "link") {
+      qr = false;
+    }
   }
 
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
@@ -55,6 +72,7 @@ export const getEvents = async (params: EventsFilters) => {
     ...params,
     eventType,
     workspaceId,
+    qr,
     offset: (params.page - 1) * params.limit,
     start: start.toISOString().replace("T", " ").replace("Z", ""),
     end: end.toISOString().replace("T", " ").replace("Z", ""),
@@ -173,7 +191,7 @@ const getCustomersMap = async (customerIds: string[]) => {
         email: customer.email || "",
         avatar:
           customer.avatar ||
-          `https://api.dicebear.com/7.x/micah/svg?seed=${customer.id}`,
+          `https://api.dicebear.com/9.x/notionists/png?seed=${customer.id}`,
       });
       return acc;
     },

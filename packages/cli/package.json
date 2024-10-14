@@ -1,0 +1,69 @@
+{
+  "name": "dub-cli",
+  "version": "0.0.11",
+  "description": "A CLI for easily shortening URLs with the Dub.co API.",
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": "./dist/index.js",
+  "main": "./dist/index.js",
+  "bin": {
+    "dub": "./dist/index.js"
+  },
+  "preferGlobal": true,
+  "author": "Steven Tey <stevensteel97@gmail.com>",
+  "homepage": "https://dub.co",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dubinc/dub.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dubinc/dub/issues"
+  },
+  "keywords": [
+    "dub",
+    "dub.co",
+    "dub cli",
+    "cli"
+  ],
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist",
+    "start": "node dist/index.js "
+  },
+  "dependencies": {
+    "@badgateway/oauth2-client": "^2.4.2",
+    "chalk": "^5.3.0",
+    "commander": "^11.1.0",
+    "configstore": "^6.0.0",
+    "dub": "^0.43.0",
+    "fs-extra": "^11.2.0",
+    "json-colorizer": "^2.2.2",
+    "nanoid": "^5.0.7",
+    "node-fetch": "^3.3.2",
+    "open": "^10.1.0",
+    "ora": "^7.0.1",
+    "package-json": "^8.1.1",
+    "prompts": "^2.4.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/configstore": "^6.0.2",
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "18.11.9",
+    "@types/prompts": "^2.4.9",
+    "rimraf": "^5.0.10",
+    "ts-node": "^10.9.2",
+    "tsup": "^6.7.0",
+    "type-fest": "^4.26.1",
+    "typescript": "^5.6.2"
+  }
+}

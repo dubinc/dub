@@ -1,6 +1,7 @@
 import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
 import NewLinkMiddleware from "./new-link";
+import { APP_REDIRECTS } from "./utils/app-redirects";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { getOnboardingStep } from "./utils/get-onboarding-step";
 import { getUserViaToken } from "./utils/get-user-via-token";
@@ -18,7 +19,6 @@ export default async function AppMiddleware(req: NextRequest) {
     path !== "/login" &&
     path !== "/forgot-password" &&
     path !== "/register" &&
-    path !== "/register/verify-email" &&
     path !== "/auth/saml" &&
     !path.startsWith("/auth/reset-password/")
   ) {
@@ -73,6 +73,7 @@ export default async function AppMiddleware(req: NextRequest) {
         "/",
         "/login",
         "/register",
+        "/workspaces",
         "/analytics",
         "/events",
         "/settings",
@@ -82,6 +83,8 @@ export default async function AppMiddleware(req: NextRequest) {
       isTopLevelSettingsRedirect(path)
     ) {
       return WorkspacesMiddleware(req, user);
+    } else if (APP_REDIRECTS[path]) {
+      return NextResponse.redirect(new URL(APP_REDIRECTS[path], req.url));
     }
   }
 

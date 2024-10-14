@@ -1,17 +1,25 @@
-import useDomains from "@/lib/swr/use-domains";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
+import useTagsCount from "@/lib/swr/use-tags-count";
 import useUsers from "@/lib/swr/use-users";
-import useWorkspace from "@/lib/swr/use-workspace";
+import { TagProps } from "@/lib/types";
+import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import { Avatar, BlurImage, Globe, Tag, User, useRouterStuff } from "@dub/ui";
-import { DUB_WORKSPACE_ID, GOOGLE_FAVICON_URL, nFormatter } from "@dub/utils";
-import { useContext, useMemo } from "react";
+import { GOOGLE_FAVICON_URL, nFormatter } from "@dub/utils";
+import { useContext, useMemo, useState } from "react";
+import { useDebounce } from "use-debounce";
 import { LinksDisplayContext } from "./links-display-provider";
 import TagBadge from "./tag-badge";
 
 export function useLinkFilters() {
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 500);
+
   const domains = useDomainFilterOptions();
-  const tags = useTagFilterOptions();
+  const { tags, tagsAsync } = useTagFilterOptions(
+    selectedFilter === "tagIds" ? debouncedSearch : "",
+  );
   const users = useUserFilterOptions();
 
   const { queryParams, searchParamsObj } = useRouterStuff();
@@ -42,6 +50,7 @@ export function useLinkFilters() {
         icon: Tag,
         label: "Tag",
         multiple: true,
+        shouldFilter: !tagsAsync,
         getOptionIcon: (value, props) => {
           const tagColor =
             props.option?.data?.color ??
@@ -51,12 +60,13 @@ export function useLinkFilters() {
           ) : null;
         },
         options:
-          tags?.map(({ id, name, color, count }) => ({
+          tags?.map(({ id, name, color, count, hideDuringSearch }) => ({
             value: id,
             icon: <TagBadge color={color} withIcon className="sm:p-1" />,
             label: name,
             data: { color },
             right: count,
+            hideDuringSearch,
           })) ?? null,
       },
       {
@@ -139,72 +149,110 @@ export function useLinkFilters() {
     });
   };
 
-  return { filters, activeFilters, onSelect, onRemove, onRemoveAll };
+  return {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    setSearch,
+    setSelectedFilter,
+  };
 }
 
 function useDomainFilterOptions() {
-  const { id: workspaceId } = useWorkspace();
   const { showArchived } = useContext(LinksDisplayContext);
 
-  const { data: domainsCount } = useLinksCount({
+  const { data: domainsCount } = useLinksCount<
+    {
+      domain: string;
+      _count: number;
+    }[]
+  >({
     groupBy: "domain",
     showArchived,
   });
-  const { activeWorkspaceDomains, activeDefaultDomains } = useDomains();
 
   return useMemo(() => {
-    if (domainsCount?.length === 0) return [];
+    if (!domainsCount || domainsCount.length === 0) return [];
 
-    const workspaceDomains = activeWorkspaceDomains?.map((domain) => ({
-      ...domain,
-      count:
-        domainsCount?.find(({ domain: d }) => d === domain.slug)?._count || 0,
-    }));
-
-    const defaultDomains =
-      workspaceId === `ws_${DUB_WORKSPACE_ID}`
-        ? []
-        : activeDefaultDomains
-            ?.map((domain) => ({
-              ...domain,
-              count:
-                domainsCount?.find(({ domain: d }) => d === domain.slug)
-                  ?._count || 0,
-            }))
-            .filter((d) => d.count > 0);
-
-    const finalOptions = [
-      ...(workspaceDomains || []),
-      ...(defaultDomains || []),
-    ].sort((a, b) => b.count - a.count);
-
-    return finalOptions;
-  }, [activeWorkspaceDomains, activeDefaultDomains, domainsCount, workspaceId]);
+    return domainsCount
+      .map(({ domain, _count }) => ({
+        slug: domain,
+        count: _count,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [domainsCount]);
 }
 
-function useTagFilterOptions() {
-  const { tags } = useTags();
+function useTagFilterOptions(search: string) {
+  const { searchParamsObj } = useRouterStuff();
+
+  const tagIds = useMemo(
+    () => searchParamsObj.tagIds?.split(",")?.filter(Boolean) ?? [],
+    [searchParamsObj.tagIds],
+  );
+
+  const { data: tagsCount } = useTagsCount();
+  const tagsAsync = Boolean(tagsCount && tagsCount > TAGS_MAX_PAGE_SIZE);
+  const { tags, loading: loadingTags } = useTags({
+    query: { search: tagsAsync ? search : "" },
+  });
+
+  const { tags: selectedTags } = useTags({
+    query: { ids: tagIds },
+    enabled: tagsAsync,
+  });
   const { showArchived } = useContext(LinksDisplayContext);
 
-  const { data: tagsCount } = useLinksCount({ groupBy: "tagId", showArchived });
+  const { data: tagLinksCount } = useLinksCount<
+    {
+      tagId: string;
+      _count: number;
+    }[]
+  >({ groupBy: "tagId", showArchived });
 
-  return useMemo(
-    () =>
-      tags
-        ?.map((tag) => ({
-          ...tag,
-          count: tagsCount?.find(({ tagId }) => tagId === tag.id)?._count || 0,
-        }))
-        .sort((a, b) => b.count - a.count) ?? null,
-    [tags, tagsCount],
-  );
+  const tagsResult = useMemo(() => {
+    return loadingTags ||
+      // Consider tags loading if we can't find the currently filtered tag
+      (tagIds?.length &&
+        tagIds.some(
+          (id) =>
+            ![...(selectedTags ?? []), ...(tags ?? [])].some(
+              (t) => t.id === id,
+            ),
+        ))
+      ? null
+      : (
+          [
+            ...(tags ?? []),
+            // Add selected tag to list if not already in tags
+            ...(selectedTags
+              ?.filter((st) => !tags?.some((t) => t.id === st.id))
+              ?.map((st) => ({ ...st, hideDuringSearch: true })) ?? []),
+          ] as (TagProps & { hideDuringSearch?: boolean })[]
+        )
+          ?.map((tag) => ({
+            ...tag,
+            count:
+              tagLinksCount?.find(({ tagId }) => tagId === tag.id)?._count || 0,
+          }))
+          .sort((a, b) => b.count - a.count) ?? null;
+  }, [loadingTags, tags, selectedTags, tagLinksCount, tagIds]);
+
+  return { tags: tagsResult, tagsAsync };
 }
 
 function useUserFilterOptions() {
   const { users } = useUsers();
   const { showArchived } = useContext(LinksDisplayContext);
 
-  const { data: usersCount } = useLinksCount({
+  const { data: usersCount } = useLinksCount<
+    {
+      userId: string;
+      _count: number;
+    }[]
+  >({
     groupBy: "userId",
     showArchived,
   });

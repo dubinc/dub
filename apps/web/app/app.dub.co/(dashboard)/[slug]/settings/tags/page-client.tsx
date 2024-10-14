@@ -2,10 +2,14 @@
 
 import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
+import useTagsCount from "@/lib/swr/use-tags-count";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
 import EmptyState from "@/ui/shared/empty-state";
-import { CardList } from "@dub/ui";
+import { SearchBoxPersisted } from "@/ui/shared/search-box";
+import { PaginationControls } from "@dub/blocks";
+import { CardList, usePagination, useRouterStuff } from "@dub/ui";
 import { Tag } from "@dub/ui/src/icons";
 import { InfoTooltip, TooltipContent } from "@dub/ui/src/tooltip";
 import { Dispatch, SetStateAction, createContext, useState } from "react";
@@ -21,12 +25,26 @@ export const TagsListContext = createContext<{
 });
 
 export default function WorkspaceTagsClient() {
+  const { searchParams, queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
 
   const { AddEditTagModal, AddTagButton } = useAddEditTagModal();
 
-  const { tags, loading } = useTags();
-  const { data: tagsCount } = useLinksCount({
+  const search = searchParams.get("search");
+  const { pagination, setPagination } = usePagination(TAGS_MAX_PAGE_SIZE);
+
+  const { tags, loading } = useTags({
+    query: { search: search ?? "", page: pagination.pageIndex },
+  });
+  const { data: tagsCount } = useTagsCount({
+    query: { search: search ?? "" },
+  });
+  const { data: tagLinksCount } = useLinksCount<
+    {
+      tagId: string;
+      _count: number;
+    }[]
+  >({
     groupBy: "tagId",
     showArchived: true,
   });
@@ -35,7 +53,7 @@ export default function WorkspaceTagsClient() {
 
   return (
     <>
-      <div className="grid gap-5">
+      <div className="grid gap-5 pb-10">
         <div className="flex flex-wrap justify-between gap-6">
           <div className="flex items-center gap-x-2">
             <h1 className="text-2xl font-semibold tracking-tight text-black">
@@ -53,6 +71,16 @@ export default function WorkspaceTagsClient() {
             />
           </div>
           <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
+            <SearchBoxPersisted
+              loading={loading}
+              onChangeDebounced={(t) => {
+                if (t) {
+                  queryParams({ set: { search: t }, del: "page" });
+                } else {
+                  queryParams({ del: "search" });
+                }
+              }}
+            />
             <AddTagButton />
           </div>
         </div>
@@ -63,7 +91,7 @@ export default function WorkspaceTagsClient() {
             <CardList variant="compact" loading={loading}>
               {tags?.length
                 ? tags.map((tag) => (
-                    <TagCard key={tag.id} tag={tag} tagsCount={tagsCount} />
+                    <TagCard key={tag.id} tag={tag} tagsCount={tagLinksCount} />
                   ))
                 : Array.from({ length: 6 }).map((_, idx) => (
                     <TagCardPlaceholder key={idx} />
@@ -76,6 +104,15 @@ export default function WorkspaceTagsClient() {
             <AddTagButton />
           </div>
         )}
+
+        <div className="sticky bottom-0 rounded-b-[inherit] border-t border-gray-200 bg-white px-3.5 py-2">
+          <PaginationControls
+            pagination={pagination}
+            setPagination={setPagination}
+            totalCount={tagsCount || 0}
+            unit={(p) => `tag${p ? "s" : ""}`}
+          />
+        </div>
       </div>
     </>
   );

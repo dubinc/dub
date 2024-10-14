@@ -3,6 +3,7 @@
  * Copyright (c) Paul O'Shannessy
  * SPDX-License-Identifier: ISC
  */
+import { DUB_QR_LOGO } from "@dub/utils/src/constants";
 import { useEffect, useRef, useState } from "react";
 import qrcodegen from "./codegen";
 import {
@@ -345,12 +346,12 @@ export async function getQRAsCanvas(
 export function getQRData({
   url,
   fgColor,
-  showLogo,
+  hideLogo,
   logo,
 }: {
   url: string;
   fgColor?: string;
-  showLogo?: boolean;
+  hideLogo?: boolean;
   logo?: string;
   scale?: number;
 }) {
@@ -360,10 +361,11 @@ export function getQRData({
     fgColor,
     size: 1024,
     level: "Q", // QR Code error correction level: https://blog.qrstuff.com/general/qr-code-error-correction
+    hideLogo,
     includeMargin: false,
-    ...(showLogo && {
+    ...(!hideLogo && {
       imageSettings: {
-        src: logo || "https://assets.dub.co/logo.png",
+        src: logo || DUB_QR_LOGO,
         height: 256,
         width: 256,
         excavate: true,

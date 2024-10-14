@@ -25,6 +25,9 @@ const retrieveAnalytics: ZodOpenApiOperationObject = {
               .array(analyticsResponse.timeseries)
               .openapi({ title: "AnalyticsTimeseries" }),
             z
+              .array(analyticsResponse.continents)
+              .openapi({ title: "AnalyticsContinents" }),
+            z
               .array(analyticsResponse.countries)
               .openapi({ title: "AnalyticsCountries" }),
             z
@@ -38,8 +41,14 @@ const retrieveAnalytics: ZodOpenApiOperationObject = {
               .openapi({ title: "AnalyticsBrowsers" }),
             z.array(analyticsResponse.os).openapi({ title: "AnalyticsOS" }),
             z
+              .array(analyticsResponse.triggers)
+              .openapi({ title: "AnalyticsTriggers" }),
+            z
               .array(analyticsResponse.referers)
               .openapi({ title: "AnalyticsReferers" }),
+            z
+              .array(analyticsResponse.referer_urls)
+              .openapi({ title: "AnalyticsRefererUrls" }),
             z
               .array(analyticsResponse.top_links)
               .openapi({ title: "AnalyticsTopLinks" }),
