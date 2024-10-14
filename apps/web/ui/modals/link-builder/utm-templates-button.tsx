@@ -2,24 +2,33 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UtmTemplateProps } from "@/lib/types";
-import { AnimatedSizeContainer, Button, Popover, Xmark } from "@dub/ui";
+import {
+  AnimatedSizeContainer,
+  Button,
+  ButtonTooltip,
+  Popover,
+  Xmark,
+} from "@dub/ui";
 import {
   Book2,
+  DiamondTurnRight,
   Download,
   LoadingSpinner,
   SquareLayoutGrid6,
   useMediaQuery,
 } from "@dub/ui/src";
-import { fetcher, getParamsFromURL, timeAgo } from "@dub/utils";
+import { fetcher, getParamsFromURL } from "@dub/utils";
 import { ChevronUp } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 
 export function UTMTemplatesButton({
+  variant = "default",
   onLoad,
 }: {
+  variant?: "default" | "load-icon";
   onLoad: (params: Record<string, string>) => void;
 }) {
   const { isMobile } = useMediaQuery();
@@ -34,16 +43,18 @@ export function UTMTemplatesButton({
   );
 
   const [openPopover, setOpenPopover] = useState(false);
-  const [state, setState] = useState<"default" | "load" | "save">("default");
+  const [state, setState] = useState<"default" | "load" | "save">(
+    variant === "load-icon" ? "load" : "default",
+  );
   useEffect(() => {
-    if (!openPopover) setState("default");
-  }, [openPopover]);
+    if (!openPopover) setState(variant === "load-icon" ? "load" : "default");
+  }, [openPopover, variant]);
 
-  return (
+  return variant === "default" || (data && data.length > 0) ? (
     <Popover
       openPopover={openPopover}
       setOpenPopover={setOpenPopover}
-      side="top"
+      side={variant === "default" ? "top" : "bottom"}
       align="start"
       onWheel={(e) => {
         // Allows scrolling to work when the popover's in a modal
@@ -88,7 +99,11 @@ export function UTMTemplatesButton({
                       setOpenPopover(false);
                       onLoad(params);
                     }}
-                    onDelete={() => setOpenPopover(false)}
+                    onDelete={
+                      variant === "default"
+                        ? () => setOpenPopover(false)
+                        : undefined
+                    }
                   />
                 </div>
               )}
@@ -105,22 +120,36 @@ export function UTMTemplatesButton({
         </AnimatedSizeContainer>
       }
     >
-      <Button
-        type="button"
-        variant="secondary"
-        className="h-10 w-fit px-3"
-        textWrapperClassName="flex items-center justify-start"
-        text={
-          <>
-            Templates
-            <ChevronUp
-              className={`ml-1 size-4 shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180`}
-            />
-          </>
-        }
-      />
+      {variant === "default" ? (
+        <Button
+          type="button"
+          variant="secondary"
+          className="h-10 w-fit px-3"
+          textWrapperClassName="flex items-center justify-start"
+          text={
+            <>
+              Templates
+              <ChevronUp
+                className={`ml-1 size-4 shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180`}
+              />
+            </>
+          }
+        />
+      ) : (
+        <div>
+          <ButtonTooltip
+            tabIndex={-1}
+            tooltipProps={{
+              content: "Load a UTM template",
+            }}
+            className="animate-fade-in size-6"
+          >
+            <DiamondTurnRight className="size-4" />
+          </ButtonTooltip>
+        </div>
+      )}
     </Popover>
-  );
+  ) : null;
 }
 
 function SaveUTMTemplateForm({ onSuccess }: { onSuccess: () => void }) {
@@ -206,7 +235,7 @@ function UTMTemplateList({
 }: {
   data: UtmTemplateProps[];
   onLoad: (params: Record<string, string>) => void;
-  onDelete: () => void;
+  onDelete?: () => void;
 }) {
   const { id: workspaceId } = useWorkspace();
   const { setValue } = useFormContext();
@@ -223,7 +252,7 @@ function UTMTemplateList({
 
       mutate(`/api/utm-templates?workspaceId=${workspaceId}`);
       toast.success("Template deleted successfully");
-      onDelete();
+      onDelete?.();
     } catch (e) {
       console.error(e);
       toast.error("Failed to delete template");
@@ -233,7 +262,7 @@ function UTMTemplateList({
   return data.length ? (
     <div className="scrollbar-hide grid max-h-64 overflow-y-auto p-1 md:min-w-48">
       <span className="block pb-2 pl-2.5 pt-2 text-xs font-medium text-gray-500">
-        Templates
+        UTM Templates
       </span>
       {data.map((template) => (
         <UTMTemplateOption
@@ -250,7 +279,9 @@ function UTMTemplateList({
 
             onLoad(Object.fromEntries(paramEntries));
           }}
-          onDelete={async () => await handleDelete(template.id)}
+          onDelete={
+            onDelete ? async () => await handleDelete(template.id) : undefined
+          }
         />
       ))}
     </div>
@@ -268,13 +299,8 @@ function UTMTemplateOption({
 }: {
   template: UtmTemplateProps;
   onClick: () => void;
-  onDelete: () => Promise<void>;
+  onDelete?: () => Promise<void>;
 }) {
-  const time = useMemo(
-    () => timeAgo(new Date(template.updatedAt)),
-    [template.updatedAt],
-  );
-
   const [deleting, setDeleting] = useState(false);
 
   return (
@@ -287,31 +313,34 @@ function UTMTemplateOption({
           <SquareLayoutGrid6 className="text-gray-500" />
           {template.name}
         </span>
-        <div className="flex items-center gap-1">
-          <span className="text-xs text-gray-500">{time}</span>
-          <div className="size-[1.375rem]"></div>
+        <div>
+          {onDelete !== undefined && <div className="size-[1.375rem]" />}
         </div>
       </button>
-      <button
-        type="button"
-        onClick={async (e) => {
-          e.stopPropagation();
-          if (!window.confirm("Are you sure you want to delete this template?"))
-            return;
+      {onDelete !== undefined && (
+        <button
+          type="button"
+          onClick={async (e) => {
+            e.stopPropagation();
+            if (
+              !window.confirm("Are you sure you want to delete this template?")
+            )
+              return;
 
-          setDeleting(true);
-          await onDelete();
-          setDeleting(false);
-        }}
-        className="absolute right-1.5 top-2 rounded-md p-1 text-gray-400 outline-none transition-colors hover:text-gray-500 focus-visible:ring-2 focus-visible:ring-gray-500"
-        title="Delete template"
-      >
-        {deleting ? (
-          <LoadingSpinner className="size-3.5" />
-        ) : (
-          <Xmark className="size-3.5" />
-        )}
-      </button>
+            setDeleting(true);
+            await onDelete();
+            setDeleting(false);
+          }}
+          className="absolute right-1.5 top-2 rounded-md p-1 text-gray-400 outline-none transition-colors hover:text-gray-500 focus-visible:ring-2 focus-visible:ring-gray-500"
+          title="Delete template"
+        >
+          {deleting ? (
+            <LoadingSpinner className="size-3.5" />
+          ) : (
+            <Xmark className="size-3.5" />
+          )}
+        </button>
+      )}
     </div>
   );
 }

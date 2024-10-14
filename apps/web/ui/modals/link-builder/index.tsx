@@ -21,6 +21,7 @@ import { useEnterSubmit } from "@dub/ui/src";
 import { ArrowTurnLeft } from "@dub/ui/src/icons";
 import {
   cn,
+  constructURLFromUTMParams,
   DEFAULT_LINK_PROPS,
   getApexDomain,
   getUrlWithoutUTMParams,
@@ -60,6 +61,7 @@ import { TagSelect } from "./tag-select";
 import { useTargetingModal } from "./targeting-modal";
 import { useMetatags } from "./use-metatags";
 import { useUTMModal } from "./utm-modal";
+import { UTMTemplatesButton } from "./utm-templates-button";
 
 export const LinkModalContext = createContext<{
   workspaceId?: string;
@@ -387,7 +389,24 @@ function LinkBuilderInner({
                         }}
                         required={key !== "_root"}
                         error={errors.url?.message || undefined}
-                        showEnterToSubmit={false}
+                        right={
+                          <div className="-mb-1 h-6">
+                            {isValidUrl(url) && (
+                              <UTMTemplatesButton
+                                variant="load-icon"
+                                onLoad={(params) => {
+                                  setValue(
+                                    "url",
+                                    constructURLFromUTMParams(url, params),
+                                    {
+                                      shouldDirty: true,
+                                    },
+                                  );
+                                }}
+                              />
+                            )}
+                          </div>
+                        }
                       />
                     )}
                   />
