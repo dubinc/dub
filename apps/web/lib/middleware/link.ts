@@ -23,6 +23,7 @@ import {
   userAgent,
 } from "next/server";
 import { getLinkViaEdge } from "../planetscale";
+import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { RedisLinkProps } from "../types";
 
 export default async function LinkMiddleware(
@@ -56,11 +57,20 @@ export default async function LinkMiddleware(
     const linkData = await getLinkViaEdge(domain, key);
 
     if (!linkData) {
-      // short link not found, rewrite to not-found page
-      // TODO: log 404s (https://github.com/dubinc/dub/issues/559)
-      return NextResponse.rewrite(new URL(`/not-found/${domain}`, req.url), {
-        headers: DUB_HEADERS,
-      });
+      // check if domain has notFoundUrl configured
+      const domainData = await getDomainViaEdge(domain);
+      if (domainData?.notFoundUrl) {
+        return NextResponse.redirect(domainData.notFoundUrl, {
+          headers: {
+            ...DUB_HEADERS,
+            "X-Robots-Tag": "googlebot: noindex",
+          },
+        });
+      } else {
+        return NextResponse.rewrite(new URL("/notfoundlink", req.url), {
+          headers: DUB_HEADERS,
+        });
+      }
     }
 
     // format link to fit the RedisLinkProps interface
