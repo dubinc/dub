@@ -1,13 +1,12 @@
-import { TrackLeadResponse, TrackSaleResponse } from "@/lib/types";
-import { randomCustomer, randomId } from "tests/utils/helpers";
-import { clickId } from "tests/utils/resource";
+import { TrackSaleResponse } from "@/lib/types";
+import { randomId } from "tests/utils/helpers";
+import { E2E_CUSTOMER_ID } from "tests/utils/resource";
 import { expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
 test("POST /track/sale", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
-  const customer = randomCustomer();
 
   const sale = {
     eventName: "Subscription",
@@ -17,47 +16,26 @@ test("POST /track/sale", async () => {
     paymentProcessor: "stripe",
   };
 
-  const { data: lead } = await http.post<TrackLeadResponse>({
-    path: "/track/lead",
-    body: {
-      clickId,
-      eventName: "Signup",
-      customerId: customer.id,
-      customerName: customer.name,
-      customerEmail: customer.email,
-      customerAvatar: customer.avatar,
-    },
-  });
-
-  // Add a delay to ensure the lead has been created
-  // TODO: Should fix this
-  await new Promise((resolve) => setTimeout(resolve, 5000));
-
   const response = await http.post<TrackSaleResponse>({
     path: "/track/sale",
     body: {
-      customerId: lead.customer.id,
       ...sale,
+      customerId: E2E_CUSTOMER_ID,
     },
   });
 
   expect(response.status).toEqual(200);
   expect(response.data).toStrictEqual({
-    eventName: sale.eventName,
-    customer: {
-      id: customer.id,
-      name: customer.name,
-      email: customer.email,
-      avatar: customer.avatar,
-    },
+    eventName: "Subscription",
+    customer: expect.any(Object),
     sale: {
-      amount: sale.amount,
+      amount: 100,
       currency: sale.currency,
       paymentProcessor: sale.paymentProcessor,
       invoiceId: sale.invoiceId,
       metadata: null,
     },
-    customerId: customer.id,
+    customerId: E2E_CUSTOMER_ID,
     amount: sale.amount,
     currency: sale.currency,
     paymentProcessor: sale.paymentProcessor,

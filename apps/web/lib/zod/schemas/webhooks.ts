@@ -12,7 +12,7 @@ export const webhookSchema = z.object({
 });
 
 export const createWebhookSchema = z.object({
-  name: z.string().min(1).max(30),
+  name: z.string().min(1).max(40),
   url: z.string().url().max(190),
   secret: z.string().optional(),
   triggers: z.array(z.enum(WEBHOOK_TRIGGERS)),
