@@ -70,6 +70,7 @@ export * from "./magnifier";
 export * from "./map-position";
 export * from "./menu3";
 export * from "./mobile-phone";
+export * from "./note";
 export * from "./office-building";
 export * from "./page2";
 export * from "./paintbrush";

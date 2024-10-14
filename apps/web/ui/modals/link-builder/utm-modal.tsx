@@ -23,7 +23,7 @@ import {
 } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { LinkFormData } from ".";
-import { UTMTemplatesButton } from "./utm-templates-button";
+import { UTMTemplatesCombo } from "./utm-templates-combo";
 
 type UTMModalProps = {
   showUTMModal: boolean;
@@ -228,19 +228,19 @@ function UTMModalInner({ setShowUTMModal }: UTMModalProps) {
       )}
 
       <div className="mt-6 flex items-center justify-between gap-2">
-        {isValidUrl(url) ? (
-          <FormProvider {...form}>
-            <UTMTemplatesButton
-              onLoad={(params) => {
-                setValue("url", constructURLFromUTMParams(url, params), {
-                  shouldDirty: true,
-                });
-              }}
-            />
-          </FormProvider>
-        ) : (
-          <div />
-        )}
+        <div>
+          {isValidUrl(url) && (
+            <FormProvider {...form}>
+              <UTMTemplatesCombo
+                onLoad={(params) => {
+                  setValue("url", constructURLFromUTMParams(url, params), {
+                    shouldDirty: true,
+                  });
+                }}
+              />
+            </FormProvider>
+          )}
+        </div>
         <div className="flex items-center gap-2">
           <Button
             type="button"

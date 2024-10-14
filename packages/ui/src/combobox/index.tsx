@@ -39,8 +39,8 @@ export type ComboboxProps<
     ? ComboboxOption<TMeta>[]
     : ComboboxOption<TMeta> | null;
   setSelected: TMultiple extends true
-    ? (tags: ComboboxOption<TMeta>[]) => void
-    : (tag: ComboboxOption<TMeta> | null) => void;
+    ? (options: ComboboxOption<TMeta>[]) => void
+    : (option: ComboboxOption<TMeta> | null) => void;
   options?: ComboboxOption<TMeta>[];
   icon?: Icon | ReactNode;
   placeholder?: ReactNode;
@@ -307,7 +307,7 @@ export function Combobox({
             isReactNode(Icon) ? (
               Icon
             ) : (
-              <Icon className="size-4" />
+              <Icon className="size-4 shrink-0" />
             )
           ) : undefined
         }

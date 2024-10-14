@@ -393,7 +393,6 @@ function LinkBuilderInner({
                           <div className="-mb-1 h-6">
                             {isValidUrl(url) && (
                               <UTMTemplatesButton
-                                variant="load-icon"
                                 onLoad={(params) => {
                                   setValue(
                                     "url",
