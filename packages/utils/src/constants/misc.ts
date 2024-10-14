@@ -4,6 +4,7 @@ export const DEFAULT_LINK_PROPS: any = {
   domain: "",
   archived: false,
   tags: [], // note: removing this breaks the link builder
+  webhookIds: [], // note: removing this breaks the link builder
 
   title: null,
   description: null,

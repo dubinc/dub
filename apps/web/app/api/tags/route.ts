@@ -48,7 +48,7 @@ export const GET = withWorkspace(
   },
 );
 
-// POST /api/workspaces/[idOrSlug]/tags - create a tag for a workspace
+// POST /api/tags - create a tag for a workspace
 export const POST = withWorkspace(
   async ({ req, workspace, headers }) => {
     const tagsCount = await prisma.tag.count({
