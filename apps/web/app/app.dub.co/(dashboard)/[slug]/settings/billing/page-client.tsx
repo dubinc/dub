@@ -3,14 +3,21 @@
 import useTags from "@/lib/swr/use-tags";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Divider } from "@/ui/shared/icons";
 import Infinity from "@/ui/shared/icons/infinity";
 import PlanBadge from "@/ui/workspaces/plan-badge";
-import { Button, buttonVariants, InfoTooltip, ProgressBar } from "@dub/ui";
+import {
+  Button,
+  buttonVariants,
+  Icon,
+  InfoTooltip,
+  ProgressBar,
+  useRouterStuff,
+} from "@dub/ui";
+import { CircleDollar, CursorRays, Hyperlink } from "@dub/ui/src/icons";
 import { cn, getFirstAndLastDay, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { CSSProperties, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 export default function WorkspaceBillingClient() {
@@ -60,10 +67,10 @@ export default function WorkspaceBillingClient() {
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white">
-      <div className="flex flex-col items-start justify-between space-y-4 p-10 xl:flex-row xl:space-y-0">
-        <div className="flex flex-col space-y-3">
-          <h2 className="text-xl font-medium">Plan &amp; Usage</h2>
-          <p className="text-sm text-gray-500">
+      <div className="flex flex-col items-start justify-between gap-y-4 p-8 lg:flex-row">
+        <div>
+          <h2 className="text-xl font-medium">Plan and Usage</h2>
+          <p className="mt-1 text-balance text-sm leading-normal text-gray-500">
             You are currently on the{" "}
             {plan ? (
               <PlanBadge plan={plan} />
@@ -113,43 +120,46 @@ export default function WorkspaceBillingClient() {
         )}
       </div>
       <div className="grid divide-y divide-gray-200 border-y border-gray-200">
-        <div
-          className={cn(
-            "grid grid-cols-1 divide-y divide-gray-200",
-            conversionEnabled && "sm:grid-cols-2 sm:divide-x sm:divide-y-0",
-          )}
-        >
-          {conversionEnabled && (
-            <UsageCategory
-              title="Revenue tracked"
-              unit="$"
-              tooltip="Amount of revenue tracked for your current billing cycle."
-              usage={salesUsage}
-              usageLimit={salesLimit}
+        <div>
+          <div
+            className={cn(
+              "grid gap-6 p-8 sm:grid-cols-2",
+              conversionEnabled && "sm:grid-cols-3",
+            )}
+          >
+            <UsageTabCard
+              id="links"
+              icon={Hyperlink}
+              title="Links created"
+              usage={linksUsage}
+              limit={linksLimit}
+              root
             />
-          )}
-          <UsageCategory
-            title={conversionEnabled ? "Events tracked" : "Link Clicks"}
-            unit={conversionEnabled ? "events" : "clicks"}
-            tooltip={
-              conversionEnabled
-                ? "Number of events tracked for your current billing cycle (clicks, leads, sales)"
-                : "Number of billable link clicks for your current billing cycle. If you exceed your monthly limits, your existing links will still work and clicks will still be tracked, but you need to upgrade to view your analytics."
-            }
-            usage={usage}
-            usageLimit={usageLimit}
-            numberOnly={(usageLimit && usageLimit >= 1000000000) || false}
-          />
+            <UsageTabCard
+              id="events"
+              icon={CursorRays}
+              title="Events tracked"
+              usage={usage}
+              limit={usageLimit}
+            />
+            {conversionEnabled && (
+              <UsageTabCard
+                id="revenue"
+                icon={CircleDollar}
+                title="Revenue tracked"
+                usage={salesUsage}
+                limit={salesLimit}
+                unit="$"
+              />
+            )}
+          </div>
+          <div className="px-8 pb-8">
+            <div className="flex h-72 w-full items-center justify-center rounded-md bg-neutral-200 text-neutral-500">
+              WIP
+            </div>
+          </div>
         </div>
-        <div className="grid grid-cols-1 divide-y divide-gray-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
-          <UsageCategory
-            title="Links Created"
-            unit="links"
-            tooltip="Number of short links created in the current billing cycle."
-            usage={linksUsage}
-            usageLimit={linksLimit}
-            numberOnly={(linksLimit && linksLimit >= 1000000000) || false}
-          />
+        <div className="grid grid-cols-1 divide-y divide-gray-200 sm:divide-x sm:divide-y-0 md:grid-cols-3">
           <UsageCategory
             title="Custom Domains"
             unit="domains"
@@ -158,8 +168,6 @@ export default function WorkspaceBillingClient() {
             usageLimit={domainsLimit}
             numberOnly
           />
-        </div>
-        <div className="grid grid-cols-1 divide-y divide-gray-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
           <UsageCategory
             title="Tags"
             unit="tags"
@@ -178,7 +186,7 @@ export default function WorkspaceBillingClient() {
           />
         </div>
       </div>
-      <div className="flex flex-col items-center justify-between space-y-3 px-10 py-4 text-center md:flex-row md:space-y-0 md:text-left">
+      <div className="flex flex-col items-center justify-between space-y-3 px-8 py-4 text-center md:flex-row md:space-y-0 md:text-left">
         {plan ? (
           <p className="text-sm text-gray-500">
             {plan === "enterprise"
@@ -220,6 +228,101 @@ export default function WorkspaceBillingClient() {
   );
 }
 
+function UsageTabCard({
+  id,
+  icon: Icon,
+  title,
+  usage: usageProp,
+  limit: limitProp,
+  unit,
+  root,
+}: {
+  id: string;
+  icon: Icon;
+  title: string;
+  usage?: number;
+  limit?: number;
+  unit?: string;
+  root?: boolean;
+}) {
+  const { searchParams, queryParams } = useRouterStuff();
+
+  const isActive =
+    searchParams.get("tab") === id || (!searchParams.get("tab") && root);
+
+  const [usage, limit] =
+    unit === "$" && usageProp !== undefined && limitProp !== undefined
+      ? [usageProp / 100, limitProp / 100]
+      : [usageProp, limitProp];
+
+  const loading = usage === undefined || limit === undefined;
+  const unlimited = limit !== undefined && limit >= 1000000000;
+  const warning = !loading && !unlimited && usage >= limit * 0.9;
+  const remaining = !loading && !unlimited ? Math.max(0, limit - usage) : 0;
+
+  const prefix = unit || "";
+
+  return (
+    <button
+      className={cn(
+        "rounded-md border border-neutral-300 bg-white px-5 py-4 text-left",
+        isActive && "border-neutral-900 ring-1 ring-neutral-900",
+      )}
+      aria-selected={isActive}
+      onClick={() => queryParams({ set: { tab: id } })}
+    >
+      <Icon className="size-4 text-neutral-600" />
+      <div className="mt-1.5 text-sm text-neutral-600">{title}</div>
+      <div className="mt-2">
+        {!loading ? (
+          <div className="text-xl leading-none text-neutral-900">
+            {prefix}
+            {nFormatter(usage, { full: usage < 100000 })}
+          </div>
+        ) : (
+          <div className="h-5 w-16 animate-pulse rounded-md bg-gray-200" />
+        )}
+      </div>
+      <div className="mt-5">
+        <div
+          className={cn(
+            "h-1 w-full overflow-hidden rounded-full bg-neutral-900/10 transition-colors",
+            loading && "bg-neutral-900/5",
+          )}
+        >
+          {!loading && !unlimited && limit > usage && (
+            <div
+              className="animate-slide-right-fade size-full"
+              style={{ "--offset": "-100%" } as CSSProperties}
+            >
+              <div
+                className={cn(
+                  "size-full rounded-full bg-gradient-to-r from-transparent to-violet-700",
+                  warning && "to-rose-500",
+                )}
+                style={{
+                  transform: `translateX(-${100 - Math.floor((usage / Math.max(0, usage, limit)) * 100)}%)`,
+                }}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="mt-2 leading-none">
+        {!loading ? (
+          <span className="text-xs leading-none text-neutral-600">
+            {unlimited
+              ? "Unlimited"
+              : `${prefix}${nFormatter(remaining, { full: remaining < 10000 })} remaining of ${prefix}${nFormatter(limit, { full: limit < 10000 })}`}
+          </span>
+        ) : (
+          <div className="h-4 w-20 animate-pulse rounded-md bg-gray-200" />
+        )}
+      </div>
+    </button>
+  );
+}
+
 function UsageCategory(data: {
   title: string;
   unit: string;
@@ -234,26 +337,27 @@ function UsageCategory(data: {
     usage = usage / 100;
     usageLimit = usageLimit / 100;
   }
+
   return (
-    <div className="p-10">
+    <div className="p-8">
       <div className="flex items-center space-x-2">
-        <h3 className="font-medium">{title}</h3>
+        <h3 className="text-sm font-medium">{title}</h3>
         <InfoTooltip content={tooltip} />
       </div>
       {numberOnly ? (
-        <div className="mt-4 flex items-center">
+        <div className="mt-4 flex items-center gap-1.5">
           {usage || usage === 0 ? (
-            <p className="text-2xl font-semibold text-black">
+            <p className="text-lg font-medium text-black">
               {nFormatter(usage, { full: true })}
             </p>
           ) : (
-            <div className="size-8 animate-pulse rounded-md bg-gray-200" />
+            <div className="size-7 animate-pulse rounded-md bg-gray-200" />
           )}
-          <Divider className="size-8 text-gray-500" />
+          <span className="text-lg font-medium text-black">/</span>
           {usageLimit && usageLimit >= 1000000000 ? (
             <Infinity className="size-8 text-gray-500" />
           ) : (
-            <p className="text-2xl font-semibold text-gray-400">
+            <p className="text-lg font-medium text-gray-400">
               {nFormatter(usageLimit, { full: true })}
             </p>
           )}
