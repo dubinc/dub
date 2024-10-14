@@ -83,13 +83,13 @@ const NoWebhooksFound = () => {
   const { slug } = useWorkspace();
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-2 p-2 text-center text-sm">
+    <div className="flex h-full flex-col items-center justify-center gap-2 px-2 py-4 text-center text-sm">
       <div className="flex items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 p-3">
         <Globe className="size-6 text-gray-700" />
       </div>
       <p className="mt-2 font-medium text-gray-950">No webhooks found</p>
       <p className="mx-auto mt-1 w-full max-w-[180px] text-gray-700">
-        Add a webhook to receive click event when someone clicks your link.
+        Add a webhook to receive a click event when someone clicks your link.
       </p>
       <div>
         <Button
