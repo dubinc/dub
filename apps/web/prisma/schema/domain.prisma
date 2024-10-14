@@ -43,6 +43,7 @@ model DefaultDomains {
   chatgpt     Boolean @default(true)
   sptifi      Boolean @default(true)
   gitnew      Boolean @default(true)
+  callink     Boolean @default(true)
   amznid      Boolean @default(true)
   ggllink     Boolean @default(true)
   figpage     Boolean @default(true)
