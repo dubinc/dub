@@ -120,7 +120,7 @@ export default function Toggle({
     loading: loadingDomains,
   } = useDomains({
     ignoreParams: true,
-    params: {
+    opts: {
       search:
         domainsAsync && selectedFilter === "domain" ? debouncedSearch : "",
     },
