@@ -28,12 +28,12 @@ export function UTMTemplatesCombo({
     },
   );
 
-  return data ? (
+  return (
     <Combobox
       selected={null}
       setSelected={(option) => {
         if (!option) return;
-        const template = data.find((template) => template.id === option.value);
+        const template = data?.find((template) => template.id === option.value);
         if (!template) return;
 
         const paramEntries = Object.entries(template)
@@ -46,12 +46,12 @@ export function UTMTemplatesCombo({
 
         onLoad(Object.fromEntries(paramEntries));
       }}
-      options={data.map((template) => ({
+      options={data?.map((template) => ({
         label: template.name,
         value: template.id,
       }))}
       optionRight={({ value }) => {
-        const template = data.find((template) => template.id === value);
+        const template = data?.find((template) => template.id === value);
         if (!template) return null;
 
         const includedParams = UTM_PARAMETERS.filter(
@@ -119,5 +119,5 @@ export function UTMTemplatesCombo({
       optionClassName="md:min-w-[250px] md:max-w-[350px] animate-fade-in"
       caret
     />
-  ) : null;
+  );
 }
