@@ -3,6 +3,7 @@ import { linkCache } from "@/lib/api/links/cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { updateWebhookStatusForWorkspace } from "@/lib/webhook/api";
 import { webhookCache } from "@/lib/webhook/cache";
 import { transformWebhook } from "@/lib/webhook/transform";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";
@@ -263,24 +264,6 @@ export const DELETE = withWorkspace(
       },
     });
 
-    const webhooksCount = await prisma.webhook.count({
-      where: {
-        projectId: workspace.id,
-      },
-    });
-
-    // Disable webhooks for the workspace if there are no more webhooks
-    if (webhooksCount === 0) {
-      await prisma.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          webhookEnabled: false,
-        },
-      });
-    }
-
     waitUntil(
       (async () => {
         const links = await prisma.link.findMany({
@@ -304,6 +287,7 @@ export const DELETE = withWorkspace(
         });
 
         await Promise.all([
+          updateWebhookStatusForWorkspace({ workspace }),
           linkCache.mset(formatedLinks),
           webhookCache.delete(webhookId),
         ]);

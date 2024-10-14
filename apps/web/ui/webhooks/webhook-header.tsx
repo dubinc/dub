@@ -1,5 +1,6 @@
 "use client";
 
+import { enableOrDisableWebhook } from "@/lib/actions/enable-disable-webhook";
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WebhookProps } from "@/lib/types";
@@ -13,6 +14,7 @@ import {
 } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { ChevronLeft, CircleCheck, CircleX, Send, Trash } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { notFound, useRouter, useSelectedLayoutSegment } from "next/navigation";
 import { useState } from "react";
@@ -54,28 +56,22 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
     role,
   });
 
+  const { execute, isExecuting } = useAction(enableOrDisableWebhook, {
+    onSuccess: async ({ data }) => {
+      toast.success(
+        data?.disabledAt ? "Webhook disabled." : "Webhook enabled.",
+      );
+
+      await mutate();
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError?.serverError);
+    },
+  });
+
   if (!isLoading && !webhook) {
     return notFound();
   }
-
-  const toggleWebhookStatus = async (disabled: boolean) => {
-    const response = await fetch(
-      `/api/webhooks/${webhookId}?workspaceId=${workspaceId}`,
-      {
-        method: "PATCH",
-        body: JSON.stringify({ disabled }),
-      },
-    );
-
-    if (!response.ok) {
-      const error = await response.json();
-      toast.error(error.message);
-      return;
-    }
-
-    await mutate();
-    toast.success("Webhook updated.");
-  };
 
   return (
     <>
@@ -152,11 +148,16 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
                   }
                   className="h-9 justify-start px-2"
                   onClick={async () => {
-                    toggleWebhookStatus(!webhook?.disabledAt);
+                    execute({
+                      webhookId,
+                      workspaceId: workspaceId!,
+                    });
+
                     setOpenPopover(false);
                   }}
                   disabled={!!permissionsError}
                   disabledTooltip={permissionsError}
+                  loading={isExecuting}
                 />
 
                 <Button

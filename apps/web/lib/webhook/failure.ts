@@ -2,6 +2,7 @@ import { Webhook } from "@prisma/client";
 import { sendEmail } from "emails";
 import WebhookDisabled from "emails/webhook-disabled";
 import { prisma } from "../prisma";
+import { updateWebhookStatusForWorkspace } from "./api";
 import { webhookCache } from "./cache";
 import { WEBHOOK_FAILURE_NOTIFY_THRESHOLD } from "./constants";
 
@@ -31,23 +32,30 @@ export const handleWebhookFailure = async (webhookId: string) => {
   const failureThresholdReached =
     webhook.consecutiveFailures >= WEBHOOK_FAILURE_NOTIFY_THRESHOLD;
 
-  const disabledAt = new Date();
-
   if (failureThresholdReached) {
-    await Promise.allSettled([
-      // Disable the webhook
-      prisma.webhook.update({
-        where: { id: webhookId },
-        data: {
-          disabledAt,
-        },
-      }),
+    const disabledAt = new Date();
 
+    // Disable the webhook
+    await prisma.webhook.update({
+      where: { id: webhookId },
+      data: {
+        disabledAt,
+      },
+    });
+
+    await Promise.allSettled([
       // Notify the user
       sendFailureNotification(webhook),
 
       // Update the webhook cache
       webhookCache.set({ ...webhook, disabledAt }),
+
+      // Update the project webhookEnabled flag
+      updateWebhookStatusForWorkspace({
+        workspace: {
+          id: webhook.projectId,
+        },
+      }),
     ]);
   }
 };

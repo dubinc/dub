@@ -100,3 +100,25 @@ export async function addWebhook({
 
   return webhook;
 }
+
+export const updateWebhookStatusForWorkspace = async ({
+  workspace,
+}: {
+  workspace: Pick<Project, "id">;
+}) => {
+  const activeWebhooksCount = await prisma.webhook.count({
+    where: {
+      projectId: workspace.id,
+      disabledAt: null,
+    },
+  });
+
+  await prisma.project.update({
+    where: {
+      id: workspace.id,
+    },
+    data: {
+      webhookEnabled: activeWebhooksCount > 0,
+    },
+  });
+};
