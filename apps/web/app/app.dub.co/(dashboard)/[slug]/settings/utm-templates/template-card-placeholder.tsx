@@ -9,7 +9,8 @@ export function TemplateCardPlaceholder() {
           <div className="h-5 w-16 animate-pulse rounded-md bg-gray-200 sm:w-32" />
         </div>
         <div className="flex items-center gap-5 sm:gap-8 md:gap-12">
-          <div className="h-5 w-16 animate-pulse rounded-md bg-gray-200" />
+          <div className="h-5 w-12 animate-pulse rounded-md bg-gray-200" />
+          <div className="hidden h-5 w-16 animate-pulse rounded-md bg-gray-200 sm:block" />
           <div className="w-8" />
         </div>
       </div>

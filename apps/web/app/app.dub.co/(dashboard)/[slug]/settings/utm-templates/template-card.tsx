@@ -2,6 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UtmTemplateWithUserProps } from "@/lib/types";
+import { UTM_PARAMETERS } from "@/ui/links/utm-builder";
 import { useAddEditUtmTemplateModal } from "@/ui/modals/add-edit-utm-template.modal";
 import { Delete, ThreeDots } from "@/ui/shared/icons";
 import {
@@ -18,7 +19,7 @@ import {
   PenWriting,
 } from "@dub/ui/src/icons";
 import { cn, formatDate } from "@dub/utils";
-import { useContext, useState } from "react";
+import { Fragment, useContext, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { TemplatesListContext } from "./page-client";
@@ -63,6 +64,8 @@ export function TemplateCard({
       .finally(() => setProcessing(false));
   };
 
+  const includedParams = UTM_PARAMETERS.filter(({ key }) => template[key]);
+
   return (
     <>
       <AddEditUtmTemplateModal />
@@ -81,10 +84,33 @@ export function TemplateCard({
               {template.name}
             </span>
           </div>
-          <UserAvatar template={template} />
+          <div className="shrink-0">
+            <UserAvatar template={template} />
+          </div>
         </div>
 
-        <div className="text-sm text-gray-500">
+        <Tooltip
+          content={
+            <div className="grid max-w-[225px] grid-cols-[1fr,minmax(0,min-content)] gap-x-2 gap-y-1 whitespace-nowrap p-2 text-sm sm:min-w-[150px]">
+              {includedParams.map(({ key, label, icon: Icon }) => (
+                <Fragment key={key}>
+                  <span className="font-medium text-gray-600">{label}</span>
+                  <span className="truncate text-gray-500">
+                    {template[key]}
+                  </span>
+                </Fragment>
+              ))}
+            </div>
+          }
+        >
+          <div className="xs:flex hidden shrink-0 items-center gap-1 px-2 text-gray-500">
+            {includedParams.map(({ icon: Icon }) => (
+              <Icon className="size-3.5" />
+            ))}
+          </div>
+        </Tooltip>
+
+        <div className="hidden text-sm text-gray-500 sm:block">
           {formatDate(template.updatedAt, { month: "short" })}
         </div>
 
