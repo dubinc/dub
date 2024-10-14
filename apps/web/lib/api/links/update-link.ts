@@ -49,6 +49,7 @@ export async function updateLink({
     tagId,
     tagIds,
     tagNames,
+    webhookIds,
     ...rest
   } = updatedLink;
 
@@ -108,6 +109,18 @@ export async function updateLink({
           })),
         },
       }),
+
+      // Webhooks
+      ...(webhookIds && {
+        webhooks: {
+          deleteMany: {},
+          createMany: {
+            data: webhookIds.map((webhookId) => ({
+              webhookId,
+            })),
+          },
+        },
+      }),
     },
     include: {
       tags: {
@@ -121,11 +134,7 @@ export async function updateLink({
           },
         },
       },
-      webhooks: {
-        select: {
-          webhookId: true,
-        },
-      },
+      webhooks: webhookIds ? true : false,
     },
   });
 
@@ -133,12 +142,7 @@ export async function updateLink({
     Promise.all([
       // record link in Redis
       redis.hset(updatedLink.domain.toLowerCase(), {
-        [updatedLink.key.toLowerCase()]: await formatRedisLink({
-          ...response,
-          ...(response.webhooks.length > 0 && {
-            webhookIds: response.webhooks.map(({ webhookId }) => webhookId),
-          }),
-        }),
+        [updatedLink.key.toLowerCase()]: await formatRedisLink(response),
       }),
       // record link in Tinybird
       recordLink({

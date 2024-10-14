@@ -1,14 +1,17 @@
-export const randomId = () => Math.random().toString(36).substr(2, 9);
+import { generateRandomName } from "@/lib/names";
+import { nanoid } from "@dub/utils";
+
+export const randomId = () => nanoid(24);
 
 // Generate random customer data
 export const randomCustomer = () => {
-  const customerId = randomId();
+  const customerId = `cus_${randomId()}`;
+  const customerName = generateRandomName();
 
   return {
     id: customerId,
-    name: `name-${customerId}`,
-    email: `email-${customerId}@example.com`,
-    avatar: `https://example.com/avatar-${customerId}.png`,
-    metadata: { plan: "enterprise" },
+    name: customerName,
+    email: `${customerName.split(" ").join(".").toLowerCase()}@example.com`,
+    avatar: `https://api.dicebear.com/9.x/notionists/png?seed=${customerId}`,
   };
 };

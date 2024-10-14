@@ -6,6 +6,8 @@ import { WebhookProps } from "@/lib/types";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
+  CircleCheck,
+  Copy,
   MaxWidthWrapper,
   Popover,
   TabSelect,
@@ -16,6 +18,7 @@ import { ChevronLeft, Send, Trash } from "lucide-react";
 import Link from "next/link";
 import { notFound, useRouter, useSelectedLayoutSegment } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 import { useDeleteWebhookModal } from "../modals/delete-webhook-modal";
 import { useSendTestWebhookModal } from "../modals/send-test-webhook-modal";
@@ -23,6 +26,7 @@ import { useSendTestWebhookModal } from "../modals/send-test-webhook-modal";
 export default function WebhookHeader({ webhookId }: { webhookId: string }) {
   const router = useRouter();
   const { slug, id: workspaceId, role } = useWorkspace();
+  const [copiedWebhookId, setCopiedWebhookId] = useState(false);
 
   const selectedLayoutSegment = useSelectedLayoutSegment();
   const page = selectedLayoutSegment === null ? "" : selectedLayoutSegment;
@@ -51,6 +55,13 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
   if (!isLoading && !webhook) {
     return notFound();
   }
+
+  const copyWebhookId = () => {
+    navigator.clipboard.writeText(webhookId);
+    setCopiedWebhookId(true);
+    toast.success("Webhook ID copied!");
+    setTimeout(() => setCopiedWebhookId(false), 3000);
+  };
 
   return (
     <>
@@ -106,6 +117,20 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
                     setOpenPopover(false);
                     setShowSendTestWebhookModal(true);
                   }}
+                />
+
+                <Button
+                  text="Copy Webhook ID"
+                  variant="outline"
+                  icon={
+                    copiedWebhookId ? (
+                      <CircleCheck className="h-4 w-4" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )
+                  }
+                  className="h-9 justify-start px-2"
+                  onClick={() => copyWebhookId()}
                 />
 
                 <Button

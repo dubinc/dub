@@ -4,11 +4,11 @@ import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
 export default function useDomainsCount({
-  includeParams = true,
-  params,
+  ignoreParams,
+  opts,
 }: {
-  includeParams?: boolean;
-  params?: Record<string, string>;
+  ignoreParams?: boolean;
+  opts?: Record<string, string>;
 } = {}) {
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
@@ -16,12 +16,12 @@ export default function useDomainsCount({
   const { data, error } = useSWR<number>(
     workspaceId &&
       `/api/domains/count${
-        includeParams
-          ? getQueryString({
+        ignoreParams
+          ? "?" + new URLSearchParams({ workspaceId, ...opts }).toString()
+          : getQueryString({
               workspaceId,
-              ...params,
+              ...opts,
             })
-          : "?" + new URLSearchParams({ workspaceId, ...params }).toString()
       }`,
     fetcher,
     {

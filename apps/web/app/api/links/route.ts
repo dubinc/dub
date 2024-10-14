@@ -34,6 +34,7 @@ export const GET = withWorkspace(
       showArchived,
       withTags,
       includeUser,
+      includeWebhooks,
       linkIds,
     } = getLinksQuerySchemaExtended.parse(searchParams);
 
@@ -64,6 +65,7 @@ export const GET = withWorkspace(
       showArchived,
       withTags,
       includeUser,
+      includeWebhooks,
       linkIds,
     });
 

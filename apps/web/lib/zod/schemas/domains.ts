@@ -34,6 +34,13 @@ export const DomainSchema = z.object({
       "The URL to redirect to when a link under this domain has expired.",
     )
     .openapi({ example: "https://acme.com/expired" }),
+  notFoundUrl: z
+    .string()
+    .nullable()
+    .describe(
+      "The URL to redirect to when a link under this domain doesn't exist.",
+    )
+    .openapi({ example: "https://acme.com/not-found" }),
   createdAt: z.date().describe("The date the domain was created."),
   updatedAt: z.date().describe("The date the domain was last updated."),
   registeredDomain: z
@@ -42,7 +49,7 @@ export const DomainSchema = z.object({
       createdAt: z.date().describe("The date the domain was created."),
       expiresAt: z.date().describe("The date the domain expires."),
     })
-    .nullish()
+    .nullable()
     .describe("The registered domain record."),
 });
 
@@ -62,6 +69,13 @@ export const getDomainsQuerySchema = z
       .describe("The search term to filter the domains by."),
   })
   .merge(getPaginationQuerySchema({ pageSize: DOMAINS_MAX_PAGE_SIZE }));
+
+export const getDomainsQuerySchemaExtended = getDomainsQuerySchema.merge(
+  z.object({
+    // only Dub UI uses the following query parameters
+    includeLink: booleanQuerySchema.default("false"),
+  }),
+);
 
 export const getDomainsCountQuerySchema = getDomainsQuerySchema.omit({
   page: true,
@@ -84,6 +98,12 @@ export const createDomainBodySchema = z.object({
       "Redirect users to a specific URL when any link under this domain has expired.",
     )
     .openapi({ example: "https://acme.com/expired" }),
+  notFoundUrl: parseUrlSchemaAllowEmpty
+    .nullish()
+    .describe(
+      "Redirect users to a specific URL when a link under this domain doesn't exist.",
+    )
+    .openapi({ example: "https://acme.com/not-found" }),
   archived: z
     .boolean()
     .optional()

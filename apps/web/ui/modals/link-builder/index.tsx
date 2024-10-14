@@ -60,6 +60,7 @@ import { TagSelect } from "./tag-select";
 import { useTargetingModal } from "./targeting-modal";
 import { useMetatags } from "./use-metatags";
 import { useUTMModal } from "./utm-modal";
+import { WebhookSelect } from "./webhook-select";
 
 export const LinkModalContext = createContext<{
   workspaceId?: string;
@@ -111,6 +112,7 @@ function LinkBuilderInner({
     plan,
     nextPlan,
     logo,
+    flags,
     conversionEnabled,
   } = useWorkspace();
 
@@ -476,6 +478,7 @@ function LinkBuilderInner({
                   <TargetingButton />
                   <PasswordButton />
                 </div>
+                {flags?.webhooks && <WebhookSelect />}
                 <MoreDropdown />
               </div>
               {homepageDemo ? (
@@ -572,7 +575,6 @@ export function useLinkBuilder({
   duplicateProps?: LinkWithTagsProps;
   homepageDemo?: boolean;
 } = {}) {
-  const { flags } = useWorkspace();
   const [showLinkBuilder, setShowLinkBuilder] = useState(false);
 
   const LinkBuilderCallback = useCallback(() => {
