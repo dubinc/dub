@@ -4,6 +4,7 @@ import { AlertCircleFill } from "@/ui/shared/icons";
 import { Button, InfoTooltip, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
+import { useSession } from "next-auth/react";
 import { usePlausible } from "next-plausible";
 import posthog from "posthog-js";
 import { useForm } from "react-hook-form";
@@ -22,6 +23,7 @@ export function CreateWorkspaceForm({
   onSuccess?: (data: FormData) => void;
   className?: string;
 }) {
+  const { update } = useSession();
   const plausible = usePlausible();
 
   const {
@@ -59,7 +61,7 @@ export function CreateWorkspaceForm({
               workspace_name: data.name,
               workspace_slug: data.slug,
             });
-            await mutate("/api/workspaces");
+            await Promise.all([mutate("/api/workspaces"), update()]);
             onSuccess?.(data);
           } else {
             const { error } = await res.json();
