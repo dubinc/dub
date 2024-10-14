@@ -4,6 +4,7 @@ model Domain {
   verified    Boolean  @default(false)
   placeholder String   @default("https://dub.co/help/article/what-is-dub")
   expiredUrl  String?  @db.LongText // URL to redirect to for expired links
+  notFoundUrl String?  @db.LongText // URL to redirect to for links that don't exist
   primary     Boolean  @default(false)
   archived    Boolean  @default(false)
   lastChecked DateTime @default(now())

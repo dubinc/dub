@@ -34,6 +34,13 @@ export const DomainSchema = z.object({
       "The URL to redirect to when a link under this domain has expired.",
     )
     .openapi({ example: "https://acme.com/expired" }),
+  notFoundUrl: z
+    .string()
+    .nullable()
+    .describe(
+      "The URL to redirect to when a link under this domain doesn't exist.",
+    )
+    .openapi({ example: "https://acme.com/not-found" }),
   createdAt: z.date().describe("The date the domain was created."),
   updatedAt: z.date().describe("The date the domain was last updated."),
   registeredDomain: z
@@ -84,6 +91,12 @@ export const createDomainBodySchema = z.object({
       "Redirect users to a specific URL when any link under this domain has expired.",
     )
     .openapi({ example: "https://acme.com/expired" }),
+  notFoundUrl: parseUrlSchemaAllowEmpty
+    .nullish()
+    .describe(
+      "Redirect users to a specific URL when a link under this domain doesn't exist.",
+    )
+    .openapi({ example: "https://acme.com/not-found" }),
   archived: z
     .boolean()
     .optional()
