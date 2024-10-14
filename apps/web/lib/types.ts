@@ -123,6 +123,7 @@ export interface DomainProps {
   expiredUrl?: string;
   notFoundUrl?: string;
   projectId: string;
+  link?: LinkProps;
   registeredDomain?: RegisteredDomainProps;
 }
 

@@ -8,19 +8,15 @@ import {
 } from "@dub/utils";
 import { useMemo } from "react";
 import useSWR from "swr";
-import { z } from "zod";
-import { getDomainsQuerySchema } from "../zod/schemas/domains";
 import useDefaultDomains from "./use-default-domains";
 import useWorkspace from "./use-workspace";
 
-const partialQuerySchema = getDomainsQuerySchema.partial();
-
 export default function useDomains({
-  includeParams,
-  query,
+  ignoreParams,
+  opts,
 }: {
-  includeParams?: boolean;
-  query?: z.infer<typeof partialQuerySchema>;
+  ignoreParams?: boolean;
+  opts?: Record<string, string>;
 } = {}) {
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
@@ -28,16 +24,16 @@ export default function useDomains({
   const { data, error, mutate } = useSWR<DomainProps[]>(
     workspaceId &&
       `/api/domains${
-        includeParams
-          ? getQueryString({
-              ...query,
-              workspaceId,
-            })
-          : "?" +
+        ignoreParams
+          ? "?" +
             new URLSearchParams({
-              ...(query?.search && { search: query.search }),
+              ...opts,
               workspaceId,
             }).toString()
+          : getQueryString({
+              ...opts,
+              workspaceId,
+            })
       }`,
     fetcher,
     {
@@ -47,7 +43,7 @@ export default function useDomains({
   const {
     defaultDomains: workspaceDefaultDomains,
     loading: loadingDefaultDomains,
-  } = useDefaultDomains({ search: query?.search });
+  } = useDefaultDomains(opts);
 
   const allWorkspaceDomains = useMemo(() => data || [], [data]);
   const activeWorkspaceDomains = useMemo(
