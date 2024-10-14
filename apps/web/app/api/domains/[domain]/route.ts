@@ -92,6 +92,9 @@ export const PATCH = withWorkspace(
           notFoundUrl,
         }),
       },
+      include: {
+        registeredDomain: true,
+      },
     });
 
     waitUntil(

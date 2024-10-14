@@ -49,7 +49,7 @@ export const DomainSchema = z.object({
       createdAt: z.date().describe("The date the domain was created."),
       expiresAt: z.date().describe("The date the domain expires."),
     })
-    .nullish()
+    .nullable()
     .describe("The registered domain record."),
 });
 
@@ -69,6 +69,13 @@ export const getDomainsQuerySchema = z
       .describe("The search term to filter the domains by."),
   })
   .merge(getPaginationQuerySchema({ pageSize: DOMAINS_MAX_PAGE_SIZE }));
+
+export const getDomainsQuerySchemaExtended = getDomainsQuerySchema.merge(
+  z.object({
+    // only Dub UI uses the following query parameters
+    includeLink: booleanQuerySchema.default("false"),
+  }),
+);
 
 export const getDomainsCountQuerySchema = getDomainsQuerySchema.omit({
   page: true,
