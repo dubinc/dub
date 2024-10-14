@@ -122,20 +122,20 @@ export default function DomainCard({ props }: { props: DomainProps }) {
             <DomainCardTitleColumn
               domain={domain}
               icon={tab === "active" ? Globe : Archive}
-              url={props.link.url}
+              url={props.link?.url}
               primary={primary}
             />
 
             {/* Clicks */}
             <div className="hidden md:flex">
-              <NumberTooltip value={props.link.clicks}>
+              <NumberTooltip value={props.link?.clicks || 0}>
                 <Link
                   href={`/${slug}/analytics?domain=${domain}&key=_root`}
                   className="flex items-center space-x-1 whitespace-nowrap rounded-md border border-gray-200 bg-gray-50 px-3 py-1 transition-colors hover:bg-gray-100"
                 >
                   <CursorRays className="h-4 w-4 text-gray-700" />
                   <p className="text-xs font-medium text-gray-900">
-                    {nFormatter(props.link.clicks)}
+                    {nFormatter(props.link?.clicks || 0)}
                     <span className="ml-1 hidden sm:inline-block">clicks</span>
                   </p>
                 </Link>
