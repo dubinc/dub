@@ -54,11 +54,10 @@ export default async function LinkMiddleware(
   // we don't support .php links (too much bot traffic)
   // hence we redirect to the root domain and add `dub-no-track` header to avoid tracking bot traffic
   if (key.endsWith(".php")) {
-    return NextResponse.redirect(new URL("/", req.url), {
+    return NextResponse.redirect(new URL("/?dub-no-track=1", req.url), {
       headers: {
         ...DUB_HEADERS,
         "X-Robots-Tag": "googlebot: noindex",
-        "dub-no-track": "true",
       },
       status: 302,
     });
