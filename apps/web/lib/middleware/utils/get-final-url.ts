@@ -1,15 +1,5 @@
 import { NextRequest } from "next/server";
 
-// Only add query params to the final URL if they are in this list
-const allowedQueryParams = [
-  "utm_source",
-  "utm_medium",
-  "utm_campaign",
-  "utm_term",
-  "utm_content",
-  "ref",
-];
-
 export const getFinalUrl = (
   url: string,
   { req, clickId }: { req: NextRequest; clickId?: string },
@@ -20,7 +10,9 @@ export const getFinalUrl = (
   // get the query params of the target url
   const urlObj = new URL(url);
 
-  if (clickId) {
+  // if there's no dub-no-track search param, then add clickId to the final url if it exists
+  // reasoning: if you're skipping tracking, there's no point in passing the clickId anyway
+  if (!searchParams.has("dub-no-track") && clickId) {
     // add clickId to the final url if it exists
     urlObj.searchParams.set("dub_id", clickId);
   }
@@ -31,16 +23,29 @@ export const getFinalUrl = (
 
   // if searchParams (type: `URLSearchParams`) has the same key as target url, then overwrite it
   for (const [key, value] of searchParams) {
-    urlObj.searchParams.set(key, value);
+    // we will pass everything except dub-no-track (used for skipping tracking)
+    if (key !== "dub-no-track") {
+      urlObj.searchParams.set(key, value);
+    }
   }
 
+  // remove qr param from the final url if the value is "1" (only used for detectQr function)
   if (urlObj.searchParams.get("qr") === "1") {
-    // remove qr param from the final url if the value is "1" (only used for detectQr function)
     urlObj.searchParams.delete("qr");
   }
 
   return urlObj.toString();
 };
+
+// Only add query params to the final URL if they are in this list
+const allowedQueryParams = [
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_term",
+  "utm_content",
+  "ref",
+];
 
 // Get final cleaned url for storing in TB
 export const getFinalUrlForRecordClick = ({

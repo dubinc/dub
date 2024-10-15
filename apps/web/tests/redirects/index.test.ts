@@ -7,7 +7,7 @@ const fetchOptions: RequestInit = {
   cache: "no-store",
   redirect: "manual",
   headers: {
-    "dub-no-track": "true",
+    "dub-no-track": "1",
   },
 };
 
