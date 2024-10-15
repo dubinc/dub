@@ -51,6 +51,19 @@ export default async function LinkMiddleware(
     key = "_root";
   }
 
+  // we don't support .php links (too much bot traffic)
+  // hence we redirect to the root domain and add `dub-no-track` header to avoid tracking bot traffic
+  if (key.endsWith(".php")) {
+    return NextResponse.redirect(new URL("/", req.url), {
+      headers: {
+        ...DUB_HEADERS,
+        "X-Robots-Tag": "googlebot: noindex",
+        "dub-no-track": "true",
+      },
+      status: 302,
+    });
+  }
+
   let link = await redis.hget<RedisLinkProps>(domain, key);
 
   if (!link) {
@@ -65,6 +78,7 @@ export default async function LinkMiddleware(
             ...DUB_HEADERS,
             "X-Robots-Tag": "googlebot: noindex",
           },
+          status: 302,
         });
       } else {
         return NextResponse.rewrite(new URL("/notfoundlink", req.url), {
@@ -161,6 +175,7 @@ export default async function LinkMiddleware(
           ...DUB_HEADERS,
           ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
+        status: 302,
       });
     } else {
       return NextResponse.rewrite(new URL(`/expired/${domain}`, req.url), {
