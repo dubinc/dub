@@ -84,7 +84,8 @@ function TimeSeriesChartInner<T extends Datum>({
       .filter((v): v is number => v != null);
 
     return {
-      minY: Math.min(...values),
+      // Start at 0 for bar charts
+      minY: type === "area" ? Math.min(...values) : Math.min(0, ...values),
       maxY: Math.max(...values),
     };
   }, [data, series]);
@@ -114,7 +115,7 @@ function TimeSeriesChartInner<T extends Datum>({
               align: 0.5,
             }),
     };
-  }, [startDate, endDate, minY, maxY, height, width, type]);
+  }, [startDate, endDate, minY, maxY, height, width, data.length, type]);
 
   const chartContext: ChartContextType<T> = {
     type,
@@ -162,8 +163,11 @@ function TimeSeriesChartInner<T extends Datum>({
               ("bandwidth" in xScale ? (
                 <>
                   <Bar
-                    x={xScale(tooltipData.date) ?? 0}
-                    width={xScale.bandwidth()}
+                    x={
+                      (xScale(tooltipData.date) ?? 0) -
+                      xScale.bandwidth() * xScale.padding()
+                    }
+                    width={xScale.bandwidth() * (1 + xScale.padding() * 2)}
                     y={0}
                     height={height}
                     fill="black"
@@ -218,7 +222,7 @@ function TimeSeriesChartInner<T extends Datum>({
               key={tooltipData.date.toString()}
               left={(tooltipLeft ?? 0) + margin.left}
               top={(tooltipTop ?? 0) + margin.top}
-              offsetLeft={8}
+              offsetLeft={"bandwidth" in xScale ? xScale.bandwidth() + 8 : 8}
               offsetTop={12}
               className="absolute"
               unstyled={true}

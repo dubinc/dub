@@ -119,7 +119,7 @@ export default function WorkspaceBillingClient() {
           </div>
         )}
       </div>
-      <div className="grid divide-y divide-gray-200 border-y border-gray-200">
+      <div className="grid grid-cols-[minmax(0,1fr)] divide-y divide-gray-200 border-y border-gray-200">
         <div>
           <div
             className={cn(
@@ -295,11 +295,12 @@ function UsageTabCard({
             >
               <div
                 className={cn(
-                  "size-full rounded-full bg-gradient-to-r from-transparent to-violet-700",
+                  "size-full rounded-full [mask-image:linear-gradient(90deg,transparent,black_80%)]",
                   warning && "to-rose-500",
                 )}
                 style={{
                   transform: `translateX(-${100 - Math.floor((usage / Math.max(0, usage, limit)) * 100)}%)`,
+                  backgroundImage: `linear-gradient(90deg, #D8277A, #7E3AEA)`,
                 }}
               />
             </div>
