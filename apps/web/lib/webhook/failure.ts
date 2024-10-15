@@ -33,22 +33,20 @@ export const handleWebhookFailure = async (webhookId: string) => {
     webhook.consecutiveFailures >= WEBHOOK_FAILURE_NOTIFY_THRESHOLD;
 
   if (failureThresholdReached) {
-    const disabledAt = new Date();
-
     // Disable the webhook
-    await prisma.webhook.update({
+    const updatedWebhook = await prisma.webhook.update({
       where: { id: webhookId },
       data: {
-        disabledAt,
+        disabledAt: new Date(),
       },
     });
 
     await Promise.allSettled([
       // Notify the user
-      sendFailureNotification(webhook),
+      sendFailureNotification(updatedWebhook),
 
       // Update the webhook cache
-      webhookCache.set({ ...webhook, disabledAt }),
+      webhookCache.set(updatedWebhook),
 
       // Update the project webhookEnabled flag
       updateWebhookStatusForWorkspace({
