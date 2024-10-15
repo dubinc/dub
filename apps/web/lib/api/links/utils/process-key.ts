@@ -14,6 +14,11 @@ export function processKey({ domain, key }: { domain: string; key: string }) {
     return null;
   }
 
+  // if key ends with .php, return null (we don't support .php in links)
+  if (key.endsWith(".php")) {
+    return null;
+  }
+
   // remove all leading and trailing slashes from key
   key = key.replace(/^\/+|\/+$/g, "");
   /* 
