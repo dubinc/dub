@@ -95,10 +95,11 @@ export default function LoginForm() {
 
   useEffect(() => {
     const error = searchParams?.get("error");
-    if (error && errorCodes[error]) {
-      toast.error(errorCodes[error]);
-    } else {
-      toast.error("An unexpected error occurred. Please try again later.");
+    if (error) {
+      toast.error(
+        errorCodes[error] ||
+          "An unexpected error occurred. Please try again later.",
+      );
     }
   }, [searchParams]);
 
