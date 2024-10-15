@@ -1,4 +1,9 @@
-import { isDubDomain, punyEncode, validKeyRegex } from "@dub/utils";
+import {
+  isDubDomain,
+  isUnsupportedKey,
+  punyEncode,
+  validKeyRegex,
+} from "@dub/utils";
 
 export function processKey({ domain, key }: { domain: string; key: string }) {
   // Skip if root domain
@@ -11,6 +16,11 @@ export function processKey({ domain, key }: { domain: string; key: string }) {
   }
   // if key starts with _, return null (reserved route for Dub internals)
   if (key.startsWith("_")) {
+    return null;
+  }
+
+  // if key ends with .php, return null (we don't support .php in links)
+  if (isUnsupportedKey(key)) {
     return null;
   }
 

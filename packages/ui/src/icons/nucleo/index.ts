@@ -51,6 +51,7 @@ export * from "./gift";
 export * from "./gift-fill";
 export * from "./globe";
 export * from "./globe-pointer";
+export * from "./globe-search";
 export * from "./globe2";
 export * from "./grid-layout-rows";
 export * from "./grid-plus";
