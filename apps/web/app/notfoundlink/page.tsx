@@ -1,4 +1,4 @@
-import { Background, Footer, Nav, NavMobile } from "@dub/ui";
+import { Background, Footer, GlobeSearch, Nav, NavMobile } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
 
 export const runtime = "edge";
@@ -17,7 +17,7 @@ export default async function NotFoundLinkPage() {
       <Nav />
       <div className="z-10 mx-2 my-10 flex max-w-md flex-col items-center space-y-5 px-2.5 text-center sm:mx-auto sm:max-w-lg sm:px-0 lg:mb-16">
         <div className="font-display mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-gray-300 bg-white/80 text-lg font-bold text-gray-400">
-          404
+          <GlobeSearch className="size-6 text-gray-500" />
         </div>
         <h1 className="font-display text-5xl font-bold">Link Not Found</h1>
         <p className="text-lg text-gray-600">

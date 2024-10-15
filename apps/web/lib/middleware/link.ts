@@ -12,6 +12,7 @@ import {
   LEGAL_WORKSPACE_ID,
   LOCALHOST_GEO_DATA,
   isDubDomain,
+  isUnsupportedKey,
   nanoid,
   punyEncode,
 } from "@dub/utils";
@@ -53,7 +54,7 @@ export default async function LinkMiddleware(
 
   // we don't support .php links (too much bot traffic)
   // hence we redirect to the root domain and add `dub-no-track` header to avoid tracking bot traffic
-  if (key.endsWith(".php")) {
+  if (isUnsupportedKey(key)) {
     return NextResponse.redirect(new URL("/?dub-no-track=1", req.url), {
       headers: {
         ...DUB_HEADERS,
