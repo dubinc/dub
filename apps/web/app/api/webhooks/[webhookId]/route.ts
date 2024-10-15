@@ -198,7 +198,6 @@ export const PATCH = withWorkspace(
 
         // No changes in the links
         if (!linksAdded.length && !linksRemoved.length) {
-          console.log("No changes in the links");
           return;
         }
 

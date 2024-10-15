@@ -97,16 +97,12 @@ export const GET = async (req: Request) => {
       },
     };
 
-    const installation = await installIntegration({
+    await installIntegration({
       integrationId: SLACK_INTEGRATION_ID,
       userId: session.user.id,
       workspaceId,
       credentials,
     });
-
-    // Add the webhook if the installation was successful
-    if (installation) {
-    }
   } catch (e: any) {
     return handleAndReturnErrorResponse(e);
   }

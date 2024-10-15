@@ -148,7 +148,7 @@ export async function recordClick({
     // and then we have a cron that will reset it at the start of new billing cycle
     url &&
       conn.execute(
-        "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1 WHERE l.id = ?;",
+        "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1 WHERE l.id = ?",
         [linkId],
       ),
 

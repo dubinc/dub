@@ -87,7 +87,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
         },
       }),
 
-      // Disable the webhooks if the plan is downgraded to free
+      // Disable the webhooks if the new plan does not support webhooks
       ...(shouldDisableWebhooks
         ? [
             prisma.webhook.updateMany({
