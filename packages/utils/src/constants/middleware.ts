@@ -13,14 +13,6 @@ export const DEFAULT_REDIRECTS = {
   discord: "https://twitter.com/dubdotco", // placeholder for now
 };
 
-export const RESERVED_PATHS = [
-  "favicon.ico",
-  "sitemap.xml",
-  "robots.txt",
-  "manifest.webmanifest",
-  ".well-known",
-];
-
 export const DUB_HEADERS = {
   "x-powered-by": "Dub.co - Link management for modern marketing teams",
 };
