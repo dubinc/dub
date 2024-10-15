@@ -1,3 +1,4 @@
+import { APP_DOMAIN } from "@dub/utils";
 import { LinkWebhookEvent } from "dub/models/components";
 import { WebhookTrigger } from "../types";
 import {
@@ -14,9 +15,9 @@ const createLinkTemplate = ({
   eventType: WebhookTrigger;
 }) => {
   const eventMessages = {
-    "link.created": "*New short link created*",
-    "link.updated": "*Short link updated*",
-    "link.deleted": "*Short link deleted*",
+    "link.created": "*New short link created* :link:",
+    "link.updated": "*Short link updated* :link:",
+    "link.deleted": "*Short link deleted* :link:",
   };
 
   return {
@@ -47,6 +48,7 @@ const createLinkTemplate = ({
 
 const clickLinkTemplate = ({ data }: { data: ClickEventWebhookData }) => {
   const { link, click } = data;
+  const linkToClicks = `${APP_DOMAIN}/events?event=clicks&domain=${link.domain}&key=${link.key}`;
 
   return {
     blocks: [
@@ -68,6 +70,11 @@ const clickLinkTemplate = ({ data }: { data: ClickEventWebhookData }) => {
             type: "mrkdwn",
             text: `*Referrer*\n${click.referer}`,
           },
+        ],
+      },
+      {
+        type: "section",
+        fields: [
           {
             type: "mrkdwn",
             text: `*Short link*\n<${link.shortLink}|${link.shortLink}>`,
@@ -78,12 +85,22 @@ const clickLinkTemplate = ({ data }: { data: ClickEventWebhookData }) => {
           },
         ],
       },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `<${linkToClicks}|View on Dub>`,
+          },
+        ],
+      },
     ],
   };
 };
 
 const createLeadTemplate = ({ data }: { data: LeadEventWebhookData }) => {
   const { customer, click, link } = data;
+  const linkToLeads = `${APP_DOMAIN}/events?event=leads&domain=${link.domain}&key=${link.key}`;
 
   return {
     blocks: [
@@ -96,12 +113,17 @@ const createLeadTemplate = ({ data }: { data: LeadEventWebhookData }) => {
         fields: [
           {
             type: "mrkdwn",
-            text: `*Customer:*\n${customer.name}`,
+            text: `*Customer*\n${customer.name}`,
           },
           {
             type: "mrkdwn",
             text: `*Email*\n<mailto:${customer.email}|${customer.email}>`,
           },
+        ],
+      },
+      {
+        type: "section",
+        fields: [
           {
             type: "mrkdwn",
             text: `*Country*\n${click.country}`,
@@ -112,13 +134,23 @@ const createLeadTemplate = ({ data }: { data: LeadEventWebhookData }) => {
           },
         ],
       },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `<${linkToLeads}|View on Dub>`,
+          },
+        ],
+      },
     ],
   };
 };
 
 const createSaleTemplate = ({ data }: { data: SaleEventWebhookData }) => {
-  const { customer, click, sale } = data;
+  const { customer, click, sale, link } = data;
   const amountInDollars = (sale.amount / 100).toFixed(2);
+  const linkToSales = `${APP_DOMAIN}/events?event=sales&domain=${link.domain}&key=${link.key}`;
 
   return {
     blocks: [
@@ -137,6 +169,11 @@ const createSaleTemplate = ({ data }: { data: SaleEventWebhookData }) => {
             type: "mrkdwn",
             text: `*Email*\n<mailto:${customer.email}|${customer.email}>`,
           },
+        ],
+      },
+      {
+        type: "section",
+        fields: [
           {
             type: "mrkdwn",
             text: `*Country*\n${click.country}`,
@@ -144,6 +181,15 @@ const createSaleTemplate = ({ data }: { data: SaleEventWebhookData }) => {
           {
             type: "mrkdwn",
             text: `*Amount*\n${amountInDollars}`,
+          },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `<${linkToSales}|View on Dub>`,
           },
         ],
       },
