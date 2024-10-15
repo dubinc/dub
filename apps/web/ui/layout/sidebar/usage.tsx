@@ -181,4 +181,7 @@ function UsageRow({
 const formatNumber = (value: number) =>
   value >= 1000000000
     ? "∞"
-    : nFormatter(value, { full: value !== undefined && value < 9999 });
+    : nFormatter(value, {
+        full: value !== undefined && value < 9999,
+        digits: 1,
+      });

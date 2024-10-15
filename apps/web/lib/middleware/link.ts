@@ -12,6 +12,7 @@ import {
   LEGAL_WORKSPACE_ID,
   LOCALHOST_GEO_DATA,
   isDubDomain,
+  isUnsupportedKey,
   nanoid,
   punyEncode,
 } from "@dub/utils";
@@ -23,6 +24,7 @@ import {
   userAgent,
 } from "next/server";
 import { getLinkViaEdge } from "../planetscale";
+import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { RedisLinkProps } from "../types";
 
 export default async function LinkMiddleware(
@@ -50,17 +52,39 @@ export default async function LinkMiddleware(
     key = "_root";
   }
 
+  // we don't support .php links (too much bot traffic)
+  // hence we redirect to the root domain and add `dub-no-track` header to avoid tracking bot traffic
+  if (isUnsupportedKey(key)) {
+    return NextResponse.redirect(new URL("/?dub-no-track=1", req.url), {
+      headers: {
+        ...DUB_HEADERS,
+        "X-Robots-Tag": "googlebot: noindex",
+      },
+      status: 302,
+    });
+  }
+
   let link = await redis.hget<RedisLinkProps>(domain, key);
 
   if (!link) {
     const linkData = await getLinkViaEdge(domain, key);
 
     if (!linkData) {
-      // short link not found, rewrite to not-found page
-      // TODO: log 404s (https://github.com/dubinc/dub/issues/559)
-      return NextResponse.rewrite(new URL(`/not-found/${domain}`, req.url), {
-        headers: DUB_HEADERS,
-      });
+      // check if domain has notFoundUrl configured
+      const domainData = await getDomainViaEdge(domain);
+      if (domainData?.notFoundUrl) {
+        return NextResponse.redirect(domainData.notFoundUrl, {
+          headers: {
+            ...DUB_HEADERS,
+            "X-Robots-Tag": "googlebot: noindex",
+          },
+          status: 302,
+        });
+      } else {
+        return NextResponse.rewrite(new URL("/notfoundlink", req.url), {
+          headers: DUB_HEADERS,
+        });
+      }
     }
 
     // format link to fit the RedisLinkProps interface
@@ -151,6 +175,7 @@ export default async function LinkMiddleware(
           ...DUB_HEADERS,
           ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
+        status: 302,
       });
     } else {
       return NextResponse.rewrite(new URL(`/expired/${domain}`, req.url), {
