@@ -1,10 +1,11 @@
 import { qstash } from "@/lib/cron";
 import { webhookPayloadSchema } from "@/lib/webhook/schemas";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { Webhook } from "@prisma/client";
+import { Webhook, WebhookReceiver } from "@prisma/client";
 import { WebhookTrigger } from "../types";
 import z from "../zod";
 import { createWebhookSignature } from "./signature";
+import { generateSlackMessage } from "./slack-templates";
 import { prepareWebhookPayload } from "./transform";
 import { EventDataProps } from "./types";
 import { identifyWebhookReceiver } from "./utils";
@@ -33,7 +34,7 @@ export const sendWebhooks = async ({
 };
 
 // Publish webhook event to QStash
-export const publishWebhookEventToQStash = async ({
+const publishWebhookEventToQStash = async ({
   webhook,
   payload,
 }: {
@@ -45,12 +46,13 @@ export const publishWebhookEventToQStash = async ({
   callbackUrl.searchParams.append("eventId", payload.id);
   callbackUrl.searchParams.append("event", payload.event);
 
-  const signature = await createWebhookSignature(webhook.secret, payload);
   const receiver = identifyWebhookReceiver(webhook.url);
+  const finalPayload = transformPayload({ payload, receiver });
+  const signature = await createWebhookSignature(webhook.secret, finalPayload);
 
   const response = await qstash.publishJSON({
     url: webhook.url,
-    body: payload,
+    body: finalPayload,
     headers: {
       "Dub-Signature": signature,
       "Upstash-Hide-Headers": "true",
@@ -66,7 +68,17 @@ export const publishWebhookEventToQStash = async ({
   return response;
 };
 
-// const finalPayload =
-// receiver === "slack"
-//   ? generateLinkTemplate(payload.data, payload.event)
-//   : payload;
+// Transform the payload for the receiver
+const transformPayload = ({
+  payload,
+  receiver,
+}: {
+  payload: z.infer<typeof webhookPayloadSchema>;
+  receiver: WebhookReceiver;
+}) => {
+  if (receiver === "slack") {
+    return generateSlackMessage(payload.event, payload.data);
+  }
+
+  return payload;
+};

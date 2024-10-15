@@ -60,5 +60,11 @@
     "saleAmount": 20000,
     "createdAt": "2024-08-29T13:03:59.098Z",
     "updatedAt": "2024-08-30T09:57:50.891Z"
+  },
+  "sale": {
+    "amount": 4500,
+    "currency": "usd",
+    "paymentProcessor": "stripe",
+    "invoiceId": null
   }
 }
