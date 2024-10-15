@@ -9,6 +9,7 @@ const domainRecord = {
   slug: slug,
   expiredUrl: `https://${slug}/expired`,
   placeholder: `https://${slug}/placeholder`,
+  notFoundUrl: `https://${slug}/not-found`,
 };
 
 const expectedDomain = {
@@ -19,8 +20,10 @@ const expectedDomain = {
   archived: false,
   placeholder: domainRecord.placeholder,
   expiredUrl: domainRecord.expiredUrl,
+  notFoundUrl: domainRecord.notFoundUrl,
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
+  registeredDomain: null,
 };
 
 describe.sequential("/domains/**", async () => {
@@ -49,7 +52,7 @@ describe.sequential("/domains/**", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(domain).toStrictEqual({ ...expectedDomain, registeredDomain: null });
+    expect(domain).toStrictEqual(expectedDomain);
   });
 
   test("GET /domains", async () => {
@@ -59,10 +62,9 @@ describe.sequential("/domains/**", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(domains).toContainEqual({
-      ...expectedDomain,
-      registeredDomain: null,
-    });
+    expect(
+      domains.map((d) => ({ ...d, registeredDomain: null })),
+    ).toContainEqual(expectedDomain);
   });
 
   test("POST /domains/{slug}/primary", { retry: 3 }, async () => {
@@ -82,6 +84,7 @@ describe.sequential("/domains/**", async () => {
     const toUpdate = {
       expiredUrl: `https://${slug}/expired-new`,
       placeholder: `https://${slug}/placeholder-new`,
+      notFoundUrl: `https://${slug}/not-found-new`,
       archived: true,
     };
 

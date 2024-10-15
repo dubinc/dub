@@ -10,6 +10,7 @@ import {
   Switch,
   Tooltip,
   TooltipContent,
+  useInViewport,
 } from "@dub/ui";
 import {
   Apple,
@@ -152,29 +153,38 @@ function UnverifiedTooltip({
 }: PropsWithChildren<{ domain: string; _key: string }>) {
   const { id: workspaceId, slug } = useWorkspace();
 
+  const ref = useRef<HTMLDivElement>(null);
+  const isVisible = useInViewport(ref);
+
   const { data: { verified } = {} } = useSWR<DomainProps>(
     workspaceId &&
+      isVisible &&
       !isDubDomain(domain) &&
       `/api/domains/${domain}?workspaceId=${workspaceId}`,
     fetcher,
+    { refreshInterval: 60000 },
   );
 
-  return !isDubDomain(domain) && verified === false ? (
-    <Tooltip
-      content={
-        <TooltipContent
-          title="Your branded links won't work until you verify your domain."
-          cta="Verify your domain"
-          href={`/${slug}/settings/domains`}
-        />
-      }
-    >
-      <p className="cursor-default truncate font-semibold leading-6 text-gray-500 line-through">
-        {linkConstructor({ domain, key: _key, pretty: true })}
-      </p>
-    </Tooltip>
-  ) : (
-    children
+  return (
+    <div ref={ref}>
+      {!isDubDomain(domain) && verified === false ? (
+        <Tooltip
+          content={
+            <TooltipContent
+              title="Your branded links won't work until you verify your domain."
+              cta="Verify your domain"
+              href={`/${slug}/settings/domains`}
+            />
+          }
+        >
+          <p className="cursor-default truncate font-semibold leading-6 text-gray-500 line-through">
+            {linkConstructor({ domain, key: _key, pretty: true })}
+          </p>
+        </Tooltip>
+      ) : (
+        children
+      )}
+    </div>
   );
 }
 

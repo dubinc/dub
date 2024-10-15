@@ -3,16 +3,14 @@ import { useMemo } from "react";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
-export default function useDefaultDomains({
-  search,
-}: { search?: string } = {}) {
+export default function useDefaultDomains(opts: { search?: string } = {}) {
   const { id, flags } = useWorkspace();
 
   const { data, error, mutate } = useSWR<string[]>(
     id &&
       `/api/domains/default?${new URLSearchParams({
         workspaceId: id,
-        ...(search && { search }),
+        ...(opts.search && { search: opts.search }),
       }).toString()}`,
     fetcher,
     {
@@ -25,8 +23,6 @@ export default function useDefaultDomains({
       ? data?.filter((d) => d !== "cal.link")
       : data;
   }, [data, flags]);
-
-  console.log({ defaultDomains });
 
   return {
     defaultDomains,
