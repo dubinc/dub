@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(async ({ searchParams, workspace }) => {
   const { resource } = usageQuerySchema.parse(searchParams);
   const { billingCycleStart } = workspace;
-  const { firstDay } = getFirstAndLastDay(billingCycleStart);
+  const { firstDay, lastDay } = getFirstAndLastDay(billingCycleStart);
 
   const pipe = tb.buildPipe({
     pipe: `v1_usage`,
@@ -33,7 +33,7 @@ export const GET = withWorkspace(async ({ searchParams, workspace }) => {
     resource,
     workspaceId: workspace.id,
     start: firstDay.toISOString().replace("T", " ").replace("Z", ""),
-    end: new Date().toISOString().replace("T", " ").replace("Z", ""),
+    end: lastDay.toISOString().replace("T", " ").replace("Z", ""),
   });
 
   return NextResponse.json(response.data);

@@ -16,13 +16,13 @@ import {
 import { CircleDollar, CursorRays, Hyperlink } from "@dub/ui/src/icons";
 import { cn, getFirstAndLastDay, nFormatter } from "@dub/utils";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { CSSProperties, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { UsageChart } from "./usage-chart";
 
 export default function WorkspaceBillingClient() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const {
     id: workspaceId,
@@ -153,10 +153,8 @@ export default function WorkspaceBillingClient() {
               />
             )}
           </div>
-          <div className="px-8 pb-8">
-            <div className="flex h-72 w-full items-center justify-center rounded-md bg-neutral-200 text-neutral-500">
-              WIP
-            </div>
+          <div className="w-full px-8 pb-8">
+            <UsageChart />
           </div>
         </div>
         <div className="grid grid-cols-1 divide-y divide-gray-200 sm:divide-x sm:divide-y-0 md:grid-cols-3">
@@ -265,7 +263,7 @@ function UsageTabCard({
   return (
     <button
       className={cn(
-        "rounded-md border border-neutral-300 bg-white px-5 py-4 text-left",
+        "rounded-lg border border-neutral-300 bg-white px-5 py-4 text-left transition-colors duration-75 hover:bg-neutral-50",
         isActive && "border-neutral-900 ring-1 ring-neutral-900",
       )}
       aria-selected={isActive}
