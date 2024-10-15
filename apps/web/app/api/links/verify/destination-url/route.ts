@@ -4,9 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export const GET = withWorkspace(
-  async ({ req, workspace }) => {
-    const { searchParams } = new URL(req.url);
-    const url = searchParams.get("url");
+  async ({ workspace, searchParams }) => {
+    const { url } = searchParams;
 
     if (!url) {
       throw new DubApiError({
