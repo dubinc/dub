@@ -85,9 +85,7 @@ describe.runIf(env.CI)("Link Redirects", async () => {
       headers: {},
     });
 
-    expect(response.headers.get("location")).toBe(
-      "https://dub.co/?dub-no-track=1",
-    );
+    expect(response.headers.get("location")).toBe("/?dub-no-track=1");
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
     expect(response.status).toBe(302);
   });
