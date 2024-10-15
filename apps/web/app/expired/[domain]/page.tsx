@@ -30,7 +30,7 @@ export default async function ExpiredLinkPage({
       <Nav />
       <div className="z-10 mx-2 my-10 flex max-w-md flex-col items-center space-y-5 px-2.5 text-center sm:mx-auto sm:max-w-lg sm:px-0 lg:mb-16">
         <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-gray-300 bg-white/80">
-          <CircleHalfDottedClock className="h-6 w-6 text-gray-400" />
+          <CircleHalfDottedClock className="size-6 text-gray-500" />
         </div>
         <h1 className="font-display text-5xl font-bold">Expired Link</h1>
         <p className="text-lg text-gray-600">
