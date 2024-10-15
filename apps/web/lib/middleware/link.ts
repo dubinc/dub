@@ -12,6 +12,7 @@ import {
   LEGAL_WORKSPACE_ID,
   LOCALHOST_GEO_DATA,
   isDubDomain,
+  isUnsupportedKey,
   nanoid,
   punyEncode,
 } from "@dub/utils";
@@ -51,6 +52,18 @@ export default async function LinkMiddleware(
     key = "_root";
   }
 
+  // we don't support .php links (too much bot traffic)
+  // hence we redirect to the root domain and add `dub-no-track` header to avoid tracking bot traffic
+  if (isUnsupportedKey(key)) {
+    return NextResponse.redirect(new URL("/?dub-no-track=1", req.url), {
+      headers: {
+        ...DUB_HEADERS,
+        "X-Robots-Tag": "googlebot: noindex",
+      },
+      status: 302,
+    });
+  }
+
   let link = await redis.hget<RedisLinkProps>(domain, key);
 
   if (!link) {
@@ -65,6 +78,7 @@ export default async function LinkMiddleware(
             ...DUB_HEADERS,
             "X-Robots-Tag": "googlebot: noindex",
           },
+          status: 302,
         });
       } else {
         return NextResponse.rewrite(new URL("/notfoundlink", req.url), {
@@ -161,6 +175,7 @@ export default async function LinkMiddleware(
           ...DUB_HEADERS,
           ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
+        status: 302,
       });
     } else {
       return NextResponse.rewrite(new URL(`/expired/${domain}`, req.url), {
