@@ -85,7 +85,7 @@ export function UsageChart() {
               },
             ]}
           />
-          <XAxis />
+          <XAxis highlightLast={false} />
           <YAxis
             showGridLines
             tickFormat={
