@@ -18,7 +18,7 @@ const resourceEmptyStates: Record<
 > = {
   links: {
     icon: Hyperlink,
-    title: "Links Usage",
+    title: "Links Created",
     description:
       "No short links have been created in the current billing cycle.",
   },
