@@ -263,6 +263,7 @@ function UsageTabCard({
     <button
       className={cn(
         "rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors duration-75 hover:bg-neutral-50 lg:px-5 lg:py-4",
+        "outline-none focus-visible:border-blue-600 focus-visible:ring-1 focus-visible:ring-blue-600",
         isActive && "border-neutral-900 ring-1 ring-neutral-900",
       )}
       aria-selected={isActive}
