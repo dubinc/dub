@@ -1,14 +1,8 @@
 import z from "@/lib/zod";
 import { clickEventSchema } from "../zod/schemas/clicks";
+import { CustomerSchema } from "../zod/schemas/customers";
 import { linkEventSchema } from "../zod/schemas/links";
 import { WEBHOOK_TRIGGERS } from "./constants";
-
-const customerSchema = z.object({
-  id: z.string(),
-  name: z.string().nullable(),
-  email: z.string().nullable(),
-  avatar: z.string().nullable(),
-});
 
 const saleSchema = z.object({
   amount: z.number(),
@@ -24,14 +18,14 @@ export const clickWebhookEventSchema = z.object({
 
 export const leadWebhookEventSchema = z.object({
   eventName: z.string(),
-  customer: customerSchema,
+  customer: CustomerSchema,
   click: clickEventSchema,
   link: linkEventSchema,
 });
 
 export const saleWebhookEventSchema = z.object({
   eventName: z.string(),
-  customer: customerSchema,
+  customer: CustomerSchema,
   click: clickEventSchema,
   link: linkEventSchema,
   sale: saleSchema,
