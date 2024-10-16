@@ -183,7 +183,7 @@ export default function WorkspaceDomainsClient() {
             >
               <Button
                 variant="primary"
-                className="w-fit"
+                className="h-9 w-fit rounded-lg"
                 text={
                   <div className="flex items-center gap-2">
                     Add domain{" "}

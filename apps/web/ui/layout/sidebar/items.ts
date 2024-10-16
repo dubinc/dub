@@ -88,6 +88,11 @@ export const ITEMS: Record<
           href: `/${slug}/settings/tags`,
         },
         {
+          name: "UTM Templates",
+          icon: DiamondTurnRight,
+          href: `/${slug}/settings/utm-templates`,
+        },
+        {
           name: "Billing",
           icon: Receipt2,
           href: `/${slug}/settings/billing`,
@@ -116,11 +121,6 @@ export const ITEMS: Record<
               },
             ]
           : []),
-        {
-          name: "UTM Templates",
-          icon: DiamondTurnRight,
-          href: `/${slug}/settings/utm-templates`,
-        },
       ],
     },
     {
