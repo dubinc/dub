@@ -40,16 +40,9 @@ export default function WorkspaceUtmTemplatesClient() {
 
   return (
     <>
-      <div className="grid gap-5">
-        <div className="flex flex-wrap justify-between gap-6">
-          <div className="flex items-center gap-x-2">
-            <h1 className="text-2xl font-semibold tracking-tight text-black">
-              UTM Templates
-            </h1>
-          </div>
-          <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
-            <AddUtmTemplateButton />
-          </div>
+      <div className="grid gap-4">
+        <div className="flex justify-end gap-6">
+          <AddUtmTemplateButton />
         </div>
         {workspaceId && <AddEditUtmTemplateModal />}
 

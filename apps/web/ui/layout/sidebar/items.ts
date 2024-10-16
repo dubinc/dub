@@ -1,20 +1,19 @@
 import { BetaFeatures } from "@/lib/types";
 import { Icon } from "@dub/ui";
 import {
+  Books2,
   CircleInfo,
   ConnectedDots,
   CubeSettings,
-  DiamondTurnRight,
   Gear2,
   Gift,
   Globe,
   Key,
   Receipt2,
   ShieldCheck,
-  Tag,
   Users6,
+  Webhook,
 } from "@dub/ui/src/icons";
-import { Webhook } from "lucide-react";
 import { CursorRays } from "./icons/cursor-rays";
 import { Gear } from "./icons/gear";
 import { Hyperlink } from "./icons/hyperlink";
@@ -83,14 +82,9 @@ export const ITEMS: Record<
           href: `/${slug}/settings/domains`,
         },
         {
-          name: "Tags",
-          icon: Tag,
-          href: `/${slug}/settings/tags`,
-        },
-        {
-          name: "UTM Templates",
-          icon: DiamondTurnRight,
-          href: `/${slug}/settings/utm-templates`,
+          name: "Library",
+          icon: Books2,
+          href: `/${slug}/settings/library`,
         },
         {
           name: "Billing",
