@@ -16,7 +16,7 @@ export function UsageChart() {
   const resource =
     RESOURCES.find((r) => r === searchParams.get("tab")) ?? "links";
 
-  const { usage, loading } = useUsage({ resource: resource as any });
+  const { usage, loading } = useUsage({ resource });
 
   const chartData = useMemo(
     () =>

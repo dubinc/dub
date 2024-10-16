@@ -6,7 +6,7 @@ import useWorkspace from "./use-workspace";
 export default function useUsage({
   resource,
 }: {
-  resource: "links" | "events";
+  resource: "links" | "events" | "revenue";
 }) {
   const { id } = useWorkspace();
 
