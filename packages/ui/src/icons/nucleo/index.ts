@@ -20,6 +20,7 @@ export * from "./check2";
 export * from "./checkbox-checked-fill";
 export * from "./checkbox-unchecked";
 export * from "./circle-check";
+export * from "./circle-dollar";
 export * from "./circle-dotted";
 export * from "./circle-half-dotted-clock";
 export * from "./circle-info";
