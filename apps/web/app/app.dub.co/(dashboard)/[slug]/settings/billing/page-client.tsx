@@ -3,7 +3,6 @@
 import useTags from "@/lib/swr/use-tags";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
-import Infinity from "@/ui/shared/icons/infinity";
 import PlanBadge from "@/ui/workspaces/plan-badge";
 import {
   Button,
@@ -353,13 +352,11 @@ function UsageCategory(data: {
             <div className="size-7 animate-pulse rounded-md bg-gray-200" />
           )}
           <span className="text-lg font-medium text-black">/</span>
-          {usageLimit && usageLimit >= 1000000000 ? (
-            <Infinity className="size-8 text-gray-500" />
-          ) : (
-            <p className="text-lg font-medium text-gray-400">
-              {nFormatter(usageLimit, { full: true })}
-            </p>
-          )}
+          <p className="text-lg font-medium text-gray-400">
+            {usageLimit && usageLimit >= 1000000000
+              ? "∞"
+              : nFormatter(usageLimit, { full: true })}
+          </p>
         </div>
       ) : (
         <div className="mt-2 flex flex-col space-y-2">
