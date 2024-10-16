@@ -3,9 +3,10 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UtmTemplateProps } from "@/lib/types";
 import { UTM_PARAMETERS } from "@/ui/links/utm-builder";
-import { Combobox, Tooltip } from "@dub/ui";
-import { Note } from "@dub/ui/src/icons";
+import { Button, Combobox, Tooltip } from "@dub/ui";
+import { DiamondTurnRight } from "@dub/ui/src/icons";
 import { fetcher, getParamsFromURL } from "@dub/utils";
+import { useRouter } from "next/navigation";
 import { Fragment } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
@@ -83,8 +84,8 @@ export function UTMTemplatesCombo({
       }}
       placeholder="Templates"
       searchPlaceholder="Load or save a template..."
-      emptyState="No templates found"
-      icon={Note}
+      emptyState={<NoUTMTemplatesFound />}
+      icon={DiamondTurnRight}
       createLabel={(search) => `Save new template: "${search}"`}
       onCreate={async (search) => {
         try {
@@ -121,3 +122,27 @@ export function UTMTemplatesCombo({
     />
   );
 }
+
+const NoUTMTemplatesFound = () => {
+  const router = useRouter();
+  const { slug } = useWorkspace();
+
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-2 px-2 py-4 text-center text-sm">
+      <div className="flex items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 p-3">
+        <DiamondTurnRight className="size-6 text-gray-700" />
+      </div>
+      <p className="mt-2 font-medium text-gray-950">No UTM templates found</p>
+      <p className="mx-auto mt-1 w-full max-w-[180px] text-gray-700">
+        Add a UTM template to easily create links with the same UTM parameters.
+      </p>
+      <div>
+        <Button
+          className="mt-1 h-8"
+          onClick={() => router.push(`/${slug}/settings/library/utm`)}
+          text="Add UTM template"
+        />
+      </div>
+    </div>
+  );
+};
