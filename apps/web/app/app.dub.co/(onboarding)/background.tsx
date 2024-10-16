@@ -21,7 +21,7 @@ export function Background(props: { showAnimation?: boolean }) {
         showAnimation ? (isLoaded ? "opacity-100" : "opacity-0") : "opacity-40",
       )}
     >
-      <BackgroundGradient className="opacity-15" />
+      <BackgroundGradient className="opacity-15 inset-0" />
       <div className="absolute left-1/2 top-0 -translate-x-1/2 opacity-50 transition-all sm:opacity-100">
         <Image
           src="https://assets.dub.co/misc/welcome-background-grid.svg"
