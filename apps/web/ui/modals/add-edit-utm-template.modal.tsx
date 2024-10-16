@@ -56,12 +56,12 @@ function AddEditUtmTemplateModal({
       id
         ? {
             method: "PATCH",
-            url: `/api/utm-templates/${id}?workspaceId=${workspaceId}`,
+            url: `/api/utm/${id}?workspaceId=${workspaceId}`,
             successMessage: "Successfully updated template!",
           }
         : {
             method: "POST",
-            url: `/api/utm-templates?workspaceId=${workspaceId}`,
+            url: `/api/utm?workspaceId=${workspaceId}`,
             successMessage: "Successfully added template!",
           },
     [id],
@@ -97,7 +97,7 @@ function AddEditUtmTemplateModal({
                 utmTemplateName: data.name,
               },
             );
-            await mutate(`/api/utm-templates?workspaceId=${workspaceId}`);
+            await mutate(`/api/utm?workspaceId=${workspaceId}`);
             toast.success(endpoint.successMessage);
             setShowAddEditUtmTemplateModal(false);
           } catch (e) {

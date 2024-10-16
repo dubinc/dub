@@ -24,7 +24,7 @@ export default function WorkspaceUtmTemplatesClient() {
   const { id: workspaceId } = useWorkspace();
 
   const { data: templates, isLoading } = useSWR<UtmTemplateWithUserProps[]>(
-    workspaceId && `/api/utm-templates?workspaceId=${workspaceId}`,
+    workspaceId && `/api/utm?workspaceId=${workspaceId}`,
     fetcher,
     {
       dedupingInterval: 60000,

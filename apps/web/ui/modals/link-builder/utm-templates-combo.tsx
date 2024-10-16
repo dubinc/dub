@@ -22,7 +22,7 @@ export function UTMTemplatesCombo({
   const { setValue, getValues } = useFormContext();
 
   const { data } = useSWR<UtmTemplateProps[]>(
-    workspaceId && `/api/utm-templates?workspaceId=${workspaceId}`,
+    workspaceId && `/api/utm?workspaceId=${workspaceId}`,
     fetcher,
     {
       dedupingInterval: 60000,
@@ -89,23 +89,20 @@ export function UTMTemplatesCombo({
       createLabel={(search) => `Save new template: "${search}"`}
       onCreate={async (search) => {
         try {
-          const res = await fetch(
-            `/api/utm-templates?workspaceId=${workspaceId}`,
-            {
-              method: "POST",
-              body: JSON.stringify({
-                name: search,
-                ...getParamsFromURL(getValues("url")),
-              }),
-            },
-          );
+          const res = await fetch(`/api/utm?workspaceId=${workspaceId}`, {
+            method: "POST",
+            body: JSON.stringify({
+              name: search,
+              ...getParamsFromURL(getValues("url")),
+            }),
+          });
           if (!res.ok) {
             const { error } = await res.json();
             toast.error(error.message);
             return false;
           }
 
-          mutate(`/api/utm-templates?workspaceId=${workspaceId}`);
+          mutate(`/api/utm?workspaceId=${workspaceId}`);
           toast.success("Template saved successfully");
           return true;
         } catch (e) {

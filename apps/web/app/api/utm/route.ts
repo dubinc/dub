@@ -1,10 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { createUTMTemplateBodySchema } from "@/lib/zod/schemas/utm-templates";
+import { createUTMTemplateBodySchema } from "@/lib/zod/schemas/utm";
 import { NextResponse } from "next/server";
 
-// GET /api/utm-templates - get all UTM templates for a workspace
+// GET /api/utm - get all UTM templates for a workspace
 export const GET = withWorkspace(
   async ({ workspace, headers }) => {
     const templates = await prisma.utmTemplate.findMany({
@@ -27,7 +27,7 @@ export const GET = withWorkspace(
   },
 );
 
-// POST /api/utm-templates - create or update a UTM template for a workspace
+// POST /api/utm - create a new UTM template for a workspace
 export const POST = withWorkspace(
   async ({ req, workspace, session, headers }) => {
     const props = createUTMTemplateBodySchema.parse(await req.json());

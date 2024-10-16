@@ -49,12 +49,12 @@ export function TemplateCard({
     if (!confirm("Are you sure you want to delete this template?")) return;
 
     setProcessing(true);
-    fetch(`/api/utm-templates/${template.id}?workspaceId=${id}`, {
+    fetch(`/api/utm/${template.id}?workspaceId=${id}`, {
       method: "DELETE",
     })
       .then(async (res) => {
         if (res.ok) {
-          await mutate(`/api/utm-templates?workspaceId=${id}`);
+          await mutate(`/api/utm?workspaceId=${id}`);
           toast.success("Template deleted");
         } else {
           const { error } = await res.json();

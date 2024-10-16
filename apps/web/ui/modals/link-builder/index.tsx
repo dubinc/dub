@@ -273,6 +273,15 @@ function LinkBuilderInner({
                     ),
                     // Mutate workspace to update usage stats
                     mutate(`/api/workspaces/${slug}`),
+                    // if updating root domain link, mutate domains as well
+                    key === "_root" &&
+                      mutate(
+                        (key) =>
+                          typeof key === "string" &&
+                          key.startsWith("/api/domains"),
+                        undefined,
+                        { revalidate: true },
+                      ),
                   ]);
                   const data = await res.json();
                   posthog.capture(

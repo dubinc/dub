@@ -1,10 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { updateUTMTemplateBodySchema } from "@/lib/zod/schemas/utm-templates";
+import { updateUTMTemplateBodySchema } from "@/lib/zod/schemas/utm";
 import { NextResponse } from "next/server";
 
-// PATCH /api/utm-templates/[id] – update a UTM template
+// PATCH /api/utm/[id] – update a UTM template
 export const PATCH = withWorkspace(
   async ({ req, params, workspace }) => {
     const { id } = params;
@@ -52,9 +52,7 @@ export const PATCH = withWorkspace(
   },
 );
 
-export const PUT = PATCH;
-
-// DELETE /api/utm-templates/[id] – delete a UTM template for a workspace
+// DELETE /api/utm/[id] – delete a UTM template for a workspace
 export const DELETE = withWorkspace(
   async ({ params, workspace }) => {
     const { id } = params;

@@ -23,7 +23,7 @@ export function UTMTemplatesButton({
   const { id: workspaceId } = useWorkspace();
 
   const { data, isLoading } = useSWR<UtmTemplateProps[]>(
-    workspaceId && `/api/utm-templates?workspaceId=${workspaceId}`,
+    workspaceId && `/api/utm?workspaceId=${workspaceId}`,
     fetcher,
     {
       dedupingInterval: 60000,
