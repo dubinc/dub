@@ -1,8 +1,4 @@
-import {
-  getFeatureFlags,
-  isBlacklistedDomain,
-  updateConfig,
-} from "@/lib/edge-config";
+import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
 import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
@@ -197,7 +193,11 @@ export async function processLink<T extends Record<string, any>>({
     // coerce type with ! cause we already checked if it exists
     const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
     const urlDomain = getApexDomain(url) || "";
-    if (allowedHostnames && !allowedHostnames.includes(urlDomain)) {
+    if (
+      key !== "_root" &&
+      allowedHostnames &&
+      !allowedHostnames.includes(urlDomain)
+    ) {
       return {
         link: payload,
         error: `Invalid destination URL. You can only create ${domain} short links for URLs with the domain${allowedHostnames.length > 1 ? "s" : ""} ${allowedHostnames
@@ -205,20 +205,6 @@ export async function processLink<T extends Record<string, any>>({
           .join(", ")}.`,
         code: "unprocessable_entity",
       };
-    }
-
-    if (domain === "cal.link") {
-      const flags = await getFeatureFlags({
-        workspaceId: workspace?.id,
-      });
-      if (!flags?.callink) {
-        return {
-          link: payload,
-          error:
-            "You can only use the cal.link domain if you have beta access to it. Contact support@dub.co to get access.",
-          code: "forbidden",
-        };
-      }
     }
 
     if (key?.includes("/")) {
