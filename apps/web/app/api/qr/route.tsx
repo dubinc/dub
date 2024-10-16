@@ -9,6 +9,11 @@ import { NextRequest } from "next/server";
 
 export const runtime = "edge";
 
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+};
+
 export async function GET(req: NextRequest) {
   try {
     const params = getSearchParams(req.url);
@@ -62,9 +67,17 @@ export async function GET(req: NextRequest) {
       {
         width: size,
         height: size,
+        headers: CORS_HEADERS,
       },
     );
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse(error, CORS_HEADERS);
   }
+}
+
+export function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: CORS_HEADERS,
+  });
 }
