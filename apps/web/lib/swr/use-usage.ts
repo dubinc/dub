@@ -10,7 +10,11 @@ export default function useUsage({
 }) {
   const { id } = useWorkspace();
 
-  const { data: usage, isValidating } = useSWR<UsageResponse[]>(
+  const {
+    data: usage,
+    error,
+    isValidating,
+  } = useSWR<UsageResponse[]>(
     id && `/api/workspaces/${id}/billing/usage?resource=${resource}`,
     fetcher,
     {
@@ -20,7 +24,7 @@ export default function useUsage({
 
   return {
     usage,
-    loading: usage ? false : true,
+    loading: !usage && !error,
     isValidating,
   };
 }

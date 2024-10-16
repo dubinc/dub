@@ -3,6 +3,7 @@ import { Bars } from "@/ui/charts/bars";
 import TimeSeriesChart from "@/ui/charts/time-series-chart";
 import XAxis from "@/ui/charts/x-axis";
 import YAxis from "@/ui/charts/y-axis";
+import { LoadingSpinner } from "@dub/ui";
 import { formatDate, nFormatter } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
 import { useSearchParams } from "next/navigation";
@@ -15,15 +16,15 @@ export function UsageChart() {
   const resource =
     RESOURCES.find((r) => r === searchParams.get("tab")) ?? "links";
 
-  const { usage } = useUsage({ resource: resource as any });
+  const { usage, loading } = useUsage({ resource: resource as any });
 
   const chartData = useMemo(
     () =>
       usage?.map(({ date, value }) => ({
         date: new Date(date),
-        values: { usage: value },
+        values: { usage: resource === "revenue" ? value / 100 : value },
       })),
-    [usage],
+    [usage, resource],
   );
 
   return (
@@ -92,7 +93,11 @@ export function UsageChart() {
             }
           />
         </TimeSeriesChart>
-      ) : null}
+      ) : (
+        <div className="flex size-full items-center justify-center text-sm text-neutral-500">
+          {loading ? <LoadingSpinner /> : <p>Failed to load usage data</p>}
+        </div>
+      )}
     </div>
   );
 }

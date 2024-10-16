@@ -135,6 +135,32 @@ SQL >
     LEFT JOIN usage_links_data USING interval
 
 
+NODE usage_revenue_data
+DESCRIPTION >
+    undefined
+
+SQL >
+
+    %
+    SELECT
+        toDateTime64(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}), 3) AS interval,
+        sum(amount) as revenue
+    FROM
+        dub_sale_events_mv
+        PREWHERE link_id in (SELECT link_id from workspace_links)
+    WHERE
+        timestamp >= {{ DateTime(start, '2024-09-03 00:00:00') }}
+        AND timestamp < {{ DateTime(end, '2024-10-03 00:00:00') }}
+    GROUP BY interval
+    ORDER BY interval
+
+NODE usage_revenue
+SQL >
+
+    %
+    SELECT formatDateTime(interval, '%FT%T.000%z') as date, revenue as value
+    FROM day_intervals
+    LEFT JOIN usage_revenue_data USING interval
 
 NODE endpoint
 SQL >
@@ -143,6 +169,7 @@ SQL >
     SELECT *
     FROM
         {% if resource == 'events' %} usage_events
+        {% elif resource == 'revenue' %} usage_revenue
         {% else %} usage_links
         {% end %}
 

@@ -67,7 +67,7 @@ export default function WorkspaceBillingClient() {
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white">
-      <div className="flex flex-col items-start justify-between gap-y-4 p-8 lg:flex-row">
+      <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:p-8 lg:flex-row">
         <div>
           <h2 className="text-xl font-medium">Plan and Usage</h2>
           <p className="mt-1 text-balance text-sm leading-normal text-gray-500">
@@ -123,7 +123,7 @@ export default function WorkspaceBillingClient() {
         <div>
           <div
             className={cn(
-              "grid gap-6 p-8 sm:grid-cols-2",
+              "grid gap-4 p-6 sm:grid-cols-2 md:p-8 lg:gap-6",
               conversionEnabled && "sm:grid-cols-3",
             )}
           >
@@ -153,7 +153,7 @@ export default function WorkspaceBillingClient() {
               />
             )}
           </div>
-          <div className="w-full px-8 pb-8">
+          <div className="w-full px-2 pb-8 md:px-8">
             <UsageChart />
           </div>
         </div>
@@ -184,7 +184,7 @@ export default function WorkspaceBillingClient() {
           />
         </div>
       </div>
-      <div className="flex flex-col items-center justify-between space-y-3 px-8 py-4 text-center md:flex-row md:space-y-0 md:text-left">
+      <div className="flex flex-col items-center justify-between space-y-3 px-6 py-4 text-center md:flex-row md:space-y-0 md:px-8 md:text-left">
         {plan ? (
           <p className="text-sm text-gray-500">
             {plan === "enterprise"
@@ -263,7 +263,7 @@ function UsageTabCard({
   return (
     <button
       className={cn(
-        "rounded-lg border border-neutral-300 bg-white px-5 py-4 text-left transition-colors duration-75 hover:bg-neutral-50",
+        "rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors duration-75 hover:bg-neutral-50 lg:px-5 lg:py-4",
         isActive && "border-neutral-900 ring-1 ring-neutral-900",
       )}
       aria-selected={isActive}
@@ -338,7 +338,7 @@ function UsageCategory(data: {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-6 md:p-8">
       <div className="flex items-center space-x-2">
         <h3 className="text-sm font-medium">{title}</h3>
         <InfoTooltip content={tooltip} />
