@@ -1,6 +1,5 @@
 import {
   addDomainToVercel,
-  deleteDomainAndLinks,
   removeDomainFromVercel,
   validateDomain,
 } from "@/lib/api/domains";
@@ -155,7 +154,62 @@ export const DELETE = withWorkspace(
       });
     }
 
-    await deleteDomainAndLinks(domain);
+    const allLinks = await prisma.link.findMany({
+      where: {
+        domain,
+        projectId: workspace.id,
+      },
+      select: {
+        id: true,
+        domain: true,
+        key: true,
+        url: true,
+        image: true,
+        projectId: true,
+        tags: true,
+        createdAt: true,
+      },
+    });
+
+    const [_, links] = await Promise.all([
+      prisma.domain.update({
+        where: { slug: domain, projectId: workspace.id },
+        data: { projectId: null },
+      }),
+
+      prisma.link.updateMany({
+        where: { domain, projectId: workspace.id },
+        data: { projectId: null },
+      }),
+    ]);
+
+    waitUntil(
+      Promise.all([
+        prisma.project.update({
+          where: {
+            id: workspace.id,
+          },
+          data: {
+            linksUsage: {
+              decrement: links.count,
+            },
+          },
+        }),
+
+        recordLink([
+          ...allLinks.map((link) => ({
+            link_id: link.id,
+            domain: link.domain,
+            key: link.key,
+            url: link.url,
+            tag_ids: link.tags.map((tag) => tag.tagId),
+            workspace_id: link.projectId,
+            created_at: link.createdAt,
+            deleted: true,
+          })),
+        ]),
+      ]),
+    );
 
     return NextResponse.json({ slug: domain });
   },

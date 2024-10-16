@@ -118,7 +118,7 @@ export const DELETE = withWorkspace(
   async ({ workspace }) => {
     await deleteWorkspace(workspace);
 
-    return NextResponse.json(workspace);
+    return NextResponse.json({ id: workspace.id });
   },
   {
     requiredPermissions: ["workspaces.write"],

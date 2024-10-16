@@ -6,13 +6,13 @@ import {
   combineTagIds,
   processLink,
 } from "@/lib/api/links";
-import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { bulkUpdateLinks } from "@/lib/api/links/bulk-update-links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
+import { recordLink } from "@/lib/tinybird";
 import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
 import {
   bulkCreateLinksBodySchema,
@@ -404,22 +404,47 @@ export const DELETE = withWorkspace(
       },
     });
 
-    const { count: deletedCount } = await prisma.link.deleteMany({
+    const { count } = await prisma.link.updateMany({
       where: {
         id: { in: links.map((link) => link.id) },
         projectId: workspace.id,
       },
+      data: {
+        projectId: null,
+      },
     });
 
     waitUntil(
-      bulkDeleteLinks({
-        links,
-      }),
+      Promise.all([
+        recordLink([
+          ...links.map((link) => ({
+            link_id: link.id,
+            domain: link.domain,
+            key: link.key,
+            url: link.url,
+            tag_ids: link.tags.map((tag) => tag.id),
+            workspace_id: link.projectId,
+            created_at: link.createdAt,
+            deleted: true,
+          })),
+        ]),
+
+        prisma.project.update({
+          where: {
+            id: workspace.id,
+          },
+          data: {
+            linksUsage: {
+              decrement: count,
+            },
+          },
+        }),
+      ]),
     );
 
     return NextResponse.json(
       {
-        deletedCount,
+        deletedCount: count,
       },
       { headers },
     );

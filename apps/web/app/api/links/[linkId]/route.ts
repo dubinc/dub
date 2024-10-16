@@ -1,14 +1,10 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
-import {
-  deleteLink,
-  processLink,
-  transformLink,
-  updateLink,
-} from "@/lib/api/links";
+import { processLink, transformLink, updateLink } from "@/lib/api/links";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { recordLink } from "@/lib/tinybird";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema, updateLinkBodySchema } from "@/lib/zod/schemas/links";
@@ -177,14 +173,60 @@ export const DELETE = withWorkspace(
       linkId: params.linkId,
     });
 
-    await deleteLink(link.id);
+    await prisma.$transaction([
+      prisma.link.update({
+        where: {
+          id: link.id,
+          projectId: workspace.id,
+        },
+        data: {
+          projectId: null,
+        },
+      }),
+
+      prisma.project.update({
+        where: {
+          id: workspace.id,
+        },
+        data: {
+          linksUsage: {
+            decrement: 1,
+          },
+        },
+      }),
+    ]);
 
     waitUntil(
-      sendWorkspaceWebhook({
-        trigger: "link.deleted",
-        workspace,
-        data: linkEventSchema.parse(transformLink(link)),
-      }),
+      (async () => {
+        const tags = await prisma.tag.findMany({
+          where: {
+            links: {
+              some: {
+                linkId: link.id,
+              },
+            },
+          },
+        });
+
+        Promise.all([
+          recordLink({
+            link_id: link.id,
+            domain: link.domain,
+            key: link.key,
+            url: link.url,
+            tag_ids: tags.map((tag) => tag.id),
+            workspace_id: link.projectId,
+            created_at: link.createdAt,
+            deleted: true,
+          }),
+
+          sendWorkspaceWebhook({
+            trigger: "link.deleted",
+            workspace,
+            data: linkEventSchema.parse(transformLink(link)),
+          }),
+        ]);
+      })(),
     );
 
     return NextResponse.json({ id: link.id }, { headers });

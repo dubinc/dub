@@ -3,7 +3,6 @@ import { dub } from "@/lib/dub";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { cancelSubscription } from "@/lib/stripe";
-import { recordLink } from "@/lib/tinybird";
 import { WorkspaceProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import {
@@ -12,7 +11,7 @@ import {
   LEGAL_WORKSPACE_ID,
   R2_URL,
 } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
+import { recordLink } from "../tinybird";
 
 export async function deleteWorkspace(
   workspace: Pick<
@@ -20,123 +19,84 @@ export async function deleteWorkspace(
     "id" | "slug" | "logo" | "stripeId" | "referralLinkId"
   >,
 ) {
-  const [customDomains, defaultDomainLinks] = await Promise.all([
-    prisma.domain.findMany({
-      where: {
-        projectId: workspace.id,
-      },
-      select: {
-        slug: true,
-      },
-    }),
-    prisma.link.findMany({
-      where: {
-        projectId: workspace.id,
-        domain: {
-          in: DUB_DOMAINS_ARRAY,
-        },
-      },
-      select: {
-        id: true,
-        domain: true,
-        key: true,
-        url: true,
-        tags: {
-          select: {
-            tagId: true,
-          },
-        },
-        proxy: true,
-        image: true,
-        projectId: true,
-        createdAt: true,
-      },
-    }),
-  ]);
-
-  const response = await prisma.projectUsers.deleteMany({
+  const allLinks = await prisma.link.findMany({
     where: {
       projectId: workspace.id,
     },
+    include: {
+      tags: {
+        select: {
+          tagId: true,
+        },
+      },
+    },
   });
 
-  waitUntil(
-    (async () => {
-      const linksByDomain: Record<string, string[]> = {};
-      defaultDomainLinks.forEach(async (link) => {
-        const { domain, key } = link;
+  await Promise.all([
+    // Remove the users
+    prisma.projectUsers.deleteMany({
+      where: {
+        projectId: workspace.id,
+      },
+    }),
 
-        if (!linksByDomain[domain]) {
-          linksByDomain[domain] = [];
-        }
-        linksByDomain[domain].push(key.toLowerCase());
-      });
+    // Remove the default workspace
+    prisma.user.updateMany({
+      where: {
+        defaultWorkspace: workspace.slug,
+      },
+      data: {
+        defaultWorkspace: null,
+      },
+    }),
 
-      const pipeline = redis.pipeline();
+    // Cancel the workspace's Stripe subscription
+    workspace.stripeId && cancelSubscription(workspace.stripeId),
 
-      Object.entries(linksByDomain).forEach(([domain, links]) => {
-        pipeline.hdel(domain.toLowerCase(), ...links);
-      });
+    // Delete workspace logo if it's a custom logo stored in R2
+    workspace.logo &&
+      workspace.logo.startsWith(`${R2_URL}/logos/${workspace.id}`) &&
+      storage.delete(workspace.logo.replace(`${R2_URL}/`, "")),
 
-      // delete all domains, links, and uploaded images associated with the workspace
-      await Promise.allSettled([
-        ...customDomains.map(({ slug }) => deleteDomainAndLinks(slug)),
-        // delete all default domain links from redis
-        pipeline.exec(),
-        // record deletes in Tinybird for default domain links
-        recordLink(
-          defaultDomainLinks.map((link) => ({
-            link_id: link.id,
-            domain: link.domain,
-            key: link.key,
-            url: link.url,
-            tag_ids: link.tags.map((tag) => tag.tagId),
-            workspace_id: link.projectId,
-            created_at: link.createdAt,
-            deleted: true,
-          })),
-        ),
-        // remove all images from R2
-        ...defaultDomainLinks.map(({ id, image }) =>
-          image && image.startsWith(`${R2_URL}/images/${id}`)
-            ? storage.delete(image.replace(`${R2_URL}/`, ""))
-            : Promise.resolve(),
-        ),
-      ]);
+    // Set the referral link to `/deleted/[slug]`
+    workspace.referralLinkId &&
+      dub.links.update(workspace.referralLinkId, {
+        key: `/deleted/${workspace.slug}-${workspace.id}`,
+        archived: true,
+        identifier: `/deleted/${workspace.slug}-${workspace.id}`,
+      }),
 
-      await Promise.allSettled([
-        // delete workspace logo if it's a custom logo stored in R2
-        workspace.logo &&
-          workspace.logo.startsWith(`${R2_URL}/logos/${workspace.id}`) &&
-          storage.delete(workspace.logo.replace(`${R2_URL}/`, "")),
-        // if they have a Stripe subscription, cancel it
-        workspace.stripeId && cancelSubscription(workspace.stripeId),
-        // set the referral link to `/deleted/[slug]`
-        workspace.referralLinkId &&
-          dub.links.update(workspace.referralLinkId, {
-            key: `/deleted/${workspace.slug}-${workspace.id}`,
-            archived: true,
-            identifier: `/deleted/${workspace.slug}-${workspace.id}`,
-          }),
-        // delete the workspace
-        prisma.project.delete({
-          where: {
-            slug: workspace.slug,
-          },
-        }),
-        prisma.user.updateMany({
-          where: {
-            defaultWorkspace: workspace.slug,
-          },
-          data: {
-            defaultWorkspace: null,
-          },
-        }),
-      ]);
-    })(),
-  );
+    // Record all links in Tinybird
+    recordLink(
+      allLinks.map((link) => ({
+        link_id: link.id,
+        domain: link.domain,
+        key: link.key,
+        url: link.url,
+        tag_ids: link.tags.map((tag) => tag.tagId),
+        workspace_id: link.projectId,
+        created_at: link.createdAt,
+        deleted: true,
+      })),
+    ),
 
-  return response;
+    prisma.domain.updateMany({
+      where: { projectId: workspace.id },
+      data: { projectId: null },
+    }),
+
+    prisma.link.updateMany({
+      where: { projectId: workspace.id },
+      data: { projectId: null },
+    }),
+  ]);
+
+  // Delete the workspace
+  await prisma.project.delete({
+    where: {
+      id: workspace.id,
+    },
+  });
 }
 
 export async function deleteWorkspaceAdmin(
