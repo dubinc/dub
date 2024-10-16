@@ -48,6 +48,7 @@ export function TemplateCard({
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to delete this template?")) return;
 
+    setOpenPopover(false);
     setProcessing(true);
     fetch(`/api/utm/${template.id}?workspaceId=${id}`, {
       method: "DELETE",
