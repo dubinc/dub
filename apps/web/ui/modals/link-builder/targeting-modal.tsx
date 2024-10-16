@@ -1,3 +1,4 @@
+import { UTM_PARAMETERS } from "@/ui/links/utm-builder";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import {
   Button,
@@ -26,7 +27,6 @@ import {
 } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { LinkFormData } from ".";
-import { UTM_PARAMETERS } from "./constants";
 
 function TargetingModal({
   showTargetingModal,

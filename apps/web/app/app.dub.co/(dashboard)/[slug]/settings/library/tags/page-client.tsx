@@ -11,7 +11,6 @@ import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { PaginationControls } from "@dub/blocks";
 import { CardList, usePagination, useRouterStuff } from "@dub/ui";
 import { Tag } from "@dub/ui/src/icons";
-import { InfoTooltip, TooltipContent } from "@dub/ui/src/tooltip";
 import { Dispatch, SetStateAction, createContext, useState } from "react";
 import { TagCard } from "./tag-card";
 import { TagCardPlaceholder } from "./tag-card-placeholder";
@@ -53,36 +52,19 @@ export default function WorkspaceTagsClient() {
 
   return (
     <>
-      <div className="grid gap-5 pb-10">
-        <div className="flex flex-wrap justify-between gap-6">
-          <div className="flex items-center gap-x-2">
-            <h1 className="text-2xl font-semibold tracking-tight text-black">
-              Tags
-            </h1>
-            <InfoTooltip
-              content={
-                <TooltipContent
-                  title="Learn more about how to use tags on Dub."
-                  href="https://dub.co/help/article/how-to-use-tags"
-                  target="_blank"
-                  cta="Learn more"
-                />
+      <div className="grid gap-4 pb-10">
+        <div className="flex w-full flex-wrap items-center justify-between gap-3 gap-6 sm:w-auto">
+          <SearchBoxPersisted
+            loading={loading}
+            onChangeDebounced={(t) => {
+              if (t) {
+                queryParams({ set: { search: t }, del: "page" });
+              } else {
+                queryParams({ del: "search" });
               }
-            />
-          </div>
-          <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
-            <SearchBoxPersisted
-              loading={loading}
-              onChangeDebounced={(t) => {
-                if (t) {
-                  queryParams({ set: { search: t }, del: "page" });
-                } else {
-                  queryParams({ del: "search" });
-                }
-              }}
-            />
-            <AddTagButton />
-          </div>
+            }}
+          />
+          <AddTagButton />
         </div>
         {workspaceId && <AddEditTagModal />}
 

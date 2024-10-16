@@ -21,6 +21,7 @@ import { useEnterSubmit } from "@dub/ui/src";
 import { ArrowTurnLeft } from "@dub/ui/src/icons";
 import {
   cn,
+  constructURLFromUTMParams,
   DEFAULT_LINK_PROPS,
   getApexDomain,
   getUrlWithoutUTMParams,
@@ -60,6 +61,7 @@ import { TagSelect } from "./tag-select";
 import { useTargetingModal } from "./targeting-modal";
 import { useMetatags } from "./use-metatags";
 import { useUTMModal } from "./utm-modal";
+import { UTMTemplatesButton } from "./utm-templates-button";
 import { WebhookSelect } from "./webhook-select";
 
 export const LinkModalContext = createContext<{
@@ -271,6 +273,15 @@ function LinkBuilderInner({
                     ),
                     // Mutate workspace to update usage stats
                     mutate(`/api/workspaces/${slug}`),
+                    // if updating root domain link, mutate domains as well
+                    key === "_root" &&
+                      mutate(
+                        (key) =>
+                          typeof key === "string" &&
+                          key.startsWith("/api/domains"),
+                        undefined,
+                        { revalidate: true },
+                      ),
                   ]);
                   const data = await res.json();
                   posthog.capture(
@@ -389,7 +400,23 @@ function LinkBuilderInner({
                         }}
                         required={key !== "_root"}
                         error={errors.url?.message || undefined}
-                        showEnterToSubmit={false}
+                        right={
+                          <div className="-mb-1 h-6">
+                            {isValidUrl(url) && (
+                              <UTMTemplatesButton
+                                onLoad={(params) => {
+                                  setValue(
+                                    "url",
+                                    constructURLFromUTMParams(url, params),
+                                    {
+                                      shouldDirty: true,
+                                    },
+                                  );
+                                }}
+                              />
+                            )}
+                          </div>
+                        }
                       />
                     )}
                   />
