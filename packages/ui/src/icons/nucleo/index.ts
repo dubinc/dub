@@ -10,6 +10,7 @@ export * from "./book2";
 export * from "./books2";
 export * from "./box-archive";
 export * from "./bullet-list";
+export * from "./calendar-days";
 export * from "./cards";
 export * from "./caret-up-fill";
 export * from "./chart-activity2";
