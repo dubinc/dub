@@ -80,8 +80,8 @@ export default function WorkspaceUtmTemplatesClient() {
           </>
         ) : (
           <LibraryEmptyState
-            title="No UTM Templates"
-            description="Create templates for quicker link tracking"
+            title="No UTM Templates Found"
+            description="Create shared templates to streamline UTM campaign management across your team"
             cardContent={
               <>
                 <DiamondTurnRight className="size-4 text-neutral-700" />
@@ -93,7 +93,7 @@ export default function WorkspaceUtmTemplatesClient() {
               </>
             }
             addButton={<AddUtmTemplateButton />}
-            learnMoreHref="https://dub.co/help/article/utm-builder" // TODO: Update with template-specific link
+            learnMoreHref="https://dub.co/help/article/how-to-create-utm-templates" //
           />
         )}
       </div>

@@ -28,7 +28,7 @@ export function LibraryEmptyState({
           ))}
         </div>
       </div>
-      <div className="text-center">
+      <div className="max-w-sm text-pretty text-center">
         <span className="text-base font-medium text-neutral-900">{title}</span>
         <p className="mt-2 text-sm text-neutral-500">{description}</p>
       </div>

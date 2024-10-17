@@ -120,7 +120,7 @@ export default function WorkspaceTagsClient() {
           </>
         ) : (
           <LibraryEmptyState
-            title="No tags"
+            title="No tags found"
             description="Create tags to organize your links"
             cardContent={
               <>
