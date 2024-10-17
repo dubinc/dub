@@ -1,4 +1,3 @@
-import { UTM_PARAMETERS, UTMBuilder } from "@/ui/links/utm-builder";
 import {
   Button,
   InfoTooltip,
@@ -8,6 +7,7 @@ import {
   useKeyboardShortcut,
 } from "@dub/ui";
 import { DiamondTurnRight } from "@dub/ui/src";
+import { UTM_PARAMETERS, UTMBuilder } from "@dub/ui/src/utm-builder";
 import {
   cn,
   constructURLFromUTMParams,

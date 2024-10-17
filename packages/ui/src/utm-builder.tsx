@@ -1,6 +1,8 @@
 "use client";
 
-import { Tooltip, useMediaQuery } from "@dub/ui";
+import { cn } from "@dub/utils";
+import { useEffect, useId, useRef, useState } from "react";
+import { useMediaQuery } from "./hooks/use-media-query";
 import {
   Flag6,
   Gift,
@@ -8,9 +10,8 @@ import {
   InputSearch,
   Page2,
   SatelliteDish,
-} from "@dub/ui/src/icons";
-import { cn } from "@dub/utils";
-import { useEffect, useId, useRef, useState } from "react";
+} from "./icons/nucleo";
+import { Tooltip } from "./tooltip";
 
 export const UTM_PARAMETERS = [
   {
@@ -62,6 +63,7 @@ export function UTMBuilder({
   onChange,
   disabled,
   autoFocus,
+  className,
 }: {
   values: Record<
     (typeof UTM_PARAMETERS)[number]["key"],
@@ -73,6 +75,7 @@ export function UTMBuilder({
   ) => void;
   disabled?: boolean;
   autoFocus?: boolean;
+  className?: string;
 }) {
   const { isMobile } = useMediaQuery();
 
@@ -88,7 +91,7 @@ export function UTMBuilder({
   }, []);
 
   return (
-    <div className="grid gap-y-3">
+    <div className={cn("grid gap-y-3", className)}>
       {UTM_PARAMETERS.map(
         ({ key, icon: Icon, label, placeholder, description }, idx) => {
           return (
