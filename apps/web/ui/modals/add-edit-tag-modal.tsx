@@ -83,7 +83,9 @@ function AddEditTagModal({
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
         <Logo />
         <div className="flex flex-col space-y-1 text-center">
-          <h3 className="text-lg font-medium">{props ? "Edit" : "Add"} tag</h3>
+          <h3 className="text-lg font-medium">
+            {props ? "Edit" : "Create"} tag
+          </h3>
           <p className="text-sm text-gray-500">
             Use tags to organize your links.{" "}
             <a
@@ -121,15 +123,18 @@ function AddEditTagModal({
                 tag_color: data.color,
               });
               await Promise.all([
-                mutate(`/api/tags?workspaceId=${workspaceId}`),
-                props
-                  ? mutate(
-                      (key) =>
-                        typeof key === "string" && key.startsWith("/api/links"),
-                      undefined,
-                      { revalidate: true },
-                    )
-                  : null,
+                mutate(
+                  (key) =>
+                    typeof key === "string" && key.startsWith("/api/tags"),
+                  undefined,
+                  { revalidate: true },
+                ),
+                mutate(
+                  (key) =>
+                    typeof key === "string" && key.startsWith("/api/links"),
+                  undefined,
+                  { revalidate: true },
+                ),
               ]);
               toast.success(endpoint.successMessage);
               setShowAddEditTagModal(false);
@@ -221,7 +226,7 @@ function AddTagButton({
     <div>
       <Button
         variant="primary"
-        text="Add Tag"
+        text="Create tag"
         className="h-9 rounded-lg"
         disabledTooltip={
           exceededTags ? (

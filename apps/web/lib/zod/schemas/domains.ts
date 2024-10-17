@@ -22,10 +22,10 @@ export const DomainSchema = z.object({
     .default(false),
   placeholder: z
     .string()
+    .nullable()
     .describe(
       "Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened.",
     )
-    .default("https://dub.co/help/article/what-is-dub")
     .openapi({ example: "https://dub.co/help/article/what-is-dub" }),
   expiredUrl: z
     .string()

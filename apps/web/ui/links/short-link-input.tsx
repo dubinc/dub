@@ -351,7 +351,11 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
           error.includes("Upgrade to") ? (
             <p className="mt-2 text-sm text-red-600" id="key-error">
               {error.split(`Upgrade to ${nextPlan.name}`)[0]}
-              <a className="cursor-pointer underline" href={`/${slug}/upgrade`}>
+              <a
+                className="cursor-pointer underline"
+                href={`/${slug}/upgrade?exit=close`}
+                target="_blank"
+              >
                 Upgrade to {nextPlan.name}
               </a>
               {error.split(`Upgrade to ${nextPlan.name}`)[1]}
