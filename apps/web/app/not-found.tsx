@@ -1,4 +1,4 @@
-import { Wordmark } from "@dub/ui/src/wordmark";
+import AnimatedWordmark from "@/ui/shared/animated-wordmark";
 import Link from "next/link";
 import { Background } from "./app.dub.co/(onboarding)/background";
 
@@ -7,7 +7,7 @@ export default function NotFound() {
     <>
       <div className="relative z-10 flex h-screen w-screen flex-col items-center justify-center gap-6">
         <Link href="/" className="absolute left-4 top-3">
-          <Wordmark className="h-6" />
+          <AnimatedWordmark />
         </Link>
         <h1 className="font-display bg-gradient-to-r from-black to-gray-600 bg-clip-text text-5xl font-semibold text-transparent">
           404
