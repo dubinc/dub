@@ -101,7 +101,7 @@ export const cleanupManyLinks = async ({
     pipeline.del(`${link.domain}:${link.key}`.toLowerCase());
   });
 
-  const results = await Promise.allSettled([
+  await Promise.allSettled([
     // Record link in the Tinybird
     recordLink(
       links.map((link) => ({
@@ -131,8 +131,6 @@ export const cleanupManyLinks = async ({
       },
     }),
   ]);
-
-  console.log(results);
 };
 
 // Cleanup all links for a domain
