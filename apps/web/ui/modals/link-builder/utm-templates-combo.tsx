@@ -14,8 +14,10 @@ import useSWR, { mutate } from "swr";
 
 export function UTMTemplatesCombo({
   onLoad,
+  disabledTooltip,
 }: {
   onLoad: (params: Record<string, string>) => void;
+  disabledTooltip?: string;
 }) {
   const { id: workspaceId } = useWorkspace();
 
@@ -112,7 +114,7 @@ export function UTMTemplatesCombo({
 
         return false;
       }}
-      buttonProps={{ className: "w-fit px-2" }}
+      buttonProps={{ className: "w-fit px-2", disabledTooltip }}
       inputClassName="md:min-w-[200px]"
       optionClassName="md:min-w-[250px] md:max-w-[350px]"
       caret
