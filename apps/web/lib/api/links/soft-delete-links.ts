@@ -106,7 +106,7 @@ export const softDeleteDomainAndLinks = async ({
   workspace,
 }: {
   domain: string;
-  workspace: Project;
+  workspace: Pick<Project, "id">;
 }) => {
   const [links] = await Promise.all([
     prisma.link.updateMany({

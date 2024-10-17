@@ -11,7 +11,7 @@ import {
   LEGAL_WORKSPACE_ID,
   R2_URL,
 } from "@dub/utils";
-import { triggerLinksCleanupJob } from "../cron/links-cleanup";
+import { softDeleteDomainAndLinks } from "./links/soft-delete-links";
 
 export async function deleteWorkspace(
   workspace: Pick<
@@ -64,16 +64,6 @@ export async function deleteWorkspace(
         archived: true,
         identifier: `/deleted/${workspace.slug}-${workspace.id}`,
       }),
-
-    prisma.domain.updateMany({
-      where: { projectId: workspace.id },
-      data: { projectId: null },
-    }),
-
-    prisma.link.updateMany({
-      where: { projectId: workspace.id },
-      data: { projectId: null },
-    }),
   ]);
 
   // Delete the workspace
@@ -87,8 +77,8 @@ export async function deleteWorkspace(
   if (customDomains.length > 0) {
     await Promise.all(
       customDomains.map(({ slug }) =>
-        triggerLinksCleanupJob({
-          workspaceId: workspace.id,
+        softDeleteDomainAndLinks({
+          workspace,
           domain: slug,
         }),
       ),

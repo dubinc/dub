@@ -203,15 +203,16 @@ export const cleanupDomainAndLinks = async ({
   });
 
   if (remainingLinks > 0) {
-    await triggerLinksCleanupJob({
+    return await triggerLinksCleanupJob({
       workspaceId,
       domain,
     });
-  } else {
-    await prisma.domain.delete({
-      where: {
-        slug: domain,
-      },
-    });
   }
+
+  // Remove the domain
+  await prisma.domain.delete({
+    where: {
+      slug: domain,
+    },
+  });
 };
