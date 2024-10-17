@@ -11,7 +11,7 @@ import {
   LEGAL_WORKSPACE_ID,
   R2_URL,
 } from "@dub/utils";
-import { recordLink } from "../tinybird";
+import { triggerLinksCleanupJob } from "../cron/links-cleanup";
 
 export async function deleteWorkspace(
   workspace: Pick<
@@ -19,16 +19,15 @@ export async function deleteWorkspace(
     "id" | "slug" | "logo" | "stripeId" | "referralLinkId"
   >,
 ) {
-  const allLinks = await prisma.link.findMany({
+  // TODO:
+  // Remove links associated with default domain
+
+  const customDomains = await prisma.domain.findMany({
     where: {
       projectId: workspace.id,
     },
-    include: {
-      tags: {
-        select: {
-          tagId: true,
-        },
-      },
+    select: {
+      slug: true,
     },
   });
 
@@ -66,20 +65,6 @@ export async function deleteWorkspace(
         identifier: `/deleted/${workspace.slug}-${workspace.id}`,
       }),
 
-    // Record all links in Tinybird
-    recordLink(
-      allLinks.map((link) => ({
-        link_id: link.id,
-        domain: link.domain,
-        key: link.key,
-        url: link.url,
-        tag_ids: link.tags.map((tag) => tag.tagId),
-        workspace_id: link.projectId,
-        created_at: link.createdAt,
-        deleted: true,
-      })),
-    ),
-
     prisma.domain.updateMany({
       where: { projectId: workspace.id },
       data: { projectId: null },
@@ -97,6 +82,18 @@ export async function deleteWorkspace(
       id: workspace.id,
     },
   });
+
+  // Trigger the links cleanup job for each custom domain
+  if (customDomains.length > 0) {
+    await Promise.all(
+      customDomains.map(({ slug }) =>
+        triggerLinksCleanupJob({
+          workspaceId: workspace.id,
+          domain: slug,
+        }),
+      ),
+    );
+  }
 }
 
 export async function deleteWorkspaceAdmin(
