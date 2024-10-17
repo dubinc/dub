@@ -141,7 +141,15 @@ export function Form() {
           await continueTo("domain");
         })}
       >
-        <DestinationUrlInput domains={domains} {...register("url")} />
+        <DestinationUrlInput
+          domains={domains}
+          right={
+            <div className="animate-text-appear text-xs font-normal text-gray-500">
+              press <strong>Enter</strong> ↵ to submit
+            </div>
+          }
+          {...register("url")}
+        />
         <Controller
           control={control}
           name="link"

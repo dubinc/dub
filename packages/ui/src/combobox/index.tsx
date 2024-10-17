@@ -41,8 +41,8 @@ export type ComboboxProps<
     ? ComboboxOption<TMeta>[]
     : ComboboxOption<TMeta> | null;
   setSelected: TMultiple extends true
-    ? (tags: ComboboxOption<TMeta>[]) => void
-    : (tag: ComboboxOption<TMeta> | null) => void;
+    ? (options: ComboboxOption<TMeta>[]) => void
+    : (option: ComboboxOption<TMeta> | null) => void;
   options?: ComboboxOption<TMeta>[];
   icon?: Icon | ReactNode;
   placeholder?: ReactNode;
@@ -58,6 +58,8 @@ export type ComboboxProps<
   onOpenChange?: (open: boolean) => void;
   onSearchChange?: (search: string) => void;
   shouldFilter?: boolean;
+  inputClassName?: string;
+  optionRight?: (option: ComboboxOption) => ReactNode;
   optionClassName?: string;
   matchTriggerWidth?: boolean;
 }>;
@@ -88,6 +90,8 @@ export function Combobox({
   onOpenChange,
   onSearchChange,
   shouldFilter = true,
+  inputClassName,
+  optionRight,
   optionClassName,
   matchTriggerWidth,
   children,
@@ -195,7 +199,10 @@ export function Combobox({
                 placeholder={searchPlaceholder}
                 value={search}
                 onValueChange={setSearch}
-                className="grow border-0 py-3 pl-4 pr-2 outline-none placeholder:text-gray-400 focus:ring-0 sm:text-sm"
+                className={cn(
+                  "grow border-0 py-3 pl-4 pr-2 outline-none placeholder:text-gray-400 focus:ring-0 sm:text-sm",
+                  inputClassName,
+                )}
                 onKeyDown={(e) => {
                   if (
                     e.key === "Escape" ||
@@ -228,6 +235,7 @@ export function Combobox({
                           ({ value }) => value === option.value,
                         )}
                         onSelect={() => handleSelect(option)}
+                        right={optionRight?.(option)}
                         className={optionClassName}
                       />
                     ))}
@@ -309,7 +317,7 @@ export function Combobox({
             isReactNode(Icon) ? (
               Icon
             ) : (
-              <Icon className="size-4" />
+              <Icon className="size-4 shrink-0" />
             )
           ) : undefined
         }
@@ -346,12 +354,14 @@ function Option({
   onSelect,
   multiple,
   selected,
+  right,
   className,
 }: {
   option: ComboboxOption;
   onSelect: () => void;
   multiple: boolean;
   selected: boolean;
+  right?: ReactNode;
   className?: string;
 }) {
   return (
@@ -385,6 +395,7 @@ function Option({
         )}
         <span className="grow truncate">{option.label}</span>
       </div>
+      {right}
       {!multiple && selected && (
         <Check2 className="size-4 shrink-0 text-gray-600" />
       )}

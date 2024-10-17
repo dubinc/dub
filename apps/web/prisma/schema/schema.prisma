@@ -41,6 +41,7 @@ model User {
   installedIntegrations InstalledIntegration[] // Integrations user installed in their workspace
   folders               FolderUser[]
   folderAccessRequests  FolderAccessRequest[]
+  utmTemplates          UtmTemplate[]
 
   @@index(source)
   @@index(defaultWorkspace)

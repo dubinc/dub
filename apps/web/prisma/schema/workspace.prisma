@@ -52,6 +52,7 @@ model Project {
   webhooks              Webhook[]
   folders               Folder[]
   registeredDomains     RegisteredDomain[]
+  utmTemplates          UtmTemplate[]
 
   @@index(usageLastChecked(sort: Asc))
 }

@@ -119,6 +119,9 @@ importers:
       '@visx/axis':
         specifier: ^2.14.0
         version: 2.14.0(react@18.2.0)
+      '@visx/clip-path':
+        specifier: ^3.3.0
+        version: 3.3.0(react@18.2.0)
       '@visx/curve':
         specifier: ^3.3.0
         version: 3.3.0
@@ -10048,6 +10051,16 @@ packages:
       prop-types: 15.8.1
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
+    dev: false
+
+  /@visx/clip-path@3.3.0(react@18.2.0):
+    resolution: {integrity: sha512-uMuI2M05qZTgUdTSHJGg4VDr2gytGmGyuaC89iByHqNaeMHkrJqQi/cOFAZi4D0dn75p7lVirJijEgDgSpcrMQ==}
+    peerDependencies:
+      react: ^16.0.0-0 || ^17.0.0-0 || ^18.0.0-0
+    dependencies:
+      '@types/react': 18.2.48
+      prop-types: 15.8.1
+      react: 18.2.0
     dev: false
 
   /@visx/curve@2.1.0:
