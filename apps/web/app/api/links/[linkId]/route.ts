@@ -1,11 +1,7 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
-import {
-  deleteLink,
-  processLink,
-  transformLink,
-  updateLink,
-} from "@/lib/api/links";
+import { processLink, transformLink, updateLink } from "@/lib/api/links";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
+import { softDeleteLink } from "@/lib/api/links/soft-delete-links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -177,7 +173,10 @@ export const DELETE = withWorkspace(
       linkId: params.linkId,
     });
 
-    await deleteLink(link.id);
+    await softDeleteLink({
+      link,
+      workspace,
+    });
 
     waitUntil(
       sendWorkspaceWebhook({

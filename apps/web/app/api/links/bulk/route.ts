@@ -6,8 +6,8 @@ import {
   combineTagIds,
   processLink,
 } from "@/lib/api/links";
-import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { bulkUpdateLinks } from "@/lib/api/links/bulk-update-links";
+import { softDeleteManyLinks } from "@/lib/api/links/soft-delete-links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -404,22 +404,14 @@ export const DELETE = withWorkspace(
       },
     });
 
-    const { count: deletedCount } = await prisma.link.deleteMany({
-      where: {
-        id: { in: links.map((link) => link.id) },
-        projectId: workspace.id,
-      },
+    const { count } = await softDeleteManyLinks({
+      links,
+      workspace,
     });
-
-    waitUntil(
-      bulkDeleteLinks({
-        links,
-      }),
-    );
 
     return NextResponse.json(
       {
-        deletedCount,
+        deletedCount: count,
       },
       { headers },
     );

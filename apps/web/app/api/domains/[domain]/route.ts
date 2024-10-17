@@ -1,11 +1,11 @@
 import {
   addDomainToVercel,
-  deleteDomainAndLinks,
   removeDomainFromVercel,
   validateDomain,
 } from "@/lib/api/domains";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError } from "@/lib/api/errors";
+import { softDeleteDomainAndLinks } from "@/lib/api/links/soft-delete-links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -155,7 +155,10 @@ export const DELETE = withWorkspace(
       });
     }
 
-    await deleteDomainAndLinks(domain);
+    await softDeleteDomainAndLinks({
+      domain,
+      workspace,
+    });
 
     return NextResponse.json({ slug: domain });
   },
