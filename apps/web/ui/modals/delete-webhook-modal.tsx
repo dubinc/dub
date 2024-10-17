@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { mutate } from "swr";
 
 function DeleteWebhookModal({
   showDeleteWebhookModal,
@@ -44,6 +45,7 @@ function DeleteWebhookModal({
     }
 
     setShowDeleteWebhookModal(false);
+    mutate(`/api/webhooks?workspaceId=${workspaceId}`);
     router.push(`/${workspaceSlug}/settings/webhooks`);
   };
 
