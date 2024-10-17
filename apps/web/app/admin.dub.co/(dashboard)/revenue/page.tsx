@@ -2,6 +2,8 @@ import LayoutLoader from "@/ui/layout/layout-loader";
 import { Suspense } from "react";
 import RevenueClient from "./client";
 
+export const dynamic = "force-dynamic";
+
 export default function Revenue() {
   return (
     <Suspense fallback={<LayoutLoader />}>

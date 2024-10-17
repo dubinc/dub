@@ -49,7 +49,17 @@ export function useTooltip<T extends Datum>({
     ) => {
       const lp = localPoint(event) || { x: 0 };
       const x = lp.x - margin.left;
-      const x0 = xScale.invert(x);
+      const x0 =
+        "invert" in xScale
+          ? xScale.invert(x)
+          : (xScale.domain()[
+              Math.round((x - xScale.step() * 0.75) / xScale.step())
+            ] as Date | undefined);
+
+      if (x0 === undefined) {
+        visxTooltip.hideTooltip();
+        return;
+      }
       const index = bisectDate(data, x0, 1);
       const d0 = data[index - 1];
       const d1 = data[index];
