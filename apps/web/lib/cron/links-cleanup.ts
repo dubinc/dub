@@ -16,6 +16,8 @@ export const triggerLinksCleanupJob = async ({
   linkId?: string;
   linkIds?: string[];
 }) => {
+  return;
+
   return await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/cleanup`,
     body: {
