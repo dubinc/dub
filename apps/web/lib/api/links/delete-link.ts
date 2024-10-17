@@ -27,6 +27,7 @@ export async function deleteLink(linkId: string) {
         key: link.key,
         url: link.url,
         tag_ids: link.tags.map((tag) => tag.tagId),
+        folder_id: link.folderId,
         workspace_id: link.projectId,
         created_at: link.createdAt,
         deleted: true,
