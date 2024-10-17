@@ -1,10 +1,7 @@
 import { triggerLinksCleanupJob } from "@/lib/cron/links-cleanup";
 import { prisma } from "@/lib/prisma";
-import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { linkEventSchema } from "@/lib/zod/schemas/links";
 import { Link, Project } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { transformLink } from ".";
 
 // Soft delete a link
 export const softDeleteLink = async ({
@@ -39,12 +36,6 @@ export const softDeleteLink = async ({
   waitUntil(
     (async () => {
       Promise.all([
-        sendWorkspaceWebhook({
-          trigger: "link.deleted",
-          workspace,
-          data: linkEventSchema.parse(transformLink(link)),
-        }),
-
         triggerLinksCleanupJob({
           workspaceId: workspace.id,
           linkId: link.id,
@@ -63,6 +54,49 @@ export const softDeleteLink = async ({
       ]);
     })(),
   );
+};
+
+// Soft delete many links
+export const softDeleteManyLinks = async ({
+  links,
+  workspace,
+}: {
+  links: Pick<Link, "id">[];
+  workspace: Project;
+}) => {
+  const { count } = await prisma.link.updateMany({
+    where: {
+      id: { in: links.map((link) => link.id) },
+      projectId: workspace.id,
+    },
+    data: {
+      projectId: null,
+    },
+  });
+
+  waitUntil(
+    (async () => {
+      Promise.all([
+        triggerLinksCleanupJob({
+          workspaceId: workspace.id,
+          linkIds: links.map((link) => link.id),
+        }),
+
+        prisma.project.update({
+          where: {
+            id: workspace.id,
+          },
+          data: {
+            linksUsage: {
+              decrement: count,
+            },
+          },
+        }),
+      ]);
+    })(),
+  );
+
+  return { count };
 };
 
 // Soft delete a domain and its links

@@ -7,18 +7,21 @@ import { qstash } from "./index";
 
 export const triggerLinksCleanupJob = async ({
   workspaceId,
-  linkId,
   domain,
+  linkId,
+  linkIds,
 }: {
   workspaceId: string;
-  linkId?: string;
   domain?: string;
+  linkId?: string;
+  linkIds?: string[];
 }) => {
   return await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/cleanup`,
     body: {
       workspaceId,
       ...(linkId && { linkId }),
+      ...(linkIds && { linkIds }),
       ...(domain && { domain }),
     },
   });
@@ -98,7 +101,7 @@ export const cleanupManyLinks = async ({
     pipeline.del(`${link.domain}:${link.key}`.toLowerCase());
   });
 
-  await Promise.allSettled([
+  const results = await Promise.allSettled([
     // Record link in the Tinybird
     recordLink(
       links.map((link) => ({
@@ -128,6 +131,8 @@ export const cleanupManyLinks = async ({
       },
     }),
   ]);
+
+  console.log(results);
 };
 
 // Cleanup all links for a domain
@@ -190,6 +195,7 @@ export const cleanupDomainAndLinks = async ({
   ]);
 
   // Find if there are any remaining links for the domain
+  // TODO: Move this to route level
   const remainingLinks = await prisma.link.count({
     where: {
       domain,

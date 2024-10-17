@@ -178,6 +178,14 @@ export const DELETE = withWorkspace(
       workspace,
     });
 
+    waitUntil(
+      sendWorkspaceWebhook({
+        trigger: "link.deleted",
+        workspace,
+        data: linkEventSchema.parse(transformLink(link)),
+      }),
+    );
+
     return NextResponse.json({ id: link.id }, { headers });
   },
   {
