@@ -2,6 +2,7 @@ import { triggerLinksCleanupJob } from "@/lib/cron/links-cleanup";
 import { prisma } from "@/lib/prisma";
 import { Link, Project } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { removeDomainFromVercel } from "../domains/remove-domain-vercel";
 
 // Soft delete a link
 export const softDeleteLink = async ({
@@ -109,18 +110,21 @@ export const softDeleteDomainAndLinks = async ({
 }) => {
   const [links] = await Promise.all([
     prisma.link.updateMany({
-      where: { domain, projectId: workspace.id },
+      where: {
+        domain,
+        projectId: workspace.id,
+      },
       data: { projectId: null },
     }),
 
     prisma.domain.update({
-      where: { slug: domain },
+      where: {
+        slug: domain,
+        projectId: workspace.id,
+      },
       data: { projectId: null },
     }),
   ]);
-
-  // TODO:
-  // Remove the domain from Vercel
 
   waitUntil(
     (async () => {
@@ -129,6 +133,8 @@ export const softDeleteDomainAndLinks = async ({
           workspaceId: workspace.id,
           domain,
         }),
+
+        removeDomainFromVercel(domain),
 
         prisma.project.update({
           where: {

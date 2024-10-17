@@ -16,8 +16,6 @@ export const triggerLinksCleanupJob = async ({
   linkId?: string;
   linkIds?: string[];
 }) => {
-  return;
-
   return await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/cleanup`,
     body: {
@@ -70,7 +68,7 @@ export const cleanupLink = async ({
     // Remove the link from MySQL
     prisma.link.delete({
       where: {
-        id: link.id,
+        id: linkId,
       },
     }),
   ]);
@@ -87,6 +85,7 @@ export const cleanupManyLinks = async ({
   const links = await prisma.link.findMany({
     where: {
       id: { in: linkIds },
+      projectId: null,
     },
     include: {
       tags: true,
@@ -146,6 +145,7 @@ export const cleanupDomainAndLinks = async ({
   const links = await prisma.link.findMany({
     where: {
       domain,
+      projectId: null,
     },
     include: {
       tags: true,
