@@ -3,12 +3,13 @@ model Project {
   name String
   slug String  @unique
   logo String?
+  inviteCode        String? @unique
 
   plan              String  @default("free")
   stripeId          String? @unique // Stripe subscription ID
   billingCycleStart Int // day of the month when the billing cycle starts
+  paymentFailedAt   DateTime?
   stripeConnectId   String? @unique // for Stripe Connect
-  inviteCode        String? @unique
 
   usage        Int @default(0)
   usageLimit   Int @default(1000)
