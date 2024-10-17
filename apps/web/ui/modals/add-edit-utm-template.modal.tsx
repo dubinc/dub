@@ -1,6 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UtmTemplateProps } from "@/lib/types";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
+import { UTMBuilder } from "@dub/ui/src/utm-builder";
 import posthog from "posthog-js";
 import {
   Dispatch,
@@ -12,7 +13,6 @@ import {
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { UTMBuilder } from "../links/utm-builder";
 
 function AddEditUtmTemplateModal({
   showAddEditUtmTemplateModal,

@@ -2,7 +2,6 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UtmTemplateWithUserProps } from "@/lib/types";
-import { UTM_PARAMETERS } from "@/ui/links/utm-builder";
 import { useAddEditUtmTemplateModal } from "@/ui/modals/add-edit-utm-template.modal";
 import { Delete, ThreeDots } from "@/ui/shared/icons";
 import {
@@ -18,6 +17,7 @@ import {
   LoadingSpinner,
   PenWriting,
 } from "@dub/ui/src/icons";
+import { UTM_PARAMETERS } from "@dub/ui/src/utm-builder";
 import { cn, formatDate } from "@dub/utils";
 import { Fragment, useContext, useState } from "react";
 import { toast } from "sonner";
