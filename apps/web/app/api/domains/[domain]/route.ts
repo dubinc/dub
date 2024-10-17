@@ -5,6 +5,7 @@ import {
 } from "@/lib/api/domains";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError } from "@/lib/api/errors";
+import { softDeleteDomainAndLinks } from "@/lib/api/links/soft-delete-links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -154,62 +155,10 @@ export const DELETE = withWorkspace(
       });
     }
 
-    const allLinks = await prisma.link.findMany({
-      where: {
-        domain,
-        projectId: workspace.id,
-      },
-      select: {
-        id: true,
-        domain: true,
-        key: true,
-        url: true,
-        image: true,
-        projectId: true,
-        tags: true,
-        createdAt: true,
-      },
+    await softDeleteDomainAndLinks({
+      domain,
+      workspace,
     });
-
-    const [_, links] = await Promise.all([
-      prisma.domain.update({
-        where: { slug: domain, projectId: workspace.id },
-        data: { projectId: null },
-      }),
-
-      prisma.link.updateMany({
-        where: { domain, projectId: workspace.id },
-        data: { projectId: null },
-      }),
-    ]);
-
-    waitUntil(
-      Promise.all([
-        prisma.project.update({
-          where: {
-            id: workspace.id,
-          },
-          data: {
-            linksUsage: {
-              decrement: links.count,
-            },
-          },
-        }),
-
-        recordLink([
-          ...allLinks.map((link) => ({
-            link_id: link.id,
-            domain: link.domain,
-            key: link.key,
-            url: link.url,
-            tag_ids: link.tags.map((tag) => tag.tagId),
-            workspace_id: link.projectId,
-            created_at: link.createdAt,
-            deleted: true,
-          })),
-        ]),
-      ]),
-    );
 
     return NextResponse.json({ slug: domain });
   },
