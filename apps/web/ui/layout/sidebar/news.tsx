@@ -171,6 +171,7 @@ function NewsCard({
               alt=""
               fill
               className="rounded object-cover object-center"
+              draggable={false}
             />
           )}
         </div>
