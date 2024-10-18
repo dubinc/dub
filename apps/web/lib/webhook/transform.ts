@@ -55,11 +55,13 @@ export const transformLeadEventData = (data: any) => {
     ...lead,
     customer: {
       id: lead.customerId,
+      externalId: lead.customerExternalId,
       name: lead.customerName,
       email: lead.customerEmail,
       avatar:
         lead.customerAvatar ||
         `https://api.dicebear.com/7.x/micah/svg?seed=${lead.customerId}`,
+      createdAt: lead.customerCreatedAt,
     },
     click: {
       ...lead,
@@ -79,9 +81,11 @@ export const transformSaleEventData = (data: any) => {
     ...sale,
     customer: {
       id: sale.customerId,
+      externalId: sale.customerExternalId,
       name: sale.customerName,
       email: sale.customerEmail,
       avatar: sale.customerAvatar,
+      createdAt: sale.customerCreatedAt,
     },
     sale: {
       amount: sale.amount,

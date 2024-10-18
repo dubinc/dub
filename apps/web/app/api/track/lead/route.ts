@@ -121,10 +121,12 @@ export const POST = withWorkspaceEdge(
           ...clickData,
           link,
           eventName,
-          customerId: customer.externalId,
+          customerId: customer.id,
+          customerExternalId: customer.externalId,
           customerName: customer.name,
           customerEmail: customer.email,
           customerAvatar: customer.avatar,
+          customerCreatedAt: customer.createdAt,
         });
 
         await sendWorkspaceWebhookOnEdge({
