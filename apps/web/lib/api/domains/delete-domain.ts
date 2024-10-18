@@ -5,7 +5,7 @@ export const deleteDomain = async (domain: string) => {
   const [domainResponse, vercelResponse] = await Promise.allSettled([
     removeDomainFromVercel(domain),
 
-    prisma.domain.findUnique({
+    prisma.domain.delete({
       where: {
         slug: domain,
       },

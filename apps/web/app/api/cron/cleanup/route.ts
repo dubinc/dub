@@ -53,15 +53,20 @@ export async function GET(req: Request) {
     // Delete the links
     if (links.length > 0) {
       await bulkDeleteLinks({
-        links,
         workspaceId: E2E_WORKSPACE_ID,
+        links,
       });
     }
 
     // Delete the domains
     if (domains.length > 0) {
       await Promise.all(
-        domains.map((domain) => deleteDomainAndLinks(domain.slug)),
+        domains.map(({ slug }) =>
+          deleteDomainAndLinks({
+            workspaceId: E2E_WORKSPACE_ID,
+            domain: slug,
+          }),
+        ),
       );
     }
 

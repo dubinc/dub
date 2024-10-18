@@ -99,9 +99,13 @@ export const handleDomainUpdates = async ({
         type: "cron",
       });
     }
+
     // else, delete the domain
     return await Promise.allSettled([
-      deleteDomainAndLinks(domain).then(async () => {
+      deleteDomainAndLinks({
+        workspaceId: workspace.id,
+        domain,
+      }).then(async () => {
         // if the deleted domain was primary, make another domain primary
         if (primary) {
           const anotherDomain = await prisma.domain.findFirst({

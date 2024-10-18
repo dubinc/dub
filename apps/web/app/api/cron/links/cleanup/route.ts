@@ -1,9 +1,6 @@
+import { deleteDomainAndLinks } from "@/lib/api/domains";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import {
-  cleanupDomainAndLinks,
-  cleanupLink,
-  cleanupManyLinks,
-} from "@/lib/cron/links-cleanup";
+import { cleanupLink, cleanupManyLinks } from "@/lib/cron/links-cleanup";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { z } from "zod";
 
@@ -37,7 +34,7 @@ export async function POST(req: Request) {
 
     // A domain was deleted
     if (domain) {
-      await cleanupDomainAndLinks({ workspaceId, domain });
+      await deleteDomainAndLinks({ workspaceId, domain });
       return new Response("Ok");
     }
 

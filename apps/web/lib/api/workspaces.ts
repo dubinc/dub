@@ -124,7 +124,12 @@ export async function deleteWorkspaceAdmin(
 
   // delete all domains, links, and uploaded images associated with the workspace
   const deleteDomainsLinksResponse = await Promise.allSettled([
-    ...customDomains.map(({ slug }) => deleteDomainAndLinks(slug)),
+    ...customDomains.map(({ slug }) =>
+      deleteDomainAndLinks({
+        workspaceId: workspace.id,
+        domain: slug,
+      }),
+    ),
   ]);
 
   const deleteWorkspaceResponse = await Promise.allSettled([

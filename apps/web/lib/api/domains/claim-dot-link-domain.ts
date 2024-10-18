@@ -69,7 +69,12 @@ export async function claimDotLinkDomain({
   // if the domain was added to a different workspace but is not verified
   // we should remove it to free up the domain for the current workspace
   if (matchingUnverifiedDomain) {
-    await deleteDomainAndLinks(matchingUnverifiedDomain.slug);
+    const { projectId, slug } = matchingUnverifiedDomain;
+
+    await deleteDomainAndLinks({
+      workspaceId: projectId!,
+      domain: slug,
+    });
   }
 
   await Promise.all([
