@@ -21,7 +21,7 @@ export async function deleteDomainAndLinks({
     include: {
       tags: true,
     },
-    take: 1,
+    take: 100,
   });
 
   if (links.length === 0) {
