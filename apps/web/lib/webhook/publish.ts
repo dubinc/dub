@@ -24,6 +24,7 @@ export const sendWorkspaceWebhook = async ({
   const webhooks = await prisma.webhook.findMany({
     where: {
       projectId: workspace.id,
+      disabledAt: null,
       triggers: {
         array_contains: [trigger],
       },

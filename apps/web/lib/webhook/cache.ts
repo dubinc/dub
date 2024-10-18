@@ -36,6 +36,7 @@ class WebhookCache {
       url: webhook.url,
       secret: webhook.secret,
       triggers: webhook.triggers,
+      ...(webhook.disabledAt && { disabledAt: webhook.disabledAt }),
     };
   }
 }
