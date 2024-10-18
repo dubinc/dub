@@ -1,4 +1,4 @@
-import { deleteDomainAndLinks } from "@/lib/api/domains";
+import { markDomainAsDeleted } from "@/lib/api/domains";
 import { dub } from "@/lib/dub";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
@@ -80,7 +80,12 @@ export async function deleteWorkspace(
 
       // delete all domains, links, and uploaded images associated with the workspace
       await Promise.allSettled([
-        ...customDomains.map(({ slug }) => deleteDomainAndLinks(slug)),
+        ...customDomains.map(({ slug }) =>
+          markDomainAsDeleted({
+            domain: slug,
+            workspaceId: workspace.id,
+          }),
+        ),
         // delete all default domain links from redis
         pipeline.exec(),
         // record deletes in Tinybird for default domain links
@@ -193,7 +198,12 @@ export async function deleteWorkspaceAdmin(
 
   // delete all domains, links, and uploaded images associated with the workspace
   const deleteDomainsLinksResponse = await Promise.allSettled([
-    ...customDomains.map(({ slug }) => deleteDomainAndLinks(slug)),
+    ...customDomains.map(({ slug }) =>
+      markDomainAsDeleted({
+        domain: slug,
+        workspaceId: workspace.id,
+      }),
+    ),
   ]);
 
   const deleteWorkspaceResponse = await Promise.allSettled([

@@ -2,6 +2,7 @@ enum WebhookReceiver {
   user
   zapier
   make
+  slack
 }
 
 model Webhook {

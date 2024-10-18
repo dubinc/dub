@@ -1,4 +1,4 @@
-import { deleteDomainAndLinks } from "@/lib/api/domains";
+import { markDomainAsDeleted } from "@/lib/api/domains";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
@@ -69,7 +69,12 @@ export async function GET(req: Request) {
     // Delete the domains
     if (domains.length > 0) {
       await Promise.all(
-        domains.map((domain) => deleteDomainAndLinks(domain.slug)),
+        domains.map(({ slug }) =>
+          markDomainAsDeleted({
+            domain: slug,
+            workspaceId: E2E_WORKSPACE_ID,
+          }),
+        ),
       );
     }
 
