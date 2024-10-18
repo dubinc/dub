@@ -133,6 +133,7 @@ function NewsCard({
       className={cn(
         "relative select-none gap-2 rounded-lg border border-neutral-200 bg-white p-3 text-[0.8125rem]",
         "translate-x-[calc(var(--dx)*1px)] rotate-[calc(var(--dx)*0.05deg)] opacity-[calc(1-max(var(--dx),-1*var(--dx))/var(--w)/2)]",
+        "transition-shadow data-[dragging=true]:shadow-[0_4px_12px_0_#0000000D]",
       )}
       data-dragging={dragging}
       onPointerDown={onPointerDown}
