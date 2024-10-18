@@ -2,7 +2,7 @@
 
 import { DomainProps } from "@/lib/types";
 import { InfoTooltip, SimpleTooltipContent, useMediaQuery } from "@dub/ui";
-import { forwardRef, HTMLProps, useId } from "react";
+import { forwardRef, HTMLProps, ReactNode, useId } from "react";
 import { AlertCircleFill } from "../shared/icons";
 import { ProBadgeTooltip } from "../shared/pro-badge-tooltip";
 
@@ -11,7 +11,7 @@ type DestinationUrlInputProps = {
   domain?: string;
   domains: DomainProps[];
   error?: string;
-  showEnterToSubmit?: boolean;
+  right?: ReactNode;
 } & HTMLProps<HTMLInputElement>;
 
 export const DestinationUrlInput = forwardRef<
@@ -24,7 +24,7 @@ export const DestinationUrlInput = forwardRef<
       domain,
       domains,
       error,
-      showEnterToSubmit = true,
+      right,
       ...inputProps
     }: DestinationUrlInputProps,
     ref,
@@ -64,11 +64,7 @@ export const DestinationUrlInput = forwardRef<
               />
             )}
           </div>
-          {showEnterToSubmit && (
-            <div className="animate-text-appear text-xs font-normal text-gray-500">
-              press <strong>Enter</strong> ↵ to submit
-            </div>
-          )}
+          {right}
         </div>
         <div className="relative mt-2 flex rounded-md shadow-sm">
           <input

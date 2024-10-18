@@ -16,7 +16,6 @@ import {
   QRCode,
   Raycast,
   Ruby,
-  Stars2,
   Tinybird,
   Typescript,
   Users,
@@ -141,16 +140,6 @@ export const SDKS = [
 
 export const RESOURCES = [
   {
-    icon: Headset,
-    title: "Help Center",
-    href: "/help",
-  },
-  {
-    icon: Book2,
-    title: "Docs",
-    href: "/docs",
-  },
-  {
     icon: Blog,
     title: "Blog",
     href: "/blog",
@@ -161,9 +150,14 @@ export const RESOURCES = [
     href: "/changelog",
   },
   {
-    icon: Stars2,
-    title: "Customers",
-    href: "/customers",
+    icon: Book2,
+    title: "Docs",
+    href: "/docs",
+  },
+  {
+    icon: Headset,
+    title: "Help Center",
+    href: "/help",
   },
   {
     icon: HexadecagonStar,

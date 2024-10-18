@@ -1,6 +1,6 @@
 import useWebhooks from "@/lib/swr/use-webhooks";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Button, Combobox, Globe, useKeyboardShortcut, Webhook } from "@dub/ui";
+import { Button, Combobox, useKeyboardShortcut, Webhook } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -85,7 +85,7 @@ const NoWebhooksFound = () => {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-2 px-2 py-4 text-center text-sm">
       <div className="flex items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 p-3">
-        <Globe className="size-6 text-gray-700" />
+        <Webhook className="size-6 text-gray-700" />
       </div>
       <p className="mt-2 font-medium text-gray-950">No webhooks found</p>
       <p className="mx-auto mt-1 w-full max-w-[180px] text-gray-700">

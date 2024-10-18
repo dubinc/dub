@@ -8,7 +8,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     <Providers>
       <Toolbar />
       <Background />
-      <div className="relative z-10 flex min-h-screen w-screen justify-center">
+      <div className="relative z-10 flex min-h-screen w-full justify-center">
         {children}
       </div>
     </Providers>

@@ -66,7 +66,11 @@ export function TagCard({
       .then(async (res) => {
         if (res.ok) {
           await Promise.all([
-            mutate(`/api/tags?workspaceId=${id}`),
+            mutate(
+              (key) => typeof key === "string" && key.startsWith("/api/tags"),
+              undefined,
+              { revalidate: true },
+            ),
             mutate(
               (key) => typeof key === "string" && key.startsWith("/api/links"),
               undefined,
