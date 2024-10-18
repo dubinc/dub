@@ -27,6 +27,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
     select: {
       id: true,
       plan: true,
+      paymentFailedAt: true,
       users: {
         select: {
           user: {
@@ -75,6 +76,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
           tagsLimit: plan.limits.tags!,
           foldersLimit: plan.limits.folders!,
           usersLimit: plan.limits.users!,
+          paymentFailedAt: null,
         },
       }),
       prisma.restrictedToken.updateMany({
@@ -86,6 +88,15 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
         },
       }),
     ]);
+  } else if (workspace.paymentFailedAt) {
+    await prisma.project.update({
+      where: {
+        id: workspace.id,
+      },
+      data: {
+        paymentFailedAt: null,
+      },
+    });
   }
 
   const subscriptionCanceled =

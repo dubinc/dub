@@ -3,9 +3,9 @@
 import useTags from "@/lib/swr/use-tags";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
+import ManageSubscriptionButton from "@/ui/workspaces/manage-subscription-button";
 import PlanBadge from "@/ui/workspaces/plan-badge";
 import {
-  Button,
   buttonVariants,
   Icon,
   InfoTooltip,
@@ -15,16 +15,11 @@ import {
 import { CircleDollar, CursorRays, Hyperlink } from "@dub/ui/src/icons";
 import { cn, getFirstAndLastDay, nFormatter } from "@dub/utils";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { CSSProperties, useMemo, useState } from "react";
-import { toast } from "sonner";
 import { UsageChart } from "./usage-chart";
 
 export default function WorkspaceBillingClient() {
-  const router = useRouter();
-
   const {
-    id: workspaceId,
     slug,
     plan,
     stripeId,
@@ -91,32 +86,7 @@ export default function WorkspaceBillingClient() {
             )}
           </p>
         </div>
-        {stripeId && (
-          <div>
-            <Button
-              text="Manage Subscription"
-              variant="secondary"
-              className="h-9"
-              onClick={() => {
-                setClicked(true);
-                fetch(`/api/workspaces/${workspaceId}/billing/manage`, {
-                  method: "POST",
-                }).then(async (res) => {
-                  if (res.ok) {
-                    const url = await res.json();
-                    console.log({ url });
-                    router.push(url);
-                  } else {
-                    const { error } = await res.json();
-                    toast.error(error.message);
-                    setClicked(false);
-                  }
-                });
-              }}
-              loading={clicked}
-            />
-          </div>
-        )}
+        {stripeId && <ManageSubscriptionButton className="w-fit" />}
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)] divide-y divide-gray-200 border-y border-gray-200">
         <div>
@@ -295,12 +265,11 @@ function UsageTabCard({
             >
               <div
                 className={cn(
-                  "size-full rounded-full [mask-image:linear-gradient(90deg,transparent,black_80%)]",
+                  "size-full rounded-full bg-gradient-to-r from-blue-500/80 to-blue-600",
                   warning && "to-rose-500",
                 )}
                 style={{
                   transform: `translateX(-${100 - Math.floor((usage / Math.max(0, usage, limit)) * 100)}%)`,
-                  backgroundImage: `linear-gradient(90deg, #D8277A, #7E3AEA)`,
                 }}
               />
             </div>
