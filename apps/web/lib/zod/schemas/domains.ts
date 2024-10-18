@@ -85,6 +85,13 @@ export const getDefaultDomainsQuerySchema = getDomainsQuerySchema.pick({
   search: true,
 });
 
+const deepLink = z.object({
+  iosAppId: z.string().nullish().default(null),
+  iosTeamId: z.string().nullish().default(null),
+  androidPackageName: z.string().nullish().default(null),
+  androidSha256CertFingerprints: z.string().nullish().default(null),
+});
+
 export const createDomainBodySchema = z.object({
   slug: z
     .string({ required_error: "slug is required" })
@@ -119,6 +126,7 @@ export const createDomainBodySchema = z.object({
       "Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened.",
     )
     .openapi({ example: "https://dub.co/help/article/what-is-dub" }),
+  deepLink: deepLink.nullish().describe("Deep link configuration."),
 });
 
 export const updateDomainBodySchema = createDomainBodySchema.partial();
