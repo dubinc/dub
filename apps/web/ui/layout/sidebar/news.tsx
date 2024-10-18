@@ -30,7 +30,7 @@ export function News({ articles }: { articles: NewsArticle[] }) {
             <div
               key={slug}
               className={cn(
-                "absolute left-0 top-0 scale-[var(--scale)] transition-[opacity,transform] duration-200",
+                "absolute left-0 top-0 size-full scale-[var(--scale)] transition-[opacity,transform] duration-200",
                 cardCount - idx > 3
                   ? [
                       "opacity-0 group-hover:translate-y-[var(--y)] group-hover:opacity-[var(--opacity)]",
@@ -64,10 +64,7 @@ export function News({ articles }: { articles: NewsArticle[] }) {
             </div>
           ))}
         <div className="invisible" aria-hidden>
-          <NewsCard
-            title="Title Title"
-            description="Description of the article that clicking this card will take you to"
-          />
+          <NewsCard title="Title" description="Description" />
         </div>
       </div>
     </div>
@@ -164,7 +161,9 @@ function NewsCard({
           <span className="line-clamp-1 font-medium text-neutral-900">
             {title}
           </span>
-          <p className="line-clamp-2 text-neutral-500">{description}</p>
+          <p className="line-clamp-2 h-10 leading-5 text-neutral-500">
+            {description}
+          </p>
         </div>
         <div className="relative mt-3 aspect-[16/9] w-full shrink-0 overflow-hidden rounded border border-neutral-200 bg-neutral-100">
           {image && (
