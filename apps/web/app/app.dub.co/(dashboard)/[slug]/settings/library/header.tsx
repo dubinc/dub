@@ -16,7 +16,11 @@ export default function LibraryHeader() {
       <h1 className="text-2xl font-semibold tracking-tight text-black">
         Library
       </h1>
+      <p className="mb-2 mt-2 text-base text-neutral-600">
+        Manage and organize your links with customizable tags and UTM templates.
+      </p>
       <TabSelect
+        variant="accent"
         options={[
           { id: "tags", label: "Tags" },
           { id: "utm", label: "UTM Templates" },
