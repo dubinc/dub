@@ -1,7 +1,7 @@
 import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
-import { Link, Project, Webhook } from "@prisma/client";
+import { Link, Project, UtmTemplate, Webhook } from "@prisma/client";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import { trackCustomerResponseSchema } from "./zod/schemas/customers";
 import { integrationSchema } from "./zod/schemas/integration";
@@ -10,6 +10,7 @@ import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import { trackSaleResponseSchema } from "./zod/schemas/sales";
 import { tokenSchema } from "./zod/schemas/token";
+import { usageResponse } from "./zod/schemas/usage";
 import {
   createWebhookSchema,
   webhookEventSchemaTB,
@@ -60,6 +61,11 @@ export interface TagProps {
 }
 
 export type TagColorProps = (typeof tagColors)[number];
+
+export type UtmTemplateProps = UtmTemplate;
+export type UtmTemplateWithUserProps = UtmTemplateProps & {
+  user?: UserProps;
+};
 
 export type PlanProps = (typeof plans)[number];
 
@@ -262,3 +268,5 @@ export type TrackCustomerResponse = z.infer<typeof trackCustomerResponseSchema>;
 export type TrackLeadResponse = z.infer<typeof trackLeadResponseSchema>;
 
 export type TrackSaleResponse = z.infer<typeof trackSaleResponseSchema>;
+
+export type UsageResponse = z.infer<typeof usageResponse>;

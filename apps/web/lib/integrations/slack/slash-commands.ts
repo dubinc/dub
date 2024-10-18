@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import z from "@/lib/zod";
 import { createLinkBodySchema } from "@/lib/zod/schemas/links";
-import { SLACK_INTEGRATION_ID } from "@dub/utils";
+import { APP_DOMAIN, SLACK_INTEGRATION_ID } from "@dub/utils";
+import { User } from "@prisma/client";
 import { SlackCredential } from "./type";
 import { verifySlackSignature } from "./verify-request";
 
@@ -16,9 +17,7 @@ const schema = z.object({
 });
 
 // Handle slash command from Slack
-export const handleSlashCommand = async (
-  req: Request,
-): Promise<{ text: string }> => {
+export const handleSlashCommand = async (req: Request) => {
   const body = await req.text();
 
   await verifySlackSignature(req, body);
@@ -29,7 +28,15 @@ export const handleSlashCommand = async (
 
   if (!parsedInput.success) {
     return {
-      text: "Invalid request.",
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "plain_text",
+            text: "Invalid request.",
+          },
+        },
+      ],
     };
   }
 
@@ -47,30 +54,38 @@ export const handleSlashCommand = async (
 
   if (!installation) {
     return {
-      text: "Installation not found.",
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "plain_text",
+            text: "Installation not found.",
+          },
+        },
+      ],
     };
   }
 
   if (data.text.length === 0) {
     return {
-      text: "Please provide a destination URL.",
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "plain_text",
+            text: "Please provide a destination URL.",
+          },
+        },
+      ],
     };
   }
 
   // Find Dub user matching the Slack user profile
   const credentials = installation.credentials as SlackCredential;
-  let slackUser: undefined | { email: string };
-
-  try {
-    slackUser = await findSlackUser({
-      userId: data.user_id,
-      credentials,
-    });
-  } catch (error: any) {
-    return {
-      text: `Error fetching user profile: ${error.message}`,
-    };
-  }
+  const slackUser = await findSlackUser({
+    userId: data.user_id,
+    credentials,
+  });
 
   const dubUser = await prisma.user.findUnique({
     where: {
@@ -78,12 +93,21 @@ export const handleSlashCommand = async (
     },
     select: {
       id: true,
+      name: true,
     },
   });
 
   if (!dubUser) {
     return {
-      text: "Unable to find Dub account matching your Slack account. Only Dub users can use this command.",
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "plain_text",
+            text: "Unable to find Dub account matching your Slack account. Only Dub users can use this command.",
+          },
+        },
+      ],
     };
   }
 
@@ -94,15 +118,28 @@ export const handleSlashCommand = async (
     select: {
       id: true,
       plan: true,
+      slug: true,
     },
   })) as WorkspaceProps;
 
   if (data.command === "/shorten") {
-    return createShortLink({ data, workspace, userId: dubUser.id });
+    return createShortLink({
+      data,
+      workspace,
+      user: dubUser,
+    });
   }
 
   return {
-    text: "Invalid command.",
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "plain_text",
+          text: "Invalid command.",
+        },
+      },
+    ],
   };
 };
 
@@ -139,11 +176,11 @@ const findSlackUser = async ({
 const createShortLink = async ({
   data,
   workspace,
-  userId,
+  user,
 }: {
   data: z.infer<typeof schema>;
-  workspace: Pick<WorkspaceProps, "id" | "plan">;
-  userId: string;
+  workspace: WorkspaceProps;
+  user: Pick<User, "id" | "name">;
 }) => {
   const [url, key, domain] = data.text;
   const body = createLinkBodySchema.parse({ url, key, domain });
@@ -151,18 +188,70 @@ const createShortLink = async ({
   const { link, error } = await processLink({
     payload: body,
     workspace: workspace as WorkspaceProps,
-    userId,
+    userId: user.id,
   });
 
   if (error != null) {
     return {
-      text: error,
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "plain_text",
+            text: error,
+          },
+        },
+      ],
     };
   }
 
-  const { shortLink } = await createLink(link);
+  const { shortLink, createdAt } = await createLink(link);
+
+  const createdAtDate = new Date(createdAt).toLocaleDateString("en-us", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    hour12: true,
+  });
 
   return {
-    text: shortLink,
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "Short link created!",
+        },
+        fields: [
+          {
+            type: "mrkdwn",
+            text: "*Short Link*",
+          },
+          {
+            type: "mrkdwn",
+            text: "*Destination*",
+          },
+          {
+            type: "mrkdwn",
+            text: `<${shortLink}|${shortLink}>`,
+          },
+          {
+            type: "mrkdwn",
+            text: `<${url}|${url}>`,
+          },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `*Created by* ${user.name} | ${createdAtDate} | <${APP_DOMAIN}/${workspace.slug}?search=${shortLink} | View on Dub>`,
+          },
+        ],
+      },
+    ],
   };
 };

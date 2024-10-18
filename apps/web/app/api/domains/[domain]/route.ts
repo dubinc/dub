@@ -15,6 +15,7 @@ import {
   DomainSchema,
   updateDomainBodySchema,
 } from "@/lib/zod/schemas/domains";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -37,7 +38,11 @@ export const GET = withWorkspace(
 // PUT /api/domains/[domain] – edit a workspace's domain
 export const PATCH = withWorkspace(
   async ({ req, workspace, params }) => {
-    const { slug: domain, registeredDomain } = await getDomainOrThrow({
+    const {
+      slug: domain,
+      registeredDomain,
+      deepLink: existingDeepLink,
+    } = await getDomainOrThrow({
       workspace,
       domain: params.domain,
       dubDomainChecks: true,
@@ -49,6 +54,7 @@ export const PATCH = withWorkspace(
       expiredUrl,
       notFoundUrl,
       archived,
+      deepLink,
     } = updateDomainBodySchema.parse(await parseRequestBody(req));
 
     if (workspace.plan === "free" && expiredUrl) {
@@ -90,6 +96,12 @@ export const PATCH = withWorkspace(
         ...(workspace.plan != "free" && {
           expiredUrl,
           notFoundUrl,
+        }),
+        ...(deepLink && {
+          deepLink: {
+            ...(existingDeepLink as Prisma.JsonObject),
+            ...deepLink,
+          },
         }),
       },
       include: {
