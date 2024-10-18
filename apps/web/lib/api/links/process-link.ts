@@ -225,13 +225,13 @@ export async function processLink<T extends Record<string, any>>({
       }
     }
 
-    if (key?.includes("/")) {
-      // check if the user has access to the parent link
+    if (!skipKeyChecks && key?.includes("/")) {
+      // check if the workspace has access to the parent link
       const parentKey = key.split("/")[0];
       const parentLink = await prisma.link.findUnique({
         where: { domain_key: { domain, key: parentKey } },
       });
-      if (parentLink?.userId !== userId) {
+      if (parentLink?.projectId !== workspace?.id) {
         return {
           link: payload,
           error: `You do not have access to create links in the ${domain}/${parentKey}/ subdirectory.`,

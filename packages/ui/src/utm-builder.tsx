@@ -1,6 +1,8 @@
 "use client";
 
-import { Tooltip, useMediaQuery } from "@dub/ui";
+import { cn } from "@dub/utils";
+import { ReactNode, useEffect, useId, useRef, useState } from "react";
+import { useMediaQuery } from "./hooks/use-media-query";
 import {
   Flag6,
   Gift,
@@ -8,9 +10,8 @@ import {
   InputSearch,
   Page2,
   SatelliteDish,
-} from "@dub/ui/src/icons";
-import { cn } from "@dub/utils";
-import { useEffect, useId, useRef, useState } from "react";
+} from "./icons/nucleo";
+import { Tooltip } from "./tooltip";
 
 export const UTM_PARAMETERS = [
   {
@@ -62,6 +63,8 @@ export function UTMBuilder({
   onChange,
   disabled,
   autoFocus,
+  disabledTooltip,
+  className,
 }: {
   values: Record<
     (typeof UTM_PARAMETERS)[number]["key"],
@@ -73,6 +76,8 @@ export function UTMBuilder({
   ) => void;
   disabled?: boolean;
   autoFocus?: boolean;
+  disabledTooltip?: string | ReactNode;
+  className?: string;
 }) {
   const { isMobile } = useMediaQuery();
 
@@ -88,7 +93,7 @@ export function UTMBuilder({
   }, []);
 
   return (
-    <div className="grid gap-y-3">
+    <div className={cn("grid gap-y-3", className)}>
       {UTM_PARAMETERS.map(
         ({ key, icon: Icon, label, placeholder, description }, idx) => {
           return (
@@ -124,21 +129,41 @@ export function UTMBuilder({
                     </label>
                   </div>
                 </Tooltip>
-                <input
-                  type="text"
-                  id={`${id}-${key}`}
-                  ref={idx === 0 ? inputRef : undefined}
-                  placeholder={placeholder}
-                  disabled={disabled}
-                  className="h-full min-w-0 grow rounded-r-md border border-gray-300 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500 disabled:cursor-not-allowed sm:text-sm"
-                  value={values[key] || ""}
-                  onChange={(e) => onChange(key, e.target.value)}
-                />
+                <div className="min-w-0 grow">
+                  <DisabledTooltipWrapper disabledTooltip={disabledTooltip}>
+                    <input
+                      type="text"
+                      id={`${id}-${key}`}
+                      ref={idx === 0 ? inputRef : undefined}
+                      placeholder={placeholder}
+                      disabled={disabled || Boolean(disabledTooltip)}
+                      className="size-full rounded-r-md border border-gray-300 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500 disabled:cursor-not-allowed sm:text-sm"
+                      value={values[key] || ""}
+                      onChange={(e) => onChange(key, e.target.value)}
+                    />
+                  </DisabledTooltipWrapper>
+                </div>
               </div>
             </div>
           );
         },
       )}
     </div>
+  );
+}
+
+function DisabledTooltipWrapper({
+  children,
+  disabledTooltip,
+}: {
+  children: ReactNode;
+  disabledTooltip?: string | ReactNode;
+}) {
+  return disabledTooltip ? (
+    <Tooltip content={disabledTooltip} disableHoverableContent>
+      {children}
+    </Tooltip>
+  ) : (
+    children
   );
 }

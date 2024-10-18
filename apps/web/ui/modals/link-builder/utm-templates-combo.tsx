@@ -2,9 +2,9 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UtmTemplateProps } from "@/lib/types";
-import { UTM_PARAMETERS } from "@/ui/links/utm-builder";
 import { Button, Combobox, Tooltip } from "@dub/ui";
 import { DiamondTurnRight } from "@dub/ui/src/icons";
+import { UTM_PARAMETERS } from "@dub/ui/src/utm-builder";
 import { fetcher, getParamsFromURL } from "@dub/utils";
 import { useRouter } from "next/navigation";
 import { Fragment } from "react";
@@ -14,8 +14,10 @@ import useSWR, { mutate } from "swr";
 
 export function UTMTemplatesCombo({
   onLoad,
+  disabledTooltip,
 }: {
   onLoad: (params: Record<string, string>) => void;
+  disabledTooltip?: string;
 }) {
   const { id: workspaceId } = useWorkspace();
 
@@ -112,7 +114,7 @@ export function UTMTemplatesCombo({
 
         return false;
       }}
-      buttonProps={{ className: "w-fit px-2" }}
+      buttonProps={{ className: "w-fit px-2", disabledTooltip }}
       inputClassName="md:min-w-[200px]"
       optionClassName="md:min-w-[250px] md:max-w-[350px]"
       caret

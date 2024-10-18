@@ -1,4 +1,3 @@
-import { UTM_PARAMETERS, UTMBuilder } from "@/ui/links/utm-builder";
 import {
   Button,
   InfoTooltip,
@@ -8,6 +7,7 @@ import {
   useKeyboardShortcut,
 } from "@dub/ui";
 import { DiamondTurnRight } from "@dub/ui/src";
+import { UTM_PARAMETERS, UTMBuilder } from "@dub/ui/src/utm-builder";
 import {
   cn,
   constructURLFromUTMParams,
@@ -211,7 +211,11 @@ function UTMModalInner({ setShowUTMModal }: UTMModalProps) {
               { shouldDirty: true },
             );
           }}
-          disabled={!isValidUrl(url)}
+          disabledTooltip={
+            isValidUrl(url)
+              ? undefined
+              : "Enter a destination URL to add UTM parameters"
+          }
           autoFocus
         />
       </div>
@@ -229,17 +233,20 @@ function UTMModalInner({ setShowUTMModal }: UTMModalProps) {
 
       <div className="mt-6 flex items-center justify-between gap-2">
         <div>
-          {isValidUrl(url) && (
-            <FormProvider {...form}>
-              <UTMTemplatesCombo
-                onLoad={(params) => {
-                  setValue("url", constructURLFromUTMParams(url, params), {
-                    shouldDirty: true,
-                  });
-                }}
-              />
-            </FormProvider>
-          )}
+          <FormProvider {...form}>
+            <UTMTemplatesCombo
+              onLoad={(params) => {
+                setValue("url", constructURLFromUTMParams(url, params), {
+                  shouldDirty: true,
+                });
+              }}
+              disabledTooltip={
+                isValidUrl(url)
+                  ? undefined
+                  : "Enter a destination URL to use UTM templates"
+              }
+            />
+          </FormProvider>
         </div>
         <div className="flex items-center gap-2">
           <Button
