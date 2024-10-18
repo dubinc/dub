@@ -23,8 +23,8 @@ export function News({ articles }: { articles: NewsArticle[] }) {
   const cardCount = cards.length;
 
   return cards.length ? (
-    <div className="overflow-hidden px-3 pb-3 pt-8">
-      <div className="group relative size-full">
+    <div className="group overflow-hidden px-3 pb-3 pt-8">
+      <div className="relative size-full">
         {cards.map(({ slug, type, title, summary, image, href }, idx) => (
           <div
             key={`${slug}-${type}`}
