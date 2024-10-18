@@ -63,23 +63,11 @@ export async function deleteDomainAndLinks({
         id: { in: links.map((link) => link.id) },
       },
     }),
-
-    // Decrement the links count for the workspace
-    prisma.project.update({
-      where: {
-        id: workspaceId,
-      },
-      data: {
-        linksUsage: {
-          decrement: links.length,
-        },
-      },
-    }),
   ]);
 
   response.forEach((promise) => {
     if (promise.status === "rejected") {
-      console.error("Error deleting domain and links", {
+      console.error("deleteDomainAndLinks", {
         reason: promise.reason,
         domain,
         workspaceId,
@@ -118,57 +106,53 @@ export async function markDomainAsDeleted({
   domain: string;
   workspaceId: string;
 }) {
-  const [vercelResponse, prismaResponse, qstashResponse] =
-    await Promise.allSettled([
-      removeDomainFromVercel(domain),
+  const links = await prisma.link.updateMany({
+    where: {
+      domain,
+    },
+    data: {
+      projectId: null,
+    },
+  });
 
-      prisma.domain.update({
-        where: {
-          slug: domain,
-        },
-        data: {
-          projectId: null,
-        },
-      }),
+  const response = await Promise.allSettled([
+    removeDomainFromVercel(domain),
 
-      prisma.link.updateMany({
-        where: {
-          domain,
-        },
-        data: {
-          projectId: null,
-        },
-      }),
+    prisma.domain.update({
+      where: {
+        slug: domain,
+      },
+      data: {
+        projectId: null,
+      },
+    }),
 
-      queueDomainDeletion({
-        workspaceId,
+    prisma.project.update({
+      where: {
+        id: workspaceId,
+      },
+      data: {
+        linksUsage: {
+          decrement: links.count,
+        },
+      },
+    }),
+
+    queueDomainDeletion({
+      workspaceId,
+      domain,
+    }),
+  ]);
+
+  response.forEach((promise) => {
+    if (promise.status === "rejected") {
+      console.error("markDomainAsDeleted", {
+        reason: promise.reason,
         domain,
-      }),
-    ]);
-
-  if (vercelResponse.status === "rejected") {
-    console.error("Error deleting domain from Vercel", {
-      reason: vercelResponse.reason,
-      domain,
-      workspaceId,
-    });
-  }
-
-  if (prismaResponse.status === "rejected") {
-    console.error("Error deleting domain from Prisma", {
-      reason: prismaResponse.reason,
-      domain,
-      workspaceId,
-    });
-  }
-
-  if (qstashResponse.status === "rejected") {
-    console.error("Error publishing to Qstash", {
-      reason: qstashResponse.reason,
-      domain,
-      workspaceId,
-    });
-  }
+        workspaceId,
+      });
+    }
+  });
 }
 
 async function queueDomainDeletion({
