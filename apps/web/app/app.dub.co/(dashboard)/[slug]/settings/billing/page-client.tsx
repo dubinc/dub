@@ -265,12 +265,11 @@ function UsageTabCard({
             >
               <div
                 className={cn(
-                  "size-full rounded-full [mask-image:linear-gradient(90deg,transparent,black_80%)]",
+                  "size-full rounded-full bg-gradient-to-r from-blue-500/80 to-blue-600",
                   warning && "to-rose-500",
                 )}
                 style={{
                   transform: `translateX(-${100 - Math.floor((usage / Math.max(0, usage, limit)) * 100)}%)`,
-                  backgroundImage: `linear-gradient(90deg, #D8277A, #7E3AEA)`,
                 }}
               />
             </div>
