@@ -112,7 +112,7 @@ function LinksList({
       ) : (
         <AnimatedEmptyState
           title="No links found"
-          description="Use custom domains for better brand recognition and click-through rates"
+          description="Start creating short links for your marketing campaigns, referral programs, and more."
           cardContent={
             <>
               <Hyperlink className="size-4 text-neutral-700" />
