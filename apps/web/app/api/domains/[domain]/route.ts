@@ -1,6 +1,6 @@
 import {
   addDomainToVercel,
-  deleteDomainAndLinks,
+  markDomainAsDeleted,
   removeDomainFromVercel,
   validateDomain,
 } from "@/lib/api/domains";
@@ -155,7 +155,10 @@ export const DELETE = withWorkspace(
       });
     }
 
-    await deleteDomainAndLinks(domain);
+    await markDomainAsDeleted({
+      domain,
+      workspaceId: workspace.id,
+    });
 
     return NextResponse.json({ slug: domain });
   },

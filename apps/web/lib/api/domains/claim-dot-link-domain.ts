@@ -13,7 +13,7 @@ import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
 import DomainClaimed from "emails/domain-claimed";
 import { addDomainToVercel } from "./add-domain-vercel";
-import { deleteDomainAndLinks } from "./delete-domain-links";
+import { markDomainAsDeleted } from "./delete-domain-links";
 
 export async function claimDotLinkDomain({
   domain,
@@ -69,7 +69,12 @@ export async function claimDotLinkDomain({
   // if the domain was added to a different workspace but is not verified
   // we should remove it to free up the domain for the current workspace
   if (matchingUnverifiedDomain) {
-    await deleteDomainAndLinks(matchingUnverifiedDomain.slug);
+    const { projectId, slug } = matchingUnverifiedDomain;
+
+    await markDomainAsDeleted({
+      domain: slug,
+      workspaceId: projectId!,
+    });
   }
 
   await Promise.all([
