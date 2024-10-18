@@ -79,9 +79,12 @@ const deleteWorkspaceAndResources = async (workspace: Project) => {
     where: {
       projectId: workspace.id,
     },
+    select: {
+      slug: true,
+    },
   });
 
-  await Promise.all(domains.map((domain) => deleteDomain(domain.slug)));
+  await Promise.all(domains.map(({ slug }) => deleteDomain(slug)));
 
   // Finally, delete the workspace
   await prisma.project.delete({

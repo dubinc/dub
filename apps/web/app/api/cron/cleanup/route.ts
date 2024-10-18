@@ -52,15 +52,6 @@ export async function GET(req: Request) {
 
     // Delete the links
     if (links.length > 0) {
-      await prisma.link.deleteMany({
-        where: {
-          id: {
-            in: links.map((link) => link.id),
-          },
-        },
-      });
-
-      // Post delete cleanup
       await bulkDeleteLinks({
         links,
         workspaceId: E2E_WORKSPACE_ID,
