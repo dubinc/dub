@@ -3,6 +3,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UtmTemplateWithUserProps } from "@/lib/types";
 import { useAddEditUtmTemplateModal } from "@/ui/modals/add-edit-utm-template.modal";
+import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CardList } from "@dub/ui";
 import { DiamondTurnRight, Flag6, GlobePointer } from "@dub/ui/src";
 import { fetcher } from "@dub/utils";
@@ -14,7 +15,6 @@ import {
   useState,
 } from "react";
 import useSWR from "swr";
-import { LibraryEmptyState } from "../library-empty-state";
 import { TemplateCard } from "./template-card";
 import { TemplateCardPlaceholder } from "./template-card-placeholder";
 
@@ -79,7 +79,8 @@ export default function WorkspaceUtmTemplatesClient() {
             </TemplatesListContext.Provider>
           </>
         ) : (
-          <LibraryEmptyState
+          <AnimatedEmptyState
+            className="mt-6"
             title="No UTM Templates Found"
             description="Create shared templates to streamline UTM campaign management across your team"
             cardContent={
@@ -93,7 +94,7 @@ export default function WorkspaceUtmTemplatesClient() {
               </>
             }
             addButton={<AddUtmTemplateButton />}
-            learnMoreHref="https://dub.co/help/article/how-to-create-utm-templates" //
+            learnMoreHref="https://dub.co/help/article/how-to-create-utm-templates"
           />
         )}
       </div>
