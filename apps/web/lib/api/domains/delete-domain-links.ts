@@ -63,6 +63,18 @@ export async function deleteDomainAndLinks({
         id: { in: links.map((link) => link.id) },
       },
     }),
+
+    // Decrement the links count for the workspace
+    prisma.project.update({
+      where: {
+        id: workspaceId,
+      },
+      data: {
+        linksUsage: {
+          decrement: links.length,
+        },
+      },
+    }),
   ]);
 
   response.forEach((promise) => {
