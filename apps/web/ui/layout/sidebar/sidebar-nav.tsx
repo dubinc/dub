@@ -13,14 +13,19 @@ import {
 } from "react";
 import UserSurveyButton from "../user-survey";
 import { ITEMS, type NavItem as NavItemType } from "./items";
-import { News } from "./news";
 import { Usage } from "./usage";
 import UserDropdown from "./user-dropdown";
 import { WorkspaceDropdown } from "./workspace-dropdown";
 
 const AREAS = ["userSettings", "workspaceSettings", "default"] as const;
 
-export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
+export function SidebarNav({
+  toolContent,
+  newsContent,
+}: {
+  toolContent?: ReactNode;
+  newsContent?: ReactNode;
+}) {
   const { slug } = useParams() as { slug?: string };
   const { flags } = useWorkspace();
   const pathname = usePathname();
@@ -94,7 +99,7 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
                 ))}
               </div>
               <div className="-mx-3 mt-6 flex grow flex-col justify-end">
-                {area === "default" && <News />}
+                {area === "default" && newsContent}
               </div>
             </Area>
           ))}

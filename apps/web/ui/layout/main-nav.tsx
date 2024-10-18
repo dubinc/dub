@@ -27,7 +27,8 @@ export const SideNavContext = createContext<SideNavContext>({
 export function MainNav({
   children,
   toolContent,
-}: PropsWithChildren<{ toolContent?: ReactNode }>) {
+  newsContent,
+}: PropsWithChildren<{ toolContent?: ReactNode; newsContent?: ReactNode }>) {
   const pathname = usePathname();
 
   const { isMobile } = useMediaQuery();
@@ -78,7 +79,7 @@ export function MainNav({
               )}
             />
           </div>
-          <SidebarNav toolContent={toolContent} />
+          <SidebarNav toolContent={toolContent} newsContent={newsContent} />
         </div>
       </div>
       <div className="bg-neutral-100 md:pt-1.5">

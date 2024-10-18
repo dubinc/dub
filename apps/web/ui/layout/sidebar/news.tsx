@@ -1,21 +1,33 @@
+"use client";
+
 import { cn } from "@dub/utils";
+import Image from "next/image";
 import Link from "next/link";
 import { CSSProperties, useRef, useState } from "react";
+
+export interface NewsArticle {
+  slug: string;
+  type: string;
+  title: string;
+  summary: string;
+  image: string;
+  href: string;
+}
 
 const OFFSET_FACTOR = 4;
 const SCALE_FACTOR = 0.03;
 const OPACITY_FACTOR = 0.1;
 
-export function News() {
-  const [cards, setCards] = useState([1, 2, 3, 4, 5, 6]);
+export function News({ articles }: { articles: NewsArticle[] }) {
+  const [cards, setCards] = useState(articles);
   const cardCount = cards.length;
 
   return cards.length ? (
     <div className="overflow-hidden px-3 pb-3 pt-8">
       <div className="group relative size-full">
-        {cards.map((id, idx) => (
+        {cards.map(({ slug, type, title, summary, image, href }, idx) => (
           <div
-            key={id}
+            key={`${slug}-${type}`}
             className={cn(
               "absolute left-0 top-0 scale-[var(--scale)] transition-[opacity,transform] duration-200",
               cardCount - idx > 3
@@ -36,12 +48,16 @@ export function News() {
           >
             <NewsCard
               key={idx}
-              title="Title Title"
-              description="Description of the article that clicking this card will take you to"
+              title={title}
+              description={summary}
+              image={image}
+              href={href}
               hideContent={cardCount - idx > 2}
               active={idx === cardCount - 1}
               onDismiss={() => {
-                setCards((cards) => cards.filter((c) => c !== id));
+                setCards((cards) =>
+                  cards.filter((c) => c.slug !== slug || c.type !== type),
+                );
               }}
             />
           </div>
@@ -60,14 +76,18 @@ export function News() {
 function NewsCard({
   title,
   description,
+  image,
   onDismiss,
   hideContent,
+  href,
   active,
 }: {
   title: string;
   description: string;
+  image?: string;
   onDismiss?: () => void;
   hideContent?: boolean;
+  href?: string;
   active?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -145,7 +165,16 @@ function NewsCard({
           </span>
           <p className="line-clamp-2 text-neutral-500">{description}</p>
         </div>
-        <div className="mt-3 aspect-[16/9] w-full shrink-0 rounded bg-neutral-200" />
+        <div className="relative mt-3 aspect-[16/9] w-full shrink-0 overflow-hidden rounded border border-neutral-200 bg-neutral-100">
+          {image && (
+            <Image
+              src={image}
+              alt=""
+              fill
+              className="rounded object-cover object-center"
+            />
+          )}
+        </div>
         <div
           className={cn(
             "h-0 overflow-hidden opacity-0 transition-[height,opacity] duration-200",
@@ -154,7 +183,8 @@ function NewsCard({
         >
           <div className="flex items-center justify-between pt-3 text-xs">
             <Link
-              href="#"
+              href={href || "https://dub.co"}
+              target="_blank"
               className="font-medium text-neutral-700 transition-colors duration-75 hover:text-neutral-900"
             >
               Read more
