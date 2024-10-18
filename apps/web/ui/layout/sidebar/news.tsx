@@ -11,7 +11,6 @@ export interface NewsArticle {
   title: string;
   summary: string;
   image: string;
-  href: string;
 }
 
 const OFFSET_FACTOR = 4;
@@ -25,9 +24,9 @@ export function News({ articles }: { articles: NewsArticle[] }) {
   return cards.length ? (
     <div className="group overflow-hidden px-3 pb-3 pt-8">
       <div className="relative size-full">
-        {cards.map(({ slug, type, title, summary, image, href }, idx) => (
+        {cards.map(({ slug, type, title, summary, image }, idx) => (
           <div
-            key={`${slug}-${type}`}
+            key={slug}
             className={cn(
               "absolute left-0 top-0 scale-[var(--scale)] transition-[opacity,transform] duration-200",
               cardCount - idx > 3
@@ -51,7 +50,7 @@ export function News({ articles }: { articles: NewsArticle[] }) {
               title={title}
               description={summary}
               image={image}
-              href={href}
+              href={slug}
               hideContent={cardCount - idx > 2}
               active={idx === cardCount - 1}
               onDismiss={() => {
