@@ -6,12 +6,13 @@ import { cancelSubscription } from "@/lib/stripe";
 import { WorkspaceProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import {
+  APP_DOMAIN_WITH_NGROK,
   DUB_DOMAINS_ARRAY,
   LEGAL_USER_ID,
   LEGAL_WORKSPACE_ID,
   R2_URL,
 } from "@dub/utils";
-import { softDeleteDomainAndLinks } from "./links/soft-delete-links";
+import { qstash } from "../cron";
 
 export async function deleteWorkspace(
   workspace: Pick<
@@ -19,18 +20,6 @@ export async function deleteWorkspace(
     "id" | "slug" | "logo" | "stripeId" | "referralLinkId"
   >,
 ) {
-  // TODO:
-  // Remove links associated with default domain
-
-  const customDomains = await prisma.domain.findMany({
-    where: {
-      projectId: workspace.id,
-    },
-    select: {
-      slug: true,
-    },
-  });
-
   await Promise.all([
     // Remove the users
     prisma.projectUsers.deleteMany({
@@ -46,6 +35,13 @@ export async function deleteWorkspace(
       },
       data: {
         defaultWorkspace: null,
+      },
+    }),
+
+    // Remove the API keys
+    prisma.restrictedToken.deleteMany({
+      where: {
+        projectId: workspace.id,
       },
     }),
 
@@ -66,24 +62,12 @@ export async function deleteWorkspace(
       }),
   ]);
 
-  // Delete the workspace
-  await prisma.project.delete({
-    where: {
-      id: workspace.id,
+  return await qstash.publishJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/workspaces/delete`,
+    body: {
+      workspaceId: workspace.id,
     },
   });
-
-  // Trigger the links cleanup job for each custom domain
-  if (customDomains.length > 0) {
-    await Promise.all(
-      customDomains.map(({ slug }) =>
-        softDeleteDomainAndLinks({
-          workspace,
-          domain: slug,
-        }),
-      ),
-    );
-  }
 }
 
 export async function deleteWorkspaceAdmin(
