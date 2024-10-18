@@ -24,43 +24,45 @@ export function News({ articles }: { articles: NewsArticle[] }) {
   return cards.length ? (
     <div className="group overflow-hidden px-3 pb-3 pt-8">
       <div className="relative size-full">
-        {cards.map(({ slug, type, title, summary, image }, idx) => (
-          <div
-            key={slug}
-            className={cn(
-              "absolute left-0 top-0 scale-[var(--scale)] transition-[opacity,transform] duration-200",
-              cardCount - idx > 3
-                ? [
-                    "opacity-0 group-hover:translate-y-[var(--y)] group-hover:opacity-[var(--opacity)]",
-                    "group-has-[*[data-dragging=true]]:translate-y-[var(--y)] group-has-[*[data-dragging=true]]:opacity-[var(--opacity)]",
-                  ]
-                : "translate-y-[var(--y)] opacity-[var(--opacity)]",
-            )}
-            style={
-              {
-                "--y": `-${(cardCount - (idx + 1)) * OFFSET_FACTOR}%`,
-                "--scale": 1 - (cardCount - (idx + 1)) * SCALE_FACTOR,
-                "--opacity": 1 - (cardCount - (idx + 1)) * OPACITY_FACTOR,
-              } as CSSProperties
-            }
-            aria-hidden={idx !== cardCount - 1}
-          >
-            <NewsCard
-              key={idx}
-              title={title}
-              description={summary}
-              image={image}
-              href={slug}
-              hideContent={cardCount - idx > 2}
-              active={idx === cardCount - 1}
-              onDismiss={() => {
-                setCards((cards) =>
-                  cards.filter((c) => c.slug !== slug || c.type !== type),
-                );
-              }}
-            />
-          </div>
-        ))}
+        {cards
+          .toReversed()
+          .map(({ slug, type, title, summary, image }, idx) => (
+            <div
+              key={slug}
+              className={cn(
+                "absolute left-0 top-0 scale-[var(--scale)] transition-[opacity,transform] duration-200",
+                cardCount - idx > 3
+                  ? [
+                      "opacity-0 group-hover:translate-y-[var(--y)] group-hover:opacity-[var(--opacity)]",
+                      "group-has-[*[data-dragging=true]]:translate-y-[var(--y)] group-has-[*[data-dragging=true]]:opacity-[var(--opacity)]",
+                    ]
+                  : "translate-y-[var(--y)] opacity-[var(--opacity)]",
+              )}
+              style={
+                {
+                  "--y": `-${(cardCount - (idx + 1)) * OFFSET_FACTOR}%`,
+                  "--scale": 1 - (cardCount - (idx + 1)) * SCALE_FACTOR,
+                  "--opacity": 1 - (cardCount - (idx + 1)) * OPACITY_FACTOR,
+                } as CSSProperties
+              }
+              aria-hidden={idx !== cardCount - 1}
+            >
+              <NewsCard
+                key={idx}
+                title={title}
+                description={summary}
+                image={image}
+                href={slug}
+                hideContent={cardCount - idx > 2}
+                active={idx === cardCount - 1}
+                onDismiss={() => {
+                  setCards((cards) =>
+                    cards.filter((c) => c.slug !== slug || c.type !== type),
+                  );
+                }}
+              />
+            </div>
+          ))}
         <div className="invisible" aria-hidden>
           <NewsCard
             title="Title Title"
