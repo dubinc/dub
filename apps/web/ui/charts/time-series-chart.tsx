@@ -1,7 +1,7 @@
 import { cn } from "@dub/utils";
 import { Group } from "@visx/group";
 import { ParentSize } from "@visx/responsive";
-import { scaleLinear, scaleUtc } from "@visx/scale";
+import { scaleBand, scaleLinear, scaleUtc } from "@visx/scale";
 import { Bar, Circle, Line } from "@visx/shape";
 import { PropsWithChildren, useMemo, useState } from "react";
 import { ChartContext, ChartTooltipContext } from "./chart-context";
@@ -32,6 +32,7 @@ export default function TimeSeriesChart<T extends Datum>(
 }
 
 function TimeSeriesChartInner<T extends Datum>({
+  type = "area",
   width: outerWidth,
   height: outerHeight,
   children,
@@ -45,10 +46,7 @@ function TimeSeriesChartInner<T extends Datum>({
     bottom: 32,
     left: 4,
   },
-  padding = {
-    top: 0.1,
-    bottom: 0.1,
-  },
+  padding: paddingProp,
 }: {
   width: number;
   height: number;
@@ -58,6 +56,11 @@ function TimeSeriesChartInner<T extends Datum>({
   const margin = {
     ...marginProp,
     left: marginProp.left + (leftAxisMargin ?? 0),
+  };
+
+  const padding = paddingProp ?? {
+    top: 0.1,
+    bottom: type === "area" ? 0.1 : 0,
   };
 
   const width = outerWidth - margin.left - margin.right;
@@ -81,7 +84,8 @@ function TimeSeriesChartInner<T extends Datum>({
       .filter((v): v is number => v != null);
 
     return {
-      minY: Math.min(...values),
+      // Start at 0 for bar charts
+      minY: type === "area" ? Math.min(...values) : Math.min(0, ...values),
       maxY: Math.max(...values),
     };
   }, [data, series]);
@@ -98,14 +102,23 @@ function TimeSeriesChartInner<T extends Datum>({
         nice: true,
         clamp: true,
       }),
-      xScale: scaleUtc<number>({
-        domain: [startDate, endDate],
-        range: [0, width],
-      }),
+      xScale:
+        type === "area"
+          ? scaleUtc<number>({
+              domain: [startDate, endDate],
+              range: [0, width],
+            })
+          : scaleBand({
+              domain: data.map(({ date }) => date),
+              range: [0, width],
+              padding: Math.min(0.75, (width / data.length) * 0.02),
+              align: 0.5,
+            }),
     };
-  }, [startDate, endDate, minY, maxY, height, width]);
+  }, [startDate, endDate, minY, maxY, height, width, data.length, type]);
 
   const chartContext: ChartContextType<T> = {
+    type,
     width,
     height,
     data,
@@ -146,31 +159,46 @@ function TimeSeriesChartInner<T extends Datum>({
           {children}
           <Group left={margin.left} top={margin.top}>
             {/* Tooltip hover line + circle */}
-            {tooltipData && (
-              <>
-                <Line
-                  x1={xScale(tooltipData.date)}
-                  x2={xScale(tooltipData.date)}
-                  y1={height}
-                  y2={0}
-                  stroke="black"
-                  strokeWidth={1.5}
-                />
+            {tooltipData &&
+              ("bandwidth" in xScale ? (
+                <>
+                  <Bar
+                    x={
+                      (xScale(tooltipData.date) ?? 0) -
+                      xScale.bandwidth() * xScale.padding()
+                    }
+                    width={xScale.bandwidth() * (1 + xScale.padding() * 2)}
+                    y={0}
+                    height={height}
+                    fill="black"
+                    fillOpacity={0.05}
+                  />
+                </>
+              ) : (
+                <>
+                  <Line
+                    x1={xScale(tooltipData.date)}
+                    x2={xScale(tooltipData.date)}
+                    y1={height}
+                    y2={0}
+                    stroke="black"
+                    strokeWidth={1.5}
+                  />
 
-                {series
-                  .filter(({ isActive }) => isActive)
-                  .map((s) => (
-                    <Circle
-                      key={s.id}
-                      cx={xScale(tooltipData.date)}
-                      cy={yScale(s.valueAccessor(tooltipData))}
-                      r={4}
-                      className={s.colorClassName ?? "text-blue-800"}
-                      fill="currentColor"
-                    />
-                  ))}
-              </>
-            )}
+                  {series
+                    .filter(({ isActive }) => isActive)
+                    .map((s) => (
+                      <Circle
+                        key={s.id}
+                        cx={xScale(tooltipData.date)}
+                        cy={yScale(s.valueAccessor(tooltipData))}
+                        r={4}
+                        className={s.colorClassName ?? "text-blue-800"}
+                        fill="currentColor"
+                      />
+                    ))}
+                </>
+              ))}
 
             {/* Tooltip hover region */}
             <Bar
@@ -194,7 +222,7 @@ function TimeSeriesChartInner<T extends Datum>({
               key={tooltipData.date.toString()}
               left={(tooltipLeft ?? 0) + margin.left}
               top={(tooltipTop ?? 0) + margin.top}
-              offsetLeft={8}
+              offsetLeft={"bandwidth" in xScale ? xScale.bandwidth() + 8 : 8}
               offsetTop={12}
               className="absolute"
               unstyled={true}

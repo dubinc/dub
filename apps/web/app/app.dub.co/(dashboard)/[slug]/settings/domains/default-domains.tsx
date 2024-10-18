@@ -8,6 +8,7 @@ import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import { Logo, Switch } from "@dub/ui";
 import {
   Amazon,
+  CalendarDays,
   ChatGPT,
   Figma,
   GitHubEnhanced,
@@ -28,6 +29,8 @@ function DubDomainsIcon(domain: string) {
       return GitHubEnhanced;
     case "spti.fi":
       return Spotify;
+    case "cal.link":
+      return CalendarDays;
     case "amzn.id":
       return Amazon;
     case "ggl.link":

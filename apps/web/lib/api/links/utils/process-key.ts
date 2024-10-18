@@ -19,7 +19,7 @@ export function processKey({ domain, key }: { domain: string; key: string }) {
     return null;
   }
 
-  // if key ends with .php, return null (we don't support .php in links)
+  // check if key is supported
   if (isUnsupportedKey(key)) {
     return null;
   }

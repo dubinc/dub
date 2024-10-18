@@ -6,6 +6,11 @@ import { getMetaTags } from "./utils";
 
 export const runtime = "edge";
 
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+};
+
 export async function GET(req: NextRequest) {
   try {
     const { url } = getUrlQuerySchema.parse({
@@ -21,22 +26,17 @@ export async function GET(req: NextRequest) {
         poweredBy: "Dub.co - Link management for modern marketing teams",
       },
       {
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-        },
+        headers: CORS_HEADERS,
       },
     );
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse(error, CORS_HEADERS);
   }
 }
 
 export function OPTIONS() {
   return new Response(null, {
     status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
-    },
+    headers: CORS_HEADERS,
   });
 }

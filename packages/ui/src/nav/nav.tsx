@@ -14,13 +14,12 @@ import Link from "next/link";
 import { useParams, useSelectedLayoutSegment } from "next/navigation";
 import { PropsWithChildren, createContext } from "react";
 import useSWR from "swr";
-import { FEATURES_LIST, RESOURCES, SDKS } from "../content";
+import { FEATURES_LIST, RESOURCES } from "../content";
 import { useScroll } from "../hooks";
 import { MaxWidthWrapper } from "../max-width-wrapper";
 import { NavLogo } from "../nav-logo";
 import { ProductContent } from "./content/product-content";
 import { ResourcesContent } from "./content/resources-content";
-import { SolutionsContent } from "./content/solutions-content";
 
 export type NavTheme = "light" | "dark";
 
@@ -35,9 +34,9 @@ export const navItems = [
     childItems: FEATURES_LIST,
   },
   {
-    name: "Solutions",
-    content: SolutionsContent,
-    childItems: SDKS,
+    name: "Resources",
+    content: ResourcesContent,
+    childItems: RESOURCES,
   },
   {
     name: "Customers",
@@ -46,11 +45,6 @@ export const navItems = [
   {
     name: "Pricing",
     href: "/pricing",
-  },
-  {
-    name: "Resources",
-    content: ResourcesContent,
-    childItems: RESOURCES,
   },
 ];
 

@@ -13,6 +13,10 @@ export default function Areas({
 }) {
   const { data, series, margin, xScale, yScale, startDate, endDate } =
     useChartContext();
+
+  if (!("ticks" in xScale))
+    throw new Error("Areas require a time scale (type=area)");
+
   const { tooltipData } = useChartTooltipContext();
 
   // Data with all values set to zero to animate from
