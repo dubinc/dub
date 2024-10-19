@@ -37,7 +37,7 @@ const resourceEmptyStates: Record<
 export function UsageChart() {
   const searchParams = useSearchParams();
   const resource =
-    RESOURCES.find((r) => r === searchParams.get("tab")) ?? "links";
+    RESOURCES.find((r) => r === searchParams.get("tab")) ?? "events";
 
   const { usage, loading } = useUsage({ resource });
 
@@ -95,16 +95,15 @@ export function UsageChart() {
             }}
           >
             <LinearGradient id="usage-bar-gradient">
-              <stop stopColor="#7E3AEA" stopOpacity={1} offset="20%" />
-              <stop stopColor="#D8277A" stopOpacity={0} offset="100%" />
+              <stop stopColor="#2563eb" stopOpacity={1} offset="20%" />
+              <stop stopColor="#3b82f6" stopOpacity={0.9} offset="100%" />
             </LinearGradient>
-            <Bars
-              seriesStyles={[
-                {
-                  id: "usage",
-                  barFill: "#00000019",
-                },
-              ]}
+            <XAxis highlightLast={false} />
+            <YAxis
+              showGridLines
+              tickFormat={
+                resource === "revenue" ? (v) => `$${nFormatter(v)}` : nFormatter
+              }
             />
             <Bars
               seriesStyles={[
@@ -113,13 +112,6 @@ export function UsageChart() {
                   barFill: "url(#usage-bar-gradient)",
                 },
               ]}
-            />
-            <XAxis highlightLast={false} />
-            <YAxis
-              showGridLines
-              tickFormat={
-                resource === "revenue" ? (v) => `$${nFormatter(v)}` : nFormatter
-              }
             />
           </TimeSeriesChart>
         ) : (

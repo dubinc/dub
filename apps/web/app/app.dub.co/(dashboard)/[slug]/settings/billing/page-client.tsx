@@ -15,7 +15,7 @@ import {
 import { CircleDollar, CursorRays, Hyperlink } from "@dub/ui/src/icons";
 import { cn, getFirstAndLastDay, nFormatter } from "@dub/utils";
 import Link from "next/link";
-import { CSSProperties, useMemo, useState } from "react";
+import { CSSProperties, useMemo } from "react";
 import { UsageChart } from "./usage-chart";
 
 export default function WorkspaceBillingClient() {
@@ -40,8 +40,6 @@ export default function WorkspaceBillingClient() {
 
   const { tags } = useTags();
   const { users } = useUsers();
-
-  const [clicked, setClicked] = useState(false);
 
   const [billingStart, billingEnd] = useMemo(() => {
     if (billingCycleStart) {
@@ -97,19 +95,18 @@ export default function WorkspaceBillingClient() {
             )}
           >
             <UsageTabCard
-              id="links"
-              icon={Hyperlink}
-              title="Links created"
-              usage={linksUsage}
-              limit={linksLimit}
-              root
-            />
-            <UsageTabCard
               id="events"
               icon={CursorRays}
               title="Events tracked"
               usage={usage}
               limit={usageLimit}
+            />
+            <UsageTabCard
+              id="links"
+              icon={Hyperlink}
+              title="Links created"
+              usage={linksUsage}
+              limit={linksLimit}
             />
             {conversionEnabled && (
               <UsageTabCard
@@ -202,7 +199,6 @@ function UsageTabCard({
   usage: usageProp,
   limit: limitProp,
   unit,
-  root,
 }: {
   id: string;
   icon: Icon;
@@ -210,12 +206,12 @@ function UsageTabCard({
   usage?: number;
   limit?: number;
   unit?: string;
-  root?: boolean;
 }) {
   const { searchParams, queryParams } = useRouterStuff();
 
   const isActive =
-    searchParams.get("tab") === id || (!searchParams.get("tab") && root);
+    searchParams.get("tab") === id ||
+    (!searchParams.get("tab") && id === "events");
 
   const [usage, limit] =
     unit === "$" && usageProp !== undefined && limitProp !== undefined
@@ -265,12 +261,11 @@ function UsageTabCard({
             >
               <div
                 className={cn(
-                  "size-full rounded-full [mask-image:linear-gradient(90deg,transparent,black_80%)]",
+                  "size-full rounded-full bg-gradient-to-r from-blue-500/80 to-blue-600",
                   warning && "to-rose-500",
                 )}
                 style={{
                   transform: `translateX(-${100 - Math.floor((usage / Math.max(0, usage, limit)) * 100)}%)`,
-                  backgroundImage: `linear-gradient(90deg, #D8277A, #7E3AEA)`,
                 }}
               />
             </div>
