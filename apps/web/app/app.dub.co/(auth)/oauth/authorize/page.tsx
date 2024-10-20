@@ -4,7 +4,7 @@ import z from "@/lib/zod";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import EmptyState from "@/ui/shared/empty-state";
 import { BlurImage, Logo } from "@dub/ui";
-import { CircleWarning } from "@dub/ui/src/icons";
+import { CircleWarning, CubeSettings } from "@dub/ui/src/icons";
 import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
 import { ArrowLeftRight } from "lucide-react";
 import { redirect } from "next/navigation";
@@ -36,9 +36,11 @@ export default async function Authorize({
 
   if (error || !integration) {
     return (
-      <div className="relative z-10 mt-[calc(30vh)] h-fit w-full max-w-md overflow-hidden sm:rounded-2xl">
-        <EmptyState icon={Logo} title={error} />
-      </div>
+      <EmptyState
+        icon={CubeSettings}
+        title="Invalid OAuth Request"
+        description={error}
+      />
     );
   }
 

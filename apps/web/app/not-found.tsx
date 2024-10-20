@@ -1,6 +1,6 @@
+import { NewBackground } from "@/ui/shared/new-background";
 import { Wordmark } from "@dub/ui/src/wordmark";
 import Link from "next/link";
-import { Background } from "./app.dub.co/(onboarding)/background";
 
 export default function NotFound() {
   return (
@@ -19,7 +19,7 @@ export default function NotFound() {
           Go back home
         </Link>
       </div>
-      <Background showAnimation />
+      <NewBackground showAnimation />
     </>
   );
 }

@@ -109,6 +109,7 @@ export const DUB_DOMAINS = [
             "google.fr",
             "googleblog.com",
             "blog.google",
+            "g.co",
             "g.page",
             "youtube.com",
             "youtu.be",
