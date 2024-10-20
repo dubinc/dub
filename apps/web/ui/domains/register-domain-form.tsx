@@ -106,17 +106,13 @@ export function RegisterDomainForm({
     } else {
       toast.success("Domain registered successfully!");
 
-      // Mutate workspace, domains links
+      // Mutate workspace, domains, and links
       await Promise.all([
         mutate(`/api/workspaces/${workspace.slug}`),
         mutate(
           (key) =>
             typeof key === "string" &&
-            (key.startsWith(`/api/domains?workspaceId=${workspace.id}`) ||
-              key.startsWith(`/api/domains/count?workspaceId=${workspace.id}`)),
-        ),
-        mutate(
-          (key) => typeof key === "string" && key.startsWith("/api/links"),
+            (key.startsWith("/api/domains") || key.startsWith("/api/links")),
           undefined,
           { revalidate: true },
         ),
