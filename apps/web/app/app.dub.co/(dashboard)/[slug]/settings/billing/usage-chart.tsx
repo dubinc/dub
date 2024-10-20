@@ -37,7 +37,7 @@ const resourceEmptyStates: Record<
 export function UsageChart() {
   const searchParams = useSearchParams();
   const resource =
-    RESOURCES.find((r) => r === searchParams.get("tab")) ?? "links";
+    RESOURCES.find((r) => r === searchParams.get("tab")) ?? "events";
 
   const { usage, loading } = useUsage({ resource });
 
