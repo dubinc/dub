@@ -1,3 +1,5 @@
+"use client";
+
 import { EmptyState as EmptyStateBlock } from "@dub/blocks";
 import { buttonVariants } from "@dub/ui";
 import { cn } from "@dub/utils";

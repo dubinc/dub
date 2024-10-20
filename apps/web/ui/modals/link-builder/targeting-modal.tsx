@@ -1,4 +1,3 @@
-import { UTM_PARAMETERS } from "@/ui/links/utm-builder";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import {
   Button,
@@ -9,6 +8,7 @@ import {
   useKeyboardShortcut,
 } from "@dub/ui";
 import { Crosshairs3, Trash } from "@dub/ui/src/icons";
+import { UTM_PARAMETERS } from "@dub/ui/src/utm-builder";
 import {
   cn,
   constructURLFromUTMParams,

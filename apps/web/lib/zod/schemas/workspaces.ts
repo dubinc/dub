@@ -26,6 +26,10 @@ export const WorkspaceSchema = z
       .nullable()
       .default(null)
       .describe("The logo of the workspace."),
+    inviteCode: z
+      .string()
+      .nullable()
+      .describe("The invite code of the workspace."),
 
     plan: planSchema,
     stripeId: z.string().nullable().describe("The Stripe ID of the workspace."),
@@ -34,14 +38,14 @@ export const WorkspaceSchema = z
       .describe(
         "The date and time when the billing cycle starts for the workspace.",
       ),
+    paymentFailedAt: z
+      .date()
+      .nullable()
+      .describe("The date and time when the payment failed for the workspace."),
     stripeConnectId: z
       .string()
       .nullable()
       .describe("[BETA]: The Stripe Connect ID of the workspace."),
-    inviteCode: z
-      .string()
-      .nullable()
-      .describe("The invite code of the workspace."),
 
     usage: z.number().describe("The usage of the workspace."),
     usageLimit: z.number().describe("The usage limit of the workspace."),

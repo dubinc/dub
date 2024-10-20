@@ -5,7 +5,7 @@ import useLinksCount from "@/lib/swr/use-links-count";
 import { LinkWithTagsProps, UserProps } from "@/lib/types";
 import { PaginationControls } from "@dub/blocks/src/pagination-controls";
 import { CardList, MaxWidthWrapper, usePagination } from "@dub/ui";
-import { LoadingSpinner } from "@dub/ui/src/icons";
+import { CursorRays, Hyperlink, LoadingSpinner } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import { useSearchParams } from "next/navigation";
 import {
@@ -15,12 +15,12 @@ import {
   useContext,
   useState,
 } from "react";
+import { AnimatedEmptyState } from "../shared/animated-empty-state";
 import ArchivedLinksHint from "./archived-links-hint";
 import { LinkCard } from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";
 import LinkNotFound from "./link-not-found";
 import { LinksDisplayContext } from "./links-display-provider";
-import NoLinksPlaceholder from "./no-links-placeholder";
 
 export type ResponseLink = LinkWithTagsProps & {
   user: UserProps;
@@ -110,7 +110,26 @@ function LinksList({
       ) : isFiltered ? (
         <LinkNotFound />
       ) : (
-        <NoLinksPlaceholder CreateLinkButton={CreateLinkButton} />
+        <AnimatedEmptyState
+          title="No links found"
+          description="Start creating short links for your marketing campaigns, referral programs, and more."
+          cardContent={
+            <>
+              <Hyperlink className="size-4 text-neutral-700" />
+              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+              <div className="xs:flex hidden grow items-center justify-end gap-1.5 text-gray-500">
+                <CursorRays className="size-3.5" />
+              </div>
+            </>
+          }
+          addButton={
+            <div>
+              <CreateLinkButton />
+            </div>
+          }
+          learnMoreHref="https://dub.co/help/article/how-to-create-link"
+          learnMoreClassName="h-10"
+        />
       )}
 
       {/* Pagination */}
