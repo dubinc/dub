@@ -277,7 +277,7 @@ function UsageTabCard({
           <span className="text-xs leading-none text-neutral-600">
             {unlimited
               ? "Unlimited"
-              : `${prefix}${nFormatter(remaining, { full: remaining < 10000 })} remaining of ${prefix}${nFormatter(limit, { full: limit < 10000 })}`}
+              : `${prefix}${nFormatter(remaining, { full: true })} remaining of ${prefix}${nFormatter(limit, { full: limit < 1000000 })}`}
           </span>
         ) : (
           <div className="h-4 w-20 animate-pulse rounded-md bg-gray-200" />
