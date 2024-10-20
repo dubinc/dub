@@ -197,7 +197,11 @@ export async function processLink<T extends Record<string, any>>({
     // coerce type with ! cause we already checked if it exists
     const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
     const urlDomain = getApexDomain(url) || "";
-    if (allowedHostnames && !allowedHostnames.includes(urlDomain)) {
+    if (
+      key !== "_root" &&
+      allowedHostnames &&
+      !allowedHostnames.includes(urlDomain)
+    ) {
       return {
         link: payload,
         error: `Invalid destination URL. You can only create ${domain} short links for URLs with the domain${allowedHostnames.length > 1 ? "s" : ""} ${allowedHostnames
@@ -221,13 +225,13 @@ export async function processLink<T extends Record<string, any>>({
       }
     }
 
-    if (key?.includes("/")) {
-      // check if the user has access to the parent link
+    if (!skipKeyChecks && key?.includes("/")) {
+      // check if the workspace has access to the parent link
       const parentKey = key.split("/")[0];
       const parentLink = await prisma.link.findUnique({
         where: { domain_key: { domain, key: parentKey } },
       });
-      if (parentLink?.userId !== userId) {
+      if (parentLink?.projectId !== workspace?.id) {
         return {
           link: payload,
           error: `You do not have access to create links in the ${domain}/${parentKey}/ subdirectory.`,

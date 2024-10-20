@@ -23,11 +23,16 @@ export function DomainCardTitleColumn({
         <div
           className={cn(
             "rounded-full",
-            !defaultDomain &&
-              "border border-white bg-gradient-to-t from-gray-100 p-1 md:p-3",
+            (!defaultDomain || domain === "cal.link") &&
+              "border border-white bg-gradient-to-t from-gray-100 p-1 md:p-2",
           )}
         >
-          <Icon className={cn("size-5", defaultDomain && "size-8")} />
+          <Icon
+            className={cn(
+              "size-5",
+              defaultDomain && domain !== "cal.link" && "size-8",
+            )}
+          />
         </div>
       </div>
       <div className="overflow-hidden">

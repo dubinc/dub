@@ -27,6 +27,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
     select: {
       id: true,
       plan: true,
+      paymentFailedAt: true,
       users: {
         select: {
           user: {
@@ -75,6 +76,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
           aiLimit: plan.limits.ai!,
           tagsLimit: plan.limits.tags!,
           usersLimit: plan.limits.users!,
+          paymentFailedAt: null,
         },
       }),
 
@@ -87,7 +89,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
         },
       }),
 
-      // Disable the webhooks if the plan is downgraded to free
+      // Disable the webhooks if the new plan does not support webhooks
       ...(shouldDisableWebhooks
         ? [
             prisma.webhook.updateMany({
@@ -106,6 +108,15 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
           ]
         : []),
     ]);
+  } else if (workspace.paymentFailedAt) {
+    await prisma.project.update({
+      where: {
+        id: workspace.id,
+      },
+      data: {
+        paymentFailedAt: null,
+      },
+    });
   }
 
   const subscriptionCanceled =

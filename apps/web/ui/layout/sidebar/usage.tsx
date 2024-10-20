@@ -1,6 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
+import ManageSubscriptionButton from "@/ui/workspaces/manage-subscription-button";
 import { AnimatedSizeContainer, Icon } from "@dub/ui";
 import { buttonVariants } from "@dub/ui/src/button";
 import { CursorRays, Hyperlink } from "@dub/ui/src/icons";
@@ -25,6 +26,7 @@ function UsageInner() {
     billingCycleStart,
     plan,
     slug,
+    paymentFailedAt,
     loading,
   } = useWorkspace();
 
@@ -71,46 +73,55 @@ function UsageInner() {
 
         <div className="mt-4 flex flex-col gap-4">
           <UsageRow
-            icon={Hyperlink}
-            label="Links"
-            usage={linksUsage}
-            limit={linksLimit}
-            warning={warnings[1]}
-          />
-          <UsageRow
             icon={CursorRays}
             label="Events"
             usage={usage}
             limit={usageLimit}
             warning={warnings[0]}
           />
+          <UsageRow
+            icon={Hyperlink}
+            label="Links"
+            usage={linksUsage}
+            limit={linksLimit}
+            warning={warnings[1]}
+          />
         </div>
 
         <div className="mt-3">
-          {billingEnd ? (
-            <p className="text-xs text-neutral-900/40">
-              Usage will reset {billingEnd}
-            </p>
-          ) : loading ? (
+          {loading ? (
             <div className="h-4 w-2/3 animate-pulse rounded-md bg-neutral-500/10" />
           ) : (
-            <div className="h-4" />
+            <p
+              className={cn(
+                "text-xs text-neutral-900/40",
+                paymentFailedAt && "text-red-600",
+              )}
+            >
+              {paymentFailedAt
+                ? "Your last payment failed. Please update your payment method to continue using Dub."
+                : `Usage will reset ${billingEnd}`}
+            </p>
           )}
         </div>
 
-        {(warning || plan === "free") && (
-          <div className="pt-4">
-            <Link
-              href={`/${slug}/upgrade`}
-              className={cn(
-                buttonVariants(),
-                "flex h-9 items-center justify-center rounded-md border px-4 text-sm",
-              )}
-            >
-              {plan === "free" ? "Get Dub Pro" : "Upgrade plan"}
-            </Link>
-          </div>
-        )}
+        {paymentFailedAt ? (
+          <ManageSubscriptionButton
+            text="Update Payment Method"
+            variant="primary"
+            className="mt-4 w-full"
+          />
+        ) : warning || plan === "free" ? (
+          <Link
+            href={`/${slug}/upgrade`}
+            className={cn(
+              buttonVariants(),
+              "mt-4 flex h-9 items-center justify-center rounded-md border px-4 text-sm",
+            )}
+          >
+            {plan === "free" ? "Get Dub Pro" : "Upgrade plan"}
+          </Link>
+        ) : null}
       </div>
     </AnimatedSizeContainer>
   ) : null;
