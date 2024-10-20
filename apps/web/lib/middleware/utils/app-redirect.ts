@@ -1,5 +1,6 @@
 const APP_REDIRECTS = {
   "/account": "/account/settings",
+  "/welcome": "/onboarding",
 };
 
 export const appRedirect = (path: string) => {
