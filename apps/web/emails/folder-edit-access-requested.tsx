@@ -19,7 +19,7 @@ import Footer from "./components/footer";
 export default function FolderEditAccessRequested({
   email = "panic@thedis.co",
   appName = "Dub.co",
-  folderUrl = "http://localhost:8888/acme/settings/folders/cm1elre430005nf59czif340u/members",
+  folderUrl = "http://localhost:8888/acme/settings/library/folders/cm1elre430005nf59czif340u/members",
   folder = {
     name: "Social Media",
   },

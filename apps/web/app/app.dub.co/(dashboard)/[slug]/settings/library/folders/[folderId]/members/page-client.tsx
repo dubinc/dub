@@ -94,7 +94,7 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
   return (
     <>
       <Link
-        href={`/${workspace.slug}/settings/folders`}
+        href={`/${workspace.slug}/settings/library/folders`}
         className="flex items-center gap-x-1"
       >
         <ChevronLeft className="size-4" />

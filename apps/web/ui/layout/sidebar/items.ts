@@ -1,5 +1,5 @@
 import { BetaFeatures } from "@/lib/types";
-import { Folder, Icon } from "@dub/ui";
+import { Icon } from "@dub/ui";
 import {
   Books2,
   CircleInfo,
@@ -84,17 +84,11 @@ export const ITEMS: Record<
         {
           name: "Library",
           icon: Books2,
-          href: `/${slug}/settings/library`,
+          // Link directly to folders if the feature flag is enabled since the backend redirects from .../library to .../library/tags
+          href: flags?.linkFolders
+            ? `/${slug}/settings/library/folders`
+            : `/${slug}/settings/library`,
         },
-        ...(flags?.linkFolders
-          ? [
-              {
-                name: "Folders",
-                icon: Folder,
-                href: `/${slug}/settings/folders`,
-              },
-            ]
-          : []),
         {
           name: "Billing",
           icon: Receipt2,

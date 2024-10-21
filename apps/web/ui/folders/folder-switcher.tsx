@@ -148,7 +148,7 @@ const FolderList = ({
         <p className="text-xs font-medium text-gray-500">Folders</p>
         {folders.length > 0 && (
           <Link
-            href="/settings/folders"
+            href="/settings/library/folders"
             onClick={() => setOpenPopover(false)}
             className="rounded-md border border-gray-200 px-2 py-1 text-xs transition-colors hover:bg-gray-100"
           >
@@ -245,7 +245,7 @@ const FolderActions = ({
         }
         break;
       case "m":
-        router.push(`/settings/folders/${folder.id}/members`);
+        router.push(`/settings/library/folders/${folder.id}/members`);
         break;
       case "x":
         if (canUpdateFolder) {
@@ -295,7 +295,7 @@ const FolderActions = ({
               variant="outline"
               onClick={() => {
                 setOpenPopover(false);
-                router.push(`/settings/folders/${folder.id}/members`);
+                router.push(`/settings/library/folders/${folder.id}/members`);
               }}
               icon={<Users className="h-4 w-4" />}
               shortcut="M"

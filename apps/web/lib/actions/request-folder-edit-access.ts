@@ -74,7 +74,7 @@ export const requestFolderEditAccessAction = authActionClient
           react: FolderEditAccessRequested({
             email: folderOwnerEmail,
             appName: process.env.NEXT_PUBLIC_APP_NAME as string,
-            folderUrl: `${process.env.NEXT_PUBLIC_APP_URL}/${workspace.slug}/settings/folders/${folder.id}/members`,
+            folderUrl: `${process.env.NEXT_PUBLIC_APP_URL}/${workspace.slug}/settings/library/folders/${folder.id}/members`,
             folder: {
               name: folder.name,
             },

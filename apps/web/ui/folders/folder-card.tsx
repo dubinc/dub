@@ -58,7 +58,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
           }
           break;
         case "m":
-          router.push(`/settings/folders/${folder.id}/members`);
+          router.push(`/settings/library/folders/${folder.id}/members`);
           break;
         case "x":
           if (canUpdateFolder) {
@@ -129,7 +129,9 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
                       variant="outline"
                       onClick={() => {
                         setOpenPopover(false);
-                        router.push(`/settings/folders/${folder.id}/members`);
+                        router.push(
+                          `/settings/library/folders/${folder.id}/members`,
+                        );
                       }}
                       icon={<Users className="h-4 w-4" />}
                       shortcut="M"
