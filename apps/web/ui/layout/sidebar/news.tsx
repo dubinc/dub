@@ -1,13 +1,13 @@
 "use client";
 
-import { useLocalStorage } from "@dub/ui";
+import { useLocalStorage, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { CSSProperties, useRef, useState } from "react";
 
 export interface NewsArticle {
-  slug: string;
+  href: string;
   title: string;
   summary: string;
   image: string;
@@ -23,21 +23,21 @@ export function News({ articles }: { articles: NewsArticle[] }) {
     [],
   );
 
-  const cards = articles.filter(({ slug }) => !dismissedNews.includes(slug));
+  const cards = articles.filter(({ href }) => !dismissedNews.includes(href));
   const cardCount = cards.length;
 
   return cards.length ? (
     <div className="group overflow-hidden px-3 pb-3 pt-8">
       <div className="relative size-full">
-        {cards.toReversed().map(({ slug, title, summary, image }, idx) => (
+        {cards.toReversed().map(({ href, title, summary, image }, idx) => (
           <div
-            key={slug}
+            key={href}
             className={cn(
               "absolute left-0 top-0 size-full scale-[var(--scale)] transition-[opacity,transform] duration-200",
               cardCount - idx > 3
                 ? [
-                    "opacity-0 group-hover:translate-y-[var(--y)] group-hover:opacity-[var(--opacity)]",
-                    "group-has-[*[data-dragging=true]]:translate-y-[var(--y)] group-has-[*[data-dragging=true]]:opacity-[var(--opacity)]",
+                    "opacity-0 sm:group-hover:translate-y-[var(--y)] sm:group-hover:opacity-[var(--opacity)]",
+                    "sm:group-has-[*[data-dragging=true]]:translate-y-[var(--y)] sm:group-has-[*[data-dragging=true]]:opacity-[var(--opacity)]",
                   ]
                 : "translate-y-[var(--y)] opacity-[var(--opacity)]",
             )}
@@ -59,16 +59,16 @@ export function News({ articles }: { articles: NewsArticle[] }) {
               title={title}
               description={summary}
               image={image}
-              href={slug}
+              href={href}
               hideContent={cardCount - idx > 2}
               active={idx === cardCount - 1}
               onDismiss={
-                () => setDismissedNews([slug, ...dismissedNews.slice(0, 50)]) // Limit to keep storage size low
+                () => setDismissedNews([href, ...dismissedNews.slice(0, 50)]) // Limit to keep storage size low
               }
             />
           </div>
         ))}
-        <div className="invisible" aria-hidden>
+        <div className="pointer-events-none invisible" aria-hidden>
           <NewsCard title="Title" description="Description" />
         </div>
       </div>
@@ -93,8 +93,20 @@ function NewsCard({
   href?: string;
   active?: boolean;
 }) {
+  const { isMobile } = useMediaQuery();
+
   const ref = useRef<HTMLDivElement>(null);
-  const drag = useRef<{ start: number; delta: number }>({ start: 0, delta: 0 });
+  const drag = useRef<{
+    start: number;
+    delta: number;
+    startTime: number;
+    maxDelta: number;
+  }>({
+    start: 0,
+    delta: 0,
+    startTime: 0,
+    maxDelta: 0,
+  });
   const animation = useRef<Animation>();
   const [dragging, setDragging] = useState(false);
 
@@ -103,6 +115,7 @@ function NewsCard({
     const { clientX } = e;
     const dx = clientX - drag.current.start;
     drag.current.delta = dx;
+    drag.current.maxDelta = Math.max(drag.current.maxDelta, Math.abs(dx));
     ref.current.style.setProperty("--dx", dx.toString());
   };
 
@@ -120,18 +133,16 @@ function NewsCard({
     animation.current.onfinish = () => onDismiss?.();
   };
 
-  const onDragEnd = () => {
+  const stopDragging = (cancelled: boolean) => {
     if (!ref.current) return;
-    document.removeEventListener("pointermove", onDragMove);
-    document.removeEventListener("pointerup", onDragEnd);
+    unbindListeners();
+    setDragging(false);
 
     const dx = drag.current.delta;
-    if (Math.abs(dx) > ref.current.clientWidth / 3) {
+    if (Math.abs(dx) > ref.current.clientWidth / (cancelled ? 2 : 3)) {
       dismiss();
       return;
     }
-
-    setDragging(false);
 
     // Animate back to original position
     animation.current = ref.current.animate(
@@ -140,18 +151,47 @@ function NewsCard({
     );
     animation.current.onfinish = () =>
       ref.current?.style.setProperty("--dx", "0");
+
+    drag.current = { start: 0, delta: 0, startTime: 0, maxDelta: 0 };
   };
+
+  const onDragEnd = () => stopDragging(false);
+  const onDragCancel = () => stopDragging(true);
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (!active || !ref.current || animation.current?.playState === "running")
       return;
-    document.addEventListener("pointermove", onDragMove);
-    document.addEventListener("pointerup", onDragEnd);
 
+    bindListeners();
     setDragging(true);
     drag.current.start = e.clientX;
+    drag.current.startTime = Date.now();
     drag.current.delta = 0;
     ref.current.style.setProperty("--w", ref.current.clientWidth.toString());
+  };
+
+  const onClick = () => {
+    if (!ref.current) return;
+    if (
+      isMobile &&
+      drag.current.maxDelta < ref.current.clientWidth / 10 &&
+      (!drag.current.startTime || Date.now() - drag.current.startTime < 250)
+    ) {
+      // Touch user didn't drag far or for long, open the link
+      window.open(href, "_blank");
+    }
+  };
+
+  const bindListeners = () => {
+    document.addEventListener("pointermove", onDragMove);
+    document.addEventListener("pointerup", onDragEnd);
+    document.addEventListener("pointercancel", onDragCancel);
+  };
+
+  const unbindListeners = () => {
+    document.removeEventListener("pointermove", onDragMove);
+    document.removeEventListener("pointerup", onDragEnd);
+    document.removeEventListener("pointercancel", onDragCancel);
   };
 
   return (
@@ -164,6 +204,7 @@ function NewsCard({
       )}
       data-dragging={dragging}
       onPointerDown={onPointerDown}
+      onClick={onClick}
     >
       <div className={cn(hideContent && "invisible")}>
         <div className="flex flex-col gap-1">
@@ -188,7 +229,7 @@ function NewsCard({
         <div
           className={cn(
             "h-0 overflow-hidden opacity-0 transition-[height,opacity] duration-200",
-            "group-hover:h-7 group-hover:opacity-100 group-has-[*[data-dragging=true]]:h-7 group-has-[*[data-dragging=true]]:opacity-100",
+            "sm:group-hover:h-7 sm:group-hover:opacity-100 sm:group-has-[*[data-dragging=true]]:h-7 sm:group-has-[*[data-dragging=true]]:opacity-100",
           )}
         >
           <div className="flex items-center justify-between pt-3 text-xs">
