@@ -1,7 +1,13 @@
 "use client";
 
+import {
+  useCheckFolderPermission,
+  useFolderPermissions,
+} from "@/lib/swr/use-folder-permissions";
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { FolderSwitcher } from "@/ui/folders/folder-switcher";
+import { FolderEditAccessRequestButton } from "@/ui/folders/request-edit-button";
 import LinkDisplay from "@/ui/links/link-display";
 import LinksContainer from "@/ui/links/links-container";
 import { LinksDisplayProvider } from "@/ui/links/links-display-provider";
@@ -19,11 +25,10 @@ import {
   Popover,
   Tooltip,
   TooltipContent,
-  useMediaQuery,
 } from "@dub/ui";
 import { Download, Globe, TableIcon, Tag } from "@dub/ui/src/icons";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import {
   Dispatch,
@@ -54,11 +59,11 @@ export default function WorkspaceLinksClient() {
 
 function WorkspaceLinks() {
   const router = useRouter();
-
+  const { isValidating } = useLinks();
+  const searchParams = useSearchParams();
+  const { id: workspaceId, slug, flags } = useWorkspace();
   const { LinkBuilder, CreateLinkButton } = useLinkBuilder();
   const { AddEditTagModal, setShowAddEditTagModal } = useAddEditTagModal();
-
-  const { slug } = useWorkspace();
 
   const {
     filters,
@@ -70,7 +75,13 @@ function WorkspaceLinks() {
     setSelectedFilter,
   } = useLinkFilters();
 
-  const { isValidating } = useLinks();
+  const folderId = searchParams.get("folderId");
+
+  const { isLoading } = useFolderPermissions();
+  const canCreateLinks = useCheckFolderPermission(
+    folderId,
+    "folders.links.write",
+  );
 
   return (
     <>
@@ -79,6 +90,8 @@ function WorkspaceLinks() {
       <div className="flex w-full items-center pt-3">
         <MaxWidthWrapper className="flex flex-col gap-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
+            {flags?.linkFolders && <FolderSwitcher />}
+
             <div className="flex w-full grow gap-2 md:w-auto">
               <div className="grow basis-0 md:grow-0">
                 <Filter.Select
@@ -146,10 +159,28 @@ function WorkspaceLinks() {
                   inputClassName="h-10"
                 />
               </div>
-              <div className="grow-0">
-                <CreateLinkButton />
-              </div>
-              <MoreLinkOptions />
+
+              {isLoading ? (
+                <div className="flex grow-0 animate-pulse items-center space-x-2">
+                  <div className="h-10 w-24 rounded-md bg-gray-200" />
+                  <div className="h-10 w-10 rounded-md bg-gray-200" />
+                </div>
+              ) : canCreateLinks ? (
+                <>
+                  <div className="grow-0">
+                    <CreateLinkButton />
+                  </div>
+                  <MoreLinkOptions />
+                </>
+              ) : (
+                <div className="w-fit">
+                  <FolderEditAccessRequestButton
+                    folderId={folderId!}
+                    workspaceId={workspaceId!}
+                    variant="primary"
+                  />
+                </div>
+              )}
             </div>
           </div>
           <Filter.List
@@ -160,8 +191,11 @@ function WorkspaceLinks() {
           />
         </MaxWidthWrapper>
       </div>
+
       <div className="mt-3">
-        <LinksContainer CreateLinkButton={CreateLinkButton} />
+        <LinksContainer
+          CreateLinkButton={canCreateLinks ? CreateLinkButton : () => <></>}
+        />
       </div>
     </>
   );
@@ -170,7 +204,6 @@ function WorkspaceLinks() {
 const MoreLinkOptions = () => {
   const router = useRouter();
   const { slug } = useWorkspace();
-  const { isMobile } = useMediaQuery();
   const [openPopover, setOpenPopover] = useState(false);
   const [state, setState] = useState<"default" | "import">("default");
   const { ExportLinksModal, setShowExportLinksModal } = useExportLinksModal();

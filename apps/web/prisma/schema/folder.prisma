@@ -1,0 +1,55 @@
+enum FolderAccessLevel {
+  edit
+  view
+}
+
+enum FolderUserRole {
+  owner
+  editor
+  viewer
+}
+
+model Folder {
+  id          String             @id @default(cuid())
+  name        String
+  projectId   String
+  accessLevel FolderAccessLevel? // Access level of the folder within the workspace
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  project        Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  links          Link[]
+  users          FolderUser[]
+  accessRequests FolderAccessRequest[]
+
+  @@unique([name, projectId])
+  @@index(projectId)
+}
+
+model FolderUser {
+  id        String          @id @default(cuid())
+  folderId  String
+  userId    String
+  role      FolderUserRole?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  folder Folder @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([folderId, userId])
+  @@index([userId])
+}
+
+model FolderAccessRequest {
+  id        String   @id @default(cuid())
+  folderId  String
+  userId    String
+  createdAt DateTime @default(now())
+
+  folder Folder @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([folderId, userId])
+  @@index([userId])
+}

@@ -1,5 +1,5 @@
 import { BetaFeatures } from "@/lib/types";
-import { Icon } from "@dub/ui";
+import { Folder, Icon } from "@dub/ui";
 import {
   Books2,
   CircleInfo,
@@ -86,6 +86,15 @@ export const ITEMS: Record<
           icon: Books2,
           href: `/${slug}/settings/library`,
         },
+        ...(flags?.linkFolders
+          ? [
+              {
+                name: "Folders",
+                icon: Folder,
+                href: `/${slug}/settings/folders`,
+              },
+            ]
+          : []),
         {
           name: "Billing",
           icon: Receipt2,
