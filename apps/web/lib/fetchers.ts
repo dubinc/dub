@@ -2,6 +2,14 @@ import { prisma } from "@/lib/prisma";
 import { cache } from "react";
 import { getSession } from "./auth";
 
+export const getContentAPI = cache(async () => {
+  return await fetch("https://dub.co/api/content", {
+    next: {
+      revalidate: 60 * 60 * 24, // cache for 24 hours
+    },
+  }).then((res) => res.json());
+});
+
 export const getDefaultWorkspace = cache(async () => {
   const session = await getSession();
   if (!session) {
