@@ -24,5 +24,4 @@ model UtmTemplate {
   @@index(userId)
   @@index(projectId)
   @@unique([projectId, name])
-  @@index(updatedAt(sort: Desc))
 }
