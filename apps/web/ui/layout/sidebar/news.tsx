@@ -109,9 +109,12 @@ function NewsCard({
   const dismiss = () => {
     if (!ref.current) return;
 
+    const cardWidth = ref.current.getBoundingClientRect().width;
+    const translateX = Math.sign(drag.current.delta) * cardWidth;
+
     // Dismiss card
     animation.current = ref.current.animate(
-      { opacity: 0 },
+      { opacity: 0, transform: `translateX(${translateX}px)` },
       { duration: 150, easing: "ease-in-out", fill: "forwards" },
     );
     animation.current.onfinish = () => onDismiss?.();
@@ -140,7 +143,8 @@ function NewsCard({
   };
 
   const onPointerDown = (e: React.PointerEvent) => {
-    if (!ref.current || animation.current?.playState === "running") return;
+    if (!active || !ref.current || animation.current?.playState === "running")
+      return;
     document.addEventListener("pointermove", onDragMove);
     document.addEventListener("pointerup", onDragEnd);
 
