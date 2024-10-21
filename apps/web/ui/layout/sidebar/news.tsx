@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocalStorage } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Image from "next/image";
 import Link from "next/link";
@@ -7,7 +8,6 @@ import { CSSProperties, useRef, useState } from "react";
 
 export interface NewsArticle {
   slug: string;
-  type: string;
   title: string;
   summary: string;
   image: string;
@@ -18,51 +18,56 @@ const SCALE_FACTOR = 0.03;
 const OPACITY_FACTOR = 0.1;
 
 export function News({ articles }: { articles: NewsArticle[] }) {
-  const [cards, setCards] = useState(articles);
+  const [dismissedNews, setDismissedNews] = useLocalStorage<string[]>(
+    "dismissed-news",
+    [],
+  );
+
+  const cards = articles.filter(({ slug }) => !dismissedNews.includes(slug));
   const cardCount = cards.length;
 
   return cards.length ? (
     <div className="group overflow-hidden px-3 pb-3 pt-8">
       <div className="relative size-full">
-        {cards
-          .toReversed()
-          .map(({ slug, type, title, summary, image }, idx) => (
-            <div
-              key={slug}
-              className={cn(
-                "absolute left-0 top-0 size-full scale-[var(--scale)] transition-[opacity,transform] duration-200",
-                cardCount - idx > 3
-                  ? [
-                      "opacity-0 group-hover:translate-y-[var(--y)] group-hover:opacity-[var(--opacity)]",
-                      "group-has-[*[data-dragging=true]]:translate-y-[var(--y)] group-has-[*[data-dragging=true]]:opacity-[var(--opacity)]",
-                    ]
-                  : "translate-y-[var(--y)] opacity-[var(--opacity)]",
-              )}
-              style={
-                {
-                  "--y": `-${(cardCount - (idx + 1)) * OFFSET_FACTOR}%`,
-                  "--scale": 1 - (cardCount - (idx + 1)) * SCALE_FACTOR,
-                  "--opacity": 1 - (cardCount - (idx + 1)) * OPACITY_FACTOR,
-                } as CSSProperties
+        {cards.toReversed().map(({ slug, title, summary, image }, idx) => (
+          <div
+            key={slug}
+            className={cn(
+              "absolute left-0 top-0 size-full scale-[var(--scale)] transition-[opacity,transform] duration-200",
+              cardCount - idx > 3
+                ? [
+                    "opacity-0 group-hover:translate-y-[var(--y)] group-hover:opacity-[var(--opacity)]",
+                    "group-has-[*[data-dragging=true]]:translate-y-[var(--y)] group-has-[*[data-dragging=true]]:opacity-[var(--opacity)]",
+                  ]
+                : "translate-y-[var(--y)] opacity-[var(--opacity)]",
+            )}
+            style={
+              {
+                "--y": `-${(cardCount - (idx + 1)) * OFFSET_FACTOR}%`,
+                "--scale": 1 - (cardCount - (idx + 1)) * SCALE_FACTOR,
+                "--opacity":
+                  // Hide cards that are too far down (will show top 6)
+                  cardCount - (idx + 1) >= 6
+                    ? 0
+                    : 1 - (cardCount - (idx + 1)) * OPACITY_FACTOR,
+              } as CSSProperties
+            }
+            aria-hidden={idx !== cardCount - 1}
+          >
+            <NewsCard
+              key={idx}
+              title={title}
+              description={summary}
+              image={image}
+              href={slug}
+              hideContent={cardCount - idx > 2}
+              active={idx === cardCount - 1}
+              onDismiss={
+                () => setDismissedNews([slug, ...dismissedNews.slice(0, 50)]) // Limit to keep storage size low
               }
-              aria-hidden={idx !== cardCount - 1}
-            >
-              <NewsCard
-                key={idx}
-                title={title}
-                description={summary}
-                image={image}
-                href={slug}
-                hideContent={cardCount - idx > 2}
-                active={idx === cardCount - 1}
-                onDismiss={() => {
-                  setCards((cards) =>
-                    cards.filter((c) => c.slug !== slug || c.type !== type),
-                  );
-                }}
-              />
-            </div>
-          ))}
+            />
+          </div>
+        ))}
         <div className="invisible" aria-hidden>
           <NewsCard title="Title" description="Description" />
         </div>
