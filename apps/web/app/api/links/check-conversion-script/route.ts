@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     // ping URL to see if the dubcdn.com/analytics/script.js script is installed
     const res = await fetchWithTimeout(url, {
       headers: {
-        "User-Agent": "Dub.co Bot",
+        "User-Agent": "Dub.co",
       },
     });
 
