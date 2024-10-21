@@ -1,4 +1,8 @@
-import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
+import {
+  getFeatureFlags,
+  isBlacklistedDomain,
+  updateConfig,
+} from "@/lib/edge-config";
 import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
@@ -29,7 +33,10 @@ export async function processLink<T extends Record<string, any>>({
   skipExternalIdChecks = false, // only skip when externalId doesn't change (e.g. when editing a link)
 }: {
   payload: NewLinkProps & T;
-  workspace?: Pick<WorkspaceProps, "id" | "plan" | "conversionEnabled">;
+  workspace?: Pick<
+    WorkspaceProps,
+    "id" | "plan" | "conversionEnabled" | "flags"
+  >;
   userId?: string;
   bulk?: boolean;
   skipKeyChecks?: boolean;
@@ -66,6 +73,7 @@ export async function processLink<T extends Record<string, any>>({
     tagNames,
     externalId,
     identifier,
+    webhookIds,
   } = payload;
 
   let expiresAt: string | Date | null | undefined = payload.expiresAt;
@@ -189,7 +197,11 @@ export async function processLink<T extends Record<string, any>>({
     // coerce type with ! cause we already checked if it exists
     const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
     const urlDomain = getApexDomain(url) || "";
-    if (allowedHostnames && !allowedHostnames.includes(urlDomain)) {
+    if (
+      key !== "_root" &&
+      allowedHostnames &&
+      !allowedHostnames.includes(urlDomain)
+    ) {
       return {
         link: payload,
         error: `Invalid destination URL. You can only create ${domain} short links for URLs with the domain${allowedHostnames.length > 1 ? "s" : ""} ${allowedHostnames
@@ -197,6 +209,35 @@ export async function processLink<T extends Record<string, any>>({
           .join(", ")}.`,
         code: "unprocessable_entity",
       };
+    }
+
+    if (domain === "cal.link") {
+      const flags = await getFeatureFlags({
+        workspaceId: workspace?.id,
+      });
+      if (!flags?.callink) {
+        return {
+          link: payload,
+          error:
+            "You can only use the cal.link domain if you have beta access to it. Contact support@dub.co to get access.",
+          code: "forbidden",
+        };
+      }
+    }
+
+    if (!skipKeyChecks && key?.includes("/")) {
+      // check if the workspace has access to the parent link
+      const parentKey = key.split("/")[0];
+      const parentLink = await prisma.link.findUnique({
+        where: { domain_key: { domain, key: parentKey } },
+      });
+      if (parentLink?.projectId !== workspace?.id) {
+        return {
+          link: payload,
+          error: `You do not have access to create links in the ${domain}/${parentKey}/ subdirectory.`,
+          code: "forbidden",
+        };
+      }
     }
 
     // else, check if the domain belongs to the workspace
@@ -320,51 +361,88 @@ export async function processLink<T extends Record<string, any>>({
     // only perform tag validity checks if:
     // - not bulk creation (we do that check separately in the route itself)
     // - tagIds are present
-  } else if (tagIds && tagIds.length > 0) {
-    const tags = await prisma.tag.findMany({
-      select: {
-        id: true,
-      },
-      where: { projectId: workspace?.id, id: { in: tagIds } },
-    });
+  } else {
+    // Tag validity checks
+    if (tagIds && tagIds.length > 0) {
+      const tags = await prisma.tag.findMany({
+        select: {
+          id: true,
+        },
+        where: { projectId: workspace?.id, id: { in: tagIds } },
+      });
 
-    if (tags.length !== tagIds.length) {
-      return {
-        link: payload,
-        error:
-          "Invalid tagIds detected: " +
-          tagIds
-            .filter(
-              (tagId) => tags.find(({ id }) => tagId === id) === undefined,
-            )
-            .join(", "),
-        code: "unprocessable_entity",
-      };
+      if (tags.length !== tagIds.length) {
+        return {
+          link: payload,
+          error:
+            "Invalid tagIds detected: " +
+            tagIds
+              .filter(
+                (tagId) => tags.find(({ id }) => tagId === id) === undefined,
+              )
+              .join(", "),
+          code: "unprocessable_entity",
+        };
+      }
+    } else if (tagNames && tagNames.length > 0) {
+      const tags = await prisma.tag.findMany({
+        select: {
+          name: true,
+        },
+        where: {
+          projectId: workspace?.id,
+          name: { in: tagNames },
+        },
+      });
+
+      if (tags.length !== tagNames.length) {
+        return {
+          link: payload,
+          error:
+            "Invalid tagNames detected: " +
+            tagNames
+              .filter(
+                (tagName) =>
+                  tags.find(({ name }) => tagName === name) === undefined,
+              )
+              .join(", "),
+          code: "unprocessable_entity",
+        };
+      }
     }
-  } else if (tagNames && tagNames.length > 0) {
-    const tags = await prisma.tag.findMany({
-      select: {
-        name: true,
-      },
-      where: {
-        projectId: workspace?.id,
-        name: { in: tagNames },
-      },
-    });
 
-    if (tags.length !== tagNames.length) {
-      return {
-        link: payload,
-        error:
-          "Invalid tagNames detected: " +
-          tagNames
-            .filter(
-              (tagName) =>
-                tags.find(({ name }) => tagName === name) === undefined,
-            )
-            .join(", "),
-        code: "unprocessable_entity",
-      };
+    // Webhook validity checks
+    if (webhookIds && webhookIds.length > 0) {
+      if (!workspace || workspace.plan === "free" || workspace.plan === "pro") {
+        return {
+          link: payload,
+          error:
+            "You can only use webhooks on a Business plan and above. Upgrade to Business to use this feature.",
+          code: "forbidden",
+        };
+      }
+
+      webhookIds = [...new Set(webhookIds)];
+
+      const webhooks = await prisma.webhook.findMany({
+        select: {
+          id: true,
+        },
+        where: { projectId: workspace?.id, id: { in: webhookIds } },
+      });
+
+      if (webhooks.length !== webhookIds.length) {
+        const invalidWebhookIds = webhookIds.filter(
+          (webhookId) =>
+            webhooks.find(({ id }) => webhookId === id) === undefined,
+        );
+
+        return {
+          link: payload,
+          error: "Invalid webhookIds detected: " + invalidWebhookIds.join(", "),
+          code: "unprocessable_entity",
+        };
+      }
     }
   }
 
@@ -422,6 +500,9 @@ export async function processLink<T extends Record<string, any>>({
       // if userId is passed, set it (we don't change the userId if it's already set, e.g. when editing a link)
       ...(userId && {
         userId,
+      }),
+      ...(webhookIds && {
+        webhookIds,
       }),
     },
     error: null,

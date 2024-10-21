@@ -122,7 +122,7 @@ export const getEvents = async (params: EventsFilters) => {
                 id: evt.customer_id,
                 name: "Deleted Customer",
                 email: "deleted@customer.com",
-                avatar: `https://api.dicebear.com/7.x/micah/svg?seed=${evt.customer_id}`,
+                avatar: `https://api.dicebear.com/9.x/micah/svg?seed=${evt.customer_id}`,
               },
               ...(evt.event === "sale"
                 ? {
@@ -191,7 +191,7 @@ const getCustomersMap = async (customerIds: string[]) => {
         email: customer.email || "",
         avatar:
           customer.avatar ||
-          `https://api.dicebear.com/7.x/micah/svg?seed=${customer.id}`,
+          `https://api.dicebear.com/9.x/notionists/png?seed=${customer.id}`,
       });
       return acc;
     },

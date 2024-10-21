@@ -1,9 +1,10 @@
 const supportedDeeplinkProtocols = [
   "mailto:",
-  "tel:",
   "sms:",
-  "whatsapp:",
+  "tel:",
   "tg:",
+  "whatsapp:",
+  "xmpp:",
 ];
 
 export const isSupportedDeeplinkProtocol = (url: string) => {

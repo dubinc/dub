@@ -1,4 +1,5 @@
 import { Button, Popover, Switch, useRouterStuff } from "@dub/ui";
+import { useKeyboardShortcut } from "@dub/ui/src";
 import {
   ArrowsOppositeDirectionY,
   BoxArchive,
@@ -32,6 +33,8 @@ export default function LinkDisplay() {
 
   const [openPopover, setOpenPopover] = useState(false);
   const { queryParams } = useRouterStuff();
+
+  useKeyboardShortcut("a", () => setShowArchived((o) => !o));
 
   return (
     <Popover

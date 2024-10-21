@@ -105,7 +105,7 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
 
     const runKeyChecks = async (value: string) => {
       const res = await fetch(
-        `/api/links/verify?domain=${domain}&key=${value}&workspaceId=${workspaceId}`,
+        `/api/links/exists?domain=${domain}&key=${value}&workspaceId=${workspaceId}`,
       );
       const { error } = await res.json();
       if (error) {
@@ -351,7 +351,11 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
           error.includes("Upgrade to") ? (
             <p className="mt-2 text-sm text-red-600" id="key-error">
               {error.split(`Upgrade to ${nextPlan.name}`)[0]}
-              <a className="cursor-pointer underline" href={`/${slug}/upgrade`}>
+              <a
+                className="cursor-pointer underline"
+                href={`/${slug}/upgrade?exit=close`}
+                target="_blank"
+              >
                 Upgrade to {nextPlan.name}
               </a>
               {error.split(`Upgrade to ${nextPlan.name}`)[1]}

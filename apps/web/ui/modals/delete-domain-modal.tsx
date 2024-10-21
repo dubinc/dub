@@ -61,8 +61,9 @@ function DeleteDomainModal({
             if (res.status === 200) {
               await mutate(
                 (key) =>
-                  typeof key === "string" &&
-                  key.startsWith(`/api/domains?workspaceId=${id}`),
+                  typeof key === "string" && key.startsWith("/api/domains"),
+                undefined,
+                { revalidate: true },
               );
               setShowDeleteDomainModal(false);
               toast.success("Successfully deleted domain!");

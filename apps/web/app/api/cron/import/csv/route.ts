@@ -1,4 +1,4 @@
-import { addDomainToVercel, getDefaultDomains } from "@/lib/api/domains";
+import { addDomainToVercel } from "@/lib/api/domains";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks, createLink, processLink } from "@/lib/api/links";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -11,6 +11,7 @@ import { createLinkBodySchema } from "@/lib/zod/schemas/links";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
 import {
   DEFAULT_LINK_PROPS,
+  DUB_DOMAINS_ARRAY,
   getPrettyUrl,
   log,
   parseDateTime,
@@ -69,7 +70,7 @@ export async function POST(req: Request) {
 
     const response = await storage.fetch(url);
 
-    const [tags, domains, defaultDomains] = await Promise.all([
+    const [tags, domains] = await Promise.all([
       prisma.tag.findMany({
         where: { projectId: workspace.id },
         select: { name: true },
@@ -78,7 +79,6 @@ export async function POST(req: Request) {
         where: { projectId: workspace.id },
         select: { slug: true },
       }),
-      getDefaultDomains(workspace.id),
     ]);
 
     const addedTags: string[] = [];
@@ -172,7 +172,7 @@ export async function POST(req: Request) {
           const domainsNotInWorkspace = selectedDomains.filter(
             (domain) =>
               !domains?.find((d) => d.slug === domain) &&
-              !defaultDomains.find((d) => d === domain) &&
+              !DUB_DOMAINS_ARRAY.includes(domain) &&
               !addedDomains.includes(domain),
           );
 
