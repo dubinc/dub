@@ -6,7 +6,6 @@ import {
 } from "@/lib/swr/use-folder-permissions";
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { FolderSwitcher } from "@/ui/folders/folder-switcher";
 import { FolderEditAccessRequestButton } from "@/ui/folders/request-edit-button";
 import LinkDisplay from "@/ui/links/link-display";
 import LinksContainer from "@/ui/links/links-container";
@@ -90,8 +89,6 @@ function WorkspaceLinks() {
       <div className="flex w-full items-center pt-3">
         <MaxWidthWrapper className="flex flex-col gap-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
-            {flags?.linkFolders && <FolderSwitcher />}
-
             <div className="flex w-full grow gap-2 md:w-auto">
               <div className="grow basis-0 md:grow-0">
                 <Filter.Select

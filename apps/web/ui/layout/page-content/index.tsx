@@ -10,6 +10,7 @@ export function PageContent({
   children,
 }: PropsWithChildren<{ title?: ReactNode }>) {
   const hasTitle = title !== undefined;
+  const TitleComponent = typeof title === "string" ? "h1" : "div";
 
   return (
     <div className="bg-neutral-100 md:bg-white">
@@ -18,9 +19,9 @@ export function PageContent({
           <div className="flex items-center gap-4">
             <NavButton />
             {hasTitle && (
-              <h1 className="text-xl font-semibold leading-7 text-neutral-900 md:text-2xl">
+              <TitleComponent className="text-xl font-semibold leading-7 text-neutral-900 md:text-2xl">
                 {title}
-              </h1>
+              </TitleComponent>
             )}
           </div>
           <div className="flex items-center gap-4 md:hidden">

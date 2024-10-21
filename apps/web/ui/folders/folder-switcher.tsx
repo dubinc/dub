@@ -108,12 +108,12 @@ export const FolderSwitcher = () => {
         setOpenPopover={setOpenPopover}
         align="start"
       >
-        <button className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-gray-100">
-          <h1 className="order-1 text-2xl font-semibold tracking-tight text-black">
+        <button className="group -my-1 flex items-center gap-2 rounded-lg py-1 pl-2 pr-1 transition-colors duration-75 hover:bg-gray-100 data-[state=open]:bg-gray-200">
+          <h1 className="text-xl font-semibold leading-7 text-neutral-900 md:text-2xl">
             {selectedFolder?.name}
           </h1>
           <ChevronsUpDown
-            className="h-5 w-5 shrink-0 text-gray-400"
+            className="size-5 shrink-0 text-gray-400"
             aria-hidden="true"
           />
         </button>
@@ -145,7 +145,7 @@ const FolderList = ({
   return (
     <div className="relative mt-1 max-h-72 w-full space-y-0.5 overflow-auto rounded-md bg-white p-2 text-base sm:w-60 sm:text-sm sm:shadow-lg">
       <div className="flex items-center justify-between px-2 pb-1">
-        <p className="text-xs text-gray-500">Folders</p>
+        <p className="text-xs font-medium text-gray-500">Folders</p>
         {folders.length > 0 && (
           <Link
             href="/settings/folders"
@@ -337,8 +337,6 @@ const FolderActions = ({
 
 const FolderSwitcherPlaceholder = () => {
   return (
-    <div className="flex animate-pulse items-center space-x-1.5 rounded-lg px-1.5 py-2 sm:w-60">
-      <div className="hidden h-10 animate-pulse rounded-md bg-gray-200 sm:block sm:w-40" />
-    </div>
+    <div className="h-7 w-20 animate-pulse rounded-lg bg-gray-200 sm:w-32 md:h-9" />
   );
 };
