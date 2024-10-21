@@ -6,6 +6,7 @@ import useTagsCount from "@/lib/swr/use-tags-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
+import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { PaginationControls } from "@dub/blocks";
 import { CardList, Tag, usePagination, useRouterStuff } from "@dub/ui";
@@ -16,7 +17,6 @@ import {
   useEffect,
   useState,
 } from "react";
-import { LibraryEmptyState } from "../library-empty-state";
 import { TagCard } from "./tag-card";
 import { TagCardPlaceholder } from "./tag-card-placeholder";
 
@@ -119,7 +119,8 @@ export default function WorkspaceTagsClient() {
             )}
           </>
         ) : (
-          <LibraryEmptyState
+          <AnimatedEmptyState
+            className="mt-6"
             title="No tags found"
             description="Create tags to organize your links"
             cardContent={

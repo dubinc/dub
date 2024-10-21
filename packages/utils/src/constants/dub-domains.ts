@@ -69,9 +69,15 @@ export const DUB_DOMAINS = [
           primary: false,
           archived: false,
           placeholder: "https://cal.com/steven",
-          allowedHostnames: ["cal.com", "calendly.com"],
+          allowedHostnames: [
+            "cal.com",
+            "calendly.com",
+            "chillipiper.com",
+            "hubspot.com",
+            "savvycal.com",
+          ],
           description:
-            "Branded domain for your calendar links (Cal.com, Calendly, etc.).",
+            "Branded domain for your scheduling links (Cal.com, Calendly, etc.).",
           projectId: DUB_WORKSPACE_ID,
         },
         {
@@ -109,6 +115,7 @@ export const DUB_DOMAINS = [
             "google.fr",
             "googleblog.com",
             "blog.google",
+            "g.co",
             "g.page",
             "youtube.com",
             "youtu.be",

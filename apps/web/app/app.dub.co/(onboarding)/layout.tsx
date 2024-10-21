@@ -1,12 +1,12 @@
 import Toolbar from "@/ui/layout/toolbar/toolbar";
+import { NewBackground } from "@/ui/shared/new-background";
 import Providers from "app/providers";
 import { PropsWithChildren } from "react";
-import { Background } from "./background";
 
 export default function Layout({ children }: PropsWithChildren) {
   return (
     <Providers>
-      <Background />
+      <NewBackground />
       {children}
       <Toolbar show={["help"]} />
     </Providers>

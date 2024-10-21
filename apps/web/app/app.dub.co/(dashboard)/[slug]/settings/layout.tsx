@@ -1,5 +1,5 @@
+import SettingsLayout from "@/ui/layout/settings-layout";
 import { ReactNode } from "react";
-import SettingsLayout from "../../../../../ui/layout/settings-layout";
 
 export default function WorkspaceSettingsLayout({
   children,
