@@ -18,7 +18,7 @@ export function NewBackground(props: { showAnimation?: boolean }) {
     <div
       className={cn(
         "absolute inset-0 overflow-hidden bg-white transition-opacity duration-300",
-        showAnimation ? (isLoaded ? "opacity-100" : "opacity-0") : "opacity-40",
+        showAnimation ? (isLoaded ? "opacity-100" : "opacity-0") : "opacity-60",
       )}
     >
       <BackgroundGradient className="opacity-15" />
