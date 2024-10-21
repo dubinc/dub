@@ -1,6 +1,6 @@
 "use client";
 
-import { useKeyboardShortcut, useMediaQuery } from "@dub/ui";
+import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { usePathname } from "next/navigation";
 import {
@@ -42,9 +42,6 @@ export function MainNav({
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
-
-  // TODO: Remove this once nav toggle button is added in page header
-  useKeyboardShortcut("n", () => setIsOpen((o) => !o));
 
   return (
     <div className="min-h-screen md:grid md:grid-cols-[240px_minmax(0,1fr)]">
