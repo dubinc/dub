@@ -1,6 +1,6 @@
 "use client";
 
-import { useKeyboardShortcut, useMediaQuery } from "@dub/ui";
+import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { usePathname } from "next/navigation";
 import {
@@ -27,7 +27,8 @@ export const SideNavContext = createContext<SideNavContext>({
 export function MainNav({
   children,
   toolContent,
-}: PropsWithChildren<{ toolContent?: ReactNode }>) {
+  newsContent,
+}: PropsWithChildren<{ toolContent?: ReactNode; newsContent?: ReactNode }>) {
   const pathname = usePathname();
 
   const { isMobile } = useMediaQuery();
@@ -42,9 +43,6 @@ export function MainNav({
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
-
-  // TODO: Remove this once nav toggle button is added in page header
-  useKeyboardShortcut("n", () => setIsOpen((o) => !o));
 
   return (
     <div className="min-h-screen md:grid md:grid-cols-[240px_minmax(0,1fr)]">
@@ -78,7 +76,7 @@ export function MainNav({
               )}
             />
           </div>
-          <SidebarNav toolContent={toolContent} />
+          <SidebarNav toolContent={toolContent} newsContent={newsContent} />
         </div>
       </div>
       <div className="bg-neutral-100 md:pt-1.5">
