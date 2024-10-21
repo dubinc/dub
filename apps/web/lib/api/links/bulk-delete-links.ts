@@ -1,3 +1,4 @@
+import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
@@ -6,8 +7,10 @@ import { Link, Tag } from "@prisma/client";
 
 export async function bulkDeleteLinks({
   links,
+  workspaceId,
 }: {
   links: (Link & { tags: Pick<Tag, "id">[] })[];
+  workspaceId: string;
 }) {
   if (links.length === 0) {
     return;
@@ -16,7 +19,7 @@ export async function bulkDeleteLinks({
   const pipeline = redis.pipeline();
 
   links.forEach((link) => {
-    pipeline.hdel(link.domain.toLowerCase(), link.key.toLowerCase());
+    pipeline.del(`${link.domain}:${link.key}`.toLowerCase());
   });
 
   return await Promise.all([
@@ -38,9 +41,20 @@ export async function bulkDeleteLinks({
     ),
 
     // For links that have an image, delete the image from R2
-    // TODO: How do we optimize this?
     links
       .filter((link) => link.image?.startsWith(`${R2_URL}/images/${link.id}`))
       .map((link) => storage.delete(link.image!.replace(`${R2_URL}/`, ""))),
+
+    // Decrement the links count for the workspace
+    prisma.project.update({
+      where: {
+        id: workspaceId,
+      },
+      data: {
+        linksUsage: {
+          decrement: links.length,
+        },
+      },
+    }),
   ]);
 }
