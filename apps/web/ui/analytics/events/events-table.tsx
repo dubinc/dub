@@ -10,6 +10,7 @@ import EmptyState from "@/ui/shared/empty-state";
 import {
   Avatar,
   CopyButton,
+  CopyText,
   LinkLogo,
   Table,
   Tooltip,
@@ -17,7 +18,6 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CopyText } from "@dub/ui/src";
 import {
   CursorRays,
   FilterBars,
@@ -269,7 +269,7 @@ export default function EventsTable() {
           minSize: 160,
           cell: ({ getValue, row }) => (
             <div className="flex items-center gap-3" title={getValue()}>
-              {row.original.country === "Unknown" ? (
+              {!row.original.country || row.original.country === "Unknown" ? (
                 <Globe className="size-4 shrink-0" />
               ) : (
                 <img
@@ -554,7 +554,11 @@ export default function EventsTable() {
   });
 
   return (
-    <Table {...tableProps} table={table}>
+    <Table
+      {...tableProps}
+      table={table}
+      scrollWrapperClassName={needsHigherPlan ? "overflow-x-hidden" : undefined}
+    >
       {needsHigherPlan && (
         <>
           <div className="absolute inset-0 flex touch-pan-y items-center justify-center bg-gradient-to-t from-[#fff_70%] to-[#fff6]">

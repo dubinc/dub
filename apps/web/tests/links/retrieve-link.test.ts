@@ -3,9 +3,9 @@ import { expectedLink } from "tests/utils/schema";
 import { afterAll, describe, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
-import { link } from "../utils/resource";
+import { E2E_LINK } from "../utils/resource";
 
-const { domain, url } = link;
+const { domain, url } = E2E_LINK;
 
 describe.sequential("GET /links/{linkId}", async () => {
   const h = new IntegrationHarness();

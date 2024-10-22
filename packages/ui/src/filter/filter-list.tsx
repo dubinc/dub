@@ -31,7 +31,7 @@ export function FilterList({
     >
       <div
         className={cn(
-          "flex w-full flex-wrap items-start gap-4 sm:flex-nowrap sm:items-center",
+          "flex w-full flex-wrap items-start gap-4 sm:flex-nowrap",
           className,
         )}
       >
@@ -137,7 +137,7 @@ export function FilterList({
         {activeFilters?.length !== 0 && (
           <button
             type="button"
-            className="whitespace-nowrap rounded-lg border border-transparent px-3 py-2 text-sm text-gray-500 ring-inset ring-gray-500 transition-colors hover:border-gray-200 hover:bg-white hover:text-black focus:outline-none"
+            className="mt-px whitespace-nowrap rounded-lg border border-transparent px-3 py-2 text-sm text-gray-500 ring-inset ring-gray-500 transition-colors hover:border-gray-200 hover:bg-white hover:text-black focus:outline-none"
             onClick={onRemoveAll}
           >
             Clear Filters

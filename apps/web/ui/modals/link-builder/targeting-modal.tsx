@@ -8,6 +8,7 @@ import {
   useKeyboardShortcut,
 } from "@dub/ui";
 import { Crosshairs3, Trash } from "@dub/ui/src/icons";
+import { UTM_PARAMETERS } from "@dub/ui/src/utm-builder";
 import {
   cn,
   constructURLFromUTMParams,
@@ -26,7 +27,6 @@ import {
 } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { LinkFormData } from ".";
-import { UTM_PARAMETERS } from "./constants";
 
 function TargetingModal({
   showTargetingModal,

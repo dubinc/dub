@@ -47,6 +47,7 @@ export const PATCH = withWorkspace(
       slug: newDomain,
       placeholder,
       expiredUrl,
+      notFoundUrl,
       archived,
     } = updateDomainBodySchema.parse(await parseRequestBody(req));
 
@@ -88,7 +89,11 @@ export const PATCH = withWorkspace(
         ...(placeholder && { placeholder }),
         ...(workspace.plan != "free" && {
           expiredUrl,
+          notFoundUrl,
         }),
+      },
+      include: {
+        registeredDomain: true,
       },
     });
 

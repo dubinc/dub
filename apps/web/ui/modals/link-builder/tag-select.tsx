@@ -1,6 +1,8 @@
 import useTags from "@/lib/swr/use-tags";
+import useTagsCount from "@/lib/swr/use-tags-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TagProps } from "@/lib/types";
+import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import TagBadge from "@/ui/links/tag-badge";
 import {
   AnimatedSizeContainer,
@@ -8,10 +10,10 @@ import {
   InfoTooltip,
   Magic,
   SimpleTooltipContent,
+  Tag,
   Tooltip,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { Tag } from "@dub/ui/src";
 import { cn } from "@dub/utils";
 import { useCompletion } from "ai/react";
 import posthog from "posthog-js";
@@ -23,10 +25,28 @@ import { useDebounce } from "use-debounce";
 import { LinkFormData, LinkModalContext } from ".";
 import { MultiTagsIcon } from "./multi-tags-icon";
 
+function getTagOption(tag: TagProps) {
+  return {
+    value: tag.id,
+    label: tag.name,
+    icon: <MultiTagsIcon tags={[tag]} />,
+    meta: { color: tag.color },
+  };
+}
+
 export function TagSelect() {
   const { mutate: mutateWorkspace, exceededAI } = useWorkspace();
   const { workspaceId } = useContext(LinkModalContext);
-  const { tags: availableTags } = useTags();
+
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 500);
+
+  const { data: tagsCount } = useTagsCount();
+  const useAsync = tagsCount && tagsCount > TAGS_MAX_PAGE_SIZE;
+
+  const { tags: availableTags, loading: loadingTags } = useTags({
+    query: useAsync ? { search: debouncedSearch } : undefined,
+  });
 
   const { watch, setValue } = useFormContext<LinkFormData>();
   const [tags, linkId, url, title, description] = watch([
@@ -65,24 +85,13 @@ export function TagSelect() {
   };
 
   const options = useMemo(
-    () =>
-      availableTags?.map((tag) => ({
-        label: tag.name,
-        value: tag.id,
-        icon: <MultiTagsIcon tags={[tag]} />,
-        meta: {
-          color: tag.color,
-        },
-      })),
+    () => availableTags?.map((tag) => getTagOption(tag)),
     [availableTags],
   );
 
   const selectedTags = useMemo(
-    () =>
-      tags
-        .map(({ id }) => options?.find(({ value }) => value === id)!)
-        .filter(Boolean),
-    [tags, options],
+    () => tags.map((tag) => getTagOption(tag)),
+    [tags],
   );
 
   useKeyboardShortcut("t", () => setIsOpen(true), { modal: true });
@@ -159,15 +168,19 @@ export function TagSelect() {
       <Combobox
         multiple
         selected={selectedTags}
-        setSelected={(tags) => {
-          const selectedIds = tags.map(({ value }) => value);
+        setSelected={(newTags) => {
+          const selectedIds = newTags.map(({ value }) => value);
           setValue(
             "tags",
-            selectedIds.map((id) => availableTags?.find((t) => t.id === id)),
+            selectedIds.map((id) =>
+              [...(availableTags || []), ...(tags || [])]?.find(
+                (t) => t.id === id,
+              ),
+            ),
             { shouldDirty: true },
           );
         }}
-        options={options}
+        options={loadingTags ? undefined : options}
         icon={<Tag className="mt-[5px] size-4 text-gray-500" />}
         searchPlaceholder="Search or add tags..."
         shortcutHint="T"
@@ -180,6 +193,8 @@ export function TagSelect() {
         onCreate={(search) => createTag(search)}
         open={isOpen}
         onOpenChange={setIsOpen}
+        onSearchChange={setSearch}
+        shouldFilter={!useAsync}
         matchTriggerWidth
       >
         {selectedTags.length > 0 ? (
@@ -193,6 +208,8 @@ export function TagSelect() {
               />
             ))}
           </div>
+        ) : loadingTags && availableTags === undefined && tags.length ? (
+          <div className="my-px h-6 w-1/4 animate-pulse rounded bg-gray-200" />
         ) : (
           <span className="my-px block py-0.5">Select tags...</span>
         )}

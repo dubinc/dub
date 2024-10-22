@@ -1,9 +1,9 @@
 import { Link } from "@prisma/client";
 import { afterAll, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
-import { link } from "../utils/resource";
+import { E2E_LINK } from "../utils/resource";
 
-const { domain, url } = link;
+const { domain, url } = E2E_LINK;
 
 test("GET /links/count", async (ctx) => {
   const h = new IntegrationHarness(ctx);

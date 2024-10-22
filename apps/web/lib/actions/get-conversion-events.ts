@@ -1,10 +1,6 @@
 "use server";
 
-import {
-  ClickEvent,
-  LeadEvent,
-  SaleEvent,
-} from "dub/dist/commonjs/models/components";
+import { ClickEvent, LeadEvent, SaleEvent } from "dub/models/components";
 import { EventType } from "../analytics/types";
 import { dub } from "../dub";
 

@@ -25,7 +25,7 @@ export async function createLink(link: ProcessedLinkProps) {
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
-  const { tagId, tagIds, tagNames, ...rest } = link;
+  const { tagId, tagIds, tagNames, webhookIds, ...rest } = link;
 
   const response = await prisma.link.create({
     data: {
@@ -70,6 +70,18 @@ export async function createLink(link: ProcessedLinkProps) {
             },
           },
         }),
+
+      // Webhooks
+      ...(webhookIds &&
+        webhookIds.length > 0 && {
+          webhooks: {
+            createMany: {
+              data: webhookIds.map((webhookId) => ({
+                webhookId,
+              })),
+            },
+          },
+        }),
     },
     include: {
       tags: {
@@ -83,6 +95,7 @@ export async function createLink(link: ProcessedLinkProps) {
           },
         },
       },
+      webhooks: webhookIds ? true : false,
     },
   });
 

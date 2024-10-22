@@ -1,4 +1,10 @@
-import { Button, Popover, Switch, useRouterStuff } from "@dub/ui";
+import {
+  Button,
+  Popover,
+  Switch,
+  useKeyboardShortcut,
+  useRouterStuff,
+} from "@dub/ui";
 import {
   ArrowsOppositeDirectionY,
   BoxArchive,
@@ -32,6 +38,8 @@ export default function LinkDisplay() {
 
   const [openPopover, setOpenPopover] = useState(false);
   const { queryParams } = useRouterStuff();
+
+  useKeyboardShortcut("a", () => setShowArchived((o) => !o));
 
   return (
     <Popover
@@ -75,11 +83,16 @@ export default function LinkDisplay() {
               <LinkSort />
             </div>
           </div>
-          <div className="flex h-16 items-center justify-between gap-2 px-4">
-            <span className="flex items-center gap-2">
-              <BoxArchive className="h-4 w-4 text-gray-800" />
+          <div className="group flex h-16 items-center justify-between gap-2 px-4">
+            <div className="flex items-center gap-2">
+              <div className="flex w-6 items-center justify-center">
+                <BoxArchive className="size-4 text-gray-800 group-hover:hidden" />
+                <kbd className="hidden rounded border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 group-hover:block">
+                  A
+                </kbd>
+              </div>
               Show archived links
-            </span>
+            </div>
             <div>
               <Switch
                 checked={showArchived}
@@ -171,13 +184,14 @@ export default function LinkDisplay() {
       <Button
         variant="secondary"
         className="hover:bg-white [&>div]:w-full"
+        textWrapperClassName="!overflow-visible"
         text={
           <div className="flex w-full items-center gap-2">
             <div className="relative shrink-0">
               <Sliders className="h-4 w-4" />
               {isDirty && (
-                <div className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-violet-500">
-                  <div className="h-full w-full animate-pulse rounded-full ring-2 ring-violet-500/40" />
+                <div className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-blue-500">
+                  <div className="h-full w-full animate-pulse rounded-full ring-2 ring-blue-500/40" />
                 </div>
               )}
             </div>

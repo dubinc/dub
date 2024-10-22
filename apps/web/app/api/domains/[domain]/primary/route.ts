@@ -21,6 +21,9 @@ export const POST = withWorkspace(
         data: {
           primary: true,
         },
+        include: {
+          registeredDomain: true,
+        },
       }),
 
       // Set all other domains as not primary

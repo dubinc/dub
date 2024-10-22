@@ -1,13 +1,14 @@
 import {
   Button,
+  DiamondTurnRight,
   InfoTooltip,
   Modal,
   SimpleTooltipContent,
   Tooltip,
   useKeyboardShortcut,
-  useMediaQuery,
+  UTM_PARAMETERS,
+  UTMBuilder,
 } from "@dub/ui";
-import { DiamondTurnRight } from "@dub/ui/src";
 import {
   cn,
   constructURLFromUTMParams,
@@ -18,15 +19,12 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
-  useEffect,
-  useId,
   useMemo,
-  useRef,
   useState,
 } from "react";
-import { useForm, useFormContext } from "react-hook-form";
+import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { LinkFormData } from ".";
-import { UTM_PARAMETERS } from "./constants";
+import { UTMTemplatesCombo } from "./utm-templates-combo";
 
 type UTMModalProps = {
   showUTMModal: boolean;
@@ -46,19 +44,10 @@ function UTMModal(props: UTMModalProps) {
 }
 
 function UTMModalInner({ setShowUTMModal }: UTMModalProps) {
-  const { isMobile } = useMediaQuery();
-  const id = useId();
-
   const { getValues: getValuesParent, setValue: setValueParent } =
     useFormContext<LinkFormData>();
 
-  const {
-    watch,
-    setValue,
-    reset,
-    formState: { isDirty },
-    handleSubmit,
-  } = useForm<
+  const form = useForm<
     Pick<
       LinkFormData,
       | "url"
@@ -79,22 +68,16 @@ function UTMModalInner({ setShowUTMModal }: UTMModalProps) {
     },
   });
 
+  const {
+    watch,
+    setValue,
+    reset,
+    formState: { isDirty },
+    handleSubmit,
+  } = form;
+
   const url = watch("url");
   const enabledParams = useMemo(() => getParamsFromURL(url), [url]);
-
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  // Hacky fix to focus the input automatically, not sure why autoFocus doesn't work here
-  useEffect(() => {
-    if (inputRef.current && !isMobile) {
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 10);
-    }
-  }, []);
-
-  // Whether to display actual URL parameters instead of labels
-  const [showParams, setShowParams] = useState(false);
 
   // Update targeting URL params if they previously matched the same params of the destination URL
   const updateTargeting = useCallback(
@@ -214,69 +197,28 @@ function UTMModalInner({ setShowUTMModal }: UTMModalProps) {
         </div>
       </div>
 
-      <div className="grid gap-y-3 py-4">
-        {UTM_PARAMETERS.map(
-          ({ key, icon: Icon, label, placeholder, description }, idx) => {
-            return (
-              <div key={key} className="group relative">
-                <div className="relative z-10 flex">
-                  <Tooltip
-                    content={
-                      <div className="p-3 text-center text-xs">
-                        <p className="text-gray-600">{description}</p>
-                        <span className="font-mono text-gray-400">{key}</span>
-                      </div>
-                    }
-                    sideOffset={4}
-                    disableHoverableContent
-                  >
-                    <div
-                      className={cn(
-                        "flex items-center gap-1.5 rounded-l-md border-y border-l border-gray-300 bg-gray-50 px-3 py-1.5 text-gray-700",
-                        showParams ? "sm:min-w-36" : "sm:min-w-28",
-                      )}
-                      onClick={() => setShowParams((s) => !s)}
-                    >
-                      <Icon className="size-4 shrink-0" />
-                      <label
-                        htmlFor={`${id}-${key}`}
-                        className="select-none text-sm"
-                      >
-                        {showParams ? (
-                          <span className="font-mono text-xs">{key}</span>
-                        ) : (
-                          label
-                        )}
-                      </label>
-                    </div>
-                  </Tooltip>
-                  <input
-                    type="text"
-                    id={`${id}-${key}`}
-                    ref={idx === 0 ? inputRef : undefined}
-                    placeholder={placeholder}
-                    disabled={!isValidUrl(url)}
-                    className="h-full min-w-0 grow rounded-r-md border border-gray-300 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500 disabled:cursor-not-allowed sm:text-sm"
-                    value={enabledParams[key] || ""}
-                    onChange={(e) => {
-                      if (key !== "ref")
-                        setValue(key, e.target.value, { shouldDirty: true });
+      <div className="py-4">
+        <UTMBuilder
+          values={enabledParams}
+          onChange={(key, value) => {
+            if (key !== "ref") setValue(key, value, { shouldDirty: true });
 
-                      setValue(
-                        "url",
-                        constructURLFromUTMParams(url, {
-                          ...enabledParams,
-                          [key]: e.target.value,
-                        }),
-                        { shouldDirty: true },
-                      );
-                    }}
-                  />
-                </div>
-              </div>
+            setValue(
+              "url",
+              constructURLFromUTMParams(url, {
+                ...enabledParams,
+                [key]: value,
+              }),
+              { shouldDirty: true },
             );
-          },
-        )}
+          }}
+          disabledTooltip={
+            isValidUrl(url)
+              ? undefined
+              : "Enter a destination URL to add UTM parameters"
+          }
+          autoFocus
+        />
       </div>
 
       {isValidUrl(url) && (
@@ -290,24 +232,42 @@ function UTMModalInner({ setShowUTMModal }: UTMModalProps) {
         </div>
       )}
 
-      <div className="mt-6 flex items-center justify-end gap-2">
-        <Button
-          type="button"
-          variant="secondary"
-          text="Cancel"
-          className="h-9 w-fit"
-          onClick={() => {
-            reset();
-            setShowUTMModal(false);
-          }}
-        />
-        <Button
-          type="submit"
-          variant="primary"
-          text="Save"
-          className="h-9 w-fit"
-          disabled={!isDirty}
-        />
+      <div className="mt-6 flex items-center justify-between gap-2">
+        <div>
+          <FormProvider {...form}>
+            <UTMTemplatesCombo
+              onLoad={(params) => {
+                setValue("url", constructURLFromUTMParams(url, params), {
+                  shouldDirty: true,
+                });
+              }}
+              disabledTooltip={
+                isValidUrl(url)
+                  ? undefined
+                  : "Enter a destination URL to use UTM templates"
+              }
+            />
+          </FormProvider>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            text="Cancel"
+            className="h-9 w-fit"
+            onClick={() => {
+              reset();
+              setShowUTMModal(false);
+            }}
+          />
+          <Button
+            type="submit"
+            variant="primary"
+            text="Save"
+            className="h-9 w-fit"
+            disabled={!isDirty}
+          />
+        </div>
       </div>
     </form>
   );

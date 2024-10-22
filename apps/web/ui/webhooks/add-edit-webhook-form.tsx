@@ -9,8 +9,14 @@ import {
   WEBHOOK_TRIGGER_DESCRIPTIONS,
   WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
 } from "@/lib/webhook/constants";
-import { Button, Checkbox, CopyButton, InfoTooltip, LinkLogo } from "@dub/ui";
-import { Combobox } from "@dub/ui/src";
+import {
+  Button,
+  Checkbox,
+  Combobox,
+  CopyButton,
+  InfoTooltip,
+  LinkLogo,
+} from "@dub/ui";
 import { cn, getApexDomain, linkConstructor, truncate } from "@dub/utils";
 import { redirect, useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
@@ -88,16 +94,19 @@ export default function AddEditWebhookForm({
     setSaving(false);
     const result = await response.json();
 
-    if (response.ok) {
-      mutate(`/api/webhooks/${result.id}?workspaceId=${workspaceId}`, result);
-      toast.success(endpoint.successMessage);
-
-      if (endpoint.method === "POST") {
-        router.push(`/${workspaceSlug}/settings/webhooks`);
-      }
-    } else {
+    if (!response.ok) {
       toast.error(result.error.message);
+      return;
     }
+
+    if (endpoint.method === "POST") {
+      mutate(`/api/webhooks?workspaceId=${workspaceId}`);
+      router.push(`/${workspaceSlug}/settings/webhooks`);
+    } else {
+      mutate(`/api/webhooks/${result.id}?workspaceId=${workspaceId}`, result);
+    }
+
+    toast.success(endpoint.successMessage);
   };
 
   const { name, url, secret, triggers, linkIds = [] } = data;

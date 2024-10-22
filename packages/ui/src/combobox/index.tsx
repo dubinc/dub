@@ -1,7 +1,9 @@
 import { cn } from "@dub/utils";
-import { Command, CommandEmpty, CommandInput, CommandItem } from "cmdk";
+import { Command, CommandInput, CommandItem, useCommandState } from "cmdk";
 import { ChevronDown } from "lucide-react";
 import {
+  forwardRef,
+  HTMLProps,
   isValidElement,
   PropsWithChildren,
   ReactNode,
@@ -39,8 +41,8 @@ export type ComboboxProps<
     ? ComboboxOption<TMeta>[]
     : ComboboxOption<TMeta> | null;
   setSelected: TMultiple extends true
-    ? (tags: ComboboxOption<TMeta>[]) => void
-    : (tag: ComboboxOption<TMeta> | null) => void;
+    ? (options: ComboboxOption<TMeta>[]) => void
+    : (option: ComboboxOption<TMeta> | null) => void;
   options?: ComboboxOption<TMeta>[];
   icon?: Icon | ReactNode;
   placeholder?: ReactNode;
@@ -56,6 +58,8 @@ export type ComboboxProps<
   onOpenChange?: (open: boolean) => void;
   onSearchChange?: (search: string) => void;
   shouldFilter?: boolean;
+  inputClassName?: string;
+  optionRight?: (option: ComboboxOption) => ReactNode;
   optionClassName?: string;
   matchTriggerWidth?: boolean;
 }>;
@@ -86,6 +90,8 @@ export function Combobox({
   onOpenChange,
   onSearchChange,
   shouldFilter = true,
+  inputClassName,
+  optionRight,
   optionClassName,
   matchTriggerWidth,
   children,
@@ -193,7 +199,10 @@ export function Combobox({
                 placeholder={searchPlaceholder}
                 value={search}
                 onValueChange={setSearch}
-                className="grow border-0 py-3 pl-4 pr-2 outline-none placeholder:text-gray-400 focus:ring-0 sm:text-sm"
+                className={cn(
+                  "grow border-0 py-3 pl-4 pr-2 outline-none placeholder:text-gray-400 focus:ring-0 sm:text-sm",
+                  inputClassName,
+                )}
                 onKeyDown={(e) => {
                   if (
                     e.key === "Escape" ||
@@ -206,7 +215,7 @@ export function Combobox({
                 }}
               />
               {shortcutHint && (
-                <kbd className="mr-2 hidden shrink-0 rounded bg-gray-200 px-2 py-0.5 text-xs font-light text-gray-500 md:block">
+                <kbd className="mr-2 hidden shrink-0 rounded border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 md:block">
                   {shortcutHint}
                 </kbd>
               )}
@@ -226,6 +235,7 @@ export function Combobox({
                           ({ value }) => value === option.value,
                         )}
                         onSelect={() => handleSelect(option)}
+                        right={optionRight?.(option)}
                         className={optionClassName}
                       />
                     ))}
@@ -257,11 +267,11 @@ export function Combobox({
                       </CommandItem>
                     )}
                     {shouldFilter ? (
-                      <CommandEmpty className="flex h-12 items-center justify-center text-sm text-gray-500">
+                      <Empty className="flex min-h-12 items-center justify-center text-sm text-gray-500">
                         {emptyState ? emptyState : "No matches"}
-                      </CommandEmpty>
+                      </Empty>
                     ) : sortedOptions.length === 0 ? (
-                      <div className="flex h-12 items-center justify-center text-sm text-gray-500">
+                      <div className="flex min-h-12 items-center justify-center text-sm text-gray-500">
                         {emptyState ? emptyState : "No matches"}
                       </div>
                     ) : null}
@@ -307,7 +317,7 @@ export function Combobox({
             isReactNode(Icon) ? (
               Icon
             ) : (
-              <Icon className="size-4" />
+              <Icon className="size-4 shrink-0" />
             )
           ) : undefined
         }
@@ -324,7 +334,7 @@ const Scroll = ({ children }: PropsWithChildren) => {
   return (
     <>
       <div
-        className="scrollbar-hide max-h-[min(50vh,240px)] w-screen overflow-y-scroll sm:w-auto"
+        className="scrollbar-hide max-h-[min(50vh,250px)] w-screen overflow-y-scroll sm:w-auto"
         ref={ref}
         onScroll={updateScrollProgress}
       >
@@ -344,12 +354,14 @@ function Option({
   onSelect,
   multiple,
   selected,
+  right,
   className,
 }: {
   option: ComboboxOption;
   onSelect: () => void;
   multiple: boolean;
   selected: boolean;
+  right?: ReactNode;
   className?: string;
 }) {
   return (
@@ -383,6 +395,7 @@ function Option({
         )}
         <span className="grow truncate">{option.label}</span>
       </div>
+      {right}
       {!multiple && selected && (
         <Check2 className="size-4 shrink-0 text-gray-600" />
       )}
@@ -392,3 +405,15 @@ function Option({
 
 const isReactNode = (element: any): element is ReactNode =>
   isValidElement(element);
+
+// Custom Empty component because our current cmdk version has an issue with first render (https://github.com/pacocoursey/cmdk/issues/149)
+const Empty = forwardRef<HTMLDivElement, HTMLProps<HTMLDivElement>>(
+  (props, forwardedRef) => {
+    const render = useCommandState((state) => state.filtered.count === 0);
+
+    if (!render) return null;
+    return (
+      <div ref={forwardedRef} cmdk-empty="" role="presentation" {...props} />
+    );
+  },
+);

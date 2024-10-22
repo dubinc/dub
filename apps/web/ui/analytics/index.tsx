@@ -1,4 +1,5 @@
 "use client";
+import { cn } from "@dub/utils";
 /* 
   This Analytics component lives in 2 different places:
   1. Workspace analytics page, e.g. app.dub.co/dub/analytics
@@ -30,9 +31,11 @@ export default function Analytics({
         {({ basePath }) => {
           const isPublicStatsPage = basePath.startsWith("/stats");
           return (
-            <div className="bg-gray-50 py-10">
+            <div
+              className={cn("pb-10", isPublicStatsPage && "bg-gray-50 pt-10")}
+            >
               <Toggle />
-              <div className="mx-auto grid max-w-screen-xl gap-5 px-2.5 lg:px-20">
+              <div className="mx-auto grid max-w-screen-xl gap-5 px-3 lg:px-10">
                 <Main />
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                   {!isPublicStatsPage && <TopLinks />}

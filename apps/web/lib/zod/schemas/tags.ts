@@ -1,9 +1,32 @@
 import { tagColors } from "@/lib/types";
 import z from "@/lib/zod";
+import { getPaginationQuerySchema } from "./misc";
+
+export const TAGS_MAX_PAGE_SIZE = 100;
+
+export const getTagsQuerySchema = z
+  .object({
+    search: z
+      .string()
+      .optional()
+      .describe("The search term to filter the tags by."),
+    ids: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .optional()
+      .describe("IDs of tags to filter by."),
+  })
+  .merge(getPaginationQuerySchema({ pageSize: TAGS_MAX_PAGE_SIZE }));
+
+export const getTagsCountQuerySchema = getTagsQuerySchema.omit({
+  ids: true,
+  page: true,
+  pageSize: true,
+});
 
 export const tagColorSchema = z
   .enum(tagColors, {
-    errorMap: (issue, ctx) => {
+    errorMap: () => {
       return {
         message: `Invalid color. Must be one of: ${tagColors.join(", ")}`,
       };
@@ -13,7 +36,12 @@ export const tagColorSchema = z
 
 export const createTagBodySchema = z
   .object({
-    name: z.string().min(1).trim().describe("The name of the tag to create."),
+    name: z
+      .string()
+      .min(1)
+      .max(50)
+      .trim()
+      .describe("The name of the tag to create."),
     color: tagColorSchema.describe(
       `The color of the tag. If not provided, a random color will be used from the list: ${tagColors.join(", ")}.`,
     ),

@@ -8,6 +8,7 @@ import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import { Logo, Switch } from "@dub/ui";
 import {
   Amazon,
+  CalendarDays,
   ChatGPT,
   Figma,
   GitHubEnhanced,
@@ -28,6 +29,8 @@ function DubDomainsIcon(domain: string) {
       return GitHubEnhanced;
     case "spti.fi":
       return Spotify;
+    case "cal.link":
+      return CalendarDays;
     case "amzn.id":
       return Amazon;
     case "ggl.link":
@@ -74,7 +77,14 @@ export function DefaultDomains() {
         </p>
       </div>
       <div className="mt-2 grid grid-cols-1 gap-3">
-        {DUB_DOMAINS.map(({ slug, description }) => {
+        {DUB_DOMAINS.filter((domain) => {
+          if (domain.slug === "cal.link") {
+            return flags?.callink;
+          } else if (domain.slug === "loooooooo.ng") {
+            return false;
+          }
+          return true;
+        }).map(({ slug, description }) => {
           return (
             <div
               key={slug}
@@ -108,7 +118,7 @@ export function DefaultDomains() {
                   setDefaultDomains(newDefaultDomains);
                   setSubmitting(true);
                   fetch(`/api/domains/default?workspaceId=${id}`, {
-                    method: "PUT",
+                    method: "PATCH",
                     body: JSON.stringify({
                       defaultDomains: newDefaultDomains.filter(
                         (d) => d !== null,

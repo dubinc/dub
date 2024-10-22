@@ -63,6 +63,24 @@ export const DUB_DOMAINS = [
           projectId: DUB_WORKSPACE_ID,
         },
         {
+          id: "cm23qevp4000412mqwvtkthzw",
+          slug: "cal.link",
+          verified: true,
+          primary: false,
+          archived: false,
+          placeholder: "https://cal.com/steven",
+          allowedHostnames: [
+            "cal.com",
+            "calendly.com",
+            "chillipiper.com",
+            "hubspot.com",
+            "savvycal.com",
+          ],
+          description:
+            "Branded domain for your scheduling links (Cal.com, Calendly, etc.).",
+          projectId: DUB_WORKSPACE_ID,
+        },
+        {
           id: "cloxw8qtk000bjt08n9b812vs",
           slug: "amzn.id",
           verified: true,
@@ -97,6 +115,7 @@ export const DUB_DOMAINS = [
             "google.fr",
             "googleblog.com",
             "blog.google",
+            "g.co",
             "g.page",
             "youtube.com",
             "youtu.be",

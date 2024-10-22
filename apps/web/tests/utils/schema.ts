@@ -4,6 +4,7 @@ import { expect } from "vitest";
 export const expectedLink: Partial<Link> & {
   tagId: string | null;
   tags: [];
+  webhookIds: string[];
 } = {
   id: expect.any(String),
   key: expect.any(String),
@@ -37,6 +38,7 @@ export const expectedLink: Partial<Link> & {
   tagId: null, // backwards compatibility
   comments: null,
   tags: [],
+  webhookIds: [],
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
   expiredUrl: null,

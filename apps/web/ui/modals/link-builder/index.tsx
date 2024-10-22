@@ -8,19 +8,20 @@ import { useAvailableDomains } from "@/ui/links/use-available-domains";
 import { X } from "@/ui/shared/icons";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
+  ArrowTurnLeft,
   Button,
   InfoTooltip,
   LinkLogo,
   Modal,
   SimpleTooltipContent,
   TooltipContent,
+  useEnterSubmit,
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
-import { useEnterSubmit } from "@dub/ui/src";
-import { ArrowTurnLeft } from "@dub/ui/src/icons";
 import {
   cn,
+  constructURLFromUTMParams,
   DEFAULT_LINK_PROPS,
   getApexDomain,
   getUrlWithoutUTMParams,
@@ -60,6 +61,8 @@ import { TagSelect } from "./tag-select";
 import { useTargetingModal } from "./targeting-modal";
 import { useMetatags } from "./use-metatags";
 import { useUTMModal } from "./utm-modal";
+import { UTMTemplatesButton } from "./utm-templates-button";
+import { WebhookSelect } from "./webhook-select";
 
 export const LinkModalContext = createContext<{
   workspaceId?: string;
@@ -111,6 +114,7 @@ function LinkBuilderInner({
     plan,
     nextPlan,
     logo,
+    flags,
     conversionEnabled,
   } = useWorkspace();
 
@@ -260,12 +264,25 @@ function LinkBuilderInner({
                 });
 
                 if (res.status === 200) {
-                  await mutate(
-                    (key) =>
-                      typeof key === "string" && key.startsWith("/api/links"),
-                    undefined,
-                    { revalidate: true },
-                  );
+                  await Promise.all([
+                    mutate(
+                      (key) =>
+                        typeof key === "string" && key.startsWith("/api/links"),
+                      undefined,
+                      { revalidate: true },
+                    ),
+                    // Mutate workspace to update usage stats
+                    mutate(`/api/workspaces/${slug}`),
+                    // if updating root domain link, mutate domains as well
+                    key === "_root" &&
+                      mutate(
+                        (key) =>
+                          typeof key === "string" &&
+                          key.startsWith("/api/domains"),
+                        undefined,
+                        { revalidate: true },
+                      ),
+                  ]);
                   const data = await res.json();
                   posthog.capture(
                     props ? "link_updated" : "link_created",
@@ -383,7 +400,23 @@ function LinkBuilderInner({
                         }}
                         required={key !== "_root"}
                         error={errors.url?.message || undefined}
-                        showEnterToSubmit={false}
+                        right={
+                          <div className="-mb-1 h-6">
+                            {isValidUrl(url) && (
+                              <UTMTemplatesButton
+                                onLoad={(params) => {
+                                  setValue(
+                                    "url",
+                                    constructURLFromUTMParams(url, params),
+                                    {
+                                      shouldDirty: true,
+                                    },
+                                  );
+                                }}
+                              />
+                            )}
+                          </div>
+                        }
                       />
                     )}
                   />
@@ -469,6 +502,7 @@ function LinkBuilderInner({
                   <TargetingButton />
                   <PasswordButton />
                 </div>
+                {flags?.webhooks && <WebhookSelect />}
                 <MoreDropdown />
               </div>
               {homepageDemo ? (
@@ -565,7 +599,6 @@ export function useLinkBuilder({
   duplicateProps?: LinkWithTagsProps;
   homepageDemo?: boolean;
 } = {}) {
-  const { flags } = useWorkspace();
   const [showLinkBuilder, setShowLinkBuilder] = useState(false);
 
   const LinkBuilderCallback = useCallback(() => {
