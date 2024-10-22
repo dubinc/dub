@@ -133,7 +133,7 @@ export const domainKeySchema = z.object({
 });
 
 export const createLinkBodySchema = z.object({
-  url: parseUrlSchemaAllowEmpty
+  url: parseUrlSchemaAllowEmpty()
     .describe("The destination URL of the short link.")
     .openapi({
       example: "https://google.com",
