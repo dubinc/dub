@@ -327,8 +327,8 @@ importers:
         specifier: ^7.0.18
         version: 7.0.18
       use-debounce:
-        specifier: ^8.0.4
-        version: 8.0.4(react@18.2.0)
+        specifier: ^10.0.4
+        version: 10.0.4(react@18.2.0)
       vaul:
         specifier: ^0.6.8
         version: 0.6.8(@types/react-dom@18.2.14)(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)
@@ -21694,6 +21694,15 @@ packages:
     resolution: {integrity: sha512-GLMG0Jc/jiKov/3Ulid1wbv3r54K9HlMW29IWcDFPEqFkSO2nS0MuefWgMJpeHQ9YJeXDL3ZUF+P3jdXlZX/cQ==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      react: 18.2.0
+    dev: false
+
+  /use-debounce@10.0.4(react@18.2.0):
+    resolution: {integrity: sha512-6Cf7Yr7Wk7Kdv77nnJMf6de4HuDE4dTxKij+RqE9rufDsI6zsbjyAxcH5y2ueJCQAnfgKbzXbZHYlkFwmBlWkw==}
+    engines: {node: '>= 16.0.0'}
+    peerDependencies:
+      react: '*'
     dependencies:
       react: 18.2.0
     dev: false

@@ -1,8 +1,4 @@
-import {
-  getFeatureFlags,
-  isBlacklistedDomain,
-  updateConfig,
-} from "@/lib/edge-config";
+import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
 import { getFolder } from "@/lib/folder/get-folder";
 import { canPerformActionOnFolder } from "@/lib/folder/permissions";
 import { getPangeaDomainIntel } from "@/lib/pangea";
@@ -212,20 +208,6 @@ export async function processLink<T extends Record<string, any>>({
           .join(", ")}.`,
         code: "unprocessable_entity",
       };
-    }
-
-    if (domain === "cal.link") {
-      const flags = await getFeatureFlags({
-        workspaceId: workspace?.id,
-      });
-      if (!flags?.callink) {
-        return {
-          link: payload,
-          error:
-            "You can only use the cal.link domain if you have beta access to it. Contact support@dub.co to get access.",
-          code: "forbidden",
-        };
-      }
     }
 
     if (!skipKeyChecks && key?.includes("/")) {

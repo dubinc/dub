@@ -9,7 +9,7 @@ export default function WorkspaceAnalyticsEvents() {
   return (
     <Suspense fallback={<LayoutLoader />}>
       <PageContent title="Events">
-        <AnalyticsClient>
+        <AnalyticsClient eventsPage>
           <EventsProvider>
             <Events />
           </EventsProvider>

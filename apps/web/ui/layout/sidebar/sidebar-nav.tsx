@@ -19,7 +19,13 @@ import { WorkspaceDropdown } from "./workspace-dropdown";
 
 const AREAS = ["userSettings", "workspaceSettings", "default"] as const;
 
-export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
+export function SidebarNav({
+  toolContent,
+  newsContent,
+}: {
+  toolContent?: ReactNode;
+  newsContent?: ReactNode;
+}) {
   const { slug } = useParams() as { slug?: string };
   const { flags } = useWorkspace();
   const pathname = usePathname();
@@ -34,7 +40,7 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
 
   return (
     <ClientOnly className="scrollbar-hide relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden">
-      <nav className="relative p-3 text-gray-500">
+      <nav className="relative flex grow flex-col p-3 text-gray-500">
         <div className="relative flex items-start justify-between gap-1 pb-3">
           {AREAS.map((area) => (
             <Link
@@ -65,7 +71,7 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
             <UserDropdown />
           </div>
         </div>
-        <div className="relative w-full">
+        <div className="relative w-full grow">
           {AREAS.map((area) => (
             <Area
               key={area}
@@ -92,11 +98,14 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
                   </div>
                 ))}
               </div>
+              <div className="-mx-3 mt-6 flex grow flex-col justify-end">
+                {area === "default" && newsContent}
+              </div>
             </Area>
           ))}
         </div>
       </nav>
-      <div className="relative mt-6 flex grow flex-col justify-end">
+      <div className="relative flex flex-col justify-end">
         <UserSurveyButton />
         <Usage />
       </div>
@@ -145,7 +154,7 @@ export function Area({
   return (
     <div
       className={cn(
-        "left-0 top-0 w-full md:transition-[opacity,transform] md:duration-300",
+        "left-0 top-0 flex size-full flex-col md:transition-[opacity,transform] md:duration-300",
         visible
           ? "opacity-1 relative"
           : cn(

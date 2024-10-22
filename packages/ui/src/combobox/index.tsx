@@ -215,7 +215,7 @@ export function Combobox({
                 }}
               />
               {shortcutHint && (
-                <kbd className="mr-2 hidden shrink-0 rounded bg-gray-200 px-2 py-0.5 text-xs font-light text-gray-500 md:block">
+                <kbd className="mr-2 hidden shrink-0 rounded border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 md:block">
                   {shortcutHint}
                 </kbd>
               )}

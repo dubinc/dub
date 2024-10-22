@@ -8,17 +8,17 @@ import { useAvailableDomains } from "@/ui/links/use-available-domains";
 import { X } from "@/ui/shared/icons";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
+  ArrowTurnLeft,
   Button,
   InfoTooltip,
   LinkLogo,
   Modal,
   SimpleTooltipContent,
   TooltipContent,
+  useEnterSubmit,
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
-import { useEnterSubmit } from "@dub/ui/src";
-import { ArrowTurnLeft } from "@dub/ui/src/icons";
 import {
   cn,
   constructURLFromUTMParams,

@@ -11,7 +11,7 @@ export const GET = withWorkspace(async ({ searchParams, workspace }) => {
   const { firstDay, lastDay } = getFirstAndLastDay(billingCycleStart);
 
   const pipe = tb.buildPipe({
-    pipe: `v1_usage`,
+    pipe: "v1_usage",
     // we extend this here since we don't need to include all the additional parameters
     // in the actual request query schema
     parameters: usageQuerySchema.extend({

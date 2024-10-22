@@ -110,7 +110,7 @@
     "topojson-client": "^3.1.0",
     "unique-names-generator": "^4.7.1",
     "unsplash-js": "^7.0.18",
-    "use-debounce": "^8.0.4",
+    "use-debounce": "^10.0.4",
     "vaul": "^0.6.8",
     "zod": "^3.22.4",
     "zod-error": "^1.5.0",
