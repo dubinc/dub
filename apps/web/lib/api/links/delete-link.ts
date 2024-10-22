@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
+import { redis } from "@/lib/upstash";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { linkCache } from "./cache";
 
 export async function deleteLink(linkId: string) {
   const link = await prisma.link.delete({
@@ -14,16 +14,10 @@ export async function deleteLink(linkId: string) {
       tags: true,
     },
   });
+
   waitUntil(
     Promise.allSettled([
-      // if there's a valid image and it has the same link ID, delete it
-      link.image &&
-        link.image.startsWith(`${R2_URL}/images/${link.id}`) &&
-        storage.delete(link.image.replace(`${R2_URL}/`, "")),
-
-      // Delete link from redis
-      linkCache.delete(link),
-
+      // Record link in the Tinybird
       recordLink({
         link_id: link.id,
         domain: link.domain,
@@ -34,6 +28,16 @@ export async function deleteLink(linkId: string) {
         created_at: link.createdAt,
         deleted: true,
       }),
+
+      // Remove image from R2 storage if it exists
+      link.image &&
+        link.image.startsWith(`${R2_URL}/images/${link.id}`) &&
+        storage.delete(link.image.replace(`${R2_URL}/`, "")),
+
+      // Remove the link from Redis
+      redis.hdel(`${link.domain}:${link.key}`.toLowerCase()),
+
+      // Decrement the links count for the workspace
       link.projectId &&
         prisma.project.update({
           where: {
