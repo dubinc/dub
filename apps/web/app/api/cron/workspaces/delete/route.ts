@@ -42,18 +42,20 @@ export async function POST(req: Request) {
     });
 
     if (links.length > 0) {
-      await prisma.link.deleteMany({
-        where: {
-          id: {
-            in: links.map((link) => link.id),
+      await Promise.all([
+        prisma.link.deleteMany({
+          where: {
+            id: {
+              in: links.map((link) => link.id),
+            },
           },
-        },
-      });
+        }),
 
-      await bulkDeleteLinks({
-        workspaceId: workspace.id,
-        links,
-      });
+        bulkDeleteLinks({
+          workspaceId: workspace.id,
+          links,
+        }),
+      ]);
     }
 
     const remainingLinks = await prisma.link.count({

@@ -10,7 +10,9 @@ import {
   LEGAL_WORKSPACE_ID,
   R2_URL,
 } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { qstash } from "../cron";
+import { markDomainAsDeleted } from "./domains";
 import { linkCache } from "./links/cache";
 
 export async function deleteWorkspace(
@@ -61,9 +63,11 @@ export async function deleteWorkspace(
       }),
   ]);
 
-  await queueWorkspaceDeletion({
-    workspaceId: workspace.id,
-  });
+  waitUntil(
+    queueWorkspaceDeletion({
+      workspaceId: workspace.id,
+    }),
+  );
 }
 
 export async function deleteWorkspaceAdmin(
