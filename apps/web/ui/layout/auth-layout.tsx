@@ -72,7 +72,7 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
             <BlurImage
               alt={`${logo} logo`}
               key={idx}
-              src={`https://dub.co/_static/clients/${logo}.svg`}
+              src={`https://assets.dub.co/clients/${logo}.svg`}
               width={520}
               height={182}
               className="h-12 grayscale transition-all hover:grayscale-0"
