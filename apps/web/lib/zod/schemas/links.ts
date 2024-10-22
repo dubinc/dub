@@ -531,6 +531,7 @@ export const LinkSchema = z
       .describe("The UTM content of the short link."),
     userId: z
       .string()
+      .nullable()
       .describe("The user ID of the creator of the short link."),
     workspaceId: z.string().describe("The workspace ID of the short link."),
     clicks: z
