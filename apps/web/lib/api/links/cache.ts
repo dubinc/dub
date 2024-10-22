@@ -20,9 +20,13 @@ class LinkCache {
     );
 
     redisLinks.map(({ domain, key, ...redisLink }) =>
-      pipeline.set(`${domain}:${key}`, JSON.stringify(redisLink), {
-        ex: CACHE_EXPIRATION,
-      }),
+      pipeline.set(
+        this._createKey({ domain, key }),
+        JSON.stringify(redisLink),
+        {
+          ex: CACHE_EXPIRATION,
+        },
+      ),
     );
 
     return await pipeline.exec();
