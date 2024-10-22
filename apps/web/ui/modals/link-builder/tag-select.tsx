@@ -10,10 +10,10 @@ import {
   InfoTooltip,
   Magic,
   SimpleTooltipContent,
+  Tag,
   Tooltip,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { Tag } from "@dub/ui/src";
 import { cn } from "@dub/utils";
 import { useCompletion } from "ai/react";
 import posthog from "posthog-js";
