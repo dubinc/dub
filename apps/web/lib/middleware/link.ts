@@ -81,7 +81,7 @@ export default async function LinkMiddleware(
           status: 302,
         });
       } else {
-        return NextResponse.rewrite(new URL("/notfoundlink", req.url), {
+        return NextResponse.rewrite(new URL(`/${domain}/not-found`, req.url), {
           headers: DUB_HEADERS,
         });
       }
