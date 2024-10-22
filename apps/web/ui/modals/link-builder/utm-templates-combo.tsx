@@ -2,9 +2,13 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UtmTemplateProps } from "@/lib/types";
-import { Button, Combobox, Tooltip } from "@dub/ui";
-import { DiamondTurnRight } from "@dub/ui/src/icons";
-import { UTM_PARAMETERS } from "@dub/ui/src/utm-builder";
+import {
+  Button,
+  Combobox,
+  DiamondTurnRight,
+  Tooltip,
+  UTM_PARAMETERS,
+} from "@dub/ui";
 import { fetcher, getParamsFromURL } from "@dub/utils";
 import { useRouter } from "next/navigation";
 import { Fragment } from "react";
