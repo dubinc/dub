@@ -1,9 +1,9 @@
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
-import { redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK, R2_URL } from "@dub/utils";
 import { storage } from "../../storage";
 import { recordLink } from "../../tinybird";
+import { linkCache } from "../links/cache";
 import { removeDomainFromVercel } from "./remove-domain-vercel";
 
 // Delete a domain and all links & images associated with it
@@ -28,12 +28,6 @@ export async function deleteDomainAndLinks({
     return;
   }
 
-  const pipeline = redis.pipeline();
-
-  links.forEach((link) => {
-    pipeline.del(`${link.domain}:${link.key}`.toLowerCase());
-  });
-
   const response = await Promise.allSettled([
     // Record link in the Tinybird
     recordLink(
@@ -55,7 +49,7 @@ export async function deleteDomainAndLinks({
       .map((link) => storage.delete(link.image!.replace(`${R2_URL}/`, ""))),
 
     // Remove the link from Redis
-    pipeline.exec(),
+    linkCache.deleteMany(links),
 
     // Remove the link from MySQL
     prisma.link.deleteMany({

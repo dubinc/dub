@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
-import { redis } from "@/lib/upstash";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { linkCache } from "./cache";
 
 export async function deleteLink(linkId: string) {
   const link = await prisma.link.delete({
@@ -35,7 +35,7 @@ export async function deleteLink(linkId: string) {
         storage.delete(link.image.replace(`${R2_URL}/`, "")),
 
       // Remove the link from Redis
-      redis.hdel(`${link.domain}:${link.key}`.toLowerCase()),
+      linkCache.delete(link),
 
       // Decrement the links count for the workspace
       link.projectId &&
