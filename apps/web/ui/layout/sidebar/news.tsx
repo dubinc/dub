@@ -31,7 +31,7 @@ export function News({ articles }: { articles: NewsArticle[] }) {
   useEffect(() => {
     let timeout: NodeJS.Timeout | undefined = undefined;
     if (cardCount === 0)
-      timeout = setTimeout(() => setShowCompleted(false), 2200);
+      timeout = setTimeout(() => setShowCompleted(false), 2700);
 
     return () => clearTimeout(timeout);
   }, [cardCount]);
@@ -89,9 +89,9 @@ export function News({ articles }: { articles: NewsArticle[] }) {
             className="animate-slide-up-fade absolute inset-0 flex size-full flex-col items-center justify-center gap-3 [animation-duration:1s]"
             style={{ "--offset": "10px" } as CSSProperties}
           >
-            <div className="animate-fade-in absolute inset-0 rounded-lg border border-neutral-300 [animation-delay:1.8s] [animation-direction:reverse] [animation-duration:0.2s]" />
+            <div className="animate-fade-in absolute inset-0 rounded-lg border border-neutral-300 [animation-delay:2.3s] [animation-direction:reverse] [animation-duration:0.2s]" />
             <AnimatedLogo className="w-1/3 text-neutral-500" />
-            <span className="animate-fade-in text-xs font-medium text-neutral-500 [animation-delay:1.8s] [animation-direction:reverse] [animation-duration:0.2s]">
+            <span className="animate-fade-in text-xs font-medium text-neutral-500 [animation-delay:2.3s] [animation-direction:reverse] [animation-duration:0.2s]">
               You're all caught up!
             </span>
           </div>
@@ -297,7 +297,7 @@ function AnimatedLogo(props: SVGProps<SVGSVGElement>) {
       >
         <animate
           attributeName="stroke-dashoffset"
-          dur="2000ms"
+          dur="2500ms"
           values="63;0;0;0;63"
           fill="freeze"
         />
@@ -312,7 +312,7 @@ function AnimatedLogo(props: SVGProps<SVGSVGElement>) {
       >
         <animate
           attributeName="stroke-dashoffset"
-          dur="2000ms"
+          dur="2500ms"
           values="69;0;0;0;69"
           fill="freeze"
         />
@@ -327,7 +327,7 @@ function AnimatedLogo(props: SVGProps<SVGSVGElement>) {
       >
         <animate
           attributeName="stroke-dashoffset"
-          dur="2000ms"
+          dur="2500ms"
           values="-60;0;0;0;-60"
           fill="freeze"
         />
