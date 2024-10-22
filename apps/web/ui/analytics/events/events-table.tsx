@@ -10,6 +10,7 @@ import EmptyState from "@/ui/shared/empty-state";
 import {
   Avatar,
   CopyButton,
+  CopyText,
   LinkLogo,
   Table,
   Tooltip,
@@ -17,7 +18,6 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CopyText } from "@dub/ui/src";
 import {
   CursorRays,
   FilterBars,
