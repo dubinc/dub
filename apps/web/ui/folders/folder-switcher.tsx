@@ -22,13 +22,15 @@ import { useDeleteFolderModal } from "../modals/delete-folder-modal";
 import { useRenameFolderModal } from "../modals/rename-folder-modal";
 import { Chart, Delete, ThreeDots } from "../shared/icons";
 import { FolderAccessIcon } from "./folder-access-icon";
+import { useFolderPermissionsPanel } from "./folder-permissions-panel";
 
-type FolderSummary = Pick<Folder, "id" | "name" | "accessLevel">;
+type FolderSummary = Pick<Folder, "id" | "name" | "accessLevel" | "linkCount">;
 
 const allLinksOverview: FolderSummary = {
   id: "unsorted",
   name: "Links",
   accessLevel: "edit",
+  linkCount: -1,
 };
 
 export const FolderSwitcher = () => {
@@ -233,6 +235,9 @@ const FolderActions = ({
     onDelete,
   );
 
+  const { folderPermissionsPanel, setShowFolderPermissionsPanel } =
+    useFolderPermissionsPanel(folder);
+
   useKeyboardShortcut(["r", "m", "x", "a"], (e) => {
     setOpenPopover(false);
     switch (e.key) {
@@ -245,7 +250,7 @@ const FolderActions = ({
         }
         break;
       case "m":
-        router.push(`/settings/library/folders/${folder.id}/members`);
+        setShowFolderPermissionsPanel(true);
         break;
       case "x":
         if (canUpdateFolder) {
@@ -259,6 +264,7 @@ const FolderActions = ({
     <>
       <RenameFolderModal />
       <DeleteFolderModal />
+      {folderPermissionsPanel}
       <Popover
         content={
           <div className="grid w-full gap-px p-2 sm:w-48">
@@ -295,7 +301,7 @@ const FolderActions = ({
               variant="outline"
               onClick={() => {
                 setOpenPopover(false);
-                router.push(`/settings/library/folders/${folder.id}/members`);
+                setShowFolderPermissionsPanel(true);
               }}
               icon={<Users className="h-4 w-4" />}
               shortcut="M"

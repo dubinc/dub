@@ -21,6 +21,7 @@ import { useDeleteFolderModal } from "../modals/delete-folder-modal";
 import { useRenameFolderModal } from "../modals/rename-folder-modal";
 import { Chart, Delete, ThreeDots } from "../shared/icons";
 import { FolderAccessIcon } from "./folder-access-icon";
+import { useFolderPermissionsPanel } from "./folder-permissions-panel";
 import { FolderEditAccessRequestButton } from "./request-edit-button";
 
 export const FolderCard = ({ folder }: { folder: Folder }) => {
@@ -42,6 +43,9 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
   const { DeleteFolderModal, setShowDeleteFolderModal } =
     useDeleteFolderModal(folder);
 
+  const { folderPermissionsPanel, setShowFolderPermissionsPanel } =
+    useFolderPermissionsPanel(folder);
+
   const isAllLinksFolder = folder.id === "unsorted";
 
   useKeyboardShortcut(
@@ -58,7 +62,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
           }
           break;
         case "m":
-          router.push(`/settings/library/folders/${folder.id}/members`);
+          setShowFolderPermissionsPanel(true);
           break;
         case "x":
           if (canUpdateFolder) {
@@ -76,8 +80,9 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
     <>
       <RenameFolderModal />
       <DeleteFolderModal />
+      {folderPermissionsPanel}
       <div
-        className="hover:drop-shadow-card-hover rounded-xl border border-gray-200 bg-white px-5 py-4 sm:h-36"
+        className="hover:drop-shadow-card-hover flex flex-col justify-between rounded-xl border border-gray-200 bg-white px-5 py-4 sm:h-36"
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       >
@@ -129,9 +134,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
                       variant="outline"
                       onClick={() => {
                         setOpenPopover(false);
-                        router.push(
-                          `/settings/library/folders/${folder.id}/members`,
-                        );
+                        setShowFolderPermissionsPanel(true);
                       }}
                       icon={<Users className="h-4 w-4" />}
                       shortcut="M"
@@ -170,7 +173,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
           )}
         </div>
 
-        <div className="sm:mt-6">
+        <div>
           <span className="inline-flex items-center justify-start gap-1.5 truncate text-sm font-medium text-gray-900">
             {folder.name}
 
