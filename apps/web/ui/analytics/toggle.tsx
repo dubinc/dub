@@ -537,27 +537,23 @@ export default function Toggle({
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },
-      ...(key && domain
-        ? [
-            {
-              key: "url",
-              icon: LinkBroken,
-              label: "Destination URL",
-              getOptionIcon: (_, props) => (
-                <LinkLogo
-                  apexDomain={getApexDomain(props.option?.data?.url)}
-                  className="size-4 sm:size-4"
-                />
-              ),
-              options:
-                urls?.map(({ url, count }) => ({
-                  value: url,
-                  label: url.replace(/^https?:\/\//, "").replace(/\/$/, ""),
-                  right: nFormatter(count, { full: true }),
-                })) ?? null,
-            },
-          ]
-        : []),
+      {
+        key: "url",
+        icon: LinkBroken,
+        label: "Destination URL",
+        getOptionIcon: (_, props) => (
+          <LinkLogo
+            apexDomain={getApexDomain(props.option?.value)}
+            className="size-4 sm:size-4"
+          />
+        ),
+        options:
+          urls?.map(({ url, count }) => ({
+            value: url,
+            label: url.replace(/^https?:\/\//, "").replace(/\/$/, ""),
+            right: nFormatter(count, { full: true }),
+          })) ?? null,
+      },
     ],
     [
       isPublicStatsPage,
