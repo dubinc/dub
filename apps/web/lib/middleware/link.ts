@@ -93,8 +93,8 @@ export default async function LinkMiddleware(
     ev.waitUntil(
       linkCache.set({
         link,
-        domain: domain,
-        key: key,
+        domain,
+        key,
       }),
     );
   }

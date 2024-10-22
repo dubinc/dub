@@ -37,23 +37,21 @@ class LinkCache {
     domain: string;
     key: string;
   }) {
-    const cacheKey = `${domain}:${key}`.toLowerCase();
-
-    return await redis.set(cacheKey, JSON.stringify(link), {
-      ex: CACHE_EXPIRATION,
-    });
+    return await redis.set(
+      this._createKey({ domain, key }),
+      JSON.stringify(link),
+      {
+        ex: CACHE_EXPIRATION,
+      },
+    );
   }
 
   async get({ domain, key }: Pick<LinkProps, "domain" | "key">) {
-    const cacheKey = `${domain}:${key}`.toLowerCase();
-
-    return await redis.get<RedisLinkProps>(cacheKey);
+    return await redis.get<RedisLinkProps>(this._createKey({ domain, key }));
   }
 
   async delete({ domain, key }: Pick<LinkProps, "domain" | "key">) {
-    const cacheKey = `${domain}:${key}`.toLowerCase();
-
-    return await redis.del(cacheKey);
+    return await redis.del(this._createKey({ domain, key }));
   }
 
   async deleteMany(links: Pick<LinkProps, "domain" | "key">[]) {
@@ -64,7 +62,7 @@ class LinkCache {
     const pipeline = redis.pipeline();
 
     links.forEach(({ domain, key }) => {
-      pipeline.del(`${domain}:${key}`.toLowerCase());
+      pipeline.del(this._createKey({ domain, key }));
     });
 
     return await pipeline.exec();
@@ -80,13 +78,17 @@ class LinkCache {
     const pipeline = redis.pipeline();
 
     links.forEach(({ domain, key }) => {
-      const oldCacheKey = `${oldDomain}:${key}`.toLowerCase();
-      const newCacheKey = `${domain}:${key}`.toLowerCase();
+      const oldCacheKey = this._createKey({ domain: oldDomain, key });
+      const newCacheKey = this._createKey({ domain, key });
 
       pipeline.rename(oldCacheKey, newCacheKey);
     });
 
     return await pipeline.exec();
+  }
+
+  _createKey({ domain, key }: Pick<LinkProps, "domain" | "key">) {
+    return `${domain}:${key}`.toLowerCase();
   }
 }
 
