@@ -1,5 +1,10 @@
-import { Button, Popover, Switch, useRouterStuff } from "@dub/ui";
-import { useKeyboardShortcut } from "@dub/ui/src";
+import {
+  Button,
+  Popover,
+  Switch,
+  useKeyboardShortcut,
+  useRouterStuff,
+} from "@dub/ui";
 import {
   ArrowsOppositeDirectionY,
   BoxArchive,
