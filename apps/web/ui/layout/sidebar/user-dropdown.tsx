@@ -1,7 +1,6 @@
 "use client";
 
-import { Avatar, Badge, Popover } from "@dub/ui";
-import { Gear, Icon } from "@dub/ui/src";
+import { Avatar, Badge, Gear, Icon, Popover } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Cookies from "js-cookie";
 import { Edit3, LogOut } from "lucide-react";
