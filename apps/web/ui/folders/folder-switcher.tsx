@@ -82,7 +82,7 @@ export const FolderSwitcher = () => {
   }
 
   return (
-    <>
+    <div className="flex items-center">
       <AddFolderModal />
 
       {!isAllLinksFolderSelected && (
@@ -110,8 +110,8 @@ export const FolderSwitcher = () => {
         setOpenPopover={setOpenPopover}
         align="start"
       >
-        <button className="group -my-1 flex items-center gap-2 rounded-lg py-1 pl-2 pr-1 transition-colors duration-75 hover:bg-gray-100 data-[state=open]:bg-gray-200">
-          <h1 className="text-xl font-semibold leading-7 text-neutral-900 md:text-2xl">
+        <button className="group -my-1 flex min-w-0 items-center gap-2 rounded-lg py-1 pl-2 pr-1 transition-colors duration-75 hover:bg-gray-100 data-[state=open]:bg-gray-200">
+          <h1 className="min-w-0 truncate text-left text-xl font-semibold leading-7 text-neutral-900 md:text-2xl">
             {selectedFolder?.name}
           </h1>
           <ChevronsUpDown
@@ -127,7 +127,7 @@ export const FolderSwitcher = () => {
           onDelete={() => onFolderSelect(allLinksOverview)}
         />
       )}
-    </>
+    </div>
   );
 };
 
@@ -176,11 +176,11 @@ const FolderList = ({
           >
             <FolderAccessIcon folder={folder} withBorder={false} />
             <span
-              className={`inline-flex items-center justify-start gap-1.5 truncate text-sm sm:max-w-[140px] ${
+              className={`flex items-center justify-start gap-1.5 text-sm sm:max-w-[140px] ${
                 selectedFolder?.id === folder.id ? "font-medium" : "font-normal"
               }`}
             >
-              {folder.name}
+              <span className="truncate">{folder.name}</span>
 
               {folder.id === "unsorted" && (
                 <div className="rounded bg-gray-100 p-1">

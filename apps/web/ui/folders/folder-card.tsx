@@ -174,8 +174,8 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
         </div>
 
         <div>
-          <span className="inline-flex items-center justify-start gap-1.5 truncate text-sm font-medium text-gray-900">
-            {folder.name}
+          <span className="flex items-center justify-start gap-1.5 truncate text-sm font-medium text-gray-900">
+            <span className="truncate">{folder.name}</span>
 
             {folder.id === "unsorted" && (
               <div className="rounded bg-gray-100 p-1">

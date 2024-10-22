@@ -16,10 +16,10 @@ export function PageContent({
     <div className="bg-neutral-100 md:bg-white">
       <MaxWidthWrapper className={cn("mt-3", hasTitle && "md:mt-6 md:py-3")}>
         <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex min-w-0 items-center gap-4">
             <NavButton />
             {hasTitle && (
-              <TitleComponent className="text-xl font-semibold leading-7 text-neutral-900 md:text-2xl">
+              <TitleComponent className="min-w-0 text-xl font-semibold leading-7 text-neutral-900 md:text-2xl">
                 {title}
               </TitleComponent>
             )}
