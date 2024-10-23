@@ -16,4 +16,4 @@ declare global {
 
 if (process.env.NODE_ENV === "development") global.prisma = prisma;
 
-console.log("Prisma loaded from @dub/prisma");
+export * from "@prisma/client";
