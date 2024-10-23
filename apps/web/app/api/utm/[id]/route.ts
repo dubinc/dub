@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@dub/prisma";
 import { updateUTMTemplateBodySchema } from "@/lib/zod/schemas/utm";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // PATCH /api/utm/[id] – update a UTM template

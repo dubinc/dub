@@ -2,8 +2,8 @@ import { DubApiError } from "@/lib/api/errors";
 import { validateScopesForRole } from "@/lib/api/tokens/scopes";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@dub/prisma";
 import { tokenSchema, updateTokenSchema } from "@/lib/zod/schemas/token";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/tokens/:id - get info about a specific token

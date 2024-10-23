@@ -1,7 +1,7 @@
 "use server";
 
-import { prisma } from "@dub/prisma";
 import { ratelimit } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
 import { randomBytes } from "crypto";
 import { sendEmail } from "emails";
 import ResetPasswordLink from "emails/reset-password-link";

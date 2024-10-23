@@ -2,8 +2,8 @@ import { DubApiError } from "@/lib/api/errors";
 import { createLink } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
 import { registerDomain } from "@/lib/dynadot/register-domain";
-import { prisma } from "@dub/prisma";
 import { WorkspaceWithUsers } from "@/lib/types";
+import { prisma } from "@dub/prisma";
 import {
   ACME_WORKSPACE_ID,
   APP_DOMAIN_WITH_NGROK,

@@ -3,11 +3,11 @@ import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
 import { dub } from "@/lib/dub";
 import { getFeatureFlags } from "@/lib/edge-config";
-import { prisma } from "@dub/prisma";
 import {
   WorkspaceSchema,
   updateWorkspaceSchema,
 } from "@/lib/zod/schemas/workspaces";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 

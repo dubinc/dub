@@ -1,8 +1,8 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody, ratelimitOrThrow } from "@/lib/api/utils";
 import { hashPassword } from "@/lib/auth/password";
-import { prisma } from "@dub/prisma";
 import { resetPasswordSchema } from "@/lib/zod/schemas/auth";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
 import PasswordUpdated from "emails/password-updated";

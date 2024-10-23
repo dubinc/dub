@@ -68,12 +68,6 @@ importers:
       '@planetscale/database':
         specifier: ^1.18.0
         version: 1.18.0
-      '@prisma/adapter-planetscale':
-        specifier: 5.18.0
-        version: 5.18.0(@planetscale/database@1.18.0)
-      '@prisma/client':
-        specifier: 5.18.0
-        version: 5.18.0(prisma@5.18.0)
       '@radix-ui/react-hover-card':
         specifier: ^1.1.1
         version: 1.1.1(@types/react-dom@18.2.14)(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)
@@ -390,9 +384,6 @@ importers:
       postcss-import:
         specifier: ^15.1.0
         version: 15.1.0(postcss@8.4.31)
-      prisma:
-        specifier: 5.18.0
-        version: 5.18.0
       tailwindcss:
         specifier: ^3.4.4
         version: 3.4.4

@@ -1,7 +1,7 @@
 "use server";
 
-import { prisma } from "@dub/prisma";
 import { ratelimit, redis } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
 import { sendEmail } from "emails";
 import VerifyEmail from "emails/verify-email";
 import { flattenValidationErrors } from "next-safe-action";

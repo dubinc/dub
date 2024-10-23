@@ -1,11 +1,11 @@
 import { deleteDomainAndLinks } from "@/lib/api/domains";
 import { dub } from "@/lib/dub";
-import { prisma } from "@dub/prisma";
 import { storage } from "@/lib/storage";
 import { cancelSubscription } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
 import { WorkspaceProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
 import {
   DUB_DOMAINS_ARRAY,
   LEGAL_USER_ID,

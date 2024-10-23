@@ -1,5 +1,4 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { prisma } from "@dub/prisma";
 import {
   AddOns,
   BetaFeatures,
@@ -7,6 +6,7 @@ import {
   WorkspaceWithUsers,
 } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";

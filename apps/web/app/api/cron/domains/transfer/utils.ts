@@ -1,6 +1,5 @@
-import { prisma } from "@dub/prisma";
 import { formatRedisLink, redis } from "@/lib/upstash";
-import { Link } from "@prisma/client";
+import { Link, prisma } from "@dub/prisma";
 import { sendEmail } from "emails";
 import DomainTransferred from "emails/domain-transferred";
 

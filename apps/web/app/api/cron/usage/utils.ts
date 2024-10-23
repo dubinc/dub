@@ -2,8 +2,8 @@ import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { qstash } from "@/lib/cron";
 import { limiter } from "@/lib/cron/limiter";
 import { sendLimitEmail } from "@/lib/cron/send-limit-email";
-import { prisma } from "@dub/prisma";
 import { WorkspaceProps } from "@/lib/types";
+import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
   capitalize,

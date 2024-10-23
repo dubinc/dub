@@ -2,8 +2,8 @@ import { exceededLimitError } from "@/lib/api/errors";
 import { propagateBulkLinkChanges } from "@/lib/api/links/propagate-bulk-link-changes";
 import { updateLinksUsage } from "@/lib/api/links/update-links-usage";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@dub/prisma";
 import { SimpleLinkProps } from "@/lib/types";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // POST /api/links/sync – sync user's publicly created links to their accounts

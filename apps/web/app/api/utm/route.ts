@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@dub/prisma";
 import { createUTMTemplateBodySchema } from "@/lib/zod/schemas/utm";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/utm - get all UTM templates for a workspace

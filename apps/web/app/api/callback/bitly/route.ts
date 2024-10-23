@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
 import { redis } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
 import { APP_DOMAIN, APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 

@@ -1,9 +1,9 @@
 import { qstash } from "@/lib/cron";
-import { prisma } from "@dub/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
+import { Prisma, prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
   R2_URL,
@@ -11,7 +11,6 @@ import {
   truncate,
 } from "@dub/utils";
 import { linkConstructorSimple } from "@dub/utils/src/functions/link-constructor";
-import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { updateLinksUsage } from "./update-links-usage";
 import { combineTagIds, transformLink } from "./utils";

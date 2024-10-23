@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
 import EmptyState from "@/ui/shared/empty-state";
+import { prisma } from "@dub/prisma";
 import { InputPassword } from "@dub/ui";
 import { ResetPasswordForm } from "./form";
 

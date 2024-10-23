@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
 import AddEditIntegrationForm from "@/ui/oauth-apps/add-edit-integration-form";
+import { prisma } from "@dub/prisma";
 import { MaxWidthWrapper } from "@dub/ui";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";

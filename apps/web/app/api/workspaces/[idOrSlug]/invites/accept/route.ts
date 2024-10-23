@@ -1,7 +1,7 @@
 import { exceededLimitError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
-import { prisma } from "@dub/prisma";
 import { PlanProps } from "@/lib/types";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // POST /api/workspaces/[idOrSlug]/invites/accept – accept a workspace invite

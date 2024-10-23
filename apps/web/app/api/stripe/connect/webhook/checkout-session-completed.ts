@@ -1,10 +1,9 @@
-import { prisma } from "@dub/prisma";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
+import { Customer, prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
-import { Customer } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 

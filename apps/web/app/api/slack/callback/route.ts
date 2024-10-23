@@ -3,15 +3,14 @@ import { getSession } from "@/lib/auth";
 import { installIntegration } from "@/lib/integrations/install";
 import { getSlackEnv } from "@/lib/integrations/slack/env";
 import { SlackCredential } from "@/lib/integrations/slack/type";
-import { prisma } from "@dub/prisma";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
+import { prisma, Project } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
   getSearchParams,
   SLACK_INTEGRATION_ID,
 } from "@dub/utils";
-import { Project } from "@prisma/client";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";

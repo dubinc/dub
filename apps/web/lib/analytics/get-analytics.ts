@@ -1,7 +1,7 @@
 import { tb } from "@/lib/tinybird";
+import { prismaEdge } from "@dub/prisma/edge";
 import { getDaysDifference, linkConstructor, punyEncode } from "@dub/utils";
 import { conn } from "../planetscale";
-import { prismaEdge } from "@dub/prisma/edge";
 import { tbDemo } from "../tinybird/demo-client";
 import z from "../zod";
 import { analyticsFilterTB } from "../zod/schemas/analytics";

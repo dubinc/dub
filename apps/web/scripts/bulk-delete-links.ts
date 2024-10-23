@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
 import { recordLink } from "@/lib/tinybird";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 const domain = "song.fyi";

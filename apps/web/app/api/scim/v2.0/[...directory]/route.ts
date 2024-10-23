@@ -1,11 +1,11 @@
 import { inviteUser } from "@/lib/api/users";
 import jackson from "@/lib/jackson";
-import { prisma } from "@dub/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import type {
   DirectorySyncEvent,
   DirectorySyncRequest,
 } from "@boxyhq/saml-jackson";
+import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { NextResponse } from "next/server";
 

@@ -1,4 +1,4 @@
-import { Link } from "@prisma/client";
+import { Link } from "@dub/prisma";
 import { expectedLink } from "tests/utils/schema";
 import { afterAll, describe, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";

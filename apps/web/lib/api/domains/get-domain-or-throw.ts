@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
 import { WorkspaceWithUsers } from "@/lib/types";
+import { prisma } from "@dub/prisma";
 import { DUB_WORKSPACE_ID, isDubDomain } from "@dub/utils";
 import { DubApiError } from "../errors";
 

@@ -1,6 +1,6 @@
 import { getSession } from "@/lib/auth";
-import { prisma } from "@dub/prisma";
 import EmptyState from "@/ui/shared/empty-state";
+import { prisma } from "@dub/prisma";
 import { LoadingSpinner } from "@dub/ui";
 import { LinkBroken, Users6 } from "@dub/ui/src/icons";
 import { APP_NAME } from "@dub/utils";

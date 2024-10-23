@@ -1,7 +1,7 @@
 import { bulkCreateLinks } from "@/lib/api/links";
-import { prisma } from "@dub/prisma";
 import { ProcessedLinkProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 const domain = "xxx";

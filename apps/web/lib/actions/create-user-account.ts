@@ -1,7 +1,7 @@
 "use server";
 
-import { prisma } from "@dub/prisma";
 import { ratelimit } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
 import { flattenValidationErrors } from "next-safe-action";
 import { getIP } from "../api/utils";
 import { hashPassword } from "../auth/password";

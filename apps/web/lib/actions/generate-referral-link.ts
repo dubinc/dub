@@ -1,9 +1,9 @@
 "use server";
 
+import { prisma } from "@dub/prisma";
 import { linkConstructor } from "@dub/utils";
 import { z } from "zod";
 import { dub } from "../dub";
-import { prisma } from "../prisma";
 import { authActionClient } from "./safe-action";
 
 // Generate a referral link for a workspace

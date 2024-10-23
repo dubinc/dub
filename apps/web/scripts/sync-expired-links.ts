@@ -1,6 +1,6 @@
-import { prisma } from "@dub/prisma";
 import { RedisLinkProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
 

@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
 import z from "@/lib/zod";
+import { prisma } from "@dub/prisma";
 import { DubApiError } from "../api/errors";
 import { DYNADOT_API_KEY, DYNADOT_BASE_URL } from "./constants";
 

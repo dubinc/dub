@@ -1,5 +1,4 @@
-import { prisma } from "@dub/prisma";
-import { User } from "@prisma/client";
+import { prisma, User } from "@dub/prisma";
 import { MAX_LOGIN_ATTEMPTS } from "./constants";
 
 export const incrementLoginAttempts = async (

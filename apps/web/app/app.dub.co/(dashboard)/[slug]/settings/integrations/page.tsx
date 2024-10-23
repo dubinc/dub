@@ -1,6 +1,6 @@
-import { prisma } from "@dub/prisma";
 import IntegrationCard from "@/ui/integrations/integration-card";
 import OAuthAppPlaceholder from "@/ui/oauth-apps/oauth-app-placeholder";
+import { prisma } from "@dub/prisma";
 import { Suspense } from "react";
 import IntegrationsPageHeader from "./page-header";
 

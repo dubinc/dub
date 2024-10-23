@@ -5,8 +5,8 @@ import {
 } from "@/lib/api/domains";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@dub/prisma";
 import { DomainVerificationStatusProps } from "@/lib/types";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 export const maxDuration = 30;

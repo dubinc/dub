@@ -1,6 +1,6 @@
-import { prisma } from "@dub/prisma";
 import z from "@/lib/zod";
 import { getLinksCountQuerySchema } from "@/lib/zod/schemas/links";
+import { prisma } from "@dub/prisma";
 import { combineTagIds } from "./utils";
 
 export async function getLinksCount({

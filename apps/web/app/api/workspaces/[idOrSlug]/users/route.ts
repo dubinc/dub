@@ -1,9 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfNoAccess } from "@/lib/api/tokens/permissions";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@dub/prisma";
 import { roles } from "@/lib/types";
 import z from "@/lib/zod";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 const updateRoleSchema = z.object({

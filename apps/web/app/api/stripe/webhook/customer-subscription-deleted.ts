@@ -1,6 +1,6 @@
-import { prisma } from "@dub/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
 import { FREE_PLAN, log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
