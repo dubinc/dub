@@ -10,9 +10,9 @@
     "script": "tsx ./scripts/run.ts",
     "test": "vitest -no-file-parallelism",
     "generate-openapi": "tsx ./scripts/generate-openapi.ts",
-    "prisma:generate": "pnpm run --filter=@dub/prisma prisma:generate",
-    "prisma:push": "dotenv-flow -e .env -- pnpm run --filter=@dub/prisma prisma:push",
-    "prisma:studio": "dotenv-flow -e .env -- pnpm run --filter=@dub/prisma prisma:studio"
+    "prisma:generate": "pnpm run --filter=@dub/prisma generate",
+    "prisma:push": "pnpm run --filter=@dub/prisma push",
+    "prisma:studio": "pnpm run --filter=@dub/prisma studio"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^0.0.51",
@@ -65,7 +65,6 @@
     "csv-parse": "^5.5.6",
     "d3-array": "^3.2.4",
     "date-fns": "^3.6.0",
-    "dotenv-flow-cli": "^1.1.1",
     "dub": "^0.43.4",
     "framer-motion": "^10.16.16",
     "fuse.js": "^6.6.2",

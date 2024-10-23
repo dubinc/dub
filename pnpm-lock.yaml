@@ -182,9 +182,6 @@ importers:
       date-fns:
         specifier: ^3.6.0
         version: 3.6.0
-      dotenv-flow-cli:
-        specifier: ^1.1.1
-        version: 1.1.1
       dub:
         specifier: ^0.43.4
         version: 0.43.4(zod@3.22.4)
@@ -567,6 +564,12 @@ importers:
       '@types/node':
         specifier: 18.11.9
         version: 18.11.9
+      dotenv-flow:
+        specifier: ^4.0.0
+        version: 4.0.0
+      dotenv-flow-cli:
+        specifier: ^1.1.1
+        version: 1.1.1
       prisma:
         specifier: 5.18.0
         version: 5.18.0
@@ -12490,7 +12493,7 @@ packages:
     engines: {node: '>=12'}
     dependencies:
       dotenv: 16.4.5
-    dev: false
+    dev: true
 
   /dotenv-flow-cli@1.1.1:
     resolution: {integrity: sha512-r2Ij1fAqHSownUugXAmdqtgJ6pyXTuPIJFY+y4sWnwSoelBkdCEgttaremc5gdjwXjdUQqNOzonIYl/Wx69OOg==}
@@ -12500,13 +12503,14 @@ packages:
       dotenv-expand: 11.0.6
       dotenv-flow: 4.0.0
       minimist: 1.2.8
-    dev: false
+    dev: true
 
   /dotenv-flow@4.0.0:
     resolution: {integrity: sha512-AzPaV3wNy14qLbaN/S70VHxiJaz3mI/r8mm6oD+6lPmq3qJFBw2+MUBXWujUujQ5PqtRa9v/hEWBEePSWlTRGg==}
     engines: {node: '>= 12.0.0'}
     dependencies:
       dotenv: 16.3.1
+    dev: true
 
   /dotenv@16.0.3:
     resolution: {integrity: sha512-7GO6HghkA5fYG9TYnNxi14/7K9f5occMlp3zXAuSxn7CKCxt9xbNWG7yF8hTCSUchlfWSe3uLmlPfigevRItzQ==}
@@ -12516,11 +12520,11 @@ packages:
   /dotenv@16.3.1:
     resolution: {integrity: sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==}
     engines: {node: '>=12'}
+    dev: true
 
   /dotenv@16.4.5:
     resolution: {integrity: sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==}
     engines: {node: '>=12'}
-    dev: false
 
   /dub@0.43.0(zod@3.23.8):
     resolution: {integrity: sha512-PxS0165fQqeMNDYdSbAAxc69WphtonAyVWh3IVbM0isdGfOeTNIX9gqqZ8ZZORr5/L4CVnipnip3+PRIlVu5Rg==}
@@ -17204,7 +17208,6 @@ packages:
 
   /minimist@1.2.8:
     resolution: {integrity: sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==}
-    dev: false
 
   /minipass@7.0.4:
     resolution: {integrity: sha512-jYofLM5Dam9279rdkWzqHozUo4ybjdZmCsDHePy5V/PbBcVMiSZR97gmAy45aqi8CK1lG2ECd356FU86avfwUQ==}
@@ -21433,7 +21436,7 @@ packages:
       cli-highlight: 2.1.11
       dayjs: 1.11.10
       debug: 4.3.4
-      dotenv: 16.3.1
+      dotenv: 16.4.5
       glob: 10.3.12
       mkdirp: 2.1.6
       mongodb: 6.6.0(@aws-sdk/credential-providers@3.569.0)
