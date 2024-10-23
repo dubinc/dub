@@ -11,8 +11,8 @@
     "test": "vitest -no-file-parallelism",
     "generate-openapi": "tsx ./scripts/generate-openapi.ts",
     "prisma:generate": "pnpm run --filter=@dub/prisma generate",
-    "prisma:push": "pnpm run --filter=@dub/prisma push",
-    "prisma:studio": "pnpm run --filter=@dub/prisma studio"
+    "prisma:push": "dotenv-flow -e .env -- pnpm run --filter=@dub/prisma push",
+    "prisma:studio": "dotenv-flow -e .env -- pnpm run --filter=@dub/prisma studio"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^0.0.51",
@@ -140,7 +140,8 @@
     "typescript": "^5.4.4",
     "vite": "5.2.9",
     "vite-tsconfig-paths": "^4.3.2",
-    "vitest": "1.5.0"
+    "vitest": "1.5.0",
+    "dotenv-flow-cli": "^1.1.1"
   },
   "browser": {
     "crypto": false
