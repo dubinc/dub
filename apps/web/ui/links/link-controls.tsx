@@ -89,7 +89,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
         }).then(async () => {
           await mutate(
             (key) =>
-              typeof key === "string" && key.startsWith("/api/admin/links/ban"),
+              typeof key === "string" && key.startsWith("/api/admin/links"),
             undefined,
             { revalidate: true },
           );
