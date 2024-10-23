@@ -61,18 +61,18 @@ export function Modal({
           <Drawer.Overlay className="fixed inset-0 z-50 bg-gray-100 bg-opacity-10 backdrop-blur" />
           <Drawer.Content
             className={cn(
-              "fixed bottom-0 left-0 right-0 z-50 rounded-t-[10px] border-t border-gray-200 bg-white",
+              "fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-[10px] border-t border-gray-200 bg-white",
               className,
             )}
           >
-            <VisuallyHidden.Root>
-              <Drawer.Title>Modal</Drawer.Title>
-              <Drawer.Description>This is a modal</Drawer.Description>
-            </VisuallyHidden.Root>
-            <div className="sticky top-0 z-20 flex w-full items-center justify-center rounded-t-[10px] bg-inherit">
-              <div className="my-3 h-1 w-12 rounded-full bg-gray-300" />
+            <div className="scrollbar-hide flex-1 overflow-y-auto rounded-t-[10px] bg-inherit">
+              <VisuallyHidden.Root>
+                <Drawer.Title>Modal</Drawer.Title>
+                <Drawer.Description>This is a modal</Drawer.Description>
+              </VisuallyHidden.Root>
+              <DrawerIsland />
+              {children}
             </div>
-            {children}
           </Drawer.Content>
           <Drawer.Overlay />
         </Drawer.Portal>
@@ -111,5 +111,13 @@ export function Modal({
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
+  );
+}
+
+function DrawerIsland() {
+  return (
+    <div className="sticky top-0 z-20 flex items-center justify-center rounded-t-[10px] bg-inherit">
+      <div className="my-3 h-1 w-12 rounded-full bg-gray-300" />
+    </div>
   );
 }
