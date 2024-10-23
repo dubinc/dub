@@ -20,6 +20,7 @@
     "@dub/tailwind-config": "workspace:*",
     "@dub/ui": "workspace:*",
     "@dub/utils": "workspace:*",
+    "@dub/prisma": "workspace:*",
     "@hookform/resolvers": "^3.9.0",
     "@next-auth/prisma-adapter": "^1.0.5",
     "@planetscale/database": "^1.18.0",

@@ -1,0 +1,23 @@
+{
+  "name": "@dub/prisma",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "license": "MIT",
+  "scripts": {
+    "prisma:generate": "npx prisma generate --schema=./schema",
+    "prisma:push": "npx prisma db push --schema=./schema",
+    "prisma:studio": "npx prisma studio --schema=./schema --browser none"
+  },
+  "dependencies": {
+    "@planetscale/database": "^1.18.0",
+    "@prisma/adapter-planetscale": "^5.18.0",
+    "@prisma/client": "5.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "18.11.9",
+    "prisma": "5.18.0",
+    "tsx": "^4.11.0",
+    "typescript": "5.2.2"
+  }
+}
