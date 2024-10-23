@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { webhookCache } from "@/lib/webhook/cache";
 import { transformWebhook } from "@/lib/webhook/transform";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";

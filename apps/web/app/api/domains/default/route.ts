@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import z from "@/lib/zod";
 import { getDefaultDomainsQuerySchema } from "@/lib/zod/schemas/domains";
 import { DUB_DOMAINS_ARRAY } from "@dub/utils";

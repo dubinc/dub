@@ -1,5 +1,5 @@
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { getWebhookEvents } from "@/lib/tinybird/get-webhook-events";
 import { NextResponse } from "next/server";
 

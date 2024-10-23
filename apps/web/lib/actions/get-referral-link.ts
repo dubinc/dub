@@ -1,7 +1,7 @@
 "use server";
 
 import { dub } from "@/lib/dub";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 
 export const getReferralLink = async (slug: string) => {
   const workspace = await prisma.project.findUnique({

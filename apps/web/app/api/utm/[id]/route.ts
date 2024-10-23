@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { updateUTMTemplateBodySchema } from "@/lib/zod/schemas/utm";
 import { NextResponse } from "next/server";
 

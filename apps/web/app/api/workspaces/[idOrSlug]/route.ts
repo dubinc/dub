@@ -3,7 +3,7 @@ import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
 import { dub } from "@/lib/dub";
 import { getFeatureFlags } from "@/lib/edge-config";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import {
   WorkspaceSchema,
   updateWorkspaceSchema,

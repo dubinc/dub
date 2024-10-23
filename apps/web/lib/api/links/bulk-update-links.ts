@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { isStored, storage } from "@/lib/storage";
 import z from "@/lib/zod";
 import { bulkUpdateLinksBodySchema } from "@/lib/zod/schemas/links";

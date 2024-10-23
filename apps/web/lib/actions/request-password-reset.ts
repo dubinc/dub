@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { ratelimit } from "@/lib/upstash";
 import { randomBytes } from "crypto";
 import { sendEmail } from "emails";

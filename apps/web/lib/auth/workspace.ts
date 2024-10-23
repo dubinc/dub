@@ -1,5 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import {
   AddOns,
   BetaFeatures,

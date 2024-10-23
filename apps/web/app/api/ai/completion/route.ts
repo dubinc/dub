@@ -1,6 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
-import { prismaEdge } from "@/lib/prisma/edge";
+import { prismaEdge } from "@dub/prisma/edge";
 import z from "@/lib/zod";
 import { anthropic } from "@ai-sdk/anthropic";
 import { waitUntil } from "@vercel/functions";

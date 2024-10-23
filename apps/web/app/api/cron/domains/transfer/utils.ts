@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import { Link } from "@prisma/client";
 import { sendEmail } from "emails";

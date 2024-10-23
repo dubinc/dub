@@ -3,7 +3,7 @@ import { OAUTH_CONFIG } from "@/lib/api/oauth/constants";
 import { createToken } from "@/lib/api/oauth/utils";
 import { hashToken } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import z from "@/lib/zod";
 import { refreshTokenSchema } from "@/lib/zod/schemas/oauth";
 import { getCurrentPlan } from "@dub/utils";

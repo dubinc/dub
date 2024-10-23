@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withSession } from "@/lib/auth";
 import { hashPassword, validatePassword } from "@/lib/auth/password";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { updatePasswordSchema } from "@/lib/zod/schemas/auth";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";

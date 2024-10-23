@@ -1,7 +1,7 @@
 import { claimDotLinkDomain } from "@/lib/api/domains/claim-dot-link-domain";
 import { inviteUser } from "@/lib/api/users";
 import { limiter } from "@/lib/cron/limiter";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { stripe } from "@/lib/stripe";
 import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";

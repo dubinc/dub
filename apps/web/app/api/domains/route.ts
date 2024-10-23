@@ -3,7 +3,7 @@ import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { createLink, transformLink } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import {
   DomainSchema,
   createDomainBodySchema,

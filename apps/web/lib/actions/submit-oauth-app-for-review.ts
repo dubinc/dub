@@ -1,7 +1,7 @@
 "use server";
 
 import { plain, upsertPlainCustomer } from "@/lib/plain";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { ComponentDividerSpacingSize } from "@team-plain/typescript-sdk";
 import { ratelimit } from "../upstash";
 import z from "../zod";

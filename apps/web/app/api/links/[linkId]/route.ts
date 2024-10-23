@@ -8,7 +8,7 @@ import {
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema, updateLinkBodySchema } from "@/lib/zod/schemas/links";

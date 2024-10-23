@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { webhookPayloadSchema } from "@/lib/webhook/schemas";
 import { WEBHOOK_TRIGGERS } from "../webhook/constants";
 import { publishWebhookEventToQStash } from "../webhook/qstash";

@@ -2,7 +2,7 @@ import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { DubApiError } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import z from "@/lib/zod";

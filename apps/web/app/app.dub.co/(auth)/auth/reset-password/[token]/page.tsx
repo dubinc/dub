@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import EmptyState from "@/ui/shared/empty-state";
 import { InputPassword } from "@dub/ui";
 import { ResetPasswordForm } from "./form";

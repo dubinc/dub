@@ -1,7 +1,7 @@
 import { deleteWorkspaceAdmin } from "@/lib/api/workspaces";
 import { withAdmin } from "@/lib/auth";
 import { updateConfig } from "@/lib/edge-config";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { unsubscribe } from "@/lib/resend";
 import { isStored, storage } from "@/lib/storage";
 import { R2_URL } from "@dub/utils";

@@ -1,6 +1,6 @@
 // @ts-nocheck – old migration script
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { redis } from "@/lib/upstash";
 import { isIframeable } from "@dub/utils";
 import "dotenv-flow/config";

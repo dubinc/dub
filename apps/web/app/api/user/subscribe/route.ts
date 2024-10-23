@@ -1,5 +1,5 @@
 import { withSession } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { subscribe, unsubscribe } from "@/lib/resend";
 import { NextResponse } from "next/server";
 

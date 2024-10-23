@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { validDomainRegex } from "@dub/utils";
 import { DubApiError } from "../errors";
 

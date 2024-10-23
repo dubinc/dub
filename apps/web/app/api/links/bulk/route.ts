@@ -11,7 +11,7 @@ import { bulkUpdateLinks } from "@/lib/api/links/bulk-update-links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { storage } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
 import {

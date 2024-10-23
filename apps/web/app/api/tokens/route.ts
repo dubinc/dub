@@ -3,7 +3,7 @@ import { scopesToName, validateScopesForRole } from "@/lib/api/tokens/scopes";
 import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { createTokenSchema, tokenSchema } from "@/lib/zod/schemas/token";
 import { getCurrentPlan, nanoid } from "@dub/utils";
 import { User } from "@prisma/client";

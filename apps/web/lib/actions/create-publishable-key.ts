@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import z from "../zod";
 import { authActionClient } from "./safe-action";

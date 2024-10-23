@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { getSession } from "./utils";
 

@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import EmptyState from "@/ui/shared/empty-state";
 import { LoadingSpinner } from "@dub/ui";
 import { LinkBroken, Users6 } from "@dub/ui/src/icons";

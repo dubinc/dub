@@ -3,7 +3,7 @@ import { getSession } from "@/lib/auth";
 import { installIntegration } from "@/lib/integrations/install";
 import { getSlackEnv } from "@/lib/integrations/slack/env";
 import { SlackCredential } from "@/lib/integrations/slack/type";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
 import {

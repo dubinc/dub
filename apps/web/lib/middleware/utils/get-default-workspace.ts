@@ -1,4 +1,4 @@
-import { prismaEdge } from "@/lib/prisma/edge";
+import { prismaEdge } from "@dub/prisma/edge";
 import { UserProps } from "@/lib/types";
 
 export async function getDefaultWorkspace(user: UserProps) {

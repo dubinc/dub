@@ -1,5 +1,5 @@
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { storage } from "@/lib/storage";
 import z from "@/lib/zod";
 import { R2_URL, nanoid } from "@dub/utils";

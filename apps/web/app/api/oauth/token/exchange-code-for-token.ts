@@ -4,7 +4,7 @@ import { createToken, generateCodeChallengeHash } from "@/lib/api/oauth/utils";
 import { hashToken } from "@/lib/auth";
 import { installIntegration } from "@/lib/integrations/install";
 import { generateRandomName } from "@/lib/names";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import z from "@/lib/zod";
 import { authCodeExchangeSchema } from "@/lib/zod/schemas/oauth";
 import { getCurrentPlan } from "@dub/utils";

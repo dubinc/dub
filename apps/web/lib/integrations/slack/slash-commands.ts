@@ -1,5 +1,5 @@
 import { createLink, processLink } from "@/lib/api/links";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import z from "@/lib/zod";
 import { createLinkBodySchema } from "@/lib/zod/schemas/links";

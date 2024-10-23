@@ -2,7 +2,7 @@ import { parse } from "@/lib/middleware/utils";
 import { DUB_WORKSPACE_ID } from "@dub/utils";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
-import { prismaEdge } from "../prisma/edge";
+import { prismaEdge } from "@dub/prisma/edge";
 import { UserProps } from "../types";
 
 export default async function AdminMiddleware(req: NextRequest) {

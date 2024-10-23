@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { unsubscribe } from "@/lib/resend";
 import { storage } from "@/lib/storage";
 import { R2_URL, nanoid, trim } from "@dub/utils";

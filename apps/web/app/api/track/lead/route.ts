@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { generateRandomName } from "@/lib/names";
-import { prismaEdge } from "@/lib/prisma/edge";
+import { prismaEdge } from "@dub/prisma/edge";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";

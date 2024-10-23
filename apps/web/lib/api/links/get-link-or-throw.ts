@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { WorkspaceWithUsers } from "@/lib/types";
 import { Link } from "@prisma/client";
 import { DubApiError } from "../errors";

@@ -2,7 +2,7 @@ import { addDomainToVercel } from "@/lib/api/domains";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks, createLink, processLink } from "@/lib/api/links";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { storage } from "@/lib/storage";
 import { ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";

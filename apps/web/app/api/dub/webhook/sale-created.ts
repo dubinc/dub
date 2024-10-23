@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { SaleCreatedEvent } from "dub/models/components";
 import { sendEmail } from "emails";
 import NewReferralSale from "emails/new-referral-sale";

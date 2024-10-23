@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { tb } from "@/lib/tinybird";
 import { Link } from "@prisma/client";
 import { transformLink } from "../api/links";

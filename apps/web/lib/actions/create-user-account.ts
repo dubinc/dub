@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { ratelimit } from "@/lib/upstash";
 import { flattenValidationErrors } from "next-safe-action";
 import { getIP } from "../api/utils";

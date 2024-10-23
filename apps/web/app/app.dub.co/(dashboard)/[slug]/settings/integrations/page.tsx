@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import IntegrationCard from "@/ui/integrations/integration-card";
 import OAuthAppPlaceholder from "@/ui/oauth-apps/oauth-app-placeholder";
 import { Suspense } from "react";

@@ -1,6 +1,6 @@
 import { deleteDomainAndLinks } from "@/lib/api/domains";
 import { dub } from "@/lib/dub";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { storage } from "@/lib/storage";
 import { cancelSubscription } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
