@@ -23,8 +23,8 @@ export default function Referer() {
   return (
     <AnalyticsCard
       tabs={[
-        { id: "referers", label: "Referers" },
-        { id: "referer_urls", label: "Referer URLs" },
+        { id: "referers", label: "Referrers" },
+        { id: "referer_urls", label: "Referrer URLs" },
       ]}
       selectedTabId={tab}
       onSelectTab={setTab}

@@ -75,6 +75,7 @@ export const DUB_DOMAINS = [
             "chillipiper.com",
             "hubspot.com",
             "savvycal.com",
+            "zcal.co",
           ],
           description:
             "Branded domain for your scheduling links (Cal.com, Calendly, etc.).",
