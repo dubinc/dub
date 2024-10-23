@@ -1,6 +1,6 @@
 import { LinkLogo, useRouterStuff } from "@dub/ui";
 import { getApexDomain } from "@dub/utils";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import { AnalyticsContext } from "./analytics-provider";
@@ -10,30 +10,30 @@ import { useAnalyticsFilterOption } from "./utils";
 export default function TopLinks() {
   const { queryParams } = useRouterStuff();
 
-  const { selectedTab, domain, key } = useContext(AnalyticsContext);
+  const { selectedTab } = useContext(AnalyticsContext);
   const dataKey = selectedTab === "sales" ? "saleAmount" : "count";
-  const showUrls = domain && key;
 
+  const [tab, setTab] = useState<"links" | "urls">("links");
   const data = useAnalyticsFilterOption({
-    groupBy: `top_${showUrls ? "urls" : "links"}`,
+    groupBy: `top_${tab}`,
   });
 
   return (
     <AnalyticsCard
-      tabs={
-        showUrls
-          ? [{ id: "urls", label: "URLs" }]
-          : [{ id: "links", label: "Links" }]
-      }
+      tabs={[
+        { id: "links", label: "Short Links" },
+        { id: "urls", label: "Destination URLs" },
+      ]}
       expandLimit={8}
       hasMore={(data?.length ?? 0) > 8}
-      selectedTabId={showUrls ? "urls" : "links"}
+      selectedTabId={tab}
+      onSelectTab={setTab}
     >
       {({ limit, setShowModal }) =>
         data ? (
           data.length > 0 ? (
             <BarList
-              tab={showUrls ? "url" : "link"}
+              tab={tab}
               data={
                 data
                   ?.map((d) => ({
@@ -44,11 +44,12 @@ export default function TopLinks() {
                       />
                     ),
                     title:
-                      (!showUrls && d["shortLink"] ? d["shortLink"] : d.url) ??
-                      "Unknown",
+                      (tab === "links" && d["shortLink"]
+                        ? d["shortLink"]
+                        : d.url) ?? "Unknown",
                     href: queryParams({
                       set: {
-                        ...(!showUrls
+                        ...(tab === "links"
                           ? { domain: d.domain, key: d.key || "_root" }
                           : {
                               url: d.url,
@@ -57,7 +58,7 @@ export default function TopLinks() {
                       getNewPath: true,
                     }) as string,
                     value: d[dataKey] || 0,
-                    ...(!showUrls && { linkData: d }),
+                    ...(tab === "links" && { linkData: d }),
                   }))
                   ?.sort((a, b) => b.value - a.value) || []
               }

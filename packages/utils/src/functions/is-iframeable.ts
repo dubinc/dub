@@ -6,11 +6,7 @@ export const isIframeable = async ({
   url: string;
   requestDomain: string;
 }) => {
-  const res = await fetch(url, {
-    headers: {
-      "User-Agent": "Dub.co Bot",
-    },
-  });
+  const res = await fetch(url);
 
   const xFrameOptions = res.headers.get("X-Frame-Options");
   if (xFrameOptions === "DENY" || xFrameOptions === "SAMEORIGIN") {
