@@ -7,6 +7,7 @@ datasource db {
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["fullTextSearch", "fullTextIndex", "driverAdapters", "prismaSchemaFolder", "omitApi"]
+  output          = "../node_modules/.prisma/client"
 }
 
 model User {
