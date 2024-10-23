@@ -5,11 +5,7 @@ import he from "he";
 import { parse } from "node-html-parser";
 
 export const getHtml = async (url: string) => {
-  return await fetchWithTimeout(url, {
-    headers: {
-      "User-Agent": "Dub.co Bot",
-    },
-  })
+  return await fetchWithTimeout(url)
     .then((r) => r.text())
     .catch(() => null);
 };

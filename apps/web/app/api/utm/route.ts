@@ -12,7 +12,7 @@ export const GET = withWorkspace(
         projectId: workspace.id,
       },
       orderBy: {
-        updatedAt: "desc",
+        name: "asc",
       },
       include: {
         user: true,

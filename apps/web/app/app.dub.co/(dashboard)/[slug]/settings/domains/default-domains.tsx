@@ -78,9 +78,7 @@ export function DefaultDomains() {
       </div>
       <div className="mt-2 grid grid-cols-1 gap-3">
         {DUB_DOMAINS.filter((domain) => {
-          if (domain.slug === "cal.link") {
-            return flags?.callink;
-          } else if (domain.slug === "loooooooo.ng") {
+          if (domain.slug === "loooooooo.ng") {
             return false;
           }
           return true;

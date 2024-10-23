@@ -60,7 +60,7 @@ export const transformLeadEventData = (data: any) => {
       email: lead.customerEmail,
       avatar:
         lead.customerAvatar ||
-        `https://api.dicebear.com/7.x/micah/svg?seed=${lead.customerId}`,
+        `https://api.dicebear.com/9.x/micah/svg?seed=${lead.customerId}`,
       createdAt: lead.customerCreatedAt,
     },
     click: {

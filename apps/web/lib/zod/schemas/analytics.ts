@@ -135,7 +135,10 @@ export const analyticsQuerySchema = z.object({
   os: z
     .string()
     .optional()
-    .transform((v) => capitalize(v) as string | undefined)
+    .transform((v) => {
+      if (v === "iOS") return "iOS";
+      return capitalize(v) as string | undefined;
+    })
     .describe("The OS to retrieve analytics for.")
     .openapi({ example: "Windows" }),
   trigger: z

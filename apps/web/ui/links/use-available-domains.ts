@@ -22,7 +22,10 @@ export function useAvailableDomains(
     allDomains,
     allWorkspaceDomains,
     loading,
-  } = useDomains(options.search ? { opts: { search: options.search } } : {});
+  } = useDomains({
+    ignoreParams: true,
+    opts: options.search ? { search: options.search } : undefined,
+  });
 
   const domains = useMemo(() => {
     if (options.onboarding) {
