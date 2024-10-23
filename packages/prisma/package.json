@@ -7,8 +7,7 @@
   "scripts": {
     "generate": "npx prisma generate --schema=./schema",
     "push": "npx prisma db push --schema=./schema",
-    "studio": "npx prisma studio --schema=./schema --browser none",
-    "build": "pnpm generate"
+    "studio": "npx prisma studio --schema=./schema --browser none"
   },
   "dependencies": {
     "@planetscale/database": "^1.18.0",

@@ -4,7 +4,7 @@
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "dev": "concurrently --kill-others \"pnpm run prisma:generate && next dev --turbo --port 8888\" \"pnpm run prisma:generate && pnpm run prisma:studio --browser none\" \"email dev --port 3333\"",
-    "build": "pnpm run prisma:generate & next build",
+    "build": "pnpm run prisma:generate && next build",
     "lint": "next lint",
     "start": "next start",
     "script": "tsx ./scripts/run.ts",
@@ -131,6 +131,7 @@
     "array-to-ndjson": "^1.0.1",
     "autoprefixer": "^10.4.16",
     "dotenv-flow": "^4.0.0",
+    "dotenv-flow-cli": "^1.1.1",
     "papaparse": "^5.4.1",
     "postcss": "^8.4.31",
     "postcss-import": "^15.1.0",
@@ -140,8 +141,7 @@
     "typescript": "^5.4.4",
     "vite": "5.2.9",
     "vite-tsconfig-paths": "^4.3.2",
-    "vitest": "1.5.0",
-    "dotenv-flow-cli": "^1.1.1"
+    "vitest": "1.5.0"
   },
   "browser": {
     "crypto": false
