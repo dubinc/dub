@@ -146,7 +146,7 @@ function AddEditTokenModal({
       <Modal
         showModal={showAddEditTokenModal}
         setShowModal={setShowAddEditTokenModal}
-        className="scrollbar-hide h-fit max-h-[95vh] overflow-auto"
+        className="h-fit max-h-[95vh]"
       >
         <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
           {logo ? (
