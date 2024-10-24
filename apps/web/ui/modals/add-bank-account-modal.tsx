@@ -17,8 +17,7 @@ interface AddBankAccountProps {
 type BankAccount = z.infer<typeof addBankAccountSchema>;
 
 interface AddBankAccountFormProps {
-  onCancel: () => void;
-  onSuccess: () => void;
+  closeModal: () => void;
 }
 
 const AddBankAccount = ({ showModal, setShowModal }: AddBankAccountProps) => {
@@ -32,20 +31,14 @@ const AddBankAccount = ({ showModal, setShowModal }: AddBankAccountProps) => {
         Add bank account
       </h3>
       <div className="scrollbar-hide mt-6 max-h-[calc(100dvh-200px)] overflow-auto overflow-y-scroll">
-        <AddBankAccountForm
-          onSuccess={() => setShowModal(false)}
-          onCancel={() => setShowModal(false)}
-        />
+        <AddBankAccountForm closeModal={() => setShowModal(false)} />
       </div>
     </Modal>
   );
 };
 
-const AddBankAccountForm = ({
-  onCancel,
-  onSuccess,
-}: AddBankAccountFormProps) => {
-  const { id: workspaceId } = useWorkspace();
+const AddBankAccountForm = ({ closeModal }: AddBankAccountFormProps) => {
+  const { id: workspaceId, mutate } = useWorkspace();
 
   const {
     register,
@@ -60,7 +53,8 @@ const AddBankAccountForm = ({
       toast.success(
         "Bank account added successfully. Waiting for verification.",
       );
-      onSuccess();
+      mutate();
+      closeModal();
     },
     onError({ error }) {
       toast.error(error.serverError?.serverError);
@@ -143,7 +137,7 @@ const AddBankAccountForm = ({
           variant="secondary"
           text="Cancel"
           className="h-9 w-fit"
-          onClick={onCancel}
+          onClick={closeModal}
         />
 
         <Button

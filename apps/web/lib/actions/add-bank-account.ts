@@ -1,7 +1,6 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { addAppAchAccount } from "../dots/add-app-ach-account";
 import { createDotsApp } from "../dots/create-dots-app";
@@ -51,8 +50,6 @@ export const addBankAccount = authActionClient
         maskedAccountNumber: achAccount.mask,
       },
     });
-
-    revalidatePath("/");
 
     return achAccount;
   });
