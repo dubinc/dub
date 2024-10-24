@@ -1,16 +1,16 @@
 import {
   addDomainToVercel,
-  deleteDomainAndLinks,
+  markDomainAsDeleted,
   removeDomainFromVercel,
   validateDomain,
 } from "@/lib/api/domains";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError } from "@/lib/api/errors";
+import { linkCache } from "@/lib/api/links/cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
-import { redis } from "@/lib/upstash";
 import {
   DomainSchema,
   updateDomainBodySchema,
@@ -100,12 +100,8 @@ export const PATCH = withWorkspace(
     waitUntil(
       (async () => {
         if (domainUpdated) {
-          await Promise.all([
-            // remove old domain from Vercel
-            removeDomainFromVercel(domain),
-            // rename redis key
-            redis.rename(domain.toLowerCase(), newDomain.toLowerCase()),
-          ]);
+          // remove old domain from Vercel
+          await removeDomainFromVercel(domain);
 
           const allLinks = await prisma.link.findMany({
             where: {
@@ -114,6 +110,12 @@ export const PATCH = withWorkspace(
             include: {
               tags: true,
             },
+          });
+
+          // rename redis keys
+          await linkCache.rename({
+            links: allLinks,
+            oldDomain: domain,
           });
 
           // update all links in Tinybird
@@ -155,7 +157,10 @@ export const DELETE = withWorkspace(
       });
     }
 
-    await deleteDomainAndLinks(domain);
+    await markDomainAsDeleted({
+      domain,
+      workspaceId: workspace.id,
+    });
 
     return NextResponse.json({ slug: domain });
   },
