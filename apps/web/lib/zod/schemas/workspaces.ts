@@ -112,6 +112,8 @@ export const WorkspaceSchema = z
       .string()
       .nullable()
       .describe("The publishable key of the workspace."),
+    bankAccountName: z.string().nullable(),
+    maskedAccountNumber: z.string().nullable(),
   })
   .openapi({
     title: "Workspace",

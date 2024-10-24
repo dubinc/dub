@@ -36,7 +36,10 @@ model Project {
   updatedAt        DateTime @updatedAt
   usageLastChecked DateTime @default(now())
   publishableKey   String?  @unique
-  dotsAppId        String?  @unique
+
+  dotsAppId           String? @unique
+  bankAccountName     String?
+  maskedAccountNumber String?
 
   users                 ProjectUsers[]
   invites               ProjectInvite[]
