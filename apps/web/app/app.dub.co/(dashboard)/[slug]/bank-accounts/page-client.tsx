@@ -3,6 +3,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useAddBankAccountModal } from "@/ui/modals/add-bank-account-modal";
 import { Badge, Button, MaxWidthWrapper } from "@dub/ui";
+import { CreditCard } from "lucide-react";
 
 export const BankAccountsClient = () => {
   const { bankAccountName, maskedAccountNumber, bankAccountVerified } =
@@ -18,7 +19,7 @@ export const BankAccountsClient = () => {
         <MaxWidthWrapper className="grid gap-5 pb-10 pt-3">
           <div className="flex items-center gap-5 rounded-lg border bg-white p-5">
             <div className="flex h-12 w-12 items-center justify-center rounded-full border border-neutral-300">
-              <div className="h-5 w-[41px]"></div>
+              <CreditCard className="h-5 w-5 text-gray-600" />
             </div>
 
             <div className="flex grow flex-col gap-1">
