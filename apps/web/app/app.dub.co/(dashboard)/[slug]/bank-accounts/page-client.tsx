@@ -18,7 +18,7 @@ export const BankAccountsClient = () => {
       <div className="relative min-h-[calc(100vh-16px)]">
         <MaxWidthWrapper className="grid gap-5 pb-10 pt-3">
           <div className="flex items-center gap-5 rounded-lg border bg-white p-5">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-neutral-300">
+            <div className="hidden h-12 w-12 items-center justify-center rounded-full border border-neutral-300 sm:inline-flex">
               <CreditCard className="h-5 w-5 text-gray-600" />
             </div>
 
