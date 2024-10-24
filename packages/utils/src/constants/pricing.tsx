@@ -8,6 +8,7 @@ const BUSINESS_PLAN_MODIFIER = ({
   clicks = 150000,
   domains = 40,
   tags = 150,
+  folders = 150,
   users = 15,
   ids = [],
 }: {
@@ -19,6 +20,7 @@ const BUSINESS_PLAN_MODIFIER = ({
   domains: number;
   users: number;
   tags: number;
+  folders: number;
   ids: string[];
 }) => ({
   name,
@@ -34,6 +36,7 @@ const BUSINESS_PLAN_MODIFIER = ({
     clicks,
     domains,
     tags,
+    folders,
     users,
     ai: 1000,
     api: 3000,
@@ -91,6 +94,7 @@ export const PLANS = [
       clicks: 1000,
       domains: 3,
       tags: 5,
+      folders: 5,
       users: 1,
       ai: 10,
       api: 60,
@@ -157,6 +161,7 @@ export const PLANS = [
       clicks: 50000,
       domains: 10,
       tags: 25,
+      folders: 25,
       users: 5,
       ai: 1000,
       api: 600,
@@ -224,6 +229,7 @@ export const PLANS = [
     clicks: 150000,
     domains: 40,
     tags: 150,
+    folders: 150,
     users: 15,
     ids: [
       "price_1LodLoAlJJEpqkPV9rD0rlNL", // old monthly
@@ -243,6 +249,7 @@ export const PLANS = [
     clicks: 400000,
     domains: 100,
     tags: 300,
+    folders: 300,
     users: 30,
     ids: [
       "price_1OnWu0AlJJEpqkPVWk4144ZG", // monthly (test)
@@ -259,6 +266,7 @@ export const PLANS = [
     clicks: 1000000,
     domains: 250,
     tags: 500,
+    folders: 500,
     users: 50,
     ids: [
       "price_1OnWvCAlJJEpqkPVLzLHx5QD", // monthly (test)
@@ -275,6 +283,7 @@ export const PLANS = [
     clicks: 2500000,
     domains: 500,
     tags: 1000,
+    folders: 1000,
     users: 100,
     ids: [
       "price_1OnWwLAlJJEpqkPVXtJyPqLk", // monthly (test)
@@ -297,6 +306,7 @@ export const PLANS = [
       clicks: 5000000,
       domains: 1000,
       tags: 1000,
+      folders: 1000,
       users: 500,
       ai: 10000,
       api: 10000,

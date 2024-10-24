@@ -4,6 +4,8 @@ import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
+import { getFolders } from "@/lib/folder/get-folders";
+import { checkFolderPermission } from "@/lib/folder/permissions";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { clickEventResponseSchema } from "@/lib/zod/schemas/clicks";
 import { leadEventResponseSchema } from "@/lib/zod/schemas/leads";
@@ -39,7 +41,7 @@ const columnAccessors = {
 
 // GET /api/events/export – get export data for analytics
 export const GET = withWorkspace(
-  async ({ searchParams, workspace }) => {
+  async ({ searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
 
     const parsedParams = eventsQuerySchema
@@ -53,7 +55,8 @@ export const GET = withWorkspace(
       )
       .parse(searchParams);
 
-    const { event, domain, interval, start, end, columns, key } = parsedParams;
+    const { event, domain, interval, start, end, columns, key, folderId } =
+      parsedParams;
 
     if (domain) {
       await getDomainOrThrow({ workspace, domain });
@@ -61,6 +64,29 @@ export const GET = withWorkspace(
 
     const link =
       domain && key ? await getLinkOrThrow({ workspace, domain, key }) : null;
+
+    if (link && link.folderId) {
+      await checkFolderPermission({
+        folderId: link.folderId,
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        requiredPermission: "folders.read",
+      });
+    }
+
+    if (folderId) {
+      await checkFolderPermission({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        folderId,
+        requiredPermission: "folders.read",
+      });
+    }
+
+    const folders = await getFolders({
+      workspaceId: workspace.id,
+      userId: session.user.id,
+    });
 
     validDateRangeForPlan({
       plan: workspace.plan,
@@ -75,6 +101,7 @@ export const GET = withWorkspace(
       ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
       limit: 100000,
+      allowedFolderIds: folders.map((folder) => folder.id),
     });
 
     const data = response.map((row) =>

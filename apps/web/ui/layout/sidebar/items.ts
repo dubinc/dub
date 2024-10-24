@@ -84,7 +84,10 @@ export const ITEMS: Record<
         {
           name: "Library",
           icon: Books2,
-          href: `/${slug}/settings/library`,
+          // Link directly to folders if the feature flag is enabled since the backend redirects from .../library to .../library/tags
+          href: flags?.linkFolders
+            ? `/${slug}/settings/library/folders`
+            : `/${slug}/settings/library`,
         },
         {
           name: "Billing",
