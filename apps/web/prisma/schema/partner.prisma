@@ -1,0 +1,59 @@
+model Partner {
+  id               String       @id @default(cuid())
+  name             String
+  logo             String?
+  bio              String?      @db.LongText
+  country          String?
+
+  website          String? // verified via TXT record
+  twitter          String? // verified via SSO
+  linkedin         String? // verified via SSO
+  instagram        String? // verified via SSO
+  youtube          String? // verified via SSO
+
+  status           PartnerStatus @default(default)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  programs         ProgramEnrollment[]
+  users            PartnerUser[]
+  invites          PartnerInvite[]
+}
+
+enum PartnerStatus {
+  default
+  pending
+  approved
+}
+
+enum PartnerRole {
+  owner
+  member
+}
+
+model PartnerUser {
+  id                     String                  @id @default(cuid())
+  role                   PartnerRole             @default(member)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  user                   User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                 String
+  partner                Partner                 @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  partnerId              String
+
+  @@unique([userId, partnerId])
+  @@index([partnerId])
+}
+
+model PartnerInvite {
+  email     String
+  expires   DateTime
+  partner   Partner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  partnerId String
+  role      PartnerRole     @default(member)
+  createdAt DateTime @default(now())
+
+  @@unique([email, partnerId])
+  @@index([partnerId])
+}

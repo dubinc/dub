@@ -1,0 +1,36 @@
+enum ProgramType {
+  affiliate
+  referral
+}
+
+model Program {
+  id              String    @id @default(cuid())
+  name            String
+  slug            String    @unique
+  logo            String?
+  type            ProgramType @default(affiliate)
+  // TODO: add more fields for program management flow
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  workspace       Project   @relation(fields: [workspaceId], references: [id])
+  workspaceId     String
+  partners        ProgramEnrollment[]
+
+  @@index([workspaceId])
+}
+
+model ProgramEnrollment {
+  id              String    @id @default(cuid())
+  partner         Partner   @relation(fields: [partnerId], references: [id])
+  partnerId       String
+  program         Program   @relation(fields: [programId], references: [id])
+  programId       String
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([partnerId, programId])
+  @@index([programId])
+}
