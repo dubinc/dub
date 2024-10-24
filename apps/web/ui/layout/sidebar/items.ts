@@ -61,6 +61,11 @@ export const ITEMS: Record<
           icon: Gear,
           href: `/${slug}/settings`,
         },
+        {
+          name: "Finance",
+          icon: Receipt2,
+          href: `/${slug}/bank-accounts`,
+        },
       ],
     },
   ],
