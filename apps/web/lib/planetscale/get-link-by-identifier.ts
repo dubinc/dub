@@ -1,4 +1,4 @@
-import { Link } from "@prisma/client";
+import { Link } from "@dub/prisma";
 import { conn } from "./connection";
 
 // Get link by workspaceId and identifier

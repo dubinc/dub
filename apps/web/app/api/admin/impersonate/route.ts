@@ -1,5 +1,5 @@
 import { hashToken, withAdmin } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { DUB_DOMAINS_ARRAY } from "@dub/utils";
 import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";

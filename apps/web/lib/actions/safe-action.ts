@@ -1,6 +1,6 @@
+import { prisma } from "@dub/prisma";
 import { createSafeActionClient } from "next-safe-action";
 import { getSession } from "../auth";
-import { prisma } from "../prisma";
 
 export const actionClient = createSafeActionClient({
   handleReturnedServerError: (e) => {

@@ -1,7 +1,7 @@
 import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
-import { Link, Project, UtmTemplate, Webhook } from "@prisma/client";
+import { Link, Project, UtmTemplate, Webhook } from "@dub/prisma";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import { trackCustomerResponseSchema } from "./zod/schemas/customers";
 import { integrationSchema } from "./zod/schemas/integration";

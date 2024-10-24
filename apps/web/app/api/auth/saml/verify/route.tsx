@@ -1,5 +1,5 @@
 import jackson from "@/lib/jackson";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {

@@ -1,6 +1,6 @@
 // @ts-nocheck – old migration script
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 // Standardize domains into links

@@ -1,6 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from ".prisma/client";
 
-// serverless prisma
 export const prisma =
   global.prisma ||
   new PrismaClient({
@@ -16,3 +15,5 @@ declare global {
 }
 
 if (process.env.NODE_ENV === "development") global.prisma = prisma;
+
+export * from ".prisma/client";

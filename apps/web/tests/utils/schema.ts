@@ -1,4 +1,4 @@
-import { Link, Project, Tag } from "@prisma/client";
+import { Link, Project, Tag } from "@dub/prisma";
 import { expect } from "vitest";
 
 export const expectedLink: Partial<Link> & {

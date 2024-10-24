@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { sendEmail } from "emails";
 import { LinksImportErrors } from "emails/links-import-errors";
 import LinksImported from "emails/links-imported";

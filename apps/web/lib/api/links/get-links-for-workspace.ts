@@ -1,6 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { getLinksQuerySchemaExtended } from "@/lib/zod/schemas/links";
+import { prisma } from "@dub/prisma";
 import { combineTagIds, transformLink } from "./utils";
 
 export async function getLinksForWorkspace({
