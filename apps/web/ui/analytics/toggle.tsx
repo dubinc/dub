@@ -721,6 +721,7 @@ export default function Toggle({
                         set: {
                           interval: preset.id,
                         },
+                        scroll: false,
                       });
 
                       return;
@@ -735,6 +736,7 @@ export default function Toggle({
                         start: range.from.toISOString(),
                         end: range.to.toISOString(),
                       },
+                      scroll: false,
                     });
                   }}
                   presets={INTERVAL_DISPLAYS.map(
@@ -798,6 +800,7 @@ export default function Toggle({
           onRemove={(key) =>
             queryParams({
               del: key === "link" ? ["domain", "key", "url"] : key,
+              scroll: false,
             })
           }
           onRemoveAll={() =>
@@ -806,6 +809,7 @@ export default function Toggle({
               del: VALID_ANALYTICS_FILTERS.concat(["page"]).filter(
                 (f) => !["interval", "start", "end"].includes(f),
               ),
+              scroll: false,
             })
           }
         />

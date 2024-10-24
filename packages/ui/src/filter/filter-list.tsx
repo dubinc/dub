@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { ReactNode, isValidElement } from "react";
 import { AnimatedSizeContainer } from "../animated-size-container";
+import { useKeyboardShortcut } from "../hooks";
 import { Filter, FilterOption } from "./types";
 
 type FilterListProps = {
@@ -23,6 +24,7 @@ export function FilterList({
   onRemoveAll,
   className,
 }: FilterListProps) {
+  useKeyboardShortcut("Escape", onRemoveAll, { priority: 1 });
   return (
     <AnimatedSizeContainer
       height
@@ -137,10 +139,13 @@ export function FilterList({
         {activeFilters?.length !== 0 && (
           <button
             type="button"
-            className="mt-px whitespace-nowrap rounded-lg border border-transparent px-3 py-2 text-sm text-gray-500 ring-inset ring-gray-500 transition-colors hover:border-gray-200 hover:bg-white hover:text-black focus:outline-none"
+            className="group mt-px flex items-center gap-2 whitespace-nowrap rounded-lg border border-transparent px-3 py-2 text-sm text-gray-500 ring-inset ring-gray-500 transition-colors hover:border-gray-200 hover:bg-white hover:text-black focus:outline-none"
             onClick={onRemoveAll}
           >
             Clear Filters
+            <kbd className="rounded-md border border-gray-200 px-1.5 py-0.5 text-xs text-gray-950 group-hover:bg-gray-50">
+              ESC
+            </kbd>
           </button>
         )}
       </div>
