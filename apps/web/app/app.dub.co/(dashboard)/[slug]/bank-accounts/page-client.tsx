@@ -9,12 +9,12 @@ export const BankAccountsClient = () => {
   return (
     <div className="relative min-h-[calc(100vh-16px)]">
       <MaxWidthWrapper className="grid gap-5 pb-10 pt-3">
-        <div className="inline-flex items-center justify-start gap-5 rounded-lg border bg-white p-5">
-          <div className="flex h-12 w-12 items-center justify-center gap-2 rounded-[999px] border border-neutral-300">
-            <div className="relative h-5 w-[41px]"></div>
+        <div className="flex items-center gap-5 rounded-lg border bg-white p-5">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-neutral-300">
+            <div className="h-5 w-[41px]"></div>
           </div>
 
-          <div className="inline-flex grow basis-0 flex-col items-start justify-start gap-1">
+          <div className="flex grow flex-col gap-1">
             <div className="text-base font-semibold text-gray-700">
               Bank account
             </div>
@@ -23,7 +23,7 @@ export const BankAccountsClient = () => {
             </div>
           </div>
 
-          <div className="flex">
+          <div>
             <Button text="Add bank account" />
           </div>
         </div>
