@@ -48,6 +48,7 @@ export const addBankAccount = authActionClient
       data: {
         bankAccountName: achAccount.name,
         maskedAccountNumber: achAccount.mask,
+        bankAccountVerified: false, // re-verify the bank account
       },
     });
 
