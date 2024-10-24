@@ -2,10 +2,11 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useAddBankAccountModal } from "@/ui/modals/add-bank-account-modal";
-import { Button, MaxWidthWrapper } from "@dub/ui";
+import { Badge, Button, MaxWidthWrapper } from "@dub/ui";
 
 export const BankAccountsClient = () => {
-  const { bankAccountName, maskedAccountNumber } = useWorkspace();
+  const { bankAccountName, maskedAccountNumber, bankAccountVerified } =
+    useWorkspace();
 
   const { AddBankAccountModal, setShowAddBankAccountModal } =
     useAddBankAccountModal();
@@ -33,7 +34,11 @@ export const BankAccountsClient = () => {
 
             <div>
               {bankAccountName ? (
-                <Button text="Disconnect" />
+                bankAccountVerified ? (
+                  <Badge variant="blue">VERIFIED</Badge>
+                ) : (
+                  <Badge variant="gray">PENDING VERIFICATION</Badge>
+                )
               ) : (
                 <Button
                   text="Add bank account"
