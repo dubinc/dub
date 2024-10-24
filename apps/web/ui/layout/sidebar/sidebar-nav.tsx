@@ -1,5 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ClientOnly, Wordmark } from "@dub/ui";
+import { Wordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
@@ -39,7 +39,7 @@ export function SidebarNav({
   }, [slug, pathname]);
 
   return (
-    <ClientOnly className="scrollbar-hide relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden">
+    <div className="scrollbar-hide relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden">
       <nav className="relative flex grow flex-col p-3 text-gray-500">
         <div className="relative flex items-start justify-between gap-1 pb-3">
           {AREAS.map((area) => (
@@ -109,7 +109,7 @@ export function SidebarNav({
         <UserSurveyButton />
         <Usage />
       </div>
-    </ClientOnly>
+    </div>
   );
 }
 
