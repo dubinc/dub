@@ -58,7 +58,7 @@ export async function bulkUpdateLinks(
             workspaceId && {
               tags: {
                 deleteMany: {},
-                create: tagNames.map((tagName) => ({
+                create: tagNames.map((tagName, idx) => ({
                   tag: {
                     connect: {
                       name_projectId: {
@@ -67,6 +67,7 @@ export async function bulkUpdateLinks(
                       },
                     },
                   },
+                  createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
                 })),
               },
             }),
@@ -75,8 +76,9 @@ export async function bulkUpdateLinks(
           ...(combinedTagIds && {
             tags: {
               deleteMany: {},
-              create: combinedTagIds.map((tagId) => ({
+              create: combinedTagIds.map((tagId, idx) => ({
                 tagId,
+                createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
               })),
             },
           }),
@@ -92,6 +94,9 @@ export async function bulkUpdateLinks(
                   color: true,
                 },
               },
+            },
+            orderBy: {
+              createdAt: "asc",
             },
           },
         },
