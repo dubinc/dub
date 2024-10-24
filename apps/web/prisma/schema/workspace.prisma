@@ -1,15 +1,15 @@
 model Project {
-  id   String  @id @default(cuid())
-  name String
-  slug String  @unique
-  logo String?
-  inviteCode        String? @unique
+  id         String  @id @default(cuid())
+  name       String
+  slug       String  @unique
+  logo       String?
+  inviteCode String? @unique
 
-  plan              String  @default("free")
-  stripeId          String? @unique // Stripe subscription ID
+  plan              String    @default("free")
+  stripeId          String?   @unique // Stripe subscription ID
   billingCycleStart Int // day of the month when the billing cycle starts
   paymentFailedAt   DateTime?
-  stripeConnectId   String? @unique // for Stripe Connect
+  stripeConnectId   String?   @unique // for Stripe Connect
 
   usage        Int @default(0)
   usageLimit   Int @default(1000)
@@ -36,6 +36,7 @@ model Project {
   updatedAt        DateTime @updatedAt
   usageLastChecked DateTime @default(now())
   publishableKey   String?  @unique
+  dotsAppId        String?  @unique
 
   users                 ProjectUsers[]
   invites               ProjectInvite[]
