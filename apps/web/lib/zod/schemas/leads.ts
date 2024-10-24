@@ -1,6 +1,6 @@
 import z from "@/lib/zod";
 import { clickEventSchema, clickEventSchemaTB } from "./clicks";
-import { customerSchema } from "./customers";
+import { CustomerSchema } from "./customers";
 import { commonDeprecatedEventFields } from "./deprecated";
 import { linkEventSchema } from "./links";
 
@@ -112,7 +112,7 @@ export const leadEventResponseSchema = z
     // nested objects
     click: clickEventSchema,
     link: linkEventSchema,
-    customer: customerSchema,
+    customer: CustomerSchema,
   })
   .merge(commonDeprecatedEventFields)
   .openapi({ ref: "LeadEvent" });
