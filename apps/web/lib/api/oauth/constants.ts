@@ -28,6 +28,8 @@ export const OAUTH_SCOPES = [
   "analytics.read",
   "domains.read",
   "domains.write",
+  "webhooks.read",
+  "webhooks.write",
   "user.read", // default scope, no need to request it
 ];
 
@@ -43,4 +45,6 @@ export const OAUTH_SCOPE_DESCRIPTIONS = {
   "domains.read": "Read access to domains",
   "domains.write": "Read and Write access to domains",
   "user.read": "Read your name, email and profile image",
+  "webhooks.read": "Read access to webhooks",
+  "webhooks.write": "Read and Write access to webhooks",
 };
