@@ -19,7 +19,6 @@ async function main() {
     },
     orderBy: {
       clicks: "desc",
-      createdAt: "desc",
     },
     take: 50,
   });
@@ -30,9 +29,9 @@ async function main() {
         data: {
           id: createId({ prefix: "dash_" }),
           linkId: link.id,
-          showConversions: link.trackConversion,
           projectId: link.projectId,
           userId: link.userId,
+          showConversions: link.trackConversion,
         },
       });
 
