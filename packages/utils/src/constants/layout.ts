@@ -1,5 +1,3 @@
-export const HIDE_BACKGROUND_SEGMENTS = ["stats", "changelog", "legal"];
-
 export const ALL_TOOLS = [
   { name: "Spotify Link Shortener", slug: "spotify-link-shortener" },
   { name: "ChatGPT Link Shortener", slug: "chatgpt-link-shortener" },

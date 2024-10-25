@@ -63,7 +63,7 @@ export async function bulkCreateLinks({
             ...(tagNames?.length &&
               link.projectId && {
                 tags: {
-                  create: tagNames.filter(Boolean).map((tagName) => ({
+                  create: tagNames.filter(Boolean).map((tagName, idx) => ({
                     tag: {
                       connect: {
                         name_projectId: {
@@ -72,6 +72,7 @@ export async function bulkCreateLinks({
                         },
                       },
                     },
+                    createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
                   })),
                 },
               }),
@@ -81,9 +82,10 @@ export async function bulkCreateLinks({
               combinedTagIds.length > 0 && {
                 tags: {
                   createMany: {
-                    data: combinedTagIds
-                      .filter(Boolean)
-                      .map((tagId) => ({ tagId })),
+                    data: combinedTagIds.filter(Boolean).map((tagId, idx) => ({
+                      tagId,
+                      createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
+                    })),
                   },
                 },
               }),
@@ -109,6 +111,9 @@ export async function bulkCreateLinks({
                     color: true,
                   },
                 },
+              },
+              orderBy: {
+                createdAt: "asc",
               },
             },
             webhooks: hasWebhooks,

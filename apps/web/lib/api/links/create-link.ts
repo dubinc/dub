@@ -47,13 +47,14 @@ export async function createLink(link: ProcessedLinkProps) {
       ...(tagNames?.length &&
         link.projectId && {
           tags: {
-            create: tagNames.map((tagName) => ({
+            create: tagNames.map((tagName, idx) => ({
               tag: {
                 connect: {
                   name_projectId: {
                     name: tagName,
                     projectId: link.projectId as string,
                   },
+                  createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
                 },
               },
             })),
@@ -65,7 +66,10 @@ export async function createLink(link: ProcessedLinkProps) {
         combinedTagIds.length > 0 && {
           tags: {
             createMany: {
-              data: combinedTagIds.map((tagId) => ({ tagId })),
+              data: combinedTagIds.map((tagId, idx) => ({
+                tagId,
+                createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
+              })),
             },
           },
         }),
@@ -92,6 +96,9 @@ export async function createLink(link: ProcessedLinkProps) {
               color: true,
             },
           },
+        },
+        orderBy: {
+          createdAt: "asc",
         },
       },
       webhooks: webhookIds ? true : false,
