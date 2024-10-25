@@ -25,7 +25,7 @@ export async function generateMetadata({
   });
 }
 
-export default async function StatsPage({
+export default async function SharePage({
   params,
 }: {
   params: { domain: string; key: string };
