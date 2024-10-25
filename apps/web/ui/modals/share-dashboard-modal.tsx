@@ -232,7 +232,7 @@ function LinkCard({
               />
             </div>
           </div>
-          <div className="flex flex-col text-sm">
+          <div className="flex min-w-0 flex-col text-sm">
             {link && (
               <span className="truncate font-semibold leading-6 text-gray-800">
                 {linkConstructor({
@@ -242,7 +242,7 @@ function LinkCard({
                 })}
               </span>
             )}
-            <div className="flex min-w-0 items-center gap-1">
+            <div className="flex items-center gap-1">
               <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-gray-400" />
               {link?.url ? (
                 <a
@@ -250,7 +250,7 @@ function LinkCard({
                   target="_blank"
                   rel="noopener noreferrer"
                   title={link.url}
-                  className="line-clamp-1 text-gray-500 transition-colors hover:text-gray-700 hover:underline hover:underline-offset-2"
+                  className="truncate text-gray-500 transition-colors hover:text-gray-700 hover:underline hover:underline-offset-2"
                 >
                   {getPrettyUrl(link.url)}
                 </a>
