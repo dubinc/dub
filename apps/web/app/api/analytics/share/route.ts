@@ -48,19 +48,3 @@ export const POST = withWorkspace(
     requiredPermissions: ["links.write"],
   },
 );
-// DELETE /api/analytics/share – delete a shared dashboard for a link
-export const DELETE = withWorkspace(async ({ searchParams, workspace }) => {
-  const { domain, key } = domainKeySchema.parse(searchParams);
-
-  const link = await getLinkOrThrow({
-    workspace,
-    domain,
-    key,
-  });
-
-  const response = await prisma.sharedDashboard.delete({
-    where: { linkId: link.id },
-  });
-
-  return NextResponse.json({ dashboardId: response.id });
-});

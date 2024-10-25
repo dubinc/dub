@@ -63,7 +63,6 @@ export default async function SharePage({
   if (!data?.link) {
     notFound();
   }
-  console.log({ data });
 
   return (
     <Suspense fallback={<div className="h-screen w-full bg-gray-50" />}>
