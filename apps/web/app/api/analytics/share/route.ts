@@ -36,8 +36,9 @@ export const POST = withWorkspace(
     const response = await prisma.sharedDashboard.create({
       data: {
         id: createId({ prefix: "dsh_" }),
-        link: { connect: { id: link.id, publicStats: true } },
+        link: { connect: { id: link.id } },
         project: { connect: { id: workspace.id } },
+        showConversions: workspace.conversionEnabled,
       },
     });
 
