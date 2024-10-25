@@ -7,7 +7,7 @@ export const DELETE = withWorkspace(
   async ({ params, workspace }) => {
     const { id } = params;
 
-    await prisma.sharedDashboard.delete({
+    await prisma.dashboard.delete({
       where: {
         id,
         projectId: workspace.id,
