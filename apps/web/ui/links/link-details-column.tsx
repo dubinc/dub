@@ -197,7 +197,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
           ].map(({ id: tab, icon: Icon, value, className, label }) => (
             <Link
               key={tab}
-              href={`/${slug}/analytics?domain=${domain}&key=${key}&tab=${tab}`}
+              href={`/${slug}/analytics?domain=${domain}&key=${key}&tab=${tab}&linkId=${link.id}`}
               className={cn(
                 "flex items-center gap-1 whitespace-nowrap px-1.5 py-0.5 transition-colors",
                 variant === "loose" ? "hover:bg-gray-100" : "hover:bg-white",

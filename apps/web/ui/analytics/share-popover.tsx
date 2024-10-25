@@ -8,6 +8,7 @@ import {
   Tick,
 } from "@dub/ui";
 import { APP_DOMAIN, fetcher, getPrettyUrl } from "@dub/utils";
+import { Dashboard } from "@prisma/client";
 import { useContext, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -18,12 +19,10 @@ export default function SharePopover() {
   const [removing, setRemoving] = useState(false);
   const [openSharePopover, setopenSharePopoverPopover] = useState(false);
 
-  const { queryString } = useContext(AnalyticsContext) as {
-    queryString: string;
-  };
+  const { queryString, linkId } = useContext(AnalyticsContext);
 
-  const { data, mutate, isLoading } = useSWR<{ id: string }>(
-    `/api/analytics/share?${queryString}`,
+  const { data, mutate, isLoading } = useSWR<Dashboard>(
+    `/api/links/${linkId}/dashboard?workspaceId=${workspaceId}`,
     fetcher,
   );
 

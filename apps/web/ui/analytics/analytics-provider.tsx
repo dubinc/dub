@@ -43,6 +43,7 @@ export const AnalyticsContext = createContext<{
   view: AnalyticsView;
   domain?: string;
   key?: string;
+  linkId?: string;
   url?: string;
   queryString: string;
   start?: Date;
@@ -62,6 +63,7 @@ export const AnalyticsContext = createContext<{
   selectedTab: "clicks",
   view: "default",
   domain: "",
+  linkId: undefined,
   queryString: "",
   start: new Date(),
   end: new Date(),
@@ -89,6 +91,9 @@ export default function AnalyticsProvider({
   let { dashboardId } = useParams() as {
     dashboardId?: string;
   };
+
+  const linkId = searchParams?.get("linkId") || undefined;
+
   const domainSlug = searchParams?.get("domain");
   // key can be a query param (stats pages in app) or passed as a staticKey (shared analytics dashboards)
   const key = searchParams?.get("key") || dashboardProps?.key;
@@ -253,6 +258,7 @@ export default function AnalyticsProvider({
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)
         key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)
         url: dashboardProps?.url, // url for the link (only for public stats pages)
+        linkId,
         start, // start of time period
         end, // end of time period
         interval, /// time period interval
