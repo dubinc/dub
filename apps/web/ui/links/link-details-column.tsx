@@ -1,7 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TagProps } from "@/lib/types";
 import {
-  AnimatedSizeContainer,
+  Button,
   CardList,
   Tooltip,
   useMediaQuery,
@@ -11,13 +11,8 @@ import { CursorRays, InvoiceDollar, UserCheck } from "@dub/ui/src/icons";
 import { cn, currencyFormatter, nFormatter, timeAgo } from "@dub/utils";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import {
-  PropsWithChildren,
-  useContext,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { PropsWithChildren, useContext, useMemo, useRef } from "react";
+import { useShareDashboardModal } from "../modals/share-dashboard-modal";
 import { LinkControls } from "./link-controls";
 import { ResponseLink } from "./links-container";
 import { LinksDisplayContext } from "./links-display-provider";
@@ -129,8 +124,36 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
   const { isMobile } = useMediaQuery();
   const { variant } = useContext(CardList.Context);
 
-  const [hoveredTab, setHoveredTab] = useState<string>("clicks");
-  const hoveredValue = link[hoveredTab === "sales" ? "saleAmount" : hoveredTab];
+  const stats = useMemo(
+    () => [
+      {
+        id: "clicks",
+        icon: CursorRays,
+        value: link.clicks,
+        label: trackConversion ? undefined : (p) => (p ? "clicks" : "click"),
+      },
+      ...(trackConversion
+        ? [
+            {
+              id: "leads",
+              icon: UserCheck,
+              value: link.leads,
+              className: "hidden sm:flex",
+            },
+            {
+              id: "sales",
+              icon: InvoiceDollar,
+              value: link.saleAmount,
+              className: "hidden sm:flex",
+            },
+          ]
+        : []),
+    ],
+    [trackConversion, link],
+  );
+
+  const { ShareDashboardModal, setShowShareDashboardModal } =
+    useShareDashboardModal({ domain, _key: key });
 
   return isMobile ? (
     <Link
@@ -138,89 +161,71 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
       className="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-sm text-gray-800"
     >
       <CursorRays className="h-4 w-4 text-gray-600" />
-      {nFormatter(hoveredValue)}
+      {nFormatter(link.clicks)}
     </Link>
   ) : (
-    <Tooltip
-      content={
-        <AnimatedSizeContainer width height>
-          <div
-            key={hoveredTab}
-            className="whitespace-nowrap px-3 py-2 text-gray-600"
-          >
-            <p className="text-sm">
-              <span className="font-medium text-gray-950">
-                {hoveredTab === "sales"
-                  ? currencyFormatter(hoveredValue / 100)
-                  : nFormatter(hoveredValue)}
-              </span>{" "}
-              {hoveredValue !== 1 ? hoveredTab : hoveredTab.slice(0, -1)}
-            </p>
-            {hoveredTab === "clicks" && (
-              <p className="mt-1 text-xs text-gray-500">
-                {link.lastClicked
-                  ? `Last clicked ${timeAgo(link.lastClicked, {
+    <>
+      <ShareDashboardModal />
+      <Tooltip
+        side="left"
+        content={
+          <div className="flex flex-col gap-2 whitespace-nowrap p-3 text-gray-600">
+            {stats.map(({ id: tab, value }) => (
+              <div key={tab}>
+                <p className="text-sm leading-none">
+                  <span className="font-medium text-gray-950">
+                    {tab === "sales"
+                      ? currencyFormatter(value / 100)
+                      : nFormatter(value)}
+                  </span>{" "}
+                  {value !== 1 ? tab : tab.slice(0, -1)}
+                </p>
+                {tab === "clicks" && link.lastClicked && (
+                  <p className="mt-1 text-xs leading-none text-gray-400">
+                    Last clicked{" "}
+                    {timeAgo(link.lastClicked, {
                       withAgo: true,
-                    })}`
-                  : "No clicks recorded yet"}
-              </p>
-            )}
-          </div>
-        </AnimatedSizeContainer>
-      }
-    >
-      <div className="overflow-hidden rounded-md border border-gray-200 bg-gray-50 text-sm text-gray-800">
-        <div className="hidden items-center sm:flex">
-          {[
-            {
-              id: "clicks",
-              icon: CursorRays,
-              value: link.clicks,
-              label: trackConversion ? undefined : "clicks",
-            },
-            ...(trackConversion
-              ? [
-                  {
-                    id: "leads",
-                    icon: UserCheck,
-                    value: link.leads,
-                    className: "hidden sm:flex",
-                  },
-                  {
-                    id: "sales",
-                    icon: InvoiceDollar,
-                    value: link.saleAmount,
-                    className: "hidden sm:flex",
-                  },
-                ]
-              : []),
-          ].map(({ id: tab, icon: Icon, value, className, label }) => (
-            <Link
-              key={tab}
-              href={`/${slug}/analytics?domain=${domain}&key=${key}&tab=${tab}`}
-              className={cn(
-                "flex items-center gap-1 whitespace-nowrap px-1.5 py-0.5 transition-colors",
-                variant === "loose" ? "hover:bg-gray-100" : "hover:bg-white",
-                className,
-              )}
-              onPointerEnter={() => setHoveredTab(tab)}
-              onPointerLeave={() =>
-                setHoveredTab((i) => (i === tab ? "clicks" : i))
-              }
-            >
-              <Icon className="text-gray-6000 h-4 w-4 shrink-0" />
-              <span>
-                {tab === "sales"
-                  ? currencyFormatter(value / 100)
-                  : nFormatter(value)}
-                {label && (
-                  <span className="hidden md:inline-block">&nbsp;{label}</span>
+                    })}
+                  </p>
                 )}
-              </span>
-            </Link>
-          ))}
+              </div>
+            ))}
+            <Button
+              text="Share dashboard"
+              className="mt-1 h-7 px-2"
+              onClick={() => setShowShareDashboardModal(true)}
+            />
+          </div>
+        }
+      >
+        <div className="overflow-hidden rounded-md border border-gray-200 bg-gray-50 text-sm text-gray-800">
+          <div className="hidden items-center sm:flex">
+            {stats.map(({ id: tab, icon: Icon, value, className, label }) => (
+              <Link
+                key={tab}
+                href={`/${slug}/analytics?domain=${domain}&key=${key}&tab=${tab}`}
+                className={cn(
+                  "flex items-center gap-1 whitespace-nowrap px-1.5 py-0.5 transition-colors",
+                  variant === "loose" ? "hover:bg-gray-100" : "hover:bg-white",
+                  className,
+                )}
+              >
+                <Icon className="h-4 w-4 shrink-0 text-gray-600" />
+                <span>
+                  {tab === "sales"
+                    ? currencyFormatter(value / 100)
+                    : nFormatter(value)}
+                  {label && (
+                    <span className="hidden md:inline-block">
+                      &nbsp;{label(value !== 1)}
+                    </span>
+                  )}
+                </span>
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
-    </Tooltip>
+      </Tooltip>
+    </>
   );
 }

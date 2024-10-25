@@ -46,6 +46,7 @@ function ShareDashboardModalInner({
     workspaceId && domain && key
       ? `/api/links/info?${new URLSearchParams({ workspaceId, domain, key }).toString()}`
       : undefined,
+    fetcher,
   );
 
   const { data, mutate } = useSWR<{ id: string }>(
