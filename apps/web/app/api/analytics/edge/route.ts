@@ -9,7 +9,12 @@ import { conn } from "@/lib/planetscale/connection";
 import { PlanProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
+import {
+  DUB_DEMO_LINKS,
+  DUB_WORKSPACE_ID,
+  getSearchParams,
+  punyEncode,
+} from "@dub/utils";
 import { Link, Project } from "@prisma/client";
 import { ipAddress } from "@vercel/functions";
 import { NextResponse, type NextRequest } from "next/server";
@@ -67,8 +72,6 @@ export const GET = async (req: NextRequest) => {
 
     // Find the link by domain and key
     else {
-      // TODO:
-      // Move this to '/lib/planetscale'
       const { rows } = await conn.execute<LinkWithWorkspace>(
         `SELECT Link.id, Link.projectId, Project.plan, Project.usage, Project.usageLimit, SharedDashboard.id AS sharedDashboardId
          FROM Link 
@@ -76,7 +79,7 @@ export const GET = async (req: NextRequest) => {
          LEFT JOIN SharedDashboard ON Link.id = SharedDashboard.linkId
          WHERE Link.domain = ? AND Link.key = ? 
          LIMIT 1`,
-        [domain, key],
+        [domain, punyEncode(decodeURIComponent(key))],
       );
 
       if (!rows || rows.length === 0) {
