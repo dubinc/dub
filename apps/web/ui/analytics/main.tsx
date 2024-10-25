@@ -180,44 +180,42 @@ function ViewButtons() {
 
   return (
     <div className="flex shrink-0 items-center gap-1 border-gray-100 pr-2 pt-2 sm:pr-6 sm:pt-6">
+      <Tooltip content="Line Chart">
+        <Button
+          variant="secondary"
+          className={cn(
+            "h-9 border-transparent px-2 hover:border-gray-200",
+            view === "default" && "border border-gray-200 bg-gray-100",
+          )}
+          icon={<ChartLine className="h-4 w-4 text-gray-600" />}
+          onClick={() => {
+            queryParams({
+              del: "view",
+            });
+          }}
+        />
+      </Tooltip>
       {(conversionEnabled ||
         adminPage ||
         demoPage ||
         sharedDashboardProps?.showConversions) && (
-        <>
-          <Tooltip content="Line Chart">
-            <Button
-              variant="secondary"
-              className={cn(
-                "h-9 border-transparent px-2 hover:border-gray-200",
-                view === "default" && "border border-gray-200 bg-gray-100",
-              )}
-              icon={<ChartLine className="h-4 w-4 text-gray-600" />}
-              onClick={() => {
-                queryParams({
-                  del: "view",
-                });
-              }}
-            />
-          </Tooltip>
-          <Tooltip content="Funnel Chart">
-            <Button
-              variant="secondary"
-              className={cn(
-                "h-9 border-transparent px-2 hover:border-gray-200",
-                view === "funnel" && "border border-gray-200 bg-gray-100",
-              )}
-              icon={<Filter2 className="h-4 w-4 -rotate-90 text-gray-600" />}
-              onClick={() => {
-                queryParams({
-                  set: {
-                    view: "funnel",
-                  },
-                });
-              }}
-            />
-          </Tooltip>
-        </>
+        <Tooltip content="Funnel Chart">
+          <Button
+            variant="secondary"
+            className={cn(
+              "h-9 border-transparent px-2 hover:border-gray-200",
+              view === "funnel" && "border border-gray-200 bg-gray-100",
+            )}
+            icon={<Filter2 className="h-4 w-4 -rotate-90 text-gray-600" />}
+            onClick={() => {
+              queryParams({
+                set: {
+                  view: "funnel",
+                },
+              });
+            }}
+          />
+        </Tooltip>
       )}
       <Tooltip content="View Events">
         <Button
