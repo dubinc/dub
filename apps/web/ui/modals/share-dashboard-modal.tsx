@@ -250,7 +250,7 @@ function LinkCard({
                   target="_blank"
                   rel="noopener noreferrer"
                   title={link.url}
-                  className="truncate text-gray-500 transition-colors hover:text-gray-700 hover:underline hover:underline-offset-2"
+                  className="line-clamp-1 text-gray-500 transition-colors hover:text-gray-700 hover:underline hover:underline-offset-2"
                 >
                   {getPrettyUrl(link.url)}
                 </a>
