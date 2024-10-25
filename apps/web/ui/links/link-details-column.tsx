@@ -11,7 +11,13 @@ import { CursorRays, InvoiceDollar, UserCheck } from "@dub/ui/src/icons";
 import { cn, currencyFormatter, nFormatter, timeAgo } from "@dub/utils";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { PropsWithChildren, useContext, useMemo, useRef } from "react";
+import {
+  PropsWithChildren,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useShareDashboardModal } from "../modals/share-dashboard-modal";
 import { LinkControls } from "./link-controls";
 import { ResponseLink } from "./links-container";
@@ -155,6 +161,9 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
   const { ShareDashboardModal, setShowShareDashboardModal } =
     useShareDashboardModal({ domain, _key: key });
 
+  // Hacky fix for making sure the tooltip closes (by rerendering) when the modal opens
+  const [modalShowCount, setModalShowCount] = useState(0);
+
   return isMobile ? (
     <Link
       href={`/${slug}/analytics?domain=${domain}&key=${key}`}
@@ -167,6 +176,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
     <>
       <ShareDashboardModal />
       <Tooltip
+        key={modalShowCount}
         side="left"
         content={
           <div className="flex flex-col gap-2 whitespace-nowrap p-3 text-gray-600">
@@ -193,7 +203,10 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
             <Button
               text="Share dashboard"
               className="mt-1 h-7 px-2"
-              onClick={() => setShowShareDashboardModal(true)}
+              onClick={() => {
+                setShowShareDashboardModal(true);
+                setModalShowCount((c) => c + 1);
+              }}
             />
           </div>
         }
