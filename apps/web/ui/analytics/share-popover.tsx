@@ -79,7 +79,6 @@ export default function SharePopover() {
     await mutate();
     toast.success("Removed shared dashboard.");
     setRemoving(false);
-    setopenSharePopoverPopover(false);
   };
 
   if (isLoading) {
@@ -127,19 +126,19 @@ export default function SharePopover() {
                 </div>
 
                 <div className="mt-1 flex">
-                  <button
-                    className="w-fit rounded-md border border-gray-200 px-2 py-1 hover:bg-gray-50 active:bg-gray-100"
+                  <Button
+                    className="h-8 w-fit"
+                    text="Remove dashboard"
+                    variant="secondary"
                     onClick={handleRemove}
-                    disabled={removing}
-                  >
-                    {removing ? "Removing..." : "Remove link"}
-                  </button>
+                    loading={removing}
+                  />
                 </div>
               </>
             ) : (
               <Button
                 text="Create dashboard"
-                className="h-9"
+                className="h-8"
                 onClick={handleCreate}
                 loading={isCreating}
               />
