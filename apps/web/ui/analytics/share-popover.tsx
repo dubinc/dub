@@ -6,7 +6,7 @@ import {
   ReferredVia,
   Tick,
 } from "@dub/ui";
-import { APP_DOMAIN, fetcher } from "@dub/utils";
+import { APP_DOMAIN, fetcher, getPrettyUrl } from "@dub/utils";
 import { useContext, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -15,10 +15,8 @@ import { AnalyticsContext } from "./analytics-provider";
 export default function SharePopover() {
   const [openSharePopover, setopenSharePopoverPopover] = useState(false);
 
-  const { queryString, domain, key } = useContext(AnalyticsContext) as {
+  const { queryString } = useContext(AnalyticsContext) as {
     queryString: string;
-    domain: string;
-    key: string; // coerce to string since <SharePopover is not shown if key is undefined)
   };
 
   const { data, mutate, isLoading } = useSWR<{ id: string }>(
@@ -72,7 +70,7 @@ export default function SharePopover() {
               <div className="divide-x-200 flex items-center justify-between divide-x overflow-hidden rounded-md border border-gray-200 bg-gray-100">
                 <div className="scrollbar-hide overflow-scroll pl-3">
                   <p className="whitespace-nowrap text-gray-400">
-                    app.dub.co/share/{data.id}
+                    {getPrettyUrl(`${APP_DOMAIN}/share/${data.id}`)}
                   </p>
                 </div>
                 <button

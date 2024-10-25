@@ -30,6 +30,7 @@ export const POST = withWorkspace(
     const link = await getLinkOrThrow({
       workspace,
       domain,
+      key,
     });
 
     const response = await prisma.sharedDashboard.create({
