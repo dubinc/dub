@@ -8,7 +8,7 @@ import { cn } from "@dub/utils";
 
 import AnalyticsProvider, {
   AnalyticsContext,
-  SharedDashboardProps,
+  dashboardProps,
 } from "./analytics-provider";
 import Devices from "./devices";
 import Locations from "./locations";
@@ -20,23 +20,18 @@ import TopLinks from "./top-links";
 export default function Analytics({
   adminPage,
   demoPage,
-  sharedDashboardProps,
+  dashboardProps,
 }: {
   adminPage?: boolean;
   demoPage?: boolean;
-  sharedDashboardProps?: SharedDashboardProps;
+  dashboardProps?: dashboardProps;
 }) {
   return (
-    <AnalyticsProvider {...{ adminPage, demoPage, sharedDashboardProps }}>
+    <AnalyticsProvider {...{ adminPage, demoPage, dashboardProps }}>
       <AnalyticsContext.Consumer>
-        {({ sharedDashboardProps }) => {
+        {({ dashboardProps }) => {
           return (
-            <div
-              className={cn(
-                "pb-10",
-                sharedDashboardProps && "bg-gray-50 pt-10",
-              )}
-            >
+            <div className={cn("pb-10", dashboardProps && "bg-gray-50 pt-10")}>
               <Toggle />
               <div className="mx-auto grid max-w-screen-xl gap-5 px-3 lg:px-10">
                 <Main />

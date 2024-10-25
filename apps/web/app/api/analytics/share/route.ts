@@ -17,11 +17,11 @@ export const GET = withWorkspace(
       key,
     });
 
-    const sharedDashboard = await prisma.sharedDashboard.findUnique({
+    const dashboard = await prisma.dashboard.findUnique({
       where: { linkId: link.id },
     });
 
-    return NextResponse.json(sharedDashboard);
+    return NextResponse.json(dashboard);
   },
   {
     requiredPermissions: ["links.read"],
@@ -39,9 +39,9 @@ export const POST = withWorkspace(
       key,
     });
 
-    const response = await prisma.sharedDashboard.create({
+    const response = await prisma.dashboard.create({
       data: {
-        id: createId({ prefix: "dsh_" }),
+        id: createId({ prefix: "dash_" }),
         linkId: link.id,
         projectId: workspace.id,
         userId: link.userId,

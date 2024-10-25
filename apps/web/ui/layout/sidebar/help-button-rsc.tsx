@@ -1,4 +1,4 @@
-import { getContentAPI } from "@/lib/fetchers";
+import { getContentAPI } from "@/lib/fetchers/get-content-api";
 import { HelpButton } from "./help-button";
 
 export async function HelpButtonRSC() {

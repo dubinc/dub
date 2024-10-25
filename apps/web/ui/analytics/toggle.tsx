@@ -90,7 +90,7 @@ export default function Toggle({
     url,
     adminPage,
     demoPage,
-    sharedDashboardProps,
+    dashboardProps,
     start,
     end,
     interval,
@@ -218,7 +218,7 @@ export default function Toggle({
   // Some suggestions will only appear if previously requested (see isRequested above)
   const aiFilterSuggestions = useMemo(
     () => [
-      ...(sharedDashboardProps
+      ...(dashboardProps
         ? []
         : [
             {
@@ -243,7 +243,7 @@ export default function Toggle({
         icon: QRCode,
       },
     ],
-    [primaryDomain, sharedDashboardProps],
+    [primaryDomain, dashboardProps],
   );
 
   const [streaming, setStreaming] = useState<boolean>(false);
@@ -262,7 +262,7 @@ export default function Toggle({
             icon,
           })) ?? null,
       },
-      ...(sharedDashboardProps
+      ...(dashboardProps
         ? []
         : [
             {
@@ -408,7 +408,7 @@ export default function Toggle({
             icon: trigger === "qr" ? QRCode : CursorRays,
             right: nFormatter(count, { full: true }),
           })) ?? null,
-        separatorAfter: !sharedDashboardProps,
+        separatorAfter: !dashboardProps,
       },
       {
         key: "country",
@@ -555,7 +555,7 @@ export default function Toggle({
       },
     ],
     [
-      sharedDashboardProps,
+      dashboardProps,
       domains,
       links,
       tags,
@@ -581,9 +581,9 @@ export default function Toggle({
     <>
       <div
         className={cn("py-3 md:py-3", {
-          "sticky top-14 z-10 bg-gray-50": sharedDashboardProps,
+          "sticky top-14 z-10 bg-gray-50": dashboardProps,
           "sticky top-16 z-10 bg-gray-50": adminPage || demoPage,
-          "shadow-md": scrolled && sharedDashboardProps,
+          "shadow-md": scrolled && dashboardProps,
         })}
       >
         <div
@@ -603,7 +603,7 @@ export default function Toggle({
               },
             )}
           >
-            {sharedDashboardProps && (
+            {dashboardProps && (
               <a
                 className="group flex items-center text-lg font-semibold text-gray-800"
                 href={linkConstructor({ domain, key })}
@@ -634,7 +634,7 @@ export default function Toggle({
             <div
               className={cn(
                 "flex w-full items-center gap-2",
-                sharedDashboardProps && "md:w-auto",
+                dashboardProps && "md:w-auto",
                 !key && "flex-col min-[550px]:flex-row",
               )}
             >
@@ -698,12 +698,12 @@ export default function Toggle({
                 className={cn("flex w-full grow items-center gap-2 md:w-auto", {
                   "min-[550px]:w-auto": !key,
                   "justify-end": key,
-                  "grow-0": sharedDashboardProps,
+                  "grow-0": dashboardProps,
                 })}
               >
                 <DateRangePicker
                   className="w-full sm:min-w-[200px] md:w-fit"
-                  align={sharedDashboardProps ? "end" : "start"}
+                  align={dashboardProps ? "end" : "start"}
                   value={
                     start && end
                       ? {
@@ -751,7 +751,7 @@ export default function Toggle({
                         )
                           ? false
                           : !validDateRangeForPlan({
-                              plan: plan || sharedDashboardProps?.workspacePlan,
+                              plan: plan || dashboardProps?.workspacePlan,
                               start,
                               end,
                             });
@@ -772,7 +772,7 @@ export default function Toggle({
                     },
                   )}
                 />
-                {!sharedDashboardProps && (
+                {!dashboardProps && (
                   <div className="flex grow justify-end gap-2">
                     {page === "analytics" && (
                       <>

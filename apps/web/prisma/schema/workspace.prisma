@@ -51,7 +51,7 @@ model Project {
   installedIntegrations InstalledIntegration[] // Integrations workspace installed
   webhooks              Webhook[]
   registeredDomains     RegisteredDomain[]
-  sharedDashboards      SharedDashboard[]
+  dashboards            Dashboard[]
   utmTemplates          UtmTemplate[]
 
   @@index(usageLastChecked(sort: Asc))

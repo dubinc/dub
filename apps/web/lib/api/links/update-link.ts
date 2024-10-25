@@ -128,9 +128,9 @@ export async function updateLink({
 
       // Shared dashboard
       ...(publicStats && {
-        sharedDashboard: {
+        dashboard: {
           create: {
-            id: createId({ prefix: "dsh_" }),
+            id: createId({ prefix: "dash_" }),
             showConversions: updatedLink.trackConversion,
             projectId: updatedLink.projectId,
             userId: updatedLink.userId,

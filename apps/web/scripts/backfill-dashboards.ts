@@ -7,7 +7,7 @@ async function main() {
   const links = await prisma.link.findMany({
     where: {
       publicStats: true,
-      sharedDashboard: null,
+      dashboard: null,
     },
     select: {
       id: true,
@@ -19,26 +19,25 @@ async function main() {
     },
     orderBy: {
       clicks: "desc",
-      createdAt: "desc",
     },
     take: 50,
   });
 
   const results = await Promise.all(
     links.map(async (link) => {
-      const sharedDashboard = await prisma.sharedDashboard.create({
+      const dashboard = await prisma.dashboard.create({
         data: {
-          id: createId({ prefix: "dsh_" }),
+          id: createId({ prefix: "dash_" }),
           linkId: link.id,
-          showConversions: link.trackConversion,
           projectId: link.projectId,
           userId: link.userId,
+          showConversions: link.trackConversion,
         },
       });
 
       return {
         ...link,
-        sharedDashboardUrl: `${APP_DOMAIN}/share/${sharedDashboard.id}`,
+        dashboardUrl: `${APP_DOMAIN}/share/${dashboard.id}`,
       };
     }),
   );

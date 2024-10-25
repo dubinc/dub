@@ -99,9 +99,9 @@ export async function createLink(link: ProcessedLinkProps) {
 
       // Shared dashboard
       ...(publicStats && {
-        sharedDashboard: {
+        dashboard: {
           create: {
-            id: createId({ prefix: "dsh_" }),
+            id: createId({ prefix: "dash_" }),
             showConversions: link.trackConversion,
             projectId: link.projectId,
             userId: link.userId,
