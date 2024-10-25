@@ -97,7 +97,7 @@ export async function createLink(link: ProcessedLinkProps) {
           },
         }),
 
-      // Share link
+      // Shared dashboard
       ...(publicStats && {
         sharedDashboard: {
           create: {

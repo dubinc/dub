@@ -171,13 +171,13 @@ export default function Main() {
 
 function ViewButtons() {
   const { slug, conversionEnabled } = useWorkspace();
-  const { adminPage, demoPage, isSharedDashboard, view } =
+  const { adminPage, demoPage, isSharedDashboard, view, showConversions } =
     useContext(AnalyticsContext);
   const { router, queryParams, getQueryString } = useRouterStuff();
 
   return (
     <div className="flex shrink-0 items-center gap-1 border-gray-100 pr-2 pt-2 sm:pr-6 sm:pt-6">
-      {(conversionEnabled || adminPage || demoPage) && (
+      {(conversionEnabled || adminPage || demoPage || showConversions) && (
         <>
           <Tooltip content="Line Chart">
             <Button

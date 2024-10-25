@@ -12,6 +12,7 @@ import {
 } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { createId } from "../utils";
 import { combineTagIds, transformLink } from "./utils";
 
 export async function updateLink({
@@ -33,6 +34,7 @@ export async function updateLink({
     image,
     proxy,
     geo,
+    publicStats,
   } = updatedLink;
   const changedKey = key.toLowerCase() !== oldLink.key.toLowerCase();
   const changedDomain = domain !== oldLink.domain;
@@ -120,6 +122,15 @@ export async function updateLink({
             data: webhookIds.map((webhookId) => ({
               webhookId,
             })),
+          },
+        },
+      }),
+
+      // Shared dashboard
+      ...(publicStats && {
+        sharedDashboard: {
+          create: {
+            id: createId({ prefix: "dsh_" }),
           },
         },
       }),
