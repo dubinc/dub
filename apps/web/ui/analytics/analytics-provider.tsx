@@ -28,7 +28,7 @@ import useSWR from "swr";
 import { defaultConfig } from "swr/_internal";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 
-export interface SharedDashboardProps {
+export interface dashboardProps {
   domain: string;
   key: string;
   url: string;
@@ -55,7 +55,7 @@ export const AnalyticsContext = createContext<{
   adminPage?: boolean;
   demoPage?: boolean;
   requiresUpgrade?: boolean;
-  sharedDashboardProps?: SharedDashboardProps;
+  dashboardProps?: dashboardProps;
 }>({
   basePath: "",
   baseApiPath: "",
@@ -68,18 +68,18 @@ export const AnalyticsContext = createContext<{
   adminPage: false,
   demoPage: false,
   requiresUpgrade: false,
-  sharedDashboardProps: undefined,
+  dashboardProps: undefined,
 });
 
 export default function AnalyticsProvider({
   adminPage,
   demoPage,
-  sharedDashboardProps,
+  dashboardProps,
   children,
 }: PropsWithChildren<{
   adminPage?: boolean;
   demoPage?: boolean;
-  sharedDashboardProps?: SharedDashboardProps;
+  dashboardProps?: dashboardProps;
 }>) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -91,10 +91,10 @@ export default function AnalyticsProvider({
   };
   const domainSlug = searchParams?.get("domain");
   // key can be a query param (stats pages in app) or passed as a staticKey (shared analytics dashboards)
-  const key = searchParams?.get("key") || sharedDashboardProps?.key;
+  const key = searchParams?.get("key") || dashboardProps?.key;
 
   // Whether to show conversions in shared analytics dashboards
-  const showConversions = sharedDashboardProps?.showConversions;
+  const showConversions = dashboardProps?.showConversions;
 
   const tagId = searchParams?.get("tagId") ?? undefined;
 
@@ -165,7 +165,7 @@ export default function AnalyticsProvider({
       return {
         basePath: `/share/${dashboardId}`,
         baseApiPath: "/api/analytics/dashboard",
-        domain: sharedDashboardProps?.domain,
+        domain: dashboardProps?.domain,
       };
     }
   }, [
@@ -173,7 +173,7 @@ export default function AnalyticsProvider({
     demoPage,
     slug,
     pathname,
-    sharedDashboardProps?.domain,
+    dashboardProps?.domain,
     domainSlug,
     key,
     selectedTab,
@@ -252,7 +252,7 @@ export default function AnalyticsProvider({
         queryString,
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)
         key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)
-        url: sharedDashboardProps?.url, // url for the link (only for public stats pages)
+        url: dashboardProps?.url, // url for the link (only for public stats pages)
         start, // start of time period
         end, // end of time period
         interval, /// time period interval
@@ -260,7 +260,7 @@ export default function AnalyticsProvider({
         totalEvents, // totalEvents (clicks, leads, sales)
         adminPage, // whether the user is an admin
         demoPage, // whether the user is viewing demo analytics
-        sharedDashboardProps,
+        dashboardProps,
         requiresUpgrade, // whether an upgrade is required to perform the query
       }}
     >

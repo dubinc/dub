@@ -61,7 +61,7 @@ export const GET = async (req: Request) => {
         },
         select: {
           id: true,
-          sharedDashboard: true,
+          dashboard: true,
           projectId: true,
           project: {
             select: {
@@ -74,7 +74,7 @@ export const GET = async (req: Request) => {
       });
 
       // if the link is explicitly private (publicStats === false)
-      if (!link?.sharedDashboard) {
+      if (!link?.dashboard) {
         throw new DubApiError({
           code: "forbidden",
           message: "This link does not have a public analytics dashboard",

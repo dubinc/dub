@@ -29,7 +29,7 @@ export default function Main() {
     requiresUpgrade,
     adminPage,
     demoPage,
-    sharedDashboardProps,
+    dashboardProps,
     selectedTab,
     view,
   } = useContext(AnalyticsContext);
@@ -46,7 +46,7 @@ export default function Main() {
         ...(conversionEnabled ||
         adminPage ||
         demoPage ||
-        sharedDashboardProps?.showConversions
+        dashboardProps?.showConversions
           ? [
               {
                 id: "leads",
@@ -174,7 +174,7 @@ export default function Main() {
 
 function ViewButtons() {
   const { slug, conversionEnabled } = useWorkspace();
-  const { adminPage, demoPage, sharedDashboardProps, view } =
+  const { adminPage, demoPage, dashboardProps, view } =
     useContext(AnalyticsContext);
   const { router, queryParams, getQueryString } = useRouterStuff();
 
@@ -198,7 +198,7 @@ function ViewButtons() {
       {(conversionEnabled ||
         adminPage ||
         demoPage ||
-        sharedDashboardProps?.showConversions) && (
+        dashboardProps?.showConversions) && (
         <Tooltip content="Funnel Chart">
           <Button
             variant="secondary"
@@ -223,7 +223,7 @@ function ViewButtons() {
           className="h-9 border-transparent px-2 hover:border-gray-200"
           icon={<SquareLayoutGrid6 className="h-4 w-4 text-gray-600" />}
           onClick={() => {
-            if (sharedDashboardProps) {
+            if (dashboardProps) {
               window.open("https://d.to/events");
             } else {
               router.push(

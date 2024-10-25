@@ -62,7 +62,7 @@ export const POST = withWorkspace(
         },
       }),
       // remove shared dashboards
-      prisma.sharedDashboard.deleteMany({
+      prisma.dashboard.deleteMany({
         where: {
           linkId: { in: unclaimedLinks.map((link) => link!.id) },
         },

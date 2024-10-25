@@ -1,4 +1,4 @@
-import { prismaEdge } from "@/lib/prisma/edge";
+import { getDashboard } from "@/lib/fetchers/get-dashboard";
 import { PlanProps } from "@/lib/types";
 import Analytics from "@/ui/analytics";
 import { APP_DOMAIN, constructMetadata } from "@dub/utils";
@@ -12,16 +12,9 @@ export async function generateMetadata({
 }: {
   params: { dashboardId: string };
 }) {
-  const data = await prismaEdge.sharedDashboard.findUnique({
-    where: {
-      id: params.dashboardId,
-    },
-    include: {
-      link: true,
-    },
-  });
+  const data = await getDashboard({ id: params.dashboardId });
 
-  // if the link doesn't exist or is explicitly private (publicStats === false)
+  // if the dashboard or link doesn't exist
   if (!data?.link) {
     return;
   }
@@ -33,33 +26,14 @@ export async function generateMetadata({
   });
 }
 
-export default async function SharedDashboardPage({
+export default async function dashboardPage({
   params,
 }: {
   params: { dashboardId: string };
 }) {
-  const data = await prismaEdge.sharedDashboard.findUnique({
-    where: {
-      id: params.dashboardId,
-    },
-    select: {
-      id: true,
-      showConversions: true,
-      link: {
-        select: {
-          domain: true,
-          key: true,
-          url: true,
-        },
-      },
-      project: {
-        select: {
-          plan: true,
-        },
-      },
-    },
-  });
+  const data = await getDashboard({ id: params.dashboardId });
 
+  // if the dashboard or link doesn't exist
   if (!data?.link) {
     notFound();
   }
@@ -67,7 +41,7 @@ export default async function SharedDashboardPage({
   return (
     <Suspense fallback={<div className="h-screen w-full bg-gray-50" />}>
       <Analytics
-        sharedDashboardProps={{
+        dashboardProps={{
           domain: data.link.domain,
           key: data.link.key,
           url: data.link.url,

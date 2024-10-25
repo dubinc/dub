@@ -17,13 +17,13 @@ export default async function OldStatsPage({
       },
     },
     select: {
-      sharedDashboard: true,
+      dashboard: true,
     },
   });
 
-  if (!link?.sharedDashboard) {
+  if (!link?.dashboard) {
     notFound();
   }
 
-  redirect(`${APP_DOMAIN}/share/${link.sharedDashboard.id}`);
+  redirect(`${APP_DOMAIN}/share/${link.dashboard.id}`);
 }
