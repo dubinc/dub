@@ -1,1 +1,3 @@
-export * from "../../../analytics/share/route";
+// Don't know if we want to keep this route
+
+export * from "../../../dashboards/route";
