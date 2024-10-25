@@ -1,5 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TagProps } from "@/lib/types";
+import { pluralize } from "@/lib/analytics/utils";
 import {
   AnimatedSizeContainer,
   CardList,
@@ -214,7 +215,9 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                   ? currencyFormatter(value / 100)
                   : nFormatter(value)}
                 {label && (
-                  <span className="hidden md:inline-block">&nbsp;{label}</span>
+                  <span className="hidden md:inline-block">
+                    &nbsp;{pluralize(label.slice(0, -1), value)}
+                  </span>
                 )}
               </span>
             </Link>
