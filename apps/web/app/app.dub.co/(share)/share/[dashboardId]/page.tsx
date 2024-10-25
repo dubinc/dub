@@ -1,6 +1,6 @@
 import { prismaEdge } from "@/lib/prisma/edge";
 import Analytics from "@/ui/analytics";
-import { constructMetadata } from "@dub/utils";
+import { APP_DOMAIN, constructMetadata } from "@dub/utils";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
@@ -27,7 +27,7 @@ export async function generateMetadata({
 
   return constructMetadata({
     title: `Analytics for ${data.link.domain}/${data.link.key} – ${process.env.NEXT_PUBLIC_APP_NAME}`,
-    image: `https://app.dub.co/api/og/analytics?domain=${data.link.domain}&key=${data.link.key}`,
+    image: `${APP_DOMAIN}/api/og/analytics?domain=${data.link.domain}&key=${data.link.key}`,
     noIndex: true,
   });
 }

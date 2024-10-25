@@ -6,7 +6,7 @@ import {
   ReferredVia,
   Tick,
 } from "@dub/ui";
-import { fetcher } from "@dub/utils";
+import { APP_DOMAIN, fetcher } from "@dub/utils";
 import { useContext, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -47,7 +47,7 @@ export default function SharePopover() {
       toast.success(
         "Successfully created shared dashboard! Copied link to clipboard.",
       );
-      navigator.clipboard.writeText(`https://app.dub.co/share/${data.id}`);
+      navigator.clipboard.writeText(`${APP_DOMAIN}/share/${data.id}`);
     }
     setIsCreating(false);
   };
@@ -79,7 +79,7 @@ export default function SharePopover() {
                   className="h-8 flex-none border-l bg-white px-2 hover:bg-gray-50 active:bg-gray-100"
                   onClick={() => {
                     navigator.clipboard.writeText(
-                      `https://app.dub.co/share/${data.id}`,
+                      `${APP_DOMAIN}/share/${data.id}`,
                     );
                     setCopied(true);
                     toast.success("Copied to clipboard");
