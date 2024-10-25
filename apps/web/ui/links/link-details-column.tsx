@@ -86,7 +86,7 @@ function TagsTooltip({
           ))}
         </div>
       }
-      side="bottom"
+      side="top"
       align="end"
     >
       <div>{children}</div>
@@ -177,32 +177,29 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
       <ShareDashboardModal />
       <Tooltip
         key={modalShowCount}
-        side="left"
+        side="top"
         content={
-          <div className="flex flex-col gap-2 whitespace-nowrap p-3 text-gray-600">
+          <div className="flex flex-col gap-2.5 whitespace-nowrap p-3 text-gray-600">
             {stats.map(({ id: tab, value }) => (
-              <div key={tab}>
-                <p className="text-sm leading-none">
-                  <span className="font-medium text-gray-950">
-                    {tab === "sales"
-                      ? currencyFormatter(value / 100)
-                      : nFormatter(value)}
-                  </span>{" "}
-                  {value !== 1 ? tab : tab.slice(0, -1)}
-                </p>
-                {tab === "clicks" && link.lastClicked && (
-                  <p className="mt-1 text-xs leading-none text-gray-400">
-                    Last clicked{" "}
-                    {timeAgo(link.lastClicked, {
-                      withAgo: true,
-                    })}
-                  </p>
-                )}
+              <div key={tab} className="text-sm leading-none">
+                <span className="font-medium text-gray-950">
+                  {tab === "sales"
+                    ? currencyFormatter(value / 100)
+                    : nFormatter(value, { full: value < 1000000000 })}
+                </span>{" "}
+                {value !== 1 ? tab : tab.slice(0, -1)}
               </div>
             ))}
+            <p className="text-xs leading-none text-gray-400">
+              {link.lastClicked
+                ? `Last clicked ${timeAgo(link.lastClicked, {
+                    withAgo: true,
+                  })}`
+                : "No clicks yet"}
+            </p>
             <Button
               text="Share dashboard"
-              className="mt-1 h-7 px-2"
+              className="h-7 px-2"
               onClick={() => {
                 setShowShareDashboardModal(true);
                 setModalShowCount((c) => c + 1);
@@ -211,15 +208,19 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
           </div>
         }
       >
-        <div className="overflow-hidden rounded-md border border-gray-200 bg-gray-50 text-sm text-gray-800">
+        <Link
+          href={`/${slug}/analytics?domain=${domain}&key=${key}`}
+          className={cn(
+            "overflow-hidden rounded-md border border-gray-200 bg-gray-50 text-sm text-gray-800",
+            variant === "loose" ? "hover:bg-gray-100" : "hover:bg-white",
+          )}
+        >
           <div className="hidden items-center sm:flex">
             {stats.map(({ id: tab, icon: Icon, value, className, label }) => (
-              <Link
+              <div
                 key={tab}
-                href={`/${slug}/analytics?domain=${domain}&key=${key}&tab=${tab}`}
                 className={cn(
                   "flex items-center gap-1 whitespace-nowrap px-1.5 py-0.5 transition-colors",
-                  variant === "loose" ? "hover:bg-gray-100" : "hover:bg-white",
                   className,
                 )}
               >
@@ -234,10 +235,10 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                     </span>
                   )}
                 </span>
-              </Link>
+              </div>
             ))}
           </div>
-        </div>
+        </Link>
       </Tooltip>
     </>
   );

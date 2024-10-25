@@ -188,7 +188,7 @@ function ShareDashboardModalInner({
                 ))}
             </>
           ) : (
-            <div className="flex w-full items-center justify-center pt-6">
+            <div className="flex h-12 w-full items-center justify-center">
               <LoadingSpinner className="size-4" />
             </div>
           )}
