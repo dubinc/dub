@@ -5,7 +5,8 @@ import {
   exceededLimitError,
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
-import { getLinkViaEdge, getWorkspaceViaEdge } from "@/lib/planetscale";
+import { prismaEdge } from "@/lib/prisma/edge";
+import { PlanProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
@@ -55,18 +56,33 @@ export const GET = async (req: NextRequest) => {
         id: demoLink.id,
         projectId: DUB_WORKSPACE_ID,
       };
-    } else if (domain) {
-      link = await getLinkViaEdge(domain, key);
+    } else {
+      link = await prismaEdge.link.findUnique({
+        where: {
+          domain_key: { domain, key },
+        },
+        select: {
+          sharedDashboard: true,
+          projectId: true,
+          project: {
+            select: {
+              plan: true,
+              usage: true,
+              usageLimit: true,
+            },
+          },
+        },
+      });
 
       // if the link is explicitly private (publicStats === false)
-      if (!link?.publicStats) {
+      if (!link?.sharedDashboard) {
         throw new DubApiError({
           code: "forbidden",
-          message: "Analytics for this link are not public",
+          message: "This link does not have a public analytics dashboard",
         });
       }
-      const workspace =
-        link?.projectId && (await getWorkspaceViaEdge(link.projectId));
+
+      const workspace = link.project;
 
       validDateRangeForPlan({
         plan: workspace?.plan || "free",
@@ -80,7 +96,7 @@ export const GET = async (req: NextRequest) => {
         throw new DubApiError({
           code: "forbidden",
           message: exceededLimitError({
-            plan: workspace.plan,
+            plan: workspace.plan as PlanProps,
             limit: workspace.usageLimit,
             type: "clicks",
           }),

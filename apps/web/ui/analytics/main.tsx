@@ -170,9 +170,9 @@ export default function Main() {
 
 function ViewButtons() {
   const { slug, conversionEnabled } = useWorkspace();
-  const { basePath, adminPage, demoPage, view } = useContext(AnalyticsContext);
+  const { adminPage, demoPage, isSharedDashboard, view } =
+    useContext(AnalyticsContext);
   const { router, queryParams, getQueryString } = useRouterStuff();
-  const isPublicStatsPage = basePath.startsWith("/stats");
 
   return (
     <div className="flex shrink-0 items-center gap-1 border-gray-100 pr-2 pt-2 sm:pr-6 sm:pt-6">
@@ -218,7 +218,7 @@ function ViewButtons() {
           className="h-9 border-transparent px-2 hover:border-gray-200"
           icon={<SquareLayoutGrid6 className="h-4 w-4 text-gray-600" />}
           onClick={() => {
-            if (isPublicStatsPage) {
+            if (isSharedDashboard) {
               window.open("https://d.to/events");
             } else {
               router.push(

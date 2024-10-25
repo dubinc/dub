@@ -46,6 +46,7 @@ export const AnalyticsContext = createContext<{
   adminPage?: boolean;
   demoPage?: boolean;
   requiresUpgrade?: boolean;
+  isSharedDashboard?: boolean;
 }>({
   basePath: "",
   baseApiPath: "",
@@ -58,16 +59,19 @@ export const AnalyticsContext = createContext<{
   adminPage: false,
   demoPage: false,
   requiresUpgrade: false,
+  isSharedDashboard: false,
 });
 
 export default function AnalyticsProvider({
   staticDomain,
+  staticKey,
   staticUrl,
   adminPage,
   demoPage,
   children,
 }: PropsWithChildren<{
   staticDomain?: string;
+  staticKey?: string;
   staticUrl?: string;
   adminPage?: boolean;
   demoPage?: boolean;
@@ -77,12 +81,12 @@ export default function AnalyticsProvider({
   const { id: workspaceId, slug, conversionEnabled } = useWorkspace();
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
-  let { key } = useParams() as {
-    key?: string;
+  let { dashboardId } = useParams() as {
+    dashboardId?: string;
   };
   const domainSlug = searchParams?.get("domain");
-  // key can be a path param (public stats pages) or a query param (stats pages in app)
-  key = searchParams?.get("key") || key;
+  // key can be a query param (stats pages in app) or passed as a staticKey (shared analytics dashboards)
+  const key = searchParams?.get("key") || staticKey;
 
   const tagId = searchParams?.get("tagId") ?? undefined;
 
@@ -147,9 +151,9 @@ export default function AnalyticsProvider({
         domain: domainSlug,
       };
     } else {
-      // Public stats page, e.g. dub.sh/stats/github, stey.me/stats/weathergpt
+      // Public stats page, e.g. app.dub.co/share/dsh_123
       return {
-        basePath: `/stats/${key}`,
+        basePath: `/share/${dashboardId}`,
         baseApiPath: `/api/analytics/edge`,
         domain: staticDomain,
       };
@@ -244,6 +248,7 @@ export default function AnalyticsProvider({
         totalEvents, // totalEvents (clicks, leads, sales)
         adminPage, // whether the user is an admin
         demoPage, // whether the user is viewing demo analytics
+        isSharedDashboard: dashboardId ? true : false,
         requiresUpgrade, // whether an upgrade is required to perform the query
       }}
     >

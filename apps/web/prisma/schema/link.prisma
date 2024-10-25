@@ -63,6 +63,8 @@ model Link {
   // Comments on the particular shortlink
   comments String? @db.LongText
 
+  sharedDashboard SharedDashboard?
+
   @@unique([domain, key])
   @@unique([projectId, externalId])
   @@unique([projectId, identifier])
@@ -77,4 +79,24 @@ model Link {
   @@index(lastClicked)
   @@index(userId)
   @@fulltext([key, url])
+}
+
+model SharedDashboard {
+  id String @id @default(cuid())
+
+  link   Link?   @relation(fields: [linkId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  linkId String? @unique
+
+  // Project that the share link belongs to
+  project   Project? @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  projectId String?
+
+  doIndex  Boolean @default(false) // whether to index the share link on Google or not
+  password String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index(projectId)
+  @@index(linkId)
 }

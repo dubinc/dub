@@ -16,33 +16,35 @@ import TopLinks from "./top-links";
 
 export default function Analytics({
   staticDomain,
+  staticKey,
   staticUrl,
   adminPage,
   demoPage,
 }: {
   staticDomain?: string;
+  staticKey?: string;
   staticUrl?: string;
   adminPage?: boolean;
   demoPage?: boolean;
 }) {
   return (
-    <AnalyticsProvider {...{ staticDomain, staticUrl, adminPage, demoPage }}>
+    <AnalyticsProvider
+      {...{ staticDomain, staticKey, staticUrl, adminPage, demoPage }}
+    >
       <AnalyticsContext.Consumer>
-        {({ basePath }) => {
-          const isPublicStatsPage = basePath.startsWith("/stats");
+        {({ isSharedDashboard }) => {
           return (
             <div
-              className={cn("pb-10", isPublicStatsPage && "bg-gray-50 pt-10")}
+              className={cn("pb-10", isSharedDashboard && "bg-gray-50 pt-10")}
             >
               <Toggle />
               <div className="mx-auto grid max-w-screen-xl gap-5 px-3 lg:px-10">
                 <Main />
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                  {!isPublicStatsPage && <TopLinks />}
+                  <TopLinks />
                   <Locations />
                   <Devices />
                   <Referer />
-                  {isPublicStatsPage && <TopLinks />}
                   {/* <Feedback /> */}
                 </div>
               </div>
