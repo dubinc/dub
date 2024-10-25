@@ -164,7 +164,7 @@ export default function AnalyticsProvider({
       // Public stats page, e.g. app.dub.co/share/dsh_123
       return {
         basePath: `/share/${dashboardId}`,
-        baseApiPath: "/api/analytics/edge",
+        baseApiPath: "/api/analytics/dashboard",
         domain: sharedDashboardProps?.domain,
       };
     }

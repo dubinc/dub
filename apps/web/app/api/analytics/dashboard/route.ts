@@ -5,28 +5,15 @@ import {
   exceededLimitError,
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
-import { conn } from "@/lib/planetscale/connection";
+import { prisma } from "@/lib/prisma";
 import { PlanProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
-import {
-  DUB_DEMO_LINKS,
-  DUB_WORKSPACE_ID,
-  getSearchParams,
-  punyEncode,
-} from "@dub/utils";
-import { Link, Project } from "@prisma/client";
+import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { ipAddress } from "@vercel/functions";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
-export const runtime = "edge";
-
-type LinkWithWorkspace = Pick<Link, "id" | "projectId"> &
-  Pick<Project, "plan" | "usage" | "usageLimit"> & {
-    sharedDashboardId: string;
-  };
-
-export const GET = async (req: NextRequest) => {
+export const GET = async (req: Request) => {
   try {
     const searchParams = getSearchParams(req.url);
     const parsedParams = analyticsQuerySchema.parse(searchParams);
@@ -40,7 +27,7 @@ export const GET = async (req: NextRequest) => {
       });
     }
 
-    let link: Pick<Link, "id" | "projectId"> | null = null;
+    let link;
 
     const demoLink = DUB_DEMO_LINKS.find(
       (l) => l.domain === domain && l.key === key,
@@ -63,68 +50,57 @@ export const GET = async (req: NextRequest) => {
           });
         }
       }
-
       link = {
         id: demoLink.id,
         projectId: DUB_WORKSPACE_ID,
       };
-    }
-
-    // Find the link by domain and key
-    else {
-      const { rows } = await conn.execute<LinkWithWorkspace>(
-        `SELECT Link.id, Link.projectId, Project.plan, Project.usage, Project.usageLimit, SharedDashboard.id AS sharedDashboardId
-         FROM Link 
-         LEFT JOIN Project ON Link.projectId = Project.id 
-         LEFT JOIN SharedDashboard ON Link.id = SharedDashboard.linkId
-         WHERE Link.domain = ? AND Link.key = ? 
-         LIMIT 1`,
-        [domain, punyEncode(decodeURIComponent(key))],
-      );
-
-      if (!rows || rows.length === 0) {
-        throw new DubApiError({
-          code: "not_found",
-          message: "Link not found",
-        });
-      }
-
-      const linkFound = rows[0];
+    } else {
+      link = await prisma.link.findUnique({
+        where: {
+          domain_key: { domain, key },
+        },
+        select: {
+          id: true,
+          sharedDashboard: true,
+          projectId: true,
+          project: {
+            select: {
+              plan: true,
+              usage: true,
+              usageLimit: true,
+            },
+          },
+        },
+      });
 
       // if the link is explicitly private (publicStats === false)
-      if (!linkFound.sharedDashboardId) {
+      if (!link?.sharedDashboard) {
         throw new DubApiError({
           code: "forbidden",
           message: "This link does not have a public analytics dashboard",
         });
       }
 
-      const { plan, usage, usageLimit, projectId } = linkFound;
+      const workspace = link.project;
 
       validDateRangeForPlan({
-        plan: plan || "free",
+        plan: workspace?.plan || "free",
         interval,
         start,
         end,
         throwError: true,
       });
 
-      // Check if the project has exceeded its usage limit if projectId is defined
-      if (projectId && usage > usageLimit) {
+      if (workspace && workspace.usage > workspace.usageLimit) {
         throw new DubApiError({
           code: "forbidden",
           message: exceededLimitError({
-            plan: plan as PlanProps,
-            limit: usageLimit,
+            plan: workspace.plan as PlanProps,
+            limit: workspace.usageLimit,
             type: "clicks",
           }),
         });
       }
-
-      link = {
-        id: linkFound.id,
-        projectId: linkFound.projectId,
-      };
     }
 
     const response = await getAnalytics({
