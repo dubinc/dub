@@ -141,7 +141,7 @@ function ShareDashboardModalInner({
         >
           {data !== undefined ? (
             <>
-              <label className="flex items-center justify-between gap-2 pt-6">
+              <label className="flex cursor-pointer items-center justify-between gap-2 pt-6">
                 <span className="flex items-center gap-2 text-sm text-gray-600">
                   <Globe className="size-4" />
                   Enable public sharing
