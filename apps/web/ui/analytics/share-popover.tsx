@@ -95,7 +95,7 @@ export default function SharePopover() {
         <AnimatedSizeContainer height>
           <div className="grid w-full gap-2 p-4 text-sm md:max-w-xs">
             <p className="font-semibold text-gray-800">
-              Shared Analytics Dashboard
+              Create a shared dashboard
             </p>
             <p className="text-gray-500">
               Share this link's analytics with anyone via a shared dashboard –
