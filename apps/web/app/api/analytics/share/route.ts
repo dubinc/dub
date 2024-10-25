@@ -7,21 +7,26 @@ import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/analytics/share – get a shared dashboard for a link
-export const GET = withWorkspace(async ({ searchParams, workspace }) => {
-  const { domain, key } = domainKeySchema.parse(searchParams);
+export const GET = withWorkspace(
+  async ({ searchParams, workspace }) => {
+    const { domain, key } = domainKeySchema.parse(searchParams);
 
-  const link = await getLinkOrThrow({
-    workspace,
-    domain,
-    key,
-  });
+    const link = await getLinkOrThrow({
+      workspace,
+      domain,
+      key,
+    });
 
-  const dashboard = await prisma.dashboard.findUnique({
-    where: { linkId: link.id },
-  });
+    const dashboard = await prisma.dashboard.findUnique({
+      where: { linkId: link.id },
+    });
 
-  return NextResponse.json(dashboard);
-});
+    return NextResponse.json(dashboard);
+  },
+  {
+    requiredPermissions: ["links.read"],
+  },
+);
 
 // POST /api/analytics/share – create a shared dashboard for a link
 export const POST = withWorkspace(
