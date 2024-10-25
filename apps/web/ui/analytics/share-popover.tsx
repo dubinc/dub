@@ -58,7 +58,11 @@ export default function SharePopover() {
       return;
     }
 
-    if (!confirm("Are you sure you want to remove the shared dashboard?")) {
+    if (
+      !confirm(
+        "Are you sure you want to remove the shared dashboard? Your existing dashboard link will break and you'll have to create a new one.",
+      )
+    ) {
       return;
     }
 
