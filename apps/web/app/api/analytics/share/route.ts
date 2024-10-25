@@ -49,6 +49,7 @@ export const POST = withWorkspace(
       },
     });
 
+    // for backwards compatibility, we'll update the link to have publicStats = true
     waitUntil(
       prisma.link.update({
         where: { id: link.id },
