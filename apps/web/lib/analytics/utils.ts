@@ -86,3 +86,20 @@ export const convertToCSV = (data: object[]) => {
     },
   });
 };
+
+type PluralizeOptions = {
+  plural?: string;
+}
+
+export const pluralize = (
+  word: string,
+  count: number,
+  options: PluralizeOptions = {}
+) => {
+  if (count === 1) {
+    return word;
+  }
+  
+  // Use custom plural form if provided, otherwise add 's'
+  return options.plural || `${word}s`;
+};
