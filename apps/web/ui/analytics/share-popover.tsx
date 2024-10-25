@@ -58,6 +58,10 @@ export default function SharePopover() {
       return;
     }
 
+    if (!confirm("Are you sure you want to remove the shared dashboard?")) {
+      return;
+    }
+
     setRemoving(true);
 
     const res = await fetch(
@@ -122,14 +126,14 @@ export default function SharePopover() {
                   </button>
                 </div>
 
-                <div className="flex justify-start">
-                  <Button
-                    text={removing ? "Removing..." : "Remove link"}
-                    variant="outline"
-                    className="w-fit"
-                    loading={removing}
+                <div className="mt-1 flex">
+                  <button
+                    className="w-fit rounded-md border border-gray-200 px-2 py-1 hover:bg-gray-50 active:bg-gray-100"
                     onClick={handleRemove}
-                  />
+                    disabled={removing}
+                  >
+                    {removing ? "Removing..." : "Remove link"}
+                  </button>
                 </div>
               </>
             ) : (
