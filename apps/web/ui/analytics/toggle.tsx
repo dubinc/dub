@@ -776,7 +776,7 @@ export default function Toggle({
                   <div className="flex grow justify-end gap-2">
                     {page === "analytics" && (
                       <>
-                        <SharePopover />
+                        {domain && key && <SharePopover />}
                         <AnalyticsOptions />
                       </>
                     )}
