@@ -8,7 +8,7 @@ import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-// GET /api/analytics/dashboards – get all dashboards
+// GET /api/dashboards – get all dashboards
 export const GET = withWorkspace(
   async ({ workspace }) => {
     const dashboards = await prisma.dashboard.findMany({
@@ -22,7 +22,7 @@ export const GET = withWorkspace(
   },
 );
 
-// POST /api/analytics/dashboards – create a new dashboard
+// POST /api/dashboards – create a new dashboard
 export const POST = withWorkspace(
   async ({ searchParams, workspace }) => {
     const { domain, key } = domainKeySchema.parse(searchParams);

@@ -31,7 +31,7 @@ export default function SharePopover() {
 
   const handleCreate = async () => {
     setIsCreating(true);
-    const res = await fetch(`/api/analytics/dashboards?${queryString}`, {
+    const res = await fetch(`/api/dashboards?${queryString}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -68,7 +68,7 @@ export default function SharePopover() {
     setRemoving(true);
 
     const res = await fetch(
-      `/api/analytics/dashboards/${data.id}?workspaceId=${workspaceId}`,
+      `/api/dashboards/${data.id}?workspaceId=${workspaceId}`,
       {
         method: "DELETE",
       },

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-// DELETE /api/analytics/dashboards/[id] – delete a dashboard
+// DELETE /api/dashboards/[id] – delete a dashboard
 export const DELETE = withWorkspace(
   async ({ params, workspace }) => {
     const { id } = params;
