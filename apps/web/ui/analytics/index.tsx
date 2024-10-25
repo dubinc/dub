@@ -6,7 +6,10 @@ import { cn } from "@dub/utils";
   2. Public stats page, e.g. dub.sh/stats/github, stey.me/stats/weathergpt
 */
 
-import AnalyticsProvider, { AnalyticsContext } from "./analytics-provider";
+import AnalyticsProvider, {
+  AnalyticsContext,
+  SharedDashboardProps,
+} from "./analytics-provider";
 import Devices from "./devices";
 import Locations from "./locations";
 import Main from "./main";
@@ -21,20 +24,18 @@ export default function Analytics({
 }: {
   adminPage?: boolean;
   demoPage?: boolean;
-  sharedDashboardProps?: {
-    domain: string;
-    key: string;
-    url: string;
-    showConversions?: boolean;
-  };
+  sharedDashboardProps?: SharedDashboardProps;
 }) {
   return (
     <AnalyticsProvider {...{ adminPage, demoPage, sharedDashboardProps }}>
       <AnalyticsContext.Consumer>
-        {({ isSharedDashboard }) => {
+        {({ sharedDashboardProps }) => {
           return (
             <div
-              className={cn("pb-10", isSharedDashboard && "bg-gray-50 pt-10")}
+              className={cn(
+                "pb-10",
+                sharedDashboardProps && "bg-gray-50 pt-10",
+              )}
             >
               <Toggle />
               <div className="mx-auto grid max-w-screen-xl gap-5 px-3 lg:px-10">

@@ -85,13 +85,12 @@ export default function Toggle({
   const { plan } = useWorkspace();
   const { queryParams, searchParamsObj } = useRouterStuff();
   const {
-    basePath,
     domain,
     key,
     url,
     adminPage,
     demoPage,
-    isSharedDashboard,
+    sharedDashboardProps,
     start,
     end,
     interval,
@@ -219,7 +218,7 @@ export default function Toggle({
   // Some suggestions will only appear if previously requested (see isRequested above)
   const aiFilterSuggestions = useMemo(
     () => [
-      ...(isSharedDashboard
+      ...(sharedDashboardProps
         ? []
         : [
             {
@@ -244,7 +243,7 @@ export default function Toggle({
         icon: QRCode,
       },
     ],
-    [primaryDomain, isSharedDashboard],
+    [primaryDomain, sharedDashboardProps],
   );
 
   const [streaming, setStreaming] = useState<boolean>(false);
@@ -263,7 +262,7 @@ export default function Toggle({
             icon,
           })) ?? null,
       },
-      ...(isSharedDashboard
+      ...(sharedDashboardProps
         ? []
         : [
             {
@@ -409,7 +408,7 @@ export default function Toggle({
             icon: trigger === "qr" ? QRCode : CursorRays,
             right: nFormatter(count, { full: true }),
           })) ?? null,
-        separatorAfter: !isSharedDashboard,
+        separatorAfter: !sharedDashboardProps,
       },
       {
         key: "country",
@@ -556,7 +555,7 @@ export default function Toggle({
       },
     ],
     [
-      isSharedDashboard,
+      sharedDashboardProps,
       domains,
       links,
       tags,
@@ -582,9 +581,9 @@ export default function Toggle({
     <>
       <div
         className={cn("py-3 md:py-3", {
-          "sticky top-14 z-10 bg-gray-50": isSharedDashboard,
+          "sticky top-14 z-10 bg-gray-50": sharedDashboardProps,
           "sticky top-16 z-10 bg-gray-50": adminPage || demoPage,
-          "shadow-md": scrolled && isSharedDashboard,
+          "shadow-md": scrolled && sharedDashboardProps,
         })}
       >
         <div
@@ -604,7 +603,7 @@ export default function Toggle({
               },
             )}
           >
-            {isSharedDashboard && (
+            {sharedDashboardProps && (
               <a
                 className="group flex items-center text-lg font-semibold text-gray-800"
                 href={linkConstructor({ domain, key })}
@@ -635,7 +634,7 @@ export default function Toggle({
             <div
               className={cn(
                 "flex w-full items-center gap-2",
-                isSharedDashboard && "md:w-auto",
+                sharedDashboardProps && "md:w-auto",
                 !key && "flex-col min-[550px]:flex-row",
               )}
             >
@@ -699,12 +698,12 @@ export default function Toggle({
                 className={cn("flex w-full grow items-center gap-2 md:w-auto", {
                   "min-[550px]:w-auto": !key,
                   "justify-end": key,
-                  "grow-0": isSharedDashboard,
+                  "grow-0": sharedDashboardProps,
                 })}
               >
                 <DateRangePicker
                   className="w-full sm:min-w-[200px] md:w-fit"
-                  align={isSharedDashboard ? "end" : "start"}
+                  align={sharedDashboardProps ? "end" : "start"}
                   value={
                     start && end
                       ? {
@@ -752,7 +751,7 @@ export default function Toggle({
                         )
                           ? false
                           : !validDateRangeForPlan({
-                              plan,
+                              plan: plan || sharedDashboardProps?.workspacePlan,
                               start,
                               end,
                             });
@@ -773,7 +772,7 @@ export default function Toggle({
                     },
                   )}
                 />
-                {!isSharedDashboard && (
+                {!sharedDashboardProps && (
                   <div className="flex grow justify-end gap-2">
                     {page === "analytics" && (
                       <>

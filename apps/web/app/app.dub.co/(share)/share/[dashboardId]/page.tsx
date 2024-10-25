@@ -1,4 +1,5 @@
 import { prismaEdge } from "@/lib/prisma/edge";
+import { PlanProps } from "@/lib/types";
 import Analytics from "@/ui/analytics";
 import { APP_DOMAIN, constructMetadata } from "@dub/utils";
 import { notFound } from "next/navigation";
@@ -41,14 +42,28 @@ export default async function SharePage({
     where: {
       id: params.dashboardId,
     },
-    include: {
-      link: true,
+    select: {
+      id: true,
+      showConversions: true,
+      link: {
+        select: {
+          domain: true,
+          key: true,
+          url: true,
+        },
+      },
+      project: {
+        select: {
+          plan: true,
+        },
+      },
     },
   });
 
   if (!data?.link) {
     notFound();
   }
+  console.log({ data });
 
   return (
     <Suspense fallback={<div className="h-screen w-full bg-gray-50" />}>
@@ -58,6 +73,7 @@ export default async function SharePage({
           key: data.link.key,
           url: data.link.url,
           showConversions: data.showConversions,
+          workspacePlan: data.project?.plan as PlanProps,
         }}
       />
     </Suspense>

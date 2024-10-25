@@ -37,6 +37,7 @@ export const POST = withWorkspace(
       data: {
         id: createId({ prefix: "dsh_" }),
         link: { connect: { id: link.id, publicStats: true } },
+        project: { connect: { id: workspace.id } },
       },
     });
 

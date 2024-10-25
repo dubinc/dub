@@ -12,6 +12,7 @@ import {
 } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { PlanProps } from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import { endOfDay, startOfDay, subDays } from "date-fns";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
@@ -26,6 +27,14 @@ import { toast } from "sonner";
 import useSWR from "swr";
 import { defaultConfig } from "swr/_internal";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
+
+export interface SharedDashboardProps {
+  domain: string;
+  key: string;
+  url: string;
+  showConversions?: boolean;
+  workspacePlan?: PlanProps;
+}
 
 export const AnalyticsContext = createContext<{
   basePath: string;
@@ -46,8 +55,7 @@ export const AnalyticsContext = createContext<{
   adminPage?: boolean;
   demoPage?: boolean;
   requiresUpgrade?: boolean;
-  isSharedDashboard?: boolean;
-  showConversions?: boolean;
+  sharedDashboardProps?: SharedDashboardProps;
 }>({
   basePath: "",
   baseApiPath: "",
@@ -60,8 +68,7 @@ export const AnalyticsContext = createContext<{
   adminPage: false,
   demoPage: false,
   requiresUpgrade: false,
-  isSharedDashboard: false,
-  showConversions: false,
+  sharedDashboardProps: undefined,
 });
 
 export default function AnalyticsProvider({
@@ -72,12 +79,7 @@ export default function AnalyticsProvider({
 }: PropsWithChildren<{
   adminPage?: boolean;
   demoPage?: boolean;
-  sharedDashboardProps?: {
-    domain: string;
-    key: string;
-    url: string;
-    showConversions?: boolean;
-  };
+  sharedDashboardProps?: SharedDashboardProps;
 }>) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -258,8 +260,7 @@ export default function AnalyticsProvider({
         totalEvents, // totalEvents (clicks, leads, sales)
         adminPage, // whether the user is an admin
         demoPage, // whether the user is viewing demo analytics
-        isSharedDashboard: dashboardId ? true : false,
-        showConversions, // whether to show conversions in shared analytics dashboards
+        sharedDashboardProps,
         requiresUpgrade, // whether an upgrade is required to perform the query
       }}
     >
