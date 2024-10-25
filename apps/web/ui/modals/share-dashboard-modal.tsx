@@ -126,7 +126,7 @@ function ShareDashboardModalInner({
     setIsRemoving(false);
   };
 
-  const [checked, setChecked] = useState(data !== undefined);
+  const [checked, setChecked] = useState(Boolean(data));
 
   return (
     <>
