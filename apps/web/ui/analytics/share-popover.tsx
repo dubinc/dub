@@ -4,6 +4,7 @@ import {
   Popover,
   Switch,
   Tick,
+  useCopyToClipboard,
   useOptimisticUpdate,
 } from "@dub/ui";
 import { cn, linkConstructor } from "@dub/utils";
@@ -29,6 +30,17 @@ export default function SharePopover() {
     error: "Something went wrong",
   });
 
+  const [copied, copyToClipboard] = useCopyToClipboard();
+
+  const statsUrl = `https://${domain}/stats/${encodeURIComponent(key)}`;
+  
+  const copyStatsUrl = ({ notify }: { notify: boolean }) => {
+    notify &&
+      toast.promise(copyToClipboard(statsUrl), {
+        success: "Copied to clipboard",
+      });
+  };
+
   const handleUpdate = async (checked: boolean) => {
     const res = await fetch(`/api/analytics/public-stats?${queryString}`, {
       method: "PUT",
@@ -43,15 +55,10 @@ export default function SharePopover() {
       throw new Error("Failed to update email preferences");
     }
     if (res.status === 200) {
-      checked &&
-        navigator.clipboard.writeText(
-          `https://${domain}/stats/${encodeURIComponent(key)}`,
-        );
+      checked && copyStatsUrl({ notify: false });
     }
     return { publicStats: checked };
   };
-
-  const [copied, setCopied] = useState(false);
 
   if (!data) return null;
 
@@ -86,19 +93,12 @@ export default function SharePopover() {
             <div className="divide-x-200 mt-2 flex items-center justify-between divide-x overflow-hidden rounded-md border border-gray-200 bg-gray-100">
               <div className="scrollbar-hide overflow-scroll pl-2">
                 <p className="whitespace-nowrap text-gray-600">
-                  https://{domain}/stats/{encodeURIComponent(key)}
+                  {statsUrl}
                 </p>
               </div>
               <button
                 className="h-8 flex-none border-l bg-white px-2 hover:bg-gray-50 active:bg-gray-100"
-                onClick={() => {
-                  navigator.clipboard.writeText(
-                    `https://${domain}/stats/${encodeURIComponent(key)}`,
-                  );
-                  setCopied(true);
-                  toast.success("Copied to clipboard");
-                  setTimeout(() => setCopied(false), 3000);
-                }}
+                onClick={() => copyStatsUrl({ notify: true })}
               >
                 {copied ? (
                   <Tick className="h-4 w-4 text-gray-500" />
