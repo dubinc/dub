@@ -29,6 +29,7 @@ export default function Main() {
     requiresUpgrade,
     adminPage,
     demoPage,
+    dashboardProps,
     selectedTab,
     view,
   } = useContext(AnalyticsContext);
@@ -42,7 +43,10 @@ export default function Main() {
           label: "Clicks",
           colorClassName: "text-blue-500/50",
         },
-        ...(conversionEnabled || adminPage || demoPage
+        ...(conversionEnabled ||
+        adminPage ||
+        demoPage ||
+        dashboardProps?.showConversions
           ? [
               {
                 id: "leads",
@@ -170,47 +174,48 @@ export default function Main() {
 
 function ViewButtons() {
   const { slug, conversionEnabled } = useWorkspace();
-  const { basePath, adminPage, demoPage, view } = useContext(AnalyticsContext);
+  const { adminPage, demoPage, dashboardProps, view } =
+    useContext(AnalyticsContext);
   const { router, queryParams, getQueryString } = useRouterStuff();
-  const isPublicStatsPage = basePath.startsWith("/stats");
 
   return (
     <div className="flex shrink-0 items-center gap-1 border-gray-100 pr-2 pt-2 sm:pr-6 sm:pt-6">
-      {(conversionEnabled || adminPage || demoPage) && (
-        <>
-          <Tooltip content="Line Chart">
-            <Button
-              variant="secondary"
-              className={cn(
-                "h-9 border-transparent px-2 hover:border-gray-200",
-                view === "default" && "border border-gray-200 bg-gray-100",
-              )}
-              icon={<ChartLine className="h-4 w-4 text-gray-600" />}
-              onClick={() => {
-                queryParams({
-                  del: "view",
-                });
-              }}
-            />
-          </Tooltip>
-          <Tooltip content="Funnel Chart">
-            <Button
-              variant="secondary"
-              className={cn(
-                "h-9 border-transparent px-2 hover:border-gray-200",
-                view === "funnel" && "border border-gray-200 bg-gray-100",
-              )}
-              icon={<Filter2 className="h-4 w-4 -rotate-90 text-gray-600" />}
-              onClick={() => {
-                queryParams({
-                  set: {
-                    view: "funnel",
-                  },
-                });
-              }}
-            />
-          </Tooltip>
-        </>
+      <Tooltip content="Line Chart">
+        <Button
+          variant="secondary"
+          className={cn(
+            "h-9 border-transparent px-2 hover:border-gray-200",
+            view === "default" && "border border-gray-200 bg-gray-100",
+          )}
+          icon={<ChartLine className="h-4 w-4 text-gray-600" />}
+          onClick={() => {
+            queryParams({
+              del: "view",
+            });
+          }}
+        />
+      </Tooltip>
+      {(conversionEnabled ||
+        adminPage ||
+        demoPage ||
+        dashboardProps?.showConversions) && (
+        <Tooltip content="Funnel Chart">
+          <Button
+            variant="secondary"
+            className={cn(
+              "h-9 border-transparent px-2 hover:border-gray-200",
+              view === "funnel" && "border border-gray-200 bg-gray-100",
+            )}
+            icon={<Filter2 className="h-4 w-4 -rotate-90 text-gray-600" />}
+            onClick={() => {
+              queryParams({
+                set: {
+                  view: "funnel",
+                },
+              });
+            }}
+          />
+        </Tooltip>
       )}
       <Tooltip content="View Events">
         <Button
@@ -218,7 +223,7 @@ function ViewButtons() {
           className="h-9 border-transparent px-2 hover:border-gray-200"
           icon={<SquareLayoutGrid6 className="h-4 w-4 text-gray-600" />}
           onClick={() => {
-            if (isPublicStatsPage) {
+            if (dashboardProps) {
               window.open("https://d.to/events");
             } else {
               router.push(

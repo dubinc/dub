@@ -74,6 +74,7 @@ import ContinentIcon from "./continent-icon";
 import DeviceIcon from "./device-icon";
 import EventsOptions from "./events/events-options";
 import RefererIcon from "./referer-icon";
+import SharePopover from "./share-popover";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Toggle({
@@ -84,18 +85,16 @@ export default function Toggle({
   const { plan } = useWorkspace();
   const { queryParams, searchParamsObj } = useRouterStuff();
   const {
-    basePath,
     domain,
     key,
     url,
     adminPage,
     demoPage,
+    dashboardProps,
     start,
     end,
     interval,
   } = useContext(AnalyticsContext);
-
-  const isPublicStatsPage = basePath.startsWith("/stats");
 
   const scrolled = useScroll(120);
 
@@ -219,7 +218,7 @@ export default function Toggle({
   // Some suggestions will only appear if previously requested (see isRequested above)
   const aiFilterSuggestions = useMemo(
     () => [
-      ...(isPublicStatsPage
+      ...(dashboardProps
         ? []
         : [
             {
@@ -244,7 +243,7 @@ export default function Toggle({
         icon: QRCode,
       },
     ],
-    [primaryDomain, isPublicStatsPage],
+    [primaryDomain, dashboardProps],
   );
 
   const [streaming, setStreaming] = useState<boolean>(false);
@@ -263,7 +262,7 @@ export default function Toggle({
             icon,
           })) ?? null,
       },
-      ...(isPublicStatsPage
+      ...(dashboardProps
         ? []
         : [
             {
@@ -409,7 +408,7 @@ export default function Toggle({
             icon: trigger === "qr" ? QRCode : CursorRays,
             right: nFormatter(count, { full: true }),
           })) ?? null,
-        separatorAfter: !isPublicStatsPage,
+        separatorAfter: !dashboardProps,
       },
       {
         key: "country",
@@ -556,7 +555,7 @@ export default function Toggle({
       },
     ],
     [
-      isPublicStatsPage,
+      dashboardProps,
       domains,
       links,
       tags,
@@ -582,9 +581,9 @@ export default function Toggle({
     <>
       <div
         className={cn("py-3 md:py-3", {
-          "sticky top-14 z-10 bg-gray-50": isPublicStatsPage,
+          "sticky top-14 z-10 bg-gray-50": dashboardProps,
           "sticky top-16 z-10 bg-gray-50": adminPage || demoPage,
-          "shadow-md": scrolled && isPublicStatsPage,
+          "shadow-md": scrolled && dashboardProps,
         })}
       >
         <div
@@ -604,7 +603,7 @@ export default function Toggle({
               },
             )}
           >
-            {isPublicStatsPage && (
+            {dashboardProps && (
               <a
                 className="group flex items-center text-lg font-semibold text-gray-800"
                 href={linkConstructor({ domain, key })}
@@ -635,7 +634,7 @@ export default function Toggle({
             <div
               className={cn(
                 "flex w-full items-center gap-2",
-                isPublicStatsPage && "md:w-auto",
+                dashboardProps && "md:w-auto",
                 !key && "flex-col min-[550px]:flex-row",
               )}
             >
@@ -699,12 +698,12 @@ export default function Toggle({
                 className={cn("flex w-full grow items-center gap-2 md:w-auto", {
                   "min-[550px]:w-auto": !key,
                   "justify-end": key,
-                  "grow-0": isPublicStatsPage,
+                  "grow-0": dashboardProps,
                 })}
               >
                 <DateRangePicker
                   className="w-full sm:min-w-[200px] md:w-fit"
-                  align="start"
+                  align={dashboardProps ? "end" : "start"}
                   value={
                     start && end
                       ? {
@@ -752,7 +751,7 @@ export default function Toggle({
                         )
                           ? false
                           : !validDateRangeForPlan({
-                              plan,
+                              plan: plan || dashboardProps?.workspacePlan,
                               start,
                               end,
                             });
@@ -773,9 +772,14 @@ export default function Toggle({
                     },
                   )}
                 />
-                {!isPublicStatsPage && (
-                  <div className="flex grow justify-end">
-                    {page === "analytics" && <AnalyticsOptions />}
+                {!dashboardProps && (
+                  <div className="flex grow justify-end gap-2">
+                    {page === "analytics" && (
+                      <>
+                        {domain && key && <SharePopover />}
+                        <AnalyticsOptions />
+                      </>
+                    )}
                     {page === "events" && <EventsOptions />}
                   </div>
                 )}

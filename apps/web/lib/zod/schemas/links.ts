@@ -189,7 +189,10 @@ export const createLinkBodySchema = z.object({
     .boolean()
     .optional()
     .default(false)
-    .describe("Whether the short link's stats are publicly accessible."),
+    .describe(
+      "Deprecated: Use `dashboard` instead. Whether the short link's stats are publicly accessible.",
+    )
+    .openapi({ deprecated: true }),
   tagId: z
     .string()
     .nullish()
