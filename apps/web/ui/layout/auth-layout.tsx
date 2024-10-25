@@ -60,7 +60,7 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
             src="https://assets.dub.co/changelog/new-dashboard.jpg"
             width={2400}
             height={1260}
-            className="aspect-[2400/1260] h-full rounded-lg border border-gray-200"
+            className="aspect-[2400/1260] h-full rounded-lg object-cover object-left-top border border-gray-200"
           />
         </div>
         <a
@@ -72,7 +72,7 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
             <BlurImage
               alt={`${logo} logo`}
               key={idx}
-              src={`https://dub.co/_static/clients/${logo}.svg`}
+              src={`https://assets.dub.co/clients/${logo}.svg`}
               width={520}
               height={182}
               className="h-12 grayscale transition-all hover:grayscale-0"

@@ -537,27 +537,23 @@ export default function Toggle({
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },
-      ...(key && domain
-        ? [
-            {
-              key: "url",
-              icon: LinkBroken,
-              label: "Destination URL",
-              getOptionIcon: (_, props) => (
-                <LinkLogo
-                  apexDomain={getApexDomain(props.option?.data?.url)}
-                  className="size-4 sm:size-4"
-                />
-              ),
-              options:
-                urls?.map(({ url, count }) => ({
-                  value: url,
-                  label: url.replace(/^https?:\/\//, "").replace(/\/$/, ""),
-                  right: nFormatter(count, { full: true }),
-                })) ?? null,
-            },
-          ]
-        : []),
+      {
+        key: "url",
+        icon: LinkBroken,
+        label: "Destination URL",
+        getOptionIcon: (_, props) => (
+          <LinkLogo
+            apexDomain={getApexDomain(props.option?.value)}
+            className="size-4 sm:size-4"
+          />
+        ),
+        options:
+          urls?.map(({ url, count }) => ({
+            value: url,
+            label: url.replace(/^https?:\/\//, "").replace(/\/$/, ""),
+            right: nFormatter(count, { full: true }),
+          })) ?? null,
+      },
     ],
     [
       isPublicStatsPage,
@@ -725,6 +721,7 @@ export default function Toggle({
                         set: {
                           interval: preset.id,
                         },
+                        scroll: false,
                       });
 
                       return;
@@ -739,6 +736,7 @@ export default function Toggle({
                         start: range.from.toISOString(),
                         end: range.to.toISOString(),
                       },
+                      scroll: false,
                     });
                   }}
                   presets={INTERVAL_DISPLAYS.map(
@@ -802,6 +800,7 @@ export default function Toggle({
           onRemove={(key) =>
             queryParams({
               del: key === "link" ? ["domain", "key", "url"] : key,
+              scroll: false,
             })
           }
           onRemoveAll={() =>
@@ -810,6 +809,7 @@ export default function Toggle({
               del: VALID_ANALYTICS_FILTERS.concat(["page"]).filter(
                 (f) => !["interval", "start", "end"].includes(f),
               ),
+              scroll: false,
             })
           }
         />

@@ -40,6 +40,7 @@ import {
 } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import { toast } from "sonner";
+import { useDebouncedCallback } from "use-debounce";
 
 const DEFAULT_COLORS = [
   "#000000",
@@ -122,6 +123,11 @@ function LinkQRModalInner({
           })
         : null,
     [url, data, hideLogo, logo],
+  );
+
+  const onColorChange = useDebouncedCallback(
+    (color: string) => setData((d) => ({ ...d, fgColor: color })),
+    500,
   );
 
   return (
@@ -274,9 +280,7 @@ function LinkQRModalInner({
                 <div className="flex max-w-xs flex-col items-center space-y-3 p-5 text-center">
                   <HexColorPicker
                     color={data.fgColor}
-                    onChange={(color) => {
-                      setData((d) => ({ ...d, fgColor: color }));
-                    }}
+                    onChange={onColorChange}
                   />
                 </div>
               }
@@ -293,7 +297,7 @@ function LinkQRModalInner({
               id="color"
               name="color"
               color={data.fgColor}
-              onChange={(color) => setData((d) => ({ ...d, fgColor: color }))}
+              onChange={onColorChange}
               prefixed
               style={{ borderColor: data.fgColor }}
               className="block w-full rounded-r-md border-2 border-l-0 pl-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-black sm:text-sm"
