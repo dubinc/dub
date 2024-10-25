@@ -87,13 +87,14 @@ export async function updateLink({
         updatedLink.projectId && {
           tags: {
             deleteMany: {},
-            create: tagNames.map((tagName) => ({
+            create: tagNames.map((tagName, idx) => ({
               tag: {
                 connect: {
                   name_projectId: {
                     name: tagName,
                     projectId: updatedLink.projectId as string,
                   },
+                  createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
                 },
               },
             })),
@@ -104,8 +105,9 @@ export async function updateLink({
       ...(combinedTagIds && {
         tags: {
           deleteMany: {},
-          create: combinedTagIds.map((tagId) => ({
+          create: combinedTagIds.map((tagId, idx) => ({
             tagId,
+            createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
           })),
         },
       }),
@@ -132,6 +134,9 @@ export async function updateLink({
               color: true,
             },
           },
+        },
+        orderBy: {
+          createdAt: "asc",
         },
       },
       webhooks: webhookIds ? true : false,

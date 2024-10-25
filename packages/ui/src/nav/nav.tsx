@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  APP_DOMAIN,
-  HIDE_BACKGROUND_SEGMENTS,
-  cn,
-  createHref,
-  fetcher,
-} from "@dub/utils";
+import { APP_DOMAIN, cn, createHref, fetcher } from "@dub/utils";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
 import { cva } from "class-variance-authority";
 import Cookies from "js-cookie";
@@ -95,11 +89,7 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
         <div
           className={cn(
             "absolute inset-0 block transition-all lg:hidden",
-            scrolledHalf &&
-              (selectedLayout &&
-              HIDE_BACKGROUND_SEGMENTS.includes(selectedLayout)
-                ? "bg-white dark:bg-black"
-                : "bg-white/75 backdrop-blur-md dark:bg-black/75"),
+            scrolledHalf && "bg-white/75 backdrop-blur-md dark:bg-black/75",
           )}
         />
         <MaxWidthWrapper className="relative">
@@ -124,11 +114,7 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
                 <div className="absolute inset-0 -z-[1]">
                   <div
                     className={cn(
-                      "absolute left-1/2 top-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 rounded-full border border-gray-200 drop-shadow-sm transition-all dark:border-white/10",
-                      selectedLayout &&
-                        HIDE_BACKGROUND_SEGMENTS.includes(selectedLayout)
-                        ? "bg-white dark:bg-black"
-                        : "bg-white/75 backdrop-blur-lg dark:bg-black/75",
+                      "absolute left-1/2 top-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 rounded-full border border-gray-200 bg-white/75 drop-shadow-sm backdrop-blur-lg transition-all dark:border-white/10 dark:bg-black/75",
                       scrolled && "h-14 w-screen rounded-none drop-shadow-none",
                     )}
                   />
