@@ -1,7 +1,7 @@
 import { Footer, Nav, NavMobile } from "@dub/ui";
 import { ReactNode } from "react";
 
-export default function ShareAnalyticsLayout({
+export default function SharedDashboardLayout({
   children,
 }: {
   children: ReactNode;

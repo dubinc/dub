@@ -33,7 +33,7 @@ export async function generateMetadata({
   });
 }
 
-export default async function SharePage({
+export default async function SharedDashboardPage({
   params,
 }: {
   params: { dashboardId: string };
