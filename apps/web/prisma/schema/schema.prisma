@@ -34,7 +34,7 @@ model User {
   sessions              Session[]
   projects              ProjectUsers[]
   links                 Link[]
-  sharedDashboards      SharedDashboard[]
+  dashboards            Dashboard[]
   tokens                Token[]
   restrictedTokens      RestrictedToken[]
   oAuthCodes            OAuthCode[]
