@@ -58,17 +58,9 @@ export const DELETE = withWorkspace(async ({ searchParams, workspace }) => {
     key,
   });
 
-  await prisma.link.update({
-    where: {
-      id: link.id,
-    },
-    data: {
-      publicStats: false,
-      sharedDashboard: {
-        delete: {},
-      },
-    },
+  const response = await prisma.sharedDashboard.delete({
+    where: { linkId: link.id },
   });
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ dashboardId: response.id });
 });
