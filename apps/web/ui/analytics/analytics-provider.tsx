@@ -47,6 +47,7 @@ export const AnalyticsContext = createContext<{
   demoPage?: boolean;
   requiresUpgrade?: boolean;
   isSharedDashboard?: boolean;
+  showConversions?: boolean;
 }>({
   basePath: "",
   baseApiPath: "",
@@ -60,21 +61,23 @@ export const AnalyticsContext = createContext<{
   demoPage: false,
   requiresUpgrade: false,
   isSharedDashboard: false,
+  showConversions: false,
 });
 
 export default function AnalyticsProvider({
-  staticDomain,
-  staticKey,
-  staticUrl,
   adminPage,
   demoPage,
+  sharedDashboardProps,
   children,
 }: PropsWithChildren<{
-  staticDomain?: string;
-  staticKey?: string;
-  staticUrl?: string;
   adminPage?: boolean;
   demoPage?: boolean;
+  sharedDashboardProps?: {
+    domain: string;
+    key: string;
+    url: string;
+    showConversions?: boolean;
+  };
 }>) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -86,7 +89,10 @@ export default function AnalyticsProvider({
   };
   const domainSlug = searchParams?.get("domain");
   // key can be a query param (stats pages in app) or passed as a staticKey (shared analytics dashboards)
-  const key = searchParams?.get("key") || staticKey;
+  const key = searchParams?.get("key") || sharedDashboardProps?.key;
+
+  // Whether to show conversions in shared analytics dashboards
+  const showConversions = sharedDashboardProps?.showConversions;
 
   const tagId = searchParams?.get("tagId") ?? undefined;
 
@@ -112,7 +118,8 @@ export default function AnalyticsProvider({
     start || end ? undefined : searchParams?.get("interval") ?? "24h";
 
   const selectedTab: EventType = useMemo(() => {
-    if (!!adminPage && !!demoPage && !conversionEnabled) return "clicks";
+    if (!!adminPage && !!demoPage && !conversionEnabled && !showConversions)
+      return "clicks";
 
     const event = searchParams.get("event");
 
@@ -120,7 +127,8 @@ export default function AnalyticsProvider({
   }, [searchParams.get("event")]);
 
   const view: AnalyticsView = useMemo(() => {
-    if (!adminPage && !demoPage && !conversionEnabled) return "default";
+    if (!adminPage && !demoPage && !conversionEnabled && !showConversions)
+      return "default";
 
     const view = searchParams.get("view");
 
@@ -154,8 +162,8 @@ export default function AnalyticsProvider({
       // Public stats page, e.g. app.dub.co/share/dsh_123
       return {
         basePath: `/share/${dashboardId}`,
-        baseApiPath: `/api/analytics/edge`,
-        domain: staticDomain,
+        baseApiPath: "/api/analytics/edge",
+        domain: sharedDashboardProps?.domain,
       };
     }
   }, [
@@ -163,7 +171,7 @@ export default function AnalyticsProvider({
     demoPage,
     slug,
     pathname,
-    staticDomain,
+    sharedDashboardProps?.domain,
     domainSlug,
     key,
     selectedTab,
@@ -201,7 +209,9 @@ export default function AnalyticsProvider({
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
       event:
-        adminPage || demoPage || conversionEnabled ? "composite" : "clicks",
+        adminPage || demoPage || conversionEnabled || showConversions
+          ? "composite"
+          : "clicks",
     })}`,
     fetcher,
     {
@@ -233,14 +243,14 @@ export default function AnalyticsProvider({
   return (
     <AnalyticsContext.Provider
       value={{
-        basePath, // basePath for the page (e.g. /stats/[key], /[slug]/analytics)
+        basePath, // basePath for the page (e.g. /[slug]/analytics, /share/[dashboardId])
         baseApiPath, // baseApiPath for analytics API endpoints (e.g. /api/analytics)
         selectedTab, // selected event tab (clicks, leads, sales)
         view,
         queryString,
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)
         key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)
-        url: staticUrl, // url for the link (only for public stats pages)
+        url: sharedDashboardProps?.url, // url for the link (only for public stats pages)
         start, // start of time period
         end, // end of time period
         interval, /// time period interval
@@ -249,6 +259,7 @@ export default function AnalyticsProvider({
         adminPage, // whether the user is an admin
         demoPage, // whether the user is viewing demo analytics
         isSharedDashboard: dashboardId ? true : false,
+        showConversions, // whether to show conversions in shared analytics dashboards
         requiresUpgrade, // whether an upgrade is required to perform the query
       }}
     >

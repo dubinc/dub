@@ -29,6 +29,7 @@ export default function Main() {
     requiresUpgrade,
     adminPage,
     demoPage,
+    showConversions,
     selectedTab,
     view,
   } = useContext(AnalyticsContext);
@@ -42,7 +43,7 @@ export default function Main() {
           label: "Clicks",
           colorClassName: "text-blue-500/50",
         },
-        ...(conversionEnabled || adminPage || demoPage
+        ...(conversionEnabled || adminPage || demoPage || showConversions
           ? [
               {
                 id: "leads",

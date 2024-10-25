@@ -62,6 +62,7 @@ export const GET = async (req: NextRequest) => {
           domain_key: { domain, key },
         },
         select: {
+          id: true,
           sharedDashboard: true,
           projectId: true,
           project: {

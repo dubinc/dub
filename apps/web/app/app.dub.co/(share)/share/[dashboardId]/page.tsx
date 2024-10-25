@@ -53,9 +53,12 @@ export default async function SharePage({
   return (
     <Suspense fallback={<div className="h-screen w-full bg-gray-50" />}>
       <Analytics
-        staticDomain={data.link.domain}
-        staticKey={data.link.key}
-        staticUrl={data.link.url}
+        sharedDashboardProps={{
+          domain: data.link.domain,
+          key: data.link.key,
+          url: data.link.url,
+          showConversions: data.showConversions,
+        }}
       />
     </Suspense>
   );

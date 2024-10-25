@@ -15,22 +15,21 @@ import Toggle from "./toggle";
 import TopLinks from "./top-links";
 
 export default function Analytics({
-  staticDomain,
-  staticKey,
-  staticUrl,
   adminPage,
   demoPage,
+  sharedDashboardProps,
 }: {
-  staticDomain?: string;
-  staticKey?: string;
-  staticUrl?: string;
   adminPage?: boolean;
   demoPage?: boolean;
+  sharedDashboardProps?: {
+    domain: string;
+    key: string;
+    url: string;
+    showConversions?: boolean;
+  };
 }) {
   return (
-    <AnalyticsProvider
-      {...{ staticDomain, staticKey, staticUrl, adminPage, demoPage }}
-    >
+    <AnalyticsProvider {...{ adminPage, demoPage, sharedDashboardProps }}>
       <AnalyticsContext.Consumer>
         {({ isSharedDashboard }) => {
           return (
