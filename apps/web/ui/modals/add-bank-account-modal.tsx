@@ -137,6 +137,7 @@ const AddBankAccountForm = ({ closeModal }: AddBankAccountFormProps) => {
           variant="secondary"
           text="Cancel"
           className="h-9 w-fit"
+          disabled={isSubmitting || isExecuting}
           onClick={closeModal}
         />
 
