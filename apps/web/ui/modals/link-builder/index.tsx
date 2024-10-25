@@ -294,11 +294,12 @@ function LinkBuilderInner({
 
                   // copy shortlink to clipboard when adding a new link
                   if (!props) {
-                    toast.promise(copyToClipboard(data.shortLink), {
-                      success: "Copied short link to clipboard!",
-                      error: (e) => `Failed to copy to clipboard: ${e}`,
-                    });
-                    toast.success("Successfully created link!");
+                    try {
+                      await copyToClipboard(data.shortLink);
+                      toast.success("Copied short link to clipboard!");
+                    } catch (err) {
+                      toast.success("Successfully created link!");
+                    }
                   } else toast.success("Successfully updated short link!");
 
                   draftControlsRef.current?.onSubmitSuccessful();

@@ -46,10 +46,10 @@ export function NavLogo({
 
   const [, copyToClipboard] = useCopyToClipboard();
 
-  async function copy(text: string) {
+  function copy(text: string) {
     toast.promise(copyToClipboard(text), {
       success: "Copied to clipboard!",
-      error: "Failed to copy to clipboard.",
+      error: "Failed to copy to clipboard",
     });
   }
 

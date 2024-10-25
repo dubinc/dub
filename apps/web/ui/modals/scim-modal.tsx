@@ -226,7 +226,7 @@ function SCIMModal({
                     <button
                       type="button"
                       onClick={() => {
-                        const token = `${scim.directories[0].scim.secret}`;
+                        const token = scim.directories[0].scim.secret as string;
                         toast.promise(copyBearerTokenToClipboard(token), {
                           success: "Copied to clipboard",
                         });
