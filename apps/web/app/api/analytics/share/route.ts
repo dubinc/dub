@@ -3,6 +3,7 @@ import { createId } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { domainKeySchema } from "@/lib/zod/schemas/links";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/analytics/share – get a shared dashboard for a link
@@ -41,6 +42,13 @@ export const POST = withWorkspace(
         showConversions: workspace.conversionEnabled,
       },
     });
+
+    waitUntil(
+      prisma.link.update({
+        where: { id: link.id },
+        data: { publicStats: true },
+      }),
+    );
 
     return NextResponse.json(response);
   },
