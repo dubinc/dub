@@ -1,6 +1,6 @@
 import { createId } from "@/lib/api/utils";
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN } from "@dub/utils";
+import { getPrettyUrl, truncate } from "@dub/utils";
 import "dotenv-flow/config";
 
 async function main() {
@@ -20,7 +20,7 @@ async function main() {
     orderBy: {
       clicks: "desc",
     },
-    take: 50,
+    take: 500,
   });
 
   const results = await Promise.all(
@@ -36,13 +36,22 @@ async function main() {
       });
 
       return {
-        ...link,
-        dashboardUrl: `${APP_DOMAIN}/share/${dashboard.id}`,
+        shortLink: truncate(getPrettyUrl(link.shortLink), 24),
+        clicks: link.clicks,
+        dashboardUrl: `https://preview.dub.co/share/${dashboard.id}`,
       };
     }),
   );
 
+  const remaining = await prisma.link.count({
+    where: {
+      publicStats: true,
+      dashboard: null,
+    },
+  });
+
   console.table(results);
+  console.log(`${remaining} remaining`);
 }
 
 main();
