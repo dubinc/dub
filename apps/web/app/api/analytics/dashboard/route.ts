@@ -5,16 +5,15 @@ import {
   exceededLimitError,
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
-import { getLinkViaEdge, getWorkspaceViaEdge } from "@/lib/planetscale";
+import { prisma } from "@/lib/prisma";
+import { PlanProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { ipAddress } from "@vercel/functions";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
-export const runtime = "edge";
-
-export const GET = async (req: NextRequest) => {
+export const GET = async (req: Request) => {
   try {
     const searchParams = getSearchParams(req.url);
     const parsedParams = analyticsQuerySchema.parse(searchParams);
@@ -36,37 +35,38 @@ export const GET = async (req: NextRequest) => {
 
     // if it's a demo link
     if (demoLink) {
-      // Rate limit in production
-      if (process.env.NODE_ENV !== "development") {
-        const ip = ipAddress(req);
-        const { success } = await ratelimit(
-          15,
-          groupBy === "count" ? "10 s" : "1 m",
-        ).limit(`demo-analytics:${demoLink.id}:${ip}:${groupBy}`);
-
-        if (!success) {
-          throw new DubApiError({
-            code: "rate_limit_exceeded",
-            message: "Don't DDoS me pls 🥺",
-          });
-        }
-      }
       link = {
         id: demoLink.id,
         projectId: DUB_WORKSPACE_ID,
       };
-    } else if (domain) {
-      link = await getLinkViaEdge(domain, key);
+    } else {
+      link = await prisma.link.findUnique({
+        where: {
+          domain_key: { domain, key },
+        },
+        select: {
+          id: true,
+          dashboard: true,
+          projectId: true,
+          project: {
+            select: {
+              plan: true,
+              usage: true,
+              usageLimit: true,
+            },
+          },
+        },
+      });
 
       // if the link is explicitly private (publicStats === false)
-      if (!link?.publicStats) {
+      if (!link?.dashboard) {
         throw new DubApiError({
           code: "forbidden",
-          message: "Analytics for this link are not public",
+          message: "This link does not have a public analytics dashboard",
         });
       }
-      const workspace =
-        link?.projectId && (await getWorkspaceViaEdge(link.projectId));
+
+      const workspace = link.project;
 
       validDateRangeForPlan({
         plan: workspace?.plan || "free",
@@ -80,10 +80,30 @@ export const GET = async (req: NextRequest) => {
         throw new DubApiError({
           code: "forbidden",
           message: exceededLimitError({
-            plan: workspace.plan,
+            plan: workspace.plan as PlanProps,
             limit: workspace.usageLimit,
             type: "clicks",
           }),
+        });
+      }
+    }
+
+    // Rate limit in production
+    if (process.env.NODE_ENV !== "development") {
+      const ip = ipAddress(req);
+      // for demo links, we rate limit at:
+      // - 15 requests per 10 seconds if groupBy is "count"
+      // - 15 request per minute if groupBy is not "count"
+      // for non-demo links, we rate limit at 10 requests per 10 seconds
+      const { success } = await ratelimit(
+        demoLink ? 15 : 10,
+        !demoLink || groupBy === "count" ? "10 s" : "1 m",
+      ).limit(`analytics-dashboard:${link.id}:${ip}:${groupBy}`);
+
+      if (!success) {
+        throw new DubApiError({
+          code: "rate_limit_exceeded",
+          message: "Don't DDoS me pls 🥺",
         });
       }
     }

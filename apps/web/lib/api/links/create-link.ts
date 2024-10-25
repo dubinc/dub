@@ -13,11 +13,22 @@ import {
 import { linkConstructorSimple } from "@dub/utils/src/functions/link-constructor";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { createId } from "../utils";
 import { updateLinksUsage } from "./update-links-usage";
 import { combineTagIds, transformLink } from "./utils";
 
 export async function createLink(link: ProcessedLinkProps) {
-  let { key, url, expiresAt, title, description, image, proxy, geo } = link;
+  let {
+    key,
+    url,
+    expiresAt,
+    title,
+    description,
+    image,
+    proxy,
+    geo,
+    publicStats,
+  } = link;
 
   const combinedTagIds = combineTagIds(link);
 
@@ -85,6 +96,18 @@ export async function createLink(link: ProcessedLinkProps) {
             },
           },
         }),
+
+      // Shared dashboard
+      ...(publicStats && {
+        dashboard: {
+          create: {
+            id: createId({ prefix: "dash_" }),
+            showConversions: link.trackConversion,
+            projectId: link.projectId,
+            userId: link.userId,
+          },
+        },
+      }),
     },
     include: {
       tags: {

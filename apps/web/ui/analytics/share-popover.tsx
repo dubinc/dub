@@ -1,129 +1,166 @@
+import useWorkspace from "@/lib/swr/use-workspace";
 import {
+  AnimatedSizeContainer,
+  Button,
   Copy,
-  IconMenu,
   Popover,
-  Switch,
+  ReferredVia,
   Tick,
-  useOptimisticUpdate,
 } from "@dub/ui";
-import { cn, linkConstructor } from "@dub/utils";
-import { Share2 } from "lucide-react";
+import { APP_DOMAIN, fetcher, getPrettyUrl } from "@dub/utils";
 import { useContext, useState } from "react";
 import { toast } from "sonner";
+import useSWR from "swr";
 import { AnalyticsContext } from "./analytics-provider";
 
 export default function SharePopover() {
+  const { id: workspaceId } = useWorkspace();
+  const [removing, setRemoving] = useState(false);
   const [openSharePopover, setopenSharePopoverPopover] = useState(false);
 
-  const { queryString, domain, key } = useContext(AnalyticsContext) as {
+  const { queryString } = useContext(AnalyticsContext) as {
     queryString: string;
-    domain: string;
-    key: string; // coerce to string since <SharePopover is not shown if key is undefined)
   };
 
-  const { data, isLoading, update } = useOptimisticUpdate<{
-    publicStats: boolean;
-  }>(`/api/analytics/public-stats?${queryString}`, {
-    loading: "Updating...",
-    success: "Successfully updated stats page visibility!",
-    error: "Something went wrong",
-  });
+  const { data, mutate, isLoading } = useSWR<{ id: string }>(
+    `/api/analytics/share?${queryString}`,
+    fetcher,
+  );
 
-  const handleUpdate = async (checked: boolean) => {
-    const res = await fetch(`/api/analytics/public-stats?${queryString}`, {
-      method: "PUT",
+  const [isCreating, setIsCreating] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCreate = async () => {
+    setIsCreating(true);
+    const res = await fetch(`/api/analytics/share?${queryString}`, {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        publicStats: checked,
-      }),
     });
     if (!res.ok) {
-      throw new Error("Failed to update email preferences");
+      toast.error("Failed to create shared dashboard");
+      return;
     }
     if (res.status === 200) {
-      checked &&
-        navigator.clipboard.writeText(
-          `https://${domain}/stats/${encodeURIComponent(key)}`,
-        );
+      const data = await res.json();
+      await mutate();
+      toast.success(
+        "Successfully created shared dashboard! Copied link to clipboard.",
+      );
+      navigator.clipboard.writeText(`${APP_DOMAIN}/share/${data.id}`);
     }
-    return { publicStats: checked };
+    setIsCreating(false);
   };
 
-  const [copied, setCopied] = useState(false);
+  const handleRemove = async () => {
+    if (!data) {
+      return;
+    }
 
-  if (!data) return null;
+    if (
+      !confirm(
+        "Are you sure you want to remove the shared dashboard? Your existing dashboard link will break and you'll have to create a new one.",
+      )
+    ) {
+      return;
+    }
+
+    setRemoving(true);
+
+    const res = await fetch(
+      `/api/analytics/share/${data.id}?workspaceId=${workspaceId}`,
+      {
+        method: "DELETE",
+      },
+    );
+
+    if (!res.ok) {
+      toast.error("Failed to remove shared dashboard.");
+      return;
+    }
+
+    await mutate();
+    toast.success("Removed shared dashboard.");
+    setRemoving(false);
+  };
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <Popover
       content={
-        <div className="w-full divide-y divide-gray-200 text-sm md:w-60">
-          <div className="p-4">
-            <p className="text-gray-500">Share stats for</p>
-            <p className="truncate font-semibold text-gray-800">
-              {linkConstructor({ key, domain, pretty: true })}
+        <AnimatedSizeContainer height>
+          <div className="grid w-full gap-2 p-4 text-sm md:max-w-xs">
+            <p className="font-semibold text-gray-800">
+              Create a shared dashboard
             </p>
-          </div>
-          <div className="p-4">
-            <div className="mb-2 flex items-center justify-between">
-              <p className="font-semibold text-gray-800">Public Stats Page</p>
-              <Switch
-                checked={data?.publicStats}
-                loading={isLoading}
-                fn={(checked: boolean) => {
-                  update(() => handleUpdate(checked), { publicStats: checked });
-                }}
-              />
-            </div>
             <p className="text-gray-500">
-              Making stats public will allow anyone with the link to see the
-              stats for this short link.
+              Share this link's analytics with anyone via a shared dashboard –
+              no signup required.
             </p>
+
+            {data ? (
+              <>
+                <div className="divide-x-200 flex items-center justify-between divide-x overflow-hidden rounded-md border border-gray-200 bg-gray-100">
+                  <div className="scrollbar-hide overflow-scroll pl-3">
+                    <p className="whitespace-nowrap text-gray-400">
+                      {getPrettyUrl(`${APP_DOMAIN}/share/${data.id}`)}
+                    </p>
+                  </div>
+                  <button
+                    className="h-8 flex-none border-l bg-white px-2 hover:bg-gray-50 active:bg-gray-100"
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        `${APP_DOMAIN}/share/${data.id}`,
+                      );
+                      setCopied(true);
+                      toast.success("Copied to clipboard");
+                      setTimeout(() => setCopied(false), 3000);
+                    }}
+                  >
+                    {copied ? (
+                      <Tick className="h-4 w-4 text-gray-500" />
+                    ) : (
+                      <Copy className="h-4 w-4 text-gray-500" />
+                    )}
+                  </button>
+                </div>
+
+                <div className="mt-1 flex">
+                  <Button
+                    className="h-8 w-fit"
+                    text="Remove dashboard"
+                    variant="secondary"
+                    onClick={handleRemove}
+                    loading={removing}
+                  />
+                </div>
+              </>
+            ) : (
+              <Button
+                text="Create dashboard"
+                className="h-8"
+                onClick={handleCreate}
+                loading={isCreating}
+              />
+            )}
           </div>
-          <div className="p-4">
-            <p className="font-semibold text-gray-800">Share Link</p>
-            <div className="divide-x-200 mt-2 flex items-center justify-between divide-x overflow-hidden rounded-md border border-gray-200 bg-gray-100">
-              <div className="scrollbar-hide overflow-scroll pl-2">
-                <p className="whitespace-nowrap text-gray-600">
-                  https://{domain}/stats/{encodeURIComponent(key)}
-                </p>
-              </div>
-              <button
-                className="h-8 flex-none border-l bg-white px-2 hover:bg-gray-50 active:bg-gray-100"
-                onClick={() => {
-                  navigator.clipboard.writeText(
-                    `https://${domain}/stats/${encodeURIComponent(key)}`,
-                  );
-                  setCopied(true);
-                  toast.success("Copied to clipboard");
-                  setTimeout(() => setCopied(false), 3000);
-                }}
-              >
-                {copied ? (
-                  <Tick className="h-4 w-4 text-gray-500" />
-                ) : (
-                  <Copy className="h-4 w-4 text-gray-500" />
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
+        </AnimatedSizeContainer>
       }
       align="end"
       openPopover={openSharePopover}
       setOpenPopover={setopenSharePopoverPopover}
     >
-      <button
+      <Button
+        variant="secondary"
         onClick={() => setopenSharePopoverPopover(!openSharePopover)}
-        className={cn(
-          "flex w-24 items-center justify-center space-x-2 rounded-md border bg-white px-3 py-2.5 outline-none transition-all sm:text-sm",
-          "border-gray-200 bg-white text-gray-900 placeholder-gray-400 transition-all",
-          "focus-visible:border-gray-500 data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
-        )}
-      >
-        <IconMenu text="Share" icon={<Share2 className="h-4 w-4" />} />
-      </button>
+        icon={<ReferredVia className="h-4 w-4" />}
+        text="Share"
+        className="w-fit"
+      />
     </Popover>
   );
 }
