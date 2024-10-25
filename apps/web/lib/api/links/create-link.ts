@@ -102,6 +102,9 @@ export async function createLink(link: ProcessedLinkProps) {
         sharedDashboard: {
           create: {
             id: createId({ prefix: "dsh_" }),
+            showConversions: link.trackConversion,
+            projectId: link.projectId,
+            userId: link.userId,
           },
         },
       }),

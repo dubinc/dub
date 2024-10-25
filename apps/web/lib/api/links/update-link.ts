@@ -131,6 +131,9 @@ export async function updateLink({
         sharedDashboard: {
           create: {
             id: createId({ prefix: "dsh_" }),
+            showConversions: updatedLink.trackConversion,
+            projectId: updatedLink.projectId,
+            userId: updatedLink.userId,
           },
         },
       }),
