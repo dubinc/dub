@@ -74,6 +74,7 @@ import ContinentIcon from "./continent-icon";
 import DeviceIcon from "./device-icon";
 import EventsOptions from "./events/events-options";
 import RefererIcon from "./referer-icon";
+import SharePopover from "./share-popover";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Toggle({
@@ -774,8 +775,13 @@ export default function Toggle({
                   )}
                 />
                 {!isPublicStatsPage && (
-                  <div className="flex grow justify-end">
-                    {page === "analytics" && <AnalyticsOptions />}
+                  <div className="flex grow justify-end gap-2">
+                    {page === "analytics" && (
+                      <>
+                        <SharePopover />
+                        <AnalyticsOptions />
+                      </>
+                    )}
                     {page === "events" && <EventsOptions />}
                   </div>
                 )}

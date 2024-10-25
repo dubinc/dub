@@ -1,13 +1,13 @@
 import {
+  Button,
   Copy,
-  IconMenu,
   Popover,
+  ReferredVia,
   Switch,
   Tick,
   useOptimisticUpdate,
 } from "@dub/ui";
-import { cn, linkConstructor } from "@dub/utils";
-import { Share2 } from "lucide-react";
+import { linkConstructor } from "@dub/utils";
 import { useContext, useState } from "react";
 import { toast } from "sonner";
 import { AnalyticsContext } from "./analytics-provider";
@@ -114,16 +114,13 @@ export default function SharePopover() {
       openPopover={openSharePopover}
       setOpenPopover={setopenSharePopoverPopover}
     >
-      <button
+      <Button
+        variant="secondary"
         onClick={() => setopenSharePopoverPopover(!openSharePopover)}
-        className={cn(
-          "flex w-24 items-center justify-center space-x-2 rounded-md border bg-white px-3 py-2.5 outline-none transition-all sm:text-sm",
-          "border-gray-200 bg-white text-gray-900 placeholder-gray-400 transition-all",
-          "focus-visible:border-gray-500 data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
-        )}
-      >
-        <IconMenu text="Share" icon={<Share2 className="h-4 w-4" />} />
-      </button>
+        icon={<ReferredVia className="h-4 w-4" />}
+        text="Share"
+        className="w-fit"
+      />
     </Popover>
   );
 }
