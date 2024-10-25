@@ -74,7 +74,7 @@ import ContinentIcon from "./continent-icon";
 import DeviceIcon from "./device-icon";
 import EventsOptions from "./events/events-options";
 import RefererIcon from "./referer-icon";
-import SharePopover from "./share-popover";
+import { ShareButton } from "./share-button";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Toggle({
@@ -776,7 +776,7 @@ export default function Toggle({
                   <div className="flex grow justify-end gap-2">
                     {page === "analytics" && (
                       <>
-                        {domain && key && <SharePopover />}
+                        {domain && key && <ShareButton />}
                         <AnalyticsOptions />
                       </>
                     )}
