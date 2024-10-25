@@ -1,7 +1,13 @@
 import { Project } from "@prisma/client";
+import z from "../zod";
 import { DOTS_API_URL } from "./env";
-import { dotsAppSchema } from "./schemas";
-import { getBasicAuthToken } from "./utils";
+import { dotsHeaders } from "./utils";
+
+const schema = z.object({
+  id: z.string(),
+  name: z.string(),
+  status: z.string(),
+});
 
 export const createDotsApp = async ({
   workspace,
@@ -10,10 +16,7 @@ export const createDotsApp = async ({
 }) => {
   const response = await fetch(`${DOTS_API_URL}/apps`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Basic ${getBasicAuthToken()}`,
-    },
+    headers: dotsHeaders(),
     body: JSON.stringify({
       name: workspace.name,
       metadata: {
@@ -30,5 +33,5 @@ export const createDotsApp = async ({
     );
   }
 
-  return dotsAppSchema.parse(await response.json());
+  return schema.parse(await response.json());
 };

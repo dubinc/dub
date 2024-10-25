@@ -9,7 +9,7 @@ import { authActionClient } from "./safe-action";
 
 const schema = addBankAccountSchema.extend({ workspaceId: z.string() });
 
-export const addBankAccount = authActionClient
+export const addBankAccountAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;

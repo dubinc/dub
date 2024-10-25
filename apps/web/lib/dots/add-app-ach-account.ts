@@ -1,6 +1,11 @@
+import z from "../zod";
 import { DOTS_API_URL } from "./env";
-import { achAccountSchema } from "./schemas";
-import { getBasicAuthToken } from "./utils";
+import { dotsHeaders } from "./utils";
+
+const schema = z.object({
+  name: z.string(),
+  mask: z.string(),
+});
 
 export const addAppAchAccount = async ({
   dotsAppId,
@@ -17,10 +22,7 @@ export const addAppAchAccount = async ({
     `${DOTS_API_URL}/apps/${dotsAppId}/ach-account`,
     {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Basic ${getBasicAuthToken()}`,
-      },
+      headers: dotsHeaders(),
       body: JSON.stringify({
         account_number: accountNumber,
         routing_number: routingNumber,
@@ -31,9 +33,8 @@ export const addAppAchAccount = async ({
 
   if (!response.ok) {
     console.error(await response.text());
-
     throw new Error(`Failed to add ACH account to Dots app ${dotsAppId}.`);
   }
 
-  return achAccountSchema.parse(await response.json());
+  return schema.parse(await response.json());
 };

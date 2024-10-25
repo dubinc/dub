@@ -1,4 +1,4 @@
-import { addBankAccount } from "@/lib/actions/add-bank-account";
+import { addBankAccountAction } from "@/lib/actions/add-bank-account";
 import { addBankAccountSchema } from "@/lib/dots/schemas";
 import useWorkspace from "@/lib/swr/use-workspace";
 import z from "@/lib/zod";
@@ -48,7 +48,7 @@ const AddBankAccountForm = ({ closeModal }: AddBankAccountFormProps) => {
     resolver: zodResolver(addBankAccountSchema),
   });
 
-  const { executeAsync, isExecuting } = useAction(addBankAccount, {
+  const { executeAsync, isExecuting } = useAction(addBankAccountAction, {
     async onSuccess() {
       toast.success(
         "Bank account added successfully. Waiting for verification.",

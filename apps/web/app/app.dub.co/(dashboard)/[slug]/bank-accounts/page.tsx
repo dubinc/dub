@@ -1,13 +1,20 @@
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { PageContent } from "@/ui/layout/page-content";
+import { MaxWidthWrapper } from "@dub/ui";
 import { Suspense } from "react";
-import { BankAccountsClient } from "./page-client";
+import { BankAccount } from "./bank-account";
+import { ComplianceFlow } from "./compliance-flow";
 
 export default function BankAccounts() {
   return (
     <Suspense fallback={<LayoutLoader />}>
       <PageContent title="Bank Accounts">
-        <BankAccountsClient />
+        <div className="relative min-h-[calc(100vh-16px)]">
+          <MaxWidthWrapper className="grid gap-5 pb-10 pt-3">
+            <BankAccount />
+            <ComplianceFlow />
+          </MaxWidthWrapper>
+        </div>
       </PageContent>
     </Suspense>
   );
