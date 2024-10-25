@@ -52,7 +52,7 @@ export function AnalyticsCard<T extends string>({
       </Modal>
       <div
         className={cn(
-          "relative z-0 max-h-[520px] min-h-[320px] overflow-hidden border border-gray-200 bg-white sm:rounded-xl",
+          "relative z-0 max-h-[520px] min-h-[300px] overflow-hidden border border-gray-200 bg-white sm:rounded-xl",
           className,
         )}
       >
