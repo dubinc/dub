@@ -16,11 +16,14 @@ import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import {
   BlurImage,
+  Button,
+  ChartLine,
   DateRangePicker,
   ExpandingArrow,
   Filter,
   LinkLogo,
   Sliders,
+  SquareLayoutGrid6,
   TooltipContent,
   useRouterStuff,
   useScroll,
@@ -74,7 +77,7 @@ import ContinentIcon from "./continent-icon";
 import DeviceIcon from "./device-icon";
 import EventsOptions from "./events/events-options";
 import RefererIcon from "./referer-icon";
-import SharePopover from "./share-popover";
+import { ShareButton } from "./share-button";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Toggle({
@@ -82,8 +85,11 @@ export default function Toggle({
 }: {
   page?: "analytics" | "events";
 }) {
-  const { plan } = useWorkspace();
-  const { queryParams, searchParamsObj } = useRouterStuff();
+  const { slug, plan } = useWorkspace();
+
+  const { router, queryParams, searchParamsObj, getQueryString } =
+    useRouterStuff();
+
   const {
     domain,
     key,
@@ -777,11 +783,41 @@ export default function Toggle({
                   <div className="flex grow justify-end gap-2">
                     {page === "analytics" && (
                       <>
-                        {domain && key && <SharePopover />}
+                        {domain && key && <ShareButton />}
+                        <Button
+                          variant="secondary"
+                          className="w-fit"
+                          icon={
+                            <SquareLayoutGrid6 className="h-4 w-4 text-gray-600" />
+                          }
+                          text="Switch to Events"
+                          onClick={() => {
+                            if (dashboardProps) {
+                              window.open("https://d.to/events");
+                            } else {
+                              router.push(
+                                `/${slug}/events${getQueryString({}, { ignore: ["view"] })}`,
+                              );
+                            }
+                          }}
+                        />
                         <AnalyticsOptions />
                       </>
                     )}
-                    {page === "events" && <EventsOptions />}
+                    {page === "events" && (
+                      <>
+                        <Button
+                          variant="secondary"
+                          className="w-fit"
+                          icon={<ChartLine className="h-4 w-4 text-gray-600" />}
+                          text="Switch to Analytics"
+                          onClick={() =>
+                            router.push(`/${slug}/analytics${getQueryString()}`)
+                          }
+                        />
+                        <EventsOptions />
+                      </>
+                    )}
                   </div>
                 )}
               </div>

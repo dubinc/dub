@@ -1,5 +1,3 @@
-import { NewBackground } from "@/ui/shared/new-background";
-import { Nav, NavMobile } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
 import PlaceholderContent from "./placeholder";
 
@@ -24,12 +22,5 @@ export async function generateMetadata({
 }
 
 export default function CustomDomainPage() {
-  return (
-    <div className="flex min-h-screen flex-col justify-between bg-gray-50/80">
-      <NavMobile />
-      <Nav />
-      <NewBackground />
-      <PlaceholderContent />
-    </div>
-  );
+  return <PlaceholderContent />;
 }
