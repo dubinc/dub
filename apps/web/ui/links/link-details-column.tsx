@@ -3,8 +3,7 @@ import { TagProps } from "@/lib/types";
 import {
   Button,
   CardList,
-  Copy,
-  Tick,
+  CopyButton,
   Tooltip,
   useMediaQuery,
   useRouterStuff,
@@ -26,7 +25,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { toast } from "sonner";
 import { useShareDashboardModal } from "../modals/share-dashboard-modal";
 import { LinkControls } from "./link-controls";
 import { ResponseLink } from "./links-container";
@@ -219,23 +217,11 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
               />
 
               {link.dashboardId && (
-                <button
-                  className="inline-flex h-7 items-center justify-center rounded-md border border-neutral-300 bg-white p-2 hover:bg-gray-50 active:bg-gray-100"
-                  onClick={() => {
-                    navigator.clipboard.writeText(
-                      `${APP_DOMAIN}/share/${link.dashboardId}`,
-                    );
-                    setCopied(true);
-                    toast.success("Copied to clipboard");
-                    setTimeout(() => setCopied(false), 3000);
-                  }}
-                >
-                  {copied ? (
-                    <Tick className="h-4 w-4 text-gray-500" />
-                  ) : (
-                    <Copy className="h-4 w-4 text-gray-500" />
-                  )}
-                </button>
+                <CopyButton
+                  value={`${APP_DOMAIN}/share/${link.dashboardId}`}
+                  variant="neutral"
+                  className="h-7 items-center justify-center rounded-md border border-neutral-300 bg-white p-1.5 hover:bg-gray-50 active:bg-gray-100"
+                />
               )}
             </div>
           </div>
