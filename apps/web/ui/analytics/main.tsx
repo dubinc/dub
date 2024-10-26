@@ -7,7 +7,7 @@ import {
   Tooltip,
   useRouterStuff,
 } from "@dub/ui";
-import { ChartLine, Filter2, SquareLayoutGrid6 } from "@dub/ui/src/icons";
+import { ChartLine, Filter2 } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import { ChevronRight, Lock } from "lucide-react";
 import Link from "next/link";
@@ -65,6 +65,12 @@ export default function Main() {
   );
 
   const tab = tabs.find(({ id }) => id === selectedTab) ?? tabs[0];
+
+  const showViewButtons =
+    conversionEnabled ||
+    adminPage ||
+    demoPage ||
+    dashboardProps?.showConversions;
 
   return (
     <div className="w-full overflow-hidden border border-gray-200 bg-white sm:rounded-xl">
@@ -153,9 +159,11 @@ export default function Main() {
             );
           })}
         </div>
-        <div className="hidden sm:block">
-          <ViewButtons />
-        </div>
+        {showViewButtons && (
+          <div className="hidden sm:block">
+            <ViewButtons />
+          </div>
+        )}
       </div>
       <div className="relative">
         {view === "default" && (
@@ -164,19 +172,19 @@ export default function Main() {
           </div>
         )}
         {view === "funnel" && <AnalyticsFunnelChart />}
-        <div className="absolute right-2 top-2 w-fit sm:hidden">
-          <ViewButtons />
-        </div>
+        {showViewButtons && (
+          <div className="absolute right-2 top-2 w-fit sm:hidden">
+            <ViewButtons />
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
 function ViewButtons() {
-  const { slug, conversionEnabled } = useWorkspace();
-  const { adminPage, demoPage, dashboardProps, view } =
-    useContext(AnalyticsContext);
-  const { router, queryParams, getQueryString } = useRouterStuff();
+  const { view } = useContext(AnalyticsContext);
+  const { queryParams } = useRouterStuff();
 
   return (
     <div className="flex shrink-0 items-center gap-1 border-gray-100 pr-2 pt-2 sm:pr-6 sm:pt-6">
@@ -195,41 +203,20 @@ function ViewButtons() {
           }}
         />
       </Tooltip>
-      {(conversionEnabled ||
-        adminPage ||
-        demoPage ||
-        dashboardProps?.showConversions) && (
-        <Tooltip content="Funnel Chart">
-          <Button
-            variant="secondary"
-            className={cn(
-              "h-9 border-transparent px-2 hover:border-gray-200",
-              view === "funnel" && "border border-gray-200 bg-gray-100",
-            )}
-            icon={<Filter2 className="h-4 w-4 -rotate-90 text-gray-600" />}
-            onClick={() => {
-              queryParams({
-                set: {
-                  view: "funnel",
-                },
-              });
-            }}
-          />
-        </Tooltip>
-      )}
-      <Tooltip content="View Events">
+      <Tooltip content="Funnel Chart">
         <Button
           variant="secondary"
-          className="h-9 border-transparent px-2 hover:border-gray-200"
-          icon={<SquareLayoutGrid6 className="h-4 w-4 text-gray-600" />}
+          className={cn(
+            "h-9 border-transparent px-2 hover:border-gray-200",
+            view === "funnel" && "border border-gray-200 bg-gray-100",
+          )}
+          icon={<Filter2 className="h-4 w-4 -rotate-90 text-gray-600" />}
           onClick={() => {
-            if (dashboardProps) {
-              window.open("https://d.to/events");
-            } else {
-              router.push(
-                `/${slug}/events${getQueryString({}, { ignore: ["view"] })}`,
-              );
-            }
+            queryParams({
+              set: {
+                view: "funnel",
+              },
+            });
           }}
         />
       </Tooltip>

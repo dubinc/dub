@@ -33,6 +33,10 @@ export const navItems = [
     childItems: RESOURCES,
   },
   {
+    name: "Enterprise",
+    href: "/enterprise",
+  },
+  {
     name: "Customers",
     href: "/customers",
   },
