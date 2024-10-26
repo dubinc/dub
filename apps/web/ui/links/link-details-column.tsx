@@ -3,12 +3,20 @@ import { TagProps } from "@/lib/types";
 import {
   Button,
   CardList,
+  Copy,
+  Tick,
   Tooltip,
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
 import { CursorRays, InvoiceDollar, UserCheck } from "@dub/ui/src/icons";
-import { cn, currencyFormatter, nFormatter, timeAgo } from "@dub/utils";
+import {
+  APP_DOMAIN,
+  cn,
+  currencyFormatter,
+  nFormatter,
+  timeAgo,
+} from "@dub/utils";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -18,6 +26,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { toast } from "sonner";
 import { useShareDashboardModal } from "../modals/share-dashboard-modal";
 import { LinkControls } from "./link-controls";
 import { ResponseLink } from "./links-container";
@@ -129,6 +138,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
   const { slug } = useWorkspace();
   const { isMobile } = useMediaQuery();
   const { variant } = useContext(CardList.Context);
+  const [copied, setCopied] = useState(false);
 
   const stats = useMemo(
     () => [
@@ -197,14 +207,37 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                   })}`
                 : "No clicks yet"}
             </p>
-            <Button
-              text="Share dashboard"
-              className="h-7 px-2"
-              onClick={() => {
-                setShowShareDashboardModal(true);
-                setModalShowCount((c) => c + 1);
-              }}
-            />
+
+            <div className="inline-flex items-start justify-start gap-2">
+              <Button
+                text={link.dashboardId ? "Edit sharing" : "Share dashboard"}
+                className="h-7 w-full px-2"
+                onClick={() => {
+                  setShowShareDashboardModal(true);
+                  setModalShowCount((c) => c + 1);
+                }}
+              />
+
+              {link.dashboardId && (
+                <button
+                  className="inline-flex h-7 items-center justify-center rounded-md border border-neutral-300 bg-white p-2 hover:bg-gray-50 active:bg-gray-100"
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      `${APP_DOMAIN}/share/${link.dashboardId}`,
+                    );
+                    setCopied(true);
+                    toast.success("Copied to clipboard");
+                    setTimeout(() => setCopied(false), 3000);
+                  }}
+                >
+                  {copied ? (
+                    <Tick className="h-4 w-4 text-gray-500" />
+                  ) : (
+                    <Copy className="h-4 w-4 text-gray-500" />
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         }
       >

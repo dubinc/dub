@@ -22,6 +22,7 @@ export type LinkProps = Link;
 export interface LinkWithTagsProps extends LinkProps {
   tags: TagProps[];
   webhookIds: string[];
+  dashboardId: string | null;
 }
 
 export interface SimpleLinkProps {

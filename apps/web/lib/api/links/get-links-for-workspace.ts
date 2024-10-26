@@ -84,7 +84,7 @@ export async function getLinksForWorkspace({
     orderBy: {
       [sort]: "desc",
     },
-    take: 1,
+    take: pageSize,
     skip: (page - 1) * pageSize,
   });
 

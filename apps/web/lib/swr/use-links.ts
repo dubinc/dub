@@ -34,6 +34,7 @@ export default function useLinks(
             workspaceId,
             includeUser: "true",
             includeWebhooks: "true",
+            includeDashboard: "true",
             ...opts,
           },
           {
