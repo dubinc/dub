@@ -50,8 +50,8 @@ function ShareDashboardModalInner({
   );
 
   const { data, mutate } = useSWR<{ id: string }>(
-    workspaceId
-      ? `/api/analytics/share?${new URLSearchParams({ workspaceId, domain, key }).toString()}`
+    link?.id
+      ? `/api/links/${link.id}/dashboard?workspaceId=${workspaceId}`
       : undefined,
     fetcher,
     {
@@ -68,7 +68,7 @@ function ShareDashboardModalInner({
     setChecked(true);
     setIsCreating(true);
     const res = await fetch(
-      `/api/analytics/share?${new URLSearchParams({ workspaceId, domain, key }).toString()}`,
+      `/api/dashboards?${new URLSearchParams({ workspaceId, domain, key }).toString()}`,
       {
         method: "POST",
         headers: {
@@ -109,7 +109,7 @@ function ShareDashboardModalInner({
     setIsRemoving(true);
 
     const res = await fetch(
-      `/api/analytics/share/${data.id}?workspaceId=${workspaceId}`,
+      `/api/dashboards/${data.id}?workspaceId=${workspaceId}`,
       {
         method: "DELETE",
       },
