@@ -1,18 +1,13 @@
-import { NewBackground } from "@/ui/shared/new-background";
 import { Footer, Nav, NavMobile } from "@dub/ui";
+import { ReactNode } from "react";
 
-export default function CustomDomainLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function dashboardLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col justify-between bg-gray-50/80">
       <NavMobile />
       <Nav />
       {children}
       <Footer />
-      <NewBackground />
     </div>
   );
 }

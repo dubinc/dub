@@ -84,7 +84,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
     ) &&
       (setOpenPopover(false),
       toast.promise(
-        fetch(`/api/admin/links/ban?key=${link.key}`, {
+        fetch(`/api/admin/links/ban?domain=${link.domain}&key=${link.key}`, {
           method: "DELETE",
         }).then(async () => {
           await mutate(
