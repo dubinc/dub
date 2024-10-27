@@ -24,7 +24,7 @@ const wordmarkSvg = `<svg width="46" height="24" viewBox="0 0 46 24" fill="none"
  * The Dub logo with a custom context menu for copying/navigation,
  * for use in the top site nav
  */
-export function NavLogo({
+export function NavWordmark({
   variant = "full",
   isInApp,
   className,
@@ -74,7 +74,8 @@ export function NavLogo({
           sideOffset={14}
           align="start"
           className={cn(
-            "z-50 -mt-1.5 -translate-x-10",
+            "z-50 -mt-1.5",
+            !isInApp && "-translate-x-8",
             theme === "dark" && "dark",
           )}
           onClick={(e) => {
