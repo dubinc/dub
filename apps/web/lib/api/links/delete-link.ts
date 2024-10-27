@@ -31,17 +31,6 @@ export async function deleteLink(linkId: string) {
         created_at: link.createdAt,
         deleted: true,
       }),
-      link.projectId &&
-        prisma.project.update({
-          where: {
-            id: link.projectId,
-          },
-          data: {
-            linksUsage: {
-              decrement: 1,
-            },
-          },
-        }),
     ]),
   );
 
