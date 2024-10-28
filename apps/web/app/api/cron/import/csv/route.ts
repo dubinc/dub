@@ -1,6 +1,7 @@
 import { addDomainToVercel } from "@/lib/api/domains";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks, createLink, processLink } from "@/lib/api/links";
+import { createId } from "@/lib/api/utils";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
@@ -154,6 +155,7 @@ export async function POST(req: Request) {
           if (tagsNotInWorkspace.length > 0) {
             await prisma.tag.createMany({
               data: tagsNotInWorkspace.map((tag) => ({
+                id: createId({ prefix: "tag_" }),
                 name: tag,
                 color: randomBadgeColor(),
                 projectId: workspace.id,
@@ -182,6 +184,7 @@ export async function POST(req: Request) {
               // create domains in DB
               prisma.domain.createMany({
                 data: domainsNotInWorkspace.map((domain) => ({
+                  id: createId({ prefix: "dom_" }),
                   slug: domain,
                   projectId: workspace.id,
                   primary: false,

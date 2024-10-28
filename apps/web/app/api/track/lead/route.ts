@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { parseRequestBody } from "@/lib/api/utils";
+import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { generateRandomName } from "@/lib/names";
 import { prismaEdge } from "@/lib/prisma/edge";
@@ -71,6 +71,7 @@ export const POST = withWorkspaceEdge(
             },
           },
           create: {
+            id: createId({ prefix: "cus_" }),
             name: finalCustomerName,
             email: customerEmail,
             avatar: customerAvatar,
