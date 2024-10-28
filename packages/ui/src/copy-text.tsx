@@ -17,7 +17,7 @@ export function CopyText({
   successMessage?: string;
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
-  
+
   return (
     <button
       onClick={(e) => {
