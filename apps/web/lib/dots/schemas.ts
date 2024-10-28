@@ -9,3 +9,13 @@ export const addBankAccountSchema = z.object({
 export const depositFundsSchema = z.object({
   amount: z.string(),
 });
+
+export const dotsAppSchema = z.object({
+  id: z.string(),
+  status: z.string(),
+  metrics: z.object({
+    connected_users: z.number(),
+    money_out: z.string(),
+    wallet_balance: z.string(),
+  }),
+});

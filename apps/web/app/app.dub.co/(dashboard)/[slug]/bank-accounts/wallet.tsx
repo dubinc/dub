@@ -1,12 +1,25 @@
 "use client";
 
+import { DotsApp } from "@/lib/dots/types";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { useDepositFundsModal } from "@/ui/modals/deposit-funds-modal";
 import { Button } from "@dub/ui";
+import { fetcher } from "@dub/utils";
 import { CreditCard } from "lucide-react";
+import useSWR from "swr";
 
 export const Wallet = () => {
+  const workspace = useWorkspace();
+
   const { DepositFundsModal, setShowDepositFundsModal } =
     useDepositFundsModal();
+
+  // TODO:
+  // Move this to a hook
+  const { data } = useSWR<DotsApp>(
+    `/api/workspaces/${workspace.id}/dots-app`,
+    fetcher,
+  );
 
   return (
     <>
@@ -17,7 +30,9 @@ export const Wallet = () => {
         </div>
 
         <div className="flex grow flex-col gap-1">
-          <div className="text-base font-semibold text-gray-700">Wallet</div>
+          <div className="text-base font-semibold text-gray-700">
+            Wallet - ${data?.metrics.wallet_balance}
+          </div>
           <div className="text-sm text-neutral-500">
             Wallet balance and transaction history.
           </div>
