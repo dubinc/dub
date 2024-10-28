@@ -1,10 +1,16 @@
-import { Button, Download } from "@dub/ui";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { Button, Download, TooltipContent } from "@dub/ui";
+import { APP_DOMAIN } from "@dub/utils";
 import { useContext } from "react";
 import { toast } from "sonner";
 import { EventsContext } from "./events-provider";
 
 export default function ExportButton({ onClick }: { onClick?: () => void }) {
   const { exportQueryString } = useContext(EventsContext);
+  const { slug, plan, conversionEnabled } = useWorkspace();
+
+  const needsHigherPlan =
+    (plan === "free" || plan === "pro") && !conversionEnabled;
 
   async function exportData() {
     const response = await fetch(`/api/events/export?${exportQueryString}`, {
@@ -32,6 +38,14 @@ export default function ExportButton({ onClick }: { onClick?: () => void }) {
       icon={<Download className="h-4 w-4 shrink-0" />}
       className="h-9 justify-start px-2 text-black"
       text="Download as CSV"
+      disabled={needsHigherPlan}
+      disabledTooltip={
+        <TooltipContent
+          title="Upgrade to our Business Plan to enable CSV downloads for events in your workspace."
+          cta="Upgrade to Business"
+          href={slug ? `/${slug}/upgrade` : APP_DOMAIN}
+        />
+      }
       onClick={() => {
         toast.promise(exportData(), {
           loading: "Exporting file...",
