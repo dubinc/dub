@@ -1,5 +1,4 @@
-import { NewBackground } from "@/ui/shared/new-background";
-import { SessionProvider } from "next-auth/react";
+import { Background } from "@dub/ui";
 
 export default function AdminAuthLayout({
   children,
@@ -7,11 +6,11 @@ export default function AdminAuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SessionProvider>
+    <>
+      <Background />
       <div className="relative z-10 flex flex-col items-center justify-center">
         {children}
       </div>
-      <NewBackground />
-    </SessionProvider>
+    </>
   );
 }
