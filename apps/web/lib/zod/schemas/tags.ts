@@ -38,17 +38,17 @@ export const createTagBodySchema = z
   .object({
     name: z
       .string()
+      .trim()
       .min(1)
       .max(50)
-      .trim()
       .describe("The name of the tag to create."),
     color: tagColorSchema.describe(
       `The color of the tag. If not provided, a random color will be used from the list: ${tagColors.join(", ")}.`,
     ),
     tag: z
       .string()
-      .min(1)
       .trim()
+      .min(1)
       .describe("The name of the tag to create.")
       .openapi({ deprecated: true }),
   })

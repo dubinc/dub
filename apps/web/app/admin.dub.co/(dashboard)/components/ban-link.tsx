@@ -10,9 +10,12 @@ export default function BanLink() {
     <div className="flex flex-col space-y-5">
       <form
         action={async (data) =>
-          await fetch(`/api/admin/links/ban?key=${data.get("key")}`, {
-            method: "DELETE",
-          })
+          await fetch(
+            `/api/admin/links/ban?domain=dub.sh&key=${data.get("key")}`,
+            {
+              method: "DELETE",
+            },
+          )
             .then((res) => res.json())
             .then((res) => {
               if (res.error) {

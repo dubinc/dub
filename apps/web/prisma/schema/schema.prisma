@@ -35,6 +35,7 @@ model User {
   projects              ProjectUsers[]
   partners              PartnerUser[]
   links                 Link[]
+  dashboards            Dashboard[]
   tokens                Token[]
   restrictedTokens      RestrictedToken[]
   oAuthCodes            OAuthCode[]
