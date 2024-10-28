@@ -10,7 +10,7 @@ import {
   Modal,
   TooltipContent,
 } from "@dub/ui";
-import { capitalize } from "@dub/utils";
+import { capitalize, pluralize } from "@dub/utils";
 import { useParams } from "next/navigation";
 import {
   Dispatch,
@@ -36,7 +36,7 @@ function AddEditDomainModal({
     <Modal
       showModal={showAddEditDomainModal}
       setShowModal={setShowAddEditDomainModal}
-      className="scrollbar-hide h-fit max-h-[95vh] overflow-auto"
+      className="max-h-[95dvh]"
     >
       <div className="flex flex-col items-center justify-center gap-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
         {logo ? (
@@ -85,9 +85,7 @@ function AddDomainButton({
         disabledTooltip={
           exceededDomains ? (
             <TooltipContent
-              title={`You can only add up to ${domainsLimit} domain${
-                domainsLimit === 1 ? "" : "s"
-              } on the ${capitalize(plan)} plan. Upgrade to add more domains`}
+              title={`You can only add up to ${domainsLimit} ${pluralize("domain", domainsLimit || 0)} on the ${capitalize(plan)} plan. Upgrade to add more domains`}
               cta="Upgrade"
               href={`/${slug}/upgrade`}
             />
