@@ -8,7 +8,6 @@ SQL >
         link_id,
         customer_id,
         event_name,
-        metadata,
         url,
         continent,
         country,
@@ -23,5 +22,3 @@ SQL >
 
 TYPE materialized
 DATASOURCE dub_lead_events_mv
-
-

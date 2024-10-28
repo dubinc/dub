@@ -14,13 +14,12 @@ export async function getConfig(): Promise<DubConfig> {
   const config = configStore.all as DubConfig;
 
   if (config.expires_at && Date.now() >= config.expires_at) {
-    const response = await oauthClient.refreshToken({
-      accessToken: config.access_token,
-      refreshToken: config.refresh_token,
-      expiresAt: config.expires_at,
-    });
-
-    const { accessToken, refreshToken, expiresAt } = response;
+    const { accessToken, refreshToken, expiresAt } =
+      await oauthClient.refreshToken({
+        accessToken: config.access_token,
+        refreshToken: config.refresh_token,
+        expiresAt: config.expires_at,
+      });
 
     return await setConfig({
       access_token: accessToken,

@@ -94,20 +94,6 @@ export const POST = withWorkspace(
           workspace_id: newWorkspaceId,
           created_at: link.createdAt,
         }),
-        // decrement old workspace usage
-        prisma.project.update({
-          where: {
-            id: workspace.id,
-          },
-          data: {
-            usage: {
-              decrement: linkClicks,
-            },
-            linksUsage: {
-              decrement: 1,
-            },
-          },
-        }),
         // increment new workspace usage
         prisma.project.update({
           where: {
