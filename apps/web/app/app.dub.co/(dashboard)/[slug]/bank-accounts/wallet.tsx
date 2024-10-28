@@ -16,8 +16,8 @@ export const Wallet = () => {
 
   // TODO:
   // Move this to a hook
-  const { data } = useSWR<DotsApp>(
-    `/api/workspaces/${workspace.id}/dots-app`,
+  const { data, isLoading } = useSWR<DotsApp>(
+    `/api/dots?workspaceId=${workspace.id}`,
     fetcher,
   );
 
@@ -30,8 +30,13 @@ export const Wallet = () => {
         </div>
 
         <div className="flex grow flex-col gap-1">
-          <div className="text-base font-semibold text-gray-700">
-            Wallet - ${data?.metrics.wallet_balance}
+          <div className="flex items-center gap-2 text-base font-semibold text-gray-700">
+            Wallet{" "}
+            {isLoading ? (
+              <div className="h-4 w-20 animate-pulse rounded bg-neutral-200" />
+            ) : (
+              `($${data?.metrics.wallet_balance})`
+            )}
           </div>
           <div className="text-sm text-neutral-500">
             Wallet balance and transaction history.
