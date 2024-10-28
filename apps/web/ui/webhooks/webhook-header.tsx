@@ -12,6 +12,7 @@ import {
   Popover,
   TabSelect,
   TokenAvatar,
+  useCopyToClipboard,
 } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { ChevronLeft, Send, Trash } from "lucide-react";
@@ -26,7 +27,7 @@ import { useSendTestWebhookModal } from "../modals/send-test-webhook-modal";
 export default function WebhookHeader({ webhookId }: { webhookId: string }) {
   const router = useRouter();
   const { slug, id: workspaceId, role } = useWorkspace();
-  const [copiedWebhookId, setCopiedWebhookId] = useState(false);
+  const [copiedWebhookId, copyToClipboard] = useCopyToClipboard();
 
   const selectedLayoutSegment = useSelectedLayoutSegment();
   const page = selectedLayoutSegment === null ? "" : selectedLayoutSegment;
@@ -57,10 +58,9 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
   }
 
   const copyWebhookId = () => {
-    navigator.clipboard.writeText(webhookId);
-    setCopiedWebhookId(true);
-    toast.success("Webhook ID copied!");
-    setTimeout(() => setCopiedWebhookId(false), 3000);
+    toast.promise(copyToClipboard(webhookId), {
+      success: "Webhook ID copied!",
+    });
   };
 
   return (

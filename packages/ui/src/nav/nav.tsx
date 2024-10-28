@@ -11,7 +11,7 @@ import useSWR from "swr";
 import { FEATURES_LIST, RESOURCES } from "../content";
 import { useScroll } from "../hooks";
 import { MaxWidthWrapper } from "../max-width-wrapper";
-import { NavLogo } from "../nav-logo";
+import { NavWordmark } from "../nav-wordmark";
 import { ProductContent } from "./content/product-content";
 import { ResourcesContent } from "./content/resources-content";
 
@@ -31,6 +31,10 @@ export const navItems = [
     name: "Resources",
     content: ResourcesContent,
     childItems: RESOURCES,
+  },
+  {
+    name: "Enterprise",
+    href: "/enterprise",
   },
   {
     name: "Customers",
@@ -103,7 +107,7 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
                 utm_content: "Logo",
               })}
             >
-              <NavLogo />
+              <NavWordmark />
             </Link>
             <NavigationMenuPrimitive.Root
               delayDuration={0}

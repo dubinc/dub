@@ -1,7 +1,13 @@
 "use client";
 
 import { WebhookEventProps } from "@/lib/types";
-import { Sheet, SheetContent, SheetTrigger, useMediaQuery } from "@dub/ui";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  useCopyToClipboard,
+  useMediaQuery,
+} from "@dub/ui";
 import { CircleCheck, CircleHalfDottedClock, Copy } from "@dub/ui/src/icons";
 import { ButtonTooltip, Tooltip } from "@dub/ui/src/tooltip";
 import { PropsWithChildren, useEffect, useState } from "react";
@@ -46,6 +52,8 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
       setRequestBody(requestBodyHtml);
     }
   }, [highlighter, event]);
+
+  const [, copyToClipboard] = useCopyToClipboard();
 
   const isSuccess = event.http_status >= 200 && event.http_status < 300;
   const { isMobile } = useMediaQuery();
@@ -98,10 +106,11 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
               tooltipProps={{
                 content: "Copy event ID",
               }}
-              onClick={() => {
-                navigator.clipboard.writeText(event.event_id);
-                toast.success("Copied to clipboard");
-              }}
+              onClick={() =>
+                toast.promise(copyToClipboard(event.event_id), {
+                  success: "Copied to clipboard",
+                })
+              }
             >
               <Copy className="size-4 opacity-0 transition-opacity group-hover:opacity-100" />
             </ButtonTooltip>
