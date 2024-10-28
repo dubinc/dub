@@ -3,12 +3,20 @@ import { TagProps } from "@/lib/types";
 import {
   Button,
   CardList,
+  CursorRays,
+  InvoiceDollar,
   Tooltip,
   useMediaQuery,
+  UserCheck,
   useRouterStuff,
 } from "@dub/ui";
-import { CursorRays, InvoiceDollar, UserCheck } from "@dub/ui/src/icons";
-import { cn, currencyFormatter, nFormatter, timeAgo } from "@dub/utils";
+import {
+  cn,
+  currencyFormatter,
+  nFormatter,
+  pluralize,
+  timeAgo,
+} from "@dub/utils";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -136,7 +144,9 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
         id: "clicks",
         icon: CursorRays,
         value: link.clicks,
-        label: trackConversion ? undefined : (p) => (p ? "clicks" : "click"),
+        label: trackConversion
+          ? undefined
+          : (value) => pluralize("click", value),
       },
       ...(trackConversion
         ? [
@@ -187,7 +197,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                     ? currencyFormatter(value / 100)
                     : nFormatter(value, { full: value < 1000000000 })}
                 </span>{" "}
-                {value !== 1 ? tab : tab.slice(0, -1)}
+                {pluralize(tab.slice(0, -1), value)}
               </div>
             ))}
             <p className="text-xs leading-none text-gray-400">
@@ -231,7 +241,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                     : nFormatter(value)}
                   {label && (
                     <span className="hidden md:inline-block">
-                      &nbsp;{label(value !== 1)}
+                      &nbsp;{label(value)}
                     </span>
                   )}
                 </span>

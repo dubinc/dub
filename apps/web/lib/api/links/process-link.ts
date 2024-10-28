@@ -16,6 +16,7 @@ import {
   isValidUrl,
   log,
   parseDateTime,
+  pluralize,
 } from "@dub/utils";
 import { combineTagIds, keyChecks, processKey } from "./utils";
 
@@ -200,7 +201,7 @@ export async function processLink<T extends Record<string, any>>({
     ) {
       return {
         link: payload,
-        error: `Invalid destination URL. You can only create ${domain} short links for URLs with the domain${allowedHostnames.length > 1 ? "s" : ""} ${allowedHostnames
+        error: `Invalid destination URL. You can only create ${domain} short links for URLs with the ${pluralize("domain", allowedHostnames.length)} ${allowedHostnames
           .map((d) => `"${d}"`)
           .join(", ")}.`,
         code: "unprocessable_entity",
