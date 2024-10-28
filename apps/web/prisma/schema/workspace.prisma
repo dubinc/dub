@@ -59,6 +59,7 @@ model Project {
   registeredDomains     RegisteredDomain[]
   dashboards            Dashboard[]
   utmTemplates          UtmTemplate[]
+  payouts               Payout[]
 
   @@index(usageLastChecked(sort: Asc))
 }

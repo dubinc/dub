@@ -1,0 +1,33 @@
+enum PayoutStatus {
+  created
+  pending
+  failed
+  completed
+  reversed
+  canceled
+  flagged
+}
+
+enum PayoutMethod {
+  ach
+  manual
+}
+
+model Payout {
+  id          String       @id @default(cuid())
+  workspaceId String
+  subtotal    Int
+  taxes       Int
+  total       Int
+  payoutFee   Int
+  netTotal    Int
+  currency    String       @default("USD")
+  status      PayoutStatus @default(pending)
+  due         DateTime
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  workspace Project @relation(fields: [workspaceId], references: [id])
+
+  @@index([workspaceId])
+}
