@@ -16,7 +16,7 @@ import useSWR from "swr";
 import { FEATURES_LIST } from "./content";
 import { Github, LinkedIn, Twitter, YouTube } from "./icons";
 import { MaxWidthWrapper } from "./max-width-wrapper";
-import { NavLogo } from "./nav-logo";
+import { NavWordmark } from "./nav-wordmark";
 
 const navigation = {
   features: FEATURES_LIST.map(({ title, href }) => ({
@@ -66,7 +66,7 @@ export function Footer() {
               <span className="sr-only">
                 {process.env.NEXT_PUBLIC_APP_NAME} Logo
               </span>
-              <NavLogo className="h-8 text-gray-800" />
+              <NavWordmark className="h-8 text-gray-800" />
             </Link>
             <p className="max-w-xs text-sm text-gray-500">
               Giving modern marketing teams superpowers with short links that

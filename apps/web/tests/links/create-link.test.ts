@@ -50,7 +50,6 @@ describe.sequential("POST /links", async () => {
       path: "/links",
       body: {
         url,
-        publicStats: true,
         comments: "This is a test",
         rewrite: true,
         domain,
@@ -63,7 +62,6 @@ describe.sequential("POST /links", async () => {
       ...expectedLink,
       url,
       externalId,
-      publicStats: true,
       comments: "This is a test",
       rewrite: true,
       userId: user.id,

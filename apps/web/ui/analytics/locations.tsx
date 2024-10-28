@@ -10,7 +10,7 @@ import ContinentIcon from "./continent-icon";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Locations() {
-  const { queryParams } = useRouterStuff();
+  const { queryParams, searchParams } = useRouterStuff();
 
   const { selectedTab } = useContext(AnalyticsContext);
   const dataKey = selectedTab === "sales" ? "saleAmount" : "count";
@@ -61,9 +61,13 @@ export default function Locations() {
                           ? COUNTRIES[d.country]
                           : d.city,
                     href: queryParams({
-                      set: {
-                        [singularTabName]: d[singularTabName],
-                      },
+                      ...(searchParams.has(singularTabName)
+                        ? { del: singularTabName }
+                        : {
+                            set: {
+                              [singularTabName]: d[singularTabName],
+                            },
+                          }),
                       getNewPath: true,
                     }) as string,
                     value: d[dataKey] || 0,
