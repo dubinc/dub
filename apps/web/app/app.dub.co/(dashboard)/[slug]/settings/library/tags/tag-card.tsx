@@ -5,7 +5,13 @@ import { TagProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
 import { Delete, ThreeDots } from "@/ui/shared/icons";
-import { Button, CardList, Popover, useCopyToClipboard, useKeyboardShortcut } from "@dub/ui";
+import {
+  Button,
+  CardList,
+  Popover,
+  useCopyToClipboard,
+  useKeyboardShortcut,
+} from "@dub/ui";
 import {
   CircleCheck,
   Copy,
@@ -47,7 +53,7 @@ export function TagCard({
   const copyTagId = () => {
     toast.promise(copyToClipboard(tag.id), {
       success: "Tag ID copied!",
-    })
+    });
   };
 
   const handleDelete = async () => {
