@@ -165,3 +165,19 @@ export const RESOURCES = [
     href: "/brand",
   },
 ];
+
+export const COMPARE_PAGES = [
+  { name: "Bitly", slug: "bitly" },
+  { name: "Rebrandly", slug: "rebrandly" },
+  { name: "Short.io", slug: "short" },
+  { name: "Bl.ink", slug: "blink" },
+];
+
+export const LEGAL_PAGES = [
+  { name: "Privacy", slug: "privacy" },
+  { name: "Terms", slug: "terms" },
+  { name: "Trust Center", slug: "trust" },
+  { name: "DPA", slug: "dpa" },
+  { name: "Subprocessors", slug: "subprocessors" },
+  { name: "Report Abuse", slug: "abuse" },
+];
