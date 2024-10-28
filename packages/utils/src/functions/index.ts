@@ -18,6 +18,7 @@ export * from "./link-constructor";
 export * from "./log";
 export * from "./nanoid";
 export * from "./nformatter";
+export * from "./pluralize";
 export * from "./punycode";
 export * from "./random-value";
 export * from "./smart-truncate";

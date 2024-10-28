@@ -10,7 +10,7 @@ import {
   Modal,
   TooltipContent,
 } from "@dub/ui";
-import { capitalize } from "@dub/utils";
+import { capitalize, pluralize } from "@dub/utils";
 import { useParams } from "next/navigation";
 import {
   Dispatch,
@@ -85,9 +85,7 @@ function AddDomainButton({
         disabledTooltip={
           exceededDomains ? (
             <TooltipContent
-              title={`You can only add up to ${domainsLimit} domain${
-                domainsLimit === 1 ? "" : "s"
-              } on the ${capitalize(plan)} plan. Upgrade to add more domains`}
+              title={`You can only add up to ${domainsLimit} ${pluralize("domain", domainsLimit || 0)} on the ${capitalize(plan)} plan. Upgrade to add more domains`}
               cta="Upgrade"
               href={`/${slug}/upgrade`}
             />

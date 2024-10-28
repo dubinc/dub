@@ -3,7 +3,7 @@ import { Role, roles } from "@/lib/types";
 import { Invite } from "@/lib/zod/schemas/invites";
 import { Button, useMediaQuery } from "@dub/ui";
 import { Trash } from "@dub/ui/src/icons";
-import { capitalize, cn } from "@dub/utils";
+import { capitalize, cn, pluralize } from "@dub/utils";
 import { Plus } from "lucide-react";
 import posthog from "posthog-js";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -68,13 +68,11 @@ export function InviteTeammatesForm({
 
           if (saveOnly) {
             toast.custom(
-              () => <InviteSavedToast plural={teammates.length !== 1} />,
+              () => <InviteSavedToast teammates={teammates.length} />,
               { duration: 7000 },
             );
           } else
-            toast.success(
-              `Invitation${teammates.length !== 1 ? "s" : ""} sent!`,
-            );
+            toast.success(`${pluralize("Invitation", teammates.length)} sent!`);
 
           if (!saveOnly) {
             teammates.forEach(({ email }) =>
@@ -111,7 +109,7 @@ export function InviteTeammatesForm({
             <label>
               {index === 0 && (
                 <span className="mb-2 block text-sm font-medium text-gray-700">
-                  Email{fields.length !== 1 ? "s" : ""}
+                  {pluralize("Email", fields.length)}
                 </span>
               )}
               <div className="relative flex rounded-md shadow-sm">
@@ -164,20 +162,20 @@ export function InviteTeammatesForm({
       <Button
         loading={isSubmitting || isSubmitSuccessful}
         text={
-          saveOnly ? "Continue" : `Send invite${fields.length !== 1 ? "s" : ""}`
+          saveOnly ? "Continue" : `Send ${pluralize("invite", fields.length)}`
         }
       />
     </form>
   );
 }
 
-function InviteSavedToast({ plural }: { plural: boolean }) {
+function InviteSavedToast({ teammates }: { teammates: number }) {
   return (
     <div className="flex items-center gap-1.5 rounded-lg bg-white p-4 text-sm shadow-[0_4px_12px_#0000001a]">
       <CheckCircleFill className="size-5 shrink-0 text-black" />
       <p className="text-[13px] font-medium text-gray-900">
-        Invitation{plural ? "s" : ""} saved. You'll need a pro plan to invite
-        teammates.{" "}
+        {pluralize("Invitation", teammates)} saved. You'll need a pro plan to
+        invite teammates.{" "}
         <a
           href="https://dub.co/help/article/how-to-invite-teammates"
           target="_blank"

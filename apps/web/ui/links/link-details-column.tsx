@@ -1,15 +1,22 @@
-import { pluralize } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TagProps } from "@/lib/types";
 import {
   Button,
   CardList,
+  CursorRays,
+  InvoiceDollar,
   Tooltip,
   useMediaQuery,
+  UserCheck,
   useRouterStuff,
 } from "@dub/ui";
-import { CursorRays, InvoiceDollar, UserCheck } from "@dub/ui/src/icons";
-import { cn, currencyFormatter, nFormatter, timeAgo } from "@dub/utils";
+import {
+  cn,
+  currencyFormatter,
+  nFormatter,
+  pluralize,
+  timeAgo,
+} from "@dub/utils";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
