@@ -7,6 +7,7 @@ import {
   truncate,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { createId } from "../utils";
 import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
 import { updateLinksUsage } from "./update-links-usage";
 import {
@@ -48,6 +49,7 @@ export async function bulkCreateLinks({
         return prisma.link.create({
           data: {
             ...link,
+            id: createId({ prefix: "link_" }),
             shortLink,
             title: truncate(link.title, 120),
             description: truncate(link.description, 240),
@@ -130,6 +132,7 @@ export async function bulkCreateLinks({
 
         return {
           ...link,
+          id: createId({ prefix: "link_" }),
           shortLink: linkConstructorSimple({
             domain: link.domain,
             key: link.key,
