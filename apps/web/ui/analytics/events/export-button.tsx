@@ -1,6 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Download, TooltipContent } from "@dub/ui";
-import { APP_DOMAIN } from "@dub/utils";
 import { useContext } from "react";
 import { toast } from "sonner";
 import { EventsContext } from "./events-provider";
@@ -43,7 +42,7 @@ export default function ExportButton({ onClick }: { onClick?: () => void }) {
         <TooltipContent
           title="Upgrade to our Business Plan to enable CSV downloads for events in your workspace."
           cta="Upgrade to Business"
-          href={slug ? `/${slug}/upgrade` : APP_DOMAIN}
+          href={`/${slug}/upgrade`}
         />
       }
       onClick={() => {
