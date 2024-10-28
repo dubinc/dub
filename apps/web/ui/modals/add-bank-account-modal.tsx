@@ -9,12 +9,12 @@ import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+type BankAccount = z.infer<typeof addBankAccountSchema>;
+
 interface AddBankAccountProps {
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
 }
-
-type BankAccount = z.infer<typeof addBankAccountSchema>;
 
 interface AddBankAccountFormProps {
   closeModal: () => void;

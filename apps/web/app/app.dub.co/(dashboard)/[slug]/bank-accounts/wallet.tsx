@@ -1,8 +1,16 @@
+"use client";
+
+import { useDepositFundsModal } from "@/ui/modals/deposit-funds-modal";
+import { Button } from "@dub/ui";
 import { CreditCard } from "lucide-react";
 
-export const Finance = async ({ workspaceSlug }: { workspaceSlug: string }) => {
+export const Wallet = () => {
+  const { DepositFundsModal, setShowDepositFundsModal } =
+    useDepositFundsModal();
+
   return (
     <>
+      <DepositFundsModal />
       <div className="flex items-center gap-5 rounded-lg border bg-white p-5">
         <div className="hidden h-12 w-12 items-center justify-center rounded-full border border-neutral-300 sm:inline-flex">
           <CreditCard className="h-5 w-5 text-gray-600" />
@@ -13,6 +21,13 @@ export const Finance = async ({ workspaceSlug }: { workspaceSlug: string }) => {
           <div className="text-sm text-neutral-500">
             Wallet balance and transaction history.
           </div>
+        </div>
+
+        <div>
+          <Button
+            text="Deposit funds"
+            onClick={() => setShowDepositFundsModal(true)}
+          />
         </div>
       </div>
     </>

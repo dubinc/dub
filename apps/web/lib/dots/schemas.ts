@@ -5,3 +5,7 @@ export const addBankAccountSchema = z.object({
   routingNumber: z.string().min(1),
   accountType: z.enum(["checking", "savings"]).default("checking"),
 });
+
+export const depositFundsSchema = z.object({
+  amount: z.string(),
+});

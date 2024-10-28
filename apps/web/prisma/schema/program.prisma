@@ -10,6 +10,8 @@ model Program {
   slug        String      @unique
   logo        String?
   type        ProgramType @default(affiliate)
+
+  
   // TODO: add more fields for program management flow
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
