@@ -1,19 +1,12 @@
 "use client";
 
-import {
-  ALL_TOOLS,
-  COMPARE_PAGES,
-  LEGAL_PAGES,
-  cn,
-  createHref,
-  fetcher,
-} from "@dub/utils";
+import { ALL_TOOLS, cn, createHref, fetcher } from "@dub/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
-import { FEATURES_LIST } from "./content";
+import { COMPARE_PAGES, FEATURES_LIST, LEGAL_PAGES } from "./content";
 import { Github, LinkedIn, Twitter, YouTube } from "./icons";
 import { MaxWidthWrapper } from "./max-width-wrapper";
 import { NavWordmark } from "./nav-wordmark";
