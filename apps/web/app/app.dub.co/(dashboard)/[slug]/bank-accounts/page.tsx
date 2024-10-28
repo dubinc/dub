@@ -4,6 +4,7 @@ import { MaxWidthWrapper } from "@dub/ui";
 import { Suspense } from "react";
 import { BankAccount } from "./bank-account";
 import { ComplianceFlow } from "./compliance-flow";
+import { Transactions } from "./transactions";
 import { Wallet } from "./wallet";
 
 export default function BankAccounts() {
@@ -15,6 +16,7 @@ export default function BankAccounts() {
             <BankAccount />
             <ComplianceFlow />
             <Wallet />
+            <Transactions />
           </MaxWidthWrapper>
         </div>
       </PageContent>

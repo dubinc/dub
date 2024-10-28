@@ -1,5 +1,14 @@
 import z from "../zod";
 
+const dotsTransactionSchema = z.object({
+  id: z.number(),
+  amount: z.string(),
+  destination_name: z.string(),
+  source_name: z.string(),
+  type: z.string(),
+  created: z.string(),
+});
+
 export const addBankAccountSchema = z.object({
   accountNumber: z.string().min(1),
   routingNumber: z.string().min(1),
@@ -18,4 +27,9 @@ export const dotsAppSchema = z.object({
     money_out: z.string(),
     wallet_balance: z.string(),
   }),
+});
+
+export const dotsTransactionsSchema = z.object({
+  data: z.array(dotsTransactionSchema),
+  has_more: z.boolean(),
 });
