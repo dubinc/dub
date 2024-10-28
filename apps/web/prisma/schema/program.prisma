@@ -11,13 +11,13 @@ model Program {
   logo        String?
   type        ProgramType @default(affiliate)
 
-  
   // TODO: add more fields for program management flow
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   workspace Project             @relation(fields: [workspaceId], references: [id])
   partners  ProgramEnrollment[]
+  payouts   Payout[]
 
   @@index([workspaceId])
 }

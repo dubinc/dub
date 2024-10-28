@@ -14,20 +14,20 @@ enum PayoutMethod {
 }
 
 model Payout {
-  id          String       @id @default(cuid())
-  workspaceId String
-  subtotal    Int
-  taxes       Int
-  total       Int
-  payoutFee   Int
-  netTotal    Int
-  currency    String       @default("USD")
-  status      PayoutStatus @default(pending)
-  due         DateTime
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id        String       @id @default(cuid())
+  programId String
+  subtotal  Int
+  taxes     Int
+  total     Int
+  payoutFee Int
+  netTotal  Int
+  currency  String       @default("USD")
+  status    PayoutStatus @default(pending)
+  due       DateTime
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
 
-  workspace Project @relation(fields: [workspaceId], references: [id])
+  program Program @relation(fields: [programId], references: [id])
 
-  @@index([workspaceId])
+  @@index([programId])
 }
