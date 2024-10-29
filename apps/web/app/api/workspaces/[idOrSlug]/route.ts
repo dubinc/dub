@@ -31,7 +31,6 @@ export const GET = withWorkspace(
         domains,
         flags: await getFeatureFlags({
           workspaceId: workspace.id,
-          userEmail: session.user.email,
         }),
       }),
       { headers },
@@ -90,7 +89,6 @@ export const PATCH = withWorkspace(
           id: `ws_${response.id}`,
           flags: await getFeatureFlags({
             workspaceId: response.id,
-            userEmail: session.user.email,
           }),
         }),
       );
