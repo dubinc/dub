@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { PartnerWithProgramsSchema } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 
-// GET /api/partners - get all partners for the current user
+// GET /api/partners - get all partner profiles for the current user
 export const GET = withSession(async ({ session }) => {
   const partners = await prisma.partner.findMany({
     where: {
