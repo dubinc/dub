@@ -15,7 +15,7 @@ export function AnimatedEmptyState({
   title: string;
   description: string;
   cardContent: ReactNode;
-  addButton: ReactNode;
+  addButton?: ReactNode;
   learnMoreHref?: string;
   learnMoreClassName?: string;
   className?: string;
@@ -48,7 +48,7 @@ export function AnimatedEmptyState({
             href={learnMoreHref}
             target="_blank"
             className={cn(
-              buttonVariants({ variant: "secondary" }),
+              buttonVariants({ variant: addButton ? "secondary" : "primary" }),
               "flex h-9 items-center whitespace-nowrap rounded-lg border px-4 text-sm",
               learnMoreClassName,
             )}
