@@ -7,6 +7,7 @@ import { cn } from "@dub/utils/src/functions";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
+import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 
 export function OnboardingForm() {
@@ -100,7 +101,7 @@ export function OnboardingForm() {
 
       <label>
         <span className="text-sm font-medium text-gray-800">Description</span>
-        <textarea
+        <ReactTextareaAutosize
           className={cn(
             "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
             errors.name
@@ -108,6 +109,7 @@ export function OnboardingForm() {
               : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
           )}
           placeholder="Tell us about your business"
+          minRows={3}
           {...register("description")}
         />
       </label>

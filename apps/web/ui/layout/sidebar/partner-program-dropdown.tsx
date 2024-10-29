@@ -6,7 +6,7 @@ import {
   ProgramProps,
 } from "@/lib/types";
 import { BlurImage, Popover, useScrollProgress } from "@dub/ui";
-import { Book2, Check2, Connections3, Users } from "@dub/ui/src/icons";
+import { Check2, Connections3, Gear } from "@dub/ui/src/icons";
 import { APP_DOMAIN, cn, DICEBEAR_AVATAR_URL, fetcher } from "@dub/utils";
 import { ChevronsUpDown, HelpCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -23,15 +23,9 @@ import useSWR from "swr";
 
 const LINKS = ({ partnerId }: { partnerId: string }) => [
   {
-    name: "People",
-    icon: Users,
-    href: `/${partnerId}/settings/people`,
-  },
-  {
-    name: "Documentation",
-    icon: Book2,
-    href: "https://dub.co/docs",
-    target: "_blank",
+    name: "Settings",
+    icon: Gear,
+    href: `/${partnerId}/settings`,
   },
   {
     name: "Help center",
