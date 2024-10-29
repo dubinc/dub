@@ -13,6 +13,7 @@ import {
   Key,
   Receipt2,
   ShieldCheck,
+  TableIcon,
   Users6,
   Webhook,
 } from "@dub/ui/src/icons";
@@ -59,6 +60,26 @@ const NAV_AREAS: SidebarNavAreas<{
             name: "Settings",
             icon: Gear,
             href: `/${slug}/settings`,
+          },
+        ],
+      },
+      {
+        name: "Partnerships",
+        items: [
+          {
+            name: "Programs",
+            icon: TableIcon,
+            href: `/${slug}/programs`,
+          },
+          {
+            name: "Partners",
+            icon: TableIcon,
+            href: `/${slug}/partners`,
+          },
+          {
+            name: "Payouts",
+            icon: TableIcon,
+            href: `/${slug}/payouts`,
           },
         ],
       },
