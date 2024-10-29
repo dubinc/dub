@@ -5,7 +5,7 @@ enum ProgramType {
 
 enum CommissionType {
   percentage
-  fixed
+  flat
 }
 
 model Program {
@@ -20,6 +20,8 @@ model Program {
   commissionAmount    Float
   commissionType      CommissionType @default(percentage)
   recurringCommission Boolean        @default(false)
+  recurringDuration   Int?           @default(0) // in months
+  isLifetimeRecurring Boolean        @default(false)
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
 
