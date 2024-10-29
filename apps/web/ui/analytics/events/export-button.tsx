@@ -37,13 +37,14 @@ export default function ExportButton({ onClick }: { onClick?: () => void }) {
       icon={<Download className="h-4 w-4 shrink-0" />}
       className="h-9 justify-start px-2 text-black"
       text="Download as CSV"
-      disabled={needsHigherPlan}
       disabledTooltip={
-        <TooltipContent
-          title="Upgrade to our Business Plan to enable CSV downloads for events in your workspace."
-          cta="Upgrade to Business"
-          href={`/${slug}/upgrade`}
-        />
+        needsHigherPlan && (
+          <TooltipContent
+            title="Upgrade to our Business Plan to enable CSV downloads for events in your workspace."
+            cta="Upgrade to Business"
+            href={`/${slug}/upgrade`}
+          />
+        )
       }
       onClick={() => {
         toast.promise(exportData(), {
