@@ -8,7 +8,8 @@ enum SaleStatus {
 
 model Sale {
   id                  String         @id @default(cuid())
-  programId           String?
+  programId           String
+  partnerId           String
   payoutId            String?
   linkId              String
   clickId             String

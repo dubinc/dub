@@ -75,6 +75,13 @@ export const POST = withWorkspaceEdge(
       (async () => {
         const eventId = nanoid(16);
 
+        if (programEnrollment) {
+          console.log("Commission earned", calculateCommissionEarned({
+            program: programEnrollment.program,
+            sale: { amount },
+          }));
+        }
+
         const [_sale, link, _project] = await Promise.all([
           recordSale({
             ...clickData,
@@ -132,6 +139,7 @@ export const POST = withWorkspaceEdge(
                     amount,
                     currency,
                     status: SaleStatus.pending,
+                    partnerId: programEnrollment.partnerId,
                     programId: programEnrollment.program.id,
                     commissionAmount:
                       programEnrollment.program.commissionAmount,
@@ -140,6 +148,8 @@ export const POST = withWorkspaceEdge(
                       program: programEnrollment.program,
                       sale: { amount },
                     }),
+                    recurringCommission: false,
+                    isLifetimeRecurring: false,
                   },
                 }),
               ]

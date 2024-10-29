@@ -1,3 +1,4 @@
+import { calculateCommissionEarned } from "@/lib/api/sales/commission";
 import { createId } from "@/lib/api/utils";
 import { prisma } from "@/lib/prisma";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
@@ -144,9 +145,16 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
               amount: saleData.amount,
               currency: saleData.currency,
               status: SaleStatus.pending,
+              partnerId: programEnrollment.partnerId,
               programId: programEnrollment.program.id,
               commissionAmount: programEnrollment.program.commissionAmount,
               commissionType: programEnrollment.program.commissionType,
+              recurringCommission: false,
+              isLifetimeRecurring: false,
+              commissionEarned: calculateCommissionEarned({
+                program: programEnrollment.program,
+                sale: { amount: saleData.amount },
+              }),
             },
           }),
         ]
