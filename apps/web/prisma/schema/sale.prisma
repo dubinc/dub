@@ -22,7 +22,11 @@ model Sale {
   commissionAmount    Float
   commissionType      CommissionType
   commissionEarned    Int?
-  recurringCommission Boolean        @default(false)
+  recurringCommission Boolean
+  recurringDuration   Int?
+  recurringCount      Int?
+  nextRecurringDate   DateTime?
+  isLifetimeRecurring Boolean
   status              SaleStatus
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
