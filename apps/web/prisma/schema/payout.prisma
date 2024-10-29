@@ -16,6 +16,7 @@ enum PayoutMethod {
 model Payout {
   id        String       @id @default(cuid())
   programId String
+  partnerId String
   subtotal  Int
   taxes     Int
   total     Int
@@ -28,6 +29,8 @@ model Payout {
   updatedAt DateTime     @updatedAt
 
   program Program @relation(fields: [programId], references: [id])
+  partner Partner @relation(fields: [partnerId], references: [id])
 
   @@index([programId])
+  @@index([partnerId])
 }

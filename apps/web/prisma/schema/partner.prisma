@@ -27,6 +27,7 @@ model Partner {
   programs ProgramEnrollment[]
   users    PartnerUser[]
   invites  PartnerInvite[]
+  payouts  Payout[]
 }
 
 model PartnerUser {
