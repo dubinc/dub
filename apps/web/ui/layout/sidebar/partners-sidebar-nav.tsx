@@ -14,6 +14,7 @@ import { Store, SwatchBook } from "lucide-react";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 import UserSurveyButton from "../user-survey";
+import { PartnerProgramDropdown } from "./partner-program-dropdown";
 import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
 import { Usage } from "./usage";
 
@@ -51,9 +52,9 @@ const NAV_AREAS: SidebarNavAreas<{
   }),
 
   program: ({ partnerId, programId }) => ({
+    showSwitcher: true,
     content: [
       {
-        name: "Program",
         items: [
           {
             name: "Overview",
@@ -148,7 +149,7 @@ export function PartnersSidebarNav({
       data={{ partnerId: partnerId || "", programId: programId || "" }}
       toolContent={toolContent}
       newsContent={newsContent}
-      //switcher={<WorkspaceDropdown />}
+      switcher={<PartnerProgramDropdown />}
       bottom={
         <>
           <UserSurveyButton />

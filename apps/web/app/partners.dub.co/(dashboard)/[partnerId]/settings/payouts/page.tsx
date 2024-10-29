@@ -1,3 +1,5 @@
+import { PageContent } from "@/ui/layout/page-content";
+
 export default function PayoutsPage() {
-  return <div>Payouts</div>;
+  return <PageContent title="Payouts"></PageContent>;
 }

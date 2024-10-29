@@ -1,3 +1,5 @@
+import { PageContent } from "@/ui/layout/page-content";
+
 export default function MarketplacePage() {
-  return <div>Marketplace</div>;
+  return <PageContent title="Marketplace"></PageContent>;
 }

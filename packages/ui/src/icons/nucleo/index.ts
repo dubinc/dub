@@ -33,6 +33,7 @@ export * from "./cloud-upload";
 export * from "./code";
 export * from "./connected-dots";
 export * from "./connected-dots4";
+export * from "./connections3";
 export * from "./crosshairs3";
 export * from "./cube";
 export * from "./cube-settings";

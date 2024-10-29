@@ -4,7 +4,7 @@ import {
 } from "@/lib/webhook/schemas";
 import { nanoid, toCamelCase } from "@dub/utils";
 import type { Webhook } from "@prisma/client";
-import { LinkWithTags, transformLink } from "../api/links/utils/transform-link";
+import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
 import { WebhookTrigger } from "../types";
 import z from "../zod";
 import { clickEventSchema, clickEventSchemaTB } from "../zod/schemas/clicks";
@@ -66,7 +66,7 @@ export const transformLeadEventData = (data: any) => {
       id: lead.clickId,
     },
     // transformLink -> add shortLink, qrCode, workspaceId, etc.
-    link: transformLink(lead.link as LinkWithTags),
+    link: transformLink(lead.link as ExpandedLink),
   });
 };
 
@@ -96,7 +96,7 @@ export const transformSaleEventData = (data: any) => {
       bot: sale.bot === 1,
     },
     // transformLink -> add shortLink, qrCode, workspaceId, etc.
-    link: transformLink(sale.link as LinkWithTags),
+    link: transformLink(sale.link as ExpandedLink),
   });
 };
 

@@ -1,3 +1,5 @@
+import { PageContent } from "@/ui/layout/page-content";
+
 export default function ResourcesPage() {
-  return <div>Resources</div>;
+  return <PageContent title="Resources"></PageContent>;
 }

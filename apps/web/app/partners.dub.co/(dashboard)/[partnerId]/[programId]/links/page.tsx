@@ -1,3 +1,5 @@
+import { PageContent } from "@/ui/layout/page-content";
+
 export default function LinksPage() {
-  return <div>Links</div>;
+  return <PageContent title="Links"></PageContent>;
 }

@@ -1,3 +1,5 @@
+import { PageContent } from "@/ui/layout/page-content";
+
 export default function CustomersPage() {
-  return <div>Customers</div>;
+  return <PageContent title="Customers"></PageContent>;
 }
