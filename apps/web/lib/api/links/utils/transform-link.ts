@@ -21,6 +21,6 @@ export const transformLink = (link: LinkWithTags) => {
     webhookIds,
     qrCode: `https://api.dub.co/qr?url=${link.shortLink}?qr=1`,
     workspaceId: link.projectId ? `ws_${link.projectId}` : null,
-    ...("dashboard" in link && { dashboardId: dashboard?.id || null }),
+    ...(dashboard && { dashboardId: dashboard.id || null }),
   };
 };
