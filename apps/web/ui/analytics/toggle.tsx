@@ -100,7 +100,6 @@ export default function Toggle({
     start,
     end,
     interval,
-    linkId,
   } = useContext(AnalyticsContext);
 
   const scrolled = useScroll(120);
