@@ -11,6 +11,7 @@ import {
   UserCheck,
   useRouterStuff,
 } from "@dub/ui";
+import { ReferredVia } from "@dub/ui/src/icons";
 import {
   APP_DOMAIN,
   cn,
@@ -260,6 +261,11 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                 </span>
               </div>
             ))}
+            {link.dashboardId && (
+              <div className="border-l border-gray-200 px-1.5">
+                <ReferredVia className="h-4 w-4 shrink-0 text-gray-600" />
+              </div>
+            )}
           </div>
         </Link>
       </Tooltip>
