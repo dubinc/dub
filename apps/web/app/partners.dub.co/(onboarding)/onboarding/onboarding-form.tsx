@@ -66,24 +66,27 @@ export function OnboardingForm() {
 
       <label>
         <span className="text-sm font-medium text-gray-800">Logo</span>
-        <Controller
-          control={control}
-          name="logo"
-          render={({ field }) => (
-            <FileUpload
-              accept="images"
-              className="mt-2 h-14 w-full rounded-md border border-gray-300"
-              iconClassName="w-5 h-5"
-              previewClassName="size-10 rounded-full"
-              variant="plain"
-              imageSrc={field.value}
-              readFile
-              onChange={({ src }) => field.onChange(src)}
-              content={null}
-              maxFileSizeMB={2}
-            />
-          )}
-        />
+        <div className="flex items-end gap-2">
+          <Controller
+            control={control}
+            name="logo"
+            render={({ field }) => (
+              <FileUpload
+                accept="images"
+                className="mt-2 size-20 rounded-md border border-gray-300"
+                iconClassName="w-5 h-5"
+                previewClassName="size-10 rounded-full"
+                variant="plain"
+                imageSrc={field.value}
+                readFile
+                onChange={({ src }) => field.onChange(src)}
+                content={null}
+                maxFileSizeMB={2}
+              />
+            )}
+          />
+          <p className="text-xs text-gray-500">Recommended size: 160x160px</p>
+        </div>
       </label>
 
       <label>
