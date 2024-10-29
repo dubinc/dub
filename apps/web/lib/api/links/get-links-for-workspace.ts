@@ -18,6 +18,7 @@ export async function getLinksForWorkspace({
   withTags,
   includeUser,
   includeWebhooks,
+  includeDashboard,
   linkIds,
 }: z.infer<typeof getLinksQuerySchemaExtended> & {
   workspaceId: string;
@@ -78,6 +79,7 @@ export async function getLinksForWorkspace({
       },
       user: includeUser,
       webhooks: includeWebhooks,
+      dashboard: includeDashboard,
     },
     orderBy: {
       [sort]: "desc",

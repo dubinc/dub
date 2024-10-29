@@ -1,9 +1,9 @@
 import { recordLink } from "@/lib/tinybird";
 import { RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
-import { LinkWithTags } from "./utils";
+import { ExpandedLink } from "./utils";
 
-export async function propagateBulkLinkChanges(links: LinkWithTags[]) {
+export async function propagateBulkLinkChanges(links: ExpandedLink[]) {
   const pipeline = redis.pipeline();
 
   // split links into domains for better write effeciency in Redis
