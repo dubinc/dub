@@ -89,7 +89,6 @@ export default function AnalyticsProvider({
   let { dashboardId } = useParams() as {
     dashboardId?: string;
   };
-
   const domainSlug = searchParams?.get("domain");
   // key can be a query param (stats pages in app) or passed as a staticKey (shared analytics dashboards)
   const key = searchParams?.get("key") || dashboardProps?.key;
