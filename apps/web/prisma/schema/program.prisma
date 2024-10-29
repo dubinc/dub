@@ -17,7 +17,7 @@ model Program {
   type                ProgramType    @default(affiliate)
   cookieLength        Int            @default(30)
   minimumPayout       Int            @default(1000)
-  commissionAmount    Float
+  commissionAmount    Float?
   commissionType      CommissionType @default(percentage)
   recurringCommission Boolean        @default(false)
   createdAt           DateTime       @default(now())

@@ -37,9 +37,9 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
   const program = await prisma.program.create({
     data: {
       id: createId("pg"),
+      workspaceId: workspace.id,
       name,
       slug,
-      workspaceId: workspace.id,
     },
   });
 
