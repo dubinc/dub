@@ -1,13 +1,12 @@
 "use server";
 
+import { createId } from "@/lib/api/utils";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
 import z from "../../zod";
 import { authUserActionClient } from "../safe-action";
 
 const onboardPartnerSchema = z.object({
   name: z.string(),
-  slug: z.string(),
 });
 
 // Update the notification preference for a user in a workspace
@@ -15,13 +14,13 @@ export const onboardPartner = authUserActionClient
   .schema(onboardPartnerSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { user } = ctx;
-    const { name, slug } = parsedInput;
+    const { name } = parsedInput;
 
     try {
       const partner = await prisma.partner.create({
         data: {
+          id: createId({ prefix: "pn_" }),
           name,
-          slug,
           users: {
             create: {
               userId: user.id,
@@ -30,13 +29,10 @@ export const onboardPartner = authUserActionClient
           },
         },
       });
-      return { ok: true, slug: partner.slug };
+      return { ok: true, partnerId: partner.id };
     } catch (e) {
-      const slugConflict =
-        e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002";
       return {
         ok: false,
-        slugConflict,
       };
     }
   });
