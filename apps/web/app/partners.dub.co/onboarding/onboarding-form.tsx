@@ -47,7 +47,7 @@ export function OnboardingForm() {
       className="flex w-full flex-col gap-6 text-left"
     >
       <label>
-        <span className="text-sm font-medium text-gray-800">Business name</span>
+        <span className="text-sm font-medium text-gray-800">Name</span>
         <input
           type="text"
           className={cn(
