@@ -25,6 +25,7 @@ import {
   Sliders,
   SquareLayoutGrid6,
   TooltipContent,
+  useMediaQuery,
   useRouterStuff,
   useScroll,
 } from "@dub/ui";
@@ -583,6 +584,132 @@ export default function Toggle({
     ],
   );
 
+  const { isMobile } = useMediaQuery();
+
+  const filterSelect = (
+    <Filter.Select
+      className="w-full md:w-fit"
+      filters={filters}
+      activeFilters={activeFilters}
+      onSearchChange={setSearch}
+      onSelectedFilterChange={setSelectedFilter}
+      onSelect={async (key, value) => {
+        if (key === "ai") {
+          setStreaming(true);
+          const prompt = value.replace("Ask AI ", "");
+          const { object } = await generateFilters(prompt);
+          for await (const partialObject of readStreamableValue(object)) {
+            if (partialObject) {
+              queryParams({
+                set: {
+                  ...partialObject,
+                },
+              });
+            }
+          }
+          posthog.capture("ai_filters_generated", {
+            prompt,
+            filters: activeFilters,
+          });
+          setStreaming(false);
+        } else {
+          queryParams({
+            set:
+              key === "link"
+                ? {
+                    domain: new URL(`https://${value}`).hostname,
+                    key:
+                      new URL(`https://${value}`).pathname.slice(1) || "_root",
+                  }
+                : {
+                    [key]: value,
+                  },
+            del: "page",
+          });
+        }
+      }}
+      onRemove={(key) =>
+        queryParams({
+          del: key === "link" ? ["domain", "key"] : key,
+        })
+      }
+      onOpenFilter={(key) =>
+        setRequestedFilters((rf) => (rf.includes(key) ? rf : [...rf, key]))
+      }
+      askAI
+    />
+  );
+
+  const dateRangePicker = (
+    <DateRangePicker
+      className="w-full sm:min-w-[200px] md:w-fit"
+      align={dashboardProps ? "end" : "start"}
+      value={
+        start && end
+          ? {
+              from: start,
+              to: end,
+            }
+          : undefined
+      }
+      presetId={!start || !end ? interval ?? "24h" : undefined}
+      onChange={(range, preset) => {
+        if (preset) {
+          queryParams({
+            del: ["start", "end"],
+            set: {
+              interval: preset.id,
+            },
+            scroll: false,
+          });
+
+          return;
+        }
+
+        // Regular range
+        if (!range || !range.from || !range.to) return;
+
+        queryParams({
+          del: "preset",
+          set: {
+            start: range.from.toISOString(),
+            end: range.to.toISOString(),
+          },
+          scroll: false,
+        });
+      }}
+      presets={INTERVAL_DISPLAYS.map(({ display, value, shortcut }) => {
+        const start = INTERVAL_DATA[value].startDate;
+        const end = new Date();
+
+        const requiresUpgrade =
+          adminPage ||
+          demoPage ||
+          DUB_DEMO_LINKS.find((l) => l.domain === domain && l.key === key)
+            ? false
+            : !validDateRangeForPlan({
+                plan: plan || dashboardProps?.workspacePlan,
+                start,
+                end,
+              });
+
+        return {
+          id: value,
+          label: display,
+          dateRange: {
+            from: start,
+            to: end,
+          },
+          requiresUpgrade,
+          tooltipContent: requiresUpgrade ? (
+            <UpgradeTooltip rangeLabel={display} plan={plan} />
+          ) : undefined,
+          shortcut,
+        };
+      })}
+    />
+  );
+
   return (
     <>
       <div
@@ -639,145 +766,17 @@ export default function Toggle({
             )}
             <div
               className={cn(
-                "flex w-full items-center gap-2",
+                "flex w-full flex-col-reverse items-center gap-2 min-[550px]:flex-row",
                 dashboardProps && "md:w-auto",
-                !key && "flex-col min-[550px]:flex-row",
               )}
             >
-              <Filter.Select
-                className="w-full md:w-fit"
-                filters={filters}
-                activeFilters={activeFilters}
-                onSearchChange={setSearch}
-                onSelectedFilterChange={setSelectedFilter}
-                onSelect={async (key, value) => {
-                  if (key === "ai") {
-                    setStreaming(true);
-                    const prompt = value.replace("Ask AI ", "");
-                    const { object } = await generateFilters(prompt);
-                    for await (const partialObject of readStreamableValue(
-                      object,
-                    )) {
-                      if (partialObject) {
-                        queryParams({
-                          set: {
-                            ...partialObject,
-                          },
-                        });
-                      }
-                    }
-                    posthog.capture("ai_filters_generated", {
-                      prompt,
-                      filters: activeFilters,
-                    });
-                    setStreaming(false);
-                  } else {
-                    queryParams({
-                      set:
-                        key === "link"
-                          ? {
-                              domain: new URL(`https://${value}`).hostname,
-                              key:
-                                new URL(`https://${value}`).pathname.slice(1) ||
-                                "_root",
-                            }
-                          : {
-                              [key]: value,
-                            },
-                      del: "page",
-                    });
-                  }
-                }}
-                onRemove={(key) =>
-                  queryParams({
-                    del: key === "link" ? ["domain", "key"] : key,
-                  })
-                }
-                onOpenFilter={(key) =>
-                  setRequestedFilters((rf) =>
-                    rf.includes(key) ? rf : [...rf, key],
-                  )
-                }
-                askAI
-              />
+              {isMobile ? dateRangePicker : filterSelect}
               <div
                 className={cn("flex w-full grow items-center gap-2 md:w-auto", {
-                  "min-[550px]:w-auto": !key,
-                  "justify-end": key,
                   "grow-0": dashboardProps,
                 })}
               >
-                <DateRangePicker
-                  className="w-full sm:min-w-[200px] md:w-fit"
-                  align={dashboardProps ? "end" : "start"}
-                  value={
-                    start && end
-                      ? {
-                          from: start,
-                          to: end,
-                        }
-                      : undefined
-                  }
-                  presetId={!start || !end ? interval ?? "24h" : undefined}
-                  onChange={(range, preset) => {
-                    if (preset) {
-                      queryParams({
-                        del: ["start", "end"],
-                        set: {
-                          interval: preset.id,
-                        },
-                        scroll: false,
-                      });
-
-                      return;
-                    }
-
-                    // Regular range
-                    if (!range || !range.from || !range.to) return;
-
-                    queryParams({
-                      del: "preset",
-                      set: {
-                        start: range.from.toISOString(),
-                        end: range.to.toISOString(),
-                      },
-                      scroll: false,
-                    });
-                  }}
-                  presets={INTERVAL_DISPLAYS.map(
-                    ({ display, value, shortcut }) => {
-                      const start = INTERVAL_DATA[value].startDate;
-                      const end = new Date();
-
-                      const requiresUpgrade =
-                        adminPage ||
-                        demoPage ||
-                        DUB_DEMO_LINKS.find(
-                          (l) => l.domain === domain && l.key === key,
-                        )
-                          ? false
-                          : !validDateRangeForPlan({
-                              plan: plan || dashboardProps?.workspacePlan,
-                              start,
-                              end,
-                            });
-
-                      return {
-                        id: value,
-                        label: display,
-                        dateRange: {
-                          from: start,
-                          to: end,
-                        },
-                        requiresUpgrade,
-                        tooltipContent: requiresUpgrade ? (
-                          <UpgradeTooltip rangeLabel={display} plan={plan} />
-                        ) : undefined,
-                        shortcut,
-                      };
-                    },
-                  )}
-                />
+                {isMobile ? filterSelect : dateRangePicker}
                 {!dashboardProps && (
                   <div className="flex grow justify-end gap-2">
                     {page === "analytics" && (
@@ -789,7 +788,7 @@ export default function Toggle({
                           icon={
                             <SquareLayoutGrid6 className="h-4 w-4 text-gray-600" />
                           }
-                          text="Switch to Events"
+                          text={isMobile ? undefined : "Switch to Events"}
                           onClick={() => {
                             if (dashboardProps) {
                               window.open("https://d.to/events");
@@ -809,7 +808,7 @@ export default function Toggle({
                           variant="secondary"
                           className="w-fit"
                           icon={<ChartLine className="h-4 w-4 text-gray-600" />}
-                          text="Switch to Analytics"
+                          text={isMobile ? undefined : "Switch to Analytics"}
                           onClick={() =>
                             router.push(`/${slug}/analytics${getQueryString()}`)
                           }
