@@ -17,7 +17,7 @@ export default async function PartnersMiddleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/", req.url)); // Redirect authenticated users to dashboard
 
   const partners = user
-    ? (await getFeatureFlags({ userEmail: user.email })).partners
+    ? (await getFeatureFlags({ userEmail: user.email })).partnersPortal
     : false;
 
   if (user && path === "/" && partners) {

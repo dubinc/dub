@@ -22,7 +22,7 @@ export const getFeatureFlags = async ({
     referrals: false,
     webhooks: false,
     noDubLink: false,
-    partners: false,
+    partnersPortal: false,
   };
 
   if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {

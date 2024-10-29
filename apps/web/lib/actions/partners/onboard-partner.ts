@@ -21,11 +21,11 @@ export const onboardPartner = authUserActionClient
   .action(async ({ ctx, parsedInput }) => {
     const { user } = ctx;
 
-    const { partners } = await getFeatureFlags({ userEmail: user.email });
-    if (!partners) {
+    const { partnersPortal } = await getFeatureFlags({ userEmail: user.email });
+    if (!partnersPortal) {
       return {
         ok: false,
-        error: "Partners feature flag disabled.",
+        error: "Partners portal feature flag disabled.",
       };
     }
 
