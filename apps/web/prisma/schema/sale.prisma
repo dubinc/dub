@@ -1,0 +1,35 @@
+enum SaleStatus {
+  refunded
+  approved
+  pending
+  paid
+  unpaid
+}
+
+model Sale {
+  id               String         @id @default(cuid())
+  programId        String?
+  payoutId         String?
+  linkId           String
+  clickId          String
+  customerId       String
+  invoiceId        String?
+  eventId          String
+  eventName        String
+  paymentProcessor String
+  amount           Float
+  currency         String
+  currencyRate     Float
+  commissionAmount Float
+  commissionType   CommissionType
+  status           SaleStatus
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([programId])
+  @@index([linkId])
+  @@index([clickId])
+  @@index([payoutId])
+  @@index([customerId])
+  @@index([eventId])
+}

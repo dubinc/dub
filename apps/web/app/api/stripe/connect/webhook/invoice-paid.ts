@@ -1,9 +1,11 @@
+import { createId } from "@/lib/api/utils";
 import { prisma } from "@/lib/prisma";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { nanoid } from "@dub/utils";
+import { SaleStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 
@@ -70,6 +72,15 @@ export async function invoicePaid(event: Stripe.Event) {
     return `Link with ID ${linkId} not found, skipping...`;
   }
 
+  const programEnrollment = await prisma.programEnrollment.findFirst({
+    where: {
+      linkId: linkId,
+    },
+    include: {
+      program: true,
+    },
+  });
+
   const [_sale, _link, workspace] = await Promise.all([
     recordSale(saleData),
 
@@ -101,6 +112,30 @@ export async function invoicePaid(event: Stripe.Event) {
         },
       },
     }),
+
+    ...(programEnrollment
+      ? [
+          prisma.sale.create({
+            data: {
+              id: createId({ prefix: "sal_" }),
+              linkId: saleData.link_id,
+              clickId: saleData.click_id,
+              customerId: saleData.customer_id,
+              invoiceId: saleData.invoice_id,
+              eventId: saleData.event_id,
+              eventName: saleData.event_name,
+              paymentProcessor: saleData.payment_processor,
+              amount: saleData.amount,
+              currency: saleData.currency,
+              currencyRate: 1,
+              status: SaleStatus.pending,
+              programId: programEnrollment.id,
+              commissionAmount: programEnrollment.program.commissionAmount,
+              commissionType: programEnrollment.program.commissionType,
+            },
+          }),
+        ]
+      : []),
   ]);
 
   waitUntil(

@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { parseRequestBody } from "@/lib/api/utils";
+import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { prismaEdge } from "@/lib/prisma/edge";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
@@ -11,6 +11,7 @@ import {
   trackSaleResponseSchema,
 } from "@/lib/zod/schemas/sales";
 import { nanoid } from "@dub/utils";
+import { SaleStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -60,12 +61,23 @@ export const POST = withWorkspaceEdge(
       .omit({ timestamp: true })
       .parse(leadEvent.data[0]);
 
+    const programEnrollment = await prismaEdge.programEnrollment.findFirst({
+      where: {
+        linkId: clickData.link_id,
+      },
+      include: {
+        program: true,
+      },
+    });
+
     waitUntil(
       (async () => {
+        const eventId = nanoid(16);
+
         const [_sale, link, _project] = await Promise.all([
           recordSale({
             ...clickData,
-            event_id: nanoid(16),
+            event_id: eventId,
             event_name: eventName,
             customer_id: customer.id,
             payment_processor: paymentProcessor,
@@ -74,6 +86,7 @@ export const POST = withWorkspaceEdge(
             invoice_id: invoiceId || "",
             metadata: metadata ? JSON.stringify(metadata) : "",
           }),
+
           // update link sales count
           prismaEdge.link.update({
             where: {
@@ -102,6 +115,31 @@ export const POST = withWorkspaceEdge(
               },
             },
           }),
+
+          ...(programEnrollment
+            ? [
+                prismaEdge.sale.create({
+                  data: {
+                    id: createId({ prefix: "sal_" }),
+                    linkId: clickData.link_id,
+                    clickId: clickData.click_id,
+                    customerId: customer.id,
+                    invoiceId,
+                    eventId,
+                    eventName,
+                    paymentProcessor,
+                    amount,
+                    currency,
+                    currencyRate: 1,
+                    status: SaleStatus.pending,
+                    programId: programEnrollment.id,
+                    commissionAmount:
+                      programEnrollment.program.commissionAmount,
+                    commissionType: programEnrollment.program.commissionType,
+                  },
+                }),
+              ]
+            : []),
         ]);
 
         const sale = transformSaleEventData({
