@@ -11,17 +11,3 @@ export const ALL_TOOLS = [
   { name: "QR Code API", slug: "qr-code" },
   { name: "UTM Builder", slug: "utm-builder" },
 ];
-
-export const COMPARE_PAGES = [
-  { name: "Bitly", slug: "bitly" },
-  { name: "Rebrandly", slug: "rebrandly" },
-  { name: "Short.io", slug: "short" },
-];
-
-export const LEGAL_PAGES = [
-  { name: "Privacy", slug: "privacy" },
-  { name: "Terms", slug: "terms" },
-  { name: "Subprocessors", slug: "subprocessors" },
-  { name: "DPA", slug: "dpa" },
-  { name: "Report Abuse", slug: "abuse" },
-];

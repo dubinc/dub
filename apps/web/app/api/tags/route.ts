@@ -1,4 +1,5 @@
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
+import { createId } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
@@ -86,6 +87,7 @@ export const POST = withWorkspace(
 
     const response = await prisma.tag.create({
       data: {
+        id: createId({ prefix: "tag_" }),
         name: tag || name!,
         color:
           color && COLORS_LIST.map(({ color }) => color).includes(color)
