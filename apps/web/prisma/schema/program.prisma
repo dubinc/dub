@@ -3,16 +3,25 @@ enum ProgramType {
   referral
 }
 
+enum CommissionType {
+  percentage
+  fixed
+}
+
 model Program {
-  id          String      @id @default(cuid())
-  workspaceId String
-  name        String
-  slug        String      @unique
-  logo        String?
-  type        ProgramType @default(affiliate)
-  // TODO: add more fields for program management flow
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id                  String         @id @default(cuid())
+  workspaceId         String
+  name                String
+  slug                String         @unique
+  logo                String?
+  type                ProgramType    @default(affiliate)
+  cookieLength        Int            @default(30)
+  minimumPayout       Int            @default(1000)
+  commissionAmount    Float
+  commissionType      CommissionType @default(percentage)
+  recurringCommission Boolean        @default(false)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
 
   workspace Project             @relation(fields: [workspaceId], references: [id])
   partners  ProgramEnrollment[]

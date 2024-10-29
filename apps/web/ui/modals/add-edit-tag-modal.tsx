@@ -12,7 +12,7 @@ import {
   TooltipContent,
   useMediaQuery,
 } from "@dub/ui";
-import { capitalize, cn } from "@dub/utils";
+import { capitalize, cn, pluralize } from "@dub/utils";
 import posthog from "posthog-js";
 import {
   Dispatch,
@@ -231,9 +231,7 @@ function AddTagButton({
         disabledTooltip={
           exceededTags ? (
             <TooltipContent
-              title={`You can only add up to ${tagsLimit} tag${
-                tagsLimit === 1 ? "" : "s"
-              } on the ${capitalize(plan)} plan. Upgrade to add more tags`}
+              title={`You can only add up to ${tagsLimit} ${pluralize("tag", tagsLimit || 0)} on the ${capitalize(plan)} plan. Upgrade to add more tags`}
               cta="Upgrade"
               href={`/${slug}/upgrade`}
             />

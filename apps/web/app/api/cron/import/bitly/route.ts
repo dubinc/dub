@@ -1,4 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { createId } from "@/lib/api/utils";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
@@ -39,6 +40,7 @@ export async function POST(req: Request) {
 
           await prisma.tag.createMany({
             data: tags.map((tag) => ({
+              id: createId({ prefix: "tag_" }),
               name: tag,
               color: randomBadgeColor(),
               projectId: workspaceId,
