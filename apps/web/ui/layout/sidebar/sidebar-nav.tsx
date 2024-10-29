@@ -1,5 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ClientOnly, Wordmark } from "@dub/ui";
+import { ClientOnly, NavWordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
@@ -57,7 +57,7 @@ export function SidebarNav({
               {...{ inert: area !== currentArea ? "" : undefined }}
             >
               {area === "default" ? (
-                <Wordmark className="h-6" />
+                <NavWordmark className="h-6" isInApp />
               ) : (
                 <div className="py group -my-1 -ml-1 flex items-center gap-2 py-2 pr-1 text-sm font-medium text-neutral-900">
                   <ChevronLeft className="size-4 text-neutral-500 transition-transform duration-100 group-hover:-translate-x-0.5" />

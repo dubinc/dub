@@ -15,6 +15,7 @@ import {
   COUNTRIES,
   getParamsFromURL,
   isValidUrl,
+  pluralize,
 } from "@dub/utils";
 import {
   Dispatch,
@@ -420,7 +421,7 @@ export function getTargetingLabel({
 
     // Geo
     if (countries.length === 1 && countries[0]) return countries[0];
-    return `${countries.length} Target${countries.length === 1 ? "" : "s"}`;
+    return `${countries.length} ${pluralize("Target", countries.length)}`;
   }
 
   return `${count + (countries.length > 1 ? countries.length - 1 : 0)} Targets`;

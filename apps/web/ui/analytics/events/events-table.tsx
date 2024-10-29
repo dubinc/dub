@@ -353,7 +353,7 @@ export default function EventsTable() {
         },
         {
           id: "refererUrl",
-          header: "Referer URL",
+          header: "Referrer URL",
           accessorKey: "click.refererUrl",
           meta: {
             filterParams: ({ getValue }) => ({ refererUrl: getValue() }),
@@ -370,7 +370,7 @@ export default function EventsTable() {
               )}
               <CopyText
                 value={getValue()}
-                successMessage="Copied referer URL to clipboard!"
+                successMessage="Copied referrer URL to clipboard!"
               >
                 <span className="truncate" title={getValue()}>
                   {getPrettyUrl(getValue())}

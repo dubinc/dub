@@ -17,6 +17,14 @@ export async function deleteLink(linkId: string) {
 
   waitUntil(
     Promise.allSettled([
+      // if there's a valid image and it has the same link ID, delete it
+      link.image &&
+        link.image.startsWith(`${R2_URL}/images/${link.id}`) &&
+        storage.delete(link.image.replace(`${R2_URL}/`, "")),
+
+      // Remove the link from Redis
+      linkCache.delete(link),
+
       // Record link in the Tinybird
       recordLink({
         link_id: link.id,
@@ -28,14 +36,6 @@ export async function deleteLink(linkId: string) {
         created_at: link.createdAt,
         deleted: true,
       }),
-
-      // Remove image from R2 storage if it exists
-      link.image &&
-        link.image.startsWith(`${R2_URL}/images/${link.id}`) &&
-        storage.delete(link.image.replace(`${R2_URL}/`, "")),
-
-      // Remove the link from Redis
-      linkCache.delete(link),
 
       // Decrement the links count for the workspace
       link.projectId &&

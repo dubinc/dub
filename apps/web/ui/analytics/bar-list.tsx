@@ -137,11 +137,11 @@ export function LineItem({
     >
       <div className="group flex items-center justify-between">
         <div className="relative z-10 flex h-8 w-full max-w-[calc(100%-2rem)] items-center">
-          {tab === "link" && linkData ? (
+          {tab === "links" && linkData ? (
             <Tooltip content={<LinkPreviewTooltip data={linkData} />}>
               {lineItem}
             </Tooltip>
-          ) : tab === "url" ? (
+          ) : tab === "urls" ? (
             <Tooltip
               content={
                 <div className="overflow-auto px-4 py-2">

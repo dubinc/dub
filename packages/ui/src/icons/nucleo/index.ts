@@ -1,6 +1,7 @@
 export * from "./apple";
 export * from "./arrow-bold-up";
 export * from "./arrow-right";
+export * from "./arrow-trend-up";
 export * from "./arrow-turn-left";
 export * from "./arrow-turn-right2";
 export * from "./arrows-opposite-direction-y";
@@ -35,6 +36,7 @@ export * from "./crosshairs3";
 export * from "./cube";
 export * from "./cube-settings";
 export * from "./cursor-rays";
+export * from "./database-key";
 export * from "./desktop";
 export * from "./diamond-turn-right";
 export * from "./dots";

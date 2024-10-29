@@ -2,7 +2,8 @@ import { linkCache } from "@/lib/api/links/cache";
 import { withAdmin } from "@/lib/auth";
 import { updateConfig } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
-import { formatRedisLink } from "@/lib/upstash/format-redis-link";
+import { formatRedisLink } from "@/lib/upstash";
+import { domainKeySchema } from "@/lib/zod/schemas/links";
 import {
   LEGAL_USER_ID,
   LEGAL_WORKSPACE_ID,
@@ -12,21 +13,17 @@ import { NextResponse } from "next/server";
 
 // DELETE /api/admin/links/ban – ban a dub.sh link by key
 export const DELETE = withAdmin(async ({ searchParams }) => {
-  const { key } = searchParams as { linkId?: string; key?: string };
-
-  if (!key) {
-    return NextResponse.json({ error: "No key provided" }, { status: 400 });
-  }
+  const { domain, key } = domainKeySchema.parse(searchParams);
 
   const link = await prisma.link.findUnique({
-    where: { domain_key: { domain: "dub.sh", key } },
+    where: { domain_key: { domain, key } },
   });
 
   if (!link) {
     return NextResponse.json({ error: "Link not found" }, { status: 404 });
   }
 
-  const domain = getDomainWithoutWWW(link.url);
+  const urlDomain = getDomainWithoutWWW(link.url);
 
   const response = await Promise.all([
     prisma.link.update({
@@ -45,10 +42,10 @@ export const DELETE = withAdmin(async ({ searchParams }) => {
       key,
     }),
 
-    domain &&
+    urlDomain &&
       updateConfig({
         key: "domains",
-        value: domain,
+        value: urlDomain,
       }),
   ]);
 

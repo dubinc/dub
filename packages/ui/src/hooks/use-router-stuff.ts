@@ -27,12 +27,14 @@ export function useRouterStuff() {
     set,
     del,
     replace,
+    scroll = true,
     getNewPath,
     arrayDelimiter = ",",
   }: {
     set?: Record<string, string | string[]>;
     del?: string | string[];
     replace?: boolean;
+    scroll?: boolean;
     getNewPath?: boolean;
     arrayDelimiter?: string;
   }) => {
@@ -57,7 +59,7 @@ export function useRouterStuff() {
     if (replace) {
       router.replace(newPath, { scroll: false });
     } else {
-      router.push(newPath);
+      router.push(newPath, { scroll });
     }
   };
 

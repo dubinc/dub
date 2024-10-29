@@ -15,6 +15,7 @@ import {
   Modal,
   SimpleTooltipContent,
   TooltipContent,
+  useCopyToClipboard,
   useEnterSubmit,
   useKeyboardShortcut,
   useRouterStuff,
@@ -211,6 +212,8 @@ function LinkBuilderInner({
   const { TargetingModal, TargetingButton } = useTargetingModal();
   const { PasswordModal, PasswordButton } = usePasswordModal();
 
+  const [, copyToClipboard] = useCopyToClipboard();
+
   return (
     <>
       <PasswordModal />
@@ -292,16 +295,12 @@ function LinkBuilderInner({
                   // copy shortlink to clipboard when adding a new link
                   if (!props) {
                     try {
-                      await navigator.clipboard.writeText(data.shortLink);
-                      toast.success("Copied shortlink to clipboard!");
-                    } catch (e) {
-                      console.error(
-                        "Failed to automatically copy shortlink to clipboard.",
-                        e,
-                      );
+                      await copyToClipboard(data.shortLink);
+                      toast.success("Copied short link to clipboard!");
+                    } catch (err) {
                       toast.success("Successfully created link!");
                     }
-                  } else toast.success("Successfully updated shortlink!");
+                  } else toast.success("Successfully updated short link!");
 
                   draftControlsRef.current?.onSubmitSuccessful();
                   setShowLinkBuilder(false);

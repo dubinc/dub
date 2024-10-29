@@ -4,7 +4,7 @@ import { useLocalStorage, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Image from "next/image";
 import Link from "next/link";
-import { CSSProperties, useRef, useState } from "react";
+import { CSSProperties, SVGProps, useEffect, useRef, useState } from "react";
 
 export interface NewsArticle {
   href: string;
@@ -26,8 +26,21 @@ export function News({ articles }: { articles: NewsArticle[] }) {
   const cards = articles.filter(({ href }) => !dismissedNews.includes(href));
   const cardCount = cards.length;
 
-  return cards.length ? (
-    <div className="group overflow-hidden px-3 pb-3 pt-8">
+  const [showCompleted, setShowCompleted] = useState(cardCount > 0);
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout | undefined = undefined;
+    if (cardCount === 0)
+      timeout = setTimeout(() => setShowCompleted(false), 2700);
+
+    return () => clearTimeout(timeout);
+  }, [cardCount]);
+
+  return cards.length || showCompleted ? (
+    <div
+      className="group overflow-hidden px-3 pb-3 pt-8"
+      data-active={cardCount !== 0}
+    >
       <div className="relative size-full">
         {cards.toReversed().map(({ href, title, summary, image }, idx) => (
           <div
@@ -71,6 +84,18 @@ export function News({ articles }: { articles: NewsArticle[] }) {
         <div className="pointer-events-none invisible" aria-hidden>
           <NewsCard title="Title" description="Description" />
         </div>
+        {showCompleted && !cardCount && (
+          <div
+            className="animate-slide-up-fade absolute inset-0 flex size-full flex-col items-center justify-center gap-3 [animation-duration:1s]"
+            style={{ "--offset": "10px" } as CSSProperties}
+          >
+            <div className="animate-fade-in absolute inset-0 rounded-lg border border-neutral-300 [animation-delay:2.3s] [animation-direction:reverse] [animation-duration:0.2s]" />
+            <AnimatedLogo className="w-1/3 text-neutral-500" />
+            <span className="animate-fade-in text-xs font-medium text-neutral-500 [animation-delay:2.3s] [animation-direction:reverse] [animation-duration:0.2s]">
+              You're all caught up!
+            </span>
+          </div>
+        )}
       </div>
     </div>
   ) : null;
@@ -229,7 +254,7 @@ function NewsCard({
         <div
           className={cn(
             "h-0 overflow-hidden opacity-0 transition-[height,opacity] duration-200",
-            "sm:group-hover:h-7 sm:group-hover:opacity-100 sm:group-has-[*[data-dragging=true]]:h-7 sm:group-has-[*[data-dragging=true]]:opacity-100",
+            "sm:group-has-[*[data-dragging=true]]:h-7 sm:group-has-[*[data-dragging=true]]:opacity-100 sm:group-hover:group-data-[active=true]:h-7 sm:group-hover:group-data-[active=true]:opacity-100",
           )}
         >
           <div className="flex items-center justify-between pt-3 text-xs">
@@ -251,5 +276,62 @@ function NewsCard({
         </div>
       </div>
     </div>
+  );
+}
+
+function AnimatedLogo(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 48 21"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M12 1H15V12.9332C15.0001 12.9465 15.0002 12.9598 15.0003 12.9731C15.0003 12.982 15.0003 12.991 15.0003 13C15.0003 13.0223 15.0002 13.0445 15 13.0668V20H12V18.7455C10.8662 19.5362 9.48733 20 8.00016 20C4.13408 20 1 16.866 1 13C1 9.13401 4.13408 6 8.00016 6C9.48733 6 10.8662 6.46375 12 7.25452V1ZM8 16.9998C10.2091 16.9998 12 15.209 12 12.9999C12 10.7908 10.2091 9 8 9C5.79086 9 4 10.7908 4 12.9999C4 15.209 5.79086 16.9998 8 16.9998Z"
+        stroke="currentColor"
+        stroke-dasharray="63"
+        stroke-linecap="round"
+      >
+        <animate
+          attributeName="stroke-dashoffset"
+          dur="2500ms"
+          values="63;0;0;0;63"
+          fill="freeze"
+        />
+      </path>
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M17 6H20V13V13C20 14.0608 20.4215 15.0782 21.1716 15.8283C21.9217 16.5784 22.9391 16.9998 24 16.9998C25.0609 16.9998 26.0783 16.5784 26.8284 15.8283C27.5785 15.0782 28 14.0608 28 13C28 13 28 13 28 13V6H31V13H31.0003C31.0003 13.9192 30.8192 14.8295 30.4675 15.6788C30.1157 16.5281 29.6 17.2997 28.95 17.9497C28.3 18.5997 27.5283 19.1154 26.679 19.4671C25.8297 19.8189 24.9194 20 24.0002 20C23.0809 20 22.1706 19.8189 21.3213 19.4671C20.472 19.1154 19.7003 18.5997 19.0503 17.9497C18.4003 17.2997 17.8846 16.5281 17.5329 15.6788C17.1811 14.8295 17 13.9192 17 13V13V6Z"
+        stroke="currentColor"
+        stroke-dasharray="69"
+        stroke-linecap="round"
+      >
+        <animate
+          attributeName="stroke-dashoffset"
+          dur="2500ms"
+          values="69;0;0;0;69"
+          fill="freeze"
+        />
+      </path>
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M33 1H36V7.25474C37.1339 6.46383 38.5128 6 40.0002 6C43.8662 6 47.0003 9.13401 47.0003 13C47.0003 16.866 43.8662 20 40.0002 20C36.1341 20 33 16.866 33 13V1ZM40 16.9998C42.2091 16.9998 44 15.209 44 12.9999C44 10.7908 42.2091 9 40 9C37.7909 9 36 10.7908 36 12.9999C36 15.209 37.7909 16.9998 40 16.9998Z"
+        stroke="currentColor"
+        stroke-dasharray="60"
+        stroke-linecap="round"
+      >
+        <animate
+          attributeName="stroke-dashoffset"
+          dur="2500ms"
+          values="-60;0;0;0;-60"
+          fill="freeze"
+        />
+      </path>
+    </svg>
   );
 }

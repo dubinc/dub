@@ -1,7 +1,7 @@
-import { COMPARE_PAGES, cn, createHref } from "@dub/utils";
+import { cn, createHref } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { CUSTOMER_STORIES, FEATURES_LIST } from "../../content";
+import { COMPARE_PAGES, CUSTOMER_STORIES, FEATURES_LIST } from "../../content";
 import { ExpandingArrow } from "../../icons";
 import {
   ContentIcon,
