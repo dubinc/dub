@@ -64,10 +64,13 @@ function ShareDashboardModalInner({
   const [copied, copyToClipboard] = useCopyToClipboard();
 
   const handleCreate = async () => {
-    if (!workspaceId) return;
+    if (!workspaceId) {
+      return;
+    }
 
     setChecked(true);
     setIsCreating(true);
+
     const res = await fetch(
       `/api/dashboards?${new URLSearchParams({ workspaceId, domain, key }).toString()}`,
       {
@@ -77,19 +80,20 @@ function ShareDashboardModalInner({
         },
       },
     );
-    if (!res.ok) {
-      toast.error("Failed to create shared dashboard");
-      setChecked(false);
-      return;
-    }
-    if (res.status === 200) {
+
+    if (res.ok) {
       const data = await res.json();
       await mutate();
+
       toast.promise(copyToClipboard(`${APP_DOMAIN}/share/${data.id}`), {
         success:
           "Successfully created shared dashboard! Copied link to clipboard.",
       });
+    } else {
+      toast.error("Failed to create shared dashboard");
+      setChecked(false);
     }
+
     setIsCreating(false);
   };
 
@@ -116,14 +120,14 @@ function ShareDashboardModalInner({
       },
     );
 
-    if (!res.ok) {
+    if (res.ok) {
+      await mutate();
+      toast.success("Removed shared dashboard.");
+    } else {
       toast.error("Failed to remove shared dashboard.");
       setChecked(true);
-      return;
     }
 
-    await mutate();
-    toast.success("Removed shared dashboard.");
     setIsRemoving(false);
   };
 
