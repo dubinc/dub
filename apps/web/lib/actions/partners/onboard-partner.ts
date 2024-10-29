@@ -1,6 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/utils";
+import { getFeatureFlags } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
 import z from "../../zod";
 import { authUserActionClient } from "../safe-action";
@@ -14,6 +15,15 @@ export const onboardPartner = authUserActionClient
   .schema(onboardPartnerSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { user } = ctx;
+
+    const { partners } = await getFeatureFlags({ userEmail: user.email });
+    if (!partners) {
+      return {
+        ok: false,
+        error: "Partners feature flag disabled.",
+      };
+    }
+
     const { name } = parsedInput;
 
     try {

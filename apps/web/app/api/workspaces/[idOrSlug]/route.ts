@@ -13,7 +13,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/workspaces/[idOrSlug] – get a specific workspace by id or slug
 export const GET = withWorkspace(
-  async ({ workspace, headers }) => {
+  async ({ workspace, session, headers }) => {
     const domains = await prisma.domain.findMany({
       where: {
         projectId: workspace.id,
@@ -31,6 +31,7 @@ export const GET = withWorkspace(
         domains,
         flags: await getFeatureFlags({
           workspaceId: workspace.id,
+          userEmail: session.user.email,
         }),
       }),
       { headers },
@@ -43,7 +44,7 @@ export const GET = withWorkspace(
 
 // PATCH /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
 export const PATCH = withWorkspace(
-  async ({ req, workspace }) => {
+  async ({ req, workspace, session }) => {
     const { name, slug } = await updateWorkspaceSchema.parseAsync(
       await req.json(),
     );
@@ -89,6 +90,7 @@ export const PATCH = withWorkspace(
           id: `ws_${response.id}`,
           flags: await getFeatureFlags({
             workspaceId: response.id,
+            userEmail: session.user.email,
           }),
         }),
       );

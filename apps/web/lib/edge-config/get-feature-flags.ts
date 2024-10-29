@@ -6,9 +6,11 @@ type BetaFeaturesRecord = Record<BetaFeatures, string[]>;
 export const getFeatureFlags = async ({
   workspaceId,
   workspaceSlug,
+  userEmail,
 }: {
   workspaceId?: string;
   workspaceSlug?: string;
+  userEmail?: string;
 }) => {
   if (workspaceId) {
     workspaceId = workspaceId.startsWith("ws_")
@@ -20,6 +22,7 @@ export const getFeatureFlags = async ({
     referrals: false,
     webhooks: false,
     noDubLink: false,
+    partners: false,
   };
 
   if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
@@ -40,12 +43,11 @@ export const getFeatureFlags = async ({
   }
 
   if (betaFeatures) {
-    for (const [featureFlag, workspaceIdsOrSlugs] of Object.entries(
-      betaFeatures,
-    )) {
+    for (const [featureFlag, identifiers] of Object.entries(betaFeatures)) {
       if (
-        (workspaceId && workspaceIdsOrSlugs.includes(workspaceId)) ||
-        (workspaceSlug && workspaceIdsOrSlugs.includes(workspaceSlug))
+        (workspaceId && identifiers.includes(workspaceId)) ||
+        (workspaceSlug && identifiers.includes(workspaceSlug)) ||
+        (userEmail && identifiers.includes(userEmail))
       ) {
         workspaceFeatures[featureFlag] = true;
       }
