@@ -1,3 +1,5 @@
+import { PageContent } from "@/ui/layout/page-content";
+
 export default function ProfileSettingsPage() {
-  return <div>Profile Settings</div>;
+  return <PageContent title="Profile"></PageContent>;
 }

@@ -1,3 +1,5 @@
+import { PageContent } from "@/ui/layout/page-content";
+
 export default function ProgramPage() {
-  return <div>Program Overview</div>;
+  return <PageContent title="Overview"></PageContent>;
 }

@@ -1,3 +1,5 @@
+import { PageContent } from "@/ui/layout/page-content";
+
 export default function PeoplePage() {
-  return <div>People</div>;
+  return <PageContent title="People"></PageContent>;
 }
