@@ -191,8 +191,9 @@ function ShareDashboardModalInner({
                 ))}
             </>
           ) : (
-            <div className="flex h-12 w-full items-center justify-center">
-              <LoadingSpinner className="size-4" />
+            <div className="flex w-full items-center justify-between pt-6">
+              <div className="h-5 w-36 animate-pulse rounded-md bg-gray-200" />
+              <div className="h-5 w-12 animate-pulse rounded-md bg-gray-200" />
             </div>
           )}
         </AnimatedSizeContainer>
