@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { calculateCommissionEarned } from "@/lib/api/sales/commission";
 import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { prismaEdge } from "@/lib/prisma/edge";
@@ -130,12 +131,15 @@ export const POST = withWorkspaceEdge(
                     paymentProcessor,
                     amount,
                     currency,
-                    currencyRate: 1,
                     status: SaleStatus.pending,
-                    programId: programEnrollment.id,
+                    programId: programEnrollment.program.id,
                     commissionAmount:
                       programEnrollment.program.commissionAmount,
                     commissionType: programEnrollment.program.commissionType,
+                    commissionEarned: calculateCommissionEarned({
+                      program: programEnrollment.program,
+                      sale: { amount },
+                    }),
                   },
                 }),
               ]

@@ -7,24 +7,25 @@ enum SaleStatus {
 }
 
 model Sale {
-  id               String         @id @default(cuid())
-  programId        String?
-  payoutId         String?
-  linkId           String
-  clickId          String
-  customerId       String
-  invoiceId        String?
-  eventId          String
-  eventName        String
-  paymentProcessor String
-  amount           Float
-  currency         String
-  currencyRate     Float
-  commissionAmount Float
-  commissionType   CommissionType
-  status           SaleStatus
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  id                  String         @id @default(cuid())
+  programId           String?
+  payoutId            String?
+  linkId              String
+  clickId             String
+  customerId          String
+  invoiceId           String?
+  eventId             String
+  eventName           String
+  paymentProcessor    String
+  amount              Int
+  currency            String
+  commissionAmount    Float
+  commissionType      CommissionType
+  commissionEarned    Int?
+  recurringCommission Boolean        @default(false)
+  status              SaleStatus
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
 
   @@index([programId])
   @@index([linkId])
