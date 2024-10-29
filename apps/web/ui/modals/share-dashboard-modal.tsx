@@ -9,7 +9,7 @@ import {
   Tick,
   useCopyToClipboard,
 } from "@dub/ui";
-import { ArrowTurnRight2, Globe, LoadingSpinner } from "@dub/ui/src/icons";
+import { ArrowTurnRight2, Globe } from "@dub/ui/src/icons";
 import {
   APP_DOMAIN,
   fetcher,
@@ -159,7 +159,7 @@ function ShareDashboardModalInner({
               </label>
               {checked &&
                 (data ? (
-                  <div className="pt-6 text-sm">
+                  <div className="pt-4 text-sm">
                     <div className="divide-x-200 flex items-center justify-between divide-x overflow-hidden rounded-md border border-gray-200 bg-gray-100">
                       <div className="scrollbar-hide overflow-scroll pl-3">
                         <p className="whitespace-nowrap text-gray-400">
@@ -185,9 +185,7 @@ function ShareDashboardModalInner({
                     </div>
                   </div>
                 ) : (
-                  <div className="flex w-full justify-center pt-6">
-                    <LoadingSpinner className="size-4" />
-                  </div>
+                  <div className="mt-4 h-7 w-full animate-pulse rounded-md bg-gray-200" />
                 ))}
             </>
           ) : (
