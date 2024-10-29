@@ -139,7 +139,6 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
   const { slug } = useWorkspace();
   const { isMobile } = useMediaQuery();
   const { variant } = useContext(CardList.Context);
-  const [copied, setCopied] = useState(false);
 
   const stats = useMemo(
     () => [
