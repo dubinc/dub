@@ -9,7 +9,7 @@ import {
   Tick,
   useCopyToClipboard,
 } from "@dub/ui";
-import { ArrowTurnRight2, Globe, LoadingSpinner } from "@dub/ui/src/icons";
+import { ArrowTurnRight2, Globe } from "@dub/ui/src/icons";
 import {
   APP_DOMAIN,
   fetcher,
@@ -51,8 +51,8 @@ function ShareDashboardModalInner({
   );
 
   const { data, mutate } = useSWR<{ id: string }>(
-    workspaceId
-      ? `/api/analytics/share?${new URLSearchParams({ workspaceId, domain, key }).toString()}`
+    link?.id
+      ? `/api/links/${link.id}/dashboard?workspaceId=${workspaceId}`
       : undefined,
     fetcher,
     {
@@ -64,12 +64,15 @@ function ShareDashboardModalInner({
   const [copied, copyToClipboard] = useCopyToClipboard();
 
   const handleCreate = async () => {
-    if (!workspaceId) return;
+    if (!workspaceId) {
+      return;
+    }
 
     setChecked(true);
     setIsCreating(true);
+
     const res = await fetch(
-      `/api/analytics/share?${new URLSearchParams({ workspaceId, domain, key }).toString()}`,
+      `/api/dashboards?${new URLSearchParams({ workspaceId, domain, key }).toString()}`,
       {
         method: "POST",
         headers: {
@@ -77,19 +80,20 @@ function ShareDashboardModalInner({
         },
       },
     );
-    if (!res.ok) {
-      toast.error("Failed to create shared dashboard");
-      setChecked(false);
-      return;
-    }
-    if (res.status === 200) {
+
+    if (res.ok) {
       const data = await res.json();
       await mutate();
+
       toast.promise(copyToClipboard(`${APP_DOMAIN}/share/${data.id}`), {
         success:
           "Successfully created shared dashboard! Copied link to clipboard.",
       });
+    } else {
+      toast.error("Failed to create shared dashboard");
+      setChecked(false);
     }
+
     setIsCreating(false);
   };
 
@@ -110,20 +114,20 @@ function ShareDashboardModalInner({
     setIsRemoving(true);
 
     const res = await fetch(
-      `/api/analytics/share/${data.id}?workspaceId=${workspaceId}`,
+      `/api/dashboards/${data.id}?workspaceId=${workspaceId}`,
       {
         method: "DELETE",
       },
     );
 
-    if (!res.ok) {
+    if (res.ok) {
+      await mutate();
+      toast.success("Removed shared dashboard.");
+    } else {
       toast.error("Failed to remove shared dashboard.");
       setChecked(true);
-      return;
     }
 
-    await mutate();
-    toast.success("Removed shared dashboard.");
     setIsRemoving(false);
   };
 
@@ -155,7 +159,7 @@ function ShareDashboardModalInner({
               </label>
               {checked &&
                 (data ? (
-                  <div className="pt-6 text-sm">
+                  <div className="pt-4 text-sm">
                     <div className="divide-x-200 flex items-center justify-between divide-x overflow-hidden rounded-md border border-gray-200 bg-gray-100">
                       <div className="scrollbar-hide overflow-scroll pl-3">
                         <p className="whitespace-nowrap text-gray-400">
@@ -181,14 +185,13 @@ function ShareDashboardModalInner({
                     </div>
                   </div>
                 ) : (
-                  <div className="flex w-full justify-center pt-6">
-                    <LoadingSpinner className="size-4" />
-                  </div>
+                  <div className="mt-4 h-7 w-full animate-pulse rounded-md bg-gray-200" />
                 ))}
             </>
           ) : (
-            <div className="flex h-12 w-full items-center justify-center">
-              <LoadingSpinner className="size-4" />
+            <div className="flex w-full items-center justify-between pt-6">
+              <div className="h-5 w-36 animate-pulse rounded-md bg-gray-200" />
+              <div className="h-5 w-12 animate-pulse rounded-md bg-gray-200" />
             </div>
           )}
         </AnimatedSizeContainer>

@@ -7,7 +7,7 @@ import {
 import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
 import { geolocation, ipAddress } from "@vercel/functions";
 import { userAgent } from "next/server";
-import { LinkWithTags, transformLink } from "../api/links/utils/transform-link";
+import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
 import {
   detectBot,
   detectQr,
@@ -170,7 +170,7 @@ export async function recordClick({
         // @ts-ignore – bot & qr should be boolean
         data: transformClickEventData({
           ...clickData,
-          link: transformLink(link as LinkWithTags),
+          link: transformLink(link as ExpandedLink),
         }),
       });
     }

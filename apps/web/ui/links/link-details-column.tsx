@@ -3,6 +3,7 @@ import { TagProps } from "@/lib/types";
 import {
   Button,
   CardList,
+  CopyButton,
   CursorRays,
   InvoiceDollar,
   Tooltip,
@@ -10,7 +11,9 @@ import {
   UserCheck,
   useRouterStuff,
 } from "@dub/ui";
+import { ReferredVia } from "@dub/ui/src/icons";
 import {
+  APP_DOMAIN,
   cn,
   currencyFormatter,
   nFormatter,
@@ -207,14 +210,25 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                   })}`
                 : "No clicks yet"}
             </p>
-            <Button
-              text="Share dashboard"
-              className="h-7 px-2"
-              onClick={() => {
-                setShowShareDashboardModal(true);
-                setModalShowCount((c) => c + 1);
-              }}
-            />
+
+            <div className="inline-flex items-start justify-start gap-2">
+              <Button
+                text={link.dashboardId ? "Edit sharing" : "Share dashboard"}
+                className="h-7 w-full px-2"
+                onClick={() => {
+                  setShowShareDashboardModal(true);
+                  setModalShowCount((c) => c + 1);
+                }}
+              />
+
+              {link.dashboardId && (
+                <CopyButton
+                  value={`${APP_DOMAIN}/share/${link.dashboardId}`}
+                  variant="neutral"
+                  className="h-7 items-center justify-center rounded-md border border-neutral-300 bg-white p-1.5 hover:bg-gray-50 active:bg-gray-100"
+                />
+              )}
+            </div>
           </div>
         }
       >
@@ -247,6 +261,11 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                 </span>
               </div>
             ))}
+            {link.dashboardId && (
+              <div className="border-l border-gray-200 px-1.5">
+                <ReferredVia className="h-4 w-4 shrink-0 text-gray-600" />
+              </div>
+            )}
           </div>
         </Link>
       </Tooltip>
