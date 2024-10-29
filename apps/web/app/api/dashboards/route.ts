@@ -2,33 +2,27 @@ import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { createId } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { dashboardSchema } from "@/lib/zod/schemas/dashboard";
 import { domainKeySchema } from "@/lib/zod/schemas/links";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
-// GET /api/analytics/share – get a shared dashboard for a link
+// GET /api/dashboards – get all dashboards
 export const GET = withWorkspace(
-  async ({ searchParams, workspace }) => {
-    const { domain, key } = domainKeySchema.parse(searchParams);
-
-    const link = await getLinkOrThrow({
-      workspace,
-      domain,
-      key,
+  async ({ workspace }) => {
+    const dashboards = await prisma.dashboard.findMany({
+      where: { projectId: workspace.id },
     });
 
-    const dashboard = await prisma.dashboard.findUnique({
-      where: { linkId: link.id },
-    });
-
-    return NextResponse.json(dashboard);
+    return NextResponse.json(z.array(dashboardSchema).parse(dashboards));
   },
   {
     requiredPermissions: ["links.read"],
   },
 );
 
-// POST /api/analytics/share – create a shared dashboard for a link
+// POST /api/dashboards – create a new dashboard
 export const POST = withWorkspace(
   async ({ searchParams, workspace }) => {
     const { domain, key } = domainKeySchema.parse(searchParams);
@@ -39,7 +33,7 @@ export const POST = withWorkspace(
       key,
     });
 
-    const response = await prisma.dashboard.create({
+    const dashboard = await prisma.dashboard.create({
       data: {
         id: createId({ prefix: "dash_" }),
         linkId: link.id,
@@ -57,7 +51,7 @@ export const POST = withWorkspace(
       }),
     );
 
-    return NextResponse.json(response);
+    return NextResponse.json(dashboardSchema.parse(dashboard));
   },
   {
     requiredPermissions: ["links.write"],

@@ -3,12 +3,12 @@ import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-// DELETE /api/analytics/share/[id] – delete a shared dashboard for a link
+// DELETE /api/dashboards/[id] – delete a dashboard
 export const DELETE = withWorkspace(
   async ({ params, workspace }) => {
     const { id } = params;
 
-    const res = await prisma.dashboard.delete({
+    const dashboard = await prisma.dashboard.delete({
       where: {
         id,
         projectId: workspace.id,
@@ -16,10 +16,10 @@ export const DELETE = withWorkspace(
     });
 
     // for backwards compatibility, we'll update the link to have publicStats = false
-    if (res.linkId) {
+    if (dashboard.linkId) {
       waitUntil(
         prisma.link.update({
-          where: { id: res.linkId },
+          where: { id: dashboard.linkId },
           data: { publicStats: false },
         }),
       );
