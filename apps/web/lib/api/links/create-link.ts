@@ -40,6 +40,7 @@ export async function createLink(link: ProcessedLinkProps) {
   const response = await prisma.link.create({
     data: {
       ...rest,
+      id: createId({ prefix: "link_" }),
       key,
       shortLink: linkConstructorSimple({ domain: link.domain, key: link.key }),
       title: truncate(title, 120),

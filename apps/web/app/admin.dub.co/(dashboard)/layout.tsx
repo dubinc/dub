@@ -1,4 +1,4 @@
-import { MaxWidthWrapper, NavLogo } from "@dub/ui";
+import { MaxWidthWrapper, NavWordmark } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
 import Providers from "app/providers";
 import Link from "next/link";
@@ -38,7 +38,7 @@ export default async function AdminLayout({
           <MaxWidthWrapper>
             <div className="flex h-16 items-center gap-12">
               <Link href="/">
-                <NavLogo className="h-6" />
+                <NavWordmark className="h-6" />
               </Link>
               {tabs.map((tab) => (
                 <Link

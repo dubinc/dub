@@ -7,6 +7,7 @@ import {
   Modal,
   Switch,
   Tick,
+  useCopyToClipboard,
 } from "@dub/ui";
 import { ArrowTurnRight2, Globe, LoadingSpinner } from "@dub/ui/src/icons";
 import {
@@ -60,7 +61,7 @@ function ShareDashboardModalInner({
   );
 
   const [isCreating, setIsCreating] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copied, copyToClipboard] = useCopyToClipboard();
 
   const handleCreate = async () => {
     if (!workspaceId) return;
@@ -84,10 +85,10 @@ function ShareDashboardModalInner({
     if (res.status === 200) {
       const data = await res.json();
       await mutate();
-      toast.success(
-        "Successfully created shared dashboard! Copied link to clipboard.",
-      );
-      navigator.clipboard.writeText(`${APP_DOMAIN}/share/${data.id}`);
+      toast.promise(copyToClipboard(`${APP_DOMAIN}/share/${data.id}`), {
+        success:
+          "Successfully created shared dashboard! Copied link to clipboard.",
+      });
     }
     setIsCreating(false);
   };
@@ -164,12 +165,10 @@ function ShareDashboardModalInner({
                       <button
                         className="flex h-8 items-center gap-2 whitespace-nowrap border-l bg-white px-3 hover:bg-gray-50 active:bg-gray-100"
                         onClick={() => {
-                          navigator.clipboard.writeText(
-                            `${APP_DOMAIN}/share/${data.id}`,
-                          );
-                          setCopied(true);
-                          toast.success("Copied to clipboard");
-                          setTimeout(() => setCopied(false), 3000);
+                          const url = `${APP_DOMAIN}/share/${data.id}`;
+                          toast.promise(copyToClipboard(url), {
+                            success: "Copied to clipboard",
+                          });
                         }}
                       >
                         {copied ? (

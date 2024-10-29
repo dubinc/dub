@@ -532,7 +532,7 @@ export default function Toggle({
       {
         key: "refererUrl",
         icon: ReferredVia,
-        label: "Referer URL",
+        label: "Referrer URL",
         getOptionIcon: (value, props) => (
           <RefererIcon display={value} className="h-4 w-4" />
         ),

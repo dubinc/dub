@@ -1,11 +1,12 @@
 "use client";
 
+import useWorkspace from "@/lib/swr/use-workspace";
 import { PlanFeatures } from "@/ui/workspaces/plan-features";
 import { UpgradePlanButton } from "@/ui/workspaces/upgrade-plan-button";
 import { Badge, CountingNumbers } from "@dub/ui";
 import { ToggleGroup } from "@dub/ui/src/toggle-group";
 import { PRO_PLAN, SELF_SERVE_PAID_PLANS } from "@dub/utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function PlanSelector() {
   const [periodTab, setPeriodTab] = useState<"monthly" | "yearly">("yearly");
@@ -54,6 +55,17 @@ function PlanCard({
   const [selectedPlanIndex, setSelectedPlanIndex] = useState(0);
   const selectedPlan = plans[selectedPlanIndex];
 
+  const { plan } = useWorkspace();
+
+  useEffect(() => {
+    if (plan?.startsWith("business")) {
+      const idx = plans.findIndex((p) => p.name.toLowerCase() === plan);
+      if (idx !== -1) {
+        setSelectedPlanIndex(idx);
+      }
+    }
+  }, [plan]);
+
   return (
     <div className="flex flex-col rounded-lg border border-gray-200 bg-white p-6">
       <div className="flex items-center gap-2">
@@ -88,7 +100,6 @@ function PlanCard({
       <PlanFeatures className="mt-4" plan={selectedPlan.name} />
       <div className="mt-10 flex grow flex-col justify-end">
         <UpgradePlanButton
-          text={`Get started with ${selectedPlan.name}`}
           plan={selectedPlan.name.toLowerCase()}
           period={period}
         />
