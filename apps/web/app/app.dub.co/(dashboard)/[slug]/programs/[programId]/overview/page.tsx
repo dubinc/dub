@@ -1,4 +1,5 @@
+import { ProgramOverview } from "./overview";
 
-export default function ProgramOverview() {
-  return <>Overview</>
+export default function ProgramOverviewPage() {
+  return <ProgramOverview />;
 }
