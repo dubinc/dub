@@ -2,6 +2,19 @@
 
 import { Button } from "@dub/ui";
 
+const commissionTypes = [
+  {
+    label: "One-off",
+    description: "Pay a one-time payout",
+    value: "one-off",
+  },
+  {
+    label: "Recurring",
+    description: "Pay an ongoing payout",
+    value: "recurring",
+  },
+];
+
 export function ProgramSettings({ programId }: { programId: string }) {
   return (
     <div className="rounded-lg border border-gray-200 bg-white">
@@ -25,7 +38,29 @@ export function ProgramSettings({ programId }: { programId: string }) {
               Set how the affiliate will get rewarded
             </p>
           </div>
-          <p className="basis-1/2">
+          <p className="basis-1/2 space-y-6">
+            <div className="inline-flex w-full gap-2 rounded-lg p-1">
+              {commissionTypes.map((commissionType) => (
+                <label
+                  key={commissionType.value}
+                  className="relative inline-flex w-full cursor-pointer flex-col gap-1 rounded-md border border-neutral-200 bg-white p-3 hover:bg-gray-50"
+                >
+                  <input
+                    type="radio"
+                    value={commissionType.value}
+                    name="commissionType"
+                    className="absolute right-2 top-2 h-4 w-4 cursor-pointer"
+                  />
+                  <span className="text-sm font-medium text-neutral-600">
+                    {commissionType.label}
+                  </span>
+                  <span className="text-xs font-normal text-neutral-600">
+                    {commissionType.description}
+                  </span>
+                </label>
+              ))}
+            </div>
+
             <div>
               <label htmlFor="duration" className="flex items-center space-x-2">
                 <h2 className="text-sm font-medium text-gray-600">Duration</h2>
