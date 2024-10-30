@@ -1,4 +1,6 @@
-import { buttonVariants } from "@dub/ui";
+"use client";
+
+import { Badge, buttonVariants } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { CSSProperties, PropsWithChildren, ReactNode } from "react";
@@ -8,6 +10,7 @@ export function AnimatedEmptyState({
   description,
   cardContent,
   addButton,
+  pillContent,
   learnMoreHref,
   learnMoreClassName,
   className,
@@ -16,6 +19,7 @@ export function AnimatedEmptyState({
   description: string;
   cardContent: ReactNode;
   addButton?: ReactNode;
+  pillContent?: string;
   learnMoreHref?: string;
   learnMoreClassName?: string;
   className?: string;
@@ -37,9 +41,12 @@ export function AnimatedEmptyState({
           ))}
         </div>
       </div>
-      <div className="max-w-sm text-pretty text-center">
+      {pillContent && <Badge variant="blueGradient">{pillContent}</Badge>}
+      <div className="max-w-xs text-pretty text-center">
         <span className="text-base font-medium text-neutral-900">{title}</span>
-        <p className="mt-2 text-sm text-neutral-500">{description}</p>
+        <p className="mt-2 text-pretty text-sm text-neutral-500">
+          {description}
+        </p>
       </div>
       <div className="flex items-center gap-2">
         {addButton}

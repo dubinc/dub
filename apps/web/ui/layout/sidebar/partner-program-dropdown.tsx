@@ -45,7 +45,7 @@ export function PartnerProgramDropdown() {
   const { partner } = usePartnerProfile();
 
   const { data: programs } = useSWR<ProgramProps[]>(
-    partnerId && `/api/programs?partnerId=${partnerId}`,
+    partnerId && `/api/partners/${partnerId}/programs`,
     fetcher,
     {
       dedupingInterval: 60000,
