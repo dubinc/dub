@@ -1,5 +1,6 @@
 "use client";
 
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import Areas from "@/ui/charts/areas";
 import TimeSeriesChart from "@/ui/charts/time-series-chart";
 import XAxis from "@/ui/charts/x-axis";
@@ -8,13 +9,20 @@ import EmptyState from "@/ui/shared/empty-state";
 import { MiniAreaChart } from "@dub/blocks";
 import {
   Button,
+  Check2,
   MaxWidthWrapper,
   Table,
+  useCopyToClipboard,
   usePagination,
   useTable,
 } from "@dub/ui";
 import { CircleDollar, Copy, LoadingSpinner } from "@dub/ui/src/icons";
-import { currencyFormatter, formatDate, nFormatter } from "@dub/utils";
+import {
+  currencyFormatter,
+  formatDate,
+  getPrettyUrl,
+  nFormatter,
+} from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
 import { subDays } from "date-fns";
 import { useId, useMemo } from "react";
@@ -40,7 +48,8 @@ const mockSales = () =>
   }));
 
 export default function ProgramPageClient() {
-  const referralLink = "framer.link/steven"; // TODO: get from API
+  const { programEnrollment } = useProgramEnrollment();
+  const [copied, copyToClipboard] = useCopyToClipboard();
 
   // TODO: get all of these values from API
 
@@ -76,20 +85,29 @@ export default function ProgramPageClient() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {referralLink !== undefined ? (
+          {programEnrollment?.link ? (
             <input
               type="text"
               readOnly
-              value={referralLink}
+              value={getPrettyUrl(programEnrollment?.link.shortLink)}
               className="h-10 rounded-md border border-neutral-300 px-3 text-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 lg:min-w-72"
             />
           ) : (
             <div className="h-10 w-16 animate-pulse rounded-md bg-neutral-200 lg:w-72" />
           )}
           <Button
-            icon={<Copy className="size-4" />}
-            text="Copy link"
+            icon={
+              copied ? (
+                <Check2 className="size-4" />
+              ) : (
+                <Copy className="size-4" />
+              )
+            }
+            text={copied ? "Copied link" : "Copy link"}
             className="w-fit"
+            onClick={() =>
+              copyToClipboard(getPrettyUrl(programEnrollment?.link?.shortLink))
+            }
           />
         </div>
       </div>
