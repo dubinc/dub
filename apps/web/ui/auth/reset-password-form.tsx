@@ -46,7 +46,7 @@ export const ResetPasswordForm = () => {
 
   return (
     <>
-      <form className="flex flex-col space-y-5" onSubmit={onSubmit}>
+      <form className="flex flex-col gap-5" onSubmit={onSubmit}>
         <input type="hidden" value={token} {...register("token")} />
 
         <div className="grid w-full max-w-sm items-center gap-2">
