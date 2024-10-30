@@ -39,7 +39,6 @@ model Program {
 
   workspace Project             @relation(fields: [workspaceId], references: [id])
   partners  ProgramEnrollment[]
-  Payout    Payout[]
 
   @@index([workspaceId])
 }
