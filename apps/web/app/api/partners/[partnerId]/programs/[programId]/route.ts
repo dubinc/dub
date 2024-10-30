@@ -1,9 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withPartner } from "@/lib/auth/partner";
 import { prisma } from "@/lib/prisma";
+import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 
-// GET /api/partners/[partnerId]/programs/[programId]
+// GET /api/partners/[partnerId]/programs/[programId] – get a partner's enrollment in a program
 export const GET = withPartner(async ({ partner, params }) => {
   const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
@@ -24,14 +25,10 @@ export const GET = withPartner(async ({ partner, params }) => {
     });
   }
 
-  const { link } = programEnrollment;
+  console.log(programEnrollment);
 
-  return NextResponse.json({
-    url: link?.url,
-    shortLink: link?.shortLink,
-    clicks: link?.clicks,
-    leads: link?.leads,
-    sales: link?.sales,
-    saleAmount: link?.saleAmount,
-  });
+  const response = ProgramEnrollmentSchema.parse(programEnrollment);
+  console.log({ response });
+
+  return NextResponse.json(response);
 });
