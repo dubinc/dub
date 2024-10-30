@@ -7,11 +7,9 @@ export default function ProgramLayout({ children }: { children: ReactNode }) {
   return (
     <PageContent>
       <div className="relative min-h-[calc(100vh-16px)]">
-        <MaxWidthWrapper className="grid gap-5 pb-10 pt-3">
-          <div className="grid gap-4">
-            <ProgramHeader />
-            {children}
-          </div>
+        <MaxWidthWrapper>
+          <ProgramHeader />
+          {children}
         </MaxWidthWrapper>
       </div>
     </PageContent>

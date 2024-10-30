@@ -9,8 +9,8 @@ export function DeleteProgram({ programId }: { programId: string }) {
   return (
     <div className="rounded-lg border border-gray-200 bg-white">
       <div className="flex flex-col gap-1 p-8">
-        <h2 className="text-xl font-medium text-gray-900">Delete program</h2>
-        <p className="text-sm font-normal text-gray-600">
+        <h2 className="text-xl font-medium text-neutral-900">Delete program</h2>
+        <p className="text-sm font-normal text-neutral-600">
           Permanently delete your affiliate program, and all of your data. This
           action cannot be undone - please proceed with caution.
         </p>
