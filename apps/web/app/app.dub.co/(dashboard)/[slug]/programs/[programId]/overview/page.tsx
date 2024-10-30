@@ -13,9 +13,9 @@ export default async function ProgramOverviewPage({
   // Add suspense loader
 
   return (
-    <div className="space-y-10">
+    <div className="mt-8 space-y-10">
       <ProgramOverview programId={programId} />
-      <div className="flex gap-10">
+      <div className="flex flex-col gap-10 sm:flex-row">
         <div className="basis-1/2">
           <PendingPartners />
         </div>

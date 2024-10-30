@@ -2,18 +2,23 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TabSelect } from "@dub/ui";
-import { useRouter, useSelectedLayoutSegment } from "next/navigation";
+import {
+  useParams,
+  useRouter,
+  useSelectedLayoutSegment,
+} from "next/navigation";
 
 export function ProgramHeader() {
   const router = useRouter();
   const { slug } = useWorkspace();
+  const { programId } = useParams();
   const selectedLayoutSegment = useSelectedLayoutSegment();
 
   const page = selectedLayoutSegment === null ? "" : selectedLayoutSegment;
 
   return (
     <div className="border-b border-gray-200">
-      <h1 className="text-2xl font-semibold tracking-tight text-black mb-4">
+      <h1 className="mb-4 text-2xl font-semibold tracking-tight text-black">
         Program
       </h1>
 
@@ -29,7 +34,7 @@ export function ProgramHeader() {
           { id: "settings", label: "Settings" },
         ]}
         selected={page}
-        onSelect={(id) => router.push(`/${slug}/programs/111/${id}`)}
+        onSelect={(id) => router.push(`/${slug}/programs/${programId}/${id}`)}
       />
     </div>
   );
