@@ -176,11 +176,6 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: ShieldCheck,
             href: "/account/settings/security",
           },
-          {
-            name: "API Keys",
-            icon: Key,
-            href: "/account/settings/tokens",
-          },
         ],
       },
     ],

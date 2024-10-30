@@ -1,7 +1,7 @@
 "use client";
 
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { Button } from "@dub/ui";
+import { Button, Gear2, ShieldCheck } from "@dub/ui";
 import {
   Check,
   ColorPalette2,
@@ -124,6 +124,30 @@ const NAV_AREAS: SidebarNavAreas<{
       },
     ],
   }),
+
+  // User settings
+  userSettings: ({ partnerId }) => ({
+    title: "Settings",
+    backHref: `/${partnerId}`,
+    content: [
+      {
+        name: "Account",
+        items: [
+          {
+            name: "General",
+            icon: Gear2,
+            href: "/account/settings",
+            exact: true,
+          },
+          {
+            name: "Security",
+            icon: ShieldCheck,
+            href: "/account/settings/security",
+          },
+        ],
+      },
+    ],
+  }),
 };
 
 export function PartnersSidebarNav({
@@ -140,11 +164,13 @@ export function PartnersSidebarNav({
   const pathname = usePathname();
 
   const currentArea = useMemo(() => {
-    return pathname.startsWith(`/${partnerId}/settings`)
-      ? "partnerSettings"
-      : pathname.startsWith(`/${partnerId}/${programId}`)
-        ? "program"
-        : "default";
+    return pathname.startsWith("/account/settings")
+      ? "userSettings"
+      : pathname.startsWith(`/${partnerId}/settings`)
+        ? "partnerSettings"
+        : pathname.startsWith(`/${partnerId}/${programId}`)
+          ? "program"
+          : "default";
   }, [partnerId, pathname, programId]);
 
   return (
