@@ -20,8 +20,6 @@ export default async function PartnersMiddleware(req: NextRequest) {
     ? await userIsInBeta(user.email, "partnersPortal")
     : false;
 
-  console.log({ partnersEnabled });
-
   if (user && path === "/" && partnersEnabled) {
     const defaultPartner = await getDefaultPartner(user);
     if (!defaultPartner) {
