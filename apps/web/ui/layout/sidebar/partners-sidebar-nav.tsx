@@ -1,7 +1,11 @@
 "use client";
 
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
+import { Button } from "@dub/ui";
 import {
+  Check,
   ColorPalette2,
+  Copy,
   CursorRays,
   Gauge6,
   Gear,
@@ -11,13 +15,13 @@ import {
   User,
   Users,
 } from "@dub/ui/src/icons";
+import { cn } from "@dub/utils";
 import { Store } from "lucide-react";
 import { useParams, usePathname } from "next/navigation";
-import { ReactNode, useMemo } from "react";
-import UserSurveyButton from "../user-survey";
+import { ReactNode, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { PartnerProgramDropdown } from "./partner-program-dropdown";
 import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
-import { Usage } from "./usage";
 
 const NAV_AREAS: SidebarNavAreas<{
   partnerId: string;
@@ -151,12 +155,68 @@ export function PartnersSidebarNav({
       toolContent={toolContent}
       newsContent={newsContent}
       switcher={<PartnerProgramDropdown />}
-      bottom={
-        <>
-          <UserSurveyButton />
-          <Usage />
-        </>
-      }
+      bottom={<>{programId && <ProgramInfo />}</>}
     />
   );
+}
+
+function ProgramInfo() {
+  const { programEnrollment } = useProgramEnrollment();
+  const link = programEnrollment?.link;
+
+  const linkContainer = useRef<HTMLDivElement>(null);
+
+  const [isCopied, setIsCopied] = useState(false);
+  const copyTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  return link ? (
+    <div className="animate-fade-in px-3 py-4 text-xs leading-none">
+      <div className="text-neutral-500">Referral link</div>
+      <div className="mt-2 flex items-center gap-1">
+        <div
+          ref={linkContainer}
+          className="flex h-7 grow items-center rounded-md bg-black/5 px-2 text-neutral-800 hover:bg-black/10"
+          onClick={() => {
+            if (linkContainer.current) {
+              const selection = window.getSelection();
+              if (selection && selection.type !== "Range")
+                selection.selectAllChildren(linkContainer.current);
+            }
+          }}
+        >
+          {link.shortLink.replace("https://", "")}
+        </div>
+        <Button
+          className="h-7 w-fit px-2"
+          icon={
+            <div className="relative size-4">
+              <div
+                className={cn(
+                  "absolute inset-0 transition-[transform,opacity]",
+                  isCopied && "translate-y-1 opacity-0",
+                )}
+              >
+                <Copy className="size-4" />
+              </div>
+              <div
+                className={cn(
+                  "absolute inset-0 transition-[transform,opacity]",
+                  !isCopied && "translate-y-1 opacity-0",
+                )}
+              >
+                <Check className="size-4" />
+              </div>
+            </div>
+          }
+          onClick={() => {
+            navigator.clipboard.writeText(link.shortLink);
+            toast.success("Copied to clipboard");
+            setIsCopied(true);
+            if (copyTimeout.current) clearTimeout(copyTimeout.current);
+            copyTimeout.current = setTimeout(() => setIsCopied(false), 1000);
+          }}
+        />
+      </div>
+    </div>
+  ) : null;
 }
