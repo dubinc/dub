@@ -10,6 +10,7 @@ import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   PartnerSchema,
+  PayoutSchema,
   ProgramEnrollmentSchema,
   ProgramSchema,
 } from "./zod/schemas/partners";
@@ -282,3 +283,5 @@ export type PartnerProps = z.infer<typeof PartnerSchema>;
 export type ProgramProps = z.infer<typeof ProgramSchema>;
 
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
+
+export type PayoutProps = z.infer<typeof PayoutSchema>;
