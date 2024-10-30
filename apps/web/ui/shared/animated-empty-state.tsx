@@ -17,7 +17,7 @@ export function AnimatedEmptyState({
 }: {
   title: string;
   description: string;
-  cardContent: ReactNode;
+  cardContent: ReactNode | ((index: number) => ReactNode);
   addButton?: ReactNode;
   pillContent?: string;
   learnMoreHref?: string;
@@ -37,7 +37,11 @@ export function AnimatedEmptyState({
           className="animate-infinite-scroll-y flex flex-col [animation-duration:10s]"
         >
           {[...Array(6)].map((_, idx) => (
-            <Card key={idx}>{cardContent}</Card>
+            <Card key={idx}>
+              {typeof cardContent === "function"
+                ? cardContent(idx % 3)
+                : cardContent}
+            </Card>
           ))}
         </div>
       </div>

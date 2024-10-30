@@ -5,6 +5,7 @@ import {
   ProgramType,
 } from "@prisma/client";
 import { z } from "zod";
+import { LinkSchema } from "./links";
 
 export const PartnerSchema = z.object({
   id: z.string(),
@@ -32,6 +33,20 @@ export const ProgramSchema = z.object({
   isLifetimeRecurring: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),
+});
+
+export const ProgramEnrollmentSchema = z.object({
+  partnerId: z.string(),
+  programId: z.string(),
+  link: LinkSchema.pick({
+    id: true,
+    shortLink: true,
+    url: true,
+    clicks: true,
+    leads: true,
+    sales: true,
+    saleAmount: true,
+  }).nullable(),
 });
 
 export const PayoutSchema = z.object({
