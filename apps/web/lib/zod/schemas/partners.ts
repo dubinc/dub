@@ -58,7 +58,8 @@ export const PayoutSchema = z.object({
   netTotal: z.number(),
   currency: z.string(),
   status: z.nativeEnum(PayoutStatus),
-  due: z.date(),
+  periodStart: z.date(),
+  periodEnd: z.date(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
