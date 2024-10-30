@@ -38,8 +38,8 @@ export const withPartner = (handler: WithPartnerHandler, {}: {} = {}) => {
             message: "Unauthorized: Login required.",
           });
         }
-        const searchParams = getSearchParams(req.url);
 
+        const searchParams = getSearchParams(req.url);
         const partnerId = params.partnerId || searchParams.partnerId;
 
         if (!partnerId) {
