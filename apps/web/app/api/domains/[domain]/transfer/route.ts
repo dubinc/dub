@@ -23,7 +23,7 @@ export const POST = withWorkspace(
     if (registeredDomain) {
       throw new DubApiError({
         code: "forbidden",
-        message: "You cannot delete a Dub-provisioned domain.",
+        message: "You cannot transfer a Dub-provisioned domain.",
       });
     }
 
