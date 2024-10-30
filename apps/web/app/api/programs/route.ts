@@ -1,17 +1,15 @@
-import { withSession } from "@/lib/auth";
+import { withPartner } from "@/lib/auth/partner";
 import { prisma } from "@/lib/prisma";
 import { ProgramSchema } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 
 // GET /api/programs - get all partner programs for a given partnerId or workspaceId
-export const GET = withSession(async ({ searchParams, session }) => {
-  const { partnerId } = searchParams;
-
+export const GET = withPartner(async ({ partner }) => {
   const programs = await prisma.program.findMany({
     where: {
       partners: {
         some: {
-          id: partnerId,
+          id: partner.id,
         },
       },
     },

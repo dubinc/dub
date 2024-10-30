@@ -1,17 +1,13 @@
 "use client";
 
-import {
-  PartnerProps,
-  PartnerWithProgramsProps,
-  ProgramProps,
-} from "@/lib/types";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { PartnerProps, ProgramProps } from "@/lib/types";
 import { BlurImage, Popover, useScrollProgress } from "@dub/ui";
 import { Check2, Connections3, Gear } from "@dub/ui/src/icons";
 import { APP_DOMAIN, cn, DICEBEAR_AVATAR_URL, fetcher } from "@dub/utils";
 import { ChevronsUpDown, HelpCircle } from "lucide-react";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { notFound, useParams, usePathname } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import {
   PropsWithChildren,
   useCallback,
@@ -41,32 +37,20 @@ const LINKS = ({ partnerId }: { partnerId: string }) => [
 ];
 
 export function PartnerProgramDropdown() {
-  const { data: session, status } = useSession();
   const { partnerId, programId } = useParams() as {
     partnerId?: string;
     programId?: string;
   };
 
-  const { data: partners, error } = useSWR<PartnerWithProgramsProps[]>(
-    session?.user && "/api/partners",
+  const { partner } = usePartnerProfile();
+
+  const { data: programs } = useSWR<ProgramProps[]>(
+    programId && `/api/programs?partnerId=${partnerId}`,
     fetcher,
     {
       dedupingInterval: 60000,
     },
   );
-
-  const selectedPartner = useMemo(() => {
-    const partner = partners?.find((partner) => partner.id === partnerId);
-
-    return partnerId && partner
-      ? {
-          ...partner,
-          logo: partner.logo || `${DICEBEAR_AVATAR_URL}${partner.name}`,
-        }
-      : undefined;
-  }, [partnerId, partners]);
-
-  const programs = selectedPartner?.programs;
 
   const selectedProgram = useMemo(() => {
     const program = programs?.find((program) => program.id === programId);
@@ -80,11 +64,9 @@ export function PartnerProgramDropdown() {
 
   const [openPopover, setOpenPopover] = useState(false);
 
-  if (!partners || status === "loading") {
+  if (!partner) {
     return <PartnerDropdownPlaceholder />;
   }
-
-  if (!partnerId || !selectedPartner) notFound();
 
   return (
     <div>
@@ -94,22 +76,47 @@ export function PartnerProgramDropdown() {
             {programs && (
               <div className="border-b border-neutral-200 p-2">
                 <ProgramList
-                  selected={selectedProgram}
+                  partner={partner}
+                  selectedProgram={selectedProgram}
                   programs={programs}
-                  selectedPartner={selectedPartner}
                   setOpenPopover={setOpenPopover}
                 />
               </div>
             )}
             <div className="p-2">
-              <PartnerList
-                selected={selectedProgram ? undefined : selectedPartner}
-                partners={partners}
-                selectedProgram={selectedProgram}
-                setOpenPopover={setOpenPopover}
-              />
+              <Link
+                key={partner.id}
+                className={cn(
+                  "relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75",
+                  "hover:bg-neutral-200/50 active:bg-neutral-200/80",
+                  "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+                )}
+                href={`/${partner.id}`}
+                shallow={false}
+                onClick={() => setOpenPopover(false)}
+              >
+                <BlurImage
+                  src={partner.logo || `${DICEBEAR_AVATAR_URL}${partner.id}`}
+                  width={28}
+                  height={28}
+                  alt={partner.name}
+                  className="size-7 shrink-0 overflow-hidden rounded-full"
+                />
+                <div>
+                  <span className="block truncate text-sm leading-5 text-neutral-900 sm:max-w-[140px]">
+                    {partner.name}
+                  </span>
+                  <div
+                    className={cn(
+                      "truncate text-xs capitalize leading-tight text-neutral-600",
+                    )}
+                  >
+                    Partner
+                  </div>
+                </div>
+              </Link>
               <div className="mt-0.5 flex flex-col gap-0.5">
-                {LINKS({ partnerId }).map(
+                {LINKS({ partnerId: partner.id }).map(
                   ({ name, icon: Icon, href, target }) => (
                     <Link
                       key={name}
@@ -145,16 +152,20 @@ export function PartnerProgramDropdown() {
         >
           <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
             <BlurImage
-              src={selectedProgram?.logo || selectedPartner.logo}
+              src={
+                selectedProgram?.logo ||
+                partner.logo ||
+                `${DICEBEAR_AVATAR_URL}${partner.id}`
+              }
               referrerPolicy="no-referrer"
               width={28}
               height={28}
-              alt={selectedProgram?.name || selectedPartner.name}
+              alt={selectedProgram?.name || partner.name}
               className="h-7 w-7 flex-none shrink-0 overflow-hidden rounded-full"
             />
             <div className="min-w-0">
               <div className="truncate text-sm font-medium leading-5 text-neutral-900">
-                {selectedProgram?.name || selectedPartner.name}
+                {selectedProgram?.name || partner.name}
               </div>
               <div
                 className={cn(
@@ -207,14 +218,14 @@ function ScrollContainer({ children }: PropsWithChildren) {
   );
 }
 
-function PartnerList({
-  selected,
-  partners,
+function ProgramList({
+  partner,
+  programs,
   selectedProgram,
   setOpenPopover,
 }: {
-  selected?: PartnerProps;
-  partners: PartnerProps[];
+  partner: PartnerProps;
+  programs: ProgramProps[];
   selectedProgram?: ProgramProps;
   setOpenPopover: (open: boolean) => void;
 }) {
@@ -222,81 +233,10 @@ function PartnerList({
 
   const href = useCallback(
     (id: string) =>
-      selectedProgram || !selected
-        ? `/${id}`
-        : pathname?.replace(selected.id, id).split("?")[0] || "/",
-    [pathname, selectedProgram, selected],
-  );
-
-  return (
-    <div>
-      <div className="flex flex-col gap-0.5">
-        {partners.map(({ id, name, logo }) => {
-          const isActive = selected?.id === id;
-          return (
-            <Link
-              key={id}
-              className={cn(
-                "relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75",
-                "hover:bg-neutral-200/50 active:bg-neutral-200/80",
-                "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-                isActive && "bg-neutral-200/50",
-              )}
-              href={href(id)}
-              shallow={false}
-              onClick={() => setOpenPopover(false)}
-            >
-              <BlurImage
-                src={logo || `${DICEBEAR_AVATAR_URL}${name}`}
-                width={28}
-                height={28}
-                alt={id}
-                className="size-7 shrink-0 overflow-hidden rounded-full"
-              />
-              <div>
-                <span className="block truncate text-sm leading-5 text-neutral-900 sm:max-w-[140px]">
-                  {name}
-                </span>
-                <div
-                  className={cn(
-                    "truncate text-xs capitalize leading-tight text-neutral-600",
-                  )}
-                >
-                  Partner
-                </div>
-              </div>
-              {selected?.id === id ? (
-                <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-black">
-                  <Check2 className="size-4" aria-hidden="true" />
-                </span>
-              ) : null}
-            </Link>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function ProgramList({
-  selectedPartner,
-  selected,
-  programs,
-  setOpenPopover,
-}: {
-  selectedPartner: PartnerProps;
-  selected?: ProgramProps;
-  programs: ProgramProps[];
-  setOpenPopover: (open: boolean) => void;
-}) {
-  const pathname = usePathname();
-
-  const href = useCallback(
-    (id: string) =>
-      selected
-        ? pathname?.replace(selected.id, id).split("?")[0] || "/"
-        : `/${selectedPartner.id}/${id}`,
-    [pathname, selected],
+      selectedProgram
+        ? pathname?.replace(selectedProgram.id, id).split("?")[0] || "/"
+        : `/${partner.id}/${id}`,
+    [pathname, selectedProgram, partner],
   );
 
   return (
@@ -306,7 +246,7 @@ function ProgramList({
       </div>
       <div className="flex flex-col gap-0.5">
         {programs.map(({ id, name, logo }) => {
-          const isActive = selected?.id === id;
+          const isActive = selectedProgram?.id === id;
           return (
             <Link
               key={id}
@@ -339,7 +279,7 @@ function ProgramList({
                   Program
                 </div>
               </div>
-              {selected?.id === id ? (
+              {selectedProgram?.id === id ? (
                 <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-black">
                   <Check2 className="size-4" aria-hidden="true" />
                 </span>

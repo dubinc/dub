@@ -21,7 +21,3 @@ export const ProgramSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 });
-
-export const PartnerWithProgramsSchema = PartnerSchema.extend({
-  programs: z.array(ProgramSchema),
-});
