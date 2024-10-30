@@ -5,6 +5,7 @@ import { subscribe } from "@/lib/resend";
 import { isStored, storage } from "@/lib/storage";
 import { UserProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
+import { PARTNERS_HOSTNAMES } from "@dub/utils";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
@@ -414,6 +415,19 @@ export const authOptions: NextAuthOptions = {
         ...(token || session).user,
       };
       return session;
+    },
+    redirect: async ({ url, baseUrl }) => {
+      // Allows relative callback URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+
+      // Allows callback URLs on the same origin or from additionally allowed hostnames
+      if (
+        new URL(url).origin === baseUrl ||
+        PARTNERS_HOSTNAMES.has(new URL(url).host)
+      )
+        return url;
+
+      return baseUrl;
     },
   },
   events: {
