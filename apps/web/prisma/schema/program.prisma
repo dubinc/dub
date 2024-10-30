@@ -14,22 +14,28 @@ enum ProgramEnrollmentStatus {
   rejected
 }
 
+enum CommissionInterval {
+  month
+  year
+}
+
 model Program {
-  id                  String         @id @default(cuid())
+  id                  String              @id @default(cuid())
   workspaceId         String
   name                String
-  slug                String         @unique
+  slug                String              @unique
   logo                String?
-  type                ProgramType    @default(affiliate)
-  cookieLength        Int            @default(90)
-  minimumPayout       Int            @default(10000)
-  commissionAmount    Float          @default(0)
-  commissionType      CommissionType @default(percentage)
-  recurringCommission Boolean        @default(false)
-  recurringDuration   Int?           @default(0) // in months
-  isLifetimeRecurring Boolean        @default(false)
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
+  type                ProgramType         @default(affiliate)
+  cookieLength        Int                 @default(90)
+  minimumPayout       Int                 @default(10000)
+  commissionAmount    Float               @default(0)
+  commissionType      CommissionType      @default(percentage)
+  recurringCommission Boolean             @default(false)
+  recurringInterval   CommissionInterval?
+  recurringDuration   Int?
+  isLifetimeRecurring Boolean             @default(false)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
 
   partners  ProgramEnrollment[]
   payouts   Payout[]
