@@ -71,16 +71,6 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: TableIcon,
             href: `/${slug}/programs`,
           },
-          {
-            name: "Partners",
-            icon: TableIcon,
-            href: `/${slug}/partners`,
-          },
-          {
-            name: "Payouts",
-            icon: TableIcon,
-            href: `/${slug}/payouts`,
-          },
         ],
       },
     ],
