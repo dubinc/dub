@@ -54,6 +54,7 @@ export * from "./filter2";
 export * from "./flag-wavy";
 export * from "./flag2";
 export * from "./flag6";
+export * from "./folder";
 export * from "./gaming-console";
 export * from "./gauge6";
 export * from "./gear";
