@@ -4,6 +4,9 @@ import { Program } from "@prisma/client";
 import { notFound } from "next/navigation";
 
 export async function ProgramOverview({ programId }: { programId: string }) {
+  // TODO:
+  // Check program is owned by the partner
+
   const program = await prisma.program.findUnique({
     where: {
       id: programId,
