@@ -111,7 +111,7 @@ export function ProgramSettings({ programId }: { programId: string }) {
         </div>
       </div>
 
-      <div className="flex items-center justify-end bg-gray-50 px-8 py-5">
+      <div className="flex items-center justify-end border-t border-neutral-200 bg-gray-50 px-8 py-5">
         <div>
           <Button text="Save changes" className="h-8" />
         </div>
