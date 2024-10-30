@@ -1,4 +1,9 @@
-import { CommissionType, PartnerStatus, ProgramType } from "@prisma/client";
+import {
+  CommissionType,
+  PartnerStatus,
+  PayoutStatus,
+  ProgramType,
+} from "@prisma/client";
 import { z } from "zod";
 
 export const PartnerSchema = z.object({
@@ -25,6 +30,20 @@ export const ProgramSchema = z.object({
   recurringCommission: z.boolean(),
   recurringDuration: z.number(),
   isLifetimeRecurring: z.boolean(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export const PayoutSchema = z.object({
+  id: z.string(),
+  subtotal: z.number(),
+  taxes: z.number(),
+  total: z.number(),
+  payoutFee: z.number(),
+  netTotal: z.number(),
+  currency: z.string(),
+  status: z.nativeEnum(PayoutStatus),
+  due: z.date(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
