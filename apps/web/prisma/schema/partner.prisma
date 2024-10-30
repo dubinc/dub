@@ -15,11 +15,6 @@ model Partner {
   logo      String?
   bio       String?       @db.LongText
   country   String?
-  website   String? // verified via TXT record
-  twitter   String? // verified via SSO
-  linkedin  String? // verified via SSO
-  instagram String? // verified via SSO
-  youtube   String? // verified via SSO
   status    PartnerStatus @default(default)
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt

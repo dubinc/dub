@@ -1,6 +1,6 @@
 import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
-import { getFeatureFlags } from "../edge-config";
+import { userIsInBeta } from "../edge-config";
 import { getDefaultPartner } from "./utils/get-default-partner";
 import { getUserViaToken } from "./utils/get-user-via-token";
 
@@ -16,19 +16,20 @@ export default async function PartnersMiddleware(req: NextRequest) {
   else if (user && path === "/login")
     return NextResponse.redirect(new URL("/", req.url)); // Redirect authenticated users to dashboard
 
-  const partners = user
-    ? (await getFeatureFlags({ userEmail: user.email })).partners
+  const partnersEnabled = user
+    ? await userIsInBeta(user.email, "partnersPortal")
     : false;
 
-  if (user && path === "/" && partners) {
+  if (user && path === "/" && partnersEnabled) {
     const defaultPartner = await getDefaultPartner(user);
-    if (!defaultPartner)
+    if (!defaultPartner) {
       return NextResponse.redirect(new URL("/onboarding", req.url));
+    }
     return NextResponse.redirect(new URL(`/${defaultPartner}`, req.url));
   }
 
   // Redirect to home if partner flag is off
-  if (!partners && !UNAUTHENTICATED_PATHS.includes(path))
+  if (!partnersEnabled && !UNAUTHENTICATED_PATHS.includes(path))
     return NextResponse.redirect(new URL("/", req.url));
 
   return NextResponse.rewrite(

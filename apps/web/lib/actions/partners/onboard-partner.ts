@@ -1,7 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/utils";
-import { getFeatureFlags } from "@/lib/edge-config";
+import { userIsInBeta } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { nanoid } from "nanoid";
@@ -21,11 +21,14 @@ export const onboardPartner = authUserActionClient
   .action(async ({ ctx, parsedInput }) => {
     const { user } = ctx;
 
-    const { partners } = await getFeatureFlags({ userEmail: user.email });
-    if (!partners) {
+    const partnersPortalEnabled = await userIsInBeta(
+      user.email,
+      "partnersPortal",
+    );
+    if (!partnersPortalEnabled) {
       return {
         ok: false,
-        error: "Partners feature flag disabled.",
+        error: "Partners portal feature flag disabled.",
       };
     }
 

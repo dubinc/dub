@@ -7,6 +7,7 @@ import { cn } from "@dub/utils/src/functions";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
+import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 
 export function OnboardingForm() {
@@ -66,24 +67,27 @@ export function OnboardingForm() {
 
       <label>
         <span className="text-sm font-medium text-gray-800">Logo</span>
-        <Controller
-          control={control}
-          name="logo"
-          render={({ field }) => (
-            <FileUpload
-              accept="images"
-              className="mt-2 h-14 w-full rounded-md border border-gray-300"
-              iconClassName="w-5 h-5"
-              previewClassName="size-10 rounded-full"
-              variant="plain"
-              imageSrc={field.value}
-              readFile
-              onChange={({ src }) => field.onChange(src)}
-              content={null}
-              maxFileSizeMB={2}
-            />
-          )}
-        />
+        <div className="flex items-end gap-2">
+          <Controller
+            control={control}
+            name="logo"
+            render={({ field }) => (
+              <FileUpload
+                accept="images"
+                className="mt-2 size-20 rounded-md border border-gray-300"
+                iconClassName="w-5 h-5"
+                previewClassName="size-10 rounded-full"
+                variant="plain"
+                imageSrc={field.value}
+                readFile
+                onChange={({ src }) => field.onChange(src)}
+                content={null}
+                maxFileSizeMB={2}
+              />
+            )}
+          />
+          <p className="text-xs text-gray-500">Recommended size: 160x160px</p>
+        </div>
       </label>
 
       <label>
@@ -97,7 +101,7 @@ export function OnboardingForm() {
 
       <label>
         <span className="text-sm font-medium text-gray-800">Description</span>
-        <textarea
+        <ReactTextareaAutosize
           className={cn(
             "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
             errors.name
@@ -105,6 +109,7 @@ export function OnboardingForm() {
               : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
           )}
           placeholder="Tell us about your business"
+          minRows={3}
           {...register("description")}
         />
       </label>

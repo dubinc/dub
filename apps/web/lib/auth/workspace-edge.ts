@@ -314,7 +314,6 @@ export const withWorkspaceEdge = (
         if (featureFlag) {
           const flags = await getFeatureFlags({
             workspaceId: workspace.id,
-            userEmail: session.user.email,
           });
 
           if (!flags[featureFlag]) {

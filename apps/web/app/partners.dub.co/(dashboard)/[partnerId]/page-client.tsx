@@ -4,7 +4,7 @@ import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { MaxWidthWrapper } from "@dub/ui";
 import { CircleDollar, GridIcon } from "@dub/ui/src/icons";
 
-export function DashboardPageClient() {
+export function PartnersDashboardClient() {
   return (
     <MaxWidthWrapper>
       <AnimatedEmptyState
