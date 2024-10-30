@@ -8,6 +8,12 @@ enum CommissionType {
   flat
 }
 
+enum ProgramEnrollmentStatus {
+  approved
+  pending
+  rejected
+}
+
 model Program {
   id                  String         @id @default(cuid())
   workspaceId         String
@@ -32,12 +38,13 @@ model Program {
 }
 
 model ProgramEnrollment {
-  id        String   @id @default(cuid())
+  id        String                  @id @default(cuid())
   partnerId String
   programId String
-  linkId    String?  @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  linkId    String?                 @unique
+  status    ProgramEnrollmentStatus @default(pending)
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
 
   partner Partner @relation(fields: [partnerId], references: [id])
   program Program @relation(fields: [programId], references: [id])
