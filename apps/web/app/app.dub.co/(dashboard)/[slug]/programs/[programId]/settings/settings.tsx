@@ -39,7 +39,7 @@ export function ProgramSettings({ programId }: { programId: string }) {
             </p>
           </div>
           <p className="basis-1/2 space-y-6">
-            <div className="inline-flex w-full gap-2 rounded-lg p-1">
+            <div className="flex w-full gap-3">
               {commissionTypes.map((commissionType) => (
                 <label
                   key={commissionType.value}
