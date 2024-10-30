@@ -145,10 +145,8 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
 
   // handle invite and oauth modals
   useEffect(() => {
-    if (error && (error.status === 409 || error.status === 410)) {
-      setShowAcceptInviteModal(true);
-    }
-  }, [error]);
+    setShowAcceptInviteModal(true);
+  }, []);
 
   // handle ?newWorkspace and ?newLink query params
   useEffect(() => {
