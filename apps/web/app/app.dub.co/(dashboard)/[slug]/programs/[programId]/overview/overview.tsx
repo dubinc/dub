@@ -1,6 +1,19 @@
+import { prisma } from "@/lib/prisma";
 import { Button } from "@dub/ui";
+import { Program } from "@prisma/client";
+import { notFound } from "next/navigation";
 
-export function ProgramOverview() {
+export async function ProgramOverview({ programId }: { programId: string }) {
+  const program = await prisma.program.findUnique({
+    where: {
+      id: programId,
+    },
+  });
+
+  if (!program) {
+    notFound();
+  }
+
   return (
     <div className="flex flex-col divide-y divide-neutral-200 rounded-md border border-neutral-200 bg-[#f9f9f9]">
       <div className="flex items-center justify-between px-4 py-4">
@@ -9,7 +22,7 @@ export function ProgramOverview() {
             Sign up page
           </span>
           <span className="text-sm font-medium leading-none text-neutral-900">
-            partner.dub.co/calcom
+            partner.dub.co/{program?.slug}
           </span>
         </div>
 
@@ -19,7 +32,8 @@ export function ProgramOverview() {
               Commission
             </span>
             <span className="text-sm font-medium leading-none text-neutral-900">
-              20%
+              {program.commissionAmount}
+              {program.commissionType === "percentage" ? "%" : "$"}
             </span>
           </div>
 
@@ -28,7 +42,7 @@ export function ProgramOverview() {
               Cookie length
             </span>
             <span className="text-sm font-medium leading-none text-neutral-900">
-              7 days
+              {program.cookieLength} days
             </span>
           </div>
 
@@ -37,19 +51,51 @@ export function ProgramOverview() {
               Min payout
             </span>
             <span className="text-sm font-medium leading-none text-neutral-900">
-              $100
+              ${program.minimumPayout}
             </span>
           </div>
         </div>
       </div>
 
       <div className="flex flex-wrap items-center justify-center px-4 py-4">
-        <p className="flex-1 text-sm font-medium leading-none text-neutral-900">
-          Earn $10.00 for each conversion, and again for every conversion of the
-          customers lifetime.
-        </p>
+        <div
+          className="flex-1 text-sm leading-none text-neutral-900"
+          dangerouslySetInnerHTML={{
+            __html: commissionDescription(program),
+          }}
+        />
         <Button className="h-8 w-fit" text="Edit program" />
       </div>
     </div>
   );
 }
+
+const commissionDescription = (program: Program) => {
+  const texts = ["Earn"];
+
+  if (program.commissionType === "flat") {
+    texts.push(
+      `<span class="font-semibold text-blue-600">${program.commissionAmount}</span>`,
+    );
+  } else {
+    texts.push(
+      `<span class="font-semibold text-blue-600">${program.commissionAmount}%</span>`,
+    );
+  }
+
+  texts.push("for each conversion");
+
+  if (program.recurringCommission) {
+    if (program.isLifetimeRecurring) {
+      texts.push(
+        "and again for all future renewals throughout <span class='font-semibold'>the customer's lifetime</span>",
+      );
+    } else {
+      texts.push(
+        `and again for all renewals during the first <span class='font-semibold'>${program.recurringDuration} months</span>`,
+      );
+    }
+  }
+
+  return `${texts.join(" ")}.`;
+};
