@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ColorPalette2,
   CursorRays,
   Gauge6,
   Gear,
@@ -10,7 +11,7 @@ import {
   User,
   Users,
 } from "@dub/ui/src/icons";
-import { Store, SwatchBook } from "lucide-react";
+import { Store } from "lucide-react";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 import UserSurveyButton from "../user-survey";
@@ -84,7 +85,7 @@ const NAV_AREAS: SidebarNavAreas<{
           },
           {
             name: "Resources",
-            icon: SwatchBook,
+            icon: ColorPalette2,
             href: `/${partnerId}/${programId}/resources`,
           },
         ],
