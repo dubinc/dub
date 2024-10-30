@@ -9,6 +9,7 @@ import { useMemo } from "react";
 
 export type MiniAreaChartProps = {
   data: { date: Date; value: number }[];
+  curve?: boolean;
 };
 
 export function MiniAreaChart(props: MiniAreaChartProps) {
@@ -27,9 +28,10 @@ export function MiniAreaChart(props: MiniAreaChartProps) {
 const padding = { top: 8, right: 2, bottom: 2, left: 2 };
 
 function MiniAreaChartInner({
-  data,
   width,
   height,
+  data,
+  curve = true,
 }: MiniAreaChartProps & { width: number; height: number }) {
   const zeroedData = useMemo(
     () =>
@@ -94,7 +96,7 @@ function MiniAreaChartInner({
           data={data}
           x={({ date }) => xScale(date)}
           y={({ value }) => yScale(value) ?? 0}
-          curve={curveNatural}
+          curve={curve ? curveNatural : undefined}
         >
           {({ path }) => {
             return (
@@ -113,7 +115,7 @@ function MiniAreaChartInner({
           x={({ date }) => xScale(date)}
           y={({ value }) => yScale(value) ?? 0}
           yScale={yScale}
-          curve={curveNatural}
+          curve={curve ? curveNatural : undefined}
         >
           {({ path }) => {
             return (
