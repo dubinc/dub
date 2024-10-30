@@ -1,7 +1,7 @@
 "use client";
 
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { Button, Gear2, ShieldCheck } from "@dub/ui";
+import { ArrowRight, Button, Gear2, ShieldCheck, UserCheck } from "@dub/ui";
 import {
   Check,
   ColorPalette2,
@@ -17,6 +17,7 @@ import {
 } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import { Store } from "lucide-react";
+import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -187,61 +188,89 @@ export function PartnersSidebarNav({
 }
 
 function ProgramInfo() {
+  const { partnerId, programId } = useParams() as {
+    partnerId?: string;
+    programId?: string;
+  };
   const { programEnrollment } = useProgramEnrollment();
-  const link = programEnrollment?.link;
-
-  const linkContainer = useRef<HTMLDivElement>(null);
 
   const [isCopied, setIsCopied] = useState(false);
   const copyTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  return link ? (
-    <div className="animate-fade-in px-3 py-4 text-xs leading-none">
-      <div className="text-neutral-500">Referral link</div>
-      <div className="mt-2 flex items-center gap-1">
-        <div
-          ref={linkContainer}
-          className="flex h-7 grow items-center rounded-md bg-black/5 px-2 text-neutral-800 hover:bg-black/10"
-          onClick={() => {
-            if (linkContainer.current) {
-              const selection = window.getSelection();
-              if (selection && selection.type !== "Range")
-                selection.selectAllChildren(linkContainer.current);
+  const items = [
+    {
+      icon: UserCheck,
+      href: `/${partnerId}/${programId}/customers`,
+      label: "Signups",
+      value: "250",
+    },
+    {
+      icon: MoneyBills2,
+      href: `/${partnerId}/${programId}/payouts`,
+      label: "Earnings",
+      value: "$92.50",
+    },
+  ];
+
+  return programEnrollment ? (
+    <div className="animate-fade-in grid gap-6 border-t border-neutral-300/80 px-3 py-5 text-xs leading-none">
+      <div>
+        <div className="text-neutral-500">My link</div>
+        <div className="mt-2 flex items-center gap-1">
+          <div className="flex h-7 grow items-center rounded-md bg-black/5 px-2 text-neutral-800">
+            {programEnrollment.link?.shortLink.replace("https://", "")}
+          </div>
+          <Button
+            className="h-7 w-fit px-2"
+            icon={
+              <div className="relative size-4">
+                <div
+                  className={cn(
+                    "absolute inset-0 transition-[transform,opacity]",
+                    isCopied && "translate-y-1 opacity-0",
+                  )}
+                >
+                  <Copy className="size-4" />
+                </div>
+                <div
+                  className={cn(
+                    "absolute inset-0 transition-[transform,opacity]",
+                    !isCopied && "translate-y-1 opacity-0",
+                  )}
+                >
+                  <Check className="size-4" />
+                </div>
+              </div>
             }
-          }}
-        >
-          {link.shortLink.replace("https://", "")}
+            onClick={() => {
+              navigator.clipboard.writeText(
+                programEnrollment.link?.shortLink || "",
+              );
+              toast.success("Copied to clipboard");
+              setIsCopied(true);
+              if (copyTimeout.current) clearTimeout(copyTimeout.current);
+              copyTimeout.current = setTimeout(() => setIsCopied(false), 1000);
+            }}
+          />
         </div>
-        <Button
-          className="h-7 w-fit px-2"
-          icon={
-            <div className="relative size-4">
-              <div
-                className={cn(
-                  "absolute inset-0 transition-[transform,opacity]",
-                  isCopied && "translate-y-1 opacity-0",
-                )}
-              >
-                <Copy className="size-4" />
+      </div>
+      <div>
+        <div className="text-neutral-500">Performance</div>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          {items.map(({ href, icon: Icon, label, value }) => (
+            <Link
+              href={href}
+              className="group relative flex flex-col justify-between gap-3 rounded-lg bg-black/5 p-2 transition-colors hover:bg-black/10"
+            >
+              <ArrowRight className="absolute right-2 top-2 size-3.5 -rotate-45 text-neutral-400 opacity-0 transition-opacity group-hover:opacity-100" />
+              <Icon className="size-3.5 text-gray-600" />
+              <div>
+                <p className="text-xs text-gray-600">{label}</p>
+                <p className="text-sm font-medium text-gray-800">{value}</p>
               </div>
-              <div
-                className={cn(
-                  "absolute inset-0 transition-[transform,opacity]",
-                  !isCopied && "translate-y-1 opacity-0",
-                )}
-              >
-                <Check className="size-4" />
-              </div>
-            </div>
-          }
-          onClick={() => {
-            navigator.clipboard.writeText(link.shortLink);
-            toast.success("Copied to clipboard");
-            setIsCopied(true);
-            if (copyTimeout.current) clearTimeout(copyTimeout.current);
-            copyTimeout.current = setTimeout(() => setIsCopied(false), 1000);
-          }}
-        />
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   ) : null;
