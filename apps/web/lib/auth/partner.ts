@@ -38,10 +38,20 @@ export const withPartner = (handler: WithPartnerHandler, {}: {} = {}) => {
             message: "Unauthorized: Login required.",
           });
         }
+        const searchParams = getSearchParams(req.url);
+
+        const partnerId = params.partnerId || searchParams.partnerId;
+
+        if (!partnerId) {
+          throw new DubApiError({
+            code: "bad_request",
+            message: "Partner ID is required.",
+          });
+        }
 
         const partner = await prisma.partner.findUnique({
           where: {
-            id: params.partnerId,
+            id: partnerId,
           },
           include: {
             users: {
@@ -74,7 +84,7 @@ export const withPartner = (handler: WithPartnerHandler, {}: {} = {}) => {
         return await handler({
           req,
           params,
-          searchParams: getSearchParams(req.url),
+          searchParams,
           session,
           partner,
         });

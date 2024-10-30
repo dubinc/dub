@@ -45,7 +45,7 @@ export function PartnerProgramDropdown() {
   const { partner } = usePartnerProfile();
 
   const { data: programs } = useSWR<ProgramProps[]>(
-    programId && `/api/programs?partnerId=${partnerId}`,
+    partnerId && `/api/programs?partnerId=${partnerId}`,
     fetcher,
     {
       dedupingInterval: 60000,
@@ -73,7 +73,7 @@ export function PartnerProgramDropdown() {
       <Popover
         content={
           <ScrollContainer>
-            {programs && (
+            {programs && programs.length > 0 && (
               <div className="border-b border-neutral-200 p-2">
                 <ProgramList
                   partner={partner}

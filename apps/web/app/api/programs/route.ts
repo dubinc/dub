@@ -9,7 +9,7 @@ export const GET = withPartner(async ({ partner }) => {
     where: {
       partners: {
         some: {
-          id: partner.id,
+          partnerId: partner.id,
         },
       },
     },

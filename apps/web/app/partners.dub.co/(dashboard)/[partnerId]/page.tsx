@@ -1,10 +1,10 @@
 import { PageContent } from "@/ui/layout/page-content";
-import { DashboardPageClient } from "./page-client";
+import { PartnersDashboardClient } from "./page-client";
 
-export default function DashboardPage() {
+export default function PartnersDashboard() {
   return (
     <PageContent title="Programs">
-      <DashboardPageClient />
+      <PartnersDashboardClient />
     </PageContent>
   );
 }
