@@ -27,6 +27,9 @@ export const GET = withWorkspace(
         programId: program.id,
         ...(status && { status }),
       },
+      include: {
+        partner: true,
+      },
       skip: offset,
       take: limit,
     });

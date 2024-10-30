@@ -32,6 +32,8 @@ model Sale {
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
 
+  payout Payout? @relation(fields: [payoutId], references: [id])
+
   @@index([programId])
   @@index([linkId])
   @@index([clickId])

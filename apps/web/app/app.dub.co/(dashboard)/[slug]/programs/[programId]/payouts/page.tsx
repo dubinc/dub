@@ -1,4 +1,4 @@
-import { PayoutList } from "./payout-list";
+import { PayoutsList } from "./payout-list";
 import { PayoutStats } from "./stats";
 
 export default async function ProgramPayoutsPage({
@@ -11,7 +11,7 @@ export default async function ProgramPayoutsPage({
   return (
     <div className="mt-8 space-y-10">
       <PayoutStats programId={programId} />
-      <PayoutList programId={programId} />
+      <PayoutsList programId={programId} />
     </div>
   );
 }
