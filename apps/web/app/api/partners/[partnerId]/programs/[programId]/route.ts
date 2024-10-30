@@ -25,10 +25,5 @@ export const GET = withPartner(async ({ partner, params }) => {
     });
   }
 
-  console.log(programEnrollment);
-
-  const response = ProgramEnrollmentSchema.parse(programEnrollment);
-  console.log({ response });
-
-  return NextResponse.json(response);
+  return NextResponse.json(ProgramEnrollmentSchema.parse(programEnrollment));
 });
