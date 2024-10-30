@@ -64,7 +64,7 @@ export function PartnerProgramDropdown() {
 
   const [openPopover, setOpenPopover] = useState(false);
 
-  if (!partner) {
+  if (!partner || (programId && !programs)) {
     return <PartnerDropdownPlaceholder />;
   }
 
