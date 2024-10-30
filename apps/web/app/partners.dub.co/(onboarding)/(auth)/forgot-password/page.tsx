@@ -8,7 +8,7 @@ export default function ForgotPasswordPage() {
         <h1 className="text-lg font-medium text-neutral-800">
           Reset your password
         </h1>
-        <div className="mt-8">
+        <div className="mt-8 text-left">
           <ForgotPasswordForm />
         </div>
       </div>
