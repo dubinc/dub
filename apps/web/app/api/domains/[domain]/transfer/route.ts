@@ -108,6 +108,9 @@ export const POST = withWorkspace(
           projectId: newWorkspaceId,
           primary: newWorkspace.domains.length === 0,
         },
+        include: {
+          registeredDomain: true,
+        },
       }),
       prisma.project.update({
         where: { id: workspace.id },
