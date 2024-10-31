@@ -3,6 +3,7 @@ import {
   PartnerStatus,
   PayoutStatus,
   ProgramType,
+  SaleStatus,
 } from "@prisma/client";
 import { z } from "zod";
 import { LinkSchema } from "./links";
@@ -60,6 +61,15 @@ export const PayoutSchema = z.object({
   status: z.nativeEnum(PayoutStatus),
   periodStart: z.date(),
   periodEnd: z.date(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export const SaleSchema = z.object({
+  id: z.string(),
+  amount: z.number(),
+  // TODO: Include customer object
+  status: z.nativeEnum(SaleStatus),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
