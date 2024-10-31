@@ -12,7 +12,9 @@ import Link from "next/link";
 export default function RegisterPageClient() {
   return (
     <RegisterProvider>
-      <RegisterFlow />
+      <div className="mx-auto my-10 w-full max-w-md md:mt-16 lg:mt-20">
+        <RegisterFlow />
+      </div>
     </RegisterProvider>
   );
 }
@@ -20,12 +22,12 @@ export default function RegisterPageClient() {
 function SignUp() {
   return (
     <>
-      <div className="w-full max-w-md overflow-hidden border-y border-gray-200 sm:rounded-2xl sm:border sm:shadow-sm">
-        <div className="border-b border-gray-200 bg-white pb-6 pt-8 text-center">
-          <h3 className="text-lg font-semibold">Get started with Dub</h3>
-        </div>
-        <div className="bg-gray-50 px-4 py-8 sm:px-16">
-          <SignUpForm />
+      <div className="rounded-lg border border-neutral-200 bg-white p-8 pb-10">
+        <h1 className="text-lg font-medium text-neutral-800">
+          Create a Dub Partner account
+        </h1>
+        <div className="mt-8">
+          <SignUpForm methods={["email", "google"]} />
         </div>
       </div>
       <p className="mt-4 text-center text-sm text-gray-500">
@@ -46,17 +48,17 @@ function Verify() {
 
   return (
     <>
-      <div className="w-full max-w-md overflow-hidden border-y border-gray-200 sm:rounded-2xl sm:border sm:shadow-sm">
-        <div className="flex flex-col items-center justify-center gap-3 border-b border-gray-200 bg-white px-4 pb-6 pt-8 text-center sm:px-16">
-          <h3 className="text-xl font-semibold">Verify your email address</h3>
-          <p className="text-sm text-gray-500">
-            Enter the six digit verification code sent to{" "}
-            <strong className="font-medium text-gray-600" title={email}>
-              {truncate(email, 30)}
-            </strong>
-          </p>
-        </div>
-        <div className="bg-gray-50 px-4 py-8 sm:px-16">
+      <div className="rounded-lg border border-neutral-200 bg-white p-8 pb-10">
+        <h1 className="text-lg font-medium text-neutral-800">
+          Verify your email address
+        </h1>
+        <p className="mt-3 text-sm text-gray-500">
+          Enter the six digit verification code sent to{" "}
+          <strong className="font-medium text-gray-600" title={email}>
+            {truncate(email, 30)}
+          </strong>
+        </p>
+        <div className="mt-8">
           <VerifyEmailForm />
         </div>
       </div>

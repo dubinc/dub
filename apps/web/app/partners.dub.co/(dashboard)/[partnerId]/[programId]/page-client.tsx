@@ -1,5 +1,7 @@
 "use client";
 
+import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
+import usePartnerEvents from "@/lib/swr/use-partner-events";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import Areas from "@/ui/charts/areas";
 import TimeSeriesChart from "@/ui/charts/time-series-chart";
@@ -51,18 +53,6 @@ export default function ProgramPageClient() {
   const { programEnrollment } = useProgramEnrollment();
   const [copied, copyToClipboard] = useCopyToClipboard();
 
-  // TODO: get all of these values from API
-
-  const { total: earnings, timeseries: earningsTimeseries } = useMemo(
-    () => mockValues(100),
-    [],
-  );
-  const earningsError = false;
-
-  const { total: clicks, timeseries: clicksTimeseries } = useMemo(
-    () => mockValues(3),
-    [],
-  );
   const { total: leads, timeseries: leadsTimeseries } = useMemo(
     () => mockValues(1),
     [],
@@ -113,32 +103,13 @@ export default function ProgramPageClient() {
       </div>
       <div className="mt-6 rounded-lg border border-neutral-300">
         <div className="p-4 md:p-8 md:pb-4">
-          <EarningsChart
-            amount={earnings}
-            timeseries={earningsTimeseries}
-            error={Boolean(earningsError)}
-          />
+          <EarningsChart />
         </div>
       </div>
       <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-3">
-        <StatCard
-          title="Clicks"
-          value={clicks}
-          timeseries={clicksTimeseries}
-          error={Boolean(statsError)}
-        />
-        <StatCard
-          title="Leads"
-          value={leads}
-          timeseries={leadsTimeseries}
-          error={Boolean(statsError)}
-        />
-        <StatCard
-          title="Sales"
-          value={sales}
-          timeseries={salesTimeseries}
-          error={Boolean(statsError)}
-        />
+        <StatCard title="Clicks" event="clicks" />
+        <StatCard title="Leads" event="leads" />
+        <StatCard title="Sales" event="sales" />
       </div>
       <div className="mt-6">
         <SalesTable />
@@ -147,18 +118,21 @@ export default function ProgramPageClient() {
   );
 }
 
-function EarningsChart({
-  amount,
-  timeseries,
-  error,
-}: {
-  amount?: number;
-  timeseries?: { date: Date; value: number }[];
-  error?: boolean;
-}) {
+function EarningsChart() {
   const id = useId();
+
+  const { data: { earnings: total } = {} } = usePartnerAnalytics();
+  const { data: timeseries, error } = usePartnerAnalytics({
+    groupBy: "timeseries",
+    interval: "90d",
+  });
+
   const data = useMemo(
-    () => timeseries?.map(({ date, value }) => ({ date, values: { value } })),
+    () =>
+      timeseries?.map(({ start, earnings }) => ({
+        date: new Date(start),
+        values: { earnings: earnings / 100 },
+      })),
     [timeseries],
   );
 
@@ -166,9 +140,9 @@ function EarningsChart({
     <div>
       <span className="block text-sm text-neutral-500">Earnings</span>
       <div className="mt-2">
-        {amount !== undefined ? (
+        {total !== undefined ? (
           <span className="text-3xl text-neutral-800">
-            {currencyFormatter(amount / 100)}
+            {currencyFormatter(total / 100)}
           </span>
         ) : (
           <div className="h-9 w-24 animate-pulse rounded-md bg-neutral-200" />
@@ -180,8 +154,8 @@ function EarningsChart({
             data={data}
             series={[
               {
-                id: "value",
-                valueAccessor: (d) => d.values.value / 100,
+                id: "earnings",
+                valueAccessor: (d) => d.values.earnings,
                 colorClassName: "text-[#DA2778]",
                 isActive: true,
               },
@@ -199,7 +173,7 @@ function EarningsChart({
                       <p className="capitalize text-gray-600">Earnings</p>
                     </div>
                     <p className="text-right font-medium text-gray-900">
-                      {currencyFormatter(d.values.value / 100)}
+                      {currencyFormatter(d.values.earnings)}
                     </p>
                   </div>
                 </>
@@ -245,28 +219,37 @@ function EarningsChart({
 
 function StatCard({
   title,
-  value,
-  timeseries,
-  error,
+  event,
 }: {
   title: string;
-  value?: number;
-  timeseries?: { date: Date; value: number }[];
-  error?: boolean;
+  event: "clicks" | "leads" | "sales";
 }) {
+  const { data: total } = usePartnerAnalytics();
+  const { data: timeseries, error } = usePartnerAnalytics({
+    groupBy: "timeseries",
+    interval: "90d",
+    event,
+  });
+
   return (
     <div className="rounded-md border border-neutral-300 p-5">
       <span className="block text-sm text-neutral-500">{title}</span>
-      {value !== undefined ? (
+      {total !== undefined ? (
         <span className="block text-2xl text-neutral-800">
-          {nFormatter(value)}
+          {nFormatter(total[event])}
         </span>
       ) : (
         <div className="h-8 w-16 animate-pulse rounded-md bg-neutral-200" />
       )}
       <div className="mt-2 h-16 w-full">
         {timeseries ? (
-          <MiniAreaChart data={timeseries} curve={false} />
+          <MiniAreaChart
+            data={timeseries.map((d) => ({
+              date: new Date(d.start),
+              value: d[event],
+            }))}
+            curve={false}
+          />
         ) : (
           <div className="flex size-full items-center justify-center">
             {error ? (
@@ -284,38 +267,45 @@ function StatCard({
 }
 
 function SalesTable() {
-  // TODO: get from API
-  const salesEvents = useMemo(() => mockSales(), []);
-  const totalSalesEvents = salesEvents.length;
-  const loading = false;
-  const error = false;
+  const { data: { sales: totalSaleEvents } = {} } = usePartnerAnalytics();
+  const {
+    data: saleEvents,
+    loading,
+    error,
+  } = usePartnerEvents({
+    event: "sales",
+    interval: "90d",
+  });
 
   const { pagination, setPagination } = usePagination();
 
   const { table, ...tableProps } = useTable({
-    data: salesEvents,
+    data: saleEvents ?? [],
     loading,
     error: error ? "Failed to fetch sales events." : undefined,
     columns: [
       {
-        id: "date",
+        id: "timestamp",
         header: "Date",
-        accessorKey: "date",
+        accessorKey: "timestamp",
         cell: ({ row }) => {
-          return formatDate(row.original.date, { month: "short" });
+          return formatDate(row.original.timestamp, { month: "short" });
         },
       },
       {
         id: "customer",
         header: "Customer",
         accessorKey: "customer",
+        cell: ({ row }) => {
+          return row.original.customer.email;
+        },
       },
       {
         id: "earned",
         header: "Earned",
         accessorKey: "earnings",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.earnings, {
+          return currencyFormatter(row.original.earnings / 100, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           });
@@ -324,7 +314,7 @@ function SalesTable() {
     ],
     pagination,
     onPaginationChange: setPagination,
-    rowCount: totalSalesEvents,
+    rowCount: totalSaleEvents,
     emptyState: (
       <EmptyState
         icon={CircleDollar}

@@ -2,7 +2,7 @@ import z from "@/lib/zod";
 import { clickEventSchema, clickEventSchemaTB } from "./clicks";
 import { customerSchema } from "./customers";
 import { commonDeprecatedEventFields } from "./deprecated";
-import { linkEventSchema } from "./links";
+import { linkEventSchema, LinkSchema } from "./links";
 
 export const trackSaleRequestSchema = z.object({
   // Required
@@ -138,3 +138,26 @@ export const saleEventResponseSchema = z
   })
   .merge(commonDeprecatedEventFields)
   .openapi({ ref: "SaleEvent" });
+
+export const saleEventResponseObfuscatedSchema = saleEventResponseSchema
+  .pick({
+    click: true,
+    timestamp: true,
+    sale: true,
+  })
+  .extend({
+    link: LinkSchema.pick({
+      url: true,
+      shortLink: true,
+      clicks: true,
+      leads: true,
+      sales: true,
+      saleAmount: true,
+    }),
+    customer: z.object({
+      email: z
+        .string()
+        .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
+      avatar: z.string().nullable(),
+    }),
+  });

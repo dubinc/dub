@@ -39,4 +39,29 @@ export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
 export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
   workspaceId?: string;
   isDemo?: boolean;
+  obfuscateData?: boolean;
 };
+
+const partnerAnalyticsSchema = analyticsQuerySchema
+  .pick({
+    event: true,
+    interval: true,
+    groupBy: true,
+  })
+  .partial();
+
+export type PartnerAnalyticsFilters = z.infer<typeof partnerAnalyticsSchema>;
+
+const partnerEventsSchema = eventsQuerySchema
+  .pick({
+    event: true,
+    interval: true,
+    groupBy: true,
+    page: true,
+    limit: true,
+    order: true,
+    sortBy: true,
+  })
+  .partial();
+
+export type PartnerEventsFilters = z.infer<typeof partnerEventsSchema>;

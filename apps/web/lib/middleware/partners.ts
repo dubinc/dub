@@ -4,14 +4,23 @@ import { userIsInBeta } from "../edge-config";
 import { getDefaultPartner } from "./utils/get-default-partner";
 import { getUserViaToken } from "./utils/get-user-via-token";
 
-const UNAUTHENTICATED_PATHS = ["/", "/login", "/register"];
+const UNAUTHENTICATED_PATHS = [
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/auth/reset-password",
+];
 
 export default async function PartnersMiddleware(req: NextRequest) {
   const { path } = parse(req);
 
+  const isUnauthenticatedPath = UNAUTHENTICATED_PATHS.some((p) =>
+    path.startsWith(p),
+  );
+
   const user = await getUserViaToken(req);
 
-  if (!user && path !== "/login")
+  if (!user && !isUnauthenticatedPath)
     return NextResponse.redirect(new URL("/login", req.url)); // Redirect unauthenticated users to login
   else if (user && path === "/login")
     return NextResponse.redirect(new URL("/", req.url)); // Redirect authenticated users to dashboard
@@ -29,7 +38,7 @@ export default async function PartnersMiddleware(req: NextRequest) {
   }
 
   // Redirect to home if partner flag is off
-  if (!partnersEnabled && !UNAUTHENTICATED_PATHS.includes(path))
+  if (user && !partnersEnabled && !isUnauthenticatedPath && path !== "/")
     return NextResponse.redirect(new URL("/", req.url));
 
   return NextResponse.rewrite(
