@@ -67,7 +67,7 @@ const NAV_AREAS: SidebarNavAreas<{
         name: "Partnerships",
         items: [
           {
-            name: "Programs",
+            name: "Affiliate Program",
             icon: TableIcon,
             href: `/${slug}/programs`,
           },
