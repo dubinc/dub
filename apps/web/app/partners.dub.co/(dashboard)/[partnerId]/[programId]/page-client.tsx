@@ -159,7 +159,10 @@ function EarningsChart() {
           <div className="mt-1">
             {total !== undefined ? (
               <span className="text-2xl text-neutral-800">
-                {currencyFormatter(total / 100)}
+                {currencyFormatter(total, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </span>
             ) : (
               <div className="h-9 w-24 animate-pulse rounded-md bg-neutral-200" />
@@ -246,7 +249,10 @@ function EarningsChart() {
                       <p className="capitalize text-gray-600">Earnings</p>
                     </div>
                     <p className="text-right font-medium text-gray-900">
-                      {currencyFormatter(d.values.earnings)}
+                      {currencyFormatter(d.values.earnings, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </p>
                   </div>
                 </>
@@ -399,7 +405,7 @@ function SalesTable() {
         header: "Earned",
         accessorKey: "earnings",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.earnings / 100, {
+          return currencyFormatter(row.original.earnings, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           });
