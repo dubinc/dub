@@ -3,11 +3,13 @@ import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { PartnerAnalyticsFilters } from "../analytics/types";
 
-export default function usePartnerAnalytics(params?: PartnerAnalyticsFilters) {
+export default function usePartnerAnalytics(
+  params?: PartnerAnalyticsFilters & { programId?: string },
+) {
   const { partnerId, programId } = useParams();
 
   const { data, error } = useSWR<any>(
-    `/api/partners/${partnerId}/programs/${programId}/analytics?${new URLSearchParams(
+    `/api/partners/${partnerId}/programs/${params?.programId ?? programId}/analytics?${new URLSearchParams(
       {
         event: params?.event ?? "composite",
         interval: params?.interval ?? "all_unfiltered",
