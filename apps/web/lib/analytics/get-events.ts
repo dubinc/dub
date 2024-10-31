@@ -16,6 +16,7 @@ import {
   leadEventSchemaTBEndpoint,
 } from "../zod/schemas/leads";
 import {
+  saleEventResponseObfuscatedSchema,
   saleEventResponseSchema,
   saleEventSchemaTBEndpoint,
 } from "../zod/schemas/sales";
@@ -33,6 +34,7 @@ export const getEvents = async (params: EventsFilters) => {
     qr,
     trigger,
     isDemo,
+    obfuscateData,
   } = params;
 
   if (start) {
@@ -142,7 +144,11 @@ export const getEvents = async (params: EventsFilters) => {
       } else if (evt.event === "lead") {
         return leadEventResponseSchema.parse(eventData);
       } else if (evt.event === "sale") {
-        return saleEventResponseSchema.parse(eventData);
+        return (
+          obfuscateData
+            ? saleEventResponseObfuscatedSchema
+            : saleEventResponseSchema
+        ).parse(eventData);
       }
 
       return eventData;

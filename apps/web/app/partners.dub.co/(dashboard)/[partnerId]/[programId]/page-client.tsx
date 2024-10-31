@@ -1,6 +1,7 @@
 "use client";
 
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
+import usePartnerEvents from "@/lib/swr/use-partner-events";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import Areas from "@/ui/charts/areas";
 import TimeSeriesChart from "@/ui/charts/time-series-chart";
@@ -135,8 +136,6 @@ function EarningsChart() {
     [timeseries],
   );
 
-  console.log({ data });
-
   return (
     <div>
       <span className="block text-sm text-neutral-500">Earnings</span>
@@ -268,38 +267,45 @@ function StatCard({
 }
 
 function SalesTable() {
-  // TODO: get from API
-  const salesEvents = useMemo(() => mockSales(), []);
-  const totalSalesEvents = salesEvents.length;
-  const loading = false;
-  const error = false;
+  const { data: { sales: totalSaleEvents } = {} } = usePartnerAnalytics();
+  const {
+    data: saleEvents,
+    loading,
+    error,
+  } = usePartnerEvents({
+    event: "sales",
+    interval: "90d",
+  });
 
   const { pagination, setPagination } = usePagination();
 
   const { table, ...tableProps } = useTable({
-    data: salesEvents,
+    data: saleEvents ?? [],
     loading,
     error: error ? "Failed to fetch sales events." : undefined,
     columns: [
       {
-        id: "date",
+        id: "timestamp",
         header: "Date",
-        accessorKey: "date",
+        accessorKey: "timestamp",
         cell: ({ row }) => {
-          return formatDate(row.original.date, { month: "short" });
+          return formatDate(row.original.timestamp, { month: "short" });
         },
       },
       {
         id: "customer",
         header: "Customer",
         accessorKey: "customer",
+        cell: ({ row }) => {
+          return row.original.customer.email;
+        },
       },
       {
         id: "earned",
         header: "Earned",
         accessorKey: "earnings",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.earnings, {
+          return currencyFormatter(row.original.earnings / 100, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           });
@@ -308,7 +314,7 @@ function SalesTable() {
     ],
     pagination,
     onPaginationChange: setPagination,
-    rowCount: totalSalesEvents,
+    rowCount: totalSaleEvents,
     emptyState: (
       <EmptyState
         icon={CircleDollar}

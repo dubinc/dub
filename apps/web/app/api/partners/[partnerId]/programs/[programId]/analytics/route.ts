@@ -1,34 +1,16 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { DubApiError } from "@/lib/api/errors";
+import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartner } from "@/lib/auth/partner";
-import { prisma } from "@/lib/prisma";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
 
 // GET /api/partners/[partnerId]/programs/[programId]/analytics – get analytics for a program enrollment link
 export const GET = withPartner(async ({ partner, params, searchParams }) => {
-  const programEnrollment = await prisma.programEnrollment.findUnique({
-    where: {
-      partnerId_programId: {
-        partnerId: partner.id,
-        programId: params.programId,
-      },
-    },
-    include: {
-      program: true,
-      link: true,
-    },
+  const { link, program } = await getProgramEnrollmentOrThrow({
+    partnerId: partner.id,
+    programId: params.programId,
   });
-
-  if (!programEnrollment || !programEnrollment.program) {
-    throw new DubApiError({
-      code: "not_found",
-      message:
-        "You are not enrolled in this program. Contact your program admin to get enrolled.",
-    });
-  }
-
-  const { link, program } = programEnrollment;
 
   if (!link) {
     throw new DubApiError({
@@ -38,7 +20,13 @@ export const GET = withPartner(async ({ partner, params, searchParams }) => {
     });
   }
 
-  const parsedParams = analyticsQuerySchema.parse(searchParams);
+  const parsedParams = analyticsQuerySchema
+    .pick({
+      event: true,
+      interval: true,
+      groupBy: true,
+    })
+    .parse(searchParams);
 
   const response = await getAnalytics({
     ...parsedParams,
