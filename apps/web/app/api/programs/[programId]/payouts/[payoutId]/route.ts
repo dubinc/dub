@@ -1,3 +1,4 @@
+import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
@@ -25,13 +26,15 @@ export const responseSchema = PayoutSchema.and(
 export const GET = withWorkspace(async ({ workspace, params }) => {
   const { programId, payoutId } = params;
 
+  await getProgramOrThrow({
+    workspaceId: workspace.id,
+    programId,
+  });
+
   const payout = await prisma.payout.findUniqueOrThrow({
     where: {
       id: payoutId,
-      program: {
-        id: programId,
-        workspaceId: workspace.id,
-      },
+      programId,
     },
     include: {
       partner: true,

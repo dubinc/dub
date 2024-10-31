@@ -22,16 +22,17 @@ export const responseSchema = PayoutSchema.and(
 // GET /api/programs/[programId]/payouts - get all payouts for a program
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
+    const { programId } = params;
     const { status, offset, limit } = searchSchema.parse(searchParams);
 
-    const program = await getProgramOrThrow({
+    await getProgramOrThrow({
       workspaceId: workspace.id,
-      programId: params.programId,
+      programId,
     });
 
     const payouts = await prisma.payout.findMany({
       where: {
-        programId: program.id,
+        programId,
         ...(status && { status }),
       },
       include: {
