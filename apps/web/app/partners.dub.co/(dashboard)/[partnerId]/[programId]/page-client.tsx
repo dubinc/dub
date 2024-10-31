@@ -31,11 +31,38 @@ import {
 } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
 import { endOfDay, startOfDay, subDays } from "date-fns";
-import { useId, useMemo } from "react";
+import { createContext, useContext, useId, useMemo } from "react";
+
+const ProgramOverviewContext = createContext<{
+  start?: Date;
+  end?: Date;
+  interval?: string;
+}>({});
 
 export default function ProgramPageClient() {
+  const { searchParams } = useRouterStuff();
+
   const { programEnrollment } = useProgramEnrollment();
   const [copied, copyToClipboard] = useCopyToClipboard();
+
+  const { start, end } = useMemo(() => {
+    const hasRange = searchParams?.has("start") && searchParams?.has("end");
+
+    return {
+      start: hasRange
+        ? startOfDay(
+            new Date(searchParams?.get("start") || subDays(new Date(), 1)),
+          )
+        : undefined,
+
+      end: hasRange
+        ? endOfDay(new Date(searchParams?.get("end") || new Date()))
+        : undefined,
+    };
+  }, [searchParams?.get("start"), searchParams?.get("end")]);
+
+  const interval =
+    start || end ? undefined : searchParams?.get("interval") ?? "24h";
 
   return (
     <MaxWidthWrapper className="pb-10">
@@ -75,48 +102,39 @@ export default function ProgramPageClient() {
           />
         </div>
       </div>
-      <div className="mt-6 rounded-lg border border-neutral-300">
-        <div className="p-4 md:p-6 md:pb-4">
-          <EarningsChart />
+      <ProgramOverviewContext.Provider value={{ start, end, interval }}>
+        <div className="mt-6 rounded-lg border border-neutral-300">
+          <div className="p-4 md:p-6 md:pb-4">
+            <EarningsChart />
+          </div>
         </div>
-      </div>
-      <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-3">
-        <StatCard title="Clicks" event="clicks" />
-        <StatCard title="Leads" event="leads" />
-        <StatCard title="Sales" event="sales" />
-      </div>
-      <div className="mt-6">
-        <h2 className="text-base font-medium text-neutral-900">Recent Sales</h2>
-        <div className="mt-4">{/* <SalesTable /> */}</div>
-      </div>
+        <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-3">
+          <StatCard title="Clicks" event="clicks" />
+          <StatCard title="Leads" event="leads" />
+          <StatCard title="Sales" event="sales" />
+        </div>
+        <div className="mt-6">
+          <h2 className="text-base font-medium text-neutral-900">Sales</h2>
+          <div className="mt-4">
+            <SalesTable />
+          </div>
+        </div>
+      </ProgramOverviewContext.Provider>
     </MaxWidthWrapper>
   );
 }
 
 function EarningsChart() {
+  const { queryParams } = useRouterStuff();
   const id = useId();
-  const { searchParams, queryParams } = useRouterStuff();
 
-  const { start, end } = useMemo(() => {
-    const hasRange = searchParams?.has("start") && searchParams?.has("end");
+  const { start, end, interval } = useContext(ProgramOverviewContext);
 
-    return {
-      start: hasRange
-        ? startOfDay(
-            new Date(searchParams?.get("start") || subDays(new Date(), 1)),
-          )
-        : undefined,
-
-      end: hasRange
-        ? endOfDay(new Date(searchParams?.get("end") || new Date()))
-        : undefined,
-    };
-  }, [searchParams?.get("start"), searchParams?.get("end")]);
-
-  const interval =
-    start || end ? undefined : searchParams?.get("interval") ?? "24h";
-
-  const { data: { earnings: total } = {} } = usePartnerAnalytics();
+  const { data: { earnings: total } = {} } = usePartnerAnalytics({
+    interval: interval as any,
+    start,
+    end,
+  });
   const { data: timeseries, error } = usePartnerAnalytics({
     groupBy: "timeseries",
     interval: interval as any,
@@ -283,10 +301,18 @@ function StatCard({
   title: string;
   event: "clicks" | "leads" | "sales";
 }) {
-  const { data: total } = usePartnerAnalytics();
+  const { start, end, interval } = useContext(ProgramOverviewContext);
+
+  const { data: total } = usePartnerAnalytics({
+    interval: interval as any,
+    start,
+    end,
+  });
   const { data: timeseries, error } = usePartnerAnalytics({
     groupBy: "timeseries",
-    interval: "90d",
+    interval: interval as any,
+    start,
+    end,
     event,
   });
 
@@ -326,14 +352,22 @@ function StatCard({
 }
 
 function SalesTable() {
-  const { data: { sales: totalSaleEvents } = {} } = usePartnerAnalytics();
+  const { start, end, interval } = useContext(ProgramOverviewContext);
+
+  const { data: { sales: totalSaleEvents } = {} } = usePartnerAnalytics({
+    interval: interval as any,
+    start,
+    end,
+  });
   const {
     data: saleEvents,
     loading,
     error,
   } = usePartnerEvents({
     event: "sales",
-    interval: "90d",
+    interval: interval as any,
+    start,
+    end,
   });
 
   const { pagination, setPagination } = usePagination();

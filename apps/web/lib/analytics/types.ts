@@ -58,6 +58,8 @@ const partnerEventsSchema = eventsQuerySchema
   .pick({
     event: true,
     interval: true,
+    start: true,
+    end: true,
     groupBy: true,
     page: true,
     limit: true,
