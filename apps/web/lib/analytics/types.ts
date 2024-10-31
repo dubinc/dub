@@ -40,3 +40,13 @@ export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
   workspaceId?: string;
   isDemo?: boolean;
 };
+
+const partnerAnalyticsSchema = analyticsQuerySchema
+  .pick({
+    event: true,
+    interval: true,
+    groupBy: true,
+  })
+  .partial();
+
+export type PartnerAnalyticsFilters = z.infer<typeof partnerAnalyticsSchema>;
