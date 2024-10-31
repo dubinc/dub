@@ -2,13 +2,19 @@ import { prisma } from "@/lib/prisma";
 import { createId } from "../utils";
 
 // Payout are calcuated at the end of the month
-export const processProgramsPayouts = async () => {
-  const partners = await prisma.programEnrollment.findMany();
+export const processMonthlyPartnerPayouts = async () => {
+  const partners = await prisma.programEnrollment.findMany({
+    where: {
+      status: "approved",
+    },
+  });
 
   if (!partners.length) {
     return;
   }
 
+  // TODO:
+  // We need a batter way to handle this recursively
   for (const { programId, partnerId } of partners) {
     await createPartnerPayouts({
       programId,
@@ -92,7 +98,7 @@ export const createPartnerPayouts = async ({
       },
     });
 
-    // Update the sales to be included in the payout
+    // Update the sales records
     await tx.sale.updateMany({
       where: { id: { in: sales.map((sale) => sale.id) } },
       data: { payoutId: payout.id },
