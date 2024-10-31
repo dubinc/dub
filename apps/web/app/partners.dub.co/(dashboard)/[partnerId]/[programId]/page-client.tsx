@@ -146,7 +146,7 @@ function EarningsChart() {
     () =>
       timeseries?.map(({ start, earnings }) => ({
         date: new Date(start),
-        values: { earnings: earnings / 100 },
+        values: { earnings },
       })),
     [timeseries],
   );
@@ -156,7 +156,7 @@ function EarningsChart() {
       <div className="flex flex-col-reverse items-start justify-between gap-4 md:flex-row">
         <div>
           <span className="block text-sm text-neutral-500">Earnings</span>
-          <div className="mt-2">
+          <div className="mt-1">
             {total !== undefined ? (
               <span className="text-2xl text-neutral-800">
                 {currencyFormatter(total / 100)}
@@ -221,7 +221,7 @@ function EarningsChart() {
           />
         </div>
       </div>
-      <div className="relative h-64 w-full">
+      <div className="relative mt-4 h-64 w-full">
         {data ? (
           <TimeSeriesChart
             data={data}
