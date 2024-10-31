@@ -23,18 +23,23 @@ export const GET = withWorkspace(
       programId,
     });
 
-    const partners = await prisma.partner.findMany({
+    const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
-        programs: {
-          some: {
-            programId,
-            ...(status && { status }),
-          },
-        },
+        programId,
+        ...(status && { status }),
+      },
+      include: {
+        partner: true,
       },
       skip: offset,
       take: limit,
     });
+
+    const partners = programEnrollments.map((enrollment) => ({
+      ...enrollment.partner,
+      ...enrollment,
+      id: enrollment.partnerId,
+    }));
 
     return NextResponse.json(z.array(PartnerSchema).parse(partners));
   },
