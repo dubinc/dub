@@ -1,5 +1,6 @@
 "use client";
 
+import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { ArrowRight, Button, Gear2, ShieldCheck, UserCheck } from "@dub/ui";
 import {
@@ -15,7 +16,7 @@ import {
   User,
   Users,
 } from "@dub/ui/src/icons";
-import { cn } from "@dub/utils";
+import { cn, currencyFormatter } from "@dub/utils";
 import { Store } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
@@ -197,18 +198,20 @@ function ProgramInfo() {
   const [isCopied, setIsCopied] = useState(false);
   const copyTimeout = useRef<NodeJS.Timeout | null>(null);
 
+  const { data: analytics, loading } = usePartnerAnalytics();
+
   const items = [
     {
       icon: UserCheck,
       href: `/${partnerId}/${programId}/customers`,
       label: "Signups",
-      value: "250",
+      value: analytics?.leads,
     },
     {
       icon: MoneyBills2,
       href: `/${partnerId}/${programId}/payouts`,
       label: "Earnings",
-      value: "$92.50",
+      value: `${currencyFormatter(analytics?.earnings / 100 || 0)}`,
     },
   ];
 
@@ -266,7 +269,11 @@ function ProgramInfo() {
               <Icon className="size-3.5 text-gray-600" />
               <div>
                 <p className="text-xs text-gray-600">{label}</p>
-                <p className="text-sm font-medium text-gray-800">{value}</p>
+                {loading ? (
+                  <div className="mt-1 h-4 w-10 animate-pulse rounded-md bg-gray-300" />
+                ) : (
+                  <p className="text-sm font-medium text-gray-800">{value}</p>
+                )}
               </div>
             </Link>
           ))}
