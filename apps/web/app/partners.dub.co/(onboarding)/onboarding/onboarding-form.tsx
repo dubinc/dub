@@ -53,7 +53,7 @@ export function OnboardingForm() {
       <label>
         <span className="text-sm font-medium text-gray-800">
           Name
-          <span className="ml-0.5 text-red-600/60">*</span>
+          <span className="font-normal text-neutral-500"> (required)</span>
         </span>
         <input
           type="text"
