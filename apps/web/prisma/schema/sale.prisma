@@ -1,9 +1,10 @@
 enum SaleStatus {
-  refunded
-  approved
   pending
+  approved
+  refunded
   paid
-  unpaid
+  duplicate
+  fraud
 }
 
 model Sale {
