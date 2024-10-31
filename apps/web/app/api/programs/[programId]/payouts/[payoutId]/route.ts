@@ -36,21 +36,8 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     include: {
       partner: true,
       sales: {
-        select: {
-          id: true,
-          amount: true,
-          status: true,
-          currency: true,
-          commissionEarned: true,
-          createdAt: true,
-          updatedAt: true,
-          customer: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
+        include: {
+          customer: true,
         },
       },
       _count: {
