@@ -62,7 +62,7 @@ export default function ProgramPageClient() {
   }, [searchParams?.get("start"), searchParams?.get("end")]);
 
   const interval =
-    start || end ? undefined : searchParams?.get("interval") ?? "24h";
+    start || end ? undefined : searchParams?.get("interval") ?? "30d";
 
   return (
     <MaxWidthWrapper className="pb-10">
@@ -169,6 +169,7 @@ function EarningsChart() {
         <div className="w-full md:w-auto">
           <DateRangePicker
             className="h-8 w-full md:w-fit"
+            align="end"
             value={
               start && end
                 ? {
