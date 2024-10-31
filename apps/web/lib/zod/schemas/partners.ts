@@ -69,6 +69,10 @@ export const CustomerSchema = z.object({
   id: z.string(),
   name: z.string(),
   email: z.string(),
+  avatar: z.string().nullable(),
+  externalId: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
 });
 
 export const SaleSchema = z.object({
