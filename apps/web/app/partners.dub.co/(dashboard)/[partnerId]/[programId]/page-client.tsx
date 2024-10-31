@@ -1,9 +1,11 @@
 "use client";
 
+import { INTERVAL_DATA, INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import usePartnerEvents from "@/lib/swr/use-partner-events";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import Areas from "@/ui/charts/areas";
+import { ChartContext } from "@/ui/charts/chart-context";
 import TimeSeriesChart from "@/ui/charts/time-series-chart";
 import XAxis from "@/ui/charts/x-axis";
 import YAxis from "@/ui/charts/y-axis";
@@ -12,10 +14,12 @@ import { MiniAreaChart } from "@dub/blocks";
 import {
   Button,
   Check2,
+  DateRangePicker,
   MaxWidthWrapper,
   Table,
   useCopyToClipboard,
   usePagination,
+  useRouterStuff,
   useTable,
 } from "@dub/ui";
 import { CircleDollar, Copy, LoadingSpinner } from "@dub/ui/src/icons";
@@ -26,42 +30,39 @@ import {
   nFormatter,
 } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
-import { subDays } from "date-fns";
-import { useId, useMemo } from "react";
+import { endOfDay, startOfDay, subDays } from "date-fns";
+import { createContext, useContext, useId, useMemo } from "react";
 
-const mockValues = (factor = 1) => {
-  const timeseries = [...Array(30)].map((_, i) => ({
-    date: subDays(new Date(), 30 - i),
-    value: Math.floor(Math.random() * 100 * factor),
-  }));
-
-  return {
-    total: timeseries.reduce((acc, curr) => acc + curr.value, 0),
-    timeseries,
-    isError: false,
-  };
-};
-
-const mockSales = () =>
-  [...Array(10)].map((_, i) => ({
-    date: subDays(new Date(), 10 - i),
-    earnings: Math.floor(Math.random() * 15),
-    customer: `*****@${["dub.co", "gmail.com"][i % 2]}`,
-  }));
+const ProgramOverviewContext = createContext<{
+  start?: Date;
+  end?: Date;
+  interval?: string;
+}>({});
 
 export default function ProgramPageClient() {
+  const { searchParams } = useRouterStuff();
+
   const { programEnrollment } = useProgramEnrollment();
   const [copied, copyToClipboard] = useCopyToClipboard();
 
-  const { total: leads, timeseries: leadsTimeseries } = useMemo(
-    () => mockValues(1),
-    [],
-  );
-  const { total: sales, timeseries: salesTimeseries } = useMemo(
-    () => mockValues(0.25),
-    [],
-  );
-  const statsError = false;
+  const { start, end } = useMemo(() => {
+    const hasRange = searchParams?.has("start") && searchParams?.has("end");
+
+    return {
+      start: hasRange
+        ? startOfDay(
+            new Date(searchParams?.get("start") || subDays(new Date(), 1)),
+          )
+        : undefined,
+
+      end: hasRange
+        ? endOfDay(new Date(searchParams?.get("end") || new Date()))
+        : undefined,
+    };
+  }, [searchParams?.get("start"), searchParams?.get("end")]);
+
+  const interval =
+    start || end ? undefined : searchParams?.get("interval") ?? "24h";
 
   return (
     <MaxWidthWrapper className="pb-10">
@@ -101,30 +102,44 @@ export default function ProgramPageClient() {
           />
         </div>
       </div>
-      <div className="mt-6 rounded-lg border border-neutral-300">
-        <div className="p-4 md:p-8 md:pb-4">
-          <EarningsChart />
+      <ProgramOverviewContext.Provider value={{ start, end, interval }}>
+        <div className="mt-6 rounded-lg border border-neutral-300">
+          <div className="p-4 md:p-6 md:pb-4">
+            <EarningsChart />
+          </div>
         </div>
-      </div>
-      <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-3">
-        <StatCard title="Clicks" event="clicks" />
-        <StatCard title="Leads" event="leads" />
-        <StatCard title="Sales" event="sales" />
-      </div>
-      <div className="mt-6">
-        <SalesTable />
-      </div>
+        <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-3">
+          <StatCard title="Clicks" event="clicks" />
+          <StatCard title="Leads" event="leads" />
+          <StatCard title="Sales" event="sales" />
+        </div>
+        <div className="mt-6">
+          <h2 className="text-base font-medium text-neutral-900">Sales</h2>
+          <div className="mt-4">
+            <SalesTable />
+          </div>
+        </div>
+      </ProgramOverviewContext.Provider>
     </MaxWidthWrapper>
   );
 }
 
 function EarningsChart() {
+  const { queryParams } = useRouterStuff();
   const id = useId();
 
-  const { data: { earnings: total } = {} } = usePartnerAnalytics();
+  const { start, end, interval } = useContext(ProgramOverviewContext);
+
+  const { data: { earnings: total } = {} } = usePartnerAnalytics({
+    interval: interval as any,
+    start,
+    end,
+  });
   const { data: timeseries, error } = usePartnerAnalytics({
     groupBy: "timeseries",
-    interval: "90d",
+    interval: interval as any,
+    start,
+    end,
   });
 
   const data = useMemo(
@@ -138,15 +153,72 @@ function EarningsChart() {
 
   return (
     <div>
-      <span className="block text-sm text-neutral-500">Earnings</span>
-      <div className="mt-2">
-        {total !== undefined ? (
-          <span className="text-3xl text-neutral-800">
-            {currencyFormatter(total / 100)}
-          </span>
-        ) : (
-          <div className="h-9 w-24 animate-pulse rounded-md bg-neutral-200" />
-        )}
+      <div className="flex flex-col-reverse items-start justify-between gap-4 md:flex-row">
+        <div>
+          <span className="block text-sm text-neutral-500">Earnings</span>
+          <div className="mt-2">
+            {total !== undefined ? (
+              <span className="text-2xl text-neutral-800">
+                {currencyFormatter(total / 100)}
+              </span>
+            ) : (
+              <div className="h-9 w-24 animate-pulse rounded-md bg-neutral-200" />
+            )}
+          </div>
+        </div>
+        <div className="w-full md:w-auto">
+          <DateRangePicker
+            className="h-8 w-full md:w-fit"
+            value={
+              start && end
+                ? {
+                    from: start,
+                    to: end,
+                  }
+                : undefined
+            }
+            presetId={!start || !end ? interval ?? "24h" : undefined}
+            onChange={(range, preset) => {
+              if (preset) {
+                queryParams({
+                  del: ["start", "end"],
+                  set: {
+                    interval: preset.id,
+                  },
+                  scroll: false,
+                });
+
+                return;
+              }
+
+              // Regular range
+              if (!range || !range.from || !range.to) return;
+
+              queryParams({
+                del: "interval",
+                set: {
+                  start: range.from.toISOString(),
+                  end: range.to.toISOString(),
+                },
+                scroll: false,
+              });
+            }}
+            presets={INTERVAL_DISPLAYS.map(({ display, value, shortcut }) => {
+              const start = INTERVAL_DATA[value].startDate;
+              const end = new Date();
+
+              return {
+                id: value,
+                label: display,
+                dateRange: {
+                  from: start,
+                  to: end,
+                },
+                shortcut,
+              };
+            })}
+          />
+        </div>
       </div>
       <div className="relative h-64 w-full">
         {data ? (
@@ -180,20 +252,25 @@ function EarningsChart() {
               );
             }}
           >
-            <LinearGradient
-              id={`${id}-color-gradient`}
-              from="#7D3AEC"
-              to="#DA2778"
-              x1={0}
-              x2={1}
-            />
+            <ChartContext.Consumer>
+              {(context) => (
+                <LinearGradient
+                  id={`${id}-color-gradient`}
+                  from="#7D3AEC"
+                  to="#DA2778"
+                  x1={0}
+                  x2={context?.width ?? 1}
+                  gradientUnits="userSpaceOnUse"
+                />
+              )}
+            </ChartContext.Consumer>
 
             <XAxis />
             <YAxis showGridLines />
             <Areas
               seriesStyles={[
                 {
-                  id: "value",
+                  id: "earnings",
                   areaFill: `url(#${id}-color-gradient)`,
                   lineStroke: `url(#${id}-color-gradient)`,
                   lineClassName: "text-[#DA2778]",
@@ -224,10 +301,18 @@ function StatCard({
   title: string;
   event: "clicks" | "leads" | "sales";
 }) {
-  const { data: total } = usePartnerAnalytics();
+  const { start, end, interval } = useContext(ProgramOverviewContext);
+
+  const { data: total } = usePartnerAnalytics({
+    interval: interval as any,
+    start,
+    end,
+  });
   const { data: timeseries, error } = usePartnerAnalytics({
     groupBy: "timeseries",
-    interval: "90d",
+    interval: interval as any,
+    start,
+    end,
     event,
   });
 
@@ -267,14 +352,22 @@ function StatCard({
 }
 
 function SalesTable() {
-  const { data: { sales: totalSaleEvents } = {} } = usePartnerAnalytics();
+  const { start, end, interval } = useContext(ProgramOverviewContext);
+
+  const { data: { sales: totalSaleEvents } = {} } = usePartnerAnalytics({
+    interval: interval as any,
+    start,
+    end,
+  });
   const {
     data: saleEvents,
     loading,
     error,
   } = usePartnerEvents({
     event: "sales",
-    interval: "90d",
+    interval: interval as any,
+    start,
+    end,
   });
 
   const { pagination, setPagination } = usePagination();
