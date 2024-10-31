@@ -1,13 +1,13 @@
-import { CommissionType, ProgramType } from "@prisma/client";
+import { CommissionInterval, CommissionType } from "@prisma/client";
 import { z } from "zod";
 
 export const createProgramSchema = z.object({
   name: z.string(),
-  type: z.nativeEnum(ProgramType),
   commissionType: z.nativeEnum(CommissionType),
   commissionAmount: z.number(),
-  recurringCommission: z.boolean(),
   minimumPayout: z.number(),
-  recurringDuration: z.number(),
-  isLifetimeRecurring: z.boolean(),
+  recurringCommission: z.boolean(),
+  recurringInterval: z.nativeEnum(CommissionInterval).nullable(),
+  recurringDuration: z.number().nullable(),
+  isLifetimeRecurring: z.boolean().nullable(),
 });
