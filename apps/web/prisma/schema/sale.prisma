@@ -8,7 +8,7 @@ enum SaleStatus {
 }
 
 model Sale {
-  id                  String         @id @default(cuid())
+  id                  String              @id @default(cuid())
   programId           String
   partnerId           String
   payoutId            String?
@@ -21,17 +21,16 @@ model Sale {
   paymentProcessor    String
   amount              Int
   currency            String
+  commissionEarned    Int
   commissionAmount    Float
   commissionType      CommissionType
-  commissionEarned    Int?
   recurringCommission Boolean
+  recurringInterval   CommissionInterval?
   recurringDuration   Int?
-  recurringCount      Int?
-  nextRecurringDate   DateTime?
-  isLifetimeRecurring Boolean
+  isLifetimeRecurring Boolean?
   status              SaleStatus
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
 
   program  Program  @relation(fields: [programId], references: [id])
   partner  Partner  @relation(fields: [partnerId], references: [id])

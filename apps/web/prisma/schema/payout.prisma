@@ -17,11 +17,9 @@ model Payout {
   id          String       @id @default(cuid())
   programId   String
   partnerId   String
-  subtotal    Int
-  taxes       Int
   total       Int
-  payoutFee   Int
-  netTotal    Int
+  payoutFee   Int?
+  netTotal    Int // Total amount after fees (total - payoutFee)
   currency    String       @default("USD")
   status      PayoutStatus @default(pending)
   periodStart DateTime

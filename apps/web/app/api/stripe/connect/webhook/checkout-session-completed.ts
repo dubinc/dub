@@ -1,12 +1,11 @@
-import { calculateCommissionEarned } from "@/lib/api/sales/commission";
-import { createId } from "@/lib/api/utils";
+import { createSaleData } from "@/lib/api/sales/sale";
 import { prisma } from "@/lib/prisma";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { nanoid } from "@dub/utils";
-import { Customer, SaleStatus } from "@prisma/client";
+import { Customer } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 
@@ -133,29 +132,18 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     ...(programEnrollment
       ? [
           prisma.sale.create({
-            data: {
-              id: createId({ prefix: "sal_" }),
+            data: createSaleData({
+              customerId: saleData.customer_id,
               linkId: saleData.link_id,
               clickId: saleData.click_id,
-              customerId: saleData.customer_id,
               invoiceId: saleData.invoice_id,
               eventId: saleData.event_id,
               eventName: saleData.event_name,
               paymentProcessor: saleData.payment_processor,
               amount: saleData.amount,
               currency: saleData.currency,
-              status: SaleStatus.pending,
-              partnerId: programEnrollment.partnerId,
-              programId: programEnrollment.program.id,
-              commissionAmount: programEnrollment.program.commissionAmount,
-              commissionType: programEnrollment.program.commissionType,
-              recurringCommission: false,
-              isLifetimeRecurring: false,
-              commissionEarned: calculateCommissionEarned({
-                program: programEnrollment.program,
-                sale: { amount: saleData.amount },
-              }),
-            },
+              programEnrollment,
+            }),
           }),
         ]
       : []),

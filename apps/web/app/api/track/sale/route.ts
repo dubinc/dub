@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
-import { calculateCommissionEarned } from "@/lib/api/sales/commission";
-import { createId, parseRequestBody } from "@/lib/api/utils";
+import { createSaleData } from "@/lib/api/sales/sale";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { prismaEdge } from "@/lib/prisma/edge";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
@@ -12,7 +12,6 @@ import {
   trackSaleResponseSchema,
 } from "@/lib/zod/schemas/sales";
 import { nanoid } from "@dub/utils";
-import { SaleStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -75,13 +74,6 @@ export const POST = withWorkspaceEdge(
       (async () => {
         const eventId = nanoid(16);
 
-        if (programEnrollment) {
-          console.log("Commission earned", calculateCommissionEarned({
-            program: programEnrollment.program,
-            sale: { amount },
-          }));
-        }
-
         const [_sale, link, _project] = await Promise.all([
           recordSale({
             ...clickData,
@@ -127,30 +119,18 @@ export const POST = withWorkspaceEdge(
           ...(programEnrollment
             ? [
                 prismaEdge.sale.create({
-                  data: {
-                    id: createId({ prefix: "sal_" }),
+                  data: createSaleData({
+                    customerId: customer.id,
                     linkId: clickData.link_id,
                     clickId: clickData.click_id,
-                    customerId: customer.id,
                     invoiceId,
                     eventId,
                     eventName,
                     paymentProcessor,
                     amount,
                     currency,
-                    status: SaleStatus.pending,
-                    partnerId: programEnrollment.partnerId,
-                    programId: programEnrollment.program.id,
-                    commissionAmount:
-                      programEnrollment.program.commissionAmount,
-                    commissionType: programEnrollment.program.commissionType,
-                    commissionEarned: calculateCommissionEarned({
-                      program: programEnrollment.program,
-                      sale: { amount },
-                    }),
-                    recurringCommission: false,
-                    isLifetimeRecurring: false,
-                  },
+                    programEnrollment,
+                  }),
                 }),
               ]
             : []),

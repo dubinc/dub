@@ -1,82 +1,94 @@
 import { prisma } from "@/lib/prisma";
 import { createId } from "../utils";
 
+// Payout are calcuated at the end of the month
 export const processProgramsPayouts = async () => {
-  const programPartners = await prisma.programEnrollment.findMany();
+  const partners = await prisma.programEnrollment.findMany();
 
-  if (!programPartners.length) {
+  if (!partners.length) {
     return;
   }
 
-  for (const { programId, partnerId } of programPartners) {
+  for (const { programId, partnerId } of partners) {
     await createPartnerPayouts({
       programId,
       partnerId,
-      startDate: new Date(0),
-      endDate: new Date(),
     });
   }
 };
 
-// WIP
 export const createPartnerPayouts = async ({
   programId,
   partnerId,
-  startDate,
-  endDate,
 }: {
   programId: string;
   partnerId: string;
-  startDate: Date;
-  endDate: Date;
 }) => {
   await prisma.$transaction(async (tx) => {
-    // Get all unpaid sales grouped by partner and program
-    const salesGroups = await tx.sale.groupBy({
-      by: ["programId", "partnerId"],
-      where: {
-        programId,
-        partnerId,
-        payoutId: null,
-        createdAt: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
-      _sum: {
-        commissionEarned: true,
-      },
-    });
-
-    // Find the sales that should be included in the payout
+    // Calculate the commission earned for the partner for the given program
     const sales = await tx.sale.findMany({
       where: {
         programId,
         partnerId,
         payoutId: null,
-        createdAt: {
-          gte: startDate,
-          lte: endDate,
-        },
+      },
+      select: {
+        id: true,
+        commissionEarned: true,
       },
     });
 
-    // Create payouts
-    const { _sum } = salesGroups[0];
+    if (!sales.length) {
+      return;
+    }
 
+    const program = await tx.program.findUniqueOrThrow({
+      where: { id: programId },
+      select: { minimumPayout: true },
+    });
+
+    const payoutFee = 0; // TODO: Implement payout fee
+    const currentDate = new Date();
+    const periodStart = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      1,
+    );
+    const periodEnd = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() + 1,
+      0,
+    );
+
+    const commissionEarnedTotal = sales.reduce(
+      (total, sale) => total + sale.commissionEarned,
+      0,
+    );
+
+    if (commissionEarnedTotal < program.minimumPayout) {
+      console.info("Minimum payout not met. Skipping payout creation.", {
+        programId,
+        partnerId,
+        commissionEarnedTotal,
+        minimumPayout: program.minimumPayout,
+      });
+
+      return;
+    }
+
+    // Create the payout
     const payout = await tx.payout.create({
       data: {
         id: createId({ prefix: "" }),
         programId,
         partnerId,
-        taxes: 0,
-        payoutFee: 0,
-        subtotal: _sum.commissionEarned || 0,
-        total: _sum.commissionEarned || 0,
-        netTotal: _sum.commissionEarned || 0,
+        payoutFee,
+        total: commissionEarnedTotal,
+        netTotal: commissionEarnedTotal - payoutFee,
         currency: "USD",
         status: "pending",
-        due: new Date(),
+        periodStart,
+        periodEnd,
       },
     });
 
@@ -85,5 +97,7 @@ export const createPartnerPayouts = async ({
       where: { id: { in: sales.map((sale) => sale.id) } },
       data: { payoutId: payout.id },
     });
+
+    console.info("Payout created", payout);
   });
 };

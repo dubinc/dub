@@ -52,10 +52,8 @@ export const ProgramEnrollmentSchema = z.object({
 
 export const PayoutSchema = z.object({
   id: z.string(),
-  subtotal: z.number(),
-  taxes: z.number(),
   total: z.number(),
-  payoutFee: z.number(),
+  payoutFee: z.number().nullable(),
   netTotal: z.number(),
   currency: z.string(),
   status: z.nativeEnum(PayoutStatus),
