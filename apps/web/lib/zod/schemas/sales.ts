@@ -143,7 +143,6 @@ export const saleEventResponseObfuscatedSchema = saleEventResponseSchema
   .pick({
     click: true,
     timestamp: true,
-    sale: true,
   })
   .extend({
     link: LinkSchema.pick({
@@ -153,6 +152,9 @@ export const saleEventResponseObfuscatedSchema = saleEventResponseSchema
       leads: true,
       sales: true,
       saleAmount: true,
+    }),
+    sale: z.object({
+      amount: z.number(),
     }),
     customer: z.object({
       email: z
