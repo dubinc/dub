@@ -11,7 +11,7 @@ export function EventsPageClient() {
     <MaxWidthWrapper>
       <AnimatedEmptyState
         title="Events"
-        description="View a real-time events stream for your referral activity"
+        description="View a real-time event stream for your referral activity"
         cardContent={(idx) => {
           const Icon = emptyStateIcons[idx % emptyStateIcons.length];
           return (
