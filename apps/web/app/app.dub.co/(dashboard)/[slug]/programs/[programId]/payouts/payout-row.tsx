@@ -1,9 +1,9 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutProps } from "@/lib/types";
+import { PayoutWithPartnerProps } from "@/lib/types";
 import { Delete, ThreeDots } from "@/ui/shared/icons";
-import { Button, CardList, Popover } from "@dub/ui";
+import { Badge, Button, CardList, Popover } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import { useContext, useState } from "react";
@@ -13,27 +13,29 @@ export function PayoutRow({
   payout,
   payoutsCount,
 }: {
-  payout: PayoutProps;
+  payout: PayoutWithPartnerProps;
   payoutsCount?: { payoutId: string; _count: number }[];
 }) {
   const { id, slug } = useWorkspace();
   const [processing, setProcessing] = useState(false);
-  const { openMenu, setOpenMenu } = useContext(PayoutsListContext);
+  const { openMenuId, setOpenMenuId } = useContext(PayoutsListContext);
 
   const setOpenPopover = (open: boolean) => {
-    setOpenMenu(open ? payout.id : null);
+    setOpenMenuId(open ? payout.id : null);
   };
+
+  const openPopover = openMenuId === payout.id;
 
   return (
     <>
       <CardList.Card
         key={payout.id}
         innerClassName={cn(
-          "flex items-center justify-between gap-5 sm:gap-8 md:gap-12 text-sm transition-opacity",
+          "flex items-center justify-between gap-5 sm:gap-8 md:gap-12 text-sm transition-opacity text-neutral-500 text-sm font-normal leading-none",
           processing && "opacity-50",
         )}
       >
-        <div className="flex min-w-0 grow items-center gap-3">
+        <div>
           {new Date(payout.periodStart).toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
@@ -45,42 +47,44 @@ export function PayoutRow({
           })}
         </div>
 
-        <div className="flex min-w-0 grow items-center gap-3">
-          {payout.status}
+        <div>
+          <Badge>{payout.status}</Badge>
         </div>
 
-        <div className="flex min-w-0 grow items-center gap-3">
-          {payout.total}
-        </div>
+        <div>${payout.total / 100}</div>
 
-        <div className="flex min-w-0 grow items-center gap-3">
-          {payout.partner.name}
-        </div>
+        <div>{payout.partner.name}</div>
+
+        <div>{payout._count.sales}</div>
 
         <div className="flex items-center gap-5 sm:gap-8 md:gap-12">
-          {/* {tagsCount !== undefined && (
-            <Link
-              href={`/${slug}?tagIds=${tag.id}`}
-              className="whitespace-nowrap rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-sm text-gray-800 transition-colors hover:bg-gray-100"
-            >
-              {nFormatter(linksCount || 0)} {pluralize("link", linksCount || 0)}
-            </Link>
-          )} */}
           <Popover
             content={
-              <div className="grid w-full gap-px p-2 sm:w-48">
+              <div className="grid w-full gap-px p-2 sm:w-36">
                 <Button
-                  text="Delete"
-                  variant="danger-outline"
-                  // onClick={handleDelete}
+                  text="Pay invoice"
+                  variant="outline"
                   icon={<Delete className="h-4 w-4" />}
-                  shortcut="X"
-                  className="h-9 px-2 font-medium"
+                  className="h-9 justify-start px-2 font-medium"
+                />
+
+                <Button
+                  text="Review"
+                  variant="outline"
+                  icon={<Delete className="h-4 w-4" />}
+                  className="h-9 justify-start px-2 font-medium"
+                />
+
+                <Button
+                  text="View partner"
+                  variant="outline"
+                  icon={<Delete className="h-4 w-4" />}
+                  className="h-9 justify-start px-2 font-medium"
                 />
               </div>
             }
             align="end"
-            openPopover={openMenu}
+            openPopover={openPopover}
             setOpenPopover={setOpenPopover}
           >
             <Button
@@ -97,7 +101,7 @@ export function PayoutRow({
                 )
               }
               onClick={() => {
-                // setOpenPopover(!openPopover);
+                setOpenPopover(!openPopover);
               }}
             />
           </Popover>

@@ -51,7 +51,6 @@ export const ProgramEnrollmentSchema = z.object({
 
 export const PayoutSchema = z.object({
   id: z.string(),
-  partner: PartnerSchema,
   subtotal: z.number(),
   taxes: z.number(),
   total: z.number(),

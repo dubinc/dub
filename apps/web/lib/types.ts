@@ -285,3 +285,10 @@ export type ProgramProps = z.infer<typeof ProgramSchema>;
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 
 export type PayoutProps = z.infer<typeof PayoutSchema>;
+
+export type PayoutWithPartnerProps = z.infer<typeof PayoutSchema> & {
+  partner: PartnerProps;
+  _count: {
+    sales: number;
+  };
+};

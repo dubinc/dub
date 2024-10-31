@@ -1,7 +1,7 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { PayoutSchema } from "@/lib/zod/schemas/partners";
+import { PartnerSchema, PayoutSchema } from "@/lib/zod/schemas/partners";
 import { PayoutStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import z from "zod";
@@ -11,6 +11,13 @@ const searchSchema = z.object({
   offset: z.number().optional().default(0),
   limit: z.number().optional().default(50),
 });
+
+export const responseSchema = PayoutSchema.and(
+  z.object({
+    partner: PartnerSchema,
+    _count: z.object({ sales: z.number() }),
+  }),
+);
 
 // GET /api/programs/[programId]/payouts - get all payouts for a program
 export const GET = withWorkspace(
@@ -29,11 +36,16 @@ export const GET = withWorkspace(
       },
       include: {
         partner: true,
+        _count: {
+          select: {
+            sales: true,
+          },
+        },
       },
       skip: offset,
       take: limit,
     });
 
-    return NextResponse.json(z.array(PayoutSchema).parse(payouts));
+    return NextResponse.json(z.array(responseSchema).parse(payouts));
   },
 );
