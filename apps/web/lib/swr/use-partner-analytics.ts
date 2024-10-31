@@ -11,7 +11,13 @@ export default function usePartnerAnalytics(params?: PartnerAnalyticsFilters) {
       {
         event: params?.event ?? "composite",
         interval: params?.interval ?? "all_unfiltered",
+        ...(params?.start &&
+          params?.end && {
+            start: params.start.toISOString(),
+            end: params.end.toISOString(),
+          }),
         groupBy: params?.groupBy ?? "count",
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
     ).toString()}`,
     fetcher,

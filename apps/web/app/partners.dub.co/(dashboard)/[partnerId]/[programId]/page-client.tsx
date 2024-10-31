@@ -1,5 +1,6 @@
 "use client";
 
+import { INTERVAL_DATA, INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import usePartnerEvents from "@/lib/swr/use-partner-events";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -13,10 +14,12 @@ import { MiniAreaChart } from "@dub/blocks";
 import {
   Button,
   Check2,
+  DateRangePicker,
   MaxWidthWrapper,
   Table,
   useCopyToClipboard,
   usePagination,
+  useRouterStuff,
   useTable,
 } from "@dub/ui";
 import { CircleDollar, Copy, LoadingSpinner } from "@dub/ui/src/icons";
@@ -27,6 +30,7 @@ import {
   nFormatter,
 } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
+import { endOfDay, startOfDay, subDays } from "date-fns";
 import { useId, useMemo } from "react";
 
 export default function ProgramPageClient() {
@@ -83,9 +87,7 @@ export default function ProgramPageClient() {
       </div>
       <div className="mt-6">
         <h2 className="text-base font-medium text-neutral-900">Recent Sales</h2>
-        <div className="mt-4">
-          <SalesTable />
-        </div>
+        <div className="mt-4">{/* <SalesTable /> */}</div>
       </div>
     </MaxWidthWrapper>
   );
@@ -93,11 +95,33 @@ export default function ProgramPageClient() {
 
 function EarningsChart() {
   const id = useId();
+  const { searchParams, queryParams } = useRouterStuff();
+
+  const { start, end } = useMemo(() => {
+    const hasRange = searchParams?.has("start") && searchParams?.has("end");
+
+    return {
+      start: hasRange
+        ? startOfDay(
+            new Date(searchParams?.get("start") || subDays(new Date(), 1)),
+          )
+        : undefined,
+
+      end: hasRange
+        ? endOfDay(new Date(searchParams?.get("end") || new Date()))
+        : undefined,
+    };
+  }, [searchParams?.get("start"), searchParams?.get("end")]);
+
+  const interval =
+    start || end ? undefined : searchParams?.get("interval") ?? "24h";
 
   const { data: { earnings: total } = {} } = usePartnerAnalytics();
   const { data: timeseries, error } = usePartnerAnalytics({
     groupBy: "timeseries",
-    interval: "90d",
+    interval: interval as any,
+    start,
+    end,
   });
 
   const data = useMemo(
@@ -111,15 +135,72 @@ function EarningsChart() {
 
   return (
     <div>
-      <span className="block text-sm text-neutral-500">Earnings</span>
-      <div className="mt-2">
-        {total !== undefined ? (
-          <span className="text-2xl text-neutral-800">
-            {currencyFormatter(total / 100)}
-          </span>
-        ) : (
-          <div className="h-9 w-24 animate-pulse rounded-md bg-neutral-200" />
-        )}
+      <div className="flex flex-col-reverse items-start justify-between gap-4 md:flex-row">
+        <div>
+          <span className="block text-sm text-neutral-500">Earnings</span>
+          <div className="mt-2">
+            {total !== undefined ? (
+              <span className="text-2xl text-neutral-800">
+                {currencyFormatter(total / 100)}
+              </span>
+            ) : (
+              <div className="h-9 w-24 animate-pulse rounded-md bg-neutral-200" />
+            )}
+          </div>
+        </div>
+        <div className="w-full md:w-auto">
+          <DateRangePicker
+            className="h-8 w-full md:w-fit"
+            value={
+              start && end
+                ? {
+                    from: start,
+                    to: end,
+                  }
+                : undefined
+            }
+            presetId={!start || !end ? interval ?? "24h" : undefined}
+            onChange={(range, preset) => {
+              if (preset) {
+                queryParams({
+                  del: ["start", "end"],
+                  set: {
+                    interval: preset.id,
+                  },
+                  scroll: false,
+                });
+
+                return;
+              }
+
+              // Regular range
+              if (!range || !range.from || !range.to) return;
+
+              queryParams({
+                del: "interval",
+                set: {
+                  start: range.from.toISOString(),
+                  end: range.to.toISOString(),
+                },
+                scroll: false,
+              });
+            }}
+            presets={INTERVAL_DISPLAYS.map(({ display, value, shortcut }) => {
+              const start = INTERVAL_DATA[value].startDate;
+              const end = new Date();
+
+              return {
+                id: value,
+                label: display,
+                dateRange: {
+                  from: start,
+                  to: end,
+                },
+                shortcut,
+              };
+            })}
+          />
+        </div>
       </div>
       <div className="relative h-64 w-full">
         {data ? (

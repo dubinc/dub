@@ -23,8 +23,11 @@ export const GET = withPartner(async ({ partner, params, searchParams }) => {
   const parsedParams = analyticsQuerySchema
     .pick({
       event: true,
+      start: true,
+      end: true,
       interval: true,
       groupBy: true,
+      timezone: true,
     })
     .parse(searchParams);
 

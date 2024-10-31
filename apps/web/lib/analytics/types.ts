@@ -46,6 +46,8 @@ const partnerAnalyticsSchema = analyticsQuerySchema
   .pick({
     event: true,
     interval: true,
+    start: true,
+    end: true,
     groupBy: true,
   })
   .partial();
