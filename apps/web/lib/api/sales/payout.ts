@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { subDays } from "date-fns";
 import { createId } from "../utils";
 
 // Payout are calcuated at the end of the month
@@ -37,6 +38,9 @@ export const createPartnerPayouts = async ({
         programId,
         partnerId,
         payoutId: null,
+        createdAt: {
+          lte: subDays(new Date(), 30), // Referral commissions are held for 30 days before becoming available.
+        },
       },
       select: {
         id: true,
