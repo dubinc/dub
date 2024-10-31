@@ -37,9 +37,10 @@ model Program {
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
 
+  workspace Project             @relation(fields: [workspaceId], references: [id])
   partners  ProgramEnrollment[]
   payouts   Payout[]
-  workspace Project             @relation(fields: [workspaceId], references: [id])
+  sales     Sale[]
 
   @@index([workspaceId])
 }

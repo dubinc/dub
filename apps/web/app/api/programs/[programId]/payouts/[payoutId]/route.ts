@@ -1,6 +1,7 @@
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
+  CustomerSchema,
   PartnerSchema,
   PayoutSchema,
   SaleSchema,
@@ -11,7 +12,11 @@ import z from "zod";
 export const responseSchema = PayoutSchema.and(
   z.object({
     partner: PartnerSchema,
-    sales: z.array(SaleSchema),
+    sales: z.array(
+      SaleSchema.extend({
+        customer: CustomerSchema,
+      }),
+    ),
     _count: z.object({ sales: z.number() }),
   }),
 );
@@ -30,14 +35,29 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     },
     include: {
       partner: true,
-      sales: true,
+      sales: {
+        select: {
+          id: true,
+          amount: true,
+          status: true,
+          currency: true,
+          commissionEarned: true,
+          createdAt: true,
+          updatedAt: true,
+          customer: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
       _count: {
         select: { sales: true },
       },
     },
   });
-
-  console.log(payout);
 
   return NextResponse.json(responseSchema.parse(payout));
 });

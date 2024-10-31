@@ -65,10 +65,17 @@ export const PayoutSchema = z.object({
   updatedAt: z.date(),
 });
 
+export const CustomerSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string(),
+});
+
 export const SaleSchema = z.object({
   id: z.string(),
   amount: z.number(),
-  // TODO: Include customer object
+  commissionEarned: z.number(),
+  currency: z.string(),
   status: z.nativeEnum(SaleStatus),
   createdAt: z.date(),
   updatedAt: z.date(),

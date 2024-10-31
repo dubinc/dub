@@ -23,6 +23,7 @@ model Partner {
   users    PartnerUser[]
   invites  PartnerInvite[]
   payouts  Payout[]
+  sales    Sale[]
 }
 
 model PartnerUser {

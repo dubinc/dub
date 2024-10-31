@@ -32,12 +32,13 @@ model Sale {
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
 
-  payout Payout? @relation(fields: [payoutId], references: [id])
+  program  Program  @relation(fields: [programId], references: [id])
+  partner  Partner  @relation(fields: [partnerId], references: [id])
+  payout   Payout?  @relation(fields: [payoutId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
 
   @@index([programId])
-  @@index([linkId])
-  @@index([clickId])
+  @@index([partnerId])
   @@index([payoutId])
   @@index([customerId])
-  @@index([eventId])
 }
