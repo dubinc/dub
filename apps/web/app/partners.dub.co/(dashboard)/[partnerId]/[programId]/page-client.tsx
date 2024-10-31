@@ -4,6 +4,7 @@ import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import usePartnerEvents from "@/lib/swr/use-partner-events";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import Areas from "@/ui/charts/areas";
+import { ChartContext } from "@/ui/charts/chart-context";
 import TimeSeriesChart from "@/ui/charts/time-series-chart";
 import XAxis from "@/ui/charts/x-axis";
 import YAxis from "@/ui/charts/y-axis";
@@ -26,42 +27,11 @@ import {
   nFormatter,
 } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
-import { subDays } from "date-fns";
 import { useId, useMemo } from "react";
-
-const mockValues = (factor = 1) => {
-  const timeseries = [...Array(30)].map((_, i) => ({
-    date: subDays(new Date(), 30 - i),
-    value: Math.floor(Math.random() * 100 * factor),
-  }));
-
-  return {
-    total: timeseries.reduce((acc, curr) => acc + curr.value, 0),
-    timeseries,
-    isError: false,
-  };
-};
-
-const mockSales = () =>
-  [...Array(10)].map((_, i) => ({
-    date: subDays(new Date(), 10 - i),
-    earnings: Math.floor(Math.random() * 15),
-    customer: `*****@${["dub.co", "gmail.com"][i % 2]}`,
-  }));
 
 export default function ProgramPageClient() {
   const { programEnrollment } = useProgramEnrollment();
   const [copied, copyToClipboard] = useCopyToClipboard();
-
-  const { total: leads, timeseries: leadsTimeseries } = useMemo(
-    () => mockValues(1),
-    [],
-  );
-  const { total: sales, timeseries: salesTimeseries } = useMemo(
-    () => mockValues(0.25),
-    [],
-  );
-  const statsError = false;
 
   return (
     <MaxWidthWrapper className="pb-10">
@@ -102,7 +72,7 @@ export default function ProgramPageClient() {
         </div>
       </div>
       <div className="mt-6 rounded-lg border border-neutral-300">
-        <div className="p-4 md:p-8 md:pb-4">
+        <div className="p-4 md:p-6 md:pb-4">
           <EarningsChart />
         </div>
       </div>
@@ -112,7 +82,10 @@ export default function ProgramPageClient() {
         <StatCard title="Sales" event="sales" />
       </div>
       <div className="mt-6">
-        <SalesTable />
+        <h2 className="text-base font-medium text-neutral-900">Recent Sales</h2>
+        <div className="mt-4">
+          <SalesTable />
+        </div>
       </div>
     </MaxWidthWrapper>
   );
@@ -141,7 +114,7 @@ function EarningsChart() {
       <span className="block text-sm text-neutral-500">Earnings</span>
       <div className="mt-2">
         {total !== undefined ? (
-          <span className="text-3xl text-neutral-800">
+          <span className="text-2xl text-neutral-800">
             {currencyFormatter(total / 100)}
           </span>
         ) : (
@@ -180,20 +153,25 @@ function EarningsChart() {
               );
             }}
           >
-            <LinearGradient
-              id={`${id}-color-gradient`}
-              from="#7D3AEC"
-              to="#DA2778"
-              x1={0}
-              x2={1}
-            />
+            <ChartContext.Consumer>
+              {(context) => (
+                <LinearGradient
+                  id={`${id}-color-gradient`}
+                  from="#7D3AEC"
+                  to="#DA2778"
+                  x1={0}
+                  x2={context?.width ?? 1}
+                  gradientUnits="userSpaceOnUse"
+                />
+              )}
+            </ChartContext.Consumer>
 
             <XAxis />
             <YAxis showGridLines />
             <Areas
               seriesStyles={[
                 {
-                  id: "value",
+                  id: "earnings",
                   areaFill: `url(#${id}-color-gradient)`,
                   lineStroke: `url(#${id}-color-gradient)`,
                   lineClassName: "text-[#DA2778]",

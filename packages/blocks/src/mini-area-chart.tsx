@@ -5,7 +5,7 @@ import { ParentSize } from "@visx/responsive";
 import { scaleLinear, scaleUtc } from "@visx/scale";
 import { Area, AreaClosed } from "@visx/shape";
 import { motion } from "framer-motion";
-import { useMemo } from "react";
+import { useId, useMemo } from "react";
 
 export type MiniAreaChartProps = {
   data: { date: Date; value: number }[];
@@ -33,6 +33,8 @@ function MiniAreaChartInner({
   data,
   curve = true,
 }: MiniAreaChartProps & { width: number; height: number }) {
+  const id = useId();
+
   const zeroedData = useMemo(
     () =>
       data.map(({ date }) => ({
@@ -69,7 +71,7 @@ function MiniAreaChartInner({
     <svg width={width} height={height} key={data.length}>
       <defs>
         <LinearGradient
-          id="color-gradient"
+          id={`${id}-color-gradient`}
           from="#7D3AEC"
           to="#DA2778"
           x1={0}
@@ -77,7 +79,7 @@ function MiniAreaChartInner({
           gradientUnits="userSpaceOnUse"
         />
         <LinearGradient
-          id="mask-gradient"
+          id={`${id}-mask-gradient`}
           from="white"
           to="white"
           fromOpacity={0.3}
@@ -87,8 +89,8 @@ function MiniAreaChartInner({
           y1={0}
           y2={1}
         />
-        <mask id="mask" maskContentUnits="objectBoundingBox">
-          <rect width="1" height="1" fill="url(#mask-gradient)" />
+        <mask id={`${id}-mask`} maskContentUnits="objectBoundingBox">
+          <rect width="1" height="1" fill={`url(#${id}-mask-gradient)`} />
         </mask>
       </defs>
       <Group left={padding.left} top={padding.top}>
@@ -104,7 +106,7 @@ function MiniAreaChartInner({
                 initial={{ d: path(zeroedData) || "", opacity: 0 }}
                 animate={{ d: path(data) || "", opacity: 1 }}
                 strokeWidth={1.5}
-                stroke="url(#color-gradient)"
+                stroke={`url(#${id}-color-gradient)`}
               />
             );
           }}
@@ -122,8 +124,8 @@ function MiniAreaChartInner({
               <motion.path
                 initial={{ d: path(zeroedData) || "", opacity: 0 }}
                 animate={{ d: path(data) || "", opacity: 1 }}
-                fill="url(#color-gradient)"
-                mask="url(#mask)"
+                fill={`url(#${id}-color-gradient)`}
+                mask={`url(#${id}-mask)`}
               />
             );
           }}
