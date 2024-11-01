@@ -12,13 +12,13 @@ export const GET = withPartner(async ({ partner, params, searchParams }) => {
   });
 
   const parsedParams = eventsQuerySchema
-    .pick({
-      event: true,
-      interval: true,
-      page: true,
-      limit: true,
-      order: true,
-      sortBy: true,
+    .omit({
+      linkId: true,
+      externalId: true,
+      domain: true,
+      root: true,
+      key: true,
+      tagId: true,
     })
     .parse(searchParams);
 
@@ -38,7 +38,9 @@ export const GET = withPartner(async ({ partner, params, searchParams }) => {
     response.map((item) => {
       return {
         ...item,
-        earnings: getEarnings(item),
+        ...(parsedParams.event === "sales" && {
+          earnings: getEarnings(item),
+        }),
       };
     }),
   );

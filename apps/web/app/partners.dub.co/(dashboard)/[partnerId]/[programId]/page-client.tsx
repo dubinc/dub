@@ -31,6 +31,8 @@ import {
 } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
 import { endOfDay, startOfDay, subDays } from "date-fns";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { createContext, useContext, useId, useMemo } from "react";
 
 const ProgramOverviewContext = createContext<{
@@ -310,6 +312,7 @@ function StatCard({
   title: string;
   event: "clicks" | "leads" | "sales";
 }) {
+  const { partnerId, programId } = useParams();
   const { start, end, interval } = useContext(ProgramOverviewContext);
 
   const { data: total } = usePartnerAnalytics({
@@ -326,7 +329,10 @@ function StatCard({
   });
 
   return (
-    <div className="rounded-md border border-neutral-300 p-5">
+    <Link
+      href={`/${partnerId}/${programId}/events?event=${event}`}
+      className="hover:drop-shadow-card-hover block rounded-md border border-neutral-300 bg-white p-5 transition-[filter]"
+    >
       <span className="block text-sm text-neutral-500">{title}</span>
       {total !== undefined ? (
         <span className="block text-2xl text-neutral-800">
@@ -356,7 +362,7 @@ function StatCard({
           </div>
         )}
       </div>
-    </div>
+    </Link>
   );
 }
 

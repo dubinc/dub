@@ -143,6 +143,7 @@ export const saleEventResponseObfuscatedSchema = saleEventResponseSchema
   .pick({
     click: true,
     timestamp: true,
+    eventName: true,
   })
   .extend({
     link: LinkSchema.pick({

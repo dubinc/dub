@@ -194,7 +194,6 @@ function ProgramInfo() {
   const copyTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const { data: analytics, loading } = usePartnerAnalytics();
-  console.log(analytics);
 
   const items = [
     {
