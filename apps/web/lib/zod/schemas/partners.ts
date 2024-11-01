@@ -1,4 +1,5 @@
 import {
+  CommissionInterval,
   CommissionType,
   PartnerStatus,
   PayoutStatus,
@@ -30,7 +31,8 @@ export const ProgramSchema = z.object({
   commissionAmount: z.number(),
   commissionType: z.nativeEnum(CommissionType),
   recurringCommission: z.boolean(),
-  recurringDuration: z.number(),
+  recurringDuration: z.number().nullable(),
+  recurringInterval: z.nativeEnum(CommissionInterval).nullable(),
   isLifetimeRecurring: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -79,6 +81,7 @@ export const SaleSchema = z.object({
   commissionEarned: z.number(),
   currency: z.string(),
   status: z.nativeEnum(SaleStatus),
+  program: ProgramSchema,
   createdAt: z.date(),
   updatedAt: z.date(),
 });

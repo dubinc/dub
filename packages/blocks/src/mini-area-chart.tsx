@@ -72,8 +72,8 @@ function MiniAreaChartInner({
       <defs>
         <LinearGradient
           id={`${id}-color-gradient`}
-          from="#7D3AEC"
-          to="#DA2778"
+          from="#8B5CF6"
+          to="#4C1D95"
           x1={0}
           x2={width - padding.left - padding.right}
           gradientUnits="userSpaceOnUse"
