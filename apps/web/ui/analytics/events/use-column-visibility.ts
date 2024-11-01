@@ -72,6 +72,7 @@ export const getEventColumns: (
       "ip",
       "timestamp",
       "saleAmount",
+      ...(partners ? ["earnings"] : []),
     ],
     defaultVisible: [
       "event",
@@ -79,6 +80,7 @@ export const getEventColumns: (
       "customer",
       "country",
       "saleAmount",
+      ...(partners ? ["earnings"] : []),
       "timestamp",
     ],
   },
