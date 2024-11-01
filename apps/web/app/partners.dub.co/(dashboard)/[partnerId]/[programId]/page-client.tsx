@@ -148,7 +148,7 @@ function EarningsChart() {
     () =>
       timeseries?.map(({ start, earnings }) => ({
         date: new Date(start),
-        values: { earnings },
+        values: { earnings: earnings / 100 },
       })),
     [timeseries],
   );
@@ -158,16 +158,16 @@ function EarningsChart() {
       <div className="flex flex-col-reverse items-start justify-between gap-4 md:flex-row">
         <div>
           <span className="block text-sm text-neutral-500">Earnings</span>
-          <div className="mt-1">
+          <div className="mt-1.5">
             {total !== undefined ? (
-              <span className="text-2xl text-neutral-800">
-                {currencyFormatter(total, {
+              <span className="text-2xl leading-none text-neutral-800">
+                {currencyFormatter(total / 100, {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
               </span>
             ) : (
-              <div className="h-9 w-24 animate-pulse rounded-md bg-neutral-200" />
+              <div className="h-7 w-24 animate-pulse rounded-md bg-neutral-200" />
             )}
           </div>
         </div>
@@ -407,7 +407,7 @@ function SalesTable() {
         header: "Earned",
         accessorKey: "earnings",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.earnings, {
+          return currencyFormatter(row.original.earnings / 100, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           });

@@ -194,6 +194,7 @@ function ProgramInfo() {
   const copyTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const { data: analytics, loading } = usePartnerAnalytics();
+  console.log(analytics);
 
   const items = [
     {
@@ -206,7 +207,7 @@ function ProgramInfo() {
       icon: MoneyBills2,
       href: `/${partnerId}/${programId}/payouts`,
       label: "Earnings",
-      value: `${currencyFormatter(analytics?.earnings / 100 || 0)}`,
+      value: `${currencyFormatter((analytics?.earnings || 0) / 100)}`,
     },
   ];
 
