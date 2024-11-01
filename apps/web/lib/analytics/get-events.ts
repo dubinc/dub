@@ -12,6 +12,7 @@ import {
 } from "../zod/schemas/clicks";
 import { customerSchema } from "../zod/schemas/customers";
 import {
+  leadEventResponseObfuscatedSchema,
   leadEventResponseSchema,
   leadEventSchemaTBEndpoint,
 } from "../zod/schemas/leads";
@@ -142,7 +143,11 @@ export const getEvents = async (params: EventsFilters) => {
       if (evt.event === "click") {
         return clickEventResponseSchema.parse(eventData);
       } else if (evt.event === "lead") {
-        return leadEventResponseSchema.parse(eventData);
+        return (
+          obfuscateData
+            ? leadEventResponseObfuscatedSchema
+            : leadEventResponseSchema
+        ).parse(eventData);
       } else if (evt.event === "sale") {
         return (
           obfuscateData

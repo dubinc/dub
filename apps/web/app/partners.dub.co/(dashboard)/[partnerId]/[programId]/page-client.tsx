@@ -83,7 +83,7 @@ export default function ProgramPageClient() {
           <MoneyBill2 className="size-4" />
           Refer and earn
         </span>
-        <div className="mt-24 text-lg text-neutral-900 sm:max-w-[50%]">
+        <div className="relative mt-24 text-lg text-neutral-900 sm:max-w-[50%]">
           {program ? (
             <>
               Earn{" "}
@@ -121,13 +121,13 @@ export default function ProgramPageClient() {
         <span className="mb-1.5 mt-6 block text-sm text-neutral-800">
           Referral link
         </span>
-        <div className="xs:flex-row flex flex-col items-center gap-2">
+        <div className="xs:flex-row relative flex flex-col items-center gap-2">
           {programEnrollment?.link ? (
             <input
               type="text"
               readOnly
               value={getPrettyUrl(programEnrollment?.link.shortLink)}
-              className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 lg:min-w-72"
+              className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 lg:min-w-64 xl:min-w-72"
             />
           ) : (
             <div className="h-10 w-16 animate-pulse rounded-md bg-neutral-200 lg:w-72" />
