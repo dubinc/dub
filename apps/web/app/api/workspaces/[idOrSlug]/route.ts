@@ -13,7 +13,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/workspaces/[idOrSlug] – get a specific workspace by id or slug
 export const GET = withWorkspace(
-  async ({ workspace, session, headers }) => {
+  async ({ workspace, headers }) => {
     const domains = await prisma.domain.findMany({
       where: {
         projectId: workspace.id,
@@ -43,7 +43,7 @@ export const GET = withWorkspace(
 
 // PATCH /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
 export const PATCH = withWorkspace(
-  async ({ req, workspace, session }) => {
+  async ({ req, workspace }) => {
     const { name, slug } = await updateWorkspaceSchema.parseAsync(
       await req.json(),
     );
