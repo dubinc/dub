@@ -38,8 +38,8 @@ export const GET = withPartner(async ({ partner, params, searchParams }) => {
 
   const getEarnings = (item: any) => {
     return program.commissionType === "percentage"
-      ? item.saleAmount * program.commissionAmount
-      : program.commissionAmount * item.sales;
+      ? item.sale.amount * (program.commissionAmount / 100)
+      : item.sales * program.commissionAmount;
   };
 
   let data;
