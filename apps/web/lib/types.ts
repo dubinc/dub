@@ -99,6 +99,13 @@ export interface WorkspaceProps extends Project {
   };
 }
 
+export type ExpandedWorkspaceProps = WorkspaceProps & {
+  programs: {
+    id: string;
+    name: string;
+  }[];
+};
+
 export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;
 
 export interface UserProps {

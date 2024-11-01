@@ -6,6 +6,7 @@ import {
   Books2,
   CircleInfo,
   ConnectedDots,
+  ConnectedDots4,
   CubeSettings,
   Gear2,
   Gift,
@@ -13,7 +14,6 @@ import {
   Key,
   Receipt2,
   ShieldCheck,
-  TableIcon,
   Users6,
   Webhook,
 } from "@dub/ui/src/icons";
@@ -31,9 +31,10 @@ import { WorkspaceDropdown } from "./workspace-dropdown";
 const NAV_AREAS: SidebarNavAreas<{
   slug: string;
   flags?: Record<BetaFeatures, boolean>;
+  hasPrograms: boolean;
 }> = {
   // Top-level
-  default: ({ slug }) => ({
+  default: ({ slug, hasPrograms }) => ({
     showSwitcher: true,
     showNews: true,
     direction: "left",
@@ -63,16 +64,20 @@ const NAV_AREAS: SidebarNavAreas<{
           },
         ],
       },
-      {
-        name: "Partnerships",
-        items: [
-          {
-            name: "Affiliate Program",
-            icon: TableIcon,
-            href: `/${slug}/programs`,
-          },
-        ],
-      },
+      ...(hasPrograms
+        ? [
+            {
+              name: "Partnerships",
+              items: [
+                {
+                  name: "Affiliate Program",
+                  icon: ConnectedDots4,
+                  href: `/${slug}/programs`,
+                },
+              ],
+            },
+          ]
+        : []),
     ],
   }),
 
@@ -202,7 +207,7 @@ export function AppSidebarNav({
 }) {
   const { slug } = useParams() as { slug?: string };
   const pathname = usePathname();
-  const { flags } = useWorkspace();
+  const { flags, hasPrograms } = useWorkspace();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -216,7 +221,7 @@ export function AppSidebarNav({
     <SidebarNav
       areas={NAV_AREAS}
       currentArea={currentArea}
-      data={{ slug: slug || "", flags }}
+      data={{ slug: slug || "", flags, hasPrograms: hasPrograms || false }}
       toolContent={toolContent}
       newsContent={newsContent}
       switcher={<WorkspaceDropdown />}
