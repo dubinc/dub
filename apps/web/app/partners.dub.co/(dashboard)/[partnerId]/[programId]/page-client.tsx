@@ -97,14 +97,17 @@ export default function ProgramPageClient() {
               </strong>
               for each conversion
               {program.recurringCommission &&
-              (program.recurringDuration > 0 || program.isLifetimeRecurring) ? (
+              ((program.recurringDuration && program.recurringDuration > 0) ||
+                program.isLifetimeRecurring) ? (
                 <>
                   , and again{" "}
                   <strong className="font-semibold">
                     every {program.recurringInterval || "cycle"} for{" "}
                     {program.isLifetimeRecurring
                       ? "the customer's lifetime."
-                      : `${program.recurringDuration} ${pluralize(program.recurringInterval || "cycle", program.recurringDuration)}.`}
+                      : program.recurringDuration
+                        ? `${program.recurringDuration} ${pluralize(program.recurringInterval || "cycle", program.recurringDuration)}.`
+                        : null}
                   </strong>
                 </>
               ) : (
