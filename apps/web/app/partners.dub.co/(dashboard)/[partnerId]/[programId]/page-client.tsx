@@ -31,6 +31,8 @@ import {
 } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
 import { endOfDay, startOfDay, subDays } from "date-fns";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { createContext, useContext, useId, useMemo } from "react";
 
 const ProgramOverviewContext = createContext<{
@@ -62,7 +64,7 @@ export default function ProgramPageClient() {
   }, [searchParams?.get("start"), searchParams?.get("end")]);
 
   const interval =
-    start || end ? undefined : searchParams?.get("interval") ?? "24h";
+    start || end ? undefined : searchParams?.get("interval") ?? "30d";
 
   return (
     <MaxWidthWrapper className="pb-10">
@@ -111,10 +113,12 @@ export default function ProgramPageClient() {
         <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-3">
           <StatCard title="Clicks" event="clicks" />
           <StatCard title="Leads" event="leads" />
-          <StatCard title="Sales" event="sales" />
+          <StatCard title="Conversions" event="sales" />
         </div>
         <div className="mt-6">
-          <h2 className="text-base font-medium text-neutral-900">Sales</h2>
+          <h2 className="text-base font-medium text-neutral-900">
+            {!start && !end ? "Recent conversions" : "Conversions"}
+          </h2>
           <div className="mt-4">
             <SalesTable />
           </div>
@@ -156,19 +160,23 @@ function EarningsChart() {
       <div className="flex flex-col-reverse items-start justify-between gap-4 md:flex-row">
         <div>
           <span className="block text-sm text-neutral-500">Earnings</span>
-          <div className="mt-2">
+          <div className="mt-1.5">
             {total !== undefined ? (
-              <span className="text-2xl text-neutral-800">
-                {currencyFormatter(total / 100)}
+              <span className="text-2xl leading-none text-neutral-800">
+                {currencyFormatter(total / 100, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </span>
             ) : (
-              <div className="h-9 w-24 animate-pulse rounded-md bg-neutral-200" />
+              <div className="h-7 w-24 animate-pulse rounded-md bg-neutral-200" />
             )}
           </div>
         </div>
         <div className="w-full md:w-auto">
           <DateRangePicker
             className="h-8 w-full md:w-fit"
+            align="end"
             value={
               start && end
                 ? {
@@ -220,7 +228,7 @@ function EarningsChart() {
           />
         </div>
       </div>
-      <div className="relative h-64 w-full">
+      <div className="relative mt-4 h-64 w-full">
         {data ? (
           <TimeSeriesChart
             data={data}
@@ -245,7 +253,10 @@ function EarningsChart() {
                       <p className="capitalize text-gray-600">Earnings</p>
                     </div>
                     <p className="text-right font-medium text-gray-900">
-                      {currencyFormatter(d.values.earnings)}
+                      {currencyFormatter(d.values.earnings, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </p>
                   </div>
                 </>
@@ -301,6 +312,7 @@ function StatCard({
   title: string;
   event: "clicks" | "leads" | "sales";
 }) {
+  const { partnerId, programId } = useParams();
   const { start, end, interval } = useContext(ProgramOverviewContext);
 
   const { data: total } = usePartnerAnalytics({
@@ -317,7 +329,10 @@ function StatCard({
   });
 
   return (
-    <div className="rounded-md border border-neutral-300 p-5">
+    <Link
+      href={`/${partnerId}/${programId}/events?event=${event}`}
+      className="hover:drop-shadow-card-hover block rounded-md border border-neutral-300 bg-white p-5 transition-[filter]"
+    >
       <span className="block text-sm text-neutral-500">{title}</span>
       {total !== undefined ? (
         <span className="block text-2xl text-neutral-800">
@@ -347,7 +362,7 @@ function StatCard({
           </div>
         )}
       </div>
-    </div>
+    </Link>
   );
 }
 

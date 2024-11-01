@@ -15,7 +15,7 @@ export default function usePartnerEvents(params?: PartnerEventsFilters) {
             start: params.start.toISOString(),
             end: params.end.toISOString(),
           }),
-        interval: params?.interval ?? "90d",
+        interval: params?.interval ?? "30d",
       },
     ).toString()}`,
     fetcher,

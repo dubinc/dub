@@ -5,6 +5,6 @@ export const metadata = constructMetadata({
   noIndex: true,
 });
 
-export default function Partners() {
+export default function PartnersPage() {
   return <PartnersPageClient />;
 }

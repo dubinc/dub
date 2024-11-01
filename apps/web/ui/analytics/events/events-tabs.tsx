@@ -1,6 +1,5 @@
 import { AnalyticsResponseOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { MiniAreaChart } from "@dub/blocks";
 import { CountingNumbers, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { capitalize, cn, fetcher } from "@dub/utils";
@@ -17,14 +16,17 @@ type TimeseriesData = {
   saleAmount: number;
 }[];
 
-export default function EventsTabs() {
+export default function EventsTabs({
+  conversionEnabled,
+}: {
+  conversionEnabled?: boolean;
+}) {
   const { searchParams, queryParams } = useRouterStuff();
   const { isMobile } = useMediaQuery();
 
   const tab = searchParams.get("event") || "clicks";
   const { demoPage } = useContext(AnalyticsContext);
 
-  const { conversionEnabled } = useWorkspace();
   const { baseApiPath, queryString, requiresUpgrade } =
     useContext(AnalyticsContext);
 

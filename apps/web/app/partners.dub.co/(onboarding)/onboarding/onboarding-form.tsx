@@ -1,7 +1,13 @@
 "use client";
 
 import { onboardPartner } from "@/lib/actions/partners/onboard-partner";
-import { Button, Combobox, FileUpload, useMediaQuery } from "@dub/ui";
+import {
+  Button,
+  buttonVariants,
+  Combobox,
+  FileUpload,
+  useMediaQuery,
+} from "@dub/ui";
 import { COUNTRIES } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
 import { useRouter } from "next/navigation";
@@ -47,7 +53,7 @@ export function OnboardingForm() {
       <label>
         <span className="text-sm font-medium text-gray-800">
           Name
-          <span className="ml-0.5 text-red-600/60">*</span>
+          <span className="font-normal text-neutral-500"> (required)</span>
         </span>
         <input
           type="text"
@@ -67,7 +73,7 @@ export function OnboardingForm() {
 
       <label>
         <span className="text-sm font-medium text-gray-800">Logo</span>
-        <div className="flex items-end gap-2">
+        <div className="flex items-center gap-5">
           <Controller
             control={control}
             name="logo"
@@ -86,7 +92,19 @@ export function OnboardingForm() {
               />
             )}
           />
-          <p className="text-xs text-gray-500">Recommended size: 160x160px</p>
+          <div>
+            <div
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "flex h-7 w-fit cursor-pointer items-center rounded-md border px-2 text-xs",
+              )}
+            >
+              Upload image
+            </div>
+            <p className="mt-1.5 text-xs text-gray-500">
+              Recommended size: 160x160px
+            </p>
+          </div>
         </div>
       </label>
 

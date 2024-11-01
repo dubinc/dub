@@ -70,9 +70,9 @@ const NAV_AREAS: SidebarNavAreas<{
             exact: true,
           },
           {
-            name: "Customers",
-            icon: Users,
-            href: `/${partnerId}/${programId}/customers`,
+            name: "Payouts",
+            icon: MoneyBills2,
+            href: `/${partnerId}/${programId}/payouts`,
           },
           {
             name: "Events",
@@ -83,11 +83,6 @@ const NAV_AREAS: SidebarNavAreas<{
             name: "Links",
             icon: Hyperlink,
             href: `/${partnerId}/${programId}/links`,
-          },
-          {
-            name: "Payouts",
-            icon: MoneyBills2,
-            href: `/${partnerId}/${programId}/payouts`,
           },
           {
             name: "Resources",
@@ -211,7 +206,7 @@ function ProgramInfo() {
       icon: MoneyBills2,
       href: `/${partnerId}/${programId}/payouts`,
       label: "Earnings",
-      value: `${currencyFormatter(analytics?.earnings / 100 || 0)}`,
+      value: `${currencyFormatter((analytics?.earnings || 0) / 100)}`,
     },
   ];
 
