@@ -52,6 +52,7 @@ type UseTableProps<T> = {
   resourceName?: (plural: boolean) => string;
 
   className?: string;
+  containerClassName?: string;
   scrollWrapperClassName?: string;
   thClassName?: string;
   tdClassName?: string;
@@ -142,6 +143,7 @@ export function Table<T>({
   onSortChange,
   sortableColumns = [],
   className,
+  containerClassName,
   scrollWrapperClassName,
   thClassName,
   tdClassName,
@@ -152,7 +154,12 @@ export function Table<T>({
   children,
 }: TableProps<T>) {
   return (
-    <div className="relative border border-gray-200 bg-white sm:rounded-xl">
+    <div
+      className={cn(
+        "relative border border-gray-200 bg-white sm:rounded-xl",
+        containerClassName,
+      )}
+    >
       {(!error && !!data?.length) || loading ? (
         <div
           className={cn(

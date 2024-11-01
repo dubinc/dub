@@ -36,14 +36,14 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
           </p>
           <div className="flex gap-3 text-center text-xs text-gray-500 underline underline-offset-2">
             <a
-              href="https://dub.co/privacy"
+              href="https://dub.co/legal/privacy"
               target="_blank"
               className="hover:text-gray-800"
             >
               Privacy Policy
             </a>
             <a
-              href="https://dub.co/terms"
+              href="https://dub.co/legal/terms"
               target="_blank"
               className="hover:text-gray-800"
             >

@@ -33,6 +33,7 @@ model User {
   accounts              Account[]
   sessions              Session[]
   projects              ProjectUsers[]
+  partners              PartnerUser[]
   links                 Link[]
   dashboards            Dashboard[]
   tokens                Token[]

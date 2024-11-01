@@ -64,6 +64,7 @@ model Link {
   comments String? @db.LongText
 
   dashboard Dashboard?
+  programEnrollment ProgramEnrollment?
 
   @@unique([domain, key])
   @@unique([projectId, externalId])

@@ -43,6 +43,7 @@ model Project {
   links                 Link[]
   domains               Domain[]
   tags                  Tag[]
+  programs              Program[]
   customers             Customer[]
   defaultDomains        DefaultDomains[]
   restrictedTokens      RestrictedToken[]

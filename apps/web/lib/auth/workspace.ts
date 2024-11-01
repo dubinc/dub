@@ -334,7 +334,9 @@ export const withWorkspace = (
 
         // beta feature checks
         if (featureFlag) {
-          const flags = await getFeatureFlags({ workspaceId: workspace.id });
+          const flags = await getFeatureFlags({
+            workspaceId: workspace.id,
+          });
 
           if (!flags[featureFlag]) {
             throw new DubApiError({

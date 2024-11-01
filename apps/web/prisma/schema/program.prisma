@@ -1,0 +1,62 @@
+enum ProgramType {
+  affiliate
+  referral
+}
+
+enum CommissionType {
+  percentage
+  flat
+}
+
+enum ProgramEnrollmentStatus {
+  approved
+  pending
+  rejected
+}
+
+enum CommissionInterval {
+  month
+  year
+}
+
+model Program {
+  id                  String              @id @default(cuid())
+  workspaceId         String
+  name                String
+  slug                String              @unique
+  logo                String?
+  type                ProgramType         @default(affiliate)
+  cookieLength        Int                 @default(90)
+  minimumPayout       Int                 @default(10000)
+  commissionAmount    Float               @default(0)
+  commissionType      CommissionType      @default(percentage)
+  recurringCommission Boolean             @default(false)
+  recurringInterval   CommissionInterval?
+  recurringDuration   Int?
+  isLifetimeRecurring Boolean             @default(false)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  workspace Project             @relation(fields: [workspaceId], references: [id])
+  partners  ProgramEnrollment[]
+
+  @@index([workspaceId])
+}
+
+model ProgramEnrollment {
+  id        String                  @id @default(cuid())
+  partnerId String
+  programId String
+  linkId    String?                 @unique
+  status    ProgramEnrollmentStatus @default(pending)
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+
+  partner Partner @relation(fields: [partnerId], references: [id])
+  program Program @relation(fields: [programId], references: [id])
+  link    Link?   @relation(fields: [linkId], references: [id])
+
+  @@unique([partnerId, programId])
+  @@index([programId])
+  @@index([linkId])
+}
