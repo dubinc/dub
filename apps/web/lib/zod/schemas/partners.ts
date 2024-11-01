@@ -29,7 +29,7 @@ export const ProgramSchema = z.object({
   commissionAmount: z.number(),
   commissionType: z.nativeEnum(CommissionType),
   recurringCommission: z.boolean(),
-  recurringDuration: z.number(),
+  recurringDuration: z.number().nullable(),
   recurringInterval: z.nativeEnum(CommissionInterval).nullable(),
   isLifetimeRecurring: z.boolean(),
   createdAt: z.date(),
