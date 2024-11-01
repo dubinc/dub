@@ -1,4 +1,9 @@
-import { CommissionType, PartnerStatus, ProgramType } from "@prisma/client";
+import {
+  CommissionInterval,
+  CommissionType,
+  PartnerStatus,
+  ProgramType,
+} from "@prisma/client";
 import { z } from "zod";
 import { LinkSchema } from "./links";
 
@@ -25,6 +30,7 @@ export const ProgramSchema = z.object({
   commissionType: z.nativeEnum(CommissionType),
   recurringCommission: z.boolean(),
   recurringDuration: z.number(),
+  recurringInterval: z.nativeEnum(CommissionInterval).nullable(),
   isLifetimeRecurring: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -42,6 +48,7 @@ export const ProgramEnrollmentSchema = z.object({
     sales: true,
     saleAmount: true,
   }).nullable(),
+  program: ProgramSchema,
   createdAt: z.date(),
   updatedAt: z.date(),
 });
