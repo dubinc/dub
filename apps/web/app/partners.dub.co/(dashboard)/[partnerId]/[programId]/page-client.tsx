@@ -111,10 +111,12 @@ export default function ProgramPageClient() {
         <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-3">
           <StatCard title="Clicks" event="clicks" />
           <StatCard title="Leads" event="leads" />
-          <StatCard title="Sales" event="sales" />
+          <StatCard title="Conversions" event="sales" />
         </div>
         <div className="mt-6">
-          <h2 className="text-base font-medium text-neutral-900">Sales</h2>
+          <h2 className="text-base font-medium text-neutral-900">
+            {!start && !end ? "Recent conversions" : "Conversions"}
+          </h2>
           <div className="mt-4">
             <SalesTable />
           </div>
