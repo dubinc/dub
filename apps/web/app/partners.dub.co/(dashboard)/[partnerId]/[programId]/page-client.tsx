@@ -277,7 +277,7 @@ function EarningsChart() {
               {
                 id: "earnings",
                 valueAccessor: (d) => d.values.earnings,
-                colorClassName: "text-[#DA2778]",
+                colorClassName: "text-[#8B5CF6]",
                 isActive: true,
               },
             ]}
@@ -308,8 +308,8 @@ function EarningsChart() {
               {(context) => (
                 <LinearGradient
                   id={`${id}-color-gradient`}
-                  from="#7D3AEC"
-                  to="#DA2778"
+                  from="#8B5CF6"
+                  to="#4C1D95"
                   x1={0}
                   x2={context?.width ?? 1}
                   gradientUnits="userSpaceOnUse"
@@ -325,7 +325,7 @@ function EarningsChart() {
                   id: "earnings",
                   areaFill: `url(#${id}-color-gradient)`,
                   lineStroke: `url(#${id}-color-gradient)`,
-                  lineClassName: "text-[#DA2778]",
+                  lineClassName: "text-violet-500",
                 },
               ]}
             />
