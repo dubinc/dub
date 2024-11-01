@@ -6,7 +6,7 @@ const heroGradient =
 
 export function HeroBackground({ logo }: { logo?: string | null }) {
   return (
-    <div className="pointer-events-none absolute inset-0 [mask-image:radial-gradient(100%_100%_at_top_right,black,transparent)] max-[350px]:opacity-50 sm:[mask-image:linear-gradient(to_right,transparent_50%,black_70%)]">
+    <div className="pointer-events-none absolute inset-0 overflow-hidden [mask-image:radial-gradient(100%_100%_at_top_right,black,transparent)] max-[350px]:opacity-50 sm:[mask-image:linear-gradient(to_right,transparent_50%,black_70%)]">
       <div className="absolute -right-[60px] top-[40px] isolate w-[600px] -translate-y-1/2 overflow-hidden bg-white sm:-right-[60px] sm:top-1/2 sm:w-[1200px] md:right-0">
         <div
           className="absolute -inset-[50%] opacity-15 blur-[100px]"

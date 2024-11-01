@@ -28,6 +28,7 @@ import {
   CONTINENTS,
   COUNTRIES,
   capitalize,
+  currencyFormatter,
   fetcher,
   getApexDomain,
   getPrettyUrl,
@@ -417,7 +418,7 @@ export default function EventsTable({
           id: "saleAmount",
           header: "Sale Amount",
           accessorKey: "sale.amount",
-          enableHiding: false,
+          enableHiding: partners,
           minSize: 120,
           cell: ({ getValue }) => (
             <div className="flex items-center gap-2">
@@ -426,9 +427,9 @@ export default function EventsTable({
             </div>
           ),
         },
-        // Sale invoice ID
         ...(!partners
           ? [
+              // Sale invoice ID
               {
                 id: "invoiceId",
                 header: "Invoice ID",
@@ -442,7 +443,27 @@ export default function EventsTable({
                   ) || <span className="text-gray-400">-</span>,
               },
             ]
-          : []),
+          : [
+              // Earnings amount
+              {
+                id: "earnings",
+                header: "Earnings",
+                accessorKey: "earnings",
+                enableHiding: false,
+                minSize: 120,
+                cell: ({ getValue }) => (
+                  <div className="flex items-center gap-2">
+                    <span>
+                      {currencyFormatter(getValue() / 100, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                    <span className="text-gray-400">USD</span>
+                  </div>
+                ),
+              },
+            ]),
         // Date
         {
           id: "timestamp",
