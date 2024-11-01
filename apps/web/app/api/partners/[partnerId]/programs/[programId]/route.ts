@@ -15,6 +15,7 @@ export const GET = withPartner(async ({ partner, params }) => {
     },
     include: {
       link: true,
+      program: true,
     },
   });
 

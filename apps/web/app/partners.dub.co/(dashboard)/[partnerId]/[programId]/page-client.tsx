@@ -22,18 +22,25 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CircleDollar, Copy, LoadingSpinner } from "@dub/ui/src/icons";
+import {
+  CircleDollar,
+  Copy,
+  LoadingSpinner,
+  MoneyBill2,
+} from "@dub/ui/src/icons";
 import {
   currencyFormatter,
   formatDate,
   getPrettyUrl,
   nFormatter,
+  pluralize,
 } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
 import { endOfDay, startOfDay, subDays } from "date-fns";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { createContext, useContext, useId, useMemo } from "react";
+import { HeroBackground } from "./hero-background";
 
 const ProgramOverviewContext = createContext<{
   start?: Date;
@@ -66,24 +73,58 @@ export default function ProgramPageClient() {
   const interval =
     start || end ? undefined : searchParams?.get("interval") ?? "30d";
 
+  const program = programEnrollment?.program;
+
   return (
     <MaxWidthWrapper className="pb-10">
-      <div className="flex flex-col items-start justify-between gap-4 rounded-lg border border-neutral-300 bg-neutral-50 p-4 sm:flex-row sm:items-center md:p-8">
-        <div>
-          <span className="block text-xl font-medium leading-none text-neutral-900">
-            Referral link
-          </span>
-          <p className="mt-2 text-sm text-neutral-500">
-            Track events and conversions when using your referral link
-          </p>
+      <div className="relative flex flex-col rounded-lg border border-neutral-300 bg-neutral-50 p-4 md:p-6">
+        <HeroBackground />
+        <span className="flex items-center gap-2 text-sm text-neutral-500">
+          <MoneyBill2 className="size-4" />
+          Refer and earn
+        </span>
+        <div className="mt-24 text-lg text-neutral-900 sm:max-w-[50%]">
+          {program ? (
+            <>
+              Earn{" "}
+              <strong className="font-semibold">
+                {program.commissionType === "percentage"
+                  ? program.commissionAmount * 100 + "%"
+                  : currencyFormatter(program.commissionAmount / 100, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+              </strong>
+              for each conversion
+              {program.recurringCommission &&
+              (program.recurringDuration > 0 || program.isLifetimeRecurring) ? (
+                <>
+                  , and again{" "}
+                  <strong className="font-semibold">
+                    every {program.recurringInterval || "cycle"} for{" "}
+                    {program.isLifetimeRecurring
+                      ? "the customer's lifetime."
+                      : `${program.recurringDuration} ${pluralize(program.recurringInterval || "cycle", program.recurringDuration)}.`}
+                  </strong>
+                </>
+              ) : (
+                "."
+              )}
+            </>
+          ) : (
+            <div className="mb-7 h-7 w-full animate-pulse rounded-md bg-neutral-200" />
+          )}
         </div>
-        <div className="flex items-center gap-2">
+        <span className="mb-1.5 mt-6 block text-sm text-neutral-800">
+          Referral link
+        </span>
+        <div className="xs:flex-row flex flex-col items-center gap-2">
           {programEnrollment?.link ? (
             <input
               type="text"
               readOnly
               value={getPrettyUrl(programEnrollment?.link.shortLink)}
-              className="h-10 rounded-md border border-neutral-300 px-3 text-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 lg:min-w-72"
+              className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 lg:min-w-72"
             />
           ) : (
             <div className="h-10 w-16 animate-pulse rounded-md bg-neutral-200 lg:w-72" />
@@ -97,7 +138,7 @@ export default function ProgramPageClient() {
               )
             }
             text={copied ? "Copied link" : "Copy link"}
-            className="w-fit"
+            className="xs:w-fit"
             onClick={() =>
               copyToClipboard(getPrettyUrl(programEnrollment?.link?.shortLink))
             }
