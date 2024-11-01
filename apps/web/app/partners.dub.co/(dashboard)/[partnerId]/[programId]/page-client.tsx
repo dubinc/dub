@@ -89,7 +89,7 @@ export default function ProgramPageClient() {
               Earn{" "}
               <strong className="font-semibold">
                 {program.commissionType === "percentage"
-                  ? program.commissionAmount * 100 + "%"
+                  ? program.commissionAmount + "%"
                   : currencyFormatter(program.commissionAmount / 100, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
