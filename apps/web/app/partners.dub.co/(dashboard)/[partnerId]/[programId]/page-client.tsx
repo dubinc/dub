@@ -78,7 +78,7 @@ export default function ProgramPageClient() {
   return (
     <MaxWidthWrapper className="pb-10">
       <div className="relative flex flex-col rounded-lg border border-neutral-300 bg-neutral-50 p-4 md:p-6">
-        <HeroBackground />
+        <HeroBackground logo={program?.logo} />
         <span className="flex items-center gap-2 text-sm text-neutral-500">
           <MoneyBill2 className="size-4" />
           Refer and earn
