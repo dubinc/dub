@@ -2,7 +2,7 @@ import { Logo } from "@dub/ui";
 import Image from "next/image";
 
 const heroGradient =
-  "conic-gradient(from 45deg at 65% 70%, #855AFC 0deg, #3A8BFD 72deg, #00FFF9 144deg, #5CFF80 197.89deg, #855AFC 260.96deg, #FF0000 360deg)";
+  "conic-gradient(from 45deg at 65% 70%, #8B5CF6 0deg, #7B4EE4 72deg, #6B40D2 144deg, #8B5CF6 197.89deg, #7B4EE4 260.96deg, #6B40D2 360deg)";
 
 export function HeroBackground() {
   return (
