@@ -1,3 +1,5 @@
+import { PageContent } from "@/ui/layout/page-content";
+import { MaxWidthWrapper } from "@dub/ui";
 import { PartnerStats } from "./stats";
 
 export default function ProgramPartners({
@@ -8,8 +10,10 @@ export default function ProgramPartners({
   const { programId } = params;
 
   return (
-    <div className="mt-8 space-y-10">
-      <PartnerStats programId={programId} />
-    </div>
+    <PageContent title="Partners">
+      <MaxWidthWrapper>
+        <PartnerStats programId={programId} />
+      </MaxWidthWrapper>
+    </PageContent>
   );
 }

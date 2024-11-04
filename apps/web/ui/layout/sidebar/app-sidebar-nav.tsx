@@ -73,6 +73,36 @@ const NAV_AREAS: SidebarNavAreas<{
                   name: "Affiliate Program",
                   icon: ConnectedDots4,
                   href: `/${slug}/programs/${programs[0].id}`,
+                  items: [
+                    {
+                      name: "Overview",
+                      href: `/${slug}/programs/${programs[0].id}/overview`,
+                    },
+                    {
+                      name: "Payouts",
+                      href: `/${slug}/programs/${programs[0].id}/payouts`,
+                    },
+                    {
+                      name: "Partners",
+                      href: `/${slug}/programs/${programs[0].id}/partners`,
+                    },
+                    {
+                      name: "Conversions",
+                      href: `/${slug}/programs/${programs[0].id}/conversions`,
+                    },
+                    {
+                      name: "Branding",
+                      href: `/${slug}/programs/${programs[0].id}/branding`,
+                    },
+                    {
+                      name: "Resources",
+                      href: `/${slug}/programs/${programs[0].id}/resources`,
+                    },
+                    {
+                      name: "Settings",
+                      href: `/${slug}/programs/${programs[0].id}/settings`,
+                    },
+                  ],
                 },
               ],
             },

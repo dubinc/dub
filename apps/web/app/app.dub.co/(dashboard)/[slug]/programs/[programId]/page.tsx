@@ -1,5 +1,10 @@
-import { PageContent } from "@/ui/layout/page-content";
+import { redirect } from "next/navigation";
 
-export default function ProgramInfo() {
-  return <PageContent title="Program Info" />;
+export default function ProgramInfo({
+  params,
+}: {
+  params: { slug: string; programId: string };
+}) {
+  redirect(`/${params.slug}/programs/${params.programId}/overview`);
+  return null;
 }
