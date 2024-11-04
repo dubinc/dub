@@ -1,7 +1,13 @@
 import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
-import { Link, Project, UtmTemplate, Webhook } from "@prisma/client";
+import {
+  Link,
+  ProgramEnrollmentStatus,
+  Project,
+  UtmTemplate,
+  Webhook,
+} from "@prisma/client";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import { trackCustomerResponseSchema } from "./zod/schemas/customers";
 import { integrationSchema } from "./zod/schemas/integration";
@@ -9,6 +15,7 @@ import { trackLeadResponseSchema } from "./zod/schemas/leads";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
+  EnrolledPartnerSchema,
   PartnerSchema,
   PayoutSchema,
   ProgramEnrollmentSchema,
@@ -285,7 +292,12 @@ export type TrackSaleResponse = z.infer<typeof trackSaleResponseSchema>;
 
 export type UsageResponse = z.infer<typeof usageResponse>;
 
+export type PartnerCounts = {
+  status: ProgramEnrollmentStatus;
+  _count: number;
+};
 export type PartnerProps = z.infer<typeof PartnerSchema>;
+export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
 
 export type ProgramProps = z.infer<typeof ProgramSchema>;
 

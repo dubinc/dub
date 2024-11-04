@@ -1,24 +1,21 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { PartnerSchema } from "@/lib/zod/schemas/partners";
-import { ProgramEnrollmentStatus } from "@prisma/client";
+import {
+  EnrolledPartnerSchema,
+  partnersQuerySchema,
+} from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-const searchSchema = z.object({
-  status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
-  offset: z.number().optional().default(0),
-  limit: z.number().optional().default(50),
-});
 
 // GET /api/programs/[programId]/partners - get all partners for a program
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
-    const { status, offset, limit } = searchSchema.parse(searchParams);
+    const { status, country, search, page, pageSize } =
+      partnersQuerySchema.parse(searchParams);
 
-    await getProgramOrThrow({
+    const program = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
@@ -27,20 +24,28 @@ export const GET = withWorkspace(
       where: {
         programId,
         ...(status && { status }),
+        ...(country && { partner: { country } }),
+        ...(search && { partner: { name: { contains: search } } }),
       },
       include: {
         partner: true,
+        link: true,
       },
-      skip: offset,
-      take: limit,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     });
 
     const partners = programEnrollments.map((enrollment) => ({
       ...enrollment.partner,
       ...enrollment,
       id: enrollment.partnerId,
+      earnings:
+        ((program.commissionType === "percentage"
+          ? enrollment.link?.saleAmount
+          : enrollment.link?.sales) ?? 0) *
+        (program.commissionAmount / 100),
     }));
 
-    return NextResponse.json(z.array(PartnerSchema).parse(partners));
+    return NextResponse.json(z.array(EnrolledPartnerSchema).parse(partners));
   },
 );

@@ -35,7 +35,7 @@ const defaultIcons = {
 interface BadgeProps
   extends React.HTMLAttributes<HTMLSpanElement>,
     VariantProps<typeof statusBadgeVariants> {
-  icon?: Icon;
+  icon?: Icon | null;
 }
 
 function StatusBadge({

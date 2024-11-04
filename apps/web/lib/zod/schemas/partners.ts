@@ -3,11 +3,21 @@ import {
   CommissionType,
   PartnerStatus,
   PayoutStatus,
+  ProgramEnrollmentStatus,
   ProgramType,
   SaleStatus,
 } from "@prisma/client";
 import { z } from "zod";
 import { LinkSchema } from "./links";
+import { getPaginationQuerySchema } from "./misc";
+
+export const partnersQuerySchema = z
+  .object({
+    status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
+    country: z.string().optional(),
+    search: z.string().optional(),
+  })
+  .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const PartnerSchema = z.object({
   id: z.string(),
@@ -50,6 +60,12 @@ export const ProgramEnrollmentSchema = z.object({
     sales: true,
     saleAmount: true,
   }).nullable(),
+});
+
+export const EnrolledPartnerSchema = PartnerSchema.merge(
+  ProgramEnrollmentSchema,
+).extend({
+  earnings: z.number(),
 });
 
 export const PayoutSchema = z.object({
