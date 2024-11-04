@@ -5,7 +5,7 @@ import { cn, COUNTRIES } from "@dub/utils";
 import { useMemo } from "react";
 import { StatusBadges } from "./partner-table";
 
-export function usePartnerFilters() {
+export function usePartnerFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
 
@@ -81,8 +81,9 @@ export function usePartnerFilters() {
         ),
         ...(searchParamsObj.search && { search: searchParamsObj.search }),
         workspaceId: workspaceId || "",
+        ...extraSearchParams,
       }).toString(),
-    [activeFilters, workspaceId],
+    [activeFilters, workspaceId, extraSearchParams],
   );
 
   return {

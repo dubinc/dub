@@ -9,6 +9,7 @@ import {
   StatusBadge,
   Table,
   usePagination,
+  useRouterStuff,
   useTable,
 } from "@dub/ui";
 import {
@@ -49,6 +50,11 @@ export const StatusBadges = {
 };
 
 export function PartnerTable({ programId }: { programId: string }) {
+  const { queryParams, searchParams } = useRouterStuff();
+
+  const sortBy = searchParams.get("sort") || "createdAt";
+  const order = searchParams.get("order") === "asc" ? "asc" : "desc";
+
   const {
     filters,
     activeFilters,
@@ -56,7 +62,7 @@ export function PartnerTable({ programId }: { programId: string }) {
     onRemove,
     onRemoveAll,
     searchQuery,
-  } = usePartnerFilters();
+  } = usePartnerFilters({ sortBy, order });
 
   const { data: partnersCounts, error: countError } = useSWR<PartnerCounts[]>(
     `/api/programs/${programId}/partners/count?${searchQuery}`,
@@ -99,6 +105,7 @@ export function PartnerTable({ programId }: { programId: string }) {
         },
       },
       {
+        id: "createdAt",
         header: "Enrolled",
         accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
       },
@@ -136,10 +143,20 @@ export function PartnerTable({ programId }: { programId: string }) {
     ],
     pagination,
     onPaginationChange: setPagination,
-    rowCount: totalPartnersCount,
+    sortableColumns: ["createdAt"],
+    sortBy,
+    sortOrder: order,
+    onSortChange: ({ sortBy, sortOrder }) =>
+      queryParams({
+        set: {
+          ...(sortBy && { sort: sortBy }),
+          ...(sortOrder && { order: sortOrder }),
+        },
+      }),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `partner${p ? "s" : ""}`,
+    rowCount: totalPartnersCount,
     loading,
     error: error || countError ? "Failed to load partners" : undefined,
   });

@@ -16,6 +16,8 @@ export const partnersQuerySchema = z
     status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
     country: z.string().optional(),
     search: z.string().optional(),
+    order: z.enum(["asc", "desc"]).default("desc"),
+    sortBy: z.enum(["createdAt"]).default("createdAt"),
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
