@@ -31,10 +31,10 @@ import { WorkspaceDropdown } from "./workspace-dropdown";
 const NAV_AREAS: SidebarNavAreas<{
   slug: string;
   flags?: Record<BetaFeatures, boolean>;
-  hasPrograms: boolean;
+  programs?: { id: string }[];
 }> = {
   // Top-level
-  default: ({ slug, hasPrograms }) => ({
+  default: ({ slug, programs }) => ({
     showSwitcher: true,
     showNews: true,
     direction: "left",
@@ -64,7 +64,7 @@ const NAV_AREAS: SidebarNavAreas<{
           },
         ],
       },
-      ...(hasPrograms
+      ...(programs?.length
         ? [
             {
               name: "Partnerships",
@@ -72,7 +72,7 @@ const NAV_AREAS: SidebarNavAreas<{
                 {
                   name: "Affiliate Program",
                   icon: ConnectedDots4,
-                  href: `/${slug}/programs`,
+                  href: `/${slug}/programs/${programs[0].id}`,
                 },
               ],
             },
@@ -207,7 +207,7 @@ export function AppSidebarNav({
 }) {
   const { slug } = useParams() as { slug?: string };
   const pathname = usePathname();
-  const { flags, hasPrograms } = useWorkspace();
+  const { flags, programs } = useWorkspace();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -221,7 +221,7 @@ export function AppSidebarNav({
     <SidebarNav
       areas={NAV_AREAS}
       currentArea={currentArea}
-      data={{ slug: slug || "", flags, hasPrograms: hasPrograms || false }}
+      data={{ slug: slug || "", flags, programs }}
       toolContent={toolContent}
       newsContent={newsContent}
       switcher={<WorkspaceDropdown />}

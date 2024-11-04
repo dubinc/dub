@@ -27,7 +27,6 @@ export default function useWorkspace() {
     nextPlan: workspace?.plan ? getNextPlan(workspace.plan) : PRO_PLAN,
     role: (workspace?.users && workspace.users[0].role) || "member",
     isOwner: workspace?.users && workspace.users[0].role === "owner",
-    hasPrograms: workspace?.programs && workspace.programs.length > 0,
     exceededClicks: workspace && workspace.usage >= workspace.usageLimit,
     exceededLinks: workspace && workspace.linksUsage >= workspace.linksLimit,
     exceededAI: workspace && workspace.aiUsage >= workspace.aiLimit,
