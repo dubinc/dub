@@ -19,6 +19,7 @@ import {
   OfficeBuilding,
 } from "@dub/ui/src/icons";
 import {
+  COUNTRIES,
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
   fetcher,
@@ -124,7 +125,21 @@ export function PartnerTable({ programId }: { programId: string }) {
       },
       {
         header: "Location",
-        accessorKey: "country",
+        cell: ({ row }) => {
+          const country = row.original.country;
+          return (
+            <div className="flex items-center gap-2">
+              {country && (
+                <img
+                  alt=""
+                  src={`https://flag.vercel.app/m/${country}.svg`}
+                  className="h-3 w-4"
+                />
+              )}
+              {(country ? COUNTRIES[country] : null) ?? "-"}
+            </div>
+          );
+        },
       },
       {
         header: "Conversions",
