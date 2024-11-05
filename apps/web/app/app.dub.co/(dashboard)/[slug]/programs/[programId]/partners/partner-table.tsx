@@ -176,7 +176,7 @@ export function PartnerTable({ programId }: { programId: string }) {
     error: error || countError ? "Failed to load partners" : undefined,
   });
 
-  return loading || partners?.length ? (
+  return loading || partners?.length || error ? (
     <div className="flex flex-col gap-3">
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

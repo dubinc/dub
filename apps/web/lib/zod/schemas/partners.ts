@@ -70,6 +70,15 @@ export const EnrolledPartnerSchema = PartnerSchema.merge(
   earnings: z.number(),
 });
 
+export const payoutsQuerySchema = z
+  .object({
+    status: z.nativeEnum(PayoutStatus).optional(),
+    search: z.string().optional(),
+    order: z.enum(["asc", "desc"]).default("desc"),
+    sortBy: z.enum(["periodStart", "total"]).default("periodStart"),
+  })
+  .merge(getPaginationQuerySchema({ pageSize: 100 }));
+
 export const PayoutSchema = z.object({
   id: z.string(),
   total: z.number(),

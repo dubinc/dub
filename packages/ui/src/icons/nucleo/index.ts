@@ -24,6 +24,7 @@ export * from "./checkbox-unchecked";
 export * from "./circle-check";
 export * from "./circle-dollar";
 export * from "./circle-dotted";
+export * from "./circle-half-dotted-check";
 export * from "./circle-half-dotted-clock";
 export * from "./circle-info";
 export * from "./circle-warning";

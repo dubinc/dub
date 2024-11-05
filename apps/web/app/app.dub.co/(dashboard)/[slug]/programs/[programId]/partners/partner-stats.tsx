@@ -9,15 +9,12 @@ import { PartnerStatus } from "@prisma/client";
 import useSWR from "swr";
 
 export function PartnerStats({ programId }: { programId: string }) {
-  const { queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
 
   const { data: partnersCounts, error } = useSWR<PartnerCounts[]>(
     `/api/programs/${programId}/partners/count?workspaceId=${workspaceId}`,
     fetcher,
   );
-
-  const loading = !partnersCounts && !error;
 
   const pendingPartnersCount =
     partnersCounts?.find(({ status }) => status === "pending")?._count || 0;
@@ -30,7 +27,7 @@ export function PartnerStats({ programId }: { programId: string }) {
       <PartnerStatusStat
         label="Pending"
         status="pending"
-        count={pendingPartnersCount}
+        count={partnersCounts ? pendingPartnersCount : undefined}
         icon={CircleHalfDottedClock}
         iconClassName="bg-orange-100 text-orange-600"
         error={!!error}
@@ -38,7 +35,7 @@ export function PartnerStats({ programId }: { programId: string }) {
       <PartnerStatusStat
         label="Active"
         status="approved"
-        count={activePartnersCount}
+        count={partnersCounts ? activePartnersCount : undefined}
         icon={CircleCheck}
         iconClassName="bg-green-100 text-green-600"
         error={!!error}

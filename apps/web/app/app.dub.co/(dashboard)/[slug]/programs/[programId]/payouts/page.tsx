@@ -1,7 +1,7 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { MaxWidthWrapper } from "@dub/ui";
-import { PayoutsList } from "./payout-list";
-import { PayoutStats } from "./stats";
+import { PayoutStats } from "./payout-stats";
+import { PayoutTable } from "./payout-table";
 
 export default async function ProgramPayoutsPage({
   params,
@@ -13,9 +13,9 @@ export default async function ProgramPayoutsPage({
   return (
     <PageContent title="Payouts">
       <MaxWidthWrapper>
-        <div className="mt-8 space-y-10">
-          <PayoutStats programId={programId} />
-          <PayoutsList programId={programId} />
+        <PayoutStats programId={programId} />
+        <div className="mt-6">
+          <PayoutTable programId={programId} />
         </div>
       </MaxWidthWrapper>
     </PageContent>

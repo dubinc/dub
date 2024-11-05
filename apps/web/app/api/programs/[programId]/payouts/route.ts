@@ -1,16 +1,13 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { PartnerSchema, PayoutSchema } from "@/lib/zod/schemas/partners";
-import { PayoutStatus } from "@prisma/client";
+import {
+  PartnerSchema,
+  PayoutSchema,
+  payoutsQuerySchema,
+} from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 import z from "zod";
-
-const searchSchema = z.object({
-  status: z.nativeEnum(PayoutStatus).optional(),
-  offset: z.number().optional().default(0),
-  limit: z.number().optional().default(50),
-});
 
 export const responseSchema = PayoutSchema.and(
   z.object({
@@ -23,7 +20,8 @@ export const responseSchema = PayoutSchema.and(
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
-    const { status, offset, limit } = searchSchema.parse(searchParams);
+    const { status, search, sortBy, order, page, pageSize } =
+      payoutsQuerySchema.parse(searchParams);
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -34,6 +32,7 @@ export const GET = withWorkspace(
       where: {
         programId,
         ...(status && { status }),
+        ...(search && { partner: { name: { contains: search } } }),
       },
       include: {
         partner: true,
@@ -43,8 +42,11 @@ export const GET = withWorkspace(
           },
         },
       },
-      skip: offset,
-      take: limit,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      orderBy: {
+        [sortBy]: order,
+      },
     });
 
     return NextResponse.json(z.array(responseSchema).parse(payouts));

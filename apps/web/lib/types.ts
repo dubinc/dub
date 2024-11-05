@@ -3,6 +3,7 @@ import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
   Link,
+  PayoutStatus,
   ProgramEnrollmentStatus,
   Project,
   UtmTemplate,
@@ -303,6 +304,10 @@ export type ProgramProps = z.infer<typeof ProgramSchema>;
 
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 
+export type PayoutCounts = {
+  status: PayoutStatus;
+  _count: number;
+};
 export type PayoutProps = z.infer<typeof PayoutSchema>;
 
 export type PayoutWithPartnerProps = z.infer<typeof PayoutSchema> & {
