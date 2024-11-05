@@ -58,7 +58,7 @@ const CreateOrUpdateProgramForm = () => {
 
   return (
     <div className="flex flex-col">
-      <div className="space-y-8 flex-1">
+      <div className="flex-1 space-y-8">
         <div className="flex flex-col gap-4">
           <h3 className="text-base font-semibold leading-[17.60px] text-neutral-900">
             Summary
