@@ -136,7 +136,7 @@ export function LineItem({
       className={`border-l-2 border-transparent px-4 py-1 ${hoverBackground} min-w-0 transition-all`}
     >
       <div className="group flex items-center justify-between">
-        <div className="relative z-10 flex h-8 w-full max-w-[calc(100%-2rem)] items-center">
+        <div className="relative z-10 flex h-8 w-full min-w-0 max-w-[calc(100%-2rem)] items-center">
           {tab === "links" && linkData ? (
             <Tooltip content={<LinkPreviewTooltip data={linkData} />}>
               {lineItem}
