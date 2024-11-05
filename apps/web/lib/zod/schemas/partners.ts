@@ -67,9 +67,13 @@ export const ProgramEnrollmentSchema = z.object({
 
 export const EnrolledPartnerSchema = PartnerSchema.merge(
   ProgramEnrollmentSchema,
-).extend({
-  earnings: z.number(),
-});
+)
+  .omit({
+    program: true,
+  })
+  .extend({
+    earnings: z.number(),
+  });
 
 export const payoutsQuerySchema = z
   .object({
