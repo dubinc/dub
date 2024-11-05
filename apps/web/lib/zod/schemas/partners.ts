@@ -53,6 +53,7 @@ export const ProgramSchema = z.object({
 export const ProgramEnrollmentSchema = z.object({
   partnerId: z.string(),
   programId: z.string(),
+  program: ProgramSchema,
   link: LinkSchema.pick({
     id: true,
     shortLink: true,
