@@ -189,19 +189,26 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
         )}
       </Link>
       {items && (
-        <AnimatedSizeContainer height>
-          <div>
-            {isActive && (
-              <div className="pl-px pt-1">
-                <div className="pl-3.5">
-                  <div className="flex flex-col gap-0.5 border-l border-neutral-200 pl-2">
-                    {items.map((item) => (
-                      <NavItem key={item.name} item={item} />
-                    ))}
-                  </div>
+        <AnimatedSizeContainer
+          height
+          transition={{ duration: 0.2, ease: "easeInOut" }}
+        >
+          <div
+            className={cn(
+              "transition-opacity duration-200",
+              isActive ? "h-auto" : "h-0 opacity-0",
+            )}
+            aria-hidden={!isActive}
+          >
+            <div className="pl-px pt-1">
+              <div className="pl-3.5">
+                <div className="flex flex-col gap-0.5 border-l border-neutral-200 pl-2">
+                  {items.map((item) => (
+                    <NavItem key={item.name} item={item} />
+                  ))}
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </AnimatedSizeContainer>
       )}
