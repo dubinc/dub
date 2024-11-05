@@ -311,7 +311,7 @@ function RowMenuButton({ row }: { row: Row<PayoutWithPartnerProps> }) {
                 icon={Users}
                 label="View partner"
                 onSelect={() => {
-                  toast.info("WIP");
+                  toast.info("WIP"); // TODO
                   setIsOpen(false);
                 }}
               />
