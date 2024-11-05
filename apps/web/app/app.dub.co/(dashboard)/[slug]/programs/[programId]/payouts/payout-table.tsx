@@ -39,6 +39,7 @@ import { Command } from "cmdk";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { usePayoutConfirmSheet } from "./payout-confirm-sheet";
 import { usePayoutDetailsSheet } from "./payout-details-sheet";
 import { usePayoutFilters } from "./use-payout-filters";
 
@@ -277,28 +278,43 @@ export function PayoutTable({ programId }: { programId: string }) {
 function RowMenuButton({ row }: { row: Row<PayoutWithPartnerProps> }) {
   const [isOpen, setIsOpen] = useState(false);
 
+  const canConfirmPayout = ["created", "pending", "flagged", "failed"].includes(
+    row.original.status,
+  );
+
+  const { payoutConfirmSheet, setIsOpen: setShowPayoutConfirmSheet } =
+    usePayoutConfirmSheet({
+      payout: row.original,
+    });
+
   const { payoutDetailsSheet, setIsOpen: setShowPayoutDetailsSheet } =
     usePayoutDetailsSheet({
       payout: row.original,
+      onConfirmPayout: canConfirmPayout
+        ? () => setShowPayoutConfirmSheet(true)
+        : undefined,
     });
 
   return (
     <>
       {payoutDetailsSheet}
+      {canConfirmPayout && payoutConfirmSheet}
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
-              <MenuItem
-                icon={GreekTemple}
-                label="Pay invoice"
-                onSelect={() => {
-                  toast.info("WIP");
-                  setIsOpen(false);
-                }}
-              />
+              {canConfirmPayout && (
+                <MenuItem
+                  icon={GreekTemple}
+                  label="Pay invoice"
+                  onSelect={() => {
+                    setShowPayoutConfirmSheet(true);
+                    setIsOpen(false);
+                  }}
+                />
+              )}
               <MenuItem
                 icon={ScanText}
                 label="Review"

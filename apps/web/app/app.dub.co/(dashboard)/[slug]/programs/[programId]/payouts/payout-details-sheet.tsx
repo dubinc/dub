@@ -11,20 +11,17 @@ import {
 import { capitalize, cn, currencyFormatter, formatDate } from "@dub/utils";
 import { subDays } from "date-fns";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
-import { toast } from "sonner";
 import { StatusBadges } from "./payout-table";
 
 function PayoutDetailsSheetContent({
   payout,
+  onConfirmPayout,
   setIsOpen,
 }: {
   payout: PayoutWithPartnerProps;
+  onConfirmPayout?: () => void;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }) {
-  const canConfirmPayout = ["created", "pending", "flagged", "failed"].includes(
-    payout.status,
-  );
-
   // TODO: Fetch real data
   const totalConversions = 2;
   const conversions = [
@@ -45,9 +42,6 @@ function PayoutDetailsSheetContent({
       amount: 1600,
     },
   ];
-  const totalConversionsError = null;
-  const loadingTotalConversions =
-    totalConversions === undefined && !totalConversionsError;
   const error = null;
   const loading = !conversions && !error;
 
@@ -63,29 +57,18 @@ function PayoutDetailsSheetContent({
             ? undefined
             : "numeric",
       })}-${formatDate(payout.periodEnd, { month: "short" })}`,
+      Conversions: totalConversions,
       Total: currencyFormatter(payout.total / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }),
-      Conversions: totalConversionsError ? (
-        "-"
-      ) : loadingTotalConversions ? (
-        <div className="h-5 w-10 animate-pulse rounded-md bg-neutral-200" />
-      ) : (
-        totalConversions
-      ),
       Status: (
         <StatusBadge variant={statusBadge.variant} icon={statusBadge.icon}>
           {statusBadge.label}
         </StatusBadge>
       ),
     };
-  }, [
-    payout,
-    totalConversions,
-    totalConversionsError,
-    loadingTotalConversions,
-  ]);
+  }, [payout, totalConversions]);
 
   const { pagination, setPagination } = useTablePagination({
     pageSize: 100,
@@ -125,7 +108,7 @@ function PayoutDetailsSheetContent({
     ),
     scrollWrapperClassName: "min-h-0",
     resourceName: (p) => `conversion${p ? "s" : ""}`,
-    loading: loading || loadingTotalConversions,
+    loading,
     error: error ? "Failed to load conversions" : undefined,
   } as any);
 
@@ -167,15 +150,15 @@ function PayoutDetailsSheetContent({
             type="button"
             variant="secondary"
             onClick={() => setIsOpen(false)}
-            text={canConfirmPayout ? "Cancel" : "Close"}
+            text={onConfirmPayout ? "Cancel" : "Close"}
             className="w-fit"
           />
-          {canConfirmPayout && (
+          {onConfirmPayout && (
             <Button
               type="button"
               variant="primary"
               onClick={() => {
-                toast.info("WIP");
+                onConfirmPayout();
                 setIsOpen(false);
               }}
               text="Confirm payout"
@@ -190,15 +173,21 @@ function PayoutDetailsSheetContent({
 
 export function usePayoutDetailsSheet({
   payout,
+  onConfirmPayout,
 }: {
   payout: PayoutWithPartnerProps;
+  onConfirmPayout?: () => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return {
     payoutDetailsSheet: (
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <PayoutDetailsSheetContent payout={payout} setIsOpen={setIsOpen} />
+        <PayoutDetailsSheetContent
+          payout={payout}
+          onConfirmPayout={onConfirmPayout}
+          setIsOpen={setIsOpen}
+        />
       </Sheet>
     ),
     setIsOpen,
