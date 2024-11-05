@@ -18,12 +18,13 @@ const navigation = {
   })),
   product: [
     { name: "Blog", href: "/blog" },
-    { name: "Brand", href: "/brand" },
     { name: "Changelog", href: "/changelog" },
     { name: "Customers", href: "/customers" },
     { name: "Enterprise", href: "/enterprise" },
     { name: "Pricing", href: "/pricing" },
+    { name: "Docs", href: "/docs" },
     { name: "Help Center", href: "/help" },
+    { name: "Brand", href: "/brand" },
   ],
   compare: COMPARE_PAGES.map(({ name, slug }) => ({
     name,
@@ -111,9 +112,7 @@ export function Footer() {
           <div className="mt-16 grid grid-cols-2 gap-4 xl:col-span-2 xl:mt-0">
             <div className="md:grid md:grid-cols-2">
               <div>
-                <h3 className="text-sm font-semibold text-gray-800">
-                  Features
-                </h3>
+                <h3 className="text-sm font-semibold text-gray-800">Product</h3>
                 <ul role="list" className="mt-4 space-y-4">
                   {navigation.features.map((item) => (
                     <li key={item.name}>
@@ -133,7 +132,9 @@ export function Footer() {
                 </ul>
               </div>
               <div className="mt-10 md:mt-0">
-                <h3 className="text-sm font-semibold text-gray-800">Product</h3>
+                <h3 className="text-sm font-semibold text-gray-800">
+                  Resources
+                </h3>
                 <ul role="list" className="mt-4 space-y-4">
                   {navigation.product.map((item) => (
                     <li key={item.name}>
