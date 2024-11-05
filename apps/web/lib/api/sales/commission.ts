@@ -19,6 +19,8 @@ export const calculateCommissionEarned = ({
   if (program.commissionType === "flat") {
     return program.commissionAmount * 100;
   }
+
+  return 0;
 };
 
 // Calculate the recurring commission earned for a sale
