@@ -5,8 +5,11 @@ import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   AnimatedSizeContainer,
+  Button,
   Filter,
+  Icon,
   MoneyBill2,
+  Popover,
   StatusBadge,
   Table,
   usePagination,
@@ -19,11 +22,24 @@ import {
   CircleHalfDottedClock,
   CircleWarning,
   CircleXmark,
+  Dots,
+  GreekTemple,
+  ScanText,
+  Users,
 } from "@dub/ui/src/icons";
-import { currencyFormatter, DICEBEAR_AVATAR_URL, formatDate } from "@dub/utils";
+import {
+  cn,
+  currencyFormatter,
+  DICEBEAR_AVATAR_URL,
+  formatDate,
+} from "@dub/utils";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
+import { Row } from "@tanstack/react-table";
+import { Command } from "cmdk";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
+import { usePayoutDetailsSheet } from "./payout-details-sheet";
 import { usePayoutFilters } from "./use-payout-filters";
 
 export const StatusBadges = {
@@ -156,6 +172,10 @@ export function PayoutTable({ programId }: { programId: string }) {
         },
       },
       {
+        header: "Conversions",
+        accessorFn: () => "-", // TODO: Use actual data
+      },
+      {
         id: "total",
         header: "Total",
         accessorFn: (d) =>
@@ -163,6 +183,15 @@ export function PayoutTable({ programId }: { programId: string }) {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           }),
+      },
+      // Menu
+      {
+        id: "menu",
+        enableHiding: false,
+        minSize: 43,
+        size: 43,
+        maxSize: 43,
+        cell: ({ row }) => <RowMenuButton row={row} />,
       },
     ],
     pagination,
@@ -177,6 +206,7 @@ export function PayoutTable({ programId }: { programId: string }) {
           ...(sortOrder && { order: sortOrder }),
         },
       }),
+    columnPinning: { right: ["menu"] },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `payout${p ? "s" : ""}`,
@@ -241,5 +271,85 @@ export function PayoutTable({ programId }: { programId: string }) {
         />
       )}
     </div>
+  );
+}
+
+function RowMenuButton({ row }: { row: Row<PayoutWithPartnerProps> }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const { payoutDetailsSheet, setIsOpen: setShowPayoutDetailsSheet } =
+    usePayoutDetailsSheet({
+      payout: row.original,
+    });
+
+  return (
+    <>
+      {payoutDetailsSheet}
+      <Popover
+        openPopover={isOpen}
+        setOpenPopover={setIsOpen}
+        content={
+          <Command tabIndex={0} loop className="focus:outline-none">
+            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
+              <MenuItem
+                icon={GreekTemple}
+                label="Pay invoice"
+                onSelect={() => {
+                  toast.info("WIP");
+                  setIsOpen(false);
+                }}
+              />
+              <MenuItem
+                icon={ScanText}
+                label="Review"
+                onSelect={() => {
+                  setShowPayoutDetailsSheet(true);
+                  setIsOpen(false);
+                }}
+              />
+              <MenuItem
+                icon={Users}
+                label="View partner"
+                onSelect={() => {
+                  toast.info("WIP");
+                  setIsOpen(false);
+                }}
+              />
+            </Command.List>
+          </Command>
+        }
+        align="end"
+      >
+        <Button
+          type="button"
+          className="h-8 whitespace-nowrap px-2"
+          variant="outline"
+          icon={<Dots className="h-4 w-4 shrink-0" />}
+        />
+      </Popover>
+    </>
+  );
+}
+
+function MenuItem({
+  icon: IconComp,
+  label,
+  onSelect,
+}: {
+  icon: Icon;
+  label: string;
+  onSelect: () => void;
+}) {
+  return (
+    <Command.Item
+      className={cn(
+        "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-600",
+        "data-[selected=true]:bg-gray-100",
+      )}
+      onSelect={onSelect}
+    >
+      <IconComp className="size-4 shrink-0 text-neutral-500" />
+      {label}
+    </Command.Item>
   );
 }

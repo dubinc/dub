@@ -105,6 +105,7 @@ export * from "./referred-via";
 export * from "./refresh2";
 export * from "./robot";
 export * from "./satellite-dish";
+export * from "./scan-text";
 export * from "./scribble";
 export * from "./shield-check";
 export * from "./shuffle";

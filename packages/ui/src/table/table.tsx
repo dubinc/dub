@@ -54,8 +54,8 @@ type UseTableProps<T> = {
   className?: string;
   containerClassName?: string;
   scrollWrapperClassName?: string;
-  thClassName?: string;
-  tdClassName?: string;
+  thClassName?: string | ((columnId: string) => string);
+  tdClassName?: string | ((columnId: string) => string);
 } & (
   | {
       pagination: PaginationState;
@@ -174,6 +174,7 @@ export function Table<T>({
                 // Remove side borders from table to avoid interfering with outer border
                 "[&_tr>*:first-child]:border-l-transparent", // Left column
                 "[&_tr>*:last-child]:border-r-transparent", // Right column
+                "[&_tr>*:last-child]:border-r-transparent", // Bottom column
               ],
               className,
             )}
@@ -197,7 +198,9 @@ export function Table<T>({
                             header.column,
                             !table.getRowModel().rows.length,
                           ),
-                          thClassName,
+                          typeof thClassName === "function"
+                            ? thClassName(header.column.id)
+                            : thClassName,
                         )}
                         style={{
                           minWidth: header.column.columnDef.minSize,
@@ -263,7 +266,9 @@ export function Table<T>({
                           cell.column,
                           row.index === table.getRowModel().rows.length - 1,
                         ),
-                        tdClassName,
+                        typeof tdClassName === "function"
+                          ? tdClassName(cell.column.id)
+                          : tdClassName,
                       )}
                       style={{
                         minWidth: cell.column.columnDef.minSize,
