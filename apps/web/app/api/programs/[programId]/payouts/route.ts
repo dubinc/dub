@@ -9,7 +9,7 @@ import {
 import { NextResponse } from "next/server";
 import z from "zod";
 
-export const responseSchema = PayoutSchema.and(
+const responseSchema = PayoutSchema.and(
   z.object({
     partner: PartnerSchema,
     _count: z.object({ sales: z.number() }),

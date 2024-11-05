@@ -5,7 +5,7 @@ import { ProgramEnrollmentStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import z from "zod";
 
-export const responseSchema = z.object({
+const responseSchema = z.object({
   status: z.nativeEnum(ProgramEnrollmentStatus),
   _count: z.number(),
 });

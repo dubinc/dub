@@ -6,7 +6,7 @@ import { PayoutStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import z from "zod";
 
-export const responseSchema = z.object({
+const responseSchema = z.object({
   status: z.nativeEnum(PayoutStatus),
   _count: z.number(),
 });
