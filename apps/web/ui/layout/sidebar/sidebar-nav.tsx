@@ -122,7 +122,7 @@ export function SidebarNav<T extends Record<any, any>>({
                     </div>
                   ))}
                 </div>
-                <div className="-mx-3 mt-6 flex grow flex-col justify-end">
+                <div className="-mx-3 flex grow flex-col justify-end">
                   {showNews && newsContent}
                 </div>
               </Area>
