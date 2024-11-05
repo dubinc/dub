@@ -7,3 +7,4 @@ export * from "./is-reserved-key";
 export * from "./is-reserved-username";
 export * from "./is-whitelisted-email";
 export * from "./update";
+export * from "./user-is-in-beta";

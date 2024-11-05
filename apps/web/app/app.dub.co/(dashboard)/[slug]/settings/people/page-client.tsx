@@ -183,7 +183,12 @@ const UserCard = ({
       >
         <div className="flex items-start space-x-3">
           <div className="flex items-center space-x-3">
-            <Avatar user={user} />
+            <Avatar
+              user={{
+                ...user,
+                id: currentTab === "Invitations" ? user.email : user.id,
+              }}
+            />
             <div className="flex flex-col">
               <h3 className="text-sm font-medium">{name || email}</h3>
               <p className="text-xs text-gray-500">{email}</p>
