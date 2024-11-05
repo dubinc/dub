@@ -7,7 +7,6 @@ const BUSINESS_PLAN_MODIFIER = ({
   links = 5000,
   clicks = 150000,
   domains = 40,
-  tags = 150,
   users = 15,
   ids = [],
 }: {
@@ -33,7 +32,7 @@ const BUSINESS_PLAN_MODIFIER = ({
     links,
     clicks,
     domains,
-    tags,
+    tags: 1000000000,
     users,
     ai: 1000,
     api: 3000,
@@ -57,6 +56,15 @@ const BUSINESS_PLAN_MODIFIER = ({
     { text: "3-year analytics retention" },
     { text: `${domains} custom domains` },
     { text: `${users} users` },
+    {
+      text: "Unlimited tags",
+      footnote: {
+        title:
+          "Use tags to organize your links and filter by them in your analytics dashboard.",
+        cta: "Learn more.",
+        href: "https://d.to/tags",
+      },
+    },
     {
       text: "Real-time events stream",
       footnote: {
