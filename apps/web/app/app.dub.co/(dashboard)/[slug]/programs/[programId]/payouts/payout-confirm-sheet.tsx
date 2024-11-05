@@ -2,7 +2,12 @@ import { PayoutWithPartnerProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet } from "@dub/ui";
 import { GreekTemple } from "@dub/ui/src/icons";
-import { cn, currencyFormatter, formatDate } from "@dub/utils";
+import {
+  cn,
+  currencyFormatter,
+  DICEBEAR_AVATAR_URL,
+  formatDate,
+} from "@dub/utils";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -18,7 +23,19 @@ function PayoutConfirmSheetContent({
 
   const invoiceData = useMemo(
     () => ({
-      Partner: payout.partner.name,
+      Partner: (
+        <div className="flex items-center gap-2">
+          <img
+            src={
+              payout.partner.logo ||
+              `${DICEBEAR_AVATAR_URL}${payout.partner.name}`
+            }
+            alt={payout.partner.name}
+            className="size-5 rounded-full"
+          />
+          <div>{payout.partner.name}</div>
+        </div>
+      ),
       Period: `${formatDate(payout.periodStart, {
         month: "short",
         year:
