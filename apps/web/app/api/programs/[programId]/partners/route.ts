@@ -54,8 +54,6 @@ export const GET = withWorkspace(
         (program.commissionAmount / 100),
     }));
 
-    console.log({ partners });
-
     return NextResponse.json(z.array(EnrolledPartnerSchema).parse(partners));
   },
 );
