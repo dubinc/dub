@@ -72,6 +72,7 @@ export const DUB_DOMAINS = [
           allowedHostnames: [
             "cal.com",
             "calendly.com",
+            "calendar.app.google",
             "chillipiper.com",
             "hubspot.com",
             "savvycal.com",
