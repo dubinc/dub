@@ -33,7 +33,7 @@ model Program {
   recurringCommission Boolean             @default(false)
   recurringInterval   CommissionInterval?
   recurringDuration   Int?
-  isLifetimeRecurring Boolean             @default(false)
+  isLifetimeRecurring Boolean?
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
 
