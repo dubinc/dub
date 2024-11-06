@@ -45,7 +45,7 @@ export const ProgramSchema = z.object({
   recurringCommission: z.boolean(),
   recurringDuration: z.number().nullable(),
   recurringInterval: z.nativeEnum(CommissionInterval).nullable(),
-  isLifetimeRecurring: z.boolean(),
+  isLifetimeRecurring: z.boolean().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

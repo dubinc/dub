@@ -13,7 +13,7 @@ export default function useProgramEnrollment() {
       dedupingInterval: 60000,
     },
   );
-  programEnrollment;
+
   return {
     programEnrollment,
     error,

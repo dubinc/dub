@@ -76,7 +76,7 @@ const NAV_AREAS: SidebarNavAreas<{
                   items: [
                     {
                       name: "Overview",
-                      href: `/${slug}/programs/${programs[0].id}/overview`,
+                      href: `/${slug}/programs/${programs[0].id}`,
                     },
                     {
                       name: "Partners",
