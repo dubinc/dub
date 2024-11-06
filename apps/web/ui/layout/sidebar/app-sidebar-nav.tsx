@@ -77,6 +77,7 @@ const NAV_AREAS: SidebarNavAreas<{
                     {
                       name: "Overview",
                       href: `/${slug}/programs/${programs[0].id}`,
+                      exact: true,
                     },
                     {
                       name: "Partners",

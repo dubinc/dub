@@ -16,28 +16,28 @@ export function PartnerStats({ programId }: { programId: string }) {
     fetcher,
   );
 
-  const pendingPartnersCount =
-    partnersCounts?.find(({ status }) => status === "pending")?._count || 0;
-
   const activePartnersCount =
     partnersCounts?.find(({ status }) => status === "approved")?._count || 0;
 
+  const pendingPartnersCount =
+    partnersCounts?.find(({ status }) => status === "pending")?._count || 0;
+
   return (
     <div className="xs:grid-cols-2 xs:divide-x xs:divide-y-0 grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">
-      <PartnerStatusStat
-        label="Pending"
-        status="pending"
-        count={partnersCounts ? pendingPartnersCount : undefined}
-        icon={CircleHalfDottedClock}
-        iconClassName="bg-orange-100 text-orange-600"
-        error={!!error}
-      />
       <PartnerStatusStat
         label="Active"
         status="approved"
         count={partnersCounts ? activePartnersCount : undefined}
         icon={CircleCheck}
         iconClassName="bg-green-100 text-green-600"
+        error={!!error}
+      />
+      <PartnerStatusStat
+        label="Pending"
+        status="pending"
+        count={partnersCounts ? pendingPartnersCount : undefined}
+        icon={CircleHalfDottedClock}
+        iconClassName="bg-orange-100 text-orange-600"
         error={!!error}
       />
     </div>

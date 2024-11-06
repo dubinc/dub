@@ -31,7 +31,7 @@ import { usePartnerFilters } from "./use-partner-filters";
 
 export const StatusBadges = {
   pending: {
-    label: "Applied",
+    label: "pending",
     variant: "pending",
     className: "text-orange-500",
     icon: CircleHalfDottedClock,
