@@ -25,8 +25,9 @@ import {
   fetcher,
   formatDate,
 } from "@dub/utils";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import useSWR from "swr";
+import { PartnerDetailsSheet } from "./partner-details-sheet";
 import { usePartnerFilters } from "./use-partner-filters";
 
 export const StatusBadges = {
@@ -69,6 +70,11 @@ export function PartnerTable({ programId }: { programId: string }) {
     `/api/programs/${programId}/partners/count?${searchQuery}`,
     fetcher,
   );
+
+  const [partnerSheetState, setPartnerSheetState] = useState<
+    | { open: false; partner: EnrolledPartnerProps | null }
+    | { open: true; partner: EnrolledPartnerProps }
+  >({ open: false, partner: null });
 
   const totalPartnersCount = useMemo(
     () => partnersCounts?.reduce((acc, { _count }) => acc + _count, 0) || 0,
@@ -156,6 +162,8 @@ export function PartnerTable({ programId }: { programId: string }) {
             : "-",
       },
     ],
+    onRowClick: (row) =>
+      setPartnerSheetState({ open: true, partner: row.original }),
     pagination,
     onPaginationChange: setPagination,
     sortableColumns: ["createdAt"],
@@ -176,55 +184,68 @@ export function PartnerTable({ programId }: { programId: string }) {
     error: error || countError ? "Failed to load partners" : undefined,
   });
 
-  return loading || partners?.length || error ? (
-    <div className="flex flex-col gap-3">
-      <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          {loading ? (
+  return (
+    <>
+      {partnerSheetState.partner && (
+        <PartnerDetailsSheet
+          isOpen={partnerSheetState.open}
+          setIsOpen={(open) =>
+            setPartnerSheetState((s) => ({ ...s, open }) as any)
+          }
+          partner={partnerSheetState.partner}
+        />
+      )}
+      {loading || partners?.length || error ? (
+        <div className="flex flex-col gap-3">
+          <div>
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              {loading ? (
+                <>
+                  <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-24" />
+                  <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-32" />
+                </>
+              ) : (
+                <>
+                  <Filter.Select
+                    className="w-full md:w-fit"
+                    filters={filters}
+                    activeFilters={activeFilters}
+                    onSelect={onSelect}
+                    onRemove={onRemove}
+                  />
+                  <SearchBoxPersisted />
+                </>
+              )}
+            </div>
+            <AnimatedSizeContainer height>
+              <div>
+                {activeFilters.length > 0 && (
+                  <div className="pt-3">
+                    <Filter.List
+                      filters={filters}
+                      activeFilters={activeFilters}
+                      onRemove={onRemove}
+                      onRemoveAll={onRemoveAll}
+                    />
+                  </div>
+                )}
+              </div>
+            </AnimatedSizeContainer>
+          </div>
+          <Table {...table} />
+        </div>
+      ) : (
+        <AnimatedEmptyState
+          title="No partners found"
+          description="No partners have been added to this program yet."
+          cardContent={() => (
             <>
-              <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-24" />
-              <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-32" />
-            </>
-          ) : (
-            <>
-              <Filter.Select
-                className="w-full md:w-fit"
-                filters={filters}
-                activeFilters={activeFilters}
-                onSelect={onSelect}
-                onRemove={onRemove}
-              />
-              <SearchBoxPersisted />
+              <OfficeBuilding className="size-4 text-neutral-700" />
+              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
             </>
           )}
-        </div>
-        <AnimatedSizeContainer height>
-          <div>
-            {activeFilters.length > 0 && (
-              <div className="pt-3">
-                <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                />
-              </div>
-            )}
-          </div>
-        </AnimatedSizeContainer>
-      </div>
-      <Table {...table} />
-    </div>
-  ) : (
-    <AnimatedEmptyState
-      title="No partners found"
-      description="No partners have been added to this program yet."
-      cardContent={() => (
-        <>
-          <OfficeBuilding className="size-4 text-neutral-700" />
-          <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-        </>
+        />
       )}
-    />
+    </>
   );
 }

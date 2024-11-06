@@ -7,6 +7,7 @@ import {
   flexRender,
   getCoreRowModel,
   PaginationState,
+  Row,
   Table as TableType,
   useReactTable,
   VisibilityState,
@@ -24,11 +25,12 @@ import {
 import { Button } from "../button";
 import { LoadingSpinner, SortOrder } from "../icons";
 
-const tableCellClassName = (columnId: string) =>
+const tableCellClassName = (columnId: string, clickable?: boolean) =>
   cn([
     "py-2.5 text-left text-sm leading-6 whitespace-nowrap border-gray-200 px-4 relative",
     "border-l border-b",
     columnId === "menu" && "bg-white border-l-transparent py-0 px-1",
+    clickable && "group-hover/row:bg-neutral-50 transition-colors duration-75",
   ]);
 
 type UseTableProps<T> = {
@@ -50,6 +52,7 @@ type UseTableProps<T> = {
   onColumnVisibilityChange?: (visibility: VisibilityState) => void;
   columnPinning?: ColumnPinningState;
   resourceName?: (plural: boolean) => string;
+  onRowClick?: (row: Row<T>) => void;
 
   className?: string;
   containerClassName?: string;
@@ -150,6 +153,7 @@ export function Table<T>({
   table,
   pagination,
   resourceName,
+  onRowClick,
   rowCount,
   children,
 }: TableProps<T>) {
@@ -255,12 +259,16 @@ export function Table<T>({
             </thead>
             <tbody>
               {table.getRowModel().rows.map((row) => (
-                <tr key={row.id}>
+                <tr
+                  key={row.id}
+                  className="group/row"
+                  onClick={onRowClick ? () => onRowClick(row) : undefined}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <td
                       key={cell.id}
                       className={cn(
-                        tableCellClassName(cell.column.id),
+                        tableCellClassName(cell.column.id, !!onRowClick),
                         "group text-gray-600",
                         getCommonPinningClassNames(
                           cell.column,
