@@ -17,7 +17,7 @@ export const partnersQuerySchema = z
     country: z.string().optional(),
     search: z.string().optional(),
     order: z.enum(["asc", "desc"]).default("desc"),
-    sortBy: z.enum(["createdAt"]).default("createdAt"),
+    sortBy: z.enum(["createdAt", "earnings"]).default("createdAt"),
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 

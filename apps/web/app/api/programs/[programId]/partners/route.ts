@@ -33,9 +33,14 @@ export const GET = withWorkspace(
       },
       skip: (page - 1) * pageSize,
       take: pageSize,
-      orderBy: {
-        [sortBy]: order,
-      },
+      orderBy:
+        sortBy === "earnings"
+          ? {
+              link: {
+                sales: order,
+              },
+            }
+          : { [sortBy]: order },
     });
 
     const partners = programEnrollments.map((enrollment) => ({
@@ -48,6 +53,8 @@ export const GET = withWorkspace(
           : enrollment.link?.sales) ?? 0) *
         (program.commissionAmount / 100),
     }));
+
+    console.log({ partners });
 
     return NextResponse.json(z.array(EnrolledPartnerSchema).parse(partners));
   },

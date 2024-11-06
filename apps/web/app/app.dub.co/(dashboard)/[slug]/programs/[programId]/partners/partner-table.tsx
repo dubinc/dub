@@ -150,7 +150,8 @@ export function PartnerTable({ programId }: { programId: string }) {
             : "-",
       },
       {
-        header: "Earned",
+        id: "earnings",
+        header: "Earnings",
         accessorFn: (d) =>
           d.status !== "pending"
             ? currencyFormatter(d.earnings / 100, {
@@ -162,7 +163,7 @@ export function PartnerTable({ programId }: { programId: string }) {
     ],
     pagination,
     onPaginationChange: setPagination,
-    sortableColumns: ["createdAt"],
+    sortableColumns: ["createdAt", "earnings"],
     sortBy,
     sortOrder: order,
     onSortChange: ({ sortBy, sortOrder }) =>

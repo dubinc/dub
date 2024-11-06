@@ -73,7 +73,7 @@ export default function ProgramOverviewPageClient() {
         <div className="basis-1/2">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-base font-semibold text-neutral-900">
-              Pending partners
+              Top partners
             </h2>
 
             <Link
