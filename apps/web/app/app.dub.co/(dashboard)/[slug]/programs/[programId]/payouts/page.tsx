@@ -3,7 +3,11 @@ import { MaxWidthWrapper } from "@dub/ui";
 import { PayoutStats } from "./payout-stats";
 import { PayoutTable } from "./payout-table";
 
-export default async function ProgramPayoutsPage() {
+export default function ProgramPayoutsPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
   return (
     <PageContent title="Payouts">
       <MaxWidthWrapper>

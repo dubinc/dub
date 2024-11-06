@@ -3,13 +3,7 @@ import { MaxWidthWrapper } from "@dub/ui";
 import { PartnerStats } from "./partner-stats";
 import { PartnerTable } from "./partner-table";
 
-export default function ProgramPartners({
-  params,
-}: {
-  params: { slug: string; programId: string };
-}) {
-  const { programId } = params;
-
+export default function ProgramPartners() {
   return (
     <PageContent title="Partners">
       <MaxWidthWrapper>
