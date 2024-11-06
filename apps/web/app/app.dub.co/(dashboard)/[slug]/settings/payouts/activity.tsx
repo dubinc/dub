@@ -1,8 +1,8 @@
 "use client";
 
-import { DotsTransactions } from "@/lib/dots/types";
+import { DotsTransfers } from "@/lib/dots/types";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Table, useTable } from "@dub/ui";
+import { StatusBadge, Table, useTable } from "@dub/ui";
 import {
   capitalize,
   currencyFormatter,
@@ -12,14 +12,25 @@ import {
 import useSWR from "swr";
 
 const TRANSACTION_TYPES = {
+  refill: "Deposit",
   payout: "Withdrawal",
 };
 
-export const Transactions = () => {
+const StatusBadgeVariants = {
+  created: "new",
+  pending: "pending",
+  failed: "error",
+  completed: "success",
+  reversed: "error",
+  canceled: "error",
+  flagged: "warning",
+};
+
+export const Activity = () => {
   const { id: workspaceId } = useWorkspace();
 
-  const { data, error } = useSWR<DotsTransactions>(
-    `/api/dots/transactions?workspaceId=${workspaceId}`,
+  const { data, error } = useSWR<DotsTransfers>(
+    `/api/dots/transfers?workspaceId=${workspaceId}`,
     fetcher,
   );
 
@@ -36,6 +47,14 @@ export const Transactions = () => {
         header: "Type",
         accessorFn: (row) =>
           capitalize(TRANSACTION_TYPES[row.type] ?? row.type),
+      },
+      {
+        header: "Status",
+        cell: ({ row }) => (
+          <StatusBadge variant={StatusBadgeVariants[row.original.status]}>
+            {capitalize(row.original.status)}
+          </StatusBadge>
+        ),
       },
       {
         header: "Amount",

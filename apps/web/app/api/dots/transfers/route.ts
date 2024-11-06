@@ -1,8 +1,8 @@
 import { withWorkspace } from "@/lib/auth";
-import { retrieveTransactions } from "@/lib/dots/retrieve-transactions";
+import { retrieveTransfers } from "@/lib/dots/retrieve-transfers";
 import { NextResponse } from "next/server";
 
-// GET /api/dots/transactions – get transactions for a Dots app
+// GET /api/dots/transfers – get transfers for a Dots app
 export const GET = withWorkspace(async ({ workspace }) => {
   const { dotsAppId } = workspace;
 
@@ -10,5 +10,5 @@ export const GET = withWorkspace(async ({ workspace }) => {
     return NextResponse.json({ data: [], has_more: false });
   }
 
-  return NextResponse.json(await retrieveTransactions({ dotsAppId }));
+  return NextResponse.json(await retrieveTransfers({ dotsAppId }));
 });

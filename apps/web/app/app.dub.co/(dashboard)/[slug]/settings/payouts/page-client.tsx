@@ -6,9 +6,9 @@ import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Button } from "@dub/ui";
 import { BadgeCheck, GreekTemple } from "@dub/ui/src/icons";
 import { truncate } from "@dub/utils";
+import { Activity } from "./activity";
 import { BankAccount } from "./bank-account";
 import { ComplianceButton } from "./compliance-button";
-import { Transactions } from "./transactions";
 import { Wallet } from "./wallet";
 
 export function PayoutsPageClient() {
@@ -58,7 +58,7 @@ export function PayoutsPageClient() {
             </div>
           </div>
           <div className="mt-8">
-            <Transactions />
+            <Activity />
           </div>
         </div>
       ) : (

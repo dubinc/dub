@@ -1,11 +1,18 @@
 import z from "../zod";
 
-const dotsTransactionSchema = z.object({
-  id: z.number(),
+const dotsTransferSchema = z.object({
+  id: z.string(),
   amount: z.string(),
-  destination_name: z.string(),
-  source_name: z.string(),
-  type: z.string(),
+  type: z.enum(["refill", "payout", "balance"]),
+  status: z.enum([
+    "created",
+    "pending",
+    "failed",
+    "completed",
+    "reversed",
+    "canceled",
+    "flagged",
+  ]),
   created: z.string(),
 });
 
@@ -32,7 +39,7 @@ export const dotsAppSchema = z.object({
   }),
 });
 
-export const dotsTransactionsSchema = z.object({
-  data: z.array(dotsTransactionSchema),
+export const dotsTransfersSchema = z.object({
+  data: z.array(dotsTransferSchema),
   has_more: z.boolean(),
 });
