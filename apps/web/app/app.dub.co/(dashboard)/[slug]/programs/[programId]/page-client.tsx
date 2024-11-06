@@ -16,7 +16,10 @@ export default function ProgramOverviewPageClient() {
   }
 
   return (
-    <div className="mt-8 space-y-10">
+    <div className="space-y-10">
+      <div className="rounded-lg border border-neutral-200 bg-gray-50 p-3">
+        <div className="grid md:grid-cols-[2fr_1fr]"></div>
+      </div>
       <div className="flex flex-col divide-y divide-neutral-200 rounded-md border border-neutral-200 bg-[#f9f9f9]">
         <div className="flex items-center justify-between px-4 py-4">
           <div className="flex flex-col gap-1">

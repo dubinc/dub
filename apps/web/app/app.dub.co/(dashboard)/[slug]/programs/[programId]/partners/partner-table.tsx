@@ -27,9 +27,8 @@ import {
 } from "@dub/utils";
 import { nFormatter } from "@dub/utils/src/functions";
 import { useParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import useSWR from "swr";
-import { PartnerDetailsSheet } from "./partner-details-sheet";
 import { usePartnerFilters } from "./use-partner-filters";
 
 export const PartnerStatusBadges = {
@@ -74,11 +73,6 @@ export function PartnerTable() {
     `/api/programs/${programId}/partners/count?${searchQuery}`,
     fetcher,
   );
-
-  const [partnerSheetState, setPartnerSheetState] = useState<
-    | { open: false; partner: EnrolledPartnerProps | null }
-    | { open: true; partner: EnrolledPartnerProps }
-  >({ open: false, partner: null });
 
   const totalPartnersCount = useMemo(
     () => partnersCounts?.reduce((acc, { _count }) => acc + _count, 0) || 0,
@@ -168,8 +162,6 @@ export function PartnerTable() {
             : "-",
       },
     ],
-    onRowClick: (row) =>
-      setPartnerSheetState({ open: true, partner: row.original }),
     pagination,
     onPaginationChange: setPagination,
     sortableColumns: ["createdAt", "earnings"],
@@ -191,62 +183,51 @@ export function PartnerTable() {
   });
 
   return (
-    <>
-      {partnerSheetState.partner && (
-        <PartnerDetailsSheet
-          isOpen={partnerSheetState.open}
-          setIsOpen={(open) =>
-            setPartnerSheetState((s) => ({ ...s, open }) as any)
+    <div className="flex flex-col gap-3">
+      <div>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+          />
+          <SearchBoxPersisted />
+        </div>
+        <AnimatedSizeContainer height>
+          <div>
+            {activeFilters.length > 0 && (
+              <div className="pt-3">
+                <Filter.List
+                  filters={filters}
+                  activeFilters={activeFilters}
+                  onRemove={onRemove}
+                  onRemoveAll={onRemoveAll}
+                />
+              </div>
+            )}
+          </div>
+        </AnimatedSizeContainer>
+      </div>
+      {partners?.length !== 0 ? (
+        <Table {...table} />
+      ) : (
+        <AnimatedEmptyState
+          title="No partners found"
+          description={
+            isFiltered
+              ? "No partners found for the selected filters."
+              : "No partners have been added to this program yet."
           }
-          partner={partnerSheetState.partner}
+          cardContent={() => (
+            <>
+              <Users className="size-4 text-neutral-700" />
+              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+            </>
+          )}
         />
       )}
-      <div className="flex flex-col gap-3">
-        <div>
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <Filter.Select
-              className="w-full md:w-fit"
-              filters={filters}
-              activeFilters={activeFilters}
-              onSelect={onSelect}
-              onRemove={onRemove}
-            />
-            <SearchBoxPersisted />
-          </div>
-          <AnimatedSizeContainer height>
-            <div>
-              {activeFilters.length > 0 && (
-                <div className="pt-3">
-                  <Filter.List
-                    filters={filters}
-                    activeFilters={activeFilters}
-                    onRemove={onRemove}
-                    onRemoveAll={onRemoveAll}
-                  />
-                </div>
-              )}
-            </div>
-          </AnimatedSizeContainer>
-        </div>
-        {partners?.length !== 0 ? (
-          <Table {...table} />
-        ) : (
-          <AnimatedEmptyState
-            title="No partners found"
-            description={
-              isFiltered
-                ? "No partners found for the selected filters."
-                : "No partners have been added to this program yet."
-            }
-            cardContent={() => (
-              <>
-                <Users className="size-4 text-neutral-700" />
-                <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-              </>
-            )}
-          />
-        )}
-      </div>
-    </>
+    </div>
   );
 }
