@@ -11,6 +11,10 @@ import {
 } from "@dub/utils";
 import useSWR from "swr";
 
+const TRANSACTION_TYPES = {
+  payout: "Withdrawal",
+};
+
 export const Transactions = () => {
   const { id: workspaceId } = useWorkspace();
 
@@ -30,7 +34,8 @@ export const Transactions = () => {
       },
       {
         header: "Type",
-        accessorFn: (row) => capitalize(row.type),
+        accessorFn: (row) =>
+          capitalize(TRANSACTION_TYPES[row.type] ?? row.type),
       },
       {
         header: "Amount",
