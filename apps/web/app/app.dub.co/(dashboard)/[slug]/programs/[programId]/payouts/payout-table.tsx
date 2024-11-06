@@ -168,7 +168,7 @@ export function PayoutTable() {
       },
       {
         header: "Conversions",
-        accessorFn: () => "-", // TODO: Use actual data
+        accessorFn: () => "-", // TODO: [payouts] Add conversions counts to /api/programs/[programId]/payouts response
       },
       {
         id: "total",

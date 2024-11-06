@@ -27,7 +27,7 @@ export const GET = withWorkspace(
 
     const analytics = await getAnalytics({
       ...parsedParams,
-      workspaceId: workspace.id, // TODO: use programId instead
+      workspaceId: workspace.id, // TODO: [payouts] use programId instead
     });
 
     return NextResponse.json(analytics);
