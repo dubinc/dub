@@ -58,7 +58,7 @@ const CreateOrUpdateProgramForm = () => {
 
   return (
     <div className="flex flex-col">
-      <div className="space-y-8 flex-1">
+      <div className="flex-1 space-y-8">
         <div className="flex flex-col gap-4">
           <h3 className="text-base font-semibold leading-[17.60px] text-neutral-900">
             Summary
@@ -75,7 +75,7 @@ const CreateOrUpdateProgramForm = () => {
               Commission
             </h3>
             <p className="text-sm font-normal leading-[21px] text-neutral-600">
-              Set how the affiliate will get rewarded
+              Set how the partner will get rewarded
             </p>
           </div>
           <p className="space-y-6">
@@ -135,7 +135,7 @@ const CreateOrUpdateProgramForm = () => {
               Payout
             </h3>
             <p className="text-sm font-normal leading-[21px] text-neutral-600">
-              Set how much the affiliate will get rewarded
+              Set how much the partner will get rewarded
             </p>
           </div>
 

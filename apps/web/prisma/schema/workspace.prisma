@@ -39,7 +39,7 @@ model Project {
 
   dotsAppId           String? @unique
   bankAccountName     String?
-  maskedAccountNumber String?
+  partialAccountNumber String?
   bankAccountVerified Boolean @default(false)
 
   users                 ProjectUsers[]

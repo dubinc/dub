@@ -1,10 +1,10 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import slugify from "@sindresorhus/slugify";
 import { z } from "zod";
 import { createProgramSchema } from "../zod/schemas/programs";
 import { authActionClient } from "./safe-action";
-import slugify from "@sindresorhus/slugify";
 
 const schema = createProgramSchema.extend({ workspaceId: z.string() });
 

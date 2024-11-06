@@ -36,59 +36,61 @@ import {
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
-import { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { usePayoutConfirmSheet } from "./payout-confirm-sheet";
 import { usePayoutDetailsSheet } from "./payout-details-sheet";
 import { usePayoutFilters } from "./use-payout-filters";
 
-export const StatusBadges = {
+export const PayoutStatusBadges = {
   created: {
     label: "Created",
     variant: "new",
     icon: CircleHalfDottedCheck,
-    className: "text-blue-600",
+    className: "text-blue-600 bg-blue-100",
   },
   pending: {
     label: "Pending",
     variant: "pending",
     icon: CircleHalfDottedClock,
-    className: "text-orange-600",
+    className: "text-orange-600 bg-orange-100",
   },
   failed: {
     label: "Failed",
     variant: "error",
     icon: CircleWarning,
-    className: "text-red-600",
+    className: "text-red-600 bg-red-100",
   },
   completed: {
     label: "Paid",
     variant: "success",
     icon: CircleCheck,
-    className: "text-green-600",
+    className: "text-green-600 bg-green-100",
   },
   reversed: {
     label: "Reversed",
     variant: "error",
     icon: CircleHalfDottedClock,
-    className: "text-red-600",
+    className: "text-red-600 bg-red-100",
   },
   canceled: {
     label: "Canceled",
     variant: "error",
     icon: CircleXmark,
-    className: "text-red-600",
+    className: "text-red-600 bg-red-100",
   },
   flagged: {
     label: "Flagged",
     variant: "warning",
     icon: CircleWarning,
-    className: "text-yellow-600",
+    className: "text-yellow-600 bg-yellow-100",
   },
 };
 
-export function PayoutTable({ programId }: { programId: string }) {
+export function PayoutTable() {
+  const { programId } = useParams();
   const { queryParams, searchParams } = useRouterStuff();
 
   const sortBy = searchParams.get("sort") || "periodStart";
@@ -119,14 +121,6 @@ export function PayoutTable({ programId }: { programId: string }) {
     fetcher,
   );
 
-  const loading = !payouts && !error;
-
-  // Whether the initial tags have already loaded, for some loading states like the search box
-  const [initiallyLoaded, setInitiallyLoaded] = useState(false);
-  useEffect(() => {
-    if (!loading && payouts) setInitiallyLoaded(true);
-  }, [payouts, loading]);
-
   const { pagination, setPagination } = usePagination();
 
   const table = useTable({
@@ -144,7 +138,7 @@ export function PayoutTable({ programId }: { programId: string }) {
       {
         header: "Status",
         cell: ({ row }) => {
-          const badge = StatusBadges[row.original.status];
+          const badge = PayoutStatusBadges[row.original.status];
           return badge ? (
             <StatusBadge icon={badge.icon} variant={badge.variant}>
               {badge.label}
@@ -212,7 +206,7 @@ export function PayoutTable({ programId }: { programId: string }) {
     tdClassName: "border-l-0",
     resourceName: (p) => `payout${p ? "s" : ""}`,
     rowCount: totalPayoutsCount,
-    loading,
+    loading: !payouts && !error,
     error: error || countError ? "Failed to load payouts" : undefined,
   });
 
@@ -220,23 +214,14 @@ export function PayoutTable({ programId }: { programId: string }) {
     <div className="flex flex-col gap-3">
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          {loading && !initiallyLoaded ? (
-            <>
-              <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-24" />
-              <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-32" />
-            </>
-          ) : (
-            <>
-              <Filter.Select
-                className="w-full md:w-fit"
-                filters={filters}
-                activeFilters={activeFilters}
-                onSelect={onSelect}
-                onRemove={onRemove}
-              />
-              <SearchBoxPersisted />
-            </>
-          )}
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+          />
+          <SearchBoxPersisted />
         </div>
         <AnimatedSizeContainer height>
           <div>

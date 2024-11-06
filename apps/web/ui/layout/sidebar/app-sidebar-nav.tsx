@@ -1,5 +1,6 @@
 "use client";
 
+import usePrograms from "@/lib/swr/use-programs";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BetaFeatures } from "@/lib/types";
 import {
@@ -76,15 +77,16 @@ const NAV_AREAS: SidebarNavAreas<{
                   items: [
                     {
                       name: "Overview",
-                      href: `/${slug}/programs/${programs[0].id}/overview`,
-                    },
-                    {
-                      name: "Payouts",
-                      href: `/${slug}/programs/${programs[0].id}/payouts`,
+                      href: `/${slug}/programs/${programs[0].id}`,
+                      exact: true,
                     },
                     {
                       name: "Partners",
                       href: `/${slug}/programs/${programs[0].id}/partners`,
+                    },
+                    {
+                      name: "Payouts",
+                      href: `/${slug}/programs/${programs[0].id}/payouts`,
                     },
                     {
                       name: "Conversions",
@@ -237,7 +239,8 @@ export function AppSidebarNav({
 }) {
   const { slug } = useParams() as { slug?: string };
   const pathname = usePathname();
-  const { flags, programs } = useWorkspace();
+  const { flags } = useWorkspace();
+  const { programs } = usePrograms();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")

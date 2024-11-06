@@ -17,7 +17,7 @@ export const partnersQuerySchema = z
     country: z.string().optional(),
     search: z.string().optional(),
     order: z.enum(["asc", "desc"]).default("desc"),
-    sortBy: z.enum(["createdAt"]).default("createdAt"),
+    sortBy: z.enum(["createdAt", "earnings"]).default("createdAt"),
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
@@ -45,7 +45,7 @@ export const ProgramSchema = z.object({
   recurringCommission: z.boolean(),
   recurringDuration: z.number().nullable(),
   recurringInterval: z.nativeEnum(CommissionInterval).nullable(),
-  isLifetimeRecurring: z.boolean(),
+  isLifetimeRecurring: z.boolean().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -53,6 +53,7 @@ export const ProgramSchema = z.object({
 export const ProgramEnrollmentSchema = z.object({
   partnerId: z.string(),
   programId: z.string(),
+  program: ProgramSchema,
   link: LinkSchema.pick({
     id: true,
     shortLink: true,
@@ -66,9 +67,13 @@ export const ProgramEnrollmentSchema = z.object({
 
 export const EnrolledPartnerSchema = PartnerSchema.merge(
   ProgramEnrollmentSchema,
-).extend({
-  earnings: z.number(),
-});
+)
+  .omit({
+    program: true,
+  })
+  .extend({
+    earnings: z.number(),
+  });
 
 export const payoutsQuerySchema = z
   .object({

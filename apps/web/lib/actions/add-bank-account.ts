@@ -47,7 +47,7 @@ export const addBankAccountAction = authActionClient
       },
       data: {
         bankAccountName: achAccount.name,
-        maskedAccountNumber: achAccount.mask,
+        partialAccountNumber: achAccount.mask,
         bankAccountVerified: false, // re-verify the bank account
       },
     });

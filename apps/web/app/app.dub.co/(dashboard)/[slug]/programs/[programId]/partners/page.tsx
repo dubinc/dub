@@ -13,9 +13,9 @@ export default function ProgramPartners({
   return (
     <PageContent title="Partners">
       <MaxWidthWrapper>
-        <PartnerStats programId={programId} />
+        <PartnerStats />
         <div className="mt-6">
-          <PartnerTable programId={programId} />
+          <PartnerTable />
         </div>
       </MaxWidthWrapper>
     </PageContent>

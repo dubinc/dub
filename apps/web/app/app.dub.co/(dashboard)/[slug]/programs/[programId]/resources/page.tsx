@@ -47,7 +47,7 @@ export default function ProgramResources() {
                   Brand colors
                 </h3>
                 <p className="text-sm font-normal leading-5 text-neutral-600">
-                  Give affiliates official colors
+                  Give partners official colors
                 </p>
               </div>
 

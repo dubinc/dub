@@ -16,7 +16,7 @@ import {
   CircleCheck,
   CircleHalfDottedClock,
   CircleXmark,
-  OfficeBuilding,
+  Users,
 } from "@dub/ui/src/icons";
 import {
   COUNTRIES,
@@ -25,33 +25,36 @@ import {
   fetcher,
   formatDate,
 } from "@dub/utils";
+import { nFormatter } from "@dub/utils/src/functions";
+import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 import { PartnerDetailsSheet } from "./partner-details-sheet";
 import { usePartnerFilters } from "./use-partner-filters";
 
-export const StatusBadges = {
-  pending: {
-    label: "Applied",
-    variant: "pending",
-    className: "text-orange-500",
-    icon: CircleHalfDottedClock,
-  },
+export const PartnerStatusBadges = {
   approved: {
     label: "Approved",
     variant: "success",
-    className: "text-green-500",
+    className: "text-green-600 bg-green-100",
     icon: CircleCheck,
+  },
+  pending: {
+    label: "Pending",
+    variant: "pending",
+    className: "text-orange-600 bg-orange-100",
+    icon: CircleHalfDottedClock,
   },
   rejected: {
     label: "Rejected",
     variant: "error",
-    className: "text-red-500",
+    className: "text-red-600 bg-red-100",
     icon: CircleXmark,
   },
 };
 
-export function PartnerTable({ programId }: { programId: string }) {
+export function PartnerTable() {
+  const { programId } = useParams();
   const { queryParams, searchParams } = useRouterStuff();
 
   const sortBy = searchParams.get("sort") || "createdAt";
@@ -64,6 +67,7 @@ export function PartnerTable({ programId }: { programId: string }) {
     onRemove,
     onRemoveAll,
     searchQuery,
+    isFiltered,
   } = usePartnerFilters({ sortBy, order });
 
   const { data: partnersCounts, error: countError } = useSWR<PartnerCounts[]>(
@@ -86,15 +90,13 @@ export function PartnerTable({ programId }: { programId: string }) {
     fetcher,
   );
 
-  const loading = (!partners || !partnersCounts) && !error && !countError;
-
   const { pagination, setPagination } = usePagination();
 
   const table = useTable({
     data: partners || [],
     columns: [
       {
-        header: "Affiliate",
+        header: "Partner",
         cell: ({ row }) => {
           return (
             <div className="flex items-center gap-2">
@@ -119,7 +121,7 @@ export function PartnerTable({ programId }: { programId: string }) {
       {
         header: "Status",
         cell: ({ row }) => {
-          const badge = StatusBadges[row.original.status];
+          const badge = PartnerStatusBadges[row.original.status];
           return badge ? (
             <StatusBadge icon={null} variant={badge.variant}>
               {badge.label}
@@ -149,13 +151,17 @@ export function PartnerTable({ programId }: { programId: string }) {
       },
       {
         header: "Conversions",
-        accessorFn: (d) => (d.status !== "pending" ? d.link?.sales : "-"),
-      },
-      {
-        header: "Earned",
         accessorFn: (d) =>
           d.status !== "pending"
-            ? currencyFormatter(d.earnings, {
+            ? nFormatter(d.link?.sales, { full: true })
+            : "-",
+      },
+      {
+        id: "earnings",
+        header: "Earnings",
+        accessorFn: (d) =>
+          d.status !== "pending"
+            ? currencyFormatter(d.earnings / 100, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })
@@ -166,7 +172,7 @@ export function PartnerTable({ programId }: { programId: string }) {
       setPartnerSheetState({ open: true, partner: row.original }),
     pagination,
     onPaginationChange: setPagination,
-    sortableColumns: ["createdAt"],
+    sortableColumns: ["createdAt", "earnings"],
     sortBy,
     sortOrder: order,
     onSortChange: ({ sortBy, sortOrder }) =>
@@ -180,7 +186,7 @@ export function PartnerTable({ programId }: { programId: string }) {
     tdClassName: "border-l-0",
     resourceName: (p) => `partner${p ? "s" : ""}`,
     rowCount: totalPartnersCount,
-    loading,
+    loading: !partners && !error && !countError,
     error: error || countError ? "Failed to load partners" : undefined,
   });
 
@@ -195,57 +201,52 @@ export function PartnerTable({ programId }: { programId: string }) {
           partner={partnerSheetState.partner}
         />
       )}
-      {loading || partners?.length || error ? (
-        <div className="flex flex-col gap-3">
-          <div>
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              {loading ? (
-                <>
-                  <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-24" />
-                  <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-32" />
-                </>
-              ) : (
-                <>
-                  <Filter.Select
-                    className="w-full md:w-fit"
+      <div className="flex flex-col gap-3">
+        <div>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <Filter.Select
+              className="w-full md:w-fit"
+              filters={filters}
+              activeFilters={activeFilters}
+              onSelect={onSelect}
+              onRemove={onRemove}
+            />
+            <SearchBoxPersisted />
+          </div>
+          <AnimatedSizeContainer height>
+            <div>
+              {activeFilters.length > 0 && (
+                <div className="pt-3">
+                  <Filter.List
                     filters={filters}
                     activeFilters={activeFilters}
-                    onSelect={onSelect}
                     onRemove={onRemove}
+                    onRemoveAll={onRemoveAll}
                   />
-                  <SearchBoxPersisted />
-                </>
+                </div>
               )}
             </div>
-            <AnimatedSizeContainer height>
-              <div>
-                {activeFilters.length > 0 && (
-                  <div className="pt-3">
-                    <Filter.List
-                      filters={filters}
-                      activeFilters={activeFilters}
-                      onRemove={onRemove}
-                      onRemoveAll={onRemoveAll}
-                    />
-                  </div>
-                )}
-              </div>
-            </AnimatedSizeContainer>
-          </div>
-          <Table {...table} />
+          </AnimatedSizeContainer>
         </div>
-      ) : (
-        <AnimatedEmptyState
-          title="No partners found"
-          description="No partners have been added to this program yet."
-          cardContent={() => (
-            <>
-              <OfficeBuilding className="size-4 text-neutral-700" />
-              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-            </>
-          )}
-        />
-      )}
+        {partners?.length !== 0 ? (
+          <Table {...table} />
+        ) : (
+          <AnimatedEmptyState
+            title="No partners found"
+            description={
+              isFiltered
+                ? "No partners found for the selected filters."
+                : "No partners have been added to this program yet."
+            }
+            cardContent={() => (
+              <>
+                <Users className="size-4 text-neutral-700" />
+                <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+              </>
+            )}
+          />
+        )}
+      </div>
     </>
   );
 }

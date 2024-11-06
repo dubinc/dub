@@ -6,7 +6,7 @@ import { Badge, Button } from "@dub/ui";
 import { CreditCard } from "lucide-react";
 
 export const BankAccount = () => {
-  const { bankAccountName, maskedAccountNumber, bankAccountVerified } =
+  const { bankAccountName, partialAccountNumber, bankAccountVerified } =
     useWorkspace();
 
   const { AddBankAccountModal, setShowAddBankAccountModal } =
@@ -25,8 +25,8 @@ export const BankAccount = () => {
             {bankAccountName ?? "Add your bank account"}
           </div>
           <div className="text-sm text-neutral-500">
-            {maskedAccountNumber
-              ? `*******${maskedAccountNumber}`
+            {partialAccountNumber
+              ? `*******${partialAccountNumber}`
               : "Add your bank account"}
           </div>
         </div>

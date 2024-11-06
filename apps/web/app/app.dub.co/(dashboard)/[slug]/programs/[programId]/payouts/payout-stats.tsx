@@ -2,13 +2,17 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutCounts } from "@/lib/types";
-import { useRouterStuff } from "@dub/ui";
+import { ProgramStats } from "@/ui/programs/program-stats";
+import { MoneyBills2, useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { PayoutStatus } from "@prisma/client";
+import { useParams } from "next/navigation";
 import useSWR from "swr";
+import { PayoutStatusBadges } from "./payout-table";
 
-export function PayoutStats({ programId }: { programId: string }) {
+export function PayoutStats() {
+  const { slug, programId } = useParams();
   const { id: workspaceId } = useWorkspace();
+  const { queryParams } = useRouterStuff();
 
   const { data: payoutsCounts, error } = useSWR<PayoutCounts[]>(
     `/api/programs/${programId}/payouts/count?workspaceId=${workspaceId}`,
@@ -22,56 +26,41 @@ export function PayoutStats({ programId }: { programId: string }) {
     payoutsCounts?.find((payout) => payout.status === "completed")?._count || 0;
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
-      <PayoutCountCard
-        title="All"
-        status={null}
-        count={pendingPayoutsCount + completedPayoutsCount}
+    <div className="xs:grid-cols-3 xs:divide-x xs:divide-y-0 grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">
+      <ProgramStats
+        label="All"
+        href={`/${slug}/programs/${programId}/payouts`}
+        count={completedPayoutsCount + pendingPayoutsCount}
+        icon={MoneyBills2}
+        iconClassName="text-gray-600 bg-gray-100"
         error={!!error}
       />
-
-      <PayoutCountCard
-        title="Pending"
-        status="pending"
-        count={pendingPayoutsCount}
-        error={!!error}
-      />
-
-      <PayoutCountCard
-        title="Paid"
-        status="completed"
+      <ProgramStats
+        label="Paid"
+        href={
+          queryParams({
+            set: { status: "completed" },
+            getNewPath: true,
+          }) as string
+        }
         count={completedPayoutsCount}
+        icon={PayoutStatusBadges.completed.icon}
+        iconClassName={PayoutStatusBadges.completed.className}
+        error={!!error}
+      />
+      <ProgramStats
+        label="Pending"
+        href={
+          queryParams({
+            set: { status: "pending" },
+            getNewPath: true,
+          }) as string
+        }
+        count={pendingPayoutsCount}
+        icon={PayoutStatusBadges.pending.icon}
+        iconClassName={PayoutStatusBadges.pending.className}
         error={!!error}
       />
     </div>
-  );
-}
-
-function PayoutCountCard({
-  title,
-  status,
-  count,
-  error,
-}: {
-  title: string;
-  status: PayoutStatus | null;
-  count?: number;
-  error: boolean;
-}) {
-  const { queryParams } = useRouterStuff();
-
-  return (
-    <button
-      type="button"
-      onClick={() =>
-        queryParams(status === null ? { del: "status" } : { set: { status } })
-      }
-      className="flex flex-col items-start justify-start gap-1 rounded-lg border border-neutral-300 px-4 py-3 text-left transition-colors duration-75 hover:bg-gray-50 active:bg-gray-100"
-    >
-      <div className="text-sm font-normal text-neutral-500">{title}</div>
-      <div className="text-lg font-semibold leading-tight text-neutral-800">
-        {error ? "-" : count}
-      </div>
-    </button>
   );
 }

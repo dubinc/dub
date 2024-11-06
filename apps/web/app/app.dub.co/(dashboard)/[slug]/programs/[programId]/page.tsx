@@ -1,10 +1,13 @@
-import { redirect } from "next/navigation";
+import { PageContent } from "@/ui/layout/page-content";
+import { MaxWidthWrapper } from "@dub/ui";
+import ProgramOverviewPageClient from "./page-client";
 
-export default function ProgramInfo({
-  params,
-}: {
-  params: { slug: string; programId: string };
-}) {
-  redirect(`/${params.slug}/programs/${params.programId}/overview`);
-  return null;
+export default async function ProgramOverviewPage() {
+  return (
+    <PageContent title="Overview">
+      <MaxWidthWrapper>
+        <ProgramOverviewPageClient />
+      </MaxWidthWrapper>
+    </PageContent>
+  );
 }
