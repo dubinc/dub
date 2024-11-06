@@ -28,7 +28,7 @@ const AddBankAccount = ({ showModal, setShowModal }: AddBankAccountProps) => {
       drawerRootProps={{ repositionInputs: false }}
     >
       <h3 className="border-b border-gray-200 px-4 py-4 text-lg font-medium sm:px-6">
-        Add bank account
+        Connect bank account
       </h3>
       <div className="scrollbar-hide mt-6 max-h-[calc(100dvh-200px)] overflow-auto overflow-y-scroll">
         <AddBankAccountForm closeModal={() => setShowModal(false)} />
@@ -82,6 +82,7 @@ const AddBankAccountForm = ({ closeModal }: AddBankAccountFormProps) => {
               <input
                 {...register("accountNumber")}
                 className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                placeholder="000000000"
                 required
                 autoFocus
                 autoComplete="off"
@@ -103,6 +104,7 @@ const AddBankAccountForm = ({ closeModal }: AddBankAccountFormProps) => {
                 {...register("routingNumber")}
                 className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                 required
+                placeholder="000000000"
                 autoComplete="off"
               />
             </div>
@@ -143,7 +145,7 @@ const AddBankAccountForm = ({ closeModal }: AddBankAccountFormProps) => {
 
         <Button
           type="submit"
-          text="Add bank account"
+          text="Connect account"
           className="h-9 w-fit"
           disabled={!isValid}
           loading={isSubmitting || isExecuting}
