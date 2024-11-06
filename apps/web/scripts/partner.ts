@@ -30,8 +30,6 @@ async function main() {
       {
         programId,
         partnerId,
-        subtotal: 1000,
-        taxes: 0,
         total: 1000,
         payoutFee: 0,
         netTotal: 1000,
@@ -41,8 +39,6 @@ async function main() {
       {
         programId,
         partnerId,
-        subtotal: 2000,
-        taxes: 0,
         total: 2000,
         payoutFee: 0,
         netTotal: 2000,
@@ -52,8 +48,6 @@ async function main() {
       {
         programId,
         partnerId,
-        subtotal: 3000,
-        taxes: 0,
         total: 3000,
         payoutFee: 0,
         netTotal: 3000,

@@ -79,12 +79,12 @@ const NAV_AREAS: SidebarNavAreas<{
                       href: `/${slug}/programs/${programs[0].id}/overview`,
                     },
                     {
-                      name: "Payouts",
-                      href: `/${slug}/programs/${programs[0].id}/payouts`,
-                    },
-                    {
                       name: "Partners",
                       href: `/${slug}/programs/${programs[0].id}/partners`,
+                    },
+                    {
+                      name: "Payouts",
+                      href: `/${slug}/programs/${programs[0].id}/payouts`,
                     },
                     {
                       name: "Conversions",
