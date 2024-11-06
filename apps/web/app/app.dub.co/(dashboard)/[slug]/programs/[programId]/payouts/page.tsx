@@ -3,19 +3,13 @@ import { MaxWidthWrapper } from "@dub/ui";
 import { PayoutStats } from "./payout-stats";
 import { PayoutTable } from "./payout-table";
 
-export default async function ProgramPayoutsPage({
-  params,
-}: {
-  params: { slug: string; programId: string };
-}) {
-  const { programId } = params;
-
+export default async function ProgramPayoutsPage() {
   return (
     <PageContent title="Payouts">
       <MaxWidthWrapper>
-        <PayoutStats programId={programId} />
+        <PayoutStats />
         <div className="mt-6">
-          <PayoutTable programId={programId} />
+          <PayoutTable />
         </div>
       </MaxWidthWrapper>
     </PageContent>

@@ -36,6 +36,7 @@ import {
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
+import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -88,7 +89,8 @@ export const PayoutStatusBadges = {
   },
 };
 
-export function PayoutTable({ programId }: { programId: string }) {
+export function PayoutTable() {
+  const { programId } = useParams();
   const { queryParams, searchParams } = useRouterStuff();
 
   const sortBy = searchParams.get("sort") || "periodStart";
