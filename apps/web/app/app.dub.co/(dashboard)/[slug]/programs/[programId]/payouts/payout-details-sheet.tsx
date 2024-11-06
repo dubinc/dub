@@ -17,7 +17,7 @@ import {
 } from "@dub/utils";
 import { subDays } from "date-fns";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
-import { StatusBadges } from "./payout-table";
+import { PayoutStatusBadges } from "./payout-table";
 
 function PayoutDetailsSheetContent({
   payout,
@@ -52,7 +52,7 @@ function PayoutDetailsSheetContent({
   const loading = !conversions && !error;
 
   const invoiceData = useMemo(() => {
-    const statusBadge = StatusBadges[payout.status];
+    const statusBadge = PayoutStatusBadges[payout.status];
     return {
       Partner: (
         <div className="flex items-center gap-2">
