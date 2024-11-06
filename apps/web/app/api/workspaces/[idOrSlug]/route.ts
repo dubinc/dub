@@ -4,43 +4,31 @@ import { withWorkspace } from "@/lib/auth";
 import { dub } from "@/lib/dub";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
-import { ProgramSchema } from "@/lib/zod/schemas/partners";
 import {
   WorkspaceSchema,
   updateWorkspaceSchema,
 } from "@/lib/zod/schemas/workspaces";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 // GET /api/workspaces/[idOrSlug] – get a specific workspace by id or slug
 export const GET = withWorkspace(
   async ({ workspace, headers }) => {
-    const [domains, programs] = await Promise.all([
-      prisma.domain.findMany({
-        where: {
-          projectId: workspace.id,
-        },
-        select: {
-          slug: true,
-          primary: true,
-        },
-      }),
-      prisma.program.findMany({
-        where: {
-          workspaceId: workspace.id,
-        },
-      }),
-    ]);
+    const domains = await prisma.domain.findMany({
+      where: {
+        projectId: workspace.id,
+      },
+      select: {
+        slug: true,
+        primary: true,
+      },
+    });
 
     return NextResponse.json(
-      WorkspaceSchema.extend({
-        programs: z.array(ProgramSchema.pick({ id: true, name: true })),
-      }).parse({
+      WorkspaceSchema.parse({
         ...workspace,
         id: `ws_${workspace.id}`,
         domains,
-        programs,
         flags: await getFeatureFlags({
           workspaceId: workspace.id,
         }),
