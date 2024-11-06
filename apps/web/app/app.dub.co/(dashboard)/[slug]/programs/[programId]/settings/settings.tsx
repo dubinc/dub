@@ -39,7 +39,7 @@ export function ProgramSettings({ programId }: { programId: string }) {
               Commission
             </h3>
             <p className="text-sm font-normal text-neutral-600">
-              Set how the affiliate will get rewarded
+              Set how the partner will get rewarded
             </p>
           </div>
           <p className="basis-1/2 space-y-6">
@@ -91,7 +91,7 @@ export function ProgramSettings({ programId }: { programId: string }) {
               Payout
             </h3>
             <p className="text-sm font-normal text-neutral-600">
-              Set how much the affiliate will get rewarded
+              Set how much the partner will get rewarded
             </p>
           </div>
           <p className="basis-1/2 space-y-6">

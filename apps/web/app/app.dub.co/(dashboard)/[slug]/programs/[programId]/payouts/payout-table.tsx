@@ -43,48 +43,48 @@ import { usePayoutConfirmSheet } from "./payout-confirm-sheet";
 import { usePayoutDetailsSheet } from "./payout-details-sheet";
 import { usePayoutFilters } from "./use-payout-filters";
 
-export const StatusBadges = {
+export const PayoutStatusBadges = {
   created: {
     label: "Created",
     variant: "new",
     icon: CircleHalfDottedCheck,
-    className: "text-blue-600",
+    className: "text-blue-600 bg-blue-100",
   },
   pending: {
     label: "Pending",
     variant: "pending",
     icon: CircleHalfDottedClock,
-    className: "text-orange-600",
+    className: "text-orange-600 bg-orange-100",
   },
   failed: {
     label: "Failed",
     variant: "error",
     icon: CircleWarning,
-    className: "text-red-600",
+    className: "text-red-600 bg-red-100",
   },
   completed: {
     label: "Paid",
     variant: "success",
     icon: CircleCheck,
-    className: "text-green-600",
+    className: "text-green-600 bg-green-100",
   },
   reversed: {
     label: "Reversed",
     variant: "error",
     icon: CircleHalfDottedClock,
-    className: "text-red-600",
+    className: "text-red-600 bg-red-100",
   },
   canceled: {
     label: "Canceled",
     variant: "error",
     icon: CircleXmark,
-    className: "text-red-600",
+    className: "text-red-600 bg-red-100",
   },
   flagged: {
     label: "Flagged",
     variant: "warning",
     icon: CircleWarning,
-    className: "text-yellow-600",
+    className: "text-yellow-600 bg-yellow-100",
   },
 };
 
@@ -144,7 +144,7 @@ export function PayoutTable({ programId }: { programId: string }) {
       {
         header: "Status",
         cell: ({ row }) => {
-          const badge = StatusBadges[row.original.status];
+          const badge = PayoutStatusBadges[row.original.status];
           return badge ? (
             <StatusBadge icon={badge.icon} variant={badge.variant}>
               {badge.label}

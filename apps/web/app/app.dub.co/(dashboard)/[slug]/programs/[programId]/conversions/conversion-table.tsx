@@ -107,7 +107,7 @@ export function ConversionTable({ programId }: { programId: string }) {
         },
       },
       {
-        header: "Affiliate",
+        header: "Partner",
         accessorFn: () => "-",
       },
       {

@@ -3,7 +3,7 @@ import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, FlagWavy } from "@dub/ui/src/icons";
 import { cn, COUNTRIES } from "@dub/utils";
 import { useMemo } from "react";
-import { StatusBadges } from "./partner-table";
+import { PartnerStatusBadges } from "./partner-table";
 
 export function usePartnerFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
@@ -15,16 +15,23 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
         key: "status",
         icon: CircleDotted,
         label: "Status",
-        options: Object.entries(StatusBadges).map(([value, { label }]) => {
-          const Icon = StatusBadges[value].icon;
-          return {
-            value,
-            label,
-            icon: (
-              <Icon className={cn("size-4", StatusBadges[value].className)} />
-            ),
-          };
-        }),
+        options: Object.entries(PartnerStatusBadges).map(
+          ([value, { label }]) => {
+            const Icon = PartnerStatusBadges[value].icon;
+            return {
+              value,
+              label,
+              icon: (
+                <Icon
+                  className={cn(
+                    PartnerStatusBadges[value].className,
+                    "size-4 bg-transparent",
+                  )}
+                />
+              ),
+            };
+          },
+        ),
       },
       {
         key: "country",

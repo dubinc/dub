@@ -3,7 +3,7 @@ import { useRouterStuff } from "@dub/ui";
 import { CircleDotted } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import { useMemo } from "react";
-import { StatusBadges } from "./payout-table";
+import { PayoutStatusBadges } from "./payout-table";
 
 export function usePayoutFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
@@ -15,16 +15,23 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
         key: "status",
         icon: CircleDotted,
         label: "Status",
-        options: Object.entries(StatusBadges).map(([value, { label }]) => {
-          const Icon = StatusBadges[value].icon;
-          return {
-            value,
-            label,
-            icon: (
-              <Icon className={cn("size-4", StatusBadges[value].className)} />
-            ),
-          };
-        }),
+        options: Object.entries(PayoutStatusBadges).map(
+          ([value, { label }]) => {
+            const Icon = PayoutStatusBadges[value].icon;
+            return {
+              value,
+              label,
+              icon: (
+                <Icon
+                  className={cn(
+                    PayoutStatusBadges[value].className,
+                    "size-4 bg-transparent",
+                  )}
+                />
+              ),
+            };
+          },
+        ),
       },
     ],
     [],

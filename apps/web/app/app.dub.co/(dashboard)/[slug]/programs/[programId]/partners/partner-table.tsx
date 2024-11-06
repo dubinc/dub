@@ -30,23 +30,23 @@ import { useMemo } from "react";
 import useSWR from "swr";
 import { usePartnerFilters } from "./use-partner-filters";
 
-export const StatusBadges = {
-  pending: {
-    label: "pending",
-    variant: "pending",
-    className: "text-orange-500",
-    icon: CircleHalfDottedClock,
-  },
+export const PartnerStatusBadges = {
   approved: {
     label: "Approved",
     variant: "success",
-    className: "text-green-500",
+    className: "text-green-600 bg-green-100",
     icon: CircleCheck,
+  },
+  pending: {
+    label: "Pending",
+    variant: "pending",
+    className: "text-orange-600 bg-orange-100",
+    icon: CircleHalfDottedClock,
   },
   rejected: {
     label: "Rejected",
     variant: "error",
-    className: "text-red-500",
+    className: "text-red-600 bg-red-100",
     icon: CircleXmark,
   },
 };
@@ -89,7 +89,7 @@ export function PartnerTable({ programId }: { programId: string }) {
     data: partners || [],
     columns: [
       {
-        header: "Affiliate",
+        header: "Partner",
         cell: ({ row }) => {
           return (
             <div className="flex items-center gap-2">
@@ -114,7 +114,7 @@ export function PartnerTable({ programId }: { programId: string }) {
       {
         header: "Status",
         cell: ({ row }) => {
-          const badge = StatusBadges[row.original.status];
+          const badge = PartnerStatusBadges[row.original.status];
           return badge ? (
             <StatusBadge icon={null} variant={badge.variant}>
               {badge.label}
