@@ -3,12 +3,17 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerCounts } from "@/lib/types";
 import { ProgramStats } from "@/ui/programs/program-stats";
+import { useRouterStuff } from "@dub/ui";
+import { ChartLine, Users } from "@dub/ui/src/icons";
 import { fetcher } from "@dub/utils";
+import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { PartnerStatusBadges } from "./partner-table";
 
-export function PartnerStats({ programId }: { programId: string }) {
+export function PartnerStats() {
+  const { slug, programId } = useParams();
   const { id: workspaceId } = useWorkspace();
+  const { queryParams } = useRouterStuff();
 
   const { data: partnersCounts, error } = useSWR<PartnerCounts[]>(
     `/api/programs/${programId}/partners/count?workspaceId=${workspaceId}`,
@@ -22,10 +27,43 @@ export function PartnerStats({ programId }: { programId: string }) {
     partnersCounts?.find(({ status }) => status === "pending")?._count || 0;
 
   return (
-    <div className="xs:grid-cols-2 xs:divide-x xs:divide-y-0 grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">
+    <div className="xs:grid-cols-4 xs:divide-x xs:divide-y-0 grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">
+      <ProgramStats
+        label="All"
+        href={`/${slug}/programs/${programId}/partners`}
+        count={
+          partnersCounts
+            ? activePartnersCount + pendingPartnersCount
+            : undefined
+        }
+        icon={Users}
+        iconClassName="text-gray-600 bg-gray-100"
+        error={!!error}
+      />
+      <ProgramStats
+        label="Top partners"
+        href={
+          queryParams({
+            set: {
+              sort: "earnings",
+              order: "desc",
+            },
+            getNewPath: true,
+          }) as string
+        }
+        count={partnersCounts ? activePartnersCount : undefined}
+        icon={ChartLine}
+        iconClassName="text-blue-600 bg-blue-100"
+        error={!!error}
+      />
       <ProgramStats
         label="Approved"
-        status="approved"
+        href={
+          queryParams({
+            set: { status: "approved" },
+            getNewPath: true,
+          }) as string
+        }
         count={partnersCounts ? activePartnersCount : undefined}
         icon={PartnerStatusBadges.approved.icon}
         iconClassName={PartnerStatusBadges.approved.className}
@@ -33,7 +71,12 @@ export function PartnerStats({ programId }: { programId: string }) {
       />
       <ProgramStats
         label="Pending"
-        status="pending"
+        href={
+          queryParams({
+            set: { status: "pending" },
+            getNewPath: true,
+          }) as string
+        }
         count={partnersCounts ? pendingPartnersCount : undefined}
         icon={PartnerStatusBadges.pending.icon}
         iconClassName={PartnerStatusBadges.pending.className}

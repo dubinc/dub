@@ -3,12 +3,16 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutCounts } from "@/lib/types";
 import { ProgramStats } from "@/ui/programs/program-stats";
+import { MoneyBills2, useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
+import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { PayoutStatusBadges } from "./payout-table";
 
-export function PayoutStats({ programId }: { programId: string }) {
+export function PayoutStats() {
+  const { slug, programId } = useParams();
   const { id: workspaceId } = useWorkspace();
+  const { queryParams } = useRouterStuff();
 
   const { data: payoutsCounts, error } = useSWR<PayoutCounts[]>(
     `/api/programs/${programId}/payouts/count?workspaceId=${workspaceId}`,
@@ -22,33 +26,23 @@ export function PayoutStats({ programId }: { programId: string }) {
     payoutsCounts?.find((payout) => payout.status === "completed")?._count || 0;
 
   return (
-    // <div className="grid gap-4 md:grid-cols-3">
-    //   <PayoutCountCard
-    //     title="All"
-    //     status={null}
-    //     count={pendingPayoutsCount + completedPayoutsCount}
-    //     error={!!error}
-    //   />
-
-    //   <PayoutCountCard
-    //     title="Pending"
-    //     status="pending"
-    //     count={pendingPayoutsCount}
-    //     error={!!error}
-    //   />
-
-    //   <PayoutCountCard
-    //     title="Paid"
-    //     status="completed"
-    //     count={completedPayoutsCount}
-    //     error={!!error}
-    //   />
-    // </div>
-
-    <div className="xs:grid-cols-2 xs:divide-x xs:divide-y-0 grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">
+    <div className="xs:grid-cols-3 xs:divide-x xs:divide-y-0 grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">
+      <ProgramStats
+        label="All"
+        href={`/${slug}/programs/${programId}/payouts`}
+        count={completedPayoutsCount + pendingPayoutsCount}
+        icon={MoneyBills2}
+        iconClassName="text-gray-600 bg-gray-100"
+        error={!!error}
+      />
       <ProgramStats
         label="Paid"
-        status="completed"
+        href={
+          queryParams({
+            set: { status: "completed" },
+            getNewPath: true,
+          }) as string
+        }
         count={completedPayoutsCount}
         icon={PayoutStatusBadges.completed.icon}
         iconClassName={PayoutStatusBadges.completed.className}
@@ -56,7 +50,12 @@ export function PayoutStats({ programId }: { programId: string }) {
       />
       <ProgramStats
         label="Pending"
-        status="pending"
+        href={
+          queryParams({
+            set: { status: "pending" },
+            getNewPath: true,
+          }) as string
+        }
         count={pendingPayoutsCount}
         icon={PayoutStatusBadges.pending.icon}
         iconClassName={PayoutStatusBadges.pending.className}

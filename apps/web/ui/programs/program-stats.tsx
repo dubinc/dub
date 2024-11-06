@@ -1,26 +1,25 @@
-import { Icon, useRouterStuff } from "@dub/ui";
+import { Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 
 export function ProgramStats({
   label,
-  status,
+  href,
   count,
   icon: Icon,
   iconClassName,
   error,
 }: {
   label: string;
-  status: string;
+  href: string;
   count: number | undefined;
   icon: Icon;
   iconClassName?: string;
   error: boolean;
 }) {
-  const { queryParams } = useRouterStuff();
   return (
     <Link
-      href={queryParams({ set: { status }, getNewPath: true }) as string}
+      href={href}
       className="flex items-center gap-4 p-3 text-left transition-colors duration-75 hover:bg-gray-50 active:bg-gray-100"
     >
       <div

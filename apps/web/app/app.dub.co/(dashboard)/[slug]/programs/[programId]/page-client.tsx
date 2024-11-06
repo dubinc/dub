@@ -77,7 +77,7 @@ export default function ProgramOverviewPageClient() {
             </h2>
 
             <Link
-              href={`/${slug}/programs/${programId}/partners`}
+              href={`/${slug}/programs/${programId}/partners?sort=earnings&sortBy=desc`}
               className={cn(
                 buttonVariants(),
                 "flex h-8 items-center rounded-lg border px-3 text-sm",

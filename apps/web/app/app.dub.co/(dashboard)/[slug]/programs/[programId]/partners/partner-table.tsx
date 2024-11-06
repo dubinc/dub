@@ -26,6 +26,7 @@ import {
   formatDate,
 } from "@dub/utils";
 import { nFormatter } from "@dub/utils/src/functions";
+import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";
 import { usePartnerFilters } from "./use-partner-filters";
@@ -51,7 +52,8 @@ export const PartnerStatusBadges = {
   },
 };
 
-export function PartnerTable({ programId }: { programId: string }) {
+export function PartnerTable() {
+  const { programId } = useParams();
   const { queryParams, searchParams } = useRouterStuff();
 
   const sortBy = searchParams.get("sort") || "createdAt";
