@@ -2,10 +2,11 @@
 
 import useProgram from "@/lib/swr/use-program";
 import { ProgramProps } from "@/lib/types";
-import { Button, buttonVariants } from "@dub/ui";
+import { buttonVariants } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
+import { OverviewChart } from "./overview-chart";
 
 export default function ProgramOverviewPageClient() {
   const { slug, programId } = useParams();
@@ -18,58 +19,32 @@ export default function ProgramOverviewPageClient() {
   return (
     <div className="space-y-10">
       <div className="rounded-lg border border-neutral-200 bg-gray-50 p-3">
-        <div className="grid md:grid-cols-[2fr_1fr]"></div>
-      </div>
-      <div className="flex flex-col divide-y divide-neutral-200 rounded-md border border-neutral-200 bg-[#f9f9f9]">
-        <div className="flex items-center justify-between px-4 py-4">
-          <div className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-neutral-500">
-              Sign up page
-            </span>
-            <span className="text-sm font-medium leading-none text-neutral-900">
-              partner.dub.co/{program?.slug}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between gap-5 divide-x divide-neutral-200">
-            <div className="flex flex-col gap-1 text-right">
-              <span className="text-xs font-medium text-neutral-500">
-                Commission
-              </span>
-              <span className="text-sm font-medium leading-none text-neutral-900">
-                {program.commissionAmount}
-                {program.commissionType === "percentage" ? "%" : "$"}
-              </span>
+        <div className="grid gap-6 md:grid-cols-[minmax(0,5fr)_minmax(0,3fr)] md:gap-10">
+          <OverviewChart />
+          <div className="flex flex-col rounded-lg bg-neutral-800 p-5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-semibold text-neutral-50">
+                Program
+              </h3>
+              <Link
+                href={`/${slug}/programs/${programId}/settings`}
+                className={cn(
+                  buttonVariants({ variant: "secondary" }),
+                  "flex h-7 items-center rounded-md border px-2 text-sm",
+                )}
+              >
+                Edit Program
+              </Link>
             </div>
-
-            <div className="flex flex-col gap-1 pl-5 text-right">
-              <span className="text-xs font-medium text-neutral-500">
-                Cookie length
-              </span>
-              <span className="text-sm font-medium leading-none text-neutral-900">
-                {program.cookieLength} days
-              </span>
-            </div>
-
-            <div className="flex flex-col gap-1 pl-5 text-right">
-              <span className="text-xs font-medium text-neutral-500">
-                Min payout
-              </span>
-              <span className="text-sm font-medium leading-none text-neutral-900">
-                ${program.minimumPayout}
-              </span>
+            <div className="mt-6 flex grow flex-col justify-end">
+              <p
+                className="text-xl text-white"
+                dangerouslySetInnerHTML={{
+                  __html: commissionDescription(program),
+                }}
+              />
             </div>
           </div>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-center px-4 py-4">
-          <div
-            className="flex-1 text-sm leading-none text-neutral-900"
-            dangerouslySetInnerHTML={{
-              __html: commissionDescription(program),
-            }}
-          />
-          <Button className="h-8 w-fit" text="Edit program" />
         </div>
       </div>
       <div className="flex flex-col gap-10 sm:flex-row">
@@ -117,31 +92,31 @@ export default function ProgramOverviewPageClient() {
 }
 
 const commissionDescription = (program: ProgramProps) => {
-  const texts = ["Earn"];
+  const texts = ["Earn "];
 
   if (program.commissionType === "flat") {
     texts.push(
-      `<span class="font-semibold text-blue-600">${program.commissionAmount}</span>`,
+      `<span class="font-medium text-blue-400">${program.commissionAmount}</span>`,
     );
   } else {
     texts.push(
-      `<span class="font-semibold text-blue-600">${program.commissionAmount}%</span>`,
+      `<span class="font-medium text-blue-400">${program.commissionAmount}%</span>`,
     );
   }
 
-  texts.push("for each conversion");
+  texts.push(" for each conversion");
 
   if (program.recurringCommission) {
     if (program.isLifetimeRecurring) {
       texts.push(
-        "and again for all future renewals throughout <span class='font-semibold'>the customer's lifetime</span>",
+        ", and again for all future renewals throughout <span class='font-medium'>the customer's lifetime</span>",
       );
     } else {
       texts.push(
-        `and again for all renewals during the first <span class='font-semibold'>${program.recurringDuration} months</span>`,
+        `, and again for all renewals during the first <span class='font-medium'>${program.recurringDuration} months</span>`,
       );
     }
   }
 
-  return `${texts.join(" ")}.`;
+  return `${texts.join("")}.`;
 };
