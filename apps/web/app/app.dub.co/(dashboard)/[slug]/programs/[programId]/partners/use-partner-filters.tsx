@@ -93,6 +93,8 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
     [activeFilters, workspaceId, extraSearchParams],
   );
 
+  const isFiltered = activeFilters.length > 0 || searchParamsObj.search;
+
   return {
     filters,
     activeFilters,
@@ -100,5 +102,6 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
     onRemove,
     onRemoveAll,
     searchQuery,
+    isFiltered,
   };
 }

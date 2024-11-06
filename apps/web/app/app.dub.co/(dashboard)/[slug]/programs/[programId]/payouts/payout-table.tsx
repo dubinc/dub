@@ -36,7 +36,7 @@ import {
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { usePayoutConfirmSheet } from "./payout-confirm-sheet";
@@ -118,14 +118,6 @@ export function PayoutTable({ programId }: { programId: string }) {
     `/api/programs/${programId}/payouts?${searchQuery}`,
     fetcher,
   );
-
-  const loading = !payouts && !error;
-
-  // Whether the initial tags have already loaded, for some loading states like the search box
-  const [initiallyLoaded, setInitiallyLoaded] = useState(false);
-  useEffect(() => {
-    if (!loading && payouts) setInitiallyLoaded(true);
-  }, [payouts, loading]);
 
   const { pagination, setPagination } = usePagination();
 
@@ -212,7 +204,7 @@ export function PayoutTable({ programId }: { programId: string }) {
     tdClassName: "border-l-0",
     resourceName: (p) => `payout${p ? "s" : ""}`,
     rowCount: totalPayoutsCount,
-    loading,
+    loading: !payouts && !error,
     error: error || countError ? "Failed to load payouts" : undefined,
   });
 
@@ -220,23 +212,14 @@ export function PayoutTable({ programId }: { programId: string }) {
     <div className="flex flex-col gap-3">
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          {loading && !initiallyLoaded ? (
-            <>
-              <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-24" />
-              <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-32" />
-            </>
-          ) : (
-            <>
-              <Filter.Select
-                className="w-full md:w-fit"
-                filters={filters}
-                activeFilters={activeFilters}
-                onSelect={onSelect}
-                onRemove={onRemove}
-              />
-              <SearchBoxPersisted />
-            </>
-          )}
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+          />
+          <SearchBoxPersisted />
         </div>
         <AnimatedSizeContainer height>
           <div>

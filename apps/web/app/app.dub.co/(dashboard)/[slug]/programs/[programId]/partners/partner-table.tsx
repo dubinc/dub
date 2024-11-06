@@ -16,7 +16,7 @@ import {
   CircleCheck,
   CircleHalfDottedClock,
   CircleXmark,
-  OfficeBuilding,
+  Users,
 } from "@dub/ui/src/icons";
 import {
   COUNTRIES,
@@ -66,6 +66,7 @@ export function PartnerTable() {
     onRemove,
     onRemoveAll,
     searchQuery,
+    isFiltered,
   } = usePartnerFilters({ sortBy, order });
 
   const { data: partnersCounts, error: countError } = useSWR<PartnerCounts[]>(
@@ -82,8 +83,6 @@ export function PartnerTable() {
     `/api/programs/${programId}/partners?${searchQuery}`,
     fetcher,
   );
-
-  const loading = (!partners || !partnersCounts) && !error && !countError;
 
   const { pagination, setPagination } = usePagination();
 
@@ -179,31 +178,22 @@ export function PartnerTable() {
     tdClassName: "border-l-0",
     resourceName: (p) => `partner${p ? "s" : ""}`,
     rowCount: totalPartnersCount,
-    loading,
+    loading: !partners && !error && !countError,
     error: error || countError ? "Failed to load partners" : undefined,
   });
 
-  return loading || partners?.length || error ? (
+  return (
     <div className="flex flex-col gap-3">
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          {loading ? (
-            <>
-              <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-24" />
-              <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-32" />
-            </>
-          ) : (
-            <>
-              <Filter.Select
-                className="w-full md:w-fit"
-                filters={filters}
-                activeFilters={activeFilters}
-                onSelect={onSelect}
-                onRemove={onRemove}
-              />
-              <SearchBoxPersisted />
-            </>
-          )}
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+          />
+          <SearchBoxPersisted />
         </div>
         <AnimatedSizeContainer height>
           <div>
@@ -220,18 +210,24 @@ export function PartnerTable() {
           </div>
         </AnimatedSizeContainer>
       </div>
-      <Table {...table} />
-    </div>
-  ) : (
-    <AnimatedEmptyState
-      title="No partners found"
-      description="No partners have been added to this program yet."
-      cardContent={() => (
-        <>
-          <OfficeBuilding className="size-4 text-neutral-700" />
-          <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-        </>
+      {partners?.length !== 0 ? (
+        <Table {...table} />
+      ) : (
+        <AnimatedEmptyState
+          title="No partners found"
+          description={
+            isFiltered
+              ? "No partners found for the selected filters."
+              : "No partners have been added to this program yet."
+          }
+          cardContent={() => (
+            <>
+              <Users className="size-4 text-neutral-700" />
+              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+            </>
+          )}
+        />
       )}
-    />
+    </div>
   );
 }
