@@ -32,8 +32,9 @@ export const addAppAchAccount = async ({
   );
 
   if (!response.ok) {
-    console.error(await response.text());
-    throw new Error(`Failed to add ACH account to Dots app ${dotsAppId}.`);
+    const error = await response.json();
+    console.error(error);
+    throw new Error(`Failed to connect bank account: ${error.message}`);
   }
 
   return schema.parse(await response.json());
