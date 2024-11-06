@@ -13,6 +13,7 @@ import {
   Gift,
   Globe,
   Key,
+  MoneyBills2,
   Receipt2,
   ShieldCheck,
   Users6,
@@ -114,7 +115,7 @@ const NAV_AREAS: SidebarNavAreas<{
   }),
 
   // Workspace settings
-  workspaceSettings: ({ slug, flags }) => ({
+  workspaceSettings: ({ slug, flags, programs }) => ({
     title: "Settings",
     backHref: `/${slug}`,
     content: [
@@ -157,6 +158,15 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: ShieldCheck,
             href: `/${slug}/settings/security`,
           },
+          ...(programs?.length
+            ? [
+                {
+                  name: "Payouts",
+                  icon: MoneyBills2,
+                  href: `/${slug}/settings/payouts`,
+                },
+              ]
+            : []),
           ...(flags?.referrals
             ? [
                 {

@@ -9,7 +9,10 @@ export function PageContent({
   title,
   description,
   children,
-}: PropsWithChildren<{ title?: ReactNode; description?: ReactNode }>) {
+}: PropsWithChildren<{
+  title?: ReactNode;
+  description?: ReactNode;
+}>) {
   const hasTitle = title !== undefined;
   const hasDescription = description !== undefined;
 
