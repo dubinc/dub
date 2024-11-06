@@ -16,7 +16,10 @@ export const addBankAccountSchema = z.object({
 });
 
 export const depositFundsSchema = z.object({
-  amount: z.string(),
+  amount: z.string().refine((amount) => {
+    const value = parseFloat(amount);
+    return !isNaN(value) && value >= 0.01 && value <= 100_000;
+  }),
 });
 
 export const dotsAppSchema = z.object({

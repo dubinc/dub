@@ -1,53 +1,54 @@
 "use client";
 
-import { DotsApp } from "@/lib/dots/types";
+import useDotsApp from "@/lib/swr/use-dots-app";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useDepositFundsModal } from "@/ui/modals/deposit-funds-modal";
 import { Button } from "@dub/ui";
-import { fetcher } from "@dub/utils";
-import { CreditCard } from "lucide-react";
-import useSWR from "swr";
+import { currencyFormatter } from "@dub/utils";
 
 export const Wallet = () => {
-  const workspace = useWorkspace();
+  const { bankAccountVerified } = useWorkspace();
+  const { data, error } = useDotsApp();
+
+  const loading = !data && !error;
 
   const { DepositFundsModal, setShowDepositFundsModal } =
     useDepositFundsModal();
 
-  // TODO:
-  // Move this to a hook
-  const { data, isLoading } = useSWR<DotsApp>(
-    `/api/dots?workspaceId=${workspace.id}`,
-    fetcher,
-  );
-
   return (
     <>
       <DepositFundsModal />
-      <div className="flex items-center gap-5 rounded-lg border bg-white p-5">
-        <div className="hidden h-12 w-12 items-center justify-center rounded-full border border-neutral-300 sm:inline-flex">
-          <CreditCard className="h-5 w-5 text-gray-600" />
-        </div>
+      <div className="flex flex-col p-4">
+        <div className="flex justify-between gap-5">
+          <div className="p-1">
+            <div className="text-sm text-neutral-500">Wallet</div>
+          </div>
 
-        <div className="flex grow flex-col gap-1">
-          <div className="flex items-center gap-2 text-base font-semibold text-gray-700">
-            Wallet{" "}
-            {isLoading ? (
-              <div className="h-4 w-20 animate-pulse rounded bg-neutral-200" />
+          <div>
+            {bankAccountVerified !== undefined ? (
+              <Button
+                text="Deposit funds"
+                onClick={() => setShowDepositFundsModal(true)}
+                className="h-7 w-fit px-2"
+                disabled={!bankAccountVerified}
+              />
             ) : (
-              `($${data?.metrics.wallet_balance})`
+              <div className="h-7 w-24 animate-pulse rounded-md bg-neutral-200" />
             )}
           </div>
-          <div className="text-sm text-neutral-500">
-            Wallet balance and transaction history.
-          </div>
         </div>
-
-        <div>
-          <Button
-            text="Deposit funds"
-            onClick={() => setShowDepositFundsModal(true)}
-          />
+        <div className="mt-6 flex grow flex-col justify-end p-1">
+          {loading ? (
+            <div className="h-8 w-32 animate-pulse rounded bg-neutral-200" />
+          ) : (
+            <div className="text-2xl text-neutral-800">
+              {currencyFormatter(
+                parseFloat(data?.metrics.wallet_balance ?? "") / 100,
+                { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+              )}{" "}
+              USD
+            </div>
+          )}
         </div>
       </div>
     </>

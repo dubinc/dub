@@ -14,7 +14,7 @@ const statusSchema = z.enum([
 
 const schema = z.object({
   id: z.string(),
-  amount: z.number(),
+  amount: z.string(),
   status: statusSchema,
   status_history: z.array(
     z.object({

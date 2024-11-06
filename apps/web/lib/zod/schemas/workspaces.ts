@@ -126,6 +126,12 @@ export const WorkspaceSchema = z
       .describe(
         "[BETA – Dub Partners]: The partial account number of the bank account.",
       ),
+    routingNumber: z
+      .string()
+      .nullable()
+      .describe(
+        "[BETA – Dub Partners]: The routing number of the bank account.",
+      ),
     bankAccountVerified: z
       .boolean()
       .describe("[BETA – Dub Partners]: Whether the bank account is verified."),

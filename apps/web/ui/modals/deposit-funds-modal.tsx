@@ -2,6 +2,7 @@ import { depositFundsAction } from "@/lib/actions/deposit-funds";
 import { depositFundsSchema } from "@/lib/dots/schemas";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Modal } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAction } from "next-safe-action/hooks";
 import { useCallback, useMemo, useState } from "react";
@@ -41,6 +42,7 @@ const DepositFundsForm = ({ closeModal }: { closeModal: () => void }) => {
     formState: { isValid, isSubmitting },
   } = useForm<z.infer<typeof depositFundsSchema>>({
     resolver: zodResolver(depositFundsSchema),
+    mode: "onChange",
   });
 
   const { executeAsync, isExecuting } = useAction(depositFundsAction, {
@@ -63,20 +65,31 @@ const DepositFundsForm = ({ closeModal }: { closeModal: () => void }) => {
       <div className="flex flex-col gap-y-6 px-4 text-left sm:px-6">
         <div className="flex flex-col gap-3">
           <div>
-            <label htmlFor="amount" className="flex items-center space-x-2">
+            <label>
               <h2 className="text-sm font-medium text-gray-900">Amount</h2>
+              <div className="relative mt-2 rounded-md shadow-sm">
+                <input
+                  type="number"
+                  className={cn(
+                    "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                    "pl-7 pr-12",
+
+                    // Hide spin button
+                    "[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
+                  )}
+                  autoFocus
+                  autoComplete="off"
+                  placeholder="100.00"
+                  {...register("amount")}
+                />
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                  $
+                </div>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                  USD
+                </div>
+              </div>
             </label>
-            <div className="relative mt-2 rounded-md shadow-sm">
-              <input
-                {...register("amount")}
-                type="number"
-                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                required
-                autoFocus
-                autoComplete="off"
-                placeholder="100.00"
-              />
-            </div>
           </div>
         </div>
       </div>

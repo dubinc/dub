@@ -48,6 +48,7 @@ export const addBankAccountAction = authActionClient
       data: {
         bankAccountName: achAccount.name,
         partialAccountNumber: achAccount.mask,
+        routingNumber,
         bankAccountVerified: false, // re-verify the bank account
       },
     });
