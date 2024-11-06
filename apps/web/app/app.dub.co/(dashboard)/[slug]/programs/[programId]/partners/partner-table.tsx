@@ -25,6 +25,7 @@ import {
   fetcher,
   formatDate,
 } from "@dub/utils";
+import { nFormatter } from "@dub/utils/src/functions";
 import { useMemo } from "react";
 import useSWR from "swr";
 import { usePartnerFilters } from "./use-partner-filters";
@@ -143,13 +144,16 @@ export function PartnerTable({ programId }: { programId: string }) {
       },
       {
         header: "Conversions",
-        accessorFn: (d) => (d.status !== "pending" ? d.link?.sales : "-"),
+        accessorFn: (d) =>
+          d.status !== "pending"
+            ? nFormatter(d.link?.sales, { full: true })
+            : "-",
       },
       {
         header: "Earned",
         accessorFn: (d) =>
           d.status !== "pending"
-            ? currencyFormatter(d.earnings, {
+            ? currencyFormatter(d.earnings / 100, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })
