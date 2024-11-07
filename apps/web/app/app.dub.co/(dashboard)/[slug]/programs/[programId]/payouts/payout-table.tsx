@@ -8,7 +8,6 @@ import {
   Button,
   Filter,
   Icon,
-  MoneyBill2,
   Popover,
   StatusBadge,
   Table,
@@ -24,8 +23,9 @@ import {
   CircleXmark,
   Dots,
   GreekTemple,
+  MoneyBill2,
   ScanText,
-  Users,
+  TableRows2,
 } from "@dub/ui/src/icons";
 import {
   cn,
@@ -36,9 +36,8 @@ import {
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
 import useSWR from "swr";
 import { usePayoutConfirmSheet } from "./payout-confirm-sheet";
 import { usePayoutDetailsSheet } from "./payout-details-sheet";
@@ -261,6 +260,8 @@ export function PayoutTable() {
 }
 
 function RowMenuButton({ row }: { row: Row<PayoutWithPartnerProps> }) {
+  const router = useRouter();
+  const { slug, programId } = useParams();
   const [isOpen, setIsOpen] = useState(false);
 
   const canConfirmPayout = ["created", "pending", "flagged", "failed"].includes(
@@ -290,6 +291,14 @@ function RowMenuButton({ row }: { row: Row<PayoutWithPartnerProps> }) {
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
+              <MenuItem
+                icon={ScanText}
+                label="Review details"
+                onSelect={() => {
+                  setShowPayoutDetailsSheet(true);
+                  setIsOpen(false);
+                }}
+              />
               {canConfirmPayout && (
                 <MenuItem
                   icon={GreekTemple}
@@ -301,18 +310,12 @@ function RowMenuButton({ row }: { row: Row<PayoutWithPartnerProps> }) {
                 />
               )}
               <MenuItem
-                icon={ScanText}
-                label="Review"
+                icon={TableRows2}
+                label="View conversions"
                 onSelect={() => {
-                  setShowPayoutDetailsSheet(true);
-                  setIsOpen(false);
-                }}
-              />
-              <MenuItem
-                icon={Users}
-                label="View partner"
-                onSelect={() => {
-                  toast.info("WIP"); // TODO
+                  router.push(
+                    `/${slug}/programs/${programId}/conversions?partnerId=${row.original.partner.id}`,
+                  );
                   setIsOpen(false);
                 }}
               />
