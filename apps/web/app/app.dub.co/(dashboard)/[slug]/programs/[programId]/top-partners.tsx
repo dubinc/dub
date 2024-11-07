@@ -17,7 +17,7 @@ export function TopPartners() {
   const { id: workspaceId } = useWorkspace();
 
   const { data: partners, error } = useSWR<EnrolledPartnerProps[]>(
-    `/api/programs/${programId}/partners?workspaceId=${workspaceId}&sortBy=earnings&order=desc&pageSize=5`,
+    `/api/programs/${programId}/partners?workspaceId=${workspaceId}&status=approved&sortBy=earnings&order=desc&pageSize=5`,
     fetcher,
   );
 
@@ -34,7 +34,7 @@ export function TopPartners() {
           href={`/${slug}/programs/${programId}/partners?sort=earnings&sortBy=desc`}
           className={cn(
             buttonVariants(),
-            "flex h-8 items-center rounded-lg border px-3 text-sm",
+            "flex h-7 items-center rounded-lg border px-2 text-sm",
           )}
         >
           View all

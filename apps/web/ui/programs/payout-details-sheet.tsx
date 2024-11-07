@@ -17,7 +17,7 @@ import {
 } from "@dub/utils";
 import { subDays } from "date-fns";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
-import { PayoutStatusBadges } from "./payout-table";
+import { PayoutStatusBadges } from "../../app/app.dub.co/(dashboard)/[slug]/programs/[programId]/payouts/payout-table";
 
 type PayoutDetailsSheetProps = {
   payout: PayoutWithPartnerProps;

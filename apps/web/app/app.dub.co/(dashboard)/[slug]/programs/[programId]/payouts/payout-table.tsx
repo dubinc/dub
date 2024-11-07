@@ -38,8 +38,8 @@ import { Command } from "cmdk";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
-import { PayoutConfirmSheet } from "./payout-confirm-sheet";
-import { PayoutDetailsSheet } from "./payout-details-sheet";
+import { PayoutConfirmSheet } from "../../../../../../../ui/programs/payout-confirm-sheet";
+import { PayoutDetailsSheet } from "../../../../../../../ui/programs/payout-details-sheet";
 import { usePayoutFilters } from "./use-payout-filters";
 
 export const PayoutStatusBadges = {
