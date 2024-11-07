@@ -29,6 +29,7 @@ import {
   MoneyBill2,
 } from "@dub/ui/src/icons";
 import {
+  cn,
   currencyFormatter,
   formatDate,
   getPrettyUrl,
@@ -46,6 +47,7 @@ const ProgramOverviewContext = createContext<{
   start?: Date;
   end?: Date;
   interval?: string;
+  color?: string;
 }>({});
 
 export default function ProgramPageClient() {
@@ -74,11 +76,13 @@ export default function ProgramPageClient() {
     start || end ? undefined : searchParams?.get("interval") ?? "30d";
 
   const program = programEnrollment?.program;
+  const color =
+    program?.id === "prog_MqN7G1vSbuSELpYJwioHyDE8" ? "#8B5CF6" : undefined;
 
   return (
     <MaxWidthWrapper className="pb-10">
-      <div className="relative flex flex-col rounded-lg border border-neutral-300 bg-neutral-50 p-4 md:p-6">
-        <HeroBackground logo={program?.logo} />
+      <div className="relative flex flex-col rounded-lg border border-neutral-300 bg-gradient-to-r from-neutral-50 p-4 md:p-6">
+        {program && <HeroBackground logo={program?.logo} color={color} />}
         <span className="flex items-center gap-2 text-sm text-neutral-500">
           <MoneyBill2 className="size-4" />
           Refer and earn
@@ -148,7 +152,7 @@ export default function ProgramPageClient() {
           />
         </div>
       </div>
-      <ProgramOverviewContext.Provider value={{ start, end, interval }}>
+      <ProgramOverviewContext.Provider value={{ start, end, interval, color }}>
         <div className="mt-6 rounded-lg border border-neutral-300">
           <div className="p-4 md:p-6 md:pb-4">
             <EarningsChart />
@@ -176,7 +180,7 @@ function EarningsChart() {
   const { queryParams } = useRouterStuff();
   const id = useId();
 
-  const { start, end, interval } = useContext(ProgramOverviewContext);
+  const { start, end, interval, color } = useContext(ProgramOverviewContext);
 
   const { data: { earnings: total } = {} } = usePartnerAnalytics({
     interval: interval as any,
@@ -280,7 +284,7 @@ function EarningsChart() {
               {
                 id: "earnings",
                 valueAccessor: (d) => d.values.earnings,
-                colorClassName: "text-[#8B5CF6]",
+                colorClassName: color ? `text-[${color}]` : "text-violet-500",
                 isActive: true,
               },
             ]}
@@ -293,7 +297,12 @@ function EarningsChart() {
                   </p>
                   <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
                     <div className="flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-sm bg-violet-500 shadow-[inset_0_0_0_1px_#0003]" />
+                      <div
+                        className={cn(
+                          "h-2 w-2 rounded-sm shadow-[inset_0_0_0_1px_#0003]",
+                          color ? `bg-[${color}]` : "bg-violet-500",
+                        )}
+                      />
                       <p className="capitalize text-gray-600">Earnings</p>
                     </div>
                     <p className="text-right font-medium text-gray-900">
@@ -311,8 +320,8 @@ function EarningsChart() {
               {(context) => (
                 <LinearGradient
                   id={`${id}-color-gradient`}
-                  from="#8B5CF6"
-                  to="#4C1D95"
+                  from={color || "#7D3AEC"}
+                  to={color || "#DA2778"}
                   x1={0}
                   x2={context?.width ?? 1}
                   gradientUnits="userSpaceOnUse"
@@ -328,7 +337,7 @@ function EarningsChart() {
                   id: "earnings",
                   areaFill: `url(#${id}-color-gradient)`,
                   lineStroke: `url(#${id}-color-gradient)`,
-                  lineClassName: "text-violet-500",
+                  lineClassName: `text-[${color}]`,
                 },
               ]}
             />
@@ -357,7 +366,7 @@ function StatCard({
   event: "clicks" | "leads" | "sales";
 }) {
   const { partnerId, programId } = useParams();
-  const { start, end, interval } = useContext(ProgramOverviewContext);
+  const { start, end, interval, color } = useContext(ProgramOverviewContext);
 
   const { data: total } = usePartnerAnalytics({
     interval: interval as any,
@@ -393,6 +402,7 @@ function StatCard({
               value: d[event],
             }))}
             curve={false}
+            color={color}
           />
         ) : (
           <div className="flex size-full items-center justify-center">
