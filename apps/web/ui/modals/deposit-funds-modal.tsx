@@ -8,6 +8,7 @@ import { useAction } from "next-safe-action/hooks";
 import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { mutate } from "swr";
 import { z } from "zod";
 
 const DepositFunds = ({
@@ -34,7 +35,7 @@ const DepositFunds = ({
 };
 
 const DepositFundsForm = ({ closeModal }: { closeModal: () => void }) => {
-  const { id: workspaceId, mutate } = useWorkspace();
+  const { id: workspaceId } = useWorkspace();
 
   const {
     register,
@@ -45,16 +46,19 @@ const DepositFundsForm = ({ closeModal }: { closeModal: () => void }) => {
     mode: "onChange",
   });
 
-  const { executeAsync, isExecuting } = useAction(depositFundsAction, {
-    async onSuccess() {
-      toast.success("Funds deposited successfully.");
-      mutate();
-      closeModal();
+  const { executeAsync, isExecuting, hasSucceeded } = useAction(
+    depositFundsAction,
+    {
+      async onSuccess() {
+        await mutate(`/api/dots/transfers?workspaceId=${workspaceId}`);
+        closeModal();
+        toast.success("Funds deposited successfully.");
+      },
+      onError({ error }) {
+        toast.error(error.serverError?.serverError);
+      },
     },
-    onError({ error }) {
-      toast.error(error.serverError?.serverError);
-    },
-  });
+  );
 
   const onSubmit = async (data: z.infer<typeof depositFundsSchema>) => {
     await executeAsync({ ...data, workspaceId: workspaceId! });
@@ -109,7 +113,7 @@ const DepositFundsForm = ({ closeModal }: { closeModal: () => void }) => {
           text="Deposit funds"
           className="h-9 w-fit"
           disabled={!isValid}
-          loading={isSubmitting || isExecuting}
+          loading={isSubmitting || isExecuting || hasSucceeded}
         />
       </div>
     </form>
