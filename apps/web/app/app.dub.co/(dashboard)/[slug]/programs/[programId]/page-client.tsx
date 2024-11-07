@@ -7,6 +7,8 @@ import { cn } from "@dub/utils";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
 import { OverviewChart } from "./overview-chart";
+import { PendingPayouts } from "./pending-payouts";
+import { TopPartners } from "./top-partners";
 
 export default function ProgramOverviewPageClient() {
   const { slug, programId } = useParams();
@@ -17,9 +19,9 @@ export default function ProgramOverviewPageClient() {
   }
 
   return (
-    <div className="space-y-10">
+    <div className="mb-10">
       <div className="rounded-lg border border-neutral-200 bg-gray-50 p-3">
-        <div className="grid grid-cols-[minmax(0,1fr)] gap-6 md:grid-cols-[minmax(0,5fr)_minmax(0,3fr)] md:gap-10">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,5fr)_minmax(0,3fr)] md:gap-10">
           <OverviewChart />
           <div className="relative flex flex-col overflow-hidden rounded-lg bg-neutral-800">
             <Grid className="text-white/5" cellSize={20} />
@@ -52,45 +54,9 @@ export default function ProgramOverviewPageClient() {
           </div>
         </div>
       </div>
-      <div className="flex flex-col gap-10 sm:flex-row">
-        <div className="basis-1/2">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-base font-semibold text-neutral-900">
-              Top partners
-            </h2>
-
-            <Link
-              href={`/${slug}/programs/${programId}/partners?sort=earnings&sortBy=desc`}
-              className={cn(
-                buttonVariants(),
-                "flex h-8 items-center rounded-lg border px-3 text-sm",
-              )}
-            >
-              View all
-            </Link>
-          </div>
-
-          <div className="min-h-[200px] rounded-md border"></div>
-        </div>
-        <div className="basis-1/2">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-base font-semibold text-neutral-900">
-              Pending payouts
-            </h2>
-
-            <Link
-              href={`/${slug}/programs/${programId}/payouts`}
-              className={cn(
-                buttonVariants(),
-                "flex h-8 items-center rounded-lg border px-3 text-sm",
-              )}
-            >
-              View all
-            </Link>
-          </div>
-
-          <div className="min-h-[200px] rounded-md border"></div>
-        </div>
+      <div className="mt-10 grid grid-cols-1 gap-10 md:grid-cols-2">
+        <TopPartners />
+        <PendingPayouts />
       </div>
     </div>
   );
