@@ -69,10 +69,10 @@ const NAV_AREAS: SidebarNavAreas<{
       ...(programs?.length
         ? [
             {
-              name: "Partnerships",
+              name: "Programs",
               items: [
                 {
-                  name: "Affiliate Program",
+                  name: "Affiliate",
                   icon: ConnectedDots4,
                   href: `/${slug}/programs/${programs[0].id}`,
                   items: [
