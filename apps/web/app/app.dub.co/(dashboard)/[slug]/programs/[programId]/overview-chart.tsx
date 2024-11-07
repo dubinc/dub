@@ -4,7 +4,7 @@ import TimeSeriesChart from "@/ui/charts/time-series-chart";
 import XAxis from "@/ui/charts/x-axis";
 import YAxis from "@/ui/charts/y-axis";
 import { LoadingSpinner } from "@dub/ui/src/icons";
-import { currencyFormatter } from "@dub/utils";
+import { currencyFormatter, formatDate } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
 import { subDays } from "date-fns";
 import { useId, useMemo } from "react";
@@ -13,14 +13,14 @@ const mockData = () =>
   [...Array(30)].map((_, i) => ({
     date: subDays(new Date(), 30 - i),
     values: {
-      earnings: Math.round(Math.random() * 100_00),
+      earnings: Math.round(Math.random() * 100_00) / 100,
     },
   }));
 
 export function OverviewChart() {
   const id = useId();
 
-  // TODO: [payouts] use actual data
+  // TODO: [payouts] use actual data (note: this mock data is already divided by 100)
   const total = 1234_00;
   const data = useMemo(() => mockData(), []);
 
@@ -58,11 +58,33 @@ export function OverviewChart() {
             series={[
               {
                 id: "earnings",
-                valueAccessor: (d) => d.values.earnings / 100,
+                valueAccessor: (d) => d.values.earnings,
                 colorClassName: "text-[#8B5CF6]",
                 isActive: true,
               },
             ]}
+            tooltipClassName="p-0"
+            tooltipContent={(d) => {
+              return (
+                <>
+                  <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
+                    {formatDate(d.date)}
+                  </p>
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-sm bg-violet-500 shadow-[inset_0_0_0_1px_#0003]" />
+                      <p className="capitalize text-gray-600">Revenue</p>
+                    </div>
+                    <p className="text-right font-medium text-gray-900">
+                      {currencyFormatter(d.values.earnings, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
+                  </div>
+                </>
+              );
+            }}
           >
             <ChartContext.Consumer>
               {(context) => (
