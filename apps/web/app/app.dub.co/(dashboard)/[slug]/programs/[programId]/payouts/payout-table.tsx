@@ -24,7 +24,6 @@ import {
   Dots,
   GreekTemple,
   MoneyBill2,
-  ScanText,
   TableRows2,
 } from "@dub/ui/src/icons";
 import {
@@ -40,7 +39,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 import { usePayoutConfirmSheet } from "./payout-confirm-sheet";
-import { usePayoutDetailsSheet } from "./payout-details-sheet";
+import { PayoutDetailsSheet } from "./payout-details-sheet";
 import { usePayoutFilters } from "./use-payout-filters";
 
 export const PayoutStatusBadges = {
@@ -119,6 +118,11 @@ export function PayoutTable() {
     `/api/programs/${programId}/payouts?${searchQuery}`,
     fetcher,
   );
+
+  const [detailsSheetState, setDetailsSheetState] = useState<
+    | { open: false; payout: PayoutWithPartnerProps | null }
+    | { open: true; payout: PayoutWithPartnerProps }
+  >({ open: false, payout: null });
 
   const { pagination, setPagination } = usePagination();
 
@@ -200,6 +204,8 @@ export function PayoutTable() {
           ...(sortOrder && { order: sortOrder }),
         },
       }),
+    onRowClick: (row) =>
+      setDetailsSheetState({ open: true, payout: row.original }),
     columnPinning: { right: ["menu"] },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
@@ -210,52 +216,63 @@ export function PayoutTable() {
   });
 
   return (
-    <div className="flex flex-col gap-3">
-      <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-          />
-          <SearchBoxPersisted />
-        </div>
-        <AnimatedSizeContainer height>
-          <div>
-            {activeFilters.length > 0 && (
-              <div className="pt-3">
-                <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                />
-              </div>
-            )}
-          </div>
-        </AnimatedSizeContainer>
-      </div>
-      {payouts?.length !== 0 ? (
-        <Table {...table} />
-      ) : (
-        <AnimatedEmptyState
-          title="No payouts found"
-          description={
-            isFiltered
-              ? "No payouts found for the selected filters."
-              : "No payouts have been initiated for this program yet."
+    <>
+      {detailsSheetState.payout && (
+        <PayoutDetailsSheet
+          isOpen={detailsSheetState.open}
+          setIsOpen={(open) =>
+            setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
-          cardContent={() => (
-            <>
-              <MoneyBill2 className="size-4 text-neutral-700" />
-              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-            </>
-          )}
+          payout={detailsSheetState.payout}
         />
       )}
-    </div>
+      <div className="flex flex-col gap-3">
+        <div>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <Filter.Select
+              className="w-full md:w-fit"
+              filters={filters}
+              activeFilters={activeFilters}
+              onSelect={onSelect}
+              onRemove={onRemove}
+            />
+            <SearchBoxPersisted />
+          </div>
+          <AnimatedSizeContainer height>
+            <div>
+              {activeFilters.length > 0 && (
+                <div className="pt-3">
+                  <Filter.List
+                    filters={filters}
+                    activeFilters={activeFilters}
+                    onRemove={onRemove}
+                    onRemoveAll={onRemoveAll}
+                  />
+                </div>
+              )}
+            </div>
+          </AnimatedSizeContainer>
+        </div>
+        {payouts?.length !== 0 ? (
+          <Table {...table} />
+        ) : (
+          <AnimatedEmptyState
+            title="No payouts found"
+            description={
+              isFiltered
+                ? "No payouts found for the selected filters."
+                : "No payouts have been initiated for this program yet."
+            }
+            cardContent={() => (
+              <>
+                <MoneyBill2 className="size-4 text-neutral-700" />
+                <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+              </>
+            )}
+          />
+        )}
+      </div>
+    </>
   );
 }
 
@@ -273,32 +290,15 @@ function RowMenuButton({ row }: { row: Row<PayoutWithPartnerProps> }) {
       payout: row.original,
     });
 
-  const { payoutDetailsSheet, setIsOpen: setShowPayoutDetailsSheet } =
-    usePayoutDetailsSheet({
-      payout: row.original,
-      onConfirmPayout: canConfirmPayout
-        ? () => setShowPayoutConfirmSheet(true)
-        : undefined,
-    });
-
   return (
     <>
-      {payoutDetailsSheet}
-      {canConfirmPayout && payoutConfirmSheet}
+      {payoutConfirmSheet}
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
-              <MenuItem
-                icon={ScanText}
-                label="Review details"
-                onSelect={() => {
-                  setShowPayoutDetailsSheet(true);
-                  setIsOpen(false);
-                }}
-              />
               {canConfirmPayout && (
                 <MenuItem
                   icon={GreekTemple}
@@ -314,7 +314,7 @@ function RowMenuButton({ row }: { row: Row<PayoutWithPartnerProps> }) {
                 label="View conversions"
                 onSelect={() => {
                   router.push(
-                    `/${slug}/programs/${programId}/conversions?partnerId=${row.original.partner.id}`,
+                    `/${slug}/programs/${programId}/sales?partnerId=${row.original.partner.id}`,
                   );
                   setIsOpen(false);
                 }}
