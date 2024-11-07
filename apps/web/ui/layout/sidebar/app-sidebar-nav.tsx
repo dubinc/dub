@@ -153,11 +153,6 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: ConnectedDots,
             href: `/${slug}/settings/integrations`,
           },
-          {
-            name: "Security",
-            icon: ShieldCheck,
-            href: `/${slug}/settings/security`,
-          },
           ...(programs?.length
             ? [
                 {
@@ -167,6 +162,11 @@ const NAV_AREAS: SidebarNavAreas<{
                 },
               ]
             : []),
+          {
+            name: "Security",
+            icon: ShieldCheck,
+            href: `/${slug}/settings/security`,
+          },
           ...(flags?.referrals
             ? [
                 {
