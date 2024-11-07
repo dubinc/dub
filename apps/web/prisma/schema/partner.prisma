@@ -19,8 +19,6 @@ model Partner {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
-  // TODO: [dots] might need to move these to the ProgramEnrollment table or somewhere between partners and workspaces
-  dotsAppId String?
   dotsUserId String? @unique
 
   programs ProgramEnrollment[]

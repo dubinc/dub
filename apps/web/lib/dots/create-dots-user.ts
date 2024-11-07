@@ -8,14 +8,12 @@ const responseSchema = z.object({
 });
 
 export const createDotsUser = async ({
-  dotsAppId,
   firstName,
   lastName,
   email,
   countryCode,
   phoneNumber,
 }: {
-  dotsAppId: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -24,7 +22,7 @@ export const createDotsUser = async ({
 }) => {
   const response = await fetch(`${DOTS_API_URL}/users`, {
     method: "POST",
-    headers: dotsHeaders({ dotsAppId }),
+    headers: dotsHeaders({ dotsAppId: "0f01ec2b-e29e-4627-ae28-5ecc24d25935" }),
     body: JSON.stringify({
       first_name: firstName,
       last_name: lastName,

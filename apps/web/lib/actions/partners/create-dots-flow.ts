@@ -2,7 +2,6 @@
 
 import { getPartnerOrThrow } from "@/lib/api/partners/get-partner-or-throw";
 import { createDotsFlow } from "@/lib/dots/create-dots-flow";
-import { userIsInBeta } from "@/lib/edge-config";
 import z from "../../zod";
 import { authUserActionClient } from "../safe-action";
 
@@ -21,21 +20,13 @@ export const createDotsFlowAction = authUserActionClient
       userId: user.id,
     });
 
-    const partnersPortalEnabled = await userIsInBeta(
-      user.email,
-      "partnersPortal",
-    );
-    if (!partnersPortalEnabled) {
-      return {
-        ok: false,
-        error: "Partners portal feature flag disabled.",
-      };
-    }
-
     try {
-      // TODO: [dots] probably need to specify the dots app ID if it ends up being different for each program enrollment
+      if (!partner.dotsUserId) {
+        throw new Error("Partner does not have a Dots user ID");
+      }
+
       const response = await createDotsFlow({
-        partner,
+        dotsUserId: partner.dotsUserId,
         steps: ["manage-payouts"],
       });
 
