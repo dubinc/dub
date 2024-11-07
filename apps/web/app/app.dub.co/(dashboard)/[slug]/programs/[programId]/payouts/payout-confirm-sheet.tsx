@@ -158,7 +158,7 @@ export function PayoutConfirmSheet({
 
 export function usePayoutConfirmSheet({
   payout,
-}: Omit<PayoutConfirmSheetProps, "setIsOpen">) {
+}: Omit<PayoutConfirmSheetProps, "setIsOpen"> & { nested?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return {
