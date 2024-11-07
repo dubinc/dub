@@ -12,7 +12,6 @@ export * from "./fetch-with-timeout";
 export * from "./fetcher";
 export * from "./hash-string";
 export * from "./images";
-export * from "./is-click-on-interactive-child";
 export * from "./is-iframeable";
 export * from "./keys";
 export * from "./link-constructor";

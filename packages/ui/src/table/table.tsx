@@ -1,4 +1,4 @@
-import { cn, deepEqual, isClickOnInteractiveChild } from "@dub/utils";
+import { cn, deepEqual } from "@dub/utils";
 import {
   Cell,
   Column,
@@ -16,7 +16,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   CSSProperties,
   Dispatch,
-  MouseEvent,
   PropsWithChildren,
   ReactNode,
   SetStateAction,
@@ -53,7 +52,7 @@ type UseTableProps<T> = {
   onColumnVisibilityChange?: (visibility: VisibilityState) => void;
   columnPinning?: ColumnPinningState;
   resourceName?: (plural: boolean) => string;
-  onRowClick?: (row: Row<T>, e: MouseEvent) => void;
+  onRowClick?: (row: Row<T>) => void;
 
   className?: string;
   containerClassName?: string;
@@ -262,19 +261,8 @@ export function Table<T>({
               {table.getRowModel().rows.map((row) => (
                 <tr
                   key={row.id}
-                  className={cn(
-                    "group/row",
-                    onRowClick && "cursor-pointer select-none",
-                  )}
-                  onClick={
-                    onRowClick
-                      ? (e) => {
-                          // Ignore if click is on an interactive child
-                          if (isClickOnInteractiveChild(e)) return;
-                          onRowClick(row, e);
-                        }
-                      : undefined
-                  }
+                  className="group/row"
+                  onClick={onRowClick ? () => onRowClick(row) : undefined}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td

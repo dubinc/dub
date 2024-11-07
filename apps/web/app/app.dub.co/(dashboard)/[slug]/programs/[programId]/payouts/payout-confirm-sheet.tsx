@@ -11,15 +11,13 @@ import {
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-type PayoutConfirmSheetProps = {
-  payout: PayoutWithPartnerProps;
-  setIsOpen: Dispatch<SetStateAction<boolean>>;
-};
-
 function PayoutConfirmSheetContent({
   payout,
   setIsOpen,
-}: PayoutConfirmSheetProps) {
+}: {
+  payout: PayoutWithPartnerProps;
+  setIsOpen: Dispatch<SetStateAction<boolean>>;
+}) {
   // TODO: [payouts] Use real data
   const totalConversions = 2;
 
@@ -143,31 +141,18 @@ function PayoutConfirmSheetContent({
   );
 }
 
-export function PayoutConfirmSheet({
-  isOpen,
-  ...rest
-}: PayoutConfirmSheetProps & {
-  isOpen: boolean;
-}) {
-  return (
-    <Sheet open={isOpen} onOpenChange={rest.setIsOpen}>
-      <PayoutConfirmSheetContent {...rest} />
-    </Sheet>
-  );
-}
-
 export function usePayoutConfirmSheet({
   payout,
-}: Omit<PayoutConfirmSheetProps, "setIsOpen">) {
+}: {
+  payout: PayoutWithPartnerProps;
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
   return {
     payoutConfirmSheet: (
-      <PayoutConfirmSheet
-        setIsOpen={setIsOpen}
-        isOpen={isOpen}
-        payout={payout}
-      />
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <PayoutConfirmSheetContent payout={payout} setIsOpen={setIsOpen} />
+      </Sheet>
     ),
     setIsOpen,
   };
