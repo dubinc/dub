@@ -101,13 +101,15 @@ function ProgramCard({ program }: { program: ProgramProps }) {
       className="hover:drop-shadow-card-hover block rounded-md border border-neutral-300 bg-white p-4 transition-[filter]"
     >
       <div className="flex items-center gap-4">
-        <BlurImage
-          width={96}
-          height={96}
-          src={program.logo || `${DICEBEAR_AVATAR_URL}${program.name}`}
-          alt={program.name}
-          className="size-12 rounded-full"
-        />
+        <div className="flex size-10 items-center justify-center rounded-full border border-gray-200 bg-gradient-to-t from-gray-100">
+          <BlurImage
+            width={96}
+            height={96}
+            src={program.logo || `${DICEBEAR_AVATAR_URL}${program.name}`}
+            alt={program.name}
+            className="size-6 rounded-full"
+          />
+        </div>
         <div className="flex flex-col gap-0.5">
           <span className="text-base font-medium text-neutral-900">
             {program.name}
