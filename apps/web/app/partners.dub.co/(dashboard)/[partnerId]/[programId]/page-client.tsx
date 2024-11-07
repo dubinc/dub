@@ -9,6 +9,7 @@ import { ChartContext } from "@/ui/charts/chart-context";
 import TimeSeriesChart from "@/ui/charts/time-series-chart";
 import XAxis from "@/ui/charts/x-axis";
 import YAxis from "@/ui/charts/y-axis";
+import { ProgramCommissionDescription } from "@/ui/programs/program-commission-description";
 import EmptyState from "@/ui/shared/empty-state";
 import { MiniAreaChart } from "@dub/blocks";
 import {
@@ -34,7 +35,6 @@ import {
   formatDate,
   getPrettyUrl,
   nFormatter,
-  pluralize,
 } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
 import { endOfDay, startOfDay, subDays } from "date-fns";
@@ -89,35 +89,7 @@ export default function ProgramPageClient() {
         </span>
         <div className="relative mt-24 text-lg text-neutral-900 sm:max-w-[50%]">
           {program ? (
-            <>
-              Earn{" "}
-              <strong className="font-semibold">
-                {program.commissionType === "percentage"
-                  ? program.commissionAmount + "%"
-                  : currencyFormatter(program.commissionAmount / 100, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-              </strong>
-              for each conversion
-              {program.recurringCommission &&
-              ((program.recurringDuration && program.recurringDuration > 0) ||
-                program.isLifetimeRecurring) ? (
-                <>
-                  , and again{" "}
-                  <strong className="font-semibold">
-                    every {program.recurringInterval || "cycle"} for{" "}
-                    {program.isLifetimeRecurring
-                      ? "the customer's lifetime."
-                      : program.recurringDuration
-                        ? `${program.recurringDuration} ${pluralize(program.recurringInterval || "cycle", program.recurringDuration)}.`
-                        : null}
-                  </strong>
-                </>
-              ) : (
-                "."
-              )}
-            </>
+            <ProgramCommissionDescription program={program} />
           ) : (
             <div className="mb-7 h-7 w-full animate-pulse rounded-md bg-neutral-200" />
           )}
