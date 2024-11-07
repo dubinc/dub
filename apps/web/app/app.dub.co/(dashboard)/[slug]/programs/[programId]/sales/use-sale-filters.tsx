@@ -21,7 +21,7 @@ export function useSaleFilters(extraSearchParams: Record<string, string>) {
       del: "page",
     });
 
-  const onRemove = (key: string, value: any) =>
+  const onRemove = (key: string) =>
     queryParams({
       del: [key, "page"],
     });
