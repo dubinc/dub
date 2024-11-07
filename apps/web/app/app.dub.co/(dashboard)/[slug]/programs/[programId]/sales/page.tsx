@@ -1,8 +1,8 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { MaxWidthWrapper } from "@dub/ui";
-import { ConversionTable } from "./conversion-table";
+import { SaleTable } from "./sale-table";
 
-export default function ProgramConversions({
+export default function ProgramSales({
   params,
 }: {
   params: { slug: string; programId: string };
@@ -10,10 +10,10 @@ export default function ProgramConversions({
   const { programId } = params;
 
   return (
-    <PageContent title="Conversions">
+    <PageContent title="Sales">
       <MaxWidthWrapper>
         <div className="mt-6">
-          <ConversionTable programId={programId} />
+          <SaleTable programId={programId} />
         </div>
       </MaxWidthWrapper>
     </PageContent>

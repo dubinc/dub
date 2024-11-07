@@ -2,9 +2,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import { useMemo } from "react";
 
-export function useConversionFilters(
-  extraSearchParams: Record<string, string>,
-) {
+export function useSaleFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
 

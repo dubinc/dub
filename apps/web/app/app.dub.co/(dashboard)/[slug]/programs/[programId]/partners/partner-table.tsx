@@ -144,7 +144,7 @@ export function PartnerTable() {
         },
       },
       {
-        header: "Conversions",
+        header: "Sales",
         accessorFn: (d) =>
           d.status !== "pending"
             ? nFormatter(d.link?.sales, { full: true })

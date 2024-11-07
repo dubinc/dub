@@ -19,9 +19,9 @@ import { MoneyBill2 } from "@dub/ui/src/icons";
 import { currencyFormatter, fetcher, formatDate } from "@dub/utils";
 import useSWR from "swr";
 import { z } from "zod";
-import { useConversionFilters } from "./use-conversion-filters";
+import { useSaleFilters } from "./use-sale-filters";
 
-export function ConversionTable({ programId }: { programId: string }) {
+export function SaleTable({ programId }: { programId: string }) {
   const { queryParams, searchParams } = useRouterStuff();
 
   const sortBy = searchParams.get("sort") || "timestamp";
@@ -34,7 +34,7 @@ export function ConversionTable({ programId }: { programId: string }) {
     onRemove,
     onRemoveAll,
     searchQuery,
-  } = useConversionFilters({ event: "sales", interval: "30d", sortBy, order });
+  } = useSaleFilters({ event: "sales", interval: "30d", sortBy, order });
 
   const { data: analyticsData, error: analyticsError } = useSWR<{
     sales: number;
@@ -43,18 +43,18 @@ export function ConversionTable({ programId }: { programId: string }) {
     fetcher,
   );
 
-  const totalConversionsCount = analyticsData?.sales ?? 0;
+  const totalSalesCount = analyticsData?.sales ?? 0;
 
-  const { data: conversions, error } = useSWR<
+  const { data: sales, error } = useSWR<
     z.infer<typeof saleEventResponseSchema>[]
   >(`/api/programs/${programId}/events?${searchQuery}`, fetcher);
 
-  const loading = (!conversions || !analyticsData) && !error && !analyticsError;
+  const loading = (!sales || !analyticsData) && !error && !analyticsError;
 
   const { pagination, setPagination } = usePagination();
 
   const table = useTable({
-    data: conversions || [],
+    data: sales || [],
     columns: [
       {
         id: "timestamp",
@@ -133,13 +133,13 @@ export function ConversionTable({ programId }: { programId: string }) {
       }),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: (p) => `conversion${p ? "s" : ""}`,
-    rowCount: Math.max(totalConversionsCount, conversions?.length ?? 0),
+    resourceName: (p) => `sale${p ? "s" : ""}`,
+    rowCount: Math.max(totalSalesCount, sales?.length ?? 0),
     loading,
-    error: error || analyticsError ? "Failed to load conversions" : undefined,
+    error: error || analyticsError ? "Failed to load sales" : undefined,
   });
 
-  return loading || conversions?.length ? (
+  return loading || sales?.length ? (
     <div className="flex flex-col gap-3">
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -180,8 +180,8 @@ export function ConversionTable({ programId }: { programId: string }) {
     </div>
   ) : (
     <AnimatedEmptyState
-      title="No conversions found"
-      description="No conversions have been made for this program yet."
+      title="No sales found"
+      description="No sales have been made for this program yet."
       cardContent={() => (
         <>
           <MoneyBill2 className="size-4 text-neutral-700" />

@@ -44,7 +44,7 @@ function PayoutConfirmSheetContent({
             ? undefined
             : "numeric",
       })}-${formatDate(payout.periodEnd, { month: "short" })}`,
-      Conversions: totalConversions,
+      Sales: totalConversions,
       Total: currencyFormatter(payout.total / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
