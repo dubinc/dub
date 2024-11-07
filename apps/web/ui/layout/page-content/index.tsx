@@ -7,10 +7,12 @@ import { NavButton } from "./nav-button";
 
 export function PageContent({
   title,
+  titleControls,
   description,
   children,
 }: PropsWithChildren<{
   title?: ReactNode;
+  titleControls?: ReactNode;
   description?: ReactNode;
 }>) {
   const hasTitle = title !== undefined;
@@ -42,6 +44,9 @@ export function PageContent({
               </div>
             )}
           </div>
+          {titleControls && (
+            <div className="hidden md:block">{titleControls}</div>
+          )}
           <div className="flex items-center gap-4 md:hidden">
             <HelpButtonRSC />
             <UserDropdown />
