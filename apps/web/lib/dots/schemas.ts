@@ -43,3 +43,18 @@ export const dotsTransfersSchema = z.object({
   data: z.array(dotsTransferSchema),
   has_more: z.boolean(),
 });
+
+export const dotsPayoutMethodSchema = z.object({
+  id: z.string(),
+  platform: z.enum([
+    "ach",
+    "paypal",
+    "venmo",
+    "cash_app",
+    "intl_transfer",
+    "airtm",
+    "payoneer",
+  ]),
+  mask: z.string(),
+  currency: z.string(),
+});
