@@ -1,3 +1,5 @@
+import { MouseEvent } from "react";
+
 export function isClickOnInteractiveChild(e: MouseEvent) {
   // Traverse up the DOM tree to see if there's a clickable element between this card and the click
   for (
@@ -10,7 +12,11 @@ export function isClickOnInteractiveChild(e: MouseEvent) {
       ["button", "a", "input", "textarea"].includes(
         target.tagName.toLowerCase(),
       ) ||
-      target.getAttribute("data-radix-popper-content-wrapper") !== null
+      [
+        "data-radix-popper-content-wrapper",
+        "data-vaul-overlay",
+        "data-vaul-drawer",
+      ].some((attr) => target.getAttribute(attr) !== null)
     )
       return true;
   }
