@@ -9,6 +9,7 @@ const UNAUTHENTICATED_PATHS = [
   "/register",
   "/forgot-password",
   "/auth/reset-password",
+  "/apply",
 ];
 
 export default async function PartnersMiddleware(req: NextRequest) {
