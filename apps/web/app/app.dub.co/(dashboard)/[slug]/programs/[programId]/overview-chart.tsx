@@ -1,12 +1,14 @@
+import { INTERVAL_DATA, INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
 import Areas from "@/ui/charts/areas";
 import { ChartContext } from "@/ui/charts/chart-context";
 import TimeSeriesChart from "@/ui/charts/time-series-chart";
 import XAxis from "@/ui/charts/x-axis";
 import YAxis from "@/ui/charts/y-axis";
+import { DateRangePicker, useRouterStuff } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/src/icons";
 import { currencyFormatter, formatDate } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
-import { subDays } from "date-fns";
+import { endOfDay, startOfDay, subDays } from "date-fns";
 import { useId, useMemo } from "react";
 
 const mockData = () =>
@@ -18,11 +20,33 @@ const mockData = () =>
   }));
 
 export function OverviewChart() {
+  const { queryParams, searchParams } = useRouterStuff();
   const id = useId();
+
+  // Default to last 24 hours
+  const { start, end } = useMemo(() => {
+    const hasRange = searchParams?.has("start") && searchParams?.has("end");
+
+    return {
+      start: hasRange
+        ? startOfDay(
+            new Date(searchParams?.get("start") || subDays(new Date(), 1)),
+          )
+        : undefined,
+
+      end: hasRange
+        ? endOfDay(new Date(searchParams?.get("end") || new Date()))
+        : undefined,
+    };
+  }, [searchParams?.get("start"), searchParams?.get("end")]);
+
+  // Only set interval if start and end are not provided
+  const interval =
+    start || end ? undefined : searchParams?.get("interval") ?? "24h";
 
   // TODO: [payouts] use actual data (note: this mock data is already divided by 100)
   const total = 1234_00;
-  const data = useMemo(() => mockData(), []);
+  const data = useMemo(() => mockData(), [start, end, interval]);
 
   const dataError = null;
   const totalError = null;
@@ -32,20 +56,76 @@ export function OverviewChart() {
 
   return (
     <div>
-      <div className="flex flex-col gap-1 p-2">
-        <span className="text-sm text-neutral-500">Revenue</span>
-        {totalLoading ? (
-          <div className="h-9 w-24 animate-pulse rounded-md bg-neutral-200" />
-        ) : (
-          <span className="text-3xl text-neutral-800">
-            {totalError
-              ? "-"
-              : currencyFormatter(total / 100, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-          </span>
-        )}
+      <div className="flex justify-between">
+        <div className="flex flex-col gap-1 p-2">
+          <span className="text-sm text-neutral-500">Revenue</span>
+          {totalLoading ? (
+            <div className="h-9 w-24 animate-pulse rounded-md bg-neutral-200" />
+          ) : (
+            <span className="text-3xl text-neutral-800">
+              {totalError
+                ? "-"
+                : currencyFormatter(total / 100, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+            </span>
+          )}
+        </div>
+        <div>
+          <DateRangePicker
+            className="h-9 w-full px-2 md:w-fit"
+            align="end"
+            value={
+              start && end
+                ? {
+                    from: start,
+                    to: end,
+                  }
+                : undefined
+            }
+            presetId={!start || !end ? interval ?? "24h" : undefined}
+            onChange={(range, preset) => {
+              if (preset) {
+                queryParams({
+                  del: ["start", "end"],
+                  set: {
+                    interval: preset.id,
+                  },
+                  scroll: false,
+                });
+
+                return;
+              }
+
+              // Regular range
+              if (!range || !range.from || !range.to) return;
+
+              queryParams({
+                del: "interval",
+                set: {
+                  start: range.from.toISOString(),
+                  end: range.to.toISOString(),
+                },
+                scroll: false,
+              });
+            }}
+            presets={INTERVAL_DISPLAYS.map(({ display, value, shortcut }) => {
+              const start = INTERVAL_DATA[value].startDate;
+              const end = new Date();
+
+              return {
+                id: value,
+                label: display,
+                dateRange: {
+                  from: start,
+                  to: end,
+                },
+                shortcut,
+              };
+            })}
+          />
+        </div>
       </div>
       <div className="relative mt-4 h-72 md:h-96">
         {dataLoading ? (
