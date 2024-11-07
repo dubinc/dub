@@ -19,15 +19,17 @@ import { subDays } from "date-fns";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
 import { PayoutStatusBadges } from "./payout-table";
 
+type PayoutDetailsSheetProps = {
+  payout: PayoutWithPartnerProps;
+  onConfirmPayout?: () => void;
+  setIsOpen: Dispatch<SetStateAction<boolean>>;
+};
+
 function PayoutDetailsSheetContent({
   payout,
   onConfirmPayout,
   setIsOpen,
-}: {
-  payout: PayoutWithPartnerProps;
-  onConfirmPayout?: () => void;
-  setIsOpen: Dispatch<SetStateAction<boolean>>;
-}) {
+}: PayoutDetailsSheetProps) {
   // TODO: [payouts] Fetch real data
   const totalConversions = 2;
   const conversions = [
@@ -189,24 +191,33 @@ function PayoutDetailsSheetContent({
   );
 }
 
+export function PayoutDetailsSheet({
+  isOpen,
+  ...rest
+}: PayoutDetailsSheetProps & {
+  isOpen: boolean;
+}) {
+  return (
+    <Sheet open={isOpen} onOpenChange={rest.setIsOpen}>
+      <PayoutDetailsSheetContent {...rest} />
+    </Sheet>
+  );
+}
+
 export function usePayoutDetailsSheet({
   payout,
   onConfirmPayout,
-}: {
-  payout: PayoutWithPartnerProps;
-  onConfirmPayout?: () => void;
-}) {
+}: Omit<PayoutDetailsSheetProps, "setIsOpen">) {
   const [isOpen, setIsOpen] = useState(false);
 
   return {
     payoutDetailsSheet: (
-      <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <PayoutDetailsSheetContent
-          payout={payout}
-          onConfirmPayout={onConfirmPayout}
-          setIsOpen={setIsOpen}
-        />
-      </Sheet>
+      <PayoutDetailsSheet
+        payout={payout}
+        onConfirmPayout={onConfirmPayout}
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+      />
     ),
     setIsOpen,
   };
