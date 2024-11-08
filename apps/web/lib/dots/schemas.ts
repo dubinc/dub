@@ -66,6 +66,13 @@ export const dotsPayoutPlatforms = z.enum([
   "payoneer",
 ]);
 
+export const payoutMethodSchema = z.object({
+  platform: dotsPayoutPlatforms,
+  default: z.boolean().default(false),
+  id: z.string().optional(),
+  country: z.string().optional(),
+});
+
 export const dotsUserSchema = z.object({
   id: z.string(),
   email: z.string(),
@@ -80,11 +87,6 @@ export const dotsUserSchema = z.object({
     pending_amount: z.number(),
   }),
   default_payout_method: dotsPayoutPlatforms,
-  payout_methods: z.array(
-    z.object({
-      platform: dotsPayoutPlatforms,
-      default: z.boolean().default(false),
-    }),
-  ),
+  payout_methods: z.array(payoutMethodSchema),
   compliance: z.any(),
 });

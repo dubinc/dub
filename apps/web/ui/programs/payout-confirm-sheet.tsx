@@ -1,18 +1,30 @@
 import { createDotsTransferAction } from "@/lib/actions/create-dots-transfer";
+import { PayoutMethod } from "@/lib/dots/types";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutWithPartnerProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet } from "@dub/ui";
-import { GreekTemple } from "@dub/ui/src/icons";
+import { Button, Icon, Sheet } from "@dub/ui";
+import { Check2 } from "@dub/ui/src/icons";
 import {
   cn,
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
+  fetcher,
   formatDate,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
+import {
+  Dispatch,
+  Fragment,
+  SetStateAction,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { toast } from "sonner";
+import useSWR from "swr";
+import { DOTS_PAYOUT_PLATFORMS } from "../dots/platforms";
 
 type PayoutConfirmSheetProps = {
   payout: PayoutWithPartnerProps;
@@ -23,8 +35,11 @@ function PayoutConfirmSheetContent({
   payout,
   setIsOpen,
 }: PayoutConfirmSheetProps) {
-  // TODO: [payouts] Use real data
-  const totalConversions = 2;
+  const { id: workspaceId } = useWorkspace();
+  const { programId } = useParams();
+
+  // TODO: [payouts] Use real sales count data
+  const totalSales = 2;
 
   const invoiceData = useMemo(
     () => ({
@@ -49,18 +64,34 @@ function PayoutConfirmSheetContent({
             ? undefined
             : "numeric",
       })}-${formatDate(payout.periodEnd, { month: "short" })}`,
-      Sales: totalConversions,
+      Sales: totalSales,
       Total: currencyFormatter(payout.total / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }),
     }),
-    [payout, totalConversions],
+    [payout, totalSales],
   );
 
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("wire");
+  const { data: payoutMethods, error: payoutMethodsError } = useSWR<
+    PayoutMethod[]
+  >(
+    `/api/programs/${programId}/partners/${payout.partner.id}/payout-methods?workspaceId=${workspaceId}`,
+    fetcher,
+  );
 
-  const { id: workspaceId } = useWorkspace();
+  const [selectedPayoutMethod, setSelectedPayoutMethod] = useState<
+    string | null
+  >(null);
+
+  useEffect(() => {
+    if (!payoutMethods || selectedPayoutMethod !== null) return;
+
+    setSelectedPayoutMethod(
+      payoutMethods.length ? payoutMethods[0].platform : "manual",
+    );
+  }, [payoutMethods, selectedPayoutMethod]);
+
   const { executeAsync, isExecuting } = useAction(createDotsTransferAction, {
     onError({ error }) {
       toast.error(error.serverError?.serverError);
@@ -96,36 +127,62 @@ function PayoutConfirmSheetContent({
         <div className="p-6 pt-2">
           <div className="text-base font-medium text-neutral-900">Method</div>
           <div className="mt-4 flex flex-col gap-2">
-            {/* TODO: Add dynamic payment methods */}
-            <button
-              type="button"
-              className={cn(
-                "flex items-center justify-between gap-4 rounded-lg border border-neutral-200 bg-white p-4 text-left",
-                "transition-colors duration-75 hover:bg-neutral-50",
-                selectedPaymentMethod === "wire" &&
-                  "border-neutral-900 ring-1 ring-inset ring-neutral-900",
-              )}
-            >
-              <div className="flex items-center gap-2">
-                <div className="flex size-10 items-center justify-center rounded-md bg-neutral-100">
-                  <GreekTemple className="size-4.5 text-neutral-900" />
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-neutral-800">
-                    Wire transfer
+            {payoutMethods ? (
+              <>
+                {payoutMethods.map((method) => {
+                  const platform =
+                    DOTS_PAYOUT_PLATFORMS.find(
+                      (p) => p.id === method.platform,
+                    ) ?? DOTS_PAYOUT_PLATFORMS[0];
+
+                  return (
+                    <PayoutMethodOption
+                      key={method.platform}
+                      {...platform}
+                      description={`2% + $1.00 (max $20)`}
+                      isDefault={method.default}
+                      selectedPayoutMethod={selectedPayoutMethod}
+                      setSelectedPayoutMethod={setSelectedPayoutMethod}
+                    />
+                  );
+                })}
+                <PayoutMethodOption
+                  id="manual"
+                  icon={Check2}
+                  iconBgColor="bg-neutral-100"
+                  name="Manual payout"
+                  description="Marks the invoice as paid"
+                  selectedPayoutMethod={selectedPayoutMethod}
+                  setSelectedPayoutMethod={setSelectedPayoutMethod}
+                />
+              </>
+            ) : !payoutMethodsError ? (
+              [...Array(2)].map((_, idx) => (
+                <div
+                  key={idx}
+                  className="flex animate-pulse items-center gap-2 rounded-lg border border-neutral-200 bg-white p-4"
+                >
+                  <div className="flex size-10 items-center justify-center rounded-md bg-neutral-200" />
+                  <div>
+                    <div className="h-4 w-24 rounded-md bg-neutral-200" />
+                    <div className="mt-1 h-4 w-32 rounded-md bg-neutral-200" />
                   </div>
-                  <div className="text-xs text-neutral-400">2.9% + $0.30</div>
                 </div>
+              ))
+            ) : (
+              <div className="text-sm text-neutral-500">
+                Failed to load payout methods
               </div>
-              <div
-                className={cn(
-                  "size-4 rounded-full border border-neutral-400",
-                  selectedPaymentMethod === "wire" &&
-                    "border-neutral-900 ring-2 ring-inset ring-neutral-900",
-                )}
-              />
-            </button>
+            )}
           </div>
+          {payoutMethods && payoutMethods.length === 0 && (
+            <div className="mt-6">
+              <p className="text-sm text-neutral-500">
+                This partner has no payout methods configured.
+              </p>
+              {/* TODO: [payouts] Fetch partner email and add contact partner button */}
+            </div>
+          )}
         </div>
       </div>
       <div className="flex grow flex-col justify-end">
@@ -140,12 +197,14 @@ function PayoutConfirmSheetContent({
           <Button
             type="button"
             variant="primary"
-            disabled={!payout.partner.dotsUserId}
+            disabled={!payout.partner.dotsUserId || !selectedPayoutMethod}
             onClick={async () => {
               if (!payout.partner.dotsUserId) {
                 toast.error("Partner has no Dots user ID");
                 return;
               }
+
+              // TODO: [payouts] Use selectedPayoutMethod (including handling for "manual")
 
               await executeAsync({
                 dotsUserId: payout.partner.dotsUserId,
@@ -162,6 +221,68 @@ function PayoutConfirmSheetContent({
         </div>
       </div>
     </>
+  );
+}
+
+function PayoutMethodOption({
+  id,
+  icon: Icon,
+  iconBgColor,
+  name,
+  description,
+  isDefault,
+  selectedPayoutMethod,
+  setSelectedPayoutMethod,
+}: {
+  id: string;
+  icon: Icon;
+  iconBgColor: string;
+  name: string;
+  description: string;
+  isDefault?: boolean;
+  selectedPayoutMethod: string | null;
+  setSelectedPayoutMethod: Dispatch<SetStateAction<string | null>>;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => setSelectedPayoutMethod(id)}
+      className={cn(
+        "flex items-center justify-between gap-4 rounded-lg border border-neutral-200 bg-white p-4 text-left",
+        "transition-[background-color,border-color,box-shadow] duration-75 hover:bg-neutral-50",
+        selectedPayoutMethod === id &&
+          "border-neutral-900 ring-1 ring-inset ring-neutral-900",
+      )}
+    >
+      <div className="flex items-center gap-2">
+        <div
+          className={cn(
+            "flex size-10 items-center justify-center rounded-md",
+            iconBgColor,
+          )}
+        >
+          <Icon className="size-4.5 text-neutral-900" />
+        </div>
+        <div>
+          <div className="flex items-center gap-1">
+            <span className="text-sm font-medium text-neutral-800">{name}</span>
+            {isDefault && (
+              <div className="rounded bg-green-100 px-1.5 py-0.5 text-xs text-green-600">
+                Default
+              </div>
+            )}
+          </div>
+          <div className="text-xs text-neutral-400">{description}</div>
+        </div>
+      </div>
+      <div
+        className={cn(
+          "size-4 rounded-full border border-neutral-400 transition-shadow duration-75",
+          selectedPayoutMethod === id &&
+            "border-neutral-900 ring-2 ring-inset ring-neutral-900",
+        )}
+      />
+    </button>
   );
 }
 

@@ -11,9 +11,12 @@ export default function PayoutMethodCard({
   platform: z.infer<typeof dotsPayoutPlatforms>;
   isDefault?: boolean;
 }) {
-  const { icon, name, iconBgColor } =
-    DOTS_PAYOUT_PLATFORMS.find((p) => p.id === platform) ||
-    DOTS_PAYOUT_PLATFORMS[0];
+  const {
+    icon: Icon,
+    name,
+    iconBgColor,
+  } = DOTS_PAYOUT_PLATFORMS.find((p) => p.id === platform) ||
+  DOTS_PAYOUT_PLATFORMS[0];
 
   return (
     <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-4">
@@ -24,7 +27,7 @@ export default function PayoutMethodCard({
             iconBgColor,
           )}
         >
-          {icon}
+          <Icon className="size-4 text-neutral-700" />
         </div>
         <p className="font-medium text-neutral-900">{name}</p>
       </div>
