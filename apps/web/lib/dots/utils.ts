@@ -18,7 +18,7 @@ export const dotsFlowConfigurations = encodeURIComponent(
     variables: {
       backgroundColor: "#ffffff",
       primaryTextColor: "#000000",
-      secondaryTextColor: "#757575",
+      secondaryTextColor: "#737373",
       primaryColor: "#000000",
       tabBackgroundColor: "#ffffff",
       tabHoverBackgroundColor: "#fafafa",
