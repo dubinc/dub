@@ -5,6 +5,7 @@ import { DotsFlowSteps, DotsUser } from "@/lib/dots/types";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { CheckCircleFill } from "@/ui/shared/icons";
 import { Button, Modal, Note } from "@dub/ui";
 import { GreekTemple, MobilePhone } from "@dub/ui/src/icons";
 import { currencyFormatter, fetcher } from "@dub/utils";
@@ -82,7 +83,7 @@ export function PayoutsSettingsPageClient() {
                           disabledTooltip={
                             dotsUser.payout_methods.length === 0
                               ? "You need to connect a payout method first"
-                              : !dotsUser.compliance.id_verified
+                              : !dotsUser.compliance.submitted
                                 ? "You need to verify your identity first"
                                 : undefined
                           }
@@ -186,15 +187,26 @@ export function PayoutsSettingsPageClient() {
                 </div>
                 <div>
                   <p className="font-medium text-neutral-900">
-                    Submit compliance documents
+                    Compliance documents
                   </p>
-                  <p className="text-sm text-neutral-500">
-                    W8-BEN (non-US) / W-9 (US) Required to withdraw payouts
-                  </p>
+                  {dotsUser.compliance.submitted ? (
+                    <div className="flex items-center gap-1">
+                      <CheckCircleFill className="size-4 text-green-600" />
+                      <p className="text-sm text-neutral-500">
+                        {partner.country === "US"
+                          ? "W-9 submitted"
+                          : "W8-BEN submitted"}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-neutral-500">
+                      W8-BEN (non-US) / W-9 (US) Required to withdraw payouts
+                    </p>
+                  )}
                 </div>
               </div>
               <Button
-                text={dotsUser.compliance.id_verified ? "Update" : "Submit"}
+                text={dotsUser.compliance.submitted ? "Update" : "Submit"}
                 variant="secondary"
                 onClick={() => handleExecution("compliance")}
                 loading={isExecuting}
@@ -215,7 +227,7 @@ export function PayoutsSettingsPageClient() {
             addButton={
               <Button
                 text="Verify phone number"
-                onClick={handleExecution}
+                onClick={() => handleExecution("authorization")}
                 loading={isExecuting}
               />
             }

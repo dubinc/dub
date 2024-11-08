@@ -48,6 +48,13 @@ export const GET = withPartner(async ({ partner }) => {
 
   const data = {
     ...info,
+    compliance: {
+      ...info.compliance,
+      submitted:
+        partner.country === "US"
+          ? info.compliance.w9.tax_id_collected
+          : info.compliance.w8_ben_collected,
+    },
     wallet: {
       ...info.wallet,
       pending_amount: info.wallet.amount - info.wallet.withdrawable_amount,
@@ -58,6 +65,8 @@ export const GET = withPartner(async ({ partner }) => {
       default: info.default_payout_method === method.platform,
     })),
   };
+
+  console.log(JSON.stringify(data, null, 2));
 
   return NextResponse.json(data);
 });
