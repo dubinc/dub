@@ -57,7 +57,6 @@ export const createPartnerPayouts = async ({
       select: { minimumPayout: true },
     });
 
-    const payoutFee = 0; // TODO: Implement payout fee
     const currentDate = new Date();
     const periodStart = new Date(
       currentDate.getFullYear(),
@@ -86,15 +85,18 @@ export const createPartnerPayouts = async ({
       return;
     }
 
+    const amount = commissionEarnedTotal;
+    const fee = Math.min(amount * 0.02 + 100, 2000); // TODO: [payouts] tailor based on US / non-US
+
     // Create the payout
     const payout = await tx.payout.create({
       data: {
         id: createId({ prefix: "" }),
         programId,
         partnerId,
-        payoutFee,
-        total: commissionEarnedTotal,
-        netTotal: commissionEarnedTotal - payoutFee,
+        amount,
+        fee,
+        total: amount + fee,
         currency: "USD",
         status: "pending",
         periodStart,

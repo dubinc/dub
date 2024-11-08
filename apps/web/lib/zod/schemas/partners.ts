@@ -87,9 +87,9 @@ export const payoutsQuerySchema = z
 
 export const PayoutSchema = z.object({
   id: z.string(),
+  amount: z.number(),
+  fee: z.number(),
   total: z.number(),
-  payoutFee: z.number().nullable(),
-  netTotal: z.number(),
   currency: z.string(),
   status: z.nativeEnum(PayoutStatus),
   periodStart: z.date(),
