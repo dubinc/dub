@@ -1,4 +1,3 @@
-import { DubApiError } from "@/lib/api/errors";
 import { withPartner } from "@/lib/auth/partner";
 import { DOTS_API_URL } from "@/lib/dots/env";
 import { retrieveDotsFlow } from "@/lib/dots/retrieve-dots-flow";
@@ -33,10 +32,7 @@ export const GET = withPartner(async ({ partner }) => {
 
   // if there  is still no dots ID
   if (!dotsUserId) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: "Partner has no Dots user ID",
-    });
+    return NextResponse.json({});
   }
 
   const [info, payout_methods] = await Promise.all([

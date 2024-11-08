@@ -17,6 +17,17 @@ const dotsTransferSchema = z.object({
   created: z.string(),
 });
 
+export const dotsFlowStepsSchema = z.enum([
+  "authorization",
+  "compliance",
+  "id-verification",
+  "background-check",
+  "manage-payouts",
+  "manage-payments",
+  "payout",
+  "redirect",
+]);
+
 export const addBankAccountSchema = z.object({
   accountNumber: z.string().min(1),
   routingNumber: z.string().min(1),

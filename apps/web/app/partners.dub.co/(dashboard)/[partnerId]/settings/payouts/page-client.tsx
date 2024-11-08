@@ -1,7 +1,7 @@
 "use client";
 
 import { createDotsFlowAction } from "@/lib/actions/partners/create-dots-flow";
-import { DotsUser } from "@/lib/dots/types";
+import { DotsFlowSteps, DotsUser } from "@/lib/dots/types";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -19,7 +19,11 @@ export function PayoutsSettingsPageClient() {
   const { partnerId } = useParams() as { partnerId: string };
   const { partner } = usePartnerProfile();
 
-  const { data: dotsUser, isLoading } = useSWR<DotsUser>(
+  const {
+    data: dotsUser,
+    isLoading,
+    mutate,
+  } = useSWR<DotsUser>(
     partnerId ? `/api/partners/${partnerId}/dots-user` : null,
     fetcher,
   );
@@ -38,8 +42,8 @@ export function PayoutsSettingsPageClient() {
     iframeSrc: "",
   });
 
-  const handleExecution = async () => {
-    const result = await executeAsync({ partnerId });
+  const handleExecution = async (flow: DotsFlowSteps) => {
+    const result = await executeAsync({ partnerId, flow });
     if (!result?.data?.ok || !("link" in result?.data)) {
       toast.error(result?.data?.error);
       return;
@@ -53,12 +57,13 @@ export function PayoutsSettingsPageClient() {
         <Modal
           showModal={modalState.show}
           setShowModal={() => setModalState({ show: false, iframeSrc: "" })}
+          onClose={() => mutate()}
           className="h-[90vh] w-full max-w-[90vw]"
         >
           <iframe src={modalState.iframeSrc} className="h-full w-full" />
         </Modal>
       )}
-      <div>
+      <div className="min-h-screen">
         {partner?.dotsUserId && dotsUser?.verified ? (
           <div className="grid gap-4">
             <div className="grid gap-4 rounded-lg border border-neutral-300 bg-white p-5">
@@ -77,7 +82,7 @@ export function PayoutsSettingsPageClient() {
                           disabledTooltip={
                             dotsUser.payout_methods.length === 0
                               ? "You need to connect a payout method first"
-                              : !dotsUser.compliance.verified
+                              : !dotsUser.compliance.id_verified
                                 ? "You need to verify your identity first"
                                 : undefined
                           }
@@ -141,7 +146,7 @@ export function PayoutsSettingsPageClient() {
                   addButton={
                     <Button
                       text="Connect payout method"
-                      onClick={handleExecution}
+                      onClick={() => handleExecution("manage-payouts")}
                       loading={isExecuting}
                     />
                   }
@@ -155,7 +160,7 @@ export function PayoutsSettingsPageClient() {
                     <Button
                       text="Manage payout methods"
                       variant="secondary"
-                      onClick={handleExecution}
+                      onClick={() => handleExecution("manage-payouts")}
                       loading={isExecuting}
                       className="h-8 w-fit px-2"
                     />
@@ -176,17 +181,22 @@ export function PayoutsSettingsPageClient() {
             </div>
             <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-4">
               <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200">
-                  <Note className="size-4 text-neutral-700" />
+                <div className="flex size-12 items-center justify-center rounded-full border border-neutral-200">
+                  <Note className="size-5 text-neutral-700" />
                 </div>
-                <p className="font-medium text-neutral-900">
-                  Submit compliance documents
-                </p>
+                <div>
+                  <p className="font-medium text-neutral-900">
+                    Submit compliance documents
+                  </p>
+                  <p className="text-sm text-neutral-500">
+                    W8-BEN (non-US) / W-9 (US) Required to withdraw payouts
+                  </p>
+                </div>
               </div>
               <Button
-                text="Update compliance"
+                text={dotsUser.compliance.id_verified ? "Update" : "Submit"}
                 variant="secondary"
-                onClick={handleExecution}
+                onClick={() => handleExecution("compliance")}
                 loading={isExecuting}
                 className="h-8 w-fit px-2"
               />

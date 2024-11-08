@@ -1,21 +1,13 @@
 import { DEFAULT_DOTS_APP_ID } from "@dub/utils";
 import { DOTS_API_URL } from "./env";
+import { DotsFlowSteps } from "./types";
 import { dotsHeaders } from "./utils";
 
 export const createDotsFlow = async ({
   steps,
   dotsUserId,
 }: {
-  steps?: (
-    | "authorization"
-    | "compliance"
-    | "id-verification"
-    | "background-check"
-    | "manage-payouts"
-    | "manage-payments"
-    | "payout"
-    | "redirect"
-  )[];
+  steps?: DotsFlowSteps[];
   dotsUserId?: string | null;
 }) => {
   const response = await fetch(`${DOTS_API_URL}/flows`, {
