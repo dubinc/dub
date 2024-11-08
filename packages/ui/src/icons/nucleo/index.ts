@@ -41,6 +41,7 @@ export * from "./connections3";
 export * from "./crosshairs3";
 export * from "./cube";
 export * from "./cube-settings";
+export * from "./currency-dollar";
 export * from "./cursor-rays";
 export * from "./database-key";
 export * from "./desktop";
