@@ -1,6 +1,6 @@
-import { DOTS_PAYOUT_PLATFORMS } from "@/lib/dots/platforms";
 import { dotsPayoutPlatforms } from "@/lib/dots/schemas";
 import z from "@/lib/zod";
+import { DOTS_PAYOUT_PLATFORMS } from "@/ui/dots/platforms";
 import { StatusBadge } from "@dub/ui";
 import { cn } from "@dub/utils";
 
