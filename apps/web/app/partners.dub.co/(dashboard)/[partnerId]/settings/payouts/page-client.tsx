@@ -5,7 +5,7 @@ import { DotsFlowSteps, DotsUser } from "@/lib/dots/types";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { CheckCircleFill } from "@/ui/shared/icons";
+import { CheckCircleFill, X } from "@/ui/shared/icons";
 import { Button, Modal, Note } from "@dub/ui";
 import { GreekTemple, MobilePhone } from "@dub/ui/src/icons";
 import { currencyFormatter, fetcher } from "@dub/utils";
@@ -61,6 +61,12 @@ export function PayoutsSettingsPageClient() {
           onClose={() => mutate()}
           className="h-[90vh] w-full max-w-[90vw]"
         >
+          <button
+            onClick={() => setModalState({ show: false, iframeSrc: "" })}
+            className="group absolute right-4 top-4 rounded-full p-2 transition-colors hover:bg-neutral-100"
+          >
+            <X className="size-5 text-neutral-700 transition-all group-hover:scale-110 group-active:scale-90" />
+          </button>
           <iframe src={modalState.iframeSrc} className="h-full w-full" />
         </Modal>
       )}
