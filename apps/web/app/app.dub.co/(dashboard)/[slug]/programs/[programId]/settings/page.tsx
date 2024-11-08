@@ -14,9 +14,9 @@ export default async function ProgramSettingsPage({
   // Add suspense loader
 
   return (
-    <PageContent title="Settings">
+    <PageContent title="Program Settings">
       <MaxWidthWrapper>
-        <div className="my-8 grid gap-8">
+        <div className="grid grid-cols-1 gap-8">
           <ProgramSettings programId={programId} />
           <DeleteProgram programId={programId} />
         </div>
