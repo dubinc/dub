@@ -2,6 +2,7 @@
 
 import { createDotsFlowAction } from "@/lib/actions/partners/create-dots-flow";
 import { DotsFlowSteps, DotsUser } from "@/lib/dots/types";
+import { dotsFlowConfigurations } from "@/lib/dots/utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -49,7 +50,10 @@ export function PayoutsSettingsPageClient() {
       toast.error(result?.data?.error);
       return;
     }
-    setModalState({ show: true, iframeSrc: result.data.link });
+    setModalState({
+      show: true,
+      iframeSrc: `${result.data.link}?styles=${dotsFlowConfigurations}`,
+    });
   };
 
   return (

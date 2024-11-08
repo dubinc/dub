@@ -10,7 +10,13 @@ export const DOTS_PAYOUT_PLATFORMS = [
   {
     id: "paypal",
     name: "PayPal",
-    icon: <Paypal className="size-4 text-neutral-700" />,
+    icon: <Paypal className="size-4" />,
+    iconBgColor: "bg-blue-100",
+  },
+  {
+    id: "venmo",
+    name: "Venmo",
+    icon: <Paypal className="size-4" />,
     iconBgColor: "bg-blue-100",
   },
   // TODO: [dots] add remaining platforms – venmo, cash_app, intl_transfer, airtm, payoneer
