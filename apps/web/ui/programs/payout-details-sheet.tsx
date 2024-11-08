@@ -181,7 +181,7 @@ function PayoutDetailsSheetContent({
                 onConfirmPayout();
                 setIsOpen(false);
               }}
-              text="Confirm payout"
+              text="Review payout"
               className="w-fit"
             />
           )}

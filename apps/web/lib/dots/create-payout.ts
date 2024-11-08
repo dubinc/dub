@@ -1,5 +1,6 @@
 import z from "../zod";
 import { DOTS_API_URL } from "./env";
+import { DotsPayoutPlatform } from "./types";
 import { dotsHeaders } from "./utils";
 
 const responseSchema = z.object({
@@ -17,31 +18,29 @@ const responseSchema = z.object({
   ]),
 });
 
-export const sendPayout = async ({
+export const createPayout = async ({
   dotsUserId,
   amount,
-  dotsAppId,
+  platform,
 }: {
   dotsUserId: string;
   amount: number;
-  dotsAppId: string;
+  platform: DotsPayoutPlatform;
 }) => {
-  const response = await fetch(`${DOTS_API_URL}/payouts/send-payout`, {
+  const response = await fetch(`${DOTS_API_URL}/payouts`, {
     method: "POST",
-    headers: dotsHeaders({ dotsAppId }),
+    headers: dotsHeaders(),
     body: JSON.stringify({
       user_id: dotsUserId,
       amount,
+      platform,
     }),
   });
 
   if (!response.ok) {
-    console.error(await response.text());
-
-    throw new Error(`Failed to create Dots user.`);
+    const error = await response.json();
+    throw new Error(`Failed to create Dots payout: ${error.message}`);
   }
-
-  // TODO: [dots] update payout status in our DB? might also need to use webhooks for this
 
   return responseSchema.parse(await response.json());
 };

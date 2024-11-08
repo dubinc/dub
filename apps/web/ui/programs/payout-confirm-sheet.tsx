@@ -1,3 +1,5 @@
+import { createDotsTransferAction } from "@/lib/actions/create-dots-transfer";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutWithPartnerProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet } from "@dub/ui";
@@ -8,6 +10,7 @@ import {
   DICEBEAR_AVATAR_URL,
   formatDate,
 } from "@dub/utils";
+import { useAction } from "next-safe-action/hooks";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -56,6 +59,13 @@ function PayoutConfirmSheetContent({
   );
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("wire");
+
+  const { id: workspaceId } = useWorkspace();
+  const { executeAsync, isExecuting } = useAction(createDotsTransferAction, {
+    onError({ error }) {
+      toast.error(error.serverError?.serverError);
+    },
+  });
 
   return (
     <>
@@ -130,12 +140,24 @@ function PayoutConfirmSheetContent({
           <Button
             type="button"
             variant="primary"
-            onClick={() => {
-              toast.info("WIP");
+            disabled={!payout.partner.dotsUserId}
+            onClick={async () => {
+              if (!payout.partner.dotsUserId) {
+                toast.error("Partner has no Dots user ID");
+                return;
+              }
+
+              await executeAsync({
+                dotsUserId: payout.partner.dotsUserId,
+                amount: payout.total,
+                workspaceId: workspaceId!,
+              });
+              toast.success("Successfully created payout");
               setIsOpen(false);
             }}
             text="Confirm payout"
             className="w-fit"
+            loading={isExecuting}
           />
         </div>
       </div>

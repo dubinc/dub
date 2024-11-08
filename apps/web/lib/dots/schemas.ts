@@ -1,5 +1,4 @@
 import z from "../zod";
-import { DOTS_PAYOUT_PLATFORMS } from "./platforms";
 
 const dotsTransferSchema = z.object({
   id: z.string(),
@@ -57,9 +56,15 @@ export const dotsTransfersSchema = z.object({
   has_more: z.boolean(),
 });
 
-export const dotsPayoutPlatforms = z.enum(
-  DOTS_PAYOUT_PLATFORMS.map((platform) => platform.id) as [string, ...string[]],
-);
+export const dotsPayoutPlatforms = z.enum([
+  "ach",
+  "paypal",
+  "venmo",
+  "cash_app",
+  "intl_transfer",
+  "airtm",
+  "payoneer",
+]);
 
 export const dotsUserSchema = z.object({
   id: z.string(),
