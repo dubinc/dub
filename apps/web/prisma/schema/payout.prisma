@@ -21,7 +21,7 @@ model Payout {
   fee         Int          @default(0)
   total       Int          @default(0) // Total amount after fees (amount + fee)
   currency    String       @default("USD")
-  status      PayoutStatus @default(pending)
+  status      PayoutStatus @default(created)
   periodStart DateTime
   periodEnd   DateTime
   createdAt   DateTime     @default(now())

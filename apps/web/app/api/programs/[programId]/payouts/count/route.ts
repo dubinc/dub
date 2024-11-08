@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 import z from "zod";
 
 const responseSchema = z.object({
-  status: z.nativeEnum(PayoutStatus),
+  status: z.nativeEnum(PayoutStatus).or(z.literal("all")),
   _count: z.number(),
 });
 
@@ -34,17 +34,14 @@ export const GET = withWorkspace(
       _count: true,
     });
 
-    const allStatuses = Object.values(PayoutStatus).map((status) => ({
+    const counts = Object.values(PayoutStatus).map((status) => ({
       status,
-      _count: 0,
+      _count: payouts.find((p) => p.status === status)?._count || 0,
     }));
 
-    // Fill the missing statuses with 0
-    const counts = allStatuses.map(
-      (statusCount) =>
-        payouts.find((p) => p.status === statusCount.status) || statusCount,
-    );
-
-    return NextResponse.json(z.array(responseSchema).parse(counts));
+    return NextResponse.json([
+      ...z.array(responseSchema).parse(counts),
+      { status: "all", _count: payouts.reduce((acc, p) => acc + p._count, 0) },
+    ]);
   },
 );

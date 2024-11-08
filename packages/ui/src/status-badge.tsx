@@ -15,7 +15,7 @@ const statusBadgeVariants = cva(
     variants: {
       variant: {
         neutral: "bg-gray-500/[.15] text-gray-600",
-        new: "bg-blue-500/[.15] text-blue-600",
+        new: "bg-gray-500/[.15] text-gray-600",
         success: "bg-green-500/[.15] text-green-600",
         pending: "bg-orange-500/[.15] text-orange-600",
         warning: "bg-yellow-500/[.15] text-yellow-600",

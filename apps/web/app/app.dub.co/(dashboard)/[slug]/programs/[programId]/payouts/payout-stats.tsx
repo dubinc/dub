@@ -19,6 +19,9 @@ export function PayoutStats() {
     fetcher,
   );
 
+  const allPayoutsCount =
+    payoutsCounts?.find((payout) => payout.status === "all")?._count || 0;
+
   const pendingPayoutsCount =
     payoutsCounts?.find((payout) => payout.status === "pending")?._count || 0;
 
@@ -30,13 +33,13 @@ export function PayoutStats() {
       <ProgramStats
         label="All"
         href={`/${slug}/programs/${programId}/payouts`}
-        count={completedPayoutsCount + pendingPayoutsCount}
+        count={allPayoutsCount}
         icon={MoneyBills2}
         iconClassName="text-gray-600 bg-gray-100"
         error={!!error}
       />
       <ProgramStats
-        label="Paid"
+        label="Completed"
         href={
           queryParams({
             set: { status: "completed" },

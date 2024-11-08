@@ -305,7 +305,7 @@ export type ProgramProps = z.infer<typeof ProgramSchema>;
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 
 export type PayoutCounts = {
-  status: PayoutStatus;
+  status: PayoutStatus | "all";
   _count: number;
 };
 export type PayoutProps = z.infer<typeof PayoutSchema>;

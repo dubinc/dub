@@ -11,7 +11,7 @@ export const PayoutStatusBadges = {
     label: "Created",
     variant: "new",
     icon: CircleHalfDottedCheck,
-    className: "text-blue-600 bg-blue-100",
+    className: "text-gray-600 bg-gray-100",
   },
   pending: {
     label: "Pending",
@@ -26,7 +26,7 @@ export const PayoutStatusBadges = {
     className: "text-red-600 bg-red-100",
   },
   completed: {
-    label: "Paid",
+    label: "Completed",
     variant: "success",
     icon: CircleCheck,
     className: "text-green-600 bg-green-100",
