@@ -66,7 +66,5 @@ export const GET = withPartner(async ({ partner }) => {
     })),
   };
 
-  console.log(JSON.stringify(data, null, 2));
-
   return NextResponse.json(data);
 });
