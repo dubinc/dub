@@ -28,6 +28,7 @@ export const PartnerSchema = z.object({
   bio: z.string().nullable(),
   country: z.string().nullable(),
   status: z.nativeEnum(PartnerStatus),
+  dotsUserId: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

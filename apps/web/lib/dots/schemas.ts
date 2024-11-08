@@ -1,4 +1,5 @@
 import z from "../zod";
+import { DOTS_PAYOUT_PLATFORMS } from "./platforms";
 
 const dotsTransferSchema = z.object({
   id: z.string(),
@@ -15,6 +16,17 @@ const dotsTransferSchema = z.object({
   ]),
   created: z.string(),
 });
+
+export const dotsFlowStepsSchema = z.enum([
+  "authorization",
+  "compliance",
+  "id-verification",
+  "background-check",
+  "manage-payouts",
+  "manage-payments",
+  "payout",
+  "redirect",
+]);
 
 export const addBankAccountSchema = z.object({
   accountNumber: z.string().min(1),
@@ -42,4 +54,31 @@ export const dotsAppSchema = z.object({
 export const dotsTransfersSchema = z.object({
   data: z.array(dotsTransferSchema),
   has_more: z.boolean(),
+});
+
+export const dotsPayoutPlatforms = z.enum(
+  DOTS_PAYOUT_PLATFORMS.map((platform) => platform.id) as [string, ...string[]],
+);
+
+export const dotsUserSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  phone_number: z.object({
+    country_code: z.string(),
+    phone_number: z.string(),
+  }),
+  status: z.enum(["verified", "unverified", "disabled", "in_review"]),
+  verified: z.boolean(),
+  wallet: z.object({
+    withdrawable_amount: z.number(),
+    pending_amount: z.number(),
+  }),
+  default_payout_method: dotsPayoutPlatforms,
+  payout_methods: z.array(
+    z.object({
+      platform: dotsPayoutPlatforms,
+      default: z.boolean().default(false),
+    }),
+  ),
+  compliance: z.any(),
 });
