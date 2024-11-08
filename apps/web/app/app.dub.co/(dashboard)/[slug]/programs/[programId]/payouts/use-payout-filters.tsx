@@ -1,9 +1,9 @@
 import useWorkspace from "@/lib/swr/use-workspace";
+import { PayoutStatusBadges } from "@/ui/programs/payout-status-badges";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import { useMemo } from "react";
-import { PayoutStatusBadges } from "./payout-table";
 
 export function usePayoutFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();

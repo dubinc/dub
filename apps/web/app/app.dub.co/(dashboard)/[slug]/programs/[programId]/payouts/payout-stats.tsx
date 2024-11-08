@@ -2,12 +2,12 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutCounts } from "@/lib/types";
+import { PayoutStatusBadges } from "@/ui/programs/payout-status-badges";
 import { ProgramStats } from "@/ui/programs/program-stats";
 import { MoneyBills2, useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-import { PayoutStatusBadges } from "./payout-table";
 
 export function PayoutStats() {
   const { slug, programId } = useParams();

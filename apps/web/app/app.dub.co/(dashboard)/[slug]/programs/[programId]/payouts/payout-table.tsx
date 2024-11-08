@@ -1,6 +1,9 @@
 "use client";
 
 import { PayoutCounts, PayoutWithPartnerProps } from "@/lib/types";
+import { PayoutConfirmSheet } from "@/ui/programs/payout-confirm-sheet";
+import { PayoutDetailsSheet } from "@/ui/programs/payout-details-sheet";
+import { PayoutStatusBadges } from "@/ui/programs/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
@@ -15,17 +18,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import {
-  CircleCheck,
-  CircleHalfDottedCheck,
-  CircleHalfDottedClock,
-  CircleWarning,
-  CircleXmark,
-  Dots,
-  GreekTemple,
-  MoneyBill2,
-  TableRows2,
-} from "@dub/ui/src/icons";
+import { Dots, GreekTemple, MoneyBill2, TableRows2 } from "@dub/ui/src/icons";
 import {
   cn,
   currencyFormatter,
@@ -38,54 +31,7 @@ import { Command } from "cmdk";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
-import { PayoutConfirmSheet } from "../../../../../../../ui/programs/payout-confirm-sheet";
-import { PayoutDetailsSheet } from "../../../../../../../ui/programs/payout-details-sheet";
 import { usePayoutFilters } from "./use-payout-filters";
-
-export const PayoutStatusBadges = {
-  created: {
-    label: "Created",
-    variant: "new",
-    icon: CircleHalfDottedCheck,
-    className: "text-blue-600 bg-blue-100",
-  },
-  pending: {
-    label: "Pending",
-    variant: "pending",
-    icon: CircleHalfDottedClock,
-    className: "text-orange-600 bg-orange-100",
-  },
-  failed: {
-    label: "Failed",
-    variant: "error",
-    icon: CircleWarning,
-    className: "text-red-600 bg-red-100",
-  },
-  completed: {
-    label: "Paid",
-    variant: "success",
-    icon: CircleCheck,
-    className: "text-green-600 bg-green-100",
-  },
-  reversed: {
-    label: "Reversed",
-    variant: "error",
-    icon: CircleHalfDottedClock,
-    className: "text-red-600 bg-red-100",
-  },
-  canceled: {
-    label: "Canceled",
-    variant: "error",
-    icon: CircleXmark,
-    className: "text-red-600 bg-red-100",
-  },
-  flagged: {
-    label: "Flagged",
-    variant: "warning",
-    icon: CircleWarning,
-    className: "text-yellow-600 bg-yellow-100",
-  },
-};
 
 const canConfirmPayoutStatuses = ["created", "pending", "flagged", "failed"];
 
