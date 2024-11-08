@@ -27,7 +27,7 @@ export const createDotsFlowAction = authUserActionClient
 
       const response = await createDotsFlow({
         dotsUserId: partner.dotsUserId,
-        steps: ["manage-payouts"],
+        steps: ["manage-payments"],
       });
 
       return { ok: true, ...response };

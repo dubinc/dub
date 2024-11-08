@@ -1,4 +1,5 @@
 import z from "../zod";
+import { DOTS_PAYOUT_PLATFORMS } from "./platforms";
 
 const dotsTransferSchema = z.object({
   id: z.string(),
@@ -44,17 +45,29 @@ export const dotsTransfersSchema = z.object({
   has_more: z.boolean(),
 });
 
-export const dotsPayoutMethodSchema = z.object({
+export const dotsPayoutPlatforms = z.enum(
+  DOTS_PAYOUT_PLATFORMS.map((platform) => platform.id) as [string, ...string[]],
+);
+
+export const dotsUserSchema = z.object({
   id: z.string(),
-  platform: z.enum([
-    "ach",
-    "paypal",
-    "venmo",
-    "cash_app",
-    "intl_transfer",
-    "airtm",
-    "payoneer",
-  ]),
-  mask: z.string(),
-  currency: z.string(),
+  email: z.string(),
+  phone_number: z.object({
+    country_code: z.string(),
+    phone_number: z.string(),
+  }),
+  status: z.enum(["verified", "unverified", "disabled", "in_review"]),
+  verified: z.boolean(),
+  wallet: z.object({
+    withdrawable_amount: z.number(),
+    pending_amount: z.number(),
+  }),
+  default_payout_method: dotsPayoutPlatforms,
+  payout_methods: z.array(
+    z.object({
+      platform: dotsPayoutPlatforms,
+      default: z.boolean().default(false),
+    }),
+  ),
+  compliance: z.any(),
 });

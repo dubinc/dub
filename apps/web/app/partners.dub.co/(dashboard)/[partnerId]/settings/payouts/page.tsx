@@ -5,7 +5,7 @@ import { PayoutsSettingsPageClient } from "./page-client";
 
 export default function PayoutsSettings() {
   return (
-    <PageContent title="Payouts" description="Manage your payout methods">
+    <PageContent title="Payouts">
       <MaxWidthWrapper>
         <PayoutsSettingsPageClient />
       </MaxWidthWrapper>
