@@ -1,22 +1,28 @@
 "use client";
 
 import { createDotsFlowAction } from "@/lib/actions/partners/create-dots-flow";
-import useDotsUser from "@/lib/swr/use-dots-user";
+import { DotsUser } from "@/lib/dots/types";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import LayoutLoader from "@/ui/layout/layout-loader";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Button, Modal, Note } from "@dub/ui";
 import { GreekTemple, MobilePhone } from "@dub/ui/src/icons";
-import { currencyFormatter } from "@dub/utils";
+import { currencyFormatter, fetcher } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import useSWR from "swr";
 import PayoutMethodCard from "./payout-method-card";
 
 export function PayoutsSettingsPageClient() {
   const { partnerId } = useParams() as { partnerId: string };
   const { partner } = usePartnerProfile();
-  const { data: dotsUser, loading } = useDotsUser();
+
+  const { data: dotsUser, isLoading } = useSWR<DotsUser>(
+    partnerId ? `/api/partners/${partnerId}/dots-user` : null,
+    fetcher,
+  );
 
   const { executeAsync, isExecuting } = useAction(createDotsFlowAction, {
     onError({ error }) {
@@ -35,7 +41,7 @@ export function PayoutsSettingsPageClient() {
   const handleExecution = async () => {
     const result = await executeAsync({ partnerId });
     if (!result?.data?.ok || !("link" in result?.data)) {
-      toast.error("Failed to start payout method connection flow");
+      toast.error(result?.data?.error);
       return;
     }
     setModalState({ show: true, iframeSrc: result.data.link });
@@ -186,7 +192,7 @@ export function PayoutsSettingsPageClient() {
               />
             </div>
           </div>
-        ) : !loading ? (
+        ) : !isLoading ? (
           <AnimatedEmptyState
             title="Verify your phone number"
             description="Verify your phone number to set up payouts"
@@ -204,7 +210,9 @@ export function PayoutsSettingsPageClient() {
               />
             }
           />
-        ) : null}
+        ) : (
+          <LayoutLoader />
+        )}
       </div>
     </>
   );

@@ -1,18 +1,11 @@
 import { DEFAULT_DOTS_APP_ID } from "@dub/utils";
-import z from "../zod";
 import { DOTS_API_URL } from "./env";
 import { dotsHeaders } from "./utils";
 
-const responseSchema = z.object({
-  id: z.string(),
-  link: z.string(),
-});
-
 export const createDotsFlow = async ({
+  steps,
   dotsUserId,
-  steps = ["authorization"],
 }: {
-  dotsUserId: string;
   steps?: (
     | "authorization"
     | "compliance"
@@ -23,6 +16,7 @@ export const createDotsFlow = async ({
     | "payout"
     | "redirect"
   )[];
+  dotsUserId?: string | null;
 }) => {
   const response = await fetch(`${DOTS_API_URL}/flows`, {
     method: "POST",

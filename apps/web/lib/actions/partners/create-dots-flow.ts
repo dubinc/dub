@@ -2,6 +2,7 @@
 
 import { getPartnerOrThrow } from "@/lib/api/partners/get-partner-or-throw";
 import { createDotsFlow } from "@/lib/dots/create-dots-flow";
+import { redis } from "@/lib/upstash";
 import z from "../../zod";
 import { authUserActionClient } from "../safe-action";
 
@@ -21,20 +22,22 @@ export const createDotsFlowAction = authUserActionClient
     });
 
     try {
-      if (!partner.dotsUserId) {
-        throw new Error("Partner does not have a Dots user ID");
-      }
-
       const response = await createDotsFlow({
+        steps: ["manage-payouts"],
         dotsUserId: partner.dotsUserId,
-        steps: ["manage-payments"],
       });
+      console.log({ response });
 
-      return { ok: true, ...response };
+      await redis.set(`dots-flow-cache:${partner.id}`, response.id);
+
+      return {
+        ok: true,
+        ...response,
+      };
     } catch (e) {
-      console.error(e);
       return {
         ok: false,
+        error: e.message,
       };
     }
   });
