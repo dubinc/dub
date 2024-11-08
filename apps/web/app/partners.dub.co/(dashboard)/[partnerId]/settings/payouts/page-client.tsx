@@ -155,11 +155,11 @@ export function PayoutsSettingsPageClient() {
               ) : (
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-neutral-900">
+                    <p className="font-medium text-neutral-900">
                       Payout methods
                     </p>
                     <Button
-                      text="Manage payout methods"
+                      text="Manage"
                       variant="secondary"
                       onClick={() => handleExecution("manage-payouts")}
                       loading={isExecuting}
@@ -227,7 +227,7 @@ export function PayoutsSettingsPageClient() {
             addButton={
               <Button
                 text="Verify phone number"
-                onClick={() => handleExecution("authorization")}
+                onClick={() => handleExecution("manage-payouts")}
                 loading={isExecuting}
               />
             }

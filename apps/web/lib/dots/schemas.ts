@@ -18,14 +18,15 @@ const dotsTransferSchema = z.object({
 });
 
 export const dotsFlowStepsSchema = z.enum([
-  "authorization",
   "compliance",
-  "id-verification",
-  "background-check",
-  "manage-payouts",
   "manage-payments",
+  "manage-payouts",
   "payout",
+  "payment",
+  "id-verification",
   "redirect",
+  "credit-card-payment",
+  "background-check",
 ]);
 
 export const addBankAccountSchema = z.object({
