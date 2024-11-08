@@ -65,6 +65,14 @@ function PayoutConfirmSheetContent({
             : "numeric",
       })}-${formatDate(payout.periodEnd, { month: "short" })}`,
       Sales: totalSales,
+      Amount: currencyFormatter(payout.amount / 100, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
+      Fee: currencyFormatter(payout.fee / 100, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
       Total: currencyFormatter(payout.total / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -139,7 +147,7 @@ function PayoutConfirmSheetContent({
                     <PayoutMethodOption
                       key={method.platform}
                       {...platform}
-                      description={`2% + $1.00 (max $20)`}
+                      description={`Typically arrives ${platform.duration}`}
                       isDefault={method.default}
                       selectedPayoutMethod={selectedPayoutMethod}
                       setSelectedPayoutMethod={setSelectedPayoutMethod}
@@ -207,9 +215,10 @@ function PayoutConfirmSheetContent({
               // TODO: [payouts] Use selectedPayoutMethod (including handling for "manual")
 
               await executeAsync({
-                dotsUserId: payout.partner.dotsUserId,
-                amount: payout.total,
                 workspaceId: workspaceId!,
+                dotsUserId: payout.partner.dotsUserId,
+                amount: payout.amount,
+                fee: payout.fee,
               });
               toast.success("Successfully created payout");
               setIsOpen(false);

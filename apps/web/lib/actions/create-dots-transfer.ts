@@ -8,6 +8,7 @@ import { authActionClient } from "./safe-action";
 const schema = z.object({
   dotsUserId: z.string(),
   amount: z.number(),
+  fee: z.number(),
   workspaceId: z.string(),
 });
 
@@ -15,7 +16,9 @@ export const createDotsTransferAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { dotsUserId, amount } = parsedInput;
+    const { dotsUserId, amount, fee } = parsedInput;
+
+    console.log({ dotsUserId, amount, fee });
 
     if (!workspace.dotsAppId) {
       throw new Error("Dots app not found");
@@ -29,7 +32,7 @@ export const createDotsTransferAction = authActionClient
       }),
       // each transfer incurs a fee of $1 + 2% with a cap of $20 (2000 cents)
       createOrgTransfer({
-        amount: Math.min(amount * 0.02 + 100, 2000),
+        amount: fee,
         dotsAppId: workspace.dotsAppId,
       }),
     ]);

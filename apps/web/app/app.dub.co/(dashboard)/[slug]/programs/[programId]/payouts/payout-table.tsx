@@ -123,8 +123,22 @@ export function PayoutTable() {
         },
       },
       {
-        header: "Sales",
-        accessorFn: () => "-", // TODO: [payouts] Add conversions counts to /api/programs/[programId]/payouts response
+        id: "amount",
+        header: "Amount",
+        accessorFn: (d) =>
+          currencyFormatter(d.amount / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
+      },
+      {
+        id: "fee",
+        header: "Fee",
+        accessorFn: (d) =>
+          currencyFormatter(d.fee / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
       },
       {
         id: "total",
@@ -157,7 +171,7 @@ export function PayoutTable() {
     ],
     pagination,
     onPaginationChange: setPagination,
-    sortableColumns: ["periodStart", "total"],
+    sortableColumns: ["periodStart"],
     sortBy,
     sortOrder: order,
     onSortChange: ({ sortBy, sortOrder }) =>
