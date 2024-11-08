@@ -8,6 +8,7 @@ import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
 import { OverviewChart } from "./overview-chart";
 import { PendingPayouts } from "./pending-payouts";
+import { ProgramStats } from "./program-stats";
 import { TopPartners } from "./top-partners";
 
 export default function ProgramOverviewPageClient() {
@@ -21,7 +22,7 @@ export default function ProgramOverviewPageClient() {
   return (
     <div className="mb-10">
       <div className="rounded-lg border border-neutral-200 bg-gray-50 p-3">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,5fr)_minmax(0,3fr)] md:gap-10">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,3fr)] lg:gap-10">
           <OverviewChart />
           <div className="relative flex flex-col overflow-hidden rounded-lg bg-neutral-800">
             <Grid className="text-white/5" cellSize={20} />
@@ -54,7 +55,10 @@ export default function ProgramOverviewPageClient() {
           </div>
         </div>
       </div>
-      <div className="mt-10 grid grid-cols-1 gap-10 md:grid-cols-2">
+      <div className="mt-6">
+        <ProgramStats />
+      </div>
+      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
         <TopPartners />
         <PendingPayouts />
       </div>
