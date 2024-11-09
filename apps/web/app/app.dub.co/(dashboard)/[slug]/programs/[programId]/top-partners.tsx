@@ -33,7 +33,7 @@ export function TopPartners() {
         <Link
           href={`/${slug}/programs/${programId}/partners?sort=earnings&sortBy=desc`}
           className={cn(
-            buttonVariants(),
+            buttonVariants({ variant: "secondary" }),
             "flex h-7 items-center rounded-lg border px-2 text-sm",
           )}
         >

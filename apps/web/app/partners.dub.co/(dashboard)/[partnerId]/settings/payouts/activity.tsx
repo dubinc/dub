@@ -1,7 +1,6 @@
 "use client";
 
 import { DotsTransfers } from "@/lib/dots/types";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { StatusBadge, Table, useTable } from "@dub/ui";
 import {
   capitalize,
@@ -9,6 +8,7 @@ import {
   fetcher,
   formatDateTime,
 } from "@dub/utils";
+import { useParams } from "next/navigation";
 import useSWR from "swr";
 
 const TRANSACTION_TYPES = {
@@ -26,11 +26,11 @@ const StatusBadgeVariants = {
   flagged: "warning",
 };
 
-export const WorkspaceDepositActivity = () => {
-  const { id: workspaceId } = useWorkspace();
+export const PartnerWithdrawalsActivity = () => {
+  const { partnerId } = useParams();
 
   const { data, error } = useSWR<DotsTransfers>(
-    `/api/workspaces/${workspaceId}/deposits`,
+    `/api/partners/${partnerId}/withdrawals`,
     fetcher,
   );
 
@@ -38,6 +38,7 @@ export const WorkspaceDepositActivity = () => {
     data: data?.data || [],
     loading: !data && !error,
     error: error ? "Failed to load recent activity" : undefined,
+    emptyState: "No recent withdrawals",
     columns: [
       {
         header: "Date",
@@ -72,7 +73,7 @@ export const WorkspaceDepositActivity = () => {
   return (
     <div>
       <h2 className="text-base font-semibold text-neutral-900">
-        Recent deposits
+        Recent withdrawals
       </h2>
       <div className="mt-3">
         <Table {...table} />

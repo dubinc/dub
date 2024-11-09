@@ -94,6 +94,7 @@ export const PayoutSchema = z.object({
   status: z.nativeEnum(PayoutStatus),
   periodStart: z.date(),
   periodEnd: z.date(),
+  dotsTransferId: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

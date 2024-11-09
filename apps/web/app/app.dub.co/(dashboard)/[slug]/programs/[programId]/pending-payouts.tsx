@@ -35,7 +35,7 @@ export function PendingPayouts() {
         <Link
           href={`/${slug}/programs/${programId}/payouts?status=pending`}
           className={cn(
-            buttonVariants(),
+            buttonVariants({ variant: "secondary" }),
             "flex h-7 items-center rounded-lg border px-2 text-sm",
           )}
         >

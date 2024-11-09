@@ -23,7 +23,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import { DOTS_PAYOUT_PLATFORMS } from "../dots/platforms";
 
 type PayoutConfirmSheetProps = {
@@ -217,9 +217,17 @@ function PayoutConfirmSheetContent({
               await executeAsync({
                 workspaceId: workspaceId!,
                 dotsUserId: payout.partner.dotsUserId,
+                payoutId: payout.id,
                 amount: payout.amount,
                 fee: payout.fee,
               });
+              await mutate(
+                (key) =>
+                  typeof key === "string" &&
+                  key.startsWith(`/api/programs/${programId}/payouts`),
+                undefined,
+                { revalidate: true },
+              );
               toast.success("Successfully created payout");
               setIsOpen(false);
             }}

@@ -1,36 +1,36 @@
 "use client";
 
 import { createDotsFlowAction } from "@/lib/actions/partners/create-dots-flow";
-import { DotsFlowSteps, DotsUser } from "@/lib/dots/types";
-import { dotsFlowConfigurations } from "@/lib/dots/utils";
+import useDotsUser from "@/lib/swr/use-dots-user";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CheckCircleFill, X } from "@/ui/shared/icons";
 import { Button, Modal, Note } from "@dub/ui";
 import { GreekTemple, MobilePhone } from "@dub/ui/src/icons";
-import { currencyFormatter, fetcher } from "@dub/utils";
+import { currencyFormatter } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import useSWR from "swr";
+import { PartnerWithdrawalsActivity } from "./activity";
+import { ComplianceButton } from "./compliance-button";
 import PayoutMethodCard from "./payout-method-card";
 
 export function PayoutsSettingsPageClient() {
   const { partnerId } = useParams() as { partnerId: string };
   const { partner } = usePartnerProfile();
 
-  const {
-    data: dotsUser,
-    isLoading,
-    mutate,
-  } = useSWR<DotsUser>(
-    partnerId ? `/api/partners/${partnerId}/dots-user` : null,
-    fetcher,
-  );
+  const { dotsUser, isLoading, mutate } = useDotsUser();
 
   const { executeAsync, isExecuting } = useAction(createDotsFlowAction, {
+    onSuccess({ data }) {
+      if (!data?.link) {
+        toast.error("No link found – contact support");
+        return;
+      }
+      setModalState({ show: true, iframeSrc: data.link });
+    },
     onError({ error }) {
       toast.error(error.serverError?.serverError);
     },
@@ -43,18 +43,6 @@ export function PayoutsSettingsPageClient() {
     show: false,
     iframeSrc: "",
   });
-
-  const handleExecution = async (flow: DotsFlowSteps) => {
-    const result = await executeAsync({ partnerId, flow });
-    if (!result?.data?.ok || !("link" in result?.data)) {
-      toast.error(result?.data?.error);
-      return;
-    }
-    setModalState({
-      show: true,
-      iframeSrc: `${result.data.link}?styles=${dotsFlowConfigurations}`,
-    });
-  };
 
   return (
     <>
@@ -157,7 +145,9 @@ export function PayoutsSettingsPageClient() {
                   addButton={
                     <Button
                       text="Connect payout method"
-                      onClick={() => handleExecution("manage-payouts")}
+                      onClick={() =>
+                        executeAsync({ partnerId, flow: "manage-payouts" })
+                      }
                       loading={isExecuting}
                     />
                   }
@@ -171,7 +161,9 @@ export function PayoutsSettingsPageClient() {
                     <Button
                       text="Manage"
                       variant="secondary"
-                      onClick={() => handleExecution("manage-payouts")}
+                      onClick={() =>
+                        executeAsync({ partnerId, flow: "manage-payouts" })
+                      }
                       loading={isExecuting}
                       className="h-8 w-fit px-2"
                     />
@@ -215,13 +207,7 @@ export function PayoutsSettingsPageClient() {
                   )}
                 </div>
               </div>
-              <Button
-                text={dotsUser.compliance.submitted ? "Update" : "Submit"}
-                variant="secondary"
-                onClick={() => handleExecution("compliance")}
-                loading={isExecuting}
-                className="h-8 w-fit px-2"
-              />
+              <ComplianceButton setModalState={setModalState} />
             </div>
           </div>
         ) : !isLoading ? (
@@ -237,7 +223,9 @@ export function PayoutsSettingsPageClient() {
             addButton={
               <Button
                 text="Verify phone number"
-                onClick={() => handleExecution("manage-payouts")}
+                onClick={() =>
+                  executeAsync({ partnerId, flow: "manage-payouts" })
+                }
                 loading={isExecuting}
               />
             }
@@ -245,6 +233,9 @@ export function PayoutsSettingsPageClient() {
         ) : (
           <LayoutLoader />
         )}
+        <div className="my-8">
+          <PartnerWithdrawalsActivity />
+        </div>
       </div>
     </>
   );

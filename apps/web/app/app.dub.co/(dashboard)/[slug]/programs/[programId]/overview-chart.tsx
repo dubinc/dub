@@ -170,8 +170,8 @@ export function OverviewChart() {
               {(context) => (
                 <LinearGradient
                   id={`${id}-color-gradient`}
-                  from="#8B5CF6"
-                  to="#4C1D95"
+                  from="#7D3AEC"
+                  to="#DA2778"
                   x1={0}
                   x2={context?.width ?? 1}
                   gradientUnits="userSpaceOnUse"

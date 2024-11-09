@@ -1,6 +1,8 @@
 import { Icon } from "@dub/ui";
 import { Check2, CurrencyDollar, MoneyBills2, Users } from "@dub/ui/src/icons";
 import { nFormatter } from "@dub/utils";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
 export function ProgramStats() {
   // TODO: [payouts] Use actual data
@@ -25,12 +27,14 @@ export function ProgramStats() {
         icon={CurrencyDollar}
         label="Revenue"
         value={revenue}
+        tab="sales"
         error={revenueError}
         isCurrency
       />
       <Stat
         icon={MoneyBills2}
         label="Payouts"
+        tab="payouts"
         value={totalPayouts}
         error={totalPayoutsError}
         isCurrency
@@ -38,10 +42,17 @@ export function ProgramStats() {
       <Stat
         icon={Users}
         label="Partners"
+        tab="partners"
         value={partners}
         error={partnersError}
       />
-      <Stat icon={Check2} label="Sales" value={sales} error={salesError} />
+      <Stat
+        icon={Check2}
+        label="Sales"
+        tab="sales"
+        value={sales}
+        error={salesError}
+      />
     </div>
   );
 }
@@ -50,19 +61,25 @@ function Stat({
   icon: Icon,
   label,
   value,
+  tab,
   error,
   isCurrency = false,
 }: {
   icon: Icon;
   label: string;
   value: number;
+  tab: string;
   error: boolean;
   isCurrency?: boolean;
 }) {
+  const { slug, programId } = useParams();
   const isLoading = value === undefined && !error;
 
   return (
-    <div className="flex flex-row items-center gap-x-4 gap-y-5 p-3 md:flex-col md:items-start lg:p-5">
+    <Link
+      href={`/${slug}/programs/${programId}/${tab}`}
+      className="flex flex-row items-center gap-x-4 gap-y-5 p-3 transition-colors hover:bg-neutral-50 md:flex-col md:items-start lg:p-5"
+    >
       <div className="flex size-10 items-center justify-center rounded-md bg-neutral-100">
         <Icon className="size-4 text-neutral-900" />
       </div>
@@ -83,6 +100,6 @@ function Stat({
           </div>
         )}
       </div>
-    </div>
+    </Link>
   );
 }

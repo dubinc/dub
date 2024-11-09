@@ -8,24 +8,20 @@ enum PayoutStatus {
   flagged
 }
 
-enum PayoutMethod {
-  ach
-  manual
-}
-
 model Payout {
-  id          String       @id @default(cuid())
-  programId   String
-  partnerId   String
-  amount      Int          @default(0)
-  fee         Int          @default(0)
-  total       Int          @default(0) // Total amount after fees (amount + fee)
-  currency    String       @default("USD")
-  status      PayoutStatus @default(created)
-  periodStart DateTime
-  periodEnd   DateTime
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id              String       @id @default(cuid())
+  programId       String
+  partnerId       String
+  amount          Int          @default(0)
+  fee             Int          @default(0)
+  total           Int          @default(0) // Total amount after fees (amount + fee)
+  currency        String       @default("USD")
+  status          PayoutStatus @default(created)
+  periodStart     DateTime
+  periodEnd       DateTime
+  dotsTransferId  String?      @unique
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
   program Program @relation(fields: [programId], references: [id])
   partner Partner @relation(fields: [partnerId], references: [id])

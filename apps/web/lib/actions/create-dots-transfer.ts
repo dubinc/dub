@@ -1,22 +1,24 @@
 "use server";
 
+import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { createOrgTransfer } from "../dots/create-org-transfer";
 import { createTransfer } from "../dots/create-transfer";
 import { authActionClient } from "./safe-action";
 
 const schema = z.object({
+  workspaceId: z.string(),
   dotsUserId: z.string(),
+  payoutId: z.string(),
   amount: z.number(),
   fee: z.number(),
-  workspaceId: z.string(),
 });
 
 export const createDotsTransferAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { dotsUserId, amount, fee } = parsedInput;
+    const { dotsUserId, payoutId, amount, fee } = parsedInput;
 
     console.log({ dotsUserId, amount, fee });
 
@@ -24,7 +26,7 @@ export const createDotsTransferAction = authActionClient
       throw new Error("Dots app not found");
     }
 
-    const res = await Promise.all([
+    const [transfer, orgTransfer] = await Promise.all([
       createTransfer({
         amount,
         dotsAppId: workspace.dotsAppId,
@@ -36,7 +38,11 @@ export const createDotsTransferAction = authActionClient
         dotsAppId: workspace.dotsAppId,
       }),
     ]);
-    console.log("res", res);
 
-    return res;
+    prisma.payout.update({
+      where: { id: payoutId },
+      data: { dotsTransferId: transfer.id, status: "completed" },
+    });
+
+    return { transfer, orgTransfer };
   });
