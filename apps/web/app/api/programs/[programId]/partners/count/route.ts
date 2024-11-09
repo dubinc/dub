@@ -35,6 +35,13 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     {} as Record<ProgramEnrollmentStatus | "all", number>,
   );
 
+  // fill in missing statuses with 0
+  Object.values(ProgramEnrollmentStatus).forEach((status) => {
+    if (!(status in counts)) {
+      counts[status] = 0;
+    }
+  });
+
   counts.all = programEnrollments.reduce((acc, p) => acc + p._count, 0);
 
   return NextResponse.json(counts);

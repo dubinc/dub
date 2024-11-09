@@ -42,6 +42,13 @@ export const GET = withWorkspace(
       {} as Record<PayoutStatus | "all", number>,
     );
 
+    // fill in missing statuses with 0
+    Object.values(PayoutStatus).forEach((status) => {
+      if (!(status in counts)) {
+        counts[status] = 0;
+      }
+    });
+
     counts.all = payouts.reduce((acc, p) => acc + p._count, 0);
 
     return NextResponse.json(counts);
