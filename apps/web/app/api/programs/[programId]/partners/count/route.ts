@@ -27,16 +27,15 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     _count: true,
   });
 
-  const counts = Object.values(ProgramEnrollmentStatus).map((status) => ({
-    status,
-    _count: programEnrollments.find((p) => p.status === status)?._count || 0,
-  }));
-
-  return NextResponse.json([
-    ...z.array(responseSchema).parse(counts),
-    {
-      status: "all",
-      _count: programEnrollments.reduce((acc, p) => acc + p._count, 0),
+  const counts = programEnrollments.reduce(
+    (acc, p) => {
+      acc[p.status] = p._count;
+      return acc;
     },
-  ]);
+    {} as Record<ProgramEnrollmentStatus | "all", number>,
+  );
+
+  counts.all = programEnrollments.reduce((acc, p) => acc + p._count, 0);
+
+  return NextResponse.json(counts);
 });

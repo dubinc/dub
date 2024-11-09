@@ -14,12 +14,7 @@ export function ProgramStats() {
   const totalPayouts = 24000;
   const totalPayoutsError = false;
 
-  // TODO: [payouts] Use actual data
   const { partnersCount, error: partnersCountError } = usePartnersCount();
-
-  const allPartnersCount = partnersCount?.find(
-    ({ status }) => status === "all",
-  )?._count;
 
   // TODO: [payouts] Use actual data
   const sales = 2500;
@@ -47,7 +42,7 @@ export function ProgramStats() {
         icon={Users}
         label="Partners"
         tab="partners"
-        value={allPartnersCount}
+        value={partnersCount?.all}
         error={partnersCountError}
       />
       <Stat

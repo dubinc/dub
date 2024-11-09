@@ -2,7 +2,7 @@ import { Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 
-export function ProgramStats({
+export function ProgramStatsFilter({
   label,
   href,
   count,

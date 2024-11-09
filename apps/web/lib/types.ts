@@ -293,10 +293,8 @@ export type TrackSaleResponse = z.infer<typeof trackSaleResponseSchema>;
 
 export type UsageResponse = z.infer<typeof usageResponse>;
 
-export type PartnerCounts = {
-  status: ProgramEnrollmentStatus | "all";
-  _count: number;
-};
+export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
+
 export type PartnerProps = z.infer<typeof PartnerSchema>;
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
 
@@ -304,10 +302,8 @@ export type ProgramProps = z.infer<typeof ProgramSchema>;
 
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 
-export type PayoutCounts = {
-  status: PayoutStatus | "all";
-  _count: number;
-};
+export type PayoutsCount = Record<PayoutStatus | "all", number>;
+
 export type PayoutProps = z.infer<typeof PayoutSchema>;
 
 export type PayoutWithPartnerProps = z.infer<typeof PayoutSchema> & {

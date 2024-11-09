@@ -1,6 +1,7 @@
 "use client";
 
-import { PayoutCounts, PayoutWithPartnerProps } from "@/lib/types";
+import usePayoutsCount from "@/lib/swr/use-payouts-count";
+import { PayoutWithPartnerProps } from "@/lib/types";
 import { PayoutConfirmSheet } from "@/ui/programs/payout-confirm-sheet";
 import { PayoutDetailsSheet } from "@/ui/programs/payout-details-sheet";
 import { PayoutStatusBadges } from "@/ui/programs/payout-status-badges";
@@ -29,7 +30,7 @@ import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useParams, useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import useSWR from "swr";
 import { usePayoutFilters } from "./use-payout-filters";
 
@@ -52,18 +53,7 @@ export function PayoutTable() {
     isFiltered,
   } = usePayoutFilters({ sortBy, order });
 
-  const { data: payoutCounts, error: countError } = useSWR<PayoutCounts[]>(
-    `/api/programs/${programId}/payouts/count?${searchQuery}`,
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
-
-  const totalPayoutsCount = useMemo(
-    () => payoutCounts?.reduce((acc, { _count }) => acc + _count, 0) || 0,
-    [payoutCounts],
-  );
+  const { payoutsCount, error: countError } = usePayoutsCount();
 
   const {
     data: payouts,
@@ -199,7 +189,7 @@ export function PayoutTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `payout${p ? "s" : ""}`,
-    rowCount: totalPayoutsCount,
+    rowCount: payoutsCount?.all || 0,
   });
 
   return (

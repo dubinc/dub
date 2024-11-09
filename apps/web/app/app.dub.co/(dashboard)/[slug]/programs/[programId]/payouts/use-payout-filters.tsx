@@ -1,13 +1,15 @@
+import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutStatusBadges } from "@/ui/programs/payout-status-badges";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted } from "@dub/ui/src/icons";
-import { cn } from "@dub/utils";
+import { cn, nFormatter } from "@dub/utils";
 import { useMemo } from "react";
 
 export function usePayoutFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
+  const { payoutsCount } = usePayoutsCount();
 
   const filters = useMemo(
     () => [
@@ -29,12 +31,13 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
                   )}
                 />
               ),
+              right: nFormatter(payoutsCount?.[value] || 0, { full: true }),
             };
           },
         ),
       },
     ],
-    [],
+    [payoutsCount],
   );
 
   const activeFilters = useMemo(() => {

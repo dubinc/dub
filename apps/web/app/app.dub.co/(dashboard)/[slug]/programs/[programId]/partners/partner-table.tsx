@@ -1,6 +1,7 @@
 "use client";
 
-import { EnrolledPartnerProps, PartnerCounts } from "@/lib/types";
+import usePartnersCount from "@/lib/swr/use-partners-count";
+import { EnrolledPartnerProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
@@ -27,7 +28,6 @@ import {
 } from "@dub/utils";
 import { nFormatter } from "@dub/utils/src/functions";
 import { useParams } from "next/navigation";
-import { useMemo } from "react";
 import useSWR from "swr";
 import { usePartnerFilters } from "./use-partner-filters";
 
@@ -69,15 +69,7 @@ export function PartnerTable() {
     isFiltered,
   } = usePartnerFilters({ sortBy, order });
 
-  const { data: partnersCounts, error: countError } = useSWR<PartnerCounts[]>(
-    `/api/programs/${programId}/partners/count?${searchQuery}`,
-    fetcher,
-  );
-
-  const totalPartnersCount = useMemo(
-    () => partnersCounts?.reduce((acc, { _count }) => acc + _count, 0) || 0,
-    [partnersCounts],
-  );
+  const { partnersCount, error: countError } = usePartnersCount();
 
   const { data: partners, error } = useSWR<EnrolledPartnerProps[]>(
     `/api/programs/${programId}/partners?${searchQuery}`,
@@ -177,7 +169,7 @@ export function PartnerTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `partner${p ? "s" : ""}`,
-    rowCount: totalPartnersCount,
+    rowCount: partnersCount?.all || 0,
     loading: !partners && !error && !countError,
     error: error || countError ? "Failed to load partners" : undefined,
   });

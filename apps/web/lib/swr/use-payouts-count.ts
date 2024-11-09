@@ -1,20 +1,20 @@
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-import { PartnersCount } from "../types";
+import { PayoutsCount } from "../types";
 import useWorkspace from "./use-workspace";
 
-export default function usePartnersCount() {
+export default function usePayoutsCount() {
   const { programId } = useParams();
   const { id: workspaceId } = useWorkspace();
 
-  const { data: partnersCount, error } = useSWR<PartnersCount>(
-    `/api/programs/${programId}/partners/count?workspaceId=${workspaceId}`,
+  const { data: payoutsCount, error } = useSWR<PayoutsCount>(
+    `/api/programs/${programId}/payouts/count?workspaceId=${workspaceId}`,
     fetcher,
   );
 
   return {
-    partnersCount,
+    payoutsCount,
     error,
   };
 }

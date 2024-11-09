@@ -34,14 +34,16 @@ export const GET = withWorkspace(
       _count: true,
     });
 
-    const counts = Object.values(PayoutStatus).map((status) => ({
-      status,
-      _count: payouts.find((p) => p.status === status)?._count || 0,
-    }));
+    const counts = payouts.reduce(
+      (acc, p) => {
+        acc[p.status] = p._count;
+        return acc;
+      },
+      {} as Record<PayoutStatus | "all", number>,
+    );
 
-    return NextResponse.json([
-      ...z.array(responseSchema).parse(counts),
-      { status: "all", _count: payouts.reduce((acc, p) => acc + p._count, 0) },
-    ]);
+    counts.all = payouts.reduce((acc, p) => acc + p._count, 0);
+
+    return NextResponse.json(counts);
   },
 );
