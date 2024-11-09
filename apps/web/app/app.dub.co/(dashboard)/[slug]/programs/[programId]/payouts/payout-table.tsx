@@ -55,6 +55,9 @@ export function PayoutTable() {
   const { data: payoutCounts, error: countError } = useSWR<PayoutCounts[]>(
     `/api/programs/${programId}/payouts/count?${searchQuery}`,
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   const totalPayoutsCount = useMemo(
@@ -62,9 +65,16 @@ export function PayoutTable() {
     [payoutCounts],
   );
 
-  const { data: payouts, error } = useSWR<PayoutWithPartnerProps[]>(
+  const {
+    data: payouts,
+    error,
+    isLoading,
+  } = useSWR<PayoutWithPartnerProps[]>(
     `/api/programs/${programId}/payouts?${searchQuery}`,
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   const [detailsSheetState, setDetailsSheetState] = useState<
@@ -81,6 +91,8 @@ export function PayoutTable() {
 
   const table = useTable({
     data: payouts || [],
+    loading: isLoading,
+    error: error || countError ? "Failed to load payouts" : undefined,
     columns: [
       {
         id: "periodStart",
@@ -188,8 +200,6 @@ export function PayoutTable() {
     tdClassName: "border-l-0",
     resourceName: (p) => `payout${p ? "s" : ""}`,
     rowCount: totalPayoutsCount,
-    loading: !payouts && !error,
-    error: error || countError ? "Failed to load payouts" : undefined,
   });
 
   return (

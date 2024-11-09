@@ -20,8 +20,6 @@ export const createDotsTransferAction = authActionClient
     const { workspace } = ctx;
     const { dotsUserId, payoutId, amount, fee } = parsedInput;
 
-    console.log({ dotsUserId, amount, fee });
-
     if (!workspace.dotsAppId) {
       throw new Error("Dots app not found");
     }
@@ -32,14 +30,13 @@ export const createDotsTransferAction = authActionClient
         dotsAppId: workspace.dotsAppId,
         dotsUserId,
       }),
-      // each transfer incurs a fee of $1 + 2% with a cap of $20 (2000 cents)
       createOrgTransfer({
         amount: fee,
         dotsAppId: workspace.dotsAppId,
       }),
     ]);
 
-    prisma.payout.update({
+    await prisma.payout.update({
       where: { id: payoutId },
       data: { dotsTransferId: transfer.id, status: "completed" },
     });

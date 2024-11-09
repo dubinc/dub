@@ -1,11 +1,7 @@
 enum PayoutStatus {
-  created
   pending
-  failed
   completed
-  reversed
-  canceled
-  flagged
+  failed
 }
 
 model Payout {
@@ -16,7 +12,7 @@ model Payout {
   fee             Int          @default(0)
   total           Int          @default(0) // Total amount after fees (amount + fee)
   currency        String       @default("USD")
-  status          PayoutStatus @default(created)
+  status          PayoutStatus @default(pending)
   periodStart     DateTime
   periodEnd       DateTime
   dotsTransferId  String?      @unique

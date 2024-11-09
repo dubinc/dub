@@ -101,6 +101,17 @@ function PayoutConfirmSheetContent({
   }, [payoutMethods, selectedPayoutMethod]);
 
   const { executeAsync, isExecuting } = useAction(createDotsTransferAction, {
+    onSuccess: async () => {
+      await mutate(
+        (key) =>
+          typeof key === "string" &&
+          key.startsWith(`/api/programs/${programId}/payouts`),
+        undefined,
+        { revalidate: true },
+      );
+      toast.success("Successfully created payout!");
+      setIsOpen(false);
+    },
     onError({ error }) {
       toast.error(error.serverError?.serverError);
     },
@@ -211,9 +222,6 @@ function PayoutConfirmSheetContent({
                 toast.error("Partner has no Dots user ID");
                 return;
               }
-
-              // TODO: [payouts] Use selectedPayoutMethod (including handling for "manual")
-
               await executeAsync({
                 workspaceId: workspaceId!,
                 dotsUserId: payout.partner.dotsUserId,
@@ -221,15 +229,6 @@ function PayoutConfirmSheetContent({
                 amount: payout.amount,
                 fee: payout.fee,
               });
-              await mutate(
-                (key) =>
-                  typeof key === "string" &&
-                  key.startsWith(`/api/programs/${programId}/payouts`),
-                undefined,
-                { revalidate: true },
-              );
-              toast.success("Successfully created payout");
-              setIsOpen(false);
             }}
             text="Confirm payout"
             className="w-fit"
