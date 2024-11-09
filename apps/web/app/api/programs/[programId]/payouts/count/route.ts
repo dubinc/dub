@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 import z from "zod";
 
 const responseSchema = z.object({
-  status: z.nativeEnum(PayoutStatus).or(z.literal("all")),
+  status: z.nativeEnum(PayoutStatus),
   _count: z.number(),
 });
 

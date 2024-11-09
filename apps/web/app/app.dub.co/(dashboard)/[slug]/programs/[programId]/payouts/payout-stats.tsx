@@ -14,19 +14,19 @@ export function PayoutStats() {
   const { id: workspaceId } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
-  const { data: payoutsCounts, error } = useSWR<PayoutCounts[]>(
+  const { data: payoutsCount, error } = useSWR<PayoutCounts[]>(
     `/api/programs/${programId}/payouts/count?workspaceId=${workspaceId}`,
     fetcher,
   );
 
   const allPayoutsCount =
-    payoutsCounts?.find((payout) => payout.status === "all")?._count || 0;
+    payoutsCount?.find((payout) => payout.status === "all")?._count || 0;
 
   const pendingPayoutsCount =
-    payoutsCounts?.find((payout) => payout.status === "pending")?._count || 0;
+    payoutsCount?.find((payout) => payout.status === "pending")?._count || 0;
 
   const completedPayoutsCount =
-    payoutsCounts?.find((payout) => payout.status === "completed")?._count || 0;
+    payoutsCount?.find((payout) => payout.status === "completed")?._count || 0;
 
   return (
     <div className="xs:grid-cols-3 xs:divide-x xs:divide-y-0 grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">

@@ -27,17 +27,16 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     _count: true,
   });
 
-  const allStatuses = Object.values(ProgramEnrollmentStatus).map((status) => ({
+  const counts = Object.values(ProgramEnrollmentStatus).map((status) => ({
     status,
-    _count: 0,
+    _count: programEnrollments.find((p) => p.status === status)?._count || 0,
   }));
 
-  // Fill the missing statuses with 0
-  const counts = allStatuses.map(
-    (statusCount) =>
-      programEnrollments.find((p) => p.status === statusCount.status) ||
-      statusCount,
-  );
-
-  return NextResponse.json(z.array(responseSchema).parse(counts));
+  return NextResponse.json([
+    ...z.array(responseSchema).parse(counts),
+    {
+      status: "all",
+      _count: programEnrollments.reduce((acc, p) => acc + p._count, 0),
+    },
+  ]);
 });

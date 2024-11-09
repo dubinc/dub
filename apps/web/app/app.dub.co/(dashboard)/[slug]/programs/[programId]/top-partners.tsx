@@ -17,7 +17,7 @@ export function TopPartners() {
   const { id: workspaceId } = useWorkspace();
 
   const { data: partners, error } = useSWR<EnrolledPartnerProps[]>(
-    `/api/programs/${programId}/partners?workspaceId=${workspaceId}&status=approved&sortBy=earnings&order=desc&pageSize=5`,
+    `/api/programs/${programId}/partners?workspaceId=${workspaceId}&sortBy=earnings&order=desc`,
     fetcher,
   );
 
@@ -62,7 +62,7 @@ export function TopPartners() {
             </div>
           ) : partners?.length ? (
             <div className="grid grid-cols-1 gap-1">
-              {partners.map((partner) => (
+              {partners.slice(0, 5).map((partner) => (
                 <div
                   key={partner.id}
                   className="flex h-12 items-center justify-between p-2"

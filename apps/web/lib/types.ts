@@ -294,7 +294,7 @@ export type TrackSaleResponse = z.infer<typeof trackSaleResponseSchema>;
 export type UsageResponse = z.infer<typeof usageResponse>;
 
 export type PartnerCounts = {
-  status: ProgramEnrollmentStatus;
+  status: ProgramEnrollmentStatus | "all";
   _count: number;
 };
 export type PartnerProps = z.infer<typeof PartnerSchema>;

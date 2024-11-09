@@ -1,3 +1,4 @@
+import usePartnersCount from "@/lib/swr/use-partners-count";
 import { Icon } from "@dub/ui";
 import { Check2, CurrencyDollar, MoneyBills2, Users } from "@dub/ui/src/icons";
 import { nFormatter } from "@dub/utils";
@@ -14,8 +15,11 @@ export function ProgramStats() {
   const totalPayoutsError = false;
 
   // TODO: [payouts] Use actual data
-  const partners = 830;
-  const partnersError = false;
+  const { partnersCount, error: partnersCountError } = usePartnersCount();
+
+  const allPartnersCount = partnersCount?.find(
+    ({ status }) => status === "all",
+  )?._count;
 
   // TODO: [payouts] Use actual data
   const sales = 2500;
@@ -43,8 +47,8 @@ export function ProgramStats() {
         icon={Users}
         label="Partners"
         tab="partners"
-        value={partners}
-        error={partnersError}
+        value={allPartnersCount}
+        error={partnersCountError}
       />
       <Stat
         icon={Check2}
@@ -67,7 +71,7 @@ function Stat({
 }: {
   icon: Icon;
   label: string;
-  value: number;
+  value: number | undefined;
   tab: string;
   error: boolean;
   isCurrency?: boolean;
