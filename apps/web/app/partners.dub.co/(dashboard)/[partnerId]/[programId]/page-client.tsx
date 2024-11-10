@@ -355,7 +355,7 @@ function StatCard({
 
   return (
     <Link
-      href={`/${partnerId}/${programId}/events?event=${event}`}
+      href={`/${partnerId}/${programId}/analytics?event=${event}`}
       className="hover:drop-shadow-card-hover block rounded-md border border-neutral-300 bg-white p-5 transition-[filter]"
     >
       <span className="block text-sm text-neutral-500">{title}</span>

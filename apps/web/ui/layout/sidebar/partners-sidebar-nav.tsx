@@ -2,18 +2,23 @@
 
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { ArrowRight, Button, Gear2, ShieldCheck, UserCheck } from "@dub/ui";
+import { Button } from "@dub/ui";
 import {
+  ArrowRight,
+  ChartActivity2,
   Check,
+  CircleDollar,
   ColorPalette2,
   Copy,
-  CursorRays,
   Gauge6,
   Gear,
+  Gear2,
   GridIcon,
   Hyperlink,
   MoneyBills2,
+  ShieldCheck,
   User,
+  UserCheck,
   Users,
 } from "@dub/ui/src/icons";
 import { cn, currencyFormatter } from "@dub/utils";
@@ -70,14 +75,19 @@ const NAV_AREAS: SidebarNavAreas<{
             exact: true,
           },
           {
+            name: "Analytics",
+            icon: ChartActivity2,
+            href: `/${partnerId}/${programId}/analytics`,
+          },
+          {
+            name: "Sales",
+            icon: CircleDollar,
+            href: `/${partnerId}/${programId}/sales`,
+          },
+          {
             name: "Payouts",
             icon: MoneyBills2,
             href: `/${partnerId}/${programId}/payouts`,
-          },
-          {
-            name: "Events",
-            icon: CursorRays,
-            href: `/${partnerId}/${programId}/events`,
           },
           {
             name: "Links",

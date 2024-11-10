@@ -97,7 +97,9 @@ export default function Toggle({
     url,
     adminPage,
     demoPage,
+    partnerPage,
     dashboardProps,
+    showConversions,
     start,
     end,
     interval,
@@ -683,8 +685,7 @@ export default function Toggle({
         const end = new Date();
 
         const requiresUpgrade =
-          adminPage ||
-          demoPage ||
+          showConversions ||
           DUB_DEMO_LINKS.find((l) => l.domain === domain && l.key === key)
             ? false
             : !validDateRangeForPlan({
@@ -779,7 +780,7 @@ export default function Toggle({
                 {isMobile ? filterSelect : dateRangePicker}
                 {!dashboardProps && (
                   <div className="flex grow justify-end gap-2">
-                    {page === "analytics" && (
+                    {page === "analytics" && !partnerPage && (
                       <>
                         {domain && key && <ShareButton />}
                         <Button
@@ -802,7 +803,7 @@ export default function Toggle({
                         <AnalyticsOptions />
                       </>
                     )}
-                    {page === "events" && (
+                    {page === "events" && !partnerPage && (
                       <>
                         <Button
                           variant="secondary"

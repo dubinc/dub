@@ -55,8 +55,8 @@ export const AnalyticsContext = createContext<{
   };
   adminPage?: boolean;
   demoPage?: boolean;
-  partnerId?: string;
-  programId?: string;
+  partnerPage?: boolean;
+  showConversions?: boolean;
   requiresUpgrade?: boolean;
   dashboardProps?: dashboardProps;
 }>({
@@ -71,8 +71,8 @@ export const AnalyticsContext = createContext<{
   end: new Date(),
   adminPage: false,
   demoPage: false,
-  partnerId: undefined,
-  programId: undefined,
+  partnerPage: false,
+  showConversions: false,
   requiresUpgrade: false,
   dashboardProps: undefined,
 });
@@ -80,17 +80,11 @@ export const AnalyticsContext = createContext<{
 export default function AnalyticsProvider({
   adminPage,
   demoPage,
-  partnerId,
-  programId,
   dashboardProps,
-  defaultInterval = "24h",
   children,
 }: PropsWithChildren<{
   adminPage?: boolean;
   demoPage?: boolean;
-  partnerId?: string;
-  programId?: string;
-  defaultInterval?: string;
   dashboardProps?: dashboardProps;
 }>) {
   const searchParams = useSearchParams();
@@ -98,15 +92,27 @@ export default function AnalyticsProvider({
   const { id: workspaceId, slug, conversionEnabled } = useWorkspace();
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
-  let { dashboardId } = useParams() as {
+  let { dashboardId, partnerId, programId } = useParams() as {
     dashboardId?: string;
+    partnerId?: string;
+    programId?: string;
   };
+
+  const partnerPage = partnerId && programId ? true : false;
+
   const domainSlug = searchParams?.get("domain");
   // key can be a query param (stats pages in app) or passed as a staticKey (shared analytics dashboards)
   const key = searchParams?.get("key") || dashboardProps?.key;
 
   // Whether to show conversions in shared analytics dashboards
-  const showConversions = dashboardProps?.showConversions;
+  const showConversions =
+    adminPage ||
+    demoPage ||
+    partnerPage ||
+    conversionEnabled ||
+    dashboardProps?.showConversions
+      ? true
+      : false;
 
   const tagId = searchParams?.get("tagId") ?? undefined;
 
@@ -127,13 +133,14 @@ export default function AnalyticsProvider({
     };
   }, [searchParams?.get("start"), searchParams?.get("end")]);
 
+  const defaultInterval = partnerPage ? "30d" : "24h";
+
   // Only set interval if start and end are not provided
   const interval =
     start || end ? undefined : searchParams?.get("interval") ?? defaultInterval;
 
   const selectedTab: EventType = useMemo(() => {
-    if (!!adminPage && !!demoPage && !conversionEnabled && !showConversions)
-      return "clicks";
+    if (!showConversions) return "clicks";
 
     const event = searchParams.get("event");
 
@@ -141,8 +148,7 @@ export default function AnalyticsProvider({
   }, [searchParams.get("event")]);
 
   const view: AnalyticsView = useMemo(() => {
-    if (!adminPage && !demoPage && !conversionEnabled && !showConversions)
-      return "default";
+    if (!showConversions) return "default";
 
     const view = searchParams.get("view");
 
@@ -194,10 +200,11 @@ export default function AnalyticsProvider({
     slug,
     pathname,
     dashboardProps?.domain,
-    domainSlug,
-    key,
+    dashboardId,
     partnerId,
     programId,
+    domainSlug,
+    key,
     selectedTab,
   ]);
 
@@ -232,10 +239,7 @@ export default function AnalyticsProvider({
     [key in AnalyticsResponseOptions]: number;
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
-      event:
-        adminPage || demoPage || conversionEnabled || showConversions
-          ? "composite"
-          : "clicks",
+      event: showConversions ? "composite" : "clicks",
     })}`,
     fetcher,
     {
@@ -283,6 +287,8 @@ export default function AnalyticsProvider({
         totalEvents, // totalEvents (clicks, leads, sales)
         adminPage, // whether the user is an admin
         demoPage, // whether the user is viewing demo analytics
+        partnerPage, // whether the user is viewing partner analytics
+        showConversions, // whether conversions are enabled
         dashboardProps,
         requiresUpgrade, // whether an upgrade is required to perform the query
       }}
