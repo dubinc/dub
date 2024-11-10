@@ -208,13 +208,13 @@ function ProgramInfo() {
   const items = [
     {
       icon: UserCheck,
-      href: `/${partnerId}/${programId}/customers`,
+      href: `/${partnerId}/${programId}/analytics?event=leads`,
       label: "Signups",
       value: analytics?.leads,
     },
     {
       icon: MoneyBills2,
-      href: `/${partnerId}/${programId}/payouts`,
+      href: `/${partnerId}/${programId}/sales`,
       label: "Earnings",
       value: `${currencyFormatter((analytics?.earnings || 0) / 100)}`,
     },
