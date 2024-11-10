@@ -20,7 +20,6 @@ import {
   Tooltip,
   TooltipContent,
   useMediaQuery,
-  useRouterStuff,
 } from "@dub/ui";
 import { Download, Globe, TableIcon, Tag } from "@dub/ui/src/icons";
 import { useSession } from "next-auth/react";
@@ -72,8 +71,6 @@ function WorkspaceLinks() {
   } = useLinkFilters();
 
   const { isValidating } = useLinks();
-  const { getQueryString } = useRouterStuff();
-  const { isMobile } = useMediaQuery();
 
   return (
     <>

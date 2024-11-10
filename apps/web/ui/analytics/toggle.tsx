@@ -167,7 +167,9 @@ export default function Toggle({
             },
           ]
         : []),
-      ...(selectedTagIds ? [{ key: "tagIds", value: selectedTagIds }] : []),
+      ...(selectedTagIds.length > 0
+        ? [{ key: "tagIds", value: selectedTagIds }]
+        : []),
       ...(continent ? [{ key: "continent", value: continent }] : []),
       ...(country ? [{ key: "country", value: country }] : []),
       ...(city ? [{ key: "city", value: city }] : []),
@@ -589,17 +591,33 @@ export default function Toggle({
                     key:
                       new URL(`https://${value}`).pathname.slice(1) || "_root",
                   }
-                : {
-                    [key]: value,
-                  },
+                : key === "tagIds"
+                  ? {
+                      tagIds: selectedTagIds.concat(value).join(","),
+                    }
+                  : {
+                      [key]: value,
+                    },
             del: "page",
+            scroll: false,
           });
         }
       }}
-      onRemove={(key) =>
-        queryParams({
-          del: key === "link" ? ["domain", "key"] : key,
-        })
+      onRemove={(key, value) =>
+        queryParams(
+          key === "tagIds" &&
+            !(selectedTagIds.length === 1 && selectedTagIds[0] === value)
+            ? {
+                set: {
+                  tagIds: selectedTagIds.filter((id) => id !== value).join(","),
+                },
+                scroll: false,
+              }
+            : {
+                del: key === "link" ? ["domain", "key"] : key,
+                scroll: false,
+              },
+        )
       }
       onOpenFilter={(key) =>
         setRequestedFilters((rf) => (rf.includes(key) ? rf : [...rf, key]))
@@ -804,11 +822,23 @@ export default function Toggle({
                 }))
               : []),
           ]}
-          onRemove={(key) =>
-            queryParams({
-              del: key === "link" ? ["domain", "key", "url"] : key,
-              scroll: false,
-            })
+          onRemove={(key, value) =>
+            queryParams(
+              key === "tagIds" &&
+                !(selectedTagIds.length === 1 && selectedTagIds[0] === value)
+                ? {
+                    set: {
+                      tagIds: selectedTagIds
+                        .filter((id) => id !== value)
+                        .join(","),
+                    },
+                    scroll: false,
+                  }
+                : {
+                    del: key === "link" ? ["domain", "key", "url"] : key,
+                    scroll: false,
+                  },
+            )
           }
           onRemoveAll={() =>
             queryParams({
