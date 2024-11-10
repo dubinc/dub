@@ -24,10 +24,12 @@ import { useSaleFilters } from "./use-sale-filters";
 
 export function SaleTableBusiness({ limit }: { limit?: number }) {
   const { programId } = useParams();
-  const { queryParams, searchParams } = useRouterStuff();
+  const { queryParams, searchParamsObj } = useRouterStuff();
 
-  const sortBy = searchParams.get("sort") || "timestamp";
-  const order = searchParams.get("order") === "asc" ? "asc" : "desc";
+  const { sortBy = "timestamp", order = "desc" } = searchParamsObj as {
+    sortBy?: "timestamp";
+    order?: "asc" | "desc";
+  };
 
   const {
     filters,

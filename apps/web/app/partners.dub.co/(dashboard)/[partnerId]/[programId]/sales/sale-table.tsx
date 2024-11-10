@@ -1,5 +1,6 @@
 "use client";
 
+import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import usePartnerEvents from "@/lib/swr/use-partner-events";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -20,13 +21,13 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
   } = searchParamsObj as {
     start?: string;
     end?: string;
-    interval?: string;
+    interval?: IntervalOptions;
     sortBy?: "timestamp";
     order?: "asc" | "desc";
   };
 
   const { data: { sales: totalSaleEvents } = {} } = usePartnerAnalytics({
-    interval: interval as any,
+    interval,
     start: start ? new Date(start) : undefined,
     end: end ? new Date(end) : undefined,
   });

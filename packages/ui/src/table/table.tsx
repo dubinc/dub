@@ -265,7 +265,9 @@ export function Table<T>({
                   className={cn(
                     "group/row",
                     onRowClick && "cursor-pointer select-none",
-                    row.index === table.getRowModel().rows.length - 1 && // last row in table shouldn't have a bottom border
+                    // hacky fix: if there are more than 8 rows, remove the bottom border from the last row
+                    table.getRowModel().rows.length > 8 &&
+                      row.index === table.getRowModel().rows.length - 1 &&
                       "[&_td]:border-b-0",
                   )}
                   onClick={

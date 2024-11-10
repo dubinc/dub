@@ -48,7 +48,11 @@ export default function ProgramPageClient() {
   const { programEnrollment } = useProgramEnrollment();
   const [copied, copyToClipboard] = useCopyToClipboard();
 
-  const { start, end, interval } = searchParamsObj as {
+  const {
+    start,
+    end,
+    interval = "30d",
+  } = searchParamsObj as {
     start?: string;
     end?: string;
     interval?: IntervalOptions;
@@ -151,13 +155,13 @@ function EarningsChart() {
   const { start, end, interval, color } = useContext(ProgramOverviewContext);
 
   const { data: { earnings: total } = {} } = usePartnerAnalytics({
-    interval: interval as any,
+    interval,
     start,
     end,
   });
   const { data: timeseries, error } = usePartnerAnalytics({
     groupBy: "timeseries",
-    interval: interval as any,
+    interval,
     start,
     end,
   });

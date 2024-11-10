@@ -2,7 +2,7 @@
 
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { Button } from "@dub/ui";
+import { Button, useRouterStuff } from "@dub/ui";
 import {
   ArrowRight,
   ChartActivity2,
@@ -33,6 +33,7 @@ import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
 const NAV_AREAS: SidebarNavAreas<{
   partnerId: string;
   programId?: string;
+  queryString?: string;
 }> = {
   // Top-level
   default: ({ partnerId }) => ({
@@ -63,7 +64,7 @@ const NAV_AREAS: SidebarNavAreas<{
     ],
   }),
 
-  program: ({ partnerId, programId }) => ({
+  program: ({ partnerId, programId, queryString }) => ({
     showSwitcher: true,
     content: [
       {
@@ -77,12 +78,12 @@ const NAV_AREAS: SidebarNavAreas<{
           {
             name: "Analytics",
             icon: ChartActivity2,
-            href: `/${partnerId}/${programId}/analytics`,
+            href: `/${partnerId}/${programId}/analytics${queryString}`,
           },
           {
             name: "Sales",
             icon: CircleDollar,
-            href: `/${partnerId}/${programId}/sales`,
+            href: `/${partnerId}/${programId}/sales${queryString}`,
           },
           {
             name: "Payouts",
@@ -169,6 +170,7 @@ export function PartnersSidebarNav({
     programId?: string;
   };
   const pathname = usePathname();
+  const { getQueryString } = useRouterStuff();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -184,7 +186,11 @@ export function PartnersSidebarNav({
     <SidebarNav
       areas={NAV_AREAS}
       currentArea={currentArea}
-      data={{ partnerId: partnerId || "", programId: programId || "" }}
+      data={{
+        partnerId: partnerId || "",
+        programId: programId || "",
+        queryString: getQueryString(),
+      }}
       toolContent={toolContent}
       newsContent={newsContent}
       switcher={<PartnerProgramDropdown />}
