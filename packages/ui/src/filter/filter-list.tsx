@@ -39,7 +39,7 @@ export function FilterList({
       >
         <div className="flex grow flex-wrap gap-x-4 gap-y-2">
           <AnimatePresence>
-            {activeFilters?.map(({ key, value: filterValue }, idx) => {
+            {activeFilters?.map(({ key, value: filterValue }) => {
               if (key === "loader") {
                 return (
                   <motion.div
@@ -85,7 +85,7 @@ export function FilterList({
 
                 return (
                   <motion.div
-                    key={`${key}-${value}-${idx}`}
+                    key={`${key}-${value}`}
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-center divide-x rounded-md border border-gray-200 bg-white text-sm text-black"
