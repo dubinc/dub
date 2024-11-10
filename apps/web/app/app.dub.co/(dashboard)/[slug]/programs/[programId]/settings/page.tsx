@@ -17,7 +17,7 @@ export default async function ProgramSettingsPage({
     <PageContent title="Program Settings">
       <MaxWidthWrapper>
         <div className="grid grid-cols-1 gap-8">
-          <ProgramSettings programId={programId} />
+          <ProgramSettings />
           <DeleteProgram programId={programId} />
         </div>
       </MaxWidthWrapper>

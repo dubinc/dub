@@ -1,33 +1,133 @@
 "use client";
 
-import { Button } from "@dub/ui";
+import { updateProgramAction } from "@/lib/actions/update-program";
+import useProgram from "@/lib/swr/use-program";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { ProgramProps } from "@/lib/types";
+import { ProgramCommissionDescription } from "@/ui/programs/program-commission-description";
+import { AnimatedSizeContainer, Button } from "@dub/ui";
+import { CircleCheckFill, LoadingSpinner } from "@dub/ui/src/icons";
+import { cn, pluralize } from "@dub/utils";
+import { useAction } from "next-safe-action/hooks";
 import { PropsWithChildren } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { mutate } from "swr";
 
 const commissionTypes = [
   {
     label: "One-off",
     description: "Pay a one-time payout",
-    value: "one-off",
+    recurring: false,
   },
   {
     label: "Recurring",
     description: "Pay an ongoing payout",
-    value: "recurring",
+    recurring: true,
   },
 ];
 
-export function ProgramSettings({ programId }: { programId: string }) {
+export function ProgramSettings() {
+  const { program } = useProgram();
+
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white">
+    <div className="flex flex-col gap-10">
+      {program ? (
+        <ProgramSettingsForm program={program} />
+      ) : (
+        <div className="flex h-32 items-center justify-center">
+          <LoadingSpinner />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProgramSettingsForm({ program }: { program: ProgramProps }) {
+  const { id: workspaceId } = useWorkspace();
+
+  const {
+    register,
+    control,
+    watch,
+    setValue,
+    handleSubmit,
+    formState: { isSubmitting, isValid, errors },
+  } = useForm<
+    Pick<
+      ProgramProps,
+      | "recurringCommission"
+      | "recurringDuration"
+      | "isLifetimeRecurring"
+      | "commissionType"
+      | "commissionAmount"
+      | "minimumPayout"
+    >
+  >({
+    mode: "onBlur",
+    defaultValues: {
+      recurringCommission: program.recurringCommission,
+      recurringDuration: program.recurringDuration,
+      isLifetimeRecurring: program.isLifetimeRecurring,
+      commissionType: program.commissionType,
+      commissionAmount:
+        program.commissionType === "flat"
+          ? program.commissionAmount / 100
+          : program.commissionAmount,
+      minimumPayout: program.minimumPayout / 100,
+    },
+  });
+
+  const [
+    recurringCommission,
+    recurringDuration,
+    isLifetimeRecurring,
+    commissionType,
+  ] = watch([
+    "recurringCommission",
+    "recurringDuration",
+    "isLifetimeRecurring",
+    "commissionType",
+  ]);
+
+  const { executeAsync, isExecuting } = useAction(updateProgramAction, {
+    async onSuccess() {
+      toast.success("Program updated successfully.");
+      mutate(`/api/programs/${program.id}?workspaceId=${workspaceId}`);
+    },
+    onError({ error }) {
+      console.error(error);
+      toast.error("Failed to update program.");
+    },
+  });
+
+  return (
+    <form
+      className="rounded-lg border border-neutral-200 bg-white"
+      onSubmit={handleSubmit(async (data) => {
+        const result = await executeAsync({
+          workspaceId: workspaceId || "",
+          programId: program.id,
+          ...data,
+          commissionAmount:
+            data.commissionType === "flat"
+              ? data.commissionAmount * 100
+              : data.commissionAmount,
+          minimumPayout: data.minimumPayout * 100,
+        });
+      })}
+    >
       <div className="flex items-center border-b border-neutral-200 p-6">
         <h2 className="text-xl font-medium text-neutral-900">Program</h2>
       </div>
 
-      <div className="divide-y divide-neutral-200 px-8">
+      <div className="divide-y divide-neutral-200 px-6">
         <ProgramSettingsSection heading="Summary">
-          <p className="basis-1/2 rounded-md border border-neutral-200 bg-[#f9f9f9] p-4 text-sm font-normal leading-relaxed text-neutral-900">
-            Earn $10.00 for each conversion, and again for every conversion of
-            the customers lifetime.
+          <p className="rounded-md border border-neutral-200 bg-[#f9f9f9] p-4 text-sm font-normal leading-relaxed text-neutral-900">
+            <ProgramCommissionDescription
+              program={program}
+              amountClassName="text-blue-600"
+            />
           </p>
         </ProgramSettingsSection>
 
@@ -35,44 +135,116 @@ export function ProgramSettings({ programId }: { programId: string }) {
           heading="Commission"
           description="See how the affiliate will get rewarded"
         >
-          <div className="flex w-full gap-3">
-            {commissionTypes.map((commissionType) => (
-              <label
-                key={commissionType.value}
-                className="relative inline-flex w-full cursor-pointer flex-col gap-1 rounded-md border border-neutral-200 bg-white p-3 hover:bg-neutral-50"
-              >
-                <input
-                  type="radio"
-                  value={commissionType.value}
-                  name="commissionType"
-                  className="absolute right-2 top-2 h-4 w-4 cursor-pointer"
-                />
-                <span className="text-sm font-medium text-neutral-600">
-                  {commissionType.label}
-                </span>
-                <span className="text-xs font-normal text-neutral-600">
-                  {commissionType.description}
-                </span>
-              </label>
-            ))}
-          </div>
-
-          <div className="mt-6">
-            <label
-              htmlFor="duration"
-              className="text-sm font-medium text-neutral-800"
+          <div className="-m-1">
+            <AnimatedSizeContainer
+              height
+              transition={{ ease: "easeInOut", duration: 0.2 }}
             >
-              Duration
-            </label>
-            <div className="relative mt-2 rounded-md shadow-sm">
-              <select
-                className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                required
-              >
-                <option value="checking">Checking</option>
-                <option value="savings">Savings</option>
-              </select>
-            </div>
+              <div className="p-1">
+                <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                  {commissionTypes.map((commissionType) => (
+                    <label
+                      key={commissionType.label}
+                      className={cn(
+                        "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                        "transition-all duration-150",
+                        recurringCommission === commissionType.recurring &&
+                          "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        value={commissionType.label}
+                        className="hidden"
+                        checked={
+                          recurringCommission === commissionType.recurring
+                        }
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setValue(
+                              "recurringCommission",
+                              commissionType.recurring,
+                              { shouldDirty: true },
+                            );
+
+                            // If not recurring, set lifetime recurring to false
+                            if (!commissionType.recurring)
+                              setValue("isLifetimeRecurring", false, {
+                                shouldDirty: true,
+                              });
+                          }
+                        }}
+                      />
+                      <div className="flex grow flex-col text-sm">
+                        <span className="font-medium">
+                          {commissionType.label}
+                        </span>
+                        <span>{commissionType.description}</span>
+                      </div>
+                      <CircleCheckFill
+                        className={cn(
+                          "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                          recurringCommission === commissionType.recurring &&
+                            "scale-100 opacity-100",
+                        )}
+                      />
+                    </label>
+                  ))}
+                </div>
+                <div
+                  className={cn(
+                    "transition-opacity duration-200",
+                    recurringCommission ? "h-auto" : "h-0 opacity-0",
+                  )}
+                  aria-hidden={!recurringCommission}
+                  {...{ inert: !recurringCommission ? "" : undefined }}
+                >
+                  <div className="pt-6">
+                    <label
+                      htmlFor="duration"
+                      className="pt-6 text-sm font-medium text-neutral-800"
+                    >
+                      Duration
+                    </label>
+                    <div className="relative mt-2 rounded-md shadow-sm">
+                      <select
+                        className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+
+                          if (value === 0)
+                            setValue("isLifetimeRecurring", true, {
+                              shouldDirty: true,
+                            });
+                          else if (isLifetimeRecurring)
+                            setValue("isLifetimeRecurring", false, {
+                              shouldDirty: true,
+                            });
+
+                          setValue("recurringDuration", value, {
+                            shouldDirty: true,
+                          });
+                        }}
+                        value={
+                          (isLifetimeRecurring ? 0 : recurringDuration) ?? 1
+                        }
+                      >
+                        {(program.recurringInterval === "year"
+                          ? [1, 2]
+                          : [1, 3, 6, 12, 18, 24]
+                        ).map((v) => (
+                          <option value={v}>
+                            {v}{" "}
+                            {pluralize(program.recurringInterval ?? "month", v)}
+                          </option>
+                        ))}
+                        <option value={0}>Lifetime</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </AnimatedSizeContainer>
           </div>
         </ProgramSettingsSection>
 
@@ -91,7 +263,7 @@ export function ProgramSettings({ programId }: { programId: string }) {
               <div className="relative mt-2 rounded-md shadow-sm">
                 <select
                   className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  required
+                  {...register("commissionType", { required: true })}
                 >
                   <option value="flat">Flat</option>
                   <option value="percentage">Percentage</option>
@@ -107,11 +279,28 @@ export function ProgramSettings({ programId }: { programId: string }) {
                 Amount
               </label>
               <div className="relative mt-2 rounded-md shadow-sm">
+                {commissionType === "flat" && (
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                    $
+                  </span>
+                )}
                 <input
-                  className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  required
-                  autoComplete="off"
+                  className={cn(
+                    "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                    errors.commissionAmount &&
+                      "border-red-600 focus:border-red-500 focus:ring-red-600",
+                    commissionType === "flat" ? "pl-6 pr-12" : "pr-7",
+                  )}
+                  {...register("commissionAmount", {
+                    required: true,
+                    valueAsNumber: true,
+                    min: 0,
+                    max: commissionType === "flat" ? 1000 : 100,
+                  })}
                 />
+                <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                  {commissionType === "flat" ? "USD" : "%"}
+                </span>
               </div>
             </div>
 
@@ -124,9 +313,17 @@ export function ProgramSettings({ programId }: { programId: string }) {
               </label>
               <div className="relative mt-2 rounded-md shadow-sm">
                 <input
-                  className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  required
-                  autoComplete="off"
+                  className={cn(
+                    "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                    errors.minimumPayout &&
+                      "border-red-600 focus:border-red-500 focus:ring-red-600",
+                  )}
+                  {...register("minimumPayout", {
+                    required: true,
+                    valueAsNumber: true,
+                    min: 100,
+                    max: 10000,
+                  })}
                 />
               </div>
               <p className="mt-2 text-sm text-neutral-500">
@@ -137,12 +334,17 @@ export function ProgramSettings({ programId }: { programId: string }) {
         </ProgramSettingsSection>
       </div>
 
-      <div className="flex items-center justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-8 py-5">
+      <div className="flex items-center justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-6 py-5">
         <div>
-          <Button text="Save changes" className="h-8" />
+          <Button
+            text="Save changes"
+            className="h-8"
+            loading={isSubmitting}
+            disabled={!isValid}
+          />
         </div>
       </div>
-    </div>
+    </form>
   );
 }
 
@@ -152,11 +354,11 @@ function ProgramSettingsSection({
   children,
 }: PropsWithChildren<{ heading: string; description?: string }>) {
   return (
-    <div className="grid grid-cols-1 gap-2 py-8 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4 py-8 sm:grid-cols-2">
       <div className="flex flex-col gap-1">
         <h3 className="font-medium leading-none text-neutral-900">{heading}</h3>
         {description && (
-          <p className="text-sm font-normal text-neutral-600">{description}</p>
+          <p className="text-sm text-neutral-600">{description}</p>
         )}
       </div>
       <div>{children}</div>
