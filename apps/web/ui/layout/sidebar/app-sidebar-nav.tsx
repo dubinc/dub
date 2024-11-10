@@ -88,12 +88,12 @@ const NAV_AREAS: SidebarNavAreas<{
                       href: `/${slug}/programs/${programs[0].id}/partners`,
                     },
                     {
-                      name: "Payouts",
-                      href: `/${slug}/programs/${programs[0].id}/payouts`,
-                    },
-                    {
                       name: "Sales",
                       href: `/${slug}/programs/${programs[0].id}/sales`,
+                    },
+                    {
+                      name: "Payouts",
+                      href: `/${slug}/programs/${programs[0].id}/payouts`,
                     },
                     {
                       name: "Branding",

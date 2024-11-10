@@ -1,4 +1,4 @@
-import { createDotsTransferAction } from "@/lib/actions/create-dots-transfer";
+import { createDotsTransferAction } from "@/lib/actions/partners/create-dots-transfer";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutWithPartnerProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
@@ -212,11 +212,9 @@ function PayoutDetailsSheetContent({
                   workspaceId: workspaceId!,
                   dotsUserId: payout.partner.dotsUserId,
                   payoutId: payout.id,
-                  amount: payout.amount,
-                  fee: payout.fee,
                 });
               }}
-              text="Pay out invoice"
+              text="Confirm payout"
               className="w-fit"
             />
           )}

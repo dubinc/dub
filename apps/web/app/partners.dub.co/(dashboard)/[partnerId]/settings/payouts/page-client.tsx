@@ -4,7 +4,7 @@ import { createDotsFlowAction } from "@/lib/actions/partners/create-dots-flow";
 import useDotsUser from "@/lib/swr/use-dots-user";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import LayoutLoader from "@/ui/layout/layout-loader";
-import { usePayoutWithdrawSheet } from "@/ui/programs/payout-withdraw-sheet";
+import { usePayoutWithdrawSheet } from "@/ui/partners/payout-withdraw-sheet";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CheckCircleFill, X } from "@/ui/shared/icons";
 import { Button, Modal, Note } from "@dub/ui";

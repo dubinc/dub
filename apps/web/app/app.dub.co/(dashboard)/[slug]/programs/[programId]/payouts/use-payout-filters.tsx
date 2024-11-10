@@ -1,6 +1,6 @@
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutStatusBadges } from "@/ui/programs/payout-status-badges";
+import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted } from "@dub/ui/src/icons";
 import { cn, nFormatter } from "@dub/utils";

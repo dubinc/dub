@@ -1,6 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutWithPartnerProps } from "@/lib/types";
-import { usePayoutDetailsSheet } from "@/ui/programs/payout-details-sheet";
+import { usePayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
 import { buttonVariants } from "@dub/ui";
 import {
   cn,

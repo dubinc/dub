@@ -8,7 +8,7 @@ import { ChartContext } from "@/ui/charts/chart-context";
 import TimeSeriesChart from "@/ui/charts/time-series-chart";
 import XAxis from "@/ui/charts/x-axis";
 import YAxis from "@/ui/charts/y-axis";
-import { ProgramCommissionDescription } from "@/ui/programs/program-commission-description";
+import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { MiniAreaChart } from "@dub/blocks";
 import {

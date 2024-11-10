@@ -1,7 +1,7 @@
 "use client";
 
 import useProgram from "@/lib/swr/use-program";
-import { ProgramCommissionDescription } from "@/ui/programs/program-commission-description";
+import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
 import { buttonVariants, Grid, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";

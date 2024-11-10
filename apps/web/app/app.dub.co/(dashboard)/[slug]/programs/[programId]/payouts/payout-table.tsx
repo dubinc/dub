@@ -2,8 +2,8 @@
 
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import { PayoutWithPartnerProps } from "@/lib/types";
-import { PayoutDetailsSheet } from "@/ui/programs/payout-details-sheet";
-import { PayoutStatusBadges } from "@/ui/programs/payout-status-badges";
+import { PayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
+import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {

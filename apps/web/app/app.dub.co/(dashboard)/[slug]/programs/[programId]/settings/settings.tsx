@@ -4,7 +4,7 @@ import { updateProgramAction } from "@/lib/actions/update-program";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
-import { ProgramCommissionDescription } from "@/ui/programs/program-commission-description";
+import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
 import { AnimatedSizeContainer, Button } from "@dub/ui";
 import { CircleCheckFill, LoadingSpinner } from "@dub/ui/src/icons";
 import { cn, pluralize } from "@dub/utils";

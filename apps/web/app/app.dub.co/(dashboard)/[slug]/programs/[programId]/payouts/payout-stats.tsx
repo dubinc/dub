@@ -2,8 +2,8 @@
 
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutStatusBadges } from "@/ui/programs/payout-status-badges";
-import { ProgramStatsFilter } from "@/ui/programs/program-stats-filter";
+import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
+import { ProgramStatsFilter } from "@/ui/partners/program-stats-filter";
 import { MoneyBills2, useRouterStuff } from "@dub/ui";
 import { useParams } from "next/navigation";
 
