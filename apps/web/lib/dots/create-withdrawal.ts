@@ -1,24 +1,9 @@
-import z from "../zod";
+import { DEFAULT_DOTS_APP_ID } from "@dub/utils";
 import { DOTS_API_URL } from "./env";
 import { DotsPayoutPlatform } from "./types";
 import { dotsHeaders } from "./utils";
 
-const responseSchema = z.object({
-  id: z.string(),
-  status: z.enum([
-    "created",
-    "delivery_pending",
-    "delivery_failed",
-    "sent",
-    "delivered",
-    "claimed",
-    "reversed",
-    "canceled",
-    "expired",
-  ]),
-});
-
-export const createPayout = async ({
+export const createWithdrawal = async ({
   dotsUserId,
   amount,
   platform,
@@ -29,7 +14,7 @@ export const createPayout = async ({
 }) => {
   const response = await fetch(`${DOTS_API_URL}/payouts`, {
     method: "POST",
-    headers: dotsHeaders(),
+    headers: dotsHeaders({ dotsAppId: DEFAULT_DOTS_APP_ID }),
     body: JSON.stringify({
       user_id: dotsUserId,
       amount,
@@ -42,5 +27,5 @@ export const createPayout = async ({
     throw new Error(`Failed to create Dots payout: ${error.message}`);
   }
 
-  return responseSchema.parse(await response.json());
+  return await response.json();
 };

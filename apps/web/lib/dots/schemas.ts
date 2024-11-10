@@ -72,21 +72,3 @@ export const payoutMethodSchema = z.object({
   id: z.string().optional(),
   country: z.string().optional(),
 });
-
-export const dotsUserSchema = z.object({
-  id: z.string(),
-  email: z.string(),
-  phone_number: z.object({
-    country_code: z.string(),
-    phone_number: z.string(),
-  }),
-  status: z.enum(["verified", "unverified", "disabled", "in_review"]),
-  verified: z.boolean(),
-  wallet: z.object({
-    withdrawable_amount: z.number(),
-    pending_amount: z.number(),
-  }),
-  default_payout_method: dotsPayoutPlatforms,
-  payout_methods: z.array(payoutMethodSchema),
-  compliance: z.any(),
-});

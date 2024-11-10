@@ -1,3 +1,5 @@
+import { createDotsWithdrawalAction } from "@/lib/actions/partners/create-dots-withdrawal";
+import { DotsPayoutPlatform } from "@/lib/dots/types";
 import useDotsUser from "@/lib/swr/use-dots-user";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { X } from "@/ui/shared/icons";
@@ -8,6 +10,8 @@ import {
   DICEBEAR_AVATAR_URL,
   formatDate,
 } from "@dub/utils";
+import { useAction } from "next-safe-action/hooks";
+import { useParams } from "next/navigation";
 import {
   Dispatch,
   Fragment,
@@ -17,6 +21,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { mutate } from "swr";
 import { DOTS_PAYOUT_PLATFORMS } from "../dots/platforms";
 
 type PayoutWithdrawSheetProps = {
@@ -24,6 +29,7 @@ type PayoutWithdrawSheetProps = {
 };
 
 function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
+  const { partnerId } = useParams() as { partnerId: string };
   const { partner, error: partnerError } = usePartnerProfile();
   const { dotsUser, error: dotsUserError } = useDotsUser();
 
@@ -63,9 +69,8 @@ function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
     [partner, dotsUser],
   );
 
-  const [selectedPayoutMethod, setSelectedPayoutMethod] = useState<
-    string | null
-  >(null);
+  const [selectedPayoutMethod, setSelectedPayoutMethod] =
+    useState<DotsPayoutPlatform | null>(null);
 
   useEffect(() => {
     if (!dotsUser?.payout_methods?.length || selectedPayoutMethod !== null)
@@ -75,6 +80,20 @@ function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
       dotsUser.default_payout_method ?? dotsUser.payout_methods[0].platform,
     );
   }, [dotsUser, selectedPayoutMethod]);
+
+  const { executeAsync, isExecuting } = useAction(createDotsWithdrawalAction, {
+    onSuccess: async () => {
+      await Promise.all([
+        mutate(`/api/partners/${partnerId}/dots-user`),
+        mutate(`/api/partners/${partnerId}/withdrawals`),
+      ]);
+      setIsOpen(false);
+      toast.success("Successfully initiated withdrawal!");
+    },
+    onError({ error }) {
+      toast.error(error.serverError?.serverError);
+    },
+  });
 
   return (
     <>
@@ -161,14 +180,14 @@ function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
             type="button"
             variant="primary"
             disabled={!dotsUser?.id || !selectedPayoutMethod}
-            onClick={async () => {
-              if (!dotsUser?.id) {
-                toast.error("Partner has no Dots user ID");
-                return;
-              }
-              toast.info(`WIP withdraw to ${selectedPayoutMethod}`);
-              setIsOpen(false);
-            }}
+            onClick={() =>
+              selectedPayoutMethod &&
+              executeAsync({
+                partnerId,
+                platform: selectedPayoutMethod,
+              })
+            }
+            loading={isExecuting}
             text="Confirm withdrawal"
             className="w-fit"
           />
@@ -194,13 +213,13 @@ function PayoutMethodOption({
   name: string;
   description: string;
   isDefault?: boolean;
-  selectedPayoutMethod: string | null;
-  setSelectedPayoutMethod: Dispatch<SetStateAction<string | null>>;
+  selectedPayoutMethod: DotsPayoutPlatform | null;
+  setSelectedPayoutMethod: Dispatch<SetStateAction<DotsPayoutPlatform | null>>;
 }) {
   return (
     <button
       type="button"
-      onClick={() => setSelectedPayoutMethod(id)}
+      onClick={() => setSelectedPayoutMethod(id as DotsPayoutPlatform)}
       className={cn(
         "flex items-center justify-between gap-4 rounded-lg border border-neutral-200 bg-white p-4 text-left",
         "transition-[background-color,border-color,box-shadow] duration-75 hover:bg-neutral-50",

@@ -81,3 +81,44 @@ export const authActionClient = actionClient.use(
     });
   },
 );
+
+export const authPartnerActionClient = actionClient.use(
+  async ({ next, clientInput }) => {
+    const session = await getSession();
+
+    if (!session?.user.id) {
+      throw new Error("Unauthorized: Login required.");
+    }
+
+    // @ts-ignore
+    let partnerId = clientInput?.partnerId;
+
+    if (!partnerId) {
+      throw new Error("PartnerId is required.");
+    }
+
+    const partner = await prisma.partner.findUnique({
+      where: {
+        id: partnerId,
+      },
+      include: {
+        users: {
+          where: {
+            userId: session.user.id,
+          },
+        },
+      },
+    });
+
+    if (!partner || !partner.users) {
+      throw new Error("Partner not found.");
+    }
+
+    return next({
+      ctx: {
+        user: session.user,
+        partner,
+      },
+    });
+  },
+);

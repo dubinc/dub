@@ -1,7 +1,6 @@
 "use client";
 
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ProgramStatsFilter } from "@/ui/partners/program-stats-filter";
 import { MoneyBills2, useRouterStuff } from "@dub/ui";
@@ -9,7 +8,6 @@ import { useParams } from "next/navigation";
 
 export function PayoutStats() {
   const { slug, programId } = useParams();
-  const { id: workspaceId } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   const { payoutsCount, error } = usePayoutsCount();
