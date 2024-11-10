@@ -38,6 +38,7 @@ export const createPartnerPayouts = async ({
         programId,
         partnerId,
         payoutId: null,
+        status: "pending", // We only want to pay out sales that are pending (not refunded / fraud / duplicate)
         createdAt: {
           lte: subDays(new Date(), 30), // Referral commissions are held for 30 days before becoming available.
         },
