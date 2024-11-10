@@ -1,10 +1,10 @@
-import { INTERVAL_DATA, INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
 import Areas from "@/ui/charts/areas";
 import { ChartContext } from "@/ui/charts/chart-context";
 import TimeSeriesChart from "@/ui/charts/time-series-chart";
 import XAxis from "@/ui/charts/x-axis";
 import YAxis from "@/ui/charts/y-axis";
-import { DateRangePicker, useRouterStuff } from "@dub/ui";
+import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
+import { useRouterStuff } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/src/icons";
 import { currencyFormatter, formatDate } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
@@ -72,60 +72,7 @@ export function OverviewChart() {
             </span>
           )}
         </div>
-        <div>
-          <DateRangePicker
-            className="h-9 w-full px-2 md:w-fit"
-            align="end"
-            value={
-              start && end
-                ? {
-                    from: start,
-                    to: end,
-                  }
-                : undefined
-            }
-            presetId={!start || !end ? interval ?? "24h" : undefined}
-            onChange={(range, preset) => {
-              if (preset) {
-                queryParams({
-                  del: ["start", "end"],
-                  set: {
-                    interval: preset.id,
-                  },
-                  scroll: false,
-                });
-
-                return;
-              }
-
-              // Regular range
-              if (!range || !range.from || !range.to) return;
-
-              queryParams({
-                del: "interval",
-                set: {
-                  start: range.from.toISOString(),
-                  end: range.to.toISOString(),
-                },
-                scroll: false,
-              });
-            }}
-            presets={INTERVAL_DISPLAYS.map(({ display, value, shortcut }) => {
-              const start = INTERVAL_DATA[value].startDate;
-              const end = new Date();
-
-              return {
-                id: value,
-                label: display,
-                dateRange: {
-                  from: start,
-                  to: end,
-                },
-                shortcut,
-              };
-            })}
-          />
-        </div>
+        <SimpleDateRangePicker className="h-9 w-full px-2 md:w-fit" />
       </div>
       <div className="relative mt-4 h-72 md:h-96">
         {dataLoading ? (

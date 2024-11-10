@@ -1,8 +1,6 @@
 "use client";
 
-import { INTERVAL_DATA, INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
-import usePartnerEvents from "@/lib/swr/use-partner-events";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import Areas from "@/ui/charts/areas";
 import { ChartContext } from "@/ui/charts/chart-context";
@@ -10,26 +8,17 @@ import TimeSeriesChart from "@/ui/charts/time-series-chart";
 import XAxis from "@/ui/charts/x-axis";
 import YAxis from "@/ui/charts/y-axis";
 import { ProgramCommissionDescription } from "@/ui/programs/program-commission-description";
-import EmptyState from "@/ui/shared/empty-state";
+import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { MiniAreaChart } from "@dub/blocks";
 import {
   Button,
   buttonVariants,
   Check2,
-  DateRangePicker,
   MaxWidthWrapper,
-  Table,
   useCopyToClipboard,
-  usePagination,
   useRouterStuff,
-  useTable,
 } from "@dub/ui";
-import {
-  CircleDollar,
-  Copy,
-  LoadingSpinner,
-  MoneyBill2,
-} from "@dub/ui/src/icons";
+import { Copy, LoadingSpinner, MoneyBill2 } from "@dub/ui/src/icons";
 import {
   cn,
   currencyFormatter,
@@ -43,6 +32,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { createContext, useContext, useId, useMemo } from "react";
 import { HeroBackground } from "./hero-background";
+import { SaleTablePartner } from "./sales/sale-table";
 
 const ProgramOverviewContext = createContext<{
   start?: Date;
@@ -139,7 +129,9 @@ export default function ProgramPageClient() {
         </div>
         <div className="mt-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-medium text-neutral-900">Sales</h2>
+            <h2 className="text-base font-medium text-neutral-900">
+              Recent sales
+            </h2>
             <Link
               href={`/${partnerId}/${programId}/sales`}
               className={cn(
@@ -151,7 +143,7 @@ export default function ProgramPageClient() {
             </Link>
           </div>
           <div className="mt-4">
-            <SalesTable />
+            <SaleTablePartner limit={10} />
           </div>
         </div>
       </ProgramOverviewContext.Provider>
@@ -205,58 +197,7 @@ function EarningsChart() {
           </div>
         </div>
         <div className="w-full md:w-auto">
-          <DateRangePicker
-            className="h-8 w-full md:w-fit"
-            align="end"
-            value={
-              start && end
-                ? {
-                    from: start,
-                    to: end,
-                  }
-                : undefined
-            }
-            presetId={!start || !end ? interval ?? "24h" : undefined}
-            onChange={(range, preset) => {
-              if (preset) {
-                queryParams({
-                  del: ["start", "end"],
-                  set: {
-                    interval: preset.id,
-                  },
-                  scroll: false,
-                });
-
-                return;
-              }
-
-              // Regular range
-              if (!range || !range.from || !range.to) return;
-
-              queryParams({
-                del: "interval",
-                set: {
-                  start: range.from.toISOString(),
-                  end: range.to.toISOString(),
-                },
-                scroll: false,
-              });
-            }}
-            presets={INTERVAL_DISPLAYS.map(({ display, value, shortcut }) => {
-              const start = INTERVAL_DATA[value].startDate;
-              const end = new Date();
-
-              return {
-                id: value,
-                label: display,
-                dateRange: {
-                  from: start,
-                  to: end,
-                },
-                shortcut,
-              };
-            })}
-          />
+          <SimpleDateRangePicker className="h-8 w-full md:w-fit" />
         </div>
       </div>
       <div className="relative mt-4 h-64 w-full">
@@ -400,81 +341,5 @@ function StatCard({
         )}
       </div>
     </Link>
-  );
-}
-
-function SalesTable() {
-  const { start, end, interval } = useContext(ProgramOverviewContext);
-
-  const { data: { sales: totalSaleEvents } = {} } = usePartnerAnalytics({
-    interval: interval as any,
-    start,
-    end,
-  });
-  const {
-    data: saleEvents,
-    loading,
-    error,
-  } = usePartnerEvents({
-    event: "sales",
-    interval: interval as any,
-    start,
-    end,
-  });
-
-  const { pagination, setPagination } = usePagination();
-
-  const { table, ...tableProps } = useTable({
-    data: saleEvents ?? [],
-    loading,
-    error: error ? "Failed to fetch sales events." : undefined,
-    columns: [
-      {
-        id: "timestamp",
-        header: "Date",
-        accessorKey: "timestamp",
-        cell: ({ row }) => {
-          return formatDate(row.original.timestamp, { month: "short" });
-        },
-      },
-      {
-        id: "customer",
-        header: "Customer",
-        accessorKey: "customer",
-        cell: ({ row }) => {
-          return row.original.customer.email;
-        },
-      },
-      {
-        id: "earned",
-        header: "Earned",
-        accessorKey: "earnings",
-        cell: ({ row }) => {
-          return currencyFormatter(row.original.earnings / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          });
-        },
-      },
-    ],
-    pagination,
-    onPaginationChange: setPagination,
-    rowCount: totalSaleEvents,
-    emptyState: (
-      <EmptyState
-        icon={CircleDollar}
-        title="No sales recorded"
-        description={`Referral sales will appear here.`}
-      />
-    ),
-    resourceName: (plural) => `sale${plural ? "s" : ""}`,
-  });
-
-  return (
-    <Table
-      {...tableProps}
-      table={table}
-      containerClassName="border-neutral-300"
-    />
   );
 }

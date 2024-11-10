@@ -9,6 +9,7 @@ import { redirect, useParams } from "next/navigation";
 import { OverviewChart } from "./overview-chart";
 import { PendingPayouts } from "./pending-payouts";
 import { ProgramStats } from "./program-stats";
+import { SaleTableBusiness } from "./sales/sale-table";
 import { TopPartners } from "./top-partners";
 
 export default function ProgramOverviewPageClient() {
@@ -61,6 +62,25 @@ export default function ProgramOverviewPageClient() {
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
         <TopPartners />
         <PendingPayouts />
+      </div>
+
+      <div className="mt-6">
+        <div className="flex items-center justify-between pb-3">
+          <h2 className="text-base font-semibold text-neutral-900">
+            Recent sales
+          </h2>
+
+          <Link
+            href={`/${slug}/programs/${programId}/sales`}
+            className={cn(
+              buttonVariants({ variant: "secondary" }),
+              "flex h-8 items-center rounded-lg border px-2 text-sm",
+            )}
+          >
+            View all
+          </Link>
+        </div>
+        <SaleTableBusiness limit={10} />
       </div>
     </div>
   );

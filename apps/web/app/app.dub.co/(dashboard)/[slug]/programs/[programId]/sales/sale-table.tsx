@@ -3,7 +3,7 @@
 import { generateRandomName } from "@/lib/names";
 import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { SearchBoxPersisted } from "@/ui/shared/search-box";
+import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
   Avatar,
@@ -17,11 +17,13 @@ import {
 } from "@dub/ui";
 import { MoneyBill2 } from "@dub/ui/src/icons";
 import { currencyFormatter, fetcher, formatDate } from "@dub/utils";
+import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { z } from "zod";
 import { useSaleFilters } from "./use-sale-filters";
 
-export function SaleTable({ programId }: { programId: string }) {
+export function SaleTableBusiness({ limit }: { limit?: number }) {
+  const { programId } = useParams();
   const { queryParams, searchParams } = useRouterStuff();
 
   const sortBy = searchParams.get("sort") || "timestamp";
@@ -51,10 +53,10 @@ export function SaleTable({ programId }: { programId: string }) {
 
   const loading = (!sales || !analyticsData) && !error && !analyticsError;
 
-  const { pagination, setPagination } = usePagination();
+  const { pagination, setPagination } = usePagination(limit);
 
   const table = useTable({
-    data: sales || [],
+    data: sales?.slice(0, limit) || [],
     columns: [
       {
         id: "timestamp",
@@ -119,18 +121,22 @@ export function SaleTable({ programId }: { programId: string }) {
           }),
       },
     ],
-    pagination,
-    onPaginationChange: setPagination,
-    sortableColumns: ["timestamp"],
-    sortBy,
-    sortOrder: order,
-    onSortChange: ({ sortBy, sortOrder }) =>
-      queryParams({
-        set: {
-          ...(sortBy && { sort: sortBy }),
-          ...(sortOrder && { order: sortOrder }),
-        },
-      }),
+    ...(!limit
+      ? {
+          pagination,
+          onPaginationChange: setPagination,
+          sortableColumns: ["timestamp"],
+          sortBy,
+          sortOrder: order,
+          onSortChange: ({ sortBy, sortOrder }) =>
+            queryParams({
+              set: {
+                ...(sortBy && { sort: sortBy }),
+                ...(sortOrder && { order: sortOrder }),
+              },
+            }),
+        }
+      : {}),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `sale${p ? "s" : ""}`,
@@ -141,41 +147,43 @@ export function SaleTable({ programId }: { programId: string }) {
 
   return loading || sales?.length ? (
     <div className="flex flex-col gap-3">
-      <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          {loading ? (
-            <>
-              <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-24" />
-              <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-32" />
-            </>
-          ) : (
-            <>
-              <Filter.Select
-                className="w-full md:w-fit"
-                filters={filters}
-                activeFilters={activeFilters}
-                onSelect={onSelect}
-                onRemove={onRemove}
-              />
-              <SearchBoxPersisted />
-            </>
-          )}
-        </div>
-        <AnimatedSizeContainer height>
-          <div>
-            {activeFilters.length > 0 && (
-              <div className="pt-3">
-                <Filter.List
+      {!limit && (
+        <div>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
+            {loading ? (
+              <>
+                <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-24" />
+                <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-32" />
+              </>
+            ) : (
+              <>
+                <Filter.Select
+                  className="w-full md:w-fit"
                   filters={filters}
                   activeFilters={activeFilters}
+                  onSelect={onSelect}
                   onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
                 />
-              </div>
+                <SimpleDateRangePicker className="w-full sm:min-w-[200px] md:w-fit" />
+              </>
             )}
           </div>
-        </AnimatedSizeContainer>
-      </div>
+          <AnimatedSizeContainer height>
+            <div>
+              {activeFilters.length > 0 && (
+                <div className="pt-3">
+                  <Filter.List
+                    filters={filters}
+                    activeFilters={activeFilters}
+                    onRemove={onRemove}
+                    onRemoveAll={onRemoveAll}
+                  />
+                </div>
+              )}
+            </div>
+          </AnimatedSizeContainer>
+        </div>
+      )}
       <Table {...table} />
     </div>
   ) : (
