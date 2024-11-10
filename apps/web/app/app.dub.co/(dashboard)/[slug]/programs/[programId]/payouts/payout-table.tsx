@@ -2,7 +2,6 @@
 
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import { PayoutWithPartnerProps } from "@/lib/types";
-import { PayoutConfirmSheet } from "@/ui/programs/payout-confirm-sheet";
 import { PayoutDetailsSheet } from "@/ui/programs/payout-details-sheet";
 import { PayoutStatusBadges } from "@/ui/programs/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -19,7 +18,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, GreekTemple, MoneyBill2, TableRows2 } from "@dub/ui/src/icons";
+import { Dots, MoneyBill2, TableRows2 } from "@dub/ui/src/icons";
 import {
   cn,
   currencyFormatter,
@@ -33,8 +32,6 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
 import { usePayoutFilters } from "./use-payout-filters";
-
-const canConfirmPayoutStatuses = ["created", "pending", "flagged", "failed"];
 
 export function PayoutTable() {
   const { programId } = useParams();
@@ -68,11 +65,6 @@ export function PayoutTable() {
   );
 
   const [detailsSheetState, setDetailsSheetState] = useState<
-    | { open: false; payout: PayoutWithPartnerProps | null }
-    | { open: true; payout: PayoutWithPartnerProps }
-  >({ open: false, payout: null });
-
-  const [confirmSheetState, setConfirmSheetState] = useState<
     | { open: false; payout: PayoutWithPartnerProps | null }
     | { open: true; payout: PayoutWithPartnerProps }
   >({ open: false, payout: null });
@@ -158,17 +150,7 @@ export function PayoutTable() {
         minSize: 43,
         size: 43,
         maxSize: 43,
-        cell: ({ row }) => (
-          <RowMenuButton
-            row={row}
-            onConfirmPayout={
-              canConfirmPayoutStatuses.includes(row.original.status)
-                ? () =>
-                    setConfirmSheetState({ open: true, payout: row.original })
-                : undefined
-            }
-          />
-        ),
+        cell: ({ row }) => <RowMenuButton row={row} />,
       },
     ],
     pagination,
@@ -200,26 +182,7 @@ export function PayoutTable() {
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
-          onConfirmPayout={
-            canConfirmPayoutStatuses.includes(detailsSheetState.payout.status)
-              ? () =>
-                  detailsSheetState.payout &&
-                  setConfirmSheetState({
-                    open: true,
-                    payout: detailsSheetState.payout,
-                  })
-              : undefined
-          }
           payout={detailsSheetState.payout}
-        />
-      )}
-      {confirmSheetState.payout && (
-        <PayoutConfirmSheet
-          isOpen={confirmSheetState.open}
-          setIsOpen={(open) =>
-            setConfirmSheetState((s) => ({ ...s, open }) as any)
-          }
-          payout={confirmSheetState.payout}
         />
       )}
       <div className="flex flex-col gap-3">
@@ -272,13 +235,7 @@ export function PayoutTable() {
   );
 }
 
-function RowMenuButton({
-  row,
-  onConfirmPayout,
-}: {
-  row: Row<PayoutWithPartnerProps>;
-  onConfirmPayout?: () => void;
-}) {
+function RowMenuButton({ row }: { row: Row<PayoutWithPartnerProps> }) {
   const router = useRouter();
   const { slug, programId } = useParams();
   const [isOpen, setIsOpen] = useState(false);
@@ -290,16 +247,6 @@ function RowMenuButton({
       content={
         <Command tabIndex={0} loop className="focus:outline-none">
           <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
-            {onConfirmPayout && (
-              <MenuItem
-                icon={GreekTemple}
-                label="Pay invoice"
-                onSelect={() => {
-                  onConfirmPayout();
-                  setIsOpen(false);
-                }}
-              />
-            )}
             <MenuItem
               icon={TableRows2}
               label="View conversions"

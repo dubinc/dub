@@ -1,3 +1,5 @@
+import { createDotsTransferAction } from "@/lib/actions/create-dots-transfer";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutWithPartnerProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
@@ -16,20 +18,26 @@ import {
   formatDate,
 } from "@dub/utils";
 import { subDays } from "date-fns";
+import { useAction } from "next-safe-action/hooks";
+import { useParams } from "next/navigation";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { mutate } from "swr";
 import { PayoutStatusBadges } from "./payout-status-badges";
 
 type PayoutDetailsSheetProps = {
   payout: PayoutWithPartnerProps;
-  onConfirmPayout?: () => void;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
 function PayoutDetailsSheetContent({
   payout,
-  onConfirmPayout,
   setIsOpen,
 }: PayoutDetailsSheetProps) {
+  const { programId } = useParams() as { programId: string };
+  const { id: workspaceId } = useWorkspace();
+  const canConfirmPayout = payout.status === "pending";
+
   // TODO: [payouts] Fetch real data
   const totalConversions = 2;
   const conversions = [
@@ -132,6 +140,23 @@ function PayoutDetailsSheetContent({
     error: error ? "Failed to load conversions" : undefined,
   } as any);
 
+  const { executeAsync, isExecuting } = useAction(createDotsTransferAction, {
+    onSuccess: async () => {
+      await mutate(
+        (key) =>
+          typeof key === "string" &&
+          key.startsWith(`/api/programs/${programId}/payouts`),
+        undefined,
+        { revalidate: true },
+      );
+      toast.success("Successfully confirmed payout!");
+      setIsOpen(false);
+    },
+    onError({ error }) {
+      toast.error(error.serverError?.serverError);
+    },
+  });
+
   return (
     <>
       <div>
@@ -170,18 +195,28 @@ function PayoutDetailsSheetContent({
             type="button"
             variant="secondary"
             onClick={() => setIsOpen(false)}
-            text={onConfirmPayout ? "Cancel" : "Close"}
+            text={canConfirmPayout ? "Cancel" : "Close"}
             className="w-fit"
           />
-          {onConfirmPayout && (
+          {canConfirmPayout && (
             <Button
               type="button"
               variant="primary"
-              onClick={() => {
-                onConfirmPayout();
-                setIsOpen(false);
+              loading={isExecuting}
+              onClick={async () => {
+                if (!payout.partner.dotsUserId) {
+                  toast.error("Partner has no Dots user ID");
+                  return;
+                }
+                await executeAsync({
+                  workspaceId: workspaceId!,
+                  dotsUserId: payout.partner.dotsUserId,
+                  payoutId: payout.id,
+                  amount: payout.amount,
+                  fee: payout.fee,
+                });
               }}
-              text="Review payout"
+              text="Pay out invoice"
               className="w-fit"
             />
           )}
@@ -206,7 +241,6 @@ export function PayoutDetailsSheet({
 
 export function usePayoutDetailsSheet({
   payout,
-  onConfirmPayout,
 }: Omit<PayoutDetailsSheetProps, "setIsOpen">) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -214,7 +248,6 @@ export function usePayoutDetailsSheet({
     payoutDetailsSheet: (
       <PayoutDetailsSheet
         payout={payout}
-        onConfirmPayout={onConfirmPayout}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
       />
