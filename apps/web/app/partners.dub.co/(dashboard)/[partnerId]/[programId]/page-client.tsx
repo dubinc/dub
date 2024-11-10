@@ -1,5 +1,6 @@
 "use client";
 
+import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import Areas from "@/ui/charts/areas";
@@ -27,7 +28,6 @@ import {
   nFormatter,
 } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
-import { endOfDay, startOfDay, subDays } from "date-fns";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { createContext, useContext, useId, useMemo } from "react";
@@ -37,35 +37,22 @@ import { SaleTablePartner } from "./sales/sale-table";
 const ProgramOverviewContext = createContext<{
   start?: Date;
   end?: Date;
-  interval?: string;
+  interval?: IntervalOptions;
   color?: string;
 }>({});
 
 export default function ProgramPageClient() {
-  const { searchParams } = useRouterStuff();
+  const { getQueryString, searchParamsObj } = useRouterStuff();
   const { partnerId, programId } = useParams();
 
   const { programEnrollment } = useProgramEnrollment();
   const [copied, copyToClipboard] = useCopyToClipboard();
 
-  const { start, end } = useMemo(() => {
-    const hasRange = searchParams?.has("start") && searchParams?.has("end");
-
-    return {
-      start: hasRange
-        ? startOfDay(
-            new Date(searchParams?.get("start") || subDays(new Date(), 1)),
-          )
-        : undefined,
-
-      end: hasRange
-        ? endOfDay(new Date(searchParams?.get("end") || new Date()))
-        : undefined,
-    };
-  }, [searchParams?.get("start"), searchParams?.get("end")]);
-
-  const interval =
-    start || end ? undefined : searchParams?.get("interval") ?? "30d";
+  const { start, end, interval } = searchParamsObj as {
+    start?: string;
+    end?: string;
+    interval?: IntervalOptions;
+  };
 
   const program = programEnrollment?.program;
   const color =
@@ -116,7 +103,14 @@ export default function ProgramPageClient() {
           />
         </div>
       </div>
-      <ProgramOverviewContext.Provider value={{ start, end, interval, color }}>
+      <ProgramOverviewContext.Provider
+        value={{
+          start: start ? new Date(start) : undefined,
+          end: end ? new Date(end) : undefined,
+          interval,
+          color,
+        }}
+      >
         <div className="mt-6 rounded-lg border border-neutral-300">
           <div className="p-4 md:p-6 md:pb-4">
             <EarningsChart />
@@ -133,7 +127,7 @@ export default function ProgramPageClient() {
               Recent sales
             </h2>
             <Link
-              href={`/${partnerId}/${programId}/sales`}
+              href={`/${partnerId}/${programId}/sales${getQueryString()}`}
               className={cn(
                 buttonVariants({ variant: "secondary" }),
                 "flex h-8 items-center rounded-lg border px-2 text-sm",
@@ -152,7 +146,6 @@ export default function ProgramPageClient() {
 }
 
 function EarningsChart() {
-  const { queryParams } = useRouterStuff();
   const id = useId();
 
   const { start, end, interval, color } = useContext(ProgramOverviewContext);
@@ -290,16 +283,17 @@ function StatCard({
   event: "clicks" | "leads" | "sales";
 }) {
   const { partnerId, programId } = useParams();
+  const { getQueryString } = useRouterStuff();
   const { start, end, interval, color } = useContext(ProgramOverviewContext);
 
   const { data: total } = usePartnerAnalytics({
-    interval: interval as any,
+    interval,
     start,
     end,
   });
   const { data: timeseries, error } = usePartnerAnalytics({
     groupBy: "timeseries",
-    interval: interval as any,
+    interval,
     start,
     end,
     event,
@@ -307,7 +301,7 @@ function StatCard({
 
   return (
     <Link
-      href={`/${partnerId}/${programId}/analytics?event=${event}`}
+      href={`/${partnerId}/${programId}/analytics?event=${event}${getQueryString()?.replace("?", "&")}`}
       className="hover:drop-shadow-card-hover block rounded-md border border-neutral-300 bg-white p-5 transition-[filter]"
     >
       <span className="block text-sm text-neutral-500">{title}</span>

@@ -10,12 +10,12 @@ export default function usePartnerEvents(params?: PartnerEventsFilters) {
     `/api/partners/${partnerId}/programs/${programId}/events?${new URLSearchParams(
       {
         event: params?.event ?? "sales",
-        ...(params?.start &&
-          params?.end && {
-            start: params.start.toISOString(),
-            end: params.end.toISOString(),
-          }),
-        interval: params?.interval ?? "30d",
+        ...(params?.start && params?.end
+          ? {
+              start: params.start.toISOString(),
+              end: params.end.toISOString(),
+            }
+          : { interval: params?.interval ?? "30d" }),
       },
     ).toString()}`,
     fetcher,

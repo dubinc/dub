@@ -8,7 +8,7 @@ import { useRouterStuff } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/src/icons";
 import { currencyFormatter, formatDate } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
-import { endOfDay, startOfDay, subDays } from "date-fns";
+import { subDays } from "date-fns";
 import { useId, useMemo } from "react";
 
 const mockData = () =>
@@ -20,29 +20,10 @@ const mockData = () =>
   }));
 
 export function OverviewChart() {
-  const { queryParams, searchParams } = useRouterStuff();
+  const { searchParamsObj } = useRouterStuff();
   const id = useId();
 
-  // Default to last 24 hours
-  const { start, end } = useMemo(() => {
-    const hasRange = searchParams?.has("start") && searchParams?.has("end");
-
-    return {
-      start: hasRange
-        ? startOfDay(
-            new Date(searchParams?.get("start") || subDays(new Date(), 1)),
-          )
-        : undefined,
-
-      end: hasRange
-        ? endOfDay(new Date(searchParams?.get("end") || new Date()))
-        : undefined,
-    };
-  }, [searchParams?.get("start"), searchParams?.get("end")]);
-
-  // Only set interval if start and end are not provided
-  const interval =
-    start || end ? undefined : searchParams?.get("interval") ?? "24h";
+  const { start, end, interval } = searchParamsObj;
 
   // TODO: [payouts] use actual data (note: this mock data is already divided by 100)
   const total = 1234_00;
