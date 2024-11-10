@@ -134,6 +134,7 @@ export function OverviewChart() {
           </div>
         ) : (
           <TimeSeriesChart
+            key={`${start?.toString}-${end?.toString()}-${interval?.toString()}`}
             data={data}
             series={[
               {
