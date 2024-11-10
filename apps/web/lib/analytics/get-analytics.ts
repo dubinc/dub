@@ -1,6 +1,6 @@
+import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { tb } from "@/lib/tinybird";
 import { getDaysDifference, linkConstructor, punyEncode } from "@dub/utils";
-import { combineTagIds } from "../api/links";
 import { conn } from "../planetscale";
 import { prismaEdge } from "../prisma/edge";
 import { tbDemo } from "../tinybird/demo-client";

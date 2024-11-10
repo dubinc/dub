@@ -11,7 +11,7 @@ import {
   EventType,
 } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
-import { combineTagIds } from "@/lib/api/links/utils/combine-tag-ids";
+import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PlanProps } from "@/lib/types";
 import { fetcher } from "@dub/utils";
