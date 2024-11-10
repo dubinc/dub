@@ -14,6 +14,7 @@ import EmptyState from "@/ui/shared/empty-state";
 import { MiniAreaChart } from "@dub/blocks";
 import {
   Button,
+  buttonVariants,
   Check2,
   DateRangePicker,
   MaxWidthWrapper,
@@ -52,6 +53,7 @@ const ProgramOverviewContext = createContext<{
 
 export default function ProgramPageClient() {
   const { searchParams } = useRouterStuff();
+  const { partnerId, programId } = useParams();
 
   const { programEnrollment } = useProgramEnrollment();
   const [copied, copyToClipboard] = useCopyToClipboard();
@@ -136,9 +138,18 @@ export default function ProgramPageClient() {
           <StatCard title="Sales" event="sales" />
         </div>
         <div className="mt-6">
-          <h2 className="text-base font-medium text-neutral-900">
-            {!start && !end ? "Recent sales" : "Sales"}
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-medium text-neutral-900">Sales</h2>
+            <Link
+              href={`/${partnerId}/${programId}/sales`}
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "flex h-8 items-center rounded-lg border px-2 text-sm",
+              )}
+            >
+              View all
+            </Link>
+          </div>
           <div className="mt-4">
             <SalesTable />
           </div>
