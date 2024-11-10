@@ -2,6 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BetaFeatures } from "@/lib/types";
+import { useRouterStuff } from "@dub/ui";
 import {
   Books2,
   CircleInfo,
@@ -29,10 +30,11 @@ import { WorkspaceDropdown } from "./workspace-dropdown";
 
 const NAV_AREAS: SidebarNavAreas<{
   slug: string;
+  queryString: string;
   flags?: Record<BetaFeatures, boolean>;
 }> = {
   // Top-level
-  default: ({ slug }) => ({
+  default: ({ slug, queryString }) => ({
     showSwitcher: true,
     showNews: true,
     direction: "left",
@@ -48,12 +50,12 @@ const NAV_AREAS: SidebarNavAreas<{
           {
             name: "Analytics",
             icon: LinesY,
-            href: `/${slug}/analytics`,
+            href: `/${slug}/analytics${queryString}`,
           },
           {
             name: "Events",
             icon: CursorRays,
-            href: `/${slug}/events`,
+            href: `/${slug}/events${queryString}`,
           },
           {
             name: "Settings",
@@ -192,6 +194,7 @@ export function AppSidebarNav({
   const { slug } = useParams() as { slug?: string };
   const pathname = usePathname();
   const { flags } = useWorkspace();
+  const { getQueryString } = useRouterStuff();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -205,7 +208,7 @@ export function AppSidebarNav({
     <SidebarNav
       areas={NAV_AREAS}
       currentArea={currentArea}
-      data={{ slug: slug || "", flags }}
+      data={{ slug: slug || "", queryString: getQueryString(), flags }}
       toolContent={toolContent}
       newsContent={newsContent}
       switcher={<WorkspaceDropdown />}

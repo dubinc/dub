@@ -1,5 +1,6 @@
 import { tb } from "@/lib/tinybird";
 import { getDaysDifference, linkConstructor, punyEncode } from "@dub/utils";
+import { combineTagIds } from "../api/links";
 import { conn } from "../planetscale";
 import { prismaEdge } from "../prisma/edge";
 import { tbDemo } from "../tinybird/demo-client";
@@ -25,6 +26,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     isDemo,
     isDeprecatedClicksEndpoint = false,
   } = params;
+
+  const tagIds = combineTagIds(params);
 
   // get all-time clicks count if:
   // 1. type is count
@@ -86,7 +89,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   // Create a Tinybird pipe
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
-    pipe: `v1_${groupBy}`,
+    pipe: `${groupBy === "top_links" ? "v2" : "v1"}_${groupBy}`,
     parameters: analyticsFilterTB,
     data: groupBy === "top_links" ? z.any() : analyticsResponse[groupBy],
   });
@@ -96,6 +99,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     eventType: event,
     workspaceId,
     qr,
+    tagIds,
     start: start.toISOString().replace("T", " ").replace("Z", ""),
     end: end.toISOString().replace("T", " ").replace("Z", ""),
     granularity,
