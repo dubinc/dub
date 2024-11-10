@@ -18,7 +18,8 @@ import {
   parseDateTime,
   pluralize,
 } from "@dub/utils";
-import { combineTagIds, keyChecks, processKey } from "./utils";
+import { combineTagIds } from "../tags/combine-tag-ids";
+import { keyChecks, processKey } from "./utils";
 
 export async function processLink<T extends Record<string, any>>({
   payload,

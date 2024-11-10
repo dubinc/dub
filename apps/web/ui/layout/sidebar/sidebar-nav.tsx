@@ -152,10 +152,12 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
 
   const pathname = usePathname();
 
-  const isActive = useMemo(
-    () => isItemActive(pathname, { href, exact }),
-    [pathname, href, exact],
-  );
+  const isActive = useMemo(() => {
+    const hrefWithoutQuery = href.split("?")[0];
+    return exact
+      ? pathname === hrefWithoutQuery
+      : pathname.startsWith(hrefWithoutQuery);
+  }, [pathname, href, exact]);
 
   return (
     <div>

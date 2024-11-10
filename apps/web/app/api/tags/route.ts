@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import {
   TagSchema,
   createTagBodySchema,
-  getTagsQuerySchema,
+  getTagsQuerySchemaExtended,
 } from "@/lib/zod/schemas/tags";
 import { COLORS_LIST, randomBadgeColor } from "@/ui/links/tag-badge";
 import { NextResponse } from "next/server";
@@ -13,8 +13,8 @@ import { NextResponse } from "next/server";
 // GET /api/tags - get all tags for a workspace
 export const GET = withWorkspace(
   async ({ workspace, headers, searchParams }) => {
-    const { search, ids, page, pageSize } =
-      getTagsQuerySchema.parse(searchParams);
+    const { search, ids, page, pageSize, includeLinksCount } =
+      getTagsQuerySchemaExtended.parse(searchParams);
 
     const tags = await prisma.tag.findMany({
       where: {
@@ -34,6 +34,13 @@ export const GET = withWorkspace(
         id: true,
         name: true,
         color: true,
+        ...(includeLinksCount && {
+          _count: {
+            select: {
+              links: true,
+            },
+          },
+        }),
       },
       orderBy: {
         name: "asc",
