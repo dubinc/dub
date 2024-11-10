@@ -62,7 +62,7 @@ type UseTableProps<T> = {
   tdClassName?: string | ((columnId: string) => string);
 } & (
   | {
-      pagination: PaginationState;
+      pagination?: PaginationState;
       onPaginationChange?: Dispatch<SetStateAction<PaginationState>>;
       rowCount: number;
     }
@@ -265,6 +265,8 @@ export function Table<T>({
                   className={cn(
                     "group/row",
                     onRowClick && "cursor-pointer select-none",
+                    row.index === table.getRowModel().rows.length - 1 && // last row in table shouldn't have a bottom border
+                      "[&_td]:border-b-0",
                   )}
                   onClick={
                     onRowClick
