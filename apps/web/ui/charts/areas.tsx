@@ -46,6 +46,7 @@ export default function Areas({
                 initial={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.1 }}
+                // TODO: This key changes immediately and sometimes breaks enter/exit animations
                 key={`${s.id}_${startDate.toString()}_${endDate.toString()}`}
               >
                 {/* Area background mask gradient */}
