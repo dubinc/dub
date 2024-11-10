@@ -1,6 +1,7 @@
 import { DEFAULT_DOTS_APP_ID } from "@dub/utils";
 import { PartnerProps } from "../types";
 import { DOTS_API_URL } from "./env";
+import { dotsUserSchema } from "./schemas";
 import { dotsHeaders } from "./utils";
 
 export const retrieveDotsUser = async ({
@@ -10,32 +11,34 @@ export const retrieveDotsUser = async ({
   dotsUserId: string;
   partner: PartnerProps;
 }) => {
-  const response = await fetch(`${DOTS_API_URL}/users/${dotsUserId}`, {
-    method: "GET",
-    headers: dotsHeaders({ dotsAppId: DEFAULT_DOTS_APP_ID }),
-  });
+  const [dotsUser, payoutMethods] = await Promise.all([
+    fetch(`${DOTS_API_URL}/users/${dotsUserId}`, {
+      method: "GET",
+      headers: dotsHeaders({ dotsAppId: DEFAULT_DOTS_APP_ID }),
+    }).then((res) => res.json()),
+    fetch(`${DOTS_API_URL}/users/${dotsUserId}/payout-methods`, {
+      method: "GET",
+      headers: dotsHeaders({ dotsAppId: DEFAULT_DOTS_APP_ID }),
+    }).then((res) => res.json()),
+  ]);
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(
-      `Failed to retrieve Dots user ${dotsUserId}: ${error.message}`,
-    );
-  }
-
-  const data = await response.json();
-
-  return {
-    ...data,
+  return dotsUserSchema.parse({
+    ...dotsUser,
     compliance: {
-      ...data.compliance,
+      ...dotsUser.compliance,
       submitted:
         partner.country === "US"
-          ? data.compliance.w9.tax_id_collected
-          : data.compliance.w8_ben_collected,
+          ? dotsUser.compliance.w9.tax_id_collected
+          : dotsUser.compliance.w8_ben_collected,
     },
     wallet: {
-      ...data.wallet,
-      pending_amount: data.wallet.amount - data.wallet.withdrawable_amount,
+      ...dotsUser.wallet,
+      pending_amount:
+        dotsUser.wallet.amount - dotsUser.wallet.withdrawable_amount,
     },
-  };
+    payout_methods: payoutMethods.map((method) => ({
+      ...method,
+      default: dotsUser.default_payout_method === method.platform,
+    })),
+  });
 };
