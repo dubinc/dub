@@ -8,6 +8,7 @@ export default function useDotsUser() {
 
   const {
     data: dotsUser,
+    error,
     isLoading,
     mutate,
   } = useSWR<DotsUser>(
@@ -17,6 +18,7 @@ export default function useDotsUser() {
 
   return {
     dotsUser,
+    error,
     isLoading,
     mutate,
   };

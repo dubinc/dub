@@ -1,6 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutWithPartnerProps } from "@/lib/types";
-import { usePayoutConfirmSheet } from "@/ui/programs/payout-confirm-sheet";
 import { usePayoutDetailsSheet } from "@/ui/programs/payout-details-sheet";
 import { buttonVariants } from "@dub/ui";
 import {
@@ -80,18 +79,13 @@ export function PendingPayouts() {
 }
 
 function PayoutRow({ payout }: { payout: PayoutWithPartnerProps }) {
-  const { payoutConfirmSheet, setIsOpen: setShowPayoutConfirmSheet } =
-    usePayoutConfirmSheet({ payout });
-
   const { payoutDetailsSheet, setIsOpen: setShowPayoutDetailsSheet } =
     usePayoutDetailsSheet({
       payout,
-      onConfirmPayout: () => setShowPayoutConfirmSheet(true),
     });
 
   return (
     <>
-      {payoutConfirmSheet}
       {payoutDetailsSheet}
       <button
         key={payout.id}

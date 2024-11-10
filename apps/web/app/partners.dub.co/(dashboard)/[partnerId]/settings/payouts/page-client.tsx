@@ -4,6 +4,7 @@ import { createDotsFlowAction } from "@/lib/actions/partners/create-dots-flow";
 import useDotsUser from "@/lib/swr/use-dots-user";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import LayoutLoader from "@/ui/layout/layout-loader";
+import { usePayoutWithdrawSheet } from "@/ui/programs/payout-withdraw-sheet";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CheckCircleFill, X } from "@/ui/shared/icons";
 import { Button, Modal, Note } from "@dub/ui";
@@ -44,8 +45,12 @@ export function PayoutsSettingsPageClient() {
     iframeSrc: "",
   });
 
+  const { payoutWithdrawSheet, setIsOpen: setShowPayoutWithdrawSheet } =
+    usePayoutWithdrawSheet();
+
   return (
     <>
+      {payoutWithdrawSheet}
       {modalState.show && (
         <Modal
           showModal={modalState.show}
@@ -76,14 +81,16 @@ export function PayoutsSettingsPageClient() {
                       {dotsUser ? (
                         <Button
                           text="Withdraw funds"
-                          onClick={() => toast.info("WIP")}
+                          onClick={() => setShowPayoutWithdrawSheet(true)}
                           className="h-7 w-fit px-2"
                           disabledTooltip={
                             dotsUser.payout_methods.length === 0
                               ? "You need to connect a payout method first"
                               : !dotsUser.compliance.submitted
                                 ? "You need to verify your identity first"
-                                : undefined
+                                : !dotsUser.wallet.withdrawable_amount
+                                  ? "You need a positive balance to withdraw funds"
+                                  : undefined
                           }
                         />
                       ) : (

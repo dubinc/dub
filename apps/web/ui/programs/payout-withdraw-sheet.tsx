@@ -1,19 +1,13 @@
-import { createDotsTransferAction } from "@/lib/actions/create-dots-transfer";
-import { PayoutMethod } from "@/lib/dots/types";
-import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutWithPartnerProps } from "@/lib/types";
+import useDotsUser from "@/lib/swr/use-dots-user";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { X } from "@/ui/shared/icons";
 import { Button, Icon, Sheet } from "@dub/ui";
-import { Check2 } from "@dub/ui/src/icons";
 import {
   cn,
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
-  fetcher,
   formatDate,
 } from "@dub/utils";
-import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   Fragment,
@@ -23,69 +17,50 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import useSWR, { mutate } from "swr";
 import { DOTS_PAYOUT_PLATFORMS } from "../dots/platforms";
 
-type PayoutConfirmSheetProps = {
-  payout: PayoutWithPartnerProps;
+type PayoutWithdrawSheetProps = {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
-function PayoutConfirmSheetContent({
-  payout,
-  setIsOpen,
-}: PayoutConfirmSheetProps) {
-  const { id: workspaceId } = useWorkspace();
-  const { programId } = useParams();
+function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
+  const { partner, error: partnerError } = usePartnerProfile();
+  const { dotsUser, error: dotsUserError } = useDotsUser();
 
-  // TODO: [payouts] Use real sales count data
-  const totalSales = 2;
-
-  const invoiceData = useMemo(
+  const summaryData = useMemo(
     () => ({
       Partner: (
         <div className="flex items-center gap-2">
-          <img
-            src={
-              payout.partner.logo ||
-              `${DICEBEAR_AVATAR_URL}${payout.partner.name}`
-            }
-            alt={payout.partner.name}
-            className="size-5 rounded-full"
-          />
-          <div>{payout.partner.name}</div>
+          {partner || partnerError ? (
+            <>
+              <img
+                src={partner?.logo || `${DICEBEAR_AVATAR_URL}${partner?.name}`}
+                alt={partner?.name ?? "Partner"}
+                className="size-5 rounded-full"
+              />
+              <div>{partner?.name ?? "-"}</div>
+            </>
+          ) : (
+            <>
+              <div className="size-5 animate-pulse rounded-full bg-neutral-200" />
+              <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-200" />
+            </>
+          )}
         </div>
       ),
-      Period: `${formatDate(payout.periodStart, {
-        month: "short",
-        year:
-          new Date(payout.periodStart).getFullYear() ===
-          new Date(payout.periodEnd).getFullYear()
-            ? undefined
-            : "numeric",
-      })}-${formatDate(payout.periodEnd, { month: "short" })}`,
-      Sales: totalSales,
-      Amount: currencyFormatter(payout.amount / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
-      Fee: currencyFormatter(payout.fee / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
-      Total: currencyFormatter(payout.total / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
+      Date: formatDate(new Date(), { month: "short" }),
+      Total: dotsUserError ? (
+        "-"
+      ) : dotsUser ? (
+        currencyFormatter((dotsUser?.wallet.withdrawable_amount ?? 0) / 100, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })
+      ) : (
+        <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-200" />
+      ),
     }),
-    [payout, totalSales],
-  );
-
-  const { data: payoutMethods, error: payoutMethodsError } = useSWR<
-    PayoutMethod[]
-  >(
-    `/api/programs/${programId}/partners/${payout.partner.id}/payout-methods?workspaceId=${workspaceId}`,
-    fetcher,
+    [partner, dotsUser],
   );
 
   const [selectedPayoutMethod, setSelectedPayoutMethod] = useState<
@@ -93,36 +68,20 @@ function PayoutConfirmSheetContent({
   >(null);
 
   useEffect(() => {
-    if (!payoutMethods || selectedPayoutMethod !== null) return;
+    if (!dotsUser?.payout_methods?.length || selectedPayoutMethod !== null)
+      return;
 
     setSelectedPayoutMethod(
-      payoutMethods.length ? payoutMethods[0].platform : "manual",
+      dotsUser.default_payout_method ?? dotsUser.payout_methods[0].platform,
     );
-  }, [payoutMethods, selectedPayoutMethod]);
-
-  const { executeAsync, isExecuting } = useAction(createDotsTransferAction, {
-    onSuccess: async () => {
-      await mutate(
-        (key) =>
-          typeof key === "string" &&
-          key.startsWith(`/api/programs/${programId}/payouts`),
-        undefined,
-        { revalidate: true },
-      );
-      toast.success("Successfully created payout!");
-      setIsOpen(false);
-    },
-    onError({ error }) {
-      toast.error(error.serverError?.serverError);
-    },
-  });
+  }, [dotsUser, selectedPayoutMethod]);
 
   return (
     <>
       <div>
         <div className="flex items-start justify-between border-b border-neutral-200 p-6">
           <Sheet.Title className="text-xl font-semibold">
-            Confirm payout
+            Confirm withdrawal
           </Sheet.Title>
           <Sheet.Close asChild>
             <Button
@@ -135,7 +94,7 @@ function PayoutConfirmSheetContent({
         <div className="flex flex-col gap-4 p-6">
           <div className="text-base font-medium text-neutral-900">Summary</div>
           <div className="grid grid-cols-2 gap-3 text-sm">
-            {Object.entries(invoiceData).map(([key, value]) => (
+            {Object.entries(summaryData).map(([key, value]) => (
               <Fragment key={key}>
                 <div className="font-medium text-neutral-500">{key}</div>
                 <div className="text-neutral-800">{value}</div>
@@ -146,36 +105,29 @@ function PayoutConfirmSheetContent({
         <div className="p-6 pt-2">
           <div className="text-base font-medium text-neutral-900">Method</div>
           <div className="mt-4 flex flex-col gap-2">
-            {payoutMethods ? (
+            {dotsUser?.payout_methods ? (
               <>
-                {payoutMethods.map((method) => {
-                  const platform =
-                    DOTS_PAYOUT_PLATFORMS.find(
-                      (p) => p.id === method.platform,
-                    ) ?? DOTS_PAYOUT_PLATFORMS[0];
+                {dotsUser.payout_methods
+                  .sort((a, b) => Number(b.default) - Number(a.default)) // Show default first
+                  .map((method) => {
+                    const platform =
+                      DOTS_PAYOUT_PLATFORMS.find(
+                        (p) => p.id === method.platform,
+                      ) ?? DOTS_PAYOUT_PLATFORMS[0];
 
-                  return (
-                    <PayoutMethodOption
-                      key={method.platform}
-                      {...platform}
-                      description={`Typically arrives ${platform.duration}`}
-                      isDefault={method.default}
-                      selectedPayoutMethod={selectedPayoutMethod}
-                      setSelectedPayoutMethod={setSelectedPayoutMethod}
-                    />
-                  );
-                })}
-                <PayoutMethodOption
-                  id="manual"
-                  icon={Check2}
-                  iconBgColor="bg-neutral-100"
-                  name="Manual payout"
-                  description="Marks the invoice as paid"
-                  selectedPayoutMethod={selectedPayoutMethod}
-                  setSelectedPayoutMethod={setSelectedPayoutMethod}
-                />
+                    return (
+                      <PayoutMethodOption
+                        key={method.platform}
+                        {...platform}
+                        description={`Typically arrives ${platform.duration}`}
+                        isDefault={method.default}
+                        selectedPayoutMethod={selectedPayoutMethod}
+                        setSelectedPayoutMethod={setSelectedPayoutMethod}
+                      />
+                    );
+                  })}
               </>
-            ) : !payoutMethodsError ? (
+            ) : !dotsUserError ? (
               [...Array(2)].map((_, idx) => (
                 <div
                   key={idx}
@@ -194,14 +146,6 @@ function PayoutConfirmSheetContent({
               </div>
             )}
           </div>
-          {payoutMethods && payoutMethods.length === 0 && (
-            <div className="mt-6">
-              <p className="text-sm text-neutral-500">
-                This partner has no payout methods configured.
-              </p>
-              {/* TODO: [payouts] Fetch partner email and add contact partner button */}
-            </div>
-          )}
         </div>
       </div>
       <div className="flex grow flex-col justify-end">
@@ -216,23 +160,17 @@ function PayoutConfirmSheetContent({
           <Button
             type="button"
             variant="primary"
-            disabled={!payout.partner.dotsUserId || !selectedPayoutMethod}
+            disabled={!dotsUser?.id || !selectedPayoutMethod}
             onClick={async () => {
-              if (!payout.partner.dotsUserId) {
+              if (!dotsUser?.id) {
                 toast.error("Partner has no Dots user ID");
                 return;
               }
-              await executeAsync({
-                workspaceId: workspaceId!,
-                dotsUserId: payout.partner.dotsUserId,
-                payoutId: payout.id,
-                amount: payout.amount,
-                fee: payout.fee,
-              });
+              toast.info(`WIP withdraw to ${selectedPayoutMethod}`);
+              setIsOpen(false);
             }}
-            text="Confirm payout"
+            text="Confirm withdrawal"
             className="w-fit"
-            loading={isExecuting}
           />
         </div>
       </div>
@@ -302,31 +240,25 @@ function PayoutMethodOption({
   );
 }
 
-export function PayoutConfirmSheet({
+export function PayoutWithdrawSheet({
   isOpen,
   ...rest
-}: PayoutConfirmSheetProps & {
+}: PayoutWithdrawSheetProps & {
   isOpen: boolean;
 }) {
   return (
     <Sheet open={isOpen} onOpenChange={rest.setIsOpen}>
-      <PayoutConfirmSheetContent {...rest} />
+      <PayoutWithdrawSheetContent {...rest} />
     </Sheet>
   );
 }
 
-export function usePayoutConfirmSheet({
-  payout,
-}: Omit<PayoutConfirmSheetProps, "setIsOpen"> & { nested?: boolean }) {
+export function usePayoutWithdrawSheet() {
   const [isOpen, setIsOpen] = useState(false);
 
   return {
-    payoutConfirmSheet: (
-      <PayoutConfirmSheet
-        setIsOpen={setIsOpen}
-        isOpen={isOpen}
-        payout={payout}
-      />
+    payoutWithdrawSheet: (
+      <PayoutWithdrawSheet setIsOpen={setIsOpen} isOpen={isOpen} />
     ),
     setIsOpen,
   };
