@@ -11,7 +11,7 @@ import useDomainsCount from "@/lib/swr/use-domains-count";
 import useTags from "@/lib/swr/use-tags";
 import useTagsCount from "@/lib/swr/use-tags-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { LinkProps, TagProps } from "@/lib/types";
+import { LinkProps } from "@/lib/types";
 import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import {
@@ -71,7 +71,7 @@ import {
 } from "react";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
-import { COLORS_LIST } from "../links/tag-badge";
+import TagBadge from "../links/tag-badge";
 import AnalyticsOptions from "./analytics-options";
 import { AnalyticsContext } from "./analytics-provider";
 import ContinentIcon from "./continent-icon";
@@ -115,11 +115,8 @@ export default function Toggle({
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
 
-  const { tags, loading: loadingTags } = useTags({
-    query: {
-      search: tagsAsync && selectedFilter === "tagId" ? debouncedSearch : "",
-    },
-  });
+  const { tags, loading: loadingTags } = useTags();
+
   const {
     allDomains: domains,
     primaryDomain,
@@ -132,8 +129,13 @@ export default function Toggle({
     },
   });
 
+  const selectedTagIds = useMemo(
+    () => searchParamsObj.tagIds?.split(",")?.filter(Boolean) ?? [],
+    [searchParamsObj.tagIds],
+  );
+
   const { tags: selectedTags } = useTags({
-    query: { ids: searchParamsObj.tagId ? [searchParamsObj.tagId] : [] },
+    query: { ids: selectedTagIds },
     enabled: tagsAsync,
   });
 
@@ -143,7 +145,6 @@ export default function Toggle({
     const {
       domain,
       key,
-      tagId,
       continent,
       country,
       city,
@@ -166,7 +167,7 @@ export default function Toggle({
             },
           ]
         : []),
-      ...(tagId ? [{ key: "tagId", value: tagId }] : []),
+      ...(selectedTagIds ? [{ key: "tagIds", value: selectedTagIds }] : []),
       ...(continent ? [{ key: "continent", value: continent }] : []),
       ...(country ? [{ key: "country", value: country }] : []),
       ...(city ? [{ key: "city", value: city }] : []),
@@ -349,59 +350,26 @@ export default function Toggle({
               ],
             },
             {
-              key: "tagId",
+              key: "tagIds",
               icon: Tag,
               label: "Tag",
+              multiple: true,
               shouldFilter: !tagsAsync,
               getOptionIcon: (value, props) => {
                 const tagColor =
                   props.option?.data?.color ??
                   tags?.find(({ id }) => id === value)?.color;
                 return tagColor ? (
-                  <div
-                    className={cn(
-                      "rounded-md p-1.5",
-                      COLORS_LIST.find(({ color }) => color === tagColor)?.css,
-                    )}
-                  >
-                    <Tag className="h-2.5 w-2.5" />
-                  </div>
+                  <TagBadge color={tagColor} withIcon className="sm:p-1" />
                 ) : null;
               },
               options:
-                loadingTags ||
-                // Consider tags loading if we can't find the currently filtered tag
-                (searchParamsObj.tagId &&
-                  ![...(selectedTags ?? []), ...(tags ?? [])].some(
-                    (t) => t.id === searchParamsObj.tagId,
-                  ))
-                  ? null
-                  : [
-                      // Add selected tag to list if not already in tags
-                      ...(tags ?? []),
-                      ...(selectedTags
-                        ?.filter((st) => !tags?.some((t) => t.id === st.id))
-                        ?.map((st) => ({ ...st, hideDuringSearch: true })) ??
-                        []),
-                    ].map((tag) => ({
-                      value: tag.id,
-                      icon: (
-                        <div
-                          className={cn(
-                            "rounded-md p-1.5",
-                            COLORS_LIST.find(({ color }) => color === tag.color)
-                              ?.css,
-                          )}
-                        >
-                          <Tag className="h-2.5 w-2.5" />
-                        </div>
-                      ),
-                      label: tag.name,
-                      data: { color: tag.color },
-                      hideDuringSearch: (
-                        tag as TagProps & { hideDuringSearch?: boolean }
-                      ).hideDuringSearch,
-                    })) ?? null,
+                tags?.map(({ id, name, color }) => ({
+                  value: id,
+                  icon: <TagBadge color={color} withIcon className="sm:p-1" />,
+                  label: name,
+                  data: { color },
+                })) ?? null,
             },
           ]),
       {
@@ -579,7 +547,7 @@ export default function Toggle({
       domainsAsync,
       loadingTags,
       loadingDomains,
-      searchParamsObj.tagId,
+      searchParamsObj.tagIds,
       searchParamsObj.domain,
     ],
   );

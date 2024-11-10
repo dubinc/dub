@@ -11,6 +11,7 @@ import {
   EventType,
 } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
+import { combineTagIds } from "@/lib/api/links/utils/combine-tag-ids";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PlanProps } from "@/lib/types";
 import { fetcher } from "@dub/utils";
@@ -49,7 +50,7 @@ export const AnalyticsContext = createContext<{
   start?: Date;
   end?: Date;
   interval?: string;
-  tagId?: string;
+  tagIds?: string;
   totalEvents?: {
     [key in AnalyticsResponseOptions]: number;
   };
@@ -108,7 +109,10 @@ export default function AnalyticsProvider({
   // Whether to show conversions in shared analytics dashboards
   const showConversions = dashboardProps?.showConversions;
 
-  const tagId = searchParams?.get("tagId") ?? undefined;
+  const tagIds = combineTagIds({
+    tagId: searchParams?.get("tagId"),
+    tagIds: searchParams?.get("tagIds")?.split(","),
+  })?.join(",");
 
   // Default to last 24 hours
   const { start, end } = useMemo(() => {
@@ -219,11 +223,11 @@ export default function AnalyticsProvider({
       ...(start &&
         end && { start: start.toISOString(), end: end.toISOString() }),
       ...(interval && { interval }),
-      ...(tagId && { tagId }),
+      ...(tagIds && { tagIds }),
       ...(root && { root: root.toString() }),
       event: selectedTab,
     }).toString();
-  }, [workspaceId, domain, key, searchParams, start, end, tagId, selectedTab]);
+  }, [workspaceId, domain, key, searchParams, start, end, tagIds, selectedTab]);
 
   // Reset requiresUpgrade when query changes
   useEffect(() => setRequiresUpgrade(false), [queryString]);
@@ -279,7 +283,7 @@ export default function AnalyticsProvider({
         start, // start of time period
         end, // end of time period
         interval, /// time period interval
-        tagId, // id of a single tag
+        tagIds, // ids of the tags to filter by
         totalEvents, // totalEvents (clicks, leads, sales)
         adminPage, // whether the user is an admin
         demoPage, // whether the user is viewing demo analytics
