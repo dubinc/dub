@@ -2,7 +2,7 @@ import useSalesCount from "@/lib/swr/use-sales-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
-import { Users } from "@dub/ui/src/icons";
+import { MoneyBill2, Users } from "@dub/ui/src/icons";
 import { cn, DICEBEAR_AVATAR_URL, fetcher, nFormatter } from "@dub/utils";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
@@ -41,6 +41,12 @@ export function useSaleFilters(extraSearchParams: Record<string, string>) {
         }),
       },
       {
+        key: "payoutId",
+        icon: MoneyBill2,
+        label: "Payout",
+        options: [],
+      },
+      {
         key: "status",
         icon: CircleDotted,
         label: "Status",
@@ -66,11 +72,12 @@ export function useSaleFilters(extraSearchParams: Record<string, string>) {
   );
 
   const activeFilters = useMemo(() => {
-    const { status, partnerId } = searchParamsObj;
+    const { status, partnerId, payoutId } = searchParamsObj;
 
     return [
       ...(status ? [{ key: "status", value: status }] : []),
       ...(partnerId ? [{ key: "partnerId", value: partnerId }] : []),
+      ...(payoutId ? [{ key: "payoutId", value: payoutId }] : []),
     ];
   }, [searchParamsObj]);
 
@@ -89,7 +96,7 @@ export function useSaleFilters(extraSearchParams: Record<string, string>) {
 
   const onRemoveAll = () =>
     queryParams({
-      del: ["status", "partnerId"],
+      del: ["status", "partnerId", "payoutId"],
     });
 
   const searchQuery = useMemo(

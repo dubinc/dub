@@ -18,7 +18,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, MoneyBill2, TableRows2 } from "@dub/ui/src/icons";
+import { Dots, MoneyBill2, MoneyBills2 } from "@dub/ui/src/icons";
 import {
   cn,
   currencyFormatter,
@@ -248,7 +248,7 @@ function RowMenuButton({ row }: { row: Row<PayoutWithPartnerProps> }) {
         <Command tabIndex={0} loop className="focus:outline-none">
           <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
             <MenuItem
-              icon={TableRows2}
+              icon={MoneyBills2}
               label="View sales"
               onSelect={() => {
                 router.push(
