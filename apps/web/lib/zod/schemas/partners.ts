@@ -126,6 +126,5 @@ export const PayoutWithSalesSchema = PayoutSchema.and(
         customer: CustomerSchema,
       }),
     ),
-    _count: z.object({ sales: z.number() }),
   }),
 );

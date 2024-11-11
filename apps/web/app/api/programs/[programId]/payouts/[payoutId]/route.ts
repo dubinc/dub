@@ -25,9 +25,6 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
           customer: true,
         },
       },
-      _count: {
-        select: { sales: true },
-      },
     },
   });
 
