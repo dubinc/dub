@@ -101,7 +101,7 @@ export const PayoutSchema = z.object({
 export const CustomerSchema = z.object({
   id: z.string(),
   name: z.string(),
-  email: z.string(),
+  email: z.string().nullable(),
   avatar: z.string().nullable(),
   externalId: z.string(),
   createdAt: z.date(),
