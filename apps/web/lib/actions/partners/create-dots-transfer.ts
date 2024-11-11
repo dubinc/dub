@@ -38,10 +38,16 @@ export const createDotsTransferAction = authActionClient
       }),
     ]);
 
-    await prisma.payout.update({
-      where: { id: payoutId },
-      data: { dotsTransferId: transfer.id, status: "completed" },
-    });
+    await Promise.all([
+      prisma.payout.update({
+        where: { id: payoutId },
+        data: { dotsTransferId: transfer.id, status: "completed" },
+      }),
+      prisma.sale.updateMany({
+        where: { payoutId },
+        data: { status: "paid" },
+      }),
+    ]);
 
     return { transfer, orgTransfer };
   });

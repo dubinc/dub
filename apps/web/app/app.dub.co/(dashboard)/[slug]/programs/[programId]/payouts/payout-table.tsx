@@ -249,10 +249,10 @@ function RowMenuButton({ row }: { row: Row<PayoutWithPartnerProps> }) {
           <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
             <MenuItem
               icon={TableRows2}
-              label="View conversions"
+              label="View sales"
               onSelect={() => {
                 router.push(
-                  `/${slug}/programs/${programId}/sales?partnerId=${row.original.partner.id}`,
+                  `/${slug}/programs/${programId}/sales?payoutId=${row.original.id}`,
                 );
                 setIsOpen(false);
               }}
