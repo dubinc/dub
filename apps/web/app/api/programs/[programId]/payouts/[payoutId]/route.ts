@@ -24,6 +24,9 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
         include: {
           customer: true,
         },
+        orderBy: {
+          createdAt: "desc",
+        },
       },
     },
   });
