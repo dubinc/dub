@@ -216,6 +216,9 @@ export function PayoutsSettingsPageClient() {
               </div>
               <ComplianceButton setModalState={setModalState} />
             </div>
+            <div className="my-8">
+              <PartnerWithdrawalsActivity />
+            </div>
           </div>
         ) : !isLoading ? (
           <AnimatedEmptyState
@@ -240,9 +243,6 @@ export function PayoutsSettingsPageClient() {
         ) : (
           <LayoutLoader />
         )}
-        <div className="my-8">
-          <PartnerWithdrawalsActivity />
-        </div>
       </div>
     </>
   );

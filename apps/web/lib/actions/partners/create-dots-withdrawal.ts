@@ -25,12 +25,23 @@ export const createDotsWithdrawalAction = authPartnerActionClient
       dotsUserId: partner.dotsUserId,
       partner,
     });
-    console.log({ dotsUser });
+
+    const amountToWithdraw = dotsUser.wallet.withdrawable_amount;
+
+    console.log({
+      country: partner.country,
+      amount: amountToWithdraw,
+    });
 
     const response = await createWithdrawal({
       dotsUserId: partner.dotsUserId,
-      amount: dotsUser.wallet.withdrawable_amount,
+      amount: amountToWithdraw,
       platform,
+      // for US-based withdrawals over $1,000, we pay the fee
+      payoutFeeParty:
+        partner.country === "US" && amountToWithdraw > 100000
+          ? "platform"
+          : "user",
     });
 
     return response;

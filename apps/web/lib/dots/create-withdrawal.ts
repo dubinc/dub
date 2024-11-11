@@ -7,10 +7,12 @@ export const createWithdrawal = async ({
   dotsUserId,
   amount,
   platform,
+  payoutFeeParty,
 }: {
   dotsUserId: string;
   amount: number;
   platform: DotsPayoutPlatform;
+  payoutFeeParty?: "platform" | "user";
 }) => {
   const response = await fetch(`${DOTS_API_URL}/payouts`, {
     method: "POST",
@@ -19,6 +21,7 @@ export const createWithdrawal = async ({
       user_id: dotsUserId,
       amount,
       platform,
+      payout_fee_party: payoutFeeParty,
     }),
   });
 

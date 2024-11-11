@@ -86,7 +86,7 @@ export const dotsUserSchema = z.object({
     withdrawable_amount: z.number(),
     pending_amount: z.number(),
   }),
-  default_payout_method: dotsPayoutPlatforms,
+  default_payout_method: dotsPayoutPlatforms.nullable(),
   payout_methods: z.array(payoutMethodSchema),
   compliance: z.any(),
 });
