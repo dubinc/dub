@@ -9,8 +9,8 @@ import { AnimatedSizeContainer, Button } from "@dub/ui";
 import { CircleCheckFill, LoadingSpinner } from "@dub/ui/src/icons";
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { PropsWithChildren } from "react";
-import { useForm } from "react-hook-form";
+import { PropsWithChildren, useEffect, useState } from "react";
+import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
@@ -43,27 +43,20 @@ export function ProgramSettings() {
   );
 }
 
+type FormData = Pick<
+  ProgramProps,
+  | "recurringCommission"
+  | "recurringDuration"
+  | "isLifetimeRecurring"
+  | "commissionType"
+  | "commissionAmount"
+  | "minimumPayout"
+>;
+
 function ProgramSettingsForm({ program }: { program: ProgramProps }) {
   const { id: workspaceId } = useWorkspace();
 
-  const {
-    register,
-    control,
-    watch,
-    setValue,
-    handleSubmit,
-    formState: { isSubmitting, isValid, errors },
-  } = useForm<
-    Pick<
-      ProgramProps,
-      | "recurringCommission"
-      | "recurringDuration"
-      | "isLifetimeRecurring"
-      | "commissionType"
-      | "commissionAmount"
-      | "minimumPayout"
-    >
-  >({
+  const form = useForm<FormData>({
     mode: "onBlur",
     defaultValues: {
       recurringCommission: program.recurringCommission,
@@ -78,6 +71,14 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
     },
   });
 
+  const {
+    register,
+    watch,
+    setValue,
+    handleSubmit,
+    formState: { isSubmitting, isValid, errors },
+  } = form;
+
   const [
     recurringCommission,
     recurringDuration,
@@ -90,7 +91,7 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
     "commissionType",
   ]);
 
-  const { executeAsync, isExecuting } = useAction(updateProgramAction, {
+  const { executeAsync } = useAction(updateProgramAction, {
     async onSuccess() {
       toast.success("Program updated successfully.");
       mutate(`/api/programs/${program.id}?workspaceId=${workspaceId}`);
@@ -105,7 +106,7 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
     <form
       className="rounded-lg border border-neutral-200 bg-white"
       onSubmit={handleSubmit(async (data) => {
-        const result = await executeAsync({
+        await executeAsync({
           workspaceId: workspaceId || "",
           programId: program.id,
           ...data,
@@ -122,14 +123,9 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
       </div>
 
       <div className="divide-y divide-neutral-200 px-6">
-        <ProgramSettingsSection heading="Summary">
-          <p className="rounded-md border border-neutral-200 bg-[#f9f9f9] p-4 text-sm font-normal leading-relaxed text-neutral-900">
-            <ProgramCommissionDescription
-              program={program}
-              amountClassName="text-blue-600"
-            />
-          </p>
-        </ProgramSettingsSection>
+        <FormProvider {...form}>
+          <Summary program={program} />
+        </FormProvider>
 
         <ProgramSettingsSection
           heading="Commission"
@@ -345,6 +341,40 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
         </div>
       </div>
     </form>
+  );
+}
+
+function Summary({ program }: { program: ProgramProps }) {
+  const {
+    watch,
+    formState: { isValid },
+  } = useFormContext<FormData>();
+
+  const data = watch();
+
+  const [summaryData, setSummaryData] = useState(data);
+
+  // Only update summary data when form is valid
+  useEffect(() => {
+    if (data && isValid) setSummaryData(data);
+  }, [data, isValid]);
+
+  return (
+    <ProgramSettingsSection heading="Summary">
+      <p className="rounded-md border border-neutral-200 bg-[#f9f9f9] p-4 text-sm font-normal leading-relaxed text-neutral-900">
+        <ProgramCommissionDescription
+          program={{
+            ...summaryData,
+            recurringInterval: program.recurringInterval,
+            commissionAmount:
+              summaryData.commissionType === "flat"
+                ? summaryData.commissionAmount * 100
+                : summaryData.commissionAmount,
+          }}
+          amountClassName="text-blue-600"
+        />
+      </p>
+    </ProgramSettingsSection>
   );
 }
 

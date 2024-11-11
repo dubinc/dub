@@ -10,9 +10,6 @@ export default async function ProgramSettingsPage({
 }) {
   const { programId } = params;
 
-  // TODO:
-  // Add suspense loader
-
   return (
     <PageContent title="Program Settings">
       <MaxWidthWrapper>
