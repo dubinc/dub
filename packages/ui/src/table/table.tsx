@@ -58,7 +58,6 @@ type UseTableProps<T> = {
   className?: string;
   containerClassName?: string;
   scrollWrapperClassName?: string;
-  emptyStateClassName?: string;
   thClassName?: string | ((columnId: string) => string);
   tdClassName?: string | ((columnId: string) => string);
 } & (
@@ -150,7 +149,6 @@ export function Table<T>({
   className,
   containerClassName,
   scrollWrapperClassName,
-  emptyStateClassName,
   thClassName,
   tdClassName,
   table,
@@ -321,12 +319,7 @@ export function Table<T>({
           {children}
         </div>
       ) : (
-        <div
-          className={cn(
-            "flex h-96 w-full items-center justify-center text-sm text-gray-500",
-            emptyStateClassName,
-          )}
-        >
+        <div className="flex h-96 w-full items-center justify-center text-sm text-gray-500">
           {error ||
             emptyState ||
             `No ${resourceName?.(true) || "items"} found.`}
@@ -377,7 +370,7 @@ export function Table<T>({
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/50"
+            className="absolute inset-0 flex h-96 items-center justify-center rounded-xl bg-white/50"
           >
             <LoadingSpinner />
           </motion.div>
