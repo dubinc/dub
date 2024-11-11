@@ -106,6 +106,8 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
     },
   });
 
+  console.log({ recurringCommission });
+
   return (
     <form
       className="rounded-lg border border-neutral-200 bg-white"
@@ -121,7 +123,7 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
         });
 
         // Reset isDirty state
-        reset({}, { keepValues: true });
+        reset(data);
       })}
     >
       <div className="flex items-center border-b border-neutral-200 p-6">
@@ -324,11 +326,7 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
 }
 
 function Summary({ program }: { program: ProgramProps }) {
-  const {
-    formState: { isValid },
-    control,
-    getValues,
-  } = useFormContext<FormData>();
+  const { control } = useFormContext<FormData>();
 
   const data = useWatch({ control, defaultValue: program }) as FormData;
 
