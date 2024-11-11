@@ -370,7 +370,7 @@ export function Table<T>({
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 flex h-96 items-center justify-center rounded-xl bg-white/50"
+            className="absolute inset-0 flex h-[50vh] items-center justify-center rounded-xl bg-white/50"
           >
             <LoadingSpinner />
           </motion.div>
