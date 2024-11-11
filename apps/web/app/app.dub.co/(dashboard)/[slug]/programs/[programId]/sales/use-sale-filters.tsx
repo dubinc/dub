@@ -9,7 +9,7 @@ import { useMemo } from "react";
 import useSWR from "swr";
 import { SaleStatusBadges } from "./sale-table";
 
-export function useSaleFilters(extraSearchParams: Record<string, string>) {
+export function useSaleFilters() {
   const { programId } = useParams();
   const { salesCount } = useSalesCount();
   const { id: workspaceId } = useWorkspace();
@@ -99,19 +99,6 @@ export function useSaleFilters(extraSearchParams: Record<string, string>) {
       del: ["status", "partnerId", "payoutId"],
     });
 
-  const searchQuery = useMemo(
-    () =>
-      new URLSearchParams({
-        ...Object.fromEntries(
-          activeFilters.map(({ key, value }) => [key, value]),
-        ),
-        ...(searchParamsObj.search && { search: searchParamsObj.search }),
-        workspaceId: workspaceId || "",
-        ...extraSearchParams,
-      }).toString(),
-    [activeFilters, workspaceId, extraSearchParams],
-  );
-
   const isFiltered = activeFilters.length > 0 || searchParamsObj.search;
 
   return {
@@ -120,7 +107,6 @@ export function useSaleFilters(extraSearchParams: Record<string, string>) {
     onSelect,
     onRemove,
     onRemoveAll,
-    searchQuery,
     isFiltered,
   };
 }

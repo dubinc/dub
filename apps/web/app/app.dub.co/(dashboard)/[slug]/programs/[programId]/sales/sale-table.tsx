@@ -2,6 +2,7 @@
 
 import { generateRandomName } from "@/lib/names";
 import useSalesCount from "@/lib/swr/use-sales-count";
+import useWorkspace from "@/lib/swr/use-workspace";
 import {
   CustomerSchema,
   PartnerSchema,
@@ -83,13 +84,13 @@ export const SaleStatusBadges = {
 
 export function SaleTableBusiness({ limit }: { limit?: number }) {
   const { programId } = useParams();
+  const { id: workspaceId } = useWorkspace();
   const { pagination, setPagination } = usePagination(limit);
-  const { queryParams, searchParams } = useRouterStuff();
-
-  const sortBy = searchParams.get("sort") || "createdAt";
-  const order = searchParams.get("order") === "asc" ? "asc" : "desc";
-  const status = searchParams.get("status");
-  const payoutId = searchParams.get("payoutId");
+  const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
+  const { sortBy, order } = searchParamsObj as {
+    sortBy: string;
+    order: "asc" | "desc";
+  };
 
   const {
     filters,
@@ -97,19 +98,14 @@ export function SaleTableBusiness({ limit }: { limit?: number }) {
     onSelect,
     onRemove,
     onRemoveAll,
-    searchQuery,
     isFiltered,
-  } = useSaleFilters({
-    interval: "30d",
-    sortBy,
-    order,
-    ...(status && { status }),
-    ...(payoutId && { payoutId }),
-  });
+  } = useSaleFilters();
 
   const { salesCount } = useSalesCount();
   const { data: sales, error } = useSWR<z.infer<typeof salesSchema>[]>(
-    `/api/programs/${programId}/sales?${searchQuery}`,
+    `/api/programs/${programId}/sales${getQueryString({
+      workspaceId,
+    })}`,
     fetcher,
   );
 
@@ -188,7 +184,7 @@ export function SaleTableBusiness({ limit }: { limit?: number }) {
           onSortChange: ({ sortBy, sortOrder }) =>
             queryParams({
               set: {
-                ...(sortBy && { sort: sortBy }),
+                ...(sortBy && { sortBy: sortBy }),
                 ...(sortOrder && { order: sortOrder }),
               },
             }),
