@@ -10,8 +10,6 @@ export function useSaleFilters(extraSearchParams: Record<string, string>) {
   const { id: workspaceId } = useWorkspace();
   const { searchParamsObj, queryParams } = useRouterStuff();
 
-  // TODO: [payouts] Add payout filter
-
   const filters = useMemo(
     () => [
       {

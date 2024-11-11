@@ -67,6 +67,7 @@ export function SaleTableBusiness({ limit }: { limit?: number }) {
   const sortBy = searchParams.get("sort") || "createdAt";
   const order = searchParams.get("order") === "asc" ? "asc" : "desc";
   const status = searchParams.get("status");
+  const payoutId = searchParams.get("payoutId");
 
   const {
     filters,
@@ -81,6 +82,7 @@ export function SaleTableBusiness({ limit }: { limit?: number }) {
     sortBy,
     order,
     ...(status && { status }),
+    ...(payoutId && { payoutId }),
   });
 
   const { data: sales, error } = useSWR<z.infer<typeof salesSchema>[]>(

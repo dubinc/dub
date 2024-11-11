@@ -22,6 +22,7 @@ export const salesQuerySchema = z
     interval: z.enum(intervals).default("30d"),
     start: parseDateSchema.optional(),
     end: parseDateSchema.optional(),
+    payoutId: z.string().optional(),
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
@@ -37,7 +38,7 @@ export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
     const parsed = salesQuerySchema.parse(searchParams);
-    const { page, pageSize, status, order, sortBy } = parsed;
+    const { page, pageSize, status, order, sortBy, payoutId } = parsed;
 
     let { interval, start, end } = parsed;
     let granularity: "minute" | "hour" | "day" | "month" = "day";
@@ -73,6 +74,7 @@ export const GET = withWorkspace(
       where: {
         programId,
         ...(status && { status }),
+        ...(payoutId && { payoutId }),
         // createdAt: {
         //   gte: new Date(start).toISOString(),
         //   lte: new Date(end).toISOString(),
