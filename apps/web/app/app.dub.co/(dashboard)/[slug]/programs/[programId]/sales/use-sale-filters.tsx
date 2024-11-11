@@ -7,7 +7,7 @@ import { CustomerProps, EnrolledPartnerProps } from "@/lib/types";
 import { CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/customers";
 import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
-import { MoneyBill2, User, Users } from "@dub/ui/src/icons";
+import { User, Users } from "@dub/ui/src/icons";
 import { cn, DICEBEAR_AVATAR_URL, nFormatter } from "@dub/utils";
 import { useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
@@ -32,6 +32,26 @@ export function useSaleFilters() {
   const filters = useMemo(
     () => [
       {
+        key: "customerId",
+        icon: User,
+        label: "Customer",
+        shouldFilter: !customersAsync,
+        options:
+          customers?.map(({ id, name, avatar }) => {
+            return {
+              value: id,
+              label: name,
+              icon: (
+                <img
+                  src={avatar || `${DICEBEAR_AVATAR_URL}${name}`}
+                  alt={`${name} avatar`}
+                  className="size-4 rounded-full"
+                />
+              ),
+            };
+          }) ?? null,
+      },
+      {
         key: "partnerId",
         icon: Users,
         label: "Partner",
@@ -50,25 +70,6 @@ export function useSaleFilters() {
               ),
             };
           }) ?? null,
-      },
-      {
-        key: "customerId",
-        icon: User,
-        label: "Customer",
-        shouldFilter: !customersAsync,
-        options:
-          customers?.map(({ id, name }) => {
-            return {
-              value: id,
-              label: name,
-            };
-          }) ?? null,
-      },
-      {
-        key: "payoutId",
-        icon: MoneyBill2,
-        label: "Payout",
-        options: [],
       },
       {
         key: "status",

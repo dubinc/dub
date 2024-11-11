@@ -1,6 +1,5 @@
 "use client";
 
-import { generateRandomName } from "@/lib/names";
 import useSalesCount from "@/lib/swr/use-sales-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -8,6 +7,7 @@ import {
   PartnerSchema,
   SaleSchema,
 } from "@/lib/zod/schemas/partners";
+import FilterButton from "@/ui/analytics/events/filter-button";
 import { SaleRowMenu } from "@/ui/partners/sale-row-menu";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
@@ -123,8 +123,26 @@ export function SaleTableBusiness({ limit }: { limit?: number }) {
       },
       {
         header: "Customer",
-        accessorFn: (d) =>
-          d.customer.name || d.customer.email || generateRandomName(),
+        cell: ({ row }) => {
+          return (
+            <div className="flex items-center gap-2">
+              <img
+                src={
+                  row.original.customer.avatar ||
+                  `${DICEBEAR_AVATAR_URL}${row.original.customer.name}`
+                }
+                alt={row.original.customer.name}
+                className="size-5 rounded-full"
+              />
+              <div>{row.original.customer.name}</div>
+            </div>
+          );
+        },
+        meta: {
+          filterParams: ({ row }) => ({
+            customerId: row.original.customer.id,
+          }),
+        },
       },
       {
         header: "Partner",
@@ -142,6 +160,11 @@ export function SaleTableBusiness({ limit }: { limit?: number }) {
               <div>{row.original.partner.name}</div>
             </div>
           );
+        },
+        meta: {
+          filterParams: ({ row }) => ({
+            partnerId: row.original.partner.id,
+          }),
         },
       },
       {
@@ -176,6 +199,17 @@ export function SaleTableBusiness({ limit }: { limit?: number }) {
       },
     ],
     columnPinning: { right: ["menu"] },
+    cellRight: (cell) => {
+      const meta = cell.column.columnDef.meta as
+        | {
+            filterParams?: any;
+          }
+        | undefined;
+
+      return (
+        meta?.filterParams && <FilterButton set={meta.filterParams(cell)} />
+      );
+    },
     ...(!limit
       ? {
           pagination,
@@ -191,9 +225,10 @@ export function SaleTableBusiness({ limit }: { limit?: number }) {
               },
             }),
         }
-      : {}),
-    thClassName: "border-l-0",
-    tdClassName: "border-l-0",
+      : {
+          thClassName: "border-l-0",
+          tdClassName: "border-l-0",
+        }),
     resourceName: (p) => `sale${p ? "s" : ""}`,
     rowCount: salesCount?.[status || "all"] ?? 0,
     loading,
