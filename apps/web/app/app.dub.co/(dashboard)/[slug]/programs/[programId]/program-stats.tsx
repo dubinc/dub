@@ -1,56 +1,58 @@
-import usePartnersCount from "@/lib/swr/use-partners-count";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { Icon } from "@dub/ui";
 import { Check2, CurrencyDollar, MoneyBills2, Users } from "@dub/ui/src/icons";
-import { nFormatter } from "@dub/utils";
+import { currencyFormatter, fetcher, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import useSWR from "swr";
+
+type ProgramStats = {
+  revenue: number;
+  payouts: number;
+  salesCount: number;
+  partnersCount: number;
+};
 
 export function ProgramStats() {
-  // TODO: [payouts] Use actual data
-  const revenue = 120000;
-  const revenueError = false;
+  const { programId } = useParams();
+  const { id: workspaceId } = useWorkspace();
 
-  // TODO: [payouts] Use actual data
-  const totalPayouts = 24000;
-  const totalPayoutsError = false;
-
-  const { partnersCount, error: partnersCountError } = usePartnersCount();
-
-  // TODO: [payouts] Use actual data
-  const sales = 2500;
-  const salesError = false;
+  const { data: programStats, error } = useSWR<ProgramStats>(
+    `/api/programs/${programId}/stats?workspaceId=${workspaceId}`,
+    fetcher,
+  );
 
   return (
     <div className="grid grid-cols-1 divide-neutral-200 rounded-lg border border-neutral-200 max-md:divide-y md:grid-cols-4 md:divide-x">
       <Stat
         icon={CurrencyDollar}
         label="Revenue"
-        value={revenue}
+        value={programStats?.revenue}
         tab="sales"
-        error={revenueError}
+        error={error}
         isCurrency
       />
       <Stat
         icon={MoneyBills2}
         label="Payouts"
         tab="payouts"
-        value={totalPayouts}
-        error={totalPayoutsError}
+        value={programStats?.payouts}
+        error={error}
         isCurrency
       />
       <Stat
         icon={Users}
         label="Partners"
         tab="partners"
-        value={partnersCount?.all}
-        error={partnersCountError}
+        value={programStats?.partnersCount}
+        error={error}
       />
       <Stat
         icon={Check2}
         label="Sales"
         tab="sales"
-        value={sales}
-        error={salesError}
+        value={programStats?.salesCount}
+        error={error}
       />
     </div>
   );
@@ -92,8 +94,12 @@ function Stat({
               "-"
             ) : (
               <>
-                {isCurrency && "$"}
-                {nFormatter(value)}
+                {isCurrency
+                  ? currencyFormatter(value! / 100, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })
+                  : nFormatter(value)}
               </>
             )}
           </div>
