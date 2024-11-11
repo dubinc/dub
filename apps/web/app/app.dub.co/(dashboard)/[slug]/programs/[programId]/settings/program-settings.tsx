@@ -55,7 +55,6 @@ type FormData = Pick<
   | "isLifetimeRecurring"
   | "commissionType"
   | "commissionAmount"
-  | "minimumPayout"
 >;
 
 function ProgramSettingsForm({ program }: { program: ProgramProps }) {
@@ -72,7 +71,6 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
         program.commissionType === "flat"
           ? program.commissionAmount / 100
           : program.commissionAmount,
-      minimumPayout: program.minimumPayout / 100,
     },
   });
 
@@ -120,7 +118,6 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
             data.commissionType === "flat"
               ? data.commissionAmount * 100
               : data.commissionAmount,
-          minimumPayout: data.minimumPayout * 100,
         });
 
         // Reset isDirty state
@@ -307,33 +304,6 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
                   {commissionType === "flat" ? "USD" : "%"}
                 </span>
               </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="duration"
-                className="text-sm font-medium text-neutral-800"
-              >
-                Minimum payout
-              </label>
-              <div className="relative mt-2 rounded-md shadow-sm">
-                <input
-                  className={cn(
-                    "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                    errors.minimumPayout &&
-                      "border-red-600 focus:border-red-500 focus:ring-red-600",
-                  )}
-                  {...register("minimumPayout", {
-                    required: true,
-                    valueAsNumber: true,
-                    min: 100,
-                    max: 10000,
-                  })}
-                />
-              </div>
-              <p className="mt-2 text-sm text-neutral-500">
-                Minimum payout is $100
-              </p>
             </div>
           </div>
         </SettingsRow>

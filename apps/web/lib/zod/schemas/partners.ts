@@ -40,7 +40,6 @@ export const ProgramSchema = z.object({
   logo: z.string().nullable(),
   type: z.nativeEnum(ProgramType),
   cookieLength: z.number(),
-  minimumPayout: z.number(),
   commissionAmount: z.number(),
   commissionType: z.nativeEnum(CommissionType),
   recurringCommission: z.boolean(),

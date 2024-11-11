@@ -53,11 +53,6 @@ export const createPartnerPayouts = async ({
       return;
     }
 
-    const program = await tx.program.findUniqueOrThrow({
-      where: { id: programId },
-      select: { minimumPayout: true },
-    });
-
     const currentDate = new Date();
     const periodStart = new Date(
       currentDate.getFullYear(),
@@ -74,17 +69,6 @@ export const createPartnerPayouts = async ({
       (total, sale) => total + sale.commissionEarned,
       0,
     );
-
-    if (commissionEarnedTotal < program.minimumPayout) {
-      console.info("Minimum payout not met. Skipping payout creation.", {
-        programId,
-        partnerId,
-        commissionEarnedTotal,
-        minimumPayout: program.minimumPayout,
-      });
-
-      return;
-    }
 
     const amount = commissionEarnedTotal;
     const fee = amount * 0.02 + 100; // TODO: [payouts] tailor based on US / non-US
