@@ -1,3 +1,5 @@
+import { INTERVAL_DATA, intervals } from "@/lib/analytics/constants";
+import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -7,6 +9,7 @@ import {
   PartnerSchema,
   SaleSchema,
 } from "@/lib/zod/schemas/partners";
+import { parseDateSchema } from "@/lib/zod/schemas/utils";
 import { SaleStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -16,6 +19,9 @@ export const salesQuerySchema = z
     status: z.nativeEnum(SaleStatus).optional(),
     order: z.enum(["asc", "desc"]).default("desc"),
     sortBy: z.enum(["createdAt", "amount"]).default("createdAt"),
+    interval: z.enum(intervals).default("30d"),
+    start: parseDateSchema.optional(),
+    end: parseDateSchema.optional(),
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
@@ -30,18 +36,47 @@ const responseSchema = SaleSchema.and(
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
-    const { page, pageSize, status, order, sortBy } =
-      salesQuerySchema.parse(searchParams);
+    const parsed = salesQuerySchema.parse(searchParams);
+    const { page, pageSize, status, order, sortBy } = parsed;
+
+    let { interval, start, end } = parsed;
+    let granularity: "minute" | "hour" | "day" | "month" = "day";
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
 
+    validDateRangeForPlan({
+      plan: workspace.plan,
+      interval,
+      start,
+      end,
+      throwError: true,
+    });
+
+    if (start) {
+      start = new Date(start);
+      end = end ? new Date(end) : new Date(Date.now());
+
+      // Swap start and end if start is greater than end
+      if (start > end) {
+        [start, end] = [end, start];
+      }
+    } else {
+      interval = interval ?? "24h";
+      start = INTERVAL_DATA[interval].startDate;
+      end = new Date(Date.now());
+    }
+
     const sales = await prisma.sale.findMany({
       where: {
         programId,
         ...(status && { status }),
+        // createdAt: {
+        //   gte: new Date(start).toISOString(),
+        //   lte: new Date(end).toISOString(),
+        // },
       },
       select: {
         id: true,
