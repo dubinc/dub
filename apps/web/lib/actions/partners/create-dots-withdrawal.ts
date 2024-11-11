@@ -3,6 +3,7 @@
 import { createWithdrawal } from "@/lib/dots/create-withdrawal";
 import { retrieveDotsUser } from "@/lib/dots/retrieve-dots-user";
 import { dotsPayoutPlatforms } from "@/lib/dots/schemas";
+import { FREE_WITHDRAWAL_MINIMUM_BALANCE } from "@dub/utils";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -34,7 +35,8 @@ export const createDotsWithdrawalAction = authPartnerActionClient
       platform,
       // for US-based withdrawals over $1,000, we pay the fee
       payoutFeeParty:
-        partner.country === "US" && amountToWithdraw > 100000
+        partner.country === "US" &&
+        amountToWithdraw > FREE_WITHDRAWAL_MINIMUM_BALANCE
           ? "platform"
           : "user",
     });

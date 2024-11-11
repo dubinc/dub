@@ -32,6 +32,14 @@ const config: Config = {
           "monospace",
         ],
       },
+      fontSize: {
+        "2xs": [
+          "0.625rem",
+          {
+            lineHeight: "0.875rem",
+          },
+        ],
+      },
       animation: {
         // Modal
         "scale-in": "scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
