@@ -98,6 +98,8 @@ export function SaleTableBusiness({ limit }: { limit?: number }) {
     onRemoveAll,
     searchQuery,
     isFiltered,
+    setSearch,
+    setSelectedFilter,
   } = useSaleFilters({
     interval: "30d",
     sortBy,
@@ -210,6 +212,8 @@ export function SaleTableBusiness({ limit }: { limit?: number }) {
             activeFilters={activeFilters}
             onSelect={onSelect}
             onRemove={onRemove}
+            onSearchChange={setSearch}
+            onSelectedFilterChange={setSelectedFilter}
           />
           <SimpleDateRangePicker className="w-full sm:min-w-[200px] md:w-fit" />
         </div>

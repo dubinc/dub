@@ -11,6 +11,8 @@ import { z } from "zod";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 
+export const PARTNERS_MAX_PAGE_SIZE = 100;
+
 export const partnersQuerySchema = z
   .object({
     status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
@@ -18,8 +20,13 @@ export const partnersQuerySchema = z
     search: z.string().optional(),
     order: z.enum(["asc", "desc"]).default("desc"),
     sortBy: z.enum(["createdAt", "earnings"]).default("createdAt"),
+    ids: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .optional()
+      .describe("IDs of partners to filter by."),
   })
-  .merge(getPaginationQuerySchema({ pageSize: 100 }));
+  .merge(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
 
 export const PartnerSchema = z.object({
   id: z.string(),
