@@ -14,7 +14,7 @@ import { SaleStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-export const salesQuerySchema = z
+const salesQuerySchema = z
   .object({
     status: z.nativeEnum(SaleStatus).optional(),
     order: z.enum(["asc", "desc"]).default("desc"),
