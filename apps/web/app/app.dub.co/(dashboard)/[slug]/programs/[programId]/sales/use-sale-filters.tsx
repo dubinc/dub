@@ -1,17 +1,48 @@
+import useSalesCount from "@/lib/swr/use-sales-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useRouterStuff } from "@dub/ui";
+import { CircleDotted, useRouterStuff } from "@dub/ui";
+import { cn, nFormatter } from "@dub/utils";
 import { useMemo } from "react";
+import { SaleStatusBadges } from "./sale-table";
 
 export function useSaleFilters(extraSearchParams: Record<string, string>) {
-  const { searchParamsObj, queryParams } = useRouterStuff();
+  const { salesCount } = useSalesCount();
   const { id: workspaceId } = useWorkspace();
+  const { searchParamsObj, queryParams } = useRouterStuff();
 
   // TODO: [payouts] Add payout filter
-  const filters = useMemo(() => [], []);
+
+  const filters = useMemo(
+    () => [
+      {
+        key: "status",
+        icon: CircleDotted,
+        label: "Status",
+        options: Object.entries(SaleStatusBadges).map(([value, { label }]) => {
+          const Icon = SaleStatusBadges[value].icon;
+          return {
+            value,
+            label,
+            icon: (
+              <Icon
+                className={cn(
+                  SaleStatusBadges[value].className,
+                  "size-4 bg-transparent",
+                )}
+              />
+            ),
+            right: nFormatter(salesCount?.[value] || 0, { full: true }),
+          };
+        }),
+      },
+    ],
+    [salesCount],
+  );
 
   const activeFilters = useMemo(() => {
-    const {} = searchParamsObj;
-    return [];
+    const { status } = searchParamsObj;
+
+    return [...(status ? [{ key: "status", value: status }] : [])];
   }, [searchParamsObj]);
 
   const onSelect = (key: string, value: any) =>
@@ -29,7 +60,7 @@ export function useSaleFilters(extraSearchParams: Record<string, string>) {
 
   const onRemoveAll = () =>
     queryParams({
-      del: ["status", "country", "search"],
+      del: ["status"],
     });
 
   const searchQuery = useMemo(
@@ -45,6 +76,8 @@ export function useSaleFilters(extraSearchParams: Record<string, string>) {
     [activeFilters, workspaceId, extraSearchParams],
   );
 
+  const isFiltered = activeFilters.length > 0 || searchParamsObj.search;
+
   return {
     filters,
     activeFilters,
@@ -52,5 +85,6 @@ export function useSaleFilters(extraSearchParams: Record<string, string>) {
     onRemove,
     onRemoveAll,
     searchQuery,
+    isFiltered,
   };
 }

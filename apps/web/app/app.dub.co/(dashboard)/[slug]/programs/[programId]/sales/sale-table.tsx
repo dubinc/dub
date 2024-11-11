@@ -12,7 +12,6 @@ import {
   AnimatedSizeContainer,
   CircleCheck,
   CircleHalfDottedClock,
-  CircleXmark,
   Filter,
   StatusBadge,
   Table,
@@ -58,24 +57,6 @@ export const SaleStatusBadges = {
     className: "text-green-600 bg-green-100",
     icon: CircleCheck,
   },
-  refunded: {
-    label: "Refunded",
-    variant: "warning",
-    className: "text-red-600 bg-red-100",
-    icon: CircleXmark,
-  },
-  duplicate: {
-    label: "Duplicate",
-    variant: "error",
-    className: "text-red-600 bg-red-100",
-    icon: CircleXmark,
-  },
-  fraud: {
-    label: "Fraud",
-    variant: "error",
-    className: "text-red-600 bg-red-100",
-    icon: CircleXmark,
-  },
 };
 
 export function SaleTableBusiness({ limit }: { limit?: number }) {
@@ -94,6 +75,7 @@ export function SaleTableBusiness({ limit }: { limit?: number }) {
     onRemove,
     onRemoveAll,
     searchQuery,
+    isFiltered,
   } = useSaleFilters({
     interval: "30d",
     sortBy,
@@ -101,19 +83,12 @@ export function SaleTableBusiness({ limit }: { limit?: number }) {
     ...(status && { status }),
   });
 
-  // TODO: Add analytics
-  const { data: analyticsData, error: analyticsError } = {
-    data: { sales: 0 },
-    error: null,
-  };
-
   const { data: sales, error } = useSWR<z.infer<typeof salesSchema>[]>(
     `/api/programs/${programId}/sales?${searchQuery}`,
     fetcher,
   );
 
-  const totalSalesCount = analyticsData?.sales ?? 0;
-  const loading = (!sales || !analyticsData) && !error && !analyticsError;
+  const loading = !sales && !error;
 
   const table = useTable({
     data: sales?.slice(0, limit) || [],
@@ -180,7 +155,6 @@ export function SaleTableBusiness({ limit }: { limit?: number }) {
               set: {
                 ...(sortBy && { sort: sortBy }),
                 ...(sortOrder && { order: sortOrder }),
-                ...(status && { status }),
               },
             }),
         }
@@ -188,62 +162,66 @@ export function SaleTableBusiness({ limit }: { limit?: number }) {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `sale${p ? "s" : ""}`,
-    rowCount: Math.max(totalSalesCount, sales?.length ?? 0),
+    rowCount: sales ? sales.length : 0,
     loading,
-    error: error || analyticsError ? "Failed to load sales" : undefined,
+    error: error ? "Failed to load sales" : undefined,
   });
 
-  return loading || sales?.length ? (
+  return (
     <div className="flex flex-col gap-3">
-      {!limit && (
-        <div>
-          <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            {loading ? (
-              <>
-                <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-24" />
-                <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-32" />
-              </>
-            ) : (
-              <>
-                <Filter.Select
-                  className="w-full md:w-fit"
+      <div>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center">
+          {loading ? (
+            <>
+              <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-24" />
+              <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-32" />
+            </>
+          ) : (
+            <>
+              <Filter.Select
+                className="w-full md:w-fit"
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+              />
+              <SimpleDateRangePicker className="w-full sm:min-w-[200px] md:w-fit" />
+            </>
+          )}
+        </div>
+        <AnimatedSizeContainer height>
+          <div>
+            {activeFilters.length > 0 && (
+              <div className="pt-3">
+                <Filter.List
                   filters={filters}
                   activeFilters={activeFilters}
-                  onSelect={onSelect}
                   onRemove={onRemove}
+                  onRemoveAll={onRemoveAll}
                 />
-                <SimpleDateRangePicker className="w-full sm:min-w-[200px] md:w-fit" />
-              </>
+              </div>
             )}
           </div>
-          <AnimatedSizeContainer height>
-            <div>
-              {activeFilters.length > 0 && (
-                <div className="pt-3">
-                  <Filter.List
-                    filters={filters}
-                    activeFilters={activeFilters}
-                    onRemove={onRemove}
-                    onRemoveAll={onRemoveAll}
-                  />
-                </div>
-              )}
-            </div>
-          </AnimatedSizeContainer>
-        </div>
+        </AnimatedSizeContainer>
+      </div>
+      {sales?.length !== 0 ? (
+        <Table {...table} />
+      ) : (
+        <AnimatedEmptyState
+          title="No sales found"
+          description={
+            isFiltered
+              ? "No sales found for the selected filters."
+              : "No sales have been made for this program yet."
+          }
+          cardContent={() => (
+            <>
+              <MoneyBill2 className="size-4 text-neutral-700" />
+              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+            </>
+          )}
+        />
       )}
-      <Table {...table} />
     </div>
-  ) : (
-    <AnimatedEmptyState
-      title="No sales found"
-      description="No sales have been made for this program yet."
-      cardContent={() => (
-        <>
-          <MoneyBill2 className="size-4 text-neutral-700" />
-          <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-        </>
-      )}
-    />
   );
 }
