@@ -204,23 +204,14 @@ export function SaleTableBusiness({ limit }: { limit?: number }) {
     <div className="flex flex-col gap-3">
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center">
-          {loading ? (
-            <>
-              <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-24" />
-              <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-32" />
-            </>
-          ) : (
-            <>
-              <Filter.Select
-                className="w-full md:w-fit"
-                filters={filters}
-                activeFilters={activeFilters}
-                onSelect={onSelect}
-                onRemove={onRemove}
-              />
-              <SimpleDateRangePicker className="w-full sm:min-w-[200px] md:w-fit" />
-            </>
-          )}
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+          />
+          <SimpleDateRangePicker className="w-full sm:min-w-[200px] md:w-fit" />
         </div>
         <AnimatedSizeContainer height>
           <div>
