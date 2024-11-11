@@ -25,6 +25,20 @@ export function ProgramStats() {
   return (
     <div className="grid grid-cols-1 divide-neutral-200 rounded-lg border border-neutral-200 max-md:divide-y md:grid-cols-4 md:divide-x">
       <Stat
+        icon={Users}
+        label="Partners"
+        tab="partners"
+        value={programStats?.partnersCount}
+        error={error}
+      />
+      <Stat
+        icon={Check2}
+        label="Sales"
+        tab="sales"
+        value={programStats?.salesCount}
+        error={error}
+      />
+      <Stat
         icon={CurrencyDollar}
         label="Revenue"
         value={programStats?.revenue}
@@ -39,20 +53,6 @@ export function ProgramStats() {
         value={programStats?.payouts}
         error={error}
         isCurrency
-      />
-      <Stat
-        icon={Users}
-        label="Partners"
-        tab="partners"
-        value={programStats?.partnersCount}
-        error={error}
-      />
-      <Stat
-        icon={Check2}
-        label="Sales"
-        tab="sales"
-        value={programStats?.salesCount}
-        error={error}
       />
     </div>
   );
