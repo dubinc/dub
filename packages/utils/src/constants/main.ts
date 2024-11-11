@@ -61,6 +61,4 @@ export const ACME_WORKSPACE_ID = "clrei1gld0002vs9mzn93p8ik";
 export const LEGAL_WORKSPACE_ID = "clrflia0j0000vs7sqfhz9c7q";
 export const LEGAL_USER_ID = "clqei1lgc0000vsnzi01pbf47";
 
-export const DEFAULT_DOTS_APP_ID = "0f01ec2b-e29e-4627-ae28-5ecc24d25935";
-
 export const R2_URL = process.env.STORAGE_BASE_URL as string;
