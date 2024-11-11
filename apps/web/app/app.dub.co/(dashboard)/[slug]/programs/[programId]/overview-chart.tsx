@@ -79,6 +79,10 @@ export function OverviewChart() {
           <div className="flex size-full items-center justify-center">
             <LoadingSpinner />
           </div>
+        ) : error ? (
+          <div className="flex size-full items-center justify-center text-sm text-neutral-500">
+            Failed to load data
+          </div>
         ) : (
           <TimeSeriesChart
             key={`${start?.toString}-${end?.toString()}-${interval?.toString()}`}
