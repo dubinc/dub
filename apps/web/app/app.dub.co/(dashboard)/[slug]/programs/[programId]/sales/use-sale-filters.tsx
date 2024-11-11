@@ -1,14 +1,23 @@
 import useSalesCount from "@/lib/swr/use-sales-count";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { EnrolledPartnerProps } from "@/lib/types";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
-import { cn, nFormatter } from "@dub/utils";
+import { cn, fetcher, nFormatter } from "@dub/utils";
+import { useParams } from "next/navigation";
 import { useMemo } from "react";
+import useSWR from "swr";
 import { SaleStatusBadges } from "./sale-table";
 
 export function useSaleFilters(extraSearchParams: Record<string, string>) {
+  const { programId } = useParams();
   const { salesCount } = useSalesCount();
   const { id: workspaceId } = useWorkspace();
   const { searchParamsObj, queryParams } = useRouterStuff();
+
+  const { data: partners } = useSWR<EnrolledPartnerProps[]>(
+    `/api/programs/${programId}/partners?workspaceId=${workspaceId}`,
+    fetcher,
+  );
 
   const filters = useMemo(
     () => [
@@ -33,14 +42,29 @@ export function useSaleFilters(extraSearchParams: Record<string, string>) {
           };
         }),
       },
+
+      {
+        key: "partnerId",
+        icon: CircleDotted,
+        label: "Partner",
+        options: (partners || []).map(({ id, name }) => {
+          return {
+            value: id,
+            label: name,
+          };
+        }),
+      },
     ],
-    [salesCount],
+    [salesCount, partners],
   );
 
   const activeFilters = useMemo(() => {
-    const { status } = searchParamsObj;
+    const { status, partnerId } = searchParamsObj;
 
-    return [...(status ? [{ key: "status", value: status }] : [])];
+    return [
+      ...(status ? [{ key: "status", value: status }] : []),
+      ...(partnerId ? [{ key: "partnerId", value: partnerId }] : []),
+    ];
   }, [searchParamsObj]);
 
   const onSelect = (key: string, value: any) =>
@@ -58,7 +82,7 @@ export function useSaleFilters(extraSearchParams: Record<string, string>) {
 
   const onRemoveAll = () =>
     queryParams({
-      del: ["status"],
+      del: ["status", "partnerId"],
     });
 
   const searchQuery = useMemo(
