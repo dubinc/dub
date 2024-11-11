@@ -143,9 +143,9 @@ function PayoutDetailsSheetContent({
       !showPagination && "[&_tr:last-child>td]:border-b-transparent", // Hide bottom row border
     ),
     scrollWrapperClassName: "min-h-[102px]",
-    resourceName: (p) => `conversion${p ? "s" : ""}`,
+    resourceName: (p) => `sale${p ? "s" : ""}`,
     loading,
-    error: error ? "Failed to load conversions" : undefined,
+    error: error ? "Failed to load sales" : undefined,
   } as any);
 
   const { executeAsync, isExecuting } = useAction(createDotsTransferAction, {
