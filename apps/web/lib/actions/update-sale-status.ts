@@ -32,6 +32,8 @@ export const updateSaleStatusAction = authActionClient
     // TODO:
     // Send email to the partner informing them about the sale status change
 
+    // TODO: [payouts] Update associated payout based on new status (fraud, duplicate, etc.)
+
     return {
       ok: true,
     };

@@ -6,20 +6,23 @@ import {
   PartnerSchema,
   SaleSchema,
 } from "@/lib/zod/schemas/partners";
+import { SaleRowMenu } from "@/ui/partners/sale-row-menu";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
   CircleCheck,
   CircleHalfDottedClock,
+  Duplicate,
   Filter,
+  ShieldAlert,
   StatusBadge,
   Table,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { MoneyBill2 } from "@dub/ui/src/icons";
+import { CircleXmark, MoneyBill2 } from "@dub/ui/src/icons";
 import {
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
@@ -56,6 +59,24 @@ export const SaleStatusBadges = {
     variant: "success",
     className: "text-green-600 bg-green-100",
     icon: CircleCheck,
+  },
+  fraud: {
+    label: "Fraud",
+    variant: "error",
+    className: "text-red-600 bg-red-100",
+    icon: ShieldAlert,
+  },
+  duplicate: {
+    label: "Duplicate",
+    variant: "error",
+    className: "text-red-600 bg-red-100",
+    icon: Duplicate,
+  },
+  refunded: {
+    label: "Refunded",
+    variant: "error",
+    className: "text-red-600 bg-red-100",
+    icon: CircleXmark,
   },
 };
 
@@ -144,7 +165,17 @@ export function SaleTableBusiness({ limit }: { limit?: number }) {
           );
         },
       },
+      // Menu
+      {
+        id: "menu",
+        enableHiding: false,
+        minSize: 43,
+        size: 43,
+        maxSize: 43,
+        cell: ({ row }) => <SaleRowMenu row={row} />,
+      },
     ],
+    columnPinning: { right: ["menu"] },
     ...(!limit
       ? {
           pagination,

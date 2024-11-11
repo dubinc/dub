@@ -19,6 +19,16 @@ function SheetRoot({
         <Drawer.Overlay className="fixed inset-0 bg-black/20" />
         <Drawer.Content
           {...contentProps}
+          onPointerDownOutside={(e) => {
+            // Don't dismiss when clicking inside a toast
+            if (
+              e.target instanceof Element &&
+              e.target.closest("[data-sonner-toast]")
+            )
+              e.preventDefault();
+
+            contentProps?.onPointerDownOutside?.(e);
+          }}
           className={cn(
             "fixed bottom-2 right-2 top-2 z-10 flex w-[calc(100%-16px)] outline-none md:w-[540px]",
             contentProps?.className,

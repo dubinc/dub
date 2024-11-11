@@ -23,6 +23,7 @@ import {
   PayoutWithSalesSchema,
   ProgramEnrollmentSchema,
   ProgramSchema,
+  SaleSchema,
 } from "./zod/schemas/partners";
 import { trackSaleResponseSchema } from "./zod/schemas/sales";
 import { tokenSchema } from "./zod/schemas/token";
@@ -297,6 +298,7 @@ export type UsageResponse = z.infer<typeof usageResponse>;
 
 export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
 
+export type SaleProps = z.infer<typeof SaleSchema>;
 export type SalesCount = Record<SaleStatus | "all", number>;
 
 export type PartnerProps = z.infer<typeof PartnerSchema>;

@@ -25,6 +25,7 @@ import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 import { PayoutStatusBadges } from "./payout-status-badges";
+import { SaleRowMenu } from "./sale-row-menu";
 
 type PayoutDetailsSheetProps = {
   payout: PayoutWithPartnerProps;
@@ -92,7 +93,10 @@ function PayoutDetailsSheetContent({
   });
 
   const table = useTable({
-    data: payoutWithSales?.sales || [],
+    data:
+      payoutWithSales?.sales?.filter(
+        ({ status }) => !["duplicate", "fraud"].includes(status),
+      ) || [],
     columns: [
       {
         header: "Sale",
@@ -115,6 +119,15 @@ function PayoutDetailsSheetContent({
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           }),
+      },
+      // Menu
+      {
+        id: "menu",
+        enableHiding: false,
+        minSize: 43,
+        size: 43,
+        maxSize: 43,
+        cell: ({ row }) => <SaleRowMenu row={row} />,
       },
     ],
     ...(showPagination && {
