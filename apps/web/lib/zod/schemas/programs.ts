@@ -10,4 +10,5 @@ export const createProgramSchema = z.object({
   recurringInterval: z.nativeEnum(CommissionInterval).nullable(),
   recurringDuration: z.number().nullable(),
   isLifetimeRecurring: z.boolean().nullable(),
+  cookieLength: z.number().min(1).max(180),
 });

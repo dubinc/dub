@@ -21,6 +21,7 @@ export const createProgramAction = authActionClient
       recurringDuration,
       recurringInterval,
       isLifetimeRecurring,
+      cookieLength,
     } = parsedInput;
 
     const program = await prisma.program.create({
@@ -35,6 +36,7 @@ export const createProgramAction = authActionClient
         recurringDuration,
         recurringInterval,
         isLifetimeRecurring,
+        cookieLength,
       },
     });
 

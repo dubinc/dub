@@ -9,7 +9,6 @@ import { AnimatedSizeContainer, Button } from "@dub/ui";
 import { CircleCheckFill, LoadingSpinner } from "@dub/ui/src/icons";
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { PropsWithChildren } from "react";
 import {
   FormProvider,
   useForm,
@@ -18,6 +17,7 @@ import {
 } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { SettingsRow } from "./settings-row";
 
 const commissionTypes = [
   {
@@ -136,7 +136,7 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
           <Summary program={program} />
         </FormProvider>
 
-        <ProgramSettingsSection
+        <SettingsRow
           heading="Commission"
           description="See how the affiliate will get rewarded"
         >
@@ -251,9 +251,9 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
               </div>
             </AnimatedSizeContainer>
           </div>
-        </ProgramSettingsSection>
+        </SettingsRow>
 
-        <ProgramSettingsSection
+        <SettingsRow
           heading="Payout"
           description="Set how much the affiliate will get rewarded"
         >
@@ -336,7 +336,7 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
               </p>
             </div>
           </div>
-        </ProgramSettingsSection>
+        </SettingsRow>
       </div>
 
       <div className="flex items-center justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-6 py-5">
@@ -363,7 +363,7 @@ function Summary({ program }: { program: ProgramProps }) {
   const data = useWatch({ control, defaultValue: program }) as FormData;
 
   return (
-    <ProgramSettingsSection heading="Summary">
+    <SettingsRow heading="Summary">
       <div className="rounded-md border border-neutral-200 bg-[#f9f9f9]">
         <AnimatedSizeContainer
           height
@@ -384,24 +384,6 @@ function Summary({ program }: { program: ProgramProps }) {
           </p>
         </AnimatedSizeContainer>
       </div>
-    </ProgramSettingsSection>
-  );
-}
-
-function ProgramSettingsSection({
-  heading,
-  description,
-  children,
-}: PropsWithChildren<{ heading: string; description?: string }>) {
-  return (
-    <div className="grid grid-cols-1 gap-4 py-8 sm:grid-cols-2">
-      <div className="flex flex-col gap-1">
-        <h3 className="font-medium leading-none text-neutral-900">{heading}</h3>
-        {description && (
-          <p className="text-sm text-neutral-600">{description}</p>
-        )}
-      </div>
-      <div>{children}</div>
-    </div>
+    </SettingsRow>
   );
 }
