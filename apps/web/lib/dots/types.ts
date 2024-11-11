@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   dotsAppSchema,
+  dotsDepositsSchema,
   dotsFlowStepsSchema,
   dotsPayoutPlatforms,
   dotsTransfersSchema,
@@ -12,6 +13,8 @@ import {
 export type DotsApp = z.infer<typeof dotsAppSchema>;
 
 export type DotsTransfers = z.infer<typeof dotsTransfersSchema>;
+
+export type DotsDeposits = z.infer<typeof dotsDepositsSchema>;
 
 export type DotsWithdrawals = z.infer<typeof dotsWithdrawalsSchema>;
 

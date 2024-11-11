@@ -1,7 +1,7 @@
 "use client";
 
 import { DotsWithdrawals } from "@/lib/dots/types";
-import { DOTS_PAYOUT_PLATFORMS } from "@/ui/dots/platforms";
+import { PlatformBadge } from "@/ui/partners/platform-badge";
 import { StatusBadge, Table, Tooltip, useTable } from "@dub/ui";
 import {
   capitalize,
@@ -20,19 +20,6 @@ const StatusBadgeVariants = {
   reversed: "error",
   canceled: "error",
   flagged: "warning",
-};
-
-const PlatformBadge = ({ platform }: { platform: string }) => {
-  const { icon: Icon, name } = DOTS_PAYOUT_PLATFORMS.find(
-    (p) => p.id === platform,
-  )!;
-
-  return (
-    <div className="flex items-center gap-1.5">
-      <Icon className="h-4 w-4" />
-      <span>{name}</span>
-    </div>
-  );
 };
 
 export const PartnerWithdrawalsActivity = () => {
@@ -54,7 +41,7 @@ export const PartnerWithdrawalsActivity = () => {
         accessorFn: (row) => formatDateTime(new Date(row.created), {}),
       },
       {
-        header: "Platform",
+        header: "Method",
         cell: ({ row }) => <PlatformBadge platform={row.original.platform} />,
       },
       {

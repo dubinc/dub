@@ -16,7 +16,7 @@ export const GET = withPartner(async ({ partner }) => {
     type: "payout",
   });
 
-  const response = data.map((t) => {
+  const processedData = data.map((t) => {
     return {
       ...t,
       platform: t.external_data?.platform,
@@ -29,7 +29,7 @@ export const GET = withPartner(async ({ partner }) => {
 
   return NextResponse.json(
     dotsWithdrawalsSchema.parse({
-      data: response,
+      data: processedData,
       has_more,
     }),
   );

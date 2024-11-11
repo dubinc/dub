@@ -1,7 +1,8 @@
 "use client";
 
-import { DotsTransfers } from "@/lib/dots/types";
+import { DotsDeposits } from "@/lib/dots/types";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { PlatformBadge } from "@/ui/partners/platform-badge";
 import { StatusBadge, Table, useTable } from "@dub/ui";
 import {
   capitalize,
@@ -29,7 +30,7 @@ const StatusBadgeVariants = {
 export const WorkspaceDepositActivity = () => {
   const { id: workspaceId } = useWorkspace();
 
-  const { data, error } = useSWR<DotsTransfers>(
+  const { data, error } = useSWR<DotsDeposits>(
     `/api/workspaces/${workspaceId}/deposits`,
     fetcher,
   );
@@ -44,17 +45,8 @@ export const WorkspaceDepositActivity = () => {
         accessorFn: (row) => formatDateTime(new Date(row.created), {}),
       },
       {
-        header: "Type",
-        accessorFn: (row) =>
-          capitalize(TRANSACTION_TYPES[row.type] ?? row.type),
-      },
-      {
-        header: "Status",
-        cell: ({ row }) => (
-          <StatusBadge variant={StatusBadgeVariants[row.original.status]}>
-            {capitalize(row.original.status)}
-          </StatusBadge>
-        ),
+        header: "Method",
+        cell: ({ row }) => <PlatformBadge platform={row.original.platform} />,
       },
       {
         header: "Amount",
@@ -63,6 +55,14 @@ export const WorkspaceDepositActivity = () => {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           }),
+      },
+      {
+        header: "Status",
+        cell: ({ row }) => (
+          <StatusBadge variant={StatusBadgeVariants[row.original.status]}>
+            {capitalize(row.original.status)}
+          </StatusBadge>
+        ),
       },
     ],
     thClassName: "border-l-0",

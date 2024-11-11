@@ -48,7 +48,6 @@ export const dotsAppSchema = z.object({
 const dotsTransferSchema = z.object({
   id: z.string(),
   created: z.string(),
-  user_id: z.string(),
   status: z.enum([
     "created",
     "pending",
@@ -83,6 +82,15 @@ export const dotsWithdrawalSchema = dotsTransferSchema
 
 export const dotsWithdrawalsSchema = z.object({
   data: z.array(dotsWithdrawalSchema),
+  has_more: z.boolean(),
+});
+
+export const dotsDepositSchema = dotsWithdrawalSchema.omit({
+  fee: true,
+});
+
+export const dotsDepositsSchema = z.object({
+  data: z.array(dotsDepositSchema),
   has_more: z.boolean(),
 });
 
