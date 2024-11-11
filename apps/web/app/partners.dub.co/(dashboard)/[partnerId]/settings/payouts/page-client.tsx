@@ -73,7 +73,7 @@ export function PayoutsSettingsPageClient() {
       )}
       <div className="min-h-screen">
         {partner?.dotsUserId && dotsUser?.verified ? (
-          <div className="grid gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <div className="grid gap-4 rounded-lg border border-neutral-300 bg-white p-5">
               <div className="grid divide-neutral-200 rounded-lg border border-neutral-200 bg-neutral-50 max-sm:divide-y sm:grid-cols-[repeat(2,minmax(0,1fr))] sm:divide-x">
                 <div className="flex flex-col p-4">
