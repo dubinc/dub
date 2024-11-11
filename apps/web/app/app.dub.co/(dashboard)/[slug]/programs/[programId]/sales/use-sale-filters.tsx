@@ -2,7 +2,8 @@ import useSalesCount from "@/lib/swr/use-sales-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
-import { cn, fetcher, nFormatter } from "@dub/utils";
+import { Users } from "@dub/ui/src/icons";
+import { cn, DICEBEAR_AVATAR_URL, fetcher, nFormatter } from "@dub/utils";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";
@@ -45,12 +46,19 @@ export function useSaleFilters(extraSearchParams: Record<string, string>) {
 
       {
         key: "partnerId",
-        icon: CircleDotted,
+        icon: Users,
         label: "Partner",
-        options: (partners || []).map(({ id, name }) => {
+        options: (partners || []).map(({ id, name, logo }) => {
           return {
             value: id,
             label: name,
+            icon: (
+              <img
+                src={logo || `${DICEBEAR_AVATAR_URL}${name}`}
+                alt={`${name} avatar`}
+                className="size-4 rounded-full"
+              />
+            ),
           };
         }),
       },
