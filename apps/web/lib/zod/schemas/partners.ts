@@ -1,3 +1,4 @@
+import { intervals } from "@/lib/analytics/constants";
 import {
   CommissionInterval,
   CommissionType,
@@ -10,6 +11,7 @@ import {
 import { z } from "zod";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
+import { parseDateSchema } from "./utils";
 
 export const partnersQuerySchema = z
   .object({
@@ -128,3 +130,23 @@ export const PayoutWithSalesSchema = PayoutSchema.and(
     ),
   }),
 );
+
+export const getSalesQuerySchema = z
+  .object({
+    status: z.nativeEnum(SaleStatus).optional(),
+    order: z.enum(["asc", "desc"]).default("desc"),
+    sortBy: z.enum(["createdAt", "amount"]).default("createdAt"),
+    interval: z.enum(intervals).default("30d"),
+    start: parseDateSchema.optional(),
+    end: parseDateSchema.optional(),
+    payoutId: z.string().optional(),
+    partnerId: z.string().optional(),
+  })
+  .merge(getPaginationQuerySchema({ pageSize: 100 }));
+
+export const getSalesCountQuerySchema = getSalesQuerySchema.omit({
+  page: true,
+  pageSize: true,
+  order: true,
+  sortBy: true,
+});

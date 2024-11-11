@@ -23,6 +23,24 @@ export function useSaleFilters(extraSearchParams: Record<string, string>) {
   const filters = useMemo(
     () => [
       {
+        key: "partnerId",
+        icon: Users,
+        label: "Partner",
+        options: (partners || []).map(({ id, name, logo }) => {
+          return {
+            value: id,
+            label: name,
+            icon: (
+              <img
+                src={logo || `${DICEBEAR_AVATAR_URL}${name}`}
+                alt={`${name} avatar`}
+                className="size-4 rounded-full"
+              />
+            ),
+          };
+        }),
+      },
+      {
         key: "status",
         icon: CircleDotted,
         label: "Status",
@@ -40,25 +58,6 @@ export function useSaleFilters(extraSearchParams: Record<string, string>) {
               />
             ),
             right: nFormatter(salesCount?.[value] || 0, { full: true }),
-          };
-        }),
-      },
-
-      {
-        key: "partnerId",
-        icon: Users,
-        label: "Partner",
-        options: (partners || []).map(({ id, name, logo }) => {
-          return {
-            value: id,
-            label: name,
-            icon: (
-              <img
-                src={logo || `${DICEBEAR_AVATAR_URL}${name}`}
-                alt={`${name} avatar`}
-                className="size-4 rounded-full"
-              />
-            ),
           };
         }),
       },

@@ -1,6 +1,7 @@
 "use client";
 
 import { generateRandomName } from "@/lib/names";
+import useSalesCount from "@/lib/swr/use-sales-count";
 import {
   CustomerSchema,
   PartnerSchema,
@@ -106,6 +107,7 @@ export function SaleTableBusiness({ limit }: { limit?: number }) {
     ...(payoutId && { payoutId }),
   });
 
+  const { salesCount } = useSalesCount();
   const { data: sales, error } = useSWR<z.infer<typeof salesSchema>[]>(
     `/api/programs/${programId}/sales?${searchQuery}`,
     fetcher,
@@ -195,7 +197,7 @@ export function SaleTableBusiness({ limit }: { limit?: number }) {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `sale${p ? "s" : ""}`,
-    rowCount: sales ? sales.length : 0,
+    rowCount: salesCount?.[status || "all"] ?? 0,
     loading,
     error: error ? "Failed to load sales" : undefined,
   });
