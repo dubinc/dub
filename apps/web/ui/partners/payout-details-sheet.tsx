@@ -1,6 +1,6 @@
 import { createDotsTransferAction } from "@/lib/actions/partners/create-dots-transfer";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutWithPartnerProps } from "@/lib/types";
+import { PayoutWithPartnerProps, PayoutWithSalesProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -15,14 +15,14 @@ import {
   cn,
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
+  fetcher,
   formatDate,
 } from "@dub/utils";
-import { subDays } from "date-fns";
 import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
+import useSWR, { mutate } from "swr";
 import { PayoutStatusBadges } from "./payout-status-badges";
 
 type PayoutDetailsSheetProps = {
@@ -34,35 +34,22 @@ function PayoutDetailsSheetContent({
   payout,
   setIsOpen,
 }: PayoutDetailsSheetProps) {
-  const { programId } = useParams() as { programId: string };
   const { id: workspaceId } = useWorkspace();
-  const canConfirmPayout = payout.status === "pending";
+  const { programId } = useParams() as { programId: string };
 
-  // TODO: [payouts] Fetch real data
-  const totalConversions = 2;
-  const conversions = [
-    {
-      id: "1",
-      date: subDays(payout.periodEnd, 1).toISOString(),
-      customer: {
-        email: "steven@address.com",
-      },
-      amount: 1000,
-    },
-    {
-      id: "2",
-      date: subDays(payout.periodEnd, 2).toISOString(),
-      customer: {
-        email: "marcus@address.com",
-      },
-      amount: 1600,
-    },
-  ];
-  const error = null;
-  const loading = !conversions && !error;
+  const { data: payoutWithSales, error } = useSWR<PayoutWithSalesProps>(
+    `/api/programs/${programId}/payouts/${payout.id}?workspaceId=${workspaceId}`,
+    fetcher,
+  );
+
+  const totalConversions = payoutWithSales?.sales?.length || 0;
+  const loading = !payoutWithSales && !error;
+  const canConfirmPayout = payout.status === "pending";
+  const showPagination = totalConversions > 100;
 
   const invoiceData = useMemo(() => {
     const statusBadge = PayoutStatusBadges[payout.status];
+
     return {
       Partner: (
         <div className="flex items-center gap-2">
@@ -103,10 +90,8 @@ function PayoutDetailsSheetContent({
     page: 1,
   });
 
-  const showPagination = totalConversions > 100;
-
   const table = useTable({
-    data: conversions || [],
+    data: payoutWithSales?.sales || [],
     columns: [
       {
         header: "Conversion",

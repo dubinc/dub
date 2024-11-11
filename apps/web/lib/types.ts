@@ -20,6 +20,7 @@ import {
   EnrolledPartnerSchema,
   PartnerSchema,
   PayoutSchema,
+  PayoutWithSalesSchema,
   ProgramEnrollmentSchema,
   ProgramSchema,
 } from "./zod/schemas/partners";
@@ -308,6 +309,8 @@ export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 export type PayoutsCount = Record<PayoutStatus | "all", number>;
 
 export type PayoutProps = z.infer<typeof PayoutSchema>;
+
+export type PayoutWithSalesProps = z.infer<typeof PayoutWithSalesSchema>;
 
 export type PayoutWithPartnerProps = z.infer<typeof PayoutSchema> & {
   partner: PartnerProps;

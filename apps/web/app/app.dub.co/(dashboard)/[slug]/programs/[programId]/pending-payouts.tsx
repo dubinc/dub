@@ -17,8 +17,16 @@ export function PendingPayouts() {
   const { slug, programId } = useParams();
   const { id: workspaceId } = useWorkspace();
 
+  const searchParams = new URLSearchParams({
+    status: "pending",
+    sortBy: "periodStart",
+    order: "desc",
+    pageSize: "5",
+    workspaceId: workspaceId!,
+  });
+
   const { data: payouts, error } = useSWR<PayoutWithPartnerProps[]>(
-    `/api/programs/${programId}/payouts?workspaceId=${workspaceId}&status=pending&sortBy=periodStart&order=desc&pageSize=5`,
+    `/api/programs/${programId}/payouts?${searchParams.toString()}`,
     fetcher,
   );
 

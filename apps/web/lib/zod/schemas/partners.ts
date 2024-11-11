@@ -117,3 +117,15 @@ export const SaleSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 });
+
+export const PayoutWithSalesSchema = PayoutSchema.and(
+  z.object({
+    partner: PartnerSchema,
+    sales: z.array(
+      SaleSchema.extend({
+        customer: CustomerSchema,
+      }),
+    ),
+    _count: z.object({ sales: z.number() }),
+  }),
+);

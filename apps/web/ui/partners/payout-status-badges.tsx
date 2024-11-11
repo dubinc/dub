@@ -23,28 +23,4 @@ export const PayoutStatusBadges = {
     icon: CircleWarning,
     className: "text-red-600 bg-red-100",
   },
-  // created: {
-  //   label: "Created",
-  //   variant: "new",
-  //   icon: CircleHalfDottedCheck,
-  //   className: "text-gray-600 bg-gray-100",
-  // },
-  // reversed: {
-  //   label: "Reversed",
-  //   variant: "error",
-  //   icon: CircleHalfDottedClock,
-  //   className: "text-red-600 bg-red-100",
-  // },
-  // canceled: {
-  //   label: "Canceled",
-  //   variant: "error",
-  //   icon: CircleXmark,
-  //   className: "text-red-600 bg-red-100",
-  // },
-  // flagged: {
-  //   label: "Flagged",
-  //   variant: "warning",
-  //   icon: CircleWarning,
-  //   className: "text-yellow-600 bg-yellow-100",
-  // },
 };
