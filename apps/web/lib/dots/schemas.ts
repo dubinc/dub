@@ -1,21 +1,5 @@
 import z from "../zod";
 
-const dotsTransferSchema = z.object({
-  id: z.string(),
-  amount: z.string(),
-  type: z.enum(["refill", "payout", "balance"]),
-  status: z.enum([
-    "created",
-    "pending",
-    "failed",
-    "completed",
-    "reversed",
-    "canceled",
-    "flagged",
-  ]),
-  created: z.string(),
-});
-
 export const dotsFlowStepsSchema = z.enum([
   "compliance",
   "manage-payments",
@@ -26,6 +10,16 @@ export const dotsFlowStepsSchema = z.enum([
   "redirect",
   "credit-card-payment",
   "background-check",
+]);
+
+export const dotsPayoutPlatforms = z.enum([
+  "ach",
+  "paypal",
+  "venmo",
+  "cash_app",
+  "intl_transfer",
+  "airtm",
+  "payoneer",
 ]);
 
 export const addBankAccountSchema = z.object({
@@ -51,20 +45,46 @@ export const dotsAppSchema = z.object({
   }),
 });
 
+const dotsTransferSchema = z.object({
+  id: z.string(),
+  created: z.string(),
+  user_id: z.string(),
+  status: z.enum([
+    "created",
+    "pending",
+    "failed",
+    "completed",
+    "reversed",
+    "canceled",
+    "flagged",
+  ]),
+  type: z.enum(["refill", "payout", "balance"]),
+  amount: z.string(),
+  external_data: z.any(),
+  transactions: z.array(z.any()),
+});
+
 export const dotsTransfersSchema = z.object({
   data: z.array(dotsTransferSchema),
   has_more: z.boolean(),
 });
 
-export const dotsPayoutPlatforms = z.enum([
-  "ach",
-  "paypal",
-  "venmo",
-  "cash_app",
-  "intl_transfer",
-  "airtm",
-  "payoneer",
-]);
+export const dotsWithdrawalSchema = dotsTransferSchema
+  .pick({
+    id: true,
+    created: true,
+    status: true,
+    amount: true,
+  })
+  .extend({
+    platform: dotsPayoutPlatforms,
+    fee: z.string(),
+  });
+
+export const dotsWithdrawalsSchema = z.object({
+  data: z.array(dotsWithdrawalSchema),
+  has_more: z.boolean(),
+});
 
 export const payoutMethodSchema = z.object({
   platform: dotsPayoutPlatforms,

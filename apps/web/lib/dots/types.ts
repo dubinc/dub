@@ -5,12 +5,15 @@ import {
   dotsPayoutPlatforms,
   dotsTransfersSchema,
   dotsUserSchema,
+  dotsWithdrawalsSchema,
   payoutMethodSchema,
 } from "./schemas";
 
 export type DotsApp = z.infer<typeof dotsAppSchema>;
 
 export type DotsTransfers = z.infer<typeof dotsTransfersSchema>;
+
+export type DotsWithdrawals = z.infer<typeof dotsWithdrawalsSchema>;
 
 export type PayoutMethod = z.infer<typeof payoutMethodSchema>;
 

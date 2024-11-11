@@ -1,7 +1,8 @@
 "use client";
 
-import { DotsTransfers } from "@/lib/dots/types";
-import { StatusBadge, Table, useTable } from "@dub/ui";
+import { DotsWithdrawals } from "@/lib/dots/types";
+import { DOTS_PAYOUT_PLATFORMS } from "@/ui/dots/platforms";
+import { StatusBadge, Table, Tooltip, useTable } from "@dub/ui";
 import {
   capitalize,
   currencyFormatter,
@@ -10,11 +11,6 @@ import {
 } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-
-const TRANSACTION_TYPES = {
-  refill: "Deposit",
-  payout: "Withdrawal",
-};
 
 const StatusBadgeVariants = {
   created: "new",
@@ -26,10 +22,23 @@ const StatusBadgeVariants = {
   flagged: "warning",
 };
 
+const PlatformBadge = ({ platform }: { platform: string }) => {
+  const { icon: Icon, name } = DOTS_PAYOUT_PLATFORMS.find(
+    (p) => p.id === platform,
+  )!;
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <Icon className="h-4 w-4" />
+      <span>{name}</span>
+    </div>
+  );
+};
+
 export const PartnerWithdrawalsActivity = () => {
   const { partnerId } = useParams();
 
-  const { data, error } = useSWR<DotsTransfers>(
+  const { data, error } = useSWR<DotsWithdrawals>(
     `/api/partners/${partnerId}/withdrawals`,
     fetcher,
   );
@@ -45,17 +54,8 @@ export const PartnerWithdrawalsActivity = () => {
         accessorFn: (row) => formatDateTime(new Date(row.created), {}),
       },
       {
-        header: "Type",
-        accessorFn: (row) =>
-          capitalize(TRANSACTION_TYPES[row.type] ?? row.type),
-      },
-      {
-        header: "Status",
-        cell: ({ row }) => (
-          <StatusBadge variant={StatusBadgeVariants[row.original.status]}>
-            {capitalize(row.original.status)}
-          </StatusBadge>
-        ),
+        header: "Platform",
+        cell: ({ row }) => <PlatformBadge platform={row.original.platform} />,
       },
       {
         header: "Amount",
@@ -64,6 +64,30 @@ export const PartnerWithdrawalsActivity = () => {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           }),
+      },
+      {
+        header: "Fee",
+        cell: ({ row }) =>
+          row.original.fee === "0" ? (
+            <Tooltip content="Since this withdrawal was above $1,000 and in the US, we covered the fee.">
+              <span className="cursor-default truncate underline decoration-dotted">
+                No fee
+              </span>
+            </Tooltip>
+          ) : (
+            currencyFormatter(parseFloat(row.original.fee) / 100, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })
+          ),
+      },
+      {
+        header: "Status",
+        cell: ({ row }) => (
+          <StatusBadge variant={StatusBadgeVariants[row.original.status]}>
+            {capitalize(row.original.status)}
+          </StatusBadge>
+        ),
       },
     ],
     thClassName: "border-l-0",
