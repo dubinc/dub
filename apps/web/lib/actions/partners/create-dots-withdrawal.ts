@@ -28,11 +28,6 @@ export const createDotsWithdrawalAction = authPartnerActionClient
 
     const amountToWithdraw = dotsUser.wallet.withdrawable_amount;
 
-    console.log({
-      country: partner.country,
-      amount: amountToWithdraw,
-    });
-
     const response = await createWithdrawal({
       dotsUserId: partner.dotsUserId,
       amount: amountToWithdraw,
