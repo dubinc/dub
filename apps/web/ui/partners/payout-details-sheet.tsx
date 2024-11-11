@@ -10,6 +10,7 @@ import {
   useTable,
   useTablePagination,
 } from "@dub/ui";
+import { LoadingSpinner } from "@dub/ui/src/icons";
 import {
   capitalize,
   cn,
@@ -143,8 +144,10 @@ function PayoutDetailsSheetContent({
       !showPagination && "[&_tr:last-child>td]:border-b-transparent", // Hide bottom row border
     ),
     scrollWrapperClassName: "min-h-[102px]",
+    emptyStateClassName: "h-[102px]",
     resourceName: (p) => `sale${p ? "s" : ""}`,
-    loading,
+    loading: false, // Custom loading state below
+    emptyState: loading ? <LoadingSpinner /> : undefined,
     error: error ? "Failed to load sales" : undefined,
   } as any);
 

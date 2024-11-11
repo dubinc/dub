@@ -58,6 +58,7 @@ type UseTableProps<T> = {
   className?: string;
   containerClassName?: string;
   scrollWrapperClassName?: string;
+  emptyStateClassName?: string;
   thClassName?: string | ((columnId: string) => string);
   tdClassName?: string | ((columnId: string) => string);
 } & (
@@ -149,6 +150,7 @@ export function Table<T>({
   className,
   containerClassName,
   scrollWrapperClassName,
+  emptyStateClassName,
   thClassName,
   tdClassName,
   table,
@@ -319,7 +321,12 @@ export function Table<T>({
           {children}
         </div>
       ) : (
-        <div className="flex h-96 w-full items-center justify-center text-sm text-gray-500">
+        <div
+          className={cn(
+            "flex h-96 w-full items-center justify-center text-sm text-gray-500",
+            emptyStateClassName,
+          )}
+        >
           {error ||
             emptyState ||
             `No ${resourceName?.(true) || "items"} found.`}
