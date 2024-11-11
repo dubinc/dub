@@ -6,6 +6,7 @@ import {
   PayoutStatus,
   ProgramEnrollmentStatus,
   Project,
+  SaleStatus,
   UtmTemplate,
   Webhook,
 } from "@prisma/client";
@@ -294,6 +295,8 @@ export type TrackSaleResponse = z.infer<typeof trackSaleResponseSchema>;
 export type UsageResponse = z.infer<typeof usageResponse>;
 
 export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
+
+export type SalesCount = Record<SaleStatus | "all", number>;
 
 export type PartnerProps = z.infer<typeof PartnerSchema>;
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;

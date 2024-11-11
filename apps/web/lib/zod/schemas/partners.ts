@@ -114,7 +114,6 @@ export const SaleSchema = z.object({
   commissionEarned: z.number(),
   currency: z.string(),
   status: z.nativeEnum(SaleStatus),
-  program: ProgramSchema,
   createdAt: z.date(),
   updatedAt: z.date(),
 });

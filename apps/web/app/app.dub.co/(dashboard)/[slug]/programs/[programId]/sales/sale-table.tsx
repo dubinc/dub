@@ -1,35 +1,91 @@
 "use client";
 
 import { generateRandomName } from "@/lib/names";
-import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
+import {
+  CustomerSchema,
+  PartnerSchema,
+  SaleSchema,
+} from "@/lib/zod/schemas/partners";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
-  Avatar,
-  CopyButton,
+  CircleCheck,
+  CircleHalfDottedClock,
+  CircleXmark,
   Filter,
+  StatusBadge,
   Table,
-  Tooltip,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
 import { MoneyBill2 } from "@dub/ui/src/icons";
-import { currencyFormatter, fetcher, formatDate } from "@dub/utils";
+import {
+  currencyFormatter,
+  DICEBEAR_AVATAR_URL,
+  fetcher,
+  formatDate,
+} from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { z } from "zod";
 import { useSaleFilters } from "./use-sale-filters";
 
+const salesSchema = SaleSchema.and(
+  z.object({
+    customer: CustomerSchema,
+    partner: PartnerSchema,
+  }),
+);
+
+export const SaleStatusBadges = {
+  pending: {
+    label: "Pending",
+    variant: "pending",
+    className: "text-orange-600 bg-orange-100",
+    icon: CircleHalfDottedClock,
+  },
+  reconciled: {
+    label: "Reconciled",
+    variant: "neutral",
+    className: "text-neutral-600 bg-neutral-100",
+    icon: CircleHalfDottedClock,
+  },
+  paid: {
+    label: "Paid",
+    variant: "success",
+    className: "text-green-600 bg-green-100",
+    icon: CircleCheck,
+  },
+  refunded: {
+    label: "Refunded",
+    variant: "warning",
+    className: "text-red-600 bg-red-100",
+    icon: CircleXmark,
+  },
+  duplicate: {
+    label: "Duplicate",
+    variant: "error",
+    className: "text-red-600 bg-red-100",
+    icon: CircleXmark,
+  },
+  fraud: {
+    label: "Fraud",
+    variant: "error",
+    className: "text-red-600 bg-red-100",
+    icon: CircleXmark,
+  },
+};
+
 export function SaleTableBusiness({ limit }: { limit?: number }) {
   const { programId } = useParams();
-  const { queryParams, searchParamsObj } = useRouterStuff();
+  const { pagination, setPagination } = usePagination(limit);
+  const { queryParams, searchParams } = useRouterStuff();
 
-  const { sortBy = "timestamp", order = "desc" } = searchParamsObj as {
-    sortBy?: "timestamp";
-    order?: "asc" | "desc";
-  };
+  const sortBy = searchParams.get("sort") || "createdAt";
+  const order = searchParams.get("order") === "asc" ? "asc" : "desc";
+  const status = searchParams.get("status");
 
   const {
     filters,
@@ -38,96 +94,85 @@ export function SaleTableBusiness({ limit }: { limit?: number }) {
     onRemove,
     onRemoveAll,
     searchQuery,
-  } = useSaleFilters({ event: "sales", interval: "30d", sortBy, order });
+  } = useSaleFilters({
+    interval: "30d",
+    sortBy,
+    order,
+    ...(status && { status }),
+  });
 
-  const { data: analyticsData, error: analyticsError } = useSWR<{
-    sales: number;
-  }>(
-    `/api/programs/${programId}/analytics?${searchQuery}&groupBy=count`,
+  // TODO: Add analytics
+  const { data: analyticsData, error: analyticsError } = {
+    data: { sales: 0 },
+    error: null,
+  };
+
+  const { data: sales, error } = useSWR<z.infer<typeof salesSchema>[]>(
+    `/api/programs/${programId}/sales?${searchQuery}`,
     fetcher,
   );
 
   const totalSalesCount = analyticsData?.sales ?? 0;
-
-  const { data: sales, error } = useSWR<
-    z.infer<typeof saleEventResponseSchema>[]
-  >(`/api/programs/${programId}/events?${searchQuery}`, fetcher);
-
   const loading = (!sales || !analyticsData) && !error && !analyticsError;
-
-  const { pagination, setPagination } = usePagination(limit);
 
   const table = useTable({
     data: sales?.slice(0, limit) || [],
     columns: [
       {
-        id: "timestamp",
+        id: "createdAt",
         header: "Date",
-        accessorFn: (d) => formatDate(d.timestamp, { month: "short" }),
+        accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
       },
       {
         header: "Customer",
+        accessorFn: (d) =>
+          d.customer.name || d.customer.email || generateRandomName(),
+      },
+      {
+        header: "Partner",
         cell: ({ row }) => {
-          const customer = row.original.customer;
-          const display =
-            customer.name || customer.email || generateRandomName();
           return (
-            <Tooltip
-              content={
-                <div className="w-full p-3">
-                  <Avatar
-                    user={{
-                      name: customer.name,
-                      email: customer.email,
-                      image: customer.avatar,
-                    }}
-                    className="h-8 w-8"
-                  />
-                  <p className="mt-2 text-sm font-semibold text-gray-700">
-                    {display}
-                  </p>
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
-                    <p>{customer.email}</p>
-                    <CopyButton
-                      value={customer.email}
-                      variant="neutral"
-                      className="p-1 [&>*]:h-3 [&>*]:w-3"
-                      successMessage="Copied email to clipboard!"
-                    />
-                  </div>
-                </div>
-              }
-            >
-              <div className="flex items-center gap-3" title={display}>
-                <img
-                  alt={display}
-                  src={customer.avatar}
-                  className="size-4 shrink-0 rounded-full border border-gray-200"
-                />
-                <span className="truncate">{display}</span>
-              </div>
-            </Tooltip>
+            <div className="flex items-center gap-2">
+              <img
+                src={
+                  row.original.partner.logo ||
+                  `${DICEBEAR_AVATAR_URL}${row.original.partner.name}`
+                }
+                alt={row.original.partner.name}
+                className="size-5 rounded-full"
+              />
+              <div>{row.original.partner.name}</div>
+            </div>
           );
         },
       },
       {
-        header: "Partner",
-        accessorFn: () => "-",
-      },
-      {
+        id: "amount",
         header: "Amount",
         accessorFn: (d) =>
-          currencyFormatter(d.saleAmount / 100, {
+          currencyFormatter(d.amount / 100, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           }),
+      },
+      {
+        header: "Status",
+        cell: ({ row }) => {
+          const badge = SaleStatusBadges[row.original.status];
+
+          return (
+            <StatusBadge icon={null} variant={badge.variant}>
+              {badge.label}
+            </StatusBadge>
+          );
+        },
       },
     ],
     ...(!limit
       ? {
           pagination,
           onPaginationChange: setPagination,
-          sortableColumns: ["timestamp"],
+          sortableColumns: ["createdAt", "amount"],
           sortBy,
           sortOrder: order,
           onSortChange: ({ sortBy, sortOrder }) =>
@@ -135,6 +180,7 @@ export function SaleTableBusiness({ limit }: { limit?: number }) {
               set: {
                 ...(sortBy && { sort: sortBy }),
                 ...(sortOrder && { order: sortOrder }),
+                ...(status && { status }),
               },
             }),
         }

@@ -5,6 +5,7 @@ import {
   CustomerSchema,
   PartnerSchema,
   PayoutSchema,
+  ProgramSchema,
   SaleSchema,
 } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
@@ -16,6 +17,7 @@ const responseSchema = PayoutSchema.and(
     sales: z.array(
       SaleSchema.extend({
         customer: CustomerSchema,
+        program: ProgramSchema,
       }),
     ),
     _count: z.object({ sales: z.number() }),

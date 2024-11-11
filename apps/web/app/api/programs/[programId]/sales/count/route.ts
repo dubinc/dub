@@ -1,10 +1,10 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { ProgramEnrollmentStatus } from "@prisma/client";
+import { SaleStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 
-// GET /api/programs/[programId]/partners/count
+// GET /api/programs/[programId]/sales/count
 export const GET = withWorkspace(async ({ workspace, params }) => {
   const { programId } = params;
 
@@ -13,7 +13,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     programId,
   });
 
-  const programEnrollments = await prisma.programEnrollment.groupBy({
+  const salesCount = await prisma.sale.groupBy({
     by: ["status"],
     where: {
       programId,
@@ -21,22 +21,22 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     _count: true,
   });
 
-  const counts = programEnrollments.reduce(
+  const counts = salesCount.reduce(
     (acc, p) => {
       acc[p.status] = p._count;
       return acc;
     },
-    {} as Record<ProgramEnrollmentStatus | "all", number>,
+    {} as Record<SaleStatus | "all", number>,
   );
 
   // fill in missing statuses with 0
-  Object.values(ProgramEnrollmentStatus).forEach((status) => {
+  Object.values(SaleStatus).forEach((status) => {
     if (!(status in counts)) {
       counts[status] = 0;
     }
   });
 
-  counts.all = programEnrollments.reduce((acc, p) => acc + p._count, 0);
+  counts.all = salesCount.reduce((acc, p) => acc + p._count, 0);
 
   return NextResponse.json(counts);
 });
