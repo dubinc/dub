@@ -17,6 +17,7 @@ import {
   DICEBEAR_AVATAR_URL,
   fetcher,
   formatDate,
+  formatDateTime,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
@@ -94,8 +95,17 @@ function PayoutDetailsSheetContent({
     data: payoutWithSales?.sales || [],
     columns: [
       {
-        header: "Conversion",
-        cell: ({ row }) => row.original.customer.email,
+        header: "Sale",
+        cell: ({ row }) => (
+          <div className="flex flex-col">
+            <span className="text-sm text-neutral-700">
+              {row.original.customer.email || row.original.customer.name}
+            </span>
+            <span className="text-xs text-neutral-500">
+              {formatDateTime(row.original.createdAt)}
+            </span>
+          </div>
+        ),
       },
       {
         id: "total",
