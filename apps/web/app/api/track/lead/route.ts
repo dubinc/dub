@@ -36,12 +36,12 @@ export const POST = withWorkspaceEdge(
       `recordLead:${externalId}:${eventName.toLowerCase().replace(" ", "-")}`,
     );
 
-    // if (!success) {
-    //   throw new DubApiError({
-    //     code: "rate_limit_exceeded",
-    //     message: `Rate limit exceeded for customer ${externalId}: ${eventName}`,
-    //   });
-    // }
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message: `Rate limit exceeded for customer ${externalId}: ${eventName}`,
+      });
+    }
 
     // Find click event
     const clickEvent = await getClickEvent({ clickId });
