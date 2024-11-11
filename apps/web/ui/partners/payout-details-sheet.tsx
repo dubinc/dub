@@ -142,7 +142,7 @@ function PayoutDetailsSheetContent({
     className: cn(
       !showPagination && "[&_tr:last-child>td]:border-b-transparent", // Hide bottom row border
     ),
-    scrollWrapperClassName: "min-h-0",
+    scrollWrapperClassName: "min-h-[102px]",
     resourceName: (p) => `conversion${p ? "s" : ""}`,
     loading,
     error: error ? "Failed to load conversions" : undefined,
