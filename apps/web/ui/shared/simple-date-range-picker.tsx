@@ -16,7 +16,7 @@ export default function SimpleDateRangePicker({
   return (
     <DateRangePicker
       className={className}
-      align="end"
+      align="middle"
       value={
         start && end
           ? {

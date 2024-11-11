@@ -1,31 +1,16 @@
-import { INTERVAL_DATA, intervals } from "@/lib/analytics/constants";
+import { INTERVAL_DATA } from "@/lib/analytics/constants";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getPaginationQuerySchema } from "@/lib/zod/schemas/misc";
 import {
   CustomerSchema,
+  getSalesQuerySchema,
   PartnerSchema,
   SaleSchema,
 } from "@/lib/zod/schemas/partners";
-import { parseDateSchema } from "@/lib/zod/schemas/utils";
-import { SaleStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-const salesQuerySchema = z
-  .object({
-    status: z.nativeEnum(SaleStatus).optional(),
-    order: z.enum(["asc", "desc"]).default("desc"),
-    sortBy: z.enum(["createdAt", "amount"]).default("createdAt"),
-    interval: z.enum(intervals).default("30d"),
-    start: parseDateSchema.optional(),
-    end: parseDateSchema.optional(),
-    payoutId: z.string().optional(),
-    partnerId: z.string().optional(),
-  })
-  .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
 const responseSchema = SaleSchema.and(
   z.object({
@@ -38,7 +23,7 @@ const responseSchema = SaleSchema.and(
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
-    const parsed = salesQuerySchema.parse(searchParams);
+    const parsed = getSalesQuerySchema.parse(searchParams);
     const { page, pageSize, status, order, sortBy, payoutId, partnerId } =
       parsed;
 
