@@ -1,7 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { processMonthlyPartnerPayouts } from "@/lib/api/sales/payout";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { NextResponse } from "next/server";
+import { processMonthlyPartnerPayouts } from "./utils";
 
 export const dynamic = "force-dynamic";
 

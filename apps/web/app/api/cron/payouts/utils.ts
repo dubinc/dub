@@ -1,6 +1,5 @@
+import { createId } from "@/lib/api/utils";
 import { prisma } from "@/lib/prisma";
-import { subDays } from "date-fns";
-import { createId } from "../utils";
 
 // Payout are calcuated at the end of the month
 export const processMonthlyPartnerPayouts = async () => {
@@ -39,9 +38,9 @@ export const createPartnerPayouts = async ({
         partnerId,
         payoutId: null,
         status: "pending", // We only want to pay out sales that are pending (not refunded / fraud / duplicate)
-        createdAt: {
-          lte: subDays(new Date(), 30), // Referral commissions are held for 30 days before becoming available.
-        },
+        // createdAt: {
+        //   lte: subDays(new Date(), 30), // Referral commissions are held for 30 days before becoming available.
+        // },
       },
       select: {
         id: true,
@@ -76,7 +75,7 @@ export const createPartnerPayouts = async ({
     // Create the payout
     const payout = await tx.payout.create({
       data: {
-        id: createId({ prefix: "" }),
+        id: createId({ prefix: "po_" }),
         programId,
         partnerId,
         amount,

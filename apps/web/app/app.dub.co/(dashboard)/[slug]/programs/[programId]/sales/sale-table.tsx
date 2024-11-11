@@ -50,8 +50,8 @@ export const SaleStatusBadges = {
   },
   reconciled: {
     label: "Reconciled",
-    variant: "neutral",
-    className: "text-neutral-600 bg-neutral-100",
+    variant: "new",
+    className: "text-blue-600 bg-blue-100",
     icon: CircleHalfDottedClock,
   },
   paid: {
