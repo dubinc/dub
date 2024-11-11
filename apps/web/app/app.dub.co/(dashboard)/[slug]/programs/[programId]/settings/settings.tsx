@@ -9,8 +9,13 @@ import { AnimatedSizeContainer, Button } from "@dub/ui";
 import { CircleCheckFill, LoadingSpinner } from "@dub/ui/src/icons";
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { PropsWithChildren, useEffect, useState } from "react";
-import { FormProvider, useForm, useFormContext } from "react-hook-form";
+import { PropsWithChildren } from "react";
+import {
+  FormProvider,
+  useForm,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
@@ -76,7 +81,8 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
     watch,
     setValue,
     handleSubmit,
-    formState: { isSubmitting, isValid, errors },
+    reset,
+    formState: { isDirty, isValid, isSubmitting, errors },
   } = form;
 
   const [
@@ -116,6 +122,9 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
               : data.commissionAmount,
           minimumPayout: data.minimumPayout * 100,
         });
+
+        // Reset isDirty state
+        reset({}, { keepValues: true });
       })}
     >
       <div className="flex items-center border-b border-neutral-200 p-6">
@@ -229,7 +238,7 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
                           ? [1, 2]
                           : [1, 3, 6, 12, 18, 24]
                         ).map((v) => (
-                          <option value={v}>
+                          <option value={v} key={v}>
                             {v}{" "}
                             {pluralize(program.recurringInterval ?? "month", v)}
                           </option>
@@ -336,7 +345,7 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
             text="Save changes"
             className="h-8"
             loading={isSubmitting}
-            disabled={!isValid}
+            disabled={!isValid || !isDirty}
           />
         </div>
       </div>
@@ -346,34 +355,35 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
 
 function Summary({ program }: { program: ProgramProps }) {
   const {
-    watch,
     formState: { isValid },
+    control,
+    getValues,
   } = useFormContext<FormData>();
 
-  const data = watch();
-
-  const [summaryData, setSummaryData] = useState(data);
-
-  // Only update summary data when form is valid
-  useEffect(() => {
-    if (data && isValid) setSummaryData(data);
-  }, [data, isValid]);
+  const data = useWatch({ control, defaultValue: program }) as FormData;
 
   return (
     <ProgramSettingsSection heading="Summary">
-      <p className="rounded-md border border-neutral-200 bg-[#f9f9f9] p-4 text-sm font-normal leading-relaxed text-neutral-900">
-        <ProgramCommissionDescription
-          program={{
-            ...summaryData,
-            recurringInterval: program.recurringInterval,
-            commissionAmount:
-              summaryData.commissionType === "flat"
-                ? summaryData.commissionAmount * 100
-                : summaryData.commissionAmount,
-          }}
-          amountClassName="text-blue-600"
-        />
-      </p>
+      <div className="rounded-md border border-neutral-200 bg-[#f9f9f9]">
+        <AnimatedSizeContainer
+          height
+          transition={{ ease: "easeInOut", duration: 0.2 }}
+        >
+          <p className="p-4 text-sm font-normal leading-relaxed text-neutral-900">
+            <ProgramCommissionDescription
+              program={{
+                ...data,
+                recurringInterval: program.recurringInterval,
+                commissionAmount:
+                  (data.commissionType === "flat"
+                    ? data.commissionAmount * 100
+                    : data.commissionAmount) || 0,
+              }}
+              amountClassName="text-blue-600"
+            />
+          </p>
+        </AnimatedSizeContainer>
+      </div>
     </ProgramSettingsSection>
   );
 }
