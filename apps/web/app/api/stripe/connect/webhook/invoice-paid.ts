@@ -71,7 +71,7 @@ export async function invoicePaid(event: Stripe.Event) {
     return `Link with ID ${linkId} not found, skipping...`;
   }
 
-  const programEnrollment = await prisma.programEnrollment.findFirst({
+  const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
       linkId: linkId,
     },

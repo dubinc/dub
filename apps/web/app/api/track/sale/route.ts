@@ -61,7 +61,7 @@ export const POST = withWorkspaceEdge(
       .omit({ timestamp: true })
       .parse(leadEvent.data[0]);
 
-    const programEnrollment = await prismaEdge.programEnrollment.findFirst({
+    const programEnrollment = await prismaEdge.programEnrollment.findUnique({
       where: {
         linkId: clickData.link_id,
       },
