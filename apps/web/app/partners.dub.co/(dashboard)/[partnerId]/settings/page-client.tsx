@@ -81,7 +81,7 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
       })}
     >
       <div className="px-5">
-        <div className="grid grid-cols-2 items-center">
+        <div className="grid grid-cols-1 items-center sm:grid-cols-2">
           <FormRow>
             <label className="contents">
               <span className="text-sm font-medium text-gray-800">Logo</span>
@@ -92,7 +92,7 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
                   render={({ field }) => (
                     <FileUpload
                       accept="images"
-                      className="mt-2 size-14 rounded-full border border-gray-300"
+                      className="mt-2 size-14 shrink-0 rounded-full border border-gray-300"
                       iconClassName="w-5 h-5"
                       previewClassName="size-14 rounded-full"
                       variant="plain"
@@ -181,7 +181,7 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
 
 function FormRow({ children }: PropsWithChildren) {
   return (
-    <div className="blah contents [&:not(:last-child)>label>*]:border-b [&>label>*]:flex [&>label>*]:h-full [&>label>*]:items-center [&>label>*]:border-neutral-200 [&>label>*]:py-5">
+    <div className="contents [&:not(:last-child)>label>*:nth-child(even)]:border-b sm:[&:not(:last-child)>label>*]:border-b [&>label>*:first-child]:pt-5 [&>label>*:last-child]:pb-6 [&>label>*]:flex [&>label>*]:h-full [&>label>*]:items-center [&>label>*]:border-neutral-200 sm:[&>label>*]:py-5">
       {children}
     </div>
   );
