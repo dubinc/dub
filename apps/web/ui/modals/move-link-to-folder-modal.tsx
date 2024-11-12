@@ -1,10 +1,10 @@
-import { LinkWithTagsProps } from "@/lib/types";
+import { ExpandedLinkProps } from "@/lib/types";
 import { Modal } from "@dub/ui";
 import { useCallback, useMemo, useState } from "react";
 import { MoveLinkForm } from "../folders/move-link-form";
 
 interface MoveLinkToFolderModalProps {
-  link: LinkWithTagsProps;
+  link: ExpandedLinkProps;
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
 }
@@ -28,7 +28,7 @@ const MoveLinkToFolderModal = ({
 export function useMoveLinkToFolderModal({
   link,
 }: {
-  link: LinkWithTagsProps;
+  link: ExpandedLinkProps;
 }) {
   const [showMoveLinkToFolderModal, setShowMoveLinkToFolderModal] =
     useState(false);

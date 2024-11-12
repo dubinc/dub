@@ -1,6 +1,6 @@
 import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { LinkWithTagsProps } from "@/lib/types";
+import { ExpandedLinkProps } from "@/lib/types";
 import { Button, InputSelect, InputSelectItemProps, LinkLogo } from "@dub/ui";
 import {
   DICEBEAR_AVATAR_URL,
@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 
 interface MoveLinkFormProps {
-  link: LinkWithTagsProps;
+  link: ExpandedLinkProps;
   onSuccess: () => void;
   onCancel: () => void;
 }
