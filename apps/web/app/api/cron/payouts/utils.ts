@@ -92,7 +92,7 @@ export const createPartnerPayouts = async ({
     // Update the sales records
     await tx.sale.updateMany({
       where: { id: { in: sales.map((sale) => sale.id) } },
-      data: { payoutId: payout.id, status: "reconciled" },
+      data: { payoutId: payout.id, status: "processed" },
     });
 
     console.info("Payout created", payout);

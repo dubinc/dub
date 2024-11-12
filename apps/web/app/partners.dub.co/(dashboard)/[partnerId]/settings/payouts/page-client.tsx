@@ -267,7 +267,7 @@ function FreeWithdrawalProgress({ balance }: { balance: number }) {
         <SimpleTooltipContent
           title="Withdrawals above $1,000 in the US are free."
           cta="Learn more"
-          href="/help" // TODO: [payouts] Add help page
+          href="https://dub.co/help" // TODO: [payouts] Add help page
         />
       }
     >

@@ -9,14 +9,14 @@ export const deleteCustomer: ZodOpenApiOperationObject = {
   summary: "Delete a customer",
   description: "Delete a customer from a workspace.",
   requestParams: {
-    path: CustomerSchema.pick({ externalId: true }),
+    path: CustomerSchema.pick({ id: true }),
   },
   responses: {
     "200": {
       description: "The customer was deleted.",
       content: {
         "application/json": {
-          schema: CustomerSchema.pick({ externalId: true }),
+          schema: CustomerSchema.pick({ id: true }),
         },
       },
     },

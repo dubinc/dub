@@ -100,7 +100,6 @@ function PayoutDetailsSheetContent({
     page: 1,
   });
 
-
   const table = useTable({
     data:
       payoutWithSales?.sales?.filter(
