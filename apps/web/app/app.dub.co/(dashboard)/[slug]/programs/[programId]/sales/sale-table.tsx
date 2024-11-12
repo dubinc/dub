@@ -2,11 +2,8 @@
 
 import useSalesCount from "@/lib/swr/use-sales-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import {
-  CustomerSchema,
-  PartnerSchema,
-  SaleSchema,
-} from "@/lib/zod/schemas/partners";
+import { CustomerSchema } from "@/lib/zod/schemas/customers";
+import { PartnerSchema, SaleSchema } from "@/lib/zod/schemas/partners";
 import FilterButton from "@/ui/analytics/events/filter-button";
 import { SaleRowMenu } from "@/ui/partners/sale-row-menu";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";

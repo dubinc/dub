@@ -3,8 +3,8 @@ import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { CustomerSchema } from "@/lib/zod/schemas/customers";
 import {
-  CustomerSchema,
   getSalesQuerySchema,
   PartnerSchema,
   SaleSchema,
