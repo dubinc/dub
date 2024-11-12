@@ -146,6 +146,7 @@ export const getSalesQuerySchema = z
     interval: z.enum(intervals).default("30d"),
     start: parseDateSchema.optional(),
     end: parseDateSchema.optional(),
+    customerId: z.string().optional(),
     payoutId: z.string().optional(),
     partnerId: z.string().optional(),
   })

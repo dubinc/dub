@@ -24,8 +24,16 @@ export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
     const parsed = getSalesQuerySchema.parse(searchParams);
-    const { page, pageSize, status, order, sortBy, payoutId, partnerId } =
-      parsed;
+    const {
+      page,
+      pageSize,
+      status,
+      order,
+      sortBy,
+      customerId,
+      payoutId,
+      partnerId,
+    } = parsed;
 
     let { interval, start, end } = parsed;
     let granularity: "minute" | "hour" | "day" | "month" = "day";
@@ -61,6 +69,7 @@ export const GET = withWorkspace(
       where: {
         programId,
         ...(status && { status }),
+        ...(customerId && { customerId }),
         ...(payoutId && { payoutId }),
         ...(partnerId && { partnerId }),
         // createdAt: {
