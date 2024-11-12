@@ -81,12 +81,12 @@ export const transformSaleEventData = (data: any) => {
     ...sale,
     customer: {
       id: sale.customerId,
-      externalId: sale.customerExternalId,
       name: sale.customerName,
       email: sale.customerEmail,
       avatar:
         sale.customerAvatar ||
         `https://api.dicebear.com/9.x/micah/svg?seed=${sale.customerId}`,
+      externalId: sale.customerExternalId,
       createdAt: sale.customerCreatedAt,
     },
     sale: {
