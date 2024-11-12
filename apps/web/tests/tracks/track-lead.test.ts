@@ -33,7 +33,7 @@ describe("POST /track/lead", async () => {
         id: E2E_CLICK_ID,
       },
       customer: {
-        id: customer.id,
+        externalId: customer.id,
         name: customer.name,
         email: customer.email,
         avatar: customer.avatar,
