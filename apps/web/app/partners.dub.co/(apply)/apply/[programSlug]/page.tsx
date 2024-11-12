@@ -52,7 +52,8 @@ export default async function ApplyPage({
         } as CSSProperties
       }
     >
-      <div className="relative z-10 mx-auto min-h-screen w-full max-w-screen-sm border-x border-gray-200 bg-white">
+      <div className="relative z-10 mx-auto min-h-screen w-full max-w-screen-sm bg-white">
+        <div className="absolute left-0 top-0 h-screen w-full border-x border-gray-200 [mask-image:linear-gradient(black,transparent)]" />
         <div className="flex items-center justify-between p-6">
           {program.wordmark || program.logo ? (
             <img
