@@ -1,6 +1,6 @@
-import "dotenv-flow/config";
-import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth/password";
+import { prisma } from "@/lib/prisma";
+import "dotenv-flow/config";
 
 const workspaceId = "cl7pj5kq4006835rbjlt2ofka";
 
@@ -30,7 +30,7 @@ async function main() {
   ];
 
   await prisma.user.createMany({
-    data: users
+    data: users,
   });
 
   await prisma.projectUsers.createMany({
