@@ -125,11 +125,11 @@ export const POST = withWorkspaceEdge(
                     clickId: clickData.click_id,
                     invoiceId,
                     eventId,
-                    eventName,
                     paymentProcessor,
                     amount,
                     currency,
                     programEnrollment,
+                    metadata: clickData,
                   }),
                 }),
               ]
