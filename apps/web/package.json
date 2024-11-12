@@ -132,7 +132,7 @@
     "papaparse": "^5.4.1",
     "postcss": "^8.4.31",
     "postcss-import": "^15.1.0",
-    "prisma": "5.18.0",
+    "prisma": "5.19.1",
     "tailwindcss": "^3.4.4",
     "tsx": "^4.19.1",
     "turbo": "^1.10.14",
