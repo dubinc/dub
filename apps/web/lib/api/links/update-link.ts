@@ -12,9 +12,10 @@ import {
 } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { combineTagIds } from "../tags/combine-tag-ids";
 import { createId } from "../utils";
 import { linkCache } from "./cache";
-import { combineTagIds, transformLink } from "./utils";
+import { transformLink } from "./utils";
 
 export async function updateLink({
   oldLink,

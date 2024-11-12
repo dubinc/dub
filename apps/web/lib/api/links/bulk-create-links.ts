@@ -7,13 +7,13 @@ import {
   truncate,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { combineTagIds } from "../tags/combine-tag-ids";
 import { createId } from "../utils";
 import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
 import { updateLinksUsage } from "./update-links-usage";
 import {
   checkIfLinksHaveTags,
   checkIfLinksHaveWebhooks,
-  combineTagIds,
   ExpandedLink,
   transformLink,
 } from "./utils";

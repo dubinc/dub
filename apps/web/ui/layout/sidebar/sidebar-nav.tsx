@@ -139,7 +139,10 @@ function NavItem({ item }: { item: NavItemType }) {
   const pathname = usePathname();
 
   const isActive = useMemo(() => {
-    return exact ? pathname === href : pathname.startsWith(href);
+    const hrefWithoutQuery = href.split("?")[0];
+    return exact
+      ? pathname === hrefWithoutQuery
+      : pathname.startsWith(hrefWithoutQuery);
   }, [pathname, href, exact]);
 
   return (

@@ -15,6 +15,7 @@ import {
   DUB_DOMAINS_ARRAY,
   getPrettyUrl,
   log,
+  normalizeString,
   parseDateTime,
 } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -34,11 +35,18 @@ export async function POST(req: Request) {
     if (!id || !url) throw new Error("Missing ID or URL for the import file");
 
     const mapper = (row: Record<string, string>) => {
-      const linkUrl = getPrettyUrl(row[mapping.link]);
+      const actualKey = normalizeString(mapping.link);
+      const linkUrl = actualKey ? getPrettyUrl(row[actualKey]) : "";
 
       return {
         ...Object.fromEntries(
-          Object.entries(mapping).map(([key, value]) => [key, row[value]]),
+          Object.entries(mapping).map(([key, value]) => {
+            // Find the actual key for each mapped field
+            const csvKey = Object.keys(row).find(
+              (k) => normalizeString(k) === normalizeString(value),
+            );
+            return [key, csvKey ? row[csvKey] : undefined];
+          }),
         ),
         domain: linkUrl.split("/")[0],
         // domain.com/path/to/page => path/to/page
