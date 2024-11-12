@@ -17,7 +17,7 @@ export function AccordionBlock({
   return (
     <div>
       <BlockTitle title={block.data.title} />
-      <div className="mt-5">
+      <div className="mt-5 border-y border-slate-200">
         <Accordion type="single" collapsible>
           {block.data.items.map((item, idx) => (
             <AccordionItem key={idx} value={idx.toString()}>

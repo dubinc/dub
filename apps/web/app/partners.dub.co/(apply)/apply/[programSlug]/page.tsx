@@ -145,6 +145,30 @@ export default async function ApplyPage({
             })}
           </div>
         </div>
+
+        {/* Footer */}
+        <footer className="mt-14 flex flex-col items-center gap-4 py-6 text-center text-xs text-neutral-500">
+          <span className="flex items-center gap-1.5">
+            Powered by <Wordmark className="h-3.5" />
+          </span>
+          <span className="flex items-center gap-2">
+            <a
+              href="https://dub.co/legal/terms"
+              target="_blank"
+              className="transition-colors duration-75 hover:text-neutral-600"
+            >
+              Terms of Service
+            </a>
+            <span className="text-base text-neutral-200">&bull;</span>
+            <a
+              href="https://dub.co/legal/privacy"
+              target="_blank"
+              className="transition-colors duration-75 hover:text-neutral-600"
+            >
+              Privacy Policy
+            </a>
+          </span>
+        </footer>
       </div>
 
       {/* Background grid */}
