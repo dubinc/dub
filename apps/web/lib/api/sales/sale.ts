@@ -1,6 +1,4 @@
-import { Program, Sale, SaleStatus } from "@prisma/client";
-
-import { ProgramEnrollment } from "@prisma/client";
+import { Prisma, Program, ProgramEnrollment, SaleStatus } from "@prisma/client";
 import { createId } from "../utils";
 import { calculateEarnings } from "./commission";
 
@@ -14,6 +12,7 @@ export const createSaleData = ({
   amount,
   currency,
   programEnrollment,
+  metadata,
 }: {
   customerId: string;
   linkId: string;
@@ -24,7 +23,8 @@ export const createSaleData = ({
   amount: number;
   currency: string;
   programEnrollment: ProgramEnrollment & { program: Program };
-}): Omit<Sale, "createdAt" | "updatedAt" | "payoutId"> => {
+  metadata: Record<string, any>;
+}) => {
   const { program, partnerId } = programEnrollment;
 
   const earnings = calculateEarnings({
@@ -63,6 +63,6 @@ export const createSaleData = ({
     isLifetimeRecurring,
     status: SaleStatus.pending,
     earnings,
-    metadata: null,
+    metadata: metadata || Prisma.JsonNull,
   };
 };

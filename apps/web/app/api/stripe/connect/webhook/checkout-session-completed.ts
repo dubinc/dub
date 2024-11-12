@@ -138,11 +138,14 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
               clickId: saleData.click_id,
               invoiceId: saleData.invoice_id,
               eventId: saleData.event_id,
-              eventName: saleData.event_name,
               paymentProcessor: saleData.payment_processor,
               amount: saleData.amount,
               currency: saleData.currency,
               programEnrollment,
+              metadata: {
+                leadEvent: leadEvent.data[0],
+                stripeMetadata: charge,
+              },
             }),
           }),
         ]
