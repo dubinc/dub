@@ -11,7 +11,10 @@ import {
   Webhook,
 } from "@prisma/client";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
-import { trackCustomerResponseSchema } from "./zod/schemas/customers";
+import {
+  CustomerSchema,
+  trackCustomerResponseSchema,
+} from "./zod/schemas/customers";
 import { integrationSchema } from "./zod/schemas/integration";
 import { trackLeadResponseSchema } from "./zod/schemas/leads";
 import { createLinkBodySchema } from "./zod/schemas/links";
@@ -294,6 +297,8 @@ export type TrackCustomerResponse = z.infer<typeof trackCustomerResponseSchema>;
 export type TrackLeadResponse = z.infer<typeof trackLeadResponseSchema>;
 
 export type TrackSaleResponse = z.infer<typeof trackSaleResponseSchema>;
+
+export type Customer = z.infer<typeof CustomerSchema>;
 
 export type UsageResponse = z.infer<typeof usageResponse>;
 
