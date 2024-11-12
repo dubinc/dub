@@ -1,3 +1,4 @@
+import { createId } from "@/lib/api/utils";
 import { prisma } from "@/lib/prisma";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -53,6 +54,7 @@ export async function customerCreated(event: Stripe.Event) {
   // Create customer
   const customer = await prisma.customer.create({
     data: {
+      id: createId({ prefix: "cus_" }),
       name: stripeCustomer.name,
       email: stripeCustomer.email,
       stripeCustomerId: stripeCustomer.id,

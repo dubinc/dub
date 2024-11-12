@@ -7,13 +7,14 @@ import {
   PenWriting,
   Popover,
   SimpleTooltipContent,
+  useCopyToClipboard,
   useKeyboardShortcut,
 } from "@dub/ui";
 import { BoxArchive, CircleCheck, Copy, QRCode } from "@dub/ui/src/icons";
 import { cn, isDubDomain, nanoid, punycode } from "@dub/utils";
 import { CopyPlus, Delete, FolderInput } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useLinkBuilder } from "../modals/link-builder";
@@ -33,13 +34,12 @@ export function LinkControls({ link }: { link: ResponseLink }) {
     setOpenMenuLinkId(open ? link.id : null);
   };
 
-  const [copiedLinkId, setCopiedLinkId] = useState(false);
+  const [copiedLinkId, copyToClipboard] = useCopyToClipboard();
 
   const copyLinkId = () => {
-    navigator.clipboard.writeText(link.id);
-    setCopiedLinkId(true);
-    toast.success("Link ID copied!");
-    setTimeout(() => setCopiedLinkId(false), 3000);
+    toast.promise(copyToClipboard(link.id), {
+      success: "Link ID copied!",
+    });
   };
 
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
@@ -78,8 +78,32 @@ export function LinkControls({ link }: { link: ResponseLink }) {
     },
   });
 
+  const handleBanLink = () => {
+    window.confirm(
+      "Are you sure you want to ban this link? It will blacklist the domain and prevent any links from that domain from being created.",
+    ) &&
+      (setOpenPopover(false),
+      toast.promise(
+        fetch(`/api/admin/links/ban?domain=${link.domain}&key=${link.key}`, {
+          method: "DELETE",
+        }).then(async () => {
+          await mutate(
+            (key) =>
+              typeof key === "string" && key.startsWith("/api/admin/links"),
+            undefined,
+            { revalidate: true },
+          );
+        }),
+        {
+          loading: "Banning link...",
+          success: "Link banned!",
+          error: "Error banning link.",
+        },
+      ));
+  };
+
   useKeyboardShortcut(
-    ["e", "d", "q", "a", "t", "i", "x"],
+    ["e", "d", "q", "a", "t", "i", "x", "b"],
     (e) => {
       setOpenPopover(false);
       switch (e.key) {
@@ -103,6 +127,9 @@ export function LinkControls({ link }: { link: ResponseLink }) {
           break;
         case "x":
           if (link.key !== "_root") setShowDeleteLinkModal(true);
+          break;
+        case "b":
+          if (!slug) handleBanLink();
           break;
       }
     },
@@ -219,30 +246,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
               )}
               {!slug && ( // this is only shown in admin mode (where there's no slug)
                 <button
-                  onClick={() => {
-                    window.confirm(
-                      "Are you sure you want to ban this link? It will blacklist the domain and prevent any links from that domain from being created.",
-                    ) &&
-                      (setOpenPopover(false),
-                      toast.promise(
-                        fetch(`/api/admin/links/ban?key=${link.key}`, {
-                          method: "DELETE",
-                        }).then(async () => {
-                          await mutate(
-                            (key) =>
-                              typeof key === "string" &&
-                              key.startsWith("/api/admin/links/ban"),
-                            undefined,
-                            { revalidate: true },
-                          );
-                        }),
-                        {
-                          loading: "Banning link...",
-                          success: "Link banned!",
-                          error: "Error banning link.",
-                        },
-                      ));
-                  }}
+                  onClick={() => handleBanLink()}
                   className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
                 >
                   <IconMenu text="Ban" icon={<Delete className="h-4 w-4" />} />

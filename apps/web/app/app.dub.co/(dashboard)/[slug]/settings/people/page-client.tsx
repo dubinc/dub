@@ -13,7 +13,15 @@ import {
   Link as LinkIcon,
   ThreeDots,
 } from "@/ui/shared/icons";
-import { Avatar, Badge, Button, Copy, IconMenu, Popover } from "@dub/ui";
+import {
+  Avatar,
+  Badge,
+  Button,
+  Copy,
+  IconMenu,
+  Popover,
+  useCopyToClipboard,
+} from "@dub/ui";
 import { capitalize, cn, timeAgo } from "@dub/utils";
 import { UserMinus } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -157,13 +165,12 @@ const UserCard = ({
     createdAt &&
     Date.now() - new Date(createdAt).getTime() > 14 * 24 * 60 * 60 * 1000;
 
-  const [copiedUserId, setCopiedUserId] = useState(false);
+  const [copiedUserId, copyToClipboard] = useCopyToClipboard();
 
   const copyUserId = () => {
-    navigator.clipboard.writeText(id);
-    setCopiedUserId(true);
-    toast.success("User ID copied!");
-    setTimeout(() => setCopiedUserId(false), 3000);
+    toast.promise(copyToClipboard(id), {
+      success: "User ID copied!",
+    });
   };
 
   return (
@@ -176,7 +183,12 @@ const UserCard = ({
       >
         <div className="flex items-start space-x-3">
           <div className="flex items-center space-x-3">
-            <Avatar user={user} />
+            <Avatar
+              user={{
+                ...user,
+                id: currentTab === "Invitations" ? user.email : user.id,
+              }}
+            />
             <div className="flex flex-col">
               <h3 className="text-sm font-medium">{name || email}</h3>
               <p className="text-xs text-gray-500">{email}</p>

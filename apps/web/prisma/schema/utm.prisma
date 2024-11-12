@@ -1,6 +1,6 @@
 model UtmTemplate {
-  id    String @id @default(cuid())
-  name  String
+  id   String @id @default(cuid())
+  name String
 
   // Parameters
   utm_source   String?
@@ -18,11 +18,10 @@ model UtmTemplate {
   project   Project? @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   projectId String?
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
+  @@unique([projectId, name])
   @@index(userId)
   @@index(projectId)
-  @@unique([projectId, name])
-  @@index(updatedAt(sort: Desc))
 }

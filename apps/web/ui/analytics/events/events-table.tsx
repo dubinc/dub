@@ -2,7 +2,6 @@
 
 import { editQueryString } from "@/lib/analytics/utils";
 import { generateRandomName } from "@/lib/names";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { clickEventResponseSchema } from "@/lib/zod/schemas/clicks";
 import { leadEventResponseSchema } from "@/lib/zod/schemas/leads";
 import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
@@ -10,6 +9,7 @@ import EmptyState from "@/ui/shared/empty-state";
 import {
   Avatar,
   CopyButton,
+  CopyText,
   LinkLogo,
   Table,
   Tooltip,
@@ -17,19 +17,18 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CopyText } from "@dub/ui/src";
 import {
   CursorRays,
   FilterBars,
   Globe,
   Magnifier,
-  Menu3,
   QRCode,
 } from "@dub/ui/src/icons";
 import {
   CONTINENTS,
   COUNTRIES,
   capitalize,
+  currencyFormatter,
   fetcher,
   getApexDomain,
   getPrettyUrl,
@@ -38,7 +37,7 @@ import {
 import { Cell, ColumnDef } from "@tanstack/react-table";
 import { Link2 } from "lucide-react";
 import Link from "next/link";
-import { useContext, useEffect, useMemo } from "react";
+import { ReactNode, useContext, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import z from "zod";
 import { AnalyticsContext } from "../analytics-provider";
@@ -48,7 +47,7 @@ import EditColumnsButton from "./edit-columns-button";
 import { EventsContext } from "./events-provider";
 import { exampleData } from "./example-data";
 import { RowMenuButton } from "./row-menu-button";
-import { eventColumns, useColumnVisibility } from "./use-column-visibility";
+import { getEventColumns, useColumnVisibility } from "./use-column-visibility";
 
 export type EventDatum =
   | z.infer<typeof clickEventResponseSchema>
@@ -83,12 +82,26 @@ const FilterButton = ({ set }: { set: Record<string, any> }) => {
   );
 };
 
-export default function EventsTable() {
-  const { slug, plan, conversionEnabled } = useWorkspace();
+export default function EventsTable({
+  requiresUpgrade,
+  upgradeOverlay,
+  partners = false,
+}: {
+  requiresUpgrade?: boolean;
+  upgradeOverlay?: ReactNode;
+  partners?: boolean;
+}) {
   const { searchParams, queryParams } = useRouterStuff();
   const { setExportQueryString } = useContext(EventsContext);
-  const { selectedTab: tab } = useContext(AnalyticsContext);
-  const { columnVisibility, setColumnVisibility } = useColumnVisibility();
+  const {
+    selectedTab: tab,
+    queryString: originalQueryString,
+    eventsApiPath,
+    totalEvents,
+  } = useContext(AnalyticsContext);
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility({
+    partners,
+  });
 
   const sortBy = searchParams.get("sort") || "timestamp";
   const order = searchParams.get("order") === "asc" ? "asc" : "desc";
@@ -140,35 +153,39 @@ export default function EventsTable() {
               </span>
             ) || <span className="text-gray-400">-</span>,
         },
-        {
-          id: "link",
-          header: "Link",
-          accessorKey: "link",
-          minSize: 250,
-          maxSize: 200,
-          meta: {
-            filterParams: ({ getValue }) => ({
-              domain: getValue().domain,
-              key: getValue().key,
-            }),
-          },
-          cell: ({ getValue }) => (
-            <div className="flex items-center gap-3">
-              <LinkLogo
-                apexDomain={getApexDomain(getValue().url)}
-                className="size-4 shrink-0 sm:size-4"
-              />
-              <CopyText
-                value={getValue().shortLink}
-                successMessage="Copied link to clipboard!"
-              >
-                <span className="truncate" title={getValue().shortLink}>
-                  {getPrettyUrl(getValue().shortLink)}
-                </span>
-              </CopyText>
-            </div>
-          ),
-        },
+        ...(!partners
+          ? [
+              {
+                id: "link",
+                header: "Link",
+                accessorKey: "link",
+                minSize: 250,
+                maxSize: 200,
+                meta: {
+                  filterParams: ({ getValue }) => ({
+                    domain: getValue().domain,
+                    key: getValue().key,
+                  }),
+                },
+                cell: ({ getValue }) => (
+                  <div className="flex items-center gap-3">
+                    <LinkLogo
+                      apexDomain={getApexDomain(getValue().url)}
+                      className="size-4 shrink-0 sm:size-4"
+                    />
+                    <CopyText
+                      value={getValue().shortLink}
+                      successMessage="Copied link to clipboard!"
+                    >
+                      <span className="truncate" title={getValue().shortLink}>
+                        {getPrettyUrl(getValue().shortLink)}
+                      </span>
+                    </CopyText>
+                  </div>
+                ),
+              },
+            ]
+          : []),
         {
           id: "customer",
           header: "Customer",
@@ -353,7 +370,7 @@ export default function EventsTable() {
         },
         {
           id: "refererUrl",
-          header: "Referer URL",
+          header: "Referrer URL",
           accessorKey: "click.refererUrl",
           meta: {
             filterParams: ({ getValue }) => ({ refererUrl: getValue() }),
@@ -370,7 +387,7 @@ export default function EventsTable() {
               )}
               <CopyText
                 value={getValue()}
-                successMessage="Copied referer URL to clipboard!"
+                successMessage="Copied referrer URL to clipboard!"
               >
                 <span className="truncate" title={getValue()}>
                   {getPrettyUrl(getValue())}
@@ -401,7 +418,7 @@ export default function EventsTable() {
           id: "saleAmount",
           header: "Sale Amount",
           accessorKey: "sale.amount",
-          enableHiding: false,
+          enableHiding: partners,
           minSize: 120,
           cell: ({ getValue }) => (
             <div className="flex items-center gap-2">
@@ -410,19 +427,43 @@ export default function EventsTable() {
             </div>
           ),
         },
-        // Sale invoice ID
-        {
-          id: "invoiceId",
-          header: "Invoice ID",
-          accessorKey: "sale.invoiceId",
-          maxSize: 200,
-          cell: ({ getValue }) =>
-            (
-              <span className="truncate" title={getValue()}>
-                {getValue()}
-              </span>
-            ) || <span className="text-gray-400">-</span>,
-        },
+        ...(!partners
+          ? [
+              // Sale invoice ID
+              {
+                id: "invoiceId",
+                header: "Invoice ID",
+                accessorKey: "sale.invoiceId",
+                maxSize: 200,
+                cell: ({ getValue }) =>
+                  (
+                    <span className="truncate" title={getValue()}>
+                      {getValue()}
+                    </span>
+                  ) || <span className="text-gray-400">-</span>,
+              },
+            ]
+          : [
+              // Earnings amount
+              {
+                id: "earnings",
+                header: "Earnings",
+                accessorKey: "earnings",
+                enableHiding: false,
+                minSize: 120,
+                cell: ({ getValue }) => (
+                  <div className="flex items-center gap-2">
+                    <span>
+                      {currencyFormatter(getValue() / 100, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                    <span className="text-gray-400">USD</span>
+                  </div>
+                ),
+              },
+            ]),
         // Date
         {
           id: "timestamp",
@@ -464,14 +505,14 @@ export default function EventsTable() {
           header: ({ table }) => <EditColumnsButton table={table} />,
           cell: ({ row }) => <RowMenuButton row={row} />,
         },
-      ].filter((c) => c.id === "menu" || eventColumns[tab].all.includes(c.id)),
+      ].filter(
+        (c) =>
+          c.id === "menu" || getEventColumns(partners)[tab].all.includes(c.id),
+      ),
     [tab],
   );
 
   const { pagination, setPagination } = usePagination();
-
-  const { queryString: originalQueryString, totalEvents } =
-    useContext(AnalyticsContext);
 
   const queryString = useMemo(
     () =>
@@ -502,11 +543,8 @@ export default function EventsTable() {
     [setExportQueryString, queryString, columnVisibility, tab],
   );
 
-  const needsHigherPlan =
-    (plan === "free" || plan === "pro") && !conversionEnabled;
-
   const { data, isLoading, error } = useSWR<EventDatum[]>(
-    !needsHigherPlan && `/api/events?${queryString}`,
+    !requiresUpgrade && `${eventsApiPath || "/api/events"}?${queryString}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -514,13 +552,13 @@ export default function EventsTable() {
   );
 
   const { table, ...tableProps } = useTable({
-    data: (data ?? (needsHigherPlan ? exampleData[tab] : [])) as EventDatum[],
+    data: (data ?? (requiresUpgrade ? exampleData[tab] : [])) as EventDatum[],
     loading: isLoading,
-    error: error && !needsHigherPlan ? "Failed to fetch events." : undefined,
+    error: error && !requiresUpgrade ? "Failed to fetch events." : undefined,
     columns,
     pagination,
     onPaginationChange: setPagination,
-    rowCount: needsHigherPlan ? 0 : totalEvents?.[tab] ?? 0,
+    rowCount: requiresUpgrade ? 0 : totalEvents?.[tab] ?? 0,
     columnVisibility: columnVisibility[tab],
     onColumnVisibilityChange: (args) => setColumnVisibility(tab, args),
     sortableColumns: ["timestamp"],
@@ -557,19 +595,12 @@ export default function EventsTable() {
     <Table
       {...tableProps}
       table={table}
-      scrollWrapperClassName={needsHigherPlan ? "overflow-x-hidden" : undefined}
+      scrollWrapperClassName={requiresUpgrade ? "overflow-x-hidden" : undefined}
     >
-      {needsHigherPlan && (
+      {requiresUpgrade && (
         <>
           <div className="absolute inset-0 flex touch-pan-y items-center justify-center bg-gradient-to-t from-[#fff_70%] to-[#fff6]">
-            <EmptyState
-              icon={Menu3}
-              title="Real-time Events Stream"
-              description={`Want more data on your link ${tab === "clicks" ? "clicks & QR code scans" : tab}? Upgrade to our Business Plan to get a detailed, real-time stream of events in your workspace.`}
-              learnMore="https://d.to/events"
-              buttonText="Upgrade to Business"
-              buttonLink={`/${slug}/upgrade`}
-            />
+            {upgradeOverlay}
           </div>
           <div className="h-[400px]" />
         </>

@@ -35,7 +35,7 @@ const LinksQuerySchema = z.object({
     .string()
     .optional()
     .describe(
-      "The tag ID to filter the links by. This field is deprecated – use `tagIds` instead.",
+      "Deprecated. Use `tagIds` instead. The tag ID to filter the links by.",
     )
     .openapi({ deprecated: true }),
   tagIds: z
@@ -133,7 +133,7 @@ export const domainKeySchema = z.object({
 });
 
 export const createLinkBodySchema = z.object({
-  url: parseUrlSchemaAllowEmpty
+  url: parseUrlSchemaAllowEmpty()
     .describe("The destination URL of the short link.")
     .openapi({
       example: "https://google.com",
@@ -189,7 +189,10 @@ export const createLinkBodySchema = z.object({
     .boolean()
     .optional()
     .default(false)
-    .describe("Whether the short link's stats are publicly accessible."),
+    .describe(
+      "Deprecated: Use `dashboard` instead. Whether the short link's stats are publicly accessible.",
+    )
+    .openapi({ deprecated: true }),
   tagId: z
     .string()
     .nullish()
@@ -531,6 +534,7 @@ export const LinkSchema = z
       .describe("The UTM content of the short link."),
     userId: z
       .string()
+      .nullable()
       .describe("The user ID of the creator of the short link."),
     workspaceId: z.string().describe("The workspace ID of the short link."),
     clicks: z
@@ -590,6 +594,7 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
     // Only Dub UI uses the following query parameters
     includeUser: booleanQuerySchema.default("false"),
     includeWebhooks: booleanQuerySchema.default("false"),
+    includeDashboard: booleanQuerySchema.default("false"),
     linkIds: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))

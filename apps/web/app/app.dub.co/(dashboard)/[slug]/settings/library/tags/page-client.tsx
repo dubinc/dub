@@ -1,6 +1,5 @@
 "use client";
 
-import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
 import useTagsCount from "@/lib/swr/use-tags-count";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -38,19 +37,14 @@ export default function WorkspaceTagsClient() {
   const { pagination, setPagination } = usePagination(TAGS_MAX_PAGE_SIZE);
 
   const { tags, loading } = useTags({
-    query: { search: search ?? "", page: pagination.pageIndex },
+    query: {
+      search: search ?? "",
+      page: pagination.pageIndex,
+    },
+    includeLinksCount: true,
   });
   const { data: tagsCount } = useTagsCount({
     query: { search: search ?? "" },
-  });
-  const { data: tagLinksCount } = useLinksCount<
-    {
-      tagId: string;
-      _count: number;
-    }[]
-  >({
-    groupBy: "tagId",
-    showArchived: true,
   });
 
   // Whether the initial tags have already loaded, for some loading states like the search box
@@ -95,13 +89,7 @@ export default function WorkspaceTagsClient() {
             >
               <CardList variant="compact" loading={loading}>
                 {tags?.length
-                  ? tags.map((tag) => (
-                      <TagCard
-                        key={tag.id}
-                        tag={tag}
-                        tagsCount={tagLinksCount}
-                      />
-                    ))
+                  ? tags.map((tag) => <TagCard key={tag.id} tag={tag} />)
                   : Array.from({ length: 6 }).map((_, idx) => (
                       <TagCardPlaceholder key={idx} />
                     ))}

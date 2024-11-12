@@ -12,10 +12,12 @@ import {
 } from "../zod/schemas/clicks";
 import { customerSchema } from "../zod/schemas/customers";
 import {
+  leadEventResponseObfuscatedSchema,
   leadEventResponseSchema,
   leadEventSchemaTBEndpoint,
 } from "../zod/schemas/leads";
 import {
+  saleEventResponseObfuscatedSchema,
   saleEventResponseSchema,
   saleEventSchemaTBEndpoint,
 } from "../zod/schemas/sales";
@@ -33,6 +35,7 @@ export const getEvents = async (params: EventsFilters) => {
     qr,
     trigger,
     isDemo,
+    obfuscateData,
   } = params;
 
   if (start) {
@@ -58,7 +61,7 @@ export const getEvents = async (params: EventsFilters) => {
   }
 
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
-    pipe: "v1_events",
+    pipe: "v2_events",
     parameters: eventsFilterTB,
     data:
       {
@@ -122,7 +125,7 @@ export const getEvents = async (params: EventsFilters) => {
                 id: evt.customer_id,
                 name: "Deleted Customer",
                 email: "deleted@customer.com",
-                avatar: `https://api.dicebear.com/7.x/micah/svg?seed=${evt.customer_id}`,
+                avatar: `https://api.dicebear.com/9.x/micah/svg?seed=${evt.customer_id}`,
               },
               ...(evt.event === "sale"
                 ? {
@@ -140,9 +143,17 @@ export const getEvents = async (params: EventsFilters) => {
       if (evt.event === "click") {
         return clickEventResponseSchema.parse(eventData);
       } else if (evt.event === "lead") {
-        return leadEventResponseSchema.parse(eventData);
+        return (
+          obfuscateData
+            ? leadEventResponseObfuscatedSchema
+            : leadEventResponseSchema
+        ).parse(eventData);
       } else if (evt.event === "sale") {
-        return saleEventResponseSchema.parse(eventData);
+        return (
+          obfuscateData
+            ? saleEventResponseObfuscatedSchema
+            : saleEventResponseSchema
+        ).parse(eventData);
       }
 
       return eventData;

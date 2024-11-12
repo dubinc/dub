@@ -6,16 +6,7 @@ export const isIframeable = async ({
   url: string;
   requestDomain: string;
 }) => {
-  const res = await fetch(url, {
-    headers: {
-      "User-Agent": "Dub.co Bot",
-    },
-  });
-
-  const xFrameOptions = res.headers.get("X-Frame-Options");
-  if (xFrameOptions === "DENY" || xFrameOptions === "SAMEORIGIN") {
-    return false;
-  }
+  const res = await fetch(url);
 
   const cspHeader = res.headers.get("content-security-policy");
   if (!cspHeader) {
@@ -33,6 +24,11 @@ export const isIframeable = async ({
     if (allowedOrigins.includes(requestDomain)) {
       return true;
     }
+  }
+
+  const xFrameOptions = res.headers.get("X-Frame-Options");
+  if (xFrameOptions === "DENY" || xFrameOptions === "SAMEORIGIN") {
+    return false;
   }
 
   return false;

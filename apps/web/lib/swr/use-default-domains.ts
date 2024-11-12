@@ -4,12 +4,12 @@ import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
 export default function useDefaultDomains(opts: { search?: string } = {}) {
-  const { id, flags } = useWorkspace();
+  const { id: workspaceId, flags } = useWorkspace();
 
   const { data, error, mutate } = useSWR<string[]>(
-    id &&
+    workspaceId &&
       `/api/domains/default?${new URLSearchParams({
-        workspaceId: id,
+        workspaceId,
         ...(opts.search && { search: opts.search }),
       }).toString()}`,
     fetcher,
@@ -19,8 +19,8 @@ export default function useDefaultDomains(opts: { search?: string } = {}) {
   );
 
   const defaultDomains = useMemo(() => {
-    return flags && !flags.callink
-      ? data?.filter((d) => d !== "cal.link")
+    return flags?.noDubLink
+      ? data?.filter((domain) => domain !== "dub.link")
       : data;
   }, [data, flags]);
 

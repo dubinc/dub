@@ -1,4 +1,4 @@
-import { DUB_WORDMARK, linkConstructor, timeAgo } from "@dub/utils";
+import { DUB_WORDMARK, linkConstructor, pluralize, timeAgo } from "@dub/utils";
 import {
   Body,
   Column,
@@ -94,7 +94,7 @@ export default function LinksImported({
               >
                 {workspaceName}↗
               </Link>{" "}
-              , for the domain{domains.length > 1 ? "s" : ""}{" "}
+              , for the {pluralize("domain", domains.length)}{" "}
               <strong>{domains.join(", ")}</strong>.
             </Text>
             {links.length > 0 && (
@@ -144,7 +144,7 @@ export default function LinksImported({
                 href="https://dub.co/help/article/how-to-add-custom-domain#step-2-configure-your-domain"
                 className="font-medium text-blue-600 no-underline"
               >
-                configured your domain{domains.length > 1 ? "s" : ""}
+                configured your {pluralize("domain", domains.length)}
               </Link>
               , you will need to do it before you can start using your links.
             </Text>
