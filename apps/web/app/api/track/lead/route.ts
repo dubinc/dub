@@ -24,22 +24,32 @@ export const POST = withWorkspaceEdge(
     const {
       clickId,
       eventName,
-      customerId: externalId,
+      externalId,
+      customerId, // deprecated
       customerName,
       customerEmail,
       customerAvatar,
       metadata,
     } = trackLeadRequestSchema.parse(await parseRequestBody(req));
 
+    const customerExternalId = externalId || customerId;
+
+    if (!customerExternalId) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "externalId is required",
+      });
+    }
+
     // deduplicate lead events – only record 1 event per hour
     const { success } = await ratelimit(1, "1 h").limit(
-      `recordLead:${externalId}:${eventName.toLowerCase().replace(" ", "-")}`,
+      `recordLead:${customerExternalId}:${eventName.toLowerCase().replace(" ", "-")}`,
     );
 
     if (!success) {
       throw new DubApiError({
         code: "rate_limit_exceeded",
-        message: `Rate limit exceeded for customer ${externalId}: ${eventName}`,
+        message: `Rate limit exceeded for customer ${customerExternalId}: ${eventName}`,
       });
     }
 
@@ -67,7 +77,7 @@ export const POST = withWorkspaceEdge(
           where: {
             projectId_externalId: {
               projectId: workspace.id,
-              externalId,
+              externalId: customerExternalId,
             },
           },
           create: {
@@ -75,7 +85,7 @@ export const POST = withWorkspaceEdge(
             name: finalCustomerName,
             email: customerEmail,
             avatar: customerAvatar,
-            externalId,
+            externalId: customerExternalId,
             projectId: workspace.id,
             projectConnectId: workspace.stripeConnectId,
           },
@@ -143,7 +153,7 @@ export const POST = withWorkspaceEdge(
         id: clickId,
       },
       customer: {
-        id: externalId,
+        id: customerExternalId,
         name: finalCustomerName,
         email: customerEmail,
         avatar: customerAvatar,
@@ -154,7 +164,7 @@ export const POST = withWorkspaceEdge(
       ...lead,
       // for backwards compatibility – will remove soon
       clickId,
-      customerId: externalId,
+      customerId: customerExternalId,
       customerName: finalCustomerName,
       customerEmail: customerEmail,
       customerAvatar: customerAvatar,

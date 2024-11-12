@@ -5,15 +5,24 @@ import { commonDeprecatedEventFields } from "./deprecated";
 import { linkEventSchema, LinkSchema } from "./links";
 
 export const trackSaleRequestSchema = z.object({
-  // Required
-  customerId: z
-    .string({ required_error: "customerId is required" })
+  externalId: z
+    .string()
     .trim()
-    .min(1, "customerId is required")
     .max(100)
+    .default("") // Remove this after migrating users from customerId to externalId
     .describe(
       "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
     ),
+  customerId: z
+    .string()
+    .trim()
+    .max(100)
+    .nullish()
+    .default(null)
+    .describe(
+      "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
+    )
+    .openapi({ deprecated: true }),
   amount: z
     .number({ required_error: "amount is required" })
     .int()
@@ -22,8 +31,6 @@ export const trackSaleRequestSchema = z.object({
   paymentProcessor: z
     .enum(["stripe", "shopify", "paddle"])
     .describe("The payment processor via which the sale was made."),
-
-  // Optional
   eventName: z
     .string()
     .max(50)
