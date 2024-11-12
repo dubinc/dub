@@ -1,8 +1,11 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { customersQuerySchema } from "@/lib/zod/schemas/customers";
-import { CustomerSchema, PartnerSchema } from "@/lib/zod/schemas/partners";
+import {
+  CustomerSchema,
+  customersQuerySchema,
+} from "@/lib/zod/schemas/customers";
+import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
