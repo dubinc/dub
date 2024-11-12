@@ -120,7 +120,7 @@ export const CustomerSchema = z.object({
 export const SaleSchema = z.object({
   id: z.string(),
   amount: z.number(),
-  commissionEarned: z.number(),
+  earnings: z.number(),
   currency: z.string(),
   status: z.nativeEnum(SaleStatus),
   createdAt: z.date(),

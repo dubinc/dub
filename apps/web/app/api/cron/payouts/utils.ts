@@ -44,7 +44,7 @@ export const createPartnerPayouts = async ({
       },
       select: {
         id: true,
-        commissionEarned: true,
+        earnings: true,
       },
     });
 
@@ -64,12 +64,12 @@ export const createPartnerPayouts = async ({
       0,
     );
 
-    const commissionEarnedTotal = sales.reduce(
-      (total, sale) => total + sale.commissionEarned,
+    const earningsTotal = sales.reduce(
+      (total, sale) => total + sale.earnings,
       0,
     );
 
-    const amount = commissionEarnedTotal;
+    const amount = earningsTotal;
     const fee = amount * 0.02; // TODO: [payouts] tailor based on US / non-US
 
     // Create the payout

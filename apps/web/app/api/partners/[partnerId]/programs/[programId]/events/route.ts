@@ -1,5 +1,6 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { calculateEarnings } from "@/lib/api/sales/commission";
 import { withPartner } from "@/lib/auth/partner";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
@@ -28,21 +29,16 @@ export const GET = withPartner(async ({ partner, params, searchParams }) => {
     obfuscateData: true,
   });
 
-  const getEarnings = (item: any) => {
-    return (
-      (program.commissionType === "percentage"
-        ? item.sale.amount
-        : item.sales) *
-      (program.commissionAmount / 100) // commission amount is either a percentage of amount in cents
-    );
-  };
-
   return NextResponse.json(
     response.map((item) => {
       return {
         ...item,
         ...(parsedParams.event === "sales" && {
-          earnings: getEarnings(item),
+          earnings: calculateEarnings({
+            program,
+            sales: "sales" in item ? (item.sales as number) : 0,
+            saleAmount: "sale" in item && item.sale ? item.sale.amount : 0,
+          }),
         }),
       };
     }),

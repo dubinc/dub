@@ -80,7 +80,7 @@ export const GET = withWorkspace(
       select: {
         id: true,
         amount: true,
-        commissionEarned: true,
+        earnings: true,
         currency: true,
         status: true,
         createdAt: true,

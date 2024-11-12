@@ -2,7 +2,7 @@ import { Program, Sale, SaleStatus } from "@prisma/client";
 
 import { ProgramEnrollment } from "@prisma/client";
 import { createId } from "../utils";
-import { calculateCommissionEarned } from "./commission";
+import { calculateEarnings } from "./commission";
 
 export const createSaleData = ({
   customerId,
@@ -10,7 +10,6 @@ export const createSaleData = ({
   clickId,
   invoiceId,
   eventId,
-  eventName,
   paymentProcessor,
   amount,
   currency,
@@ -21,7 +20,6 @@ export const createSaleData = ({
   clickId: string;
   invoiceId: string | null;
   eventId: string;
-  eventName: string;
   paymentProcessor: string;
   amount: number;
   currency: string;
@@ -29,9 +27,10 @@ export const createSaleData = ({
 }): Omit<Sale, "createdAt" | "updatedAt" | "payoutId"> => {
   const { program, partnerId } = programEnrollment;
 
-  const commissionEarned = calculateCommissionEarned({
+  const earnings = calculateEarnings({
     program,
-    sale: { amount },
+    sales: 1,
+    saleAmount: amount,
   });
 
   const {
@@ -51,7 +50,6 @@ export const createSaleData = ({
     clickId,
     invoiceId,
     eventId,
-    eventName,
     paymentProcessor,
     amount,
     currency,
@@ -64,6 +62,7 @@ export const createSaleData = ({
     recurringInterval,
     isLifetimeRecurring,
     status: SaleStatus.pending,
-    commissionEarned,
+    earnings,
+    metadata: null,
   };
 };

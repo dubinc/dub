@@ -23,7 +23,7 @@ export function ProgramCommissionDescription({
       Earn{" "}
       <strong className={cn("font-semibold", amountClassName)}>
         {program.commissionType === "percentage"
-          ? Math.min(Math.max(program.commissionAmount, 0), 100) + "%"
+          ? program.commissionAmount + "%"
           : currencyFormatter(program.commissionAmount / 100, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
