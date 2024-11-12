@@ -164,7 +164,6 @@ export const POST = withWorkspaceEdge(
       ...lead,
       // for backwards compatibility – will remove soon
       clickId,
-      customerId: customerExternalId,
       customerName: finalCustomerName,
       customerEmail: customerEmail,
       customerAvatar: customerAvatar,
