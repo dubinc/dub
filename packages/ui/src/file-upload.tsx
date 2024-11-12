@@ -56,6 +56,7 @@ export type FileUploadProps = FileUploadReadFileProps & {
 
   className?: string;
   iconClassName?: string;
+  previewClassName?: string;
 
   /**
    * Image to display (generally for image uploads)
@@ -106,6 +107,7 @@ export function FileUpload({
   variant,
   className,
   iconClassName,
+  previewClassName,
   accept = "any",
   imageSrc,
   loading = false,
@@ -242,7 +244,10 @@ export function FileUpload({
         <img
           src={imageSrc}
           alt="Preview"
-          className="h-full w-full rounded-[inherit] object-cover"
+          className={cn(
+            "h-full w-full rounded-[inherit] object-cover",
+            previewClassName,
+          )}
         />
       )}
       {clickToUpload && (

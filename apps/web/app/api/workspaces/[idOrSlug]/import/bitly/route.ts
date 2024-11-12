@@ -1,5 +1,6 @@
 import { addDomainToVercel } from "@/lib/api/domains";
 import { bulkCreateLinks } from "@/lib/api/links";
+import { createId } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
@@ -68,6 +69,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
     await Promise.allSettled([
       prisma.domain.createMany({
         data: domainsNotInWorkspace.map(({ domain }) => ({
+          id: createId({ prefix: "dom_" }),
           slug: domain,
           projectId: workspace.id,
           primary: false,

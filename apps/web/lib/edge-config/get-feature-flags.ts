@@ -19,6 +19,7 @@ export const getFeatureFlags = async ({
   const workspaceFeatures: Record<BetaFeatures, boolean> = {
     referrals: false,
     webhooks: false,
+    noDubLink: false,
     linkFolders: false,
   };
 

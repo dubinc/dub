@@ -394,8 +394,8 @@ importers:
         specifier: ^3.4.4
         version: 3.4.4
       tsx:
-        specifier: 4.19.0
-        version: 4.19.0
+        specifier: ^4.19.1
+        version: 4.19.1
       turbo:
         specifier: ^1.10.14
         version: 1.10.14
@@ -21084,8 +21084,8 @@ packages:
       typescript: 4.9.5
     dev: true
 
-  /tsx@4.19.0:
-    resolution: {integrity: sha512-bV30kM7bsLZKZIOCHeMNVMJ32/LuJzLVajkQI/qf92J2Qr08ueLQvW00PUZGiuLPP760UINwupgUj8qrSCPUKg==}
+  /tsx@4.19.1:
+    resolution: {integrity: sha512-0flMz1lh74BR4wOvBjuh9olbnwqCPc35OOlfyzHba0Dc+QNUeWX/Gq2YTbnwcWPO3BMd8fkzRVrHcsR+a7z7rA==}
     engines: {node: '>=18.0.0'}
     hasBin: true
     dependencies:

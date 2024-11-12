@@ -130,6 +130,7 @@ export function AddEditDomainForm({
               toast.success(endpoint.successMessage);
               onSuccess?.(data);
             } else {
+              setSaving(false);
               const { error } = await res.json();
               if (res.status === 422) {
                 setDomainError(error.message);

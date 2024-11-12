@@ -7,13 +7,14 @@ import {
   truncate,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { combineTagIds } from "../tags/combine-tag-ids";
+import { createId } from "../utils";
 import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
 import { updateLinksUsage } from "./update-links-usage";
 import {
   checkIfLinksHaveTags,
   checkIfLinksHaveWebhooks,
-  combineTagIds,
-  LinkWithTags,
+  ExpandedLink,
   transformLink,
 } from "./utils";
 
@@ -27,7 +28,7 @@ export async function bulkCreateLinks({
   const hasTags = checkIfLinksHaveTags(links);
   const hasWebhooks = checkIfLinksHaveWebhooks(links);
 
-  let createdLinks: LinkWithTags[] = [];
+  let createdLinks: ExpandedLink[] = [];
 
   if (hasTags || hasWebhooks) {
     // create links via Promise.all (because createMany doesn't return the created links)
@@ -48,6 +49,7 @@ export async function bulkCreateLinks({
         return prisma.link.create({
           data: {
             ...link,
+            id: createId({ prefix: "link_" }),
             shortLink,
             title: truncate(link.title, 120),
             description: truncate(link.description, 240),
@@ -63,7 +65,7 @@ export async function bulkCreateLinks({
             ...(tagNames?.length &&
               link.projectId && {
                 tags: {
-                  create: tagNames.filter(Boolean).map((tagName) => ({
+                  create: tagNames.filter(Boolean).map((tagName, idx) => ({
                     tag: {
                       connect: {
                         name_projectId: {
@@ -72,6 +74,7 @@ export async function bulkCreateLinks({
                         },
                       },
                     },
+                    createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
                   })),
                 },
               }),
@@ -81,9 +84,10 @@ export async function bulkCreateLinks({
               combinedTagIds.length > 0 && {
                 tags: {
                   createMany: {
-                    data: combinedTagIds
-                      .filter(Boolean)
-                      .map((tagId) => ({ tagId })),
+                    data: combinedTagIds.filter(Boolean).map((tagId, idx) => ({
+                      tagId,
+                      createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
+                    })),
                   },
                 },
               }),
@@ -110,6 +114,9 @@ export async function bulkCreateLinks({
                   },
                 },
               },
+              orderBy: {
+                createdAt: "asc",
+              },
             },
             webhooks: hasWebhooks,
           },
@@ -125,6 +132,7 @@ export async function bulkCreateLinks({
 
         return {
           ...link,
+          id: createId({ prefix: "link_" }),
           shortLink: linkConstructorSimple({
             domain: link.domain,
             key: link.key,

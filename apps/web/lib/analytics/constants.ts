@@ -143,6 +143,7 @@ export const VALID_ANALYTICS_FILTERS = [
   "refererUrl",
   "url",
   "tagId",
+  "tagIds",
   "qr",
   "root",
 ];

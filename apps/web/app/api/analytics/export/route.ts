@@ -75,8 +75,6 @@ export const GET = withWorkspace(
         // no need to fetch top links data if there's a link specified
         // since this is just a single link
         if (endpoint === "top_links" && link) return;
-        // we're not fetching top URLs data if there's no link specified
-        if (endpoint === "top_urls" && !link) return;
         // skip clicks count
         if (endpoint === "count") return;
 

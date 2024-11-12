@@ -8,13 +8,14 @@ import {
   PenWriting,
   Popover,
   SimpleTooltipContent,
+  useCopyToClipboard,
   useKeyboardShortcut,
 } from "@dub/ui";
 import { BoxArchive, CircleCheck, Copy, QRCode } from "@dub/ui/src/icons";
 import { cn, isDubDomain, nanoid, punycode } from "@dub/utils";
 import { CopyPlus, Delete, FolderInput } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useLinkBuilder } from "../modals/link-builder";
@@ -35,13 +36,12 @@ export function LinkControls({ link }: { link: ResponseLink }) {
     setOpenMenuLinkId(open ? link.id : null);
   };
 
-  const [copiedLinkId, setCopiedLinkId] = useState(false);
+  const [copiedLinkId, copyToClipboard] = useCopyToClipboard();
 
   const copyLinkId = () => {
-    navigator.clipboard.writeText(link.id);
-    setCopiedLinkId(true);
-    toast.success("Link ID copied!");
-    setTimeout(() => setCopiedLinkId(false), 3000);
+    toast.promise(copyToClipboard(link.id), {
+      success: "Link ID copied!",
+    });
   };
 
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
@@ -88,12 +88,12 @@ export function LinkControls({ link }: { link: ResponseLink }) {
     ) &&
       (setOpenPopover(false),
       toast.promise(
-        fetch(`/api/admin/links/ban?key=${link.key}`, {
+        fetch(`/api/admin/links/ban?domain=${link.domain}&key=${link.key}`, {
           method: "DELETE",
         }).then(async () => {
           await mutate(
             (key) =>
-              typeof key === "string" && key.startsWith("/api/admin/links/ban"),
+              typeof key === "string" && key.startsWith("/api/admin/links"),
             undefined,
             { revalidate: true },
           );

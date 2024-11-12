@@ -13,7 +13,7 @@ import DeviceIcon from "./device-icon";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Devices() {
-  const { queryParams } = useRouterStuff();
+  const { queryParams, searchParams } = useRouterStuff();
 
   const { selectedTab } = useContext(AnalyticsContext);
   const dataKey = selectedTab === "sales" ? "saleAmount" : "count";
@@ -55,7 +55,13 @@ export default function Devices() {
                         ? TRIGGER_DISPLAY[d.trigger]
                         : d[singularTabName],
                     href: queryParams({
-                      set: { [singularTabName]: d[singularTabName] },
+                      ...(searchParams.has(singularTabName)
+                        ? { del: singularTabName }
+                        : {
+                            set: {
+                              [singularTabName]: d[singularTabName],
+                            },
+                          }),
                       getNewPath: true,
                     }) as string,
                     value: d[dataKey] || 0,
