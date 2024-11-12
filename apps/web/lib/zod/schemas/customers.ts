@@ -2,9 +2,6 @@ import z from "@/lib/zod";
 import { getPaginationQuerySchema } from "./misc";
 
 export const createCustomerBodySchema = z.object({
-  externalId: z
-    .string()
-    .describe("Unique identifier for the customer in the client's app."),
   email: z
     .string()
     .email()
@@ -21,6 +18,9 @@ export const createCustomerBodySchema = z.object({
     .url()
     .nullish()
     .describe("Avatar URL of the customer in the client's app."),
+  externalId: z
+    .string()
+    .describe("Unique identifier for the customer in the client's app."),
 });
 
 export const updateCustomerBodySchema = createCustomerBodySchema.partial();

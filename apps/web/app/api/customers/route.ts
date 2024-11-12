@@ -32,7 +32,7 @@ export const GET = withWorkspace(
 // POST /api/customers – Create a new customer
 export const POST = withWorkspace(
   async ({ req, workspace }) => {
-    const { externalId, email, name, avatar } = createCustomerBodySchema.parse(
+    const { email, name, avatar, externalId } = createCustomerBodySchema.parse(
       await parseRequestBody(req),
     );
 

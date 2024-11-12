@@ -25,8 +25,10 @@ describe.sequential("/customers/**", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
+  let customerId: string;
+
   afterAll(async () => {
-    await h.deleteCustomer(customerRecord.externalId);
+    await h.deleteCustomer(customerId);
   });
 
   test("POST /customers", async () => {
@@ -37,11 +39,13 @@ describe.sequential("/customers/**", async () => {
 
     expect(status).toEqual(201);
     expect(customer).toStrictEqual(expectedCustomer);
+
+    customerId = customer.id;
   });
 
-  test("GET /customers/{externalId}", async () => {
+  test("GET /customers/{id}", async () => {
     const { status, data: customer } = await http.get<Customer>({
-      path: `/customers/${customerRecord.externalId}`,
+      path: `/customers/${customerId}`,
     });
 
     expect(status).toEqual(200);
@@ -62,13 +66,13 @@ describe.sequential("/customers/**", async () => {
     expect(customerFound).toStrictEqual(expectedCustomer);
   });
 
-  test("PATCH /customers/{externalId}", async () => {
+  test("PATCH /customers/{id}", async () => {
     const toUpdate = {
       email: `${externalId}@example.co`,
     };
 
     const { status, data: customer } = await http.patch<Customer>({
-      path: `/customers/${customerRecord.externalId}`,
+      path: `/customers/${customerId}`,
       body: toUpdate,
     });
 
@@ -79,12 +83,12 @@ describe.sequential("/customers/**", async () => {
     });
   });
 
-  test("DELETE /customers/{externalId}", async () => {
+  test("DELETE /customers/{id}", async () => {
     const { status, data } = await http.delete({
-      path: `/customers/${customerRecord.externalId}`,
+      path: `/customers/${customerId}`,
     });
 
     expect(status).toEqual(200);
-    expect(data).toEqual({ externalId: customerRecord.externalId });
+    expect(data).toEqual({ id: customerId });
   });
 });
