@@ -56,6 +56,8 @@ export const ProgramSchema = z.object({
   recurringDuration: z.number().nullable(),
   recurringInterval: z.nativeEnum(CommissionInterval).nullable(),
   isLifetimeRecurring: z.boolean().nullable(),
+  brandColor: z.string().nullable(),
+  wordmark: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

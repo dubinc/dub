@@ -39,7 +39,9 @@ model Program {
   recurringDuration   Int?
   isLifetimeRecurring Boolean? // TODO: Maybe use just lifetimeRecurring?
 
-  // TODO: Add branding attributes: color, wordmark, etc.
+  brandColor          String?
+  wordmark            String?
+  lander              Json?   @db.Json
 
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
