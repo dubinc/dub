@@ -45,8 +45,8 @@ export const GET = withPartner(async ({ partner, params, searchParams }) => {
         ...item,
         earnings: calculateEarnings({
           program,
-          sales: "sales" in item ? item.sales : 0,
-          saleAmount: "sale" in item && item.sale ? item.sale.amount : 0,
+          sales: item.sales ?? 0,
+          saleAmount: item.sale?.amount ?? 0,
         }),
       };
     });
