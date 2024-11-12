@@ -19,6 +19,8 @@ export const PERMISSION_ACTIONS = [
   "integrations.write",
   "webhooks.read",
   "webhooks.write",
+  "folders.read",
+  "folders.write",
 ] as const;
 
 export type PermissionAction = (typeof PERMISSION_ACTIONS)[number];
@@ -117,6 +119,16 @@ export const ROLE_PERMISSIONS: {
     action: "webhooks.write",
     description: "create, update, or delete webhooks",
     roles: ["owner"],
+  },
+  {
+    action: "folders.read",
+    description: "access folders",
+    roles: ["owner", "member"],
+  },
+  {
+    action: "folders.write",
+    description: "create, update, or delete folders",
+    roles: ["owner", "member"],
   },
 ];
 

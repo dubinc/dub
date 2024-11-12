@@ -38,6 +38,7 @@ export async function propagateBulkLinkChanges(links: ExpandedLink[]) {
         url: link.url,
         tag_ids: link.tags?.map(({ tag }) => tag.id) ?? [],
         workspace_id: link.projectId,
+        folder_id: link.folderId,
         created_at: link.createdAt,
       })),
     ),

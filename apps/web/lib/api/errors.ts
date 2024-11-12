@@ -229,7 +229,7 @@ export const exceededLimitError = ({
 }: {
   plan: PlanProps;
   limit: number;
-  type: "clicks" | "links" | "AI" | "domains" | "tags" | "users";
+  type: "clicks" | "links" | "AI" | "domains" | "tags" | "users" | "folders";
 }) => {
   return `You've reached your ${
     type === "links" || type === "AI" ? "monthly" : ""

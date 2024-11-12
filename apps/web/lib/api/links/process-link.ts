@@ -1,4 +1,6 @@
 import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
+import { getFolder } from "@/lib/folder/get-folder";
+import { canPerformActionOnFolder } from "@/lib/folder/permissions";
 import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
@@ -69,6 +71,7 @@ export async function processLink<T extends Record<string, any>>({
     geo,
     doIndex,
     tagNames,
+    folderId,
     externalId,
     identifier,
     webhookIds,
@@ -427,6 +430,28 @@ export async function processLink<T extends Record<string, any>>({
           code: "unprocessable_entity",
         };
       }
+    }
+  }
+
+  // Folder checks
+  if (folderId && workspace && userId) {
+    const folder = await getFolder({
+      workspaceId: workspace.id,
+      folderId,
+      userId,
+    });
+
+    if (
+      !canPerformActionOnFolder({
+        folder,
+        requiredPermission: "folders.links.write",
+      })
+    ) {
+      return {
+        link: payload,
+        error: "You are not allowed to perform this action on this folder.",
+        code: "unprocessable_entity",
+      };
     }
   }
 
