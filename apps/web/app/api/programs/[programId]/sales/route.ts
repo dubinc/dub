@@ -3,8 +3,8 @@ import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { CustomerSchema } from "@/lib/zod/schemas/customers";
 import {
-  CustomerSchema,
   getSalesQuerySchema,
   PartnerSchema,
   SaleSchema,
@@ -24,8 +24,16 @@ export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
     const parsed = getSalesQuerySchema.parse(searchParams);
-    const { page, pageSize, status, order, sortBy, payoutId, partnerId } =
-      parsed;
+    const {
+      page,
+      pageSize,
+      status,
+      order,
+      sortBy,
+      customerId,
+      payoutId,
+      partnerId,
+    } = parsed;
 
     let { interval, start, end } = parsed;
     let granularity: "minute" | "hour" | "day" | "month" = "day";
@@ -61,17 +69,18 @@ export const GET = withWorkspace(
       where: {
         programId,
         ...(status && { status }),
+        ...(customerId && { customerId }),
         ...(payoutId && { payoutId }),
         ...(partnerId && { partnerId }),
-        // createdAt: {
-        //   gte: new Date(start).toISOString(),
-        //   lte: new Date(end).toISOString(),
-        // },
+        createdAt: {
+          gte: new Date(start).toISOString(),
+          lte: new Date(end).toISOString(),
+        },
       },
       select: {
         id: true,
         amount: true,
-        commissionEarned: true,
+        earnings: true,
         currency: true,
         status: true,
         createdAt: true,

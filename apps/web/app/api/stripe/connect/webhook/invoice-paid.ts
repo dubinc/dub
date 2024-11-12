@@ -71,7 +71,7 @@ export async function invoicePaid(event: Stripe.Event) {
     return `Link with ID ${linkId} not found, skipping...`;
   }
 
-  const programEnrollment = await prisma.programEnrollment.findFirst({
+  const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
       linkId: linkId,
     },
@@ -121,11 +121,14 @@ export async function invoicePaid(event: Stripe.Event) {
               clickId: saleData.click_id,
               invoiceId: saleData.invoice_id,
               eventId: saleData.event_id,
-              eventName: saleData.event_name,
               paymentProcessor: saleData.payment_processor,
               amount: saleData.amount,
               currency: saleData.currency,
               programEnrollment,
+              metadata: {
+                ...leadEvent.data[0],
+                stripeMetadata: invoice,
+              },
             }),
           }),
         ]
@@ -139,10 +142,12 @@ export async function invoicePaid(event: Stripe.Event) {
       data: transformSaleEventData({
         ...saleData,
         link,
-        customerId: customer.externalId,
+        customerId: customer.id,
+        customerExternalId: customer.externalId,
         customerName: customer.name,
         customerEmail: customer.email,
         customerAvatar: customer.avatar,
+        customerCreatedAt: customer.createdAt,
       }),
     }),
   );

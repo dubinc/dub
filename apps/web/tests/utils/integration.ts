@@ -73,4 +73,11 @@ export class IntegrationHarness {
       path: `/domains/${slug}`,
     });
   }
+
+  // Delete customer
+  public async deleteCustomer(externalId: string) {
+    await this.http.delete({
+      path: `/customers/${externalId}`,
+    });
+  }
 }

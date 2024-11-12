@@ -100,6 +100,7 @@ function PayoutDetailsSheetContent({
     page: 1,
   });
 
+
   const table = useTable({
     data:
       payoutWithSales?.sales?.filter(
@@ -123,7 +124,7 @@ function PayoutDetailsSheetContent({
         id: "total",
         header: "Total",
         cell: ({ row }) =>
-          currencyFormatter(row.original.amount / 100, {
+          currencyFormatter(row.original.earnings / 100, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           }),

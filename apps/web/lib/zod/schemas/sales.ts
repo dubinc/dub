@@ -1,6 +1,6 @@
 import z from "@/lib/zod";
 import { clickEventSchema, clickEventSchemaTB } from "./clicks";
-import { customerSchema } from "./customers";
+import { CustomerSchema } from "./customers";
 import { commonDeprecatedEventFields } from "./deprecated";
 import { linkEventSchema, LinkSchema } from "./links";
 
@@ -118,7 +118,7 @@ export const saleEventResponseSchema = z
     // nested objects
     link: linkEventSchema,
     click: clickEventSchema,
-    customer: customerSchema,
+    customer: CustomerSchema,
     sale: trackSaleRequestSchema.pick({
       amount: true,
       invoiceId: true,

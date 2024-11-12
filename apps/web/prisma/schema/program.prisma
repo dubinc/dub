@@ -32,7 +32,7 @@ model Program {
   logo                String?
   type                ProgramType         @default(affiliate)
   cookieLength        Int                 @default(90)
-  commissionAmount    Float               @default(0)
+  commissionAmount    Int                 @default(0)
   commissionType      CommissionType      @default(percentage)
   recurringCommission Boolean             @default(false)
   recurringInterval   CommissionInterval?

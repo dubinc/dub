@@ -9,26 +9,34 @@ enum SaleStatus {
 
 model Sale {
   id                  String              @id @default(cuid())
+
+  // relational ids
   programId           String
   partnerId           String
   payoutId            String?
+  customerId          String
   linkId              String
   clickId             String
-  customerId          String
   invoiceId           String?
-  eventId             String
-  eventName           String
-  paymentProcessor    String
+  eventId             String              @unique
+
+  // sale attributes
   amount              Int
   currency            String
-  commissionEarned    Int
-  commissionAmount    Float
+  paymentProcessor    String
+  earnings            Int                 @default(0)
+  status              SaleStatus          @default(pending)
+  // additional attributes from Tinybird
+  metadata            Json?
+
+  // program commission attributes
+  commissionAmount    Int
   commissionType      CommissionType
   recurringCommission Boolean
   recurringInterval   CommissionInterval?
   recurringDuration   Int?
   isLifetimeRecurring Boolean?
-  status              SaleStatus          @default(pending)
+  
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
 
@@ -41,4 +49,5 @@ model Sale {
   @@index([partnerId])
   @@index([payoutId])
   @@index([customerId])
+  @@index([status])
 }

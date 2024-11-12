@@ -9,6 +9,7 @@ import {
   SaleStatus,
 } from "@prisma/client";
 import { z } from "zod";
+import { CustomerSchema } from "./customers";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
@@ -107,20 +108,10 @@ export const PayoutSchema = z.object({
   updatedAt: z.date(),
 });
 
-export const CustomerSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  email: z.string().nullable(),
-  avatar: z.string().nullable(),
-  externalId: z.string(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
-
 export const SaleSchema = z.object({
   id: z.string(),
   amount: z.number(),
-  commissionEarned: z.number(),
+  earnings: z.number(),
   currency: z.string(),
   status: z.nativeEnum(SaleStatus),
   createdAt: z.date(),
@@ -146,6 +137,7 @@ export const getSalesQuerySchema = z
     interval: z.enum(intervals).default("30d"),
     start: parseDateSchema.optional(),
     end: parseDateSchema.optional(),
+    customerId: z.string().optional(),
     payoutId: z.string().optional(),
     partnerId: z.string().optional(),
   })

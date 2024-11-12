@@ -61,7 +61,7 @@ export const POST = withWorkspaceEdge(
       .omit({ timestamp: true })
       .parse(leadEvent.data[0]);
 
-    const programEnrollment = await prismaEdge.programEnrollment.findFirst({
+    const programEnrollment = await prismaEdge.programEnrollment.findUnique({
       where: {
         linkId: clickData.link_id,
       },
@@ -125,11 +125,11 @@ export const POST = withWorkspaceEdge(
                     clickId: clickData.click_id,
                     invoiceId,
                     eventId,
-                    eventName,
                     paymentProcessor,
                     amount,
                     currency,
                     programEnrollment,
+                    metadata: clickData,
                   }),
                 }),
               ]
@@ -144,10 +144,12 @@ export const POST = withWorkspaceEdge(
           invoiceId,
           amount,
           currency,
-          customerId: customer.externalId,
+          customerId: customer.id,
+          customerExternalId: customer.externalId,
           customerName: customer.name,
           customerEmail: customer.email,
           customerAvatar: customer.avatar,
+          customerCreatedAt: customer.createdAt,
         });
 
         await sendWorkspaceWebhookOnEdge({
