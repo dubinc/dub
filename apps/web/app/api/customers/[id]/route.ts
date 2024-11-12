@@ -1,3 +1,4 @@
+import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -13,19 +14,10 @@ export const GET = withWorkspace(
   async ({ workspace, params }) => {
     const { id } = params;
 
-    const customer = await prisma.customer.findUnique({
-      where: {
-        id,
-        projectId: workspace.id,
-      },
+    const customer = await getCustomerOrThrow({
+      id,
+      workspaceId: workspace.id,
     });
-
-    if (!customer) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Customer not found",
-      });
-    }
 
     return NextResponse.json(CustomerSchema.parse(customer));
   },
@@ -39,15 +31,19 @@ export const PATCH = withWorkspace(
   async ({ workspace, params, req }) => {
     const { id } = params;
 
-    const { externalId, name, email, avatar } = updateCustomerBodySchema.parse(
+    const { name, email, avatar, externalId } = updateCustomerBodySchema.parse(
       await parseRequestBody(req),
     );
+
+    await getCustomerOrThrow({
+      id,
+      workspaceId: workspace.id,
+    });
 
     try {
       const customer = await prisma.customer.update({
         where: {
           id,
-          projectId: workspace.id,
         },
         data: { name, email, avatar, externalId },
       });
@@ -83,11 +79,15 @@ export const DELETE = withWorkspace(
   async ({ workspace, params }) => {
     const { id } = params;
 
+    await getCustomerOrThrow({
+      id,
+      workspaceId: workspace.id,
+    });
+
     try {
       await prisma.customer.delete({
         where: {
           id,
-          projectId: workspace.id,
         },
       });
 
