@@ -9,6 +9,7 @@ import {
   SaleStatus,
 } from "@prisma/client";
 import { z } from "zod";
+import { CustomerSchema } from "./customers";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
@@ -103,16 +104,6 @@ export const PayoutSchema = z.object({
   periodStart: z.date(),
   periodEnd: z.date(),
   dotsTransferId: z.string().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
-
-export const CustomerSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  email: z.string().nullable(),
-  avatar: z.string().nullable(),
-  externalId: z.string(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

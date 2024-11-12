@@ -20,7 +20,6 @@ import { trackLeadResponseSchema } from "./zod/schemas/leads";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
-  CustomerSchema,
   EnrolledPartnerSchema,
   PartnerSchema,
   PayoutSchema,
