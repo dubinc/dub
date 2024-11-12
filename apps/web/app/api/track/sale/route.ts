@@ -20,7 +20,8 @@ export const runtime = "edge";
 export const POST = withWorkspaceEdge(
   async ({ req, workspace }) => {
     const {
-      customerId: externalId,
+      externalId,
+      customerId, // deprecated
       paymentProcessor,
       invoiceId,
       amount,
@@ -29,12 +30,21 @@ export const POST = withWorkspaceEdge(
       eventName,
     } = trackSaleRequestSchema.parse(await parseRequestBody(req));
 
+    const customerExternalId = customerId || externalId;
+
+    if (!customerExternalId) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "externalId is required",
+      });
+    }
+
     // Find customer
     const customer = await prismaEdge.customer.findUnique({
       where: {
         projectId_externalId: {
           projectId: workspace.id,
-          externalId,
+          externalId: customerExternalId,
         },
       },
     });
@@ -42,7 +52,7 @@ export const POST = withWorkspaceEdge(
     if (!customer) {
       throw new DubApiError({
         code: "not_found",
-        message: `Customer not found for customerId: ${externalId}`,
+        message: `Customer not found for externalId: ${customerExternalId}`,
       });
     }
 
@@ -52,7 +62,7 @@ export const POST = withWorkspaceEdge(
     if (!leadEvent || leadEvent.data.length === 0) {
       throw new DubApiError({
         code: "not_found",
-        message: `Lead event not found for customerId: ${externalId}`,
+        message: `Lead event not found for externalId: ${customerExternalId}`,
       });
     }
 
@@ -112,10 +122,12 @@ export const POST = withWorkspaceEdge(
           invoiceId,
           amount,
           currency,
-          customerId: customer.externalId,
+          customerId: customer.id,
+          customerExternalId: customer.externalId,
           customerName: customer.name,
           customerEmail: customer.email,
           customerAvatar: customer.avatar,
+          customerCreatedAt: customer.createdAt,
         });
 
         await sendWorkspaceWebhookOnEdge({
@@ -128,12 +140,7 @@ export const POST = withWorkspaceEdge(
 
     const sale = trackSaleResponseSchema.parse({
       eventName,
-      customer: {
-        id: customer.externalId,
-        name: customer.name,
-        email: customer.email,
-        avatar: customer.avatar,
-      },
+      customer,
       sale: {
         amount,
         currency,
@@ -146,7 +153,7 @@ export const POST = withWorkspaceEdge(
     return NextResponse.json({
       ...sale,
       // for backwards compatibility – will remove soon
-      customerId: externalId,
+      customerId: customerExternalId,
       amount,
       currency,
       invoiceId,
