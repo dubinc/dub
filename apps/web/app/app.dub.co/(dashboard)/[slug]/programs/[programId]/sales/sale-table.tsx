@@ -255,7 +255,15 @@ export function SaleTableBusiness({ limit }: { limit?: number }) {
             {activeFilters.length > 0 && (
               <div className="pt-3">
                 <Filter.List
-                  filters={filters}
+                  filters={[
+                    ...filters,
+                    {
+                      key: "payoutId",
+                      icon: MoneyBill2,
+                      label: "Payout",
+                      options: [],
+                    },
+                  ]}
                   activeFilters={activeFilters}
                   onRemove={onRemove}
                   onRemoveAll={onRemoveAll}

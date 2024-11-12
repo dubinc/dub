@@ -79,6 +79,14 @@ function PayoutDetailsSheetContent({
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }),
+      Fee: currencyFormatter(payout.fee / 100, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
+      Total: currencyFormatter(payout.total / 100, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
       Status: (
         <StatusBadge variant={statusBadge.variant} icon={statusBadge.icon}>
           {statusBadge.label}

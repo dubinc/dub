@@ -9,6 +9,7 @@ import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CheckCircleFill, X } from "@/ui/shared/icons";
 import { Button, Modal, Note } from "@dub/ui";
 import { GiftFill, GreekTemple, MobilePhone } from "@dub/ui/src/icons";
+import { SimpleTooltipContent, Tooltip } from "@dub/ui/src/tooltip";
 import {
   cn,
   currencyFormatter,
@@ -261,37 +262,47 @@ function FreeWithdrawalProgress({ balance }: { balance: number }) {
   const isFree = balance >= FREE_WITHDRAWAL_MINIMUM_BALANCE;
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className="text-2xs text-neutral-500 lg:whitespace-nowrap">
-        {isFree ? (
-          <p className="flex items-center gap-0.5 sm:pr-8">
-            <GiftFill className="mr-px inline-block size-2.5 text-green-900" />
-            Free withdrawal unlocked
-          </p>
-        ) : (
-          <>
-            You're{" "}
-            {currencyFormatter(remaining / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}{" "}
-            away from a free withdrawal
-          </>
-        )}
-      </div>
-      <div className="h-0.5 w-full overflow-hidden rounded-full bg-neutral-200">
-        <div
-          className={cn(
-            "h-full rounded-full",
-            isFree ? "bg-green-500" : "bg-neutral-900",
-          )}
-          style={{
-            width: isFree
-              ? "100%"
-              : `${(balance / FREE_WITHDRAWAL_MINIMUM_BALANCE) * 100}%`,
-          }}
+    <Tooltip
+      content={
+        <SimpleTooltipContent
+          title="Withdrawals above $1,000 in the US are free."
+          cta="Learn more"
+          href="/help" // TODO: [payouts] Add help page
         />
+      }
+    >
+      <div className="flex flex-col gap-1.5">
+        <div className="text-2xs text-neutral-500 lg:whitespace-nowrap">
+          {isFree ? (
+            <p className="flex items-center gap-0.5 sm:pr-8">
+              <GiftFill className="mr-px inline-block size-2.5 text-green-900" />
+              Free withdrawal unlocked
+            </p>
+          ) : (
+            <>
+              You're{" "}
+              {currencyFormatter(remaining / 100, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}{" "}
+              away from a free withdrawal
+            </>
+          )}
+        </div>
+        <div className="h-0.5 w-full overflow-hidden rounded-full bg-neutral-200">
+          <div
+            className={cn(
+              "h-full rounded-full",
+              isFree ? "bg-green-500" : "bg-neutral-900",
+            )}
+            style={{
+              width: isFree
+                ? "100%"
+                : `${(balance / FREE_WITHDRAWAL_MINIMUM_BALANCE) * 100}%`,
+            }}
+          />
+        </div>
       </div>
-    </div>
+    </Tooltip>
   );
 }
