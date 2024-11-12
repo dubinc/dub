@@ -68,10 +68,10 @@ export const trackLeadResponseSchema = z.object({
     id: z.string(),
   }),
   customer: z.object({
-    id: z.string(),
     name: z.string().nullable(),
     email: z.string().nullable(),
     avatar: z.string().nullable(),
+    externalId: z.string().nullable(),
   }),
 });
 

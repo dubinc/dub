@@ -63,6 +63,7 @@ export const trackSaleResponseSchema = z.object({
     name: z.string().nullable(),
     email: z.string().nullable(),
     avatar: z.string().nullable(),
+    externalId: z.string().nullable(),
   }),
   sale: z.object({
     amount: z.number(),

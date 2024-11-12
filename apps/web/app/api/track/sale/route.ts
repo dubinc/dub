@@ -30,7 +30,7 @@ export const POST = withWorkspaceEdge(
       eventName,
     } = trackSaleRequestSchema.parse(await parseRequestBody(req));
 
-    const customerExternalId = externalId || customerId;
+    const customerExternalId = customerId || externalId;
 
     if (!customerExternalId) {
       throw new DubApiError({
@@ -140,12 +140,7 @@ export const POST = withWorkspaceEdge(
 
     const sale = trackSaleResponseSchema.parse({
       eventName,
-      customer: {
-        id: customer.externalId,
-        name: customer.name,
-        email: customer.email,
-        avatar: customer.avatar,
-      },
+      customer,
       sale: {
         amount,
         currency,

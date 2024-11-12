@@ -32,7 +32,7 @@ export const POST = withWorkspaceEdge(
       metadata,
     } = trackLeadRequestSchema.parse(await parseRequestBody(req));
 
-    const customerExternalId = externalId || customerId;
+    const customerExternalId = customerId || externalId;
 
     if (!customerExternalId) {
       throw new DubApiError({
@@ -153,10 +153,10 @@ export const POST = withWorkspaceEdge(
         id: clickId,
       },
       customer: {
-        id: customerExternalId,
         name: finalCustomerName,
         email: customerEmail,
         avatar: customerAvatar,
+        externalId: customerExternalId,
       },
     });
 
