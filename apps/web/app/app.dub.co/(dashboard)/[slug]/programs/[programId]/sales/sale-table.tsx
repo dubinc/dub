@@ -214,25 +214,22 @@ const SaleTableBusinessInner = memo(
           meta?.filterParams && <FilterButton set={meta.filterParams(cell)} />
         );
       },
-      ...(!limit
-        ? {
-            pagination,
-            onPaginationChange: setPagination,
-            sortableColumns: ["createdAt", "amount"],
-            sortBy,
-            sortOrder: order,
-            onSortChange: ({ sortBy, sortOrder }) =>
-              queryParams({
-                set: {
-                  ...(sortBy && { sortBy: sortBy }),
-                  ...(sortOrder && { order: sortOrder }),
-                },
-              }),
-          }
-        : {
-            thClassName: "border-l-0",
-            tdClassName: "border-l-0",
+      ...(limit && {
+        pagination,
+        onPaginationChange: setPagination,
+        sortableColumns: ["createdAt", "amount"],
+        sortBy,
+        sortOrder: order,
+        onSortChange: ({ sortBy, sortOrder }) =>
+          queryParams({
+            set: {
+              ...(sortBy && { sortBy: sortBy }),
+              ...(sortOrder && { order: sortOrder }),
+            },
           }),
+      }),
+      thClassName: "border-l-0",
+      tdClassName: "border-l-0",
       resourceName: (p) => `sale${p ? "s" : ""}`,
       rowCount: salesCount?.[status || "all"] ?? 0,
       loading,
