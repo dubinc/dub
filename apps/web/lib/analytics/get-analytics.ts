@@ -89,7 +89,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   // Create a Tinybird pipe
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
-    pipe: `v2_${groupBy}`,
+    pipe: `${groupBy === "timeseries" ? "v3" : "v2"}_${groupBy}`,
     parameters: analyticsFilterTB,
     data: groupBy === "top_links" ? z.any() : analyticsResponse[groupBy],
   });

@@ -1,5 +1,6 @@
 import { IntervalOptions } from "@/lib/analytics/types";
 import useProgramAnalytics from "@/lib/swr/use-program-analytics";
+import useProgramMetrics from "@/lib/swr/use-program-metrics";
 import Areas from "@/ui/charts/areas";
 import { ChartContext } from "@/ui/charts/chart-context";
 import TimeSeriesChart from "@/ui/charts/time-series-chart";
@@ -26,12 +27,7 @@ export function OverviewChart() {
     interval?: IntervalOptions;
   };
 
-  const { data: total, error: totalError } = useProgramAnalytics({
-    event: "composite",
-    interval,
-    start: start ? new Date(start) : undefined,
-    end: end ? new Date(end) : undefined,
-  });
+  const { metrics, loading: metricsLoading } = useProgramMetrics();
 
   const { data: timeseries, error } = useProgramAnalytics({
     event: "sales",
@@ -51,24 +47,20 @@ export function OverviewChart() {
   );
 
   const dataLoading = !data && !error;
-  const totalLoading = total === undefined && !totalError;
-  const totalRevenue = total?.saleAmount ?? 0;
 
   return (
     <div>
       <div className="flex justify-between">
         <div className="flex flex-col gap-1 p-2">
           <span className="text-sm text-neutral-500">Revenue</span>
-          {totalLoading ? (
+          {metricsLoading || !metrics ? (
             <div className="h-9 w-24 animate-pulse rounded-md bg-neutral-200" />
           ) : (
             <span className="text-3xl text-neutral-800">
-              {totalError
-                ? "-"
-                : currencyFormatter(totalRevenue / 100, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
+              {currencyFormatter(metrics.revenue / 100, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </span>
           )}
         </div>

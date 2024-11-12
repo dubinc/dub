@@ -1,26 +1,12 @@
-import useWorkspace from "@/lib/swr/use-workspace";
+import useProgramMetrics from "@/lib/swr/use-program-metrics";
 import { Icon } from "@dub/ui";
 import { Check2, CurrencyDollar, MoneyBills2, Users } from "@dub/ui/src/icons";
-import { currencyFormatter, fetcher, nFormatter } from "@dub/utils";
+import { currencyFormatter, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import useSWR from "swr";
 
-type ProgramStats = {
-  revenue: number;
-  payouts: number;
-  salesCount: number;
-  partnersCount: number;
-};
-
-export function ProgramStats() {
-  const { programId } = useParams();
-  const { id: workspaceId } = useWorkspace();
-
-  const { data: programStats, error } = useSWR<ProgramStats>(
-    `/api/programs/${programId}/stats?workspaceId=${workspaceId}`,
-    fetcher,
-  );
+export function ProgramMetrics() {
+  const { metrics, error } = useProgramMetrics();
 
   return (
     <div className="grid grid-cols-1 divide-neutral-200 rounded-lg border border-neutral-200 max-md:divide-y md:grid-cols-4 md:divide-x">
@@ -28,20 +14,20 @@ export function ProgramStats() {
         icon={Users}
         label="Partners"
         tab="partners"
-        value={programStats?.partnersCount}
+        value={metrics?.partnersCount}
         error={error}
       />
       <Stat
         icon={Check2}
         label="Sales"
         tab="sales"
-        value={programStats?.salesCount}
+        value={metrics?.salesCount}
         error={error}
       />
       <Stat
         icon={CurrencyDollar}
         label="Revenue"
-        value={programStats?.revenue}
+        value={metrics?.revenue}
         tab="sales"
         error={error}
         isCurrency
@@ -50,7 +36,7 @@ export function ProgramStats() {
         icon={MoneyBills2}
         label="Payouts"
         tab="payouts"
-        value={programStats?.payouts}
+        value={metrics?.payouts}
         error={error}
         isCurrency
       />

@@ -8,7 +8,7 @@ import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
 import { OverviewChart } from "./overview-chart";
 import { PendingPayouts } from "./pending-payouts";
-import { ProgramStats } from "./program-stats";
+import { ProgramMetrics } from "./program-metrics";
 import { SaleTableBusiness } from "./sales/sale-table";
 import { TopPartners } from "./top-partners";
 
@@ -58,7 +58,7 @@ export default function ProgramOverviewPageClient() {
         </div>
       </div>
       <div className="mt-6">
-        <ProgramStats />
+        <ProgramMetrics />
       </div>
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
         <TopPartners />
