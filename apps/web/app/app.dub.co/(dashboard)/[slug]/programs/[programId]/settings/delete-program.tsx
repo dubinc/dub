@@ -18,7 +18,22 @@ export function DeleteProgram({ programId }: { programId: string }) {
       <div className="border-t border-gray-200" />
       <div className="flex items-center justify-end rounded-b-lg bg-gray-50 px-8 py-5">
         <div>
-          <Button text="Delete program" variant="danger" className="h-8" />
+          <Button
+            text="Delete program"
+            variant="danger"
+            className="h-8"
+            disabledTooltip={
+              <div className="px-3 py-2 text-sm text-neutral-600">
+                <a
+                  className="underline"
+                  href="mailto:support@dub.co?subject=Delete my program"
+                >
+                  Contact us
+                </a>{" "}
+                to delete your program.
+              </div>
+            }
+          />
         </div>
       </div>
     </div>

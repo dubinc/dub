@@ -6,17 +6,13 @@ import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Button } from "@dub/ui";
 import { BadgeCheck, GreekTemple } from "@dub/ui/src/icons";
 import { truncate } from "@dub/utils";
-import { Activity } from "./activity";
+import { WorkspaceDepositActivity } from "./activity";
 import { BankAccount } from "./bank-account";
 import { ComplianceButton } from "./compliance-button";
 import { Wallet } from "./wallet";
 
 export function PayoutsPageClient() {
-  const {
-    bankAccountName,
-    bankAccountVerified,
-    loading: isLoadingWorkspace,
-  } = useWorkspace();
+  const { bankAccountName, bankAccountVerified } = useWorkspace();
 
   const { AddBankAccountModal, setShowAddBankAccountModal } =
     useAddBankAccountModal();
@@ -24,7 +20,7 @@ export function PayoutsPageClient() {
   return (
     <>
       <AddBankAccountModal />
-      {bankAccountName || isLoadingWorkspace ? (
+      {bankAccountName ? (
         <div>
           <div className="rounded-lg border border-neutral-300 bg-white p-5">
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -58,7 +54,7 @@ export function PayoutsPageClient() {
             </div>
           </div>
           <div className="mt-8">
-            <Activity />
+            <WorkspaceDepositActivity />
           </div>
         </div>
       ) : (

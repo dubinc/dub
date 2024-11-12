@@ -34,6 +34,7 @@ export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
   workspaceId?: string;
   isDemo?: boolean;
   isDeprecatedClicksEndpoint?: boolean;
+  programId?: string;
 };
 
 export type EventsFilters = z.infer<typeof eventsQuerySchema> & {

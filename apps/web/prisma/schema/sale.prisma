@@ -1,8 +1,8 @@
 enum SaleStatus {
   pending
-  approved
-  refunded
+  reconciled
   paid
+  refunded
   duplicate
   fraud
 }
@@ -28,7 +28,7 @@ model Sale {
   recurringInterval   CommissionInterval?
   recurringDuration   Int?
   isLifetimeRecurring Boolean?
-  status              SaleStatus
+  status              SaleStatus          @default(pending)
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
 

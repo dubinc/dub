@@ -27,14 +27,12 @@ import { TagsListContext } from "./page-client";
 
 export function TagCard({
   tag,
-  tagsCount,
 }: {
-  tag: TagProps;
-  tagsCount?: { tagId: string; _count: number }[];
+  tag: TagProps & { _count?: { links: number } };
 }) {
   const { id, slug } = useWorkspace();
 
-  const linksCount = tagsCount?.find(({ tagId }) => tagId === tag.id)?._count;
+  const linksCount = tag._count?.links;
 
   const { openMenuTagId, setOpenMenuTagId } = useContext(TagsListContext);
   const openPopover = openMenuTagId === tag.id;
@@ -111,7 +109,7 @@ export function TagCard({
         </div>
 
         <div className="flex items-center gap-5 sm:gap-8 md:gap-12">
-          {tagsCount !== undefined && (
+          {linksCount !== undefined && (
             <Link
               href={`/${slug}?tagIds=${tag.id}`}
               className="whitespace-nowrap rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-sm text-gray-800 transition-colors hover:bg-gray-100"

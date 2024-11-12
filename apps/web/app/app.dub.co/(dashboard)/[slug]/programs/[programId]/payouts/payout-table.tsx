@@ -1,6 +1,9 @@
 "use client";
 
-import { PayoutCounts, PayoutWithPartnerProps } from "@/lib/types";
+import usePayoutsCount from "@/lib/swr/use-payouts-count";
+import { PayoutWithPartnerProps } from "@/lib/types";
+import { PayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
+import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
@@ -8,7 +11,6 @@ import {
   Button,
   Filter,
   Icon,
-  MoneyBill2,
   Popover,
   StatusBadge,
   Table,
@@ -16,17 +18,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import {
-  CircleCheck,
-  CircleHalfDottedCheck,
-  CircleHalfDottedClock,
-  CircleWarning,
-  CircleXmark,
-  Dots,
-  GreekTemple,
-  ScanText,
-  Users,
-} from "@dub/ui/src/icons";
+import { Dots, MoneyBill2, MoneyBills2 } from "@dub/ui/src/icons";
 import {
   cn,
   currencyFormatter,
@@ -36,58 +28,10 @@ import {
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
-import { useParams } from "next/navigation";
-import { useMemo, useState } from "react";
-import { toast } from "sonner";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 import useSWR from "swr";
-import { usePayoutConfirmSheet } from "./payout-confirm-sheet";
-import { usePayoutDetailsSheet } from "./payout-details-sheet";
 import { usePayoutFilters } from "./use-payout-filters";
-
-export const PayoutStatusBadges = {
-  created: {
-    label: "Created",
-    variant: "new",
-    icon: CircleHalfDottedCheck,
-    className: "text-blue-600 bg-blue-100",
-  },
-  pending: {
-    label: "Pending",
-    variant: "pending",
-    icon: CircleHalfDottedClock,
-    className: "text-orange-600 bg-orange-100",
-  },
-  failed: {
-    label: "Failed",
-    variant: "error",
-    icon: CircleWarning,
-    className: "text-red-600 bg-red-100",
-  },
-  completed: {
-    label: "Paid",
-    variant: "success",
-    icon: CircleCheck,
-    className: "text-green-600 bg-green-100",
-  },
-  reversed: {
-    label: "Reversed",
-    variant: "error",
-    icon: CircleHalfDottedClock,
-    className: "text-red-600 bg-red-100",
-  },
-  canceled: {
-    label: "Canceled",
-    variant: "error",
-    icon: CircleXmark,
-    className: "text-red-600 bg-red-100",
-  },
-  flagged: {
-    label: "Flagged",
-    variant: "warning",
-    icon: CircleWarning,
-    className: "text-yellow-600 bg-yellow-100",
-  },
-};
 
 export function PayoutTable() {
   const { programId } = useParams();
@@ -106,25 +50,31 @@ export function PayoutTable() {
     isFiltered,
   } = usePayoutFilters({ sortBy, order });
 
-  const { data: payoutCounts, error: countError } = useSWR<PayoutCounts[]>(
-    `/api/programs/${programId}/payouts/count?${searchQuery}`,
-    fetcher,
-  );
+  const { payoutsCount, error: countError } = usePayoutsCount();
 
-  const totalPayoutsCount = useMemo(
-    () => payoutCounts?.reduce((acc, { _count }) => acc + _count, 0) || 0,
-    [payoutCounts],
-  );
-
-  const { data: payouts, error } = useSWR<PayoutWithPartnerProps[]>(
+  const {
+    data: payouts,
+    error,
+    isLoading,
+  } = useSWR<PayoutWithPartnerProps[]>(
     `/api/programs/${programId}/payouts?${searchQuery}`,
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
+
+  const [detailsSheetState, setDetailsSheetState] = useState<
+    | { open: false; payout: PayoutWithPartnerProps | null }
+    | { open: true; payout: PayoutWithPartnerProps }
+  >({ open: false, payout: null });
 
   const { pagination, setPagination } = usePagination();
 
   const table = useTable({
     data: payouts || [],
+    loading: isLoading,
+    error: error || countError ? "Failed to load payouts" : undefined,
     columns: [
       {
         id: "periodStart",
@@ -167,8 +117,22 @@ export function PayoutTable() {
         },
       },
       {
-        header: "Conversions",
-        accessorFn: () => "-", // TODO: [payouts] Add conversions counts to /api/programs/[programId]/payouts response
+        id: "amount",
+        header: "Amount",
+        accessorFn: (d) =>
+          currencyFormatter(d.amount / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
+      },
+      {
+        id: "fee",
+        header: "Fee",
+        accessorFn: (d) =>
+          currencyFormatter(d.fee / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
       },
       {
         id: "total",
@@ -191,7 +155,7 @@ export function PayoutTable() {
     ],
     pagination,
     onPaginationChange: setPagination,
-    sortableColumns: ["periodStart", "total"],
+    sortableColumns: ["periodStart"],
     sortBy,
     sortOrder: order,
     onSortChange: ({ sortBy, sortOrder }) =>
@@ -201,134 +165,110 @@ export function PayoutTable() {
           ...(sortOrder && { order: sortOrder }),
         },
       }),
+    onRowClick: (row) =>
+      setDetailsSheetState({ open: true, payout: row.original }),
     columnPinning: { right: ["menu"] },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `payout${p ? "s" : ""}`,
-    rowCount: totalPayoutsCount,
-    loading: !payouts && !error,
-    error: error || countError ? "Failed to load payouts" : undefined,
+    rowCount: payoutsCount?.all || 0,
   });
 
   return (
-    <div className="flex flex-col gap-3">
-      <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-          />
-          <SearchBoxPersisted />
-        </div>
-        <AnimatedSizeContainer height>
-          <div>
-            {activeFilters.length > 0 && (
-              <div className="pt-3">
-                <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                />
-              </div>
-            )}
-          </div>
-        </AnimatedSizeContainer>
-      </div>
-      {payouts?.length !== 0 ? (
-        <Table {...table} />
-      ) : (
-        <AnimatedEmptyState
-          title="No payouts found"
-          description={
-            isFiltered
-              ? "No payouts found for the selected filters."
-              : "No payouts have been initiated for this program yet."
+    <>
+      {detailsSheetState.payout && (
+        <PayoutDetailsSheet
+          isOpen={detailsSheetState.open}
+          setIsOpen={(open) =>
+            setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
-          cardContent={() => (
-            <>
-              <MoneyBill2 className="size-4 text-neutral-700" />
-              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-            </>
-          )}
+          payout={detailsSheetState.payout}
         />
       )}
-    </div>
+      <div className="flex flex-col gap-3">
+        <div>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <Filter.Select
+              className="w-full md:w-fit"
+              filters={filters}
+              activeFilters={activeFilters}
+              onSelect={onSelect}
+              onRemove={onRemove}
+            />
+            <SearchBoxPersisted />
+          </div>
+          <AnimatedSizeContainer height>
+            <div>
+              {activeFilters.length > 0 && (
+                <div className="pt-3">
+                  <Filter.List
+                    filters={filters}
+                    activeFilters={activeFilters}
+                    onRemove={onRemove}
+                    onRemoveAll={onRemoveAll}
+                  />
+                </div>
+              )}
+            </div>
+          </AnimatedSizeContainer>
+        </div>
+        {payouts?.length !== 0 ? (
+          <Table {...table} />
+        ) : (
+          <AnimatedEmptyState
+            title="No payouts found"
+            description={
+              isFiltered
+                ? "No payouts found for the selected filters."
+                : "No payouts have been initiated for this program yet."
+            }
+            cardContent={() => (
+              <>
+                <MoneyBill2 className="size-4 text-neutral-700" />
+                <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+              </>
+            )}
+          />
+        )}
+      </div>
+    </>
   );
 }
 
 function RowMenuButton({ row }: { row: Row<PayoutWithPartnerProps> }) {
+  const router = useRouter();
+  const { slug, programId } = useParams();
   const [isOpen, setIsOpen] = useState(false);
 
-  const canConfirmPayout = ["created", "pending", "flagged", "failed"].includes(
-    row.original.status,
-  );
-
-  const { payoutConfirmSheet, setIsOpen: setShowPayoutConfirmSheet } =
-    usePayoutConfirmSheet({
-      payout: row.original,
-    });
-
-  const { payoutDetailsSheet, setIsOpen: setShowPayoutDetailsSheet } =
-    usePayoutDetailsSheet({
-      payout: row.original,
-      onConfirmPayout: canConfirmPayout
-        ? () => setShowPayoutConfirmSheet(true)
-        : undefined,
-    });
-
   return (
-    <>
-      {payoutDetailsSheet}
-      {canConfirmPayout && payoutConfirmSheet}
-      <Popover
-        openPopover={isOpen}
-        setOpenPopover={setIsOpen}
-        content={
-          <Command tabIndex={0} loop className="focus:outline-none">
-            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
-              {canConfirmPayout && (
-                <MenuItem
-                  icon={GreekTemple}
-                  label="Pay invoice"
-                  onSelect={() => {
-                    setShowPayoutConfirmSheet(true);
-                    setIsOpen(false);
-                  }}
-                />
-              )}
-              <MenuItem
-                icon={ScanText}
-                label="Review"
-                onSelect={() => {
-                  setShowPayoutDetailsSheet(true);
-                  setIsOpen(false);
-                }}
-              />
-              <MenuItem
-                icon={Users}
-                label="View partner"
-                onSelect={() => {
-                  toast.info("WIP"); // TODO
-                  setIsOpen(false);
-                }}
-              />
-            </Command.List>
-          </Command>
-        }
-        align="end"
-      >
-        <Button
-          type="button"
-          className="h-8 whitespace-nowrap px-2"
-          variant="outline"
-          icon={<Dots className="h-4 w-4 shrink-0" />}
-        />
-      </Popover>
-    </>
+    <Popover
+      openPopover={isOpen}
+      setOpenPopover={setIsOpen}
+      content={
+        <Command tabIndex={0} loop className="focus:outline-none">
+          <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
+            <MenuItem
+              icon={MoneyBills2}
+              label="View sales"
+              onSelect={() => {
+                router.push(
+                  `/${slug}/programs/${programId}/sales?payoutId=${row.original.id}`,
+                );
+                setIsOpen(false);
+              }}
+            />
+          </Command.List>
+        </Command>
+      }
+      align="end"
+    >
+      <Button
+        type="button"
+        className="h-8 whitespace-nowrap px-2"
+        variant="outline"
+        icon={<Dots className="h-4 w-4 shrink-0" />}
+      />
+    </Popover>
   );
 }
 

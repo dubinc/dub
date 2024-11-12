@@ -17,10 +17,10 @@ export const createProgramAction = authActionClient
       commissionType,
       commissionAmount,
       recurringCommission,
-      minimumPayout,
       recurringDuration,
       recurringInterval,
       isLifetimeRecurring,
+      cookieLength,
     } = parsedInput;
 
     const program = await prisma.program.create({
@@ -31,10 +31,10 @@ export const createProgramAction = authActionClient
         commissionType,
         commissionAmount,
         recurringCommission,
-        minimumPayout,
         recurringDuration,
         recurringInterval,
         isLifetimeRecurring,
+        cookieLength,
       },
     });
 

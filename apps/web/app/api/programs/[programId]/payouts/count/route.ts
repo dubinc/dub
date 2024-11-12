@@ -34,17 +34,23 @@ export const GET = withWorkspace(
       _count: true,
     });
 
-    const allStatuses = Object.values(PayoutStatus).map((status) => ({
-      status,
-      _count: 0,
-    }));
-
-    // Fill the missing statuses with 0
-    const counts = allStatuses.map(
-      (statusCount) =>
-        payouts.find((p) => p.status === statusCount.status) || statusCount,
+    const counts = payouts.reduce(
+      (acc, p) => {
+        acc[p.status] = p._count;
+        return acc;
+      },
+      {} as Record<PayoutStatus | "all", number>,
     );
 
-    return NextResponse.json(z.array(responseSchema).parse(counts));
+    // fill in missing statuses with 0
+    Object.values(PayoutStatus).forEach((status) => {
+      if (!(status in counts)) {
+        counts[status] = 0;
+      }
+    });
+
+    counts.all = payouts.reduce((acc, p) => acc + p._count, 0);
+
+    return NextResponse.json(counts);
   },
 );

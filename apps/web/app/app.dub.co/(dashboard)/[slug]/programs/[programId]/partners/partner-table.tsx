@@ -1,11 +1,16 @@
 "use client";
 
-import { EnrolledPartnerProps, PartnerCounts } from "@/lib/types";
+import usePartnersCount from "@/lib/swr/use-partners-count";
+import { EnrolledPartnerProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   AnimatedSizeContainer,
+  Button,
   Filter,
+  Icon,
+  MoneyBill2,
+  Popover,
   StatusBadge,
   Table,
   usePagination,
@@ -16,9 +21,11 @@ import {
   CircleCheck,
   CircleHalfDottedClock,
   CircleXmark,
+  Dots,
   Users,
 } from "@dub/ui/src/icons";
 import {
+  cn,
   COUNTRIES,
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
@@ -26,8 +33,10 @@ import {
   formatDate,
 } from "@dub/utils";
 import { nFormatter } from "@dub/utils/src/functions";
-import { useParams } from "next/navigation";
-import { useMemo } from "react";
+import { Row } from "@tanstack/react-table";
+import { Command } from "cmdk";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 import useSWR from "swr";
 import { usePartnerFilters } from "./use-partner-filters";
 
@@ -69,15 +78,7 @@ export function PartnerTable() {
     isFiltered,
   } = usePartnerFilters({ sortBy, order });
 
-  const { data: partnersCounts, error: countError } = useSWR<PartnerCounts[]>(
-    `/api/programs/${programId}/partners/count?${searchQuery}`,
-    fetcher,
-  );
-
-  const totalPartnersCount = useMemo(
-    () => partnersCounts?.reduce((acc, { _count }) => acc + _count, 0) || 0,
-    [partnersCounts],
-  );
+  const { partnersCount, error: countError } = usePartnersCount();
 
   const { data: partners, error } = useSWR<EnrolledPartnerProps[]>(
     `/api/programs/${programId}/partners?${searchQuery}`,
@@ -144,7 +145,7 @@ export function PartnerTable() {
         },
       },
       {
-        header: "Conversions",
+        header: "Sales",
         accessorFn: (d) =>
           d.status !== "pending"
             ? nFormatter(d.link?.sales, { full: true })
@@ -160,6 +161,15 @@ export function PartnerTable() {
                 maximumFractionDigits: 2,
               })
             : "-",
+      },
+      // Menu
+      {
+        id: "menu",
+        enableHiding: false,
+        minSize: 43,
+        size: 43,
+        maxSize: 43,
+        cell: ({ row }) => <RowMenuButton row={row} />,
       },
     ],
     pagination,
@@ -177,7 +187,7 @@ export function PartnerTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `partner${p ? "s" : ""}`,
-    rowCount: totalPartnersCount,
+    rowCount: partnersCount?.all || 0,
     loading: !partners && !error && !countError,
     error: error || countError ? "Failed to load partners" : undefined,
   });
@@ -229,5 +239,65 @@ export function PartnerTable() {
         />
       )}
     </div>
+  );
+}
+
+function RowMenuButton({ row }: { row: Row<EnrolledPartnerProps> }) {
+  const router = useRouter();
+  const { slug, programId } = useParams();
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <Popover
+      openPopover={isOpen}
+      setOpenPopover={setIsOpen}
+      content={
+        <Command tabIndex={0} loop className="focus:outline-none">
+          <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
+            <MenuItem
+              icon={MoneyBill2}
+              label="View sales"
+              onSelect={() => {
+                router.push(
+                  `/${slug}/programs/${programId}/sales?partnerId=${row.original.id}`,
+                );
+                setIsOpen(false);
+              }}
+            />
+          </Command.List>
+        </Command>
+      }
+      align="end"
+    >
+      <Button
+        type="button"
+        className="h-8 whitespace-nowrap px-2"
+        variant="outline"
+        icon={<Dots className="h-4 w-4 shrink-0" />}
+      />
+    </Popover>
+  );
+}
+
+function MenuItem({
+  icon: IconComp,
+  label,
+  onSelect,
+}: {
+  icon: Icon;
+  label: string;
+  onSelect: () => void;
+}) {
+  return (
+    <Command.Item
+      className={cn(
+        "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-600",
+        "data-[selected=true]:bg-gray-100",
+      )}
+      onSelect={onSelect}
+    >
+      <IconComp className="size-4 shrink-0 text-neutral-500" />
+      {label}
+    </Command.Item>
   );
 }

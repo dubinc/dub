@@ -1,4 +1,4 @@
-import { cn, deepEqual } from "@dub/utils";
+import { cn, deepEqual, isClickOnInteractiveChild } from "@dub/utils";
 import {
   Cell,
   Column,
@@ -16,6 +16,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   CSSProperties,
   Dispatch,
+  MouseEvent,
   PropsWithChildren,
   ReactNode,
   SetStateAction,
@@ -52,7 +53,7 @@ type UseTableProps<T> = {
   onColumnVisibilityChange?: (visibility: VisibilityState) => void;
   columnPinning?: ColumnPinningState;
   resourceName?: (plural: boolean) => string;
-  onRowClick?: (row: Row<T>) => void;
+  onRowClick?: (row: Row<T>, e: MouseEvent) => void;
 
   className?: string;
   containerClassName?: string;
@@ -61,7 +62,7 @@ type UseTableProps<T> = {
   tdClassName?: string | ((columnId: string) => string);
 } & (
   | {
-      pagination: PaginationState;
+      pagination?: PaginationState;
       onPaginationChange?: Dispatch<SetStateAction<PaginationState>>;
       rowCount: number;
     }
@@ -261,8 +262,23 @@ export function Table<T>({
               {table.getRowModel().rows.map((row) => (
                 <tr
                   key={row.id}
-                  className="group/row"
-                  onClick={onRowClick ? () => onRowClick(row) : undefined}
+                  className={cn(
+                    "group/row",
+                    onRowClick && "cursor-pointer select-none",
+                    // hacky fix: if there are more than 8 rows, remove the bottom border from the last row
+                    table.getRowModel().rows.length > 8 &&
+                      row.index === table.getRowModel().rows.length - 1 &&
+                      "[&_td]:border-b-0",
+                  )}
+                  onClick={
+                    onRowClick
+                      ? (e) => {
+                          // Ignore if click is on an interactive child
+                          if (isClickOnInteractiveChild(e)) return;
+                          onRowClick(row, e);
+                        }
+                      : undefined
+                  }
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td
@@ -354,7 +370,7 @@ export function Table<T>({
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/50"
+            className="absolute inset-0 flex h-[50vh] items-center justify-center rounded-xl bg-white/50"
           >
             <LoadingSpinner />
           </motion.div>

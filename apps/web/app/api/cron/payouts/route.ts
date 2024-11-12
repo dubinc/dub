@@ -1,10 +1,18 @@
-import { processMonthlyPartnerPayouts } from "@/lib/api/sales/payout";
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { NextResponse } from "next/server";
+import { processMonthlyPartnerPayouts } from "./utils";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
-  await processMonthlyPartnerPayouts();
+  try {
+    await verifyVercelSignature(req);
 
-  return NextResponse.json({ message: "Payouts calculated" });
+    await processMonthlyPartnerPayouts();
+
+    return NextResponse.json({ message: "Payouts calculated" });
+  } catch (error) {
+    return handleAndReturnErrorResponse(error);
+  }
 }

@@ -1,14 +1,10 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { customersQuerySchema } from "@/lib/zod/schemas/customers";
 import { CustomerSchema, PartnerSchema } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-const searchSchema = z.object({
-  offset: z.number().optional().default(0),
-  limit: z.number().optional().default(50),
-});
 
 const responseSchema = CustomerSchema.and(
   z.object({
@@ -20,7 +16,8 @@ const responseSchema = CustomerSchema.and(
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
-    const { offset, limit } = searchSchema.parse(searchParams);
+    const { search, ids, page, pageSize } =
+      customersQuerySchema.parse(searchParams);
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -34,6 +31,8 @@ export const GET = withWorkspace(
             programId,
           },
         },
+        ...(search && { name: { contains: search } }),
+        ...(ids && { id: { in: ids } }),
       },
       select: {
         id: true,
@@ -49,8 +48,11 @@ export const GET = withWorkspace(
           },
         },
       },
-      skip: offset,
-      take: limit,
+      orderBy: {
+        createdAt: "desc",
+      },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     });
 
     const customersWithPartner = customers.map((customer) => {

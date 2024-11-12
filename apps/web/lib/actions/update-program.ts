@@ -21,10 +21,10 @@ export const updateProgramAction = authActionClient
       commissionType,
       commissionAmount,
       recurringCommission,
-      minimumPayout,
       recurringDuration,
       recurringInterval,
       isLifetimeRecurring,
+      cookieLength,
     } = parsedInput;
 
     await getProgramOrThrow({
@@ -41,10 +41,10 @@ export const updateProgramAction = authActionClient
         commissionType,
         commissionAmount,
         recurringCommission,
-        minimumPayout,
         recurringDuration,
         recurringInterval,
         isLifetimeRecurring,
+        cookieLength,
       },
     });
 

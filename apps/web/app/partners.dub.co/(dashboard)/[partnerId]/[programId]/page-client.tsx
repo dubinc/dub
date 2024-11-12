@@ -1,119 +1,78 @@
 "use client";
 
-import { INTERVAL_DATA, INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
+import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
-import usePartnerEvents from "@/lib/swr/use-partner-events";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import Areas from "@/ui/charts/areas";
 import { ChartContext } from "@/ui/charts/chart-context";
 import TimeSeriesChart from "@/ui/charts/time-series-chart";
 import XAxis from "@/ui/charts/x-axis";
 import YAxis from "@/ui/charts/y-axis";
-import EmptyState from "@/ui/shared/empty-state";
+import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
+import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { MiniAreaChart } from "@dub/blocks";
 import {
   Button,
+  buttonVariants,
   Check2,
-  DateRangePicker,
   MaxWidthWrapper,
-  Table,
   useCopyToClipboard,
-  usePagination,
   useRouterStuff,
-  useTable,
 } from "@dub/ui";
+import { Copy, LoadingSpinner, MoneyBill2 } from "@dub/ui/src/icons";
 import {
-  CircleDollar,
-  Copy,
-  LoadingSpinner,
-  MoneyBill2,
-} from "@dub/ui/src/icons";
-import {
+  cn,
   currencyFormatter,
   formatDate,
   getPrettyUrl,
   nFormatter,
-  pluralize,
 } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
-import { endOfDay, startOfDay, subDays } from "date-fns";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { createContext, useContext, useId, useMemo } from "react";
 import { HeroBackground } from "./hero-background";
+import { SaleTablePartner } from "./sales/sale-table";
 
 const ProgramOverviewContext = createContext<{
   start?: Date;
   end?: Date;
-  interval?: string;
+  interval?: IntervalOptions;
+  color?: string;
 }>({});
 
 export default function ProgramPageClient() {
-  const { searchParams } = useRouterStuff();
+  const { getQueryString, searchParamsObj } = useRouterStuff();
+  const { partnerId, programId } = useParams();
 
   const { programEnrollment } = useProgramEnrollment();
   const [copied, copyToClipboard] = useCopyToClipboard();
 
-  const { start, end } = useMemo(() => {
-    const hasRange = searchParams?.has("start") && searchParams?.has("end");
-
-    return {
-      start: hasRange
-        ? startOfDay(
-            new Date(searchParams?.get("start") || subDays(new Date(), 1)),
-          )
-        : undefined,
-
-      end: hasRange
-        ? endOfDay(new Date(searchParams?.get("end") || new Date()))
-        : undefined,
-    };
-  }, [searchParams?.get("start"), searchParams?.get("end")]);
-
-  const interval =
-    start || end ? undefined : searchParams?.get("interval") ?? "30d";
+  const {
+    start,
+    end,
+    interval = "30d",
+  } = searchParamsObj as {
+    start?: string;
+    end?: string;
+    interval?: IntervalOptions;
+  };
 
   const program = programEnrollment?.program;
+  const color =
+    program?.id === "prog_MqN7G1vSbuSELpYJwioHyDE8" ? "#8B5CF6" : undefined;
 
   return (
     <MaxWidthWrapper className="pb-10">
-      <div className="relative flex flex-col rounded-lg border border-neutral-300 bg-neutral-50 p-4 md:p-6">
-        <HeroBackground logo={program?.logo} />
+      <div className="relative flex flex-col rounded-lg border border-neutral-300 bg-gradient-to-r from-neutral-50 p-4 md:p-6">
+        {program && <HeroBackground logo={program?.logo} color={color} />}
         <span className="flex items-center gap-2 text-sm text-neutral-500">
           <MoneyBill2 className="size-4" />
           Refer and earn
         </span>
         <div className="relative mt-24 text-lg text-neutral-900 sm:max-w-[50%]">
           {program ? (
-            <>
-              Earn{" "}
-              <strong className="font-semibold">
-                {program.commissionType === "percentage"
-                  ? program.commissionAmount + "%"
-                  : currencyFormatter(program.commissionAmount / 100, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-              </strong>
-              for each conversion
-              {program.recurringCommission &&
-              ((program.recurringDuration && program.recurringDuration > 0) ||
-                program.isLifetimeRecurring) ? (
-                <>
-                  , and again{" "}
-                  <strong className="font-semibold">
-                    every {program.recurringInterval || "cycle"} for{" "}
-                    {program.isLifetimeRecurring
-                      ? "the customer's lifetime."
-                      : program.recurringDuration
-                        ? `${program.recurringDuration} ${pluralize(program.recurringInterval || "cycle", program.recurringDuration)}.`
-                        : null}
-                  </strong>
-                </>
-              ) : (
-                "."
-              )}
-            </>
+            <ProgramCommissionDescription program={program} />
           ) : (
             <div className="mb-7 h-7 w-full animate-pulse rounded-md bg-neutral-200" />
           )}
@@ -148,7 +107,14 @@ export default function ProgramPageClient() {
           />
         </div>
       </div>
-      <ProgramOverviewContext.Provider value={{ start, end, interval }}>
+      <ProgramOverviewContext.Provider
+        value={{
+          start: start ? new Date(start) : undefined,
+          end: end ? new Date(end) : undefined,
+          interval,
+          color,
+        }}
+      >
         <div className="mt-6 rounded-lg border border-neutral-300">
           <div className="p-4 md:p-6 md:pb-4">
             <EarningsChart />
@@ -157,14 +123,25 @@ export default function ProgramPageClient() {
         <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-3">
           <StatCard title="Clicks" event="clicks" />
           <StatCard title="Leads" event="leads" />
-          <StatCard title="Conversions" event="sales" />
+          <StatCard title="Sales" event="sales" />
         </div>
         <div className="mt-6">
-          <h2 className="text-base font-medium text-neutral-900">
-            {!start && !end ? "Recent conversions" : "Conversions"}
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-medium text-neutral-900">
+              Recent sales
+            </h2>
+            <Link
+              href={`/${partnerId}/${programId}/sales${getQueryString()}`}
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "flex h-8 items-center rounded-lg border px-2 text-sm",
+              )}
+            >
+              View all
+            </Link>
+          </div>
           <div className="mt-4">
-            <SalesTable />
+            <SaleTablePartner limit={10} />
           </div>
         </div>
       </ProgramOverviewContext.Provider>
@@ -173,19 +150,18 @@ export default function ProgramPageClient() {
 }
 
 function EarningsChart() {
-  const { queryParams } = useRouterStuff();
   const id = useId();
 
-  const { start, end, interval } = useContext(ProgramOverviewContext);
+  const { start, end, interval, color } = useContext(ProgramOverviewContext);
 
   const { data: { earnings: total } = {} } = usePartnerAnalytics({
-    interval: interval as any,
+    interval,
     start,
     end,
   });
   const { data: timeseries, error } = usePartnerAnalytics({
     groupBy: "timeseries",
-    interval: interval as any,
+    interval,
     start,
     end,
   });
@@ -218,58 +194,7 @@ function EarningsChart() {
           </div>
         </div>
         <div className="w-full md:w-auto">
-          <DateRangePicker
-            className="h-8 w-full md:w-fit"
-            align="end"
-            value={
-              start && end
-                ? {
-                    from: start,
-                    to: end,
-                  }
-                : undefined
-            }
-            presetId={!start || !end ? interval ?? "24h" : undefined}
-            onChange={(range, preset) => {
-              if (preset) {
-                queryParams({
-                  del: ["start", "end"],
-                  set: {
-                    interval: preset.id,
-                  },
-                  scroll: false,
-                });
-
-                return;
-              }
-
-              // Regular range
-              if (!range || !range.from || !range.to) return;
-
-              queryParams({
-                del: "interval",
-                set: {
-                  start: range.from.toISOString(),
-                  end: range.to.toISOString(),
-                },
-                scroll: false,
-              });
-            }}
-            presets={INTERVAL_DISPLAYS.map(({ display, value, shortcut }) => {
-              const start = INTERVAL_DATA[value].startDate;
-              const end = new Date();
-
-              return {
-                id: value,
-                label: display,
-                dateRange: {
-                  from: start,
-                  to: end,
-                },
-                shortcut,
-              };
-            })}
-          />
+          <SimpleDateRangePicker className="h-8 w-full md:w-fit" />
         </div>
       </div>
       <div className="relative mt-4 h-64 w-full">
@@ -280,7 +205,7 @@ function EarningsChart() {
               {
                 id: "earnings",
                 valueAccessor: (d) => d.values.earnings,
-                colorClassName: "text-[#8B5CF6]",
+                colorClassName: color ? `text-[${color}]` : "text-violet-500",
                 isActive: true,
               },
             ]}
@@ -293,7 +218,12 @@ function EarningsChart() {
                   </p>
                   <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
                     <div className="flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-sm bg-violet-500 shadow-[inset_0_0_0_1px_#0003]" />
+                      <div
+                        className={cn(
+                          "h-2 w-2 rounded-sm shadow-[inset_0_0_0_1px_#0003]",
+                          color ? `bg-[${color}]` : "bg-violet-500",
+                        )}
+                      />
                       <p className="capitalize text-gray-600">Earnings</p>
                     </div>
                     <p className="text-right font-medium text-gray-900">
@@ -311,8 +241,8 @@ function EarningsChart() {
               {(context) => (
                 <LinearGradient
                   id={`${id}-color-gradient`}
-                  from="#8B5CF6"
-                  to="#4C1D95"
+                  from={color || "#7D3AEC"}
+                  to={color || "#DA2778"}
                   x1={0}
                   x2={context?.width ?? 1}
                   gradientUnits="userSpaceOnUse"
@@ -328,7 +258,7 @@ function EarningsChart() {
                   id: "earnings",
                   areaFill: `url(#${id}-color-gradient)`,
                   lineStroke: `url(#${id}-color-gradient)`,
-                  lineClassName: "text-violet-500",
+                  lineClassName: `text-[${color}]`,
                 },
               ]}
             />
@@ -357,16 +287,17 @@ function StatCard({
   event: "clicks" | "leads" | "sales";
 }) {
   const { partnerId, programId } = useParams();
-  const { start, end, interval } = useContext(ProgramOverviewContext);
+  const { getQueryString } = useRouterStuff();
+  const { start, end, interval, color } = useContext(ProgramOverviewContext);
 
   const { data: total } = usePartnerAnalytics({
-    interval: interval as any,
+    interval,
     start,
     end,
   });
   const { data: timeseries, error } = usePartnerAnalytics({
     groupBy: "timeseries",
-    interval: interval as any,
+    interval,
     start,
     end,
     event,
@@ -374,7 +305,7 @@ function StatCard({
 
   return (
     <Link
-      href={`/${partnerId}/${programId}/events?event=${event}`}
+      href={`/${partnerId}/${programId}/analytics?event=${event}${getQueryString()?.replace("?", "&")}`}
       className="hover:drop-shadow-card-hover block rounded-md border border-neutral-300 bg-white p-5 transition-[filter]"
     >
       <span className="block text-sm text-neutral-500">{title}</span>
@@ -393,6 +324,7 @@ function StatCard({
               value: d[event],
             }))}
             curve={false}
+            color={color}
           />
         ) : (
           <div className="flex size-full items-center justify-center">
@@ -407,81 +339,5 @@ function StatCard({
         )}
       </div>
     </Link>
-  );
-}
-
-function SalesTable() {
-  const { start, end, interval } = useContext(ProgramOverviewContext);
-
-  const { data: { sales: totalSaleEvents } = {} } = usePartnerAnalytics({
-    interval: interval as any,
-    start,
-    end,
-  });
-  const {
-    data: saleEvents,
-    loading,
-    error,
-  } = usePartnerEvents({
-    event: "sales",
-    interval: interval as any,
-    start,
-    end,
-  });
-
-  const { pagination, setPagination } = usePagination();
-
-  const { table, ...tableProps } = useTable({
-    data: saleEvents ?? [],
-    loading,
-    error: error ? "Failed to fetch sales events." : undefined,
-    columns: [
-      {
-        id: "timestamp",
-        header: "Date",
-        accessorKey: "timestamp",
-        cell: ({ row }) => {
-          return formatDate(row.original.timestamp, { month: "short" });
-        },
-      },
-      {
-        id: "customer",
-        header: "Customer",
-        accessorKey: "customer",
-        cell: ({ row }) => {
-          return row.original.customer.email;
-        },
-      },
-      {
-        id: "earned",
-        header: "Earned",
-        accessorKey: "earnings",
-        cell: ({ row }) => {
-          return currencyFormatter(row.original.earnings / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          });
-        },
-      },
-    ],
-    pagination,
-    onPaginationChange: setPagination,
-    rowCount: totalSaleEvents,
-    emptyState: (
-      <EmptyState
-        icon={CircleDollar}
-        title="No sales recorded"
-        description={`Referral sales will appear here.`}
-      />
-    ),
-    resourceName: (plural) => `sale${plural ? "s" : ""}`,
-  });
-
-  return (
-    <Table
-      {...tableProps}
-      table={table}
-      containerClassName="border-neutral-300"
-    />
   );
 }

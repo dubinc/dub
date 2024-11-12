@@ -6,6 +6,7 @@ import {
   PayoutStatus,
   ProgramEnrollmentStatus,
   Project,
+  SaleStatus,
   UtmTemplate,
   Webhook,
 } from "@prisma/client";
@@ -16,11 +17,14 @@ import { trackLeadResponseSchema } from "./zod/schemas/leads";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
+  CustomerSchema,
   EnrolledPartnerSchema,
   PartnerSchema,
   PayoutSchema,
+  PayoutWithSalesSchema,
   ProgramEnrollmentSchema,
   ProgramSchema,
+  SaleSchema,
 } from "./zod/schemas/partners";
 import { trackSaleResponseSchema } from "./zod/schemas/sales";
 import { tokenSchema } from "./zod/schemas/token";
@@ -293,10 +297,13 @@ export type TrackSaleResponse = z.infer<typeof trackSaleResponseSchema>;
 
 export type UsageResponse = z.infer<typeof usageResponse>;
 
-export type PartnerCounts = {
-  status: ProgramEnrollmentStatus;
-  _count: number;
-};
+export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
+
+export type SaleProps = z.infer<typeof SaleSchema>;
+export type SalesCount = Record<SaleStatus | "all", number>;
+
+export type CustomerProps = z.infer<typeof CustomerSchema>;
+
 export type PartnerProps = z.infer<typeof PartnerSchema>;
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
 
@@ -304,11 +311,11 @@ export type ProgramProps = z.infer<typeof ProgramSchema>;
 
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 
-export type PayoutCounts = {
-  status: PayoutStatus;
-  _count: number;
-};
+export type PayoutsCount = Record<PayoutStatus | "all", number>;
+
 export type PayoutProps = z.infer<typeof PayoutSchema>;
+
+export type PayoutWithSalesProps = z.infer<typeof PayoutWithSalesSchema>;
 
 export type PayoutWithPartnerProps = z.infer<typeof PayoutSchema> & {
   partner: PartnerProps;

@@ -45,7 +45,7 @@ export const createSaleData = ({
   } = program;
 
   return {
-    id: createId({ prefix: "" }),
+    id: createId({ prefix: "sale_" }),
     customerId,
     linkId,
     clickId,

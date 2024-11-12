@@ -1,10 +1,9 @@
+import { createId } from "@/lib/api/utils";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 
 async function main() {
-  const userId = "cm1ypncqa0000tc44pfgxp6qs";
   const programId = "prog_CYCu7IMAapjkRpTnr8F1azjN";
-  const linkId = "cm2q86tm4000hgopgg0b54jfi";
   const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
 
   // // Create a partner account
@@ -28,29 +27,32 @@ async function main() {
   await prisma.payout.createMany({
     data: [
       {
+        id: createId({ prefix: "po_" }),
         programId,
         partnerId,
-        total: 1000,
-        payoutFee: 0,
-        netTotal: 1000,
+        amount: 150000,
+        fee: 3000,
+        total: 153000,
         periodStart: new Date("2024-01-01"),
         periodEnd: new Date("2024-01-31"),
       },
       {
+        id: createId({ prefix: "po_" }),
         programId,
         partnerId,
-        total: 2000,
-        payoutFee: 0,
-        netTotal: 2000,
+        amount: 2000,
+        fee: 40,
+        total: 2040,
         periodStart: new Date("2024-02-01"),
         periodEnd: new Date("2024-02-28"),
       },
       {
+        id: createId({ prefix: "po_" }),
         programId,
         partnerId,
-        total: 3000,
-        payoutFee: 0,
-        netTotal: 3000,
+        amount: 3000,
+        fee: 60,
+        total: 3060,
         periodStart: new Date("2024-03-01"),
         periodEnd: new Date("2024-03-31"),
       },

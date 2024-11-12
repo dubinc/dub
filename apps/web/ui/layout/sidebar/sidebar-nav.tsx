@@ -1,6 +1,6 @@
 import { AnimatedSizeContainer, ClientOnly, Icon, NavWordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -152,10 +152,12 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
 
   const pathname = usePathname();
 
-  const isActive = useMemo(
-    () => isItemActive(pathname, { href, exact }),
-    [pathname, href, exact],
-  );
+  const isActive = useMemo(() => {
+    const hrefWithoutQuery = href.split("?")[0];
+    return exact
+      ? pathname === hrefWithoutQuery
+      : pathname.startsWith(hrefWithoutQuery);
+  }, [pathname, href, exact]);
 
   return (
     <div>
@@ -184,7 +186,7 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
         {name}
         {items && (
           <div className="flex grow justify-end">
-            <ChevronRight className="size-3.5 text-neutral-500 transition-transform duration-75 group-data-[active=true]:rotate-90" />
+            <ChevronDown className="size-3.5 text-neutral-500 transition-transform duration-75 group-data-[active=true]:rotate-180" />
           </div>
         )}
       </Link>

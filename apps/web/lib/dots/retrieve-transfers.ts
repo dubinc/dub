@@ -1,16 +1,31 @@
+import { DEFAULT_DOTS_APP_ID } from "@dub/utils";
 import { DOTS_API_URL } from "./env";
 import { dotsTransfersSchema } from "./schemas";
 import { dotsHeaders } from "./utils";
 
 export const retrieveTransfers = async ({
   dotsAppId,
+  dotsUserId,
+  type,
 }: {
-  dotsAppId: string;
+  dotsAppId?: string;
+  dotsUserId?: string;
+  type?: "refill" | "balance" | "payout";
 }) => {
-  const response = await fetch(`${DOTS_API_URL}/transfers`, {
-    method: "GET",
-    headers: dotsHeaders({ dotsAppId }),
+  const params = new URLSearchParams({
+    ...(type ? { type } : {}),
+    ...(dotsUserId ? { user_id: dotsUserId } : {}),
   });
+
+  const response = await fetch(
+    `${DOTS_API_URL}/transfers${
+      params.size > 0 ? `?${params.toString()}` : ""
+    }`,
+    {
+      method: "GET",
+      headers: dotsHeaders({ dotsAppId: dotsAppId ?? DEFAULT_DOTS_APP_ID }),
+    },
+  );
 
   if (!response.ok) {
     console.error(await response.text());

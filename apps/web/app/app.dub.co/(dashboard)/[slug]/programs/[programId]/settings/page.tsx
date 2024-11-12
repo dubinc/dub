@@ -1,7 +1,8 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { MaxWidthWrapper } from "@dub/ui";
 import { DeleteProgram } from "./delete-program";
-import { ProgramSettings } from "./settings";
+import { ProgramSettings } from "./program-settings";
+import { TrackingSettings } from "./tracking-settings";
 
 export default async function ProgramSettingsPage({
   params,
@@ -10,14 +11,12 @@ export default async function ProgramSettingsPage({
 }) {
   const { programId } = params;
 
-  // TODO:
-  // Add suspense loader
-
   return (
-    <PageContent title="Settings">
+    <PageContent title="Program Settings">
       <MaxWidthWrapper>
-        <div className="my-8 grid gap-8">
-          <ProgramSettings programId={programId} />
+        <div className="mb-10 grid grid-cols-1 gap-8">
+          <ProgramSettings />
+          <TrackingSettings />
           <DeleteProgram programId={programId} />
         </div>
       </MaxWidthWrapper>

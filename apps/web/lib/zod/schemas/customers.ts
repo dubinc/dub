@@ -1,4 +1,5 @@
 import z from "@/lib/zod";
+import { getPaginationQuerySchema } from "./misc";
 
 export const trackCustomerRequestSchema = z.object({
   // Required
@@ -44,3 +45,16 @@ export const customerSchema = z.object({
   email: z.string(),
   avatar: z.string(),
 });
+
+export const CUSTOMERS_MAX_PAGE_SIZE = 100;
+
+export const customersQuerySchema = z
+  .object({
+    search: z.string().optional(),
+    ids: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .optional()
+      .describe("IDs of customers to filter by."),
+  })
+  .merge(getPaginationQuerySchema({ pageSize: CUSTOMERS_MAX_PAGE_SIZE }));

@@ -1,9 +1,12 @@
 "use client";
 
 import { refreshComplianceFlowAction } from "@/lib/actions/refresh-compliance-flow";
+import { dotsFlowConfigurations } from "@/lib/dots/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Button } from "@dub/ui";
+import { X } from "@/ui/shared/icons";
+import { Button, Modal } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
+import { useState } from "react";
 import { toast } from "sonner";
 
 export const ComplianceButton = () => {
@@ -12,27 +15,52 @@ export const ComplianceButton = () => {
   const { executeAsync, isExecuting } = useAction(refreshComplianceFlowAction, {
     async onSuccess({ data }) {
       if (!data?.link) {
+        toast.error("No link found – contact support");
         return;
       }
 
-      window.open(data.link, "_blank");
+      setModalState({
+        show: true,
+        iframeSrc: `${data.link}?styles=${dotsFlowConfigurations}`,
+      });
     },
     onError({ error }) {
       toast.error(error.serverError?.serverError);
     },
   });
 
-  const onSubmit = async () => {
-    await executeAsync({ workspaceId: workspaceId! });
-  };
+  const [modalState, setModalState] = useState<{
+    show: boolean;
+    iframeSrc: string;
+  }>({
+    show: false,
+    iframeSrc: "",
+  });
 
   return (
-    <Button
-      variant="secondary"
-      text="Submit KYB compliance"
-      onClick={onSubmit}
-      loading={isExecuting}
-      className="w-fit"
-    />
+    <>
+      {modalState.show && (
+        <Modal
+          showModal={modalState.show}
+          setShowModal={() => setModalState({ show: false, iframeSrc: "" })}
+          className="h-[90vh] w-full max-w-[90vw]"
+        >
+          <button
+            onClick={() => setModalState({ show: false, iframeSrc: "" })}
+            className="group absolute right-4 top-4 rounded-full p-2 transition-colors hover:bg-neutral-100"
+          >
+            <X className="size-5 text-neutral-700 transition-all group-hover:scale-110 group-active:scale-90" />
+          </button>
+          <iframe src={modalState.iframeSrc} className="h-full w-full" />
+        </Modal>
+      )}
+      <Button
+        variant="secondary"
+        text="Submit KYB compliance"
+        onClick={() => executeAsync({ workspaceId: workspaceId! })}
+        loading={isExecuting}
+        className="h-8 w-fit px-2"
+      />
+    </>
   );
 };

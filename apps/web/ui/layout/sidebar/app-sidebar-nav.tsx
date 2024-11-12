@@ -3,6 +3,7 @@
 import usePrograms from "@/lib/swr/use-programs";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BetaFeatures } from "@/lib/types";
+import { useRouterStuff } from "@dub/ui";
 import {
   Books2,
   CircleInfo,
@@ -32,11 +33,12 @@ import { WorkspaceDropdown } from "./workspace-dropdown";
 
 const NAV_AREAS: SidebarNavAreas<{
   slug: string;
+  queryString: string;
   flags?: Record<BetaFeatures, boolean>;
   programs?: { id: string }[];
 }> = {
   // Top-level
-  default: ({ slug, programs }) => ({
+  default: ({ slug, queryString, programs }) => ({
     showSwitcher: true,
     showNews: true,
     direction: "left",
@@ -52,12 +54,12 @@ const NAV_AREAS: SidebarNavAreas<{
           {
             name: "Analytics",
             icon: LinesY,
-            href: `/${slug}/analytics`,
+            href: `/${slug}/analytics${queryString}`,
           },
           {
             name: "Events",
             icon: CursorRays,
-            href: `/${slug}/events`,
+            href: `/${slug}/events${queryString}`,
           },
           {
             name: "Settings",
@@ -86,12 +88,12 @@ const NAV_AREAS: SidebarNavAreas<{
                       href: `/${slug}/programs/${programs[0].id}/partners`,
                     },
                     {
-                      name: "Payouts",
-                      href: `/${slug}/programs/${programs[0].id}/payouts`,
+                      name: "Sales",
+                      href: `/${slug}/programs/${programs[0].id}/sales`,
                     },
                     {
-                      name: "Conversions",
-                      href: `/${slug}/programs/${programs[0].id}/conversions`,
+                      name: "Payouts",
+                      href: `/${slug}/programs/${programs[0].id}/payouts`,
                     },
                     {
                       name: "Branding",
@@ -251,6 +253,7 @@ export function AppSidebarNav({
   const pathname = usePathname();
   const { flags } = useWorkspace();
   const { programs } = usePrograms();
+  const { getQueryString } = useRouterStuff();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -264,7 +267,12 @@ export function AppSidebarNav({
     <SidebarNav
       areas={NAV_AREAS}
       currentArea={currentArea}
-      data={{ slug: slug || "", flags, programs }}
+      data={{
+        slug: slug || "",
+        queryString: getQueryString(),
+        flags,
+        programs,
+      }}
       toolContent={toolContent}
       newsContent={newsContent}
       switcher={<WorkspaceDropdown />}

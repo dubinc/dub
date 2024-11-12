@@ -1,13 +1,15 @@
+import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, FlagWavy } from "@dub/ui/src/icons";
-import { cn, COUNTRIES } from "@dub/utils";
+import { cn, COUNTRIES, nFormatter } from "@dub/utils";
 import { useMemo } from "react";
 import { PartnerStatusBadges } from "./partner-table";
 
 export function usePartnerFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
+  const { partnersCount } = usePartnersCount();
 
   const filters = useMemo(
     () => [
@@ -29,6 +31,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
                   )}
                 />
               ),
+              right: nFormatter(partnersCount?.[value] || 0, { full: true }),
             };
           },
         ),
@@ -51,7 +54,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
         })),
       },
     ],
-    [],
+    [partnersCount],
   );
 
   const activeFilters = useMemo(() => {

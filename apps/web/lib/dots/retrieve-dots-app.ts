@@ -9,8 +9,10 @@ export const retrieveDotsApp = async ({ dotsAppId }: { dotsAppId: string }) => {
   });
 
   if (!response.ok) {
-    console.error(await response.text());
-    throw new Error(`Failed to retrieve Dots app ${dotsAppId}.`);
+    const error = await response.json();
+    throw new Error(
+      `Failed to retrieve Dots app ${dotsAppId}: ${error.message}`,
+    );
   }
 
   return dotsAppSchema.parse(await response.json());

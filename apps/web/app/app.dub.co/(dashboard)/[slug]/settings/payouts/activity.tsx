@@ -1,7 +1,8 @@
 "use client";
 
-import { DotsTransfers } from "@/lib/dots/types";
+import { DotsDeposits } from "@/lib/dots/types";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { PlatformBadge } from "@/ui/partners/platform-badge";
 import { StatusBadge, Table, useTable } from "@dub/ui";
 import {
   capitalize,
@@ -26,11 +27,11 @@ const StatusBadgeVariants = {
   flagged: "warning",
 };
 
-export const Activity = () => {
+export const WorkspaceDepositActivity = () => {
   const { id: workspaceId } = useWorkspace();
 
-  const { data, error } = useSWR<DotsTransfers>(
-    `/api/dots/transfers?workspaceId=${workspaceId}`,
+  const { data, error } = useSWR<DotsDeposits>(
+    `/api/workspaces/${workspaceId}/deposits`,
     fetcher,
   );
 
@@ -44,17 +45,8 @@ export const Activity = () => {
         accessorFn: (row) => formatDateTime(new Date(row.created), {}),
       },
       {
-        header: "Type",
-        accessorFn: (row) =>
-          capitalize(TRANSACTION_TYPES[row.type] ?? row.type),
-      },
-      {
-        header: "Status",
-        cell: ({ row }) => (
-          <StatusBadge variant={StatusBadgeVariants[row.original.status]}>
-            {capitalize(row.original.status)}
-          </StatusBadge>
-        ),
+        header: "Method",
+        cell: ({ row }) => <PlatformBadge platform={row.original.platform} />,
       },
       {
         header: "Amount",
@@ -64,6 +56,14 @@ export const Activity = () => {
             maximumFractionDigits: 2,
           }),
       },
+      {
+        header: "Status",
+        cell: ({ row }) => (
+          <StatusBadge variant={StatusBadgeVariants[row.original.status]}>
+            {capitalize(row.original.status)}
+          </StatusBadge>
+        ),
+      },
     ],
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
@@ -72,7 +72,7 @@ export const Activity = () => {
   return (
     <div>
       <h2 className="text-base font-semibold text-neutral-900">
-        Recent activity
+        Recent deposits
       </h2>
       <div className="mt-3">
         <Table {...table} />

@@ -19,6 +19,8 @@ model Partner {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
+  dotsUserId String? @unique
+
   programs ProgramEnrollment[]
   users    PartnerUser[]
   invites  PartnerInvite[]
