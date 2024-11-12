@@ -48,8 +48,8 @@ export const SaleStatusBadges = {
     className: "text-orange-600 bg-orange-100",
     icon: CircleHalfDottedClock,
   },
-  reconciled: {
-    label: "Reconciled",
+  processed: {
+    label: "Processed",
     variant: "new",
     className: "text-blue-600 bg-blue-100",
     icon: CircleHalfDottedClock,

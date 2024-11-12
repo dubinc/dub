@@ -37,16 +37,16 @@ export function SaleStats() {
         error={!!error}
       />
       <ProgramStatsFilter
-        label="Reconciled"
+        label="Processed"
         href={
           queryParams({
-            set: { status: "reconciled" },
+            set: { status: "processed" },
             getNewPath: true,
           }) as string
         }
-        count={salesCount?.reconciled}
-        icon={SaleStatusBadges.reconciled.icon}
-        iconClassName={SaleStatusBadges.reconciled.className}
+        count={salesCount?.processed}
+        icon={SaleStatusBadges.processed.icon}
+        iconClassName={SaleStatusBadges.processed.className}
         error={!!error}
       />
       <ProgramStatsFilter

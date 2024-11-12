@@ -1,6 +1,6 @@
 enum SaleStatus {
   pending
-  reconciled
+  processed
   paid
   refunded
   duplicate
