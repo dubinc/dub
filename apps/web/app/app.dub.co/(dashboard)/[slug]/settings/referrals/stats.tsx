@@ -40,7 +40,7 @@ async function StatsInner({ slug }: { slug: string }) {
       return (
         <>
           <StatsCard
-            label="Affiliate Earnings"
+            label="Partner Earnings"
             demo
             graphic={
               <MiniAreaChart
@@ -87,7 +87,7 @@ async function StatsInner({ slug }: { slug: string }) {
     return (
       <>
         <StatsCard
-          label="Affiliate Earnings"
+          label="Partner Earnings"
           graphic={<MiniAreaChart data={sales} />}
         >
           <CountingNumbers prefix="$" variant="full">

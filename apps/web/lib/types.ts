@@ -1,7 +1,15 @@
 import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
-import { Link, Project, UtmTemplate, Webhook } from "@prisma/client";
+import {
+  Link,
+  PayoutStatus,
+  ProgramEnrollmentStatus,
+  Project,
+  SaleStatus,
+  UtmTemplate,
+  Webhook,
+} from "@prisma/client";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
   CustomerSchema,
@@ -12,9 +20,13 @@ import { trackLeadResponseSchema } from "./zod/schemas/leads";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
+  EnrolledPartnerSchema,
   PartnerSchema,
+  PayoutSchema,
+  PayoutWithSalesSchema,
   ProgramEnrollmentSchema,
   ProgramSchema,
+  SaleSchema,
 } from "./zod/schemas/partners";
 import { trackSaleResponseSchema } from "./zod/schemas/sales";
 import { tokenSchema } from "./zod/schemas/token";
@@ -100,6 +112,13 @@ export interface WorkspaceProps extends Project {
     [key in BetaFeatures]: boolean;
   };
 }
+
+export type ExpandedWorkspaceProps = WorkspaceProps & {
+  programs: {
+    id: string;
+    name: string;
+  }[];
+};
 
 export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;
 
@@ -282,8 +301,29 @@ export type Customer = z.infer<typeof CustomerSchema>;
 
 export type UsageResponse = z.infer<typeof usageResponse>;
 
+export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
+
+export type SaleProps = z.infer<typeof SaleSchema>;
+export type SalesCount = Record<SaleStatus | "all", number>;
+
+export type CustomerProps = z.infer<typeof CustomerSchema>;
+
 export type PartnerProps = z.infer<typeof PartnerSchema>;
+export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
 
 export type ProgramProps = z.infer<typeof ProgramSchema>;
 
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
+
+export type PayoutsCount = Record<PayoutStatus | "all", number>;
+
+export type PayoutProps = z.infer<typeof PayoutSchema>;
+
+export type PayoutWithSalesProps = z.infer<typeof PayoutWithSalesSchema>;
+
+export type PayoutWithPartnerProps = z.infer<typeof PayoutSchema> & {
+  partner: PartnerProps;
+  _count: {
+    sales: number;
+  };
+};

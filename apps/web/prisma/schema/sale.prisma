@@ -1,0 +1,53 @@
+enum SaleStatus {
+  pending
+  reconciled
+  paid
+  refunded
+  duplicate
+  fraud
+}
+
+model Sale {
+  id                  String              @id @default(cuid())
+
+  // relational ids
+  programId           String
+  partnerId           String
+  payoutId            String?
+  customerId          String
+  linkId              String
+  clickId             String
+  invoiceId           String?
+  eventId             String              @unique
+
+  // sale attributes
+  amount              Int
+  currency            String
+  paymentProcessor    String
+  earnings            Int                 @default(0)
+  status              SaleStatus          @default(pending)
+  // additional attributes from Tinybird
+  metadata            Json?
+
+  // program commission attributes
+  commissionAmount    Int
+  commissionType      CommissionType
+  recurringCommission Boolean
+  recurringInterval   CommissionInterval?
+  recurringDuration   Int?
+  isLifetimeRecurring Boolean?
+  
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  program  Program  @relation(fields: [programId], references: [id])
+  partner  Partner  @relation(fields: [partnerId], references: [id])
+  payout   Payout?  @relation(fields: [payoutId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@index([programId])
+  @@index([partnerId])
+  @@index([payoutId])
+  @@index([customerId])
+  @@index([status])
+}
