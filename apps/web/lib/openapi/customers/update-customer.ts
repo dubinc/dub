@@ -12,7 +12,7 @@ export const updateCustomer: ZodOpenApiOperationObject = {
   summary: "Update a customer",
   description: "Update a customer for the authenticated workspace.",
   requestParams: {
-    path: CustomerSchema.pick({ externalId: true }),
+    path: CustomerSchema.pick({ id: true }),
   },
   requestBody: {
     content: {
