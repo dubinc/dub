@@ -12,7 +12,7 @@ export default function useProgramMetrics() {
     payouts: number;
     salesCount: number;
     partnersCount: number;
-  }>(`/api/programs/${programId}/stats?workspaceId=${workspaceId}`, fetcher);
+  }>(`/api/programs/${programId}/metrics?workspaceId=${workspaceId}`, fetcher);
 
   return {
     metrics: data,
