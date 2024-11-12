@@ -161,7 +161,15 @@ export const analyticsQuerySchema = z.object({
   tagId: z
     .string()
     .optional()
-    .describe("The tag ID to retrieve analytics for."),
+    .describe(
+      "Deprecated. Use `tagIds` instead. The tag ID to retrieve analytics for.",
+    )
+    .openapi({ deprecated: true }),
+  tagIds: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe("The tag IDs to retrieve analytics for."),
   qr: booleanQuerySchema
     .optional()
     .describe(
@@ -208,7 +216,7 @@ export const analyticsFilterTB = z
       os: true,
       referer: true,
       refererUrl: true,
-      tagId: true,
+      tagIds: true,
       url: true,
     }),
   );

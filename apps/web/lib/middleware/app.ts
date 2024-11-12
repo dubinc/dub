@@ -11,7 +11,8 @@ import WorkspacesMiddleware from "./workspaces";
 export default async function AppMiddleware(req: NextRequest) {
   const { path, fullPath } = parse(req);
   const user = await getUserViaToken(req);
-  const isWorkspaceInvite = req.nextUrl.searchParams.get("invite");
+  const isWorkspaceInvite =
+    req.nextUrl.searchParams.get("invite") || path.startsWith("/invites/");
 
   // if there's no user and the path isn't /login or /register, redirect to /login
   if (
@@ -47,6 +48,7 @@ export default async function AppMiddleware(req: NextRequest) {
       new Date(user.createdAt).getTime() > Date.now() - 60 * 60 * 24 * 1000 &&
       !isWorkspaceInvite &&
       !path.startsWith("/onboarding") &&
+      !(await getDefaultWorkspace(user)) &&
       (await getOnboardingStep(user)) !== "completed"
     ) {
       let step = await getOnboardingStep(user);

@@ -1,4 +1,4 @@
-import { Button, ReferredVia } from "@dub/ui";
+import { Button, ReferredVia, useMediaQuery } from "@dub/ui";
 import { memo, useContext } from "react";
 import { useShareDashboardModal } from "../modals/share-dashboard-modal";
 import { AnalyticsContext } from "./analytics-provider";
@@ -13,6 +13,7 @@ const ShareButtonInner = memo(
   ({ domain, _key }: { domain: string; _key: string }) => {
     const { ShareDashboardModal, setShowShareDashboardModal } =
       useShareDashboardModal({ domain, _key });
+    const { isMobile } = useMediaQuery();
     return (
       <>
         <ShareDashboardModal />
@@ -20,7 +21,7 @@ const ShareButtonInner = memo(
           variant="secondary"
           onClick={() => setShowShareDashboardModal(true)}
           icon={<ReferredVia className="size-4" />}
-          text="Share"
+          text={isMobile ? undefined : "Share"}
           className="animate-fade-in w-fit"
         />
       </>

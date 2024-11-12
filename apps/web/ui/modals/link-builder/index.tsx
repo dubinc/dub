@@ -1,7 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { LinkWithTagsProps } from "@/lib/types";
+import { ExpandedLinkProps } from "@/lib/types";
 import { DestinationUrlInput } from "@/ui/links/destination-url-input";
 import { ShortLinkInput } from "@/ui/links/short-link-input";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
@@ -73,13 +73,13 @@ export const LinkModalContext = createContext<{
   generatingMetatags: boolean;
 }>({ generatingMetatags: false });
 
-export type LinkFormData = LinkWithTagsProps;
+export type LinkFormData = ExpandedLinkProps;
 
 type LinkBuilderProps = {
   showLinkBuilder: boolean;
   setShowLinkBuilder: Dispatch<SetStateAction<boolean>>;
-  props?: LinkWithTagsProps;
-  duplicateProps?: LinkWithTagsProps;
+  props?: ExpandedLinkProps;
+  duplicateProps?: ExpandedLinkProps;
   homepageDemo?: boolean;
 };
 
@@ -594,8 +594,8 @@ export function useLinkBuilder({
   duplicateProps,
   homepageDemo,
 }: {
-  props?: LinkWithTagsProps;
-  duplicateProps?: LinkWithTagsProps;
+  props?: ExpandedLinkProps;
+  duplicateProps?: ExpandedLinkProps;
   homepageDemo?: boolean;
 } = {}) {
   const [showLinkBuilder, setShowLinkBuilder] = useState(false);

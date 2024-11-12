@@ -35,7 +35,7 @@ const LinksQuerySchema = z.object({
     .string()
     .optional()
     .describe(
-      "The tag ID to filter the links by. This field is deprecated – use `tagIds` instead.",
+      "Deprecated. Use `tagIds` instead. The tag ID to filter the links by.",
     )
     .openapi({ deprecated: true }),
   tagIds: z
@@ -594,6 +594,7 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
     // Only Dub UI uses the following query parameters
     includeUser: booleanQuerySchema.default("false"),
     includeWebhooks: booleanQuerySchema.default("false"),
+    includeDashboard: booleanQuerySchema.default("false"),
     linkIds: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))

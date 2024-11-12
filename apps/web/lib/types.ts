@@ -11,6 +11,11 @@ import { integrationSchema } from "./zod/schemas/integration";
 import { trackLeadResponseSchema } from "./zod/schemas/leads";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
+import {
+  PartnerSchema,
+  ProgramEnrollmentSchema,
+  ProgramSchema,
+} from "./zod/schemas/partners";
 import { trackSaleResponseSchema } from "./zod/schemas/sales";
 import { tokenSchema } from "./zod/schemas/token";
 import { usageResponse } from "./zod/schemas/usage";
@@ -22,9 +27,10 @@ import {
 
 export type LinkProps = Link;
 
-export interface LinkWithTagsProps extends LinkProps {
+export interface ExpandedLinkProps extends LinkProps {
   tags: TagProps[];
   webhookIds: string[];
+  dashboardId: string | null;
 }
 
 export interface SimpleLinkProps {
@@ -275,3 +281,9 @@ export type TrackSaleResponse = z.infer<typeof trackSaleResponseSchema>;
 export type Customer = z.infer<typeof CustomerSchema>;
 
 export type UsageResponse = z.infer<typeof usageResponse>;
+
+export type PartnerProps = z.infer<typeof PartnerSchema>;
+
+export type ProgramProps = z.infer<typeof ProgramSchema>;
+
+export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
