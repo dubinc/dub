@@ -72,10 +72,10 @@ export const GET = withWorkspace(
         ...(customerId && { customerId }),
         ...(payoutId && { payoutId }),
         ...(partnerId && { partnerId }),
-        // createdAt: {
-        //   gte: new Date(start).toISOString(),
-        //   lte: new Date(end).toISOString(),
-        // },
+        createdAt: {
+          gte: new Date(start).toISOString(),
+          lte: new Date(end).toISOString(),
+        },
       },
       select: {
         id: true,
