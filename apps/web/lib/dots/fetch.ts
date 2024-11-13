@@ -21,8 +21,9 @@ export const dotsFetch = async (
   });
 
   if (!response.ok) {
+    const error = await response.text();
     throw new Error(
-      `Dots API error: ${response.status} ${response.statusText}.`,
+      `Dots API error: ${response.status} ${response.statusText}. ${error}`,
     );
   }
 
