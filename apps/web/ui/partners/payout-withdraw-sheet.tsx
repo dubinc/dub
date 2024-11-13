@@ -29,7 +29,7 @@ type PayoutWithdrawSheetProps = {
 };
 
 function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
-  const { partnerId } = useParams() as { partnerId: string };
+  const { partnerId } = useParams<{ partnerId: string }>();
   const { partner, error: partnerError } = usePartnerProfile();
   const { dotsUser, error: dotsUserError } = useDotsUser();
 

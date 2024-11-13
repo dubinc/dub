@@ -11,7 +11,7 @@ export const ComplianceButton = ({
 }: {
   setModalState: (state: { show: boolean; iframeSrc: string }) => void;
 }) => {
-  const { partnerId } = useParams() as { partnerId: string };
+  const { partnerId } = useParams<{ partnerId: string }>();
   const { dotsUser } = useDotsUser();
 
   const { executeAsync, isExecuting } = useAction(createDotsFlowAction, {

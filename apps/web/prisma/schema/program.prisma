@@ -43,8 +43,8 @@ model Program {
   wordmark            String?
   lander              Json?   @db.Json
 
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   workspace    Project             @relation(fields: [workspaceId], references: [id])
   partners     ProgramEnrollment[]
@@ -52,6 +52,7 @@ model Program {
   sales        Sale[]
   resources    ProgramResource[]
   applications ProgramApplication[]
+  invites   ProgramInvite[]
 
   @@index([workspaceId])
 }
@@ -116,4 +117,19 @@ model ProgramResource {
   program Program @relation(fields: [programId], references: [id])
 
   @@index([programId])
+}
+
+model ProgramInvite {
+  id        String   @id @default(cuid())
+  programId String
+  email     String
+  linkId    String   @unique
+  createdAt DateTime @default(now())
+
+  program Program @relation(fields: [programId], references: [id])
+  link    Link?   @relation(fields: [linkId], references: [id])
+
+  @@unique([email, programId])
+  @@index([programId])
+  @@index([linkId])
 }

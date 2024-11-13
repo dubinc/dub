@@ -4,7 +4,7 @@ import { Link } from "@prisma/client";
 import { DubApiError } from "../errors";
 
 interface GetLinkParams {
-  workspace: WorkspaceWithUsers;
+  workspace: Pick<WorkspaceWithUsers, "id">;
   linkId?: string;
   externalId?: string;
   domain?: string;

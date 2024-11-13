@@ -27,9 +27,11 @@ export function OnboardingForm() {
     setError,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<{
-    name: string;
-    logo: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
     country: string;
+    logo: string;
     description: string;
   }>();
 
@@ -41,7 +43,6 @@ export function OnboardingForm() {
           if (!result?.data?.ok) throw new Error("Failed to create partner");
           router.push(`/${result?.data?.partnerId || ""}`);
         } catch (error) {
-          console.error(error);
           setError("root.serverError", {
             message: "Failed to create partner profile. Please try again.",
           });
@@ -52,20 +53,39 @@ export function OnboardingForm() {
     >
       <label>
         <span className="text-sm font-medium text-gray-800">
-          Name
+          First name
           <span className="font-normal text-neutral-500"> (required)</span>
         </span>
         <input
           type="text"
           className={cn(
             "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
-            errors.name
+            errors.firstName
               ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
               : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
           )}
-          placeholder="Acme, Inc."
           autoFocus={!isMobile}
-          {...register("name", {
+          {...register("firstName", {
+            required: true,
+          })}
+        />
+      </label>
+
+      <label>
+        <span className="text-sm font-medium text-gray-800">
+          Last name
+          <span className="font-normal text-neutral-500"> (required)</span>
+        </span>
+        <input
+          type="text"
+          className={cn(
+            "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
+            errors.lastName
+              ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
+          )}
+          autoFocus={!isMobile}
+          {...register("lastName", {
             required: true,
           })}
         />
@@ -109,7 +129,10 @@ export function OnboardingForm() {
       </label>
 
       <label>
-        <span className="text-sm font-medium text-gray-800">Country</span>
+        <span className="text-sm font-medium text-gray-800">
+          Country
+          <span className="font-normal text-neutral-500"> (required)</span>
+        </span>
         <Controller
           control={control}
           name="country"
@@ -118,11 +141,32 @@ export function OnboardingForm() {
       </label>
 
       <label>
+        <span className="text-sm font-medium text-gray-800">
+          Mobile number
+          <span className="font-normal text-neutral-500"> (required)</span>
+        </span>
+        <input
+          type="text"
+          className={cn(
+            "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
+            errors.phoneNumber
+              ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
+          )}
+          placeholder="+1"
+          autoFocus={!isMobile}
+          {...register("phoneNumber", {
+            required: true,
+          })}
+        />
+      </label>
+
+      <label>
         <span className="text-sm font-medium text-gray-800">Description</span>
         <ReactTextareaAutosize
           className={cn(
             "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
-            errors.name
+            errors.description
               ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
               : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
           )}
