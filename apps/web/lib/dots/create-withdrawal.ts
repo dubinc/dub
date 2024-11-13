@@ -1,7 +1,6 @@
-import { DEFAULT_DOTS_APP_ID } from "@dub/utils";
-import { DOTS_API_URL } from "./env";
+import { DOTS_DEFAULT_APP_ID } from "@/lib/dots/env";
+import { dotsFetch } from "./fetch";
 import { DotsPayoutPlatform } from "./types";
-import { dotsHeaders } from "./utils";
 
 export const createWithdrawal = async ({
   dotsUserId,
@@ -14,21 +13,14 @@ export const createWithdrawal = async ({
   platform: DotsPayoutPlatform;
   payoutFeeParty?: "platform" | "user";
 }) => {
-  const response = await fetch(`${DOTS_API_URL}/payouts`, {
+  return await dotsFetch("/payouts", {
     method: "POST",
-    headers: dotsHeaders({ dotsAppId: DEFAULT_DOTS_APP_ID }),
-    body: JSON.stringify({
+    dotsAppId: DOTS_DEFAULT_APP_ID,
+    body: {
       user_id: dotsUserId,
       amount,
       platform,
       payout_fee_party: payoutFeeParty,
-    }),
+    },
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(`Failed to create Dots payout: ${error.message}`);
-  }
-
-  return await response.json();
 };

@@ -1,8 +1,7 @@
-import { DEFAULT_DOTS_APP_ID } from "@dub/utils";
+import { DOTS_DEFAULT_APP_ID } from "@/lib/dots/env";
 import { PartnerProps } from "../types";
-import { DOTS_API_URL } from "./env";
+import { dotsFetch } from "./fetch";
 import { dotsUserSchema } from "./schemas";
-import { dotsHeaders } from "./utils";
 
 export const retrieveDotsUser = async ({
   dotsUserId,
@@ -12,14 +11,14 @@ export const retrieveDotsUser = async ({
   partner: PartnerProps;
 }) => {
   const [dotsUser, payoutMethods] = await Promise.all([
-    fetch(`${DOTS_API_URL}/users/${dotsUserId}`, {
+    dotsFetch(`/users/${dotsUserId}`, {
       method: "GET",
-      headers: dotsHeaders({ dotsAppId: DEFAULT_DOTS_APP_ID }),
-    }).then((res) => res.json()),
-    fetch(`${DOTS_API_URL}/users/${dotsUserId}/payout-methods`, {
+      dotsAppId: DOTS_DEFAULT_APP_ID,
+    }),
+    dotsFetch(`/users/${dotsUserId}/payout-methods`, {
       method: "GET",
-      headers: dotsHeaders({ dotsAppId: DEFAULT_DOTS_APP_ID }),
-    }).then((res) => res.json()),
+      dotsAppId: DOTS_DEFAULT_APP_ID,
+    }),
   ]);
 
   return dotsUserSchema.parse({

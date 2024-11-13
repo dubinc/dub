@@ -1,10 +1,10 @@
-import { DEFAULT_DOTS_APP_ID } from "@dub/utils";
+import { DOTS_DEFAULT_APP_ID } from "@/lib/dots/env";
 import { DOTS_API_URL } from "./env";
-import { dotsHeaders } from "./utils";
+import { dotsFetch } from "./fetch";
 
 export const retrieveDotsFlow = async ({ flowId }: { flowId: string }) => {
-  return await fetch(`${DOTS_API_URL}/flows/${flowId}`, {
+  return await dotsFetch(`${DOTS_API_URL}/flows/${flowId}`, {
     method: "GET",
-    headers: dotsHeaders({ dotsAppId: DEFAULT_DOTS_APP_ID }),
-  }).then((res) => res.json());
+    dotsAppId: DOTS_DEFAULT_APP_ID,
+  });
 };

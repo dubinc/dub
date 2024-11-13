@@ -1,7 +1,7 @@
 "use client";
 
 import { refreshComplianceFlowAction } from "@/lib/actions/refresh-compliance-flow";
-import { dotsFlowConfigurations } from "@/lib/dots/utils";
+import { dotsFlowConfigurations } from "@/lib/dots/styles";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { X } from "@/ui/shared/icons";
 import { Button, Modal } from "@dub/ui";

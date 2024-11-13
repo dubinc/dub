@@ -1,7 +1,6 @@
-import { DEFAULT_DOTS_APP_ID } from "@dub/utils";
-import { DOTS_API_URL } from "./env";
+import { DOTS_DEFAULT_APP_ID } from "@/lib/dots/env";
+import { dotsFetch } from "./fetch";
 import { DotsFlowSteps } from "./types";
-import { dotsHeaders } from "./utils";
 
 export const createDotsFlow = async ({
   steps,
@@ -10,19 +9,12 @@ export const createDotsFlow = async ({
   steps?: DotsFlowSteps[];
   dotsUserId?: string | null;
 }) => {
-  const response = await fetch(`${DOTS_API_URL}/flows`, {
+  return await dotsFetch("/flows", {
     method: "POST",
-    headers: dotsHeaders({ dotsAppId: DEFAULT_DOTS_APP_ID }),
-    body: JSON.stringify({
+    dotsAppId: DOTS_DEFAULT_APP_ID,
+    body: {
       steps,
       user_id: dotsUserId,
-    }),
+    },
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(`Failed to create Dots flow: ${error.message}`);
-  }
-
-  return await response.json();
 };

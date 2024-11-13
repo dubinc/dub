@@ -1,6 +1,5 @@
 import z from "../zod";
-import { DOTS_API_URL } from "./env";
-import { dotsHeaders } from "./utils";
+import { dotsFetch } from "./fetch";
 
 const schema = z.object({
   name: z.string(),
@@ -18,24 +17,14 @@ export const addAppAchAccount = async ({
   routingNumber: string;
   accountType: "checking" | "savings";
 }) => {
-  const response = await fetch(
-    `${DOTS_API_URL}/apps/${dotsAppId}/ach-account`,
-    {
-      method: "PUT",
-      headers: dotsHeaders(),
-      body: JSON.stringify({
-        account_number: accountNumber,
-        routing_number: routingNumber,
-        account_type: accountType,
-      }),
+  const response = await dotsFetch(`/apps/${dotsAppId}/ach-account`, {
+    method: "PUT",
+    body: {
+      account_number: accountNumber,
+      routing_number: routingNumber,
+      account_type: accountType,
     },
-  );
+  });
 
-  if (!response.ok) {
-    const error = await response.json();
-    console.error(error);
-    throw new Error(`Failed to connect bank account: ${error.message}`);
-  }
-
-  return schema.parse(await response.json());
+  return schema.parse(response);
 };
