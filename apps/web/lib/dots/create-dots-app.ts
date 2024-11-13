@@ -1,7 +1,6 @@
 import { Project } from "@prisma/client";
 import z from "../zod";
-import { DOTS_API_URL } from "./env";
-import { dotsHeaders } from "./utils";
+import { dotsFetch } from "./fetch";
 
 const schema = z.object({
   id: z.string(),
@@ -14,24 +13,15 @@ export const createDotsApp = async ({
 }: {
   workspace: Pick<Project, "id" | "name">;
 }) => {
-  const response = await fetch(`${DOTS_API_URL}/apps`, {
+  const response = await dotsFetch("/apps", {
     method: "POST",
-    headers: dotsHeaders(),
-    body: JSON.stringify({
+    body: {
       name: workspace.name,
       metadata: {
         workspaceId: workspace.id,
       },
-    }),
+    },
   });
 
-  if (!response.ok) {
-    console.error(await response.text());
-
-    throw new Error(
-      `Failed to create Dots app for the workspace ${workspace.id}.`,
-    );
-  }
-
-  return schema.parse(await response.json());
+  return schema.parse(response);
 };

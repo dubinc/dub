@@ -2,6 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { StatusBadge, Tooltip } from "@dub/ui";
+import { SimpleTooltipContent } from "@dub/ui/src/tooltip";
 import { Fragment } from "react";
 
 export const BankAccount = () => {
@@ -23,19 +24,15 @@ export const BankAccount = () => {
                 <Tooltip
                   align="end"
                   content={
-                    <div className="px-3 py-2 text-sm text-neutral-600">
-                      To complete verification,{" "}
-                      <a
-                        href={
-                          `mailto:support@dub.co?subject=Verifying payouts bank account` +
-                          `&body=I am verifying bank account ownership for my workspace "${slug}".` +
-                          ` I have attached a copy of my recent bank statement to this email.`
-                        }
-                        className="underline transition-colors duration-75 hover:text-neutral-900"
-                      >
-                        contact support
-                      </a>{" "}
-                    </div>
+                    <SimpleTooltipContent
+                      title="To complete verification, "
+                      cta="contact support."
+                      href={
+                        `mailto:support@dub.co?subject=Verifying payouts bank account` +
+                        `&body=I am verifying bank account ownership for my workspace "${slug}".` +
+                        ` I have attached a copy of my recent bank statement to this email.`
+                      }
+                    />
                   }
                 >
                   <div>

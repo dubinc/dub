@@ -1,7 +1,6 @@
-import { DEFAULT_DOTS_APP_ID } from "@dub/utils";
+import { DOTS_DEFAULT_APP_ID } from "@/lib/dots/env";
 import z from "../zod";
-import { DOTS_API_URL } from "./env";
-import { dotsHeaders } from "./utils";
+import { dotsFetch } from "./fetch";
 
 const responseSchema = z.object({
   id: z.string(),
@@ -10,7 +9,7 @@ const responseSchema = z.object({
 
 export const createDotsUser = async ({
   userInfo,
-  dotsAppId = DEFAULT_DOTS_APP_ID,
+  dotsAppId = DOTS_DEFAULT_APP_ID,
 }: {
   userInfo: {
     firstName: string;
@@ -23,23 +22,17 @@ export const createDotsUser = async ({
 }) => {
   const { firstName, lastName, email, countryCode, phoneNumber } = userInfo;
 
-  const response = await fetch(`${DOTS_API_URL}/users`, {
+  const response = await dotsFetch("/users", {
     method: "POST",
-    headers: dotsHeaders({ dotsAppId }),
-    body: JSON.stringify({
+    dotsAppId,
+    body: {
       first_name: firstName,
       last_name: lastName,
       email,
       country_code: countryCode,
       phone_number: phoneNumber,
-    }),
+    },
   });
 
-  if (!response.ok) {
-    console.error(await response.text());
-
-    throw new Error(`Failed to create Dots user.`);
-  }
-
-  return responseSchema.parse(await response.json());
+  return responseSchema.parse(response);
 };
