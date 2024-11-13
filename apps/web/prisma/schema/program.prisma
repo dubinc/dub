@@ -46,11 +46,12 @@ model Program {
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
 
-  workspace Project             @relation(fields: [workspaceId], references: [id])
-  partners  ProgramEnrollment[]
-  payouts   Payout[]
-  sales     Sale[]
-  resources ProgramResource[]
+  workspace    Project             @relation(fields: [workspaceId], references: [id])
+  partners     ProgramEnrollment[]
+  payouts      Payout[]
+  sales        Sale[]
+  resources    ProgramResource[]
+  applications ProgramApplication[]
 
   @@index([workspaceId])
 }
@@ -71,6 +72,32 @@ model ProgramEnrollment {
   @@unique([partnerId, programId])
   @@index([programId])
   @@index([linkId])
+}
+
+enum ProgramApplicationStatus {
+  pending
+  approved
+  rejected
+}
+
+model ProgramApplication {
+  id String @id @default(cuid())
+  programId String
+  partnerId String?
+
+  name     String
+  email    String
+  plan     String
+  website  String?
+  comments String?
+
+  status ProgramApplicationStatus @default(pending)
+
+  program Program @relation(fields: [programId], references: [id])
+  partner Partner? @relation(fields: [partnerId], references: [id])
+
+  @@index([programId])
+  @@index([partnerId])
 }
 
 // TODO: Haven't finalized the resource table yet.

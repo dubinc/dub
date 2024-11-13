@@ -3,11 +3,14 @@
 import { Button, useScroll, Wordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Program } from "@prisma/client";
+import Link from "next/link";
 
 export function Header({
   program,
+  slug,
 }: {
   program: Pick<Program, "wordmark" | "logo">;
+  slug: string;
 }) {
   const scrolled = useScroll(0);
 
@@ -25,14 +28,16 @@ export function Header({
         )}
       />
 
-      {program.wordmark || program.logo ? (
-        <img
-          className="h-7 max-w-32"
-          src={(program.wordmark ?? program.logo) as string}
-        />
-      ) : (
-        <Wordmark className="h-7" />
-      )}
+      <Link href={`/apply/${slug}`}>
+        {program.wordmark || program.logo ? (
+          <img
+            className="h-7 max-w-32"
+            src={(program.wordmark ?? program.logo) as string}
+          />
+        ) : (
+          <Wordmark className="h-7" />
+        )}
+      </Link>
       <Button
         type="button"
         text="Apply"
