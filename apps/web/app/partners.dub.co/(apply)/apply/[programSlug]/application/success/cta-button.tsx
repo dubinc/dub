@@ -17,7 +17,7 @@ export function CTAButton() {
           : "Create your Dub Partner account"
       }
       className="border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
-      onClick={() => router.push("/")}
+      onClick={() => router.push("/register")}
     />
   );
 }
