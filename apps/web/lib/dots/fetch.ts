@@ -26,6 +26,5 @@ export const dotsFetch = async (
     );
   }
 
-  const data = await response.json();
-  return data;
+  return response.json();
 };
