@@ -25,6 +25,7 @@ export const onboardPartner = authUserActionClient
       user.email,
       "partnersPortal",
     );
+
     if (!partnersPortalEnabled) {
       return {
         ok: false,
@@ -35,7 +36,7 @@ export const onboardPartner = authUserActionClient
     const { name, logo, country, description } = parsedInput;
 
     try {
-      let partner = await prisma.partner.create({
+      const partner = await prisma.partner.create({
         data: {
           name,
           country,
@@ -56,13 +57,36 @@ export const onboardPartner = authUserActionClient
           logo,
         );
 
-        partner = await prisma.partner.update({
+        await prisma.partner.update({
           where: { id: partner.id },
           data: { logo: url },
         });
       }
 
-      return { ok: true, partnerId: partner.id };
+      // If the partner has invites, we need to enroll them in the program and delete the invites
+      const programInvites = await prisma.programInvite.findMany({
+        where: { email: user.email },
+      });
+
+      if (programInvites.length > 0) {
+        await prisma.programEnrollment.createMany({
+          data: programInvites.map(({ programId, linkId }) => ({
+            programId,
+            linkId,
+            partnerId: partner.id,
+            status: "approved",
+          })),
+        });
+
+        await prisma.programInvite.deleteMany({
+          where: { email: user.email },
+        });
+      }
+
+      return {
+        ok: true,
+        partnerId: partner.id,
+      };
     } catch (e) {
       console.error(e);
       return {

@@ -23,17 +23,15 @@ export const invitePartnerAction = authActionClient
     const { workspace } = ctx;
     const { name, email, linkId, programId } = parsedInput;
 
-    const [program, _] = await Promise.all([
-      getProgramOrThrow({
-        workspaceId: workspace.id,
-        programId,
-      }),
+    const program = await getProgramOrThrow({
+      workspaceId: workspace.id,
+      programId,
+    });
 
-      getLinkOrThrow({
-        workspace,
-        linkId,
-      }),
-    ]);
+    await getLinkOrThrow({
+      workspace,
+      linkId,
+    });
 
     const programInvite = await prisma.programInvite.findUnique({
       where: {
@@ -48,6 +46,24 @@ export const invitePartnerAction = authActionClient
       throw new Error(`Partner ${email} already invited to this program.`);
     }
 
+    const [linkInProgramEnrollment, linkInProgramInvite] = await Promise.all([
+      prisma.programEnrollment.findUnique({
+        where: {
+          linkId,
+        },
+      }),
+
+      prisma.programInvite.findUnique({
+        where: {
+          linkId,
+        },
+      }),
+    ]);
+
+    if (linkInProgramEnrollment || linkInProgramInvite) {
+      throw new Error("Link is already associated with another partner.");
+    }
+
     const result = await prisma.programInvite.create({
       data: {
         name,
@@ -57,7 +73,9 @@ export const invitePartnerAction = authActionClient
       },
     });
 
+    // TODO: Add partner to beta in edge config
     // TODO: Update email template
+
     await sendEmail({
       subject: `You've been invited to start using ${process.env.NEXT_PUBLIC_APP_NAME}`,
       email,

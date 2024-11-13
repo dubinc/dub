@@ -41,7 +41,6 @@ export function OnboardingForm() {
           if (!result?.data?.ok) throw new Error("Failed to create partner");
           router.push(`/${result?.data?.partnerId || ""}`);
         } catch (error) {
-          console.error(error);
           setError("root.serverError", {
             message: "Failed to create partner profile. Please try again.",
           });
