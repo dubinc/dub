@@ -1,12 +1,12 @@
 import { invitePartnerAction } from "@/lib/actions/invite-partner";
 import useLinks from "@/lib/swr/use-links";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
-import { Button, Combobox, LinkLogo, Sheet } from "@dub/ui";
+import { BlurImage, Button, Combobox, LinkLogo, Sheet } from "@dub/ui";
 import { cn, getApexDomain, linkConstructor } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -23,7 +23,7 @@ interface InvitePartnerFormData {
 
 function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const { id: workspaceId } = useWorkspace();
-  const { programId } = useParams<{ programId: string }>();
+  const { program } = useProgram();
 
   const { register, handleSubmit, watch, setValue } =
     useForm<InvitePartnerFormData>({
@@ -46,7 +46,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const onSubmit = async (data: InvitePartnerFormData) => {
     await executeAsync({
       workspaceId: workspaceId!,
-      programId,
+      programId: program?.id!,
       email: data.email,
       linkId: data.linkId,
     });
@@ -90,7 +90,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             <div>
               <label htmlFor="linkId" className="flex items-center space-x-2">
                 <h2 className="text-sm font-medium text-gray-900">
-                  Referrer link
+                  Referral link
                 </h2>
               </label>
               <div className="relative mt-2 rounded-md shadow-sm">
@@ -98,6 +98,49 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                   selectedLinkId={selectedLinkId}
                   setSelectedLinkId={(id) => setValue("linkId", id)}
                 />
+              </div>
+            </div>
+
+            <div className="mt-8">
+              <h2 className="text-sm font-medium text-gray-900">Preview</h2>
+              <div className="mt-2 overflow-hidden rounded-md border border-neutral-200">
+                <div className="relative grid gap-4 p-6 pb-10">
+                  <BlurImage
+                    src={program?.logo || "https://assets.dub.co/logo.png"}
+                    alt={program?.name || "Dub"}
+                    className="my-2 size-8 rounded-full"
+                    width={48}
+                    height={48}
+                  />
+                  <h3 className="font-medium text-gray-900">
+                    {program?.name || "Dub"} invited you to join Dub Partners
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {program?.name || "Dub"} uses Dub to power their partnership
+                    programs and wants to partner with great people like
+                    yourself!
+                  </p>
+                  <Button
+                    type="button"
+                    text="Accept invite"
+                    className="w-fit"
+                  />
+                  <div className="pointer-events-none absolute bottom-0 right-0 z-10 h-48 w-full bg-gradient-to-t from-white to-transparent" />
+                </div>
+                <div className="grid gap-1 border-t border-gray-200 bg-gray-50 px-6 py-4">
+                  <p className="text-sm text-gray-500">
+                    <strong className="font-medium text-gray-900">
+                      From:{" "}
+                    </strong>
+                    system@dub.co
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    <strong className="font-medium text-gray-900">
+                      Subject:{" "}
+                    </strong>
+                    You've been invited to Dub Partners
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -172,7 +215,7 @@ function LinksSelector({
       }}
       options={options}
       caret={true}
-      placeholder="Select referrer link"
+      placeholder="Select referral link"
       searchPlaceholder="Search..."
       matchTriggerWidth
       onSearchChange={setSearch}
