@@ -1,12 +1,16 @@
 import { invitePartnerAction } from "@/lib/actions/invite-partner";
+import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { LinkProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet } from "@dub/ui";
+import { Button, Combobox, LinkLogo, Sheet } from "@dub/ui";
+import { cn, getApexDomain, linkConstructor } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useDebounce } from "use-debounce";
 
 interface InvitePartnerSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -21,7 +25,15 @@ interface InvitePartnerFormData {
 function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const { id: workspaceId } = useWorkspace();
   const { programId } = useParams<{ programId: string }>();
-  const { register, handleSubmit } = useForm<InvitePartnerFormData>();
+
+  const { register, handleSubmit, watch, setValue } =
+    useForm<InvitePartnerFormData>({
+      defaultValues: {
+        name: "",
+        email: "",
+        linkId: "",
+      },
+    });
 
   const { executeAsync, isExecuting } = useAction(invitePartnerAction, {
     onSuccess: async () => {
@@ -43,8 +55,10 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     });
   };
 
+  const selectedLinkId = watch("linkId");
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
       <div>
         <div className="flex items-start justify-between border-b border-neutral-200 p-6">
           <Sheet.Title className="text-xl font-semibold">
@@ -94,9 +108,16 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
 
             <div>
               <label htmlFor="linkId" className="flex items-center space-x-2">
-                <h2 className="text-sm font-medium text-gray-900">Link</h2>
+                <h2 className="text-sm font-medium text-gray-900">
+                  Referrer link
+                </h2>
               </label>
-              <div className="relative mt-2 rounded-md shadow-sm"></div>
+              <div className="relative mt-2 rounded-md shadow-sm">
+                <LinksSelector
+                  selectedLinkId={selectedLinkId}
+                  setSelectedLinkId={(id) => setValue("linkId", id)}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -121,6 +142,68 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
         </div>
       </div>
     </form>
+  );
+}
+
+const getLinkOption = (link: LinkProps) => ({
+  value: link.id,
+  label: linkConstructor({ ...link, pretty: true }),
+  icon: (
+    <LinkLogo
+      apexDomain={getApexDomain(link.url)}
+      className="h-4 w-4 sm:h-4 sm:w-4"
+    />
+  ),
+  meta: {
+    url: link.url,
+  },
+});
+
+function LinksSelector({
+  selectedLinkId,
+  setSelectedLinkId,
+}: {
+  selectedLinkId: string;
+  setSelectedLinkId: (id: string) => void;
+}) {
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 500);
+
+  const { links } = useLinks(
+    { search: debouncedSearch },
+    {
+      keepPreviousData: false,
+    },
+  );
+
+  const options = useMemo(
+    () => links?.map((link) => getLinkOption(link)),
+    [links],
+  );
+
+  return (
+    <Combobox
+      selected={options?.find((o) => o.value === selectedLinkId) ?? null}
+      setSelected={(option) => {
+        if (option) {
+          setSelectedLinkId(option.value);
+        }
+      }}
+      options={options}
+      caret={true}
+      placeholder="Select referrer link"
+      searchPlaceholder="Search..."
+      matchTriggerWidth
+      onSearchChange={setSearch}
+      buttonProps={{
+        className: cn(
+          "w-full justify-start border-gray-300 px-3",
+          "data-[state=open]:ring-1 data-[state=open]:ring-gray-500 data-[state=open]:border-gray-500",
+          "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
+          !selectedLinkId && "text-gray-400",
+        ),
+      }}
+    />
   );
 }
 
