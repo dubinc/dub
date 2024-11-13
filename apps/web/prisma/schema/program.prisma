@@ -19,6 +19,11 @@ enum CommissionInterval {
   year
 }
 
+enum ProgramResourceType {
+  logo
+  files
+}
+
 model Program {
   id                  String              @id @default(cuid())
   workspaceId         String
@@ -27,18 +32,23 @@ model Program {
   logo                String?
   type                ProgramType         @default(affiliate)
   cookieLength        Int                 @default(90)
-  minimumPayout       Int                 @default(10000)
-  commissionAmount    Float               @default(0)
+  commissionAmount    Int                 @default(0)
   commissionType      CommissionType      @default(percentage)
   recurringCommission Boolean             @default(false)
   recurringInterval   CommissionInterval?
   recurringDuration   Int?
-  isLifetimeRecurring Boolean?
+  isLifetimeRecurring Boolean? // TODO: Maybe use just lifetimeRecurring?
+
+  // TODO: Add branding attributes: color, wordmark, etc.
+
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
 
   workspace Project             @relation(fields: [workspaceId], references: [id])
   partners  ProgramEnrollment[]
+  payouts   Payout[]
+  sales     Sale[]
+  resources ProgramResource[]
 
   @@index([workspaceId])
 }
@@ -59,4 +69,20 @@ model ProgramEnrollment {
   @@unique([partnerId, programId])
   @@index([programId])
   @@index([linkId])
+}
+
+// TODO: Haven't finalized the resource table yet.
+model ProgramResource {
+  id        String              @id @default(cuid())
+  programId String
+  type      ProgramResourceType
+  name      String
+  url       String
+  size      Int?
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  program Program @relation(fields: [programId], references: [id])
+
+  @@index([programId])
 }

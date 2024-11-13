@@ -10,7 +10,7 @@ import {
   clickEventSchema,
   clickEventSchemaTBEndpoint,
 } from "../zod/schemas/clicks";
-import { customerSchema } from "../zod/schemas/customers";
+import { CustomerSchema } from "../zod/schemas/customers";
 import {
   leadEventResponseObfuscatedSchema,
   leadEventResponseSchema,
@@ -196,16 +196,18 @@ const getCustomersMap = async (customerIds: string[]) => {
 
   return customers.reduce(
     (acc, customer) => {
-      acc[customer.id] = customerSchema.parse({
-        id: customer.externalId ?? customer.id,
+      acc[customer.id] = CustomerSchema.parse({
+        id: customer.id,
+        externalId: customer.externalId,
         name: customer.name || "",
         email: customer.email || "",
         avatar:
           customer.avatar ||
           `https://api.dicebear.com/9.x/notionists/png?seed=${customer.id}`,
+        createdAt: customer.createdAt,
       });
       return acc;
     },
-    {} as Record<string, z.infer<typeof customerSchema>>,
+    {} as Record<string, z.infer<typeof CustomerSchema>>,
   );
 };

@@ -1,4 +1,4 @@
-import { cn, deepEqual } from "@dub/utils";
+import { cn, deepEqual, isClickOnInteractiveChild } from "@dub/utils";
 import {
   Cell,
   Column,
@@ -7,6 +7,7 @@ import {
   flexRender,
   getCoreRowModel,
   PaginationState,
+  Row,
   Table as TableType,
   useReactTable,
   VisibilityState,
@@ -15,6 +16,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   CSSProperties,
   Dispatch,
+  MouseEvent,
   PropsWithChildren,
   ReactNode,
   SetStateAction,
@@ -24,11 +26,12 @@ import {
 import { Button } from "../button";
 import { LoadingSpinner, SortOrder } from "../icons";
 
-const tableCellClassName = (columnId: string) =>
+const tableCellClassName = (columnId: string, clickable?: boolean) =>
   cn([
     "py-2.5 text-left text-sm leading-6 whitespace-nowrap border-gray-200 px-4 relative",
     "border-l border-b",
     columnId === "menu" && "bg-white border-l-transparent py-0 px-1",
+    clickable && "group-hover/row:bg-neutral-50 transition-colors duration-75",
   ]);
 
 type UseTableProps<T> = {
@@ -50,15 +53,16 @@ type UseTableProps<T> = {
   onColumnVisibilityChange?: (visibility: VisibilityState) => void;
   columnPinning?: ColumnPinningState;
   resourceName?: (plural: boolean) => string;
+  onRowClick?: (row: Row<T>, e: MouseEvent) => void;
 
   className?: string;
   containerClassName?: string;
   scrollWrapperClassName?: string;
-  thClassName?: string;
-  tdClassName?: string;
+  thClassName?: string | ((columnId: string) => string);
+  tdClassName?: string | ((columnId: string) => string);
 } & (
   | {
-      pagination: PaginationState;
+      pagination?: PaginationState;
       onPaginationChange?: Dispatch<SetStateAction<PaginationState>>;
       rowCount: number;
     }
@@ -150,6 +154,7 @@ export function Table<T>({
   table,
   pagination,
   resourceName,
+  onRowClick,
   rowCount,
   children,
 }: TableProps<T>) {
@@ -174,6 +179,7 @@ export function Table<T>({
                 // Remove side borders from table to avoid interfering with outer border
                 "[&_tr>*:first-child]:border-l-transparent", // Left column
                 "[&_tr>*:last-child]:border-r-transparent", // Right column
+                "[&_tr>*:last-child]:border-r-transparent", // Bottom column
               ],
               className,
             )}
@@ -197,7 +203,9 @@ export function Table<T>({
                             header.column,
                             !table.getRowModel().rows.length,
                           ),
-                          thClassName,
+                          typeof thClassName === "function"
+                            ? thClassName(header.column.id)
+                            : thClassName,
                         )}
                         style={{
                           minWidth: header.column.columnDef.minSize,
@@ -252,18 +260,39 @@ export function Table<T>({
             </thead>
             <tbody>
               {table.getRowModel().rows.map((row) => (
-                <tr key={row.id}>
+                <tr
+                  key={row.id}
+                  className={cn(
+                    "group/row",
+                    onRowClick && "cursor-pointer select-none",
+                    // hacky fix: if there are more than 8 rows, remove the bottom border from the last row
+                    table.getRowModel().rows.length > 8 &&
+                      row.index === table.getRowModel().rows.length - 1 &&
+                      "[&_td]:border-b-0",
+                  )}
+                  onClick={
+                    onRowClick
+                      ? (e) => {
+                          // Ignore if click is on an interactive child
+                          if (isClickOnInteractiveChild(e)) return;
+                          onRowClick(row, e);
+                        }
+                      : undefined
+                  }
+                >
                   {row.getVisibleCells().map((cell) => (
                     <td
                       key={cell.id}
                       className={cn(
-                        tableCellClassName(cell.column.id),
+                        tableCellClassName(cell.column.id, !!onRowClick),
                         "group text-gray-600",
                         getCommonPinningClassNames(
                           cell.column,
                           row.index === table.getRowModel().rows.length - 1,
                         ),
-                        tdClassName,
+                        typeof tdClassName === "function"
+                          ? tdClassName(cell.column.id)
+                          : tdClassName,
                       )}
                       style={{
                         minWidth: cell.column.columnDef.minSize,
@@ -341,7 +370,7 @@ export function Table<T>({
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/50"
+            className="absolute inset-0 flex h-[50vh] items-center justify-center rounded-xl bg-white/50"
           >
             <LoadingSpinner />
           </motion.div>

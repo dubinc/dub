@@ -197,6 +197,7 @@ export const analyticsFilterTB = z
           return v;
         }
       }),
+    programId: z.string().optional(),
     root: z.boolean().optional(),
     qr: z.boolean().optional(),
     start: z.string(),
