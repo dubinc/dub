@@ -1,5 +1,5 @@
 import { createDotsFlowAction } from "@/lib/actions/partners/create-dots-flow";
-import { dotsFlowConfigurations } from "@/lib/dots/utils";
+import { dotsFlowConfigurations } from "@/lib/dots/styles";
 import useDotsUser from "@/lib/swr/use-dots-user";
 import { Button } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";

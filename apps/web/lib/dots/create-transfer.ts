@@ -1,5 +1,4 @@
-import { DOTS_API_URL } from "./env";
-import { dotsHeaders } from "./utils";
+import { dotsFetch } from "./fetch";
 
 export const createTransfer = async ({
   amount,
@@ -11,19 +10,12 @@ export const createTransfer = async ({
   dotsUserId: string;
 }) => {
   console.log(`Creating a transfer of ${amount} cents`);
-  const response = await fetch(`${DOTS_API_URL}/transfers`, {
+  return await dotsFetch("/transfers", {
     method: "POST",
-    headers: dotsHeaders({ dotsAppId }),
-    body: JSON.stringify({
+    dotsAppId,
+    body: {
       user_id: dotsUserId,
       amount: -amount, // negative means transfer from Business to Partner
-    }),
+    },
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(`Failed to create Dots transfer: ${error.message}`);
-  }
-
-  return await response.json();
 };

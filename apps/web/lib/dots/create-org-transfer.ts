@@ -1,5 +1,4 @@
-import { DOTS_API_URL } from "./env";
-import { dotsHeaders } from "./utils";
+import { dotsFetch } from "./fetch";
 
 export const createOrgTransfer = async ({
   amount,
@@ -9,19 +8,11 @@ export const createOrgTransfer = async ({
   dotsAppId: string;
 }) => {
   console.log(`Creating an org transfer of ${amount} cents`);
-  const response = await fetch(`${DOTS_API_URL}/organization-transfers`, {
+  return await dotsFetch("/organization-transfers", {
     method: "POST",
-    headers: dotsHeaders(),
-    body: JSON.stringify({
+    body: {
       amount,
       api_app_id: dotsAppId,
-    }),
+    },
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(`Failed to create Dots org transfer: ${error.message}`);
-  }
-
-  return await response.json();
 };

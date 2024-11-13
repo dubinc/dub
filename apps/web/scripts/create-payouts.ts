@@ -4,7 +4,7 @@ import "dotenv-flow/config";
 
 async function main() {
   const programId = "prog_CYCu7IMAapjkRpTnr8F1azjN";
-  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
+  const partnerId = "pn_H4TB2V5hDIjpqB7PwrxESoY3";
 
   // // Create a partner account
   // const partner = await prisma.partner.create({

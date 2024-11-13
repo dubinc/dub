@@ -1,7 +1,6 @@
-import { DEFAULT_DOTS_APP_ID } from "@dub/utils";
-import { DOTS_API_URL } from "./env";
+import { DOTS_DEFAULT_APP_ID } from "@/lib/dots/env";
+import { dotsFetch } from "./fetch";
 import { dotsTransfersSchema } from "./schemas";
-import { dotsHeaders } from "./utils";
 
 export const retrieveTransfers = async ({
   dotsAppId,
@@ -17,21 +16,13 @@ export const retrieveTransfers = async ({
     ...(dotsUserId ? { user_id: dotsUserId } : {}),
   });
 
-  const response = await fetch(
-    `${DOTS_API_URL}/transfers${
-      params.size > 0 ? `?${params.toString()}` : ""
-    }`,
+  const response = await dotsFetch(
+    `/transfers${params.size > 0 ? `?${params.toString()}` : ""}`,
     {
       method: "GET",
-      headers: dotsHeaders({ dotsAppId: dotsAppId ?? DEFAULT_DOTS_APP_ID }),
+      dotsAppId: dotsAppId ?? DOTS_DEFAULT_APP_ID,
     },
   );
 
-  if (!response.ok) {
-    console.error(await response.text());
-
-    throw new Error(`Failed to retrieve transfers for Dots app ${dotsAppId}.`);
-  }
-
-  return dotsTransfersSchema.parse(await response.json());
+  return dotsTransfersSchema.parse(response);
 };

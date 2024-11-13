@@ -1,10 +1,9 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
-import { DOTS_API_URL } from "@/lib/dots/env";
+import { DOTS_DEFAULT_APP_ID } from "@/lib/dots/env";
+import { dotsFetch } from "@/lib/dots/fetch";
 import { payoutMethodSchema } from "@/lib/dots/schemas";
-import { dotsHeaders } from "@/lib/dots/utils";
 import { prisma } from "@/lib/prisma";
-import { DEFAULT_DOTS_APP_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -31,20 +30,20 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
 
   const partner = programEnrollment.partner;
 
-  // if there  is still no dots ID
+  // if there is still no dots ID
   if (!partner.dotsUserId) {
     return NextResponse.json([]);
   }
 
   const [info, payoutMethods] = await Promise.all([
-    fetch(`${DOTS_API_URL}/users/${partner.dotsUserId}`, {
+    dotsFetch(`/users/${partner.dotsUserId}`, {
       method: "GET",
-      headers: dotsHeaders({ dotsAppId: DEFAULT_DOTS_APP_ID }),
-    }).then((res) => res.json()),
-    fetch(`${DOTS_API_URL}/users/${partner.dotsUserId}/payout-methods`, {
+      dotsAppId: DOTS_DEFAULT_APP_ID,
+    }),
+    dotsFetch(`/users/${partner.dotsUserId}/payout-methods`, {
       method: "GET",
-      headers: dotsHeaders({ dotsAppId: DEFAULT_DOTS_APP_ID }),
-    }).then((res) => res.json()),
+      dotsAppId: DOTS_DEFAULT_APP_ID,
+    }),
   ]);
 
   return NextResponse.json(

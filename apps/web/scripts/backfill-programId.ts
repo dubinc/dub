@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { dubLinksMetadataSchema } from "@/lib/tinybird";
 import "dotenv-flow/config";
 
-const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
+const partnerId = "pn_ghaDqviHewh7TCDLD07JCVcG";
 const programId = "prog_d8pl69xXCv4AoHNT281pHQdo";
 
 async function main() {
@@ -50,18 +50,18 @@ async function main() {
 
   console.log(linksMetadata);
 
-  // const response = await fetch(
-  //   `https://api.us-east.tinybird.co/v0/events?name=dub_links_metadata`,
-  //   {
-  //     headers: {
-  //       Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-  //     },
-  //     method: "POST",
-  //     body: linksMetadata.map((e) => JSON.stringify(e) + "\n").join(""),
-  //   },
-  // ).then((r) => r.json());
+  const response = await fetch(
+    `https://api.us-east.tinybird.co/v0/events?name=dub_links_metadata`,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+      },
+      method: "POST",
+      body: linksMetadata.map((e) => JSON.stringify(e) + "\n").join(""),
+    },
+  ).then((r) => r.json());
 
-  // console.log(response);
+  console.log(response);
 }
 
 main();

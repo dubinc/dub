@@ -4,10 +4,11 @@ import useDotsApp from "@/lib/swr/use-dots-app";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useDepositFundsModal } from "@/ui/modals/deposit-funds-modal";
 import { Button } from "@dub/ui";
+import { SimpleTooltipContent } from "@dub/ui/src/tooltip";
 import { currencyFormatter } from "@dub/utils";
 
 export const Wallet = () => {
-  const { bankAccountVerified } = useWorkspace();
+  const { slug, bankAccountVerified } = useWorkspace();
   const { data, error } = useDotsApp();
 
   const loading = !data && !error;
@@ -30,7 +31,19 @@ export const Wallet = () => {
                 text="Deposit funds"
                 onClick={() => setShowDepositFundsModal(true)}
                 className="h-7 w-fit px-2"
-                disabled={!bankAccountVerified}
+                disabledTooltip={
+                  !bankAccountVerified ? (
+                    <SimpleTooltipContent
+                      title="You can only deposit funds once your bank account is verified."
+                      cta="Contact support."
+                      href={
+                        `mailto:support@dub.co?subject=Verifying payouts bank account` +
+                        `&body=I am verifying bank account ownership for my workspace "${slug}".` +
+                        ` I have attached a copy of my recent bank statement to this email.`
+                      }
+                    />
+                  ) : undefined
+                }
               />
             ) : (
               <div className="h-7 w-24 animate-pulse rounded-md bg-neutral-200" />
