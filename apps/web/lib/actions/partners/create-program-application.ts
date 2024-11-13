@@ -1,6 +1,6 @@
 "use server";
 
-import { getIP } from "@/lib/api/utils";
+import { createId, getIP } from "@/lib/api/utils";
 import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
 import { ProgramApplicationStatus } from "@prisma/client";
@@ -59,6 +59,7 @@ export const createProgramApplicationAction = actionClient
       const application = await prisma.programApplication.create({
         data: {
           ...parsedInput,
+          id: createId({ prefix: "pga_" }),
           programId: program.id,
         },
       });

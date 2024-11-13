@@ -13,7 +13,7 @@ const UNAUTHENTICATED_PATHS = [
 ];
 
 export default async function PartnersMiddleware(req: NextRequest) {
-  const { path } = parse(req);
+  const { path, fullPath } = parse(req);
 
   const isUnauthenticatedPath = UNAUTHENTICATED_PATHS.some((p) =>
     path.startsWith(p),
@@ -43,6 +43,6 @@ export default async function PartnersMiddleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/", req.url));
 
   return NextResponse.rewrite(
-    new URL(`/partners.dub.co${path === "/" ? "" : path}`, req.url),
+    new URL(`/partners.dub.co${fullPath === "/" ? "" : fullPath}`, req.url),
   );
 }

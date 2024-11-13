@@ -91,7 +91,9 @@ model ProgramApplication {
   website  String?
   comments String?
 
-  status ProgramApplicationStatus @default(pending)
+  status    ProgramApplicationStatus @default(pending)
+  createdAt DateTime                 @default(now())
+  updatedAt DateTime                 @updatedAt
 
   program Program @relation(fields: [programId], references: [id])
   partner Partner? @relation(fields: [partnerId], references: [id])

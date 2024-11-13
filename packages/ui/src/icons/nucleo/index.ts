@@ -9,6 +9,7 @@ export * from "./arrows-opposite-direction-y";
 export * from "./badge-check";
 export * from "./blog";
 export * from "./bolt";
+export * from "./bolt-fill";
 export * from "./book2";
 export * from "./books2";
 export * from "./box-archive";

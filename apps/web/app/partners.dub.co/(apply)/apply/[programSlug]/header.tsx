@@ -8,9 +8,11 @@ import Link from "next/link";
 export function Header({
   program,
   slug,
+  showButtons = true,
 }: {
   program: Pick<Program, "wordmark" | "logo">;
   slug: string;
+  showButtons?: boolean;
 }) {
   const scrolled = useScroll(0);
 
@@ -38,11 +40,14 @@ export function Header({
           <Wordmark className="h-7" />
         )}
       </Link>
-      <Button
-        type="button"
-        text="Apply"
-        className="h-8 w-fit border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
-      />
+
+      {showButtons && (
+        <Button
+          type="button"
+          text="Apply"
+          className="h-8 w-fit border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
+        />
+      )}
     </header>
   );
 }

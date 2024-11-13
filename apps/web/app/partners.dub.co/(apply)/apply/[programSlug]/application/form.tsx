@@ -53,7 +53,9 @@ export function ProgramApplicationForm({
         }
 
         toast.success("Application submitted successfully");
-        router.push(`/apply/${program.slug}/application/success`);
+        router.push(
+          `/apply/${program.slug}/application/success?applicationId=${response.data.programApplicationId}`,
+        );
       })}
       className="flex flex-col gap-6"
     >
@@ -78,7 +80,7 @@ export function ProgramApplicationForm({
       <label>
         <span className="text-sm font-medium text-gray-800">Email</span>
         <input
-          type="text"
+          type="email"
           className={cn(
             "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
             errors.email
