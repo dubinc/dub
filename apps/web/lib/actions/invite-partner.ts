@@ -1,6 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { sendEmail } from "emails";
+import PartnerInvite from "emails/partner-invite";
 import { z } from "zod";
 import { getLinkOrThrow } from "../api/links/get-link-or-throw";
 import { getProgramOrThrow } from "../api/programs/get-program";
@@ -55,8 +57,18 @@ export const invitePartnerAction = authActionClient
       },
     });
 
-    return result;
+    // TODO: Update email template
+    await sendEmail({
+      subject: `You've been invited to start using ${process.env.NEXT_PUBLIC_APP_NAME}`,
+      email,
+      react: PartnerInvite({
+        email,
+        appName: process.env.NEXT_PUBLIC_APP_NAME as string,
+        url: `https://refer.dub.co/${workspace.slug}`,
+        workspaceUser: ctx.user.name || null,
+        workspaceUserEmail: ctx.user.email || null,
+      }),
+    });
 
-    // TODO
-    // Send email
+    return result;
   });
