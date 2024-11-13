@@ -1,8 +1,7 @@
 "use client";
 
 import { PageContent } from "@/ui/layout/page-content";
-import { Button, buttonVariants, MaxWidthWrapper, Plus } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { Button, MaxWidthWrapper, Plus } from "@dub/ui";
 import { useInvitePartnerSheet } from "./invite-partner-sheet";
 import { PartnerStats } from "./partner-stats";
 import { PartnerTable } from "./partner-table";
@@ -19,13 +18,10 @@ export function ProgramPartnersPageClient() {
         titleControls={
           <Button
             type="button"
+            variant="secondary"
             onClick={() => setShowInvitePartnerSheet(true)}
             text="Invite Partner"
             icon={<Plus className="size-4" />}
-            className={cn(
-              buttonVariants({ variant: "secondary" }),
-              "flex h-10 items-center gap-2 rounded-lg border px-3 text-sm",
-            )}
           />
         }
       >
