@@ -1,3 +1,4 @@
+import { DubApiError, httpStatusToErrorCode } from "../api/errors";
 import { DOTS_API_KEY, DOTS_API_URL, DOTS_CLIENT_ID } from "./env";
 
 type DotsRequestConfig = {
@@ -21,10 +22,10 @@ export const dotsFetch = async (
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(
-      `Dots API error: ${response.status} ${response.statusText}. ${error}`,
-    );
+    throw new DubApiError({
+      code: httpStatusToErrorCode[response.status],
+      message: `Dots API error: ${response.status} ${response.statusText}. ${response.status === 404 ? "" : await response.text()}`,
+    });
   }
 
   return response.json();
