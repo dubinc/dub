@@ -1,4 +1,3 @@
-import { DUB_WORDMARK } from "@dub/utils";
 import {
   Body,
   Container,
@@ -17,14 +16,14 @@ import Footer from "./components/footer";
 export default function PartnerInvite({
   email = "panic@thedis.co",
   appName = "Dub.co",
-  programName = "Cal",
+  programName = "Acme",
+  programLogo = "https://assets.dub.co/logo.png",
 }: {
   email: string;
   appName: string;
   programName: string;
+  programLogo: string | null;
 }) {
-  const url = "https://partners.dub.co";
-
   return (
     <Html>
       <Head />
@@ -32,35 +31,31 @@ export default function PartnerInvite({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
-            <Section className="mt-8">
+            <Section className="my-8">
               <Img
-                src={DUB_WORDMARK}
-                height="40"
+                src={programLogo || "https://assets.dub.co/logo.png"}
+                height="32"
                 alt={appName}
-                className="mx-auto my-0"
               />
             </Section>
 
-            <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
-              Sign up for {programName}
+            <Heading className="mx-0 p-0 text-lg font-medium text-black">
+              {programName} invited you to join Dub Partners
             </Heading>
 
-            <Section className="mb-8 text-center">
+            <Text className="text-sm leading-6 text-gray-600">
+              Acme uses Dub to power their partnership programs and wants to
+              partner with great people like yourself!
+            </Text>
+
+            <Section className="mb-12 mt-8">
               <Link
-                className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={url}
+                className="rounded-md bg-neutral-900 px-4 py-3 text-[12px] font-medium text-white no-underline"
+                href="https://partners.dub.co"
               >
-                Learn More
+                Accept Invite
               </Link>
             </Section>
-
-            <Text className="text-sm leading-6 text-black">
-              or copy and paste this URL into your browser:
-            </Text>
-
-            <Text className="max-w-sm flex-wrap break-words font-medium text-purple-600 no-underline">
-              {url.replace(/^https?:\/\//, "")}
-            </Text>
             <Footer email={email} />
           </Container>
         </Body>

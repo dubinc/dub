@@ -91,7 +91,6 @@ model ProgramResource {
 model ProgramInvite {
   id        String   @id @default(cuid())
   programId String
-  name      String
   email     String
   linkId    String   @unique
   createdAt DateTime @default(now())

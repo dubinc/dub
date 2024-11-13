@@ -17,7 +17,6 @@ interface InvitePartnerSheetProps {
 }
 
 interface InvitePartnerFormData {
-  name: string;
   email: string;
   linkId: string;
 }
@@ -29,7 +28,6 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const { register, handleSubmit, watch, setValue } =
     useForm<InvitePartnerFormData>({
       defaultValues: {
-        name: "",
         email: "",
         linkId: "",
       },
@@ -49,7 +47,6 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     await executeAsync({
       workspaceId: workspaceId!,
       programId,
-      name: data.name,
       email: data.email,
       linkId: data.linkId,
     });
@@ -75,22 +72,6 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
         <div className="p-6">
           <div className="flex flex-col gap-4">
             <div>
-              <label htmlFor="name" className="flex items-center space-x-2">
-                <h2 className="text-sm font-medium text-gray-900">Name</h2>
-              </label>
-              <div className="relative mt-2 rounded-md shadow-sm">
-                <input
-                  {...register("name")}
-                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                  placeholder="David"
-                  required
-                  autoFocus
-                  autoComplete="off"
-                />
-              </div>
-            </div>
-
-            <div>
               <label htmlFor="email" className="flex items-center space-x-2">
                 <h2 className="text-sm font-medium text-gray-900">Email</h2>
               </label>
@@ -98,7 +79,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                 <input
                   {...register("email")}
                   className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                  placeholder="test@test.com"
+                  placeholder="panic@thedis.co"
                   required
                   type="email"
                   autoComplete="off"

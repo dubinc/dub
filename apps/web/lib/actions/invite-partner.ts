@@ -13,7 +13,6 @@ import { authActionClient } from "./safe-action";
 const schema = createProgramSchema.partial().extend({
   workspaceId: z.string(),
   programId: z.string(),
-  name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().min(1).max(100),
   linkId: z.string().trim(),
 });
@@ -22,7 +21,7 @@ export const invitePartnerAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { name, email, linkId, programId } = parsedInput;
+    const { email, linkId, programId } = parsedInput;
 
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -67,7 +66,6 @@ export const invitePartnerAction = authActionClient
 
     const result = await prisma.programInvite.create({
       data: {
-        name,
         email,
         linkId,
         programId,
@@ -86,6 +84,7 @@ export const invitePartnerAction = authActionClient
         email,
         appName: `${process.env.NEXT_PUBLIC_APP_NAME}`,
         programName: program.name,
+        programLogo: program.logo,
       }),
     });
 
