@@ -17,20 +17,18 @@ import Footer from "./components/footer";
 export default function PartnerInvite({
   email = "panic@thedis.co",
   appName = "Dub.co",
-  url = "https://dub.co",
-  workspaceUser = "Brendon Urie",
-  workspaceUserEmail = "panic@thedis.co",
+  programName = "Cal",
 }: {
   email: string;
   appName: string;
-  url: string;
-  workspaceUser: string | null;
-  workspaceUserEmail: string | null;
+  programName: string;
 }) {
+  const url = "https://partners.dub.co";
+
   return (
     <Html>
       <Head />
-      <Preview>Sign up for {appName}</Preview>
+      <Preview>Sign up for {programName}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
@@ -44,7 +42,7 @@ export default function PartnerInvite({
             </Section>
 
             <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
-              Sign up for {appName}
+              Sign up for {programName}
             </Heading>
 
             <Section className="mb-8 text-center">

@@ -23,7 +23,7 @@ export const invitePartnerAction = authActionClient
     const { workspace } = ctx;
     const { name, email, linkId, programId } = parsedInput;
 
-    await Promise.all([
+    const [program, _] = await Promise.all([
       getProgramOrThrow({
         workspaceId: workspace.id,
         programId,
@@ -63,10 +63,8 @@ export const invitePartnerAction = authActionClient
       email,
       react: PartnerInvite({
         email,
-        appName: process.env.NEXT_PUBLIC_APP_NAME as string,
-        url: `https://refer.dub.co/${workspace.slug}`,
-        workspaceUser: ctx.user.name || null,
-        workspaceUserEmail: ctx.user.email || null,
+        appName: `${process.env.NEXT_PUBLIC_APP_NAME}`,
+        programName: program.name,
       }),
     });
 
