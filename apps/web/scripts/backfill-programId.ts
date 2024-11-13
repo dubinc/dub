@@ -2,15 +2,19 @@ import { prisma } from "@/lib/prisma";
 import { dubLinksMetadataSchema } from "@/lib/tinybird";
 import "dotenv-flow/config";
 
-const partnerId = "pn_ghaDqviHewh7TCDLD07JCVcG";
-const programId = "prog_d8pl69xXCv4AoHNT281pHQdo";
+const enrollmentIds = [
+  "cm2v7e3780000d1efwh8b63y5",
+  "cm355n83o0000otvprah7scos",
+  "cm357actq0001otvpagdxa4r0",
+  "cm3dwzi320000gm2q3h5382w9",
+  "cm3fb79kn0000krzb1wms0818",
+];
 
 async function main() {
-  const programEnrollment = await prisma.programEnrollment.findUnique({
+  const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
-      partnerId_programId: {
-        partnerId,
-        programId,
+      id: {
+        in: enrollmentIds,
       },
     },
     select: {
@@ -28,14 +32,15 @@ async function main() {
       },
     },
   });
-  if (!programEnrollment?.link) {
-    throw new Error("Link not found");
-  }
 
-  const link = programEnrollment.link;
+  const linksMetadata = programEnrollments.map((programEnrollment) => {
+    if (!programEnrollment?.link) {
+      throw new Error("Link not found");
+    }
 
-  const linksMetadata = [
-    dubLinksMetadataSchema.parse({
+    const link = programEnrollment.link;
+
+    return dubLinksMetadataSchema.parse({
       link_id: link.id,
       domain: link.domain,
       key: link.key,
@@ -45,8 +50,8 @@ async function main() {
       workspace_id: link.projectId,
       created_at: link.createdAt,
       deleted: false,
-    }),
-  ];
+    });
+  });
 
   console.log(linksMetadata);
 

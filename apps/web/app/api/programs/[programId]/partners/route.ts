@@ -42,7 +42,7 @@ export const GET = withWorkspace(
         sortBy === "earnings"
           ? {
               link: {
-                sales: order,
+                saleAmount: order,
               },
             }
           : { [sortBy]: order },

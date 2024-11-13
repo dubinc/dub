@@ -5,19 +5,15 @@ import z from "@/lib/zod";
 import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
 import "dotenv-flow/config";
 
-const workspaceId = "ws_cl7pj5kq4006835rbjlt2ofka";
-const partnerId = "pn_ghaDqviHewh7TCDLD07JCVcG";
-const programId = "prog_d8pl69xXCv4AoHNT281pHQdo";
+const enrollmentId = "cm3fb79kn0000krzb1wms0818";
 
 async function main() {
   const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
-      partnerId_programId: {
-        partnerId,
-        programId,
-      },
+      id: enrollmentId,
     },
     select: {
+      partnerId: true,
       program: true,
       link: {
         select: {
@@ -33,10 +29,11 @@ async function main() {
     },
   });
   if (!programEnrollment?.link) {
-    throw new Error("Link not found");
+    throw new Error("program enrollment not found");
   }
 
-  const { program, link } = programEnrollment;
+  const { partnerId, program, link } = programEnrollment;
+  const { workspaceId } = program;
 
   const saleEvents = await getEvents({
     workspaceId,
@@ -49,8 +46,8 @@ async function main() {
     sortBy: "timestamp",
   });
 
-  const data = saleEvents.map((e: z.infer<typeof saleEventResponseSchema>) =>
-    createSaleData({
+  const data = saleEvents.map((e: z.infer<typeof saleEventResponseSchema>) => ({
+    ...createSaleData({
       customerId: e.customer.id,
       linkId: e.link.id,
       clickId: e.click.id,
@@ -65,12 +62,14 @@ async function main() {
       } as any,
       metadata: e.click,
     }),
-  );
+    createdAt: new Date(e.timestamp),
+  }));
 
   console.table(data.slice(0, 10));
 
   const response = await prisma.sale.createMany({
     data,
+    skipDuplicates: true,
   });
 
   console.log({ response });
