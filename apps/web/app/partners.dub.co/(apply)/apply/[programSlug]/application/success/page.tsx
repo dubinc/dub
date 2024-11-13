@@ -92,7 +92,8 @@ export default async function SuccessPage({
           wordmark: program.wordmark,
         }}
         slug={programSlug}
-        showButtons={false}
+        showLogin={false}
+        showApply={false}
       />
       <div className="p-6">
         <div className="grid grid-cols-1 gap-5 sm:pt-20">

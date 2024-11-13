@@ -46,6 +46,7 @@ export default async function ApplicationPage({
           wordmark: program.wordmark,
         }}
         slug={programSlug}
+        showApply={false}
       />
       <div className="p-6">
         {/* Hero section */}

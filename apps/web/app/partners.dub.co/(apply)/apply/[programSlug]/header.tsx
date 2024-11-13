@@ -3,17 +3,24 @@
 import { Button, useScroll, Wordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Program } from "@prisma/client";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export function Header({
   program,
   slug,
-  showButtons = true,
+  showLogin = true,
+  showApply = true,
 }: {
   program: Pick<Program, "wordmark" | "logo">;
   slug: string;
-  showButtons?: boolean;
+  showLogin?: boolean;
+  showApply?: boolean;
 }) {
+  const router = useRouter();
+  const { data: session } = useSession();
+
   const scrolled = useScroll(0);
 
   return (
@@ -41,13 +48,25 @@ export function Header({
         )}
       </Link>
 
-      {showButtons && (
-        <Button
-          type="button"
-          text="Apply"
-          className="h-8 w-fit border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
-        />
-      )}
+      <div className="flex items-center gap-2">
+        {showLogin && !session?.user && (
+          <Button
+            type="button"
+            variant="outline"
+            text="Log in"
+            className="text-neutral-600"
+            onClick={() => router.push(`/login?next=/apply/${slug}`)}
+          />
+        )}
+        {showApply && (
+          <Button
+            type="button"
+            text="Apply"
+            className="h-8 w-fit border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
+            onClick={() => router.push(`/apply/${slug}/application`)}
+          />
+        )}
+      </div>
     </header>
   );
 }
