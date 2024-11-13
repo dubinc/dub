@@ -1,18 +1,22 @@
 "use server";
 
 import { createId } from "@/lib/api/utils";
+import { createDotsUser } from "@/lib/dots/create-dots-user";
 import { userIsInBeta } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
+import { COUNTRIES } from "@dub/utils";
 import { nanoid } from "nanoid";
 import z from "../../zod";
 import { authUserActionClient } from "../safe-action";
 
 const onboardPartnerSchema = z.object({
-  name: z.string(),
+  firstName: z.string().trim().min(1).max(100),
+  lastName: z.string().trim().min(1).max(100),
+  country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]),
+  phoneNumber: z.string().trim().min(1).max(15),
   logo: z.string().nullable(),
-  country: z.string().nullable(),
-  description: z.string().nullable(),
+  description: z.string().max(5000).nullable(),
 });
 
 // Onboard a new partner
@@ -33,12 +37,13 @@ export const onboardPartner = authUserActionClient
       };
     }
 
-    const { name, logo, country, description } = parsedInput;
+    const { firstName, lastName, country, phoneNumber, logo, description } =
+      parsedInput;
 
     try {
       const partner = await prisma.partner.create({
         data: {
-          name,
+          name: `${firstName} ${lastName}`,
           country,
           bio: description,
           id: createId({ prefix: "pn_" }),
@@ -98,7 +103,16 @@ export const onboardPartner = authUserActionClient
         });
 
         if (program?.workspace?.dotsAppId) {
-          //
+          await createDotsUser({
+            dotsAppId: program.workspace.dotsAppId,
+            userInfo: {
+              firstName,
+              lastName,
+              email: user.email,
+              countryCode: country, // TODO: Should be country code (e.g. US -> +1)
+              phoneNumber,
+            },
+          });
         }
       }
 
