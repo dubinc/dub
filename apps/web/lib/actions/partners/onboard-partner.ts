@@ -64,23 +64,42 @@ export const onboardPartner = authUserActionClient
       }
 
       // If the partner has invites, we need to enroll them in the program and delete the invites
-      const programInvites = await prisma.programInvite.findMany({
+      const programInvite = await prisma.programInvite.findFirst({
         where: { email: user.email },
       });
 
-      if (programInvites.length > 0) {
-        await prisma.programEnrollment.createMany({
-          data: programInvites.map(({ programId, linkId }) => ({
+      // TODO: A partner can be invited to multiple programs
+
+      if (programInvite) {
+        const { id, programId, linkId } = programInvite;
+
+        await prisma.programEnrollment.create({
+          data: {
             programId,
             linkId,
             partnerId: partner.id,
             status: "approved",
-          })),
+          },
         });
 
-        await prisma.programInvite.deleteMany({
-          where: { email: user.email },
+        await prisma.programInvite.delete({
+          where: { id },
         });
+
+        const program = await prisma.program.findUnique({
+          where: { id: programId },
+          select: {
+            workspace: {
+              select: {
+                dotsAppId: true,
+              },
+            },
+          },
+        });
+
+        if (program?.workspace?.dotsAppId) {
+          //
+        }
       }
 
       return {
