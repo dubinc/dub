@@ -1,4 +1,4 @@
-import { prismaEdge } from "@/lib/prisma/edge";
+import { prisma } from "@/lib/prisma";
 import {
   programLanderBlockSchema,
   programLanderSchema,
@@ -12,8 +12,6 @@ import { currencyFormatter } from "@dub/utils";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 import { z } from "zod";
-
-export const runtime = "edge";
 
 const BLOCK_COMPONENTS: Record<
   z.infer<typeof programLanderBlockSchema>["type"],
@@ -31,7 +29,7 @@ export default async function ApplyPage({
   params: { programSlug: string };
 }) {
   const { programSlug } = params;
-  const program = await prismaEdge.program.findUnique({
+  const program = await prisma.program.findUnique({
     where: {
       slug: programSlug,
     },
