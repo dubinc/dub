@@ -41,7 +41,7 @@ model Program {
 
   brandColor          String?
   wordmark            String?
-  lander              Json?   @db.Json
+  landerData          Json?   @db.Json
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

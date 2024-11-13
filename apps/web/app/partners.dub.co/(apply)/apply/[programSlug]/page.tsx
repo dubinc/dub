@@ -32,7 +32,7 @@ export default async function ApplyPage({
   const { programSlug } = params;
   const program = await prisma.program.findUnique({
     select: {
-      lander: true,
+      landerData: true,
       name: true,
       logo: true,
       wordmark: true,
@@ -46,10 +46,10 @@ export default async function ApplyPage({
     },
   });
 
-  if (!program || !program.lander) notFound();
+  if (!program || !program.landerData) notFound();
 
-  const lander = programLanderSchema.parse(program.lander);
-  if (!lander) notFound();
+  const landerData = programLanderSchema.parse(program.landerData);
+  if (!landerData) notFound();
 
   return (
     <div
@@ -102,7 +102,7 @@ export default async function ApplyPage({
 
         {/* Content blocks */}
         <div className="mt-16 grid grid-cols-1 gap-10">
-          {lander.blocks.map((block, idx) => {
+          {landerData.blocks.map((block, idx) => {
             const Component = BLOCK_COMPONENTS[block.type];
             return Component ? (
               <Component key={idx} block={block} logo={program.logo} />
