@@ -6,6 +6,7 @@ import PartnerInvite from "emails/partner-invite";
 import { z } from "zod";
 import { getLinkOrThrow } from "../api/links/get-link-or-throw";
 import { getProgramOrThrow } from "../api/programs/get-program";
+import { updateConfig } from "../edge-config";
 import { createProgramSchema } from "../zod/schemas/programs";
 import { authActionClient } from "./safe-action";
 
@@ -73,8 +74,10 @@ export const invitePartnerAction = authActionClient
       },
     });
 
-    // TODO: Add partner to beta in edge config
-    // TODO: Update email template
+    await updateConfig({
+      key: "partnersPortal",
+      value: email,
+    });
 
     await sendEmail({
       subject: `You've been invited to start using ${process.env.NEXT_PUBLIC_APP_NAME}`,

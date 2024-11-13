@@ -63,12 +63,12 @@ export const onboardPartner = authUserActionClient
         });
       }
 
+      // TODO: Handle case where a partner can be invited to multiple programs
+
       // If the partner has invites, we need to enroll them in the program and delete the invites
       const programInvite = await prisma.programInvite.findFirst({
         where: { email: user.email },
       });
-
-      // TODO: A partner can be invited to multiple programs
 
       if (programInvite) {
         const { id, programId, linkId } = programInvite;
