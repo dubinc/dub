@@ -7,10 +7,10 @@ import { AccordionBlock } from "@/ui/partners/lander-blocks/AccordionBlock";
 import { FilesBlock } from "@/ui/partners/lander-blocks/FilesBlock";
 import { ImageBlock } from "@/ui/partners/lander-blocks/ImageBlock";
 import { TextBlock } from "@/ui/partners/lander-blocks/TextBlock";
-import { Button } from "@dub/ui";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 import { z } from "zod";
+import { ApplyButton } from "./apply-button";
 import { DetailsGrid } from "./details-grid";
 import { Header } from "./header";
 
@@ -96,11 +96,7 @@ export default async function ApplyPage({
 
         {/* Buttons */}
         <div className="mt-10 flex flex-col gap-2">
-          <Button
-            type="button"
-            text="Apply today"
-            className="border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
-          />
+          <ApplyButton programSlug={programSlug} />
           {/* <Button type="button" variant="secondary" text="Learn more" /> */}
         </div>
 

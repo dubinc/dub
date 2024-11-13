@@ -88,7 +88,6 @@ export function ProgramApplicationForm({
               : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
           )}
           placeholder="panic@thedis.co"
-          autoFocus={!isMobile}
           {...register("email", {
             required: true,
           })}
@@ -109,7 +108,6 @@ export function ProgramApplicationForm({
               : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
           )}
           placeholder="https://example.com"
-          autoFocus={!isMobile}
           {...register("website")}
         />
       </label>
