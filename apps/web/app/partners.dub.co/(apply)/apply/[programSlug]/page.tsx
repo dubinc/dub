@@ -7,11 +7,11 @@ import { AccordionBlock } from "@/ui/partners/lander-blocks/AccordionBlock";
 import { FilesBlock } from "@/ui/partners/lander-blocks/FilesBlock";
 import { ImageBlock } from "@/ui/partners/lander-blocks/ImageBlock";
 import { TextBlock } from "@/ui/partners/lander-blocks/TextBlock";
-import { Button, Calendar6, MoneyBills2 } from "@dub/ui";
-import { currencyFormatter } from "@dub/utils";
+import { Button } from "@dub/ui";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 import { z } from "zod";
+import { DetailsGrid } from "./details-grid";
 import { Header } from "./header";
 
 const BLOCK_COMPONENTS: Record<
@@ -89,34 +89,7 @@ export default async function ApplyPage({
         </div>
 
         {/* Program details grid */}
-        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {[
-            {
-              icon: MoneyBills2,
-              title: "Commission",
-              value:
-                program.commissionType === "percentage"
-                  ? `${program.commissionAmount}%`
-                  : currencyFormatter(program.commissionAmount / 100, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    }),
-            },
-            {
-              icon: Calendar6,
-              title: "Duration",
-              value: program.isLifetimeRecurring ? "Lifetime" : "Recurring",
-            },
-          ].map(({ icon: Icon, title, value }) => (
-            <div className="rounded-xl bg-neutral-100 p-4">
-              <Icon className="size-5 text-gray-500" />
-              <div className="mt-6">
-                <p className="font-mono text-xl text-neutral-900">{value}</p>
-                <p className="mt-0.5 text-sm text-gray-500">{title}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+        <DetailsGrid program={program} className="mt-10" />
 
         {/* Buttons */}
         <div className="mt-10 flex flex-col gap-2">
