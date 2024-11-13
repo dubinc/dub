@@ -185,7 +185,6 @@ export const POST = withWorkspaceEdge(
     return NextResponse.json({
       ...sale,
       // for backwards compatibility – will remove soon
-      customerId: customerExternalId,
       amount,
       currency,
       invoiceId,
