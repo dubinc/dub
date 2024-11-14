@@ -14,10 +14,7 @@ import {
 } from "@dub/blocks";
 import { CountingNumbers } from "@dub/ui";
 import { User } from "@dub/ui/src/icons";
-import {
-  AnalyticsCount,
-  AnalyticsTimeseries,
-} from "dub/dist/commonjs/models/components";
+import { AnalyticsCount, AnalyticsTimeseries } from "dub/models/components";
 
 interface StatsInnerProps {
   totalEvents: AnalyticsCount;

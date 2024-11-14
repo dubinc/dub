@@ -53,7 +53,7 @@ export default function ReferralsPageClient() {
       <div className="relative">
         <div className="relative overflow-hidden rounded-xl border border-gray-200 p-4 sm:p-9">
           <Suspense>
-            <HeroBackground slug={slug!} />
+            <HeroBackground />
           </Suspense>
 
           <div className="relative">
