@@ -1,9 +1,10 @@
 "use server";
 
 import { createId, getIP } from "@/lib/api/utils";
+import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
-import { ProgramApplicationStatus } from "@prisma/client";
+import { Partner, ProgramApplicationStatus } from "@prisma/client";
 import z from "../../zod";
 import { actionClient } from "../safe-action";
 
@@ -56,11 +57,18 @@ export const createProgramApplicationAction = actionClient
           message: "You have already applied to this program.",
         };
 
+      // Find existing partner to automatically associate
+      const existingPartner = await getExistingPartner({
+        email: data.email,
+        programId: program.id,
+      });
+
       const application = await prisma.programApplication.create({
         data: {
           ...parsedInput,
           id: createId({ prefix: "pga_" }),
           programId: program.id,
+          partnerId: existingPartner?.id,
         },
       });
 
@@ -72,3 +80,48 @@ export const createProgramApplicationAction = actionClient
       };
     }
   });
+
+async function getExistingPartner({
+  email,
+  programId,
+}: {
+  email: string;
+  programId: string;
+}) {
+  const session = await getSession();
+
+  let partner: Partner | null = null;
+
+  // First try any currently logged in user
+  if (session?.user.id)
+    partner = await prisma.partner.findFirst({
+      where: {
+        users: { some: { userId: session.user.id } },
+        programs: { none: { programId } },
+      },
+    });
+
+  // Then try to find a matching partner by user email
+  if (!partner)
+    partner = await prisma.partner.findFirst({
+      where: {
+        users: {
+          some: {
+            user: {
+              email,
+              emailVerified: {
+                not: null,
+              },
+            },
+          },
+        },
+        programs: {
+          none: {
+            programId,
+          },
+        },
+      },
+    });
+
+  return partner;
+}

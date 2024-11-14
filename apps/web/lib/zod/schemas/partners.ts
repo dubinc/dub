@@ -157,7 +157,7 @@ export const getSalesCountQuerySchema = getSalesQuerySchema.omit({
 
 export const onboardPartnerSchema = z.object({
   name: z.string().trim().min(1).max(100),
-  logo: z.string().nullable(),
+  logo: z.string().optional(),
   country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]),
   phoneNumber: z.string().trim().min(1).max(15),
   description: z.string().max(5000).nullable(),

@@ -78,6 +78,16 @@ export const onboardPartnerAction = authUserActionClient
         });
       }
 
+      // Associate any matching program applications with the partner
+      await prisma.programApplication.updateMany({
+        where: {
+          email: user.email,
+          partnerId: null,
+          programId: { not: programInvite?.id },
+        },
+        data: { partnerId: partner.id },
+      });
+
       // Create the Dots user with DOTS_DEFAULT_APP_ID
       const [firstName, lastName] = name.split(" ");
       const countryCode = COUNTRY_PHONE_CODES[country];
