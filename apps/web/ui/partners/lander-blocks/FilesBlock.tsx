@@ -25,7 +25,7 @@ export function FilesBlock({
               <div className="rounded-full border border-gray-200">
                 <div className="rounded-full border border-white bg-gradient-to-t from-gray-100 p-1 md:p-2">
                   {logo ? (
-                    <img src={logo} alt="" className="size-4" />
+                    <img src={logo} alt="" className="size-4 rounded-full" />
                   ) : (
                     <Download className="size-4" />
                   )}
