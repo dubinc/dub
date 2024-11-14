@@ -1,10 +1,10 @@
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, FlagWavy } from "@dub/ui/src/icons";
 import { cn, COUNTRIES, nFormatter } from "@dub/utils";
 import { useMemo } from "react";
-import { PartnerStatusBadges } from "./partner-table";
 
 export function usePartnerFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
