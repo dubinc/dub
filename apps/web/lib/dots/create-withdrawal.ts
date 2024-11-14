@@ -1,4 +1,3 @@
-import { DOTS_DEFAULT_APP_ID } from "@/lib/dots/env";
 import { dotsFetch } from "./fetch";
 import { DotsPayoutPlatform } from "./types";
 
@@ -15,7 +14,7 @@ export const createWithdrawal = async ({
 }) => {
   return await dotsFetch("/payouts", {
     method: "POST",
-    dotsAppId: DOTS_DEFAULT_APP_ID,
+    dotsAppId: "default",
     body: {
       user_id: dotsUserId,
       amount,

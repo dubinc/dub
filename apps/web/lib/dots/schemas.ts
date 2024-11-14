@@ -103,6 +103,8 @@ export const payoutMethodSchema = z.object({
 
 export const dotsUserSchema = z.object({
   id: z.string(),
+  first_name: z.string(),
+  last_name: z.string(),
   email: z.string(),
   phone_number: z.object({
     country_code: z.string(),
