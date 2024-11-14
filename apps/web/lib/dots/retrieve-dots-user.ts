@@ -1,4 +1,3 @@
-import { DOTS_DEFAULT_APP_ID } from "@/lib/dots/env";
 import { PartnerProps } from "../types";
 import { dotsFetch } from "./fetch";
 import { dotsUserSchema } from "./schemas";
@@ -13,11 +12,11 @@ export const retrieveDotsUser = async ({
   const [dotsUser, payoutMethods] = await Promise.all([
     dotsFetch(`/users/${dotsUserId}`, {
       method: "GET",
-      dotsAppId: DOTS_DEFAULT_APP_ID,
+      dotsAppId: "default",
     }),
     dotsFetch(`/users/${dotsUserId}/payout-methods`, {
       method: "GET",
-      dotsAppId: DOTS_DEFAULT_APP_ID,
+      dotsAppId: "default",
     }),
   ]);
 
