@@ -27,6 +27,16 @@ export const createReferralPublicToken = async ({
     });
   }
 
+  const token = await prisma.embedPublicToken.findFirst({
+    where: {
+      linkId,
+    },
+  });
+
+  if (token) {
+    return token;
+  }
+
   return await prisma.embedPublicToken.create({
     data: {
       linkId,

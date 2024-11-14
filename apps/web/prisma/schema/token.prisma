@@ -68,7 +68,7 @@ model PasswordResetToken {
 
 model EmbedPublicToken {
   id          String   @id @default(cuid())
-  linkId      String
+  linkId      String // TODO: Do we wanna make this unique? One token per link at a time?
   publicToken String   @unique
   expires     DateTime
   createdAt   DateTime @default(now())
