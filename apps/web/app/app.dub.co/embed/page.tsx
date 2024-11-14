@@ -1,16 +1,9 @@
-import { EventType } from "@/lib/analytics/types";
-import { Referrals } from "./referrals";
+import { ReferralsEmbedPageClient } from "./page-client";
 
-export default async function EmbedPage({
-  searchParams,
-}: {
-  searchParams: { token: string; event?: EventType; page?: string };
-}) {
-  const { token, event, page } = searchParams;
-
+export default async function ReferralsEmbedPage() {
   return (
     <>
-      <Referrals event={event} page={page} publicToken={token} />
+      <ReferralsEmbedPageClient />
     </>
   );
 }

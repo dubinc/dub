@@ -1,6 +1,6 @@
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { createReferralPublicToken } from "@/lib/referrals/token";
+import { createReferralPublicToken } from "@/lib/referrals/create-referral-token";
 import {
   createReferralTokenSchema,
   referralTokenSchema,

@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import { createReferralPublicToken } from "@/lib/referrals/token";
+import { createReferralPublicToken } from "@/lib/referrals/create-referral-token";
 import { referralTokenSchema } from "@/lib/zod/schemas/referrals";
 import { NextResponse } from "next/server";
 

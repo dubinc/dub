@@ -2,7 +2,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
 import { getSearchParams } from "@dub/utils";
-import { Link, Project } from "@prisma/client";
+import { Link, Program, Project } from "@prisma/client";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { cookies } from "next/headers";
 import { EMBED_PUBLIC_TOKEN_COOKIE_NAME } from "./constants";
@@ -14,12 +14,14 @@ interface WithAuthHandler {
     searchParams,
     workspace,
     link,
+    program,
   }: {
     req: Request;
     params: Record<string, string>;
     searchParams: Record<string, string>;
     workspace: Project;
     link: Link;
+    program: Program;
   }): Promise<Response>;
 }
 
@@ -107,12 +109,19 @@ export const withAuth = (handler: WithAuthHandler) => {
           },
         });
 
+        const program = await prisma.program.findFirstOrThrow({
+          where: {
+            workspaceId: workspace.id,
+          },
+        });
+
         return await handler({
           req,
           params,
           searchParams,
           workspace,
           link,
+          program,
         });
       } catch (error) {
         req.log.error(error);
