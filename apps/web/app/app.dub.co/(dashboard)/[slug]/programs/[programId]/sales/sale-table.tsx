@@ -214,7 +214,7 @@ const SaleTableBusinessInner = memo(
           meta?.filterParams && <FilterButton set={meta.filterParams(cell)} />
         );
       },
-      ...(limit && {
+      ...(!limit && {
         pagination,
         onPaginationChange: setPagination,
         sortableColumns: ["createdAt", "amount"],
@@ -238,42 +238,44 @@ const SaleTableBusinessInner = memo(
 
     return (
       <div className="flex flex-col gap-3">
-        <div>
-          <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            <Filter.Select
-              className="w-full md:w-fit"
-              filters={filters}
-              activeFilters={activeFilters}
-              onSelect={onSelect}
-              onRemove={onRemove}
-              onSearchChange={setSearch}
-              onSelectedFilterChange={setSelectedFilter}
-            />
-            <SimpleDateRangePicker className="w-full sm:min-w-[200px] md:w-fit" />
-          </div>
-          <AnimatedSizeContainer height>
-            <div>
-              {activeFilters.length > 0 && (
-                <div className="pt-3">
-                  <Filter.List
-                    filters={[
-                      ...filters,
-                      {
-                        key: "payoutId",
-                        icon: MoneyBill2,
-                        label: "Payout",
-                        options: [],
-                      },
-                    ]}
-                    activeFilters={activeFilters}
-                    onRemove={onRemove}
-                    onRemoveAll={onRemoveAll}
-                  />
-                </div>
-              )}
+        {!limit && (
+          <div>
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <Filter.Select
+                className="w-full md:w-fit"
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+                onSearchChange={setSearch}
+                onSelectedFilterChange={setSelectedFilter}
+              />
+              <SimpleDateRangePicker className="w-full sm:min-w-[200px] md:w-fit" />
             </div>
-          </AnimatedSizeContainer>
-        </div>
+            <AnimatedSizeContainer height>
+              <div>
+                {activeFilters.length > 0 && (
+                  <div className="pt-3">
+                    <Filter.List
+                      filters={[
+                        ...filters,
+                        {
+                          key: "payoutId",
+                          icon: MoneyBill2,
+                          label: "Payout",
+                          options: [],
+                        },
+                      ]}
+                      activeFilters={activeFilters}
+                      onRemove={onRemove}
+                      onRemoveAll={onRemoveAll}
+                    />
+                  </div>
+                )}
+              </div>
+            </AnimatedSizeContainer>
+          </div>
+        )}
         {sales?.length !== 0 ? (
           <Table {...table} />
         ) : (
