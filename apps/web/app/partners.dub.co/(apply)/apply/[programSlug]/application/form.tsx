@@ -32,6 +32,7 @@ export function ProgramApplicationForm({
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<FormData>({ defaultValues });
 
@@ -51,6 +52,9 @@ export function ProgramApplicationForm({
           toast.error(
             response?.data?.message ?? "Failed to submit application",
           );
+          setError("root.serverError", {
+            message: "Failed to submit application. Please try again.",
+          });
           return;
         }
 
