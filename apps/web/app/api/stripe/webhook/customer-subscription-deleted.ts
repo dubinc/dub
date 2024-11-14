@@ -87,6 +87,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         aiLimit: FREE_PLAN.limits.ai!,
         tagsLimit: FREE_PLAN.limits.tags!,
         usersLimit: FREE_PLAN.limits.users!,
+        paymentFailedAt: null,
       },
     }),
 
@@ -97,6 +98,16 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       },
       data: {
         rateLimit: FREE_PLAN.limits.api,
+      },
+    }),
+
+    // disable dub.link premium default domain for the workspace
+    prisma.defaultDomains.update({
+      where: {
+        projectId: workspace.id,
+      },
+      data: {
+        dublink: false,
       },
     }),
 

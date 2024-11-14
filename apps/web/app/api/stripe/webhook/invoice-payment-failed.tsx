@@ -24,6 +24,7 @@ export async function invoicePaymentFailed(event: Stripe.Event) {
       stripeId: stripeId.toString(),
     },
     select: {
+      id: true,
       name: true,
       slug: true,
       users: {
@@ -52,8 +53,16 @@ export async function invoicePaymentFailed(event: Stripe.Event) {
     return;
   }
 
-  await Promise.allSettled(
-    workspace.users.map(({ user }) =>
+  await Promise.allSettled([
+    prisma.project.update({
+      where: {
+        id: workspace.id,
+      },
+      data: {
+        paymentFailedAt: new Date(),
+      },
+    }),
+    ...workspace.users.map(({ user }) =>
       sendEmail({
         email: user.email as string,
         from: "steven@dub.co",
@@ -77,5 +86,5 @@ export async function invoicePaymentFailed(event: Stripe.Event) {
         ),
       }),
     ),
-  );
+  ]);
 }

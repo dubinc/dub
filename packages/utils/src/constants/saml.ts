@@ -1,7 +1,7 @@
 export const SAML_PROVIDERS = [
   {
     name: "Okta",
-    logo: "/_static/icons/okta.svg",
+    logo: "https://assets.dub.co/misc/icons/okta.svg",
     saml: "okta",
     samlModalCopy: "Metadata URL",
     scim: "okta-scim-v2",
@@ -13,7 +13,7 @@ export const SAML_PROVIDERS = [
   },
   {
     name: "Azure AD",
-    logo: "/_static/icons/azure.svg",
+    logo: "https://assets.dub.co/misc/icons/azure.svg",
     saml: "azure",
     samlModalCopy: "App Federation Metadata URL",
     scim: "azure-scim-v2",
@@ -25,7 +25,7 @@ export const SAML_PROVIDERS = [
   },
   {
     name: "Google",
-    logo: "/_static/icons/google.svg",
+    logo: "https://assets.dub.co/misc/icons/google.svg",
     saml: "google",
     samlModalCopy: "XML Metadata File",
     scim: "google",

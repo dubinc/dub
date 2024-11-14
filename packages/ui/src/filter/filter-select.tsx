@@ -25,6 +25,8 @@ type FilterSelectProps = {
   onSelect: (key: string, value: FilterOption["value"]) => void;
   onRemove: (key: string, value: FilterOption["value"]) => void;
   onOpenFilter?: (key: string) => void;
+  onSearchChange?: (search: string) => void;
+  onSelectedFilterChange?: (key: string | null) => void;
   activeFilters?: {
     key: Filter["key"];
     value: FilterOption["value"];
@@ -40,6 +42,8 @@ export function FilterSelect({
   onSelect,
   onRemove,
   onOpenFilter,
+  onSearchChange,
+  onSelectedFilterChange,
   activeFilters,
   askAI,
   children,
@@ -49,8 +53,8 @@ export function FilterSelect({
   const { isMobile } = useMediaQuery();
 
   // Track main list container/dimensions to maintain size for loading spinner
-  const mainListContainer = useRef<HTMLDivElement>(null);
-  const mainListDimensions = useRef<{
+  const listContainer = useRef<HTMLDivElement>(null);
+  const listDimensions = useRef<{
     width: number;
     height: number;
   }>();
@@ -82,10 +86,11 @@ export function FilterSelect({
     : null;
 
   const openFilter = useCallback((key: Filter["key"]) => {
-    if (mainListContainer.current) {
-      mainListDimensions.current = {
-        width: mainListContainer.current.scrollWidth,
-        height: mainListContainer.current.scrollHeight,
+    // Maintain dimensions for loading options
+    if (listContainer.current) {
+      listDimensions.current = {
+        width: listContainer.current.clientWidth,
+        height: listContainer.current.clientHeight,
       };
     }
 
@@ -128,6 +133,24 @@ export function FilterSelect({
     [activeFilters, selectedFilter, askAI],
   );
 
+  useEffect(() => {
+    onSearchChange?.(search);
+  }, [search]);
+
+  useEffect(() => {
+    onSelectedFilterChange?.(selectedFilterKey);
+  }, [selectedFilterKey]);
+
+  // If filter is selected and has options, maintain dimensions (for async fetches)
+  useEffect(() => {
+    if (selectedFilter?.options && listContainer.current) {
+      listDimensions.current = {
+        width: listContainer.current.clientWidth,
+        height: listContainer.current.clientHeight,
+      };
+    }
+  }, [selectedFilter?.options]);
+
   return (
     <Popover
       openPopover={isOpen}
@@ -145,7 +168,12 @@ export function FilterSelect({
           className="rounded-[inherit]"
           style={{ transform: "translateZ(0)" }} // Fixes overflow on some browsers
         >
-          <Command loop>
+          <Command
+            loop
+            shouldFilter={
+              !selectedFilter || selectedFilter.shouldFilter !== false
+            }
+          >
             <div className="flex items-center overflow-hidden rounded-t-lg border-b border-gray-200">
               <CommandInput
                 placeholder={`${selectedFilter?.label || "Filter"}...`}
@@ -177,12 +205,12 @@ export function FilterSelect({
                 }}
               />
               {!selectedFilter && (
-                <kbd className="mr-2 hidden shrink-0 rounded bg-gray-200 px-2 py-0.5 text-xs font-light text-gray-500 md:block">
+                <kbd className="mr-2 hidden shrink-0 rounded border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 md:block">
                   F
                 </kbd>
               )}
             </div>
-            <FilterScroll key={selectedFilterKey} ref={mainListContainer}>
+            <FilterScroll key={selectedFilterKey} ref={listContainer}>
               <Command.List
                 className={cn(
                   "flex w-full flex-col gap-1 p-1",
@@ -203,30 +231,32 @@ export function FilterSelect({
                       </Fragment>
                     ))
                   : // Filter options
-                    selectedFilter.options?.map((option) => {
-                      const isSelected = isOptionSelected(option.value);
+                    selectedFilter.options
+                      ?.filter((option) => !search || !option.hideDuringSearch)
+                      ?.map((option) => {
+                        const isSelected = isOptionSelected(option.value);
 
-                      return (
-                        <FilterButton
-                          key={option.value}
-                          filter={selectedFilter}
-                          option={option}
-                          right={
-                            isSelected ? (
-                              <Check className="h-4 w-4" />
-                            ) : (
-                              option.right
-                            )
-                          }
-                          onSelect={() => selectOption(option.value)}
-                        />
-                      );
-                    }) ?? (
+                        return (
+                          <FilterButton
+                            key={option.value}
+                            filter={selectedFilter}
+                            option={option}
+                            right={
+                              isSelected ? (
+                                <Check className="h-4 w-4" />
+                              ) : (
+                                option.right
+                              )
+                            }
+                            onSelect={() => selectOption(option.value)}
+                          />
+                        );
+                      }) ?? (
                       // Filter options loading state
                       <Command.Loading>
                         <div
                           className="-m-1 flex items-center justify-center"
-                          style={mainListDimensions.current}
+                          style={listDimensions.current}
                         >
                           <LoadingSpinner />
                         </div>

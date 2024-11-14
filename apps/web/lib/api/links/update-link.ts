@@ -12,7 +12,9 @@ import {
 } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { combineTagIds, transformLink } from "./utils";
+import { combineTagIds } from "../tags/combine-tag-ids";
+import { createId } from "../utils";
+import { transformLink } from "./utils";
 
 export async function updateLink({
   oldLink,
@@ -33,6 +35,7 @@ export async function updateLink({
     image,
     proxy,
     geo,
+    publicStats,
   } = updatedLink;
   const changedKey = key.toLowerCase() !== oldLink.key.toLowerCase();
   const changedDomain = domain !== oldLink.domain;
@@ -49,6 +52,7 @@ export async function updateLink({
     tagId,
     tagIds,
     tagNames,
+    webhookIds,
     ...rest
   } = updatedLink;
 
@@ -86,13 +90,14 @@ export async function updateLink({
         updatedLink.projectId && {
           tags: {
             deleteMany: {},
-            create: tagNames.map((tagName) => ({
+            create: tagNames.map((tagName, idx) => ({
               tag: {
                 connect: {
                   name_projectId: {
                     name: tagName,
                     projectId: updatedLink.projectId as string,
                   },
+                  createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
                 },
               },
             })),
@@ -103,9 +108,34 @@ export async function updateLink({
       ...(combinedTagIds && {
         tags: {
           deleteMany: {},
-          create: combinedTagIds.map((tagId) => ({
+          create: combinedTagIds.map((tagId, idx) => ({
             tagId,
+            createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
           })),
+        },
+      }),
+
+      // Webhooks
+      ...(webhookIds && {
+        webhooks: {
+          deleteMany: {},
+          createMany: {
+            data: webhookIds.map((webhookId) => ({
+              webhookId,
+            })),
+          },
+        },
+      }),
+
+      // Shared dashboard
+      ...(publicStats && {
+        dashboard: {
+          create: {
+            id: createId({ prefix: "dash_" }),
+            showConversions: updatedLink.trackConversion,
+            projectId: updatedLink.projectId,
+            userId: updatedLink.userId,
+          },
         },
       }),
     },
@@ -120,12 +150,11 @@ export async function updateLink({
             },
           },
         },
-      },
-      webhooks: {
-        select: {
-          webhookId: true,
+        orderBy: {
+          createdAt: "asc",
         },
       },
+      webhooks: webhookIds ? true : false,
     },
   });
 
@@ -133,12 +162,7 @@ export async function updateLink({
     Promise.all([
       // record link in Redis
       redis.hset(updatedLink.domain.toLowerCase(), {
-        [updatedLink.key.toLowerCase()]: await formatRedisLink({
-          ...response,
-          ...(response.webhooks.length > 0 && {
-            webhookIds: response.webhooks.map(({ webhookId }) => webhookId),
-          }),
-        }),
+        [updatedLink.key.toLowerCase()]: await formatRedisLink(response),
       }),
       // record link in Tinybird
       recordLink({

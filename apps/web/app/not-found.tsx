@@ -1,30 +1,25 @@
-import { FileX2 } from "lucide-react";
+import { NewBackground } from "@/ui/shared/new-background";
+import { Wordmark } from "@dub/ui/src/wordmark";
 import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="my-10 flex flex-col items-center justify-center rounded-md bg-white py-12">
-      <div className="rounded-full bg-gray-100 p-3">
-        <FileX2 className="h-6 w-6 text-gray-600" />
+    <>
+      <div className="relative z-10 flex h-screen w-screen flex-col items-center justify-center gap-6">
+        <Link href="/" className="absolute left-4 top-3">
+          <Wordmark className="h-6" />
+        </Link>
+        <h1 className="font-display bg-gradient-to-r from-black to-gray-600 bg-clip-text text-5xl font-semibold text-transparent">
+          404
+        </h1>
+        <Link
+          href="/"
+          className="flex h-9 w-fit items-center justify-center rounded-md border border-black bg-black px-4 text-sm text-white hover:bg-gray-800 hover:ring-4 hover:ring-gray-200"
+        >
+          Go back home
+        </Link>
       </div>
-      <h1 className="my-3 text-xl font-semibold text-gray-700">
-        Page Not Found
-      </h1>
-      <p className="z-10 max-w-sm text-center text-sm text-gray-600">
-        Sorry, we couldn’t find the page you’re looking for.
-      </p>
-      <img
-        src="/_static/illustrations/coffee-call.svg"
-        alt="No links yet"
-        width={400}
-        height={400}
-      />
-      <Link
-        href="/"
-        className="z-10 rounded-md border border-black bg-black px-10 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black"
-      >
-        Back to home
-      </Link>
-    </div>
+      <NewBackground showAnimation />
+    </>
   );
 }

@@ -10,6 +10,7 @@ import {
   Switch,
   Tooltip,
   TooltipContent,
+  useInViewport,
 } from "@dub/ui";
 import {
   Apple,
@@ -80,13 +81,13 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
           {link.archived ? (
             <Tooltip content="Archived">
               <div>
-                <BoxArchive className="h-4 w-4 shrink-0 p-0.5 text-gray-600 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5" />
+                <BoxArchive className="size-4 shrink-0 p-0.5 text-gray-600 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5" />
               </div>
             </Tooltip>
           ) : (
             <LinkLogo
               apexDomain={getApexDomain(url)}
-              className="h-4 w-4 shrink-0 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5"
+              className="size-4 shrink-0 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5"
               imageProps={{
                 loading: "lazy",
               }}
@@ -152,29 +153,38 @@ function UnverifiedTooltip({
 }: PropsWithChildren<{ domain: string; _key: string }>) {
   const { id: workspaceId, slug } = useWorkspace();
 
+  const ref = useRef<HTMLDivElement>(null);
+  const isVisible = useInViewport(ref);
+
   const { data: { verified } = {} } = useSWR<DomainProps>(
     workspaceId &&
+      isVisible &&
       !isDubDomain(domain) &&
       `/api/domains/${domain}?workspaceId=${workspaceId}`,
     fetcher,
+    { refreshInterval: 60000 },
   );
 
-  return !isDubDomain(domain) && verified === false ? (
-    <Tooltip
-      content={
-        <TooltipContent
-          title="Your branded links won't work until you verify your domain."
-          cta="Verify your domain"
-          href={`/${slug}/settings/domains`}
-        />
-      }
-    >
-      <p className="cursor-default truncate font-semibold leading-6 text-gray-500 line-through">
-        {linkConstructor({ domain, key: _key, pretty: true })}
-      </p>
-    </Tooltip>
-  ) : (
-    children
+  return (
+    <div ref={ref}>
+      {!isDubDomain(domain) && verified === false ? (
+        <Tooltip
+          content={
+            <TooltipContent
+              title="Your branded links won't work until you verify your domain."
+              cta="Verify your domain"
+              href={`/${slug}/settings/domains`}
+            />
+          }
+        >
+          <p className="cursor-default truncate font-semibold leading-6 text-gray-500 line-through">
+            {linkConstructor({ domain, key: _key, pretty: true })}
+          </p>
+        </Tooltip>
+      ) : (
+        children
+      )}
+    </div>
   );
 }
 
@@ -209,7 +219,7 @@ function SettingsBadge({ link }: { link: ResponseLink }) {
                   className="flex items-center justify-between gap-4 rounded-lg p-3 transition-colors hover:bg-gray-100"
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className="h-4 w-4 text-gray-600" />
+                    <Icon className="size-4 text-gray-600" />
                     <span className="text-gray-950">{label}</span>
                   </div>
                   <Switch checked />
@@ -360,7 +370,7 @@ function UserAvatar({
       }
     >
       <div>
-        <Avatar user={user} className="h-4 w-4" />
+        <Avatar user={user} className="size-4" />
       </div>
     </Tooltip>
   );

@@ -1,9 +1,9 @@
 import { Link } from "@prisma/client";
 import { expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
-import { link } from "../utils/resource";
+import { E2E_LINK } from "../utils/resource";
 
-const { domain, url } = link;
+const { domain, url } = E2E_LINK;
 
 test("DELETE /links/{linkId}", async (ctx) => {
   const h = new IntegrationHarness(ctx);

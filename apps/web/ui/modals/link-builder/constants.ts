@@ -1,15 +1,9 @@
-import { LinkWithTagsProps } from "@/lib/types";
+import { ExpandedLinkProps } from "@/lib/types";
 import {
   CircleHalfDottedClock,
   Crosshairs3,
-  Flag6,
-  Gift,
-  GlobePointer,
   Incognito,
   InputPassword,
-  InputSearch,
-  Page2,
-  SatelliteDish,
   SquareChart,
   WindowSearch,
 } from "@dub/ui/src/icons";
@@ -64,7 +58,7 @@ export const MOBILE_MORE_ITEMS = [
     learnMoreUrl: "https://dub.co/help/article/password-protected-links",
     shortcutKey: "l",
     enabled: (data: LinkFormData) => Boolean(data.password),
-    remove: (setValue: UseFormSetValue<LinkWithTagsProps>) =>
+    remove: (setValue: UseFormSetValue<ExpandedLinkProps>) =>
       setValue("password", null, { shouldDirty: true }),
     type: "modal",
   },
@@ -78,7 +72,7 @@ export const MOBILE_MORE_ITEMS = [
     learnMoreUrl: "https://dub.co/help/article/link-expiration",
     shortcutKey: "e",
     enabled: (data: LinkFormData) => Boolean(data.expiresAt),
-    remove: (setValue: UseFormSetValue<LinkWithTagsProps>) => {
+    remove: (setValue: UseFormSetValue<ExpandedLinkProps>) => {
       setValue("expiresAt", null, { shouldDirty: true });
       setValue("expiredUrl", null, { shouldDirty: true });
     },
@@ -97,7 +91,7 @@ export const MOBILE_MORE_ITEMS = [
       Boolean(
         data.ios || data.android || Object.keys(data.geo || {}).length > 0,
       ),
-    remove: (setValue: UseFormSetValue<LinkWithTagsProps>) => {
+    remove: (setValue: UseFormSetValue<ExpandedLinkProps>) => {
       setValue("ios", null, { shouldDirty: true });
       setValue("android", null, { shouldDirty: true });
       setValue("geo", null, { shouldDirty: true });
@@ -105,48 +99,3 @@ export const MOBILE_MORE_ITEMS = [
     type: "modal",
   },
 ];
-
-export const UTM_PARAMETERS = [
-  {
-    key: "utm_source",
-    icon: GlobePointer,
-    label: "Source",
-    placeholder: "google",
-    description: "Where the traffic is coming from",
-  },
-  {
-    key: "utm_medium",
-    icon: SatelliteDish,
-    label: "Medium",
-    placeholder: "cpc",
-    description: "How the traffic is coming",
-  },
-  {
-    key: "utm_campaign",
-    icon: Flag6,
-    label: "Campaign",
-    placeholder: "summer_sale",
-    description: "The name of the campaign",
-  },
-  {
-    key: "utm_term",
-    icon: InputSearch,
-    label: "Term",
-    placeholder: "running shoes",
-    description: "The term of the campaign",
-  },
-  {
-    key: "utm_content",
-    icon: Page2,
-    label: "Content",
-    placeholder: "logolink",
-    description: "The content of the campaign",
-  },
-  {
-    key: "ref",
-    icon: Gift,
-    label: "Referral",
-    placeholder: "yoursite.com",
-    description: "The referral of the campaign",
-  },
-] as const;

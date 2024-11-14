@@ -1,11 +1,10 @@
 import z from "@/lib/zod";
 import { clickEventSchema, clickEventSchemaTB } from "./clicks";
-import { customerSchema } from "./customers";
+import { CustomerSchema } from "./customers";
 import { commonDeprecatedEventFields } from "./deprecated";
-import { linkEventSchema } from "./links";
+import { linkEventSchema, LinkSchema } from "./links";
 
 export const trackLeadRequestSchema = z.object({
-  // Required
   clickId: z
     .string({ required_error: "clickId is required" })
     .trim()
@@ -20,16 +19,24 @@ export const trackLeadRequestSchema = z.object({
     .max(50)
     .describe("The name of the event to track.")
     .openapi({ example: "Sign up" }),
-  customerId: z
-    .string({ required_error: "customerId is required" })
+  externalId: z
+    .string()
     .trim()
-    .min(1, "customerId is required")
     .max(100)
+    .default("") // Remove this after migrating users from customerId to externalId
     .describe(
       "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
     ),
-
-  // Optional
+  customerId: z
+    .string()
+    .trim()
+    .max(100)
+    .nullish()
+    .default(null)
+    .describe(
+      "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
+    )
+    .openapi({ deprecated: true }),
   customerName: z
     .string()
     .max(100)
@@ -61,10 +68,10 @@ export const trackLeadResponseSchema = z.object({
     id: z.string(),
   }),
   customer: z.object({
-    id: z.string(),
     name: z.string().nullable(),
     email: z.string().nullable(),
     avatar: z.string().nullable(),
+    externalId: z.string().nullable(),
   }),
 });
 
@@ -112,7 +119,28 @@ export const leadEventResponseSchema = z
     // nested objects
     click: clickEventSchema,
     link: linkEventSchema,
-    customer: customerSchema,
+    customer: CustomerSchema,
   })
   .merge(commonDeprecatedEventFields)
   .openapi({ ref: "LeadEvent" });
+
+export const leadEventResponseObfuscatedSchema = leadEventResponseSchema
+  .pick({
+    click: true,
+    timestamp: true,
+    eventName: true,
+  })
+  .extend({
+    link: LinkSchema.pick({
+      url: true,
+      shortLink: true,
+      clicks: true,
+      leads: true,
+    }),
+    customer: z.object({
+      email: z
+        .string()
+        .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
+      avatar: z.string().nullable(),
+    }),
+  });

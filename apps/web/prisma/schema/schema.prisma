@@ -33,12 +33,15 @@ model User {
   accounts              Account[]
   sessions              Session[]
   projects              ProjectUsers[]
+  partners              PartnerUser[]
   links                 Link[]
+  dashboards            Dashboard[]
   tokens                Token[]
   restrictedTokens      RestrictedToken[]
   oAuthCodes            OAuthCode[]
   integrations          Integration[] // Integrations user created in their workspace
   installedIntegrations InstalledIntegration[] // Integrations user installed in their workspace
+  utmTemplates          UtmTemplate[]
 
   @@index(source)
   @@index(defaultWorkspace)

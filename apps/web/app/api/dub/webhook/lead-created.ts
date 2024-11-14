@@ -1,55 +1,37 @@
 import { prisma } from "@/lib/prisma";
 import { REFERRAL_SIGNUPS_MAX } from "@/lib/referrals/constants";
+import { LeadCreatedEvent } from "dub/models/components";
 import { sendEmail } from "emails";
 import NewReferralSignup from "emails/new-referral-signup";
 
-export async function leadCreated(data: any) {
-  const { customer: referredUser, link: referralLink } = data;
+export async function leadCreated(data: LeadCreatedEvent["data"]) {
+  const { link: referralLink } = data;
 
   if (!referralLink) {
     return "Referral link not found in webhook payload";
   }
 
-  const [user, workspace] = await Promise.all([
-    prisma.user.findUnique({
-      where: {
-        id: referredUser.id,
-      },
-    }),
-    prisma.project.findUnique({
-      where: {
-        referralLinkId: referralLink.id,
-      },
-      include: {
-        users: {
-          select: {
-            user: true,
-          },
-          where: {
-            role: "owner",
-          },
+  const workspace = await prisma.project.findUnique({
+    where: {
+      referralLinkId: referralLink.id,
+    },
+    include: {
+      users: {
+        select: {
+          user: true,
+        },
+        where: {
+          role: "owner",
         },
       },
-    }),
-  ]);
-
-  if (!user) {
-    return "referredUser not found";
-  }
+    },
+  });
 
   if (!workspace) {
     return `Referral link workspace not found for ${referralLink.shortLink}`;
   }
 
   await Promise.all([
-    prisma.user.update({
-      where: {
-        id: user.id,
-      },
-      data: {
-        referredByWorkspaceId: workspace.id,
-      },
-    }),
     prisma.project.update({
       where: {
         id: workspace.id,
@@ -60,11 +42,12 @@ export async function leadCreated(data: any) {
         },
         // If the referral link has less than the max number of signups,
         // update the referrer's workspace usage
-        ...(referralLink.leads < REFERRAL_SIGNUPS_MAX && {
-          usageLimit: {
-            increment: 500,
-          },
-        }),
+        ...(referralLink.leads &&
+          referralLink.leads < REFERRAL_SIGNUPS_MAX && {
+            usageLimit: {
+              increment: 500,
+            },
+          }),
       },
     }),
     // send notification email to workspace owners

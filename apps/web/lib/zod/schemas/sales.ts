@@ -1,29 +1,36 @@
 import z from "@/lib/zod";
 import { clickEventSchema, clickEventSchemaTB } from "./clicks";
-import { customerSchema } from "./customers";
+import { CustomerSchema } from "./customers";
 import { commonDeprecatedEventFields } from "./deprecated";
-import { linkEventSchema } from "./links";
+import { linkEventSchema, LinkSchema } from "./links";
 
 export const trackSaleRequestSchema = z.object({
-  // Required
-  customerId: z
-    .string({ required_error: "customerId is required" })
+  externalId: z
+    .string()
     .trim()
-    .min(1, "customerId is required")
     .max(100)
+    .default("") // Remove this after migrating users from customerId to externalId
     .describe(
       "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
     ),
+  customerId: z
+    .string()
+    .trim()
+    .max(100)
+    .nullish()
+    .default(null)
+    .describe(
+      "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
+    )
+    .openapi({ deprecated: true }),
   amount: z
     .number({ required_error: "amount is required" })
     .int()
-    .positive()
+    .min(0, "amount cannot be negative")
     .describe("The amount of the sale. Should be passed in cents."),
   paymentProcessor: z
     .enum(["stripe", "shopify", "paddle"])
     .describe("The payment processor via which the sale was made."),
-
-  // Optional
   eventName: z
     .string()
     .max(50)
@@ -56,6 +63,7 @@ export const trackSaleResponseSchema = z.object({
     name: z.string().nullable(),
     email: z.string().nullable(),
     avatar: z.string().nullable(),
+    externalId: z.string().nullable(),
   }),
   sale: z.object({
     amount: z.number(),
@@ -118,7 +126,7 @@ export const saleEventResponseSchema = z
     // nested objects
     link: linkEventSchema,
     click: clickEventSchema,
-    customer: customerSchema,
+    customer: CustomerSchema,
     sale: trackSaleRequestSchema.pick({
       amount: true,
       invoiceId: true,
@@ -138,3 +146,29 @@ export const saleEventResponseSchema = z
   })
   .merge(commonDeprecatedEventFields)
   .openapi({ ref: "SaleEvent" });
+
+export const saleEventResponseObfuscatedSchema = saleEventResponseSchema
+  .pick({
+    click: true,
+    timestamp: true,
+    eventName: true,
+  })
+  .extend({
+    link: LinkSchema.pick({
+      url: true,
+      shortLink: true,
+      clicks: true,
+      leads: true,
+      sales: true,
+      saleAmount: true,
+    }),
+    sale: z.object({
+      amount: z.number(),
+    }),
+    customer: z.object({
+      email: z
+        .string()
+        .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
+      avatar: z.string().nullable(),
+    }),
+  });

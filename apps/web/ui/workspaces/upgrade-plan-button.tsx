@@ -34,11 +34,19 @@ export function UpgradePlanButton({
 
   const queryString = searchParams.toString();
 
+  const isCurrentPlan = currentPlan === selectedPlan.name.toLowerCase();
+
   return (
     <Button
-      text={text || `Upgrade to ${selectedPlan.name} ${capitalize(period)}`}
+      text={
+        isCurrentPlan
+          ? "Your current plan"
+          : currentPlan === "free"
+            ? `Get started with ${selectedPlan.name} ${capitalize(period)}`
+            : `Switch to ${selectedPlan.name} ${capitalize(period)}`
+      }
       loading={clicked}
-      disabled={!workspaceSlug}
+      disabled={!workspaceSlug || isCurrentPlan}
       onClick={() => {
         setClicked(true);
         fetch(`/api/workspaces/${workspaceSlug}/billing/upgrade`, {

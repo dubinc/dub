@@ -1,6 +1,6 @@
 import { TrackLeadResponse } from "@/lib/types";
 import { randomCustomer } from "tests/utils/helpers";
-import { clickId } from "tests/utils/resource";
+import { E2E_CLICK_ID } from "tests/utils/resource";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
@@ -13,7 +13,7 @@ describe("POST /track/lead", async () => {
     const response = await http.post<TrackLeadResponse>({
       path: "/track/lead",
       body: {
-        clickId,
+        clickId: E2E_CLICK_ID,
         eventName: "Signup",
         customerId: customer.id,
         customerName: customer.name,
@@ -24,19 +24,18 @@ describe("POST /track/lead", async () => {
 
     expect(response.status).toEqual(200);
     expect(response.data).toStrictEqual({
-      clickId,
-      customerId: customer.id,
+      clickId: E2E_CLICK_ID,
       customerName: customer.name,
       customerEmail: customer.email,
       customerAvatar: customer.avatar,
       click: {
-        id: clickId,
+        id: E2E_CLICK_ID,
       },
       customer: {
-        id: customer.id,
         name: customer.name,
         email: customer.email,
         avatar: customer.avatar,
+        externalId: customer.id,
       },
     });
   });
@@ -45,7 +44,7 @@ describe("POST /track/lead", async () => {
     const response = await http.post<TrackLeadResponse>({
       path: "/track/lead",
       body: {
-        clickId,
+        clickId: E2E_CLICK_ID,
         eventName: "Signup",
         customerId: customer.id,
       },

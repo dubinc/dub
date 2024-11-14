@@ -1,8 +1,6 @@
 "use client";
-
-import { Badge, Copy, Globe2, Tick } from "@dub/ui";
+import { Badge, Copy, Globe2, Tick, useCopyToClipboard } from "@dub/ui";
 import { capitalize, nFormatter } from "@dub/utils";
-import { useState } from "react";
 import { toast } from "sonner";
 
 export interface UserInfoProps {
@@ -21,7 +19,7 @@ export interface UserInfoProps {
 }
 
 export default function UserInfo({ data }: { data: UserInfoProps }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, copyToClipboard] = useCopyToClipboard();
 
   return (
     <>
@@ -36,14 +34,11 @@ export default function UserInfo({ data }: { data: UserInfoProps }) {
         />
         <button
           type="button"
-          onClick={() => {
-            setCopied(true);
-            navigator.clipboard.writeText(data.impersonateUrl);
-            toast.success("Copied to clipboard");
-            setTimeout(() => {
-              setCopied(false);
-            }, 3000);
-          }}
+          onClick={() =>
+            toast.promise(copyToClipboard(data.impersonateUrl), {
+              success: "Copied to clipboard",
+            })
+          }
           className="rounded-md border border-gray-300 p-2"
         >
           {copied ? (

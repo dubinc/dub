@@ -2,6 +2,7 @@ import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { EMBED_PUBLIC_TOKEN_COOKIE_NAME } from "../referrals/constants";
 import NewLinkMiddleware from "./new-link";
+import { appRedirect } from "./utils/app-redirect";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { getOnboardingStep } from "./utils/get-onboarding-step";
 import { getUserViaToken } from "./utils/get-user-via-token";
@@ -11,7 +12,8 @@ import WorkspacesMiddleware from "./workspaces";
 export default async function AppMiddleware(req: NextRequest) {
   const { path, fullPath } = parse(req);
   const user = await getUserViaToken(req);
-  const isWorkspaceInvite = req.nextUrl.searchParams.get("invite");
+  const isWorkspaceInvite =
+    req.nextUrl.searchParams.get("invite") || path.startsWith("/invites/");
 
   if (path.startsWith("/embed")) {
     const token = req.nextUrl.searchParams.get("token");
@@ -29,9 +31,9 @@ export default async function AppMiddleware(req: NextRequest) {
     path !== "/login" &&
     path !== "/forgot-password" &&
     path !== "/register" &&
-    path !== "/register/verify-email" &&
     path !== "/auth/saml" &&
-    !path.startsWith("/auth/reset-password/")
+    !path.startsWith("/auth/reset-password/") &&
+    !path.startsWith("/share/")
   ) {
     return NextResponse.redirect(
       new URL(
@@ -57,6 +59,7 @@ export default async function AppMiddleware(req: NextRequest) {
       new Date(user.createdAt).getTime() > Date.now() - 60 * 60 * 24 * 1000 &&
       !isWorkspaceInvite &&
       !path.startsWith("/onboarding") &&
+      !(await getDefaultWorkspace(user)) &&
       (await getOnboardingStep(user)) !== "completed"
     ) {
       let step = await getOnboardingStep(user);
@@ -84,6 +87,7 @@ export default async function AppMiddleware(req: NextRequest) {
         "/",
         "/login",
         "/register",
+        "/workspaces",
         "/analytics",
         "/events",
         "/settings",
@@ -93,6 +97,8 @@ export default async function AppMiddleware(req: NextRequest) {
       isTopLevelSettingsRedirect(path)
     ) {
       return WorkspacesMiddleware(req, user);
+    } else if (appRedirect(path)) {
+      return NextResponse.redirect(new URL(appRedirect(path), req.url));
     }
   }
 

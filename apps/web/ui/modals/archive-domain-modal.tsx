@@ -64,9 +64,11 @@ function ArchiveDomainModal({
     }
 
     await mutate(
-      (key) =>
-        typeof key === "string" &&
-        key.startsWith(`/api/domains?workspaceId=${workspaceId}`),
+      (key) => typeof key === "string" && key.startsWith("/api/domains"),
+      undefined,
+      {
+        revalidate: true,
+      },
     );
     setShowArchiveDomainModal(false);
     toastWithUndo({
@@ -89,9 +91,9 @@ function ArchiveDomainModal({
         error: "Failed to roll back changes. An error occurred.",
         success: async () => {
           await mutate(
-            (key) =>
-              typeof key === "string" &&
-              key.startsWith(`/api/domains?workspaceId=${workspaceId}`),
+            (key) => typeof key === "string" && key.startsWith("/api/domains"),
+            undefined,
+            { revalidate: true },
           );
           return "Undo successful! Changes reverted.";
         },

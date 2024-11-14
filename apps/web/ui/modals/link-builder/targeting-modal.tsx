@@ -8,12 +8,14 @@ import {
   useKeyboardShortcut,
 } from "@dub/ui";
 import { Crosshairs3, Trash } from "@dub/ui/src/icons";
+import { UTM_PARAMETERS } from "@dub/ui/src/utm-builder";
 import {
   cn,
   constructURLFromUTMParams,
   COUNTRIES,
   getParamsFromURL,
   isValidUrl,
+  pluralize,
 } from "@dub/utils";
 import {
   Dispatch,
@@ -26,7 +28,6 @@ import {
 } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { LinkFormData } from ".";
-import { UTM_PARAMETERS } from "./constants";
 
 function TargetingModal({
   showTargetingModal,
@@ -420,7 +421,7 @@ export function getTargetingLabel({
 
     // Geo
     if (countries.length === 1 && countries[0]) return countries[0];
-    return `${countries.length} Target${countries.length === 1 ? "" : "s"}`;
+    return `${countries.length} ${pluralize("Target", countries.length)}`;
   }
 
   return `${count + (countries.length > 1 ? countries.length - 1 : 0)} Targets`;

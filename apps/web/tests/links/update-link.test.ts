@@ -2,10 +2,10 @@ import { Link } from "@prisma/client";
 import { afterAll, describe, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
-import { link } from "../utils/resource";
+import { E2E_LINK } from "../utils/resource";
 import { expectedLink } from "../utils/schema";
 
-const { domain, url } = link;
+const { domain, url } = E2E_LINK;
 
 describe.sequential("PATCH /links/{linkId}", async () => {
   const h = new IntegrationHarness();
@@ -28,7 +28,6 @@ describe.sequential("PATCH /links/{linkId}", async () => {
     url: "https://github.com/dubinc/dub",
     title: "Dub Inc",
     description: "Open-source link management infrastructure.",
-    publicStats: true,
     comments: "This is a comment.",
     expiresAt: new Date("2030-04-16T17:00:00.000Z"),
     expiredUrl: "https://github.com/expired",
@@ -62,7 +61,6 @@ describe.sequential("PATCH /links/{linkId}", async () => {
       projectId,
       shortLink: `https://${domain}/${toUpdate.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${toUpdate.key}?qr=1`,
-      webhooks: expect.any(Array),
     });
 
     // Fetch the link
@@ -106,7 +104,6 @@ describe.sequential("PATCH /links/{linkId}", async () => {
       projectId,
       shortLink: `https://${domain}/${toUpdate.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${toUpdate.key}?qr=1`,
-      webhooks: expect.any(Array),
     });
 
     // Fetch the link
@@ -139,7 +136,6 @@ describe.sequential("PATCH /links/{linkId}", async () => {
       projectId,
       shortLink: `https://${domain}/${toUpdate.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${toUpdate.key}?qr=1`,
-      webhooks: expect.any(Array),
     });
 
     // Fetch the link
@@ -173,7 +169,6 @@ describe.sequential("PATCH /links/{linkId}", async () => {
       projectId,
       shortLink: `https://${domain}/${toUpdate.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${toUpdate.key}?qr=1`,
-      webhooks: expect.any(Array),
     });
 
     // Fetch the link
@@ -208,7 +203,6 @@ describe.sequential(
       url: "https://github.com/dubinc/dub",
       title: "Dub Inc",
       description: "Open-source link management infrastructure.",
-      publicStats: true,
       comments: "This is a comment.",
       expiresAt: new Date("2030-04-16T17:00:00.000Z"),
       expiredUrl: "https://github.com/expired",
@@ -242,7 +236,6 @@ describe.sequential(
         projectId,
         shortLink: `https://${domain}/${toUpdate.key}`,
         qrCode: `https://api.dub.co/qr?url=https://${domain}/${toUpdate.key}?qr=1`,
-        webhooks: expect.any(Array),
       });
 
       // Fetch the link

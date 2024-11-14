@@ -7,7 +7,7 @@ const fetchOptions: RequestInit = {
   cache: "no-store",
   redirect: "manual",
   headers: {
-    "dub-no-track": "true",
+    "dub-no-track": "1",
   },
 };
 
@@ -75,6 +75,17 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     );
 
     expect(response.headers.get("location")).toBe("https://dub.co/");
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
+  test("unsupported key", async () => {
+    const response = await fetch(`${h.baseUrl}/wp-admin.php`, {
+      ...fetchOptions,
+      headers: {},
+    });
+
+    expect(response.headers.get("location")).toBe("/?dub-no-track=1");
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
     expect(response.status).toBe(302);
   });

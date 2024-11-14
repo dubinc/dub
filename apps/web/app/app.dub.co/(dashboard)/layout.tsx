@@ -1,32 +1,28 @@
 import { MainNav } from "@/ui/layout/main-nav";
-import NavTabs from "@/ui/layout/nav-tabs";
+import { AppSidebarNav } from "@/ui/layout/sidebar/app-sidebar-nav";
+import { HelpButtonRSC } from "@/ui/layout/sidebar/help-button-rsc";
+import { NewsRSC } from "@/ui/layout/sidebar/news-rsc";
 import Toolbar from "@/ui/layout/toolbar/toolbar";
-import UserSurveyPopup from "@/ui/layout/user-survey";
-import { MaxWidthWrapper } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
-import { ReactNode, Suspense } from "react";
-import Providers from "../../providers";
+import { ReactNode } from "react";
 
 export const dynamic = "force-static";
 export const metadata = constructMetadata();
 
-export default function Layout({ children }: { children: ReactNode }) {
+export default async function Layout({ children }: { children: ReactNode }) {
   return (
-    <Providers>
-      <div className="min-h-screen w-full bg-gray-50/80">
-        <div className="sticky -top-16 z-20 border-b border-gray-200 bg-white">
-          <MaxWidthWrapper>
-            <MainNav />
-            <Suspense fallback={<div className="h-12 w-full" />}>
-              <NavTabs />
-            </Suspense>
-          </MaxWidthWrapper>
-        </div>
-        {children}
+    <>
+      <div className="min-h-screen w-full bg-white">
+        <MainNav
+          sidebar={AppSidebarNav}
+          toolContent={<HelpButtonRSC />}
+          newsContent={<NewsRSC />}
+        >
+          {children}
+        </MainNav>
       </div>
-      <UserSurveyPopup />
       {/* <ChangelogPopup /> */}
-      <Toolbar />
-    </Providers>
+      <Toolbar show={["onboarding"]} />
+    </>
   );
 }

@@ -37,7 +37,8 @@ export const vaidateAuthorizeRequest = async (params: any) => {
 
   if (!oAuthApp || !oAuthApp.integration) {
     return {
-      error: "Could not find OAuth application.",
+      error:
+        "Could not find OAuth application. Make sure you have the correct client_id.",
     };
   }
 
@@ -45,7 +46,8 @@ export const vaidateAuthorizeRequest = async (params: any) => {
 
   if (!redirectUris.includes(redirectUri)) {
     return {
-      error: "Invalid redirect_uri parameter for the application.",
+      error:
+        "Invalid redirect_uri parameter detected. Make sure you have allowlisted the redirect_uri in your OAuth app settings.",
     };
   }
 

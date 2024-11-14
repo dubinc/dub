@@ -1,15 +1,16 @@
 model Domain {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  verified    Boolean  @default(false)
-  placeholder String   @default("https://dub.co/help/article/what-is-dub")
-  expiredUrl  String?  @db.LongText // URL to redirect to for expired links
-  primary     Boolean  @default(false)
-  archived    Boolean  @default(false)
-  lastChecked DateTime @default(now())
-  links       Link[]
-  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId   String?
+  id               String            @id @default(cuid())
+  slug             String            @unique
+  verified         Boolean           @default(false)
+  placeholder      String?
+  expiredUrl       String?           @db.LongText // URL to redirect to for expired links
+  notFoundUrl      String?           @db.LongText // URL to redirect to for links that don't exist
+  primary          Boolean           @default(false)
+  archived         Boolean           @default(false)
+  lastChecked      DateTime          @default(now())
+  links            Link[]
+  project          Project?          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId        String?
   registeredDomain RegisteredDomain?
 
   // these attributes will exist on both Link and Domain models
@@ -43,6 +44,7 @@ model DefaultDomains {
   chatgpt     Boolean @default(true)
   sptifi      Boolean @default(true)
   gitnew      Boolean @default(true)
+  callink     Boolean @default(true)
   amznid      Boolean @default(true)
   ggllink     Boolean @default(true)
   figpage     Boolean @default(true)

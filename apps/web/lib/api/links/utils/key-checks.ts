@@ -6,8 +6,11 @@ import {
 } from "@/lib/edge-config";
 import { checkIfKeyExists } from "@/lib/planetscale";
 import { WorkspaceProps } from "@/lib/types";
-import { DEFAULT_REDIRECTS, isDubDomain } from "@dub/utils";
-import { RESERVED_PATHS } from "@dub/utils/src/constants/middleware";
+import {
+  DEFAULT_REDIRECTS,
+  isDubDomain,
+  isReservedKeyGlobal,
+} from "@dub/utils";
 
 export async function keyChecks({
   domain,
@@ -26,7 +29,7 @@ export async function keyChecks({
     };
   }
 
-  if (RESERVED_PATHS.includes(key)) {
+  if (isReservedKeyGlobal(key)) {
     return {
       error: `${key} is a reserved path and cannot be used as a short link.`,
       code: "forbidden",

@@ -16,6 +16,7 @@ import {
   Refresh2,
   StatusBadge,
   Tooltip,
+  useCopyToClipboard,
   useInViewport,
   useMediaQuery,
   Wordmark,
@@ -33,9 +34,8 @@ import { motion } from "framer-motion";
 import { Archive, ChevronDown, FolderInput, QrCode } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 import { useArchiveDomainModal } from "../modals/archive-domain-modal";
@@ -63,34 +63,32 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   }>(
     workspaceId &&
       isVisible &&
+      !props.verified &&
       `/api/domains/${domain}/verify?workspaceId=${workspaceId}`,
     fetcher,
   );
 
-  const { data: linkProps } = useSWRImmutable<LinkProps>(
-    workspaceId &&
-      isVisible &&
-      `/api/links/info?${new URLSearchParams({ workspaceId, domain, key: "_root" }).toString()}`,
-    fetcher,
-  );
-
-  const { data: totalEvents } = useSWR<{ clicks: number }>(
-    workspaceId &&
-      isVisible &&
-      linkProps &&
-      `/api/analytics?event=clicks&workspaceId=${workspaceId}&domain=${domain}&key=_root&interval=all_unfiltered`,
-    fetcher,
-    {
-      dedupingInterval: 15000,
-    },
-  );
+  const verificationData = useMemo(() => {
+    if (props.verified) {
+      return {
+        status: "Valid Configuration",
+        response: null,
+      } as {
+        status: DomainVerificationStatusProps;
+        response: any;
+      };
+    }
+    return data;
+  }, [props.verified, data]);
 
   const [showDetails, setShowDetails] = useState(false);
   const [groupHover, setGroupHover] = useState(false);
 
   const isInvalid =
-    data &&
-    !["Valid Configuration", "Pending Verification"].includes(data.status);
+    verificationData &&
+    !["Valid Configuration", "Pending Verification"].includes(
+      verificationData.status,
+    );
 
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") || "active";
@@ -125,40 +123,34 @@ export default function DomainCard({ props }: { props: DomainProps }) {
             <DomainCardTitleColumn
               domain={domain}
               icon={tab === "active" ? Globe : Archive}
-              url={linkProps?.url}
+              url={props.link?.url}
               primary={primary}
             />
 
             {/* Clicks */}
             <div className="hidden md:flex">
-              {totalEvents ? (
-                <NumberTooltip value={totalEvents?.clicks}>
-                  <Link
-                    href={`/${slug}/analytics?domain=${domain}&key=_root`}
-                    className="flex items-center space-x-1 whitespace-nowrap rounded-md border border-gray-200 bg-gray-50 px-3 py-1 transition-colors hover:bg-gray-100"
-                  >
-                    <CursorRays className="h-4 w-4 text-gray-700" />
-                    <p className="text-xs font-medium text-gray-900">
-                      {nFormatter(totalEvents?.clicks)}
-                      <span className="ml-1 hidden sm:inline-block">
-                        clicks
-                      </span>
-                    </p>
-                  </Link>
-                </NumberTooltip>
-              ) : (
-                <div className="h-6 w-16 animate-pulse rounded-md bg-gray-200" />
-              )}
+              <NumberTooltip value={props.link?.clicks || 0}>
+                <Link
+                  href={`/${slug}/analytics?domain=${domain}&key=_root`}
+                  className="flex items-center space-x-1 whitespace-nowrap rounded-md border border-gray-200 bg-gray-50 px-3 py-1 transition-colors hover:bg-gray-100"
+                >
+                  <CursorRays className="h-4 w-4 text-gray-700" />
+                  <p className="text-xs font-medium text-gray-900">
+                    {nFormatter(props.link?.clicks || 0)}
+                    <span className="ml-1 hidden sm:inline-block">clicks</span>
+                  </p>
+                </Link>
+              </NumberTooltip>
             </div>
 
             {/* Status */}
             <div className="hidden sm:block">
-              {data ? (
+              {verificationData ? (
                 <StatusBadge
                   variant={
-                    data.status === "Valid Configuration"
+                    verificationData.status === "Valid Configuration"
                       ? "success"
-                      : data.status === "Pending Verification" ||
+                      : verificationData.status === "Pending Verification" ||
                           isDubProvisioned
                         ? "pending"
                         : "error"
@@ -169,9 +161,9 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                       : () => setShowDetails((s) => !s)
                   }
                 >
-                  {data.status === "Valid Configuration"
+                  {verificationData.status === "Valid Configuration"
                     ? "Active"
-                    : data.status === "Pending Verification"
+                    : verificationData.status === "Pending Verification"
                       ? "Pending"
                       : isDubProvisioned
                         ? "Provisioning"
@@ -195,7 +187,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                           )}
                         />
                         {/* Error indicator */}
-                        {data && isInvalid && (
+                        {verificationData && isInvalid && (
                           <div className="absolute -right-px -top-px h-[5px] w-[5px] rounded-full bg-red-500">
                             <div className="h-full w-full animate-pulse rounded-full ring-2 ring-red-500/30" />
                           </div>
@@ -222,7 +214,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               )}
               <Menu
                 props={props}
-                linkProps={linkProps}
+                linkProps={props.link}
                 refreshProps={{ isValidating, mutate }}
                 groupHover={groupHover}
               />
@@ -233,8 +225,8 @@ export default function DomainCard({ props }: { props: DomainProps }) {
             animate={{ height: showDetails ? "auto" : 0 }}
             className="overflow-hidden"
           >
-            {data ? (
-              data.status === "Valid Configuration" ? (
+            {verificationData ? (
+              verificationData.status === "Valid Configuration" ? (
                 <div className="mt-6 flex items-center gap-2 text-pretty rounded-lg bg-green-100/80 p-3 text-sm text-green-600">
                   <CircleCheck className="h-5 w-5 shrink-0" />
                   <div>
@@ -250,7 +242,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                   </div>
                 </div>
               ) : (
-                <DomainConfiguration data={data} />
+                <DomainConfiguration data={verificationData} />
               )
             ) : (
               <div className="mt-6 h-6 w-32 animate-pulse rounded-md bg-gray-200" />
@@ -323,17 +315,16 @@ function Menu({
     props: linkProps || DEFAULT_LINK_PROPS,
   });
 
-  const [copiedLinkId, setCopiedLinkId] = useState(false);
+  const [copiedLinkId, copyToClipboard] = useCopyToClipboard();
 
   const copyLinkId = () => {
     if (!linkProps) {
       toast.error("Link ID not found");
       return;
     }
-    navigator.clipboard.writeText(linkProps.id);
-    setCopiedLinkId(true);
-    toast.success("Link ID copied!");
-    setTimeout(() => setCopiedLinkId(false), 3000);
+    toast.promise(copyToClipboard(linkProps.id), {
+      success: "Link ID copied!",
+    });
   };
 
   const activeDomainsCount = activeWorkspaceDomains?.length || 0;

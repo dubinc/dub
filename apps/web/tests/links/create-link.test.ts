@@ -4,10 +4,10 @@ import { IntegrationHarnessOld } from "tests/utils/integration-old";
 import { afterAll, describe, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
-import { link } from "../utils/resource";
+import { E2E_LINK, E2E_WEBHOOK_ID } from "../utils/resource";
 import { expectedLink } from "../utils/schema";
 
-const { domain, url } = link;
+const { domain, url } = E2E_LINK;
 
 describe.sequential("POST /links", async () => {
   const h = new IntegrationHarness();
@@ -50,7 +50,6 @@ describe.sequential("POST /links", async () => {
       path: "/links",
       body: {
         url,
-        publicStats: true,
         comments: "This is a test",
         rewrite: true,
         domain,
@@ -63,7 +62,6 @@ describe.sequential("POST /links", async () => {
       ...expectedLink,
       url,
       externalId,
-      publicStats: true,
       comments: "This is a test",
       rewrite: true,
       userId: user.id,
@@ -394,6 +392,34 @@ describe.sequential("POST /links", async () => {
       workspaceId,
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
+    });
+    expect(LinkSchema.strict().parse(link)).toBeTruthy();
+
+    afterAll(async () => {
+      await h.deleteLink(link.id);
+    });
+  });
+
+  test("webhooks", async () => {
+    const { status, data: link } = await http.post<Link & { tags: [] }>({
+      path: "/links",
+      body: {
+        url,
+        domain,
+        webhookIds: [E2E_WEBHOOK_ID],
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(link).toStrictEqual({
+      ...expectedLink,
+      url,
+      userId: user.id,
+      projectId,
+      workspaceId,
+      shortLink: `https://${domain}/${link.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
+      webhookIds: [E2E_WEBHOOK_ID],
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
 

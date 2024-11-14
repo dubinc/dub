@@ -52,7 +52,7 @@ export function AnalyticsCard<T extends string>({
       </Modal>
       <div
         className={cn(
-          "relative z-0 max-h-[520px] min-h-[320px] overflow-hidden border border-gray-200 bg-white sm:rounded-xl",
+          "relative z-0 h-[400px] overflow-hidden border border-gray-200 bg-white sm:rounded-xl",
           className,
         )}
       >
@@ -72,7 +72,7 @@ export function AnalyticsCard<T extends string>({
             ) : (
               <CursorRays className="h-4 w-4" />
             )}
-            <p className="text-xs uppercase">{event}</p>
+            <p className="hidden text-xs uppercase sm:block">{event}</p>
           </div>
         </div>
         <div className="py-4">

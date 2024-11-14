@@ -1,7 +1,10 @@
 import { cn } from "@dub/utils";
-import { Command, CommandEmpty, CommandInput, CommandItem } from "cmdk";
+import { FocusScope } from "@radix-ui/react-focus-scope";
+import { Command, CommandInput, CommandItem, useCommandState } from "cmdk";
 import { ChevronDown } from "lucide-react";
 import {
+  forwardRef,
+  HTMLProps,
   isValidElement,
   PropsWithChildren,
   ReactNode,
@@ -39,8 +42,8 @@ export type ComboboxProps<
     ? ComboboxOption<TMeta>[]
     : ComboboxOption<TMeta> | null;
   setSelected: TMultiple extends true
-    ? (tags: ComboboxOption<TMeta>[]) => void
-    : (tag: ComboboxOption<TMeta> | null) => void;
+    ? (options: ComboboxOption<TMeta>[]) => void
+    : (option: ComboboxOption<TMeta> | null) => void;
   options?: ComboboxOption<TMeta>[];
   icon?: Icon | ReactNode;
   placeholder?: ReactNode;
@@ -56,6 +59,8 @@ export type ComboboxProps<
   onOpenChange?: (open: boolean) => void;
   onSearchChange?: (search: string) => void;
   shouldFilter?: boolean;
+  inputClassName?: string;
+  optionRight?: (option: ComboboxOption) => ReactNode;
   optionClassName?: string;
   matchTriggerWidth?: boolean;
 }>;
@@ -86,6 +91,8 @@ export function Combobox({
   onOpenChange,
   onSearchChange,
   shouldFilter = true,
+  inputClassName,
+  optionRight,
   optionClassName,
   matchTriggerWidth,
   children,
@@ -181,103 +188,110 @@ export function Combobox({
         matchTriggerWidth && "sm:w-[var(--radix-popover-trigger-width)]",
       )}
       content={
-        <AnimatedSizeContainer
-          width={!isMobile && !matchTriggerWidth}
-          height
-          style={{ transform: "translateZ(0)" }} // Fixes overflow on some browsers
-          transition={{ ease: "easeInOut", duration: 0.1 }}
-        >
-          <Command loop shouldFilter={shouldFilter}>
-            <div className="flex items-center overflow-hidden rounded-t-lg border-b border-gray-200">
-              <CommandInput
-                placeholder={searchPlaceholder}
-                value={search}
-                onValueChange={setSearch}
-                className="grow border-0 py-3 pl-4 pr-2 outline-none placeholder:text-gray-400 focus:ring-0 sm:text-sm"
-                onKeyDown={(e) => {
-                  if (
-                    e.key === "Escape" ||
-                    (e.key === "Backspace" && !search)
-                  ) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setIsOpen(false);
-                  }
-                }}
-              />
-              {shortcutHint && (
-                <kbd className="mr-2 hidden shrink-0 rounded bg-gray-200 px-2 py-0.5 text-xs font-light text-gray-500 md:block">
-                  {shortcutHint}
-                </kbd>
-              )}
-            </div>
-            <Scroll>
-              <Command.List
-                className={cn("flex w-full min-w-[100px] flex-col gap-1 p-1")}
-              >
-                {sortedOptions !== undefined ? (
-                  <>
-                    {sortedOptions.map((option) => (
-                      <Option
-                        key={`${option.label}, ${option.value}`}
-                        option={option}
-                        multiple={isMultiple}
-                        selected={selected.some(
-                          ({ value }) => value === option.value,
-                        )}
-                        onSelect={() => handleSelect(option)}
-                        className={optionClassName}
-                      />
-                    ))}
-                    {search.length > 0 && onCreate && (
-                      <CommandItem
-                        className={cn(
-                          "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm text-gray-700",
-                          "data-[selected=true]:bg-gray-100",
-                          optionClassName,
-                        )}
-                        onSelect={async () => {
-                          setIsCreating(true);
-                          const success = await onCreate?.(search);
-                          if (success) {
-                            setSearch("");
-                            setIsOpen(false);
-                          }
-                          setIsCreating(false);
-                        }}
-                      >
-                        {isCreating ? (
-                          <LoadingSpinner className="size-4 shrink-0" />
-                        ) : (
-                          <Plus className="size-4 shrink-0" />
-                        )}
-                        <div className="grow truncate">
-                          {createLabel?.(search) || `Create "${search}"`}
-                        </div>
-                      </CommandItem>
-                    )}
-                    {shouldFilter ? (
-                      <CommandEmpty className="flex h-12 items-center justify-center text-sm text-gray-500">
-                        {emptyState ? emptyState : "No matches"}
-                      </CommandEmpty>
-                    ) : sortedOptions.length === 0 ? (
-                      <div className="flex h-12 items-center justify-center text-sm text-gray-500">
-                        {emptyState ? emptyState : "No matches"}
-                      </div>
-                    ) : null}
-                  </>
-                ) : (
-                  // undefined data / explicit loading state
-                  <Command.Loading>
-                    <div className="flex h-12 items-center justify-center">
-                      <LoadingSpinner />
-                    </div>
-                  </Command.Loading>
+        <FocusScope asChild trapped>
+          <AnimatedSizeContainer
+            width={!isMobile && !matchTriggerWidth}
+            height
+            style={{ transform: "translateZ(0)" }} // Fixes overflow on some browsers
+            transition={{ ease: "easeInOut", duration: 0.1 }}
+            className="pointer-events-auto"
+          >
+            <Command loop shouldFilter={shouldFilter}>
+              <div className="flex items-center overflow-hidden rounded-t-lg border-b border-gray-200">
+                <CommandInput
+                  placeholder={searchPlaceholder}
+                  value={search}
+                  onValueChange={setSearch}
+                  className={cn(
+                    "grow border-0 py-3 pl-4 pr-2 outline-none placeholder:text-gray-400 focus:ring-0 sm:text-sm",
+                    inputClassName,
+                  )}
+                  onKeyDown={(e) => {
+                    if (
+                      e.key === "Escape" ||
+                      (e.key === "Backspace" && !search)
+                    ) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsOpen(false);
+                    }
+                  }}
+                />
+                {shortcutHint && (
+                  <kbd className="mr-2 hidden shrink-0 rounded border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 md:block">
+                    {shortcutHint}
+                  </kbd>
                 )}
-              </Command.List>
-            </Scroll>
-          </Command>
-        </AnimatedSizeContainer>
+              </div>
+              <Scroll>
+                <Command.List
+                  className={cn("flex w-full min-w-[100px] flex-col gap-1 p-1")}
+                >
+                  {sortedOptions !== undefined ? (
+                    <>
+                      {sortedOptions.map((option) => (
+                        <Option
+                          key={`${option.label}, ${option.value}`}
+                          option={option}
+                          multiple={isMultiple}
+                          selected={selected.some(
+                            ({ value }) => value === option.value,
+                          )}
+                          onSelect={() => handleSelect(option)}
+                          right={optionRight?.(option)}
+                          className={optionClassName}
+                        />
+                      ))}
+                      {search.length > 0 && onCreate && (
+                        <CommandItem
+                          className={cn(
+                            "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm text-gray-700",
+                            "data-[selected=true]:bg-gray-100",
+                            optionClassName,
+                          )}
+                          onSelect={async () => {
+                            setIsCreating(true);
+                            const success = await onCreate?.(search);
+                            if (success) {
+                              setSearch("");
+                              setIsOpen(false);
+                            }
+                            setIsCreating(false);
+                          }}
+                        >
+                          {isCreating ? (
+                            <LoadingSpinner className="size-4 shrink-0" />
+                          ) : (
+                            <Plus className="size-4 shrink-0" />
+                          )}
+                          <div className="grow truncate">
+                            {createLabel?.(search) || `Create "${search}"`}
+                          </div>
+                        </CommandItem>
+                      )}
+                      {shouldFilter ? (
+                        <Empty className="flex min-h-12 items-center justify-center text-sm text-gray-500">
+                          {emptyState ? emptyState : "No matches"}
+                        </Empty>
+                      ) : sortedOptions.length === 0 ? (
+                        <div className="flex min-h-12 items-center justify-center text-sm text-gray-500">
+                          {emptyState ? emptyState : "No matches"}
+                        </div>
+                      ) : null}
+                    </>
+                  ) : (
+                    // undefined data / explicit loading state
+                    <Command.Loading>
+                      <div className="flex h-12 items-center justify-center">
+                        <LoadingSpinner />
+                      </div>
+                    </Command.Loading>
+                  )}
+                </Command.List>
+              </Scroll>
+            </Command>
+          </AnimatedSizeContainer>
+        </FocusScope>
       }
     >
       <Button
@@ -307,7 +321,7 @@ export function Combobox({
             isReactNode(Icon) ? (
               Icon
             ) : (
-              <Icon className="size-4" />
+              <Icon className="size-4 shrink-0" />
             )
           ) : undefined
         }
@@ -324,7 +338,7 @@ const Scroll = ({ children }: PropsWithChildren) => {
   return (
     <>
       <div
-        className="scrollbar-hide max-h-[min(50vh,240px)] w-screen overflow-y-scroll sm:w-auto"
+        className="scrollbar-hide max-h-[min(50vh,250px)] w-screen overflow-y-scroll sm:w-auto"
         ref={ref}
         onScroll={updateScrollProgress}
       >
@@ -344,12 +358,14 @@ function Option({
   onSelect,
   multiple,
   selected,
+  right,
   className,
 }: {
   option: ComboboxOption;
   onSelect: () => void;
   multiple: boolean;
   selected: boolean;
+  right?: ReactNode;
   className?: string;
 }) {
   return (
@@ -383,6 +399,7 @@ function Option({
         )}
         <span className="grow truncate">{option.label}</span>
       </div>
+      {right}
       {!multiple && selected && (
         <Check2 className="size-4 shrink-0 text-gray-600" />
       )}
@@ -392,3 +409,15 @@ function Option({
 
 const isReactNode = (element: any): element is ReactNode =>
   isValidElement(element);
+
+// Custom Empty component because our current cmdk version has an issue with first render (https://github.com/pacocoursey/cmdk/issues/149)
+const Empty = forwardRef<HTMLDivElement, HTMLProps<HTMLDivElement>>(
+  (props, forwardedRef) => {
+    const render = useCommandState((state) => state.filtered.count === 0);
+
+    if (!render) return null;
+    return (
+      <div ref={forwardedRef} cmdk-empty="" role="presentation" {...props} />
+    );
+  },
+);

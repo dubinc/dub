@@ -13,22 +13,35 @@ import {
 import { linkConstructorSimple } from "@dub/utils/src/functions/link-constructor";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { combineTagIds } from "../tags/combine-tag-ids";
+import { createId } from "../utils";
 import { updateLinksUsage } from "./update-links-usage";
-import { combineTagIds, transformLink } from "./utils";
+import { transformLink } from "./utils";
 
 export async function createLink(link: ProcessedLinkProps) {
-  let { key, url, expiresAt, title, description, image, proxy, geo } = link;
+  let {
+    key,
+    url,
+    expiresAt,
+    title,
+    description,
+    image,
+    proxy,
+    geo,
+    publicStats,
+  } = link;
 
   const combinedTagIds = combineTagIds(link);
 
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
-  const { tagId, tagIds, tagNames, ...rest } = link;
+  const { tagId, tagIds, tagNames, webhookIds, ...rest } = link;
 
   const response = await prisma.link.create({
     data: {
       ...rest,
+      id: createId({ prefix: "link_" }),
       key,
       shortLink: linkConstructorSimple({ domain: link.domain, key: link.key }),
       title: truncate(title, 120),
@@ -47,13 +60,14 @@ export async function createLink(link: ProcessedLinkProps) {
       ...(tagNames?.length &&
         link.projectId && {
           tags: {
-            create: tagNames.map((tagName) => ({
+            create: tagNames.map((tagName, idx) => ({
               tag: {
                 connect: {
                   name_projectId: {
                     name: tagName,
                     projectId: link.projectId as string,
                   },
+                  createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
                 },
               },
             })),
@@ -65,10 +79,37 @@ export async function createLink(link: ProcessedLinkProps) {
         combinedTagIds.length > 0 && {
           tags: {
             createMany: {
-              data: combinedTagIds.map((tagId) => ({ tagId })),
+              data: combinedTagIds.map((tagId, idx) => ({
+                tagId,
+                createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
+              })),
             },
           },
         }),
+
+      // Webhooks
+      ...(webhookIds &&
+        webhookIds.length > 0 && {
+          webhooks: {
+            createMany: {
+              data: webhookIds.map((webhookId) => ({
+                webhookId,
+              })),
+            },
+          },
+        }),
+
+      // Shared dashboard
+      ...(publicStats && {
+        dashboard: {
+          create: {
+            id: createId({ prefix: "dash_" }),
+            showConversions: link.trackConversion,
+            projectId: link.projectId,
+            userId: link.userId,
+          },
+        },
+      }),
     },
     include: {
       tags: {
@@ -81,7 +122,11 @@ export async function createLink(link: ProcessedLinkProps) {
             },
           },
         },
+        orderBy: {
+          createdAt: "asc",
+        },
       },
+      webhooks: webhookIds ? true : false,
     },
   });
 
@@ -93,6 +138,7 @@ export async function createLink(link: ProcessedLinkProps) {
       redis.hset(link.domain.toLowerCase(), {
         [link.key.toLowerCase()]: await formatRedisLink(response),
       }),
+
       // record link in Tinybird
       recordLink({
         link_id: response.id,

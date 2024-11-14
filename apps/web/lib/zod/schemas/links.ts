@@ -35,7 +35,7 @@ const LinksQuerySchema = z.object({
     .string()
     .optional()
     .describe(
-      "The tag ID to filter the links by. This field is deprecated – use `tagIds` instead.",
+      "Deprecated. Use `tagIds` instead. The tag ID to filter the links by.",
     )
     .openapi({ deprecated: true }),
   tagIds: z
@@ -67,8 +67,9 @@ const LinksQuerySchema = z.object({
     .optional()
     .default("false")
     .describe(
-      "Whether to include tags in the response. Defaults to `false` if not provided.",
-    ),
+      "DEPRECATED. Filter for links that have at least one tag assigned to them.",
+    )
+    .openapi({ deprecated: true }),
 });
 
 export const getLinksQuerySchema = LinksQuerySchema.merge(
@@ -132,7 +133,7 @@ export const domainKeySchema = z.object({
 });
 
 export const createLinkBodySchema = z.object({
-  url: parseUrlSchemaAllowEmpty
+  url: parseUrlSchemaAllowEmpty()
     .describe("The destination URL of the short link.")
     .openapi({
       example: "https://google.com",
@@ -188,7 +189,10 @@ export const createLinkBodySchema = z.object({
     .boolean()
     .optional()
     .default(false)
-    .describe("Whether the short link's stats are publicly accessible."),
+    .describe(
+      "Deprecated: Use `dashboard` instead. Whether the short link's stats are publicly accessible.",
+    )
+    .openapi({ deprecated: true }),
   tagId: z
     .string()
     .nullish()
@@ -316,6 +320,12 @@ export const createLinkBodySchema = z.object({
     .nullish()
     .describe(
       "The referral tag of the short link. If set, this will populate or override the `ref` query parameter in the destination URL.",
+    ),
+  webhookIds: z
+    .array(z.string())
+    .nullish()
+    .describe(
+      "An array of webhook IDs to trigger when the link is clicked. These webhooks will receive click event data.",
     ),
 });
 
@@ -484,6 +494,11 @@ export const LinkSchema = z
     tags: TagSchema.array()
       .nullable()
       .describe("The tags assigned to the short link."),
+    webhookIds: z
+      .array(z.string())
+      .describe(
+        "The IDs of the webhooks that the short link is associated with.",
+      ),
     comments: z
       .string()
       .nullable()
@@ -519,6 +534,7 @@ export const LinkSchema = z
       .describe("The UTM content of the short link."),
     userId: z
       .string()
+      .nullable()
       .describe("The user ID of the creator of the short link."),
     workspaceId: z.string().describe("The workspace ID of the short link."),
     clicks: z
@@ -577,6 +593,8 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
   z.object({
     // Only Dub UI uses the following query parameters
     includeUser: booleanQuerySchema.default("false"),
+    includeWebhooks: booleanQuerySchema.default("false"),
+    includeDashboard: booleanQuerySchema.default("false"),
     linkIds: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))

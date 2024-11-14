@@ -7,17 +7,25 @@ import {
 } from "@/lib/analytics/constants";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import useDomains from "@/lib/swr/use-domains";
+import useDomainsCount from "@/lib/swr/use-domains-count";
 import useTags from "@/lib/swr/use-tags";
+import useTagsCount from "@/lib/swr/use-tags-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
+import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
+import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import {
   BlurImage,
+  Button,
+  ChartLine,
   DateRangePicker,
   ExpandingArrow,
   Filter,
   LinkLogo,
   Sliders,
+  SquareLayoutGrid6,
   TooltipContent,
+  useMediaQuery,
   useRouterStuff,
   useScroll,
 } from "@dub/ui";
@@ -62,13 +70,15 @@ import {
   useState,
 } from "react";
 import useSWR from "swr";
-import { COLORS_LIST } from "../links/tag-badge";
+import { useDebounce } from "use-debounce";
+import TagBadge from "../links/tag-badge";
 import AnalyticsOptions from "./analytics-options";
 import { AnalyticsContext } from "./analytics-provider";
 import ContinentIcon from "./continent-icon";
 import DeviceIcon from "./device-icon";
 import EventsOptions from "./events/events-options";
 import RefererIcon from "./referer-icon";
+import { ShareButton } from "./share-button";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Toggle({
@@ -76,26 +86,60 @@ export default function Toggle({
 }: {
   page?: "analytics" | "events";
 }) {
-  const { plan } = useWorkspace();
-  const { queryParams, searchParamsObj } = useRouterStuff();
+  const { slug, plan } = useWorkspace();
+
+  const { router, queryParams, searchParamsObj, getQueryString } =
+    useRouterStuff();
+
   const {
-    basePath,
     domain,
     key,
     url,
     adminPage,
     demoPage,
+    partnerPage,
+    dashboardProps,
+    showConversions,
     start,
     end,
     interval,
   } = useContext(AnalyticsContext);
 
-  const isPublicStatsPage = basePath.startsWith("/stats");
-
   const scrolled = useScroll(120);
 
-  const { tags } = useTags();
-  const { allDomains: domains, primaryDomain } = useDomains();
+  // Determine whether tags and domains should be fetched async
+  const { data: tagsCount } = useTagsCount();
+  const { data: domainsCount } = useDomainsCount({ ignoreParams: true });
+  const tagsAsync = Boolean(tagsCount && tagsCount > TAGS_MAX_PAGE_SIZE);
+  const domainsAsync = domainsCount && domainsCount > DOMAINS_MAX_PAGE_SIZE;
+
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 500);
+
+  const { tags, loading: loadingTags } = useTags();
+
+  const {
+    allDomains: domains,
+    primaryDomain,
+    loading: loadingDomains,
+  } = useDomains({
+    ignoreParams: true,
+    opts: {
+      search:
+        domainsAsync && selectedFilter === "domain" ? debouncedSearch : "",
+    },
+  });
+
+  const selectedTagIds = useMemo(
+    () => searchParamsObj.tagIds?.split(",")?.filter(Boolean) ?? [],
+    [searchParamsObj.tagIds],
+  );
+
+  const { tags: selectedTags } = useTags({
+    query: { ids: selectedTagIds },
+    enabled: tagsAsync,
+  });
 
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
@@ -103,7 +147,6 @@ export default function Toggle({
     const {
       domain,
       key,
-      tagId,
       continent,
       country,
       city,
@@ -126,7 +169,9 @@ export default function Toggle({
             },
           ]
         : []),
-      ...(tagId ? [{ key: "tagId", value: tagId }] : []),
+      ...(selectedTagIds.length > 0
+        ? [{ key: "tagIds", value: selectedTagIds }]
+        : []),
       ...(continent ? [{ key: "continent", value: continent }] : []),
       ...(country ? [{ key: "country", value: country }] : []),
       ...(city ? [{ key: "city", value: city }] : []),
@@ -185,7 +230,7 @@ export default function Toggle({
   // Some suggestions will only appear if previously requested (see isRequested above)
   const aiFilterSuggestions = useMemo(
     () => [
-      ...(isPublicStatsPage
+      ...(dashboardProps
         ? []
         : [
             {
@@ -210,7 +255,7 @@ export default function Toggle({
         icon: QRCode,
       },
     ],
-    [primaryDomain, isPublicStatsPage],
+    [primaryDomain, dashboardProps],
   );
 
   const [streaming, setStreaming] = useState<boolean>(false);
@@ -229,13 +274,14 @@ export default function Toggle({
             icon,
           })) ?? null,
       },
-      ...(isPublicStatsPage
+      ...(dashboardProps
         ? []
         : [
             {
               key: "domain",
               icon: Globe2,
               label: "Domain",
+              shouldFilter: !domainsAsync,
               getOptionIcon: (value) => (
                 <BlurImage
                   src={`${GOOGLE_FAVICON_URL}${value}`}
@@ -245,10 +291,25 @@ export default function Toggle({
                   height={16}
                 />
               ),
-              options: domains.map((domain) => ({
-                value: domain.slug,
-                label: domain.slug,
-              })),
+              options: loadingDomains
+                ? null
+                : [
+                    ...domains.map((domain) => ({
+                      value: domain.slug,
+                      label: domain.slug,
+                    })),
+                    // Add currently filtered domain if not already in the list
+                    ...(!searchParamsObj.domain ||
+                    domains.some((d) => d.slug === searchParamsObj.domain)
+                      ? []
+                      : [
+                          {
+                            value: searchParamsObj.domain,
+                            label: searchParamsObj.domain,
+                            hideDuringSearch: true,
+                          },
+                        ]),
+                  ],
             },
             {
               key: "link",
@@ -293,40 +354,25 @@ export default function Toggle({
               ],
             },
             {
-              key: "tagId",
+              key: "tagIds",
               icon: Tag,
               label: "Tag",
+              multiple: true,
+              shouldFilter: !tagsAsync,
               getOptionIcon: (value, props) => {
                 const tagColor =
                   props.option?.data?.color ??
                   tags?.find(({ id }) => id === value)?.color;
                 return tagColor ? (
-                  <div
-                    className={cn(
-                      "rounded-md p-1.5",
-                      COLORS_LIST.find(({ color }) => color === tagColor)?.css,
-                    )}
-                  >
-                    <Tag className="h-2.5 w-2.5" />
-                  </div>
+                  <TagBadge color={tagColor} withIcon className="sm:p-1" />
                 ) : null;
               },
               options:
-                tags?.map((tag) => ({
-                  value: tag.id,
-                  icon: (
-                    <div
-                      className={cn(
-                        "rounded-md p-1.5",
-                        COLORS_LIST.find(({ color }) => color === tag.color)
-                          ?.css,
-                      )}
-                    >
-                      <Tag className="h-2.5 w-2.5" />
-                    </div>
-                  ),
-                  label: tag.name,
-                  data: { color: tag.color },
+                tags?.map(({ id, name, color }) => ({
+                  value: id,
+                  icon: <TagBadge color={color} withIcon className="sm:p-1" />,
+                  label: name,
+                  data: { color },
                 })) ?? null,
             },
           ]),
@@ -341,7 +387,7 @@ export default function Toggle({
             icon: trigger === "qr" ? QRCode : CursorRays,
             right: nFormatter(count, { full: true }),
           })) ?? null,
-        separatorAfter: !isPublicStatsPage,
+        separatorAfter: !dashboardProps,
       },
       {
         key: "country",
@@ -458,7 +504,7 @@ export default function Toggle({
       {
         key: "refererUrl",
         icon: ReferredVia,
-        label: "Referer URL",
+        label: "Referrer URL",
         getOptionIcon: (value, props) => (
           <RefererIcon display={value} className="h-4 w-4" />
         ),
@@ -469,33 +515,30 @@ export default function Toggle({
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },
-      ...(key && domain
-        ? [
-            {
-              key: "url",
-              icon: LinkBroken,
-              label: "Destination URL",
-              getOptionIcon: (_, props) => (
-                <LinkLogo
-                  apexDomain={getApexDomain(props.option?.data?.url)}
-                  className="size-4 sm:size-4"
-                />
-              ),
-              options:
-                urls?.map(({ url, count }) => ({
-                  value: url,
-                  label: url.replace(/^https?:\/\//, "").replace(/\/$/, ""),
-                  right: nFormatter(count, { full: true }),
-                })) ?? null,
-            },
-          ]
-        : []),
+      {
+        key: "url",
+        icon: LinkBroken,
+        label: "Destination URL",
+        getOptionIcon: (_, props) => (
+          <LinkLogo
+            apexDomain={getApexDomain(props.option?.value)}
+            className="size-4 sm:size-4"
+          />
+        ),
+        options:
+          urls?.map(({ url, count }) => ({
+            value: url,
+            label: url.replace(/^https?:\/\//, "").replace(/\/$/, ""),
+            right: nFormatter(count, { full: true }),
+          })) ?? null,
+      },
     ],
     [
-      isPublicStatsPage,
+      dashboardProps,
       domains,
       links,
       tags,
+      selectedTags,
       countries,
       cities,
       devices,
@@ -504,21 +547,168 @@ export default function Toggle({
       referers,
       refererUrls,
       urls,
+      tagsAsync,
+      domainsAsync,
+      loadingTags,
+      loadingDomains,
+      searchParamsObj.tagIds,
+      searchParamsObj.domain,
     ],
+  );
+
+  const { isMobile } = useMediaQuery();
+
+  const filterSelect = (
+    <Filter.Select
+      className="w-full md:w-fit"
+      filters={filters}
+      activeFilters={activeFilters}
+      onSearchChange={setSearch}
+      onSelectedFilterChange={setSelectedFilter}
+      onSelect={async (key, value) => {
+        if (key === "ai") {
+          setStreaming(true);
+          const prompt = value.replace("Ask AI ", "");
+          const { object } = await generateFilters(prompt);
+          for await (const partialObject of readStreamableValue(object)) {
+            if (partialObject) {
+              queryParams({
+                set: {
+                  ...partialObject,
+                },
+              });
+            }
+          }
+          posthog.capture("ai_filters_generated", {
+            prompt,
+            filters: activeFilters,
+          });
+          setStreaming(false);
+        } else {
+          queryParams({
+            set:
+              key === "link"
+                ? {
+                    domain: new URL(`https://${value}`).hostname,
+                    key:
+                      new URL(`https://${value}`).pathname.slice(1) || "_root",
+                  }
+                : key === "tagIds"
+                  ? {
+                      tagIds: selectedTagIds.concat(value).join(","),
+                    }
+                  : {
+                      [key]: value,
+                    },
+            del: "page",
+            scroll: false,
+          });
+        }
+      }}
+      onRemove={(key, value) =>
+        queryParams(
+          key === "tagIds" &&
+            !(selectedTagIds.length === 1 && selectedTagIds[0] === value)
+            ? {
+                set: {
+                  tagIds: selectedTagIds.filter((id) => id !== value).join(","),
+                },
+                scroll: false,
+              }
+            : {
+                del: key === "link" ? ["domain", "key"] : key,
+                scroll: false,
+              },
+        )
+      }
+      onOpenFilter={(key) =>
+        setRequestedFilters((rf) => (rf.includes(key) ? rf : [...rf, key]))
+      }
+      askAI
+    />
+  );
+
+  const dateRangePicker = (
+    <DateRangePicker
+      className="w-full sm:min-w-[200px] md:w-fit"
+      align={dashboardProps ? "end" : "start"}
+      value={
+        start && end
+          ? {
+              from: start,
+              to: end,
+            }
+          : undefined
+      }
+      presetId={!start || !end ? interval ?? "24h" : undefined}
+      onChange={(range, preset) => {
+        if (preset) {
+          queryParams({
+            del: ["start", "end"],
+            set: {
+              interval: preset.id,
+            },
+            scroll: false,
+          });
+
+          return;
+        }
+
+        // Regular range
+        if (!range || !range.from || !range.to) return;
+
+        queryParams({
+          del: "preset",
+          set: {
+            start: range.from.toISOString(),
+            end: range.to.toISOString(),
+          },
+          scroll: false,
+        });
+      }}
+      presets={INTERVAL_DISPLAYS.map(({ display, value, shortcut }) => {
+        const start = INTERVAL_DATA[value].startDate;
+        const end = new Date();
+
+        const requiresUpgrade =
+          showConversions ||
+          DUB_DEMO_LINKS.find((l) => l.domain === domain && l.key === key)
+            ? false
+            : !validDateRangeForPlan({
+                plan: plan || dashboardProps?.workspacePlan,
+                start,
+                end,
+              });
+
+        return {
+          id: value,
+          label: display,
+          dateRange: {
+            from: start,
+            to: end,
+          },
+          requiresUpgrade,
+          tooltipContent: requiresUpgrade ? (
+            <UpgradeTooltip rangeLabel={display} plan={plan} />
+          ) : undefined,
+          shortcut,
+        };
+      })}
+    />
   );
 
   return (
     <>
       <div
-        className={cn("sticky top-11 z-10 bg-gray-50 py-3 md:py-3", {
-          "top-14": isPublicStatsPage,
-          "top-16": adminPage || demoPage,
-          "shadow-md": scrolled,
+        className={cn("py-3 md:py-3", {
+          "sticky top-14 z-10 bg-gray-50": dashboardProps,
+          "sticky top-16 z-10 bg-gray-50": adminPage || demoPage,
+          "shadow-md": scrolled && dashboardProps,
         })}
       >
         <div
           className={cn(
-            "mx-auto flex w-full max-w-screen-xl flex-col gap-2 px-2.5 lg:px-20",
+            "mx-auto flex w-full max-w-screen-xl flex-col gap-2 px-3 lg:px-10",
             {
               "md:h-10": key,
             },
@@ -533,7 +723,7 @@ export default function Toggle({
               },
             )}
           >
-            {isPublicStatsPage ? (
+            {dashboardProps && (
               <a
                 className="group flex items-center text-lg font-semibold text-gray-800"
                 href={linkConstructor({ domain, key })}
@@ -560,157 +750,68 @@ export default function Toggle({
                 </p>
                 <ExpandingArrow className="h-5 w-5" />
               </a>
-            ) : (
-              <h1 className="text-2xl font-semibold tracking-tight text-black">
-                {page === "analytics" ? "Analytics" : "Events"}
-              </h1>
             )}
             <div
-              className={cn("flex items-center gap-2", {
-                "w-full flex-col min-[550px]:flex-row md:w-auto": !key,
-                "w-full md:w-auto": key,
-              })}
+              className={cn(
+                "flex w-full flex-col-reverse items-center gap-2 min-[550px]:flex-row",
+                dashboardProps && "md:w-auto",
+              )}
             >
-              <Filter.Select
-                className="w-full"
-                filters={filters}
-                activeFilters={activeFilters}
-                onSelect={async (key, value) => {
-                  if (key === "ai") {
-                    setStreaming(true);
-                    const prompt = value.replace("Ask AI ", "");
-                    const { object } = await generateFilters(prompt);
-                    for await (const partialObject of readStreamableValue(
-                      object,
-                    )) {
-                      if (partialObject) {
-                        queryParams({
-                          set: {
-                            ...partialObject,
-                          },
-                        });
-                      }
-                    }
-                    posthog.capture("ai_filters_generated", {
-                      prompt,
-                      filters: activeFilters,
-                    });
-                    setStreaming(false);
-                  } else {
-                    queryParams({
-                      set:
-                        key === "link"
-                          ? {
-                              domain: new URL(`https://${value}`).hostname,
-                              key:
-                                new URL(`https://${value}`).pathname.slice(1) ||
-                                "_root",
-                            }
-                          : {
-                              [key]: value,
-                            },
-                      del: "page",
-                    });
-                  }
-                }}
-                onRemove={(key) =>
-                  queryParams({
-                    del: key === "link" ? ["domain", "key"] : key,
-                  })
-                }
-                onOpenFilter={(key) =>
-                  setRequestedFilters((rf) =>
-                    rf.includes(key) ? rf : [...rf, key],
-                  )
-                }
-                askAI
-              />
+              {isMobile ? dateRangePicker : filterSelect}
               <div
-                className={cn("flex w-full items-center gap-2", {
-                  "min-[550px]:w-auto": !key,
-                  "justify-end": key,
+                className={cn("flex w-full grow items-center gap-2 md:w-auto", {
+                  "grow-0": dashboardProps,
                 })}
               >
-                <DateRangePicker
-                  className="w-full sm:min-w-[200px]"
-                  align="end"
-                  value={
-                    start && end
-                      ? {
-                          from: start,
-                          to: end,
-                        }
-                      : undefined
-                  }
-                  presetId={!start || !end ? interval ?? "24h" : undefined}
-                  onChange={(range, preset) => {
-                    if (preset) {
-                      queryParams({
-                        del: ["start", "end"],
-                        set: {
-                          interval: preset.id,
-                        },
-                      });
-
-                      return;
-                    }
-
-                    // Regular range
-                    if (!range || !range.from || !range.to) return;
-
-                    queryParams({
-                      del: "preset",
-                      set: {
-                        start: range.from.toISOString(),
-                        end: range.to.toISOString(),
-                      },
-                    });
-                  }}
-                  presets={INTERVAL_DISPLAYS.map(
-                    ({ display, value, shortcut }) => {
-                      const start = INTERVAL_DATA[value].startDate;
-                      const end = new Date();
-
-                      const requiresUpgrade =
-                        adminPage ||
-                        demoPage ||
-                        DUB_DEMO_LINKS.find(
-                          (l) => l.domain === domain && l.key === key,
-                        )
-                          ? false
-                          : !validDateRangeForPlan({
-                              plan,
-                              start,
-                              end,
-                            });
-
-                      return {
-                        id: value,
-                        label: display,
-                        dateRange: {
-                          from: start,
-                          to: end,
-                        },
-                        requiresUpgrade,
-                        tooltipContent: requiresUpgrade ? (
-                          <UpgradeTooltip rangeLabel={display} plan={plan} />
-                        ) : undefined,
-                        shortcut,
-                      };
-                    },
-                  )}
-                />
-                {!isPublicStatsPage && page === "analytics" && (
-                  <AnalyticsOptions />
+                {isMobile ? filterSelect : dateRangePicker}
+                {!dashboardProps && (
+                  <div className="flex grow justify-end gap-2">
+                    {page === "analytics" && !partnerPage && (
+                      <>
+                        {domain && key && <ShareButton />}
+                        <Button
+                          variant="secondary"
+                          className="w-fit"
+                          icon={
+                            <SquareLayoutGrid6 className="h-4 w-4 text-gray-600" />
+                          }
+                          text={isMobile ? undefined : "Switch to Events"}
+                          onClick={() => {
+                            if (dashboardProps) {
+                              window.open("https://d.to/events");
+                            } else {
+                              router.push(
+                                `/${slug}/events${getQueryString({}, { ignore: ["view"] })}`,
+                              );
+                            }
+                          }}
+                        />
+                        <AnalyticsOptions />
+                      </>
+                    )}
+                    {page === "events" && !partnerPage && (
+                      <>
+                        <Button
+                          variant="secondary"
+                          className="w-fit"
+                          icon={<ChartLine className="h-4 w-4 text-gray-600" />}
+                          text={isMobile ? undefined : "Switch to Analytics"}
+                          onClick={() =>
+                            router.push(`/${slug}/analytics${getQueryString()}`)
+                          }
+                        />
+                        <EventsOptions />
+                      </>
+                    )}
+                  </div>
                 )}
-                {page === "events" && <EventsOptions />}
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-screen-xl px-2.5 lg:px-20">
+      <div className="mx-auto w-full max-w-screen-xl px-3 lg:px-10">
         <Filter.List
           filters={filters}
           activeFilters={[
@@ -722,10 +823,23 @@ export default function Toggle({
                 }))
               : []),
           ]}
-          onRemove={(key) =>
-            queryParams({
-              del: key === "link" ? ["domain", "key", "url"] : key,
-            })
+          onRemove={(key, value) =>
+            queryParams(
+              key === "tagIds" &&
+                !(selectedTagIds.length === 1 && selectedTagIds[0] === value)
+                ? {
+                    set: {
+                      tagIds: selectedTagIds
+                        .filter((id) => id !== value)
+                        .join(","),
+                    },
+                    scroll: false,
+                  }
+                : {
+                    del: key === "link" ? ["domain", "key", "url"] : key,
+                    scroll: false,
+                  },
+            )
           }
           onRemoveAll={() =>
             queryParams({
@@ -733,13 +847,14 @@ export default function Toggle({
               del: VALID_ANALYTICS_FILTERS.concat(["page"]).filter(
                 (f) => !["interval", "start", "end"].includes(f),
               ),
+              scroll: false,
             })
           }
         />
         <div
           className={cn(
             "transition-[height] duration-[300ms]",
-            streaming || activeFilters.length ? "h-6" : "h-0",
+            streaming || activeFilters.length ? "h-3" : "h-0",
           )}
         />
       </div>

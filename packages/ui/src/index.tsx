@@ -29,6 +29,7 @@ export * from "./switch";
 export * from "./table";
 export * from "./toggle-group";
 export * from "./tooltip";
+export * from "./utm-builder";
 
 // hooks
 export * from "./hooks";
@@ -63,5 +64,5 @@ export * from "./tab-select";
 // logos
 export * from "./composite-logo";
 export * from "./logo";
-export * from "./nav-logo";
+export * from "./nav-wordmark";
 export * from "./wordmark";

@@ -4,12 +4,14 @@ import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useDomains from "@/lib/swr/use-domains";
 import useDomainsCount from "@/lib/swr/use-domains-count";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
 import DomainCard from "@/ui/domains/domain-card";
 import DomainCardPlaceholder from "@/ui/domains/domain-card-placeholder";
 import { FreeDotLinkBanner } from "@/ui/domains/free-dot-link-banner";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
 import { useRegisterDomainModal } from "@/ui/modals/register-domain-modal";
 import { useRegisterDomainSuccessModal } from "@/ui/modals/register-domain-success-modal";
+import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import EmptyState from "@/ui/shared/empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { PaginationControls } from "@dub/blocks/src/pagination-controls";
@@ -21,10 +23,10 @@ import {
   usePagination,
   useRouterStuff,
 } from "@dub/ui";
-import { LinkBroken } from "@dub/ui/src/icons";
+import { CursorRays, LinkBroken } from "@dub/ui/src/icons";
 import { ToggleGroup } from "@dub/ui/src/toggle-group";
 import { InfoTooltip, TooltipContent } from "@dub/ui/src/tooltip";
-import { capitalize } from "@dub/utils";
+import { capitalize, pluralize } from "@dub/utils";
 import { ChevronDown, Crown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { DefaultDomains } from "./default-domains";
@@ -42,10 +44,12 @@ export default function WorkspaceDomainsClient() {
 
   const [openPopover, setOpenPopover] = useState(false);
   const { searchParams, queryParams } = useRouterStuff();
-  const { allWorkspaceDomains, loading } = useDomains({ includeParams: true });
+  const { allWorkspaceDomains, loading } = useDomains({
+    opts: { includeLink: "true" },
+  });
   const { data: domainsCount } = useDomainsCount();
 
-  const { pagination, setPagination } = usePagination(50);
+  const { pagination, setPagination } = usePagination(DOMAINS_MAX_PAGE_SIZE);
 
   const archived = searchParams.get("archived");
   const search = searchParams.get("search");
@@ -75,9 +79,10 @@ export default function WorkspaceDomainsClient() {
 
   const disabledTooltip = exceededDomains ? (
     <TooltipContent
-      title={`You can only add up to ${domainsLimit} domain${
-        domainsLimit === 1 ? "" : "s"
-      } on the ${capitalize(plan)} plan. Upgrade to add more domains`}
+      title={`You can only add up to ${domainsLimit} ${pluralize(
+        "domain",
+        domainsLimit || 0,
+      )} on the ${capitalize(plan)} plan. Upgrade to add more domains`}
       cta="Upgrade"
       onClick={() => {
         queryParams({
@@ -180,7 +185,7 @@ export default function WorkspaceDomainsClient() {
             >
               <Button
                 variant="primary"
-                className="w-fit"
+                className="h-9 w-fit rounded-lg"
                 text={
                   <div className="flex items-center gap-2">
                     Add domain{" "}
@@ -213,20 +218,34 @@ export default function WorkspaceDomainsClient() {
                   </li>
                 ))}
               </ul>
-            ) : (
+            ) : archived || search ? (
               <div className="flex flex-col items-center gap-4 rounded-xl border border-gray-200 py-10">
                 <EmptyState
                   icon={Globe}
                   title={
                     archived
-                      ? "No archived domains found for this workspace"
-                      : search
-                        ? "No custom domains found"
-                        : "No custom domains found for this workspace"
+                      ? "No archived domains found"
+                      : "No custom domains found"
                   }
                 />
                 <AddDomainButton />
               </div>
+            ) : (
+              <AnimatedEmptyState
+                title="No domains found"
+                description="Use custom domains for better brand recognition and click-through rates"
+                cardContent={
+                  <>
+                    <Globe className="size-4 text-neutral-700" />
+                    <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+                    <div className="xs:flex hidden grow items-center justify-end gap-1.5 text-gray-500">
+                      <CursorRays className="size-3.5" />
+                    </div>
+                  </>
+                }
+                addButton={<AddDomainButton />}
+                learnMoreHref="https://dub.co/help/article/how-to-add-custom-domain"
+              />
             )
           ) : (
             <ul className="grid grid-cols-1 gap-3">

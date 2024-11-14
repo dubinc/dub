@@ -27,6 +27,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
     select: {
       id: true,
       plan: true,
+      paymentFailedAt: true,
       users: {
         select: {
           user: {
@@ -61,27 +62,38 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
 
   // If a workspace upgrades/downgrades their subscription, update their usage limit in the database.
   if (workspace.plan !== newPlan) {
+    await Promise.allSettled([
+      prisma.project.update({
+        where: {
+          stripeId,
+        },
+        data: {
+          plan: newPlan,
+          usageLimit: plan.limits.clicks!,
+          linksLimit: plan.limits.links!,
+          domainsLimit: plan.limits.domains!,
+          aiLimit: plan.limits.ai!,
+          tagsLimit: plan.limits.tags!,
+          usersLimit: plan.limits.users!,
+          paymentFailedAt: null,
+        },
+      }),
+      prisma.restrictedToken.updateMany({
+        where: {
+          projectId: workspace.id,
+        },
+        data: {
+          rateLimit: plan.limits.api,
+        },
+      }),
+    ]);
+  } else if (workspace.paymentFailedAt) {
     await prisma.project.update({
       where: {
-        stripeId,
+        id: workspace.id,
       },
       data: {
-        plan: newPlan,
-        usageLimit: plan.limits.clicks!,
-        linksLimit: plan.limits.links!,
-        domainsLimit: plan.limits.domains!,
-        aiLimit: plan.limits.ai!,
-        tagsLimit: plan.limits.tags!,
-        usersLimit: plan.limits.users!,
-      },
-    });
-
-    prisma.restrictedToken.updateMany({
-      where: {
-        projectId: workspace.id,
-      },
-      data: {
-        rateLimit: plan.limits.api,
+        paymentFailedAt: null,
       },
     });
   }

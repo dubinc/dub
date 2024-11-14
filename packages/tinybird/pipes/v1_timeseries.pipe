@@ -95,7 +95,7 @@ SQL >
         }}
         AND deleted == 0
         {% if defined(domain) %} AND domain IN {{ Array(domain, 'String') }} {% end %}
-        {% if defined(tagId) %} AND has(tag_ids, {{ tagId }}) {% end %}
+        {% if defined(tagIds) %} AND arrayIntersect(tag_ids, {{ Array(tagIds, 'String') }}) != [] {% end %}
         {% if defined(root) %}
             {% if Boolean(root) == 1 %} AND key = '_root' {% else %} AND key != '_root' {% end %}
         {% end %}

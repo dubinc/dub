@@ -19,6 +19,7 @@ const config: Pick<Config, "presets"> = {
             ...sharedConfig?.theme?.extend?.animation,
             // Infinite scroll animation
             "infinite-scroll": "infinite-scroll 22s linear infinite",
+            "infinite-scroll-y": "infinite-scroll-y 22s linear infinite",
             // Text appear animation
             "text-appear": "text-appear 0.15s ease",
             // Table pinned column shadow animation
@@ -35,7 +36,11 @@ const config: Pick<Config, "presets"> = {
             // Infinite scroll animation
             "infinite-scroll": {
               "0%": { transform: "translateX(0)" },
-              "100%": { transform: "translateX(-150%)" },
+              "100%": { transform: "translateX(var(--scroll, -150%))" },
+            },
+            "infinite-scroll-y": {
+              "0%": { transform: "translateY(0)" },
+              "100%": { transform: "translateY(var(--scroll, -150%))" },
             },
             // Text appear animation
             "text-appear": {
