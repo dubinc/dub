@@ -26,7 +26,7 @@ export function Header({
   return (
     <header
       className={
-        "sticky top-0 mx-px flex items-center justify-between bg-white/90 px-6 py-4 backdrop-blur-sm"
+        "sticky top-0 z-10 mx-px flex items-center justify-between bg-white/90 px-6 py-4 backdrop-blur-sm"
       }
     >
       {/* Bottom border when scrolled */}

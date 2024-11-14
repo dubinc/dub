@@ -11,6 +11,8 @@ export function ImageBlock({
       <img
         src={block.data.url}
         alt={block.data.alt}
+        width={block.data.width}
+        height={block.data.height}
         className="block rounded-lg"
       />
     </div>

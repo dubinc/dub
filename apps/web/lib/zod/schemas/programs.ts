@@ -19,6 +19,8 @@ export const programLanderImageBlockSchema = z.object({
   data: z.object({
     url: z.string().url(),
     alt: z.string().optional(),
+    width: z.number().optional(),
+    height: z.number().optional(),
   }),
 });
 
