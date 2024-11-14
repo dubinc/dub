@@ -23,8 +23,8 @@ export const createProgramApplicationAction = actionClient
   .action(async ({ parsedInput }) => {
     const { programId, ...data } = parsedInput;
 
-    // Limit to 2 requests per minute per program per IP
-    const { success } = await ratelimit(2, "1 m").limit(
+    // Limit to 3 requests per minute per program per IP
+    const { success } = await ratelimit(3, "1 m").limit(
       `create-program-application:${programId}:${getIP()}`,
     );
 
@@ -41,10 +41,20 @@ export const createProgramApplicationAction = actionClient
 
       if (!program) return { ok: false, message: "Program not found." };
 
+      // Find existing partner to automatically associate
+      const existingPartner = await getExistingPartner({
+        email: data.email,
+        programId: program.id,
+      });
+
       const existingApplication = await prisma.programApplication.findFirst({
         where: {
           programId: program.id,
-          email: data.email,
+          ...(existingPartner
+            ? { partnerId: existingPartner.id }
+            : {
+                email: data.email,
+              }),
           status: {
             not: ProgramApplicationStatus.rejected,
           },
@@ -56,12 +66,6 @@ export const createProgramApplicationAction = actionClient
           ok: false,
           message: "You have already applied to this program.",
         };
-
-      // Find existing partner to automatically associate
-      const existingPartner = await getExistingPartner({
-        email: data.email,
-        programId: program.id,
-      });
 
       const application = await prisma.programApplication.create({
         data: {
