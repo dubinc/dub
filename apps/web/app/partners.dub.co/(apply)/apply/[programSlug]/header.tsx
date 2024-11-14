@@ -19,7 +19,7 @@ export function Header({
   showApply?: boolean;
 }) {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   const scrolled = useScroll(0);
 
@@ -37,7 +37,7 @@ export function Header({
         )}
       />
 
-      <Link href={`/apply/${slug}`} className="my-0.5 block">
+      <Link href={`/apply/${slug}`} className="animate-fade-in my-0.5 block">
         {program.wordmark || program.logo ? (
           <img
             className="h-7 max-w-32"
@@ -49,12 +49,12 @@ export function Header({
       </Link>
 
       <div className="flex items-center gap-2">
-        {showLogin && !session?.user && (
+        {showLogin && !session?.user && status !== "loading" && (
           <Button
             type="button"
             variant="outline"
             text="Log in"
-            className="text-neutral-600"
+            className="animate-fade-in h-8 w-fit text-neutral-600"
             onClick={() => router.push(`/login?next=/apply/${slug}`)}
           />
         )}
@@ -62,7 +62,7 @@ export function Header({
           <Button
             type="button"
             text="Apply"
-            className="h-8 w-fit border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
+            className="animate-fade-in h-8 w-fit border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
             onClick={() => router.push(`/apply/${slug}/application`)}
           />
         )}

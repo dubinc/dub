@@ -7,6 +7,7 @@ import { AccordionBlock } from "@/ui/partners/lander-blocks/AccordionBlock";
 import { FilesBlock } from "@/ui/partners/lander-blocks/FilesBlock";
 import { ImageBlock } from "@/ui/partners/lander-blocks/ImageBlock";
 import { TextBlock } from "@/ui/partners/lander-blocks/TextBlock";
+import { cn } from "@dub/utils";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 import { z } from "zod";
@@ -68,13 +69,28 @@ export default async function ApplyPage({
       <div className="p-6">
         {/* Hero section */}
         <div className="grid grid-cols-1 gap-5 sm:pt-20">
-          <p className="font-mono text-xs font-medium uppercase text-[var(--brand)]">
+          <span
+            className={cn(
+              "font-mono text-xs font-medium uppercase text-[var(--brand)]",
+              "animate-slide-up-fade [--offset:5px] [animation-duration:1s] [animation-fill-mode:both]",
+            )}
+          >
             Affiliate Program
-          </p>
-          <h1 className="text-4xl font-semibold">
+          </span>
+          <h1
+            className={cn(
+              "text-4xl font-semibold",
+              "animate-slide-up-fade [--offset:5px] [animation-delay:100ms] [animation-duration:1s] [animation-fill-mode:both]",
+            )}
+          >
             Join the {program.name} affiliate program
           </h1>
-          <p className="text-base text-neutral-700">
+          <p
+            className={cn(
+              "text-base text-neutral-700",
+              "animate-slide-up-fade [--offset:5px] [animation-delay:200ms] [animation-duration:1s] [animation-fill-mode:both]",
+            )}
+          >
             Share {program.name} with your audience and for each subscription
             generated through your referral, you'll earn a share of the revenue
             on any plans they purchase.
@@ -92,10 +108,13 @@ export default async function ApplyPage({
         </div>
 
         {/* Program details grid */}
-        <DetailsGrid program={program} className="mt-10" />
+        <DetailsGrid
+          program={program}
+          className="animate-slide-up-fade mt-10 [animation-delay:300ms] [animation-duration:1s] [animation-fill-mode:both]"
+        />
 
         {/* Buttons */}
-        <div className="mt-10 flex flex-col gap-2">
+        <div className="animate-scale-in-fade mt-10 flex flex-col gap-2 [animation-delay:400ms] [animation-fill-mode:both]">
           <ApplyButton programSlug={programSlug} />
           {/* <Button type="button" variant="secondary" text="Learn more" /> */}
         </div>
