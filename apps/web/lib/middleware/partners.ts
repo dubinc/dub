@@ -12,6 +12,8 @@ const UNAUTHENTICATED_PATHS = [
   "/apply",
 ];
 
+const TOP_LEVEL_REDIRECTS = ["/marketplace", "/settings"];
+
 export default async function PartnersMiddleware(req: NextRequest) {
   const { path, fullPath } = parse(req);
 
@@ -30,12 +32,18 @@ export default async function PartnersMiddleware(req: NextRequest) {
     ? await userIsInBeta(user.email, "partnersPortal")
     : false;
 
-  if (user && path === "/" && partnersEnabled) {
+  if (
+    user &&
+    partnersEnabled &&
+    (path === "/" || TOP_LEVEL_REDIRECTS.some((p) => path.startsWith(p)))
+  ) {
     const defaultPartner = await getDefaultPartner(user);
     if (!defaultPartner) {
       return NextResponse.redirect(new URL("/onboarding", req.url));
     }
-    return NextResponse.redirect(new URL(`/${defaultPartner}`, req.url));
+    return NextResponse.redirect(
+      new URL(`/${defaultPartner}${fullPath}`, req.url),
+    );
   }
 
   // Redirect to home if partner flag is off
