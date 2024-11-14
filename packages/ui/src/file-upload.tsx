@@ -5,8 +5,10 @@ import { DragEvent, ReactNode, useState } from "react";
 import { toast } from "sonner";
 import { LoadingCircle } from "./icons";
 
+type AcceptedFileFormats = "any" | "images" | "csv";
+
 const acceptFileTypes: Record<
-  string,
+  AcceptedFileFormats,
   { types: string[]; errorMessage?: string }
 > = {
   any: { types: [] },
@@ -52,8 +54,7 @@ type FileUploadReadFileProps =
     };
 
 export type FileUploadProps = FileUploadReadFileProps & {
-  accept: keyof typeof acceptFileTypes;
-
+  accept: AcceptedFileFormats;
   className?: string;
   iconClassName?: string;
   previewClassName?: string;
