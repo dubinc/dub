@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { nanoid } from "@dub/utils";
 import { DubApiError } from "../api/errors";
+import { ratelimit } from "../upstash";
 import {
   EMBED_PUBLIC_TOKEN_EXPIRY,
   EMBED_PUBLIC_TOKEN_LENGTH,
@@ -24,6 +25,15 @@ export const createReferralPublicToken = async ({
     throw new DubApiError({
       code: "forbidden",
       message: "Conversion tracking is not enabled for this link.",
+    });
+  }
+
+  const { success } = await ratelimit(10, "1 m").limit(linkId);
+
+  if (!success) {
+    throw new DubApiError({
+      code: "rate_limit_exceeded",
+      message: "Too many requests.",
     });
   }
 
