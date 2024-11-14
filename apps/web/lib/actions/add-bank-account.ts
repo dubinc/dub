@@ -6,6 +6,7 @@ import { addAppAchAccount } from "../dots/add-app-ach-account";
 import { createDotsApp } from "../dots/create-dots-app";
 import { addBankAccountSchema } from "../dots/schemas";
 import { authActionClient } from "./safe-action";
+import { createIdempotencyKey } from "../dots/utils";
 
 const schema = addBankAccountSchema.extend({ workspaceId: z.string() });
 
@@ -32,6 +33,8 @@ export const addBankAccountAction = authActionClient
 
       dotsAppId = dotsApp.id;
     }
+
+    await createIdempotencyKey();
 
     // Add bank account to Dots app
     const achAccount = await addAppAchAccount({
