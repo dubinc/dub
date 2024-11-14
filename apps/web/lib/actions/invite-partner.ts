@@ -7,31 +7,52 @@ import { z } from "zod";
 import { getLinkOrThrow } from "../api/links/get-link-or-throw";
 import { getProgramOrThrow } from "../api/programs/get-program";
 import { updateConfig } from "../edge-config";
-import { createProgramSchema } from "../zod/schemas/programs";
 import { authActionClient } from "./safe-action";
 
-const schema = createProgramSchema.partial().extend({
+const invitePartnerSchema = z.object({
   workspaceId: z.string(),
   programId: z.string(),
   email: z.string().trim().email().min(1).max(100),
-  linkId: z.string().trim(),
+  linkId: z.string(),
 });
 
 export const invitePartnerAction = authActionClient
-  .schema(schema)
+  .schema(invitePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { email, linkId, programId } = parsedInput;
 
-    const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
+    const [program, _] = await Promise.all([
+      getProgramOrThrow({
+        workspaceId: workspace.id,
+        programId,
+      }),
+
+      getLinkOrThrow({
+        workspace,
+        linkId,
+      }),
+    ]);
+
+    // Check if the user is already enrolled in the program
+    const programEnrollment = await prisma.programEnrollment.findFirst({
+      where: {
+        programId,
+        partner: {
+          users: {
+            some: {
+              user: {
+                email,
+              },
+            },
+          },
+        },
+      },
     });
 
-    await getLinkOrThrow({
-      workspace,
-      linkId,
-    });
+    if (programEnrollment) {
+      throw new Error(`Partner ${email} already enrolled in this program.`);
+    }
 
     const programInvite = await prisma.programInvite.findUnique({
       where: {
@@ -78,7 +99,7 @@ export const invitePartnerAction = authActionClient
     });
 
     await sendEmail({
-      subject: `You've been invited to start using ${process.env.NEXT_PUBLIC_APP_NAME}`,
+      subject: `${program.name} invited you to join Dub Partners`,
       email,
       react: PartnerInvite({
         email,

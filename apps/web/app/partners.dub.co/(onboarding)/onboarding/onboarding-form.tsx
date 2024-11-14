@@ -1,6 +1,7 @@
 "use client";
 
-import { onboardPartner } from "@/lib/actions/partners/onboard-partner";
+import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
+import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import {
   Button,
   buttonVariants,
@@ -15,10 +16,13 @@ import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
+import { z } from "zod";
+
+type OnboardingFormData = z.infer<typeof onboardPartnerSchema>;
 
 export function OnboardingForm() {
-  const { isMobile } = useMediaQuery();
   const router = useRouter();
+  const { isMobile } = useMediaQuery();
 
   const {
     register,
@@ -26,66 +30,46 @@ export function OnboardingForm() {
     handleSubmit,
     setError,
     formState: { errors, isSubmitting, isSubmitSuccessful },
-  } = useForm<{
-    firstName: string;
-    lastName: string;
-    phoneNumber: string;
-    country: string;
-    logo: string;
-    description: string;
-  }>();
+  } = useForm<OnboardingFormData>();
+
+  // TODO: Can we use useAction instead?
+  const onSubmit = async (data: OnboardingFormData) => {
+    try {
+      const result = await onboardPartnerAction(data);
+
+      if (!result?.data?.ok) {
+        throw new Error("Failed to create partner");
+      }
+
+      router.push(`/${result?.data?.partnerId || ""}`);
+    } catch (error) {
+      setError("root.serverError", {
+        message: "Failed to create partner profile. Please try again.",
+      });
+      toast.error("Failed to create partner profile. Please try again.");
+    }
+  };
 
   return (
     <form
-      onSubmit={handleSubmit(async (data) => {
-        try {
-          const result = await onboardPartner(data);
-          if (!result?.data?.ok) throw new Error("Failed to create partner");
-          router.push(`/${result?.data?.partnerId || ""}`);
-        } catch (error) {
-          setError("root.serverError", {
-            message: "Failed to create partner profile. Please try again.",
-          });
-          toast.error("Failed to create partner profile. Please try again.");
-        }
-      })}
+      onSubmit={handleSubmit(onSubmit)}
       className="flex w-full flex-col gap-4 text-left"
     >
       <label>
         <span className="text-sm font-medium text-gray-800">
-          First name
+          Name
           <span className="font-normal text-neutral-500"> (required)</span>
         </span>
         <input
           type="text"
           className={cn(
             "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
-            errors.firstName
+            errors.name
               ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
               : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
           )}
           autoFocus={!isMobile}
-          {...register("firstName", {
-            required: true,
-          })}
-        />
-      </label>
-
-      <label>
-        <span className="text-sm font-medium text-gray-800">
-          Last name
-          <span className="font-normal text-neutral-500"> (required)</span>
-        </span>
-        <input
-          type="text"
-          className={cn(
-            "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
-            errors.lastName
-              ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
-          )}
-          autoFocus={!isMobile}
-          {...register("lastName", {
+          {...register("name", {
             required: true,
           })}
         />
@@ -153,7 +137,6 @@ export function OnboardingForm() {
               ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
               : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
           )}
-          placeholder="+1"
           autoFocus={!isMobile}
           {...register("phoneNumber", {
             required: true,

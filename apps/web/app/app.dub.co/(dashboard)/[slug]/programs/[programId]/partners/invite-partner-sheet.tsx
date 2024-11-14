@@ -22,8 +22,8 @@ interface InvitePartnerFormData {
 }
 
 function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
-  const { id: workspaceId } = useWorkspace();
   const { program } = useProgram();
+  const { id: workspaceId } = useWorkspace();
 
   const { register, handleSubmit, watch, setValue } =
     useForm<InvitePartnerFormData>({

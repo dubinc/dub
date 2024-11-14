@@ -1,4 +1,5 @@
 import { intervals } from "@/lib/analytics/constants";
+import { COUNTRIES } from "@dub/utils";
 import {
   CommissionInterval,
   CommissionType,
@@ -152,4 +153,12 @@ export const getSalesCountQuerySchema = getSalesQuerySchema.omit({
   pageSize: true,
   order: true,
   sortBy: true,
+});
+
+export const onboardPartnerSchema = z.object({
+  name: z.string().trim().min(1).max(100),
+  logo: z.string().nullable(),
+  country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]),
+  phoneNumber: z.string().trim().min(1).max(15),
+  description: z.string().max(5000).nullable(),
 });
