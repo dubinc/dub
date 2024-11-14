@@ -1,22 +1,20 @@
-import { PartnerAnalyticsFilters } from "@/lib/analytics/types";
+import { PartnerEventsFilters } from "@/lib/analytics/types";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 
-export default function useReferralAnalytics(params?: PartnerAnalyticsFilters) {
+export default function useReferralEvents(params?: PartnerEventsFilters) {
   const searchParams = new URLSearchParams({
-    event: params?.event ?? "composite",
+    event: params?.event ?? "sales",
     ...(params?.start && params?.end
       ? {
           start: params.start.toISOString(),
           end: params.end.toISOString(),
         }
-      : { interval: params?.interval ?? "all_unfiltered" }),
-    groupBy: params?.groupBy ?? "count",
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      : { interval: params?.interval ?? "30d" }),
   });
 
   const { data, error } = useSWR<any>(
-    `/api/analytics/client?${searchParams.toString()}`,
+    `/api/events/client?${searchParams.toString()}`,
     fetcher,
     {
       dedupingInterval: 60000,
