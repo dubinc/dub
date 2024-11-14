@@ -66,6 +66,7 @@ export const ProgramEnrollmentSchema = z.object({
   partnerId: z.string(),
   programId: z.string(),
   program: ProgramSchema,
+  status: z.nativeEnum(ProgramEnrollmentStatus),
   link: LinkSchema.pick({
     id: true,
     shortLink: true,
