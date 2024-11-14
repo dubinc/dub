@@ -1,6 +1,6 @@
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { createPublicToken } from "@/lib/referrals/token";
+import { createReferralPublicToken } from "@/lib/referrals/token";
 import {
   createReferralTokenSchema,
   referralTokenSchema,
@@ -13,7 +13,10 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
     await parseRequestBody(req),
   );
 
-  const token = await createPublicToken({ linkId, workspaceId: workspace.id });
+  const token = await createReferralPublicToken({
+    linkId,
+    workspaceId: workspace.id,
+  });
 
   return NextResponse.json(referralTokenSchema.parse(token), {
     status: 201,

@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import { createPublicToken } from "@/lib/referrals/token";
+import { createReferralPublicToken } from "@/lib/referrals/token";
 import { referralTokenSchema } from "@/lib/zod/schemas/referrals";
 import { NextResponse } from "next/server";
 
@@ -15,7 +15,7 @@ export const POST = withWorkspace(async ({ workspace }) => {
     });
   }
 
-  const token = await createPublicToken({
+  const token = await createReferralPublicToken({
     linkId: referralLinkId,
     workspaceId: id,
   });

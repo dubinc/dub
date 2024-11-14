@@ -6,7 +6,7 @@ import {
   EMBED_PUBLIC_TOKEN_LENGTH,
 } from "./constants";
 
-export const createPublicToken = async ({
+export const createReferralPublicToken = async ({
   linkId,
   workspaceId,
 }: {
