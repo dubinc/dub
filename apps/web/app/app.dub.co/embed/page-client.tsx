@@ -2,13 +2,7 @@
 
 import { IntervalOptions } from "@/lib/analytics/types";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
-import {
-  Button,
-  Check2,
-  MaxWidthWrapper,
-  useCopyToClipboard,
-  useRouterStuff,
-} from "@dub/ui";
+import { Button, Check2, useCopyToClipboard, useRouterStuff } from "@dub/ui";
 import { Copy, MoneyBill2 } from "@dub/ui/src/icons";
 import { getPrettyUrl } from "@dub/utils";
 import { ProgramOverviewContext } from "./context";
@@ -22,7 +16,7 @@ import { useReferralProgram } from "./use-referral-program";
 export function ReferralsEmbedPageClient() {
   const { program } = useReferralProgram();
   const [copied, copyToClipboard] = useCopyToClipboard();
-  const { getQueryString, searchParamsObj } = useRouterStuff();
+  const { searchParamsObj } = useRouterStuff();
   const { link, isLoading: isLoadingLink } = useReferralLink();
 
   const {
@@ -38,7 +32,7 @@ export function ReferralsEmbedPageClient() {
   const color = "#8B5CF6"; // TODO: Read this from a program attribute
 
   return (
-    <MaxWidthWrapper className="pb-10">
+    <>
       <div className="relative flex flex-col rounded-lg border border-neutral-300 bg-gradient-to-r from-neutral-50 p-4 md:p-6">
         {program && <HeroBackground logo={program?.logo} color={color} />}
         <span className="flex items-center gap-2 text-sm text-neutral-500">
@@ -109,6 +103,6 @@ export function ReferralsEmbedPageClient() {
           </div>
         </div>
       </ProgramOverviewContext.Provider>
-    </MaxWidthWrapper>
+    </>
   );
 }

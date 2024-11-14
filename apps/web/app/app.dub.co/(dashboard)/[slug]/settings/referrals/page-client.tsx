@@ -39,5 +39,9 @@ export default function ReferralsPageClient() {
     return <div>Loading...</div>;
   }
 
-  return <ReferralsEmbed publicToken={publicToken} />;
+  return (
+    <>
+      <ReferralsEmbed publicToken={publicToken} />
+    </>
+  );
 }
