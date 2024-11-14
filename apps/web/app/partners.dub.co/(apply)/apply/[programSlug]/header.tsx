@@ -37,7 +37,7 @@ export function Header({
         )}
       />
 
-      <Link href={`/apply/${slug}`}>
+      <Link href={`/apply/${slug}`} className="my-0.5 block">
         {program.wordmark || program.logo ? (
           <img
             className="h-7 max-w-32"
