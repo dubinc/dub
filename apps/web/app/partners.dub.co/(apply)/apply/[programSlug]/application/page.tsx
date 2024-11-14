@@ -1,3 +1,4 @@
+import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
@@ -29,6 +30,17 @@ export default async function ApplicationPage({
   });
 
   if (!program) notFound();
+
+  // Get currently logged in user's partner for prefilling the form
+  const session = await getSession();
+  const partner = session?.user
+    ? (
+        await prisma.user.findUnique({
+          where: { id: session.user.id },
+          include: { partners: { include: { partner: true } } },
+        })
+      )?.partners?.[0]?.partner ?? null
+    : null;
 
   return (
     <div
@@ -67,6 +79,10 @@ export default async function ApplicationPage({
         <div className="mt-10">
           <ProgramApplicationForm
             program={{ id: program.id, name: program.name, slug: program.slug }}
+            defaultValues={{
+              name: partner?.name ?? undefined,
+              email: session?.user?.email ?? undefined,
+            }}
           />
         </div>
       </div>

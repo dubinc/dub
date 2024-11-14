@@ -21,8 +21,10 @@ type FormData = {
 
 export function ProgramApplicationForm({
   program,
+  defaultValues,
 }: {
   program: Pick<Program, "id" | "slug" | "name">;
+  defaultValues?: Partial<FormData>;
 }) {
   const { isMobile } = useMediaQuery();
   const router = useRouter();
@@ -31,7 +33,7 @@ export function ProgramApplicationForm({
     register,
     handleSubmit,
     formState: { errors, isSubmitting, isSubmitSuccessful },
-  } = useForm<FormData>();
+  } = useForm<FormData>({ defaultValues });
 
   const { executeAsync } = useAction(createProgramApplicationAction);
 
