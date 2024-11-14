@@ -121,37 +121,31 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
     resourceName: (plural) => `sale${plural ? "s" : ""}`,
   });
 
-  return loading || saleEvents?.length ? (
+  return (
     <div className="flex flex-col gap-3">
       {!limit && (
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          {loading ? (
-            <>
-              <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200 md:w-32" />
-            </>
-          ) : (
-            <>
-              <SimpleDateRangePicker className="w-full sm:min-w-[200px] md:w-fit" />
-            </>
-          )}
+          <SimpleDateRangePicker className="w-full sm:min-w-[200px] md:w-fit" />
         </div>
       )}
-      <Table
-        {...tableProps}
-        table={table}
-        containerClassName="border-neutral-300"
-      />
-    </div>
-  ) : (
-    <AnimatedEmptyState
-      title="No sales found"
-      description="No sales have been made for this program yet."
-      cardContent={() => (
-        <>
-          <CircleDollar className="size-4 text-neutral-700" />
-          <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-        </>
+      {loading || saleEvents?.length ? (
+        <Table
+          {...tableProps}
+          table={table}
+          containerClassName="border-neutral-300"
+        />
+      ) : (
+        <AnimatedEmptyState
+          title="No sales found"
+          description="No sales have been made for this program yet."
+          cardContent={() => (
+            <>
+              <CircleDollar className="size-4 text-neutral-700" />
+              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+            </>
+          )}
+        />
       )}
-    />
+    </div>
   );
 }

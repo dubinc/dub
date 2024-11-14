@@ -1,6 +1,5 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
-import { DOTS_DEFAULT_APP_ID } from "@/lib/dots/env";
 import { dotsFetch } from "@/lib/dots/fetch";
 import { payoutMethodSchema } from "@/lib/dots/schemas";
 import { prisma } from "@/lib/prisma";
@@ -38,11 +37,11 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   const [info, payoutMethods] = await Promise.all([
     dotsFetch(`/users/${partner.dotsUserId}`, {
       method: "GET",
-      dotsAppId: DOTS_DEFAULT_APP_ID,
+      dotsAppId: "default",
     }),
     dotsFetch(`/users/${partner.dotsUserId}/payout-methods`, {
       method: "GET",
-      dotsAppId: DOTS_DEFAULT_APP_ID,
+      dotsAppId: "default",
     }),
   ]);
 
