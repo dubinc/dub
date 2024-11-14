@@ -1,7 +1,7 @@
 enum PartnerStatus {
   default
-  pending
-  approved
+  verified
+  featured
 }
 
 enum PartnerRole {
