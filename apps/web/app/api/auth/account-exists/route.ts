@@ -1,4 +1,3 @@
-import { isWhitelistedEmail } from "@/lib/edge-config";
 import { conn } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
 import { ipAddress } from "@vercel/functions";
@@ -27,14 +26,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       accountExists: true,
       hasPassword: !!user.passwordHash,
-    });
-  }
-
-  const whitelisted = await isWhitelistedEmail(email);
-  if (whitelisted) {
-    return NextResponse.json({
-      accountExists: true,
-      hasPassword: false,
     });
   }
 
