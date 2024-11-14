@@ -30,9 +30,6 @@ export const onboardPartnerAction = authUserActionClient
 
     const { name, logo, country, phoneNumber, description } = parsedInput;
 
-    // TODO
-    // Check if the partner already exists
-
     try {
       const partner = await prisma.partner.create({
         data: {
@@ -67,19 +64,17 @@ export const onboardPartnerAction = authUserActionClient
 
       // If the partner has invites, we need to enroll them in the program and delete the invites
       if (programInvite) {
-        const { id, programId, linkId } = programInvite;
-
         await prisma.programEnrollment.create({
           data: {
-            programId,
-            linkId,
+            programId: programInvite.programId,
+            linkId: programInvite.linkId,
             partnerId: partner.id,
             status: "approved",
           },
         });
 
         await prisma.programInvite.delete({
-          where: { id },
+          where: { id: programInvite.id },
         });
       }
 
@@ -91,35 +86,38 @@ export const onboardPartnerAction = authUserActionClient
         throw new Error("Invalid country code.");
       }
 
-      const dotsUser = await createDotsUser({
-        dotsAppId: process.env.DOTS_DEFAULT_APP_ID,
-        userInfo: {
-          firstName,
-          lastName: lastName || firstName.slice(0, 1), // Dots requires a last name
-          email: user.email,
-          countryCode: countryCode.toString(),
-          phoneNumber,
-        },
+      const dotsUserInfo = {
+        firstName,
+        lastName: lastName || firstName.slice(0, 1), // Dots requires a last name
+        email: user.email,
+        countryCode: countryCode.toString(),
+        phoneNumber,
+      };
+
+      await createDotsUser({
+        userInfo: dotsUserInfo,
       });
 
-      // if (programInvite) {
-      //   const { id, programId, linkId } = programInvite;
+      // Create the Dots user with the program's DOTS_APP_ID
+      if (programInvite) {
+        const program = await prisma.program.findUniqueOrThrow({
+          where: { id: programInvite.programId },
+          select: {
+            workspace: {
+              select: {
+                dotsAppId: true,
+              },
+            },
+          },
+        });
 
-      //   const program = await prisma.program.findUniqueOrThrow({
-      //     where: { id: programId },
-      //     select: {
-      //       workspace: {
-      //         select: {
-      //           dotsAppId: true,
-      //         },
-      //       },
-      //     },
-      //   });
-
-      //   if (program.workspace.dotsAppId) {
-      //     //
-      //   }
-      // }
+        if (program.workspace.dotsAppId) {
+          await createDotsUser({
+            dotsAppId: program.workspace.dotsAppId,
+            userInfo: dotsUserInfo,
+          });
+        }
+      }
 
       return {
         ok: true,
