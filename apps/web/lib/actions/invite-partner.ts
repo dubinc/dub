@@ -6,6 +6,7 @@ import PartnerInvite from "emails/partner-invite";
 import { z } from "zod";
 import { getLinkOrThrow } from "../api/links/get-link-or-throw";
 import { getProgramOrThrow } from "../api/programs/get-program";
+import { updateConfig } from "../edge-config";
 import { authActionClient } from "./safe-action";
 
 const invitePartnerSchema = z.object({
@@ -70,10 +71,10 @@ export const invitePartnerAction = authActionClient
       },
     });
 
-    // await updateConfig({
-    //   key: "partnersPortal",
-    //   value: email,
-    // });
+    await updateConfig({
+      key: "partnersPortal",
+      value: email,
+    });
 
     await sendEmail({
       subject: `${program.name} invited you to join Dub Partners`,
