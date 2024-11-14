@@ -75,9 +75,10 @@ export const ProgramEnrollmentSchema = z.object({
   }).nullable(),
 });
 
-export const EnrolledPartnerSchema = PartnerSchema.merge(
-  ProgramEnrollmentSchema,
-)
+export const EnrolledPartnerSchema = PartnerSchema.omit({
+  status: true,
+})
+  .merge(ProgramEnrollmentSchema)
   .omit({
     program: true,
   })
