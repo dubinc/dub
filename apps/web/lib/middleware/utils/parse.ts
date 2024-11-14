@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 export const parse = (req: NextRequest) => {
   let domain = req.headers.get("host") as string;
   // remove www. from domain and convert to lowercase
-  domain = domain.replace("www.", "").toLowerCase();
+  domain = domain.replace(/^www./, "").toLowerCase();
   if (domain === "dub.localhost:8888" || domain.endsWith(".vercel.app")) {
     // for local development and preview URLs
     domain = SHORT_DOMAIN;
