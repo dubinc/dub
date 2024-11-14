@@ -22,15 +22,37 @@ export const invitePartnerAction = authActionClient
     const { workspace } = ctx;
     const { email, linkId, programId } = parsedInput;
 
-    const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
+    const [program, _] = await Promise.all([
+      getProgramOrThrow({
+        workspaceId: workspace.id,
+        programId,
+      }),
+
+      getLinkOrThrow({
+        workspace,
+        linkId,
+      }),
+    ]);
+
+    // Check if the user is already enrolled in the program
+    const programEnrollment = await prisma.programEnrollment.findFirst({
+      where: {
+        programId,
+        partner: {
+          users: {
+            some: {
+              user: {
+                email,
+              },
+            },
+          },
+        },
+      },
     });
 
-    await getLinkOrThrow({
-      workspace,
-      linkId,
-    });
+    if (programEnrollment) {
+      throw new Error(`Partner ${email} already enrolled in this program.`);
+    }
 
     const programInvite = await prisma.programInvite.findUnique({
       where: {
