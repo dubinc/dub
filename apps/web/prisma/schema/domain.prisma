@@ -12,6 +12,7 @@ model Domain {
   project          Project?          @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId        String?
   registeredDomain RegisteredDomain?
+  program          Program?
 
   // these attributes will exist on both Link and Domain models
   createdAt DateTime @default(now())

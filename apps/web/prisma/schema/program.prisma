@@ -39,22 +39,26 @@ model Program {
   recurringDuration   Int?
   isLifetimeRecurring Boolean? // TODO: Maybe use just lifetimeRecurring?
 
-  brandColor String?
-  wordmark   String?
-  landerData Json?   @db.Json
+  brandColor     String?
+  wordmark       String?
+  landerData     Json?   @db.Json
+  defaultDomain  String? @unique
+  destinationUrl String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  workspace    Project              @relation(fields: [workspaceId], references: [id])
-  partners     ProgramEnrollment[]
-  payouts      Payout[]
-  sales        Sale[]
-  resources    ProgramResource[]
-  applications ProgramApplication[]
-  invites      ProgramInvite[]
+  workspace       Project              @relation(fields: [workspaceId], references: [id])
+  workspaceDomain Domain?              @relation(fields: [defaultDomain], references: [slug], onUpdate: Cascade, onDelete: Cascade)
+  partners        ProgramEnrollment[]
+  payouts         Payout[]
+  sales           Sale[]
+  resources       ProgramResource[]
+  applications    ProgramApplication[]
+  invites         ProgramInvite[]
 
   @@index([workspaceId])
+  @@index([defaultDomain])
 }
 
 model ProgramEnrollment {

@@ -21,7 +21,17 @@ export const createProgramAction = authActionClient
       recurringInterval,
       isLifetimeRecurring,
       cookieLength,
+      defaultDomain,
     } = parsedInput;
+
+    if (defaultDomain) {
+      await prisma.domain.findUniqueOrThrow({
+        where: {
+          slug: defaultDomain,
+          projectId: workspace.id,
+        },
+      });
+    }
 
     const program = await prisma.program.create({
       data: {
@@ -35,6 +45,7 @@ export const createProgramAction = authActionClient
         recurringInterval,
         isLifetimeRecurring,
         cookieLength,
+        defaultDomain,
       },
     });
 
