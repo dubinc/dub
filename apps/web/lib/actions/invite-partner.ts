@@ -23,7 +23,7 @@ export const invitePartnerAction = authActionClient
     const { workspace } = ctx;
     const { email, linkId, programId } = parsedInput;
 
-    const [program, _] = await Promise.all([
+    const [program, link] = await Promise.all([
       getProgramOrThrow({
         workspaceId: workspace.id,
         programId,
@@ -68,37 +68,34 @@ export const invitePartnerAction = authActionClient
       throw new Error(`Partner ${email} already invited to this program.`);
     }
 
-    const [linkInProgramEnrollment, linkInProgramInvite] = await Promise.all([
-      prisma.programEnrollment.findUnique({
-        where: {
-          linkId,
-        },
-      }),
-
-      prisma.programInvite.findUnique({
-        where: {
-          linkId,
-        },
-      }),
-    ]);
-
-    if (linkInProgramEnrollment || linkInProgramInvite) {
+    if (link.programId) {
       throw new Error("Link is already associated with another partner.");
     }
 
-    const result = await prisma.programInvite.create({
-      data: {
-        id: createId({ prefix: "pgi_" }),
-        email,
-        linkId,
-        programId,
-      },
-    });
+    const [result] = await Promise.all([
+      prisma.programInvite.create({
+        data: {
+          id: createId({ prefix: "pgi_" }),
+          email,
+          linkId,
+          programId,
+        },
+      }),
 
-    await updateConfig({
-      key: "partnersPortal",
-      value: email,
-    });
+      prisma.link.update({
+        where: {
+          id: linkId,
+        },
+        data: {
+          programId,
+        },
+      }),
+
+      updateConfig({
+        key: "partnersPortal",
+        value: email,
+      }),
+    ]);
 
     await sendEmail({
       subject: `${program.name} invited you to join Dub Partners`,
