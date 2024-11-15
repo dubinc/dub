@@ -54,6 +54,8 @@ export async function completeProgramApplications(userId: string) {
       where: {
         id: { in: programApplicationIds.filter(Boolean) },
 
+        enrollment: null,
+
         // Exclude any applications for programs the user is already enrolled in
         programId: {
           notIn: user.partners
