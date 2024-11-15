@@ -1,6 +1,6 @@
 import { EnrolledPartnerProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet, StatusBadge } from "@dub/ui";
+import { Button, Sheet, StatusBadge, ToggleGroup } from "@dub/ui";
 import { COUNTRIES, currencyFormatter, DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { Dispatch, SetStateAction, useState } from "react";
 import { PartnerStatusBadges } from "./partner-status-badges";
@@ -15,6 +15,10 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
 
   const saleAmount = (partner.link?.saleAmount ?? 0) / 100;
   const earnings = (partner.earnings ?? 0) / 100;
+
+  const [selectedTab, setSelectedTab] = useState<"overview" | "payouts">(
+    "overview",
+  );
 
   return (
     <>
@@ -91,8 +95,18 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
             ))}
           </div>
 
-          <div className="flex h-48 items-center justify-center text-sm text-neutral-500">
-            WIP
+          <div className="mt-6">
+            <ToggleGroup
+              className="grid w-full grid-cols-2 rounded-lg border-transparent bg-neutral-100 p-0.5"
+              optionClassName="justify-center text-neutral-600 hover:text-neutral-700"
+              indicatorClassName="rounded-md bg-white"
+              options={[
+                { value: "overview", label: "Overview" },
+                { value: "payouts", label: "Payouts" },
+              ]}
+              selected={selectedTab}
+              selectAction={(value) => setSelectedTab(value as any)}
+            />
           </div>
         </div>
       </div>
