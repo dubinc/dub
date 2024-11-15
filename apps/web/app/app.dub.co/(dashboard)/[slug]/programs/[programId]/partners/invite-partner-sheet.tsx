@@ -4,16 +4,10 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
-import {
-  BlurImage,
-  Button,
-  Combobox,
-  DiamondTurnRight,
-  LinkLogo,
-  Sheet,
-} from "@dub/ui";
+import { BlurImage, Button, Combobox, LinkLogo, Sheet } from "@dub/ui";
 import { cn, getApexDomain, linkConstructor } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -30,7 +24,7 @@ interface InvitePartnerFormData {
 
 function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const { program } = useProgram();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
   const [shortKey, setShortKey] = useState("");
   const [creatingLink, setCreatingLink] = useState(false);
   const [displayLinkBuilder, setDisplayLinkBuilder] = useState(false);
@@ -42,6 +36,8 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
         linkId: "",
       },
     });
+
+  const selectedLinkId = watch("linkId");
 
   const { executeAsync, isExecuting } = useAction(invitePartnerAction, {
     onSuccess: async () => {
@@ -76,8 +72,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
 
     if (!response.ok) {
       const { error } = result;
-      toast.error(error.message);
-      return;
+      throw new Error(error.message);
     }
 
     return result.id;
@@ -86,22 +81,24 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const onSubmit = async (data: InvitePartnerFormData) => {
     let { linkId } = data;
 
-    if (!linkId) {
-      setCreatingLink(true);
-      linkId = await createLink();
+    try {
+      if (!linkId) {
+        setCreatingLink(true);
+        linkId = await createLink();
+      }
+
+      await executeAsync({
+        workspaceId: workspaceId!,
+        programId: program?.id!,
+        email: data.email,
+        linkId,
+      });
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setCreatingLink(false);
     }
-
-    await executeAsync({
-      workspaceId: workspaceId!,
-      programId: program?.id!,
-      email: data.email,
-      linkId,
-    });
-
-    setCreatingLink(false);
   };
-
-  const selectedLinkId = watch("linkId");
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
@@ -142,17 +139,61 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                   Referral link
                 </h2>
               </label>
-              <div className="relative mt-2 rounded-md shadow-sm">
-                {!displayLinkBuilder ? (
+
+              {!displayLinkBuilder ? (
+                <div className="relative mt-2 rounded-md shadow-sm">
                   <LinksSelector
                     selectedLinkId={selectedLinkId}
                     setSelectedLinkId={(id) => setValue("linkId", id)}
                     setDisplayLinkBuilder={setDisplayLinkBuilder}
+                    setShortKey={setShortKey}
                   />
-                ) : (
-                  <LinkBuilder setShortKey={setShortKey} />
-                )}
-              </div>
+                </div>
+              ) : (
+                <div>
+                  <div className="relative mt-1 flex rounded-md shadow-sm">
+                    <div>
+                      <div className="group flex h-full w-32 items-center justify-start gap-2 whitespace-nowrap rounded-md rounded-r-none border border-gray-300 border-r-transparent bg-white px-2.5 text-sm text-gray-900 outline-none transition-none sm:inline-flex sm:w-40">
+                        <div className="flex w-full min-w-0 items-center justify-start truncate">
+                          {program?.defaultDomain}
+                        </div>
+                      </div>
+                    </div>
+
+                    <input
+                      pattern="[\p{L}\p{N}\p{Pd}\/\p{Emoji}_.]+"
+                      autoComplete="off"
+                      autoCapitalize="none"
+                      className="block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:z-[1] focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                      placeholder=""
+                      type="text"
+                      name="key"
+                      value={shortKey}
+                      onChange={(e) => {
+                        setShortKey(e.target.value);
+                      }}
+                    />
+                  </div>
+
+                  <div className="mt-4 rounded-md border border-gray-300 bg-gray-200 p-2">
+                    <p className="text-sm text-gray-700">
+                      Destination URL: {program?.destinationUrl}
+                    </p>
+                  </div>
+
+                  <div>
+                    <div className="mt-4 text-sm text-gray-500">
+                      You can edit these settings under{" "}
+                      <Link
+                        href={`/${slug}/programs/${program?.id}/settings`}
+                        className="underline underline-offset-2"
+                      >
+                        program settings
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="mt-8">
@@ -240,10 +281,12 @@ function LinksSelector({
   selectedLinkId,
   setSelectedLinkId,
   setDisplayLinkBuilder,
+  setShortKey,
 }: {
   selectedLinkId: string;
   setSelectedLinkId: (id: string) => void;
   setDisplayLinkBuilder: (display: boolean) => void;
+  setShortKey: (key: string) => void;
 }) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
@@ -282,9 +325,13 @@ function LinksSelector({
           !selectedLinkId && "text-gray-400",
         ),
       }}
-      emptyState={
-        <NoLinksFound setDisplayLinkBuilder={setDisplayLinkBuilder} />
-      }
+      shouldFilter={false}
+      createLabel={(key) => `Create new link: "${key}"`}
+      onCreate={async (key) => {
+        setDisplayLinkBuilder(true);
+        setShortKey(key);
+        return false;
+      }}
     />
   );
 }
@@ -312,50 +359,3 @@ export function useInvitePartnerSheet() {
     setIsOpen,
   };
 }
-
-const NoLinksFound = ({
-  setDisplayLinkBuilder,
-}: {
-  setDisplayLinkBuilder: (display: boolean) => void;
-}) => {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-2 px-2 py-4 text-center text-sm">
-      <div className="flex items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 p-3">
-        <DiamondTurnRight className="size-6 text-gray-700" />
-      </div>
-      <p className="mt-2 font-medium text-gray-950">No links found</p>
-      <p className="mx-auto mt-1 w-full max-w-[180px] text-gray-700">
-        Create a link to invite your partner to join Dub Partners.
-      </p>
-      <div>
-        <Button
-          className="mt-1 h-8"
-          onClick={() => setDisplayLinkBuilder(true)}
-          text="Create link"
-        />
-      </div>
-    </div>
-  );
-};
-
-const LinkBuilder = ({
-  setShortKey,
-}: {
-  setShortKey: (key: string) => void;
-}) => {
-  const [key, setKey] = useState("");
-
-  return (
-    <>
-      <input
-        type="text"
-        value={key}
-        onChange={(e) => {
-          const newValue = e.target.value;
-          setKey(newValue);
-          setShortKey(newValue);
-        }}
-      />
-    </>
-  );
-};
