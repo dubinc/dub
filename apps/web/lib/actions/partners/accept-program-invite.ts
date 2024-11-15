@@ -1,14 +1,11 @@
 "use server";
 
-import { getEvents } from "@/lib/analytics/get-events";
-import { createSaleData } from "@/lib/api/sales/sale";
-import { createDotsUser } from "@/lib/dots/create-dots-user";
-import { retrieveDotsUser } from "@/lib/dots/retrieve-dots-user";
+import { createId } from "@/lib/api/utils";
 import { prisma } from "@/lib/prisma";
-import { recordLink } from "@/lib/tinybird/record-link";
-import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
+import { backfillLinkData } from "./backfill-link-data";
+import { enrollDotsUserApp } from "./enroll-dots-user-app";
 
 export const acceptProgramInviteAction = authPartnerActionClient
   .schema(
@@ -27,123 +24,47 @@ export const acceptProgramInviteAction = authPartnerActionClient
 
     const programInvite = await prisma.programInvite.findUniqueOrThrow({
       where: { id: programInviteId },
-      include: {
-        program: {
-          select: {
-            workspace: {
-              select: {
-                id: true,
-                dotsAppId: true,
-              },
-            },
-          },
-        },
-      },
     });
 
     // enroll partner in program and delete the invite
-    const [programEnrollment, dotsUser, _] = await Promise.all([
+    const [programEnrollment, _] = await Promise.all([
       prisma.programEnrollment.create({
         data: {
+          id: createId({ prefix: "pge_" }),
           programId: programInvite.programId,
           linkId: programInvite.linkId,
           partnerId: partner.id,
           status: "approved",
         },
         include: {
-          program: true,
-          link: {
+          program: {
             include: {
-              tags: true,
+              workspace: true,
             },
           },
         },
       }),
-
-      retrieveDotsUser({
-        dotsUserId: partner.dotsUserId,
-        partner,
-      }),
-
       prisma.programInvite.delete({
         where: { id: programInvite.id },
       }),
     ]);
 
-    const workspace = programInvite.program.workspace;
+    const workspace = programEnrollment.program.workspace;
 
-    if (workspace.dotsAppId) {
-      const newDotsUser = await createDotsUser({
-        dotsAppId: workspace.dotsAppId, // we need to create a new Dots user under the Program's Dots App
-        userInfo: {
-          firstName: dotsUser.first_name,
-          lastName: dotsUser.last_name,
-          email: dotsUser.email,
-          countryCode: dotsUser.phone_number.country_code,
-          phoneNumber: dotsUser.phone_number.phone_number,
-        },
-      });
-
-      await prisma.programEnrollment.update({
-        where: {
-          id: programEnrollment.id,
-        },
-        data: { dotsUserId: newDotsUser.id },
-      });
+    if (!workspace.dotsAppId) {
+      throw new Error("Workspace does not have a Dots app ID");
     }
 
-    const { link, program } = programEnrollment;
-
-    // Backfill sales for the partner's link
-    const saleEvents = await getEvents({
-      workspaceId: workspace.id,
-      linkId: programInvite.linkId,
-      event: "sales",
-      interval: "all",
-      page: 1,
-      limit: 5000,
-      order: "desc",
-      sortBy: "timestamp",
-    });
-
-    const data = saleEvents.map(
-      (e: z.infer<typeof saleEventResponseSchema>) => ({
-        ...createSaleData({
-          customerId: e.customer.id,
-          linkId: e.link.id,
-          clickId: e.click.id,
-          invoiceId: e.invoice_id,
-          eventId: e.eventId,
-          paymentProcessor: e.payment_processor,
-          amount: e.sale.amount,
-          currency: "usd",
-          partnerId: partner.id,
-          program,
-          metadata: e.click,
-        }),
-        createdAt: new Date(e.timestamp),
+    const res = await Promise.all([
+      enrollDotsUserApp({
+        partner,
+        dotsAppId: workspace.dotsAppId,
+        programEnrollmentId: programEnrollment.id,
       }),
-    );
+      backfillLinkData(programEnrollment.id),
+    ]);
 
-    if (data.length > 0) {
-      await prisma.sale.createMany({
-        data,
-        skipDuplicates: true,
-      });
-    }
-
-    // Backfill programId for the partner's link on TB
-    if (link) {
-      await recordLink({
-        domain: link.domain,
-        key: link.key,
-        link_id: link.id,
-        created_at: link.createdAt,
-        url: link.url,
-        tag_ids: link.tags.map((t) => t.id) || [],
-        program_id: program.id,
-        workspace_id: workspace.id,
-        deleted: false,
-      });
-    }
+    return {
+      id: programEnrollment.id,
+    };
   });
