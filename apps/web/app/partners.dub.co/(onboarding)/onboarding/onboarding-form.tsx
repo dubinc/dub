@@ -9,8 +9,9 @@ import {
   FileUpload,
   useMediaQuery,
 } from "@dub/ui";
-import { COUNTRIES } from "@dub/utils";
+import { COUNTRIES, COUNTRY_PHONE_CODES } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
+import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -29,30 +30,44 @@ export function OnboardingForm() {
     control,
     handleSubmit,
     setError,
+    watch,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<OnboardingFormData>();
 
   // TODO: Can we use useAction instead?
-  const onSubmit = async (data: OnboardingFormData) => {
-    try {
-      const result = await onboardPartnerAction(data);
+  // const onSubmit = async (data: OnboardingFormData) => {
+  //   try {
+  //     const result = await onboardPartnerAction(data);
 
-      if (!result?.data?.ok) {
+  //     if (!result?.data?.ok) {
+  //       throw new Error("Failed to create partner");
+  //     }
+
+  //     router.push(`/${result?.data?.partnerId || ""}`);
+  //   } catch (error) {
+  //     setError("root.serverError", {
+  //       message: "Failed to create partner profile. Please try again.",
+  //     });
+  //     toast.error("Failed to create partner profile. Please try again.");
+  //   }
+  // };
+
+  const { executeAsync, isExecuting } = useAction(onboardPartnerAction, {
+    onSuccess: (data) => {
+      if (!("partnerId" in data)) {
         throw new Error("Failed to create partner");
       }
 
-      router.push(`/${result?.data?.partnerId || ""}`);
-    } catch (error) {
-      setError("root.serverError", {
-        message: "Failed to create partner profile. Please try again.",
-      });
-      toast.error("Failed to create partner profile. Please try again.");
-    }
-  };
+      router.push(`/${data?.partnerId || ""}`);
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError?.serverError);
+    },
+  });
 
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit(executeAsync)}
       className="flex w-full flex-col gap-4 text-left"
     >
       <label>
@@ -129,19 +144,22 @@ export function OnboardingForm() {
           Mobile number
           <span className="font-normal text-neutral-500"> (required)</span>
         </span>
-        <input
-          type="text"
-          className={cn(
-            "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
-            errors.phoneNumber
-              ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
-          )}
-          autoFocus={!isMobile}
-          {...register("phoneNumber", {
-            required: true,
-          })}
-        />
+        <div className="relative mt-2 rounded-md shadow-sm">
+          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+            +{COUNTRY_PHONE_CODES[watch("country")]}
+          </span>
+          <input
+            className={cn(
+              "block w-full rounded-md border-neutral-300 pl-8 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+              errors.phoneNumber &&
+                "border-red-600 focus:border-red-500 focus:ring-red-600",
+            )}
+            type="tel"
+            {...register("phoneNumber", {
+              required: true,
+            })}
+          />
+        </div>
       </label>
 
       <label>
@@ -163,7 +181,7 @@ export function OnboardingForm() {
         type="submit"
         text="Create partner account"
         className="mt-2"
-        loading={isSubmitting || isSubmitSuccessful}
+        loading={isExecuting || isSubmitting || isSubmitSuccessful}
       />
     </form>
   );
