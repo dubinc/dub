@@ -104,7 +104,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             <div className="mt-8">
               <h2 className="text-sm font-medium text-gray-900">Preview</h2>
               <div className="mt-2 overflow-hidden rounded-md border border-neutral-200">
-                <div className="relative grid gap-4 p-6 pb-10">
+                <div className="grid gap-4 p-6 pb-10">
                   <BlurImage
                     src={program?.logo || "https://assets.dub.co/logo.png"}
                     alt={program?.name || "Dub"}
@@ -125,7 +125,6 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                     text="Accept invite"
                     className="w-fit"
                   />
-                  <div className="pointer-events-none absolute bottom-0 right-0 z-10 h-48 w-full bg-gradient-to-t from-white to-transparent" />
                 </div>
                 <div className="grid gap-1 border-t border-gray-200 bg-gray-50 px-6 py-4">
                   <p className="text-sm text-gray-500">

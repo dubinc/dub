@@ -1,10 +1,12 @@
 "use client";
 
+import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program-invite";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
-import { ProgramProps } from "@/lib/types";
+import { ProgramInviteProps, ProgramProps } from "@/lib/types";
+import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { MiniAreaChart } from "@dub/blocks";
-import { BlurImage, MaxWidthWrapper } from "@dub/ui";
+import { BlurImage, Button, MaxWidthWrapper } from "@dub/ui";
 import { CircleDollar, GridIcon } from "@dub/ui/src/icons";
 import {
   currencyFormatter,
@@ -12,10 +14,11 @@ import {
   fetcher,
   nFormatter,
 } from "@dub/utils";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 
 export function PartnersDashboardPageClient() {
   const { partnerId } = useParams() as {
@@ -30,8 +33,23 @@ export function PartnersDashboardPageClient() {
     },
   );
 
+  const { data: invites } = useSWR<ProgramInviteProps[]>(
+    `/api/partners/${partnerId}/programs/invites`,
+    fetcher,
+    {
+      dedupingInterval: 60000,
+    },
+  );
+
   return (
     <MaxWidthWrapper>
+      {invites && invites.length > 0 && (
+        <div className="mb-8 grid gap-4">
+          {invites.map((invite) => (
+            <ProgramInviteCard key={invite.id} invite={invite} />
+          ))}
+        </div>
+      )}
       {programs === undefined ? (
         error ? (
           <div className="mt-8 text-center text-sm text-neutral-500">
@@ -59,6 +77,58 @@ export function PartnersDashboardPageClient() {
         />
       )}
     </MaxWidthWrapper>
+  );
+}
+
+function ProgramInviteCard({ invite }: { invite: ProgramInviteProps }) {
+  const { partnerId } = useParams() as { partnerId: string };
+
+  const { executeAsync, isExecuting } = useAction(acceptProgramInviteAction, {
+    onSuccess: () => {
+      mutate(
+        (key) =>
+          typeof key === "string" &&
+          key.startsWith(`/api/partners/${partnerId}/programs`),
+        undefined,
+        { revalidate: true },
+      );
+    },
+  });
+
+  return (
+    <div className="flex items-center justify-between rounded-md border border-neutral-300 bg-white p-4">
+      <div className="flex items-center gap-4">
+        <BlurImage
+          width={96}
+          height={96}
+          src={
+            invite.program.logo ||
+            `${DICEBEAR_AVATAR_URL}${invite.program.name}`
+          }
+          alt={invite.program.name}
+          className="size-6 rounded-full"
+        />
+        <div className="flex flex-col gap-0.5">
+          <span className="text-base font-medium text-neutral-900">
+            {invite.program.name}
+          </span>
+          <span className="text-sm text-neutral-600">
+            <ProgramCommissionDescription program={invite.program} />
+          </span>
+        </div>
+      </div>
+      <Button
+        text="Accept invite"
+        className="h-9 w-fit"
+        loading={isExecuting}
+        onClick={() =>
+          executeAsync({
+            partnerId,
+            programInviteId: invite.id,
+          })
+        }
+      />
+    </div>
   );
 }
 

@@ -25,9 +25,9 @@ import {
   PayoutSchema,
   PayoutWithSalesSchema,
   ProgramEnrollmentSchema,
-  ProgramSchema,
   SaleSchema,
 } from "./zod/schemas/partners";
+import { ProgramInviteSchema, ProgramSchema } from "./zod/schemas/programs";
 import { trackSaleResponseSchema } from "./zod/schemas/sales";
 import { tokenSchema } from "./zod/schemas/token";
 import { usageResponse } from "./zod/schemas/usage";
@@ -312,6 +312,7 @@ export type PartnerProps = z.infer<typeof PartnerSchema>;
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
 
 export type ProgramProps = z.infer<typeof ProgramSchema>;
+export type ProgramInviteProps = z.infer<typeof ProgramInviteSchema>;
 
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 

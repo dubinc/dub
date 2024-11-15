@@ -1,18 +1,16 @@
 import { intervals } from "@/lib/analytics/constants";
 import { COUNTRIES } from "@dub/utils";
 import {
-  CommissionInterval,
-  CommissionType,
   PartnerStatus,
   PayoutStatus,
   ProgramEnrollmentStatus,
-  ProgramType,
   SaleStatus,
 } from "@prisma/client";
 import { z } from "zod";
 import { CustomerSchema } from "./customers";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
+import { ProgramSchema } from "./programs";
 import { parseDateSchema } from "./utils";
 
 export const PARTNERS_MAX_PAGE_SIZE = 100;
@@ -40,23 +38,6 @@ export const PartnerSchema = z.object({
   country: z.string().nullable(),
   status: z.nativeEnum(PartnerStatus),
   dotsUserId: z.string().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
-
-export const ProgramSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  slug: z.string(),
-  logo: z.string().nullable(),
-  type: z.nativeEnum(ProgramType),
-  cookieLength: z.number(),
-  commissionAmount: z.number(),
-  commissionType: z.nativeEnum(CommissionType),
-  recurringCommission: z.boolean(),
-  recurringDuration: z.number().nullable(),
-  recurringInterval: z.nativeEnum(CommissionInterval).nullable(),
-  isLifetimeRecurring: z.boolean().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

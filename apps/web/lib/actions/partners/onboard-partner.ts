@@ -83,46 +83,6 @@ export const onboardPartnerAction = authUserActionClient
         data: { dotsUserId: dotsUser.id },
       });
 
-      const programInvite = await prisma.programInvite.findFirst({
-        where: { email: user.email },
-        include: {
-          program: { select: { workspace: { select: { dotsAppId: true } } } },
-        },
-      });
-
-      // If the partner has invites, we need to enroll them in the program and delete the invites
-      if (programInvite) {
-        const [programEnrollment, _] = await Promise.all([
-          prisma.programEnrollment.create({
-            data: {
-              programId: programInvite.programId,
-              linkId: programInvite.linkId,
-              partnerId: partner.id,
-              status: "approved",
-            },
-          }),
-          prisma.programInvite.delete({
-            where: { id: programInvite.id },
-          }),
-        ]);
-
-        const workspace = programInvite.program.workspace;
-
-        if (workspace.dotsAppId) {
-          const dotsUser = await createDotsUser({
-            dotsAppId: workspace.dotsAppId,
-            userInfo: dotsUserInfo,
-          });
-
-          await prisma.programEnrollment.update({
-            where: {
-              id: programEnrollment.id,
-            },
-            data: { dotsUserId: dotsUser.id },
-          });
-        }
-      }
-
       return {
         ok: true,
         partnerId: partner.id,
