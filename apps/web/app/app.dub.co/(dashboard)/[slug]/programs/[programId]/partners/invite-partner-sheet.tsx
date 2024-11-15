@@ -4,10 +4,18 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
-import { BlurImage, Button, Combobox, LinkLogo, Sheet } from "@dub/ui";
+import {
+  AnimatedSizeContainer,
+  BlurImage,
+  Button,
+  CircleCheckFill,
+  Combobox,
+  LinkLogo,
+  Sheet,
+} from "@dub/ui";
+import { ArrowTurnRight2 } from "@dub/ui/src/icons";
 import { cn, getApexDomain, linkConstructor } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import Link from "next/link";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -26,16 +34,23 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const { program } = useProgram();
   const { id: workspaceId, slug } = useWorkspace();
   const [shortKey, setShortKey] = useState("");
+  const [useExistingLink, setUseExistingLink] = useState(false);
   const [creatingLink, setCreatingLink] = useState(false);
-  const [displayLinkBuilder, setDisplayLinkBuilder] = useState(false);
 
-  const { register, handleSubmit, watch, setValue } =
-    useForm<InvitePartnerFormData>({
-      defaultValues: {
-        email: "",
-        linkId: "",
-      },
-    });
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    setError,
+    clearErrors,
+    formState: { errors },
+  } = useForm<InvitePartnerFormData>({
+    defaultValues: {
+      email: "",
+      linkId: "",
+    },
+  });
 
   const selectedLinkId = watch("linkId");
 
@@ -51,7 +66,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
 
   const createLink = async () => {
     if (!shortKey) {
-      toast.error("Please enter short key for the link");
+      setError("linkId", { message: "Please enter short key for the link" });
       return;
     }
 
@@ -75,6 +90,8 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
       throw new Error(error.message);
     }
 
+    setValue("linkId", result.id);
+
     return result.id;
   };
 
@@ -87,6 +104,8 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
         linkId = await createLink();
       }
 
+      if (!linkId) return;
+
       await executeAsync({
         workspaceId: workspaceId!,
         programId: program?.id!,
@@ -94,7 +113,9 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
         linkId,
       });
     } catch (error) {
-      toast.error(error.message);
+      if (error.message.includes("key"))
+        setError("linkId", { message: error.message });
+      else toast.error(error.message);
     } finally {
       setCreatingLink(false);
     }
@@ -134,66 +155,114 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             </div>
 
             <div>
-              <label htmlFor="linkId" className="flex items-center space-x-2">
-                <h2 className="text-sm font-medium text-gray-900">
-                  Referral link
-                </h2>
-              </label>
+              <h2 className="text-sm font-medium text-gray-900">
+                Referral link
+              </h2>
 
-              {!displayLinkBuilder ? (
-                <div className="relative mt-2 rounded-md shadow-sm">
-                  <LinksSelector
-                    selectedLinkId={selectedLinkId}
-                    setSelectedLinkId={(id) => setValue("linkId", id)}
-                    setDisplayLinkBuilder={setDisplayLinkBuilder}
-                    setShortKey={setShortKey}
-                  />
-                </div>
-              ) : (
-                <div>
-                  <div className="relative mt-1 flex rounded-md shadow-sm">
-                    <div>
-                      <div className="group flex h-full w-32 items-center justify-start gap-2 whitespace-nowrap rounded-md rounded-r-none border border-gray-300 border-r-transparent bg-white px-2.5 text-sm text-gray-900 outline-none transition-none sm:inline-flex sm:w-40">
-                        <div className="flex w-full min-w-0 items-center justify-start truncate">
-                          {program?.domain}
-                        </div>
-                      </div>
-                    </div>
-
+              <div className="mt-2 grid grid-cols-2 gap-3">
+                {[
+                  {
+                    label: "New",
+                    description: "Create a new referral link",
+                    value: false,
+                  },
+                  {
+                    label: "Existing",
+                    description: "Select an existing referral link",
+                    value: true,
+                  },
+                ].map(({ label, description, value }) => (
+                  <label
+                    key={label}
+                    className={cn(
+                      "relative flex w-full cursor-pointer select-none items-start gap-0.5 rounded-md border border-neutral-200 bg-white px-3 py-2 text-neutral-600 hover:bg-neutral-50",
+                      "transition-all duration-150",
+                      useExistingLink === value &&
+                        "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                    )}
+                  >
                     <input
-                      pattern="[\p{L}\p{N}\p{Pd}\/\p{Emoji}_.]+"
-                      autoComplete="off"
-                      autoCapitalize="none"
-                      className="block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:z-[1] focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                      placeholder=""
-                      type="text"
-                      name="key"
-                      value={shortKey}
+                      type="radio"
+                      value={label}
+                      className="hidden"
+                      checked={useExistingLink === value}
                       onChange={(e) => {
-                        setShortKey(e.target.value);
+                        if (e.target.checked) setUseExistingLink(value);
                       }}
                     />
-                  </div>
-
-                  <div className="mt-4 rounded-md border border-gray-300 bg-gray-200 p-2">
-                    <p className="text-sm text-gray-700">
-                      Destination URL: {program?.url}
-                    </p>
-                  </div>
-
-                  <div>
-                    <div className="mt-4 text-sm text-gray-500">
-                      You can edit these settings under{" "}
-                      <Link
-                        href={`/${slug}/programs/${program?.id}/settings`}
-                        className="underline underline-offset-2"
-                      >
-                        program settings
-                      </Link>
+                    <div className="flex grow flex-col text-sm">
+                      <span className="font-medium leading-tight">{label}</span>
+                      <span>{description}</span>
                     </div>
-                  </div>
+                    <CircleCheckFill
+                      className={cn(
+                        "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                        useExistingLink === value && "scale-100 opacity-100",
+                      )}
+                    />
+                  </label>
+                ))}
+              </div>
+
+              <AnimatedSizeContainer
+                height
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="-m-1 mt-2"
+              >
+                <div className="p-1">
+                  {useExistingLink ? (
+                    <LinksSelector
+                      selectedLinkId={selectedLinkId}
+                      setSelectedLinkId={(id) =>
+                        setValue("linkId", id, { shouldDirty: true })
+                      }
+                    />
+                  ) : (
+                    <>
+                      <div className="relative flex rounded-md shadow-sm">
+                        <div>
+                          <div className="group flex h-full items-center justify-start gap-2 whitespace-nowrap rounded-md rounded-r-none border border-gray-300 border-r-transparent bg-white px-3 text-sm text-gray-900 outline-none transition-none sm:inline-flex">
+                            <div className="flex w-full min-w-0 items-center justify-start truncate">
+                              {program?.domain}
+                            </div>
+                          </div>
+                        </div>
+
+                        <input
+                          pattern="[\p{L}\p{N}\p{Pd}\/\p{Emoji}_.]+"
+                          autoComplete="off"
+                          autoCapitalize="none"
+                          className={cn(
+                            "block h-10 w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:z-[1] focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                            errors.linkId && "border-red-500",
+                          )}
+                          placeholder=""
+                          type="text"
+                          name="key"
+                          value={shortKey}
+                          onChange={(e) => {
+                            setValue("linkId", "");
+                            clearErrors("linkId");
+                            setShortKey(e.target.value);
+                          }}
+                        />
+                      </div>
+                      {errors.linkId && (
+                        <p className="mt-1 text-xs text-red-600">
+                          {errors.linkId.message}
+                        </p>
+                      )}
+
+                      <div className="ml-2 mt-2 flex items-center gap-1 text-xs text-gray-500">
+                        <ArrowTurnRight2 className="size-3 shrink-0" />
+                        <span className="min-w-0 truncate">
+                          Destination URL: {program?.url}
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
-              )}
+              </AnimatedSizeContainer>
             </div>
 
             <div className="mt-8">
@@ -280,19 +349,15 @@ const getLinkOption = (link: LinkProps) => ({
 function LinksSelector({
   selectedLinkId,
   setSelectedLinkId,
-  setDisplayLinkBuilder,
-  setShortKey,
 }: {
   selectedLinkId: string;
   setSelectedLinkId: (id: string) => void;
-  setDisplayLinkBuilder: (display: boolean) => void;
-  setShortKey: (key: string) => void;
 }) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
 
   const { links } = useLinks(
-    { search: debouncedSearch },
+    { search: debouncedSearch, excludePartnerLinks: true },
     {
       keepPreviousData: false,
     },
@@ -303,36 +368,40 @@ function LinksSelector({
     [links],
   );
 
+  const selectedLink = links?.find((l) => l.id === selectedLinkId);
+
   return (
-    <Combobox
-      selected={options?.find((o) => o.value === selectedLinkId) ?? null}
-      setSelected={(option) => {
-        if (option) {
-          setSelectedLinkId(option.value);
-        }
-      }}
-      options={options}
-      caret={true}
-      placeholder="Select referral link"
-      searchPlaceholder="Search..."
-      matchTriggerWidth
-      onSearchChange={setSearch}
-      buttonProps={{
-        className: cn(
-          "w-full justify-start border-gray-300 px-3",
-          "data-[state=open]:ring-1 data-[state=open]:ring-gray-500 data-[state=open]:border-gray-500",
-          "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
-          !selectedLinkId && "text-gray-400",
-        ),
-      }}
-      shouldFilter={false}
-      createLabel={(key) => `Create new link: "${key}"`}
-      onCreate={async (key) => {
-        setDisplayLinkBuilder(true);
-        setShortKey(key);
-        return false;
-      }}
-    />
+    <>
+      <Combobox
+        selected={options?.find((o) => o.value === selectedLinkId) ?? null}
+        setSelected={(option) => {
+          if (option) setSelectedLinkId(option.value);
+        }}
+        options={options}
+        caret={true}
+        placeholder="Select referral link"
+        searchPlaceholder="Search..."
+        matchTriggerWidth
+        onSearchChange={setSearch}
+        buttonProps={{
+          className: cn(
+            "w-full justify-start border-gray-300 px-3 shadow-sm",
+            "data-[state=open]:ring-1 data-[state=open]:ring-gray-500 data-[state=open]:border-gray-500",
+            "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
+            !selectedLinkId && "text-gray-400",
+          ),
+        }}
+        shouldFilter={false}
+      />
+      {selectedLink?.url && (
+        <div className="ml-2 mt-2 flex items-center gap-1 text-xs text-gray-500">
+          <ArrowTurnRight2 className="size-3 shrink-0" />
+          <span className="min-w-0 truncate">
+            Destination URL: {selectedLink?.url}
+          </span>
+        </div>
+      )}
+    </>
   );
 }
 
