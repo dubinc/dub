@@ -1,8 +1,8 @@
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import { ProgramProps } from "@/lib/types";
 import { MiniAreaChart } from "@dub/blocks";
-import { BlurImage } from "@dub/ui";
-import { currencyFormatter, DICEBEAR_AVATAR_URL, nFormatter } from "@dub/utils";
+import { BlurImage, StatusBadge } from "@dub/ui";
+import { currencyFormatter, DICEBEAR_AVATAR_URL } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
@@ -49,13 +49,13 @@ export function ProgramCard({ program }: { program: ProgramProps }) {
           <span className="text-base font-medium text-neutral-900">
             {program.name}
           </span>
-          {analytics ? (
-            <span className="text-sm leading-none text-neutral-600">
-              {nFormatter(analytics?.sales)} sales
-            </span>
-          ) : (
-            <div className="h-3.5 w-20 animate-pulse rounded-md bg-neutral-200" />
-          )}
+          <StatusBadge
+            variant="success"
+            icon={null}
+            className="rounded-full py-0.5"
+          >
+            Enrolled
+          </StatusBadge>
         </div>
       </div>
       <div className="mt-6 grid grid-cols-[min-content,minmax(0,1fr)] gap-4 rounded-md border border-neutral-100 bg-neutral-50 p-5">

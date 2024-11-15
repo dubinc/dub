@@ -15,7 +15,7 @@ export function PartnersDashboardPageClient() {
     partnerId?: string;
   };
 
-  const { data: programs, error } = useSWR<ProgramProps[]>(
+  const { data: programs, isLoading } = useSWR<ProgramProps[]>(
     `/api/partners/${partnerId}/programs`,
     fetcher,
     {
@@ -33,32 +33,7 @@ export function PartnersDashboardPageClient() {
 
   return (
     <MaxWidthWrapper>
-      {invites && invites.length > 0 && (
-        <div className="mb-8 grid gap-4">
-          {invites.map((invite) => (
-            <ProgramInviteCard key={invite.id} invite={invite} />
-          ))}
-        </div>
-      )}
-      {programs === undefined ? (
-        error ? (
-          <div className="mt-8 text-center text-sm text-neutral-500">
-            Failed to load programs
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 3 }).map((_, idx) => (
-              <ProgramCardSkeleton key={idx} />
-            ))}
-          </div>
-        )
-      ) : programs.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {programs.map((program) => (
-            <ProgramCard key={program.id} program={program} />
-          ))}
-        </div>
-      ) : (
+      {programs?.length == 0 && invites?.length == 0 ? (
         <AnimatedEmptyState
           title="No programs found"
           description="Enroll in programs to start earning."
@@ -73,6 +48,23 @@ export function PartnersDashboardPageClient() {
           }
           learnMoreHref="https://dub.co/help/article/dub-conversions"
         />
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, idx) => (
+              <ProgramCardSkeleton key={idx} />
+            ))
+          ) : (
+            <>
+              {invites?.map((invite) => (
+                <ProgramInviteCard key={invite.id} invite={invite} />
+              ))}
+              {programs?.map((program) => (
+                <ProgramCard key={program.id} program={program} />
+              ))}
+            </>
+          )}
+        </div>
       )}
     </MaxWidthWrapper>
   );

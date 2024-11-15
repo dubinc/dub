@@ -1,7 +1,7 @@
 import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program-invite";
 import { ProgramInviteProps } from "@/lib/types";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
-import { BlurImage, Button } from "@dub/ui";
+import { BlurImage, Button, StatusBadge } from "@dub/ui";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
@@ -28,8 +28,15 @@ export function ProgramInviteCard({ invite }: { invite: ProgramInviteProps }) {
   });
 
   return (
-    <div className="flex items-center justify-between rounded-md border border-neutral-300 bg-white p-4">
-      <div className="flex items-center gap-4">
+    <div className="hover:drop-shadow-card-hover relative flex flex-col items-center justify-center gap-2 rounded-md border border-neutral-300 bg-neutral-50 p-4 transition-[filter]">
+      <StatusBadge
+        variant="new"
+        icon={null}
+        className="absolute left-4 top-4 rounded-full py-0.5"
+      >
+        Invited
+      </StatusBadge>
+      <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
         <BlurImage
           width={96}
           height={96}
@@ -40,18 +47,20 @@ export function ProgramInviteCard({ invite }: { invite: ProgramInviteProps }) {
           alt={invite.program.name}
           className="size-6 rounded-full"
         />
-        <div className="flex flex-col gap-0.5">
-          <span className="text-base font-medium text-neutral-900">
-            {invite.program.name}
-          </span>
-          <span className="text-sm text-neutral-600">
-            <ProgramCommissionDescription program={invite.program} />
-          </span>
-        </div>
       </div>
+      <p className="text-base font-medium text-neutral-900">
+        {invite.program.name}
+      </p>
+      <p className="text-balance text-center text-xs text-neutral-600">
+        <ProgramCommissionDescription
+          program={invite.program}
+          amountClassName="font-light"
+          periodClassName="font-light"
+        />
+      </p>
       <Button
         text="Accept invite"
-        className="h-9 w-fit"
+        className="h-8"
         loading={isExecuting}
         onClick={() =>
           executeAsync({
