@@ -5,6 +5,7 @@ import { BlurImage, Button } from "@dub/ui";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
+import { toast } from "sonner";
 import { mutate } from "swr";
 
 export function ProgramInviteCard({ invite }: { invite: ProgramInviteProps }) {
@@ -12,6 +13,7 @@ export function ProgramInviteCard({ invite }: { invite: ProgramInviteProps }) {
 
   const { executeAsync, isExecuting } = useAction(acceptProgramInviteAction, {
     onSuccess: () => {
+      toast.success("Program invite accepted!");
       mutate(
         (key) =>
           typeof key === "string" &&
@@ -19,6 +21,9 @@ export function ProgramInviteCard({ invite }: { invite: ProgramInviteProps }) {
         undefined,
         { revalidate: true },
       );
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError?.serverError);
     },
   });
 

@@ -29,39 +29,23 @@ export function OnboardingForm() {
     register,
     control,
     handleSubmit,
-    setError,
     watch,
+    reset,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<OnboardingFormData>();
 
-  // TODO: Can we use useAction instead?
-  // const onSubmit = async (data: OnboardingFormData) => {
-  //   try {
-  //     const result = await onboardPartnerAction(data);
-
-  //     if (!result?.data?.ok) {
-  //       throw new Error("Failed to create partner");
-  //     }
-
-  //     router.push(`/${result?.data?.partnerId || ""}`);
-  //   } catch (error) {
-  //     setError("root.serverError", {
-  //       message: "Failed to create partner profile. Please try again.",
-  //     });
-  //     toast.error("Failed to create partner profile. Please try again.");
-  //   }
-  // };
-
   const { executeAsync, isExecuting } = useAction(onboardPartnerAction, {
-    onSuccess: (data) => {
-      if (!("partnerId" in data)) {
-        throw new Error("Failed to create partner");
+    onSuccess: ({ data }) => {
+      if (!data?.partnerId) {
+        toast.error("Failed to create partner profile. Please try again.");
+        return;
       }
 
-      router.push(`/${data?.partnerId || ""}`);
+      router.push(`/${data.partnerId}`);
     },
-    onError: ({ error }) => {
+    onError: ({ error, input }) => {
       toast.error(error.serverError?.serverError);
+      reset(input);
     },
   });
 

@@ -6,8 +6,7 @@ import { userIsInBeta } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
-import { COUNTRY_PHONE_CODES } from "@dub/utils";
-import { nanoid } from "nanoid";
+import { COUNTRY_PHONE_CODES, nanoid } from "@dub/utils";
 import { authUserActionClient } from "../safe-action";
 
 // Onboard a new partner
@@ -22,68 +21,57 @@ export const onboardPartnerAction = authUserActionClient
     );
 
     if (!partnersPortalEnabled) {
-      return {
-        ok: false,
-        error: "Partners portal feature flag disabled.",
-      };
+      throw new Error("Partners portal feature flag disabled.");
     }
 
     const { name, logo, country, phoneNumber, description } = parsedInput;
 
-    try {
-      // Create the Dots user with DOTS_DEFAULT_APP_ID
-      const [firstName, lastName] = name.split(" ");
-      const countryCode = COUNTRY_PHONE_CODES[country];
+    // Create the Dots user with DOTS_DEFAULT_APP_ID
+    const [firstName, lastName] = name.split(" ");
+    const countryCode = COUNTRY_PHONE_CODES[country] || null;
 
-      if (!countryCode) {
-        throw new Error("Invalid country code.");
-      }
+    if (!countryCode) {
+      throw new Error("Invalid country code.");
+    }
 
-      const dotsUserInfo = {
-        firstName,
-        lastName: lastName || firstName.slice(0, 1), // Dots requires a last name
-        email: user.email,
-        countryCode: countryCode.toString(),
-        phoneNumber,
-      };
+    const dotsUserInfo = {
+      firstName,
+      lastName: lastName || firstName.slice(0, 1), // Dots requires a last name
+      email: user.email,
+      countryCode: countryCode.toString(),
+      phoneNumber,
+    };
 
-      const dotsUser = await createDotsUser({
-        userInfo: dotsUserInfo,
-      });
+    const dotsUser = await createDotsUser({
+      userInfo: dotsUserInfo,
+    });
 
-      const partnerId = createId({ prefix: "pn_" });
+    const partnerId = createId({ prefix: "pn_" });
 
-      const logoUrl = logo
-        ? await storage
-            .upload(`logos/partners/${partnerId}_${nanoid(7)}`, logo)
-            .then(({ url }) => url)
-        : null;
+    const logoUrl = logo
+      ? await storage
+          .upload(`logos/partners/${partnerId}_${nanoid(7)}`, logo)
+          .then(({ url }) => url)
+      : null;
 
-      const partner = await prisma.partner.create({
-        data: {
-          id: partnerId,
-          name,
-          country,
-          bio: description,
-          dotsUserId: dotsUser.id,
-          logo: logoUrl,
-          users: {
-            create: {
-              userId: user.id,
-              role: "owner",
-            },
+    const partner = await prisma.partner.create({
+      data: {
+        id: partnerId,
+        name,
+        country,
+        bio: description,
+        dotsUserId: dotsUser.id,
+        logo: logoUrl,
+        users: {
+          create: {
+            userId: user.id,
+            role: "owner",
           },
         },
-      });
+      },
+    });
 
-      return {
-        ok: true,
-        partnerId: partner.id,
-      };
-    } catch (e) {
-      console.error(e);
-      return {
-        ok: false,
-      };
-    }
+    return {
+      partnerId: partner.id,
+    };
   });

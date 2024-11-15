@@ -24,11 +24,17 @@ export const acceptProgramInviteAction = authPartnerActionClient
     const programInvite = await prisma.programInvite.findUniqueOrThrow({
       where: { id: programInviteId },
       include: {
-        program: { select: { workspace: { select: { dotsAppId: true } } } },
+        program: {
+          select: {
+            workspace: {
+              select: {
+                dotsAppId: true,
+              },
+            },
+          },
+        },
       },
     });
-
-    console.log("programInvite", programInvite);
 
     // enroll partner in program and delete the invite
     const [programEnrollment, dotsUser, _] = await Promise.all([
@@ -40,16 +46,16 @@ export const acceptProgramInviteAction = authPartnerActionClient
           status: "approved",
         },
       }),
+
       retrieveDotsUser({
         dotsUserId: partner.dotsUserId,
         partner,
       }),
+
       prisma.programInvite.delete({
         where: { id: programInvite.id },
       }),
     ]);
-
-    console.log({ programEnrollment, dotsUser });
 
     const workspace = programInvite.program.workspace;
 
@@ -64,8 +70,6 @@ export const acceptProgramInviteAction = authPartnerActionClient
           phoneNumber: dotsUser.phone_number.phone_number,
         },
       });
-
-      console.log({ newDotsUser });
 
       await prisma.programEnrollment.update({
         where: {
