@@ -15,8 +15,8 @@ import { useReferralProgram } from "./use-referral-program";
 
 export function ReferralsEmbedPageClient() {
   const { program } = useReferralProgram();
-  const [copied, copyToClipboard] = useCopyToClipboard();
   const { searchParamsObj } = useRouterStuff();
+  const [copied, copyToClipboard] = useCopyToClipboard();
   const { link, isLoading: isLoadingLink } = useReferralLink();
 
   const {
