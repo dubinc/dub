@@ -1,8 +1,11 @@
 "use server";
 
+import { getEvents } from "@/lib/analytics/get-events";
+import { createSaleData } from "@/lib/api/sales/sale";
 import { createDotsUser } from "@/lib/dots/create-dots-user";
 import { retrieveDotsUser } from "@/lib/dots/retrieve-dots-user";
 import { prisma } from "@/lib/prisma";
+import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -28,6 +31,7 @@ export const acceptProgramInviteAction = authPartnerActionClient
           select: {
             workspace: {
               select: {
+                id: true,
                 dotsAppId: true,
               },
             },
@@ -44,6 +48,9 @@ export const acceptProgramInviteAction = authPartnerActionClient
           linkId: programInvite.linkId,
           partnerId: partner.id,
           status: "approved",
+        },
+        include: {
+          program: true,
         },
       }),
 
@@ -76,6 +83,44 @@ export const acceptProgramInviteAction = authPartnerActionClient
           id: programEnrollment.id,
         },
         data: { dotsUserId: newDotsUser.id },
+      });
+    }
+
+    // Backfill sales for the partner's link
+    const saleEvents = await getEvents({
+      workspaceId: workspace.id,
+      linkId: programInvite.linkId,
+      event: "sales",
+      interval: "all",
+      page: 1,
+      limit: 5000,
+      order: "desc",
+      sortBy: "timestamp",
+    });
+
+    const data = saleEvents.map(
+      (e: z.infer<typeof saleEventResponseSchema>) => ({
+        ...createSaleData({
+          customerId: e.customer.id,
+          linkId: e.link.id,
+          clickId: e.click.id,
+          invoiceId: e.invoice_id,
+          eventId: e.eventId,
+          paymentProcessor: e.payment_processor,
+          amount: e.sale.amount,
+          currency: "usd",
+          partnerId: partner.id,
+          program: programEnrollment.program,
+          metadata: e.click,
+        }),
+        createdAt: new Date(e.timestamp),
+      }),
+    );
+
+    if (data.length > 0) {
+      await prisma.sale.createMany({
+        data,
+        skipDuplicates: true,
       });
     }
   });
