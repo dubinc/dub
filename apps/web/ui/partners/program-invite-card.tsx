@@ -48,16 +48,16 @@ export function ProgramInviteCard({ invite }: { invite: ProgramInviteProps }) {
           className="size-6 rounded-full"
         />
       </div>
-      <p className="text-base font-medium text-neutral-900">
-        {invite.program.name}
-      </p>
-      <p className="text-balance text-center text-xs text-neutral-600">
-        <ProgramCommissionDescription
-          program={invite.program}
-          amountClassName="font-light"
-          periodClassName="font-light"
-        />
-      </p>
+      <div className="grid max-w-xs gap-1 pb-1 text-center">
+        <p className="font-medium text-neutral-900">{invite.program.name}</p>
+        <p className="text-balance text-xs text-neutral-600">
+          <ProgramCommissionDescription
+            program={invite.program}
+            amountClassName="font-light"
+            periodClassName="font-light"
+          />
+        </p>
+      </div>
       <Button
         text="Accept invite"
         className="h-8"
