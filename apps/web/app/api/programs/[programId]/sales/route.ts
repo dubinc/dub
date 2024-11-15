@@ -1,5 +1,4 @@
-import { INTERVAL_DATA } from "@/lib/analytics/constants";
-import { validDateRangeForPlan } from "@/lib/analytics/utils";
+import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -35,35 +34,12 @@ export const GET = withWorkspace(
       partnerId,
     } = parsed;
 
-    let { interval, start, end } = parsed;
-    let granularity: "minute" | "hour" | "day" | "month" = "day";
+    const { startDate, endDate } = getStartEndDates(parsed);
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
-
-    validDateRangeForPlan({
-      plan: workspace.plan,
-      interval,
-      start,
-      end,
-      throwError: true,
-    });
-
-    if (start) {
-      start = new Date(start);
-      end = end ? new Date(end) : new Date(Date.now());
-
-      // Swap start and end if start is greater than end
-      if (start > end) {
-        [start, end] = [end, start];
-      }
-    } else {
-      interval = interval ?? "24h";
-      start = INTERVAL_DATA[interval].startDate;
-      end = new Date(Date.now());
-    }
 
     const sales = await prisma.sale.findMany({
       where: {
@@ -73,8 +49,8 @@ export const GET = withWorkspace(
         ...(payoutId && { payoutId }),
         ...(partnerId && { partnerId }),
         createdAt: {
-          gte: new Date(start).toISOString(),
-          lte: new Date(end).toISOString(),
+          gte: startDate.toISOString(),
+          lte: endDate.toISOString(),
         },
       },
       select: {
