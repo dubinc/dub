@@ -1,35 +1,16 @@
 "use client";
 
-import { ProgramInviteProps, ProgramProps } from "@/lib/types";
+import usePartnerProgramInvites from "@/lib/swr/use-partner-program-invites";
+import usePartnerPrograms from "@/lib/swr/use-partner-programs";
 import { ProgramCard, ProgramCardSkeleton } from "@/ui/partners/program-card";
 import { ProgramInviteCard } from "@/ui/partners/program-invite-card";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { MaxWidthWrapper } from "@dub/ui";
 import { CircleDollar, GridIcon } from "@dub/ui/src/icons";
-import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
-import useSWR from "swr";
 
 export function PartnersDashboardPageClient() {
-  const { partnerId } = useParams() as {
-    partnerId?: string;
-  };
-
-  const { data: programs, isLoading } = useSWR<ProgramProps[]>(
-    `/api/partners/${partnerId}/programs`,
-    fetcher,
-    {
-      dedupingInterval: 60000,
-    },
-  );
-
-  const { data: invites } = useSWR<ProgramInviteProps[]>(
-    `/api/partners/${partnerId}/programs/invites`,
-    fetcher,
-    {
-      dedupingInterval: 60000,
-    },
-  );
+  const { programs, isLoading } = usePartnerPrograms();
+  const { invites } = usePartnerProgramInvites();
 
   return (
     <MaxWidthWrapper>
