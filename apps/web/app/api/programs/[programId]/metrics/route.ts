@@ -2,12 +2,17 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getProgramMetricsQuerySchema } from "@/lib/zod/schemas/programs";
 import { NextResponse } from "next/server";
 
 // GET /api/programs/[programId]/stats - get stats for a program
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
-    const { interval = "30d", start, end } = searchParams;
+    const {
+      interval = "30d",
+      start,
+      end,
+    } = getProgramMetricsQuerySchema.parse(searchParams);
     const { startDate, endDate } = getStartEndDates({ interval, start, end });
 
     const program = await getProgramOrThrow({

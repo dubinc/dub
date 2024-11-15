@@ -1,4 +1,3 @@
-import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
@@ -35,20 +34,11 @@ export const GET = withWorkspace(
       partnerId,
     } = parsed;
 
-    const { interval, start, end } = parsed;
-    const { startDate, endDate } = getStartEndDates({ interval, start, end });
+    const { startDate, endDate } = getStartEndDates(parsed);
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
-    });
-
-    validDateRangeForPlan({
-      plan: workspace.plan,
-      interval,
-      start,
-      end,
-      throwError: true,
     });
 
     const sales = await prisma.sale.findMany({
