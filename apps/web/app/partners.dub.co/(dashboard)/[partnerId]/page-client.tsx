@@ -1,7 +1,7 @@
 "use client";
 
 import usePartnerProgramInvites from "@/lib/swr/use-partner-program-invites";
-import usePartnerPrograms from "@/lib/swr/use-partner-programs";
+import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { ProgramCard, ProgramCardSkeleton } from "@/ui/partners/program-card";
 import { ProgramInviteCard } from "@/ui/partners/program-invite-card";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -9,12 +9,12 @@ import { MaxWidthWrapper } from "@dub/ui";
 import { CircleDollar, GridIcon } from "@dub/ui/src/icons";
 
 export function PartnersDashboardPageClient() {
-  const { programs, isLoading } = usePartnerPrograms();
-  const { invites } = usePartnerProgramInvites();
+  const { programEnrollments, isLoading } = useProgramEnrollments();
+  const { programInvites } = usePartnerProgramInvites();
 
   return (
     <MaxWidthWrapper>
-      {programs?.length == 0 && invites?.length == 0 ? (
+      {programEnrollments?.length == 0 && programInvites?.length == 0 ? (
         <AnimatedEmptyState
           title="No programs found"
           description="Enroll in programs to start earning."
@@ -37,11 +37,11 @@ export function PartnersDashboardPageClient() {
             ))
           ) : (
             <>
-              {invites?.map((invite) => (
+              {programInvites?.map((invite) => (
                 <ProgramInviteCard key={invite.id} invite={invite} />
               ))}
-              {programs?.map((program) => (
-                <ProgramCard key={program.id} program={program} />
+              {programEnrollments?.map((programEnrollment, idx) => (
+                <ProgramCard key={idx} programEnrollment={programEnrollment} />
               ))}
             </>
           )}

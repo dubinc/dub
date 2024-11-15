@@ -2,9 +2,11 @@ import { intervals } from "@/lib/analytics/constants";
 import {
   CommissionInterval,
   CommissionType,
+  ProgramEnrollmentStatus,
   ProgramType,
 } from "@prisma/client";
 import { z } from "zod";
+import { LinkSchema } from "./links";
 import { parseDateSchema } from "./utils";
 
 export const ProgramSchema = z.object({
@@ -49,4 +51,21 @@ export const ProgramInviteSchema = z.object({
   id: z.string(),
   email: z.string(),
   program: ProgramSchema,
+});
+
+export const ProgramEnrollmentSchema = z.object({
+  partnerId: z.string(),
+  programId: z.string(),
+  program: ProgramSchema,
+  status: z.nativeEnum(ProgramEnrollmentStatus),
+  link: LinkSchema.pick({
+    id: true,
+    shortLink: true,
+    url: true,
+    clicks: true,
+    leads: true,
+    sales: true,
+    saleAmount: true,
+  }).nullable(),
+  createdAt: z.date(),
 });

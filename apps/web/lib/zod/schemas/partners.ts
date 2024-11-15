@@ -8,9 +8,8 @@ import {
 } from "@prisma/client";
 import { z } from "zod";
 import { CustomerSchema } from "./customers";
-import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
-import { ProgramSchema } from "./programs";
+import { ProgramEnrollmentSchema } from "./programs";
 import { parseDateSchema } from "./utils";
 
 export const PARTNERS_MAX_PAGE_SIZE = 100;
@@ -40,22 +39,6 @@ export const PartnerSchema = z.object({
   dotsUserId: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
-});
-
-export const ProgramEnrollmentSchema = z.object({
-  partnerId: z.string(),
-  programId: z.string(),
-  program: ProgramSchema,
-  status: z.nativeEnum(ProgramEnrollmentStatus),
-  link: LinkSchema.pick({
-    id: true,
-    shortLink: true,
-    url: true,
-    clicks: true,
-    leads: true,
-    sales: true,
-    saleAmount: true,
-  }).nullable(),
 });
 
 export const EnrolledPartnerSchema = PartnerSchema.omit({

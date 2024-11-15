@@ -185,7 +185,7 @@ export function PartnersSidebarNav({
           : "default";
   }, [partnerId, pathname, programId]);
 
-  const { invites } = usePartnerProgramInvites();
+  const { programInvites } = usePartnerProgramInvites();
 
   return (
     <SidebarNav
@@ -195,7 +195,7 @@ export function PartnersSidebarNav({
         partnerId: partnerId || "",
         programId: programId || "",
         queryString: getQueryString(),
-        hasInvites: invites && invites.length > 0,
+        hasInvites: programInvites && programInvites.length > 0,
       }}
       toolContent={toolContent}
       newsContent={newsContent}

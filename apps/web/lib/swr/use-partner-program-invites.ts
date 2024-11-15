@@ -8,7 +8,7 @@ export default function usePartnerProgramInvites() {
     partnerId?: string;
   };
 
-  const { data: invites } = useSWR<ProgramInviteProps[]>(
+  const { data: programInvites } = useSWR<ProgramInviteProps[]>(
     `/api/partners/${partnerId}/programs/invites`,
     fetcher,
     {
@@ -17,6 +17,6 @@ export default function usePartnerProgramInvites() {
   );
 
   return {
-    invites,
+    programInvites,
   };
 }
