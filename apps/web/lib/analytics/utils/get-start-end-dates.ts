@@ -7,8 +7,8 @@ export const getStartEndDates = ({
   end,
 }: {
   interval?: string;
-  start?: string | Date;
-  end?: string | Date;
+  start?: string | Date | null;
+  end?: string | Date | null;
 }) => {
   let startDate: Date;
   let endDate: Date;
