@@ -90,7 +90,6 @@ export const getLinksCountQuerySchema = LinksQuerySchema.merge(
       .union([z.literal("domain"), z.literal("tagId"), z.literal("userId")])
       .optional()
       .describe("The field to group the links by."),
-    showProgramLinks: booleanQuerySchema.optional().default("false"),
   }),
 );
 
@@ -601,7 +600,6 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional()
       .describe("Link IDs to filter by."),
-    showProgramLinks: booleanQuerySchema.optional().default("false"),
   }),
 );
 

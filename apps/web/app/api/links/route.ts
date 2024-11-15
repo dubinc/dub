@@ -35,7 +35,6 @@ export const GET = withWorkspace(
       includeWebhooks,
       includeDashboard,
       linkIds,
-      showProgramLinks,
     } = getLinksQuerySchemaExtended.parse(searchParams);
 
     if (domain) {
@@ -58,7 +57,6 @@ export const GET = withWorkspace(
       includeWebhooks,
       includeDashboard,
       linkIds,
-      showProgramLinks,
     });
 
     return NextResponse.json(response, {
