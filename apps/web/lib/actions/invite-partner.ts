@@ -35,52 +35,53 @@ export const invitePartnerAction = authActionClient
       }),
     ]);
 
-    // Check if the user is already enrolled in the program
-    const programEnrollment = await prisma.programEnrollment.findFirst({
-      where: {
-        programId,
-        partner: {
-          users: {
-            some: {
-              user: {
-                email,
+    const [
+      programEnrollment,
+      programInvite,
+      linkInProgramEnrollment,
+      linkInProgramInvite,
+    ] = await Promise.all([
+      prisma.programEnrollment.findFirst({
+        where: {
+          programId,
+          partner: {
+            users: {
+              some: {
+                user: {
+                  email,
+                },
               },
             },
           },
         },
-      },
-    });
-
-    if (programEnrollment) {
-      throw new Error(`Partner ${email} already enrolled in this program.`);
-    }
-
-    const programInvite = await prisma.programInvite.findUnique({
-      where: {
-        email_programId: {
-          email,
-          programId,
+      }),
+      prisma.programInvite.findUnique({
+        where: {
+          email_programId: {
+            email,
+            programId,
+          },
         },
-      },
-    });
-
-    if (programInvite) {
-      throw new Error(`Partner ${email} already invited to this program.`);
-    }
-
-    const [linkInProgramEnrollment, linkInProgramInvite] = await Promise.all([
+      }),
       prisma.programEnrollment.findUnique({
         where: {
           linkId,
         },
       }),
-
       prisma.programInvite.findUnique({
         where: {
           linkId,
         },
       }),
     ]);
+
+    if (programEnrollment) {
+      throw new Error(`Partner ${email} already enrolled in this program.`);
+    }
+
+    if (programInvite) {
+      throw new Error(`Partner ${email} already invited to this program.`);
+    }
 
     if (linkInProgramEnrollment || linkInProgramInvite) {
       throw new Error("Link is already associated with another partner.");

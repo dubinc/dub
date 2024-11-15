@@ -1,64 +1,20 @@
 "use client";
 
-import { ProgramInviteProps, ProgramProps } from "@/lib/types";
+import usePartnerProgramInvites from "@/lib/swr/use-partner-program-invites";
+import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { ProgramCard, ProgramCardSkeleton } from "@/ui/partners/program-card";
 import { ProgramInviteCard } from "@/ui/partners/program-invite-card";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { MaxWidthWrapper } from "@dub/ui";
 import { CircleDollar, GridIcon } from "@dub/ui/src/icons";
-import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
-import useSWR from "swr";
 
 export function PartnersDashboardPageClient() {
-  const { partnerId } = useParams() as {
-    partnerId?: string;
-  };
-
-  const { data: programs, error } = useSWR<ProgramProps[]>(
-    `/api/partners/${partnerId}/programs`,
-    fetcher,
-    {
-      dedupingInterval: 60000,
-    },
-  );
-
-  const { data: invites } = useSWR<ProgramInviteProps[]>(
-    `/api/partners/${partnerId}/programs/invites`,
-    fetcher,
-    {
-      dedupingInterval: 60000,
-    },
-  );
+  const { programEnrollments, isLoading } = useProgramEnrollments();
+  const { programInvites } = usePartnerProgramInvites();
 
   return (
     <MaxWidthWrapper>
-      {invites && invites.length > 0 && (
-        <div className="mb-8 grid gap-4">
-          {invites.map((invite) => (
-            <ProgramInviteCard key={invite.id} invite={invite} />
-          ))}
-        </div>
-      )}
-      {programs === undefined ? (
-        error ? (
-          <div className="mt-8 text-center text-sm text-neutral-500">
-            Failed to load programs
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 3 }).map((_, idx) => (
-              <ProgramCardSkeleton key={idx} />
-            ))}
-          </div>
-        )
-      ) : programs.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {programs.map((program) => (
-            <ProgramCard key={program.id} program={program} />
-          ))}
-        </div>
-      ) : (
+      {programEnrollments?.length == 0 && programInvites?.length == 0 ? (
         <AnimatedEmptyState
           title="No programs found"
           description="Enroll in programs to start earning."
@@ -73,6 +29,23 @@ export function PartnersDashboardPageClient() {
           }
           learnMoreHref="https://dub.co/help/article/dub-conversions"
         />
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, idx) => (
+              <ProgramCardSkeleton key={idx} />
+            ))
+          ) : (
+            <>
+              {programInvites?.map((invite) => (
+                <ProgramInviteCard key={invite.id} invite={invite} />
+              ))}
+              {programEnrollments?.map((programEnrollment, idx) => (
+                <ProgramCard key={idx} programEnrollment={programEnrollment} />
+              ))}
+            </>
+          )}
+        </div>
       )}
     </MaxWidthWrapper>
   );

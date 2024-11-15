@@ -8,7 +8,7 @@ import { z } from "zod";
 export const GET = withPartner(async ({ session }) => {
   const invites = await prisma.programInvite.findMany({
     where: {
-      email: session.user.email,
+      email: session.user.email, // in the future we will check for invites for a given partnerId as well
     },
     include: {
       program: true,
