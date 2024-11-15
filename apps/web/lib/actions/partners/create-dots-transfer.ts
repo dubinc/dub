@@ -8,7 +8,6 @@ import { authActionClient } from "../safe-action";
 
 const schema = z.object({
   workspaceId: z.string(),
-  dotsUserId: z.string(),
   payoutId: z.string(),
 });
 
@@ -16,7 +15,7 @@ export const createDotsTransferAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { dotsUserId, payoutId } = parsedInput;
+    const { payoutId } = parsedInput;
 
     if (!workspace.dotsAppId) {
       throw new Error("Dots app not found for workspace");
@@ -26,11 +25,25 @@ export const createDotsTransferAction = authActionClient
       where: { id: payoutId },
     });
 
+    const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
+      where: {
+        partnerId_programId: {
+          partnerId: payout.partnerId,
+          programId: payout.programId,
+        },
+      },
+      select: { dotsUserId: true },
+    });
+
+    if (!programEnrollment.dotsUserId) {
+      throw new Error("Partner is not properly enrolled in this program");
+    }
+
     const [transfer, orgTransfer] = await Promise.all([
       createTransfer({
         amount: payout.amount,
         dotsAppId: workspace.dotsAppId,
-        dotsUserId,
+        dotsUserId: programEnrollment.dotsUserId,
       }),
       createOrgTransfer({
         amount: payout.fee,
