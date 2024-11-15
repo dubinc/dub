@@ -14,10 +14,7 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { SettingsRow } from "./settings-row";
 
-type FormData = Pick<
-  ProgramProps,
-  "defaultDomain" | "destinationUrl" | "cookieLength"
->;
+type FormData = Pick<ProgramProps, "domain" | "url" | "cookieLength">;
 
 const linkStructures = [
   {
@@ -56,13 +53,14 @@ export function TrackingSettings() {
 function TrackingSettingsForm({ program }: { program: ProgramProps }) {
   const { id: workspaceId } = useWorkspace();
 
-  const { allDomains: domains, loading: loadingDomains } = useDomains();
+  const { activeWorkspaceDomains: domains, loading: loadingDomains } =
+    useDomains();
 
   const form = useForm<FormData>({
     mode: "onBlur",
     defaultValues: {
-      defaultDomain: program.defaultDomain,
-      destinationUrl: program.destinationUrl,
+      domain: program.domain,
+      url: program.url,
       cookieLength: program.cookieLength,
     },
   });
@@ -108,7 +106,7 @@ function TrackingSettingsForm({ program }: { program: ProgramProps }) {
           <div className="flex flex-col gap-6">
             <div>
               <label
-                htmlFor="defaultDomain"
+                htmlFor="domain"
                 className="text-sm font-medium text-neutral-800"
               >
                 Default domain
@@ -116,7 +114,7 @@ function TrackingSettingsForm({ program }: { program: ProgramProps }) {
               <div className="relative mt-2 rounded-md shadow-sm">
                 <select
                   className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  {...register("defaultDomain", {
+                  {...register("domain", {
                     required: true,
                   })}
                   disabled={loadingDomains}
@@ -126,7 +124,7 @@ function TrackingSettingsForm({ program }: { program: ProgramProps }) {
                     <option
                       value={domain.slug}
                       key={domain.slug}
-                      selected={domain.slug === program.defaultDomain}
+                      selected={domain.slug === program.domain}
                     >
                       {domain.slug}
                     </option>
@@ -137,7 +135,7 @@ function TrackingSettingsForm({ program }: { program: ProgramProps }) {
 
             <div>
               <label
-                htmlFor="destinationUrl"
+                htmlFor="url"
                 className="text-sm font-medium text-neutral-800"
               >
                 Destination URL
@@ -149,7 +147,7 @@ function TrackingSettingsForm({ program }: { program: ProgramProps }) {
                   className={cn(
                     "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                   )}
-                  {...register("destinationUrl", {
+                  {...register("url", {
                     required: true,
                   })}
                 />

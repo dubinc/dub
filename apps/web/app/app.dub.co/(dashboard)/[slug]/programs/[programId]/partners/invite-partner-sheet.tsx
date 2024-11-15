@@ -61,8 +61,8 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        url: program?.destinationUrl,
-        domain: program?.defaultDomain,
+        url: program?.url,
+        domain: program?.domain,
         trackConversion: true,
         key: shortKey,
       }),
@@ -155,7 +155,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                     <div>
                       <div className="group flex h-full w-32 items-center justify-start gap-2 whitespace-nowrap rounded-md rounded-r-none border border-gray-300 border-r-transparent bg-white px-2.5 text-sm text-gray-900 outline-none transition-none sm:inline-flex sm:w-40">
                         <div className="flex w-full min-w-0 items-center justify-start truncate">
-                          {program?.defaultDomain}
+                          {program?.domain}
                         </div>
                       </div>
                     </div>
@@ -177,7 +177,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
 
                   <div className="mt-4 rounded-md border border-gray-300 bg-gray-200 p-2">
                     <p className="text-sm text-gray-700">
-                      Destination URL: {program?.destinationUrl}
+                      Destination URL: {program?.url}
                     </p>
                   </div>
 

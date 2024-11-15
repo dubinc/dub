@@ -30,6 +30,10 @@ model Program {
   name                String
   slug                String              @unique
   logo                String?
+  wordmark            String?
+  brandColor          String?
+  domain              String?
+  url                 String?
   type                ProgramType         @default(affiliate)
   cookieLength        Int                 @default(90)
   commissionAmount    Int                 @default(0)
@@ -39,17 +43,13 @@ model Program {
   recurringDuration   Int?
   isLifetimeRecurring Boolean? // TODO: Maybe use just lifetimeRecurring?
 
-  brandColor     String?
-  wordmark       String?
   landerData     Json?   @db.Json
-  defaultDomain  String? @unique
-  destinationUrl String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   workspace       Project              @relation(fields: [workspaceId], references: [id])
-  workspaceDomain Domain?              @relation(fields: [defaultDomain], references: [slug], onUpdate: Cascade, onDelete: Cascade)
+  primaryDomain   Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
   partners        ProgramEnrollment[]
   payouts         Payout[]
   sales           Sale[]
@@ -58,7 +58,7 @@ model Program {
   invites         ProgramInvite[]
 
   @@index([workspaceId])
-  @@index([defaultDomain])
+  @@index([domain])
 }
 
 model ProgramEnrollment {

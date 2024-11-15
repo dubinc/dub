@@ -20,8 +20,8 @@ export const ProgramSchema = z.object({
   recurringDuration: z.number().nullable(),
   recurringInterval: z.nativeEnum(CommissionInterval).nullable(),
   isLifetimeRecurring: z.boolean().nullable(),
-  defaultDomain: z.string().nullable(),
-  destinationUrl: z.string().nullable(),
+  domain: z.string().nullable(),
+  url: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -35,8 +35,8 @@ export const createProgramSchema = z.object({
   recurringDuration: z.number().nullable(),
   isLifetimeRecurring: z.boolean().nullable(),
   cookieLength: z.number().min(1).max(180),
-  defaultDomain: z.string().nullable(),
-  destinationUrl: z.string().nullable(),
+  domain: z.string().nullable(),
+  url: z.string().nullable(),
 });
 
 export const getProgramMetricsQuerySchema = z.object({
