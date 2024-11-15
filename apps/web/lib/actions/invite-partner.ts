@@ -6,6 +6,7 @@ import PartnerInvite from "emails/partner-invite";
 import { z } from "zod";
 import { getLinkOrThrow } from "../api/links/get-link-or-throw";
 import { getProgramOrThrow } from "../api/programs/get-program";
+import { createId } from "../api/utils";
 import { updateConfig } from "../edge-config";
 import { authActionClient } from "./safe-action";
 
@@ -87,6 +88,7 @@ export const invitePartnerAction = authActionClient
 
     const result = await prisma.programInvite.create({
       data: {
+        id: createId({ prefix: "pgi_" }),
         email,
         linkId,
         programId,

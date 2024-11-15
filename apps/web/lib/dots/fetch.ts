@@ -28,9 +28,13 @@ export const dotsFetch = async (
   });
 
   if (!response.ok) {
+    const error = await response.json();
+
+    console.error("Dots API error", error);
+
     throw new DubApiError({
       code: httpStatusToErrorCode[response.status],
-      message: `Dots API error: ${response.status} ${response.statusText}. ${response.status === 404 ? "" : await response.text()}`,
+      message: error.message,
     });
   }
 

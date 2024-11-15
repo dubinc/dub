@@ -56,10 +56,8 @@ async function main() {
       paymentProcessor: e.payment_processor,
       amount: e.sale.amount,
       currency: "usd",
-      programEnrollment: {
-        program,
-        partnerId,
-      } as any,
+      partnerId,
+      program,
       metadata: e.click,
     }),
     createdAt: new Date(e.timestamp),

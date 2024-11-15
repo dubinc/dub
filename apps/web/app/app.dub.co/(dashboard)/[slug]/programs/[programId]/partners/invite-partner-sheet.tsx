@@ -7,6 +7,7 @@ import { X } from "@/ui/shared/icons";
 import { BlurImage, Button, Combobox, LinkLogo, Sheet } from "@dub/ui";
 import { cn, getApexDomain, linkConstructor } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -23,7 +24,10 @@ interface InvitePartnerFormData {
 
 function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const { program } = useProgram();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
+  const [shortKey, setShortKey] = useState("");
+  const [creatingLink, setCreatingLink] = useState(false);
+  const [displayLinkBuilder, setDisplayLinkBuilder] = useState(false);
 
   const { register, handleSubmit, watch, setValue } =
     useForm<InvitePartnerFormData>({
@@ -32,6 +36,8 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
         linkId: "",
       },
     });
+
+  const selectedLinkId = watch("linkId");
 
   const { executeAsync, isExecuting } = useAction(invitePartnerAction, {
     onSuccess: async () => {
@@ -43,16 +49,56 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     },
   });
 
-  const onSubmit = async (data: InvitePartnerFormData) => {
-    await executeAsync({
-      workspaceId: workspaceId!,
-      programId: program?.id!,
-      email: data.email,
-      linkId: data.linkId,
+  const createLink = async () => {
+    if (!shortKey) {
+      toast.error("Please enter short key for the link");
+      return;
+    }
+
+    const response = await fetch(`/api/links?workspaceId=${workspaceId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        url: program?.url,
+        domain: program?.domain,
+        trackConversion: true,
+        key: shortKey,
+      }),
     });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      const { error } = result;
+      throw new Error(error.message);
+    }
+
+    return result.id;
   };
 
-  const selectedLinkId = watch("linkId");
+  const onSubmit = async (data: InvitePartnerFormData) => {
+    let { linkId } = data;
+
+    try {
+      if (!linkId) {
+        setCreatingLink(true);
+        linkId = await createLink();
+      }
+
+      await executeAsync({
+        workspaceId: workspaceId!,
+        programId: program?.id!,
+        email: data.email,
+        linkId,
+      });
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setCreatingLink(false);
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
@@ -93,18 +139,67 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                   Referral link
                 </h2>
               </label>
-              <div className="relative mt-2 rounded-md shadow-sm">
-                <LinksSelector
-                  selectedLinkId={selectedLinkId}
-                  setSelectedLinkId={(id) => setValue("linkId", id)}
-                />
-              </div>
+
+              {!displayLinkBuilder ? (
+                <div className="relative mt-2 rounded-md shadow-sm">
+                  <LinksSelector
+                    selectedLinkId={selectedLinkId}
+                    setSelectedLinkId={(id) => setValue("linkId", id)}
+                    setDisplayLinkBuilder={setDisplayLinkBuilder}
+                    setShortKey={setShortKey}
+                  />
+                </div>
+              ) : (
+                <div>
+                  <div className="relative mt-1 flex rounded-md shadow-sm">
+                    <div>
+                      <div className="group flex h-full w-32 items-center justify-start gap-2 whitespace-nowrap rounded-md rounded-r-none border border-gray-300 border-r-transparent bg-white px-2.5 text-sm text-gray-900 outline-none transition-none sm:inline-flex sm:w-40">
+                        <div className="flex w-full min-w-0 items-center justify-start truncate">
+                          {program?.domain}
+                        </div>
+                      </div>
+                    </div>
+
+                    <input
+                      pattern="[\p{L}\p{N}\p{Pd}\/\p{Emoji}_.]+"
+                      autoComplete="off"
+                      autoCapitalize="none"
+                      className="block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:z-[1] focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                      placeholder=""
+                      type="text"
+                      name="key"
+                      value={shortKey}
+                      onChange={(e) => {
+                        setShortKey(e.target.value);
+                      }}
+                    />
+                  </div>
+
+                  <div className="mt-4 rounded-md border border-gray-300 bg-gray-200 p-2">
+                    <p className="text-sm text-gray-700">
+                      Destination URL: {program?.url}
+                    </p>
+                  </div>
+
+                  <div>
+                    <div className="mt-4 text-sm text-gray-500">
+                      You can edit these settings under{" "}
+                      <Link
+                        href={`/${slug}/programs/${program?.id}/settings`}
+                        className="underline underline-offset-2"
+                      >
+                        program settings
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="mt-8">
               <h2 className="text-sm font-medium text-gray-900">Preview</h2>
               <div className="mt-2 overflow-hidden rounded-md border border-neutral-200">
-                <div className="relative grid gap-4 p-6 pb-10">
+                <div className="grid gap-4 p-6 pb-10">
                   <BlurImage
                     src={program?.logo || "https://assets.dub.co/logo.png"}
                     alt={program?.name || "Dub"}
@@ -125,7 +220,6 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                     text="Accept invite"
                     className="w-fit"
                   />
-                  <div className="pointer-events-none absolute bottom-0 right-0 z-10 h-48 w-full bg-gradient-to-t from-white to-transparent" />
                 </div>
                 <div className="grid gap-1 border-t border-gray-200 bg-gray-50 px-6 py-4">
                   <p className="text-sm text-gray-500">
@@ -154,14 +248,14 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             onClick={() => setIsOpen(false)}
             text="Close"
             className="w-fit"
-            disabled={isExecuting}
+            disabled={isExecuting || creatingLink}
           />
           <Button
             type="submit"
             variant="primary"
             text="Send invite"
             className="w-fit"
-            loading={isExecuting}
+            loading={isExecuting || creatingLink}
           />
         </div>
       </div>
@@ -186,9 +280,13 @@ const getLinkOption = (link: LinkProps) => ({
 function LinksSelector({
   selectedLinkId,
   setSelectedLinkId,
+  setDisplayLinkBuilder,
+  setShortKey,
 }: {
   selectedLinkId: string;
   setSelectedLinkId: (id: string) => void;
+  setDisplayLinkBuilder: (display: boolean) => void;
+  setShortKey: (key: string) => void;
 }) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
@@ -226,6 +324,13 @@ function LinksSelector({
           "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
           !selectedLinkId && "text-gray-400",
         ),
+      }}
+      shouldFilter={false}
+      createLabel={(key) => `Create new link: "${key}"`}
+      onCreate={async (key) => {
+        setDisplayLinkBuilder(true);
+        setShortKey(key);
+        return false;
       }}
     />
   );

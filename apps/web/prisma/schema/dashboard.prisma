@@ -13,8 +13,8 @@ model Dashboard {
   userId String?
 
   // additional link configurations
-  doIndex  Boolean @default(false) // whether to index the share link on Google or not
-  password String? // password to access the share link
+  doIndex         Boolean @default(false) // whether to index the share link on Google or not
+  password        String? // password to access the share link
   showConversions Boolean @default(false) // ideally this should just be synced to trackConversion on the link
 
   createdAt DateTime @default(now())

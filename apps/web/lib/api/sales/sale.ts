@@ -1,4 +1,4 @@
-import { Prisma, Program, ProgramEnrollment, SaleStatus } from "@prisma/client";
+import { Prisma, Program, SaleStatus } from "@prisma/client";
 import { createId } from "../utils";
 import { calculateEarnings } from "./commission";
 
@@ -11,7 +11,8 @@ export const createSaleData = ({
   paymentProcessor,
   amount,
   currency,
-  programEnrollment,
+  partnerId,
+  program,
   metadata,
 }: {
   customerId: string;
@@ -22,11 +23,10 @@ export const createSaleData = ({
   paymentProcessor: string;
   amount: number;
   currency: string;
-  programEnrollment: ProgramEnrollment & { program: Program };
+  partnerId: string;
+  program: Program;
   metadata: Record<string, any>;
 }) => {
-  const { program, partnerId } = programEnrollment;
-
   const earnings = calculateEarnings({
     program,
     sales: 1,
