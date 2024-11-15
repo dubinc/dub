@@ -39,17 +39,20 @@ model Program {
   recurringDuration   Int?
   isLifetimeRecurring Boolean? // TODO: Maybe use just lifetimeRecurring?
 
-  // TODO: Add branding attributes: color, wordmark, etc.
+  brandColor          String?
+  wordmark            String?
+  landerData          Json?   @db.Json
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   workspace Project             @relation(fields: [workspaceId], references: [id])
-  partners  ProgramEnrollment[]
-  payouts   Payout[]
-  sales     Sale[]
-  resources ProgramResource[]
-  invites   ProgramInvite[]
+  partners     ProgramEnrollment[]
+  payouts      Payout[]
+  sales        Sale[]
+  resources    ProgramResource[]
+  applications ProgramApplication[]
+  invites      ProgramInvite[]
 
   @@index([workspaceId])
 }
@@ -59,6 +62,7 @@ model ProgramEnrollment {
   partnerId String
   programId String
   linkId    String?                 @unique
+  dotsUserId String?                @unique
   status    ProgramEnrollmentStatus @default(pending)
   createdAt DateTime                @default(now())
   updatedAt DateTime                @updatedAt
@@ -70,6 +74,30 @@ model ProgramEnrollment {
   @@unique([partnerId, programId])
   @@index([programId])
   @@index([linkId])
+}
+
+enum ProgramApplicationStatus {
+  pending
+  approved
+  rejected
+}
+
+model ProgramApplication {
+  id String @id @default(cuid())
+  programId String
+  partnerId String?
+  name     String
+  email    String
+  plan     String
+  website  String?
+  comments String?
+  status    ProgramApplicationStatus @default(pending)
+  createdAt DateTime                 @default(now())
+  updatedAt DateTime                 @updatedAt
+  program Program @relation(fields: [programId], references: [id])
+  partner Partner? @relation(fields: [partnerId], references: [id])
+  @@index([programId])
+  @@index([partnerId])
 }
 
 // TODO: Haven't finalized the resource table yet.

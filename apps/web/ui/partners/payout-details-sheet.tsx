@@ -226,7 +226,6 @@ function PayoutDetailsSheetContent({
                 }
                 await executeAsync({
                   workspaceId: workspaceId!,
-                  dotsUserId: payout.partner.dotsUserId,
                   payoutId: payout.id,
                 });
               }}

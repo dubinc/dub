@@ -61,11 +61,11 @@ export function PayoutsSettingsPageClient() {
           showModal={modalState.show}
           setShowModal={() => setModalState({ show: false, iframeSrc: "" })}
           onClose={() => mutate()}
-          className="h-[90vh] w-full max-w-[90vw]"
+          className="h-[90vh] w-full sm:max-w-[90vw]"
         >
           <button
             onClick={() => setModalState({ show: false, iframeSrc: "" })}
-            className="group absolute right-4 top-4 rounded-full p-2 transition-colors hover:bg-neutral-100"
+            className="group absolute right-4 top-8 rounded-full p-2 transition-colors hover:bg-neutral-100 sm:top-4"
           >
             <X className="size-5 text-neutral-700 transition-all group-hover:scale-110 group-active:scale-90" />
           </button>
