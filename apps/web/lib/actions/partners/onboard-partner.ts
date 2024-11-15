@@ -31,33 +31,6 @@ export const onboardPartnerAction = authUserActionClient
     const { name, logo, country, phoneNumber, description } = parsedInput;
 
     try {
-      const partner = await prisma.partner.create({
-        data: {
-          name,
-          country,
-          bio: description,
-          id: createId({ prefix: "pn_" }),
-          users: {
-            create: {
-              userId: user.id,
-              role: "owner",
-            },
-          },
-        },
-      });
-
-      if (logo) {
-        const { url } = await storage.upload(
-          `logos/partners/${partner.id}_${nanoid(7)}`,
-          logo,
-        );
-
-        await prisma.partner.update({
-          where: { id: partner.id },
-          data: { logo: url },
-        });
-      }
-
       // Create the Dots user with DOTS_DEFAULT_APP_ID
       const [firstName, lastName] = name.split(" ");
       const countryCode = COUNTRY_PHONE_CODES[country];
@@ -78,9 +51,29 @@ export const onboardPartnerAction = authUserActionClient
         userInfo: dotsUserInfo,
       });
 
-      await prisma.partner.update({
-        where: { id: partner.id },
-        data: { dotsUserId: dotsUser.id },
+      const partnerId = createId({ prefix: "pn_" });
+
+      const logoUrl = logo
+        ? await storage
+            .upload(`logos/partners/${partnerId}_${nanoid(7)}`, logo)
+            .then(({ url }) => url)
+        : null;
+
+      const partner = await prisma.partner.create({
+        data: {
+          id: partnerId,
+          name,
+          country,
+          bio: description,
+          dotsUserId: dotsUser.id,
+          logo: logoUrl,
+          users: {
+            create: {
+              userId: user.id,
+              role: "owner",
+            },
+          },
+        },
       });
 
       return {
