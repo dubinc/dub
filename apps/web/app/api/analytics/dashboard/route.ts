@@ -53,6 +53,7 @@ export const GET = async (req: Request) => {
               plan: true,
               usage: true,
               usageLimit: true,
+              conversionEnabled: true,
             },
           },
         },
@@ -70,6 +71,7 @@ export const GET = async (req: Request) => {
 
       validDateRangeForPlan({
         plan: workspace?.plan || "free",
+        conversionEnabled: workspace?.conversionEnabled,
         interval,
         start,
         end,
