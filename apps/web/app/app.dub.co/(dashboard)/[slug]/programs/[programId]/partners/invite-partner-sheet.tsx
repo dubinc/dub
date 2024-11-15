@@ -16,7 +16,7 @@ import {
 import { ArrowTurnRight2 } from "@dub/ui/src/icons";
 import { cn, getApexDomain, linkConstructor } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
@@ -63,6 +63,12 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
       toast.error(error.serverError?.serverError);
     },
   });
+
+  useEffect(() => {
+    // set link slug based on email name
+    const email = watch("email");
+    if (email) setShortKey(email.split("@")[0]);
+  }, [watch("email")]);
 
   const createLink = async () => {
     if (!shortKey) {
@@ -222,7 +228,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                       <div className="relative flex rounded-md shadow-sm">
                         <div>
                           <div className="group flex h-full items-center justify-start gap-2 whitespace-nowrap rounded-md rounded-r-none border border-gray-300 border-r-transparent bg-white px-3 text-sm text-gray-900 outline-none transition-none sm:inline-flex">
-                            <div className="flex w-full min-w-0 items-center justify-start truncate">
+                            <div className="flex w-full min-w-0 items-center justify-start truncate px-2">
                               {program?.domain}
                             </div>
                           </div>
@@ -247,18 +253,27 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                           }}
                         />
                       </div>
-                      {errors.linkId && (
-                        <p className="mt-1 text-xs text-red-600">
+                      {errors.linkId ? (
+                        <p className="mt-2 text-xs text-red-600">
                           {errors.linkId.message}
                         </p>
+                      ) : (
+                        program?.url && (
+                          <div className="ml-2 mt-2 flex items-center gap-1 text-xs text-gray-500">
+                            <ArrowTurnRight2 className="size-3 shrink-0" />
+                            <span className="min-w-0 truncate">
+                              Destination URL:{" "}
+                              <a
+                                href={program.url}
+                                target="_blank"
+                                className="underline underline-offset-2"
+                              >
+                                {program.url}
+                              </a>
+                            </span>
+                          </div>
+                        )
                       )}
-
-                      <div className="ml-2 mt-2 flex items-center gap-1 text-xs text-gray-500">
-                        <ArrowTurnRight2 className="size-3 shrink-0" />
-                        <span className="min-w-0 truncate">
-                          Destination URL: {program?.url}
-                        </span>
-                      </div>
                     </>
                   )}
                 </div>
@@ -397,7 +412,14 @@ function LinksSelector({
         <div className="ml-2 mt-2 flex items-center gap-1 text-xs text-gray-500">
           <ArrowTurnRight2 className="size-3 shrink-0" />
           <span className="min-w-0 truncate">
-            Destination URL: {selectedLink?.url}
+            Destination URL:{" "}
+            <a
+              href={selectedLink.url}
+              target="_blank"
+              className="underline underline-offset-2"
+            >
+              {selectedLink.url}
+            </a>
           </span>
         </div>
       )}
