@@ -5,6 +5,7 @@ import { createSaleData } from "@/lib/api/sales/sale";
 import { createDotsUser } from "@/lib/dots/create-dots-user";
 import { retrieveDotsUser } from "@/lib/dots/retrieve-dots-user";
 import { prisma } from "@/lib/prisma";
+import { recordLink } from "@/lib/tinybird/record-link";
 import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
@@ -51,6 +52,11 @@ export const acceptProgramInviteAction = authPartnerActionClient
         },
         include: {
           program: true,
+          link: {
+            include: {
+              tags: true,
+            },
+          },
         },
       }),
 
@@ -86,6 +92,8 @@ export const acceptProgramInviteAction = authPartnerActionClient
       });
     }
 
+    const { link, program } = programEnrollment;
+
     // Backfill sales for the partner's link
     const saleEvents = await getEvents({
       workspaceId: workspace.id,
@@ -110,7 +118,7 @@ export const acceptProgramInviteAction = authPartnerActionClient
           amount: e.sale.amount,
           currency: "usd",
           partnerId: partner.id,
-          program: programEnrollment.program,
+          program,
           metadata: e.click,
         }),
         createdAt: new Date(e.timestamp),
@@ -121,6 +129,21 @@ export const acceptProgramInviteAction = authPartnerActionClient
       await prisma.sale.createMany({
         data,
         skipDuplicates: true,
+      });
+    }
+
+    // Backfill programId for the partner's link on TB
+    if (link) {
+      await recordLink({
+        domain: link.domain,
+        key: link.key,
+        link_id: link.id,
+        created_at: link.createdAt,
+        url: link.url,
+        tag_ids: link.tags.map((t) => t.id) || [],
+        program_id: program.id,
+        workspace_id: workspace.id,
+        deleted: false,
       });
     }
   });
