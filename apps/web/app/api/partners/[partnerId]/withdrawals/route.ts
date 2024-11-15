@@ -22,7 +22,7 @@ export const GET = withPartner(async ({ partner }) => {
       platform: t.external_data?.platform,
       fee:
         t.transactions?.find(
-          (t) => t.type === "fee" && t.source_name !== "Acme, Inc.",
+          (t) => t.type === "fee" && t.source_name !== "Default App",
         )?.amount || "0",
     };
   });

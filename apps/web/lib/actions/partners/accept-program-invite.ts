@@ -51,17 +51,14 @@ export const acceptProgramInviteAction = authPartnerActionClient
 
     const workspace = programEnrollment.program.workspace;
 
-    if (!workspace.dotsAppId) {
-      throw new Error("Workspace does not have a Dots app ID");
-    }
-
-    const res = await Promise.all([
-      enrollDotsUserApp({
-        partner,
-        dotsAppId: workspace.dotsAppId,
-        programEnrollmentId: programEnrollment.id,
-      }),
+    await Promise.all([
       backfillLinkData(programEnrollment.id),
+      workspace.dotsAppId &&
+        enrollDotsUserApp({
+          partner,
+          dotsAppId: workspace.dotsAppId,
+          programEnrollmentId: programEnrollment.id,
+        }),
     ]);
 
     return {
