@@ -177,6 +177,13 @@ export const DELETE = withWorkspace(
       linkId: params.linkId,
     });
 
+    if (link.programId) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Cannot delete program links.",
+      });
+    }
+
     await deleteLink(link.id);
 
     waitUntil(
