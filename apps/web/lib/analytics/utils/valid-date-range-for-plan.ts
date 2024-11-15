@@ -3,12 +3,14 @@ import { DubApiError } from "../../api/errors";
 
 export const validDateRangeForPlan = ({
   plan,
+  conversionEnabled,
   interval,
   start,
   end,
   throwError,
 }: {
   plan?: string | null;
+  conversionEnabled?: boolean;
   interval?: string;
   start?: Date | null;
   end?: Date | null;
@@ -39,6 +41,7 @@ export const validDateRangeForPlan = ({
   // Pro plan users can only get analytics for 1 year
   if (
     plan === "pro" &&
+    !conversionEnabled &&
     (interval === "all" ||
       (start &&
         (getDaysDifference(start, new Date(Date.now())) > 366 ||

@@ -670,15 +670,16 @@ export default function Toggle({
         const start = INTERVAL_DATA[value].startDate;
         const end = new Date();
 
-        const requiresUpgrade =
-          showConversions ||
-          DUB_DEMO_LINKS.find((l) => l.domain === domain && l.key === key)
-            ? false
-            : !validDateRangeForPlan({
-                plan: plan || dashboardProps?.workspacePlan,
-                start,
-                end,
-              });
+        const requiresUpgrade = DUB_DEMO_LINKS.find(
+          (l) => l.domain === domain && l.key === key,
+        )
+          ? false
+          : !validDateRangeForPlan({
+              plan: plan || dashboardProps?.workspacePlan,
+              conversionEnabled: showConversions,
+              start,
+              end,
+            });
 
         return {
           id: value,
