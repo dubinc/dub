@@ -29,7 +29,7 @@ export function ReferralsEmbedPageClient() {
     interval?: IntervalOptions;
   };
 
-  const color = "#8B5CF6"; // TODO: Read this from a program attribute
+  const color = program?.brandColor || "#8B5CF6";
 
   return (
     <>
