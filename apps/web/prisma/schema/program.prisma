@@ -52,7 +52,7 @@ model Program {
   sales        Sale[]
   resources    ProgramResource[]
   applications ProgramApplication[]
-  invites   ProgramInvite[]
+  invites      ProgramInvite[]
 
   @@index([workspaceId])
 }
@@ -62,6 +62,7 @@ model ProgramEnrollment {
   partnerId String
   programId String
   linkId    String?                 @unique
+  dotsUserId String?                @unique
   status    ProgramEnrollmentStatus @default(pending)
   createdAt DateTime                @default(now())
   updatedAt DateTime                @updatedAt
