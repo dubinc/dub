@@ -246,7 +246,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             type="button"
             variant="secondary"
             onClick={() => setIsOpen(false)}
-            text="Close"
+            text="Cancel"
             className="w-fit"
             disabled={isExecuting || creatingLink}
           />
