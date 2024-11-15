@@ -39,14 +39,14 @@ model Program {
   recurringDuration   Int?
   isLifetimeRecurring Boolean? // TODO: Maybe use just lifetimeRecurring?
 
-  brandColor          String?
-  wordmark            String?
-  landerData          Json?   @db.Json
+  brandColor String?
+  wordmark   String?
+  landerData Json?   @db.Json
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  workspace Project             @relation(fields: [workspaceId], references: [id])
+  workspace    Project              @relation(fields: [workspaceId], references: [id])
   partners     ProgramEnrollment[]
   payouts      Payout[]
   sales        Sale[]
@@ -58,14 +58,14 @@ model Program {
 }
 
 model ProgramEnrollment {
-  id        String                  @id @default(cuid())
-  partnerId String
-  programId String
-  linkId    String?                 @unique
-  dotsUserId String?                @unique
-  status    ProgramEnrollmentStatus @default(pending)
-  createdAt DateTime                @default(now())
-  updatedAt DateTime                @updatedAt
+  id         String                  @id @default(cuid())
+  partnerId  String
+  programId  String
+  linkId     String?                 @unique
+  dotsUserId String?                 @unique
+  status     ProgramEnrollmentStatus @default(pending)
+  createdAt  DateTime                @default(now())
+  updatedAt  DateTime                @updatedAt
 
   partner Partner @relation(fields: [partnerId], references: [id])
   program Program @relation(fields: [programId], references: [id])
@@ -83,19 +83,20 @@ enum ProgramApplicationStatus {
 }
 
 model ProgramApplication {
-  id String @id @default(cuid())
+  id        String                   @id @default(cuid())
   programId String
   partnerId String?
-  name     String
-  email    String
-  plan     String
-  website  String?
-  comments String?
+  name      String
+  email     String
+  plan      String
+  website   String?
+  comments  String?
   status    ProgramApplicationStatus @default(pending)
   createdAt DateTime                 @default(now())
   updatedAt DateTime                 @updatedAt
-  program Program @relation(fields: [programId], references: [id])
-  partner Partner? @relation(fields: [partnerId], references: [id])
+  program   Program                  @relation(fields: [programId], references: [id])
+  partner   Partner?                 @relation(fields: [partnerId], references: [id])
+
   @@index([programId])
   @@index([partnerId])
 }

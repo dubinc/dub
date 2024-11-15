@@ -21,11 +21,11 @@ model Partner {
 
   dotsUserId String? @unique
 
-  programs ProgramEnrollment[]
-  users    PartnerUser[]
-  invites  PartnerInvite[]
-  payouts  Payout[]
-  sales    Sale[]
+  programs     ProgramEnrollment[]
+  users        PartnerUser[]
+  invites      PartnerInvite[]
+  payouts      Payout[]
+  sales        Sale[]
   applications ProgramApplication[]
 }
 
