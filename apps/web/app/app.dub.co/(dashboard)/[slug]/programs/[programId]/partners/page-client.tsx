@@ -2,7 +2,7 @@
 
 import { PageContent } from "@/ui/layout/page-content";
 import { MaxWidthWrapper } from "@dub/ui";
-import { InvitePartnerButton } from "./invite-partner.button";
+import { InvitePartnerButton } from "./invite-partner-button";
 import { PartnerStats } from "./partner-stats";
 import { PartnerTable } from "./partner-table";
 
