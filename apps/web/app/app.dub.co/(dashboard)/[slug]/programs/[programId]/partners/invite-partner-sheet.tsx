@@ -61,10 +61,10 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        url: program?.url,
         domain: program?.domain,
-        trackConversion: true,
         key: shortKey,
+        url: program?.url,
+        trackConversion: true,
       }),
     });
 
