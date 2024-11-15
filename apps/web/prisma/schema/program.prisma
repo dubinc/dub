@@ -58,12 +58,16 @@ model Program {
 }
 
 model ProgramEnrollment {
-  id        String                  @id @default(cuid())
-  partnerId String
-  programId String
-  linkId    String?                 @unique
-  dotsUserId String?                @unique
-  status    ProgramEnrollmentStatus @default(pending)
+  id            String  @id @default(cuid())
+  partnerId     String
+  programId     String
+
+  applicationId String? @unique
+  linkId        String? @unique
+  dotsUserId    String? @unique
+
+  status ProgramEnrollmentStatus @default(pending)
+
   createdAt DateTime                @default(now())
   updatedAt DateTime                @updatedAt
 
@@ -71,9 +75,12 @@ model ProgramEnrollment {
   program Program @relation(fields: [programId], references: [id])
   link    Link?   @relation(fields: [linkId], references: [id])
 
+  application ProgramApplication? @relation(fields: [applicationId], references: [id])
+
   @@unique([partnerId, programId])
   @@index([programId])
   @@index([linkId])
+  @@index([applicationId])
 }
 
 enum ProgramApplicationStatus {
@@ -85,7 +92,6 @@ enum ProgramApplicationStatus {
 model ProgramApplication {
   id String @id @default(cuid())
   programId String
-  partnerId String?
 
   name     String
   email    String
@@ -97,11 +103,10 @@ model ProgramApplication {
   createdAt DateTime                 @default(now())
   updatedAt DateTime                 @updatedAt
 
-  program Program @relation(fields: [programId], references: [id])
-  partner Partner? @relation(fields: [partnerId], references: [id])
+  program    Program @relation(fields: [programId], references: [id])
+  enrollment ProgramEnrollment?
 
   @@index([programId])
-  @@index([partnerId])
 }
 
 // TODO: Haven't finalized the resource table yet.

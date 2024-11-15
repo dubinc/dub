@@ -26,7 +26,6 @@ model Partner {
   invites  PartnerInvite[]
   payouts  Payout[]
   sales    Sale[]
-  applications ProgramApplication[]
 }
 
 model PartnerUser {

@@ -7,7 +7,7 @@ import { Store } from "lucide-react";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 import { Header } from "../../header";
-import { CTAButton } from "./cta-button";
+import { CTAButtons } from "./cta-buttons";
 import { Screenshot } from "./screenshot";
 
 const FEATURES = [
@@ -42,7 +42,7 @@ export default async function SuccessPage({
   searchParams,
 }: {
   params: { programSlug: string };
-  searchParams: { applicationId?: string };
+  searchParams: { applicationId?: string; enrollmentId?: string };
 }) {
   const { programSlug } = params;
   const program = await prisma.program.findUnique({
@@ -63,6 +63,8 @@ export default async function SuccessPage({
   });
 
   if (!program) notFound();
+
+  const isEnrolled = !!searchParams.enrollmentId;
 
   const application = searchParams.applicationId
     ? await prisma.programApplication.findFirst({
@@ -97,24 +99,32 @@ export default async function SuccessPage({
       />
       <div className="p-6">
         <div className="grid grid-cols-1 gap-5 sm:pt-20">
-          <h1 className="text-4xl font-semibold">Application submitted</h1>
+          <h1 className="text-4xl font-semibold">
+            Application {isEnrolled ? "submitted" : "saved"}
+          </h1>
           <div className="flex flex-col gap-4 text-base text-neutral-700">
-            <p>
-              Your application has been submitted for review.
-              {application && (
-                <>
-                  {" "}
-                  You'll receive an update at{" "}
-                  <strong className="font-semibold">{application.email}</strong>
-                  .
-                </>
-              )}
-            </p>
-            <p>
-              While you're waiting, complete your account setup on{" "}
-              <strong className="font-semibold">Dub Partners</strong>, which
-              powers this program.
-            </p>
+            {isEnrolled && (
+              <p>
+                Your application has been submitted for review.
+                {application && (
+                  <>
+                    {" "}
+                    You'll receive an update at{" "}
+                    <strong className="font-semibold">
+                      {application.email}
+                    </strong>
+                    .
+                  </>
+                )}
+              </p>
+            )}
+            {!isEnrolled && (
+              <p>
+                Complete your account setup on{" "}
+                <strong className="font-semibold">Dub Partners</strong> to
+                finish submitting your application.
+              </p>
+            )}
           </div>
         </div>
 
@@ -149,8 +159,8 @@ export default async function SuccessPage({
           ))}
         </div>
 
-        <div className="mt-12">
-          <CTAButton />
+        <div className="mt-12 flex flex-col gap-3">
+          <CTAButtons />
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@
 import { createId } from "@/lib/api/utils";
 import { createDotsUser } from "@/lib/dots/create-dots-user";
 import { userIsInBeta } from "@/lib/edge-config";
+import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -66,6 +67,7 @@ export const onboardPartnerAction = authUserActionClient
       if (programInvite) {
         await prisma.programEnrollment.create({
           data: {
+            id: createId({ prefix: "pge_" }),
             programId: programInvite.programId,
             linkId: programInvite.linkId,
             partnerId: partner.id,
@@ -78,15 +80,8 @@ export const onboardPartnerAction = authUserActionClient
         });
       }
 
-      // Associate any matching program applications with the partner
-      await prisma.programApplication.updateMany({
-        where: {
-          email: user.email,
-          partnerId: null,
-          programId: { not: programInvite?.id },
-        },
-        data: { partnerId: partner.id },
-      });
+      // Complete any outstanding program applications
+      await completeProgramApplications(user.id);
 
       // Create the Dots user with DOTS_DEFAULT_APP_ID
       const [firstName, lastName] = name.split(" ");

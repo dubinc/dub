@@ -50,7 +50,8 @@ export function ProgramApplicationForm({
 
         if (!response?.data?.ok) {
           toast.error(
-            response?.data?.message ?? "Failed to submit application",
+            (response?.data as { message?: string }).message ??
+              "Failed to submit application",
           );
           setError("root.serverError", {
             message: "Failed to submit application. Please try again.",
@@ -60,7 +61,12 @@ export function ProgramApplicationForm({
 
         toast.success("Application submitted successfully");
         router.push(
-          `/apply/${program.slug}/application/success?applicationId=${response.data.programApplicationId}`,
+          `/apply/${program.slug}/application/success?${new URLSearchParams({
+            applicationId: response.data.programApplicationId,
+            ...("programEnrollmentId" in response.data && {
+              enrollmentId: response.data.programEnrollmentId,
+            }),
+          }).toString()}`,
         );
       })}
       className="flex flex-col gap-6"
