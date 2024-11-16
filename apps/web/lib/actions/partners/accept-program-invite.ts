@@ -18,10 +18,6 @@ export const acceptProgramInviteAction = authPartnerActionClient
     const { partner } = ctx;
     const { programInviteId } = parsedInput;
 
-    if (!partner.dotsUserId) {
-      throw new Error("Partner does not have a Dots user ID");
-    }
-
     const programInvite = await prisma.programInvite.findUniqueOrThrow({
       where: { id: programInviteId },
     });
