@@ -91,12 +91,12 @@ export const invitePartnerAction = authActionClient
           programId,
         },
       }),
-
-      updateConfig({
-        key: "partnersPortal",
-        value: email,
-      }),
     ]);
+
+    await updateConfig({
+      key: "partnersPortal",
+      value: email,
+    });
 
     await sendEmail({
       subject: `${program.name} invited you to join Dub Partners`,
