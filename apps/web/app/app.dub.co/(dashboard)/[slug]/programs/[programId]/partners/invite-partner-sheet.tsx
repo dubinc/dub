@@ -12,6 +12,7 @@ import {
   Combobox,
   LinkLogo,
   Sheet,
+  useMediaQuery,
 } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/src/icons";
 import { cn, getApexDomain, linkConstructor } from "@dub/utils";
@@ -36,6 +37,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const [shortKey, setShortKey] = useState("");
   const [useExistingLink, setUseExistingLink] = useState(false);
   const [creatingLink, setCreatingLink] = useState(false);
+  const { isMobile } = useMediaQuery();
 
   const {
     register,
@@ -156,6 +158,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                   required
                   type="email"
                   autoComplete="off"
+                  autoFocus={!isMobile}
                 />
               </div>
             </div>

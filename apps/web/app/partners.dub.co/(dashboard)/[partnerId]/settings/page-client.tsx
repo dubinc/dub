@@ -157,7 +157,7 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
                       ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                       : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
                   )}
-                  placeholder="Tell us about your business"
+                  placeholder="Tell us about the kind of content you create – e.g. tech, travel, fashion, etc."
                   minRows={3}
                   maxRows={10}
                   {...register("description")}
