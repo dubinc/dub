@@ -21,8 +21,8 @@ import {
   saleEventResponseSchema,
   saleEventSchemaTBEndpoint,
 } from "../zod/schemas/sales";
-import { INTERVAL_DATA } from "./constants";
 import { EventsFilters } from "./types";
+import { getStartEndDates } from "./utils/get-start-end-dates";
 
 // Fetch data for /api/events
 export const getEvents = async (params: EventsFilters) => {
@@ -38,19 +38,11 @@ export const getEvents = async (params: EventsFilters) => {
     obfuscateData,
   } = params;
 
-  if (start) {
-    start = new Date(start);
-    end = end ? new Date(end) : new Date(Date.now());
-
-    // Swap start and end if start is greater than end
-    if (start > end) {
-      [start, end] = [end, start];
-    }
-  } else {
-    interval = interval ?? "24h";
-    start = INTERVAL_DATA[interval].startDate;
-    end = new Date(Date.now());
-  }
+  const { startDate, endDate } = getStartEndDates({
+    interval,
+    start,
+    end,
+  });
 
   if (trigger) {
     if (trigger === "qr") {
@@ -77,8 +69,8 @@ export const getEvents = async (params: EventsFilters) => {
     workspaceId,
     qr,
     offset: (params.page - 1) * params.limit,
-    start: start.toISOString().replace("T", " ").replace("Z", ""),
-    end: end.toISOString().replace("T", " ").replace("Z", ""),
+    start: startDate.toISOString().replace("T", " ").replace("Z", ""),
+    end: endDate.toISOString().replace("T", " ").replace("Z", ""),
   });
 
   const [linksMap, customersMap] = await Promise.all([

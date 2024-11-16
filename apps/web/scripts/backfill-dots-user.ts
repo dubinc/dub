@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 
 const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
-const dotsAppId = "f821f11e-f5d0-44f9-8f6c-adb4816c5f03";
+const dotsAppId = "7af68b86-abad-4b2d-a598-0becf6770fb7";
 
 // REMEMBER TO CHANGE TO PROD ENVS FIRST OR THIS WONT WORK
 async function main() {
@@ -19,10 +19,7 @@ async function main() {
     return;
   }
 
-  const dotsUser = await retrieveDotsUser({
-    dotsUserId: partner.dotsUserId,
-    partner,
-  });
+  const dotsUser = await retrieveDotsUser(partner);
 
   const userInfo = {
     firstName: dotsUser.first_name,

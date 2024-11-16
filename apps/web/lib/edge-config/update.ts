@@ -13,7 +13,8 @@ export const updateConfig = async ({
     | "whitelist"
     | "emails"
     | "reserved"
-    | "reservedUsernames";
+    | "reservedUsernames"
+    | "partnersPortal";
   value: string;
 }) => {
   const existingData = (await get(key)) as string[];

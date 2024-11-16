@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withPartner } from "@/lib/auth/partner";
 import { prisma } from "@/lib/prisma";
-import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/partners";
+import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
 import { NextResponse } from "next/server";
 
 // GET /api/partners/[partnerId]/programs/[programId] – get a partner's enrollment in a program

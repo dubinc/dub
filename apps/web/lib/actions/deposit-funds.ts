@@ -16,7 +16,7 @@ export const depositFundsAction = authActionClient
     const { amount } = parsedInput;
 
     if (!workspace.dotsAppId) {
-      throw new Error("Dots app ID is not set for this workspace.");
+      throw new Error("Partner payouts are not enabled for this workspace.");
     }
 
     return await depositFunds({

@@ -2,19 +2,13 @@ import { PartnerProps } from "../types";
 import { dotsFetch } from "./fetch";
 import { dotsUserSchema } from "./schemas";
 
-export const retrieveDotsUser = async ({
-  dotsUserId,
-  partner,
-}: {
-  dotsUserId: string;
-  partner: PartnerProps;
-}) => {
+export const retrieveDotsUser = async (partner: PartnerProps) => {
   const [dotsUser, payoutMethods] = await Promise.all([
-    dotsFetch(`/users/${dotsUserId}`, {
+    dotsFetch(`/users/${partner.dotsUserId}`, {
       method: "GET",
       dotsAppId: "default",
     }),
-    dotsFetch(`/users/${dotsUserId}/payout-methods`, {
+    dotsFetch(`/users/${partner.dotsUserId}/payout-methods`, {
       method: "GET",
       dotsAppId: "default",
     }),

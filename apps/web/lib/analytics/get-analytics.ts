@@ -1,14 +1,14 @@
 import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { tb } from "@/lib/tinybird";
-import { getDaysDifference, linkConstructor, punyEncode } from "@dub/utils";
+import { linkConstructor, punyEncode } from "@dub/utils";
 import { conn } from "../planetscale";
 import { prismaEdge } from "../prisma/edge";
 import { tbDemo } from "../tinybird/demo-client";
 import z from "../zod";
 import { analyticsFilterTB } from "../zod/schemas/analytics";
 import { analyticsResponse } from "../zod/schemas/analytics-response";
-import { INTERVAL_DATA } from "./constants";
 import { AnalyticsFilters } from "./types";
+import { getStartEndDates } from "./utils/get-start-end-dates";
 
 // Fetch data for /api/analytics
 export const getAnalytics = async (params: AnalyticsFilters) => {
@@ -50,34 +50,15 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     return response.rows[0];
   }
 
-  let granularity: "minute" | "hour" | "day" | "month" = "day";
-
   if (groupBy === "trigger") {
     groupBy = "triggers";
   }
 
-  if (start) {
-    start = new Date(start);
-    end = end ? new Date(end) : new Date(Date.now());
-
-    const daysDifference = getDaysDifference(start, end);
-
-    if (daysDifference <= 2) {
-      granularity = "hour";
-    } else if (daysDifference > 180) {
-      granularity = "month";
-    }
-
-    // Swap start and end if start is greater than end
-    if (start > end) {
-      [start, end] = [end, start];
-    }
-  } else {
-    interval = interval ?? "24h";
-    start = INTERVAL_DATA[interval].startDate;
-    end = new Date(Date.now());
-    granularity = INTERVAL_DATA[interval].granularity;
-  }
+  const { startDate, endDate, granularity } = getStartEndDates({
+    interval,
+    start,
+    end,
+  });
 
   if (trigger) {
     if (trigger === "qr") {
@@ -100,8 +81,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     workspaceId,
     tagIds,
     qr,
-    start: start.toISOString().replace("T", " ").replace("Z", ""),
-    end: end.toISOString().replace("T", " ").replace("Z", ""),
+    start: startDate.toISOString().replace("T", " ").replace("Z", ""),
+    end: endDate.toISOString().replace("T", " ").replace("Z", ""),
     granularity,
     timezone,
   });
