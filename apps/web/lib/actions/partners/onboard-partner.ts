@@ -43,18 +43,17 @@ export const onboardPartnerAction = authUserActionClient
       phoneNumber,
     };
 
+    const dotsUser = await createDotsUser({
+      userInfo: dotsUserInfo,
+    });
+
     const partnerId = createId({ prefix: "pn_" });
 
-    const [dotsUser, logoUrl] = await Promise.all([
-      createDotsUser({
-        userInfo: dotsUserInfo,
-      }),
-      logo
-        ? await storage
-            .upload(`logos/partners/${partnerId}_${nanoid(7)}`, logo)
-            .then(({ url }) => url)
-        : null,
-    ]);
+    const logoUrl = logo
+      ? await storage
+          .upload(`logos/partners/${partnerId}_${nanoid(7)}`, logo)
+          .then(({ url }) => url)
+      : null;
 
     const [partner, _] = await Promise.all([
       prisma.partner.create({
