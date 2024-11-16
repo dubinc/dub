@@ -2,6 +2,7 @@
 
 import { createId } from "@/lib/api/utils";
 import { createDotsUser } from "@/lib/dots/create-dots-user";
+import { sendVerificationToken } from "@/lib/dots/send-verification-token";
 import { userIsInBeta } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
@@ -42,34 +43,40 @@ export const onboardPartnerAction = authUserActionClient
       phoneNumber,
     };
 
-    const dotsUser = await createDotsUser({
-      userInfo: dotsUserInfo,
-    });
-
     const partnerId = createId({ prefix: "pn_" });
 
-    const logoUrl = logo
-      ? await storage
-          .upload(`logos/partners/${partnerId}_${nanoid(7)}`, logo)
-          .then(({ url }) => url)
-      : null;
+    const [dotsUser, logoUrl] = await Promise.all([
+      createDotsUser({
+        userInfo: dotsUserInfo,
+      }),
+      logo
+        ? await storage
+            .upload(`logos/partners/${partnerId}_${nanoid(7)}`, logo)
+            .then(({ url }) => url)
+        : null,
+    ]);
 
-    const partner = await prisma.partner.create({
-      data: {
-        id: partnerId,
-        name,
-        country,
-        bio: description,
-        dotsUserId: dotsUser.id,
-        logo: logoUrl,
-        users: {
-          create: {
-            userId: user.id,
-            role: "owner",
+    const [partner, _] = await Promise.all([
+      prisma.partner.create({
+        data: {
+          id: partnerId,
+          name,
+          country,
+          bio: description,
+          dotsUserId: dotsUser.id,
+          logo: logoUrl,
+          users: {
+            create: {
+              userId: user.id,
+              role: "owner",
+            },
           },
         },
-      },
-    });
+      }),
+      sendVerificationToken({
+        dotsUserId: dotsUser.id,
+      }),
+    ]);
 
     return {
       partnerId: partner.id,

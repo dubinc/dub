@@ -24,10 +24,13 @@ import {
   PartnerSchema,
   PayoutSchema,
   PayoutWithSalesSchema,
-  ProgramEnrollmentSchema,
   SaleSchema,
 } from "./zod/schemas/partners";
-import { ProgramInviteSchema, ProgramSchema } from "./zod/schemas/programs";
+import {
+  ProgramEnrollmentSchema,
+  ProgramInviteSchema,
+  ProgramSchema,
+} from "./zod/schemas/programs";
 import { trackSaleResponseSchema } from "./zod/schemas/sales";
 import { tokenSchema } from "./zod/schemas/token";
 import { usageResponse } from "./zod/schemas/usage";

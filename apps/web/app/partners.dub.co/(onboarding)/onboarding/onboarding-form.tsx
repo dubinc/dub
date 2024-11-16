@@ -40,14 +40,15 @@ export function OnboardingForm() {
         toast.error("Failed to create partner profile. Please try again.");
         return;
       }
-
-      router.push(`/${data.partnerId}`);
+      router.push(`/onboarding/verify?partner=${data.partnerId}`);
     },
     onError: ({ error, input }) => {
       toast.error(error.serverError?.serverError);
       reset(input);
     },
   });
+
+  const countryCode = COUNTRY_PHONE_CODES[watch("country")];
 
   return (
     <form
@@ -128,15 +129,23 @@ export function OnboardingForm() {
           Mobile number
           <span className="font-normal text-neutral-500"> (required)</span>
         </span>
-        <div className="relative mt-2 rounded-md shadow-sm">
-          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-            +{COUNTRY_PHONE_CODES[watch("country")]}
-          </span>
+        <div
+          className={cn(
+            "relative mt-2 flex items-center rounded-md border border-neutral-300 bg-white shadow-sm focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
+            errors.phoneNumber &&
+              "border-red-600 focus-within:border-red-500 focus-within:ring-red-600",
+          )}
+        >
+          {countryCode && (
+            <span className="left-0 flex items-center pl-2.5 text-sm text-neutral-400">
+              +{countryCode}
+            </span>
+          )}
           <input
             className={cn(
-              "block w-full rounded-md border-neutral-300 pl-8 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-              errors.phoneNumber &&
-                "border-red-600 focus:border-red-500 focus:ring-red-600",
+              "block w-full border-none bg-transparent text-neutral-900 placeholder-neutral-400 sm:text-sm",
+              "focus:border-none focus:outline-none focus:ring-0",
+              countryCode && "pl-1",
             )}
             type="tel"
             {...register("phoneNumber", {
@@ -155,7 +164,7 @@ export function OnboardingForm() {
               ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
               : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
           )}
-          placeholder="Tell us about your business"
+          placeholder="Tell us about the kind of content you create – e.g. tech, travel, fashion, etc."
           minRows={3}
           {...register("description")}
         />
