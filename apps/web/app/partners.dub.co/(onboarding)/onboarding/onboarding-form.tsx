@@ -100,6 +100,7 @@ export function OnboardingForm() {
                 onChange={({ src }) => field.onChange(src)}
                 content={null}
                 maxFileSizeMB={2}
+                targetResolution={{ width: 160, height: 160 }}
               />
             )}
           />

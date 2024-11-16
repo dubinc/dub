@@ -3,7 +3,7 @@ export const resizeImage = (
   opts: {
     width: number;
     height: number;
-    quality: number;
+    quality?: number;
   } = {
     width: 1200, // Desired output width
     height: 630, // Desired output height

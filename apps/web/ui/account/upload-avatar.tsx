@@ -56,6 +56,7 @@ export default function UploadAvatar() {
             onChange={({ src }) => setImage(src)}
             content={null}
             maxFileSizeMB={2}
+            targetResolution={{ width: 160, height: 160 }}
           />
         </div>
       </div>
