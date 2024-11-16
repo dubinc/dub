@@ -381,7 +381,7 @@ function LinksSelector({
   const [debouncedSearch] = useDebounce(search, 500);
 
   const { links } = useLinks(
-    { search: debouncedSearch, excludePartnerLinks: true },
+    { search: debouncedSearch },
     {
       keepPreviousData: false,
     },
