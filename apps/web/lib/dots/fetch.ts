@@ -4,11 +4,12 @@ type DotsRequestConfig = {
   method: "GET" | "POST" | "PUT" | "DELETE";
   dotsAppId?: string | "default";
   body?: any;
+  textResponse?: boolean;
 };
 
 export const dotsFetch = async (
   endpoint: string,
-  { method, dotsAppId, body }: DotsRequestConfig,
+  { method, dotsAppId, body, textResponse }: DotsRequestConfig,
 ) => {
   const response = await fetch(`${process.env.DOTS_API_URL}${endpoint}`, {
     method,
@@ -38,5 +39,5 @@ export const dotsFetch = async (
     });
   }
 
-  return response.json();
+  return textResponse ? response.text() : response.json();
 };

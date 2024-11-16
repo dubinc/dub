@@ -40,8 +40,7 @@ export function OnboardingForm() {
         toast.error("Failed to create partner profile. Please try again.");
         return;
       }
-
-      router.push(`/${data.partnerId}`);
+      router.push(`/onboarding/verify?partner=${data.partnerId}`);
     },
     onError: ({ error, input }) => {
       toast.error(error.serverError?.serverError);
