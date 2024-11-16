@@ -37,11 +37,11 @@ model Project {
   usageLastChecked DateTime @default(now())
   publishableKey   String?  @unique
 
-  dotsAppId           String? @unique
-  bankAccountName     String?
+  dotsAppId            String? @unique
+  bankAccountName      String?
   partialAccountNumber String?
   routingNumber        String?
-  bankAccountVerified Boolean @default(false)
+  bankAccountVerified  Boolean @default(false)
 
   users                 ProjectUsers[]
   invites               ProjectInvite[]

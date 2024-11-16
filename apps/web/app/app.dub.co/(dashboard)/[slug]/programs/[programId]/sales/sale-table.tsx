@@ -211,6 +211,7 @@ const SaleTableBusinessInner = memo(
           | undefined;
 
         return (
+          !limit &&
           meta?.filterParams && <FilterButton set={meta.filterParams(cell)} />
         );
       },

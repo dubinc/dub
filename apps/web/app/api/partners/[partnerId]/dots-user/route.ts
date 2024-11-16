@@ -33,7 +33,7 @@ export const GET = withPartner(async ({ partner }) => {
     return NextResponse.json({});
   }
 
-  const dotsUser = await retrieveDotsUser({ dotsUserId, partner });
+  const dotsUser = await retrieveDotsUser(partner);
 
   return NextResponse.json(dotsUser);
 });

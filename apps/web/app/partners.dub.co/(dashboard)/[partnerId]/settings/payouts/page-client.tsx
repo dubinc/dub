@@ -24,7 +24,7 @@ import { ComplianceButton } from "./compliance-button";
 import PayoutMethodCard from "./payout-method-card";
 
 export function PayoutsSettingsPageClient() {
-  const { partnerId } = useParams() as { partnerId: string };
+  const { partnerId } = useParams<{ partnerId: string }>();
   const { partner } = usePartnerProfile();
 
   const { dotsUser, isLoading, mutate } = useDotsUser();

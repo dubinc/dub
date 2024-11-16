@@ -45,7 +45,7 @@ export function ProfileSettingsPageClient() {
 }
 
 function ProfileForm({ partner }: { partner: PartnerProps }) {
-  const { partnerId } = useParams() as { partnerId: string };
+  const { partnerId } = useParams<{ partnerId: string }>();
   const {
     register,
     control,

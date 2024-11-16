@@ -3,10 +3,13 @@
 import { X } from "@/ui/shared/icons";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { notFound } from "next/navigation";
 import { useState } from "react";
 import { Drawer } from "vaul";
 
 export function ProgramsPageClient() {
+  notFound(); // TODO: remove this once we support multiple programs
+
   return (
     <Drawer.Root open={true} onOpenChange={() => {}}>
       <Drawer.Portal>

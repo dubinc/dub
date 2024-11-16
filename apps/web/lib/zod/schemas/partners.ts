@@ -1,17 +1,15 @@
 import { intervals } from "@/lib/analytics/constants";
+import { COUNTRIES } from "@dub/utils";
 import {
-  CommissionInterval,
-  CommissionType,
   PartnerStatus,
   PayoutStatus,
   ProgramEnrollmentStatus,
-  ProgramType,
   SaleStatus,
 } from "@prisma/client";
 import { z } from "zod";
 import { CustomerSchema } from "./customers";
-import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
+import { ProgramEnrollmentSchema } from "./programs";
 import { parseDateSchema } from "./utils";
 
 export const PARTNERS_MAX_PAGE_SIZE = 100;
@@ -41,39 +39,6 @@ export const PartnerSchema = z.object({
   dotsUserId: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
-});
-
-export const ProgramSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  slug: z.string(),
-  logo: z.string().nullable(),
-  type: z.nativeEnum(ProgramType),
-  cookieLength: z.number(),
-  commissionAmount: z.number(),
-  commissionType: z.nativeEnum(CommissionType),
-  recurringCommission: z.boolean(),
-  recurringDuration: z.number().nullable(),
-  recurringInterval: z.nativeEnum(CommissionInterval).nullable(),
-  isLifetimeRecurring: z.boolean().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
-
-export const ProgramEnrollmentSchema = z.object({
-  partnerId: z.string(),
-  programId: z.string(),
-  program: ProgramSchema,
-  status: z.nativeEnum(ProgramEnrollmentStatus),
-  link: LinkSchema.pick({
-    id: true,
-    shortLink: true,
-    url: true,
-    clicks: true,
-    leads: true,
-    sales: true,
-    saleAmount: true,
-  }).nullable(),
 });
 
 export const EnrolledPartnerSchema = PartnerSchema.omit({
@@ -150,4 +115,12 @@ export const getSalesCountQuerySchema = getSalesQuerySchema.omit({
   pageSize: true,
   order: true,
   sortBy: true,
+});
+
+export const onboardPartnerSchema = z.object({
+  name: z.string().trim().min(1).max(100),
+  logo: z.string().nullable(),
+  country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]),
+  phoneNumber: z.string().trim().min(1).max(15),
+  description: z.string().max(5000).nullable(),
 });

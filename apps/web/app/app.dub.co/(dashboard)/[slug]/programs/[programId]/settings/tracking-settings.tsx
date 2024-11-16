@@ -1,6 +1,7 @@
 "use client";
 
 import { updateProgramAction } from "@/lib/actions/update-program";
+import useDomains from "@/lib/swr/use-domains";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
@@ -12,6 +13,8 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { SettingsRow } from "./settings-row";
+
+type FormData = Pick<ProgramProps, "domain" | "url" | "cookieLength">;
 
 const linkStructures = [
   {
@@ -47,24 +50,26 @@ export function TrackingSettings() {
   );
 }
 
-type FormData = Pick<ProgramProps, "cookieLength">;
-
 function TrackingSettingsForm({ program }: { program: ProgramProps }) {
   const { id: workspaceId } = useWorkspace();
+
+  const { activeWorkspaceDomains: domains, loading: loadingDomains } =
+    useDomains();
 
   const form = useForm<FormData>({
     mode: "onBlur",
     defaultValues: {
+      domain: program.domain,
+      url: program.url,
       cookieLength: program.cookieLength,
     },
   });
 
   const {
     register,
-    setValue,
     handleSubmit,
     reset,
-    formState: { isDirty, isValid, isSubmitting, errors },
+    formState: { isDirty, isValid, isSubmitting },
   } = form;
 
   const { executeAsync } = useAction(updateProgramAction, {
@@ -82,9 +87,8 @@ function TrackingSettingsForm({ program }: { program: ProgramProps }) {
     <form
       className="rounded-lg border border-neutral-200 bg-white"
       onSubmit={handleSubmit(async (data) => {
-        console.log(data);
         await executeAsync({
-          workspaceId: workspaceId || "",
+          workspaceId: workspaceId!,
           programId: program.id,
           ...data,
         });
@@ -98,6 +102,60 @@ function TrackingSettingsForm({ program }: { program: ProgramProps }) {
       </div>
 
       <div className="divide-y divide-neutral-200 px-6">
+        <SettingsRow heading="Default Referral Link">
+          <div className="flex flex-col gap-6">
+            <div>
+              <label
+                htmlFor="domain"
+                className="text-sm font-medium text-neutral-800"
+              >
+                Default domain
+              </label>
+              <div className="relative mt-2 rounded-md shadow-sm">
+                <select
+                  className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  {...register("domain", {
+                    required: true,
+                  })}
+                  disabled={loadingDomains}
+                >
+                  <option value="">Select a domain</option>
+                  {domains?.map((domain) => (
+                    <option
+                      value={domain.slug}
+                      key={domain.slug}
+                      selected={domain.slug === program.domain}
+                    >
+                      {domain.slug}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="url"
+                className="text-sm font-medium text-neutral-800"
+              >
+                Destination URL
+              </label>
+              <div className="mt-2 rounded-md shadow-sm">
+                <input
+                  type="url"
+                  placeholder="https://example.com"
+                  className={cn(
+                    "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                  )}
+                  {...register("url", {
+                    required: true,
+                  })}
+                />
+              </div>
+            </div>
+          </div>
+        </SettingsRow>
+
         <SettingsRow heading="Link structure">
           <div className="grid grid-cols-1 gap-3">
             {linkStructures.map((linkStructure, idx) => {

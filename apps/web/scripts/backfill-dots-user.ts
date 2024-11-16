@@ -19,10 +19,7 @@ async function main() {
     return;
   }
 
-  const dotsUser = await retrieveDotsUser({
-    dotsUserId: partner.dotsUserId,
-    partner,
-  });
+  const dotsUser = await retrieveDotsUser(partner);
 
   const userInfo = {
     firstName: dotsUser.first_name,
