@@ -4,7 +4,7 @@ import { getPartnerOrThrow } from "@/lib/api/partners/get-partner-or-throw";
 import { userIsInBeta } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
-import { nanoid } from "nanoid";
+import { nanoid } from "@dub/utils";
 import z from "../../zod";
 import { authUserActionClient } from "../safe-action";
 
@@ -43,10 +43,7 @@ export const updatePartnerProfile = authUserActionClient
       let logoUrl: string | null = null;
       if (logo)
         logoUrl = (
-          await storage.upload(
-            `logos/partners/${partner.id}_${nanoid(7)}`,
-            logo,
-          )
+          await storage.upload(`partners/${partner.id}/logo_${nanoid(7)}`, logo)
         ).url;
 
       await prisma.partner.update({

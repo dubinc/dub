@@ -76,15 +76,22 @@ export function OnboardingForm() {
       </label>
 
       <label>
-        <span className="text-sm font-medium text-gray-800">Logo</span>
+        <span className="text-sm font-medium text-gray-800">
+          Logo
+          <span className="font-normal text-neutral-500"> (required)</span>
+        </span>
         <div className="flex items-center gap-5">
           <Controller
             control={control}
             name="logo"
+            rules={{ required: true }}
             render={({ field }) => (
               <FileUpload
                 accept="images"
-                className="mt-2 size-20 rounded-md border border-gray-300"
+                className={cn(
+                  "mt-2 size-20 rounded-md border border-gray-300",
+                  errors.logo && "border-0 ring-2 ring-red-500",
+                )}
                 iconClassName="w-5 h-5"
                 previewClassName="size-10 rounded-full"
                 variant="plain"
@@ -120,6 +127,7 @@ export function OnboardingForm() {
         <Controller
           control={control}
           name="country"
+          rules={{ required: true }}
           render={({ field }) => <CountryCombobox {...field} />}
         />
       </label>
@@ -153,6 +161,9 @@ export function OnboardingForm() {
             })}
           />
         </div>
+        <p className="mt-1 text-xs text-gray-400">
+          We'll send you a verification code to this number.
+        </p>
       </label>
 
       <label>

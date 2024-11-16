@@ -49,11 +49,9 @@ export const onboardPartnerAction = authUserActionClient
 
     const partnerId = createId({ prefix: "pn_" });
 
-    const logoUrl = logo
-      ? await storage
-          .upload(`logos/partners/${partnerId}_${nanoid(7)}`, logo)
-          .then(({ url }) => url)
-      : null;
+    const logoUrl = await storage
+      .upload(`partners/${partnerId}/logo_${nanoid(7)}`, logo)
+      .then(({ url }) => url);
 
     const [partner, _] = await Promise.all([
       prisma.partner.create({
