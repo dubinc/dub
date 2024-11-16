@@ -43,7 +43,7 @@ export const ComplianceButton = () => {
         <Modal
           showModal={modalState.show}
           setShowModal={() => setModalState({ show: false, iframeSrc: "" })}
-          className="h-[90vh] w-full max-w-[90vw]"
+          className="h-[90vh] w-full max-w-[90vw] p-4"
         >
           <button
             onClick={() => setModalState({ show: false, iframeSrc: "" })}
@@ -51,7 +51,10 @@ export const ComplianceButton = () => {
           >
             <X className="size-5 text-neutral-700 transition-all group-hover:scale-110 group-active:scale-90" />
           </button>
-          <iframe src={modalState.iframeSrc} className="h-full w-full" />
+          <iframe
+            src={modalState.iframeSrc}
+            className="h-full w-full rounded-lg"
+          />
         </Modal>
       )}
       <Button
