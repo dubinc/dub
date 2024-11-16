@@ -600,7 +600,6 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional()
       .describe("Link IDs to filter by."),
-    excludePartnerLinks: booleanQuerySchema.default("false"),
   }),
 );
 
