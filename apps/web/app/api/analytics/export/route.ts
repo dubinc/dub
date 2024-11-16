@@ -27,7 +27,7 @@ export const GET = withWorkspace(
 
     if (linkId || externalId || (domain && key)) {
       link = await getLinkOrThrow({
-        workspace: workspace,
+        workspaceId: workspace.id,
         linkId,
         externalId,
         domain,

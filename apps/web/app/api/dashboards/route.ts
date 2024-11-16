@@ -28,7 +28,7 @@ export const POST = withWorkspace(
     const { domain, key } = domainKeySchema.parse(searchParams);
 
     const link = await getLinkOrThrow({
-      workspace,
+      workspaceId: workspace.id,
       domain,
       key,
     });

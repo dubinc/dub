@@ -22,7 +22,7 @@ export const GET = withWorkspace(
     }
 
     const link = await getLinkOrThrow({
-      workspace,
+      workspaceId: workspace.id,
       linkId,
       externalId,
       domain,

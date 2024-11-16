@@ -11,7 +11,7 @@ export const GET = withWorkspace(
 
     const link = await getLinkOrThrow({
       linkId,
-      workspace,
+      workspaceId: workspace.id,
     });
 
     const dashboard = await prisma.dashboard.findUnique({
