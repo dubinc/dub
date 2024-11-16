@@ -161,9 +161,18 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             </div>
 
             <div>
-              <h2 className="text-sm font-medium text-gray-900">
-                Referral link
-              </h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-medium text-gray-900">
+                  Referral link
+                </h2>
+                <a
+                  href={`/${slug}/programs/${program?.id}/settings`}
+                  target="_blank"
+                  className="text-sm text-gray-500 underline-offset-2 hover:underline"
+                >
+                  Settings
+                </a>
+              </div>
 
               <div className="mt-2 grid grid-cols-2 gap-3">
                 {[
@@ -266,7 +275,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                               <a
                                 href={program.url}
                                 target="_blank"
-                                className="underline underline-offset-2"
+                                className="underline-offset-2 hover:underline"
                               >
                                 {program.url}
                               </a>
@@ -416,7 +425,7 @@ function LinksSelector({
             <a
               href={selectedLink.url}
               target="_blank"
-              className="underline underline-offset-2"
+              className="underline-offset-2 hover:underline"
             >
               {selectedLink.url}
             </a>
