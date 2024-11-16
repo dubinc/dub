@@ -21,11 +21,7 @@ export default function useDomains({
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
-  const {
-    data: allWorkspaceDomains,
-    error,
-    mutate,
-  } = useSWR<DomainProps[]>(
+  const { data, error, mutate } = useSWR<DomainProps[]>(
     workspaceId &&
       `/api/domains${
         ignoreParams
@@ -49,9 +45,10 @@ export default function useDomains({
     loading: loadingDefaultDomains,
   } = useDefaultDomains(opts);
 
+  const allWorkspaceDomains = useMemo(() => data || [], [data]);
   const activeWorkspaceDomains = useMemo(
-    () => allWorkspaceDomains?.filter((domain) => !domain.archived),
-    [allWorkspaceDomains],
+    () => data?.filter((domain) => !domain.archived),
+    [data],
   );
 
   const activeDefaultDomains = useMemo(
@@ -64,7 +61,7 @@ export default function useDomains({
 
   const allDomains = useMemo(
     () => [
-      ...(allWorkspaceDomains || []),
+      ...allWorkspaceDomains,
       ...(workspaceId === `ws_${DUB_WORKSPACE_ID}` ? [] : DUB_DOMAINS),
     ],
     [allWorkspaceDomains, workspaceId],
@@ -96,7 +93,7 @@ export default function useDomains({
     allActiveDomains, // all active domains (active workspace domains + active default Dub domains)
     allDomains, // all domains (all workspace domains + all default Dub domains)
     primaryDomain,
-    loading: (!allWorkspaceDomains && !error) || loadingDefaultDomains,
+    loading: (!data && !error) || loadingDefaultDomains,
     mutate,
     error,
   };
