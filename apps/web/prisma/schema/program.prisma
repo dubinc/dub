@@ -84,7 +84,6 @@ model ProgramEnrollment {
   @@unique([partnerId, programId])
   @@index([programId])
   @@index([linkId])
-  @@index([applicationId])
 }
 
 enum ProgramApplicationStatus {
@@ -106,10 +105,12 @@ model ProgramApplication {
   createdAt DateTime                 @default(now())
   updatedAt DateTime                 @updatedAt
 
+  partner    Partner? @relation(fields: [partnerId], references: [id])
   program    Program @relation(fields: [programId], references: [id])
   enrollment ProgramEnrollment?
 
   @@index([programId])
+  @@index([partnerId])
 }
 
 // TODO: Haven't finalized the resource table yet.
