@@ -197,7 +197,7 @@ export function InputSelect({
           </Drawer.Trigger>
           <Drawer.Overlay className="fixed inset-0 z-40 bg-gray-100 bg-opacity-10 backdrop-blur" />
           <Drawer.Portal>
-            <Drawer.Content 
+            <Drawer.Content
               className="fixed bottom-0 left-0 right-0 z-50 mt-24 rounded-t-lg border-t border-gray-200 bg-white"
               onPointerDownOutside={(e) => {
                 // Prevent dismissal when clicking inside a toast
