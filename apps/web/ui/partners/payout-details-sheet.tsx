@@ -109,13 +109,23 @@ function PayoutDetailsSheetContent({
       {
         header: "Sale",
         cell: ({ row }) => (
-          <div className="flex flex-col">
-            <span className="text-sm text-neutral-700">
-              {row.original.customer.email || row.original.customer.name}
-            </span>
-            <span className="text-xs text-neutral-500">
-              {formatDateTime(row.original.createdAt)}
-            </span>
+          <div className="flex items-center gap-2">
+            <img
+              src={
+                row.original.customer.avatar ||
+                `${DICEBEAR_AVATAR_URL}${row.original.customer.name}`
+              }
+              alt={row.original.customer.name}
+              className="size-6 rounded-full"
+            />
+            <div className="flex flex-col">
+              <span className="text-sm text-neutral-700">
+                {row.original.customer.email || row.original.customer.name}
+              </span>
+              <span className="text-xs text-neutral-500">
+                {formatDateTime(row.original.createdAt)}
+              </span>
+            </div>
           </div>
         ),
       },

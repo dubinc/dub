@@ -110,11 +110,42 @@ export const getSalesQuerySchema = z
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
+export const getSalesResponseSchema = SaleSchema.merge(
+  z.object({
+    customer: CustomerSchema,
+    partner: PartnerSchema,
+  }),
+);
+
 export const getSalesCountQuerySchema = getSalesQuerySchema.omit({
   page: true,
   pageSize: true,
   order: true,
   sortBy: true,
+});
+
+export const getPartnerSalesQuerySchema = getSalesQuerySchema.omit({
+  partnerId: true,
+});
+
+export const getPartnerSalesResponseSchema = getSalesResponseSchema
+  .omit({
+    partner: true,
+    customer: true,
+  })
+  .merge(
+    z.object({
+      customer: z.object({
+        email: z
+          .string()
+          .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
+        avatar: z.string().nullable(),
+      }),
+    }),
+  );
+
+export const getPartnerSalesCountQuerySchema = getSalesCountQuerySchema.omit({
+  partnerId: true,
 });
 
 export const onboardPartnerSchema = z.object({

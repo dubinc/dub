@@ -1,55 +1,50 @@
 "use client";
 
-import { IntervalOptions } from "@/lib/analytics/types";
-import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
-import usePartnerEvents from "@/lib/swr/use-partner-events";
+import z from "@/lib/zod";
+import { getPartnerSalesResponseSchema } from "@/lib/zod/schemas/partners";
+import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { Table, usePagination, useRouterStuff, useTable } from "@dub/ui";
+import {
+  StatusBadge,
+  Table,
+  usePagination,
+  useRouterStuff,
+  useTable,
+} from "@dub/ui";
 import { CircleDollar } from "@dub/ui/src/icons";
-import { currencyFormatter, formatDate } from "@dub/utils";
+import { currencyFormatter, fetcher, formatDate } from "@dub/utils";
+import { useParams } from "next/navigation";
+import useSWR from "swr";
 
 export function SaleTablePartner({ limit }: { limit?: number }) {
-  const { queryParams, searchParamsObj } = useRouterStuff();
+  const { partnerId, programId } = useParams();
+  const { queryParams, searchParamsObj, getQueryString } = useRouterStuff();
 
-  const {
-    start,
-    end,
-    interval,
-    sortBy = "timestamp",
-    order = "desc",
-  } = searchParamsObj as {
-    start?: string;
-    end?: string;
-    interval?: IntervalOptions;
+  const { sortBy = "timestamp", order = "desc" } = searchParamsObj as {
     sortBy?: "timestamp";
     order?: "asc" | "desc";
   };
 
-  const { data: { sales: totalSaleEvents } = {} } = usePartnerAnalytics({
-    interval,
-    start: start ? new Date(start) : undefined,
-    end: end ? new Date(end) : undefined,
-  });
+  const { data: salesCount } = useSWR<{ count: number }>(
+    `/api/partners/${partnerId}/programs/${programId}/sales/count${getQueryString()}`,
+    fetcher,
+  );
 
   const {
-    data: saleEvents,
-    loading,
+    data: sales,
+    isLoading,
     error,
-  } = usePartnerEvents({
-    event: "sales",
-    interval: interval as any,
-    start: start ? new Date(start) : undefined,
-    end: end ? new Date(end) : undefined,
-    order,
-    sortBy,
-  });
+  } = useSWR<z.infer<typeof getPartnerSalesResponseSchema>[]>(
+    `/api/partners/${partnerId}/programs/${programId}/sales${getQueryString()}`,
+    fetcher,
+  );
 
   const { pagination, setPagination } = usePagination(limit);
 
   const { table, ...tableProps } = useTable({
-    data: saleEvents?.slice(0, limit) || [],
-    loading,
+    data: sales?.slice(0, limit) || [],
+    loading: isLoading,
     error: error ? "Failed to fetch sales events." : undefined,
     columns: [
       {
@@ -57,7 +52,7 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
         header: "Date",
         accessorKey: "timestamp",
         cell: ({ row }) => {
-          return formatDate(row.original.timestamp, { month: "short" });
+          return formatDate(row.original.createdAt, { month: "short" });
         },
       },
       {
@@ -73,7 +68,7 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
         header: "Sale Amount",
         accessorKey: "sale",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.sale.amount / 100, {
+          return currencyFormatter(row.original.amount / 100, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           });
@@ -88,6 +83,18 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           });
+        },
+      },
+      {
+        header: "Status",
+        cell: ({ row }) => {
+          const badge = SaleStatusBadges[row.original.status];
+
+          return (
+            <StatusBadge icon={null} variant={badge.variant}>
+              {badge.label}
+            </StatusBadge>
+          );
         },
       },
     ],
@@ -105,7 +112,7 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
           },
         }),
     }),
-    rowCount: totalSaleEvents,
+    rowCount: salesCount?.count || 0,
     emptyState: (
       <AnimatedEmptyState
         title="No sales found"
@@ -128,7 +135,7 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
           <SimpleDateRangePicker className="w-full sm:min-w-[200px] md:w-fit" />
         </div>
       )}
-      {loading || saleEvents?.length ? (
+      {isLoading || sales?.length ? (
         <Table
           {...tableProps}
           table={table}

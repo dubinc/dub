@@ -252,7 +252,7 @@ function RowMenuButton({ row }: { row: Row<PayoutWithPartnerProps> }) {
               label="View sales"
               onSelect={() => {
                 router.push(
-                  `/${slug}/programs/${programId}/sales?payoutId=${row.original.id}`,
+                  `/${slug}/programs/${programId}/sales?payoutId=${row.original.id}&start=${row.original.periodStart}&end=${row.original.periodEnd}`,
                 );
                 setIsOpen(false);
               }}
