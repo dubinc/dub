@@ -8,6 +8,7 @@ import { getLinkOrThrow } from "../api/links/get-link-or-throw";
 import { getProgramOrThrow } from "../api/programs/get-program";
 import { createId } from "../api/utils";
 import { updateConfig } from "../edge-config";
+import { recordLink } from "../tinybird";
 import { authActionClient } from "./safe-action";
 
 const invitePartnerSchema = z.object({
@@ -23,7 +24,7 @@ export const invitePartnerAction = authActionClient
     const { workspace } = ctx;
     const { email, linkId, programId } = parsedInput;
 
-    const [program, _] = await Promise.all([
+    const [program, link, tags] = await Promise.all([
       getProgramOrThrow({
         workspaceId: workspace.id,
         programId,
@@ -32,6 +33,16 @@ export const invitePartnerAction = authActionClient
       getLinkOrThrow({
         workspace,
         linkId,
+      }),
+
+      prisma.tag.findMany({
+        where: {
+          links: {
+            some: {
+              linkId,
+            },
+          },
+        },
       }),
     ]);
 
@@ -87,19 +98,31 @@ export const invitePartnerAction = authActionClient
       throw new Error("Link is already associated with another partner.");
     }
 
-    const result = await prisma.programInvite.create({
-      data: {
-        id: createId({ prefix: "pgi_" }),
-        email,
-        linkId,
-        programId,
-      },
-    });
-
-    await updateConfig({
-      key: "partnersPortal",
-      value: email,
-    });
+    const [result, _] = await Promise.all([
+      prisma.programInvite.create({
+        data: {
+          id: createId({ prefix: "pgi_" }),
+          email,
+          linkId,
+          programId,
+        },
+      }),
+      updateConfig({
+        key: "partnersPortal",
+        value: email,
+      }),
+      recordLink({
+        domain: link.domain,
+        key: link.key,
+        link_id: link.id,
+        created_at: link.createdAt,
+        url: link.url,
+        tag_ids: tags.map((t) => t.id) || [],
+        program_id: program.id,
+        workspace_id: workspace.id,
+        deleted: false,
+      }),
+    ]);
 
     await sendEmail({
       subject: `${program.name} invited you to join Dub Partners`,
