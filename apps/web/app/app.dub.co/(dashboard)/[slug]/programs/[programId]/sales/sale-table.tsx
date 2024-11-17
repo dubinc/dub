@@ -155,7 +155,7 @@ const SaleTableBusinessInner = memo(
               <div className="flex items-center gap-2">
                 <img
                   src={
-                    row.original.partner.logo ||
+                    row.original.partner.image ||
                     `${DICEBEAR_AVATAR_URL}${row.original.partner.name}`
                   }
                   alt={row.original.partner.name}

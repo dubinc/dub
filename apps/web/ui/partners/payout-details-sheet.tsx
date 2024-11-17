@@ -57,7 +57,7 @@ function PayoutDetailsSheetContent({
         <div className="flex items-center gap-2">
           <img
             src={
-              payout.partner.logo ||
+              payout.partner.image ||
               `${DICEBEAR_AVATAR_URL}${payout.partner.name}`
             }
             alt={payout.partner.name}
@@ -150,7 +150,7 @@ function PayoutDetailsSheetContent({
     className: cn(
       !showPagination && "[&_tr:last-child>td]:border-b-transparent", // Hide bottom row border
     ),
-    scrollWrapperClassName: "min-h-[102px]",
+    scrollWrapperClassName: "min-h-[40px]",
     resourceName: (p) => `sale${p ? "s" : ""}`,
     loading,
     error: error ? "Failed to load sales" : undefined,

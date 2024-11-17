@@ -104,7 +104,7 @@ function PayoutRow({ payout }: { payout: PayoutWithPartnerProps }) {
         <div className="flex items-center gap-2 text-xs">
           <img
             src={
-              payout.partner.logo ||
+              payout.partner.image ||
               `${DICEBEAR_AVATAR_URL}${payout.partner.name}`
             }
             alt={payout.partner.name}

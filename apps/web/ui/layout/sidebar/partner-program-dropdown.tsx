@@ -97,7 +97,7 @@ export function PartnerProgramDropdown() {
                 onClick={() => setOpenPopover(false)}
               >
                 <BlurImage
-                  src={partner.logo || `${DICEBEAR_AVATAR_URL}${partner.id}`}
+                  src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.id}`}
                   width={28}
                   height={28}
                   alt={partner.name}
@@ -154,7 +154,7 @@ export function PartnerProgramDropdown() {
             <BlurImage
               src={
                 selectedProgram?.logo ||
-                partner.logo ||
+                partner.image ||
                 `${DICEBEAR_AVATAR_URL}${partner.id}`
               }
               referrerPolicy="no-referrer"

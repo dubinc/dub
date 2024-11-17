@@ -7,13 +7,14 @@ import {
   buttonVariants,
   Combobox,
   FileUpload,
+  useEnterSubmit,
   useMediaQuery,
 } from "@dub/ui";
 import { COUNTRIES, COUNTRY_PHONE_CODES } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
@@ -50,14 +51,18 @@ export function OnboardingForm() {
 
   const countryCode = COUNTRY_PHONE_CODES[watch("country")];
 
+  const formRef = useRef<HTMLFormElement>(null);
+  const { handleKeyDown } = useEnterSubmit(formRef);
+
   return (
     <form
+      ref={formRef}
       onSubmit={handleSubmit(executeAsync)}
       className="flex w-full flex-col gap-4 text-left"
     >
       <label>
         <span className="text-sm font-medium text-gray-800">
-          Name
+          Full Name
           <span className="font-normal text-neutral-500"> (required)</span>
         </span>
         <input
@@ -77,20 +82,20 @@ export function OnboardingForm() {
 
       <label>
         <span className="text-sm font-medium text-gray-800">
-          Logo
+          Image
           <span className="font-normal text-neutral-500"> (required)</span>
         </span>
         <div className="flex items-center gap-5">
           <Controller
             control={control}
-            name="logo"
+            name="image"
             rules={{ required: true }}
             render={({ field }) => (
               <FileUpload
                 accept="images"
                 className={cn(
                   "mt-2 size-20 rounded-md border border-gray-300",
-                  errors.logo && "border-0 ring-2 ring-red-500",
+                  errors.image && "border-0 ring-2 ring-red-500",
                 )}
                 iconClassName="w-5 h-5"
                 previewClassName="size-10 rounded-full"
@@ -178,6 +183,7 @@ export function OnboardingForm() {
           )}
           placeholder="Tell us about the kind of content you create – e.g. tech, travel, fashion, etc."
           minRows={3}
+          onKeyDown={handleKeyDown}
           {...register("description")}
         />
       </label>
