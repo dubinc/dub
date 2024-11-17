@@ -71,7 +71,7 @@ export const createPartnerPayouts = async ({
     );
 
     const amount = earningsTotal;
-    const fee = amount * 0.02; // TODO: [payouts] tailor based on US / non-US
+    const fee = amount * 0.02;
 
     // Create the payout
     const payout = await tx.payout.create({
