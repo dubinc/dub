@@ -60,6 +60,15 @@ export function Modal({
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 z-50 bg-gray-100 bg-opacity-10 backdrop-blur" />
           <Drawer.Content
+            onPointerDownOutside={(e) => {
+              // Prevent dismissal when clicking inside a toast
+              if (
+                e.target instanceof Element &&
+                e.target.closest("[data-sonner-toast]")
+              ) {
+                e.preventDefault();
+              }
+            }}
             className={cn(
               "fixed bottom-0 left-0 right-0 z-50 flex flex-col",
               "rounded-t-[10px] border-t border-gray-200 bg-white",
@@ -99,6 +108,15 @@ export function Modal({
         <Dialog.Content
           onOpenAutoFocus={(e) => e.preventDefault()}
           onCloseAutoFocus={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => {
+            // Prevent dismissal when clicking inside a toast
+            if (
+              e.target instanceof Element &&
+              e.target.closest("[data-sonner-toast]")
+            ) {
+              e.preventDefault();
+            }
+          }}
           className={cn(
             "fixed inset-0 z-40 m-auto h-fit w-full max-w-md",
             "border border-gray-200 bg-white p-0 shadow-xl sm:rounded-2xl",
