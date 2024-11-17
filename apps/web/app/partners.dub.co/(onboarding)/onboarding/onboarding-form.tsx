@@ -82,7 +82,7 @@ export function OnboardingForm() {
 
       <label>
         <span className="text-sm font-medium text-gray-800">
-          Image
+          Display Image
           <span className="font-normal text-neutral-500"> (required)</span>
         </span>
         <div className="flex items-center gap-5">
