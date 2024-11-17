@@ -4,9 +4,9 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { PartnerProps, ProgramProps } from "@/lib/types";
 import { BlurImage, Popover, useScrollProgress } from "@dub/ui";
-import { Check2, Connections3, Gear } from "@dub/ui/src/icons";
-import { APP_DOMAIN, cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
-import { ChevronsUpDown, HelpCircle } from "lucide-react";
+import { Check2, Gear } from "@dub/ui/src/icons";
+import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import {
@@ -23,17 +23,17 @@ const LINKS = ({ partnerId }: { partnerId: string }) => [
     icon: Gear,
     href: `/${partnerId}/settings`,
   },
-  {
-    name: "Help center",
-    icon: HelpCircle,
-    href: "https://dub.co/help",
-    target: "_blank",
-  },
-  {
-    name: "Switch to Business Hub",
-    icon: Connections3,
-    href: APP_DOMAIN,
-  },
+  // {
+  //   name: "Help center",
+  //   icon: HelpCircle,
+  //   href: "https://dub.co/help",
+  //   target: "_blank",
+  // },
+  // {
+  //   name: "Switch to Business Hub",
+  //   icon: Connections3,
+  //   href: APP_DOMAIN,
+  // },
 ];
 
 export function PartnerProgramDropdown() {
@@ -118,11 +118,10 @@ export function PartnerProgramDropdown() {
               </Link>
               <div className="mt-0.5 flex flex-col gap-0.5">
                 {LINKS({ partnerId: partner.id }).map(
-                  ({ name, icon: Icon, href, target }) => (
+                  ({ name, icon: Icon, href }) => (
                     <Link
                       key={name}
                       href={href}
-                      target={target}
                       className={cn(
                         "flex items-center gap-x-4 rounded-md px-2.5 py-2 transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
                         "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
