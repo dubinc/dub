@@ -25,7 +25,7 @@ export const onboardPartnerAction = authUserActionClient
       throw new Error("Partners portal feature flag disabled.");
     }
 
-    const { name, logo, country, phoneNumber, description } = parsedInput;
+    const { name, image, country, phoneNumber, description } = parsedInput;
 
     // Create the Dots user with DOTS_DEFAULT_APP_ID
     const [firstName, lastName] = name.split(" ");
@@ -49,11 +49,9 @@ export const onboardPartnerAction = authUserActionClient
 
     const partnerId = createId({ prefix: "pn_" });
 
-    const logoUrl = logo
-      ? await storage
-          .upload(`logos/partners/${partnerId}_${nanoid(7)}`, logo)
-          .then(({ url }) => url)
-      : null;
+    const imageUrl = await storage
+      .upload(`partners/${partnerId}/image_${nanoid(7)}`, image)
+      .then(({ url }) => url);
 
     const [partner, _] = await Promise.all([
       prisma.partner.create({
@@ -63,7 +61,7 @@ export const onboardPartnerAction = authUserActionClient
           country,
           bio: description,
           dotsUserId: dotsUser.id,
-          logo: logoUrl,
+          image: imageUrl,
           users: {
             create: {
               userId: user.id,

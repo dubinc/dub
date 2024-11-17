@@ -1,5 +1,5 @@
 import { intervals } from "@/lib/analytics/constants";
-import { COUNTRIES } from "@dub/utils";
+import { COUNTRY_CODES } from "@dub/utils";
 import {
   PartnerStatus,
   PayoutStatus,
@@ -32,7 +32,7 @@ export const partnersQuerySchema = z
 export const PartnerSchema = z.object({
   id: z.string(),
   name: z.string(),
-  logo: z.string().nullable(),
+  image: z.string().nullable(),
   bio: z.string().nullable(),
   country: z.string().nullable(),
   status: z.nativeEnum(PartnerStatus),
@@ -119,8 +119,8 @@ export const getSalesCountQuerySchema = getSalesQuerySchema.omit({
 
 export const onboardPartnerSchema = z.object({
   name: z.string().trim().min(1).max(100),
-  logo: z.string().nullable(),
-  country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]),
-  phoneNumber: z.string().trim().min(1).max(15),
+  image: z.string(),
+  country: z.enum(COUNTRY_CODES),
+  phoneNumber: z.string().trim().min(1).max(24),
   description: z.string().max(5000).nullable(),
 });

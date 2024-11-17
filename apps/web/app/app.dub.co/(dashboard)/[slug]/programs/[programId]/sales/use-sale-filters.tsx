@@ -57,14 +57,14 @@ export function useSaleFilters() {
         label: "Partner",
         shouldFilter: !partnersAsync,
         options:
-          partners?.map(({ id, name, logo }) => {
+          partners?.map(({ id, name, image }) => {
             return {
               value: id,
               label: name,
               icon: (
                 <img
-                  src={logo || `${DICEBEAR_AVATAR_URL}${name}`}
-                  alt={`${name} logo`}
+                  src={image || `${DICEBEAR_AVATAR_URL}${name}`}
+                  alt={`${name} image`}
                   className="size-4 rounded-full"
                 />
               ),

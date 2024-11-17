@@ -26,13 +26,19 @@ export const dotsFetch = async (
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
 
+  let error:
+    | { error_code: string; message: string; success: boolean }
+    | undefined;
+
   if (!response.ok) {
     try {
-      const error = await response.json();
-      throw new Error(error.message);
+      error = await response.json(); // error could potentially not be JSON, hence the try catch
     } catch (error) {
       throw new Error(`${response.status} ${response.statusText}`);
     }
+  }
+  if (error?.message) {
+    throw new Error(error.message);
   }
 
   return textResponse ? response.text() : response.json();

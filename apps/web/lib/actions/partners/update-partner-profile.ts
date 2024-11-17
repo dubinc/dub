@@ -4,20 +4,20 @@ import { getPartnerOrThrow } from "@/lib/api/partners/get-partner-or-throw";
 import { userIsInBeta } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
-import { nanoid } from "nanoid";
+import { nanoid } from "@dub/utils";
 import z from "../../zod";
 import { authUserActionClient } from "../safe-action";
 
-const onboardPartnerSchema = z.object({
+const updatePartnerProfileSchema = z.object({
   partnerId: z.string(),
   name: z.string(),
-  logo: z.string().nullable(),
+  image: z.string().nullable(),
   description: z.string().nullable(),
 });
 
 // Update a partner profile
 export const updatePartnerProfile = authUserActionClient
-  .schema(onboardPartnerSchema)
+  .schema(updatePartnerProfileSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { user } = ctx;
 
@@ -37,15 +37,15 @@ export const updatePartnerProfile = authUserActionClient
       };
     }
 
-    const { name, logo, description } = parsedInput;
+    const { name, image, description } = parsedInput;
 
     try {
-      let logoUrl: string | null = null;
-      if (logo)
-        logoUrl = (
+      let imageUrl: string | null = null;
+      if (image)
+        imageUrl = (
           await storage.upload(
-            `logos/partners/${partner.id}_${nanoid(7)}`,
-            logo,
+            `partners/${partner.id}/image_${nanoid(7)}`,
+            image,
           )
         ).url;
 
@@ -54,7 +54,7 @@ export const updatePartnerProfile = authUserActionClient
         data: {
           name,
           bio: description,
-          logo: logoUrl,
+          image: imageUrl,
         },
       });
 

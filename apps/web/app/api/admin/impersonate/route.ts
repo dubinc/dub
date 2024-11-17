@@ -1,6 +1,6 @@
 import { hashToken, withAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { DUB_DOMAINS_ARRAY } from "@dub/utils";
+import { APP_DOMAIN, DUB_DOMAINS_ARRAY, PARTNERS_DOMAIN } from "@dub/utils";
 import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 
@@ -97,11 +97,18 @@ async function getImpersonateUrl(email: string) {
     },
   });
 
-  const params = new URLSearchParams({
-    callbackUrl: process.env.NEXTAUTH_URL as string,
-    email,
-    token,
-  });
-
-  return `${process.env.NEXTAUTH_URL}/api/auth/callback/email?${params}`;
+  return {
+    app: `${APP_DOMAIN}/api/auth/callback/email?${new URLSearchParams({
+      callbackUrl: APP_DOMAIN,
+      email,
+      token,
+    })}`,
+    partners: `${PARTNERS_DOMAIN}/api/auth/callback/email?${new URLSearchParams(
+      {
+        callbackUrl: PARTNERS_DOMAIN,
+        email,
+        token,
+      },
+    )}`,
+  };
 }
