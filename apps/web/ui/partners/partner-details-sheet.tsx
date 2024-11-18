@@ -1,8 +1,21 @@
 import { EnrolledPartnerProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet, StatusBadge, ToggleGroup } from "@dub/ui";
-import { COUNTRIES, currencyFormatter, DICEBEAR_AVATAR_URL } from "@dub/utils";
+import {
+  Button,
+  Sheet,
+  StatusBadge,
+  ToggleGroup,
+  useCopyToClipboard,
+} from "@dub/ui";
+import { Copy, Link4 } from "@dub/ui/src/icons";
+import {
+  COUNTRIES,
+  currencyFormatter,
+  DICEBEAR_AVATAR_URL,
+  getPrettyUrl,
+} from "@dub/utils";
 import { Dispatch, SetStateAction, useState } from "react";
+import { toast } from "sonner";
 import { PartnerStatusBadges } from "./partner-status-badges";
 
 type PartnerDetailsSheetProps = {
@@ -15,6 +28,8 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
 
   const saleAmount = (partner.link?.saleAmount ?? 0) / 100;
   const earnings = (partner.earnings ?? 0) / 100;
+
+  const [, copyToClipboard] = useCopyToClipboard();
 
   const [selectedTab, setSelectedTab] = useState<"overview" | "payouts">(
     "overview",
@@ -37,7 +52,7 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
         </div>
         <div className="p-6">
           {/* Basic info */}
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-6">
             <div className="flex flex-col">
               <img
                 src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`}
@@ -55,16 +70,39 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
                 )}
               </div>
             </div>
-            {partner.country && (
-              <div className="flex items-center gap-2 rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700">
-                <img
-                  alt=""
-                  src={`https://flag.vercel.app/m/${partner.country}.svg`}
-                  className="h-3 w-4"
-                />
-                {COUNTRIES[partner.country]}
-              </div>
-            )}
+            <div className="flex min-w-[40%] shrink grow basis-1/2 flex-wrap items-center justify-end gap-2">
+              {partner.link && (
+                <button
+                  type="button"
+                  title="Copy link"
+                  onClick={() => {
+                    if (!partner.link) return;
+                    toast.promise(copyToClipboard(partner.link.shortLink), {
+                      success: "Copied to clipboard",
+                    });
+                  }}
+                  className="group flex min-w-0 items-center gap-1 overflow-hidden rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700 transition-colors duration-100 hover:bg-neutral-200/70 active:bg-neutral-200"
+                >
+                  <div className="relative size-3 shrink-0 text-neutral-600">
+                    <Link4 className="absolute left-0 top-0 size-3 transition-[opacity,transform] duration-150 group-hover:-translate-y-2 group-hover:opacity-0" />
+                    <Copy className="absolute left-0 top-0 size-3 translate-y-2 opacity-0 transition-[opacity,transform] duration-150 group-hover:translate-y-0 group-hover:opacity-100" />
+                  </div>
+                  <span className="truncate">
+                    {getPrettyUrl(partner.link.shortLink)}
+                  </span>
+                </button>
+              )}
+              {partner.country && (
+                <div className="flex min-w-20 items-center gap-2 rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700">
+                  <img
+                    alt=""
+                    src={`https://flag.vercel.app/m/${partner.country}.svg`}
+                    className="h-3 w-4"
+                  />
+                  <span className="truncate">{COUNTRIES[partner.country]}</span>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Stats */}
