@@ -1,5 +1,6 @@
 "use server";
 
+import { createIdempotencyKey } from "@/lib/dots/idempotency";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { createOrgTransfer } from "../../dots/create-org-transfer";
@@ -44,10 +45,12 @@ export const createDotsTransferAction = authActionClient
         amount: payout.amount,
         dotsAppId: workspace.dotsAppId,
         dotsUserId: programEnrollment.dotsUserId,
+        idempotencyKey: await createIdempotencyKey(`transfer_${payoutId}`),
       }),
       createOrgTransfer({
         amount: payout.fee,
         dotsAppId: workspace.dotsAppId,
+        idempotencyKey: await createIdempotencyKey(`org_transfer_${payoutId}`),
       }),
     ]);
 
