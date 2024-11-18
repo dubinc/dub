@@ -58,17 +58,17 @@ export const createPartnerPayoutAction = authActionClient
       }),
     ]);
 
-    // await Promise.all([
-    //   prisma.payout.update({
-    //     where: { id: payoutId },
-    //     data: { dotsTransferId: transfer.id, status: "completed" },
-    //   }),
+    await Promise.all([
+      prisma.payout.update({
+        where: { id: payoutId },
+        data: { dotsTransferId: transfer.id, status: "completed" },
+      }),
 
-    //   prisma.sale.updateMany({
-    //     where: { payoutId },
-    //     data: { status: "paid" },
-    //   }),
-    // ]);
+      prisma.sale.updateMany({
+        where: { payoutId },
+        data: { status: "paid" },
+      }),
+    ]);
 
     waitUntil(
       (async () => {
