@@ -16,7 +16,6 @@
     "@boxyhq/saml-jackson": "1.23.9",
     "@chronark/zod-bird": "^0.3.9",
     "@dub/analytics": "^0.0.21",
-    "@dub/blocks": "workspace:*",
     "@dub/tailwind-config": "workspace:*",
     "@dub/ui": "workspace:*",
     "@dub/utils": "workspace:*",

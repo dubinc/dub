@@ -10,12 +10,12 @@ import XAxis from "@/ui/charts/x-axis";
 import YAxis from "@/ui/charts/y-axis";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { MiniAreaChart } from "@dub/blocks";
 import {
   Button,
   buttonVariants,
   Check2,
   MaxWidthWrapper,
+  MiniAreaChart,
   useCopyToClipboard,
   useRouterStuff,
 } from "@dub/ui";

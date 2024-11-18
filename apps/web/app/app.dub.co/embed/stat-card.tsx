@@ -1,6 +1,6 @@
 "use client";
 
-import { MiniAreaChart } from "@dub/blocks";
+import { MiniAreaChart } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/src/icons";
 import { nFormatter } from "@dub/utils";
 import { useContext } from "react";

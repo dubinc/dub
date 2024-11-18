@@ -1,7 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ReferralsEmbed } from "@dub/blocks";
+import { ReferralsEmbed } from "@/ui/embed/referrals-embed";
 import { redirect } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";

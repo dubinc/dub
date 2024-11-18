@@ -68,7 +68,13 @@
     "sonner": "^1.4.41",
     "swr": "^2.1.5",
     "use-debounce": "^8.0.4",
-    "vaul": "^0.9.6"
+    "vaul": "^0.9.6",
+    "@visx/curve": "^3.3.0",
+    "@visx/gradient": "^3.3.0",
+    "@visx/group": "^3.3.0",
+    "@visx/responsive": "^2.10.0",
+    "@visx/scale": "^3.3.0",
+    "@visx/shape": "^2.12.2"
   },
   "author": "Steven Tey <stevensteel97@gmail.com>",
   "homepage": "https://dub.co",

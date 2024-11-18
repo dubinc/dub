@@ -14,7 +14,6 @@ import { useRegisterDomainSuccessModal } from "@/ui/modals/register-domain-succe
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import EmptyState from "@/ui/shared/empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { PaginationControls } from "@dub/blocks/src/pagination-controls";
 import {
   Badge,
   Button,
@@ -24,6 +23,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { CursorRays, LinkBroken } from "@dub/ui/src/icons";
+import { PaginationControls } from "@dub/ui/src/pagination-controls";
 import { ToggleGroup } from "@dub/ui/src/toggle-group";
 import { InfoTooltip, TooltipContent } from "@dub/ui/src/tooltip";
 import { capitalize, pluralize } from "@dub/utils";

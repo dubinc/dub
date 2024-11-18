@@ -1,5 +1,5 @@
-import { PaginationState } from "@dub/ui";
 import { cn, nFormatter } from "@dub/utils";
+import { PaginationState } from "@tanstack/react-table";
 import { PropsWithChildren } from "react";
 
 const buttonClassName = cn(
