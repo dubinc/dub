@@ -19,7 +19,7 @@ async function main() {
         payoutId,
       },
       data: {
-        status: "pending",
+        status: "processed",
       },
     }),
   ]);
