@@ -1,6 +1,5 @@
 import z from "../zod";
 import { dotsFetch } from "./fetch";
-import { createIdempotencyKey } from "./utils";
 
 const statusSchema = z.enum([
   "created",
@@ -35,7 +34,6 @@ export const depositFunds = async ({
     method: "POST",
     body: {
       amount: Number(amount) * 100, // The amount to deposit in cents
-      idempotency_key: await createIdempotencyKey(),
     },
   });
 

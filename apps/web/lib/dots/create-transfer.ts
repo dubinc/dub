@@ -1,14 +1,15 @@
 import { dotsFetch } from "./fetch";
-import { createIdempotencyKey } from "./utils";
 
 export const createTransfer = async ({
   amount,
   dotsAppId,
   dotsUserId,
+  idempotencyKey,
 }: {
   amount: number;
   dotsAppId: string;
   dotsUserId: string;
+  idempotencyKey: string;
 }) => {
   console.log(`Creating a transfer of ${amount} cents`);
 
@@ -18,7 +19,7 @@ export const createTransfer = async ({
     body: {
       user_id: dotsUserId,
       amount: -amount, // negative means transfer from Business to Partner
-      idempotency_key: await createIdempotencyKey(),
+      idempotency_key: idempotencyKey,
     },
   });
 };

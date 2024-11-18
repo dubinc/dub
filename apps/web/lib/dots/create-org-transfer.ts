@@ -1,12 +1,13 @@
 import { dotsFetch } from "./fetch";
-import { createIdempotencyKey } from "./utils";
 
 export const createOrgTransfer = async ({
   amount,
   dotsAppId,
+  idempotencyKey,
 }: {
   amount: number;
   dotsAppId: string;
+  idempotencyKey: string;
 }) => {
   console.log(`Creating an org transfer of ${amount} cents`);
 
@@ -15,7 +16,7 @@ export const createOrgTransfer = async ({
     body: {
       amount,
       api_app_id: dotsAppId,
-      idempotency_key: await createIdempotencyKey(),
+      idempotency_key: idempotencyKey,
     },
   });
 };
