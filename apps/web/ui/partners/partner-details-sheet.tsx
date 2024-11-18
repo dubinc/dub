@@ -108,6 +108,28 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
               selectAction={(value) => setSelectedTab(value as any)}
             />
           </div>
+          <div className="mt-6">
+            {selectedTab === "overview" && (
+              <div className="flex flex-col gap-6 text-sm text-neutral-500">
+                <h3 className="text-base font-semibold text-neutral-900">
+                  About this partner
+                </h3>
+
+                <div>
+                  <h4 className="font-semibold text-neutral-900">
+                    Description
+                  </h4>
+                  <p className="mt-1.5">
+                    {partner.bio || (
+                      <span className="italic text-neutral-400">
+                        No description provided
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       <div className="flex grow flex-col justify-end">
