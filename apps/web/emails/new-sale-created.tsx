@@ -67,18 +67,19 @@ export default function NewSaleCreated({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
-            <Section className="mt-8">
+            <Section className="my-8">
               <Img
-                src={program.logo || DUB_WORDMARK}
-                height="40"
+                src={program.logo || "https://assets.dub.co/logo.png"}
+                height="32"
                 alt={program.name}
-                className="mx-auto my-0"
               />
             </Section>
-            <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
+
+            <Heading className="mx-0 p-0 text-lg font-medium text-black">
               You just made a {earningsInDollars} referral sale!
             </Heading>
-            <Text className="text-sm leading-6 text-black">
+
+            <Text className="text-sm leading-6 text-gray-600">
               Congratulations! Someone made a{" "}
               <strong>{saleAmountInDollars}</strong> purchase on{" "}
               <strong>{program.name}</strong> using your referral link (
@@ -90,14 +91,14 @@ export default function NewSaleCreated({
               </a>
               ).
             </Text>
-            <Text className="text-sm leading-6 text-black">
+            <Text className="text-sm leading-6 text-gray-600">
               Your received <strong>{earningsInDollars}</strong> in commission
               for this sale and it will be included in your next payout.
             </Text>
-            <Text className="text-sm leading-6 text-black"></Text>
-            <Section className="my-8 text-center">
+
+            <Section className="mb-12 mt-8">
               <Link
-                className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
+                className="rounded-md bg-neutral-900 px-4 py-3 text-[12px] font-medium text-white no-underline"
                 href={linkToSale}
               >
                 View sale

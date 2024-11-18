@@ -23,8 +23,8 @@ export default function PartnerPayoutSent({
   },
   payout = {
     amount: 490,
-    startDate: "2024-01-01",
-    endDate: "2024-01-31",
+    startDate: "Nov 1, 2024",
+    endDate: "Nov 30, 2024",
   },
 }: {
   email: string;
@@ -53,29 +53,31 @@ export default function PartnerPayoutSent({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
-            <Section className="mt-8">
+            <Section className="my-8">
               <Img
-                src={program.logo || DUB_WORDMARK}
-                height="40"
+                src={program.logo || "https://assets.dub.co/logo.png"}
+                height="32"
                 alt={program.name}
-                className="mx-auto my-0"
               />
             </Section>
-            <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
+
+            <Heading className="mx-0 p-0 text-lg font-medium text-black">
               You've been paid!
             </Heading>
-            <Text className="text-sm leading-6 text-black">
+
+            <Text className="text-sm leading-6 text-gray-600">
               <strong>{program.name}</strong> has sent you{" "}
               <strong>{saleAmountInDollars}</strong> for affiliate sales made
               from <strong>{payout.startDate}</strong> to{" "}
               <strong>{payout.endDate}</strong>.
             </Text>
-            <Text className="text-sm leading-6 text-black">
+            <Text className="text-sm leading-6 text-gray-600">
               Your wallet has been updated to reflect this payout.
             </Text>
-            <Section className="my-8 text-center">
+
+            <Section className="mb-12 mt-8">
               <Link
-                className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
+                className="rounded-md bg-neutral-900 px-4 py-3 text-[12px] font-medium text-white no-underline"
                 href={linkToPayout}
               >
                 View payouts
