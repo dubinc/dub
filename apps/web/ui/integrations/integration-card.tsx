@@ -3,14 +3,13 @@
 import useIntegrations from "@/lib/swr/use-integrations";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationProps } from "@/lib/types";
-import { BlurImage, TokenAvatar } from "@dub/ui";
+import { BlurImage, TokenAvatar, Tooltip } from "@dub/ui";
 import {
   CircleWarning,
   Download,
   OfficeBuilding,
   ShieldCheck,
 } from "@dub/ui/src/icons";
-import { Tooltip } from "@dub/ui/src/tooltip";
 import { pluralize } from "@dub/utils";
 import Link from "next/link";
 

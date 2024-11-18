@@ -2,8 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import ManageSubscriptionButton from "@/ui/workspaces/manage-subscription-button";
-import { AnimatedSizeContainer, Icon } from "@dub/ui";
-import { buttonVariants } from "@dub/ui/src/button";
+import { AnimatedSizeContainer, Icon, buttonVariants } from "@dub/ui";
 import { CursorRays, Hyperlink } from "@dub/ui/src/icons";
 import { cn, getFirstAndLastDay, nFormatter } from "@dub/utils";
 import { ChevronRight } from "lucide-react";

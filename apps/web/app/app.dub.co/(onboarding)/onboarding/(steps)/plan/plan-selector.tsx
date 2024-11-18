@@ -3,8 +3,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PlanFeatures } from "@/ui/workspaces/plan-features";
 import { UpgradePlanButton } from "@/ui/workspaces/upgrade-plan-button";
-import { Badge, CountingNumbers } from "@dub/ui";
-import { ToggleGroup } from "@dub/ui/src/toggle-group";
+import { Badge, CountingNumbers, ToggleGroup } from "@dub/ui";
 import { PRO_PLAN, SELF_SERVE_PAID_PLANS } from "@dub/utils";
 import { useEffect, useState } from "react";
 

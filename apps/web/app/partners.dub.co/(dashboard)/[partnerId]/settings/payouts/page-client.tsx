@@ -7,9 +7,8 @@ import LayoutLoader from "@/ui/layout/layout-loader";
 import { usePayoutWithdrawSheet } from "@/ui/partners/payout-withdraw-sheet";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CheckCircleFill, X } from "@/ui/shared/icons";
-import { Button, Modal, Note } from "@dub/ui";
+import { Button, Modal, Note, SimpleTooltipContent, Tooltip } from "@dub/ui";
 import { GiftFill, GreekTemple, MobilePhone } from "@dub/ui/src/icons";
-import { SimpleTooltipContent, Tooltip } from "@dub/ui/src/tooltip";
 import {
   cn,
   currencyFormatter,

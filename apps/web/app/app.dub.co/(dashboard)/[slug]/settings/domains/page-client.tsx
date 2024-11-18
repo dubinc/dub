@@ -17,15 +17,17 @@ import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   Badge,
   Button,
+  CursorRays,
   Globe,
+  InfoTooltip,
+  LinkBroken,
+  PaginationControls,
   Popover,
+  ToggleGroup,
+  TooltipContent,
   usePagination,
   useRouterStuff,
 } from "@dub/ui";
-import { CursorRays, LinkBroken } from "@dub/ui/src/icons";
-import { PaginationControls } from "@dub/ui/src/pagination-controls";
-import { ToggleGroup } from "@dub/ui/src/toggle-group";
-import { InfoTooltip, TooltipContent } from "@dub/ui/src/tooltip";
 import { capitalize, pluralize } from "@dub/utils";
 import { ChevronDown, Crown } from "lucide-react";
 import { useEffect, useState } from "react";
