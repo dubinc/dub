@@ -129,7 +129,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
           copyLinkId();
           break;
         case "x":
-          if (link.key !== "_root") setShowDeleteLinkModal(true);
+          if (!isRootLink && !isProgramLink) setShowDeleteLinkModal(true);
           break;
         case "b":
           if (!slug) handleBanLink();
