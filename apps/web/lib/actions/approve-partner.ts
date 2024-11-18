@@ -2,7 +2,6 @@
 
 import { prisma } from "@/lib/prisma";
 import { getLinkOrThrow } from "../api/links/get-link-or-throw";
-import { checkLinkEnrollmentAvailability } from "../api/programs/check-link-enrollment-availability";
 import { getProgramOrThrow } from "../api/programs/get-program";
 import z from "../zod";
 import { authActionClient } from "./safe-action";
@@ -47,7 +46,9 @@ export const approvePartner = authActionClient
       if (programEnrollment.status !== "pending")
         throw new Error("Program enrollment is not pending");
 
-      await checkLinkEnrollmentAvailability({ linkId });
+      if (link.programId) {
+        throw new Error("Link is already associated with another partner.");
+      }
 
       await prisma.programEnrollment.update({
         where: {
