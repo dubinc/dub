@@ -2,7 +2,7 @@
 
 import useSalesCount from "@/lib/swr/use-sales-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { getSalesResponseSchema } from "@/lib/zod/schemas/partners";
+import { SaleResponse } from "@/lib/types";
 import FilterButton from "@/ui/analytics/events/filter-button";
 import { SaleRowMenu } from "@/ui/partners/sale-row-menu";
 import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
@@ -27,7 +27,6 @@ import {
 import { useParams } from "next/navigation";
 import { memo } from "react";
 import useSWR from "swr";
-import { z } from "zod";
 import { useSaleFilters } from "./use-sale-filters";
 
 export function SaleTableBusiness({ limit }: { limit?: number }) {
@@ -58,9 +57,7 @@ const SaleTableBusinessInner = memo(
     };
 
     const { salesCount } = useSalesCount();
-    const { data: sales, error } = useSWR<
-      z.infer<typeof getSalesResponseSchema>[]
-    >(
+    const { data: sales, error } = useSWR<SaleResponse[]>(
       `/api/programs/${programId}/sales${getQueryString({
         workspaceId,
       })}`,

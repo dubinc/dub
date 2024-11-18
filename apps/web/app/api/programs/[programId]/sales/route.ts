@@ -4,7 +4,7 @@ import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   getSalesQuerySchema,
-  getSalesResponseSchema,
+  SaleResponseSchema,
 } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -60,6 +60,6 @@ export const GET = withWorkspace(
       orderBy: { [sortBy]: order },
     });
 
-    return NextResponse.json(z.array(getSalesResponseSchema).parse(sales));
+    return NextResponse.json(z.array(SaleResponseSchema).parse(sales));
   },
 );

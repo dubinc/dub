@@ -98,17 +98,6 @@ export const SaleSchema = z.object({
   updatedAt: z.date(),
 });
 
-export const PayoutWithSalesSchema = PayoutSchema.and(
-  z.object({
-    partner: PartnerSchema,
-    sales: z.array(
-      SaleSchema.extend({
-        customer: CustomerSchema,
-      }),
-    ),
-  }),
-);
-
 export const getSalesQuerySchema = z
   .object({
     status: z.nativeEnum(SaleStatus).optional(),
@@ -123,7 +112,7 @@ export const getSalesQuerySchema = z
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
-export const getSalesResponseSchema = SaleSchema.merge(
+export const SaleResponseSchema = SaleSchema.merge(
   z.object({
     customer: CustomerSchema,
     partner: PartnerSchema,
@@ -141,21 +130,19 @@ export const getPartnerSalesQuerySchema = getSalesQuerySchema.omit({
   partnerId: true,
 });
 
-export const getPartnerSalesResponseSchema = getSalesResponseSchema
-  .omit({
-    partner: true,
-    customer: true,
-  })
-  .merge(
-    z.object({
-      customer: z.object({
-        email: z
-          .string()
-          .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
-        avatar: z.string().nullable(),
-      }),
+export const PartnerSaleResponseSchema = SaleResponseSchema.omit({
+  partner: true,
+  customer: true,
+}).merge(
+  z.object({
+    customer: z.object({
+      email: z
+        .string()
+        .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
+      avatar: z.string().nullable(),
     }),
-  );
+  }),
+);
 
 export const getPartnerSalesCountQuerySchema = getSalesCountQuerySchema.omit({
   partnerId: true,

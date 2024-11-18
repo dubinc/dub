@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import {
   getPartnerSalesQuerySchema,
-  getPartnerSalesResponseSchema,
+  PartnerSaleResponseSchema,
 } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 
@@ -49,5 +49,5 @@ export const GET = withPartner(async ({ partner, params, searchParams }) => {
     orderBy: { [sortBy]: order },
   });
 
-  return NextResponse.json(z.array(getPartnerSalesResponseSchema).parse(sales));
+  return NextResponse.json(z.array(PartnerSaleResponseSchema).parse(sales));
 });

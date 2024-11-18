@@ -21,12 +21,12 @@ import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   EnrolledPartnerSchema,
-  getPartnerSalesResponseSchema,
   PartnerPayoutResponseSchema,
+  PartnerSaleResponseSchema,
   PartnerSchema,
   PayoutResponseSchema,
   PayoutSchema,
-  PayoutWithSalesSchema,
+  SaleResponseSchema,
   SaleSchema,
 } from "./zod/schemas/partners";
 import {
@@ -310,14 +310,21 @@ export type UsageResponse = z.infer<typeof usageResponse>;
 export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
 
 export type SaleProps = z.infer<typeof SaleSchema>;
+
 export type SalesCount = Record<SaleStatus | "all", number>;
+
+export type SaleResponse = z.infer<typeof SaleResponseSchema>;
+
+export type PartnerSaleResponse = z.infer<typeof PartnerSaleResponseSchema>;
 
 export type CustomerProps = z.infer<typeof CustomerSchema>;
 
 export type PartnerProps = z.infer<typeof PartnerSchema>;
+
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
 
 export type ProgramProps = z.infer<typeof ProgramSchema>;
+
 export type ProgramInviteProps = z.infer<typeof ProgramInviteSchema>;
 
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
@@ -326,10 +333,6 @@ export type PayoutsCount = Record<PayoutStatus | "all", number>;
 
 export type PayoutProps = z.infer<typeof PayoutSchema>;
 
-export type PayoutWithSalesProps = z.infer<typeof PayoutWithSalesSchema>;
-
 export type PayoutResponse = z.infer<typeof PayoutResponseSchema>;
 
 export type PartnerPayoutResponse = z.infer<typeof PartnerPayoutResponseSchema>;
-
-export type PartnerSaleResponse = z.infer<typeof getPartnerSalesResponseSchema>;
