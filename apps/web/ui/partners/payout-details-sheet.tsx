@@ -1,6 +1,6 @@
 import { createDotsTransferAction } from "@/lib/actions/partners/create-dots-transfer";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutWithPartnerProps, PayoutWithSalesProps } from "@/lib/types";
+import { PayoutResponse, SaleResponse } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -20,6 +20,7 @@ import {
   formatDateTime,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -28,7 +29,7 @@ import { PayoutStatusBadges } from "./payout-status-badges";
 import { SaleRowMenu } from "./sale-row-menu";
 
 type PayoutDetailsSheetProps = {
-  payout: PayoutWithPartnerProps;
+  payout: PayoutResponse;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
@@ -36,16 +37,19 @@ function PayoutDetailsSheetContent({
   payout,
   setIsOpen,
 }: PayoutDetailsSheetProps) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
   const { programId } = useParams() as { programId: string };
 
-  const { data: payoutWithSales, error } = useSWR<PayoutWithSalesProps>(
-    `/api/programs/${programId}/payouts/${payout.id}?workspaceId=${workspaceId}`,
+  const {
+    data: sales,
+    isLoading,
+    error,
+  } = useSWR<SaleResponse[]>(
+    `/api/programs/${programId}/sales?workspaceId=${workspaceId}&payoutId=${payout.id}&start=${payout.periodStart}&end=${payout.periodEnd}`,
     fetcher,
   );
 
-  const totalConversions = payoutWithSales?.sales?.length || 0;
-  const loading = !payoutWithSales && !error;
+  const totalConversions = sales?.length || 0;
   const canConfirmPayout = payout.status === "pending";
   const showPagination = totalConversions > 100;
 
@@ -54,7 +58,11 @@ function PayoutDetailsSheetContent({
 
     return {
       Partner: (
-        <div className="flex items-center gap-2">
+        <Link
+          // TODO: [payouts] – update to partner sheet link when that's ready
+          href={`/${slug}/programs/${programId}/sales?partnerId=${payout.partner.id}&start=${payout.periodStart}&end=${payout.periodEnd}`}
+          className="flex items-center gap-2"
+        >
           <img
             src={
               payout.partner.image ||
@@ -64,7 +72,7 @@ function PayoutDetailsSheetContent({
             className="size-5 rounded-full"
           />
           <div>{payout.partner.name}</div>
-        </div>
+        </Link>
       ),
       Period: `${formatDate(payout.periodStart, {
         month: "short",
@@ -102,20 +110,29 @@ function PayoutDetailsSheetContent({
 
   const table = useTable({
     data:
-      payoutWithSales?.sales?.filter(
-        ({ status }) => !["duplicate", "fraud"].includes(status),
-      ) || [],
+      sales?.filter(({ status }) => !["duplicate", "fraud"].includes(status)) ||
+      [],
     columns: [
       {
         header: "Sale",
         cell: ({ row }) => (
-          <div className="flex flex-col">
-            <span className="text-sm text-neutral-700">
-              {row.original.customer.email || row.original.customer.name}
-            </span>
-            <span className="text-xs text-neutral-500">
-              {formatDateTime(row.original.createdAt)}
-            </span>
+          <div className="flex items-center gap-2">
+            <img
+              src={
+                row.original.customer.avatar ||
+                `${DICEBEAR_AVATAR_URL}${row.original.customer.name}`
+              }
+              alt={row.original.customer.name}
+              className="size-6 rounded-full"
+            />
+            <div className="flex flex-col">
+              <span className="text-sm text-neutral-700">
+                {row.original.customer.email || row.original.customer.name}
+              </span>
+              <span className="text-xs text-neutral-500">
+                {formatDateTime(row.original.createdAt)}
+              </span>
+            </div>
           </div>
         ),
       },
@@ -152,7 +169,7 @@ function PayoutDetailsSheetContent({
     ),
     scrollWrapperClassName: "min-h-[40px]",
     resourceName: (p) => `sale${p ? "s" : ""}`,
-    loading,
+    loading: isLoading,
     error: error ? "Failed to load sales" : undefined,
   } as any);
 

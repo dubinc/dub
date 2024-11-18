@@ -1,5 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutWithPartnerProps } from "@/lib/types";
+import { PayoutResponse } from "@/lib/types";
 import { usePayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
 import { buttonVariants } from "@dub/ui";
 import {
@@ -25,7 +25,7 @@ export function PendingPayouts() {
     workspaceId: workspaceId!,
   });
 
-  const { data: payouts, error } = useSWR<PayoutWithPartnerProps[]>(
+  const { data: payouts, error } = useSWR<PayoutResponse[]>(
     `/api/programs/${programId}/payouts?${searchParams.toString()}`,
     fetcher,
   );
@@ -86,7 +86,7 @@ export function PendingPayouts() {
   );
 }
 
-function PayoutRow({ payout }: { payout: PayoutWithPartnerProps }) {
+function PayoutRow({ payout }: { payout: PayoutResponse }) {
   const { payoutDetailsSheet, setIsOpen: setShowPayoutDetailsSheet } =
     usePayoutDetailsSheet({
       payout,

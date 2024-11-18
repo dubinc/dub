@@ -310,9 +310,14 @@ function StatCard({
     >
       <span className="block text-sm text-neutral-500">{title}</span>
       {total !== undefined ? (
-        <span className="block text-2xl text-neutral-800">
+        <div className="flex items-center gap-1 text-2xl text-neutral-800">
           {nFormatter(total[event])}
-        </span>
+          {event === "sales" && (
+            <span className="text-base text-neutral-500">
+              ({currencyFormatter(total.saleAmount / 100)})
+            </span>
+          )}
+        </div>
       ) : (
         <div className="h-8 w-16 animate-pulse rounded-md bg-neutral-200" />
       )}

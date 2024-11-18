@@ -2,7 +2,7 @@ import z from "@/lib/zod";
 import { clickEventSchema, clickEventSchemaTB } from "./clicks";
 import { CustomerSchema } from "./customers";
 import { commonDeprecatedEventFields } from "./deprecated";
-import { linkEventSchema, LinkSchema } from "./links";
+import { linkEventSchema } from "./links";
 
 export const trackLeadRequestSchema = z.object({
   clickId: z
@@ -123,24 +123,3 @@ export const leadEventResponseSchema = z
   })
   .merge(commonDeprecatedEventFields)
   .openapi({ ref: "LeadEvent" });
-
-export const leadEventResponseObfuscatedSchema = leadEventResponseSchema
-  .pick({
-    click: true,
-    timestamp: true,
-    eventName: true,
-  })
-  .extend({
-    link: LinkSchema.pick({
-      url: true,
-      shortLink: true,
-      clicks: true,
-      leads: true,
-    }),
-    customer: z.object({
-      email: z
-        .string()
-        .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
-      avatar: z.string().nullable(),
-    }),
-  });
