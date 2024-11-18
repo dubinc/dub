@@ -1,10 +1,10 @@
 import { requestPartnerInviteSchema } from "@/lib/dots/schemas";
-import useWorkspace from "@/lib/swr/use-workspace";
 import z from "@/lib/zod";
 import { Button, Modal } from "@dub/ui";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 type RequestPartnerInvite = z.infer<typeof requestPartnerInviteSchema>;
 
@@ -40,8 +40,6 @@ const RequestPartnerInvite = ({
 const RequestPartnerInviteForm = ({
   closeModal,
 }: RequestPartnerInviteFormProps) => {
-  const { id: workspaceId, mutate } = useWorkspace();
-
   const {
     register,
     handleSubmit,
@@ -50,21 +48,19 @@ const RequestPartnerInviteForm = ({
     resolver: zodResolver(requestPartnerInviteSchema),
   });
 
-  // const { executeAsync, isExecuting } = useAction(requestPartnerInviteAction, {
-  //   async onSuccess() {
-  //     toast.success(
-  //       "Bank account added successfully. Waiting for verification.",
-  //     );
-  //     mutate();
-  //     closeModal();
-  //   },
-  //   onError({ error }) {
-  //     toast.error(error.serverError?.serverError);
-  //   },
-  // });
-
   const onSubmit = async (data: RequestPartnerInvite) => {
-    // await executeAsync({ ...data, workspaceId: workspaceId! });
+    const response = await fetch("/api/referrals/invite", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+
+    if (response.ok) {
+      toast.success("Invite request sent successfully!");
+      closeModal();
+    }
+
+    const { error } = await response.json();
+    toast.error(error.message);
   };
 
   return (
