@@ -35,7 +35,6 @@ export const createDotsWithdrawalAction = authPartnerActionClient
         amountToWithdraw > FREE_WITHDRAWAL_MINIMUM_BALANCE
           ? "platform"
           : "user",
-      idempotencyKey: `withdrawal_${partner.id}`,
     });
 
     return response;

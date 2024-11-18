@@ -6,13 +6,11 @@ export const createWithdrawal = async ({
   amount,
   platform,
   payoutFeeParty,
-  idempotencyKey,
 }: {
   dotsUserId: string;
   amount: number;
   platform: DotsPayoutPlatform;
   payoutFeeParty?: "platform" | "user";
-  idempotencyKey: string;
 }) => {
   return await dotsFetch("/payouts", {
     method: "POST",
@@ -22,7 +20,6 @@ export const createWithdrawal = async ({
       amount,
       platform,
       payout_fee_party: payoutFeeParty,
-      idempotency_key: idempotencyKey,
     },
   });
 };
