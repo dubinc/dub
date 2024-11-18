@@ -1,4 +1,4 @@
-import { DUB_WORDMARK, getPrettyUrl } from "@dub/utils";
+import { currencyFormatter, DUB_WORDMARK, getPrettyUrl } from "@dub/utils";
 import {
   Body,
   Container,
@@ -45,15 +45,23 @@ export default function NewSaleCreated({
     earnings: number;
   };
 }) {
-  const earningsInDollars = Math.round(sale.earnings / 100).toLocaleString();
-  const saleAmountInDollars = Math.round(sale.amount / 100).toLocaleString();
   const linkToSale = `https://partners.dub.co/${partner.id}/${program.id}/sales`;
+
+  const earningsInDollars = currencyFormatter(sale.earnings / 100, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  const saleAmountInDollars = currencyFormatter(sale.amount / 100, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
   return (
     <Html>
       <Head />
       <Preview>
-        You just made a ${earningsInDollars} sale via your referral link{" "}
+        You just made a {earningsInDollars} sale via your referral link{" "}
         {getPrettyUrl(partner.referralLink)}
       </Preview>
       <Tailwind>
@@ -68,11 +76,11 @@ export default function NewSaleCreated({
               />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
-              You just made a ${earningsInDollars} referral sale!
+              You just made a {earningsInDollars} referral sale!
             </Heading>
             <Text className="text-sm leading-6 text-black">
               Congratulations! Someone made a{" "}
-              <strong>${saleAmountInDollars}</strong> purchase on{" "}
+              <strong>{saleAmountInDollars}</strong> purchase on{" "}
               <strong>{program.name}</strong> using your referral link (
               <a
                 href={partner.referralLink}
@@ -83,7 +91,7 @@ export default function NewSaleCreated({
               ).
             </Text>
             <Text className="text-sm leading-6 text-black">
-              Your received <strong>${earningsInDollars}</strong> in commission
+              Your received <strong>{earningsInDollars}</strong> in commission
               for this sale and it will be included in your next payout.
             </Text>
             <Text className="text-sm leading-6 text-black"></Text>
