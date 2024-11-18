@@ -40,9 +40,13 @@ function PayoutDetailsSheetContent({
 }: PayoutDetailsSheetProps) {
   const { id: workspaceId, slug } = useWorkspace();
   const { programId } = useParams() as { programId: string };
-  const { queryParams } = useRouterStuff();
 
-  const { salesCount } = useSalesCount();
+  const { salesCount } = useSalesCount({
+    payoutId: payout.id,
+    start: payout.periodStart,
+    end: payout.periodEnd,
+    interval: "all", // technically not needed but typescript is not happy
+  });
 
   const {
     data: sales,
@@ -53,7 +57,7 @@ function PayoutDetailsSheetContent({
     fetcher,
   );
 
-  const totalSales = salesCount?.pending || 0;
+  const totalSales = salesCount?.processed || 0;
   const canConfirmPayout = payout.status === "pending";
 
   const invoiceData = useMemo(() => {
