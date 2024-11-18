@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { createSaleData } from "@/lib/api/sales/sale";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
@@ -13,8 +14,6 @@ import {
 } from "@/lib/zod/schemas/sales";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import NewSaleCreated from "emails/new-sale-created";
-import { sendEmailViaResend } from "emails/send-via-resend";
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";
@@ -137,19 +136,6 @@ export const POST = withWorkspaceEdge(
               },
             });
 
-          const { user } = await prismaEdge.partnerUser.findFirstOrThrow({
-            where: {
-              partnerId: partner.id,
-            },
-            include: {
-              user: {
-                select: {
-                  email: true,
-                },
-              },
-            },
-          });
-
           const saleRecord = createSaleData({
             customerId: customer.id,
             linkId: link.id,
@@ -164,26 +150,20 @@ export const POST = withWorkspaceEdge(
             metadata: clickData,
           });
 
-          await Promise.all([
+          await Promise.allSettled([
             prismaEdge.sale.create({
               data: saleRecord,
             }),
-
-            sendEmailViaResend({
-              subject: "You just made a referral sale!",
-              email: user.email!,
-              react: NewSaleCreated({
-                email: user.email!,
-                program,
-                partner: {
-                  id: partner.id,
-                  referralLink: link.shortLink,
-                },
-                sale: {
-                  amount: saleRecord.amount,
-                  earnings: saleRecord.earnings,
-                },
-              }),
+            notifyPartnerSale({
+              partner: {
+                id: partner.id,
+                referralLink: link.shortLink,
+              },
+              program,
+              sale: {
+                amount: saleRecord.amount,
+                earnings: saleRecord.earnings,
+              },
             }),
           ]);
         }
