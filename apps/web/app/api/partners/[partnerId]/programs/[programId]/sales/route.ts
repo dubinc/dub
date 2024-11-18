@@ -43,7 +43,6 @@ export const GET = withPartner(async ({ partner, params, searchParams }) => {
       createdAt: true,
       updatedAt: true,
       customer: true,
-      partner: true,
     },
     skip: (page - 1) * pageSize,
     take: pageSize,

@@ -1,7 +1,6 @@
 "use client";
 
-import z from "@/lib/zod";
-import { getPartnerSalesResponseSchema } from "@/lib/zod/schemas/partners";
+import { PartnerSaleResponse } from "@/lib/types";
 import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
@@ -35,7 +34,7 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
     data: sales,
     isLoading,
     error,
-  } = useSWR<z.infer<typeof getPartnerSalesResponseSchema>[]>(
+  } = useSWR<PartnerSaleResponse[]>(
     `/api/partners/${partnerId}/programs/${programId}/sales${getQueryString()}`,
     fetcher,
   );

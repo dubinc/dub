@@ -1,6 +1,6 @@
 import { createDotsTransferAction } from "@/lib/actions/partners/create-dots-transfer";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutWithPartnerProps, PayoutWithSalesProps } from "@/lib/types";
+import { PayoutResponse, PayoutWithSalesProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -28,7 +28,7 @@ import { PayoutStatusBadges } from "./payout-status-badges";
 import { SaleRowMenu } from "./sale-row-menu";
 
 type PayoutDetailsSheetProps = {
-  payout: PayoutWithPartnerProps;
+  payout: PayoutResponse;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 

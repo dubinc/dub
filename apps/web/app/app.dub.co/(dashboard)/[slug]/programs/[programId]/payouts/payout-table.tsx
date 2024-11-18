@@ -1,7 +1,7 @@
 "use client";
 
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
-import { PayoutWithPartnerProps } from "@/lib/types";
+import { PayoutResponse } from "@/lib/types";
 import { PayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -56,7 +56,7 @@ export function PayoutTable() {
     data: payouts,
     error,
     isLoading,
-  } = useSWR<PayoutWithPartnerProps[]>(
+  } = useSWR<PayoutResponse[]>(
     `/api/programs/${programId}/payouts?${searchQuery}`,
     fetcher,
     {
@@ -65,8 +65,8 @@ export function PayoutTable() {
   );
 
   const [detailsSheetState, setDetailsSheetState] = useState<
-    | { open: false; payout: PayoutWithPartnerProps | null }
-    | { open: true; payout: PayoutWithPartnerProps }
+    | { open: false; payout: PayoutResponse | null }
+    | { open: true; payout: PayoutResponse }
   >({ open: false, payout: null });
 
   const { pagination, setPagination } = usePagination();
@@ -235,7 +235,7 @@ export function PayoutTable() {
   );
 }
 
-function RowMenuButton({ row }: { row: Row<PayoutWithPartnerProps> }) {
+function RowMenuButton({ row }: { row: Row<PayoutResponse> }) {
   const router = useRouter();
   const { slug, programId } = useParams();
   const [isOpen, setIsOpen] = useState(false);

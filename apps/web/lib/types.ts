@@ -21,8 +21,11 @@ import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   EnrolledPartnerSchema,
+  getPartnerSalesResponseSchema,
+  PartnerPayoutResponseSchema,
   PartnerSchema,
   PayoutSchema,
+  payoutsResponseSchema,
   PayoutWithSalesSchema,
   SaleSchema,
 } from "./zod/schemas/partners";
@@ -325,9 +328,8 @@ export type PayoutProps = z.infer<typeof PayoutSchema>;
 
 export type PayoutWithSalesProps = z.infer<typeof PayoutWithSalesSchema>;
 
-export type PayoutWithPartnerProps = z.infer<typeof PayoutSchema> & {
-  partner: PartnerProps;
-  _count: {
-    sales: number;
-  };
-};
+export type PayoutResponse = z.infer<typeof payoutsResponseSchema>;
+
+export type PartnerPayoutResponse = z.infer<typeof PartnerPayoutResponseSchema>;
+
+export type PartnerSaleResponse = z.infer<typeof getPartnerSalesResponseSchema>;
