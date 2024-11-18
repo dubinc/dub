@@ -1,22 +1,35 @@
+import usePayouts from "@/lib/swr/use-payouts";
+import usePayoutsCount from "@/lib/swr/use-payouts-count";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { PAYOUTS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
+  buttonVariants,
   Sheet,
   StatusBadge,
+  Table,
   ToggleGroup,
   useCopyToClipboard,
+  useTable,
+  useTablePagination,
 } from "@dub/ui";
-import { Copy, Link4 } from "@dub/ui/src/icons";
+import { Copy, GreekTemple, Link4 } from "@dub/ui/src/icons";
 import {
+  cn,
   COUNTRIES,
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
+  formatDate,
   getPrettyUrl,
 } from "@dub/utils";
+import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
+import { AnimatedEmptyState } from "../shared/animated-empty-state";
 import { PartnerStatusBadges } from "./partner-status-badges";
+import { PayoutStatusBadges } from "./payout-status-badges";
 
 type PartnerDetailsSheetProps = {
   partner: EnrolledPartnerProps;
@@ -167,6 +180,8 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
                 </div>
               </div>
             )}
+
+            {selectedTab === "payouts" && <PartnerPayouts partner={partner} />}
           </div>
         </div>
       </div>
@@ -176,6 +191,110 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
         </div>
       </div>
     </>
+  );
+}
+
+function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
+  const { slug } = useWorkspace();
+
+  const { payoutsCount, error: payoutsCountError } = usePayoutsCount({
+    query: { partnerId: partner.id },
+  });
+
+  const { pagination, setPagination } = useTablePagination({
+    page: 1,
+    pageSize: PAYOUTS_MAX_PAGE_SIZE,
+  });
+
+  const { payouts, error: payoutsError } = usePayouts({
+    query: { partnerId: partner.id },
+  });
+
+  const countLoading = !payoutsCount && !payoutsCountError;
+  const payoutsLoading = !payouts && !payoutsError;
+  const isLoading = countLoading || payoutsLoading;
+
+  const showPagination =
+    payoutsCount?.all && payoutsCount.all > PAYOUTS_MAX_PAGE_SIZE;
+
+  const table = useTable({
+    data: payouts || [],
+    loading: isLoading,
+    error:
+      payoutsError || payoutsCountError ? "Failed to load payouts" : undefined,
+    columns: [
+      {
+        id: "periodEnd",
+        header: "Period End",
+        accessorFn: (d) => formatDate(d.periodStart, { month: "short" }),
+      },
+      {
+        header: "Status",
+        cell: ({ row }) => {
+          const badge = PayoutStatusBadges[row.original.status];
+          return badge ? (
+            <StatusBadge icon={badge.icon} variant={badge.variant}>
+              {badge.label}
+            </StatusBadge>
+          ) : (
+            "-"
+          );
+        },
+      },
+      {
+        id: "total",
+        header: "Total",
+        accessorFn: (d) =>
+          currencyFormatter(d.total / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
+      },
+    ],
+    ...(showPagination && {
+      pagination,
+      onPaginationChange: setPagination,
+      rowCount: payoutsCount?.all || 0,
+    }),
+    resourceName: (p) => `payout${p ? "s" : ""}`,
+    thClassName: (id) =>
+      cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
+    tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
+    className: cn(
+      !showPagination && "[&_tr:last-child>td]:border-b-transparent", // Hide bottom row border
+    ),
+    scrollWrapperClassName: "min-h-[40px]",
+  } as any);
+
+  return payouts?.length || isLoading ? (
+    <>
+      <Table {...table} />
+      <div className="mt-2 flex justify-end">
+        <Link
+          href={`/${slug}/programs/${partner.programId}/payouts?partnerId=${partner.id}`}
+          className={cn(
+            buttonVariants({ variant: "secondary" }),
+            "flex h-7 items-center rounded-lg border px-2 text-sm",
+          )}
+        >
+          View all
+        </Link>
+      </div>
+    </>
+  ) : (
+    <AnimatedEmptyState
+      className="md:min-h-96"
+      title="No payouts"
+      description="When this partner is eligible for or has received payouts, they will appear here."
+      cardContent={() => (
+        <>
+          <div className="flex size-7 items-center justify-center rounded-md border border-neutral-200 bg-neutral-50">
+            <GreekTemple className="size-4 text-neutral-700" />
+          </div>
+          <div className="h-2.5 w-28 min-w-0 rounded-sm bg-neutral-200" />
+        </>
+      )}
+    />
   );
 }
 
