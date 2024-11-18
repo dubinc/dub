@@ -8,6 +8,7 @@ export const createOrgTransfer = async ({
   dotsAppId: string;
 }) => {
   console.log(`Creating an org transfer of ${amount} cents`);
+
   return await dotsFetch("/organization-transfers", {
     method: "POST",
     body: {

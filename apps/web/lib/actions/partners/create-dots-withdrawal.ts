@@ -23,7 +23,6 @@ export const createDotsWithdrawalAction = authPartnerActionClient
     }
 
     const dotsUser = await retrieveDotsUser(partner);
-
     const amountToWithdraw = dotsUser.wallet.withdrawable_amount;
 
     const response = await createWithdrawal({
