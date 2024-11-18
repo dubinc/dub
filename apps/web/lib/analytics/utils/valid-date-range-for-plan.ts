@@ -1,32 +1,16 @@
 import { getDaysDifference } from "@dub/utils";
-import { json2csv } from "json-2-csv";
-import { DubApiError } from "../api/errors";
-
-export const editQueryString = (
-  queryString: string,
-  data: Record<string, string>,
-  del?: string | string[],
-) => {
-  const searchParams = new URLSearchParams(queryString);
-
-  for (const key in data) {
-    searchParams.set(key, data[key]);
-  }
-
-  if (del)
-    (Array.isArray(del) ? del : [del]).forEach((d) => searchParams.delete(d));
-
-  return searchParams.toString();
-};
+import { DubApiError } from "../../api/errors";
 
 export const validDateRangeForPlan = ({
   plan,
+  conversionEnabled,
   interval,
   start,
   end,
   throwError,
 }: {
   plan?: string | null;
+  conversionEnabled?: boolean;
   interval?: string;
   start?: Date | null;
   end?: Date | null;
@@ -57,6 +41,7 @@ export const validDateRangeForPlan = ({
   // Pro plan users can only get analytics for 1 year
   if (
     plan === "pro" &&
+    !conversionEnabled &&
     (interval === "all" ||
       (start &&
         (getDaysDifference(start, new Date(Date.now())) > 366 ||
@@ -74,15 +59,4 @@ export const validDateRangeForPlan = ({
   }
 
   return true;
-};
-
-export const convertToCSV = (data: object[]) => {
-  return json2csv(data, {
-    parseValue(fieldValue, defaultParser) {
-      if (fieldValue instanceof Date) {
-        return fieldValue.toISOString();
-      }
-      return defaultParser(fieldValue);
-    },
-  });
 };

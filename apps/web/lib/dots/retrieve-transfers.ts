@@ -1,4 +1,3 @@
-import { DOTS_DEFAULT_APP_ID } from "@/lib/dots/env";
 import { dotsFetch } from "./fetch";
 import { dotsTransfersSchema } from "./schemas";
 
@@ -20,7 +19,7 @@ export const retrieveTransfers = async ({
     `/transfers${params.size > 0 ? `?${params.toString()}` : ""}`,
     {
       method: "GET",
-      dotsAppId: dotsAppId ?? DOTS_DEFAULT_APP_ID,
+      dotsAppId: dotsAppId ?? "default",
     },
   );
 

@@ -17,6 +17,7 @@ export const dotsPayoutPlatforms = z.enum([
   "paypal",
   "venmo",
   "cash_app",
+  "intl_bank",
   "intl_transfer",
   "airtm",
   "payoneer",
@@ -103,6 +104,8 @@ export const payoutMethodSchema = z.object({
 
 export const dotsUserSchema = z.object({
   id: z.string(),
+  first_name: z.string(),
+  last_name: z.string(),
   email: z.string(),
   phone_number: z.object({
     country_code: z.string(),

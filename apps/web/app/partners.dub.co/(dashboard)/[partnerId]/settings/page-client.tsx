@@ -9,10 +9,11 @@ import {
   FileUpload,
   LoadingSpinner,
   MaxWidthWrapper,
+  useEnterSubmit,
 } from "@dub/ui";
 import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { useParams } from "next/navigation";
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
@@ -45,27 +46,31 @@ export function ProfileSettingsPageClient() {
 }
 
 function ProfileForm({ partner }: { partner: PartnerProps }) {
-  const { partnerId } = useParams() as { partnerId: string };
+  const { partnerId } = useParams<{ partnerId: string }>();
   const {
     register,
     control,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
+    formState: { errors, isSubmitting },
   } = useForm<{
     name: string;
-    logo: string | null;
+    image: string | null;
     description: string | null;
   }>({
     defaultValues: {
       name: partner.name,
-      logo: partner.logo,
+      image: partner.image,
       description: partner.bio,
     },
   });
 
+  const formRef = useRef<HTMLFormElement>(null);
+  const { handleKeyDown } = useEnterSubmit(formRef);
+
   return (
     <form
+      ref={formRef}
       onSubmit={handleSubmit(async (data) => {
         try {
           const result = await updatePartnerProfile({ ...data, partnerId });
@@ -88,7 +93,7 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
               <div className="flex items-center gap-5">
                 <Controller
                   control={control}
-                  name="logo"
+                  name="image"
                   render={({ field }) => (
                     <FileUpload
                       accept="images"
@@ -103,6 +108,7 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
                       onChange={({ src }) => field.onChange(src)}
                       content={null}
                       maxFileSizeMB={2}
+                      targetResolution={{ width: 160, height: 160 }}
                     />
                   )}
                 />
@@ -157,9 +163,10 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
                       ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                       : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
                   )}
-                  placeholder="Tell us about your business"
+                  placeholder="Tell us about the kind of content you create – e.g. tech, travel, fashion, etc."
                   minRows={3}
                   maxRows={10}
+                  onKeyDown={handleKeyDown}
                   {...register("description")}
                 />
               </div>

@@ -12,17 +12,15 @@ import {
 } from "../zod/schemas/clicks";
 import { CustomerSchema } from "../zod/schemas/customers";
 import {
-  leadEventResponseObfuscatedSchema,
   leadEventResponseSchema,
   leadEventSchemaTBEndpoint,
 } from "../zod/schemas/leads";
 import {
-  saleEventResponseObfuscatedSchema,
   saleEventResponseSchema,
   saleEventSchemaTBEndpoint,
 } from "../zod/schemas/sales";
-import { INTERVAL_DATA } from "./constants";
 import { EventsFilters } from "./types";
+import { getStartEndDates } from "./utils/get-start-end-dates";
 
 // Fetch data for /api/events
 export const getEvents = async (params: EventsFilters) => {
@@ -35,22 +33,13 @@ export const getEvents = async (params: EventsFilters) => {
     qr,
     trigger,
     isDemo,
-    obfuscateData,
   } = params;
 
-  if (start) {
-    start = new Date(start);
-    end = end ? new Date(end) : new Date(Date.now());
-
-    // Swap start and end if start is greater than end
-    if (start > end) {
-      [start, end] = [end, start];
-    }
-  } else {
-    interval = interval ?? "24h";
-    start = INTERVAL_DATA[interval].startDate;
-    end = new Date(Date.now());
-  }
+  const { startDate, endDate } = getStartEndDates({
+    interval,
+    start,
+    end,
+  });
 
   if (trigger) {
     if (trigger === "qr") {
@@ -77,8 +66,8 @@ export const getEvents = async (params: EventsFilters) => {
     workspaceId,
     qr,
     offset: (params.page - 1) * params.limit,
-    start: start.toISOString().replace("T", " ").replace("Z", ""),
-    end: end.toISOString().replace("T", " ").replace("Z", ""),
+    start: startDate.toISOString().replace("T", " ").replace("Z", ""),
+    end: endDate.toISOString().replace("T", " ").replace("Z", ""),
   });
 
   const [linksMap, customersMap] = await Promise.all([
@@ -143,17 +132,9 @@ export const getEvents = async (params: EventsFilters) => {
       if (evt.event === "click") {
         return clickEventResponseSchema.parse(eventData);
       } else if (evt.event === "lead") {
-        return (
-          obfuscateData
-            ? leadEventResponseObfuscatedSchema
-            : leadEventResponseSchema
-        ).parse(eventData);
+        return leadEventResponseSchema.parse(eventData);
       } else if (evt.event === "sale") {
-        return (
-          obfuscateData
-            ? saleEventResponseObfuscatedSchema
-            : saleEventResponseSchema
-        ).parse(eventData);
+        return saleEventResponseSchema.parse(eventData);
       }
 
       return eventData;

@@ -1,12 +1,14 @@
-import { cn } from "@dub/utils";
+import { cn, resizeImage } from "@dub/utils";
 import { VariantProps, cva } from "class-variance-authority";
 import { UploadCloud } from "lucide-react";
 import { DragEvent, ReactNode, useState } from "react";
 import { toast } from "sonner";
 import { LoadingCircle } from "./icons";
 
+type AcceptedFileFormats = "any" | "images" | "csv";
+
 const acceptFileTypes: Record<
-  string,
+  AcceptedFileFormats,
   { types: string[]; errorMessage?: string }
 > = {
   any: { types: [] },
@@ -52,8 +54,7 @@ type FileUploadReadFileProps =
     };
 
 export type FileUploadProps = FileUploadReadFileProps & {
-  accept: keyof typeof acceptFileTypes;
-
+  accept: AcceptedFileFormats;
   className?: string;
   iconClassName?: string;
   previewClassName?: string;
@@ -115,6 +116,7 @@ export function FileUpload({
   showHoverOverlay = true,
   content,
   maxFileSizeMB = 0,
+  targetResolution,
   accessibilityLabel = "File upload",
   disabled = false,
 }: FileUploadProps) {
@@ -146,16 +148,30 @@ export function FileUpload({
       return;
     }
 
+    let fileToUse = file;
+
+    // Add image resizing logic
+    if (targetResolution && file.type.startsWith("image/")) {
+      try {
+        const resizedFile = await resizeImage(file, targetResolution);
+        const blob = await fetch(resizedFile).then((r) => r.blob());
+        fileToUse = new File([blob], file.name, { type: file.type });
+      } catch (error) {
+        console.error("Error resizing image:", error);
+        // Fallback to original file if resize fails
+      }
+    }
+
+    // File reading logic
     if (readFile) {
       const reader = new FileReader();
       reader.onload = (e) =>
-        onChange?.({ src: e.target?.result as string, file });
-      reader.readAsDataURL(file);
-
+        onChange?.({ src: e.target?.result as string, file: fileToUse });
+      reader.readAsDataURL(fileToUse);
       return;
     }
 
-    onChange?.({ file });
+    onChange?.({ file: fileToUse });
   };
 
   return (

@@ -30,6 +30,10 @@ model Program {
   name                String
   slug                String              @unique
   logo                String?
+  wordmark            String?
+  brandColor          String?
+  domain              String?
+  url                 String?
   type                ProgramType         @default(affiliate)
   cookieLength        Int                 @default(90)
   commissionAmount    Int                 @default(0)
@@ -39,28 +43,34 @@ model Program {
   recurringDuration   Int?
   isLifetimeRecurring Boolean? // TODO: Maybe use just lifetimeRecurring?
 
-  // TODO: Add branding attributes: color, wordmark, etc.
+  landerData     Json?   @db.Json
 
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  workspace Project             @relation(fields: [workspaceId], references: [id])
-  partners  ProgramEnrollment[]
-  payouts   Payout[]
-  sales     Sale[]
-  resources ProgramResource[]
+  workspace       Project              @relation(fields: [workspaceId], references: [id])
+  primaryDomain   Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
+  partners        ProgramEnrollment[]
+  payouts         Payout[]
+  sales           Sale[]
+  resources       ProgramResource[]
+  applications    ProgramApplication[]
+  invites         ProgramInvite[]
 
   @@index([workspaceId])
+  @@index([domain])
 }
 
 model ProgramEnrollment {
-  id        String                  @id @default(cuid())
-  partnerId String
-  programId String
-  linkId    String?                 @unique
-  status    ProgramEnrollmentStatus @default(pending)
-  createdAt DateTime                @default(now())
-  updatedAt DateTime                @updatedAt
+  id         String                  @id @default(cuid())
+  partnerId  String
+  programId  String
+  linkId     String?                 @unique
+  dotsUserId String?                 @unique
+  status     ProgramEnrollmentStatus @default(pending)
+  applicationId String? @unique
+  createdAt  DateTime                @default(now())
+  updatedAt  DateTime                @updatedAt
 
   partner Partner @relation(fields: [partnerId], references: [id])
   program Program @relation(fields: [programId], references: [id])
@@ -69,6 +79,31 @@ model ProgramEnrollment {
   @@unique([partnerId, programId])
   @@index([programId])
   @@index([linkId])
+}
+
+enum ProgramApplicationStatus {
+  pending
+  approved
+  rejected
+}
+
+model ProgramApplication {
+  id        String                   @id @default(cuid())
+  programId String
+  partnerId String?
+  name      String
+  email     String
+  plan      String
+  website   String?
+  comments  String?
+  status    ProgramApplicationStatus @default(pending)
+  createdAt DateTime                 @default(now())
+  updatedAt DateTime                 @updatedAt
+  program   Program                  @relation(fields: [programId], references: [id])
+  partner   Partner?                 @relation(fields: [partnerId], references: [id])
+
+  @@index([programId])
+  @@index([partnerId])
 }
 
 // TODO: Haven't finalized the resource table yet.
@@ -85,4 +120,19 @@ model ProgramResource {
   program Program @relation(fields: [programId], references: [id])
 
   @@index([programId])
+}
+
+model ProgramInvite {
+  id        String   @id @default(cuid())
+  programId String
+  email     String
+  linkId    String   @unique
+  createdAt DateTime @default(now())
+
+  program Program @relation(fields: [programId], references: [id])
+  link    Link?   @relation(fields: [linkId], references: [id])
+
+  @@unique([email, programId])
+  @@index([programId])
+  @@index([linkId])
 }

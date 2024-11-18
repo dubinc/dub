@@ -29,7 +29,7 @@ export function ProgramCommissionDescription({
               maximumFractionDigits: 2,
             })}{" "}
       </strong>
-      for each conversion
+      for each sale
       {program.recurringCommission &&
       ((program.recurringDuration && program.recurringDuration > 0) ||
         program.isLifetimeRecurring) ? (

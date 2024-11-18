@@ -2,26 +2,22 @@
 
 import useSalesCount from "@/lib/swr/use-sales-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CustomerSchema } from "@/lib/zod/schemas/customers";
-import { PartnerSchema, SaleSchema } from "@/lib/zod/schemas/partners";
+import { SaleResponse } from "@/lib/types";
 import FilterButton from "@/ui/analytics/events/filter-button";
 import { SaleRowMenu } from "@/ui/partners/sale-row-menu";
+import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
-  CircleCheck,
-  CircleHalfDottedClock,
-  Duplicate,
   Filter,
-  ShieldAlert,
   StatusBadge,
   Table,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CircleXmark, MoneyBill2 } from "@dub/ui/src/icons";
+import { MoneyBill2 } from "@dub/ui/src/icons";
 import {
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
@@ -31,54 +27,7 @@ import {
 import { useParams } from "next/navigation";
 import { memo } from "react";
 import useSWR from "swr";
-import { z } from "zod";
 import { useSaleFilters } from "./use-sale-filters";
-
-const salesSchema = SaleSchema.and(
-  z.object({
-    customer: CustomerSchema,
-    partner: PartnerSchema,
-  }),
-);
-
-export const SaleStatusBadges = {
-  pending: {
-    label: "Pending",
-    variant: "pending",
-    className: "text-orange-600 bg-orange-100",
-    icon: CircleHalfDottedClock,
-  },
-  processed: {
-    label: "Processed",
-    variant: "new",
-    className: "text-blue-600 bg-blue-100",
-    icon: CircleHalfDottedClock,
-  },
-  paid: {
-    label: "Paid",
-    variant: "success",
-    className: "text-green-600 bg-green-100",
-    icon: CircleCheck,
-  },
-  fraud: {
-    label: "Fraud",
-    variant: "error",
-    className: "text-red-600 bg-red-100",
-    icon: ShieldAlert,
-  },
-  duplicate: {
-    label: "Duplicate",
-    variant: "error",
-    className: "text-red-600 bg-red-100",
-    icon: Duplicate,
-  },
-  refunded: {
-    label: "Refunded",
-    variant: "error",
-    className: "text-red-600 bg-red-100",
-    icon: CircleXmark,
-  },
-};
 
 export function SaleTableBusiness({ limit }: { limit?: number }) {
   const filters = useSaleFilters();
@@ -108,7 +57,7 @@ const SaleTableBusinessInner = memo(
     };
 
     const { salesCount } = useSalesCount();
-    const { data: sales, error } = useSWR<z.infer<typeof salesSchema>[]>(
+    const { data: sales, error } = useSWR<SaleResponse[]>(
       `/api/programs/${programId}/sales${getQueryString({
         workspaceId,
       })}`,
@@ -155,7 +104,7 @@ const SaleTableBusinessInner = memo(
               <div className="flex items-center gap-2">
                 <img
                   src={
-                    row.original.partner.logo ||
+                    row.original.partner.image ||
                     `${DICEBEAR_AVATAR_URL}${row.original.partner.name}`
                   }
                   alt={row.original.partner.name}
@@ -211,10 +160,11 @@ const SaleTableBusinessInner = memo(
           | undefined;
 
         return (
+          !limit &&
           meta?.filterParams && <FilterButton set={meta.filterParams(cell)} />
         );
       },
-      ...(limit && {
+      ...(!limit && {
         pagination,
         onPaginationChange: setPagination,
         sortableColumns: ["createdAt", "amount"],
@@ -238,42 +188,44 @@ const SaleTableBusinessInner = memo(
 
     return (
       <div className="flex flex-col gap-3">
-        <div>
-          <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            <Filter.Select
-              className="w-full md:w-fit"
-              filters={filters}
-              activeFilters={activeFilters}
-              onSelect={onSelect}
-              onRemove={onRemove}
-              onSearchChange={setSearch}
-              onSelectedFilterChange={setSelectedFilter}
-            />
-            <SimpleDateRangePicker className="w-full sm:min-w-[200px] md:w-fit" />
-          </div>
-          <AnimatedSizeContainer height>
-            <div>
-              {activeFilters.length > 0 && (
-                <div className="pt-3">
-                  <Filter.List
-                    filters={[
-                      ...filters,
-                      {
-                        key: "payoutId",
-                        icon: MoneyBill2,
-                        label: "Payout",
-                        options: [],
-                      },
-                    ]}
-                    activeFilters={activeFilters}
-                    onRemove={onRemove}
-                    onRemoveAll={onRemoveAll}
-                  />
-                </div>
-              )}
+        {!limit && (
+          <div>
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <Filter.Select
+                className="w-full md:w-fit"
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+                onSearchChange={setSearch}
+                onSelectedFilterChange={setSelectedFilter}
+              />
+              <SimpleDateRangePicker className="w-full sm:min-w-[200px] md:w-fit" />
             </div>
-          </AnimatedSizeContainer>
-        </div>
+            <AnimatedSizeContainer height>
+              <div>
+                {activeFilters.length > 0 && (
+                  <div className="pt-3">
+                    <Filter.List
+                      filters={[
+                        ...filters,
+                        {
+                          key: "payoutId",
+                          icon: MoneyBill2,
+                          label: "Payout",
+                          options: [],
+                        },
+                      ]}
+                      activeFilters={activeFilters}
+                      onRemove={onRemove}
+                      onRemoveAll={onRemoveAll}
+                    />
+                  </div>
+                )}
+              </div>
+            </AnimatedSizeContainer>
+          </div>
+        )}
         {sales?.length !== 0 ? (
           <Table {...table} />
         ) : (

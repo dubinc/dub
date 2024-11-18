@@ -16,6 +16,7 @@ export type NavItemCommon = {
   name: string;
   href: string;
   exact?: boolean;
+  hasIndicator?: boolean;
 };
 
 export type NavSubItemType = NavItemCommon;
@@ -137,13 +138,8 @@ export function SidebarNav<T extends Record<any, any>>({
   );
 }
 
-const isItemActive = (
-  pathname: string,
-  { href, exact }: Pick<NavItemCommon, "href" | "exact">,
-) => (exact ? pathname === href : pathname.startsWith(href));
-
 function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
-  const { name, href, exact } = item;
+  const { name, href, exact, hasIndicator } = item;
 
   const Icon = "icon" in item ? item.icon : undefined;
   const items = "items" in item ? item.items : undefined;
@@ -184,9 +180,13 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
           />
         )}
         {name}
-        {items && (
+        {(items || hasIndicator) && (
           <div className="flex grow justify-end">
-            <ChevronDown className="size-3.5 text-neutral-500 transition-transform duration-75 group-data-[active=true]:rotate-180" />
+            {items ? (
+              <ChevronDown className="size-3.5 text-neutral-500 transition-transform duration-75 group-data-[active=true]:rotate-180" />
+            ) : hasIndicator ? (
+              <div className="size-2 rounded-full bg-blue-600" />
+            ) : null}
           </div>
         )}
       </Link>

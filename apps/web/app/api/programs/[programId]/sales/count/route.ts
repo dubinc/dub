@@ -1,3 +1,4 @@
+import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -15,8 +16,10 @@ export const GET = withWorkspace(
       programId,
     });
 
-    const { status, partnerId, payoutId } =
-      getSalesCountQuerySchema.parse(searchParams);
+    const parsed = getSalesCountQuerySchema.parse(searchParams);
+    const { status, partnerId, payoutId } = parsed;
+
+    const { startDate, endDate } = getStartEndDates(parsed);
 
     const salesCount = await prisma.sale.groupBy({
       by: ["status"],
@@ -25,6 +28,10 @@ export const GET = withWorkspace(
         status,
         partnerId,
         payoutId,
+        createdAt: {
+          gte: startDate.toISOString(),
+          lte: endDate.toISOString(),
+        },
       },
       _count: true,
     });

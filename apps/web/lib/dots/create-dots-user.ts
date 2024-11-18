@@ -1,4 +1,3 @@
-import { DOTS_DEFAULT_APP_ID } from "@/lib/dots/env";
 import z from "../zod";
 import { dotsFetch } from "./fetch";
 
@@ -9,7 +8,7 @@ const responseSchema = z.object({
 
 export const createDotsUser = async ({
   userInfo,
-  dotsAppId = DOTS_DEFAULT_APP_ID,
+  dotsAppId = "default",
 }: {
   userInfo: {
     firstName: string;
