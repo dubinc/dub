@@ -23,5 +23,4 @@ model UtmTemplate {
 
   @@unique([projectId, name])
   @@index(userId)
-  @@index(projectId)
 }

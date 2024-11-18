@@ -43,19 +43,20 @@ model Program {
   recurringDuration   Int?
   isLifetimeRecurring Boolean? // TODO: Maybe use just lifetimeRecurring?
 
-  landerData     Json?   @db.Json
+  landerData Json? @db.Json
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  workspace       Project              @relation(fields: [workspaceId], references: [id])
-  primaryDomain   Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
-  partners        ProgramEnrollment[]
-  payouts         Payout[]
-  sales           Sale[]
-  resources       ProgramResource[]
-  applications    ProgramApplication[]
-  invites         ProgramInvite[]
+  workspace     Project              @relation(fields: [workspaceId], references: [id])
+  primaryDomain Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
+  partners      ProgramEnrollment[]
+  payouts       Payout[]
+  sales         Sale[]
+  resources     ProgramResource[]
+  applications  ProgramApplication[]
+  invites       ProgramInvite[]
+  links         Link[]
 
   @@index([workspaceId])
   @@index([domain])
@@ -78,7 +79,6 @@ model ProgramEnrollment {
 
   @@unique([partnerId, programId])
   @@index([programId])
-  @@index([linkId])
 }
 
 enum ProgramApplicationStatus {
@@ -134,5 +134,4 @@ model ProgramInvite {
 
   @@unique([email, programId])
   @@index([programId])
-  @@index([linkId])
 }

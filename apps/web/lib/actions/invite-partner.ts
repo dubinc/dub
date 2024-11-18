@@ -5,7 +5,6 @@ import { sendEmail } from "emails";
 import PartnerInvite from "emails/partner-invite";
 import { z } from "zod";
 import { getLinkOrThrow } from "../api/links/get-link-or-throw";
-import { checkLinkEnrollmentAvailability } from "../api/programs/check-link-enrollment-availability";
 import { getProgramOrThrow } from "../api/programs/get-program";
 import { createId } from "../api/utils";
 import { updateConfig } from "../edge-config";
@@ -47,6 +46,10 @@ export const invitePartnerAction = authActionClient
       }),
     ]);
 
+    if (link.programId) {
+      throw new Error("Link is already associated with another partner.");
+    }
+
     const [programEnrollment, programInvite] = await Promise.all([
       prisma.programEnrollment.findFirst({
         where: {
@@ -62,6 +65,7 @@ export const invitePartnerAction = authActionClient
           },
         },
       }),
+
       prisma.programInvite.findUnique({
         where: {
           email_programId: {
@@ -70,8 +74,6 @@ export const invitePartnerAction = authActionClient
           },
         },
       }),
-
-      checkLinkEnrollmentAvailability({ linkId }),
     ]);
 
     if (programEnrollment) {
@@ -91,10 +93,21 @@ export const invitePartnerAction = authActionClient
           programId,
         },
       }),
+
+      prisma.link.update({
+        where: {
+          id: linkId,
+        },
+        data: {
+          programId,
+        },
+      }),
+
       updateConfig({
         key: "partnersPortal",
         value: email,
       }),
+
       recordLink({
         domain: link.domain,
         key: link.key,
@@ -114,8 +127,10 @@ export const invitePartnerAction = authActionClient
       react: PartnerInvite({
         email,
         appName: `${process.env.NEXT_PUBLIC_APP_NAME}`,
-        programName: program.name,
-        programLogo: program.logo,
+        program: {
+          name: program.name,
+          logo: program.logo,
+        },
       }),
     });
 
