@@ -139,10 +139,11 @@ export async function invoicePaid(event: Stripe.Event) {
       },
     });
 
-    await Promise.allSettled([
-      prisma.sale.create({
-        data: saleRecord,
-      }),
+    await prisma.sale.create({
+      data: saleRecord,
+    });
+
+    waitUntil(
       notifyPartnerSale({
         partner: {
           id: partner.id,
@@ -154,7 +155,7 @@ export async function invoicePaid(event: Stripe.Event) {
           earnings: saleRecord.earnings,
         },
       }),
-    ]);
+    );
   }
 
   // send workspace webhook
