@@ -1,3 +1,5 @@
+import { approvePartner } from "@/lib/actions/approve-partner";
+import { rejectPartner } from "@/lib/actions/reject-partner";
 import usePayouts from "@/lib/swr/use-payouts";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -24,10 +26,14 @@ import {
   formatDate,
   getPrettyUrl,
 } from "@dub/utils";
+import { ChevronLeft } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { mutate } from "swr";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
+import { PartnerLinkSelector } from "./partner-link-selector";
 import { PartnerStatusBadges } from "./partner-status-badges";
 import { PayoutStatusBadges } from "./payout-status-badges";
 
@@ -36,7 +42,10 @@ type PartnerDetailsSheetProps = {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
-function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
+function PartnerDetailsSheetContent({
+  partner,
+  setIsOpen,
+}: PartnerDetailsSheetProps) {
   const badge = PartnerStatusBadges[partner.status];
 
   const saleAmount = (partner.link?.saleAmount ?? 0) / 100;
@@ -186,12 +195,172 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
         </div>
       </div>
 
-      {/* <div className="flex grow flex-col justify-end">
-        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
-          WIP
+      {partner.status === "pending" && (
+        <div className="flex grow flex-col justify-end">
+          <div className="border-t border-neutral-200 p-5">
+            <PartnerApproval partner={partner} setIsOpen={setIsOpen} />
+          </div>
         </div>
-      </div> */}
+      )}
     </>
+  );
+}
+
+function PartnerApproval({
+  partner,
+  setIsOpen,
+}: {
+  partner: EnrolledPartnerProps;
+  setIsOpen: Dispatch<SetStateAction<boolean>>;
+}) {
+  const { id: workspaceId } = useWorkspace();
+  const [isApproving, setIsApproving] = useState(false);
+  const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
+  const [linkError, setLinkError] = useState(false);
+
+  useEffect(() => {
+    if (selectedLinkId) setLinkError(false);
+  }, [selectedLinkId]);
+
+  const { executeAsync, isExecuting } = useAction(approvePartner, {
+    onSuccess() {
+      mutate(
+        (key) =>
+          typeof key === "string" &&
+          key.startsWith(`/api/programs/${partner.programId}/partners`),
+        undefined,
+        { revalidate: true },
+      );
+    },
+  });
+
+  return (
+    <div className="flex">
+      <div
+        className={cn(
+          "transition-[width] duration-300",
+          isApproving ? "w-[52px]" : "w-[83px]",
+        )}
+      >
+        {isApproving ? (
+          <Button
+            type="button"
+            variant="secondary"
+            icon={<ChevronLeft className="size-4 shrink-0" />}
+            onClick={() => {
+              setIsApproving(false);
+              setSelectedLinkId(null);
+            }}
+          />
+        ) : (
+          <PartnerRejectButton partner={partner} setIsOpen={setIsOpen} />
+        )}
+      </div>
+
+      <div className="flex grow pl-2">
+        <div
+          className={cn(
+            "w-0 transition-[width] duration-300",
+            isApproving && "w-full",
+          )}
+        >
+          <div className="w-[calc(100%-8px)]">
+            <PartnerLinkSelector
+              selectedLinkId={selectedLinkId}
+              setSelectedLinkId={setSelectedLinkId}
+              showDestinationUrl={false}
+              error={linkError}
+            />
+          </div>
+        </div>
+
+        <div className="grow">
+          <Button
+            type="button"
+            variant="primary"
+            text="Approve"
+            loading={isExecuting}
+            onClick={async () => {
+              if (!isApproving) {
+                setIsApproving(true);
+                setLinkError(false);
+                return;
+              }
+
+              if (!selectedLinkId) {
+                setLinkError(true);
+                return;
+              }
+
+              // Approve partner
+              const result = await executeAsync({
+                workspaceId: workspaceId!,
+                partnerId: partner.id,
+                programId: partner.programId,
+                linkId: selectedLinkId,
+              });
+
+              if (!result?.data?.ok) {
+                toast.error(result?.data?.error ?? "Failed to approve partner");
+                return;
+              }
+
+              toast.success("Partner approved successfully");
+
+              setIsOpen(false);
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PartnerRejectButton({
+  partner,
+  setIsOpen,
+}: {
+  partner: EnrolledPartnerProps;
+  setIsOpen: Dispatch<SetStateAction<boolean>>;
+}) {
+  const { id: workspaceId } = useWorkspace();
+
+  const { executeAsync, isExecuting } = useAction(rejectPartner, {
+    onSuccess() {
+      mutate(
+        (key) =>
+          typeof key === "string" &&
+          key.startsWith(`/api/programs/${partner.programId}/partners`),
+        undefined,
+        { revalidate: true },
+      );
+    },
+  });
+
+  return (
+    <Button
+      type="button"
+      variant="secondary"
+      text={isExecuting ? "" : "Decline"}
+      loading={isExecuting}
+      onClick={async () => {
+        // Reject partner
+        const result = await executeAsync({
+          workspaceId: workspaceId!,
+          partnerId: partner.id,
+          programId: partner.programId,
+        });
+
+        if (!result?.data?.ok) {
+          toast.error(result?.data?.error ?? "Failed to reject partner");
+          return;
+        }
+
+        toast.success("Partner rejected");
+
+        setIsOpen(false);
+      }}
+    />
   );
 }
 
@@ -284,7 +453,7 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
     </>
   ) : (
     <AnimatedEmptyState
-      className="md:min-h-96"
+      className="md:min-h-80"
       title="No payouts"
       description="When this partner is eligible for or has received payouts, they will appear here."
       cardContent={() => (

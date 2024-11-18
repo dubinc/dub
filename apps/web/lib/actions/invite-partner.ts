@@ -5,6 +5,7 @@ import { sendEmail } from "emails";
 import PartnerInvite from "emails/partner-invite";
 import { z } from "zod";
 import { getLinkOrThrow } from "../api/links/get-link-or-throw";
+import { checkLinkEnrollmentAvailability } from "../api/programs/check-link-enrollment-availability";
 import { getProgramOrThrow } from "../api/programs/get-program";
 import { createId } from "../api/utils";
 import { updateConfig } from "../edge-config";
@@ -46,12 +47,7 @@ export const invitePartnerAction = authActionClient
       }),
     ]);
 
-    const [
-      programEnrollment,
-      programInvite,
-      linkInProgramEnrollment,
-      linkInProgramInvite,
-    ] = await Promise.all([
+    const [programEnrollment, programInvite] = await Promise.all([
       prisma.programEnrollment.findFirst({
         where: {
           programId,
@@ -74,16 +70,8 @@ export const invitePartnerAction = authActionClient
           },
         },
       }),
-      prisma.programEnrollment.findUnique({
-        where: {
-          linkId,
-        },
-      }),
-      prisma.programInvite.findUnique({
-        where: {
-          linkId,
-        },
-      }),
+
+      checkLinkEnrollmentAvailability({ linkId }),
     ]);
 
     if (programEnrollment) {
@@ -92,10 +80,6 @@ export const invitePartnerAction = authActionClient
 
     if (programInvite) {
       throw new Error(`Partner ${email} already invited to this program.`);
-    }
-
-    if (linkInProgramEnrollment || linkInProgramInvite) {
-      throw new Error("Link is already associated with another partner.");
     }
 
     const [result, _] = await Promise.all([
