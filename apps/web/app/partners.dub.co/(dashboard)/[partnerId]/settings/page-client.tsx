@@ -89,7 +89,9 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
         <div className="grid grid-cols-1 items-center sm:grid-cols-2">
           <FormRow>
             <label className="contents">
-              <span className="text-sm font-medium text-gray-800">Logo</span>
+              <span className="text-sm font-medium text-gray-800">
+                Display Image
+              </span>
               <div className="flex items-center gap-5">
                 <Controller
                   control={control}
@@ -131,7 +133,9 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
 
           <FormRow>
             <label className="contents">
-              <span className="text-sm font-medium text-gray-800">Name</span>
+              <span className="text-sm font-medium text-gray-800">
+                Full Name
+              </span>
               <div>
                 <input
                   type="text"
