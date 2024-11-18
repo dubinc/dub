@@ -24,11 +24,15 @@ export function PartnerLinkSelector({
   selectedLinkId,
   setSelectedLinkId,
   showDestinationUrl = true,
+  onCreate,
+  domain,
   error,
 }: {
   selectedLinkId: string | null;
   setSelectedLinkId: (id: string) => void;
   showDestinationUrl?: boolean;
+  onCreate?: (search: string) => Promise<boolean>;
+  domain?: string;
   error?: boolean;
 }) {
   const [search, setSearch] = useState("");
@@ -57,8 +61,8 @@ export function PartnerLinkSelector({
         }}
         options={options}
         caret={true}
-        placeholder="Select referral link"
-        searchPlaceholder="Search..."
+        placeholder={`Select${onCreate ? " or create" : ""} referral link`}
+        searchPlaceholder={onCreate ? "Search or create link..." : "Search..."}
         matchTriggerWidth
         onSearchChange={setSearch}
         buttonProps={{
@@ -72,6 +76,10 @@ export function PartnerLinkSelector({
           ),
         }}
         shouldFilter={false}
+        onCreate={onCreate}
+        createLabel={(search) =>
+          `Create "${search.startsWith(domain + "/") ? search : domain + "/" + search}"`
+        }
       />
       {selectedLink?.url && showDestinationUrl && (
         <div className="ml-2 mt-2 flex items-center gap-1 text-xs text-gray-500">

@@ -2,6 +2,7 @@ import { approvePartner } from "@/lib/actions/approve-partner";
 import { rejectPartner } from "@/lib/actions/reject-partner";
 import usePayouts from "@/lib/swr/use-payouts";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { PAYOUTS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
@@ -214,6 +215,8 @@ function PartnerApproval({
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }) {
   const { id: workspaceId } = useWorkspace();
+  const { program } = useProgram();
+
   const [isApproving, setIsApproving] = useState(false);
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
   const [linkError, setLinkError] = useState(false);
@@ -233,6 +236,39 @@ function PartnerApproval({
       );
     },
   });
+
+  const createLink = async (search: string) => {
+    if (!search) throw new Error("No link entered");
+
+    const shortKey = search.startsWith(program?.domain + "/")
+      ? search.substring((program?.domain + "/").length)
+      : search;
+
+    const response = await fetch(`/api/links?workspaceId=${workspaceId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        domain: program?.domain,
+        key: shortKey,
+        url: program?.url,
+        trackConversion: true,
+        programId: program?.id,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      const { error } = result;
+      throw new Error(error.message);
+    }
+
+    setSelectedLinkId(result.id);
+
+    return result.id;
+  };
 
   return (
     <div className="flex">
@@ -269,6 +305,16 @@ function PartnerApproval({
               selectedLinkId={selectedLinkId}
               setSelectedLinkId={setSelectedLinkId}
               showDestinationUrl={false}
+              onCreate={async (search) => {
+                try {
+                  await createLink(search);
+                  return true;
+                } catch (error) {
+                  toast.error(error?.message ?? "Failed to create link");
+                }
+                return false;
+              }}
+              domain={program?.domain ?? undefined}
               error={linkError}
             />
           </div>
