@@ -185,11 +185,12 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
           </div>
         </div>
       </div>
-      <div className="flex grow flex-col justify-end">
+
+      {/* <div className="flex grow flex-col justify-end">
         <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
           WIP
         </div>
-      </div>
+      </div> */}
     </>
   );
 }
