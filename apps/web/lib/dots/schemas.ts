@@ -17,6 +17,7 @@ export const dotsPayoutPlatforms = z.enum([
   "paypal",
   "venmo",
   "cash_app",
+  "intl_bank",
   "intl_transfer",
   "airtm",
   "payoneer",
