@@ -22,6 +22,5 @@ model LinkTag {
   tagId     String
 
   @@unique([linkId, tagId])
-  @@index(linkId)
   @@index(tagId)
 }

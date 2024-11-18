@@ -79,7 +79,6 @@ model ProgramEnrollment {
 
   @@unique([partnerId, programId])
   @@index([programId])
-  @@index([linkId])
 }
 
 enum ProgramApplicationStatus {
@@ -135,5 +134,4 @@ model ProgramInvite {
 
   @@unique([email, programId])
   @@index([programId])
-  @@index([linkId])
 }

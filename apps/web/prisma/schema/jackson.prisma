@@ -3,7 +3,6 @@ model jackson_index {
   key      String @db.VarChar(250)
   storeKey String @db.VarChar(250)
 
-  @@index([key], map: "_jackson_index_key")
   @@index([key, storeKey], map: "_jackson_index_key_store")
 }
 
