@@ -121,3 +121,7 @@ export const dotsUserSchema = z.object({
   payout_methods: z.array(payoutMethodSchema),
   compliance: z.any(),
 });
+
+export const requestPartnerInviteSchema = z.object({
+  email: z.string().email(),
+});
