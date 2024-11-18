@@ -180,7 +180,7 @@ export const DELETE = withWorkspace(
     if (link.programId) {
       throw new DubApiError({
         code: "forbidden",
-        message: "Cannot delete program links.",
+        message: "You can't delete a link that's part of a program.",
       });
     }
 
