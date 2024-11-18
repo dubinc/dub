@@ -46,7 +46,8 @@ export function ToggleGroup({
             className={cn(
               "relative z-10 flex items-center gap-2 px-3 py-1 text-sm font-medium capitalize",
               {
-                "transition-all hover:text-gray-500": option.value !== selected,
+                "z-[11] transition-colors hover:text-gray-500":
+                  option.value !== selected,
               },
               optionClassName,
             )}
