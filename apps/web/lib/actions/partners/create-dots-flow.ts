@@ -7,7 +7,7 @@ import { redis } from "@/lib/upstash";
 import z from "../../zod";
 import { authUserActionClient } from "../safe-action";
 
-export const createDotsFlowSchema = z.object({
+const createDotsFlowSchema = z.object({
   partnerId: z.string(),
   flow: dotsFlowStepsSchema,
 });

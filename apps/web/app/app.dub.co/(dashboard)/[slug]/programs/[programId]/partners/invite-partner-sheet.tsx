@@ -4,10 +4,20 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
-import { BlurImage, Button, Combobox, LinkLogo, Sheet } from "@dub/ui";
+import {
+  AnimatedSizeContainer,
+  BlurImage,
+  Button,
+  CircleCheckFill,
+  Combobox,
+  LinkLogo,
+  Sheet,
+  useMediaQuery,
+} from "@dub/ui";
+import { ArrowTurnRight2 } from "@dub/ui/src/icons";
 import { cn, getApexDomain, linkConstructor } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
@@ -23,15 +33,28 @@ interface InvitePartnerFormData {
 
 function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const { program } = useProgram();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
+  const [shortKey, setShortKey] = useState("");
+  const [useExistingLink, setUseExistingLink] = useState(false);
+  const [creatingLink, setCreatingLink] = useState(false);
+  const { isMobile } = useMediaQuery();
 
-  const { register, handleSubmit, watch, setValue } =
-    useForm<InvitePartnerFormData>({
-      defaultValues: {
-        email: "",
-        linkId: "",
-      },
-    });
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    setError,
+    clearErrors,
+    formState: { errors },
+  } = useForm<InvitePartnerFormData>({
+    defaultValues: {
+      email: "",
+      linkId: "",
+    },
+  });
+
+  const selectedLinkId = watch("linkId");
 
   const { executeAsync, isExecuting } = useAction(invitePartnerAction, {
     onSuccess: async () => {
@@ -43,16 +66,69 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     },
   });
 
-  const onSubmit = async (data: InvitePartnerFormData) => {
-    await executeAsync({
-      workspaceId: workspaceId!,
-      programId: program?.id!,
-      email: data.email,
-      linkId: data.linkId,
+  useEffect(() => {
+    // set link slug based on email name
+    const email = watch("email");
+    if (email) setShortKey(email.split("@")[0]);
+  }, [watch("email")]);
+
+  const createLink = async () => {
+    if (!shortKey) {
+      setError("linkId", { message: "Please enter short key for the link" });
+      return;
+    }
+
+    const response = await fetch(`/api/links?workspaceId=${workspaceId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        domain: program?.domain,
+        key: shortKey,
+        url: program?.url,
+        trackConversion: true,
+        programId: program?.id,
+      }),
     });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      const { error } = result;
+      throw new Error(error.message);
+    }
+
+    setValue("linkId", result.id);
+
+    return result.id;
   };
 
-  const selectedLinkId = watch("linkId");
+  const onSubmit = async (data: InvitePartnerFormData) => {
+    let { linkId } = data;
+
+    try {
+      if (!linkId) {
+        setCreatingLink(true);
+        linkId = await createLink();
+      }
+
+      if (!linkId) return;
+
+      await executeAsync({
+        workspaceId: workspaceId!,
+        programId: program?.id!,
+        email: data.email,
+        linkId,
+      });
+    } catch (error) {
+      if (error.message.includes("key"))
+        setError("linkId", { message: error.message });
+      else toast.error(error.message);
+    } finally {
+      setCreatingLink(false);
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
@@ -83,28 +159,144 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                   required
                   type="email"
                   autoComplete="off"
+                  autoFocus={!isMobile}
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="linkId" className="flex items-center space-x-2">
+              <div className="flex items-center justify-between">
                 <h2 className="text-sm font-medium text-gray-900">
                   Referral link
                 </h2>
-              </label>
-              <div className="relative mt-2 rounded-md shadow-sm">
-                <LinksSelector
-                  selectedLinkId={selectedLinkId}
-                  setSelectedLinkId={(id) => setValue("linkId", id)}
-                />
+                <a
+                  href={`/${slug}/programs/${program?.id}/settings`}
+                  target="_blank"
+                  className="text-sm text-gray-500 underline-offset-2 hover:underline"
+                >
+                  Settings
+                </a>
               </div>
+
+              <div className="mt-2 grid grid-cols-2 gap-3">
+                {[
+                  {
+                    label: "New",
+                    description: "Create a new referral link",
+                    value: false,
+                  },
+                  {
+                    label: "Existing",
+                    description: "Select an existing referral link",
+                    value: true,
+                  },
+                ].map(({ label, description, value }) => (
+                  <label
+                    key={label}
+                    className={cn(
+                      "relative flex w-full cursor-pointer select-none items-start gap-0.5 rounded-md border border-neutral-200 bg-white px-3 py-2 text-neutral-600 hover:bg-neutral-50",
+                      "transition-all duration-150",
+                      useExistingLink === value &&
+                        "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      value={label}
+                      className="hidden"
+                      checked={useExistingLink === value}
+                      onChange={(e) => {
+                        if (e.target.checked) setUseExistingLink(value);
+                      }}
+                    />
+                    <div className="flex grow flex-col text-sm">
+                      <span className="font-medium leading-tight">{label}</span>
+                      <span>{description}</span>
+                    </div>
+                    <CircleCheckFill
+                      className={cn(
+                        "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                        useExistingLink === value && "scale-100 opacity-100",
+                      )}
+                    />
+                  </label>
+                ))}
+              </div>
+
+              <AnimatedSizeContainer
+                height
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="-m-1 mt-2"
+              >
+                <div className="p-1">
+                  {useExistingLink ? (
+                    <LinksSelector
+                      selectedLinkId={selectedLinkId}
+                      setSelectedLinkId={(id) =>
+                        setValue("linkId", id, { shouldDirty: true })
+                      }
+                    />
+                  ) : (
+                    <>
+                      <div className="relative flex rounded-md shadow-sm">
+                        <div>
+                          <div className="group flex h-full items-center justify-start gap-2 whitespace-nowrap rounded-md rounded-r-none border border-gray-300 border-r-transparent bg-white px-3 text-sm text-gray-900 outline-none transition-none sm:inline-flex">
+                            <div className="flex w-full min-w-0 items-center justify-start truncate px-2">
+                              {program?.domain}
+                            </div>
+                          </div>
+                        </div>
+
+                        <input
+                          pattern="[\p{L}\p{N}\p{Pd}\/\p{Emoji}_.]+"
+                          autoComplete="off"
+                          autoCapitalize="none"
+                          className={cn(
+                            "block h-10 w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:z-[1] focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                            errors.linkId && "border-red-500",
+                          )}
+                          placeholder=""
+                          type="text"
+                          name="key"
+                          value={shortKey}
+                          onChange={(e) => {
+                            setValue("linkId", "");
+                            clearErrors("linkId");
+                            setShortKey(e.target.value);
+                          }}
+                        />
+                      </div>
+                      {errors.linkId ? (
+                        <p className="mt-2 text-xs text-red-600">
+                          {errors.linkId.message}
+                        </p>
+                      ) : (
+                        program?.url && (
+                          <div className="ml-2 mt-2 flex items-center gap-1 text-xs text-gray-500">
+                            <ArrowTurnRight2 className="size-3 shrink-0" />
+                            <span className="min-w-0 truncate">
+                              Destination URL:{" "}
+                              <a
+                                href={program.url}
+                                target="_blank"
+                                className="underline-offset-2 hover:underline"
+                              >
+                                {program.url}
+                              </a>
+                            </span>
+                          </div>
+                        )
+                      )}
+                    </>
+                  )}
+                </div>
+              </AnimatedSizeContainer>
             </div>
 
             <div className="mt-8">
               <h2 className="text-sm font-medium text-gray-900">Preview</h2>
               <div className="mt-2 overflow-hidden rounded-md border border-neutral-200">
-                <div className="relative grid gap-4 p-6 pb-10">
+                <div className="grid gap-4 p-6 pb-10">
                   <BlurImage
                     src={program?.logo || "https://assets.dub.co/logo.png"}
                     alt={program?.name || "Dub"}
@@ -116,16 +308,15 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                     {program?.name || "Dub"} invited you to join Dub Partners
                   </h3>
                   <p className="text-sm text-gray-500">
-                    {program?.name || "Dub"} uses Dub to power their partnership
-                    programs and wants to partner with great people like
-                    yourself!
+                    {program?.name || "Dub"} uses Dub Partners to power their
+                    partnership programs and wants to partner with great people
+                    like yourself!
                   </p>
                   <Button
                     type="button"
                     text="Accept invite"
                     className="w-fit"
                   />
-                  <div className="pointer-events-none absolute bottom-0 right-0 z-10 h-48 w-full bg-gradient-to-t from-white to-transparent" />
                 </div>
                 <div className="grid gap-1 border-t border-gray-200 bg-gray-50 px-6 py-4">
                   <p className="text-sm text-gray-500">
@@ -152,16 +343,16 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             type="button"
             variant="secondary"
             onClick={() => setIsOpen(false)}
-            text="Close"
+            text="Cancel"
             className="w-fit"
-            disabled={isExecuting}
+            disabled={isExecuting || creatingLink}
           />
           <Button
             type="submit"
             variant="primary"
             text="Send invite"
             className="w-fit"
-            loading={isExecuting}
+            loading={isExecuting || creatingLink}
           />
         </div>
       </div>
@@ -194,7 +385,7 @@ function LinksSelector({
   const [debouncedSearch] = useDebounce(search, 500);
 
   const { links } = useLinks(
-    { search: debouncedSearch },
+    { search: debouncedSearch, excludePartnerLinks: true },
     {
       keepPreviousData: false,
     },
@@ -205,29 +396,47 @@ function LinksSelector({
     [links],
   );
 
+  const selectedLink = links?.find((l) => l.id === selectedLinkId);
+
   return (
-    <Combobox
-      selected={options?.find((o) => o.value === selectedLinkId) ?? null}
-      setSelected={(option) => {
-        if (option) {
-          setSelectedLinkId(option.value);
-        }
-      }}
-      options={options}
-      caret={true}
-      placeholder="Select referral link"
-      searchPlaceholder="Search..."
-      matchTriggerWidth
-      onSearchChange={setSearch}
-      buttonProps={{
-        className: cn(
-          "w-full justify-start border-gray-300 px-3",
-          "data-[state=open]:ring-1 data-[state=open]:ring-gray-500 data-[state=open]:border-gray-500",
-          "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
-          !selectedLinkId && "text-gray-400",
-        ),
-      }}
-    />
+    <>
+      <Combobox
+        selected={options?.find((o) => o.value === selectedLinkId) ?? null}
+        setSelected={(option) => {
+          if (option) setSelectedLinkId(option.value);
+        }}
+        options={options}
+        caret={true}
+        placeholder="Select referral link"
+        searchPlaceholder="Search..."
+        matchTriggerWidth
+        onSearchChange={setSearch}
+        buttonProps={{
+          className: cn(
+            "w-full justify-start border-gray-300 px-3 shadow-sm",
+            "data-[state=open]:ring-1 data-[state=open]:ring-gray-500 data-[state=open]:border-gray-500",
+            "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
+            !selectedLinkId && "text-gray-400",
+          ),
+        }}
+        shouldFilter={false}
+      />
+      {selectedLink?.url && (
+        <div className="ml-2 mt-2 flex items-center gap-1 text-xs text-gray-500">
+          <ArrowTurnRight2 className="size-3 shrink-0" />
+          <span className="min-w-0 truncate">
+            Destination URL:{" "}
+            <a
+              href={selectedLink.url}
+              target="_blank"
+              className="underline-offset-2 hover:underline"
+            >
+              {selectedLink.url}
+            </a>
+          </span>
+        </div>
+      )}
+    </>
   );
 }
 

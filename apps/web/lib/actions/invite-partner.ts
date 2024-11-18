@@ -6,7 +6,9 @@ import PartnerInvite from "emails/partner-invite";
 import { z } from "zod";
 import { getLinkOrThrow } from "../api/links/get-link-or-throw";
 import { getProgramOrThrow } from "../api/programs/get-program";
+import { createId } from "../api/utils";
 import { updateConfig } from "../edge-config";
+import { recordLink } from "../tinybird";
 import { authActionClient } from "./safe-action";
 
 const invitePartnerSchema = z.object({
@@ -22,58 +24,61 @@ export const invitePartnerAction = authActionClient
     const { workspace } = ctx;
     const { email, linkId, programId } = parsedInput;
 
-    const [program, _] = await Promise.all([
+    const [program, link, tags] = await Promise.all([
       getProgramOrThrow({
         workspaceId: workspace.id,
         programId,
       }),
 
       getLinkOrThrow({
-        workspace,
+        workspaceId: workspace.id,
         linkId,
+      }),
+
+      prisma.tag.findMany({
+        where: {
+          links: {
+            some: {
+              linkId,
+            },
+          },
+        },
       }),
     ]);
 
-    // Check if the user is already enrolled in the program
-    const programEnrollment = await prisma.programEnrollment.findFirst({
-      where: {
-        programId,
-        partner: {
-          users: {
-            some: {
-              user: {
-                email,
+    const [
+      programEnrollment,
+      programInvite,
+      linkInProgramEnrollment,
+      linkInProgramInvite,
+    ] = await Promise.all([
+      prisma.programEnrollment.findFirst({
+        where: {
+          programId,
+          partner: {
+            users: {
+              some: {
+                user: {
+                  email,
+                },
               },
             },
           },
         },
-      },
-    });
-
-    if (programEnrollment) {
-      throw new Error(`Partner ${email} already enrolled in this program.`);
-    }
-
-    const programInvite = await prisma.programInvite.findUnique({
-      where: {
-        email_programId: {
-          email,
-          programId,
+      }),
+      prisma.programInvite.findUnique({
+        where: {
+          email_programId: {
+            email,
+            programId,
+          },
         },
-      },
-    });
-
-    if (programInvite) {
-      throw new Error(`Partner ${email} already invited to this program.`);
-    }
-
-    const [linkInProgramEnrollment, linkInProgramInvite] = await Promise.all([
+      }),
       prisma.programEnrollment.findUnique({
         where: {
           linkId,
         },
       }),
-
       prisma.programInvite.findUnique({
         where: {
           linkId,
@@ -81,22 +86,43 @@ export const invitePartnerAction = authActionClient
       }),
     ]);
 
+    if (programEnrollment) {
+      throw new Error(`Partner ${email} already enrolled in this program.`);
+    }
+
+    if (programInvite) {
+      throw new Error(`Partner ${email} already invited to this program.`);
+    }
+
     if (linkInProgramEnrollment || linkInProgramInvite) {
       throw new Error("Link is already associated with another partner.");
     }
 
-    const result = await prisma.programInvite.create({
-      data: {
-        email,
-        linkId,
-        programId,
-      },
-    });
-
-    await updateConfig({
-      key: "partnersPortal",
-      value: email,
-    });
+    const [result, _] = await Promise.all([
+      prisma.programInvite.create({
+        data: {
+          id: createId({ prefix: "pgi_" }),
+          email,
+          linkId,
+          programId,
+        },
+      }),
+      updateConfig({
+        key: "partnersPortal",
+        value: email,
+      }),
+      recordLink({
+        domain: link.domain,
+        key: link.key,
+        link_id: link.id,
+        created_at: link.createdAt,
+        url: link.url,
+        tag_ids: tags.map((t) => t.id) || [],
+        program_id: program.id,
+        workspace_id: workspace.id,
+        deleted: false,
+      }),
+    ]);
 
     await sendEmail({
       subject: `${program.name} invited you to join Dub Partners`,

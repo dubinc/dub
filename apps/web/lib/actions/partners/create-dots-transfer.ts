@@ -18,7 +18,7 @@ export const createDotsTransferAction = authActionClient
     const { payoutId } = parsedInput;
 
     if (!workspace.dotsAppId) {
-      throw new Error("Dots app not found for workspace");
+      throw new Error("Partner payouts are not enabled for this workspace.");
     }
 
     const payout = await prisma.payout.findUniqueOrThrow({

@@ -63,7 +63,6 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   }>(
     workspaceId &&
       isVisible &&
-      !props.verified &&
       `/api/domains/${domain}/verify?workspaceId=${workspaceId}`,
     fetcher,
   );

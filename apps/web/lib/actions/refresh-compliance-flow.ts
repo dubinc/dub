@@ -14,7 +14,7 @@ export const refreshComplianceFlowAction = authActionClient
     const { workspace } = ctx;
 
     if (!workspace.dotsAppId) {
-      throw new Error(`Dots app not found for workspace ${workspace.id}`);
+      throw new Error("Partner payouts are not enabled for this workspace.");
     }
 
     const { link } = await refreshComplianceFlow({

@@ -44,8 +44,8 @@ export default function PartnerInvite({
             </Heading>
 
             <Text className="text-sm leading-6 text-gray-600">
-              Acme uses Dub to power their partnership programs and wants to
-              partner with great people like yourself!
+              {programName} uses Dub Partners to power their partnership
+              programs and wants to partner with great people like yourself!
             </Text>
 
             <Section className="mb-12 mt-8">

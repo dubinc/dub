@@ -124,7 +124,8 @@ export async function invoicePaid(event: Stripe.Event) {
               paymentProcessor: saleData.payment_processor,
               amount: saleData.amount,
               currency: saleData.currency,
-              programEnrollment,
+              partnerId: programEnrollment.partnerId,
+              program: programEnrollment.program,
               metadata: {
                 ...leadEvent.data[0],
                 stripeMetadata: invoice,

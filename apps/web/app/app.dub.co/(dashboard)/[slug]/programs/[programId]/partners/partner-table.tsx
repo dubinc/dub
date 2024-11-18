@@ -97,7 +97,7 @@ export function PartnerTable() {
             <div className="flex items-center gap-2">
               <img
                 src={
-                  row.original.logo ||
+                  row.original.image ||
                   `${DICEBEAR_AVATAR_URL}${row.original.name}`
                 }
                 alt={row.original.name}
