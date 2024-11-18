@@ -58,7 +58,7 @@ export function SaleRowMenu({ row }: { row: Row<SaleProps> }) {
           loop
           className="pointer-events-auto focus:outline-none"
         >
-          <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
+          <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[180px]">
             {["duplicate", "fraud"].includes(row.original.status) ? (
               <MenuItem
                 icon={CircleHalfDottedClock}

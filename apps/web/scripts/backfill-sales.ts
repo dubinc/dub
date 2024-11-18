@@ -5,7 +5,7 @@ import z from "@/lib/zod";
 import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
 import "dotenv-flow/config";
 
-const enrollmentId = "cm3goiy8q0000rcpha96y0vhj";
+const enrollmentId = "cm2v7e3780000d1efwh8b63y5";
 
 async function main() {
   const programEnrollment = await prisma.programEnrollment.findUnique({
