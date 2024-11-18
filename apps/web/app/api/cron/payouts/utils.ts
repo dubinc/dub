@@ -31,6 +31,18 @@ export const createPartnerPayouts = async ({
   partnerId: string;
 }) => {
   await prisma.$transaction(async (tx) => {
+    const currentDate = new Date();
+    const periodStart = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      1,
+    );
+    const periodEnd = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() + 1,
+      0,
+    );
+
     // Calculate the commission earned for the partner for the given program
     const sales = await tx.sale.findMany({
       where: {
@@ -38,6 +50,10 @@ export const createPartnerPayouts = async ({
         partnerId,
         payoutId: null,
         status: "pending", // We only want to pay out sales that are pending (not refunded / fraud / duplicate)
+        createdAt: {
+          gte: periodStart,
+          lte: periodEnd,
+        },
         // Referral commissions are held for 30 days before becoming available.
         // createdAt: {
         //   lte: subDays(new Date(), 30),
@@ -52,18 +68,6 @@ export const createPartnerPayouts = async ({
     if (!sales.length) {
       return;
     }
-
-    const currentDate = new Date();
-    const periodStart = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth(),
-      1,
-    );
-    const periodEnd = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth() + 1,
-      0,
-    );
 
     const earningsTotal = sales.reduce(
       (total, sale) => total + sale.earnings,
