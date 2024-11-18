@@ -17,10 +17,12 @@ export const GET = withAuth(async ({ searchParams, program, link }) => {
     })
     .parse(searchParams);
 
+  // TODO:
+  // Replace with sales data
+
   const response = await getEvents({
     ...parsedParams,
     linkId: link.id,
-    obfuscateData: true,
   });
 
   return NextResponse.json(
