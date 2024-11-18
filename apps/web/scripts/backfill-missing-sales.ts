@@ -79,7 +79,7 @@ async function main() {
             .omit({ timestamp: true })
             .parse(leadEvent.data[0]);
 
-          const saleAmount = cs.amount * 100;
+          const saleAmount = parseInt((cs.amount * 100).toFixed(0));
 
           const data = {
             ...clickData,

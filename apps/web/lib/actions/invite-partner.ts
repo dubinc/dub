@@ -31,7 +31,7 @@ export const invitePartnerAction = authActionClient
       }),
 
       getLinkOrThrow({
-        workspace,
+        workspaceId: workspace.id,
         linkId,
       }),
 
