@@ -26,7 +26,7 @@ export function QRCode({
       bgColor={qrData.bgColor}
       fgColor={qrData.fgColor}
       level={qrData.level}
-      includeMargin={false}
+      includeMargin={true}
       {...(qrData.imageSettings && {
         imageSettings: {
           ...qrData.imageSettings,

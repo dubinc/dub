@@ -362,7 +362,7 @@ export function getQRData({
     size: 1024,
     level: "Q", // QR Code error correction level: https://blog.qrstuff.com/general/qr-code-error-correction
     hideLogo,
-    includeMargin: false,
+    includeMargin: true,
     ...(!hideLogo && {
       imageSettings: {
         src: logo || DUB_QR_LOGO,
