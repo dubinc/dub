@@ -1,4 +1,5 @@
 import { createDotsTransferAction } from "@/lib/actions/partners/create-dots-transfer";
+import useSalesCount from "@/lib/swr/use-sales-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse, SaleResponse } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
@@ -7,8 +8,8 @@ import {
   Sheet,
   StatusBadge,
   Table,
+  useRouterStuff,
   useTable,
-  useTablePagination,
 } from "@dub/ui";
 import {
   capitalize,
@@ -39,6 +40,9 @@ function PayoutDetailsSheetContent({
 }: PayoutDetailsSheetProps) {
   const { id: workspaceId, slug } = useWorkspace();
   const { programId } = useParams() as { programId: string };
+  const { queryParams } = useRouterStuff();
+
+  const { salesCount } = useSalesCount();
 
   const {
     data: sales,
@@ -49,9 +53,8 @@ function PayoutDetailsSheetContent({
     fetcher,
   );
 
-  const totalConversions = sales?.length || 0;
+  const totalSales = salesCount?.pending || 0;
   const canConfirmPayout = payout.status === "pending";
-  const showPagination = totalConversions > 100;
 
   const invoiceData = useMemo(() => {
     const statusBadge = PayoutStatusBadges[payout.status];
@@ -82,7 +85,7 @@ function PayoutDetailsSheetContent({
             ? undefined
             : "numeric",
       })}-${formatDate(payout.periodEnd, { month: "short" })}`,
-      Sales: totalConversions,
+      Sales: totalSales,
       Amount: currencyFormatter(payout.amount / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -101,12 +104,7 @@ function PayoutDetailsSheetContent({
         </StatusBadge>
       ),
     };
-  }, [payout, totalConversions]);
-
-  const { pagination, setPagination } = useTablePagination({
-    pageSize: 100,
-    page: 1,
-  });
+  }, [payout, totalSales]);
 
   const table = useTable({
     data:
@@ -155,18 +153,11 @@ function PayoutDetailsSheetContent({
         cell: ({ row }) => <SaleRowMenu row={row} />,
       },
     ],
-    ...(showPagination && {
-      pagination,
-      onPaginationChange: setPagination,
-      rowCount: totalConversions,
-    }),
     columnPinning: { right: ["menu"] },
     thClassName: (id) =>
       cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
     tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
-    className: cn(
-      !showPagination && "[&_tr:last-child>td]:border-b-transparent", // Hide bottom row border
-    ),
+    className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
     resourceName: (p) => `sale${p ? "s" : ""}`,
     loading: isLoading,
@@ -262,8 +253,16 @@ export function PayoutDetailsSheet({
 }: PayoutDetailsSheetProps & {
   isOpen: boolean;
 }) {
+  const { queryParams } = useRouterStuff();
+
   return (
-    <Sheet open={isOpen} onOpenChange={rest.setIsOpen}>
+    <Sheet
+      open={isOpen}
+      onOpenChange={rest.setIsOpen}
+      onClose={() => {
+        queryParams({ del: "payoutId" });
+      }}
+    >
       <PayoutDetailsSheetContent {...rest} />
     </Sheet>
   );
