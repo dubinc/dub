@@ -308,9 +308,9 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                     {program?.name || "Dub"} invited you to join Dub Partners
                   </h3>
                   <p className="text-sm text-gray-500">
-                    {program?.name || "Dub"} uses Dub to power their partnership
-                    programs and wants to partner with great people like
-                    yourself!
+                    {program?.name || "Dub"} uses Dub Partners to power their
+                    partnership programs and wants to partner with great people
+                    like yourself!
                   </p>
                   <Button
                     type="button"
