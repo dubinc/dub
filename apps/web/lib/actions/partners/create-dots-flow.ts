@@ -7,14 +7,14 @@ import { redis } from "@/lib/upstash";
 import z from "../../zod";
 import { authUserActionClient } from "../safe-action";
 
-const onboardPartnerSchema = z.object({
+const createDotsFlowSchema = z.object({
   partnerId: z.string(),
   flow: dotsFlowStepsSchema,
 });
 
 // Create a Dots flow for connecting payout methods
 export const createDotsFlowAction = authUserActionClient
-  .schema(onboardPartnerSchema)
+  .schema(createDotsFlowSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { user } = ctx;
     const { partnerId, flow } = parsedInput;

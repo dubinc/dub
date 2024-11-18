@@ -24,7 +24,7 @@ import { ComplianceButton } from "./compliance-button";
 import PayoutMethodCard from "./payout-method-card";
 
 export function PayoutsSettingsPageClient() {
-  const { partnerId } = useParams() as { partnerId: string };
+  const { partnerId } = useParams<{ partnerId: string }>();
   const { partner } = usePartnerProfile();
 
   const { dotsUser, isLoading, mutate } = useDotsUser();
@@ -61,7 +61,7 @@ export function PayoutsSettingsPageClient() {
           showModal={modalState.show}
           setShowModal={() => setModalState({ show: false, iframeSrc: "" })}
           onClose={() => mutate()}
-          className="h-[90vh] w-full sm:max-w-[90vw]"
+          className="h-full w-full bg-white p-4 sm:h-[80vh] sm:max-w-md"
         >
           <button
             onClick={() => setModalState({ show: false, iframeSrc: "" })}
@@ -69,7 +69,10 @@ export function PayoutsSettingsPageClient() {
           >
             <X className="size-5 text-neutral-700 transition-all group-hover:scale-110 group-active:scale-90" />
           </button>
-          <iframe src={modalState.iframeSrc} className="h-full w-full" />
+          <iframe
+            src={modalState.iframeSrc}
+            className="h-full w-full rounded-lg"
+          />
         </Modal>
       )}
       <div className="min-h-screen">

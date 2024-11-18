@@ -29,7 +29,7 @@ type PayoutWithdrawSheetProps = {
 };
 
 function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
-  const { partnerId } = useParams() as { partnerId: string };
+  const { partnerId } = useParams<{ partnerId: string }>();
   const { partner, error: partnerError } = usePartnerProfile();
   const { dotsUser, error: dotsUserError } = useDotsUser();
 
@@ -40,7 +40,7 @@ function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
           {partner || partnerError ? (
             <>
               <img
-                src={partner?.logo || `${DICEBEAR_AVATAR_URL}${partner?.name}`}
+                src={partner?.image || `${DICEBEAR_AVATAR_URL}${partner?.name}`}
                 alt={partner?.name ?? "Partner"}
                 className="size-5 rounded-full"
               />

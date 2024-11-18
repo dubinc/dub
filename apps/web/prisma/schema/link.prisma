@@ -63,8 +63,9 @@ model Link {
   // Comments on the particular shortlink
   comments String? @db.LongText
 
-  dashboard Dashboard?
+  dashboard         Dashboard?
   programEnrollment ProgramEnrollment?
+  programInvite     ProgramInvite?
 
   @@unique([domain, key])
   @@unique([projectId, externalId])

@@ -1,5 +1,4 @@
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { nanoid } from "nanoid";
+import { APP_DOMAIN_WITH_NGROK, nanoid } from "@dub/utils";
 import { redis } from "../../upstash";
 import z from "../../zod";
 

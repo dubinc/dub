@@ -6,12 +6,12 @@ import useSalesCount from "@/lib/swr/use-sales-count";
 import { CustomerProps, EnrolledPartnerProps } from "@/lib/types";
 import { CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/customers";
 import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
+import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
 import { User, Users } from "@dub/ui/src/icons";
 import { cn, DICEBEAR_AVATAR_URL, nFormatter } from "@dub/utils";
 import { useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
-import { SaleStatusBadges } from "./sale-table";
 
 export function useSaleFilters() {
   const { salesCount } = useSalesCount();
@@ -57,14 +57,14 @@ export function useSaleFilters() {
         label: "Partner",
         shouldFilter: !partnersAsync,
         options:
-          partners?.map(({ id, name, logo }) => {
+          partners?.map(({ id, name, image }) => {
             return {
               value: id,
               label: name,
               icon: (
                 <img
-                  src={logo || `${DICEBEAR_AVATAR_URL}${name}`}
-                  alt={`${name} logo`}
+                  src={image || `${DICEBEAR_AVATAR_URL}${name}`}
+                  alt={`${name} image`}
                   className="size-4 rounded-full"
                 />
               ),

@@ -70,7 +70,7 @@ export function TopPartners() {
                   <div className="flex items-center gap-2 text-xs">
                     <img
                       src={
-                        partner.logo || `${DICEBEAR_AVATAR_URL}${partner.name}`
+                        partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`
                       }
                       alt={partner.name}
                       className="size-8 rounded-full"

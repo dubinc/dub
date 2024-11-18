@@ -5,7 +5,7 @@ import z from "@/lib/zod";
 import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
 import "dotenv-flow/config";
 
-const enrollmentId = "cm3ghqh1300012tvjbeyeo5ec";
+const enrollmentId = "cm2v7e3780000d1efwh8b63y5";
 
 async function main() {
   const programEnrollment = await prisma.programEnrollment.findUnique({
@@ -56,10 +56,8 @@ async function main() {
       paymentProcessor: e.payment_processor,
       amount: e.sale.amount,
       currency: "usd",
-      programEnrollment: {
-        program,
-        partnerId,
-      } as any,
+      partnerId,
+      program,
       metadata: e.click,
     }),
     createdAt: new Date(e.timestamp),

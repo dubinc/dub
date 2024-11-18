@@ -1,11 +1,12 @@
 "use client";
 
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { PartnerProps, ProgramProps } from "@/lib/types";
 import { BlurImage, Popover, useScrollProgress } from "@dub/ui";
-import { Check2, Connections3, Gear } from "@dub/ui/src/icons";
-import { APP_DOMAIN, cn, DICEBEAR_AVATAR_URL, fetcher } from "@dub/utils";
-import { ChevronsUpDown, HelpCircle } from "lucide-react";
+import { Check2, Gear } from "@dub/ui/src/icons";
+import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import {
@@ -15,7 +16,6 @@ import {
   useRef,
   useState,
 } from "react";
-import useSWR from "swr";
 
 const LINKS = ({ partnerId }: { partnerId: string }) => [
   {
@@ -23,48 +23,44 @@ const LINKS = ({ partnerId }: { partnerId: string }) => [
     icon: Gear,
     href: `/${partnerId}/settings`,
   },
-  {
-    name: "Help center",
-    icon: HelpCircle,
-    href: "https://dub.co/help",
-    target: "_blank",
-  },
-  {
-    name: "Switch to Business Hub",
-    icon: Connections3,
-    href: APP_DOMAIN,
-  },
+  // {
+  //   name: "Help center",
+  //   icon: HelpCircle,
+  //   href: "https://dub.co/help",
+  //   target: "_blank",
+  // },
+  // {
+  //   name: "Switch to Business Hub",
+  //   icon: Connections3,
+  //   href: APP_DOMAIN,
+  // },
 ];
 
 export function PartnerProgramDropdown() {
-  const { partnerId, programId } = useParams() as {
-    partnerId?: string;
+  const { programId } = useParams() as {
     programId?: string;
   };
 
   const { partner } = usePartnerProfile();
-
-  const { data: programs } = useSWR<ProgramProps[]>(
-    partnerId && `/api/partners/${partnerId}/programs`,
-    fetcher,
-    {
-      dedupingInterval: 60000,
-    },
-  );
+  const { programEnrollments } = useProgramEnrollments();
 
   const selectedProgram = useMemo(() => {
-    const program = programs?.find((program) => program.id === programId);
+    const program = programEnrollments?.find(
+      (programEnrollment) => programEnrollment.programId === programId,
+    );
     return programId && program
       ? {
-          ...program,
-          logo: program.logo || `${DICEBEAR_AVATAR_URL}${program.name}`,
+          ...program.program,
+          logo:
+            program.program.logo ||
+            `${DICEBEAR_AVATAR_URL}${program.program.name}`,
         }
       : undefined;
-  }, [programId, programs]);
+  }, [programId, programEnrollments]);
 
   const [openPopover, setOpenPopover] = useState(false);
 
-  if (!partner || (programId && !programs)) {
+  if (!partner || (programId && !programEnrollments)) {
     return <PartnerDropdownPlaceholder />;
   }
 
@@ -73,12 +69,17 @@ export function PartnerProgramDropdown() {
       <Popover
         content={
           <ScrollContainer>
-            {programs && programs.length > 0 && (
+            {programEnrollments && programEnrollments.length > 0 && (
               <div className="border-b border-neutral-200 p-2">
                 <ProgramList
                   partner={partner}
                   selectedProgram={selectedProgram}
-                  programs={programs}
+                  programs={programEnrollments
+                    .filter(
+                      (programEnrollment) =>
+                        programEnrollment.status === "approved",
+                    )
+                    .map((programEnrollment) => programEnrollment.program)}
                   setOpenPopover={setOpenPopover}
                 />
               </div>
@@ -96,7 +97,7 @@ export function PartnerProgramDropdown() {
                 onClick={() => setOpenPopover(false)}
               >
                 <BlurImage
-                  src={partner.logo || `${DICEBEAR_AVATAR_URL}${partner.id}`}
+                  src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.id}`}
                   width={28}
                   height={28}
                   alt={partner.name}
@@ -117,11 +118,10 @@ export function PartnerProgramDropdown() {
               </Link>
               <div className="mt-0.5 flex flex-col gap-0.5">
                 {LINKS({ partnerId: partner.id }).map(
-                  ({ name, icon: Icon, href, target }) => (
+                  ({ name, icon: Icon, href }) => (
                     <Link
                       key={name}
                       href={href}
-                      target={target}
                       className={cn(
                         "flex items-center gap-x-4 rounded-md px-2.5 py-2 transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
                         "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
@@ -154,7 +154,7 @@ export function PartnerProgramDropdown() {
             <BlurImage
               src={
                 selectedProgram?.logo ||
-                partner.logo ||
+                partner.image ||
                 `${DICEBEAR_AVATAR_URL}${partner.id}`
               }
               referrerPolicy="no-referrer"

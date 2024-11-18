@@ -25,6 +25,8 @@ export const updateProgramAction = authActionClient
       recurringInterval,
       isLifetimeRecurring,
       cookieLength,
+      domain,
+      url,
     } = parsedInput;
 
     await getProgramOrThrow({
@@ -45,6 +47,8 @@ export const updateProgramAction = authActionClient
         recurringInterval,
         isLifetimeRecurring,
         cookieLength,
+        domain,
+        url,
       },
     });
 

@@ -22,10 +22,7 @@ export const createDotsWithdrawalAction = authPartnerActionClient
       throw new Error("Partner does not have a Dots user ID");
     }
 
-    const dotsUser = await retrieveDotsUser({
-      dotsUserId: partner.dotsUserId,
-      partner,
-    });
+    const dotsUser = await retrieveDotsUser(partner);
 
     const amountToWithdraw = dotsUser.wallet.withdrawable_amount;
 
