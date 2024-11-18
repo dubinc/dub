@@ -24,6 +24,12 @@ enum ProgramResourceType {
   files
 }
 
+enum ProgramApplicationStatus {
+  pending
+  approved
+  rejected
+}
+
 model Program {
   id                  String              @id @default(cuid())
   workspaceId         String
@@ -43,53 +49,43 @@ model Program {
   recurringDuration   Int?
   isLifetimeRecurring Boolean? // TODO: Maybe use just lifetimeRecurring?
 
-  landerData     Json?   @db.Json
+  landerData Json? @db.Json
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  workspace       Project              @relation(fields: [workspaceId], references: [id])
-  primaryDomain   Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
-  partners        ProgramEnrollment[]
-  payouts         Payout[]
-  sales           Sale[]
-  resources       ProgramResource[]
-  applications    ProgramApplication[]
-  invites         ProgramInvite[]
+  workspace     Project              @relation(fields: [workspaceId], references: [id])
+  primaryDomain Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
+  partners      ProgramEnrollment[]
+  payouts       Payout[]
+  sales         Sale[]
+  resources     ProgramResource[]
+  applications  ProgramApplication[]
+  invites       ProgramInvite[]
+  links         Link[]
 
   @@index([workspaceId])
   @@index([domain])
 }
 
 model ProgramEnrollment {
-  id         String                  @id @default(cuid())
-  partnerId  String
-  programId  String
+  id            String                  @id @default(cuid())
+  partnerId     String
+  programId     String
+  applicationId String?                 @unique
+  linkId        String?                 @unique
+  dotsUserId    String?                 @unique
+  status        ProgramEnrollmentStatus @default(pending)
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
 
-  applicationId String? @unique
-  linkId        String? @unique
-  dotsUserId    String? @unique
-
-  status ProgramEnrollmentStatus @default(pending)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  partner Partner @relation(fields: [partnerId], references: [id])
-  program Program @relation(fields: [programId], references: [id])
-  link    Link?   @relation(fields: [linkId], references: [id])
-
+  partner     Partner             @relation(fields: [partnerId], references: [id])
+  program     Program             @relation(fields: [programId], references: [id])
+  link        Link?               @relation(fields: [linkId], references: [id])
   application ProgramApplication? @relation(fields: [applicationId], references: [id])
 
   @@unique([partnerId, programId])
   @@index([programId])
-  @@index([linkId])
-}
-
-enum ProgramApplicationStatus {
-  pending
-  approved
-  rejected
 }
 
 model ProgramApplication {
@@ -105,8 +101,8 @@ model ProgramApplication {
   createdAt DateTime                 @default(now())
   updatedAt DateTime                 @updatedAt
 
-  partner    Partner? @relation(fields: [partnerId], references: [id])
-  program    Program @relation(fields: [programId], references: [id])
+  partner    Partner?           @relation(fields: [partnerId], references: [id])
+  program    Program            @relation(fields: [programId], references: [id])
   enrollment ProgramEnrollment?
 
   @@index([programId])
@@ -141,5 +137,4 @@ model ProgramInvite {
 
   @@unique([email, programId])
   @@index([programId])
-  @@index([linkId])
 }

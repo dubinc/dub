@@ -1,7 +1,6 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { createSaleData } from "@/lib/api/sales/sale";
 import { prisma } from "@/lib/prisma";
-import { recordLink } from "@/lib/tinybird";
 import z from "@/lib/zod";
 import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
 
@@ -16,11 +15,7 @@ export const backfillLinkData = async (programEnrollmentId: string) => {
           workspace: true,
         },
       },
-      link: {
-        include: {
-          tags: true,
-        },
-      },
+      link: true,
       partner: true,
     },
   });
@@ -32,6 +27,16 @@ export const backfillLinkData = async (programEnrollmentId: string) => {
     console.warn(
       `No link found for program enrollment ${programEnrollment.id}`,
     );
+    return;
+  }
+
+  const alreadyBackfilled = await prisma.sale.count({
+    where: {
+      linkId: link.id,
+    },
+  });
+
+  if (alreadyBackfilled > 0) {
     return;
   }
 
@@ -63,24 +68,10 @@ export const backfillLinkData = async (programEnrollmentId: string) => {
     createdAt: new Date(e.timestamp),
   }));
 
-  return await Promise.all([
-    // Backfill sales for the partner's link
-    data.length > 0 &&
-      prisma.sale.createMany({
-        data,
-        skipDuplicates: true,
-      }),
-    // Add link's programId to dub_links_metadata in Tinybird
-    recordLink({
-      domain: link.domain,
-      key: link.key,
-      link_id: link.id,
-      created_at: link.createdAt,
-      url: link.url,
-      tag_ids: link.tags.map((t) => t.id) || [],
-      program_id: program.id,
-      workspace_id: workspace.id,
-      deleted: false,
-    }),
-  ]);
+  if (data.length > 0) {
+    await prisma.sale.createMany({
+      data,
+      skipDuplicates: true,
+    });
+  }
 };

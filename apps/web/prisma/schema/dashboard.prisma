@@ -20,7 +20,6 @@ model Dashboard {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index(linkId)
   @@index(projectId)
   @@index(userId)
 }

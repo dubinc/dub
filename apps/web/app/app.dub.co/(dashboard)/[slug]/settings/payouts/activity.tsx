@@ -3,7 +3,7 @@
 import { DotsDeposits } from "@/lib/dots/types";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PlatformBadge } from "@/ui/partners/platform-badge";
-import { StatusBadge, Table, useTable } from "@dub/ui";
+import { StatusBadge, Table, Tooltip, useTable } from "@dub/ui";
 import {
   capitalize,
   currencyFormatter,
@@ -11,11 +11,6 @@ import {
   formatDateTime,
 } from "@dub/utils";
 import useSWR from "swr";
-
-const TRANSACTION_TYPES = {
-  refill: "Deposit",
-  payout: "Withdrawal",
-};
 
 const StatusBadgeVariants = {
   created: "new",
@@ -58,11 +53,23 @@ export const WorkspaceDepositActivity = () => {
       },
       {
         header: "Status",
-        cell: ({ row }) => (
-          <StatusBadge variant={StatusBadgeVariants[row.original.status]}>
-            {capitalize(row.original.status)}
-          </StatusBadge>
-        ),
+        cell: ({ row }) => {
+          const badge = (
+            <StatusBadge variant={StatusBadgeVariants[row.original.status]}>
+              {capitalize(row.original.status)}
+            </StatusBadge>
+          );
+
+          if (row.original.status === "pending") {
+            return (
+              <Tooltip content="Deposits can take 3 to 5 business days to complete.">
+                <div className="w-fit">{badge}</div>
+              </Tooltip>
+            );
+          } else {
+            return badge;
+          }
+        },
       },
     ],
     thClassName: "border-l-0",

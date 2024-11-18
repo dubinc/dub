@@ -1,7 +1,7 @@
 "use client";
 
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
-import { PayoutWithPartnerProps } from "@/lib/types";
+import { PayoutResponse } from "@/lib/types";
 import { PayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -29,7 +29,7 @@ import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { usePayoutFilters } from "./use-payout-filters";
 
@@ -56,7 +56,7 @@ export function PayoutTable() {
     data: payouts,
     error,
     isLoading,
-  } = useSWR<PayoutWithPartnerProps[]>(
+  } = useSWR<PayoutResponse[]>(
     `/api/programs/${programId}/payouts?${searchQuery}`,
     fetcher,
     {
@@ -65,9 +65,19 @@ export function PayoutTable() {
   );
 
   const [detailsSheetState, setDetailsSheetState] = useState<
-    | { open: false; payout: PayoutWithPartnerProps | null }
-    | { open: true; payout: PayoutWithPartnerProps }
+    | { open: false; payout: PayoutResponse | null }
+    | { open: true; payout: PayoutResponse }
   >({ open: false, payout: null });
+
+  useEffect(() => {
+    const payoutId = searchParams.get("payoutId");
+    if (payoutId) {
+      const payout = payouts?.find((p) => p.id === payoutId);
+      if (payout) {
+        setDetailsSheetState({ open: true, payout });
+      }
+    }
+  }, [searchParams, payouts]);
 
   const { pagination, setPagination } = usePagination();
 
@@ -105,7 +115,7 @@ export function PayoutTable() {
             <div className="flex items-center gap-2">
               <img
                 src={
-                  row.original.partner.logo ||
+                  row.original.partner.image ||
                   `${DICEBEAR_AVATAR_URL}${row.original.partner.name}`
                 }
                 alt={row.original.partner.name}
@@ -165,8 +175,13 @@ export function PayoutTable() {
           ...(sortOrder && { order: sortOrder }),
         },
       }),
-    onRowClick: (row) =>
-      setDetailsSheetState({ open: true, payout: row.original }),
+    onRowClick: (row) => {
+      queryParams({
+        set: {
+          payoutId: row.original.id,
+        },
+      });
+    },
     columnPinning: { right: ["menu"] },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
@@ -235,7 +250,7 @@ export function PayoutTable() {
   );
 }
 
-function RowMenuButton({ row }: { row: Row<PayoutWithPartnerProps> }) {
+function RowMenuButton({ row }: { row: Row<PayoutResponse> }) {
   const router = useRouter();
   const { slug, programId } = useParams();
   const [isOpen, setIsOpen] = useState(false);
@@ -252,7 +267,7 @@ function RowMenuButton({ row }: { row: Row<PayoutWithPartnerProps> }) {
               label="View sales"
               onSelect={() => {
                 router.push(
-                  `/${slug}/programs/${programId}/sales?payoutId=${row.original.id}`,
+                  `/${slug}/programs/${programId}/sales?payoutId=${row.original.id}&start=${row.original.periodStart}&end=${row.original.periodEnd}`,
                 );
                 setIsOpen(false);
               }}

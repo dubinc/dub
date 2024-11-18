@@ -84,8 +84,8 @@ export const EmailSignIn = () => {
               signIn(provider, {
                 email,
                 redirect: false,
+                callbackUrl: next || "/",
                 ...(password && { password }),
-                ...(next ? { callbackUrl: next } : {}),
               }).then((res) => {
                 if (!res) return;
 

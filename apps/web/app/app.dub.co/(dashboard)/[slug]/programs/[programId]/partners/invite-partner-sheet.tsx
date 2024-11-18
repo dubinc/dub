@@ -12,6 +12,7 @@ import {
   Combobox,
   LinkLogo,
   Sheet,
+  useMediaQuery,
 } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/src/icons";
 import { cn, getApexDomain, linkConstructor } from "@dub/utils";
@@ -36,6 +37,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const [shortKey, setShortKey] = useState("");
   const [useExistingLink, setUseExistingLink] = useState(false);
   const [creatingLink, setCreatingLink] = useState(false);
+  const { isMobile } = useMediaQuery();
 
   const {
     register,
@@ -156,6 +158,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                   required
                   type="email"
                   autoComplete="off"
+                  autoFocus={!isMobile}
                 />
               </div>
             </div>
@@ -304,9 +307,9 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                     {program?.name || "Dub"} invited you to join Dub Partners
                   </h3>
                   <p className="text-sm text-gray-500">
-                    {program?.name || "Dub"} uses Dub to power their partnership
-                    programs and wants to partner with great people like
-                    yourself!
+                    {program?.name || "Dub"} uses Dub Partners to power their
+                    partnership programs and wants to partner with great people
+                    like yourself!
                   </p>
                   <Button
                     type="button"
@@ -381,23 +384,34 @@ function LinksSelector({
   const [debouncedSearch] = useDebounce(search, 500);
 
   const { links } = useLinks(
-    { search: debouncedSearch, excludePartnerLinks: true },
+    { search: debouncedSearch },
     {
       keepPreviousData: false,
     },
   );
+
+  const { links: selectedLinks } = useLinks({
+    linkIds: [selectedLinkId],
+  });
 
   const options = useMemo(
     () => links?.map((link) => getLinkOption(link)),
     [links],
   );
 
+  const selectedOption = useMemo(() => {
+    const link = [...(links || []), ...(selectedLinks || [])].find(
+      ({ id }) => id === selectedLinkId,
+    );
+    return link ? getLinkOption(link) : null;
+  }, [selectedLinkId, links, selectedLinks]);
+
   const selectedLink = links?.find((l) => l.id === selectedLinkId);
 
   return (
     <>
       <Combobox
-        selected={options?.find((o) => o.value === selectedLinkId) ?? null}
+        selected={selectedOption}
         setSelected={(option) => {
           if (option) setSelectedLinkId(option.value);
         }}
