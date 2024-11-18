@@ -12,12 +12,10 @@ import {
 } from "../zod/schemas/clicks";
 import { CustomerSchema } from "../zod/schemas/customers";
 import {
-  leadEventResponseObfuscatedSchema,
   leadEventResponseSchema,
   leadEventSchemaTBEndpoint,
 } from "../zod/schemas/leads";
 import {
-  saleEventResponseObfuscatedSchema,
   saleEventResponseSchema,
   saleEventSchemaTBEndpoint,
 } from "../zod/schemas/sales";
@@ -35,7 +33,6 @@ export const getEvents = async (params: EventsFilters) => {
     qr,
     trigger,
     isDemo,
-    obfuscateData,
   } = params;
 
   const { startDate, endDate } = getStartEndDates({
@@ -135,17 +132,9 @@ export const getEvents = async (params: EventsFilters) => {
       if (evt.event === "click") {
         return clickEventResponseSchema.parse(eventData);
       } else if (evt.event === "lead") {
-        return (
-          obfuscateData
-            ? leadEventResponseObfuscatedSchema
-            : leadEventResponseSchema
-        ).parse(eventData);
+        return leadEventResponseSchema.parse(eventData);
       } else if (evt.event === "sale") {
-        return (
-          obfuscateData
-            ? saleEventResponseObfuscatedSchema
-            : saleEventResponseSchema
-        ).parse(eventData);
+        return saleEventResponseSchema.parse(eventData);
       }
 
       return eventData;

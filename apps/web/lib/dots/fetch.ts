@@ -1,5 +1,3 @@
-import { DubApiError, httpStatusToErrorCode } from "../api/errors";
-
 type DotsRequestConfig = {
   method: "GET" | "POST" | "PUT" | "DELETE";
   dotsAppId?: string | "default";
@@ -28,15 +26,19 @@ export const dotsFetch = async (
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
 
+  let error:
+    | { error_code: string; message: string; success: boolean }
+    | undefined;
+
   if (!response.ok) {
-    const error = await response.json();
-
-    console.error("Dots API error", error);
-
-    throw new DubApiError({
-      code: httpStatusToErrorCode[response.status],
-      message: error.message,
-    });
+    try {
+      error = await response.json(); // error could potentially not be JSON, hence the try catch
+    } catch (error) {
+      throw new Error(`${response.status} ${response.statusText}`);
+    }
+  }
+  if (error?.message) {
+    throw new Error(error.message);
   }
 
   return textResponse ? response.text() : response.json();

@@ -19,6 +19,13 @@ export const enrollDotsUserApp = async ({
 
   const dotsUser = await retrieveDotsUser(partner);
 
+  if (!dotsUser || dotsUser.status === "unverified") {
+    console.warn(
+      `Partner ${partner.id} has a Dots user ID but the user is unverified`,
+    );
+    return;
+  }
+
   const newDotsUser = await createDotsUser({
     dotsAppId, // we need to create a new Dots user under the Program's Dots App
     userInfo: {

@@ -12,6 +12,7 @@ import {
   Combobox,
   LinkLogo,
   Sheet,
+  useMediaQuery,
 } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/src/icons";
 import { cn, getApexDomain, linkConstructor } from "@dub/utils";
@@ -36,6 +37,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const [shortKey, setShortKey] = useState("");
   const [useExistingLink, setUseExistingLink] = useState(false);
   const [creatingLink, setCreatingLink] = useState(false);
+  const { isMobile } = useMediaQuery();
 
   const {
     register,
@@ -86,6 +88,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
         key: shortKey,
         url: program?.url,
         trackConversion: true,
+        programId: program?.id,
       }),
     });
 
@@ -156,6 +159,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                   required
                   type="email"
                   autoComplete="off"
+                  autoFocus={!isMobile}
                 />
               </div>
             </div>
@@ -304,9 +308,9 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                     {program?.name || "Dub"} invited you to join Dub Partners
                   </h3>
                   <p className="text-sm text-gray-500">
-                    {program?.name || "Dub"} uses Dub to power their partnership
-                    programs and wants to partner with great people like
-                    yourself!
+                    {program?.name || "Dub"} uses Dub Partners to power their
+                    partnership programs and wants to partner with great people
+                    like yourself!
                   </p>
                   <Button
                     type="button"
