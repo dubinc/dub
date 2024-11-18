@@ -2,10 +2,10 @@
 
 import useSalesCount from "@/lib/swr/use-sales-count";
 import { ProgramStatsFilter } from "@/ui/partners/program-stats-filter";
+import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { useRouterStuff } from "@dub/ui";
 import { Users } from "@dub/ui/src/icons";
 import { useParams } from "next/navigation";
-import { SaleStatusBadges } from "./sale-table";
 
 export function SaleStats() {
   const { slug, programId } = useParams();

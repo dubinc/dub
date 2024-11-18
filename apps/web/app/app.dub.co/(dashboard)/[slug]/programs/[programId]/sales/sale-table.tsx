@@ -2,26 +2,22 @@
 
 import useSalesCount from "@/lib/swr/use-sales-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CustomerSchema } from "@/lib/zod/schemas/customers";
-import { PartnerSchema, SaleSchema } from "@/lib/zod/schemas/partners";
+import { SaleResponse } from "@/lib/types";
 import FilterButton from "@/ui/analytics/events/filter-button";
 import { SaleRowMenu } from "@/ui/partners/sale-row-menu";
+import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
-  CircleCheck,
-  CircleHalfDottedClock,
-  Duplicate,
   Filter,
-  ShieldAlert,
   StatusBadge,
   Table,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CircleXmark, MoneyBill2 } from "@dub/ui/src/icons";
+import { MoneyBill2 } from "@dub/ui/src/icons";
 import {
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
@@ -31,54 +27,7 @@ import {
 import { useParams } from "next/navigation";
 import { memo } from "react";
 import useSWR from "swr";
-import { z } from "zod";
 import { useSaleFilters } from "./use-sale-filters";
-
-const salesSchema = SaleSchema.and(
-  z.object({
-    customer: CustomerSchema,
-    partner: PartnerSchema,
-  }),
-);
-
-export const SaleStatusBadges = {
-  pending: {
-    label: "Pending",
-    variant: "pending",
-    className: "text-orange-600 bg-orange-100",
-    icon: CircleHalfDottedClock,
-  },
-  processed: {
-    label: "Processed",
-    variant: "new",
-    className: "text-blue-600 bg-blue-100",
-    icon: CircleHalfDottedClock,
-  },
-  paid: {
-    label: "Paid",
-    variant: "success",
-    className: "text-green-600 bg-green-100",
-    icon: CircleCheck,
-  },
-  fraud: {
-    label: "Fraud",
-    variant: "error",
-    className: "text-red-600 bg-red-100",
-    icon: ShieldAlert,
-  },
-  duplicate: {
-    label: "Duplicate",
-    variant: "error",
-    className: "text-red-600 bg-red-100",
-    icon: Duplicate,
-  },
-  refunded: {
-    label: "Refunded",
-    variant: "error",
-    className: "text-red-600 bg-red-100",
-    icon: CircleXmark,
-  },
-};
 
 export function SaleTableBusiness({ limit }: { limit?: number }) {
   const filters = useSaleFilters();
@@ -108,7 +57,7 @@ const SaleTableBusinessInner = memo(
     };
 
     const { salesCount } = useSalesCount();
-    const { data: sales, error } = useSWR<z.infer<typeof salesSchema>[]>(
+    const { data: sales, error } = useSWR<SaleResponse[]>(
       `/api/programs/${programId}/sales${getQueryString({
         workspaceId,
       })}`,
