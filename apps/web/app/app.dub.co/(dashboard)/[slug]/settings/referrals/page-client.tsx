@@ -2,6 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ReferralsEmbed } from "@/ui/embed/referrals-embed";
+import { LoadingSpinner } from "@dub/ui";
 import { redirect } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -35,13 +36,9 @@ export default function ReferralsPageClient() {
     redirect(`/${slug}/settings`);
   }
 
-  if (!publicToken) {
-    return <div>Loading...</div>;
-  }
-
-  return (
-    <>
-      <ReferralsEmbed publicToken={publicToken} />
-    </>
+  return publicToken ? (
+    <ReferralsEmbed publicToken={publicToken} />
+  ) : (
+    <LoadingSpinner className="my-auto h-full w-5 text-gray-400" />
   );
 }

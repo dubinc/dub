@@ -1,55 +1,46 @@
 "use client";
 
-import { IntervalOptions } from "@/lib/analytics/types";
+import { PartnerSaleResponse } from "@/lib/types";
+import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { Table, usePagination, useRouterStuff, useTable } from "@dub/ui";
+import {
+  StatusBadge,
+  Table,
+  usePagination,
+  useRouterStuff,
+  useTable,
+} from "@dub/ui";
 import { CircleDollar } from "@dub/ui/src/icons";
-import { currencyFormatter, formatDate } from "@dub/utils";
-import useReferralAnalytics from "./use-referral-analytics";
-import useReferralEvents from "./use-referral-events";
+import { currencyFormatter, fetcher, formatDate } from "@dub/utils";
+import useSWR from "swr";
 
 export function SaleTable({ limit }: { limit?: number }) {
-  const { queryParams, searchParamsObj } = useRouterStuff();
+  const { pagination, setPagination } = usePagination(limit);
+  const { queryParams, searchParamsObj, getQueryString } = useRouterStuff();
 
   const {
-    start,
-    end,
-    interval,
-    sortBy = "timestamp",
-    order = "desc",
-  } = searchParamsObj as {
-    start?: string;
-    end?: string;
-    interval?: IntervalOptions;
+    data: sales,
+    isLoading,
+    error,
+  } = useSWR<PartnerSaleResponse[]>(
+    `/api/referrals/sales${getQueryString()}`,
+    fetcher,
+  );
+
+  const { data: salesCount } = useSWR<{ count: number }>(
+    `/api/referrals/sales/count${getQueryString()}`,
+    fetcher,
+  );
+
+  const { sortBy = "timestamp", order = "desc" } = searchParamsObj as {
     sortBy?: "timestamp";
     order?: "asc" | "desc";
   };
 
-  const { data: { sales: totalSaleEvents } = {} } = useReferralAnalytics({
-    interval,
-    start: start ? new Date(start) : undefined,
-    end: end ? new Date(end) : undefined,
-  });
-
-  const {
-    data: saleEvents,
-    loading,
-    error,
-  } = useReferralEvents({
-    event: "sales",
-    interval: interval as any,
-    start: start ? new Date(start) : undefined,
-    end: end ? new Date(end) : undefined,
-    order,
-    sortBy,
-  });
-
-  const { pagination, setPagination } = usePagination(limit);
-
   const { table, ...tableProps } = useTable({
-    data: saleEvents?.slice(0, limit) || [],
-    loading,
+    data: sales?.slice(0, limit) || [],
+    loading: isLoading,
     error: error ? "Failed to fetch sales events." : undefined,
     columns: [
       {
@@ -57,7 +48,7 @@ export function SaleTable({ limit }: { limit?: number }) {
         header: "Date",
         accessorKey: "timestamp",
         cell: ({ row }) => {
-          return formatDate(row.original.timestamp, { month: "short" });
+          return formatDate(row.original.createdAt, { month: "short" });
         },
       },
       {
@@ -73,7 +64,7 @@ export function SaleTable({ limit }: { limit?: number }) {
         header: "Sale Amount",
         accessorKey: "sale",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.sale.amount / 100, {
+          return currencyFormatter(row.original.amount / 100, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           });
@@ -88,6 +79,18 @@ export function SaleTable({ limit }: { limit?: number }) {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           });
+        },
+      },
+      {
+        header: "Status",
+        cell: ({ row }) => {
+          const badge = SaleStatusBadges[row.original.status];
+
+          return (
+            <StatusBadge icon={null} variant={badge.variant}>
+              {badge.label}
+            </StatusBadge>
+          );
         },
       },
     ],
@@ -105,7 +108,7 @@ export function SaleTable({ limit }: { limit?: number }) {
           },
         }),
     }),
-    rowCount: totalSaleEvents,
+    rowCount: salesCount?.count || 0,
     emptyState: (
       <AnimatedEmptyState
         title="No sales found"
@@ -128,7 +131,7 @@ export function SaleTable({ limit }: { limit?: number }) {
           <SimpleDateRangePicker className="w-full sm:min-w-[200px] md:w-fit" />
         </div>
       )}
-      {loading || saleEvents?.length ? (
+      {isLoading || sales?.length ? (
         <Table
           {...tableProps}
           table={table}
