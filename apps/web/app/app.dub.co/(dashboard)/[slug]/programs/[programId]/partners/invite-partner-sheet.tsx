@@ -88,7 +88,6 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
         key: shortKey,
         url: program?.url,
         trackConversion: true,
-        programId: program?.id,
       }),
     });
 
@@ -385,23 +384,34 @@ function LinksSelector({
   const [debouncedSearch] = useDebounce(search, 500);
 
   const { links } = useLinks(
-    { search: debouncedSearch, excludePartnerLinks: true },
+    { search: debouncedSearch },
     {
       keepPreviousData: false,
     },
   );
+
+  const { links: selectedLinks } = useLinks({
+    linkIds: [selectedLinkId],
+  });
 
   const options = useMemo(
     () => links?.map((link) => getLinkOption(link)),
     [links],
   );
 
+  const selectedOption = useMemo(() => {
+    const link = [...(links || []), ...(selectedLinks || [])].find(
+      ({ id }) => id === selectedLinkId,
+    );
+    return link ? getLinkOption(link) : null;
+  }, [selectedLinkId, links, selectedLinks]);
+
   const selectedLink = links?.find((l) => l.id === selectedLinkId);
 
   return (
     <>
       <Combobox
-        selected={options?.find((o) => o.value === selectedLinkId) ?? null}
+        selected={selectedOption}
         setSelected={(option) => {
           if (option) setSelectedLinkId(option.value);
         }}

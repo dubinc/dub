@@ -21,7 +21,6 @@ export async function getLinksForWorkspace({
   includeWebhooks,
   includeDashboard,
   linkIds,
-  excludePartnerLinks,
 }: z.infer<typeof getLinksQuerySchemaExtended> & {
   workspaceId: string;
 }) {
@@ -66,9 +65,6 @@ export async function getLinksForWorkspace({
           : {}),
       ...(userId && { userId }),
       ...(linkIds && { id: { in: linkIds } }),
-      ...(excludePartnerLinks && {
-        programEnrollment: null,
-      }),
     },
     include: {
       tags: {

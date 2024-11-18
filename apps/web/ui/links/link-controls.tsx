@@ -58,6 +58,9 @@ export function LinkControls({ link }: { link: ResponseLink }) {
     props: link,
   });
 
+  const isRootLink = link.key === "_root";
+  const isProgramLink = link.programId !== null;
+
   // Duplicate link Modal
   const {
     id: _,
@@ -73,7 +76,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
     // @ts-expect-error
     duplicateProps: {
       ...propsToDuplicate,
-      key: link.key === "_root" ? nanoid(7) : `${punycode(link.key)}-copy`,
+      key: isRootLink ? nanoid(7) : `${punycode(link.key)}-copy`,
       clicks: 0,
     },
   });
@@ -126,7 +129,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
           copyLinkId();
           break;
         case "x":
-          if (link.key !== "_root") setShowDeleteLinkModal(true);
+          if (!isRootLink && !isProgramLink) setShowDeleteLinkModal(true);
           break;
         case "b":
           if (!slug) handleBanLink();
@@ -231,19 +234,27 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                   ),
                 })}
               />
-              {link.key !== "_root" && (
-                <Button
-                  text="Delete"
-                  variant="danger-outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowDeleteLinkModal(true);
-                  }}
-                  icon={<Delete className="h-4 w-4" />}
-                  shortcut="X"
-                  className="h-9 px-2 font-medium"
-                />
-              )}
+
+              <Button
+                text="Delete"
+                variant="danger-outline"
+                onClick={() => {
+                  setOpenPopover(false);
+                  setShowDeleteLinkModal(true);
+                }}
+                icon={<Delete className="h-4 w-4" />}
+                shortcut="X"
+                className="h-9 px-2 font-medium"
+                disabled={isRootLink || isProgramLink}
+                disabledTooltip={
+                  isRootLink
+                    ? "You can't delete a custom domain link. You can delete the domain instead."
+                    : isProgramLink
+                      ? "You can't delete a link that's part of a program."
+                      : undefined
+                }
+              />
+
               {!slug && ( // this is only shown in admin mode (where there's no slug)
                 <button
                   onClick={() => handleBanLink()}

@@ -10,6 +10,7 @@ export const createTransfer = async ({
   dotsUserId: string;
 }) => {
   console.log(`Creating a transfer of ${amount} cents`);
+
   return await dotsFetch("/transfers", {
     method: "POST",
     dotsAppId,
