@@ -48,7 +48,6 @@ export async function getLinksCount({
       groupBy !== "userId" && {
         userId,
       }),
-    programId: null,
   };
 
   if (groupBy === "tagId") {

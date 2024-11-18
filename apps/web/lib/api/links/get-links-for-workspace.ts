@@ -65,7 +65,6 @@ export async function getLinksForWorkspace({
           : {}),
       ...(userId && { userId }),
       ...(linkIds && { id: { in: linkIds } }),
-      programId: null,
     },
     include: {
       tags: {
