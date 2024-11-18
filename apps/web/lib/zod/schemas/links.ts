@@ -575,6 +575,10 @@ export const LinkSchema = z
         "The project ID of the short link. This field is deprecated – use `workspaceId` instead.",
       )
       .openapi({ deprecated: true }),
+    programId: z
+      .string()
+      .nullable()
+      .describe("The ID of the program the short link is associated with."),
   })
   .openapi({ title: "Link" });
 
@@ -604,7 +608,6 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional()
       .describe("Link IDs to filter by."),
-    excludePartnerLinks: booleanQuerySchema.default("false"),
   }),
 );
 

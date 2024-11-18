@@ -388,6 +388,7 @@ export const DELETE = withWorkspace(
     const links = await prisma.link.findMany({
       where: {
         projectId: workspace.id,
+        programId: null,
         OR: [
           ...(linkIds.size > 0 ? [{ id: { in: Array.from(linkIds) } }] : []),
           ...(externalIds.size > 0
