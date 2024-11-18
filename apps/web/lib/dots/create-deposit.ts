@@ -34,7 +34,6 @@ export const depositFunds = async ({
     method: "POST",
     body: {
       amount: Number(amount) * 100, // The amount to deposit in cents
-      idempotency_key: crypto.randomUUID(),
     },
   });
 
