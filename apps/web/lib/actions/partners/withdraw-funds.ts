@@ -12,7 +12,7 @@ const schema = z.object({
   platform: dotsPayoutPlatforms,
 });
 
-export const createDotsWithdrawalAction = authPartnerActionClient
+export const withdrawFundsAction = authPartnerActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { partner } = ctx;

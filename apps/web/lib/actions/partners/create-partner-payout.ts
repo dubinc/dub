@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { formatDate } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
 import PartnerPayoutSent from "emails/partner-payout-sent";
@@ -14,7 +15,7 @@ const schema = z.object({
   payoutId: z.string(),
 });
 
-export const createDotsTransferAction = authActionClient
+export const createPartnerPayoutAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
@@ -57,17 +58,17 @@ export const createDotsTransferAction = authActionClient
       }),
     ]);
 
-    await Promise.all([
-      prisma.payout.update({
-        where: { id: payoutId },
-        data: { dotsTransferId: transfer.id, status: "completed" },
-      }),
+    // await Promise.all([
+    //   prisma.payout.update({
+    //     where: { id: payoutId },
+    //     data: { dotsTransferId: transfer.id, status: "completed" },
+    //   }),
 
-      prisma.sale.updateMany({
-        where: { payoutId },
-        data: { status: "paid" },
-      }),
-    ]);
+    //   prisma.sale.updateMany({
+    //     where: { payoutId },
+    //     data: { status: "paid" },
+    //   }),
+    // ]);
 
     waitUntil(
       (async () => {
@@ -89,13 +90,22 @@ export const createDotsTransferAction = authActionClient
         sendEmail({
           subject: "You've been paid!",
           email: user.email!,
+          from: "Dub Partners <system@dub.co>",
           react: PartnerPayoutSent({
             email: user.email!,
             program,
             payout: {
               amount: payout.amount,
-              startDate: payout.periodStart.toISOString(),
-              endDate: payout.periodEnd.toISOString(),
+              startDate: formatDate(payout.periodStart, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              }),
+              endDate: formatDate(payout.periodEnd, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              }),
             },
           }),
         });

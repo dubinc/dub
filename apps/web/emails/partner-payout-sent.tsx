@@ -68,16 +68,17 @@ export default function PartnerPayoutSent({
               <strong>{program.name}</strong> has sent you{" "}
               <strong>{saleAmountInDollars}</strong> for affiliate sales made
               from <strong>{payout.startDate}</strong> to{" "}
-              <strong>{payout.endDate}</strong>. Your wallet has been updated to
-              reflect this payout.
+              <strong>{payout.endDate}</strong>.
             </Text>
-            <Text className="text-sm leading-6 text-black"></Text>
+            <Text className="text-sm leading-6 text-black">
+              Your wallet has been updated to reflect this payout.
+            </Text>
             <Section className="my-8 text-center">
               <Link
                 className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
                 href={linkToPayout}
               >
-                View payout
+                View payouts
               </Link>
             </Section>
             <Footer email={email} />
