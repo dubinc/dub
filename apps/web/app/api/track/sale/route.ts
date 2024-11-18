@@ -13,6 +13,8 @@ import {
 } from "@/lib/zod/schemas/sales";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import NewSaleCreated from "emails/new-sale-created";
+import { sendEmailViaResend } from "emails/send-via-resend";
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";
@@ -71,15 +73,6 @@ export const POST = withWorkspaceEdge(
       .omit({ timestamp: true })
       .parse(leadEvent.data[0]);
 
-    const programEnrollment = await prismaEdge.programEnrollment.findUnique({
-      where: {
-        linkId: clickData.link_id,
-      },
-      include: {
-        program: true,
-      },
-    });
-
     waitUntil(
       (async () => {
         const eventId = nanoid(16);
@@ -125,28 +118,77 @@ export const POST = withWorkspaceEdge(
               },
             },
           }),
-
-          ...(programEnrollment
-            ? [
-                prismaEdge.sale.create({
-                  data: createSaleData({
-                    customerId: customer.id,
-                    linkId: clickData.link_id,
-                    clickId: clickData.click_id,
-                    invoiceId,
-                    eventId,
-                    paymentProcessor,
-                    amount,
-                    currency,
-                    partnerId: programEnrollment.partnerId,
-                    program: programEnrollment.program,
-                    metadata: clickData,
-                  }),
-                }),
-              ]
-            : []),
         ]);
 
+        // for program links
+        if (link.programId) {
+          const { program, partner } =
+            await prismaEdge.programEnrollment.findUniqueOrThrow({
+              where: {
+                linkId: link.id,
+              },
+              select: {
+                program: true,
+                partner: {
+                  select: {
+                    id: true,
+                  },
+                },
+              },
+            });
+
+          const { user } = await prismaEdge.partnerUser.findFirstOrThrow({
+            where: {
+              partnerId: partner.id,
+            },
+            include: {
+              user: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          });
+
+          const saleRecord = createSaleData({
+            customerId: customer.id,
+            linkId: link.id,
+            clickId: clickData.click_id,
+            invoiceId,
+            eventId,
+            paymentProcessor,
+            amount,
+            currency,
+            partnerId: partner.id,
+            program,
+            metadata: clickData,
+          });
+
+          await Promise.all([
+            prismaEdge.sale.create({
+              data: saleRecord,
+            }),
+
+            sendEmailViaResend({
+              subject: `You just made a referral sale!`,
+              email: user.email!,
+              react: NewSaleCreated({
+                email: user.email!,
+                program,
+                partner: {
+                  id: partner.id,
+                  referralLink: link.shortLink,
+                },
+                sale: {
+                  amount: saleRecord.amount,
+                  earnings: saleRecord.earnings,
+                },
+              }),
+            }),
+          ]);
+        }
+
+        // Send workspace webhook
         const sale = transformSaleEventData({
           ...clickData,
           link,

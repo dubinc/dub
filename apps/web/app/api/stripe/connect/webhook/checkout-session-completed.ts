@@ -7,6 +7,8 @@ import { transformSaleEventData } from "@/lib/webhook/transform";
 import { nanoid } from "@dub/utils";
 import { Customer } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { sendEmail } from "emails";
+import NewSaleCreated from "emails/new-sale-created";
 import type Stripe from "stripe";
 
 // Handle event "checkout.session.completed"
@@ -88,15 +90,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     return `Link with ID ${linkId} not found, skipping...`;
   }
 
-  const programEnrollment = await prisma.programEnrollment.findUnique({
-    where: {
-      linkId: linkId,
-    },
-    include: {
-      program: true,
-    },
-  });
-
   const [_sale, _link, workspace] = await Promise.all([
     recordSale(saleData),
 
@@ -114,6 +107,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         },
       },
     }),
+
     // update workspace sales usage
     prisma.project.update({
       where: {
@@ -128,31 +122,80 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         },
       },
     }),
-
-    ...(programEnrollment
-      ? [
-          prisma.sale.create({
-            data: createSaleData({
-              customerId: saleData.customer_id,
-              linkId: saleData.link_id,
-              clickId: saleData.click_id,
-              invoiceId: saleData.invoice_id,
-              eventId: saleData.event_id,
-              paymentProcessor: saleData.payment_processor,
-              amount: saleData.amount,
-              currency: saleData.currency,
-              partnerId: programEnrollment.partnerId,
-              program: programEnrollment.program,
-              metadata: {
-                ...leadEvent.data[0],
-                stripeMetadata: charge,
-              },
-            }),
-          }),
-        ]
-      : []),
   ]);
 
+  // for program links
+  if (link.programId) {
+    const { program, partner } =
+      await prisma.programEnrollment.findUniqueOrThrow({
+        where: {
+          linkId: link.id,
+        },
+        select: {
+          program: true,
+          partner: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+    const { user } = await prisma.partnerUser.findFirstOrThrow({
+      where: {
+        partnerId: partner.id,
+      },
+      include: {
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+
+    const saleRecord = createSaleData({
+      customerId: saleData.customer_id,
+      linkId: saleData.link_id,
+      clickId: saleData.click_id,
+      invoiceId: saleData.invoice_id,
+      eventId: saleData.event_id,
+      paymentProcessor: saleData.payment_processor,
+      amount: saleData.amount,
+      currency: saleData.currency,
+      partnerId: partner.id,
+      program,
+      metadata: {
+        ...leadEvent.data[0],
+        stripeMetadata: charge,
+      },
+    });
+
+    await Promise.all([
+      prisma.sale.create({
+        data: saleRecord,
+      }),
+
+      sendEmail({
+        subject: `You just made a referral sale!`,
+        email: user.email!,
+        react: NewSaleCreated({
+          email: user.email!,
+          program,
+          partner: {
+            id: partner.id,
+            referralLink: link.shortLink,
+          },
+          sale: {
+            amount: saleRecord.amount,
+            earnings: saleRecord.earnings,
+          },
+        }),
+      }),
+    ]);
+  }
+
+  // send workspace webhook
   waitUntil(
     sendWorkspaceWebhook({
       trigger: "sale.created",
