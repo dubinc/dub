@@ -1,9 +1,9 @@
 "use server";
 
 import { z } from "zod";
-import { depositFunds } from "../dots/deposit-funds";
-import { depositFundsSchema } from "../dots/schemas";
-import { authActionClient } from "./safe-action";
+import { depositFunds } from "../../dots/create-deposit";
+import { depositFundsSchema } from "../../dots/schemas";
+import { authActionClient } from "../safe-action";
 
 const schema = depositFundsSchema.extend({
   workspaceId: z.string(),

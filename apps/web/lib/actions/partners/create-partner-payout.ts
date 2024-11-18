@@ -1,6 +1,10 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { formatDate } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
+import { sendEmail } from "emails";
+import PartnerPayoutSent from "emails/partner-payout-sent";
 import { z } from "zod";
 import { createOrgTransfer } from "../../dots/create-org-transfer";
 import { createTransfer } from "../../dots/create-transfer";
@@ -11,7 +15,7 @@ const schema = z.object({
   payoutId: z.string(),
 });
 
-export const createDotsTransferAction = authActionClient
+export const createPartnerPayoutAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
@@ -32,7 +36,10 @@ export const createDotsTransferAction = authActionClient
           programId: payout.programId,
         },
       },
-      select: { dotsUserId: true },
+      select: {
+        dotsUserId: true,
+        program: true,
+      },
     });
 
     if (!programEnrollment.dotsUserId) {
@@ -56,11 +63,54 @@ export const createDotsTransferAction = authActionClient
         where: { id: payoutId },
         data: { dotsTransferId: transfer.id, status: "completed" },
       }),
+
       prisma.sale.updateMany({
         where: { payoutId },
         data: { status: "paid" },
       }),
     ]);
+
+    waitUntil(
+      (async () => {
+        const { program } = programEnrollment;
+
+        const { user } = await prisma.partnerUser.findFirstOrThrow({
+          where: {
+            partnerId: payout.partnerId,
+          },
+          include: {
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        });
+
+        sendEmail({
+          subject: "You've been paid!",
+          email: user.email!,
+          from: "Dub Partners <system@dub.co>",
+          react: PartnerPayoutSent({
+            email: user.email!,
+            program,
+            payout: {
+              amount: payout.amount,
+              startDate: formatDate(payout.periodStart, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              }),
+              endDate: formatDate(payout.periodEnd, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              }),
+            },
+          }),
+        });
+      })(),
+    );
 
     return { transfer, orgTransfer };
   });
