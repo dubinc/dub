@@ -46,6 +46,10 @@ export const invitePartnerAction = authActionClient
       }),
     ]);
 
+    if (link.programId) {
+      throw new Error("Link is already associated with another partner.");
+    }
+
     const [programEnrollment, programInvite] = await Promise.all([
       prisma.programEnrollment.findFirst({
         where: {
@@ -78,10 +82,6 @@ export const invitePartnerAction = authActionClient
 
     if (programInvite) {
       throw new Error(`Partner ${email} already invited to this program.`);
-    }
-
-    if (link.programId) {
-      throw new Error("Link is already associated with another partner.");
     }
 
     const [result, _] = await Promise.all([
