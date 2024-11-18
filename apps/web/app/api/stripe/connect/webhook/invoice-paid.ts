@@ -159,7 +159,7 @@ export async function invoicePaid(event: Stripe.Event) {
       }),
 
       sendEmail({
-        subject: `You just made a referral sale!`,
+        subject: "You just made a referral sale!",
         email: user.email!,
         react: NewSaleCreated({
           email: user.email!,
