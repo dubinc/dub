@@ -1,4 +1,4 @@
-import { depositFundsAction } from "@/lib/actions/deposit-funds";
+import { depositFundsAction } from "@/lib/actions/partners/deposit-funds";
 import { depositFundsSchema } from "@/lib/dots/schemas";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Modal } from "@dub/ui";

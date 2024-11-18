@@ -81,8 +81,9 @@ export default function NewSaleCreated({
 
             <Text className="text-sm leading-6 text-gray-600">
               Congratulations! Someone made a{" "}
-              <strong>{saleAmountInDollars}</strong> purchase on{" "}
-              <strong>{program.name}</strong> using your referral link (
+              <strong className="text-black">{saleAmountInDollars}</strong>{" "}
+              purchase on <strong className="text-black">{program.name}</strong>{" "}
+              using your referral link (
               <a
                 href={partner.referralLink}
                 className="text-semibold font-medium text-black underline"
@@ -92,8 +93,10 @@ export default function NewSaleCreated({
               ).
             </Text>
             <Text className="text-sm leading-6 text-gray-600">
-              Your received <strong>{earningsInDollars}</strong> in commission
-              for this sale and it will be included in your next payout.
+              Your received{" "}
+              <strong className="text-black">{earningsInDollars}</strong> in
+              commission for this sale and it will be included in your next
+              payout.
             </Text>
 
             <Section className="mb-12 mt-8">

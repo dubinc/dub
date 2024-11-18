@@ -66,10 +66,11 @@ export default function PartnerPayoutSent({
             </Heading>
 
             <Text className="text-sm leading-6 text-gray-600">
-              <strong>{program.name}</strong> has sent you{" "}
-              <strong>{saleAmountInDollars}</strong> for affiliate sales made
-              from <strong>{payout.startDate}</strong> to{" "}
-              <strong>{payout.endDate}</strong>.
+              <strong className="text-black">{program.name}</strong> has sent
+              you <strong className="text-black">{saleAmountInDollars}</strong>{" "}
+              for affiliate sales made from{" "}
+              <strong className="text-black">{payout.startDate}</strong> to{" "}
+              <strong className="text-black">{payout.endDate}</strong>.
             </Text>
             <Text className="text-sm leading-6 text-gray-600">
               Your wallet has been updated to reflect this payout.
