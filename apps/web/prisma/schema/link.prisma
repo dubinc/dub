@@ -70,8 +70,6 @@ model Link {
   @@unique([domain, key])
   @@unique([projectId, externalId])
   @@unique([projectId, identifier])
-  @@index(projectId)
-  @@index(domain)
   @@index(trackConversion)
   @@index(proxy)
   @@index(password)
