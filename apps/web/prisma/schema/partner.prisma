@@ -12,7 +12,7 @@ enum PartnerRole {
 model Partner {
   id        String        @id @default(cuid())
   name      String
-  logo      String?
+  logo      String? /// @deprecated use `image` instead
   image     String?
   bio       String?       @db.LongText
   country   String?

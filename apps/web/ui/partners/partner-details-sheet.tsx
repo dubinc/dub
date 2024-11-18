@@ -40,7 +40,7 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
           <div className="flex items-start justify-between">
             <div className="flex flex-col">
               <img
-                src={partner.logo || `${DICEBEAR_AVATAR_URL}${partner.name}`}
+                src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`}
                 alt={partner.name}
                 className="size-12 rounded-full"
               />
