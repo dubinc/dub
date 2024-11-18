@@ -103,17 +103,19 @@ export const withAuth = (handler: WithAuthHandler) => {
           });
         }
 
-        const workspace = await prisma.project.findUniqueOrThrow({
-          where: {
-            id: link.projectId!,
-          },
-        });
+        const [workspace, program] = await Promise.all([
+          prisma.project.findUniqueOrThrow({
+            where: {
+              id: link.projectId!,
+            },
+          }),
 
-        const program = await prisma.program.findFirstOrThrow({
-          where: {
-            workspaceId: workspace.id,
-          },
-        });
+          prisma.program.findFirstOrThrow({
+            where: {
+              workspaceId: link.projectId!,
+            },
+          }),
+        ]);
 
         return await handler({
           req,
