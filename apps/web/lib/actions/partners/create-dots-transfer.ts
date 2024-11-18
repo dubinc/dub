@@ -44,12 +44,10 @@ export const createDotsTransferAction = authActionClient
         amount: payout.amount,
         dotsAppId: workspace.dotsAppId,
         dotsUserId: programEnrollment.dotsUserId,
-        idempotencyKey: `transfer_${payoutId}`,
       }),
       createOrgTransfer({
         amount: payout.fee,
         dotsAppId: workspace.dotsAppId,
-        idempotencyKey: `org_transfer_${payoutId}`,
       }),
     ]);
 
