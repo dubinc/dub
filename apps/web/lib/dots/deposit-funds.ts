@@ -33,7 +33,8 @@ export const depositFunds = async ({
   const response = await dotsFetch(`/apps/${dotsAppId}/deposit`, {
     method: "POST",
     body: {
-      amount: Number(amount) * 100, // The amount to deposit in cents
+      amount: Number(amount) * 100, // The amount to deposit in cents,
+      idempotency_key: crypto.randomUUID(),
     },
   });
 
