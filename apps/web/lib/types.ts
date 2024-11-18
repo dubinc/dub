@@ -24,8 +24,8 @@ import {
   getPartnerSalesResponseSchema,
   PartnerPayoutResponseSchema,
   PartnerSchema,
+  PayoutResponseSchema,
   PayoutSchema,
-  payoutsResponseSchema,
   PayoutWithSalesSchema,
   SaleSchema,
 } from "./zod/schemas/partners";
@@ -328,7 +328,7 @@ export type PayoutProps = z.infer<typeof PayoutSchema>;
 
 export type PayoutWithSalesProps = z.infer<typeof PayoutWithSalesSchema>;
 
-export type PayoutResponse = z.infer<typeof payoutsResponseSchema>;
+export type PayoutResponse = z.infer<typeof PayoutResponseSchema>;
 
 export type PartnerPayoutResponse = z.infer<typeof PartnerPayoutResponseSchema>;
 

@@ -75,14 +75,14 @@ export const PayoutSchema = z.object({
   updatedAt: z.date(),
 });
 
-export const payoutsResponseSchema = PayoutSchema.merge(
+export const PayoutResponseSchema = PayoutSchema.merge(
   z.object({
     partner: PartnerSchema,
     _count: z.object({ sales: z.number() }),
   }),
 );
 
-export const PartnerPayoutResponseSchema = payoutsResponseSchema.omit({
+export const PartnerPayoutResponseSchema = PayoutResponseSchema.omit({
   partner: true,
   fee: true,
   total: true,

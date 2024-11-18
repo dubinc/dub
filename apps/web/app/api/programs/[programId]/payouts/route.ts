@@ -2,8 +2,8 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
+  PayoutResponseSchema,
   payoutsQuerySchema,
-  payoutsResponseSchema,
 } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 import z from "zod";
@@ -41,6 +41,6 @@ export const GET = withWorkspace(
       },
     });
 
-    return NextResponse.json(z.array(payoutsResponseSchema).parse(payouts));
+    return NextResponse.json(z.array(PayoutResponseSchema).parse(payouts));
   },
 );
