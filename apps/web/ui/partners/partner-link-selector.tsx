@@ -72,7 +72,13 @@ export function PartnerLinkSelector({
         }}
         options={options}
         caret={true}
-        placeholder={`Select${onCreate ? " or create" : ""} referral link`}
+        placeholder={
+          selectedLinkId && !selectedLink ? (
+            <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
+          ) : (
+            `Select${onCreate ? " or create" : ""} referral link`
+          )
+        }
         searchPlaceholder={onCreate ? "Search or create link..." : "Search..."}
         matchTriggerWidth
         onSearchChange={setSearch}
