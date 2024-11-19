@@ -57,8 +57,8 @@ export async function completeProgramApplications(userId: string) {
 
     let programApplications = await prisma.programApplication.findMany({
       where: {
-        id: { 
-          in: programApplicationIds.filter(Boolean) 
+        id: {
+          in: programApplicationIds.filter(Boolean),
         },
         enrollment: null,
         // Exclude any applications for programs the user is already enrolled in
