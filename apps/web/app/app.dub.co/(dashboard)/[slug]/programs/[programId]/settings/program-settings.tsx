@@ -106,8 +106,6 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
     },
   });
 
-  console.log({ recurringCommission });
-
   return (
     <form
       className="rounded-lg border border-neutral-200 bg-white"

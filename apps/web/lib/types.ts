@@ -21,13 +21,19 @@ import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   EnrolledPartnerSchema,
+  PartnerPayoutResponseSchema,
+  PartnerSaleResponseSchema,
   PartnerSchema,
+  PayoutResponseSchema,
   PayoutSchema,
-  PayoutWithSalesSchema,
-  ProgramEnrollmentSchema,
-  ProgramSchema,
+  SaleResponseSchema,
   SaleSchema,
 } from "./zod/schemas/partners";
+import {
+  ProgramEnrollmentSchema,
+  ProgramInviteSchema,
+  ProgramSchema,
+} from "./zod/schemas/programs";
 import { trackSaleResponseSchema } from "./zod/schemas/sales";
 import { tokenSchema } from "./zod/schemas/token";
 import { usageResponse } from "./zod/schemas/usage";
@@ -305,14 +311,22 @@ export type UsageResponse = z.infer<typeof usageResponse>;
 export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
 
 export type SaleProps = z.infer<typeof SaleSchema>;
+
 export type SalesCount = Record<SaleStatus | "all", number>;
+
+export type SaleResponse = z.infer<typeof SaleResponseSchema>;
+
+export type PartnerSaleResponse = z.infer<typeof PartnerSaleResponseSchema>;
 
 export type CustomerProps = z.infer<typeof CustomerSchema>;
 
 export type PartnerProps = z.infer<typeof PartnerSchema>;
+
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
 
 export type ProgramProps = z.infer<typeof ProgramSchema>;
+
+export type ProgramInviteProps = z.infer<typeof ProgramInviteSchema>;
 
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 
@@ -320,11 +334,6 @@ export type PayoutsCount = Record<PayoutStatus | "all", number>;
 
 export type PayoutProps = z.infer<typeof PayoutSchema>;
 
-export type PayoutWithSalesProps = z.infer<typeof PayoutWithSalesSchema>;
+export type PayoutResponse = z.infer<typeof PayoutResponseSchema>;
 
-export type PayoutWithPartnerProps = z.infer<typeof PayoutSchema> & {
-  partner: PartnerProps;
-  _count: {
-    sales: number;
-  };
-};
+export type PartnerPayoutResponse = z.infer<typeof PartnerPayoutResponseSchema>;

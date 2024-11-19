@@ -1,6 +1,7 @@
 "use client";
 
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
+import usePartnerProgramInvites from "@/lib/swr/use-partner-program-invites";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { Button, useRouterStuff } from "@dub/ui";
 import {
@@ -34,9 +35,10 @@ const NAV_AREAS: SidebarNavAreas<{
   partnerId: string;
   programId?: string;
   queryString?: string;
+  hasInvites?: boolean;
 }> = {
   // Top-level
-  default: ({ partnerId }) => ({
+  default: ({ partnerId, hasInvites }) => ({
     showSwitcher: true,
     showNews: true,
     direction: "left",
@@ -48,6 +50,7 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: GridIcon,
             href: `/${partnerId}`,
             exact: true,
+            hasIndicator: hasInvites,
           },
           {
             name: "Marketplace",
@@ -182,6 +185,8 @@ export function PartnersSidebarNav({
           : "default";
   }, [partnerId, pathname, programId]);
 
+  const { programInvites } = usePartnerProgramInvites();
+
   return (
     <SidebarNav
       areas={NAV_AREAS}
@@ -190,6 +195,7 @@ export function PartnersSidebarNav({
         partnerId: partnerId || "",
         programId: programId || "",
         queryString: getQueryString(),
+        hasInvites: programInvites && programInvites.length > 0,
       }}
       toolContent={toolContent}
       newsContent={newsContent}
@@ -214,13 +220,13 @@ function ProgramInfo() {
   const items = [
     {
       icon: UserCheck,
-      href: `/${partnerId}/${programId}/analytics?event=leads`,
+      href: `/${partnerId}/${programId}/analytics?event=leads&interval=all`,
       label: "Signups",
       value: analytics?.leads,
     },
     {
       icon: MoneyBills2,
-      href: `/${partnerId}/${programId}/sales`,
+      href: `/${partnerId}/${programId}/sales?interval=all`,
       label: "Earnings",
       value: `${currencyFormatter((analytics?.earnings || 0) / 100)}`,
     },

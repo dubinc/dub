@@ -117,7 +117,6 @@
     "zod-openapi": "^2.19.0"
   },
   "devDependencies": {
-    "@types/dotenv-flow": "^3.3.2",
     "@types/he": "^1.2.3",
     "@types/html-escaper": "^3.0.0",
     "@types/ms": "^0.7.31",
@@ -128,13 +127,13 @@
     "@types/topojson-client": "^3.1.1",
     "array-to-ndjson": "^1.0.1",
     "autoprefixer": "^10.4.16",
-    "dotenv-flow": "^4.0.0",
+    "dotenv-flow": "^4.1.0",
     "papaparse": "^5.4.1",
     "postcss": "^8.4.31",
     "postcss-import": "^15.1.0",
     "prisma": "5.18.0",
     "tailwindcss": "^3.4.4",
-    "tsx": "^4.19.1",
+    "tsx": "^4.19.2",
     "turbo": "^1.10.14",
     "typescript": "^5.4.4",
     "vite": "5.2.9",

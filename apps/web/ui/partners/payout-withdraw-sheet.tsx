@@ -1,4 +1,4 @@
-import { createDotsWithdrawalAction } from "@/lib/actions/partners/create-dots-withdrawal";
+import { withdrawFundsAction } from "@/lib/actions/partners/withdraw-funds";
 import { DotsPayoutPlatform } from "@/lib/dots/types";
 import useDotsUser from "@/lib/swr/use-dots-user";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
@@ -29,7 +29,7 @@ type PayoutWithdrawSheetProps = {
 };
 
 function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
-  const { partnerId } = useParams() as { partnerId: string };
+  const { partnerId } = useParams<{ partnerId: string }>();
   const { partner, error: partnerError } = usePartnerProfile();
   const { dotsUser, error: dotsUserError } = useDotsUser();
 
@@ -40,7 +40,7 @@ function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
           {partner || partnerError ? (
             <>
               <img
-                src={partner?.logo || `${DICEBEAR_AVATAR_URL}${partner?.name}`}
+                src={partner?.image || `${DICEBEAR_AVATAR_URL}${partner?.name}`}
                 alt={partner?.name ?? "Partner"}
                 className="size-5 rounded-full"
               />
@@ -81,7 +81,7 @@ function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
     );
   }, [dotsUser, selectedPayoutMethod]);
 
-  const { executeAsync, isExecuting } = useAction(createDotsWithdrawalAction, {
+  const { executeAsync, isExecuting } = useAction(withdrawFundsAction, {
     onSuccess: async () => {
       await Promise.all([
         mutate(`/api/partners/${partnerId}/dots-user`),

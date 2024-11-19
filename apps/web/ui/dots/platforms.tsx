@@ -38,6 +38,13 @@ export const DOTS_PAYOUT_PLATFORMS = [
     duration: "instantly",
   },
   {
+    id: "intl_bank",
+    name: "International Bank",
+    icon: GreekTemple,
+    iconBgColor: "bg-neutral-100",
+    duration: "in 2-3 business days",
+  },
+  {
     id: "intl_transfer",
     name: "International Transfer",
     icon: Globe,

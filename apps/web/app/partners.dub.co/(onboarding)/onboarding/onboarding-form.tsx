@@ -1,58 +1,68 @@
 "use client";
 
-import { onboardPartner } from "@/lib/actions/partners/onboard-partner";
+import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
+import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import {
   Button,
   buttonVariants,
   Combobox,
   FileUpload,
+  useEnterSubmit,
   useMediaQuery,
 } from "@dub/ui";
-import { COUNTRIES } from "@dub/utils";
+import { COUNTRIES, COUNTRY_PHONE_CODES } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
+import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
+import { z } from "zod";
+
+type OnboardingFormData = z.infer<typeof onboardPartnerSchema>;
 
 export function OnboardingForm() {
-  const { isMobile } = useMediaQuery();
   const router = useRouter();
+  const { isMobile } = useMediaQuery();
 
   const {
     register,
     control,
     handleSubmit,
-    setError,
+    watch,
+    reset,
     formState: { errors, isSubmitting, isSubmitSuccessful },
-  } = useForm<{
-    name: string;
-    logo: string;
-    country: string;
-    description: string;
-  }>();
+  } = useForm<OnboardingFormData>();
+
+  const { executeAsync, isExecuting } = useAction(onboardPartnerAction, {
+    onSuccess: ({ data }) => {
+      if (!data?.partnerId) {
+        toast.error("Failed to create partner profile. Please try again.");
+        return;
+      }
+      router.push(`/onboarding/verify?partner=${data.partnerId}`);
+    },
+    onError: ({ error, input }) => {
+      toast.error(error.serverError?.serverError);
+      reset(input);
+    },
+  });
+
+  const countryCode = COUNTRY_PHONE_CODES[watch("country")];
+
+  const formRef = useRef<HTMLFormElement>(null);
+  const { handleKeyDown } = useEnterSubmit(formRef);
 
   return (
     <form
-      onSubmit={handleSubmit(async (data) => {
-        try {
-          const result = await onboardPartner(data);
-          if (!result?.data?.ok) throw new Error("Failed to create partner");
-          router.push(`/${result?.data?.partnerId || ""}`);
-        } catch (error) {
-          console.error(error);
-          setError("root.serverError", {
-            message: "Failed to create partner profile. Please try again.",
-          });
-          toast.error("Failed to create partner profile. Please try again.");
-        }
-      })}
+      ref={formRef}
+      onSubmit={handleSubmit(executeAsync)}
       className="flex w-full flex-col gap-4 text-left"
     >
       <label>
         <span className="text-sm font-medium text-gray-800">
-          Name
+          Full Name
           <span className="font-normal text-neutral-500"> (required)</span>
         </span>
         <input
@@ -63,7 +73,6 @@ export function OnboardingForm() {
               ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
               : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
           )}
-          placeholder="Acme, Inc."
           autoFocus={!isMobile}
           {...register("name", {
             required: true,
@@ -72,15 +81,22 @@ export function OnboardingForm() {
       </label>
 
       <label>
-        <span className="text-sm font-medium text-gray-800">Logo</span>
+        <span className="text-sm font-medium text-gray-800">
+          Display Image
+          <span className="font-normal text-neutral-500"> (required)</span>
+        </span>
         <div className="flex items-center gap-5">
           <Controller
             control={control}
-            name="logo"
+            name="image"
+            rules={{ required: true }}
             render={({ field }) => (
               <FileUpload
                 accept="images"
-                className="mt-2 size-20 rounded-md border border-gray-300"
+                className={cn(
+                  "mt-2 size-20 rounded-md border border-gray-300",
+                  errors.image && "border-0 ring-2 ring-red-500",
+                )}
                 iconClassName="w-5 h-5"
                 previewClassName="size-10 rounded-full"
                 variant="plain"
@@ -89,6 +105,7 @@ export function OnboardingForm() {
                 onChange={({ src }) => field.onChange(src)}
                 content={null}
                 maxFileSizeMB={2}
+                targetResolution={{ width: 160, height: 160 }}
               />
             )}
           />
@@ -109,12 +126,50 @@ export function OnboardingForm() {
       </label>
 
       <label>
-        <span className="text-sm font-medium text-gray-800">Country</span>
+        <span className="text-sm font-medium text-gray-800">
+          Country
+          <span className="font-normal text-neutral-500"> (required)</span>
+        </span>
         <Controller
           control={control}
           name="country"
+          rules={{ required: true }}
           render={({ field }) => <CountryCombobox {...field} />}
         />
+      </label>
+
+      <label>
+        <span className="text-sm font-medium text-gray-800">
+          Mobile number
+          <span className="font-normal text-neutral-500"> (required)</span>
+        </span>
+        <div
+          className={cn(
+            "relative mt-2 flex items-center rounded-md border border-neutral-300 bg-white shadow-sm focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
+            errors.phoneNumber &&
+              "border-red-600 focus-within:border-red-500 focus-within:ring-red-600",
+          )}
+        >
+          {countryCode && (
+            <span className="left-0 flex items-center pl-2.5 text-sm text-neutral-400">
+              +{countryCode}
+            </span>
+          )}
+          <input
+            className={cn(
+              "block w-full border-none bg-transparent text-neutral-900 placeholder-neutral-400 sm:text-sm",
+              "focus:border-none focus:outline-none focus:ring-0",
+              countryCode && "pl-1",
+            )}
+            type="tel"
+            {...register("phoneNumber", {
+              required: true,
+            })}
+          />
+        </div>
+        <p className="mt-1 text-xs text-gray-400">
+          We'll send you a verification code to this number.
+        </p>
       </label>
 
       <label>
@@ -122,12 +177,13 @@ export function OnboardingForm() {
         <ReactTextareaAutosize
           className={cn(
             "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
-            errors.name
+            errors.description
               ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
               : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
           )}
-          placeholder="Tell us about your business"
+          placeholder="Tell us about the kind of content you create – e.g. tech, travel, fashion, etc."
           minRows={3}
+          onKeyDown={handleKeyDown}
           {...register("description")}
         />
       </label>
@@ -136,7 +192,7 @@ export function OnboardingForm() {
         type="submit"
         text="Create partner account"
         className="mt-2"
-        loading={isSubmitting || isSubmitSuccessful}
+        loading={isExecuting || isSubmitting || isSubmitSuccessful}
       />
     </form>
   );

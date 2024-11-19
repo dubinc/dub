@@ -1,14 +1,15 @@
-import { createDotsTransferAction } from "@/lib/actions/partners/create-dots-transfer";
+import { createPartnerPayoutAction } from "@/lib/actions/partners/create-partner-payout";
+import useSalesCount from "@/lib/swr/use-sales-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutWithPartnerProps, PayoutWithSalesProps } from "@/lib/types";
+import { PayoutResponse, SaleResponse } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
   Sheet,
   StatusBadge,
   Table,
+  useRouterStuff,
   useTable,
-  useTablePagination,
 } from "@dub/ui";
 import {
   capitalize,
@@ -20,6 +21,7 @@ import {
   formatDateTime,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -28,7 +30,7 @@ import { PayoutStatusBadges } from "./payout-status-badges";
 import { SaleRowMenu } from "./sale-row-menu";
 
 type PayoutDetailsSheetProps = {
-  payout: PayoutWithPartnerProps;
+  payout: PayoutResponse;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
@@ -36,35 +38,48 @@ function PayoutDetailsSheetContent({
   payout,
   setIsOpen,
 }: PayoutDetailsSheetProps) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
   const { programId } = useParams() as { programId: string };
 
-  const { data: payoutWithSales, error } = useSWR<PayoutWithSalesProps>(
-    `/api/programs/${programId}/payouts/${payout.id}?workspaceId=${workspaceId}`,
+  const { salesCount } = useSalesCount({
+    payoutId: payout.id,
+    start: payout.periodStart,
+    end: payout.periodEnd,
+    interval: "all", // technically not needed but typescript is not happy
+  });
+
+  const {
+    data: sales,
+    isLoading,
+    error,
+  } = useSWR<SaleResponse[]>(
+    `/api/programs/${programId}/sales?workspaceId=${workspaceId}&payoutId=${payout.id}&start=${payout.periodStart}&end=${payout.periodEnd}`,
     fetcher,
   );
 
-  const totalConversions = payoutWithSales?.sales?.length || 0;
-  const loading = !payoutWithSales && !error;
+  const totalSales = salesCount?.processed || 0;
   const canConfirmPayout = payout.status === "pending";
-  const showPagination = totalConversions > 100;
 
   const invoiceData = useMemo(() => {
     const statusBadge = PayoutStatusBadges[payout.status];
 
     return {
       Partner: (
-        <div className="flex items-center gap-2">
+        <Link
+          // TODO: [payouts] – update to partner sheet link when that's ready
+          href={`/${slug}/programs/${programId}/sales?partnerId=${payout.partner.id}&start=${payout.periodStart}&end=${payout.periodEnd}`}
+          className="flex items-center gap-2"
+        >
           <img
             src={
-              payout.partner.logo ||
+              payout.partner.image ||
               `${DICEBEAR_AVATAR_URL}${payout.partner.name}`
             }
             alt={payout.partner.name}
             className="size-5 rounded-full"
           />
           <div>{payout.partner.name}</div>
-        </div>
+        </Link>
       ),
       Period: `${formatDate(payout.periodStart, {
         month: "short",
@@ -74,7 +89,7 @@ function PayoutDetailsSheetContent({
             ? undefined
             : "numeric",
       })}-${formatDate(payout.periodEnd, { month: "short" })}`,
-      Sales: totalConversions,
+      Sales: totalSales,
       Amount: currencyFormatter(payout.amount / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -93,29 +108,33 @@ function PayoutDetailsSheetContent({
         </StatusBadge>
       ),
     };
-  }, [payout, totalConversions]);
-
-  const { pagination, setPagination } = useTablePagination({
-    pageSize: 100,
-    page: 1,
-  });
+  }, [payout, totalSales]);
 
   const table = useTable({
     data:
-      payoutWithSales?.sales?.filter(
-        ({ status }) => !["duplicate", "fraud"].includes(status),
-      ) || [],
+      sales?.filter(({ status }) => !["duplicate", "fraud"].includes(status)) ||
+      [],
     columns: [
       {
         header: "Sale",
         cell: ({ row }) => (
-          <div className="flex flex-col">
-            <span className="text-sm text-neutral-700">
-              {row.original.customer.email || row.original.customer.name}
-            </span>
-            <span className="text-xs text-neutral-500">
-              {formatDateTime(row.original.createdAt)}
-            </span>
+          <div className="flex items-center gap-2">
+            <img
+              src={
+                row.original.customer.avatar ||
+                `${DICEBEAR_AVATAR_URL}${row.original.customer.name}`
+              }
+              alt={row.original.customer.name}
+              className="size-6 rounded-full"
+            />
+            <div className="flex flex-col">
+              <span className="text-sm text-neutral-700">
+                {row.original.customer.email || row.original.customer.name}
+              </span>
+              <span className="text-xs text-neutral-500">
+                {formatDateTime(row.original.createdAt)}
+              </span>
+            </div>
           </div>
         ),
       },
@@ -138,25 +157,18 @@ function PayoutDetailsSheetContent({
         cell: ({ row }) => <SaleRowMenu row={row} />,
       },
     ],
-    ...(showPagination && {
-      pagination,
-      onPaginationChange: setPagination,
-      rowCount: totalConversions,
-    }),
     columnPinning: { right: ["menu"] },
     thClassName: (id) =>
       cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
     tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
-    className: cn(
-      !showPagination && "[&_tr:last-child>td]:border-b-transparent", // Hide bottom row border
-    ),
-    scrollWrapperClassName: "min-h-[102px]",
+    className: "[&_tr:last-child>td]:border-b-transparent",
+    scrollWrapperClassName: "min-h-[40px]",
     resourceName: (p) => `sale${p ? "s" : ""}`,
-    loading,
+    loading: isLoading,
     error: error ? "Failed to load sales" : undefined,
   } as any);
 
-  const { executeAsync, isExecuting } = useAction(createDotsTransferAction, {
+  const { executeAsync, isExecuting } = useAction(createPartnerPayoutAction, {
     onSuccess: async () => {
       await mutate(
         (key) =>
@@ -226,7 +238,6 @@ function PayoutDetailsSheetContent({
                 }
                 await executeAsync({
                   workspaceId: workspaceId!,
-                  dotsUserId: payout.partner.dotsUserId,
                   payoutId: payout.id,
                 });
               }}
@@ -246,8 +257,16 @@ export function PayoutDetailsSheet({
 }: PayoutDetailsSheetProps & {
   isOpen: boolean;
 }) {
+  const { queryParams } = useRouterStuff();
+
   return (
-    <Sheet open={isOpen} onOpenChange={rest.setIsOpen}>
+    <Sheet
+      open={isOpen}
+      onOpenChange={rest.setIsOpen}
+      onClose={() => {
+        queryParams({ del: "payoutId" });
+      }}
+    >
       <PayoutDetailsSheetContent {...rest} />
     </Sheet>
   );

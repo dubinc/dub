@@ -21,12 +21,12 @@ export function PayoutsPageClient() {
     <>
       <AddBankAccountModal />
       {bankAccountName ? (
-        <div>
+        <div className="grid grid-cols-1">
           <div className="rounded-lg border border-neutral-300 bg-white p-5">
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
               <div className="flex items-center gap-5">
                 <div className="hidden size-12 items-center justify-center rounded-full border border-neutral-300 sm:flex">
-                  <GreekTemple className="size- 5text-neutral-900" />
+                  <GreekTemple className="size-5 text-neutral-900" />
                 </div>
                 <div className="flex flex-col gap-1">
                   {bankAccountName ? (
@@ -48,7 +48,7 @@ export function PayoutsPageClient() {
 
               <ComplianceButton />
             </div>
-            <div className="mt-5 grid divide-neutral-200 rounded-lg border border-neutral-200 bg-neutral-50 max-sm:divide-y sm:grid-cols-[repeat(2,minmax(0,1fr))] sm:divide-x">
+            <div className="mt-5 grid grid-cols-1 divide-neutral-200 rounded-lg border border-neutral-200 bg-neutral-50 max-sm:divide-y sm:grid-cols-2 sm:divide-x">
               <Wallet />
               <BankAccount />
             </div>

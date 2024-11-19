@@ -85,18 +85,20 @@ export const analyticsQuerySchema = z.object({
     .enum(intervals)
     .optional()
     .describe(
-      "The interval to retrieve analytics for. Takes precedence over start and end. If undefined, defaults to 24h.",
+      "The interval to retrieve analytics for. If undefined, defaults to 24h.",
     ),
   start: parseDateSchema
     .refine((value: Date) => value >= DUB_FOUNDING_DATE, {
       message: `The start date cannot be earlier than ${formatDate(DUB_FOUNDING_DATE)}.`,
     })
     .optional()
-    .describe("The start date and time when to retrieve analytics from."),
+    .describe(
+      "The start date and time when to retrieve analytics from. Takes precedence over `interval`.",
+    ),
   end: parseDateSchema
     .optional()
     .describe(
-      "The end date and time when to retrieve analytics from. If not provided, defaults to the current date.",
+      "The end date and time when to retrieve analytics from. If not provided, defaults to the current date. Takes precedence over `interval`.",
     ),
   timezone: z
     .string()

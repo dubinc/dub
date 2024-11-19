@@ -141,19 +141,14 @@ const NAV_AREAS: SidebarNavAreas<{
             href: `/${slug}/settings/library`,
           },
           {
-            name: "Billing",
-            icon: Receipt2,
-            href: `/${slug}/settings/billing`,
-          },
-          {
             name: "People",
             icon: Users6,
             href: `/${slug}/settings/people`,
           },
           {
-            name: "Integrations",
-            icon: ConnectedDots,
-            href: `/${slug}/settings/integrations`,
+            name: "Billing",
+            icon: Receipt2,
+            href: `/${slug}/settings/billing`,
           },
           ...(programs?.length
             ? [
@@ -164,6 +159,11 @@ const NAV_AREAS: SidebarNavAreas<{
                 },
               ]
             : []),
+          {
+            name: "Integrations",
+            icon: ConnectedDots,
+            href: `/${slug}/settings/integrations`,
+          },
           {
             name: "Security",
             icon: ShieldCheck,

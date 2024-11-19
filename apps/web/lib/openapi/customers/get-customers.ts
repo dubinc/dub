@@ -6,8 +6,8 @@ import { CustomerSchema } from "../../zod/schemas/customers";
 export const getCustomers: ZodOpenApiOperationObject = {
   operationId: "getCustomers",
   "x-speakeasy-name-override": "list",
-  summary: "Get a list of customers",
-  description: "Get a list of customers for the authenticated workspace.",
+  summary: "Retrieve a list of customers",
+  description: "Retrieve a list of customers for the authenticated workspace.",
   responses: {
     "200": {
       description: "The list of customers.",
