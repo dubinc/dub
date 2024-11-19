@@ -94,9 +94,9 @@ model ProgramApplication {
   partnerId String?
   name      String
   email     String
-  plan      String
+  plan      String // Maybe use long text?
   website   String?
-  comments  String?
+  comments  String? // Maybe use long text?
   status    ProgramApplicationStatus @default(pending)
   createdAt DateTime                 @default(now())
   updatedAt DateTime                 @updatedAt

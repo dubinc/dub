@@ -12,11 +12,11 @@ import { actionClient } from "../safe-action";
 
 const createProgramApplicationSchema = z.object({
   programId: z.string(),
-  name: z.string(),
-  email: z.string(),
-  website: z.string().optional(),
-  plan: z.string(),
-  comments: z.string().optional(),
+  name: z.string().trim().min(1).max(100),
+  email: z.string().trim().email().min(1).max(100),
+  website: z.string().trim().max(100).optional(),
+  plan: z.string().trim().min(1).max(190), // TODO: Make this longer
+  comments: z.string().trim().max(190).optional(), // TODO: Make this longer
 });
 
 // Create a program application (or enrollment if a partner is already logged in)

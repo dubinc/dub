@@ -26,11 +26,10 @@ const BLOCK_COMPONENTS: Record<
 };
 
 export default async function ApplyPage({
-  params,
+  params: { programSlug },
 }: {
   params: { programSlug: string };
 }) {
-  const { programSlug } = params;
   const program = await prisma.program.findUnique({
     select: {
       landerData: true,
@@ -47,10 +46,15 @@ export default async function ApplyPage({
     },
   });
 
-  if (!program || !program.landerData) notFound();
+  if (!program || !program.landerData) {
+    notFound();
+  }
 
   const landerData = programLanderSchema.parse(program.landerData);
-  if (!landerData) notFound();
+
+  if (!landerData) {
+    notFound();
+  }
 
   return (
     <div

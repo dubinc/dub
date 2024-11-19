@@ -7,11 +7,10 @@ import { Header } from "../header";
 import { ProgramApplicationForm } from "./form";
 
 export default async function ApplicationPage({
-  params,
+  params: { programSlug },
 }: {
   params: { programSlug: string };
 }) {
-  const { programSlug } = params;
   const program = await prisma.program.findUnique({
     select: {
       id: true,
@@ -29,7 +28,9 @@ export default async function ApplicationPage({
     },
   });
 
-  if (!program) notFound();
+  if (!program) {
+    notFound();
+  }
 
   // Get currently logged in user's partner for prefilling the form
   const session = await getSession();
