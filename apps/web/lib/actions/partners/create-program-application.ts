@@ -101,7 +101,7 @@ async function createApplicationAndEnrollment({
   | { ok: true; programApplicationId: string; programEnrollmentId: string }
 > {
   // Check if ProgramEnrollment already exists
-  if (partner.programs.some((p) => p.id === program.id)) {
+  if (partner.programs.some((p) => p.programId === program.id)) {
     return {
       ok: false,
       message: "You have already applied to this program.",
@@ -117,6 +117,7 @@ async function createApplicationAndEnrollment({
         ...data,
         id: applicationId,
         programId: program.id,
+        partnerId: partner.id,
       },
     }),
 
