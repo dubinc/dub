@@ -15,7 +15,7 @@ const responseSchema = z.object({
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
-    const { status, search } = payoutsQuerySchema
+    const { status, search, partnerId } = payoutsQuerySchema
       .omit({ sortBy: true, order: true, page: true, pageSize: true })
       .parse(searchParams);
 
@@ -30,6 +30,7 @@ export const GET = withWorkspace(
         programId,
         ...(status && { status }),
         ...(search && { partner: { name: { contains: search } } }),
+        ...(partnerId && { partnerId }),
       },
       _count: true,
     });
