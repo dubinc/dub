@@ -1,13 +1,13 @@
 "use client";
 
 import { IntervalOptions } from "@/lib/analytics/types";
+import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
 import { Button, Check2, useCopyToClipboard, useRouterStuff } from "@dub/ui";
 import { Copy, MoneyBill2 } from "@dub/ui/src/icons";
 import { getPrettyUrl } from "@dub/utils";
 import { ProgramOverviewContext } from "./context";
 import { EarningsChart } from "./earnings-chart";
-import { HeroBackground } from "./hero-background";
 import { SaleTable } from "./sale-table";
 import { StatCard } from "./stat-card";
 import { useReferralLink } from "./use-referral-link";
