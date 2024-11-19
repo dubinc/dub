@@ -614,6 +614,7 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
 export const linkEventSchema = LinkSchema.extend({
   // here we use string because url can be empty
   url: z.string(),
+  expiredUrl: z.string().nullable(),
   // coerce boolean fields
   archived: z.coerce.boolean(),
   doIndex: z.coerce.boolean(),
