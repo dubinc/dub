@@ -16,8 +16,11 @@ import {
   Wordmark,
 } from "@dub/ui";
 import { Copy, MoneyBill2 } from "@dub/ui/src/icons";
-import { getPrettyUrl } from "@dub/utils";
+import { fetcher, getPrettyUrl } from "@dub/utils";
+import { ProgramEnrollment, ProgramInvite } from "@prisma/client";
 import { useContext } from "react";
+import useSWR from "swr";
+import { RequestPartnerInviteForm } from "./request-partner-invite-form";
 import { SaleTable } from "./sale-table";
 import useReferralAnalytics from "./use-referral-analytics";
 import { useReferralLink } from "./use-referral-link";
@@ -39,6 +42,13 @@ export function ReferralsEmbedPageClient() {
     interval?: IntervalOptions;
   };
 
+  const { data, isLoading } = useSWR<{
+    programEnrollment: ProgramEnrollment;
+    programInvite: ProgramInvite;
+  }>(`/api/referrals/invite`, fetcher);
+
+  const hasEnrolled = data?.programEnrollment;
+  const hasInvited = data?.programInvite;
   const color = program?.brandColor || "#8B5CF6";
 
   return (
@@ -120,6 +130,11 @@ export function ReferralsEmbedPageClient() {
           </div>
         </ProgramOverviewContext.Provider>
       </div>
+
+      {/* TODO: UI needs tweaking */}
+      {!isLoading && !hasEnrolled && !hasInvited && (
+        <RequestPartnerInviteForm />
+      )}
 
       <div className="flex items-center justify-center">
         <a

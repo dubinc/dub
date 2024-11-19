@@ -8,23 +8,41 @@ import { sendEmail } from "emails";
 import PartnerInvite from "emails/partner-invite";
 import { NextResponse } from "next/server";
 
+// GET /api/referrals/invite - check if a partner is already invited to a program
+export const GET = withAuth(async ({ link, program }) => {
+  const [programEnrollment, programInvite] = await Promise.all([
+    prisma.programEnrollment.findFirst({
+      where: {
+        programId: program.id,
+        linkId: link.id,
+      },
+    }),
+
+    prisma.programInvite.findFirst({
+      where: {
+        programId: program.id,
+        linkId: link.id,
+      },
+    }),
+  ]);
+
+  return NextResponse.json({
+    programEnrollment,
+    programInvite,
+  });
+});
+
 // POST /api/referrals/invite - invite a partner to dub partners
 export const POST = withAuth(async ({ req, link, program, workspace }) => {
-  const { email } = requestPartnerInviteSchema.parse(
-    await parseRequestBody(req),
-  );
-
   // TODO:
   // We're repating the same logic in the invite-partner action.
   // We should move it to a shared location if it makes sense.
 
-  const [
-    programEnrollment,
-    programInvite,
-    linkInProgramEnrollment,
-    linkInProgramInvite,
-    tags,
-  ] = await Promise.all([
+  const { email } = requestPartnerInviteSchema.parse(
+    await parseRequestBody(req),
+  );
+
+  const [programEnrollment, programInvite, tags] = await Promise.all([
     prisma.programEnrollment.findFirst({
       where: {
         programId: program.id,
@@ -49,18 +67,6 @@ export const POST = withAuth(async ({ req, link, program, workspace }) => {
       },
     }),
 
-    prisma.programEnrollment.findUnique({
-      where: {
-        linkId: link.id,
-      },
-    }),
-
-    prisma.programInvite.findUnique({
-      where: {
-        linkId: link.id,
-      },
-    }),
-
     prisma.tag.findMany({
       where: {
         links: {
@@ -73,18 +79,14 @@ export const POST = withAuth(async ({ req, link, program, workspace }) => {
   ]);
 
   if (programEnrollment) {
-    throw new Error(`Partner ${email} already enrolled in this program.`);
+    throw new Error("You're already enrolled in this program.");
   }
 
   if (programInvite) {
-    throw new Error(`Partner ${email} already invited to this program.`);
+    throw new Error("You've already been invited to this program.");
   }
 
-  if (linkInProgramEnrollment || linkInProgramInvite) {
-    throw new Error("Link is already associated with another partner.");
-  }
-
-  const [result, _] = await Promise.all([
+  const [programInvited] = await Promise.all([
     prisma.programInvite.create({
       data: {
         id: createId({ prefix: "pgi_" }),
@@ -110,18 +112,20 @@ export const POST = withAuth(async ({ req, link, program, workspace }) => {
       workspace_id: workspace.id,
       deleted: false,
     }),
+
+    sendEmail({
+      subject: `${program.name} invited you to join Dub Partners`,
+      email,
+      react: PartnerInvite({
+        email,
+        appName: `${process.env.NEXT_PUBLIC_APP_NAME}`,
+        program: {
+          name: program.name,
+          logo: program.logo,
+        },
+      }),
+    }),
   ]);
 
-  await sendEmail({
-    subject: `${program.name} invited you to join Dub Partners`,
-    email,
-    react: PartnerInvite({
-      email,
-      appName: `${process.env.NEXT_PUBLIC_APP_NAME}`,
-      programName: program.name,
-      programLogo: program.logo,
-    }),
-  });
-
-  return NextResponse.json(result);
+  return NextResponse.json(programInvited);
 });
