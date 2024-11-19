@@ -1,4 +1,6 @@
+import { updateConfig } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
+import { recordLink } from "@/lib/tinybird";
 import { ProgramProps } from "@/lib/types";
 import { Link, Project } from "@prisma/client";
 import { sendEmail } from "emails";
@@ -79,22 +81,22 @@ export const invitePartner = async ({
       },
     }),
 
-    // updateConfig({
-    //   key: "partnersPortal",
-    //   value: email,
-    // }),
+    updateConfig({
+      key: "partnersPortal",
+      value: email,
+    }),
 
-    // recordLink({
-    //   domain: link.domain,
-    //   key: link.key,
-    //   link_id: link.id,
-    //   created_at: link.createdAt,
-    //   url: link.url,
-    //   tag_ids: tags.map((t) => t.id) || [],
-    //   program_id: program.id,
-    //   workspace_id: workspace.id,
-    //   deleted: false,
-    // }),
+    recordLink({
+      domain: link.domain,
+      key: link.key,
+      link_id: link.id,
+      created_at: link.createdAt,
+      url: link.url,
+      tag_ids: tags.map((t) => t.id) || [],
+      program_id: program.id,
+      workspace_id: workspace.id,
+      deleted: false,
+    }),
 
     sendEmail({
       subject: `${program.name} invited you to join Dub Partners`,
