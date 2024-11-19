@@ -44,38 +44,41 @@ export const createProgramApplicationAction = actionClient
         };
       }
 
+      const program = await prisma.program.findUnique({
+        where: { id: programId },
+      });
+
+      if (!program) {
+        return { ok: false, message: "Program not found." };
+      }
+
+      const session = await getSession();
+
+      // Get currently logged in partner
+      const existingPartner = session?.user.id
+        ? await prisma.partner.findFirst({
+            where: {
+              users: { some: { userId: session.user.id } },
+            },
+            include: {
+              programs: true,
+            },
+          })
+        : null;
+
       try {
-        const program = await prisma.program.findUnique({
-          where: { id: programId },
-        });
-
-        if (!program) {
-          return { ok: false, message: "Program not found." };
-        }
-
-        const session = await getSession();
-
-        // Get currently logged in partner
-        const existingPartner = session?.user.id
-          ? await prisma.partner.findFirst({
-              where: {
-                users: { some: { userId: session.user.id } },
-              },
-              include: {
-                programs: true,
-              },
-            })
-          : null;
-
         if (existingPartner) {
-          return createApplicationAndEnrollment(
-            existingPartner,
+          return createApplicationAndEnrollment({
             program,
-            parsedInput,
-          );
+            data: parsedInput,
+            partner: existingPartner,
+          });
         }
 
-        return createApplication(program, parsedInput);
+        return createApplication({
+          program,
+          data: parsedInput,
+        });
       } catch (e) {
         console.error(e);
         return {
@@ -85,50 +88,63 @@ export const createProgramApplicationAction = actionClient
     },
   );
 
-async function createApplicationAndEnrollment(
-  partner: Partner & { programs: ProgramEnrollment[] },
-  program: Program,
-  data: z.infer<typeof createProgramApplicationSchema>,
-): Promise<
+async function createApplicationAndEnrollment({
+  partner,
+  program,
+  data,
+}: {
+  partner: Partner & { programs: ProgramEnrollment[] };
+  program: Program;
+  data: z.infer<typeof createProgramApplicationSchema>;
+}): Promise<
   | { ok: false; message?: string }
   | { ok: true; programApplicationId: string; programEnrollmentId: string }
 > {
   // Check if ProgramEnrollment already exists
-  if (partner.programs.some((p) => p.id === program.id))
+  if (partner.programs.some((p) => p.id === program.id)) {
     return {
       ok: false,
       message: "You have already applied to this program.",
     };
+  }
 
-  const application = await prisma.programApplication.create({
-    data: {
-      ...data,
-      id: createId({ prefix: "pga_" }),
-      programId: program.id,
-    },
-  });
+  const applicationId = createId({ prefix: "pga_" });
+  const enrollmentId = createId({ prefix: "pge_" });
 
-  const enrollment = await prisma.programEnrollment.create({
-    data: {
-      id: createId({ prefix: "pge_" }),
-      partnerId: partner.id,
-      programId: program.id,
-      status: "pending",
-      applicationId: application.id,
-    },
-  });
+  await Promise.all([
+    prisma.programApplication.create({
+      data: {
+        ...data,
+        id: applicationId,
+        programId: program.id,
+      },
+    }),
+
+    prisma.programEnrollment.create({
+      data: {
+        id: enrollmentId,
+        partnerId: partner.id,
+        programId: program.id,
+        status: "pending",
+        applicationId,
+      },
+    }),
+  ]);
 
   return {
     ok: true,
-    programApplicationId: application.id,
-    programEnrollmentId: enrollment.id,
+    programApplicationId: applicationId,
+    programEnrollmentId: enrollmentId,
   };
 }
 
-async function createApplication(
-  program: Program,
-  data: z.infer<typeof createProgramApplicationSchema>,
-): Promise<
+async function createApplication({
+  program,
+  data,
+}: {
+  program: Program;
+  data: z.infer<typeof createProgramApplicationSchema>;
+}): Promise<
   { ok: false; message?: string } | { ok: true; programApplicationId: string }
 > {
   const application = await prisma.programApplication.create({
@@ -140,9 +156,11 @@ async function createApplication(
   });
 
   // Add application ID to cookie
-  const cookieStore = await cookies();
+  const cookieStore = cookies();
+
   const existingApplicationIds =
     cookieStore.get("programApplicationIds")?.value?.split(",") || [];
+
   cookieStore.set(
     "programApplicationIds",
     [...existingApplicationIds, application.id].join(","),
@@ -151,5 +169,9 @@ async function createApplication(
       expires: addDays(new Date(), 1),
     },
   );
-  return { ok: true, programApplicationId: application.id };
+
+  return {
+    ok: true,
+    programApplicationId: application.id,
+  };
 }

@@ -36,9 +36,11 @@ export function ProgramApplicationForm({
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<FormData>({ defaultValues });
 
-  const { executeAsync } = useAction(createProgramApplicationAction);
+  const { executeAsync, isExecuting } = useAction(
+    createProgramApplicationAction,
+  );
 
-  const isLoading = isSubmitting || isSubmitSuccessful;
+  const isLoading = isSubmitting || isSubmitSuccessful || isExecuting;
 
   return (
     <form
