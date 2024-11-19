@@ -8,17 +8,11 @@ export const userIsInBeta = async (
     return true;
   }
 
-  const betaFeatures = await get("betaFeatures");
+  const betaUsers = await get(betaFeature);
 
-  if (!betaFeatures) {
+  if (!betaUsers || !Array.isArray(betaUsers)) {
     return false;
   }
 
-  const betaFeatureList = betaFeatures[betaFeature];
-
-  if (!betaFeatureList) {
-    return false;
-  }
-
-  return betaFeatureList.includes(email);
+  return betaUsers.includes(email);
 };

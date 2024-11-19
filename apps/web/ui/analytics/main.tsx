@@ -1,5 +1,4 @@
 import { EventType } from "@/lib/analytics/types";
-import useWorkspace from "@/lib/swr/use-workspace";
 import {
   Button,
   CountingNumbers,
@@ -23,16 +22,8 @@ type Tab = {
 };
 
 export default function Main() {
-  const { conversionEnabled } = useWorkspace();
-  const {
-    totalEvents,
-    requiresUpgrade,
-    adminPage,
-    demoPage,
-    dashboardProps,
-    selectedTab,
-    view,
-  } = useContext(AnalyticsContext);
+  const { totalEvents, requiresUpgrade, showConversions, selectedTab, view } =
+    useContext(AnalyticsContext);
   const { queryParams } = useRouterStuff();
 
   const tabs = useMemo(
@@ -43,10 +34,7 @@ export default function Main() {
           label: "Clicks",
           colorClassName: "text-blue-500/50",
         },
-        ...(conversionEnabled ||
-        adminPage ||
-        demoPage ||
-        dashboardProps?.showConversions
+        ...(showConversions
           ? [
               {
                 id: "leads",
@@ -61,16 +49,10 @@ export default function Main() {
             ]
           : []),
       ] as Tab[],
-    [conversionEnabled],
+    [showConversions],
   );
 
   const tab = tabs.find(({ id }) => id === selectedTab) ?? tabs[0];
-
-  const showViewButtons =
-    conversionEnabled ||
-    adminPage ||
-    demoPage ||
-    dashboardProps?.showConversions;
 
   return (
     <div className="w-full overflow-hidden border border-gray-200 bg-white sm:rounded-xl">
@@ -159,7 +141,7 @@ export default function Main() {
             );
           })}
         </div>
-        {showViewButtons && (
+        {showConversions && (
           <div className="hidden sm:block">
             <ViewButtons />
           </div>
@@ -172,7 +154,7 @@ export default function Main() {
           </div>
         )}
         {view === "funnel" && <AnalyticsFunnelChart />}
-        {showViewButtons && (
+        {showConversions && (
           <div className="absolute right-2 top-2 w-fit sm:hidden">
             <ViewButtons />
           </div>

@@ -10,6 +10,7 @@ import { useId, useMemo } from "react";
 export type MiniAreaChartProps = {
   data: { date: Date; value: number }[];
   curve?: boolean;
+  color?: string;
 };
 
 export function MiniAreaChart(props: MiniAreaChartProps) {
@@ -32,6 +33,7 @@ function MiniAreaChartInner({
   height,
   data,
   curve = true,
+  color,
 }: MiniAreaChartProps & { width: number; height: number }) {
   const id = useId();
 
@@ -72,8 +74,8 @@ function MiniAreaChartInner({
       <defs>
         <LinearGradient
           id={`${id}-color-gradient`}
-          from="#8B5CF6"
-          to="#4C1D95"
+          from={color || "#7D3AEC"}
+          to={color || "#DA2778"}
           x1={0}
           x2={width - padding.left - padding.right}
           gradientUnits="userSpaceOnUse"

@@ -1,6 +1,6 @@
-import { ClientOnly, Icon, NavWordmark } from "@dub/ui";
+import { AnimatedSizeContainer, ClientOnly, Icon, NavWordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { ChevronLeft } from "lucide-react";
+import { ChevronDown, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -12,11 +12,18 @@ import {
 } from "react";
 import UserDropdown from "./user-dropdown";
 
-export type NavItemType = {
+export type NavItemCommon = {
   name: string;
-  icon: Icon;
   href: string;
   exact?: boolean;
+  hasIndicator?: boolean;
+};
+
+export type NavSubItemType = NavItemCommon;
+
+export type NavItemType = NavItemCommon & {
+  icon: Icon;
+  items?: NavSubItemType[];
 };
 
 export type SidebarNavAreas<T extends Record<any, any>> = Record<
@@ -116,7 +123,7 @@ export function SidebarNav<T extends Record<any, any>>({
                     </div>
                   ))}
                 </div>
-                <div className="-mx-3 mt-6 flex grow flex-col justify-end">
+                <div className="-mx-3 flex grow flex-col justify-end">
                   {showNews && newsContent}
                 </div>
               </Area>
@@ -131,8 +138,11 @@ export function SidebarNav<T extends Record<any, any>>({
   );
 }
 
-function NavItem({ item }: { item: NavItemType }) {
-  const { name, icon: Icon, href, exact } = item;
+function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
+  const { name, href, exact, hasIndicator } = item;
+
+  const Icon = "icon" in item ? item.icon : undefined;
+  const items = "items" in item ? item.items : undefined;
 
   const [hovered, setHovered] = useState(false);
 
@@ -146,24 +156,65 @@ function NavItem({ item }: { item: NavItemType }) {
   }, [pathname, href, exact]);
 
   return (
-    <Link
-      href={href}
-      data-active={isActive}
-      onPointerEnter={() => setHovered(true)}
-      onPointerLeave={() => setHovered(false)}
-      className={cn(
-        "group flex items-center gap-2.5 rounded-md p-2 text-sm leading-none text-neutral-600 transition-[background-color,color,font-weight] duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
-        "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-        isActive &&
-          "bg-blue-100/50 font-medium text-blue-600 hover:bg-blue-100/80 active:bg-blue-100",
+    <div>
+      <Link
+        href={href}
+        data-active={isActive}
+        onPointerEnter={() => setHovered(true)}
+        onPointerLeave={() => setHovered(false)}
+        className={cn(
+          "group flex items-center gap-2.5 rounded-md p-2 text-sm leading-none text-neutral-600 transition-[background-color,color,font-weight] duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
+          "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+          isActive &&
+            !items &&
+            "bg-blue-100/50 font-medium text-blue-600 hover:bg-blue-100/80 active:bg-blue-100",
+        )}
+      >
+        {Icon && (
+          <Icon
+            className={cn(
+              "size-4 text-neutral-500 transition-colors duration-75",
+              !items && "group-data-[active=true]:text-blue-600",
+            )}
+            data-hovered={hovered}
+          />
+        )}
+        {name}
+        {(items || hasIndicator) && (
+          <div className="flex grow justify-end">
+            {items ? (
+              <ChevronDown className="size-3.5 text-neutral-500 transition-transform duration-75 group-data-[active=true]:rotate-180" />
+            ) : hasIndicator ? (
+              <div className="size-2 rounded-full bg-blue-600" />
+            ) : null}
+          </div>
+        )}
+      </Link>
+      {items && (
+        <AnimatedSizeContainer
+          height
+          transition={{ duration: 0.2, ease: "easeInOut" }}
+        >
+          <div
+            className={cn(
+              "transition-opacity duration-200",
+              isActive ? "h-auto" : "h-0 opacity-0",
+            )}
+            aria-hidden={!isActive}
+          >
+            <div className="pl-px pt-1">
+              <div className="pl-3.5">
+                <div className="flex flex-col gap-0.5 border-l border-neutral-200 pl-2">
+                  {items.map((item) => (
+                    <NavItem key={item.name} item={item} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </AnimatedSizeContainer>
       )}
-    >
-      <Icon
-        className="size-4 text-neutral-500 transition-colors duration-75 group-data-[active=true]:text-blue-600"
-        data-hovered={hovered}
-      />
-      {name}
-    </Link>
+    </div>
   );
 }
 

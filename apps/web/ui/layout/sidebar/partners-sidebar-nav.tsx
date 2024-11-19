@@ -1,19 +1,25 @@
 "use client";
 
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
+import usePartnerProgramInvites from "@/lib/swr/use-partner-program-invites";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { ArrowRight, Button, Gear2, ShieldCheck, UserCheck } from "@dub/ui";
+import { Button, useRouterStuff } from "@dub/ui";
 import {
+  ArrowRight,
+  ChartActivity2,
   Check,
+  CircleDollar,
   ColorPalette2,
   Copy,
-  CursorRays,
   Gauge6,
   Gear,
+  Gear2,
   GridIcon,
   Hyperlink,
   MoneyBills2,
+  ShieldCheck,
   User,
+  UserCheck,
   Users,
 } from "@dub/ui/src/icons";
 import { cn, currencyFormatter } from "@dub/utils";
@@ -28,9 +34,11 @@ import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
 const NAV_AREAS: SidebarNavAreas<{
   partnerId: string;
   programId?: string;
+  queryString?: string;
+  hasInvites?: boolean;
 }> = {
   // Top-level
-  default: ({ partnerId }) => ({
+  default: ({ partnerId, hasInvites }) => ({
     showSwitcher: true,
     showNews: true,
     direction: "left",
@@ -42,6 +50,7 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: GridIcon,
             href: `/${partnerId}`,
             exact: true,
+            hasIndicator: hasInvites,
           },
           {
             name: "Marketplace",
@@ -58,7 +67,7 @@ const NAV_AREAS: SidebarNavAreas<{
     ],
   }),
 
-  program: ({ partnerId, programId }) => ({
+  program: ({ partnerId, programId, queryString }) => ({
     showSwitcher: true,
     content: [
       {
@@ -70,14 +79,19 @@ const NAV_AREAS: SidebarNavAreas<{
             exact: true,
           },
           {
+            name: "Analytics",
+            icon: ChartActivity2,
+            href: `/${partnerId}/${programId}/analytics${queryString}`,
+          },
+          {
+            name: "Sales",
+            icon: CircleDollar,
+            href: `/${partnerId}/${programId}/sales${queryString}`,
+          },
+          {
             name: "Payouts",
             icon: MoneyBills2,
             href: `/${partnerId}/${programId}/payouts`,
-          },
-          {
-            name: "Events",
-            icon: CursorRays,
-            href: `/${partnerId}/${programId}/events`,
           },
           {
             name: "Links",
@@ -159,6 +173,7 @@ export function PartnersSidebarNav({
     programId?: string;
   };
   const pathname = usePathname();
+  const { getQueryString } = useRouterStuff();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -170,11 +185,18 @@ export function PartnersSidebarNav({
           : "default";
   }, [partnerId, pathname, programId]);
 
+  const { programInvites } = usePartnerProgramInvites();
+
   return (
     <SidebarNav
       areas={NAV_AREAS}
       currentArea={currentArea}
-      data={{ partnerId: partnerId || "", programId: programId || "" }}
+      data={{
+        partnerId: partnerId || "",
+        programId: programId || "",
+        queryString: getQueryString(),
+        hasInvites: programInvites && programInvites.length > 0,
+      }}
       toolContent={toolContent}
       newsContent={newsContent}
       switcher={<PartnerProgramDropdown />}
@@ -198,13 +220,13 @@ function ProgramInfo() {
   const items = [
     {
       icon: UserCheck,
-      href: `/${partnerId}/${programId}/customers`,
+      href: `/${partnerId}/${programId}/analytics?event=leads&interval=all`,
       label: "Signups",
       value: analytics?.leads,
     },
     {
       icon: MoneyBills2,
-      href: `/${partnerId}/${programId}/payouts`,
+      href: `/${partnerId}/${programId}/sales?interval=all`,
       label: "Earnings",
       value: `${currencyFormatter((analytics?.earnings || 0) / 100)}`,
     },

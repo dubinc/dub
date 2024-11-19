@@ -1,7 +1,7 @@
 enum PartnerStatus {
   default
-  pending
-  approved
+  verified
+  featured
 }
 
 enum PartnerRole {
@@ -13,15 +13,21 @@ model Partner {
   id        String        @id @default(cuid())
   name      String
   logo      String?
+  image     String?
   bio       String?       @db.LongText
   country   String?
   status    PartnerStatus @default(default)
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
-  programs ProgramEnrollment[]
-  users    PartnerUser[]
-  invites  PartnerInvite[]
+  dotsUserId String? @unique
+
+  programs     ProgramEnrollment[]
+  users        PartnerUser[]
+  invites      PartnerInvite[]
+  payouts      Payout[]
+  sales        Sale[]
+  applications ProgramApplication[]
 }
 
 model PartnerUser {

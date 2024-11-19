@@ -321,6 +321,10 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The referral tag of the short link. If set, this will populate or override the `ref` query parameter in the destination URL.",
     ),
+  programId: z
+    .string()
+    .nullish()
+    .describe("The ID of the program the short link is associated with."),
   webhookIds: z
     .array(z.string())
     .nullish()
@@ -571,6 +575,10 @@ export const LinkSchema = z
         "The project ID of the short link. This field is deprecated – use `workspaceId` instead.",
       )
       .openapi({ deprecated: true }),
+    programId: z
+      .string()
+      .nullable()
+      .describe("The ID of the program the short link is associated with."),
   })
   .openapi({ title: "Link" });
 

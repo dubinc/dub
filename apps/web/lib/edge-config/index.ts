@@ -5,6 +5,5 @@ export * from "./is-blacklisted-key";
 export * from "./is-blacklisted-referrer";
 export * from "./is-reserved-key";
 export * from "./is-reserved-username";
-export * from "./is-whitelisted-email";
 export * from "./update";
 export * from "./user-is-in-beta";

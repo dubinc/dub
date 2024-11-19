@@ -29,14 +29,14 @@ export default function Analytics({
   return (
     <AnalyticsProvider {...{ adminPage, demoPage, dashboardProps }}>
       <AnalyticsContext.Consumer>
-        {({ dashboardProps }) => {
+        {({ dashboardProps, partnerPage }) => {
           return (
             <div className={cn("pb-10", dashboardProps && "bg-gray-50 pt-10")}>
               <Toggle />
               <div className="mx-auto grid max-w-screen-xl gap-5 px-3 lg:px-10">
                 <Main />
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                  <TopLinks />
+                  {!partnerPage && <TopLinks />}
                   <Locations />
                   <Devices />
                   <Referer />

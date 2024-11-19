@@ -1,0 +1,156 @@
+DESCRIPTION >
+	Top countries
+
+
+TOKEN "v2_top_links_endpoint_read_5142" READ
+
+NODE workspace_links
+SQL >
+
+    %
+    SELECT link_id
+    from dub_links_metadata_latest FINAL
+    WHERE
+        workspace_id
+        = {{
+            String(
+                workspaceId,
+                'ws_cl7pj5kq4006835rbjlt2ofka',
+                description="The ID of the workspace",
+                required=True,
+            )
+        }}
+        AND deleted == 0
+        {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
+        {% if defined(domain) %} AND domain IN {{ Array(domain, 'String') }} {% end %}
+        {% if defined(tagIds) %} AND arrayIntersect(tag_ids, {{ Array(tagIds, 'String') }}) != [] {% end %}
+        {% if defined(root) %}
+            {% if Boolean(root) == 1 %} AND key = '_root' {% else %} AND key != '_root' {% end %}
+        {% end %}
+
+
+
+NODE top_links_clicks
+SQL >
+
+    %
+    SELECT link_id as link, COUNT(*) AS clicks
+    FROM
+        dub_click_events_mv
+        {% if defined(workspaceId) %}
+            PREWHERE link_id in (SELECT link_id from workspace_links)
+        {% end %}
+    WHERE
+        true
+        {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
+        {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
+        {% if defined(continent) %} AND continent = {{ continent }} {% end %}
+        {% if defined(country) %} AND country = {{ country }} {% end %}
+        {% if defined(city) %} AND city = {{ city }} {% end %}
+        {% if defined(device) %} AND device = {{ device }} {% end %}
+        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+        {% if defined(os) %} AND os = {{ os }} {% end %}
+        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
+        {% if defined(url) %} AND url = {{ url }} {% end %}
+        {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+        {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
+    GROUP BY link_id
+    ORDER BY clicks DESC
+    LIMIT 5000
+
+
+
+NODE top_links_leads
+SQL >
+
+    %
+    SELECT link_id as link, COUNT(*) AS leads
+    FROM
+        dub_lead_events_mv
+        {% if defined(workspaceId) %}
+            PREWHERE link_id in (SELECT link_id from workspace_links)
+        {% end %}
+    WHERE
+        true
+        {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
+        {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
+        {% if defined(continent) %} AND continent = {{ continent }} {% end %}
+        {% if defined(country) %} AND country = {{ country }} {% end %}
+        {% if defined(city) %} AND city = {{ city }} {% end %}
+        {% if defined(device) %} AND device = {{ device }} {% end %}
+        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+        {% if defined(os) %} AND os = {{ os }} {% end %}
+        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
+        {% if defined(url) %} AND url = {{ url }} {% end %}
+        {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+        {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
+    GROUP BY link_id
+    ORDER BY leads DESC
+    LIMIT 5000
+
+
+
+NODE top_links_sales
+SQL >
+
+    %
+    SELECT 
+        link,
+        sales,
+        amount,
+        amount AS saleAmount
+    FROM (
+      SELECT link_id as link, COUNT(*) as sales, sum(amount) as amount
+      FROM
+          dub_sale_events_mv
+          {% if defined(workspaceId) %}
+              PREWHERE link_id in (SELECT link_id from workspace_links)
+          {% end %}
+      WHERE
+          true
+          {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
+          {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
+          {% if defined(continent) %} AND continent = {{ continent }} {% end %}
+          {% if defined(country) %} AND country = {{ country }} {% end %}
+          {% if defined(city) %} AND city = {{ city }} {% end %}
+          {% if defined(device) %} AND device = {{ device }} {% end %}
+          {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+          {% if defined(os) %} AND os = {{ os }} {% end %}
+          {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+          {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
+          {% if defined(url) %} AND url = {{ url }} {% end %}
+          {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+          {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
+      GROUP BY link_id
+      ORDER BY sales DESC
+      LIMIT 5000
+    ) as subquery
+
+
+
+NODE top_links_composite
+SQL >
+
+    SELECT dce.link AS link, clicks, leads, sales, amount, saleAmount
+    FROM (SELECT link, clicks FROM top_links_clicks) AS dce
+    LEFT JOIN (SELECT * FROM  top_links_leads) AS dle ON dce.link = dle.link
+    LEFT JOIN (SELECT * FROM top_links_sales) AS dse ON dce.link = dse.link
+    ORDER BY clicks DESC
+
+
+
+NODE endpoint
+SQL >
+
+    %
+    SELECT *
+    FROM
+        {% if eventType == 'clicks' %} top_links_clicks
+        {% elif eventType == 'leads' %} top_links_leads
+        {% elif eventType == 'sales' %} top_links_sales
+        {% else %} top_links_composite
+        {% end %}
+
+

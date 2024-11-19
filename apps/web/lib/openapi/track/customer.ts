@@ -30,4 +30,5 @@ export const trackCustomer: ZodOpenApiOperationObject = {
   },
   tags: ["Track"],
   security: [{ token: [] }],
+  deprecated: true,
 };

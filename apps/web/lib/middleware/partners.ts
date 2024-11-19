@@ -12,7 +12,7 @@ const UNAUTHENTICATED_PATHS = [
 ];
 
 export default async function PartnersMiddleware(req: NextRequest) {
-  const { path } = parse(req);
+  const { path, searchParamsString } = parse(req);
 
   const isUnauthenticatedPath = UNAUTHENTICATED_PATHS.some((p) =>
     path.startsWith(p),
@@ -29,12 +29,18 @@ export default async function PartnersMiddleware(req: NextRequest) {
     ? await userIsInBeta(user.email, "partnersPortal")
     : false;
 
-  if (user && path === "/" && partnersEnabled) {
+  if (
+    user &&
+    partnersEnabled &&
+    !["/account", "/pn_"].some((p) => path.startsWith(p))
+  ) {
     const defaultPartner = await getDefaultPartner(user);
     if (!defaultPartner) {
       return NextResponse.redirect(new URL("/onboarding", req.url));
     }
-    return NextResponse.redirect(new URL(`/${defaultPartner}`, req.url));
+    return NextResponse.redirect(
+      new URL(`/${defaultPartner}${path}${searchParamsString}`, req.url),
+    );
   }
 
   // Redirect to home if partner flag is off

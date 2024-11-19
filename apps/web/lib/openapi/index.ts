@@ -6,6 +6,7 @@ import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
 import { createDocument } from "zod-openapi";
 import { webhookEventSchema } from "../webhook/schemas";
 import { analyticsPath } from "./analytics";
+import { customersPaths } from "./customers";
 import { domainsPaths } from "./domains";
 import { eventsPath } from "./events";
 import { linksPaths } from "./links";
@@ -40,13 +41,14 @@ export const document = createDocument({
   ],
   paths: {
     ...linksPaths,
-    ...qrCodePaths,
     ...analyticsPath,
     ...eventsPath,
-    ...workspacesPaths,
     ...tagsPaths,
     ...domainsPaths,
     ...trackPaths,
+    ...customersPaths,
+    ...workspacesPaths,
+    ...qrCodePaths,
     ...metatagsPath,
   },
   components: {

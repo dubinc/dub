@@ -1,5 +1,3 @@
-import { nFormatter } from "../functions";
-
 const BUSINESS_PLAN_MODIFIER = ({
   name = "Business",
   monthly = 59,
@@ -49,9 +47,9 @@ const BUSINESS_PLAN_MODIFIER = ({
   },
   featureTitle: "Everything in Pro, plus:",
   features: [
-    { text: `${nFormatter(links, { full: true })} new links/mo` },
+    { text: `${Intl.NumberFormat("en-US").format(links)} new links/mo` },
     {
-      text: `${nFormatter(clicks)} tracked clicks/mo`,
+      text: `${Intl.NumberFormat("en-US").format(clicks)} tracked clicks/mo`,
     },
     { text: "3-year analytics retention" },
     { text: `${domains} custom domains` },

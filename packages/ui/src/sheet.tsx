@@ -7,14 +7,28 @@ import { ContentProps, Drawer } from "vaul";
 function SheetRoot({
   children,
   contentProps,
+  nested = false,
   ...rest
-}: { contentProps?: ContentProps } & ComponentProps<typeof Drawer.Root>) {
+}: { contentProps?: ContentProps; nested?: boolean } & ComponentProps<
+  typeof Drawer.Root
+>) {
+  const RootComponent = nested ? Drawer.NestedRoot : Drawer.Root;
   return (
-    <Drawer.Root direction="right" {...rest}>
+    <RootComponent direction="right" handleOnly {...rest}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/20" />
         <Drawer.Content
           {...contentProps}
+          onPointerDownOutside={(e) => {
+            // Don't dismiss when clicking inside a toast
+            if (
+              e.target instanceof Element &&
+              e.target.closest("[data-sonner-toast]")
+            )
+              e.preventDefault();
+
+            contentProps?.onPointerDownOutside?.(e);
+          }}
           className={cn(
             "fixed bottom-2 right-2 top-2 z-10 flex w-[calc(100%-16px)] outline-none md:w-[540px]",
             contentProps?.className,
@@ -23,6 +37,7 @@ function SheetRoot({
             // 8px between edge of screen and drawer
             {
               "--initial-transform": "calc(100% + 8px)",
+              "user-select": "auto", // Override default user-select: none from Vaul
               ...contentProps?.style,
             } as React.CSSProperties
           }
@@ -32,7 +47,7 @@ function SheetRoot({
           </div>
         </Drawer.Content>
       </Drawer.Portal>
-    </Drawer.Root>
+    </RootComponent>
   );
 }
 

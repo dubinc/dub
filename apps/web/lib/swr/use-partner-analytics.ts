@@ -12,12 +12,12 @@ export default function usePartnerAnalytics(
     `/api/partners/${partnerId}/programs/${params?.programId ?? programId}/analytics?${new URLSearchParams(
       {
         event: params?.event ?? "composite",
-        interval: params?.interval ?? "all_unfiltered",
-        ...(params?.start &&
-          params?.end && {
-            start: params.start.toISOString(),
-            end: params.end.toISOString(),
-          }),
+        ...(params?.start && params?.end
+          ? {
+              start: params.start.toISOString(),
+              end: params.end.toISOString(),
+            }
+          : { interval: params?.interval ?? "all_unfiltered" }),
         groupBy: params?.groupBy ?? "count",
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       },

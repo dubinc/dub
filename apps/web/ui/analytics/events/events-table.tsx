@@ -17,13 +17,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import {
-  CursorRays,
-  FilterBars,
-  Globe,
-  Magnifier,
-  QRCode,
-} from "@dub/ui/src/icons";
+import { CursorRays, Globe, Magnifier, QRCode } from "@dub/ui/src/icons";
 import {
   CONTINENTS,
   COUNTRIES,
@@ -36,7 +30,6 @@ import {
 } from "@dub/utils";
 import { Cell, ColumnDef } from "@tanstack/react-table";
 import { Link2 } from "lucide-react";
-import Link from "next/link";
 import { ReactNode, useContext, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import z from "zod";
@@ -46,6 +39,7 @@ import DeviceIcon from "../device-icon";
 import EditColumnsButton from "./edit-columns-button";
 import { EventsContext } from "./events-provider";
 import { exampleData } from "./example-data";
+import FilterButton from "./filter-button";
 import { RowMenuButton } from "./row-menu-button";
 import { getEventColumns, useColumnVisibility } from "./use-column-visibility";
 
@@ -58,28 +52,6 @@ type ColumnMeta = {
   filterParams?: (
     args: Pick<Cell<EventDatum, any>, "getValue">,
   ) => Record<string, any>;
-};
-
-const FilterButton = ({ set }: { set: Record<string, any> }) => {
-  const { queryParams } = useRouterStuff();
-
-  return (
-    <div className="absolute right-1 top-0 flex h-full shrink-0 translate-x-3 items-center justify-center bg-[linear-gradient(to_right,transparent,white_10%)] p-2 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100">
-      <Link
-        href={
-          queryParams({
-            set,
-            del: "page",
-            getNewPath: true,
-          }) as string
-        }
-        className="block rounded-md border border-transparent bg-white p-0.5 text-gray-600 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-gray-950"
-      >
-        <span className="sr-only">Filter</span>
-        <FilterBars className="h-3.5 w-3.5" />
-      </Link>
-    </div>
-  );
 };
 
 export default function EventsTable({
@@ -576,9 +548,7 @@ export default function EventsTable({
       const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
 
       return (
-        <>
-          {meta?.filterParams && <FilterButton set={meta.filterParams(cell)} />}
-        </>
+        meta?.filterParams && <FilterButton set={meta.filterParams(cell)} />
       );
     },
     emptyState: (

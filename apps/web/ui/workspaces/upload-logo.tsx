@@ -60,6 +60,7 @@ export default function UploadLogo() {
             onChange={({ src }) => setImage(src)}
             content={null}
             maxFileSizeMB={2}
+            targetResolution={{ width: 240, height: 240 }}
           />
         </div>
       </div>

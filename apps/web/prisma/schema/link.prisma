@@ -63,14 +63,16 @@ model Link {
   // Comments on the particular shortlink
   comments String? @db.LongText
 
-  dashboard Dashboard?
+  dashboard         Dashboard?
   programEnrollment ProgramEnrollment?
+  programInvite     ProgramInvite?
+
+  programId String?
+  program   Program? @relation(fields: [programId], references: [id])
 
   @@unique([domain, key])
   @@unique([projectId, externalId])
   @@unique([projectId, identifier])
-  @@index(projectId)
-  @@index(domain)
   @@index(trackConversion)
   @@index(proxy)
   @@index(password)
@@ -79,5 +81,6 @@ model Link {
   @@index(clicks(sort: Desc))
   @@index(lastClicked)
   @@index(userId)
+  @@index([programId])
   @@fulltext([key, url])
 }

@@ -22,7 +22,7 @@ const transferLinkBodySchema = z.object({
 export const POST = withWorkspace(
   async ({ req, headers, session, params, workspace }) => {
     const link = await getLinkOrThrow({
-      workspace,
+      workspaceId: workspace.id,
       linkId: params.linkId,
     });
 

@@ -100,7 +100,6 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
         open={isOpen}
         onOpenChange={setIsOpen}
         contentProps={{ className: "md:w-[650px]" }}
-        handleOnly
       >
         <div className="p-6">
           <div className="flex items-start justify-between">

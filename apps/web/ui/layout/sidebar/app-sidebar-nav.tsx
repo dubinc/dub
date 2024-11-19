@@ -1,5 +1,6 @@
 "use client";
 
+import usePrograms from "@/lib/swr/use-programs";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BetaFeatures } from "@/lib/types";
 import { useRouterStuff } from "@dub/ui";
@@ -7,11 +8,13 @@ import {
   Books2,
   CircleInfo,
   ConnectedDots,
+  ConnectedDots4,
   CubeSettings,
   Gear2,
   Gift,
   Globe,
   Key,
+  MoneyBills2,
   Receipt2,
   ShieldCheck,
   Users6,
@@ -32,9 +35,10 @@ const NAV_AREAS: SidebarNavAreas<{
   slug: string;
   queryString: string;
   flags?: Record<BetaFeatures, boolean>;
+  programs?: { id: string }[];
 }> = {
   // Top-level
-  default: ({ slug, queryString }) => ({
+  default: ({ slug, queryString, programs }) => ({
     showSwitcher: true,
     showNews: true,
     direction: "left",
@@ -64,11 +68,56 @@ const NAV_AREAS: SidebarNavAreas<{
           },
         ],
       },
+      ...(programs?.length
+        ? [
+            {
+              name: "Programs",
+              items: [
+                {
+                  name: "Affiliate",
+                  icon: ConnectedDots4,
+                  href: `/${slug}/programs/${programs[0].id}`,
+                  items: [
+                    {
+                      name: "Overview",
+                      href: `/${slug}/programs/${programs[0].id}`,
+                      exact: true,
+                    },
+                    {
+                      name: "Partners",
+                      href: `/${slug}/programs/${programs[0].id}/partners`,
+                    },
+                    {
+                      name: "Sales",
+                      href: `/${slug}/programs/${programs[0].id}/sales`,
+                    },
+                    {
+                      name: "Payouts",
+                      href: `/${slug}/programs/${programs[0].id}/payouts`,
+                    },
+                    {
+                      name: "Branding",
+                      href: `/${slug}/programs/${programs[0].id}/branding`,
+                    },
+                    {
+                      name: "Resources",
+                      href: `/${slug}/programs/${programs[0].id}/resources`,
+                    },
+                    {
+                      name: "Settings",
+                      href: `/${slug}/programs/${programs[0].id}/settings`,
+                    },
+                  ],
+                },
+              ],
+            },
+          ]
+        : []),
     ],
   }),
 
   // Workspace settings
-  workspaceSettings: ({ slug, flags }) => ({
+  workspaceSettings: ({ slug, flags, programs }) => ({
     title: "Settings",
     backHref: `/${slug}`,
     content: [
@@ -92,15 +141,24 @@ const NAV_AREAS: SidebarNavAreas<{
             href: `/${slug}/settings/library`,
           },
           {
-            name: "Billing",
-            icon: Receipt2,
-            href: `/${slug}/settings/billing`,
-          },
-          {
             name: "People",
             icon: Users6,
             href: `/${slug}/settings/people`,
           },
+          {
+            name: "Billing",
+            icon: Receipt2,
+            href: `/${slug}/settings/billing`,
+          },
+          ...(programs?.length
+            ? [
+                {
+                  name: "Payouts",
+                  icon: MoneyBills2,
+                  href: `/${slug}/settings/payouts`,
+                },
+              ]
+            : []),
           {
             name: "Integrations",
             icon: ConnectedDots,
@@ -194,6 +252,7 @@ export function AppSidebarNav({
   const { slug } = useParams() as { slug?: string };
   const pathname = usePathname();
   const { flags } = useWorkspace();
+  const { programs } = usePrograms();
   const { getQueryString } = useRouterStuff();
 
   const currentArea = useMemo(() => {
@@ -208,7 +267,12 @@ export function AppSidebarNav({
     <SidebarNav
       areas={NAV_AREAS}
       currentArea={currentArea}
-      data={{ slug: slug || "", queryString: getQueryString(), flags }}
+      data={{
+        slug: slug || "",
+        queryString: getQueryString(),
+        flags,
+        programs,
+      }}
       toolContent={toolContent}
       newsContent={newsContent}
       switcher={<WorkspaceDropdown />}

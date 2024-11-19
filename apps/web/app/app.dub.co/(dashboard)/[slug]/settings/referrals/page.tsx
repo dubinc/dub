@@ -37,9 +37,7 @@ export default function ReferralsPage({
       <div>
         <div className="relative">
           <div className="relative overflow-hidden rounded-xl border border-gray-200 p-4 sm:p-9">
-            <Suspense>
-              <HeroBackground slug={slug} />
-            </Suspense>
+            <HeroBackground />
 
             <div className="relative">
               <h1 className="text-xl font-semibold text-black sm:text-2xl">
