@@ -7,14 +7,11 @@ import {
   AnimatedSizeContainer,
   BlurImage,
   Button,
-  CircleCheckFill,
   Sheet,
   useMediaQuery,
 } from "@dub/ui";
-import { ArrowTurnRight2 } from "@dub/ui/src/icons";
-import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -30,9 +27,6 @@ interface InvitePartnerFormData {
 function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const { program } = useProgram();
   const { id: workspaceId, slug } = useWorkspace();
-  const [shortKey, setShortKey] = useState("");
-  const [useExistingLink, setUseExistingLink] = useState(false);
-  const [creatingLink, setCreatingLink] = useState(false);
   const { isMobile } = useMediaQuery();
 
   const {
@@ -62,17 +56,14 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     },
   });
 
-  useEffect(() => {
-    // set link slug based on email name
-    const email = watch("email");
-    if (email) setShortKey(email.split("@")[0]);
-  }, [watch("email")]);
+  const createLink = async (search: string) => {
+    clearErrors("linkId");
 
-  const createLink = async () => {
-    if (!shortKey) {
-      setError("linkId", { message: "Please enter short key for the link" });
-      return;
-    }
+    if (!search) throw new Error("No link entered");
+
+    const shortKey = search.startsWith(program?.domain + "/")
+      ? search.substring((program?.domain + "/").length)
+      : search;
 
     const response = await fetch(`/api/links?workspaceId=${workspaceId}`, {
       method: "POST",
@@ -94,7 +85,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
       throw new Error(error.message);
     }
 
-    setValue("linkId", result.id);
+    setValue("linkId", result.id, { shouldDirty: true });
 
     return result.id;
   };
@@ -103,12 +94,8 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     let { linkId } = data;
 
     try {
-      if (!linkId) {
-        setCreatingLink(true);
-        linkId = await createLink();
-      }
-
-      if (!linkId) return;
+      if (!linkId)
+        setError("linkId", { message: "Please select a referral link" });
 
       await executeAsync({
         workspaceId: workspaceId!,
@@ -117,11 +104,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
         linkId,
       });
     } catch (error) {
-      if (error.message.includes("key"))
-        setError("linkId", { message: error.message });
-      else toast.error(error.message);
-    } finally {
-      setCreatingLink(false);
+      toast.error(error.message);
     }
   };
 
@@ -173,116 +156,34 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                 </a>
               </div>
 
-              <div className="mt-2 grid grid-cols-2 gap-3">
-                {[
-                  {
-                    label: "New",
-                    description: "Create a new referral link",
-                    value: false,
-                  },
-                  {
-                    label: "Existing",
-                    description: "Select an existing referral link",
-                    value: true,
-                  },
-                ].map(({ label, description, value }) => (
-                  <label
-                    key={label}
-                    className={cn(
-                      "relative flex w-full cursor-pointer select-none items-start gap-0.5 rounded-md border border-neutral-200 bg-white px-3 py-2 text-neutral-600 hover:bg-neutral-50",
-                      "transition-all duration-150",
-                      useExistingLink === value &&
-                        "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                    )}
-                  >
-                    <input
-                      type="radio"
-                      value={label}
-                      className="hidden"
-                      checked={useExistingLink === value}
-                      onChange={(e) => {
-                        if (e.target.checked) setUseExistingLink(value);
-                      }}
-                    />
-                    <div className="flex grow flex-col text-sm">
-                      <span className="font-medium leading-tight">{label}</span>
-                      <span>{description}</span>
-                    </div>
-                    <CircleCheckFill
-                      className={cn(
-                        "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                        useExistingLink === value && "scale-100 opacity-100",
-                      )}
-                    />
-                  </label>
-                ))}
-              </div>
-
               <AnimatedSizeContainer
                 height
                 transition={{ duration: 0.2, ease: "easeInOut" }}
-                className="-m-1 mt-2"
+                className="-m-1 mt-1"
               >
                 <div className="p-1">
-                  {useExistingLink ? (
-                    <PartnerLinkSelector
-                      selectedLinkId={selectedLinkId}
-                      setSelectedLinkId={(id) =>
-                        setValue("linkId", id, { shouldDirty: true })
+                  <PartnerLinkSelector
+                    selectedLinkId={selectedLinkId}
+                    setSelectedLinkId={(id) => {
+                      clearErrors("linkId");
+                      setValue("linkId", id, { shouldDirty: true });
+                    }}
+                    onCreate={async (search) => {
+                      try {
+                        await createLink(search);
+                        return true;
+                      } catch (error) {
+                        toast.error(error?.message ?? "Failed to create link");
                       }
-                    />
-                  ) : (
-                    <>
-                      <div className="relative flex rounded-md shadow-sm">
-                        <div>
-                          <div className="group flex h-full items-center justify-start gap-2 whitespace-nowrap rounded-md rounded-r-none border border-gray-300 border-r-transparent bg-white px-3 text-sm text-gray-900 outline-none transition-none sm:inline-flex">
-                            <div className="flex w-full min-w-0 items-center justify-start truncate px-2">
-                              {program?.domain}
-                            </div>
-                          </div>
-                        </div>
-
-                        <input
-                          pattern="[\p{L}\p{N}\p{Pd}\/\p{Emoji}_.]+"
-                          autoComplete="off"
-                          autoCapitalize="none"
-                          className={cn(
-                            "block h-10 w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:z-[1] focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
-                            errors.linkId && "border-red-500",
-                          )}
-                          placeholder=""
-                          type="text"
-                          name="key"
-                          value={shortKey}
-                          onChange={(e) => {
-                            setValue("linkId", "");
-                            clearErrors("linkId");
-                            setShortKey(e.target.value);
-                          }}
-                        />
-                      </div>
-                      {errors.linkId ? (
-                        <p className="mt-2 text-xs text-red-600">
-                          {errors.linkId.message}
-                        </p>
-                      ) : (
-                        program?.url && (
-                          <div className="ml-2 mt-2 flex items-center gap-1 text-xs text-gray-500">
-                            <ArrowTurnRight2 className="size-3 shrink-0" />
-                            <span className="min-w-0 truncate">
-                              Destination URL:{" "}
-                              <a
-                                href={program.url}
-                                target="_blank"
-                                className="underline-offset-2 hover:underline"
-                              >
-                                {program.url}
-                              </a>
-                            </span>
-                          </div>
-                        )
-                      )}
-                    </>
+                      return false;
+                    }}
+                    domain={program?.domain ?? undefined}
+                    error={!!errors.linkId}
+                  />
+                  {errors.linkId && (
+                    <p className="mt-2 text-xs text-red-600">
+                      {errors.linkId.message}
+                    </p>
                   )}
                 </div>
               </AnimatedSizeContainer>
@@ -340,14 +241,14 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             onClick={() => setIsOpen(false)}
             text="Cancel"
             className="w-fit"
-            disabled={isExecuting || creatingLink}
+            disabled={isExecuting}
           />
           <Button
             type="submit"
             variant="primary"
             text="Send invite"
             className="w-fit"
-            loading={isExecuting || creatingLink}
+            loading={isExecuting}
           />
         </div>
       </div>
