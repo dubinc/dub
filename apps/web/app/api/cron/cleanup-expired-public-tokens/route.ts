@@ -23,7 +23,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ status: "OK" });
   } catch (error) {
     await log({
-      message: `Links and domain cleanup failed - ${error.message}`,
+      message: `Referrals public token cleanup failed - ${error.message}`,
       type: "errors",
     });
 
