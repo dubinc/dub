@@ -38,13 +38,12 @@ const FEATURES = [
 ];
 
 export default async function SuccessPage({
-  params,
-  searchParams,
+  params: { programSlug },
+  searchParams: { applicationId, enrollmentId },
 }: {
   params: { programSlug: string };
   searchParams: { applicationId?: string; enrollmentId?: string };
 }) {
-  const { programSlug } = params;
   const program = await prisma.program.findUnique({
     select: {
       id: true,
@@ -62,14 +61,14 @@ export default async function SuccessPage({
     },
   });
 
-  if (!program) notFound();
+  if (!program) {
+    notFound();
+  }
 
-  const isEnrolled = !!searchParams.enrollmentId;
-
-  const application = searchParams.applicationId
+  const application = applicationId
     ? await prisma.programApplication.findFirst({
         where: {
-          id: searchParams.applicationId,
+          id: applicationId,
           programId: program.id,
           createdAt: {
             gte: subDays(new Date(), 3),
@@ -77,6 +76,8 @@ export default async function SuccessPage({
         },
       })
     : null;
+
+  const isEnrolled = !!enrollmentId;
 
   return (
     <div

@@ -10,11 +10,14 @@ import { ratelimit } from "../upstash";
  */
 export async function completeProgramApplications(userId: string) {
   try {
-    const cookieStore = await cookies();
+    const cookieStore = cookies();
     const programApplicationIds = cookieStore
       .get("programApplicationIds")
       ?.value?.split(",");
-    if (!programApplicationIds?.length) return;
+
+    if (!programApplicationIds?.length) {
+      return;
+    }
 
     // Prevent brute forcing
     const { success } = await ratelimit(3, "1 m").limit(
@@ -48,14 +51,16 @@ export async function completeProgramApplications(userId: string) {
       },
     });
 
-    if (!user.partners.length) return;
+    if (!user.partners.length) {
+      return;
+    }
 
     let programApplications = await prisma.programApplication.findMany({
       where: {
-        id: { in: programApplicationIds.filter(Boolean) },
-
+        id: { 
+          in: programApplicationIds.filter(Boolean) 
+        },
         enrollment: null,
-
         // Exclude any applications for programs the user is already enrolled in
         programId: {
           notIn: user.partners
@@ -68,7 +73,9 @@ export async function completeProgramApplications(userId: string) {
       },
     });
 
-    if (!programApplications.length) return;
+    if (!programApplications.length) {
+      return;
+    }
 
     // Filter out duplicate program applications
     let seenIds = new Set<string>();
@@ -76,12 +83,6 @@ export async function completeProgramApplications(userId: string) {
       if (seenIds.has(programId)) return false;
       seenIds.add(programId);
       return true;
-    });
-
-    console.log("Completing program applications", {
-      userId,
-      partnerId: user.partners[0].partnerId,
-      ids: programApplications.map(({ id }) => id),
     });
 
     await prisma.programEnrollment.createMany({
