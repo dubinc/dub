@@ -254,7 +254,6 @@ function PartnerApproval({
         key: shortKey,
         url: program?.url,
         trackConversion: true,
-        programId: program?.id,
       }),
     });
 
