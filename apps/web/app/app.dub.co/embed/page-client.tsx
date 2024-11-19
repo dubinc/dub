@@ -54,6 +54,11 @@ export function ReferralsEmbedPageClient() {
     programInvite: ProgramInvite;
   }>(`/api/referrals/invite`, fetcher);
 
+  const { data: salesCount } = useSWR<{ count: number }>(
+    "/api/referrals/sales/count",
+    fetcher,
+  );
+
   const hasEnrolled = data?.programEnrollment;
   const hasInvited = data?.programInvite;
   const color = program?.brandColor || "#8B5CF6";
@@ -62,6 +67,7 @@ export function ReferralsEmbedPageClient() {
     notFound();
   }
 
+  // Inform parent that the token has expired
   if (linkError && linkError.status === 401) {
     window.parent.postMessage("TOKEN_EXPIRED", "*");
   }
@@ -147,7 +153,7 @@ export function ReferralsEmbedPageClient() {
       </div>
 
       {/* TODO: UI needs tweaking */}
-      {!isLoading && !hasEnrolled && !hasInvited && (
+      {!isLoading && !hasEnrolled && !hasInvited && salesCount?.count && (
         <RequestPartnerInviteForm />
       )}
 
