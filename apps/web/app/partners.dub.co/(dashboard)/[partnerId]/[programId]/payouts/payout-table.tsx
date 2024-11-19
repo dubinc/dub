@@ -14,7 +14,7 @@ import { MoneyBill2 } from "@dub/ui/src/icons";
 import { currencyFormatter, formatDate, nFormatter } from "@dub/utils";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { PayoutDetailsSheet } from "./payout-details-sheet";
 
@@ -41,6 +41,16 @@ export function PayoutTable() {
     | { open: false; payout: PartnerPayoutResponse | null }
     | { open: true; payout: PartnerPayoutResponse }
   >({ open: false, payout: null });
+
+  useEffect(() => {
+    const payoutId = searchParams.get("payoutId");
+    if (payoutId) {
+      const payout = payouts?.find((p) => p.id === payoutId);
+      if (payout) {
+        setDetailsSheetState({ open: true, payout });
+      }
+    }
+  }, [searchParams, payouts]);
 
   const { pagination, setPagination } = usePagination();
 
@@ -97,8 +107,13 @@ export function PayoutTable() {
           ...(sortOrder && { order: sortOrder }),
         },
       }),
-    onRowClick: (row) =>
-      setDetailsSheetState({ open: true, payout: row.original }),
+    onRowClick: (row) => {
+      queryParams({
+        set: {
+          payoutId: row.original.id,
+        },
+      });
+    },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `payout${p ? "s" : ""}`,

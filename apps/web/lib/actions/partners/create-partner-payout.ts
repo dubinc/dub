@@ -1,5 +1,6 @@
 "use server";
 
+import { limiter } from "@/lib/cron/limiter";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -73,8 +74,7 @@ export const createPartnerPayoutAction = authActionClient
     waitUntil(
       (async () => {
         const { program } = programEnrollment;
-
-        const { user } = await prisma.partnerUser.findFirstOrThrow({
+        const partnerUsers = await prisma.partnerUser.findMany({
           where: {
             partnerId: payout.partnerId,
           },
@@ -87,28 +87,35 @@ export const createPartnerPayoutAction = authActionClient
           },
         });
 
-        sendEmail({
-          subject: "You've been paid!",
-          email: user.email!,
-          from: "Dub Partners <system@dub.co>",
-          react: PartnerPayoutSent({
-            email: user.email!,
-            program,
-            payout: {
-              amount: payout.amount,
-              startDate: formatDate(payout.periodStart, {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
+        await Promise.all(
+          partnerUsers.map(({ user }) =>
+            limiter.schedule(() =>
+              sendEmail({
+                subject: "You've been paid!",
+                email: user.email!,
+                from: "Dub Partners <system@dub.co>",
+                react: PartnerPayoutSent({
+                  email: user.email!,
+                  program,
+                  payout: {
+                    id: payout.id,
+                    amount: payout.amount,
+                    startDate: formatDate(payout.periodStart, {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    }),
+                    endDate: formatDate(payout.periodEnd, {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    }),
+                  },
+                }),
               }),
-              endDate: formatDate(payout.periodEnd, {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              }),
-            },
-          }),
-        });
+            ),
+          ),
+        );
       })(),
     );
 

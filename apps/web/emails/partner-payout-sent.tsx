@@ -22,6 +22,7 @@ export default function PartnerPayoutSent({
     logo: DUB_WORDMARK,
   },
   payout = {
+    id: "po_8VuCr2i7WnG65d4TNgZO19fT",
     amount: 490,
     startDate: "Nov 1, 2024",
     endDate: "Nov 30, 2024",
@@ -34,12 +35,13 @@ export default function PartnerPayoutSent({
     logo: string | null;
   };
   payout: {
+    id: string;
     amount: number;
     startDate: string;
     endDate: string;
   };
 }) {
-  const linkToPayout = `https://partners.dub.co/${program.id}/payouts`;
+  const linkToPayout = `https://partners.dub.co/${program.id}/payouts?payoutId=${payout.id}`;
 
   const saleAmountInDollars = currencyFormatter(payout.amount / 100, {
     minimumFractionDigits: 2,
@@ -81,7 +83,7 @@ export default function PartnerPayoutSent({
                 className="rounded-md bg-neutral-900 px-4 py-3 text-[12px] font-medium text-white no-underline"
                 href={linkToPayout}
               >
-                View payouts
+                View payout
               </Link>
             </Section>
             <Footer email={email} />
