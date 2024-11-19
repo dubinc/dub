@@ -1,7 +1,14 @@
 import { PartnerPayoutResponse, PartnerSaleResponse } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet, StatusBadge, Table, useTable } from "@dub/ui";
+import {
+  Button,
+  Sheet,
+  StatusBadge,
+  Table,
+  useRouterStuff,
+  useTable,
+} from "@dub/ui";
 import {
   cn,
   currencyFormatter,
@@ -151,8 +158,15 @@ export function PayoutDetailsSheet({
 }: PayoutDetailsSheetProps & {
   isOpen: boolean;
 }) {
+  const { queryParams } = useRouterStuff();
   return (
-    <Sheet open={isOpen} onOpenChange={rest.setIsOpen}>
+    <Sheet
+      open={isOpen}
+      onOpenChange={rest.setIsOpen}
+      onClose={() => {
+        queryParams({ del: "payoutId" });
+      }}
+    >
       <PayoutDetailsSheetContent {...rest} />
     </Sheet>
   );
