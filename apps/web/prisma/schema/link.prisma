@@ -68,11 +68,12 @@ model Link {
   programInvite     ProgramInvite?
   embedPublicTokens EmbedPublicToken[]
 
+  programId String?
+  program   Program? @relation(fields: [programId], references: [id])
+
   @@unique([domain, key])
   @@unique([projectId, externalId])
   @@unique([projectId, identifier])
-  @@index(projectId)
-  @@index(domain)
   @@index(trackConversion)
   @@index(proxy)
   @@index(password)
@@ -81,5 +82,6 @@ model Link {
   @@index(clicks(sort: Desc))
   @@index(lastClicked)
   @@index(userId)
+  @@index([programId])
   @@fulltext([key, url])
 }

@@ -46,12 +46,11 @@ export const invitePartnerAction = authActionClient
       }),
     ]);
 
-    const [
-      programEnrollment,
-      programInvite,
-      linkInProgramEnrollment,
-      linkInProgramInvite,
-    ] = await Promise.all([
+    if (link.programId) {
+      throw new Error("Link is already associated with another partner.");
+    }
+
+    const [programEnrollment, programInvite] = await Promise.all([
       prisma.programEnrollment.findFirst({
         where: {
           programId,
@@ -66,22 +65,13 @@ export const invitePartnerAction = authActionClient
           },
         },
       }),
+
       prisma.programInvite.findUnique({
         where: {
           email_programId: {
             email,
             programId,
           },
-        },
-      }),
-      prisma.programEnrollment.findUnique({
-        where: {
-          linkId,
-        },
-      }),
-      prisma.programInvite.findUnique({
-        where: {
-          linkId,
         },
       }),
     ]);
@@ -94,10 +84,6 @@ export const invitePartnerAction = authActionClient
       throw new Error(`Partner ${email} already invited to this program.`);
     }
 
-    if (linkInProgramEnrollment || linkInProgramInvite) {
-      throw new Error("Link is already associated with another partner.");
-    }
-
     const [result, _] = await Promise.all([
       prisma.programInvite.create({
         data: {
@@ -107,10 +93,21 @@ export const invitePartnerAction = authActionClient
           programId,
         },
       }),
+
+      prisma.link.update({
+        where: {
+          id: linkId,
+        },
+        data: {
+          programId,
+        },
+      }),
+
       updateConfig({
         key: "partnersPortal",
         value: email,
       }),
+
       recordLink({
         domain: link.domain,
         key: link.key,
@@ -130,8 +127,10 @@ export const invitePartnerAction = authActionClient
       react: PartnerInvite({
         email,
         appName: `${process.env.NEXT_PUBLIC_APP_NAME}`,
-        programName: program.name,
-        programLogo: program.logo,
+        program: {
+          name: program.name,
+          logo: program.logo,
+        },
       }),
     });
 

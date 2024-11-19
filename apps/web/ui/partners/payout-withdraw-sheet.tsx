@@ -1,4 +1,4 @@
-import { createDotsWithdrawalAction } from "@/lib/actions/partners/create-dots-withdrawal";
+import { withdrawFundsAction } from "@/lib/actions/partners/withdraw-funds";
 import { DotsPayoutPlatform } from "@/lib/dots/types";
 import useDotsUser from "@/lib/swr/use-dots-user";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
@@ -81,7 +81,7 @@ function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
     );
   }, [dotsUser, selectedPayoutMethod]);
 
-  const { executeAsync, isExecuting } = useAction(createDotsWithdrawalAction, {
+  const { executeAsync, isExecuting } = useAction(withdrawFundsAction, {
     onSuccess: async () => {
       await Promise.all([
         mutate(`/api/partners/${partnerId}/dots-user`),
