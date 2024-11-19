@@ -28,7 +28,6 @@ model Partner {
   invites      PartnerInvite[]
   payouts      Payout[]
   sales        Sale[]
-
 }
 
 model PartnerUser {

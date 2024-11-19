@@ -15,8 +15,8 @@ const createProgramApplicationSchema = z.object({
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().min(1).max(100),
   website: z.string().trim().max(100).optional(),
-  plan: z.string().trim().min(1).max(190), // TODO: Make this longer
-  comments: z.string().trim().max(190).optional(), // TODO: Make this longer
+  plan: z.string().trim().min(1).max(5000),
+  comments: z.string().trim().max(5000).optional(),
 });
 
 // Create a program application (or enrollment if a partner is already logged in)
@@ -30,25 +30,28 @@ export const createProgramApplicationAction = actionClient
       | { ok: true; programApplicationId: string }
       | { ok: true; programApplicationId: string; programEnrollmentId: string }
     > => {
-      const { programId, ...data } = parsedInput;
+      const { programId } = parsedInput;
 
       // Limit to 3 requests per minute per program per IP
       const { success } = await ratelimit(3, "1 m").limit(
         `create-program-application:${programId}:${getIP()}`,
       );
 
-      if (!success)
+      if (!success) {
         return {
           ok: false,
           message: "Too many requests. Please try again later.",
         };
+      }
 
       try {
         const program = await prisma.program.findUnique({
           where: { id: programId },
         });
 
-        if (!program) return { ok: false, message: "Program not found." };
+        if (!program) {
+          return { ok: false, message: "Program not found." };
+        }
 
         const session = await getSession();
 
@@ -64,13 +67,15 @@ export const createProgramApplicationAction = actionClient
             })
           : null;
 
-        if (existingPartner)
+        if (existingPartner) {
           return createApplicationAndEnrollment(
             existingPartner,
             program,
             parsedInput,
           );
-        else return createApplication(program, parsedInput);
+        }
+
+        return createApplication(program, parsedInput);
       } catch (e) {
         console.error(e);
         return {
