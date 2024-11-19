@@ -98,6 +98,7 @@ export const createPartnerPayoutAction = authActionClient
                   email: user.email!,
                   program,
                   payout: {
+                    id: payout.id,
                     amount: payout.amount,
                     startDate: formatDate(payout.periodStart, {
                       year: "numeric",
