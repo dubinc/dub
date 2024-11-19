@@ -61,8 +61,17 @@ const navItemStyles = cva(
   },
 );
 
-export function Nav({ theme = "light" }: { theme?: NavTheme }) {
-  const { domain = "dub.co" } = useParams() as { domain: string };
+export function Nav({
+  theme = "light",
+  staticDomain,
+}: {
+  theme?: NavTheme;
+  staticDomain?: string;
+}) {
+  let { domain = "dub.co" } = useParams() as { domain: string };
+  if (staticDomain) {
+    domain = staticDomain;
+  }
 
   const scrolled = useScroll(80);
   const scrolledHalf = useScroll(40);
