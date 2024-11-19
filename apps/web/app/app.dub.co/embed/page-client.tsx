@@ -125,7 +125,7 @@ export function ReferralsEmbedPageClient() {
         <a
           href="https://d.to/conversions"
           target="_blank"
-          className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-white p-2 transition-colors md:translate-x-0"
+          className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-white p-2 transition-colors"
         >
           <Wordmark className="h-4" />
           <p className="text-xs text-gray-800">
