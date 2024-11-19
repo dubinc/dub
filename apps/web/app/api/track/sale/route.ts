@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { createSaleData } from "@/lib/api/sales/sale";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
@@ -127,28 +128,58 @@ export const POST = withWorkspaceEdge(
               },
             },
           }),
-
-          ...(programEnrollment
-            ? [
-                prismaEdge.sale.create({
-                  data: createSaleData({
-                    customerId: customer.id,
-                    linkId: clickData.link_id,
-                    clickId: clickData.click_id,
-                    invoiceId,
-                    eventId,
-                    paymentProcessor,
-                    amount,
-                    currency,
-                    partnerId: programEnrollment.partnerId,
-                    program: programEnrollment.program,
-                    metadata: clickData,
-                  }),
-                }),
-              ]
-            : []),
         ]);
 
+        // for program links
+        if (link.programId) {
+          const { program, partner } =
+            await prismaEdge.programEnrollment.findUniqueOrThrow({
+              where: {
+                linkId: link.id,
+              },
+              select: {
+                program: true,
+                partner: {
+                  select: {
+                    id: true,
+                  },
+                },
+              },
+            });
+
+          const saleRecord = createSaleData({
+            customerId: customer.id,
+            linkId: link.id,
+            clickId: clickData.click_id,
+            invoiceId,
+            eventId,
+            paymentProcessor,
+            amount,
+            currency,
+            partnerId: partner.id,
+            program,
+            metadata: clickData,
+          });
+
+          await Promise.allSettled([
+            prismaEdge.sale.create({
+              data: saleRecord,
+            }),
+            notifyPartnerSale({
+              partner: {
+                id: partner.id,
+                referralLink: link.shortLink,
+              },
+              program,
+              sale: {
+                amount: saleRecord.amount,
+                earnings: saleRecord.earnings,
+              },
+            }),
+          ]);
+        }
+
+        // Send workspace webhook
         const sale = transformSaleEventData({
           ...clickData,
           link,

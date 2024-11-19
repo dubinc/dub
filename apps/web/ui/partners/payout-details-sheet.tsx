@@ -1,4 +1,4 @@
-import { createDotsTransferAction } from "@/lib/actions/partners/create-dots-transfer";
+import { createPartnerPayoutAction } from "@/lib/actions/partners/create-partner-payout";
 import useSalesCount from "@/lib/swr/use-sales-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse, SaleResponse } from "@/lib/types";
@@ -168,7 +168,7 @@ function PayoutDetailsSheetContent({
     error: error ? "Failed to load sales" : undefined,
   } as any);
 
-  const { executeAsync, isExecuting } = useAction(createDotsTransferAction, {
+  const { executeAsync, isExecuting } = useAction(createPartnerPayoutAction, {
     onSuccess: async () => {
       await mutate(
         (key) =>
