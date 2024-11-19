@@ -76,17 +76,6 @@ export const POST = withWorkspaceEdge(
       (async () => {
         const eventId = nanoid(16);
 
-        const programEnrollment = await prismaEdge.programEnrollment.findUnique(
-          {
-            where: {
-              linkId: clickData.link_id,
-            },
-            include: {
-              program: true,
-            },
-          },
-        );
-
         const [_sale, link, _project] = await Promise.all([
           recordSale({
             ...clickData,
