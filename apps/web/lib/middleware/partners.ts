@@ -33,7 +33,7 @@ export default async function PartnersMiddleware(req: NextRequest) {
   if (
     user &&
     partnersEnabled &&
-    !["/account", "/pn_", "/onboarding", "/apply"].some((p) =>
+    !["/account", "/onboarding", "/pn_", "/apply"].some((p) =>
       path.startsWith(p),
     )
   ) {
