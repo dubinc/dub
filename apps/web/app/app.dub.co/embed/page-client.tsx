@@ -18,6 +18,7 @@ import {
 import { Copy, MoneyBill2 } from "@dub/ui/src/icons";
 import { fetcher, getPrettyUrl } from "@dub/utils";
 import { ProgramEnrollment, ProgramInvite } from "@prisma/client";
+import { notFound } from "next/navigation";
 import { useContext } from "react";
 import useSWR from "swr";
 import { RequestPartnerInviteForm } from "./request-partner-invite-form";
@@ -30,16 +31,22 @@ export function ReferralsEmbedPageClient() {
   const { program } = useReferralProgram();
   const { searchParamsObj } = useRouterStuff();
   const [copied, copyToClipboard] = useCopyToClipboard();
-  const { link, isLoading: isLoadingLink } = useReferralLink();
+  const {
+    link,
+    isLoading: isLoadingLink,
+    error: linkError,
+  } = useReferralLink();
 
   const {
     start,
     end,
     interval = "30d",
+    token,
   } = searchParamsObj as {
     start?: string;
     end?: string;
     interval?: IntervalOptions;
+    token?: string;
   };
 
   const { data, isLoading } = useSWR<{
@@ -50,6 +57,14 @@ export function ReferralsEmbedPageClient() {
   const hasEnrolled = data?.programEnrollment;
   const hasInvited = data?.programInvite;
   const color = program?.brandColor || "#8B5CF6";
+
+  if (!token) {
+    notFound();
+  }
+
+  if (linkError && linkError.status === 401) {
+    window.parent.postMessage("TOKEN_EXPIRED", "*");
+  }
 
   return (
     <>

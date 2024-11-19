@@ -37,7 +37,10 @@ export default function ReferralsPageClient() {
   }
 
   return publicToken ? (
-    <ReferralsEmbed publicToken={publicToken} />
+    <ReferralsEmbed
+      publicToken={publicToken}
+      onTokenExpired={() => createPublicToken()}
+    />
   ) : (
     <LoadingSpinner className="my-auto h-full w-5 text-gray-400" />
   );

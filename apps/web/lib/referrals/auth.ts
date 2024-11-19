@@ -58,6 +58,8 @@ export const withAuth = (handler: WithAuthHandler) => {
         });
 
         if (!publicToken) {
+          cookieStore.delete(EMBED_PUBLIC_TOKEN_COOKIE_NAME);
+
           throw new DubApiError({
             code: "unauthorized",
             message: "Invalid public token.",
@@ -65,6 +67,8 @@ export const withAuth = (handler: WithAuthHandler) => {
         }
 
         if (publicToken.expires < new Date()) {
+          cookieStore.delete(EMBED_PUBLIC_TOKEN_COOKIE_NAME);
+
           throw new DubApiError({
             code: "unauthorized",
             message: "Public token expired.",

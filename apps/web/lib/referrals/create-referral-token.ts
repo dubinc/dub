@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../api/errors";
 import { ratelimit } from "../upstash";
 import {
@@ -40,12 +41,27 @@ export const createReferralPublicToken = async ({
   const token = await prisma.embedPublicToken.findFirst({
     where: {
       linkId,
+      expires: {
+        gt: new Date(),
+      },
     },
   });
 
   if (token) {
     return token;
   }
+
+  // Remove all expired tokens for this link
+  waitUntil(
+    prisma.embedPublicToken.deleteMany({
+      where: {
+        linkId,
+        expires: {
+          lte: new Date(),
+        },
+      },
+    }),
+  );
 
   return await prisma.embedPublicToken.create({
     data: {
