@@ -1,15 +1,19 @@
 "use client";
 
 import { IntervalOptions } from "@/lib/analytics/types";
+import {
+  EarningsChart,
+  ProgramOverviewContext,
+} from "@/ui/partners/earnings-chart";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
+import { StatCard } from "@/ui/partners/stat-card";
 import { Button, Check2, useCopyToClipboard, useRouterStuff } from "@dub/ui";
 import { Copy, MoneyBill2 } from "@dub/ui/src/icons";
 import { getPrettyUrl } from "@dub/utils";
-import { ProgramOverviewContext } from "./context";
-import { EarningsChart } from "./earnings-chart";
+import { useContext } from "react";
 import { SaleTable } from "./sale-table";
-import { StatCard } from "./stat-card";
+import useReferralAnalytics from "./use-referral-analytics";
 import { useReferralLink } from "./use-referral-link";
 import { useReferralProgram } from "./use-referral-program";
 
@@ -84,13 +88,13 @@ export function ReferralsEmbedPageClient() {
       >
         <div className="mt-6 rounded-lg border border-neutral-300">
           <div className="p-4 md:p-6 md:pb-4">
-            <EarningsChart />
+            <EarningsChartContainer />
           </div>
         </div>
         <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-3">
-          <StatCard title="Clicks" event="clicks" />
-          <StatCard title="Leads" event="leads" />
-          <StatCard title="Sales" event="sales" />
+          <StatCardContainer title="Clicks" event="clicks" />
+          <StatCardContainer title="Leads" event="leads" />
+          <StatCardContainer title="Sales" event="sales" />
         </div>
         <div className="mt-6">
           <div className="flex items-center justify-between">
@@ -104,5 +108,66 @@ export function ReferralsEmbedPageClient() {
         </div>
       </ProgramOverviewContext.Provider>
     </>
+  );
+}
+
+const EarningsChartContainer = () => {
+  const { start, end, interval, color } = useContext(ProgramOverviewContext);
+
+  const { data: { earnings: total } = {} } = useReferralAnalytics({
+    interval,
+    start,
+    end,
+  });
+
+  const { data: timeseries, error } = useReferralAnalytics({
+    groupBy: "timeseries",
+    interval,
+    start,
+    end,
+  });
+
+  return (
+    <EarningsChart
+      timeseries={timeseries}
+      total={total}
+      color={color}
+      error={error}
+    />
+  );
+};
+
+function StatCardContainer({
+  title,
+  event,
+}: {
+  title: string;
+  event: "clicks" | "leads" | "sales";
+}) {
+  const { start, end, interval, color } = useContext(ProgramOverviewContext);
+
+  const { data: total } = useReferralAnalytics({
+    interval,
+    start,
+    end,
+  });
+
+  const { data: timeseries, error } = useReferralAnalytics({
+    groupBy: "timeseries",
+    interval,
+    start,
+    end,
+    event,
+  });
+
+  return (
+    <StatCard
+      timeseries={timeseries}
+      total={total}
+      error={error}
+      title={title}
+      event={event}
+      color={color}
+    />
   );
 }

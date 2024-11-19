@@ -1,5 +1,6 @@
 "use client";
 
+import { IntervalOptions } from "@/lib/analytics/types";
 import Areas from "@/ui/charts/areas";
 import { ChartContext } from "@/ui/charts/chart-context";
 import TimeSeriesChart from "@/ui/charts/time-series-chart";
@@ -9,26 +10,29 @@ import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { LoadingSpinner } from "@dub/ui/src/icons";
 import { cn, currencyFormatter, formatDate } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
-import { useContext, useId, useMemo } from "react";
-import { ProgramOverviewContext } from "./context";
-import useReferralAnalytics from "./use-referral-analytics";
+import { createContext, useId, useMemo } from "react";
 
-export function EarningsChart() {
+export const ProgramOverviewContext = createContext<{
+  start?: Date;
+  end?: Date;
+  interval?: IntervalOptions;
+  color?: string;
+}>({});
+
+interface EarningsChartProps {
+  timeseries: any;
+  total: any;
+  color: any;
+  error: any;
+}
+
+export function EarningsChart({
+  timeseries,
+  total,
+  color,
+  error,
+}: EarningsChartProps) {
   const id = useId();
-  const { start, end, interval, color } = useContext(ProgramOverviewContext);
-
-  const { data: { earnings: total } = {} } = useReferralAnalytics({
-    interval,
-    start,
-    end,
-  });
-
-  const { data: timeseries, error } = useReferralAnalytics({
-    groupBy: "timeseries",
-    interval,
-    start,
-    end,
-  });
 
   const data = useMemo(
     () =>
