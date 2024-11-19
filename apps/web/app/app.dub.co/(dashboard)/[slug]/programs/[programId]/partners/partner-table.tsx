@@ -2,6 +2,8 @@
 
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { PartnerDetailsSheet } from "@/ui/partners/partner-details-sheet";
+import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
@@ -17,13 +19,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import {
-  CircleCheck,
-  CircleHalfDottedClock,
-  CircleXmark,
-  Dots,
-  Users,
-} from "@dub/ui/src/icons";
+import { Dots, Users } from "@dub/ui/src/icons";
 import {
   cn,
   COUNTRIES,
@@ -36,30 +32,9 @@ import { nFormatter } from "@dub/utils/src/functions";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { usePartnerFilters } from "./use-partner-filters";
-
-export const PartnerStatusBadges = {
-  approved: {
-    label: "Approved",
-    variant: "success",
-    className: "text-green-600 bg-green-100",
-    icon: CircleCheck,
-  },
-  pending: {
-    label: "Pending",
-    variant: "pending",
-    className: "text-orange-600 bg-orange-100",
-    icon: CircleHalfDottedClock,
-  },
-  rejected: {
-    label: "Rejected",
-    variant: "error",
-    className: "text-red-600 bg-red-100",
-    icon: CircleXmark,
-  },
-};
 
 export function PartnerTable() {
   const { programId } = useParams();
@@ -84,6 +59,21 @@ export function PartnerTable() {
     `/api/programs/${programId}/partners?${searchQuery}`,
     fetcher,
   );
+
+  const [detailsSheetState, setDetailsSheetState] = useState<
+    | { open: false; partner: EnrolledPartnerProps | null }
+    | { open: true; partner: EnrolledPartnerProps }
+  >({ open: false, partner: null });
+
+  useEffect(() => {
+    const partnerId = searchParams.get("partnerId");
+    if (partnerId) {
+      const partner = partners?.find((p) => p.id === partnerId);
+      if (partner) {
+        setDetailsSheetState({ open: true, partner });
+      }
+    }
+  }, [searchParams, partners]);
 
   const { pagination, setPagination } = usePagination();
 
@@ -172,6 +162,13 @@ export function PartnerTable() {
         cell: ({ row }) => <RowMenuButton row={row} />,
       },
     ],
+    onRowClick: (row) => {
+      queryParams({
+        set: {
+          partnerId: row.original.id,
+        },
+      });
+    },
     pagination,
     onPaginationChange: setPagination,
     sortableColumns: ["createdAt", "earnings"],
@@ -194,6 +191,15 @@ export function PartnerTable() {
 
   return (
     <div className="flex flex-col gap-3">
+      {detailsSheetState.partner && (
+        <PartnerDetailsSheet
+          isOpen={detailsSheetState.open}
+          setIsOpen={(open) =>
+            setDetailsSheetState((s) => ({ ...s, open }) as any)
+          }
+          partner={detailsSheetState.partner}
+        />
+      )}
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Filter.Select
