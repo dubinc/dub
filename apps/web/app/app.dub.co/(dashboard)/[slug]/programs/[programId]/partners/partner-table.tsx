@@ -32,7 +32,7 @@ import { nFormatter } from "@dub/utils/src/functions";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { usePartnerFilters } from "./use-partner-filters";
 
@@ -64,6 +64,16 @@ export function PartnerTable() {
     | { open: false; partner: EnrolledPartnerProps | null }
     | { open: true; partner: EnrolledPartnerProps }
   >({ open: false, partner: null });
+
+  useEffect(() => {
+    const partnerId = searchParams.get("partnerId");
+    if (partnerId) {
+      const partner = partners?.find((p) => p.id === partnerId);
+      if (partner) {
+        setDetailsSheetState({ open: true, partner });
+      }
+    }
+  }, [searchParams, partners]);
 
   const { pagination, setPagination } = usePagination();
 
@@ -152,8 +162,13 @@ export function PartnerTable() {
         cell: ({ row }) => <RowMenuButton row={row} />,
       },
     ],
-    onRowClick: (row) =>
-      setDetailsSheetState({ open: true, partner: row.original }),
+    onRowClick: (row) => {
+      queryParams({
+        set: {
+          partnerId: row.original.id,
+        },
+      });
+    },
     pagination,
     onPaginationChange: setPagination,
     sortableColumns: ["createdAt", "earnings"],

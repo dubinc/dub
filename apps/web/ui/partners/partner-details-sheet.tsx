@@ -15,10 +15,11 @@ import {
   Table,
   ToggleGroup,
   useCopyToClipboard,
+  useRouterStuff,
   useTable,
   useTablePagination,
 } from "@dub/ui";
-import { Copy, GreekTemple, Link4 } from "@dub/ui/src/icons";
+import { Copy, GreekTemple } from "@dub/ui/src/icons";
 import {
   cn,
   COUNTRIES,
@@ -27,9 +28,10 @@ import {
   formatDate,
   getPrettyUrl,
 } from "@dub/utils";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Link2 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -83,7 +85,7 @@ function PartnerDetailsSheetContent({
                 className="size-12 rounded-full"
               />
               <div className="mt-4 flex items-center gap-2">
-                <span className="text-lg font-semibold text-neutral-900">
+                <span className="leading-2 text-lg font-semibold text-neutral-900">
                   {partner.name}
                 </span>
                 {badge && (
@@ -107,7 +109,7 @@ function PartnerDetailsSheetContent({
                   className="group flex min-w-0 items-center gap-1 overflow-hidden rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700 transition-colors duration-100 hover:bg-neutral-200/70 active:bg-neutral-200"
                 >
                   <div className="relative size-3 shrink-0 text-neutral-600">
-                    <Link4 className="absolute left-0 top-0 size-3 transition-[opacity,transform] duration-150 group-hover:-translate-y-2 group-hover:opacity-0" />
+                    <Link2 className="absolute left-0 top-0 size-3 transition-[opacity,transform] duration-150 group-hover:-translate-y-2 group-hover:opacity-0" />
                     <Copy className="absolute left-0 top-0 size-3 translate-y-2 opacity-0 transition-[opacity,transform] duration-150 group-hover:translate-y-0 group-hover:opacity-100" />
                   </div>
                   <span className="truncate">
@@ -411,6 +413,7 @@ function PartnerRejectButton({
 
 function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
   const { slug } = useWorkspace();
+  const router = useRouter();
 
   const { payoutsCount, error: payoutsCountError } = usePayoutsCount({
     query: { partnerId: partner.id },
@@ -466,6 +469,11 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
           }),
       },
     ],
+    onRowClick: (row) => {
+      router.push(
+        `/${slug}/programs/${partner.programId}/payouts?payoutId=${row.original.id}`,
+      );
+    },
     ...(showPagination && {
       pagination,
       onPaginationChange: setPagination,
@@ -519,26 +527,14 @@ export function PartnerDetailsSheet({
 }: PartnerDetailsSheetProps & {
   isOpen: boolean;
 }) {
+  const { queryParams } = useRouterStuff();
   return (
-    <Sheet open={isOpen} onOpenChange={rest.setIsOpen}>
+    <Sheet
+      open={isOpen}
+      onOpenChange={rest.setIsOpen}
+      onClose={() => queryParams({ del: "partnerId" })}
+    >
       <PartnerDetailsSheetContent {...rest} />
     </Sheet>
   );
-}
-
-export function usePartnerDetailsSheet({
-  partner,
-}: Omit<PartnerDetailsSheetProps, "setIsOpen">) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return {
-    partnerDetailsSheet: (
-      <PartnerDetailsSheet
-        partner={partner}
-        isOpen={isOpen}
-        setIsOpen={setIsOpen}
-      />
-    ),
-    setIsOpen,
-  };
 }
