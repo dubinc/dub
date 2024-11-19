@@ -84,8 +84,8 @@ function PartnerDetailsSheetContent({
                 alt={partner.name}
                 className="size-12 rounded-full"
               />
-              <div className="mt-4 flex items-center gap-2">
-                <span className="leading-2 text-lg font-semibold text-neutral-900">
+              <div className="mt-4 flex items-start gap-2">
+                <span className="text-lg font-semibold leading-tight text-neutral-900">
                   {partner.name}
                 </span>
                 {badge && (
