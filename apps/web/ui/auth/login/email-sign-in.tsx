@@ -1,7 +1,7 @@
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { Button, Input, useMediaQuery } from "@dub/ui";
 import { InputPassword } from "@dub/ui/src/icons";
-import { APP_DOMAIN, cn } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -84,7 +84,7 @@ export const EmailSignIn = () => {
               signIn(provider, {
                 email,
                 redirect: false,
-                callbackUrl: next || `${APP_DOMAIN}/workspaces`,
+                callbackUrl: next || "/",
                 ...(password && { password }),
               }).then((res) => {
                 if (!res) return;
@@ -105,7 +105,7 @@ export const EmailSignIn = () => {
                   setEmail("");
                   setClickedMethod(undefined);
                 } else if (provider === "credentials") {
-                  router.push(next ?? "/");
+                  router.push(next || "/");
                 }
               });
             } else {
