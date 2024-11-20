@@ -3,22 +3,14 @@ import { getSession } from "../auth";
 import { prisma } from "../prisma";
 
 export const actionClient = createSafeActionClient({
-  handleReturnedServerError: (e) => {
+  handleServerError: (e) => {
     console.error("Server action error:", e);
 
     if (e instanceof Error) {
-      return {
-        serverError: e.message,
-      };
+      return e.message;
     }
 
-    return {
-      serverError: "An unknown error occurred.",
-    };
-  },
-
-  handleServerErrorLog(originalError) {
-    console.error("Action error:", originalError.message);
+    return "An unknown error occurred.";
   },
 });
 
