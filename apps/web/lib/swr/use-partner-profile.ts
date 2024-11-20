@@ -7,7 +7,7 @@ export default function usePartnerProfile() {
   const { partnerId } = useParams();
 
   const { data: partner, error } = useSWR<PartnerProps>(
-    `/api/partners/${partnerId}`,
+    partnerId && `/api/partners/${partnerId}`,
     fetcher,
     {
       dedupingInterval: 60000,

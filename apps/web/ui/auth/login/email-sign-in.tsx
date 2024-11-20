@@ -5,13 +5,12 @@ import { cn } from "@dub/utils";
 import { Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useContext, useState } from "react";
 import { toast } from "sonner";
 import { errorCodes, LoginFormContext } from "./login-form";
 
 export const EmailSignIn = () => {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams?.get("next");
   const { isMobile } = useMediaQuery();
@@ -104,7 +103,7 @@ export const EmailSignIn = () => {
                   toast.success("Email sent - check your inbox!");
                   setEmail("");
                   setClickedMethod(undefined);
-                } else if (provider === "credentials") router.push(next ?? "/");
+                }
               });
             } else {
               setClickedMethod(undefined);

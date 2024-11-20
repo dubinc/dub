@@ -23,6 +23,9 @@ export const withdrawFundsAction = authPartnerActionClient
     }
 
     const dotsUser = await retrieveDotsUser(partner);
+    if (!dotsUser.wallet) {
+      throw new Error("Invalid wallet configuration.");
+    }
     const amountToWithdraw = dotsUser.wallet.withdrawable_amount;
 
     const response = await createWithdrawal({

@@ -2,6 +2,7 @@ import { withdrawFundsAction } from "@/lib/actions/partners/withdraw-funds";
 import { DotsPayoutPlatform } from "@/lib/dots/types";
 import useDotsUser from "@/lib/swr/use-dots-user";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import usePayoutMethods from "@/lib/swr/use-payout-methods";
 import { X } from "@/ui/shared/icons";
 import { Button, Icon, Sheet } from "@dub/ui";
 import {
@@ -32,6 +33,7 @@ function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
   const { partnerId } = useParams<{ partnerId: string }>();
   const { partner, error: partnerError } = usePartnerProfile();
   const { dotsUser, error: dotsUserError } = useDotsUser();
+  const { payoutMethods } = usePayoutMethods();
 
   const summaryData = useMemo(
     () => ({
@@ -57,8 +59,8 @@ function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
       Date: formatDate(new Date(), { month: "short" }),
       Total: dotsUserError ? (
         "-"
-      ) : dotsUser ? (
-        currencyFormatter((dotsUser?.wallet.withdrawable_amount ?? 0) / 100, {
+      ) : dotsUser?.wallet ? (
+        currencyFormatter((dotsUser.wallet.withdrawable_amount ?? 0) / 100, {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
         })
@@ -73,11 +75,10 @@ function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
     useState<DotsPayoutPlatform | null>(null);
 
   useEffect(() => {
-    if (!dotsUser?.payout_methods?.length || selectedPayoutMethod !== null)
-      return;
+    if (!payoutMethods.length || selectedPayoutMethod !== null) return;
 
     setSelectedPayoutMethod(
-      dotsUser.default_payout_method ?? dotsUser.payout_methods[0].platform,
+      dotsUser?.default_payout_method ?? payoutMethods[0].platform,
     );
   }, [dotsUser, selectedPayoutMethod]);
 
@@ -124,9 +125,9 @@ function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
         <div className="p-6 pt-2">
           <div className="text-base font-medium text-neutral-900">Method</div>
           <div className="mt-4 flex flex-col gap-2">
-            {dotsUser?.payout_methods ? (
+            {payoutMethods.length ? (
               <>
-                {dotsUser.payout_methods
+                {payoutMethods
                   .sort((a, b) => Number(b.default) - Number(a.default)) // Show default first
                   .map((method) => {
                     const platform =

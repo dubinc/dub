@@ -14,6 +14,7 @@ export const ProgramSchema = z.object({
   name: z.string(),
   slug: z.string(),
   logo: z.string().nullable(),
+  brandColor: z.string().nullable(),
   type: z.nativeEnum(ProgramType),
   cookieLength: z.number(),
   commissionAmount: z.number(),
