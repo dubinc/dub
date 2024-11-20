@@ -61,8 +61,17 @@ const navItemStyles = cva(
   },
 );
 
-export function Nav({ theme = "light" }: { theme?: NavTheme }) {
-  const { domain = "dub.co" } = useParams() as { domain: string };
+export function Nav({
+  theme = "light",
+  staticDomain,
+}: {
+  theme?: NavTheme;
+  staticDomain?: string;
+}) {
+  let { domain = "dub.co" } = useParams() as { domain: string };
+  if (staticDomain) {
+    domain = staticDomain;
+  }
 
   const scrolled = useScroll(80);
   const scrolledHalf = useScroll(40);
@@ -195,7 +204,7 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
                     href={
                       hasDubCookie
                         ? "https://app.dub.co/register"
-                        : "https://d.to/try"
+                        : "https://d.to/register"
                     }
                     className="animate-fade-in rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-gray-800 hover:ring-4 hover:ring-gray-200 dark:border-white dark:bg-white dark:text-gray-600 dark:hover:bg-white dark:hover:text-gray-800 dark:hover:hover:shadow-[0_0_25px_5px_rgba(256,256,256,0.2)] dark:hover:ring-0"
                   >
