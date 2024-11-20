@@ -56,7 +56,7 @@ export default function IntegrationPageClient({
       window.location.href = data.url;
     },
     onError: ({ error }) => {
-      toast.error(error.serverError?.serverError);
+      toast.error(error.serverError);
     },
   });
 

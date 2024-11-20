@@ -23,7 +23,7 @@ export function ProgramInviteCard({ invite }: { invite: ProgramInviteProps }) {
       );
     },
     onError: ({ error }) => {
-      toast.error(error.serverError?.serverError);
+      toast.error(error.serverError);
     },
   });
 

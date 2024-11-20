@@ -25,7 +25,7 @@ export const ComplianceButton = () => {
       });
     },
     onError({ error }) {
-      toast.error(error.serverError?.serverError);
+      toast.error(error.serverError);
     },
   });
 
