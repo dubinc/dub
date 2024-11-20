@@ -12,7 +12,7 @@ const schema = z.object({
   platform: dotsPayoutPlatforms,
 });
 
-export const createDotsWithdrawalAction = authPartnerActionClient
+export const withdrawFundsAction = authPartnerActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { partner } = ctx;
@@ -23,6 +23,9 @@ export const createDotsWithdrawalAction = authPartnerActionClient
     }
 
     const dotsUser = await retrieveDotsUser(partner);
+    if (!dotsUser.wallet) {
+      throw new Error("Invalid wallet configuration.");
+    }
     const amountToWithdraw = dotsUser.wallet.withdrawable_amount;
 
     const response = await createWithdrawal({

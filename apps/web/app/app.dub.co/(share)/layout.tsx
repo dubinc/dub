@@ -4,10 +4,10 @@ import { ReactNode } from "react";
 export default function dashboardLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col justify-between bg-gray-50/80">
-      <NavMobile />
-      <Nav />
+      <NavMobile staticDomain="app.dub.co" />
+      <Nav staticDomain="app.dub.co" />
       {children}
-      <Footer />
+      <Footer staticDomain="app.dub.co" />
     </div>
   );
 }

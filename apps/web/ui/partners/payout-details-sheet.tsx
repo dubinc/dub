@@ -1,10 +1,11 @@
-import { createDotsTransferAction } from "@/lib/actions/partners/create-dots-transfer";
+import { createPartnerPayoutAction } from "@/lib/actions/partners/create-partner-payout";
 import useSalesCount from "@/lib/swr/use-sales-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse, SaleResponse } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
+  buttonVariants,
   Sheet,
   StatusBadge,
   Table,
@@ -53,7 +54,7 @@ function PayoutDetailsSheetContent({
     isLoading,
     error,
   } = useSWR<SaleResponse[]>(
-    `/api/programs/${programId}/sales?workspaceId=${workspaceId}&payoutId=${payout.id}&start=${payout.periodStart}&end=${payout.periodEnd}`,
+    `/api/programs/${programId}/sales?workspaceId=${workspaceId}&payoutId=${payout.id}&start=${payout.periodStart}&end=${payout.periodEnd}&pageSize=5`,
     fetcher,
   );
 
@@ -66,8 +67,7 @@ function PayoutDetailsSheetContent({
     return {
       Partner: (
         <Link
-          // TODO: [payouts] – update to partner sheet link when that's ready
-          href={`/${slug}/programs/${programId}/sales?partnerId=${payout.partner.id}&start=${payout.periodStart}&end=${payout.periodEnd}`}
+          href={`/${slug}/programs/${programId}/partners?partnerId=${payout.partner.id}`}
           className="flex items-center gap-2"
         >
           <img
@@ -168,7 +168,7 @@ function PayoutDetailsSheetContent({
     error: error ? "Failed to load sales" : undefined,
   } as any);
 
-  const { executeAsync, isExecuting } = useAction(createDotsTransferAction, {
+  const { executeAsync, isExecuting } = useAction(createPartnerPayoutAction, {
     onSuccess: async () => {
       await mutate(
         (key) =>
@@ -215,6 +215,17 @@ function PayoutDetailsSheetContent({
         </div>
         <div className="p-6 pt-2">
           <Table {...table} />
+          <div className="mt-2 flex justify-end">
+            <Link
+              href={`/${slug}/programs/${programId}/sales?payoutId=${payout.id}`}
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "flex h-7 items-center rounded-lg border px-2 text-sm",
+              )}
+            >
+              View all
+            </Link>
+          </div>
         </div>
       </div>
       <div className="flex grow flex-col justify-end">

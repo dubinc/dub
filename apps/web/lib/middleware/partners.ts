@@ -11,8 +11,6 @@ const UNAUTHENTICATED_PATHS = [
   "/auth/reset-password",
 ];
 
-const TOP_LEVEL_REDIRECTS = ["/marketplace", "/settings"];
-
 export default async function PartnersMiddleware(req: NextRequest) {
   const { path, searchParamsString } = parse(req);
 
@@ -34,9 +32,10 @@ export default async function PartnersMiddleware(req: NextRequest) {
   if (
     user &&
     partnersEnabled &&
-    (path === "/" || TOP_LEVEL_REDIRECTS.some((p) => path.startsWith(p)))
+    !["/account", "/pn_", "/onboarding"].some((p) => path.startsWith(p))
   ) {
     const defaultPartner = await getDefaultPartner(user);
+
     if (!defaultPartner) {
       return NextResponse.redirect(new URL("/onboarding", req.url));
     }

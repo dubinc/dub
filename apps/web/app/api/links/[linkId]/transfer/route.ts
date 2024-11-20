@@ -91,6 +91,7 @@ export const POST = withWorkspace(
           key: link.key,
           url: link.url,
           tag_ids: [],
+          program_id: link.programId ?? "",
           workspace_id: newWorkspaceId,
           created_at: link.createdAt,
         }),
