@@ -5,12 +5,12 @@ import z from "@/lib/zod";
 import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
 import "dotenv-flow/config";
 
-const enrollmentId = "cm2v7e3780000d1efwh8b63y5";
+const linkId = "cm032y2660009ygp4l1y1vc89";
 
 async function main() {
   const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
-      id: enrollmentId,
+      linkId,
     },
     select: {
       partnerId: true,
