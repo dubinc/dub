@@ -47,6 +47,16 @@ export const onboardPartnerAction = authUserActionClient
       userInfo: dotsUserInfo,
     });
 
+    const partnerExists = await prisma.partner.findUnique({
+      where: {
+        dotsUserId: dotsUser.id,
+      },
+    });
+
+    if (partnerExists) {
+      throw new Error("This phone number is already in use.");
+    }
+
     const partnerId = createId({ prefix: "pn_" });
 
     const imageUrl = await storage
