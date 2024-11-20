@@ -47,16 +47,31 @@ export const onboardPartnerAction = authUserActionClient
       userInfo: dotsUserInfo,
     });
 
+    const partnerExists = await prisma.partner.findUnique({
+      where: {
+        dotsUserId: dotsUser.id,
+      },
+    });
+
+    if (partnerExists) {
+      throw new Error("This phone number is already in use.");
+    }
+
     const partnerId = createId({ prefix: "pn_" });
 
-    try {
-      await prisma.partner.create({
+    const imageUrl = await storage
+      .upload(`partners/${partnerId}/image_${nanoid(7)}`, image)
+      .then(({ url }) => url);
+
+    const [partner, _] = await Promise.all([
+      prisma.partner.create({
         data: {
           id: partnerId,
           name,
           country,
           bio: description,
           dotsUserId: dotsUser.id,
+          image: imageUrl,
           users: {
             create: {
               userId: user.id,
@@ -64,35 +79,13 @@ export const onboardPartnerAction = authUserActionClient
             },
           },
         },
-      });
-    } catch (error) {
-      if (error.code === "P2002") {
-        throw new Error("This phone number is already in use.");
-      }
-
-      throw new Error(error.message);
-    }
-
-    const imageUrl = await storage
-      .upload(`partners/${partnerId}/image_${nanoid(7)}`, image)
-      .then(({ url }) => url);
-
-    await Promise.all([
-      prisma.partner.update({
-        where: {
-          id: partnerId,
-        },
-        data: {
-          image: imageUrl,
-        },
       }),
-
       sendVerificationToken({
         dotsUserId: dotsUser.id,
       }),
     ]);
 
     return {
-      partnerId,
+      partnerId: partner.id,
     };
   });
