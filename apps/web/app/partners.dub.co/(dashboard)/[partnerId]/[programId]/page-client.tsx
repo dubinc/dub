@@ -59,13 +59,13 @@ export default function ProgramPageClient() {
   };
 
   const program = programEnrollment?.program;
-  const color =
-    program?.id === "prog_MqN7G1vSbuSELpYJwioHyDE8" ? "#8B5CF6" : undefined;
 
   return (
     <MaxWidthWrapper className="pb-10">
       <div className="relative flex flex-col rounded-lg border border-neutral-300 bg-gradient-to-r from-neutral-50 p-4 md:p-6">
-        {program && <HeroBackground logo={program?.logo} color={color} />}
+        {program && (
+          <HeroBackground logo={program?.logo} color={program?.brandColor} />
+        )}
         <span className="flex items-center gap-2 text-sm text-neutral-500">
           <MoneyBill2 className="size-4" />
           Refer and earn
@@ -112,7 +112,7 @@ export default function ProgramPageClient() {
           start: start ? new Date(start) : undefined,
           end: end ? new Date(end) : undefined,
           interval,
-          color,
+          color: program?.brandColor ?? undefined,
         }}
       >
         <div className="mt-6 rounded-lg border border-neutral-300">
