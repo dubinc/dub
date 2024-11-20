@@ -48,6 +48,8 @@ export function SaleRowMenu({ row }: { row: Row<SaleProps> }) {
     );
   };
 
+  const isPaid = row.original.status === "paid";
+
   return (
     <Popover
       openPopover={isOpen}
@@ -77,6 +79,7 @@ export function SaleRowMenu({ row }: { row: Row<SaleProps> }) {
                     updateStatus("duplicate");
                     setIsOpen(false);
                   }}
+                  disabled={isPaid}
                 />
                 <MenuItem
                   icon={ShieldAlert}
@@ -85,6 +88,7 @@ export function SaleRowMenu({ row }: { row: Row<SaleProps> }) {
                     updateStatus("fraud");
                     setIsOpen(false);
                   }}
+                  disabled={isPaid}
                 />
               </>
             )}
@@ -107,18 +111,22 @@ function MenuItem({
   icon: IconComp,
   label,
   onSelect,
+  disabled,
 }: {
   icon: Icon;
   label: string;
   onSelect: () => void;
+  disabled?: boolean;
 }) {
   return (
     <Command.Item
       className={cn(
         "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-600",
         "data-[selected=true]:bg-gray-100",
+        disabled && "cursor-not-allowed opacity-50",
       )}
       onSelect={onSelect}
+      disabled={disabled}
     >
       <IconComp className="size-4 shrink-0 text-neutral-500" />
       {label}
