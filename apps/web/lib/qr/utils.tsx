@@ -3,11 +3,10 @@ import {
   DEFAULT_BGCOLOR,
   DEFAULT_FGCOLOR,
   DEFAULT_IMG_SCALE,
-  DEFAULT_INCLUDEMARGIN,
   DEFAULT_LEVEL,
+  DEFAULT_MARGIN,
   DEFAULT_SIZE,
   ERROR_LEVEL_MAP,
-  MARGIN_SIZE,
 } from "./constants";
 import { Excavation, ImageSettings, Modules, QRPropsSVG } from "./types";
 
@@ -77,7 +76,7 @@ export function generatePath(modules: Modules, margin = 0): string {
 export function getImageSettings(
   cells: Modules,
   size: number,
-  includeMargin: boolean,
+  margin: number,
   imageSettings?: ImageSettings,
 ): null | {
   x: number;
@@ -89,7 +88,6 @@ export function getImageSettings(
   if (imageSettings == null) {
     return null;
   }
-  const margin = includeMargin ? MARGIN_SIZE : 0;
   const numCells = cells.length + margin * 2;
   const defaultSize = Math.floor(size * DEFAULT_IMG_SCALE);
   const scale = numCells / size;
@@ -148,7 +146,7 @@ export function QRCodeSVG(props: QRPropsSVG) {
     level = DEFAULT_LEVEL,
     bgColor = DEFAULT_BGCOLOR,
     fgColor = DEFAULT_FGCOLOR,
-    includeMargin = DEFAULT_INCLUDEMARGIN,
+    margin = DEFAULT_MARGIN,
     isOGContext = false,
     imageSettings,
     ...otherProps
@@ -166,12 +164,11 @@ export function QRCodeSVG(props: QRPropsSVG) {
     ERROR_LEVEL_MAP[effectiveLevel],
   ).getModules();
 
-  const margin = includeMargin ? MARGIN_SIZE : 0;
   const numCells = cells.length + margin * 2;
   const calculatedImageSettings = getImageSettings(
     cells,
     size,
-    includeMargin,
+    margin,
     imageSettings,
   );
 
