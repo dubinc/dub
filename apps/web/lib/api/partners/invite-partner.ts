@@ -72,6 +72,7 @@ export const invitePartner = async ({
       },
     }),
 
+    // update link to have programId
     prisma.link.update({
       where: {
         id: link.id,
@@ -81,11 +82,7 @@ export const invitePartner = async ({
       },
     }),
 
-    updateConfig({
-      key: "partnersPortal",
-      value: email,
-    }),
-
+    // record link update in tinybird
     recordLink({
       domain: link.domain,
       key: link.key,
@@ -98,19 +95,25 @@ export const invitePartner = async ({
       deleted: false,
     }),
 
-    sendEmail({
-      subject: `${program.name} invited you to join Dub Partners`,
-      email,
-      react: PartnerInvite({
-        email,
-        appName: `${process.env.NEXT_PUBLIC_APP_NAME}`,
-        program: {
-          name: program.name,
-          logo: program.logo,
-        },
-      }),
+    // TODO: Remove this once we open up partners.dub.co to everyone
+    updateConfig({
+      key: "partnersPortal",
+      value: email,
     }),
   ]);
+
+  await sendEmail({
+    subject: `${program.name} invited you to join Dub Partners`,
+    email,
+    react: PartnerInvite({
+      email,
+      appName: `${process.env.NEXT_PUBLIC_APP_NAME}`,
+      program: {
+        name: program.name,
+        logo: program.logo,
+      },
+    }),
+  });
 
   return programInvited;
 };
