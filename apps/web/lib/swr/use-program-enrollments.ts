@@ -4,13 +4,11 @@ import useSWR from "swr";
 import { ProgramEnrollmentProps } from "../types";
 
 export default function useProgramEnrollments() {
-  const { partnerId } = useParams() as {
-    partnerId?: string;
-  };
+  const { partnerId } = useParams();
 
   const { data: programEnrollments, isLoading } = useSWR<
     ProgramEnrollmentProps[]
-  >(`/api/partners/${partnerId}/programs`, fetcher, {
+  >(partnerId && `/api/partners/${partnerId}/programs`, fetcher, {
     dedupingInterval: 60000,
   });
 

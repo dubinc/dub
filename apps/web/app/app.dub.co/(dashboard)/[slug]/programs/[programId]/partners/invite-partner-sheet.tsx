@@ -163,6 +163,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
               >
                 <div className="p-1">
                   <PartnerLinkSelector
+                    programDomain={program?.domain ?? undefined}
                     selectedLinkId={selectedLinkId}
                     setSelectedLinkId={(id) => {
                       clearErrors("linkId");

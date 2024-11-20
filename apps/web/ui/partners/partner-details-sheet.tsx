@@ -303,6 +303,7 @@ function PartnerApproval({
         >
           <div className="w-[calc(100%-8px)]">
             <PartnerLinkSelector
+              programDomain={program?.domain ?? undefined}
               selectedLinkId={selectedLinkId}
               setSelectedLinkId={setSelectedLinkId}
               showDestinationUrl={false}

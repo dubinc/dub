@@ -21,6 +21,7 @@ const getLinkOption = (link: LinkProps) => ({
 });
 
 export function PartnerLinkSelector({
+  programDomain,
   selectedLinkId,
   setSelectedLinkId,
   showDestinationUrl = true,
@@ -28,6 +29,7 @@ export function PartnerLinkSelector({
   domain,
   error,
 }: {
+  programDomain?: string;
   selectedLinkId: string | null;
   setSelectedLinkId: (id: string) => void;
   showDestinationUrl?: boolean;
@@ -39,7 +41,7 @@ export function PartnerLinkSelector({
   const [debouncedSearch] = useDebounce(search, 500);
 
   const { links } = useLinks(
-    { search: debouncedSearch },
+    { domain: programDomain, search: debouncedSearch },
     {
       keepPreviousData: false,
     },
