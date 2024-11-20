@@ -65,7 +65,7 @@ export function PayoutsSettingsPageClient() {
         >
           <button
             onClick={() => setModalState({ show: false, iframeSrc: "" })}
-            className="group absolute right-4 top-8 rounded-full p-2 transition-colors hover:bg-neutral-100 sm:top-4"
+            className="group absolute right-4 top-8 hidden rounded-full p-2 transition-colors hover:bg-neutral-100 sm:top-4 sm:block"
           >
             <X className="size-5 text-neutral-700 transition-all group-hover:scale-110 group-active:scale-90" />
           </button>
