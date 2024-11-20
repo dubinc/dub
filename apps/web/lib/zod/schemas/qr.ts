@@ -55,7 +55,7 @@ export const getQRCodeQuerySchema = z.object({
     .optional()
     .default(DEFAULT_MARGIN)
     .describe(
-      "The size of the margin around the QR code. Defaults to `4` if not provided.",
+      `The size of the margin around the QR code. Defaults to ${DEFAULT_MARGIN} if not provided.`,
     ),
   includeMargin: booleanQuerySchema
     .optional()
