@@ -1,11 +1,11 @@
 "use client";
 
 import usePartnersCount from "@/lib/swr/use-partners-count";
+import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramStatsFilter } from "@/ui/partners/program-stats-filter";
 import { useRouterStuff } from "@dub/ui";
 import { ChartLine, Users } from "@dub/ui/src/icons";
 import { useParams } from "next/navigation";
-import { PartnerStatusBadges } from "./partner-table";
 
 export function PartnerStats() {
   const { slug, programId } = useParams();

@@ -113,12 +113,13 @@ export const dotsUserSchema = z.object({
   }),
   status: z.enum(["verified", "unverified", "disabled", "in_review"]),
   verified: z.boolean(),
-  wallet: z.object({
-    withdrawable_amount: z.number(),
-    pending_amount: z.number(),
-  }),
-  default_payout_method: dotsPayoutPlatforms.nullable(),
-  payout_methods: z.array(payoutMethodSchema),
+  wallet: z
+    .object({
+      withdrawable_amount: z.number(),
+      pending_amount: z.number(),
+    })
+    .nullish(),
+  default_payout_method: dotsPayoutPlatforms.nullish(),
   compliance: z.any(),
 });
 

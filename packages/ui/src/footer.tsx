@@ -40,8 +40,11 @@ const navigation = {
   })),
 };
 
-export function Footer() {
-  const { domain = "dub.co" } = useParams() as { domain: string };
+export function Footer({ staticDomain }: { staticDomain?: string }) {
+  let { domain = "dub.co" } = useParams() as { domain: string };
+  if (staticDomain) {
+    domain = staticDomain;
+  }
 
   return (
     <footer>
