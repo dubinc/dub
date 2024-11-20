@@ -1,16 +1,17 @@
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { Button, Input, useMediaQuery } from "@dub/ui";
 import { InputPassword } from "@dub/ui/src/icons";
-import { cn } from "@dub/utils";
+import { APP_DOMAIN, cn } from "@dub/utils";
 import { Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useContext, useState } from "react";
 import { toast } from "sonner";
 import { errorCodes, LoginFormContext } from "./login-form";
 
 export const EmailSignIn = () => {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams?.get("next");
   const { isMobile } = useMediaQuery();
@@ -83,7 +84,7 @@ export const EmailSignIn = () => {
               signIn(provider, {
                 email,
                 redirect: false,
-                callbackUrl: next || "/",
+                callbackUrl: next || `${APP_DOMAIN}/workspaces`,
                 ...(password && { password }),
               }).then((res) => {
                 if (!res) return;
@@ -103,6 +104,8 @@ export const EmailSignIn = () => {
                   toast.success("Email sent - check your inbox!");
                   setEmail("");
                   setClickedMethod(undefined);
+                } else if (provider === "credentials") {
+                  router.push(next ?? "/");
                 }
               });
             } else {
