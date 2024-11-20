@@ -94,6 +94,7 @@ export const invitePartnerAction = authActionClient
         },
       }),
 
+      // update link to have programId
       prisma.link.update({
         where: {
           id: linkId,
@@ -102,12 +103,7 @@ export const invitePartnerAction = authActionClient
           programId,
         },
       }),
-
-      updateConfig({
-        key: "partnersPortal",
-        value: email,
-      }),
-
+      // record link update in tinybird
       recordLink({
         domain: link.domain,
         key: link.key,
@@ -118,6 +114,12 @@ export const invitePartnerAction = authActionClient
         program_id: program.id,
         workspace_id: workspace.id,
         deleted: false,
+      }),
+
+      // TODO: Remove this once we open up partners.dub.co to everyone
+      updateConfig({
+        key: "partnersPortal",
+        value: email,
       }),
     ]);
 

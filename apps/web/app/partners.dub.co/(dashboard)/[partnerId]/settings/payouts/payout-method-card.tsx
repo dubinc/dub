@@ -39,3 +39,14 @@ export default function PayoutMethodCard({
     </div>
   );
 }
+
+export function PayoutMethodCardSkeleton() {
+  return (
+    <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-4">
+      <div className="flex items-center gap-3">
+        <div className="h-10 w-10 animate-pulse rounded-full bg-neutral-200" />
+        <div className="h-4 w-24 min-w-0 animate-pulse rounded-md bg-neutral-200" />
+      </div>
+    </div>
+  );
+}
