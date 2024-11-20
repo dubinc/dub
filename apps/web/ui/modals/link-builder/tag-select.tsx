@@ -35,7 +35,7 @@ function getTagOption(tag: TagProps) {
 }
 
 export function TagSelect() {
-  const { mutate: mutateWorkspace, exceededAI } = useWorkspace();
+  const { slug, mutate: mutateWorkspace, exceededAI } = useWorkspace();
   const { workspaceId } = useContext(LinkModalContext);
 
   const [search, setSearch] = useState("");
@@ -148,22 +148,26 @@ export function TagSelect() {
 
   return (
     <div>
-      <div className="mb-1 flex items-center gap-2">
-        <label
-          htmlFor="comments"
-          className="block text-sm font-medium text-gray-700"
+      <div className="mb-1 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium text-gray-700">Tags</p>
+          <InfoTooltip
+            content={
+              <SimpleTooltipContent
+                title={`Tags are used to organize your links in your ${process.env.NEXT_PUBLIC_APP_NAME} dashboard.`}
+                cta="Learn more."
+                href="https://dub.co/help/article/how-to-use-tags"
+              />
+            }
+          />
+        </div>
+        <a
+          href={`/${slug}/settings/library/tags`}
+          target="_blank"
+          className="text-sm text-gray-400 underline-offset-2 transition-all hover:text-gray-600 hover:underline"
         >
-          Tags
-        </label>
-        <InfoTooltip
-          content={
-            <SimpleTooltipContent
-              title={`Tags are used to organize your links in your ${process.env.NEXT_PUBLIC_APP_NAME} dashboard.`}
-              cta="Learn more."
-              href="https://dub.co/help/article/how-to-use-tags"
-            />
-          }
-        />
+          Manage
+        </a>
       </div>
       <Combobox
         multiple
