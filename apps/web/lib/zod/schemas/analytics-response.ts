@@ -1,6 +1,6 @@
 import { TRIGGER_TYPES } from "@/lib/analytics/constants";
 import z from "@/lib/zod";
-import { CONTINENT_CODES, COUNTRY_CODES } from "@dub/utils";
+import { CONTINENT_CODES, COUNTRY_CODES, REGION_CODES } from "@dub/utils";
 
 const analyticsTriggersResponse = z
   .object({
@@ -85,6 +85,35 @@ export const analyticsResponse = {
         .default(0),
     })
     .openapi({ ref: "AnalyticsContinents" }),
+
+  regions: z
+    .object({
+      region: z
+        .enum(REGION_CODES)
+        .describe(
+          "The 2-letter ISO 3166-2 code representing the region associated with the location of the user.",
+        ),
+      country: z
+        .enum(COUNTRY_CODES)
+        .describe("The 2-letter country code of the city: https://d.to/geo"),
+      clicks: z
+        .number()
+        .describe("The number of clicks from this region")
+        .default(0),
+      leads: z
+        .number()
+        .describe("The number of leads from this region")
+        .default(0),
+      sales: z
+        .number()
+        .describe("The number of sales from this region")
+        .default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales from this region, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsRegions" }),
 
   countries: z
     .object({

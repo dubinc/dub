@@ -15,9 +15,10 @@ export default function Locations() {
   const { selectedTab } = useContext(AnalyticsContext);
   const dataKey = selectedTab === "sales" ? "saleAmount" : "count";
 
-  const [tab, setTab] = useState<"countries" | "cities" | "continents">(
-    "countries",
-  );
+  const [tab, setTab] = useState<
+    "countries" | "cities" | "continents" | "regions"
+  >("countries");
+
   const data = useAnalyticsFilterOption(tab);
   const singularTabName = SINGULAR_ANALYTICS_ENDPOINTS[tab];
 
@@ -26,6 +27,7 @@ export default function Locations() {
       tabs={[
         { id: "countries", label: "Countries" },
         { id: "cities", label: "Cities" },
+        { id: "regions", label: "Regions" },
         { id: "continents", label: "Continents" },
       ]}
       selectedTabId={tab}

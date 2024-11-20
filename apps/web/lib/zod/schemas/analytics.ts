@@ -112,6 +112,11 @@ export const analyticsQuerySchema = z.object({
     .optional()
     .describe("The continent to retrieve analytics for.")
     .openapi({ ref: "continentCode" }),
+  region: z
+    .string()
+    .optional()
+    .describe("The region to retrieve analytics for.")
+    .openapi({ example: "California" }),
   country: z
     .enum(COUNTRY_CODES)
     .optional()
