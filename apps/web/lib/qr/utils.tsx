@@ -88,19 +88,18 @@ export function getImageSettings(
   if (imageSettings == null) {
     return null;
   }
-  const numCells = cells.length + margin * 2;
+
+  const qrCodeSize = cells.length;
   const defaultSize = Math.floor(size * DEFAULT_IMG_SCALE);
-  const scale = numCells / size;
+  const scale = qrCodeSize / size;
   const w = (imageSettings.width || defaultSize) * scale;
   const h = (imageSettings.height || defaultSize) * scale;
+
+  // Center the image in the QR code area (without margins)
   const x =
-    imageSettings.x == null
-      ? cells.length / 2 - w / 2
-      : imageSettings.x * scale;
+    imageSettings.x == null ? qrCodeSize / 2 - w / 2 : imageSettings.x * scale;
   const y =
-    imageSettings.y == null
-      ? cells.length / 2 - h / 2
-      : imageSettings.y * scale;
+    imageSettings.y == null ? qrCodeSize / 2 - h / 2 : imageSettings.y * scale;
 
   let excavation: Excavation | null = null;
   if (imageSettings.excavate) {
@@ -124,17 +123,13 @@ export function convertImageSettingsToPixels(
   },
   size: number,
   numCells: number,
-): {
-  imgWidth: number;
-  imgHeight: number;
-  imgLeft: number;
-  imgTop: number;
-} {
+  margin: number,
+) {
   const pixelRatio = size / numCells;
   const imgWidth = calculatedImageSettings.w * pixelRatio;
   const imgHeight = calculatedImageSettings.h * pixelRatio;
-  const imgLeft = calculatedImageSettings.x * pixelRatio;
-  const imgTop = calculatedImageSettings.y * pixelRatio;
+  const imgLeft = (calculatedImageSettings.x + margin) * pixelRatio;
+  const imgTop = (calculatedImageSettings.y + margin) * pixelRatio;
 
   return { imgWidth, imgHeight, imgLeft, imgTop };
 }
@@ -180,7 +175,12 @@ export function QRCodeSVG(props: QRPropsSVG) {
 
     if (isOGContext) {
       const { imgWidth, imgHeight, imgLeft, imgTop } =
-        convertImageSettingsToPixels(calculatedImageSettings, size, numCells);
+        convertImageSettingsToPixels(
+          calculatedImageSettings,
+          size,
+          numCells,
+          margin,
+        );
 
       image = (
         <img
