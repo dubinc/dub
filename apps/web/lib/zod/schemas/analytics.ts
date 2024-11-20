@@ -13,6 +13,7 @@ import {
   COUNTRY_CODES,
   DUB_FOUNDING_DATE,
   PAGINATION_LIMIT,
+  REGION_CODES,
   capitalize,
   formatDate,
 } from "@dub/utils";
@@ -113,10 +114,10 @@ export const analyticsQuerySchema = z.object({
     .describe("The continent to retrieve analytics for.")
     .openapi({ ref: "continentCode" }),
   region: z
-    .string()
+    .enum(REGION_CODES)
     .optional()
     .describe("The region to retrieve analytics for.")
-    .openapi({ example: "California" }),
+    .openapi({ ref: "regionCode" }),
   country: z
     .enum(COUNTRY_CODES)
     .optional()
