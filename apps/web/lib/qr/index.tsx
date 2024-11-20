@@ -344,12 +344,13 @@ export function getQRData({
   fgColor,
   hideLogo,
   logo,
+  margin,
 }: {
   url: string;
   fgColor?: string;
   hideLogo?: boolean;
   logo?: string;
-  scale?: number;
+  margin?: number;
 }) {
   return {
     value: `${url}?qr=1`,
@@ -358,7 +359,7 @@ export function getQRData({
     size: 1024,
     level: "Q", // QR Code error correction level: https://blog.qrstuff.com/general/qr-code-error-correction
     hideLogo,
-    includeMargin: true,
+    margin,
     ...(!hideLogo && {
       imageSettings: {
         src: logo || DUB_QR_LOGO,
