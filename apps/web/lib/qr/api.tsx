@@ -2,11 +2,10 @@ import qrcodegen from "./codegen";
 import {
   DEFAULT_BGCOLOR,
   DEFAULT_FGCOLOR,
-  DEFAULT_INCLUDEMARGIN,
   DEFAULT_LEVEL,
+  DEFAULT_MARGIN,
   DEFAULT_SIZE,
   ERROR_LEVEL_MAP,
-  MARGIN_SIZE,
 } from "./constants";
 import { QRPropsSVG } from "./types";
 import { excavateModules, generatePath, getImageSettings } from "./utils";
@@ -18,7 +17,7 @@ export async function getQRAsSVG(props: QRPropsSVG) {
     level = DEFAULT_LEVEL,
     bgColor = DEFAULT_BGCOLOR,
     fgColor = DEFAULT_FGCOLOR,
-    includeMargin = DEFAULT_INCLUDEMARGIN,
+    margin = DEFAULT_MARGIN,
     imageSettings,
     ...otherProps
   } = props;
@@ -28,12 +27,11 @@ export async function getQRAsSVG(props: QRPropsSVG) {
     ERROR_LEVEL_MAP[level],
   ).getModules();
 
-  const margin = includeMargin ? MARGIN_SIZE : 0;
   const numCells = cells.length + margin * 2;
   const calculatedImageSettings = getImageSettings(
     cells,
     size,
-    includeMargin,
+    margin,
     imageSettings,
   );
 
