@@ -3,7 +3,7 @@ import crypto from "crypto";
 import { leadCreated } from "./lead-created";
 import { saleCreated } from "./sale-created";
 
-// POST /api/dub/webhook - receive webhooks for Dub Referrals
+// POST /api/dub/webhook - receive webhooks for Dub
 export const POST = async (req: Request) => {
   const body = await req.json();
   const { event, data } = webhookPayloadSchema.parse(body);

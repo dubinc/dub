@@ -25,7 +25,6 @@ describe("POST /track/lead", async () => {
     expect(response.status).toEqual(200);
     expect(response.data).toStrictEqual({
       clickId: E2E_CLICK_ID,
-      customerId: customer.id,
       customerName: customer.name,
       customerEmail: customer.email,
       customerAvatar: customer.avatar,
@@ -33,10 +32,10 @@ describe("POST /track/lead", async () => {
         id: E2E_CLICK_ID,
       },
       customer: {
-        id: customer.id,
         name: customer.name,
         email: customer.email,
         avatar: customer.avatar,
+        externalId: customer.id,
       },
     });
   });

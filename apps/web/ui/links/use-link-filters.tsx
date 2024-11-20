@@ -74,6 +74,7 @@ export function useLinkFilters() {
         icon: User,
         label: "Creator",
         options:
+          // @ts-expect-error
           users?.map(({ id, name, email, image, count }) => ({
             value: id,
             label: name || email,
@@ -260,12 +261,21 @@ function useUserFilterOptions() {
   return useMemo(
     () =>
       users
-        ?.map((user) => ({
-          ...user,
-          count:
-            usersCount?.find(({ userId }) => userId === user.id)?._count || 0,
-        }))
-        .sort((a, b) => b.count - a.count) ?? null,
+        ? users
+            .map((user) => ({
+              ...user,
+              count:
+                usersCount?.find(({ userId }) => userId === user.id)?._count ||
+                0,
+            }))
+            .sort((a, b) => b.count - a.count)
+        : usersCount
+          ? usersCount.map(({ userId, _count }) => ({
+              id: userId,
+              name: userId,
+              count: _count,
+            }))
+          : null,
     [users, usersCount],
   );
 }

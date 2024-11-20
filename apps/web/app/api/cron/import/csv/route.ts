@@ -1,6 +1,7 @@
 import { addDomainToVercel } from "@/lib/api/domains";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks, createLink, processLink } from "@/lib/api/links";
+import { createId } from "@/lib/api/utils";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
@@ -14,6 +15,7 @@ import {
   DUB_DOMAINS_ARRAY,
   getPrettyUrl,
   log,
+  normalizeString,
   parseDateTime,
 } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -33,11 +35,18 @@ export async function POST(req: Request) {
     if (!id || !url) throw new Error("Missing ID or URL for the import file");
 
     const mapper = (row: Record<string, string>) => {
-      const linkUrl = getPrettyUrl(row[mapping.link]);
+      const actualKey = normalizeString(mapping.link);
+      const linkUrl = actualKey ? getPrettyUrl(row[actualKey]) : "";
 
       return {
         ...Object.fromEntries(
-          Object.entries(mapping).map(([key, value]) => [key, row[value]]),
+          Object.entries(mapping).map(([key, value]) => {
+            // Find the actual key for each mapped field
+            const csvKey = Object.keys(row).find(
+              (k) => normalizeString(k) === normalizeString(value),
+            );
+            return [key, csvKey ? row[csvKey] : undefined];
+          }),
         ),
         domain: linkUrl.split("/")[0],
         // domain.com/path/to/page => path/to/page
@@ -154,6 +163,7 @@ export async function POST(req: Request) {
           if (tagsNotInWorkspace.length > 0) {
             await prisma.tag.createMany({
               data: tagsNotInWorkspace.map((tag) => ({
+                id: createId({ prefix: "tag_" }),
                 name: tag,
                 color: randomBadgeColor(),
                 projectId: workspace.id,
@@ -182,6 +192,7 @@ export async function POST(req: Request) {
               // create domains in DB
               prisma.domain.createMany({
                 data: domainsNotInWorkspace.map((domain) => ({
+                  id: createId({ prefix: "dom_" }),
                   slug: domain,
                   projectId: workspace.id,
                   primary: false,

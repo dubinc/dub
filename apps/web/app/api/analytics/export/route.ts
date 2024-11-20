@@ -27,7 +27,7 @@ export const GET = withWorkspace(
 
     if (linkId || externalId || (domain && key)) {
       link = await getLinkOrThrow({
-        workspace: workspace,
+        workspaceId: workspace.id,
         linkId,
         externalId,
         domain,
@@ -37,6 +37,7 @@ export const GET = withWorkspace(
 
     validDateRangeForPlan({
       plan: workspace.plan,
+      conversionEnabled: workspace.conversionEnabled,
       interval,
       start,
       end,
@@ -50,8 +51,6 @@ export const GET = withWorkspace(
         // no need to fetch top links data if there's a link specified
         // since this is just a single link
         if (endpoint === "top_links" && link) return;
-        // we're not fetching top URLs data if there's no link specified
-        if (endpoint === "top_urls" && !link) return;
         // skip clicks count
         if (endpoint === "count") return;
 

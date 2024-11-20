@@ -192,6 +192,7 @@ export function Combobox({
           height
           style={{ transform: "translateZ(0)" }} // Fixes overflow on some browsers
           transition={{ ease: "easeInOut", duration: 0.1 }}
+          className="pointer-events-auto"
         >
           <Command loop shouldFilter={shouldFilter}>
             <div className="flex items-center overflow-hidden rounded-t-lg border-b border-gray-200">
@@ -215,7 +216,7 @@ export function Combobox({
                 }}
               />
               {shortcutHint && (
-                <kbd className="mr-2 hidden shrink-0 rounded bg-gray-200 px-2 py-0.5 text-xs font-light text-gray-500 md:block">
+                <kbd className="mr-2 hidden shrink-0 rounded border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 md:block">
                   {shortcutHint}
                 </kbd>
               )}

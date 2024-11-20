@@ -55,7 +55,7 @@ export function oauthCallbackServer({
       const configInfo: DubConfig = {
         access_token: accessToken.trim(),
         refresh_token: refreshToken,
-        expires_at: expiresAt ? Date.now() + expiresAt * 1000 : null,
+        expires_at: expiresAt,
         domain: "dub.sh",
       };
 

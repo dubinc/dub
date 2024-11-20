@@ -1,24 +1,25 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { LinkWithTagsProps } from "@/lib/types";
+import { ExpandedLinkProps } from "@/lib/types";
 import { DestinationUrlInput } from "@/ui/links/destination-url-input";
 import { ShortLinkInput } from "@/ui/links/short-link-input";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
 import { X } from "@/ui/shared/icons";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
+  ArrowTurnLeft,
   Button,
   InfoTooltip,
   LinkLogo,
   Modal,
   SimpleTooltipContent,
   TooltipContent,
+  useCopyToClipboard,
+  useEnterSubmit,
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
-import { useEnterSubmit } from "@dub/ui/src";
-import { ArrowTurnLeft } from "@dub/ui/src/icons";
 import {
   cn,
   constructURLFromUTMParams,
@@ -72,13 +73,13 @@ export const LinkModalContext = createContext<{
   generatingMetatags: boolean;
 }>({ generatingMetatags: false });
 
-export type LinkFormData = LinkWithTagsProps;
+export type LinkFormData = ExpandedLinkProps;
 
 type LinkBuilderProps = {
   showLinkBuilder: boolean;
   setShowLinkBuilder: Dispatch<SetStateAction<boolean>>;
-  props?: LinkWithTagsProps;
-  duplicateProps?: LinkWithTagsProps;
+  props?: ExpandedLinkProps;
+  duplicateProps?: ExpandedLinkProps;
   homepageDemo?: boolean;
 };
 
@@ -211,6 +212,8 @@ function LinkBuilderInner({
   const { TargetingModal, TargetingButton } = useTargetingModal();
   const { PasswordModal, PasswordButton } = usePasswordModal();
 
+  const [, copyToClipboard] = useCopyToClipboard();
+
   return (
     <>
       <PasswordModal />
@@ -292,16 +295,12 @@ function LinkBuilderInner({
                   // copy shortlink to clipboard when adding a new link
                   if (!props) {
                     try {
-                      await navigator.clipboard.writeText(data.shortLink);
-                      toast.success("Copied shortlink to clipboard!");
-                    } catch (e) {
-                      console.error(
-                        "Failed to automatically copy shortlink to clipboard.",
-                        e,
-                      );
+                      await copyToClipboard(data.shortLink);
+                      toast.success("Copied short link to clipboard!");
+                    } catch (err) {
                       toast.success("Successfully created link!");
                     }
-                  } else toast.success("Successfully updated shortlink!");
+                  } else toast.success("Successfully updated short link!");
 
                   draftControlsRef.current?.onSubmitSuccessful();
                   setShowLinkBuilder(false);
@@ -595,8 +594,8 @@ export function useLinkBuilder({
   duplicateProps,
   homepageDemo,
 }: {
-  props?: LinkWithTagsProps;
-  duplicateProps?: LinkWithTagsProps;
+  props?: ExpandedLinkProps;
+  duplicateProps?: ExpandedLinkProps;
   homepageDemo?: boolean;
 } = {}) {
   const [showLinkBuilder, setShowLinkBuilder] = useState(false);

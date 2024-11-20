@@ -48,6 +48,9 @@ export * from "./default-domains/github-enhanced";
 export * from "./default-domains/google-enhanced";
 export * from "./default-domains/spotify";
 
+// payout platforms
+export * from "./payout-platforms";
+
 // Nucleo icons
 export * from "./nucleo";
 

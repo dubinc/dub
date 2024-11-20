@@ -8,14 +8,18 @@ export default function useUsage({
 }: {
   resource: "links" | "events" | "revenue";
 }) {
-  const { id } = useWorkspace();
+  const { id: workspaceId } = useWorkspace();
 
   const {
     data: usage,
     error,
     isValidating,
   } = useSWR<UsageResponse[]>(
-    id && `/api/workspaces/${id}/billing/usage?resource=${resource}`,
+    workspaceId &&
+      `/api/workspaces/${workspaceId}/billing/usage?${new URLSearchParams({
+        resource,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      }).toString()}`,
     fetcher,
     {
       dedupingInterval: 60000,

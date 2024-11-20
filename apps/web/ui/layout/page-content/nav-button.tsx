@@ -1,7 +1,6 @@
 "use client";
 
-import { Button } from "@dub/ui";
-import { LayoutSidebar } from "@dub/ui/src";
+import { Button, LayoutSidebar } from "@dub/ui";
 import { useContext } from "react";
 import { SideNavContext } from "../main-nav";
 

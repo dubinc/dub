@@ -35,7 +35,7 @@ const LinksQuerySchema = z.object({
     .string()
     .optional()
     .describe(
-      "The tag ID to filter the links by. This field is deprecated – use `tagIds` instead.",
+      "Deprecated. Use `tagIds` instead. The tag ID to filter the links by.",
     )
     .openapi({ deprecated: true }),
   tagIds: z
@@ -133,7 +133,7 @@ export const domainKeySchema = z.object({
 });
 
 export const createLinkBodySchema = z.object({
-  url: parseUrlSchemaAllowEmpty
+  url: parseUrlSchemaAllowEmpty()
     .describe("The destination URL of the short link.")
     .openapi({
       example: "https://google.com",
@@ -189,7 +189,10 @@ export const createLinkBodySchema = z.object({
     .boolean()
     .optional()
     .default(false)
-    .describe("Whether the short link's stats are publicly accessible."),
+    .describe(
+      "Deprecated: Use `dashboard` instead. Whether the short link's stats are publicly accessible.",
+    )
+    .openapi({ deprecated: true }),
   tagId: z
     .string()
     .nullish()
@@ -318,6 +321,10 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The referral tag of the short link. If set, this will populate or override the `ref` query parameter in the destination URL.",
     ),
+  programId: z
+    .string()
+    .nullish()
+    .describe("The ID of the program the short link is associated with."),
   webhookIds: z
     .array(z.string())
     .nullish()
@@ -531,6 +538,7 @@ export const LinkSchema = z
       .describe("The UTM content of the short link."),
     userId: z
       .string()
+      .nullable()
       .describe("The user ID of the creator of the short link."),
     workspaceId: z.string().describe("The workspace ID of the short link."),
     clicks: z
@@ -567,6 +575,10 @@ export const LinkSchema = z
         "The project ID of the short link. This field is deprecated – use `workspaceId` instead.",
       )
       .openapi({ deprecated: true }),
+    programId: z
+      .string()
+      .nullable()
+      .describe("The ID of the program the short link is associated with."),
   })
   .openapi({ title: "Link" });
 
@@ -590,6 +602,7 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
     // Only Dub UI uses the following query parameters
     includeUser: booleanQuerySchema.default("false"),
     includeWebhooks: booleanQuerySchema.default("false"),
+    includeDashboard: booleanQuerySchema.default("false"),
     linkIds: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
@@ -601,6 +614,7 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
 export const linkEventSchema = LinkSchema.extend({
   // here we use string because url can be empty
   url: z.string(),
+  expiredUrl: z.string().nullable(),
   // coerce boolean fields
   archived: z.coerce.boolean(),
   doIndex: z.coerce.boolean(),

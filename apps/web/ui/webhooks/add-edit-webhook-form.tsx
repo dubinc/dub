@@ -9,8 +9,14 @@ import {
   WEBHOOK_TRIGGER_DESCRIPTIONS,
   WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
 } from "@/lib/webhook/constants";
-import { Button, Checkbox, CopyButton, InfoTooltip, LinkLogo } from "@dub/ui";
-import { Combobox } from "@dub/ui/src";
+import {
+  Button,
+  Checkbox,
+  Combobox,
+  CopyButton,
+  InfoTooltip,
+  LinkLogo,
+} from "@dub/ui";
 import { cn, getApexDomain, linkConstructor, truncate } from "@dub/utils";
 import { redirect, useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";

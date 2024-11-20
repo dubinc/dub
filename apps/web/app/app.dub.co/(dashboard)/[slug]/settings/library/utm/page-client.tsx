@@ -4,16 +4,9 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { UtmTemplateWithUserProps } from "@/lib/types";
 import { useAddEditUtmTemplateModal } from "@/ui/modals/add-edit-utm-template.modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { CardList } from "@dub/ui";
-import { DiamondTurnRight, Flag6, GlobePointer } from "@dub/ui/src";
+import { CardList, DiamondTurnRight, Flag6, GlobePointer } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import {
-  Dispatch,
-  SetStateAction,
-  createContext,
-  useEffect,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, createContext, useState } from "react";
 import useSWR from "swr";
 import { TemplateCard } from "./template-card";
 import { TemplateCardPlaceholder } from "./template-card-placeholder";
@@ -37,12 +30,6 @@ export default function WorkspaceUtmTemplatesClient() {
     },
   );
 
-  // Whether the initial tags have already loaded, for some loading states like the search box
-  const [initiallyLoaded, setInitiallyLoaded] = useState(false);
-  useEffect(() => {
-    if (!isLoading && templates) setInitiallyLoaded(true);
-  }, [templates, isLoading]);
-
   const [openMenuTemplateId, setOpenMenuTemplateId] = useState<string | null>(
     null,
   );
@@ -58,11 +45,7 @@ export default function WorkspaceUtmTemplatesClient() {
         {isLoading || templates?.length ? (
           <>
             <div className="flex justify-end gap-6">
-              {initiallyLoaded ? (
-                <AddUtmTemplateButton />
-              ) : (
-                <div className="h-9 w-32 animate-pulse rounded-md bg-gray-100" />
-              )}
+              <AddUtmTemplateButton />
             </div>
             <TemplatesListContext.Provider
               value={{ openMenuTemplateId, setOpenMenuTemplateId }}

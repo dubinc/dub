@@ -36,7 +36,7 @@ const config: Pick<Config, "presets"> = {
             // Infinite scroll animation
             "infinite-scroll": {
               "0%": { transform: "translateX(0)" },
-              "100%": { transform: "translateX(-150%)" },
+              "100%": { transform: "translateX(var(--scroll, -150%))" },
             },
             "infinite-scroll-y": {
               "0%": { transform: "translateY(0)" },

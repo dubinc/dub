@@ -64,5 +64,5 @@ export * from "./tab-select";
 // logos
 export * from "./composite-logo";
 export * from "./logo";
-export * from "./nav-logo";
+export * from "./nav-wordmark";
 export * from "./wordmark";

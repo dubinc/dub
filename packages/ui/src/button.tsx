@@ -81,7 +81,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             {shortcut && (
               <kbd
                 className={cn(
-                  "hidden rounded bg-gray-200 px-2 py-0.5 text-xs font-light text-gray-400 md:inline-block",
+                  "hidden rounded border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-400 md:inline-block",
                   {
                     "bg-gray-100": variant?.endsWith("outline"),
                   },

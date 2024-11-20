@@ -53,7 +53,6 @@ function SendTestWebhookModal({
     <Modal
       showModal={showSendTestWebhookModal}
       setShowModal={setShowSendTestWebhookModal}
-      className="overflow-visible"
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
         <Logo />

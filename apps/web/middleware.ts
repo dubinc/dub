@@ -14,7 +14,9 @@ import {
   DEFAULT_REDIRECTS,
   isValidUrl,
 } from "@dub/utils";
+import { PARTNERS_HOSTNAMES } from "@dub/utils/src/constants";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
+import PartnersMiddleware from "./lib/middleware/partners";
 
 export const config = {
   matcher: [
@@ -57,6 +59,10 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   // for Admin
   if (ADMIN_HOSTNAMES.has(domain)) {
     return AdminMiddleware(req);
+  }
+
+  if (PARTNERS_HOSTNAMES.has(domain)) {
+    return PartnersMiddleware(req);
   }
 
   if (isValidUrl(fullKey)) {

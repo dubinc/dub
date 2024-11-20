@@ -1,12 +1,12 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   Button,
+  InfoTooltip,
   Modal,
   SimpleTooltipContent,
   Tooltip,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { InfoTooltip } from "@dub/ui/src";
 import {
   Dispatch,
   SetStateAction,

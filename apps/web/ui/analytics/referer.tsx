@@ -11,7 +11,7 @@ import BarList from "./bar-list";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Referer() {
-  const { queryParams } = useRouterStuff();
+  const { queryParams, searchParams } = useRouterStuff();
 
   const { selectedTab } = useContext(AnalyticsContext);
   const dataKey = selectedTab === "sales" ? "saleAmount" : "count";
@@ -23,8 +23,8 @@ export default function Referer() {
   return (
     <AnalyticsCard
       tabs={[
-        { id: "referers", label: "Referers" },
-        { id: "referer_urls", label: "Referer URLs" },
+        { id: "referers", label: "Referrers" },
+        { id: "referer_urls", label: "Referrer URLs" },
       ]}
       selectedTabId={tab}
       onSelectTab={setTab}
@@ -57,9 +57,13 @@ export default function Referer() {
                       ),
                     title: d[singularTabName],
                     href: queryParams({
-                      set: {
-                        [singularTabName]: d[singularTabName],
-                      },
+                      ...(searchParams.has(singularTabName)
+                        ? { del: singularTabName }
+                        : {
+                            set: {
+                              [singularTabName]: d[singularTabName],
+                            },
+                          }),
                       getNewPath: true,
                     }) as string,
                     value: d[dataKey] || 0,

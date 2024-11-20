@@ -1,6 +1,6 @@
 {
   "name": "dub-cli",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "A CLI for easily shortening URLs with the Dub.co API.",
   "publishConfig": {
     "access": "public"

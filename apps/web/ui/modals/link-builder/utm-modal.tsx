@@ -1,13 +1,14 @@
 import {
   Button,
+  DiamondTurnRight,
   InfoTooltip,
   Modal,
   SimpleTooltipContent,
   Tooltip,
   useKeyboardShortcut,
+  UTM_PARAMETERS,
+  UTMBuilder,
 } from "@dub/ui";
-import { DiamondTurnRight } from "@dub/ui/src";
-import { UTM_PARAMETERS, UTMBuilder } from "@dub/ui/src/utm-builder";
 import {
   cn,
   constructURLFromUTMParams,
