@@ -1,12 +1,12 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { getLinkOrThrow } from "../api/links/get-link-or-throw";
-import { getProgramOrThrow } from "../api/programs/get-program";
-import { recordLink } from "../tinybird";
-import z from "../zod";
-import { enrollDotsUserApp } from "./partners/enroll-dots-user-app";
-import { authActionClient } from "./safe-action";
+import { getLinkOrThrow } from "../../api/links/get-link-or-throw";
+import { getProgramOrThrow } from "../../api/programs/get-program";
+import { recordLink } from "../../tinybird";
+import z from "../../zod";
+import { authActionClient } from "../safe-action";
+import { enrollDotsUserApp } from "./enroll-dots-user-app";
 
 const approvePartnerSchema = z.object({
   workspaceId: z.string(),

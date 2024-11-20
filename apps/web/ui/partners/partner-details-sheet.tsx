@@ -1,5 +1,5 @@
-import { approvePartnerAction } from "@/lib/actions/approve-partner";
-import { rejectPartnerAction } from "@/lib/actions/reject-partner";
+import { approvePartnerAction } from "@/lib/actions/partners/approve-partner";
+import { rejectPartnerAction } from "@/lib/actions/partners/reject-partner";
 import usePayouts from "@/lib/swr/use-payouts";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";

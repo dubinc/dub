@@ -1,9 +1,9 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { getProgramOrThrow } from "../api/programs/get-program";
-import z from "../zod";
-import { authActionClient } from "./safe-action";
+import { getProgramOrThrow } from "../../api/programs/get-program";
+import z from "../../zod";
+import { authActionClient } from "../safe-action";
 
 const rejectPartnerSchema = z.object({
   workspaceId: z.string(),
