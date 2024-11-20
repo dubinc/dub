@@ -25,7 +25,6 @@ export const ProgramSchema = z.object({
   isLifetimeRecurring: z.boolean().nullable(),
   domain: z.string().nullable(),
   url: z.string().nullable(),
-  brandColor: z.string().nullable(),
   wordmark: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
