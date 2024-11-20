@@ -25,5 +25,9 @@
     "tsconfig": "workspace:*",
     "turbo": "^1.12.5"
   },
+  "resolutions": {
+    "@radix-ui/react-dialog": "1.0.5",
+    "@radix-ui/react-popover": "1.0.7"
+  },
   "packageManager": "pnpm@8.6.10"
 }
