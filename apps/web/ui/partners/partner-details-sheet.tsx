@@ -1,5 +1,5 @@
 import { approvePartnerAction } from "@/lib/actions/approve-partner";
-import { rejectPartner } from "@/lib/actions/reject-partner";
+import { rejectPartnerAction } from "@/lib/actions/reject-partner";
 import usePayouts from "@/lib/swr/use-payouts";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
@@ -370,7 +370,7 @@ function PartnerRejectButton({
 }) {
   const { id: workspaceId } = useWorkspace();
 
-  const { executeAsync, isExecuting } = useAction(rejectPartner, {
+  const { executeAsync, isExecuting } = useAction(rejectPartnerAction, {
     onSuccess() {
       mutate(
         (key) =>
@@ -379,6 +379,12 @@ function PartnerRejectButton({
         undefined,
         { revalidate: true },
       );
+
+      toast.success("Partner rejected successfully.");
+      setIsOpen(false);
+    },
+    onError({ error }) {
+      toast.error(error.serverError || "Failed to reject partner.");
     },
   });
 
@@ -389,21 +395,11 @@ function PartnerRejectButton({
       text={isExecuting ? "" : "Decline"}
       loading={isExecuting}
       onClick={async () => {
-        // Reject partner
-        const result = await executeAsync({
+        await executeAsync({
           workspaceId: workspaceId!,
           partnerId: partner.id,
           programId: partner.programId,
         });
-
-        if (!result?.data?.ok) {
-          toast.error(result?.data?.error ?? "Failed to reject partner");
-          return;
-        }
-
-        toast.success("Partner rejected");
-
-        setIsOpen(false);
       }}
     />
   );
