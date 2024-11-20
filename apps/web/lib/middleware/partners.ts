@@ -33,11 +33,12 @@ export default async function PartnersMiddleware(req: NextRequest) {
   if (
     user &&
     partnersEnabled &&
-    !["/account", "/onboarding", "/pn_", "/apply"].some((p) =>
+    !["/account", "/apply", "/pn_", "/onboarding"].some((p) =>
       path.startsWith(p),
     )
   ) {
     const defaultPartner = await getDefaultPartner(user);
+
     if (!defaultPartner) {
       return NextResponse.redirect(new URL("/onboarding", req.url));
     }
