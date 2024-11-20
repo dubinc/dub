@@ -32,6 +32,8 @@ export const createPartnerPayouts = async ({
 }) => {
   await prisma.$transaction(async (tx) => {
     const currentDate = new Date();
+    // const periodStart = new Date(2024, 7, 1);
+    // const periodEnd = new Date(2024, 10, 0);
     const periodStart = new Date(
       currentDate.getFullYear(),
       currentDate.getMonth(),

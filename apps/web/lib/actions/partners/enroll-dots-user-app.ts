@@ -2,6 +2,7 @@ import { createDotsUser } from "@/lib/dots/create-dots-user";
 import { retrieveDotsUser } from "@/lib/dots/retrieve-dots-user";
 import { prisma } from "@/lib/prisma";
 import { PartnerProps } from "@/lib/types";
+import { log } from "@dub/utils";
 
 export const enrollDotsUserApp = async ({
   partner,
@@ -23,6 +24,10 @@ export const enrollDotsUserApp = async ({
     console.warn(
       `Partner ${partner.id} has a Dots user ID but the user is unverified`,
     );
+    await log({
+      message: `Tried to enroll partner ${partner.id} with Dots user ${partner.dotsUserId} in Dots app ${dotsAppId} but the user is unverified`,
+      type: "errors",
+    });
     return;
   }
 

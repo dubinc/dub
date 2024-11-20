@@ -1,11 +1,10 @@
 "use server";
 
-import { getPartnerOrThrow } from "@/lib/api/partners/get-partner-or-throw";
 import { createDotsFlow } from "@/lib/dots/create-dots-flow";
 import { dotsFlowStepsSchema } from "@/lib/dots/schemas";
 import { redis } from "@/lib/upstash";
 import z from "../../zod";
-import { authUserActionClient } from "../safe-action";
+import { authPartnerActionClient } from "../safe-action";
 
 const createDotsFlowSchema = z.object({
   partnerId: z.string(),
@@ -13,23 +12,18 @@ const createDotsFlowSchema = z.object({
 });
 
 // Create a Dots flow for connecting payout methods
-export const createDotsFlowAction = authUserActionClient
+export const createDotsFlowAction = authPartnerActionClient
   .schema(createDotsFlowSchema)
   .action(async ({ ctx, parsedInput }) => {
-    const { user } = ctx;
-    const { partnerId, flow } = parsedInput;
-    if (!partnerId || !flow) {
-      throw new Error("Missing partnerId or flow");
+    const { partner } = ctx;
+    const { flow } = parsedInput;
+    if (!flow) {
+      throw new Error("Missing flow parameter");
     }
-
-    const { partner } = await getPartnerOrThrow({
-      partnerId,
-      userId: user.id,
-    });
 
     try {
       const response = await createDotsFlow({
-        steps: [flow],
+        step: flow,
         dotsUserId: partner.dotsUserId,
       });
 
