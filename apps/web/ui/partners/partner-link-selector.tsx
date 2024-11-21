@@ -41,7 +41,11 @@ export function PartnerLinkSelector({
   const [debouncedSearch] = useDebounce(search, 500);
 
   const { links } = useLinks(
-    { domain: programDomain, search: debouncedSearch },
+    {
+      domain: programDomain,
+      search: debouncedSearch,
+      sort: "clicks", // need to specify this to avoid the ?sort= param in the URL overriding the default
+    },
     {
       keepPreviousData: false,
     },
