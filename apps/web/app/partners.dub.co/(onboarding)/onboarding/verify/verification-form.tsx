@@ -35,7 +35,7 @@ export function VerificationForm() {
       router.push(`/${data.partnerId}`);
     },
     onError: ({ error, input }) => {
-      toast.error(error.serverError?.serverError);
+      toast.error(error.serverError);
       reset(input);
     },
   });

@@ -74,7 +74,7 @@ export default function ProgramPageClient() {
           {program ? (
             <ProgramCommissionDescription program={program} />
           ) : (
-            <div className="h-7 w-full animate-pulse rounded-md bg-neutral-200" />
+            <div className="h-7 w-5/6 animate-pulse rounded-md bg-neutral-200" />
           )}
         </div>
         <span className="mb-1.5 mt-6 block text-sm text-neutral-800">

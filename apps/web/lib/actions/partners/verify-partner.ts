@@ -12,7 +12,7 @@ export const verifyPartnerAction = authPartnerActionClient
     const { code } = parsedInput;
 
     if (!partner.dotsUserId) {
-      throw new Error("Partner does not have a Dots user ID");
+      throw new Error("Partner does not have a Dots user ID.");
     }
 
     try {
