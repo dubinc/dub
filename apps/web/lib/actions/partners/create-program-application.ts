@@ -26,11 +26,10 @@ export const createProgramApplicationAction = actionClient
   .action(
     async ({
       parsedInput,
-    }): Promise<
-      | { ok: false; message?: string }
-      | { ok: true; programApplicationId: string }
-      | { ok: true; programApplicationId: string; programEnrollmentId: string }
-    > => {
+    }): Promise<{
+      programApplicationId: string;
+      programEnrollmentId?: string;
+    }> => {
       const { programId } = parsedInput;
 
       // Limit to 3 requests per minute per program per IP
@@ -39,19 +38,12 @@ export const createProgramApplicationAction = actionClient
       );
 
       if (!success) {
-        return {
-          ok: false,
-          message: "Too many requests. Please try again later.",
-        };
+        throw new Error("Too many requests. Please try again later.");
       }
 
-      const program = await prisma.program.findUnique({
+      const program = await prisma.program.findUniqueOrThrow({
         where: { id: programId },
       });
-
-      if (!program) {
-        return { ok: false, message: "Program not found." };
-      }
 
       const session = await getSession();
 
@@ -67,25 +59,18 @@ export const createProgramApplicationAction = actionClient
           })
         : null;
 
-      try {
-        if (existingPartner) {
-          return createApplicationAndEnrollment({
-            program,
-            data: parsedInput,
-            partner: existingPartner,
-          });
-        }
-
-        return createApplication({
+      if (existingPartner) {
+        return createApplicationAndEnrollment({
           program,
           data: parsedInput,
+          partner: existingPartner,
         });
-      } catch (e) {
-        console.error(e);
-        return {
-          ok: false,
-        };
       }
+
+      return createApplication({
+        program,
+        data: parsedInput,
+      });
     },
   );
 
@@ -97,16 +82,10 @@ async function createApplicationAndEnrollment({
   partner: Partner & { programs: ProgramEnrollment[] };
   program: Program;
   data: z.infer<typeof createProgramApplicationSchema>;
-}): Promise<
-  | { ok: false; message?: string }
-  | { ok: true; programApplicationId: string; programEnrollmentId: string }
-> {
+}) {
   // Check if ProgramEnrollment already exists
   if (partner.programs.some((p) => p.programId === program.id)) {
-    return {
-      ok: false,
-      message: "You have already applied to this program.",
-    };
+    throw new Error("You have already applied to this program.");
   }
 
   const applicationId = createId({ prefix: "pga_" });
@@ -134,7 +113,6 @@ async function createApplicationAndEnrollment({
   ]);
 
   return {
-    ok: true,
     programApplicationId: applicationId,
     programEnrollmentId: enrollmentId,
   };
@@ -146,9 +124,7 @@ async function createApplication({
 }: {
   program: Program;
   data: z.infer<typeof createProgramApplicationSchema>;
-}): Promise<
-  { ok: false; message?: string } | { ok: true; programApplicationId: string }
-> {
+}) {
   const [application, _] = await Promise.all([
     prisma.programApplication.create({
       data: {
@@ -180,7 +156,6 @@ async function createApplication({
   );
 
   return {
-    ok: true,
     programApplicationId: application.id,
   };
 }

@@ -46,6 +46,36 @@ export function ProgramApplicationForm({
 
   const { executeAsync, isExecuting } = useAction(
     createProgramApplicationAction,
+    {
+      async onSuccess({ data }) {
+        if (!data) {
+          toast.error("Failed to submit application. Please try again.");
+          return;
+        }
+
+        toast.success("Your application submitted successfully.");
+
+        const { programApplicationId, programEnrollmentId } = data;
+
+        const searchParams = new URLSearchParams({
+          applicationId: programApplicationId,
+          ...(programEnrollmentId && {
+            enrollmentId: programEnrollmentId,
+          }),
+        });
+
+        router.push(
+          `/apply/${program.slug}/application/success?${searchParams.toString()}`,
+        );
+      },
+      onError({ error }) {
+        toast.error(error.serverError);
+
+        setError("root.serverError", {
+          message: error.serverError,
+        });
+      },
+    },
   );
 
   const isLoading = isSubmitting || isSubmitSuccessful || isExecuting;
@@ -53,31 +83,10 @@ export function ProgramApplicationForm({
   return (
     <form
       onSubmit={handleSubmit(async (data) => {
-        const response = await executeAsync({
-          programId: program.id,
+        await executeAsync({
           ...data,
+          programId: program.id,
         });
-
-        if (!response?.data?.ok) {
-          toast.error(
-            (response?.data as { message?: string }).message ??
-              "Failed to submit application",
-          );
-          setError("root.serverError", {
-            message: "Failed to submit application. Please try again.",
-          });
-          return;
-        }
-
-        toast.success("Application submitted successfully");
-        router.push(
-          `/apply/${program.slug}/application/success?${new URLSearchParams({
-            applicationId: response.data.programApplicationId,
-            ...("programEnrollmentId" in response.data && {
-              enrollmentId: response.data.programEnrollmentId,
-            }),
-          }).toString()}`,
-        );
       })}
       className="flex flex-col gap-6"
     >
