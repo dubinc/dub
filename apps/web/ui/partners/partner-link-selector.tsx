@@ -1,3 +1,4 @@
+import useLink from "@/lib/swr/use-link";
 import useLinks from "@/lib/swr/use-links";
 import { LinkProps } from "@/lib/types";
 import { Combobox, LinkLogo } from "@dub/ui";
@@ -41,15 +42,17 @@ export function PartnerLinkSelector({
   const [debouncedSearch] = useDebounce(search, 500);
 
   const { links } = useLinks(
-    { domain: programDomain, search: debouncedSearch },
+    {
+      domain: programDomain,
+      search: debouncedSearch,
+      sort: "clicks", // need to specify this to avoid the ?sort= param in the URL overriding the default
+    },
     {
       keepPreviousData: false,
     },
   );
 
-  const { links: selectedLinks } = useLinks({
-    linkIds: [selectedLinkId ?? ""],
-  });
+  const { link: selectedLink } = useLink(selectedLinkId ?? "");
 
   const options = useMemo(
     () => links?.map((link) => getLinkOption(link)),
@@ -57,13 +60,9 @@ export function PartnerLinkSelector({
   );
 
   const selectedOption = useMemo(() => {
-    const link = [...(links || []), ...(selectedLinks || [])].find(
-      ({ id }) => id === selectedLinkId,
-    );
-    return link ? getLinkOption(link) : null;
-  }, [selectedLinkId, links, selectedLinks]);
-
-  const selectedLink = links?.find((l) => l.id === selectedLinkId);
+    if (!selectedLink) return null;
+    return getLinkOption(selectedLink);
+  }, [selectedLink]);
 
   return (
     <>
