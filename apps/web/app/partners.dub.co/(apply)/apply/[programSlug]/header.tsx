@@ -5,7 +5,7 @@ import { cn } from "@dub/utils";
 import { Program } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 export function Header({
   program,
@@ -19,6 +19,7 @@ export function Header({
   showApply?: boolean;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { data: session, status } = useSession();
 
   const scrolled = useScroll(0);
@@ -55,7 +56,7 @@ export function Header({
             variant="secondary"
             text="Log in"
             className="animate-fade-in h-8 w-fit text-neutral-600"
-            onClick={() => router.push(`/login?next=/apply/${slug}`)}
+            onClick={() => router.push(`/login?next=${pathname}`)}
           />
         )}
         {showApply && (
