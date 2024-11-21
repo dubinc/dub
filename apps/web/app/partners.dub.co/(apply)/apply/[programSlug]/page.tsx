@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { programLanderSchema } from "@/lib/zod/schemas/programs";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander-blocks";
-import { cn } from "@dub/utils";
+import { cn, currencyFormatter } from "@dub/utils";
+import { constructMetadata } from "@dub/utils/src/functions";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 import { ApplyButton } from "./apply-button";
@@ -23,10 +24,18 @@ export async function generateMetadata({
     notFound();
   }
 
-  return {
-    title: `Apply to the ${program.name} affiliate program`,
-    description: `Earn ${program.commissionAmount} on any subscriptions generated through your referral.`,
-  };
+  return constructMetadata({
+    title: `${program.name} Affiliate Program`,
+    description: `Join the ${program.name} affiliate program and earn ${
+      program.commissionType === "percentage"
+        ? `${program.commissionAmount}%`
+        : currencyFormatter(program.commissionAmount / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+    } on any subscriptions generated through your referral.`,
+    noIndex: true, // TODO: Remove this once we launch to GA
+  });
 }
 
 export default async function ApplyPage({

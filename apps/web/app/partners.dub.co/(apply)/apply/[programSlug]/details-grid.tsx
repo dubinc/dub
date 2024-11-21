@@ -6,10 +6,7 @@ export function DetailsGrid({
   program,
   className,
 }: {
-  program: Pick<
-    Program,
-    "commissionAmount" | "commissionType" | "isLifetimeRecurring"
-  >;
+  program: Program;
   className?: string;
 }) {
   return (
@@ -29,7 +26,9 @@ export function DetailsGrid({
         {
           icon: Calendar6,
           title: "Duration",
-          value: program.isLifetimeRecurring ? "Lifetime" : "Recurring",
+          value: program.isLifetimeRecurring
+            ? "Lifetime"
+            : `${program.recurringDuration} ${program.recurringInterval}s`,
         },
       ].map(({ icon: Icon, title, value }) => (
         <div className="rounded-xl bg-neutral-100 p-4">
