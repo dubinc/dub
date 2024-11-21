@@ -2,7 +2,6 @@
 
 import { createProgramApplicationAction } from "@/lib/actions/partners/create-program-application";
 import { Button, useMediaQuery } from "@dub/ui";
-import { LoadingSpinner } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import { Program } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
@@ -163,16 +162,8 @@ export function ProgramApplicationForm({
 
       <Button
         text="Submit application"
-        className={cn(
-          "mt-4 border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]",
-          isLoading && "text-white/70",
-        )}
-        icon={
-          isLoading ? (
-            <LoadingSpinner className="opacity-70 brightness-200" />
-          ) : null
-        }
-        disabled={isLoading}
+        className="mt-4 border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
+        loading={isLoading}
       />
     </form>
   );
