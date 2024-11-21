@@ -1,5 +1,4 @@
 import { createPartnerPayoutAction } from "@/lib/actions/partners/create-partner-payout";
-import useSalesCount from "@/lib/swr/use-sales-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse, SaleResponse } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
@@ -42,13 +41,6 @@ function PayoutDetailsSheetContent({
   const { id: workspaceId, slug } = useWorkspace();
   const { programId } = useParams() as { programId: string };
 
-  const { salesCount } = useSalesCount({
-    payoutId: payout.id,
-    start: payout.periodStart,
-    end: payout.periodEnd,
-    interval: "all", // technically not needed but typescript is not happy
-  });
-
   const {
     data: sales,
     isLoading,
@@ -58,7 +50,6 @@ function PayoutDetailsSheetContent({
     fetcher,
   );
 
-  const totalSales = salesCount?.processed || 0;
   const canConfirmPayout = payout.status === "pending";
 
   const invoiceData = useMemo(() => {
@@ -89,7 +80,7 @@ function PayoutDetailsSheetContent({
             ? undefined
             : "numeric",
       })}-${formatDate(payout.periodEnd, { month: "short" })}`,
-      Sales: totalSales,
+      Sales: payout._count.sales,
       Amount: currencyFormatter(payout.amount / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -108,7 +99,7 @@ function PayoutDetailsSheetContent({
         </StatusBadge>
       ),
     };
-  }, [payout, totalSales]);
+  }, [payout]);
 
   const table = useTable({
     data:
@@ -181,7 +172,7 @@ function PayoutDetailsSheetContent({
       setIsOpen(false);
     },
     onError({ error }) {
-      toast.error(error.serverError?.serverError);
+      toast.error(error.serverError);
     },
   });
 

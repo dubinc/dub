@@ -238,8 +238,8 @@ importers:
         specifier: ^3.12.0
         version: 3.12.0(next@14.3.0-canary.42)(react-dom@18.2.0)(react@18.2.0)
       next-safe-action:
-        specifier: 7.1.4-experimental.1
-        version: 7.1.4-experimental.1(next@14.3.0-canary.42)(react-dom@18.2.0)(react@18.2.0)(zod@3.22.4)
+        specifier: 7.9.9
+        version: 7.9.9(next@14.3.0-canary.42)(react-dom@18.2.0)(react@18.2.0)(zod@3.22.4)
       node-html-parser:
         specifier: ^6.1.4
         version: 6.1.4
@@ -17448,14 +17448,26 @@ packages:
       react-dom: 18.2.0(react@18.2.0)
     dev: false
 
-  /next-safe-action@7.1.4-experimental.1(next@14.3.0-canary.42)(react-dom@18.2.0)(react@18.2.0)(zod@3.22.4):
-    resolution: {integrity: sha512-6BihKPIJ/Wu7qgEGUKAUJfy5NTPO2eV1BJ/7WWpgMarHzm+6/OUkllwwndAw85YLy+khVmzHYkSCS+n0Ei7qMg==}
+  /next-safe-action@7.9.9(next@14.3.0-canary.42)(react-dom@18.2.0)(react@18.2.0)(zod@3.22.4):
+    resolution: {integrity: sha512-wFKKCgfHNsObfbDrbOQV8WAE6RnVx7dwmuUazqdNaTL3ZdDzUlRTnIIVI36qSjmgA3zwwxj3nvfxgK9d0fWr5w==}
     engines: {node: '>=18.17'}
     peerDependencies:
+      '@sinclair/typebox': '>= 0.33.3'
       next: '>= 14.0.0'
       react: '>= 18.2.0'
       react-dom: '>= 18.2.0'
+      valibot: '>= 0.36.0'
+      yup: '>= 1.0.0'
       zod: '>= 3.0.0'
+    peerDependenciesMeta:
+      '@sinclair/typebox':
+        optional: true
+      valibot:
+        optional: true
+      yup:
+        optional: true
+      zod:
+        optional: true
     dependencies:
       next: 14.3.0-canary.42(@babel/core@7.24.5)(@opentelemetry/api@1.8.0)(react-dom@18.2.0)(react@18.2.0)
       react: 18.2.0

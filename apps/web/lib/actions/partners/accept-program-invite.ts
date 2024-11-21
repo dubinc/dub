@@ -7,13 +7,13 @@ import { authPartnerActionClient } from "../safe-action";
 import { backfillLinkData } from "./backfill-link-data";
 import { enrollDotsUserApp } from "./enroll-dots-user-app";
 
+const acceptProgramInviteSchema = z.object({
+  partnerId: z.string(),
+  programInviteId: z.string(),
+});
+
 export const acceptProgramInviteAction = authPartnerActionClient
-  .schema(
-    z.object({
-      partnerId: z.string(),
-      programInviteId: z.string(),
-    }),
-  )
+  .schema(acceptProgramInviteSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { partner } = ctx;
     const { programInviteId } = parsedInput;

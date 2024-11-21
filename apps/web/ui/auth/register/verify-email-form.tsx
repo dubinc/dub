@@ -38,7 +38,7 @@ export const VerifyEmailForm = () => {
       }
     },
     onError({ error }) {
-      toast.error(error.serverError?.serverError);
+      toast.error(error.serverError);
       setCode("");
       setIsInvalidCode(true);
     },

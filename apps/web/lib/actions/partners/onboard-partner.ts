@@ -4,6 +4,7 @@ import { createId } from "@/lib/api/utils";
 import { createDotsUser } from "@/lib/dots/create-dots-user";
 import { sendVerificationToken } from "@/lib/dots/send-verification-token";
 import { userIsInBeta } from "@/lib/edge-config";
+import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -84,6 +85,9 @@ export const onboardPartnerAction = authUserActionClient
         dotsUserId: dotsUser.id,
       }),
     ]);
+
+    // Complete any outstanding program applications
+    await completeProgramApplications(user.id);
 
     return {
       partnerId: partner.id,

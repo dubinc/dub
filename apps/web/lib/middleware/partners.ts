@@ -9,10 +9,11 @@ const UNAUTHENTICATED_PATHS = [
   "/register",
   "/forgot-password",
   "/auth/reset-password",
+  "/apply",
 ];
 
 export default async function PartnersMiddleware(req: NextRequest) {
-  const { path, searchParamsString } = parse(req);
+  const { path, fullPath } = parse(req);
 
   const isUnauthenticatedPath = UNAUTHENTICATED_PATHS.some((p) =>
     path.startsWith(p),
@@ -32,7 +33,9 @@ export default async function PartnersMiddleware(req: NextRequest) {
   if (
     user &&
     partnersEnabled &&
-    !["/account", "/pn_", "/onboarding"].some((p) => path.startsWith(p))
+    !["/account", "/apply", "/pn_", "/onboarding"].some((p) =>
+      path.startsWith(p),
+    )
   ) {
     const defaultPartner = await getDefaultPartner(user);
 
@@ -41,7 +44,7 @@ export default async function PartnersMiddleware(req: NextRequest) {
     }
 
     return NextResponse.redirect(
-      new URL(`/${defaultPartner}${path}${searchParamsString}`, req.url),
+      new URL(`/${defaultPartner}${fullPath}`, req.url),
     );
   }
 
@@ -50,6 +53,6 @@ export default async function PartnersMiddleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/", req.url));
 
   return NextResponse.rewrite(
-    new URL(`/partners.dub.co${path === "/" ? "" : path}`, req.url),
+    new URL(`/partners.dub.co${fullPath === "/" ? "" : fullPath}`, req.url),
   );
 }
