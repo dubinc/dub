@@ -1,29 +1,12 @@
 import { prisma } from "@/lib/prisma";
-import {
-  programLanderBlockSchema,
-  programLanderSchema,
-} from "@/lib/zod/schemas/programs";
-import { AccordionBlock } from "@/ui/partners/lander-blocks/AccordionBlock";
-import { FilesBlock } from "@/ui/partners/lander-blocks/FilesBlock";
-import { ImageBlock } from "@/ui/partners/lander-blocks/ImageBlock";
-import { TextBlock } from "@/ui/partners/lander-blocks/TextBlock";
+import { programLanderSchema } from "@/lib/zod/schemas/programs";
+import { BLOCK_COMPONENTS } from "@/ui/partners/lander-blocks";
 import { cn } from "@dub/utils";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
-import { z } from "zod";
 import { ApplyButton } from "./apply-button";
 import { DetailsGrid } from "./details-grid";
 import { Header } from "./header";
-
-const BLOCK_COMPONENTS: Record<
-  z.infer<typeof programLanderBlockSchema>["type"],
-  any
-> = {
-  image: ImageBlock,
-  text: TextBlock,
-  files: FilesBlock,
-  accordion: AccordionBlock,
-};
 
 export default async function ApplyPage({
   params: { programSlug },
