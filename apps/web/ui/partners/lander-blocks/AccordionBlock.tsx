@@ -21,7 +21,7 @@ export function AccordionBlock({
         <Accordion type="single" collapsible>
           {block.data.items.map((item, idx) => (
             <AccordionItem key={idx} value={idx.toString()}>
-              <AccordionTrigger className="py-2">
+              <AccordionTrigger className="py-2" variant="plus">
                 <h3 className="text-left md:text-lg">{item.title}</h3>
               </AccordionTrigger>
               <AccordionContent>
