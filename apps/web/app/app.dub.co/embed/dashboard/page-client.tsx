@@ -20,9 +20,9 @@ import { getPrettyUrl } from "@dub/utils";
 import { notFound } from "next/navigation";
 import { useContext } from "react";
 import { SaleTable } from "./sale-table";
-import useReferralAnalytics from "./use-referral-analytics";
-import { useReferralLink } from "./use-referral-link";
-import { useReferralProgram } from "./use-referral-program";
+import useReferralAnalytics from "../use-referral-analytics";
+import { useReferralLink } from "../use-referral-link";
+import { useReferralProgram } from "../use-referral-program";
 
 export function RewardDashboardPageClient() {
   const { program } = useReferralProgram();

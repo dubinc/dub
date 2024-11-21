@@ -10,8 +10,8 @@ import {
 } from "@dub/ui";
 import { currencyFormatter, getPrettyUrl } from "@dub/utils";
 import { useState } from "react";
-import { useReferralLink } from "../dashboard/use-referral-link";
-import { useReferralProgram } from "../dashboard/use-referral-program";
+import { useReferralLink } from "../use-referral-link";
+import { useReferralProgram } from "../use-referral-program";
 
 type Tab = "invite" | "rewards";
 
