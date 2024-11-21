@@ -50,7 +50,7 @@ async function main() {
       domain: link.domain,
       key: link.key,
       url: link.url,
-      tag_ids: link.tags.map((t) => t.id) || [],
+      tag_ids: link.tags.map((t) => t.tagId) || [],
       program_id: programEnrollment.programId,
       workspace_id: link.projectId,
       created_at: link.createdAt,

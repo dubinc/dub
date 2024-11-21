@@ -397,11 +397,7 @@ export const DELETE = withWorkspace(
         ],
       },
       include: {
-        tags: {
-          select: {
-            id: true,
-          },
-        },
+        tags: true,
       },
     });
 
