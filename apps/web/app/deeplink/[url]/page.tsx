@@ -4,14 +4,14 @@ export default function DeepLinkPage({ params }: { params: { url: string } }) {
   // First decode the full URL parameter from the route
   const url = decodeURIComponent(params.url);
   // Split into base URL and query string
-  const [front, query] = url.split("?");
+  const [baseUrl, queryString] = url.split("?");
 
   let redirectUrl = url;
 
   // if there are query parameters, we need to process them
-  if (query) {
+  if (queryString) {
     // Parse the query string (but don't use toString() later as it adds extra encoding)
-    const queryParams = new URLSearchParams(query);
+    const queryParams = new URLSearchParams(queryString);
 
     // Process each parameter with proper encoding
     const processedParams = Array.from(queryParams.entries()).map(
@@ -28,7 +28,7 @@ export default function DeepLinkPage({ params }: { params: { url: string } }) {
     );
 
     // Reconstruct the URL with properly encoded parameters
-    redirectUrl = `${front}?${processedParams.join("&")}`;
+    redirectUrl = `${baseUrl}?${processedParams.join("&")}`;
   }
 
   // Redirect to the redirect URL (which may be the same as the original URL,
