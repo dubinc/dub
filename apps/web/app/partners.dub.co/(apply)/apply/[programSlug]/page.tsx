@@ -8,22 +8,33 @@ import { ApplyButton } from "./apply-button";
 import { DetailsGrid } from "./details-grid";
 import { Header } from "./header";
 
+export async function generateMetadata({
+  params: { programSlug },
+}: {
+  params: { programSlug: string };
+}) {
+  const program = await prisma.program.findUnique({
+    where: {
+      slug: programSlug,
+    },
+  });
+
+  if (!program || !program.landerData) {
+    notFound();
+  }
+
+  return {
+    title: `Apply to the ${program.name} affiliate program`,
+    description: `Earn ${program.commissionAmount} on any subscriptions generated through your referral.`,
+  };
+}
+
 export default async function ApplyPage({
   params: { programSlug },
 }: {
   params: { programSlug: string };
 }) {
   const program = await prisma.program.findUnique({
-    select: {
-      landerData: true,
-      name: true,
-      logo: true,
-      wordmark: true,
-      brandColor: true,
-      commissionType: true,
-      commissionAmount: true,
-      isLifetimeRecurring: true,
-    },
     where: {
       slug: programSlug,
     },
@@ -34,10 +45,6 @@ export default async function ApplyPage({
   }
 
   const landerData = programLanderSchema.parse(program.landerData);
-
-  if (!landerData) {
-    notFound();
-  }
 
   return (
     <div

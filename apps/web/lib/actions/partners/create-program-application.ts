@@ -15,7 +15,7 @@ const createProgramApplicationSchema = z.object({
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().min(1).max(100),
   website: z.string().trim().max(100).optional(),
-  plan: z.string().trim().min(1).max(5000),
+  proposal: z.string().trim().min(1).max(5000),
   comments: z.string().trim().max(5000).optional(),
 });
 
@@ -167,7 +167,7 @@ async function createApplication({
     [...existingApplicationIds, application.id].join(","),
     {
       httpOnly: true,
-      expires: addDays(new Date(), 1),
+      expires: addDays(new Date(), 7), // persist for 7 days
     },
   );
 

@@ -94,15 +94,15 @@ model ProgramApplication {
   partnerId String?
   name      String
   email     String
-  plan      String                   @db.LongText
-  website   String?
+  proposal  String?                  @db.LongText
+  website   String?                  @db.Text
   comments  String?                  @db.LongText
   status    ProgramApplicationStatus @default(pending)
   createdAt DateTime                 @default(now())
   updatedAt DateTime                 @updatedAt
 
-  partner    Partner?           @relation(fields: [partnerId], references: [id])
-  program    Program            @relation(fields: [programId], references: [id])
+  partner   Partner?                 @relation(fields: [partnerId], references: [id])
+  program   Program                  @relation(fields: [programId], references: [id])
   enrollment ProgramEnrollment?
 
   @@index([programId])

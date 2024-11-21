@@ -15,7 +15,7 @@ type FormData = {
   name: string;
   email: string;
   website?: string;
-  plan: string;
+  proposal: string;
   comments?: string;
 };
 
@@ -133,13 +133,13 @@ export function ProgramApplicationForm({
         <ReactTextareaAutosize
           className={cn(
             "mt-2 block max-h-48 min-h-12 w-full rounded-md focus:outline-none sm:text-sm",
-            errors.plan
+            errors.proposal
               ? "border-red-400 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
               : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
           )}
           placeholder=""
           minRows={3}
-          {...register("plan", { required: true })}
+          {...register("proposal", { required: true })}
         />
       </label>
 
