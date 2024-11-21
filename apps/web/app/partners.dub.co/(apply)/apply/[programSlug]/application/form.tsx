@@ -171,7 +171,7 @@ export function ProgramApplicationForm({
 
       <Button
         text="Submit application"
-        className="mt-4 border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
+        className="mt-4 enabled:border-[var(--brand)] enabled:bg-[var(--brand)] enabled:hover:bg-[var(--brand)] enabled:hover:ring-[var(--brand-ring)]"
         loading={isLoading}
       />
     </form>
