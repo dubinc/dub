@@ -24,12 +24,6 @@ enum ProgramResourceType {
   files
 }
 
-enum ProgramApplicationStatus {
-  pending
-  approved
-  rejected
-}
-
 model Program {
   id                  String              @id @default(cuid())
   workspaceId         String
@@ -97,7 +91,6 @@ model ProgramApplication {
   proposal  String?                  @db.LongText
   website   String?                  @db.Text
   comments  String?                  @db.LongText
-  status    ProgramApplicationStatus @default(pending)
   createdAt DateTime                 @default(now())
   updatedAt DateTime                 @updatedAt
 

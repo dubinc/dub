@@ -1,4 +1,3 @@
-import { ProgramApplicationStatus } from "@prisma/client";
 import { cookies } from "next/headers";
 import { createId } from "../api/utils";
 import { prisma } from "../prisma";
@@ -91,7 +90,6 @@ export async function completeProgramApplications(userId: string) {
         programId: programApplication.programId,
         partnerId: user.partners[0].partnerId,
         applicationId: programApplication.id,
-        status: ProgramApplicationStatus.pending,
       })),
     });
 
