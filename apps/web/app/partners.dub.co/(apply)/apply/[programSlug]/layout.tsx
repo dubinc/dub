@@ -1,7 +1,45 @@
+import { getProgram } from "@/lib/fetchers/get-program";
 import { Wordmark } from "@dub/ui";
+import { currencyFormatter } from "@dub/utils";
+import { constructMetadata } from "@dub/utils/src/functions";
+import { notFound } from "next/navigation";
 import { PropsWithChildren } from "react";
 
-export default function ApplyLayout({ children }: PropsWithChildren) {
+export async function generateMetadata({
+  params: { programSlug },
+}: {
+  params: { programSlug: string };
+}) {
+  const program = await getProgram({ slug: programSlug });
+
+  if (!program || !program.landerData) {
+    notFound();
+  }
+
+  return constructMetadata({
+    title: `${program.name} Affiliate Program`,
+    description: `Join the ${program.name} affiliate program and earn ${
+      program.commissionType === "percentage"
+        ? `${program.commissionAmount}%`
+        : currencyFormatter(program.commissionAmount / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+    } on any subscriptions generated through your referral.`,
+    noIndex: true, // TODO: Remove this once we launch to GA
+  });
+}
+
+export default async function ApplyLayout({
+  children,
+  params: { programSlug },
+}: PropsWithChildren<{ params: { programSlug: string } }>) {
+  const program = await getProgram({ slug: programSlug });
+
+  if (!program || !program.landerData) {
+    notFound();
+  }
+
   return (
     <div className="relative">
       <div className="relative z-10 mx-auto min-h-screen w-full max-w-screen-sm bg-white">

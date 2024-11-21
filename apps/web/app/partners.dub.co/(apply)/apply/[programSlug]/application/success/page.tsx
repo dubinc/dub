@@ -1,3 +1,4 @@
+import { getProgram } from "@/lib/fetchers/get-program";
 import { prisma } from "@/lib/prisma";
 import { Logo } from "@dub/ui";
 import { BoltFill, CursorRays, LinesY, MoneyBills2 } from "@dub/ui/src/icons";
@@ -44,22 +45,7 @@ export default async function SuccessPage({
   params: { programSlug: string };
   searchParams: { applicationId?: string; enrollmentId?: string };
 }) {
-  const program = await prisma.program.findUnique({
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      logo: true,
-      wordmark: true,
-      brandColor: true,
-      commissionType: true,
-      commissionAmount: true,
-      isLifetimeRecurring: true,
-    },
-    where: {
-      slug: programSlug,
-    },
-  });
+  const program = await getProgram({ slug: programSlug });
 
   if (!program) {
     notFound();

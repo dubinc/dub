@@ -52,7 +52,7 @@ export function Header({
         {showLogin && !session?.user && status !== "loading" && (
           <Button
             type="button"
-            variant="outline"
+            variant="secondary"
             text="Log in"
             className="animate-fade-in h-8 w-fit text-neutral-600"
             onClick={() => router.push(`/login?next=/apply/${slug}`)}

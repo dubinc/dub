@@ -4,8 +4,10 @@ import { createProgramApplicationAction } from "@/lib/actions/partners/create-pr
 import { Button, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Program } from "@prisma/client";
+import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
@@ -20,20 +22,27 @@ type FormData = {
 
 export function ProgramApplicationForm({
   program,
-  defaultValues,
 }: {
   program: Pick<Program, "id" | "slug" | "name">;
-  defaultValues?: Partial<FormData>;
 }) {
   const { isMobile } = useMediaQuery();
   const router = useRouter();
+  const { data: session } = useSession();
 
   const {
     register,
     handleSubmit,
     setError,
+    setValue,
     formState: { errors, isSubmitting, isSubmitSuccessful },
-  } = useForm<FormData>({ defaultValues });
+  } = useForm<FormData>();
+
+  useEffect(() => {
+    if (session?.user) {
+      setValue("name", session.user.name ?? "");
+      setValue("email", session.user.email ?? "");
+    }
+  }, [session?.user, setValue]);
 
   const { executeAsync, isExecuting } = useAction(
     createProgramApplicationAction,
