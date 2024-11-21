@@ -1,6 +1,6 @@
 import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { useRouterStuff } from "@dub/ui";
-import { CONTINENTS, COUNTRIES } from "@dub/utils";
+import { CONTINENTS, COUNTRIES, REGIONS } from "@dub/utils";
 import { useContext, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
@@ -61,7 +61,9 @@ export default function Locations() {
                         ? CONTINENTS[d.continent]
                         : tab === "countries"
                           ? COUNTRIES[d.country]
-                          : d.city,
+                          : tab === "regions"
+                            ? REGIONS[`${d.country}-${d.region}`] || "Unknown"
+                            : d.city,
                     href: queryParams({
                       ...(searchParams.has(singularTabName)
                         ? { del: singularTabName }

@@ -219,6 +219,7 @@ export const analyticsFilterTB = z
       city: true,
       country: true,
       continent: true,
+      region: true,
       device: true,
       domain: true,
       linkId: true,
