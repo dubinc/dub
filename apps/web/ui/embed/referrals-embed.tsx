@@ -13,7 +13,7 @@ export const ReferralsEmbed = ({
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       // Verify the message is from our embed page
-      if (event.origin !== APP_DOMAIN) {
+    if (event.origin !== APP_DOMAIN) {
         return;
       }
 

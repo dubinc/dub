@@ -153,9 +153,9 @@ export function ReferralsEmbedPageClient() {
       </div>
 
       {/* TODO: UI needs tweaking */}
-      {!isLoading && !hasEnrolled && !hasInvited && salesCount?.count && (
+      {/* {!isLoading && !hasEnrolled && !hasInvited && salesCount?.count && (
         <RequestPartnerInviteForm />
-      )}
+      )} */}
 
       <div className="flex items-center justify-center">
         <a
