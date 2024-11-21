@@ -81,7 +81,7 @@ export function ProgramApplicationForm({
             "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
             errors.name
               ? "border-red-400 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
+              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
           )}
           placeholder="Acme, Inc."
           autoFocus={!isMobile}
@@ -99,7 +99,7 @@ export function ProgramApplicationForm({
             "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
             errors.email
               ? "border-red-400 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
+              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
           )}
           placeholder="panic@thedis.co"
           {...register("email", {
@@ -119,7 +119,7 @@ export function ProgramApplicationForm({
             "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
             errors.website
               ? "border-red-400 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
+              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
           )}
           placeholder="https://example.com"
           {...register("website")}
@@ -135,7 +135,7 @@ export function ProgramApplicationForm({
             "mt-2 block max-h-48 min-h-12 w-full rounded-md focus:outline-none sm:text-sm",
             errors.proposal
               ? "border-red-400 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
+              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
           )}
           placeholder=""
           minRows={3}
@@ -153,7 +153,7 @@ export function ProgramApplicationForm({
             "mt-2 block max-h-48 min-h-12 w-full rounded-md focus:outline-none sm:text-sm",
             errors.comments
               ? "border-red-400 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
+              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
           )}
           placeholder=""
           minRows={3}

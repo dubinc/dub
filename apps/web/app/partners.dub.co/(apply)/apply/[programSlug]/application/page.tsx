@@ -12,17 +12,6 @@ export default async function ApplicationPage({
   params: { programSlug: string };
 }) {
   const program = await prisma.program.findUnique({
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      logo: true,
-      wordmark: true,
-      brandColor: true,
-      commissionType: true,
-      commissionAmount: true,
-      isLifetimeRecurring: true,
-    },
     where: {
       slug: programSlug,
     },
@@ -49,7 +38,7 @@ export default async function ApplicationPage({
       style={
         {
           "--brand": program.brandColor || "#3b82f6",
-          "--brand-ring": "rgb(from var(--brand) r g b / 0.4)",
+          "--brand-ring": "rgb(from var(--brand) r g b / 0.2)",
         } as CSSProperties
       }
     >
