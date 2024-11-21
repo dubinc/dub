@@ -1,19 +1,19 @@
 import { APP_DOMAIN } from "@dub/utils";
 import { useEffect } from "react";
 
-interface ReferralsEmbedProps {
+interface RewardDashboardProps {
   publicToken: string;
   onTokenExpired?: () => void;
 }
 
-export const ReferralsEmbed = ({
+export const RewardDashboard = ({
   publicToken,
   onTokenExpired,
-}: ReferralsEmbedProps) => {
+}: RewardDashboardProps) => {
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       // Verify the message is from our embed page
-    if (event.origin !== APP_DOMAIN) {
+      if (event.origin !== APP_DOMAIN) {
         return;
       }
 
@@ -29,7 +29,7 @@ export const ReferralsEmbed = ({
 
   return (
     <iframe
-      src={`${APP_DOMAIN}/embed?token=${publicToken}`}
+      src={`${APP_DOMAIN}/embed/dashboard?token=${publicToken}`}
       style={{
         width: "100%",
         height: "100vh",

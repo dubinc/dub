@@ -6,16 +6,30 @@
     linkToken: null,
   };
 
+  const buttonStyles = {
+    position: "fixed",
+    bottom: "20px",
+    right: "20px",
+    zIndex: "9999",
+  };
+
+  const containerStyles = {
+    width: "450px",
+    height: "600px",
+    boxShadow: "0 0 20px rgba(0,0,0,0.1)",
+    borderRadius: "10px",
+    overflow: "hidden",
+    position: "fixed",
+    bottom: "80px",
+    right: "20px",
+    zIndex: "9998",
+  };
+
   // Add a floating button to the page
   function createFloatingButton() {
     const button = document.createElement("div");
     button.id = "floating-widget-button";
-
-    // Add styles for positioning and appearance
-    button.style.position = "fixed";
-    button.style.bottom = "20px";
-    button.style.right = "20px";
-    button.style.zIndex = "9999";
+    Object.assign(button.style, buttonStyles);
 
     button.innerHTML = `
       <button>
@@ -23,8 +37,15 @@
       </button>
     `;
 
-    // Load widget on click
     button.addEventListener("click", () => {
+      const existingContainer = document.getElementById("dub-widget-container");
+
+      if (existingContainer) {
+        // If the container exists, remove it (close the widget)
+        document.body.removeChild(existingContainer);
+        return;
+      }
+
       if (!Dub.options.linkToken) {
         console.error("Link token is required");
         return;
@@ -33,20 +54,11 @@
       // Create iframe container
       const container = document.createElement("div");
       container.id = "dub-widget-container";
-      container.style.position = "fixed";
-      container.style.bottom = "80px";
-      container.style.right = "20px";
-      container.style.width = "400px";
-      container.style.height = "600px";
-      container.style.zIndex = "9998";
-      container.style.boxShadow = "0 0 20px rgba(0,0,0,0.1)";
-      container.style.borderRadius = "10px";
-      container.style.overflow = "hidden";
-      container.style.padding = "10px";
+      Object.assign(container.style, containerStyles);
 
       // Create iframe
       const iframe = document.createElement("iframe");
-      iframe.src = `http://localhost:8888/embed?token=${Dub.options.linkToken}`;
+      iframe.src = `http://localhost:8888/embed/widget?token=${Dub.options.linkToken}`;
       iframe.style.width = "100%";
       iframe.style.height = "100%";
       iframe.style.border = "none";

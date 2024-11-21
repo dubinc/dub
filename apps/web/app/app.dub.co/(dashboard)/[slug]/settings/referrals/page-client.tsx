@@ -1,7 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ReferralsEmbed } from "@/ui/embed/referrals-embed";
+import { RewardDashboard } from "@/ui/embed/referrals-embed";
 import { LoadingSpinner } from "@dub/ui";
 import { redirect } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -37,7 +37,7 @@ export default function ReferralsPageClient() {
   }
 
   return publicToken ? (
-    <ReferralsEmbed
+    <RewardDashboard
       publicToken={publicToken}
       onTokenExpired={() => createPublicToken()}
     />
