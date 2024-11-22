@@ -9,8 +9,11 @@ interface DubDashboardProps {
 
 const iframeStyles = {
   width: "100%",
-  height: "100vh",
+  height: "100%",
   border: "none",
+  credentialssupport: "",
+  allow: "same-origin",
+  crossOrigin: "use-credentials",
 };
 
 export const DubDashboard = ({
