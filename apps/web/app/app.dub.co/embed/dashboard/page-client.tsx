@@ -143,10 +143,8 @@ export function RewardDashboardPageClient() {
           target="_blank"
           className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-white p-2 transition-colors"
         >
+          <p className="text-sm text-gray-700">Powered by</p>
           <Wordmark className="h-4" />
-          <p className="text-xs text-gray-800">
-            Powered by <span className="font-medium">Dub Conversions</span>
-          </p>
         </a>
       </div>
     </>

@@ -20,7 +20,7 @@ export function EmbedWidgetPageClient() {
   const [selectedTab, setSelectedTab] = useState<Tab>("invite");
 
   const { link, isLoading: isLoadingLink } = useReferralLink();
-  const { program, isLoading: isLoadingProgram } = useReferralProgram();
+  const { program } = useReferralProgram();
 
   return (
     <div>
