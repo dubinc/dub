@@ -54,18 +54,14 @@ export function EmbedWidgetPageClient() {
           {selectedTab === "invite" && (
             <>
               <div className="flex flex-col gap-2">
+                <span className="text-sm text-neutral-500">Invite link</span>
                 {!isLoadingLink && link ? (
-                  <>
-                    <span className="text-sm text-neutral-500">
-                      Invite link
-                    </span>
-                    <input
-                      type="text"
-                      readOnly
-                      value={getPrettyUrl(link.shortLink)}
-                      className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 lg:min-w-64 xl:min-w-72"
-                    />
-                  </>
+                  <input
+                    type="text"
+                    readOnly
+                    value={getPrettyUrl(link.shortLink)}
+                    className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 lg:min-w-64 xl:min-w-72"
+                  />
                 ) : (
                   <div className="h-10 animate-pulse rounded-md bg-neutral-200" />
                 )}
