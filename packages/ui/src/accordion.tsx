@@ -2,6 +2,7 @@ import { cn } from "@dub/utils";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { ChevronDown } from "lucide-react";
 import * as React from "react";
+import { Plus } from "./icons";
 
 const Accordion = AccordionPrimitive.Root;
 
@@ -22,22 +23,31 @@ AccordionItem.displayName = "AccordionItem";
 
 const AccordionTrigger = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
-  <AccordionPrimitive.Header className="flex">
-    <AccordionPrimitive.Trigger
-      ref={ref}
-      className={cn(
-        "flex flex-1 items-center justify-between font-medium transition-all sm:text-lg [&[data-state=open]>svg]:rotate-180",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-      <ChevronDown className="h-5 w-5 flex-none transition-transform duration-300" />
-    </AccordionPrimitive.Trigger>
-  </AccordionPrimitive.Header>
-));
+  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger> & {
+    variant?: "chevron" | "plus";
+  }
+>(({ className, children, variant = "chevron", ...props }, ref) => {
+  const Icon = variant === "chevron" ? ChevronDown : Plus;
+  return (
+    <AccordionPrimitive.Header className="flex">
+      <AccordionPrimitive.Trigger
+        ref={ref}
+        className={cn(
+          "flex flex-1 items-center justify-between font-medium transition-all sm:text-lg",
+          {
+            "[&[data-state=open]>svg]:rotate-180": variant === "chevron",
+            "[&[data-state=open]>svg]:rotate-45": variant === "plus",
+          },
+          className,
+        )}
+        {...props}
+      >
+        {children}
+        <Icon className="h-5 w-5 flex-none transition-transform duration-300" />
+      </AccordionPrimitive.Trigger>
+    </AccordionPrimitive.Header>
+  );
+});
 AccordionTrigger.displayName = AccordionPrimitive.Trigger.displayName;
 
 const AccordionContent = React.forwardRef<
