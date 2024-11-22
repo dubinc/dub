@@ -1,7 +1,7 @@
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { createEmbedToken } from "@/lib/referrals/create-embed-token";
+import { createOrRetrieveEmbedToken } from "@/lib/referrals/create-or-retrieve-embed-token";
 import {
   createReferralTokenSchema,
   referralTokenSchema,
@@ -15,7 +15,7 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
   );
   await getLinkOrThrow({ linkId, workspaceId: workspace.id });
 
-  const token = await createEmbedToken(linkId);
+  const token = await createOrRetrieveEmbedToken(linkId);
 
   return NextResponse.json(referralTokenSchema.parse(token), {
     status: 201,

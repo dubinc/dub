@@ -8,7 +8,7 @@ import {
   EMBED_PUBLIC_TOKEN_LENGTH,
 } from "./constants";
 
-export const createEmbedToken = async (linkId: string) => {
+export const createOrRetrieveEmbedToken = async (linkId: string) => {
   const { success } = await ratelimit(10, "1 m").limit(linkId);
 
   if (!success) {
