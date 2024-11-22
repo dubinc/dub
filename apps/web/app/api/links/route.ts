@@ -71,10 +71,6 @@ export const GET = withWorkspace(
 // POST /api/links – create a new link
 export const POST = withWorkspace(
   async ({ req, headers, session, workspace }) => {
-    if (workspace) {
-      throwIfLinksUsageExceeded(workspace);
-    }
-
     const body = createLinkBodySchema.parse(await parseRequestBody(req));
 
     if (!session) {
@@ -88,6 +84,10 @@ export const POST = withWorkspace(
             "Rate limited – you can only create up to 10 links per day without an account.",
         });
       }
+    }
+
+    if (workspace) {
+      throwIfLinksUsageExceeded(workspace);
     }
 
     const { link, error, code } = await processLink({

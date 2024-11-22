@@ -33,9 +33,10 @@ export const POST = withWorkspace(
       });
     }
 
-    throwIfLinksUsageExceeded(workspace);
-
     const links = bulkCreateLinksBodySchema.parse(await parseRequestBody(req));
+
+    // links usage checks
+    throwIfLinksUsageExceeded(workspace);
     if (
       workspace.linksUsage + links.length > workspace.linksLimit &&
       (workspace.plan === "free" || workspace.plan === "pro")
