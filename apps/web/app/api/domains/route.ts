@@ -126,9 +126,10 @@ export const POST = withWorkspace(
 
     const domainId = createId({ prefix: "dom_" });
 
-    const logoUploaded = logo
-      ? await storage.upload(`logos/${domainId}_${nanoid(7)}`, logo)
-      : null;
+    const logoUploaded =
+      logo && workspace.plan !== "free"
+        ? await storage.upload(`logos/${domainId}_${nanoid(7)}`, logo)
+        : null;
 
     const [domainRecord, _] = await Promise.all([
       prisma.domain.create({
@@ -141,8 +142,8 @@ export const POST = withWorkspace(
           ...(workspace.plan !== "free" && {
             expiredUrl,
             notFoundUrl,
+            ...(logoUploaded && { logo: logoUploaded.url }),
           }),
-          ...(logoUploaded && { logo: logoUploaded.url }),
         },
       }),
 

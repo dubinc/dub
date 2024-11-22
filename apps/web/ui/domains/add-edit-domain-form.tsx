@@ -30,7 +30,7 @@ export function AddEditDomainForm({
   showAdvancedOptions?: boolean;
   className?: string;
 }) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, plan } = useWorkspace();
 
   const isDubProvisioned = !!props?.registeredDomain;
 
@@ -155,7 +155,7 @@ export function AddEditDomainForm({
       className={cn("flex flex-col gap-y-6 text-left", className)}
     >
       <div>
-        <div className="mb-4 flex items-center justify-center">
+        <div className="mb-4 flex flex-col items-center justify-center gap-2">
           <FileUpload
             accept="images"
             className="h-20 w-20 rounded-full border border-gray-300"
@@ -169,7 +169,11 @@ export function AddEditDomainForm({
             content={null}
             maxFileSizeMB={2}
             targetResolution={{ width: 240, height: 240 }}
+            disabled={plan === "free"}
           />
+          <div>
+            <ProBadgeTooltip content="Upload a custom logo to use on QR codes for links under this domain." />
+          </div>
         </div>
 
         <div className="flex items-center justify-between">

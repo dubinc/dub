@@ -92,9 +92,10 @@ export const PATCH = withWorkspace(
       }
     }
 
-    const logoUploaded = logo
-      ? await storage.upload(`logos/${domainId}_${nanoid(7)}`, logo)
-      : null;
+    const logoUploaded =
+      logo && workspace.plan !== "free"
+        ? await storage.upload(`logos/${domainId}_${nanoid(7)}`, logo)
+        : null;
 
     const domainRecord = await prisma.domain.update({
       where: {
@@ -107,8 +108,8 @@ export const PATCH = withWorkspace(
         ...(workspace.plan != "free" && {
           expiredUrl,
           notFoundUrl,
+          ...(logoUploaded && { logo: logoUploaded.url }),
         }),
-        ...(logoUploaded && { logo: logoUploaded.url }),
       },
       include: {
         registeredDomain: true,
