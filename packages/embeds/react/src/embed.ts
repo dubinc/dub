@@ -4,7 +4,7 @@
 // - Inline embed (dashboard)
 // - Floating button + widget
 // - Open on a button click
-// - Reuse addEventListener logic 
+// - Reuse addEventListener logic
 
 import { DubOptions } from "./types";
 
