@@ -2,7 +2,7 @@
 
 import { APP_DOMAIN } from "@dub/utils";
 import { useEffect } from "react";
-import { destroy, init } from "./embed";
+import { destroy, init } from "./embed-core";
 import { DubEmbedOptions } from "./types";
 
 export const DubWidget = ({ token, onTokenExpired }: DubEmbedOptions) => {
