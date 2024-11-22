@@ -14,7 +14,7 @@ export const POST = withWorkspace(async ({ workspace }) => {
     });
   }
 
-  const token = await fetch(`${APP_DOMAIN_WITH_NGROK}/api/referrals/tokens`, {
+  const token = await fetch(`${APP_DOMAIN_WITH_NGROK}/api/tokens/embed`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

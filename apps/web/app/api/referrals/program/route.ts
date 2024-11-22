@@ -1,4 +1,4 @@
-import { withEmbedToken } from "@/lib/referrals/auth";
+import { withEmbedToken } from "@/lib/auth/embed-token";
 import { ProgramSchema } from "@/lib/zod/schemas/programs";
 import { NextResponse } from "next/server";
 

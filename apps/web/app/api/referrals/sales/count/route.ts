@@ -1,6 +1,6 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { withEmbedToken } from "@/lib/auth/embed-token";
 import { prisma } from "@/lib/prisma";
-import { withEmbedToken } from "@/lib/referrals/auth";
 import { getPartnerSalesCountQuerySchema } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 

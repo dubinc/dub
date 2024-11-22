@@ -1,4 +1,4 @@
-import { withEmbedToken } from "@/lib/referrals/auth";
+import { withEmbedToken } from "@/lib/auth/embed-token";
 import { NextResponse } from "next/server";
 
 // GET /api/referrals/link - get the link for the given affiliate

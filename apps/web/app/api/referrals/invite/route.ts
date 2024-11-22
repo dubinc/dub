@@ -1,8 +1,8 @@
 import { invitePartner } from "@/lib/api/partners/invite-partner";
 import { parseRequestBody } from "@/lib/api/utils";
+import { withEmbedToken } from "@/lib/auth/embed-token";
 import { requestPartnerInviteSchema } from "@/lib/dots/schemas";
 import { prisma } from "@/lib/prisma";
-import { withEmbedToken } from "@/lib/referrals/auth";
 import { NextResponse } from "next/server";
 
 // GET /api/referrals/invite - check if a partner is already invited to a program

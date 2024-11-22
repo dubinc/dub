@@ -1,6 +1,6 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { calculateEarnings } from "@/lib/api/sales/commission";
-import { withEmbedToken } from "@/lib/referrals/auth";
+import { withEmbedToken } from "@/lib/auth/embed-token";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
 

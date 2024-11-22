@@ -1,6 +1,6 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { calculateEarnings } from "@/lib/api/sales/commission";
-import { withEmbedToken } from "@/lib/referrals/auth";
+import { withEmbedToken } from "@/lib/auth/embed-token";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
 

@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../api/errors";
-import { getLinkOrThrow } from "../api/links/get-link-or-throw";
 import { createId } from "../api/utils";
 import { ratelimit } from "../upstash";
 import {
@@ -9,16 +8,7 @@ import {
   EMBED_PUBLIC_TOKEN_LENGTH,
 } from "./constants";
 
-export const createEmbedToken = async ({
-  linkId,
-  workspaceId,
-}: {
-  linkId: string;
-  workspaceId: string;
-}) => {
-  const link = await getLinkOrThrow({ linkId, workspaceId });
-  console.log("link", link);
-
+export const createEmbedToken = async (linkId: string) => {
   const { success } = await ratelimit(10, "1 m").limit(linkId);
 
   if (!success) {
