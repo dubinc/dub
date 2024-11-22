@@ -27,8 +27,7 @@ import {
   Hyperlink,
   Photo,
 } from "@dub/ui/src/icons";
-import { API_DOMAIN, cn, linkConstructor } from "@dub/utils";
-import { DUB_QR_LOGO } from "@dub/utils/src/constants";
+import { API_DOMAIN, cn, DUB_QR_LOGO, linkConstructor } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Dispatch,
@@ -112,8 +111,8 @@ function LinkQRModalInner({
 
   const [data, setData] = useState(dataPersisted);
 
-  const logo = domainLogo || DUB_QR_LOGO;
   const hideLogo = data.hideLogo && plan !== "free";
+  const logo = domainLogo || DUB_QR_LOGO;
 
   const qrData = useMemo(
     () =>
