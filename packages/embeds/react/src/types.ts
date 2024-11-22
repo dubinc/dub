@@ -18,13 +18,28 @@ export interface Options {
   // The link token
   token: string;
 
+  // The trigger for the widget
+  trigger?: DubWidgetTrigger;
+
   // The widget was opened
   onOpen?: () => void;
 
   // The widget was closed
   onClose?: () => void;
 
+  // The placement of the widget
+  placement?: DubWidgetPlacement;
+
   containerStyles?: Partial<CSSStyleDeclaration>;
   popupStyles?: Partial<CSSStyleDeclaration>;
   buttonStyles?: Partial<CSSStyleDeclaration>;
 }
+
+export type DubWidgetTrigger = "floating-button" | "manual";
+
+export type DubWidgetPlacement =
+  | "bottom-right"
+  | "bottom-left"
+  | "top-right"
+  | "top-left"
+  | "center";

@@ -1,5 +1,5 @@
 import { createFloatingButton } from "./floating-button";
-import { DubEmbed, Options } from "./types";
+import { DubEmbed, DubWidgetPlacement, Options } from "./types";
 
 declare global {
   interface Window {
@@ -7,19 +7,52 @@ declare global {
   }
 }
 
-const CONTAINER_STYLES: Partial<CSSStyleDeclaration> = {
+const CONTAINER_STYLES = (
+  placement: DubWidgetPlacement,
+): Partial<CSSStyleDeclaration> => ({
   position: "fixed",
   display: "flex",
-  flexDirection: "column",
-  alignItems: "flex-end",
-  bottom: "0",
-  right: "0",
+  ...{
+    "bottom-right": {
+      bottom: "0",
+      right: "0",
+      alignItems: "flex-end",
+      flexDirection: "column",
+    },
+    "bottom-left": {
+      bottom: "0",
+      left: "0",
+      alignItems: "flex-start",
+      flexDirection: "column",
+    },
+    "top-right": {
+      top: "0",
+      right: "0",
+      alignItems: "flex-end",
+      flexDirection: "column-reverse",
+    },
+    "top-left": {
+      top: "0",
+      left: "0",
+      alignItems: "flex-start",
+      flexDirection: "column-reverse",
+    },
+    center: {
+      top: "50%",
+      left: "50%",
+      alignItems: "flex-start",
+      flexDirection: "column",
+      transform: "translate(-50%, -50%)",
+    },
+  }[placement],
   width: "400px",
   zIndex: "9998",
   pointerEvents: "none",
-};
+});
 
-const POPUP_STYLES: Partial<CSSStyleDeclaration> = {
+const POPUP_STYLES = (
+  placement: DubWidgetPlacement,
+): Partial<CSSStyleDeclaration> => ({
   width: "100%",
   height: "100dvh",
   maxHeight: "500px",
@@ -29,9 +62,15 @@ const POPUP_STYLES: Partial<CSSStyleDeclaration> = {
   boxShadow: "0px 4px 20px 0px #0000000D",
   margin: "16px",
   overflow: "hidden",
-  transformOrigin: "bottom right",
+  ...{
+    "bottom-right": { transformOrigin: "bottom right" },
+    "bottom-left": { transformOrigin: "bottom left" },
+    "top-right": { transformOrigin: "top right" },
+    "top-left": { transformOrigin: "top left" },
+    center: { transformOrigin: "center" },
+  }[placement],
   pointerEvents: "auto",
-};
+});
 
 const WIDGET_URL = "http://localhost:8888/embed/widget";
 
@@ -51,7 +90,7 @@ const DUB_CONTAINER_ID = "dub-embed-container";
 const DUB_POPUP_ID = "dub-embed-popup";
 
 const renderWidget = (options: Options): HTMLElement | null => {
-  const { token, onOpen, onClose, containerStyles, popupStyles, buttonStyles } =
+  const { token, placement, onOpen, onClose, containerStyles, popupStyles } =
     options;
 
   const existingContainer = document.getElementById(DUB_CONTAINER_ID);
@@ -69,14 +108,17 @@ const renderWidget = (options: Options): HTMLElement | null => {
 
   const container = document.createElement("div");
   container.id = DUB_CONTAINER_ID;
-  Object.assign(container.style, { ...CONTAINER_STYLES, containerStyles });
+  Object.assign(container.style, {
+    ...CONTAINER_STYLES(placement ?? "bottom-right"),
+    containerStyles,
+  });
 
   const popup: HTMLElement =
     container.querySelector(`#${DUB_POPUP_ID}`) ??
     document.createElement("div");
   popup.id = DUB_POPUP_ID;
   Object.assign(popup.style, {
-    ...POPUP_STYLES,
+    ...POPUP_STYLES(placement ?? "bottom-right"),
     ...popupStyles,
     display: "none",
   });
@@ -146,17 +188,23 @@ export const toggleWidget = (): void => {
 };
 
 export const init = (options: Options) => {
+  options.trigger = options.trigger ?? "floating-button";
+  options.placement = options.placement ?? "bottom-right";
+
   console.debug("[Dub] Initializing");
 
   const container = renderWidget(options);
   if (!container) return;
 
-  createFloatingButton({
-    container,
-    onClick: () => {
-      toggleWidget();
-    },
-  });
+  if (options.trigger === "floating-button")
+    createFloatingButton({
+      container,
+      buttonStyles: options.buttonStyles,
+      placement: options.placement,
+      onClick: () => {
+        toggleWidget();
+      },
+    });
 };
 
 export const destroy = (): void => {

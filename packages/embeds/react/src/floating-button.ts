@@ -1,7 +1,18 @@
+import { DubWidgetPlacement } from "./types";
+
 const DUB_FLOATING_BUTTON_ID = "dub-floating-button";
 
-const FLOATING_BUTTON_STYLES: Partial<CSSStyleDeclaration> = {
-  margin: "0 16px 16px 0",
+const FLOATING_BUTTON_STYLES = (
+  placement: DubWidgetPlacement,
+): Partial<CSSStyleDeclaration> => ({
+  margin: "16px",
+  ...{
+    "bottom-right": { marginTop: "0" },
+    "bottom-left": { marginTop: "0" },
+    "top-right": { marginBottom: "0" },
+    "top-left": { marginBottom: "0" },
+    center: {},
+  }[placement],
   backgroundColor: "#171717",
   color: "#fafafa",
   padding: "12px",
@@ -9,21 +20,23 @@ const FLOATING_BUTTON_STYLES: Partial<CSSStyleDeclaration> = {
   border: "none",
   transition: "transform 0.1s ease-in-out",
   pointerEvents: "auto",
-};
+});
 
 export const createFloatingButton = ({
   container,
   buttonStyles,
+  placement,
   onClick,
 }: {
   container: HTMLElement;
   buttonStyles?: Record<string, any>;
+  placement: DubWidgetPlacement;
   onClick: () => void;
 }): void => {
   const button = document.createElement("button");
   button.id = DUB_FLOATING_BUTTON_ID;
   Object.assign(button.style, {
-    ...FLOATING_BUTTON_STYLES,
+    ...FLOATING_BUTTON_STYLES(placement),
     ...buttonStyles,
   });
 

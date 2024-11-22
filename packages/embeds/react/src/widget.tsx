@@ -3,9 +3,13 @@
 import { APP_DOMAIN } from "@dub/utils";
 import { useEffect } from "react";
 import { destroy, init } from "./embed-core";
-import { DubEmbedOptions } from "./types";
+import { DubEmbedOptions, Options } from "./types";
 
-export const DubWidget = ({ token, onTokenExpired }: DubEmbedOptions) => {
+export const DubWidget = ({
+  token,
+  onTokenExpired,
+  ...options
+}: DubEmbedOptions & Partial<Options>) => {
   // Listen for messages from the iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -25,7 +29,7 @@ export const DubWidget = ({ token, onTokenExpired }: DubEmbedOptions) => {
   }, [onTokenExpired]);
 
   useEffect(() => {
-    init({ token });
+    init({ token, ...options });
 
     return () => destroy();
   }, []);
