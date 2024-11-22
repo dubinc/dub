@@ -4,8 +4,13 @@ export interface DubEmbedOptions {
 }
 
 export interface DubEmbed {
-  // Open the widget
-  open: (options: Options) => void;
+  init: (options: Options) => void;
+
+  isWidgetOpen: boolean;
+  openWidget: () => void;
+  closeWidget: () => void;
+
+  destroy: () => void;
 }
 
 export interface Options {

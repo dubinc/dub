@@ -1,3 +1,4 @@
+import { createFloatingButton } from "./floating-button";
 import { DubEmbed, Options } from "./types";
 
 declare global {
@@ -8,26 +9,32 @@ declare global {
 
 window.Dub = (window.Dub || {}) as DubEmbed;
 
-const buttonStyles: Partial<CSSStyleDeclaration> = {
-  position: "fixed",
-  bottom: "20px",
-  right: "20px",
-  zIndex: "9999",
-};
-
 const containerStyles: Partial<CSSStyleDeclaration> = {
-  width: "450px",
-  height: "600px",
-  boxShadow: "0 0 20px rgba(0,0,0,0.1)",
-  borderRadius: "10px",
-  overflow: "hidden",
   position: "fixed",
-  bottom: "80px",
-  right: "20px",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "flex-end",
+  bottom: "0",
+  right: "0",
+  width: "400px",
   zIndex: "9998",
+  pointerEvents: "none",
 };
 
-const widgetUrl = "http://localhost:8888/embed/widget";
+const popupStyles: Partial<CSSStyleDeclaration> = {
+  width: "100%",
+  height: "100dvh",
+  maxHeight: "500px",
+  backgroundColor: "white",
+  borderRadius: "12px",
+  border: "1px solid #E5E5E5",
+  margin: "16px",
+  overflow: "hidden",
+  transformOrigin: "bottom right",
+  pointerEvents: "auto",
+};
+
+const WIDGET_URL = "http://localhost:8888/embed/widget";
 
 const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
   const iframe = document.createElement("iframe");
@@ -41,87 +48,59 @@ const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
   return iframe;
 };
 
+const DUB_CONTAINER_ID = "dub-embed-container";
+const DUB_POPUP_ID = "dub-embed-popup";
+
 const renderWidget = (
   options: Pick<Options, "token" | "onOpen" | "onClose">,
-): void => {
-  const containerId = "dub-widget-container";
+): HTMLElement | null => {
   const { token, onOpen, onClose } = options;
 
-  const existingContainer = document.getElementById(containerId);
+  const existingContainer = document.getElementById(DUB_CONTAINER_ID);
 
   if (existingContainer) {
     document.body.removeChild(existingContainer);
     onClose?.();
-    return;
+    return existingContainer;
   }
 
   if (!token) {
     console.error("[Dub] A link token is required to embed the widget.");
-    return;
+    return null;
   }
 
   const container = document.createElement("div");
-  container.id = containerId;
+  container.id = DUB_CONTAINER_ID;
   Object.assign(container.style, containerStyles);
 
-  const iframe = createIframe(widgetUrl, token);
+  const popup: HTMLElement =
+    container.querySelector(`#${DUB_POPUP_ID}`) ??
+    document.createElement("div");
+  popup.id = DUB_POPUP_ID;
+  Object.assign(popup.style, { ...popupStyles, display: "none" });
 
-  container.appendChild(iframe);
+  const iframe = createIframe(WIDGET_URL, token);
+
+  popup.appendChild(iframe);
+  container.appendChild(popup);
+
   document.body.appendChild(container);
 
-  onOpen?.();
-};
+  // onOpen?.();
 
-// Open the widget via JavaScript API
-window.Dub.open = (options: Options) => {
-  renderWidget(options);
+  return container;
 };
 
 // Initialize when an external button is clicked
-const addButtonListener = (): void => {
-  const button = document.querySelector(
-    "[data-dub-token]",
-  ) as HTMLElement | null;
+// const addButtonListener = (): void => {
+//   const button = document.querySelector(
+//     "[data-dub-token]",
+//   ) as HTMLElement | null;
 
-  if (!button) {
-    console.error("[Dub] No button found with data-dub-token.");
-    return;
-  }
-
-  button.addEventListener("click", () => {
-    const token = button.getAttribute("data-dub-token");
-
-    if (!token) {
-      console.error("[Dub] A link token is required to embed the widget.");
-      return;
-    }
-
-    renderWidget({ token });
-  });
-};
-
-// Initialize when DOM is ready
-const init = () => {
-  console.debug("[Dub] Initializing");
-  setTimeout(addButtonListener, 100);
-};
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", init);
-} else {
-  init();
-}
-
-// Initialize when Dub floating button is clicked
-// const createFloatingButton = (): void => {
-//   const button = document.createElement("div");
-//   Object.assign(button.style, buttonStyles);
-
-//   button.innerHTML = `
-//       <button>
-//         <span>Click Me</span>
-//       </button>
-//     `;
+//   if (!button) {
+//     console.error("[Dub] No button found with data-dub-token.");
+//     return;
+//   }
 
 //   button.addEventListener("click", () => {
 //     const token = button.getAttribute("data-dub-token");
@@ -133,16 +112,80 @@ if (document.readyState === "loading") {
 
 //     renderWidget({ token });
 //   });
-
-//   document.body.appendChild(button);
 // };
+
+let isWidgetOpen = false;
+
+const openWidget = (): void => {
+  const popup = document.getElementById(DUB_POPUP_ID);
+  if (!popup) {
+    console.error("[Dub] No popup found.");
+    return;
+  }
+
+  popup.getAnimations().forEach((a) => a.cancel());
+  popup.style.display = "block";
+  popup.animate(
+    [
+      { transform: "scale(0.8)", opacity: 0 },
+      { transform: "scale(1)", opacity: 1 },
+    ],
+    {
+      duration: 100,
+      easing: "ease-in-out",
+      fill: "forwards",
+    },
+  );
+
+  isWidgetOpen = window.Dub.isWidgetOpen = true;
+};
+
+const closeWidget = (): void => {
+  const popup = document.getElementById(DUB_POPUP_ID);
+  if (!popup) return;
+
+  popup.getAnimations().forEach((a) => a.cancel());
+  const animation = popup.animate([{ opacity: 0, transform: "scale(0.8)" }], {
+    duration: 100,
+    easing: "ease-in-out",
+    fill: "forwards",
+  });
+
+  animation.onfinish = () => {
+    if (popup && !isWidgetOpen) popup.style.display = "none";
+  };
+
+  isWidgetOpen = window.Dub.isWidgetOpen = false;
+};
+
+// Initialize when DOM is ready
+const init = (options: Options) => {
+  console.debug("[Dub] Initializing");
+
+  const container = renderWidget(options);
+  if (!container) return;
+
+  createFloatingButton({
+    container,
+    onClick: () => {
+      isWidgetOpen ? closeWidget() : openWidget();
+    },
+  });
+};
+
+const destroy = (): void => {
+  document.querySelectorAll(`#${DUB_CONTAINER_ID}`).forEach((c) => c.remove());
+};
+
+window.Dub.init = init;
+window.Dub.destroy = destroy;
+window.Dub.openWidget = openWidget;
+window.Dub.closeWidget = closeWidget;
 
 // TODO:
 // - Add a loading state
-// - Add a close button
+// - Add a close button icon
 // - Inline embed (dashboard)
-// - Floating button + widget
-// - Open on a button click
 // - Reuse addEventListener logic
 
-// export {};
+export { destroy, init };
