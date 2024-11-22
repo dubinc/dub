@@ -111,6 +111,16 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       },
     }),
 
+    // remove logo from all domains for the workspace
+    prisma.domain.updateMany({
+      where: {
+        projectId: workspace.id,
+      },
+      data: {
+        logo: null,
+      },
+    }),
+
     // remove root domain link for all domains from MySQL
     prisma.link.updateMany({
       where: {
