@@ -13,7 +13,7 @@ export default function ReferralsPageClient() {
 
   // Get publicToken from server when component mounts
   const createPublicToken = useCallback(async () => {
-    const response = await fetch(`/api/workspaces/${slug}/referrals-token`, {
+    const response = await fetch(`/api/workspaces/${slug}/embed-token`, {
       method: "POST",
     });
 

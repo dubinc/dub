@@ -1,12 +1,12 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import { createReferralPublicToken } from "@/lib/referrals/create-referral-token";
+import { createEmbedToken } from "@/lib/referrals/create-embed-token";
 import { referralTokenSchema } from "@/lib/zod/schemas/referrals";
 import { NextResponse } from "next/server";
 
-// GET /api/workspaces/[idOrSlug]/referrals-token - create a new referral token for the workspace
+// GET /api/workspaces/[idOrSlug]/embed-token - create a new public embed token for the workspace
 export const POST = withWorkspace(async ({ workspace }) => {
-  const { referralLinkId, id } = workspace;
+  const { referralLinkId } = workspace;
 
   if (!referralLinkId) {
     throw new DubApiError({
@@ -15,9 +15,8 @@ export const POST = withWorkspace(async ({ workspace }) => {
     });
   }
 
-  const token = await createReferralPublicToken({
+  const token = await createEmbedToken({
     linkId: referralLinkId,
-    workspaceId: id,
   });
 
   return NextResponse.json(referralTokenSchema.parse(token), {
