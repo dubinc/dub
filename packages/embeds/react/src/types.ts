@@ -1,5 +1,4 @@
-export interface DubEmbedProps {
-  linkToken: string;
+export interface DubOptions {
+  token: string;
   onTokenExpired?: () => void;
-  url?: string;
 }

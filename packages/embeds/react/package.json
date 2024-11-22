@@ -13,7 +13,8 @@
     "build": "tsup",
     "lint": "eslint src/",
     "dev": "tsup --watch",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "preview": "vite --port=3101 --open"
   },
   "peerDependencies": {
     "react": "^18.2.0",

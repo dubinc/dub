@@ -38,7 +38,7 @@ export default function ReferralsPageClient() {
 
   return publicToken ? (
     <DubDashboard
-      linkToken={publicToken}
+      token={publicToken}
       onTokenExpired={() => createPublicToken()}
     />
   ) : (

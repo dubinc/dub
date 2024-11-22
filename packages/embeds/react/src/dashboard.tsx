@@ -1,13 +1,9 @@
 import { APP_DOMAIN } from "@dub/utils";
 import { useEffect } from "react";
-import { DubEmbedProps } from "./types";
+import { DubOptions } from "./types";
 import { iframeStyles } from "./utils";
 
-export const DubDashboard = ({
-  linkToken,
-  onTokenExpired,
-  url = `${APP_DOMAIN}/embed/dashboard`,
-}: DubEmbedProps) => {
+export const DubDashboard = ({ token, onTokenExpired }: DubOptions) => {
   // Listen for messages from the iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -27,12 +23,20 @@ export const DubDashboard = ({
   }, [onTokenExpired]);
 
   // If no link token is provided
-  if (!linkToken) {
+  if (!token) {
     console.error("[Dub] A link token is required to embed the dashboard.");
     return null;
   }
 
-  const dashboardUrl = `${url}?token=${linkToken}`;
+  const dashboardUrl = `${APP_DOMAIN}/embed/dashboard?token=${token}`;
 
-  return <iframe src={dashboardUrl} style={iframeStyles} />;
+  return (
+    <iframe
+      src={dashboardUrl}
+      style={{
+        ...iframeStyles,
+        height: "100vh",
+      }}
+    />
+  );
 };
