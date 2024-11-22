@@ -7,7 +7,7 @@ declare global {
   }
 }
 
-const containerStyles: Partial<CSSStyleDeclaration> = {
+const CONTAINER_STYLES: Partial<CSSStyleDeclaration> = {
   position: "fixed",
   display: "flex",
   flexDirection: "column",
@@ -19,7 +19,7 @@ const containerStyles: Partial<CSSStyleDeclaration> = {
   pointerEvents: "none",
 };
 
-const popupStyles: Partial<CSSStyleDeclaration> = {
+const POPUP_STYLES: Partial<CSSStyleDeclaration> = {
   width: "100%",
   height: "100dvh",
   maxHeight: "500px",
@@ -49,10 +49,9 @@ const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
 const DUB_CONTAINER_ID = "dub-embed-container";
 const DUB_POPUP_ID = "dub-embed-popup";
 
-const renderWidget = (
-  options: Pick<Options, "token" | "onOpen" | "onClose">,
-): HTMLElement | null => {
-  const { token, onOpen, onClose } = options;
+const renderWidget = (options: Options): HTMLElement | null => {
+  const { token, onOpen, onClose, containerStyles, popupStyles, buttonStyles } =
+    options;
 
   const existingContainer = document.getElementById(DUB_CONTAINER_ID);
 
@@ -69,13 +68,17 @@ const renderWidget = (
 
   const container = document.createElement("div");
   container.id = DUB_CONTAINER_ID;
-  Object.assign(container.style, containerStyles);
+  Object.assign(container.style, { ...CONTAINER_STYLES, containerStyles });
 
   const popup: HTMLElement =
     container.querySelector(`#${DUB_POPUP_ID}`) ??
     document.createElement("div");
   popup.id = DUB_POPUP_ID;
-  Object.assign(popup.style, { ...popupStyles, display: "none" });
+  Object.assign(popup.style, {
+    ...POPUP_STYLES,
+    ...popupStyles,
+    display: "none",
+  });
 
   const iframe = createIframe(WIDGET_URL, token);
 

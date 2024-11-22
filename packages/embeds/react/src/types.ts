@@ -22,4 +22,8 @@ export interface Options {
 
   // The widget was closed
   onClose?: () => void;
+
+  containerStyles?: Partial<CSSStyleDeclaration>;
+  popupStyles?: Partial<CSSStyleDeclaration>;
+  buttonStyles?: Partial<CSSStyleDeclaration>;
 }
