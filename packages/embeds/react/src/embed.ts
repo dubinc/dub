@@ -4,6 +4,7 @@
 // - Inline embed (dashboard)
 // - Floating button + widget
 // - Open on a button click
+// - Reuse addEventListener logic 
 
 import { DubOptions } from "./types";
 
@@ -53,8 +54,6 @@ const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
   iframe.style.height = "100%";
   iframe.style.border = "none";
   iframe.setAttribute("credentialssupport", "");
-  iframe.setAttribute("allow", "same-origin");
-  iframe.setAttribute("crossorigin", "use-credentials");
 
   return iframe;
 };

@@ -7,6 +7,7 @@ import {
   MoneyBill2,
   ToggleGroup,
   useCopyToClipboard,
+  Wordmark,
 } from "@dub/ui";
 import { currencyFormatter, getPrettyUrl } from "@dub/utils";
 import { useState } from "react";
@@ -24,9 +25,9 @@ export function EmbedWidgetPageClient() {
 
   return (
     <div>
-      <div className="flex flex-col gap-2 rounded-lg rounded-b-none bg-black p-4">
+      <div className="flex flex-col gap-2 rounded-lg rounded-b-none bg-black p-8">
         <MoneyBill2 className="flex size-14 rounded-full bg-gray-800 p-2 text-white" />
-        <h2 className="mt-4 text-lg font-medium text-white">
+        <h2 className="mt-4 text-xl font-medium text-white">
           Refer a friend and earn
         </h2>
 
@@ -44,7 +45,7 @@ export function EmbedWidgetPageClient() {
           ]}
           selected={selectedTab}
           selectAction={(option: Tab) => setSelectedTab(option)}
-          className="grid grid-cols-2 bg-gray-100"
+          className="grid grid-cols-2 bg-neutral-100"
           optionClassName="w-full h-10"
           indicatorClassName="rounded-md bg-white border-none shadow-sm"
         />
@@ -54,12 +55,17 @@ export function EmbedWidgetPageClient() {
             <>
               <div className="flex flex-col gap-2">
                 {!isLoadingLink && link ? (
-                  <input
-                    type="text"
-                    readOnly
-                    value={getPrettyUrl(link.shortLink)}
-                    className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 lg:min-w-64 xl:min-w-72"
-                  />
+                  <>
+                    <span className="text-sm text-neutral-500">
+                      Invite link
+                    </span>
+                    <input
+                      type="text"
+                      readOnly
+                      value={getPrettyUrl(link.shortLink)}
+                      className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 lg:min-w-64 xl:min-w-72"
+                    />
+                  </>
                 ) : (
                   <div className="h-10 animate-pulse rounded-md bg-neutral-200" />
                 )}
@@ -81,7 +87,7 @@ export function EmbedWidgetPageClient() {
 
           {selectedTab === "rewards" && (
             <>
-              <h2 className="text-lg font-bold">Activity</h2>
+              <h2 className="text-lg font-bold">Rewards earned</h2>
               {isLoadingLink || !link ? (
                 <div className="mt-4 grid grid-cols-3 gap-4">
                   <div className="flex animate-pulse flex-col gap-2 rounded-lg bg-gray-200 p-3 shadow-sm">
@@ -124,6 +130,17 @@ export function EmbedWidgetPageClient() {
               )}
             </>
           )}
+
+          <div className="flex items-center justify-center">
+            <a
+              href="https://d.to/conversions"
+              target="_blank"
+              className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-white p-2 transition-colors"
+            >
+              <p className="text-sm text-gray-700">Powered by</p>
+              <Wordmark className="h-4" />
+            </a>
+          </div>
         </div>
       </div>
     </div>
