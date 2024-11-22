@@ -1,11 +1,11 @@
 import { prisma } from "@/lib/prisma";
-import { withAuth } from "@/lib/referrals/auth";
+import { withEmbedToken } from "@/lib/referrals/auth";
 import z from "@/lib/zod";
 import { PartnerSaleResponseSchema } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 
 // GET /api/referrals/sales – get sales for a link
-export const GET = withAuth(async ({ link }) => {
+export const GET = withEmbedToken(async ({ link }) => {
   const sales = await prisma.sale.findMany({
     where: {
       linkId: link.id,

@@ -7,7 +7,7 @@ import { AxiomRequest, withAxiom } from "next-axiom";
 import { cookies } from "next/headers";
 import { EMBED_PUBLIC_TOKEN_COOKIE_NAME } from "./constants";
 
-interface WithAuthHandler {
+interface WithEmbedTokenHandler {
   ({
     req,
     params,
@@ -25,7 +25,7 @@ interface WithAuthHandler {
   }): Promise<Response>;
 }
 
-export const withAuth = (handler: WithAuthHandler) => {
+export const withEmbedToken = (handler: WithEmbedTokenHandler) => {
   return withAxiom(
     async (
       req: AxiomRequest,
