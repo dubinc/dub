@@ -48,6 +48,9 @@ importers:
       '@dub/analytics':
         specifier: ^0.0.21
         version: 0.0.21
+      '@dub/embed-react':
+        specifier: workspace:*
+        version: link:../../packages/embeds/react
       '@dub/tailwind-config':
         specifier: workspace:*
         version: link:../../packages/tailwind-config
@@ -486,6 +489,166 @@ importers:
         specifier: ^5.6.2
         version: 5.6.2
 
+  packages/embeds/react:
+    dependencies:
+      '@floating-ui/react':
+        specifier: ^0.26.20
+        version: 0.26.20(react-dom@18.2.0)(react@18.2.0)
+      '@internationalized/date':
+        specifier: ^3.5.3
+        version: 3.5.4
+      '@radix-ui/react-accordion':
+        specifier: ^1.0.1
+        version: 1.0.1(react-dom@18.2.0)(react@18.2.0)
+      '@radix-ui/react-checkbox':
+        specifier: ^1.0.4
+        version: 1.0.4(@types/react-dom@18.2.14)(@types/react@18.2.47)(react-dom@18.2.0)(react@18.2.0)
+      '@radix-ui/react-dialog':
+        specifier: 1.0.5
+        version: 1.0.5(@types/react-dom@18.2.14)(@types/react@18.2.47)(react-dom@18.2.0)(react@18.2.0)
+      '@radix-ui/react-label':
+        specifier: ^2.0.2
+        version: 2.0.2(@types/react-dom@18.2.14)(@types/react@18.2.47)(react-dom@18.2.0)(react@18.2.0)
+      '@radix-ui/react-navigation-menu':
+        specifier: ^1.1.2
+        version: 1.1.2(react-dom@18.2.0)(react@18.2.0)
+      '@radix-ui/react-popover':
+        specifier: 1.0.7
+        version: 1.0.7(@types/react-dom@18.2.14)(@types/react@18.2.47)(react-dom@18.2.0)(react@18.2.0)
+      '@radix-ui/react-radio-group':
+        specifier: ^1.1.3
+        version: 1.1.3(@types/react-dom@18.2.14)(@types/react@18.2.47)(react-dom@18.2.0)(react@18.2.0)
+      '@radix-ui/react-slot':
+        specifier: 1.0.1
+        version: 1.0.1(react@18.2.0)
+      '@radix-ui/react-switch':
+        specifier: ^1.0.1
+        version: 1.0.1(react-dom@18.2.0)(react@18.2.0)
+      '@radix-ui/react-tooltip':
+        specifier: ^1.0.7
+        version: 1.0.7(@types/react-dom@18.2.14)(@types/react@18.2.47)(react-dom@18.2.0)(react@18.2.0)
+      '@radix-ui/react-visually-hidden':
+        specifier: ^1.1.0
+        version: 1.1.0(@types/react-dom@18.2.14)(@types/react@18.2.47)(react-dom@18.2.0)(react@18.2.0)
+      '@react-aria/datepicker':
+        specifier: ^3.10.0
+        version: 3.10.1(react-dom@18.2.0)(react@18.2.0)
+      '@react-stately/datepicker':
+        specifier: ^3.9.3
+        version: 3.9.4(react@18.2.0)
+      '@tanstack/react-table':
+        specifier: ^8.17.3
+        version: 8.17.3(react-dom@18.2.0)(react@18.2.0)
+      '@visx/curve':
+        specifier: ^3.3.0
+        version: 3.3.0
+      '@visx/gradient':
+        specifier: ^3.3.0
+        version: 3.3.0(react@18.2.0)
+      '@visx/group':
+        specifier: ^3.3.0
+        version: 3.3.0(react@18.2.0)
+      '@visx/responsive':
+        specifier: ^2.10.0
+        version: 2.10.0(react@18.2.0)
+      '@visx/scale':
+        specifier: ^3.3.0
+        version: 3.3.0
+      '@visx/shape':
+        specifier: ^2.12.2
+        version: 2.12.2(react@18.2.0)
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.0
+      cmdk:
+        specifier: ^0.2.0
+        version: 0.2.0(@types/react-dom@18.2.14)(@types/react@18.2.47)(react-dom@18.2.0)(react@18.2.0)
+      date-fns:
+        specifier: ^3.6.0
+        version: 3.6.0
+      embla-carousel-autoplay:
+        specifier: ^8.1.7
+        version: 8.1.7(embla-carousel@8.1.7)
+      embla-carousel-react:
+        specifier: ^8.1.7
+        version: 8.1.7(react@18.2.0)
+      framer-motion:
+        specifier: ^10.16.16
+        version: 10.17.4(react-dom@18.2.0)(react@18.2.0)
+      js-cookie:
+        specifier: ^3.0.5
+        version: 3.0.5
+      js-sha256:
+        specifier: ^0.11.0
+        version: 0.11.0
+      linkify-react:
+        specifier: ^4.1.3
+        version: 4.1.3(linkifyjs@4.1.3)(react@18.2.0)
+      linkifyjs:
+        specifier: ^4.1.3
+        version: 4.1.3
+      lucide-react:
+        specifier: ^0.367.0
+        version: 0.367.0(react@18.2.0)
+      react-day-picker:
+        specifier: ^8.10.1
+        version: 8.10.1(date-fns@3.6.0)(react@18.2.0)
+      react-dom:
+        specifier: ^18.2.0
+        version: 18.2.0(react@18.2.0)
+      sonner:
+        specifier: ^1.4.41
+        version: 1.4.41(react-dom@18.2.0)(react@18.2.0)
+      swr:
+        specifier: ^2.1.5
+        version: 2.1.5(react@18.2.0)
+      use-debounce:
+        specifier: ^8.0.4
+        version: 8.0.4(react@18.2.0)
+      vaul:
+        specifier: ^0.9.6
+        version: 0.9.6(@types/react-dom@18.2.14)(@types/react@18.2.47)(react-dom@18.2.0)(react@18.2.0)
+    devDependencies:
+      '@dub/tailwind-config':
+        specifier: workspace:*
+        version: link:../../tailwind-config
+      '@dub/utils':
+        specifier: workspace:*
+        version: link:../../utils
+      '@types/js-cookie':
+        specifier: ^3.0.6
+        version: 3.0.6
+      '@types/react':
+        specifier: ^18.2.47
+        version: 18.2.47
+      '@types/react-dom':
+        specifier: ^18.2.14
+        version: 18.2.14
+      autoprefixer:
+        specifier: ^10.4.16
+        version: 10.4.16(postcss@8.4.31)
+      next:
+        specifier: 14.2.0-canary.67
+        version: 14.2.0-canary.67(react-dom@18.2.0)(react@18.2.0)
+      postcss:
+        specifier: ^8.4.31
+        version: 8.4.31
+      react:
+        specifier: ^18.2.0
+        version: 18.2.0
+      tailwindcss:
+        specifier: ^3.4.4
+        version: 3.4.4
+      tsconfig:
+        specifier: workspace:*
+        version: link:../../tsconfig
+      tsup:
+        specifier: ^6.1.3
+        version: 6.7.0(postcss@8.4.31)(typescript@5.6.2)
+      typescript:
+        specifier: ^5.1.6
+        version: 5.6.2
+
   packages/stripe-app:
     dependencies:
       '@stripe/ui-extension-sdk':
@@ -731,166 +894,6 @@ importers:
       typescript:
         specifier: ^5.1.6
         version: 5.1.6
-
-  packages/widgets:
-    dependencies:
-      '@floating-ui/react':
-        specifier: ^0.26.20
-        version: 0.26.20(react-dom@18.2.0)(react@18.2.0)
-      '@internationalized/date':
-        specifier: ^3.5.3
-        version: 3.5.4
-      '@radix-ui/react-accordion':
-        specifier: ^1.0.1
-        version: 1.0.1(react-dom@18.2.0)(react@18.2.0)
-      '@radix-ui/react-checkbox':
-        specifier: ^1.0.4
-        version: 1.0.4(@types/react-dom@18.2.14)(@types/react@18.2.47)(react-dom@18.2.0)(react@18.2.0)
-      '@radix-ui/react-dialog':
-        specifier: 1.0.5
-        version: 1.0.5(@types/react-dom@18.2.14)(@types/react@18.2.47)(react-dom@18.2.0)(react@18.2.0)
-      '@radix-ui/react-label':
-        specifier: ^2.0.2
-        version: 2.0.2(@types/react-dom@18.2.14)(@types/react@18.2.47)(react-dom@18.2.0)(react@18.2.0)
-      '@radix-ui/react-navigation-menu':
-        specifier: ^1.1.2
-        version: 1.1.2(react-dom@18.2.0)(react@18.2.0)
-      '@radix-ui/react-popover':
-        specifier: 1.0.7
-        version: 1.0.7(@types/react-dom@18.2.14)(@types/react@18.2.47)(react-dom@18.2.0)(react@18.2.0)
-      '@radix-ui/react-radio-group':
-        specifier: ^1.1.3
-        version: 1.1.3(@types/react-dom@18.2.14)(@types/react@18.2.47)(react-dom@18.2.0)(react@18.2.0)
-      '@radix-ui/react-slot':
-        specifier: 1.0.1
-        version: 1.0.1(react@18.2.0)
-      '@radix-ui/react-switch':
-        specifier: ^1.0.1
-        version: 1.0.1(react-dom@18.2.0)(react@18.2.0)
-      '@radix-ui/react-tooltip':
-        specifier: ^1.0.7
-        version: 1.0.7(@types/react-dom@18.2.14)(@types/react@18.2.47)(react-dom@18.2.0)(react@18.2.0)
-      '@radix-ui/react-visually-hidden':
-        specifier: ^1.1.0
-        version: 1.1.0(@types/react-dom@18.2.14)(@types/react@18.2.47)(react-dom@18.2.0)(react@18.2.0)
-      '@react-aria/datepicker':
-        specifier: ^3.10.0
-        version: 3.10.1(react-dom@18.2.0)(react@18.2.0)
-      '@react-stately/datepicker':
-        specifier: ^3.9.3
-        version: 3.9.4(react@18.2.0)
-      '@tanstack/react-table':
-        specifier: ^8.17.3
-        version: 8.17.3(react-dom@18.2.0)(react@18.2.0)
-      '@visx/curve':
-        specifier: ^3.3.0
-        version: 3.3.0
-      '@visx/gradient':
-        specifier: ^3.3.0
-        version: 3.3.0(react@18.2.0)
-      '@visx/group':
-        specifier: ^3.3.0
-        version: 3.3.0(react@18.2.0)
-      '@visx/responsive':
-        specifier: ^2.10.0
-        version: 2.10.0(react@18.2.0)
-      '@visx/scale':
-        specifier: ^3.3.0
-        version: 3.3.0
-      '@visx/shape':
-        specifier: ^2.12.2
-        version: 2.12.2(react@18.2.0)
-      class-variance-authority:
-        specifier: ^0.7.0
-        version: 0.7.0
-      cmdk:
-        specifier: ^0.2.0
-        version: 0.2.0(@types/react-dom@18.2.14)(@types/react@18.2.47)(react-dom@18.2.0)(react@18.2.0)
-      date-fns:
-        specifier: ^3.6.0
-        version: 3.6.0
-      embla-carousel-autoplay:
-        specifier: ^8.1.7
-        version: 8.1.7(embla-carousel@8.1.7)
-      embla-carousel-react:
-        specifier: ^8.1.7
-        version: 8.1.7(react@18.2.0)
-      framer-motion:
-        specifier: ^10.16.16
-        version: 10.17.4(react-dom@18.2.0)(react@18.2.0)
-      js-cookie:
-        specifier: ^3.0.5
-        version: 3.0.5
-      js-sha256:
-        specifier: ^0.11.0
-        version: 0.11.0
-      linkify-react:
-        specifier: ^4.1.3
-        version: 4.1.3(linkifyjs@4.1.3)(react@18.2.0)
-      linkifyjs:
-        specifier: ^4.1.3
-        version: 4.1.3
-      lucide-react:
-        specifier: ^0.367.0
-        version: 0.367.0(react@18.2.0)
-      react-day-picker:
-        specifier: ^8.10.1
-        version: 8.10.1(date-fns@3.6.0)(react@18.2.0)
-      react-dom:
-        specifier: ^18.2.0
-        version: 18.2.0(react@18.2.0)
-      sonner:
-        specifier: ^1.4.41
-        version: 1.4.41(react-dom@18.2.0)(react@18.2.0)
-      swr:
-        specifier: ^2.1.5
-        version: 2.1.5(react@18.2.0)
-      use-debounce:
-        specifier: ^8.0.4
-        version: 8.0.4(react@18.2.0)
-      vaul:
-        specifier: ^0.9.6
-        version: 0.9.6(@types/react-dom@18.2.14)(@types/react@18.2.47)(react-dom@18.2.0)(react@18.2.0)
-    devDependencies:
-      '@dub/tailwind-config':
-        specifier: workspace:*
-        version: link:../tailwind-config
-      '@dub/utils':
-        specifier: workspace:*
-        version: link:../utils
-      '@types/js-cookie':
-        specifier: ^3.0.6
-        version: 3.0.6
-      '@types/react':
-        specifier: ^18.2.47
-        version: 18.2.47
-      '@types/react-dom':
-        specifier: ^18.2.14
-        version: 18.2.14
-      autoprefixer:
-        specifier: ^10.4.16
-        version: 10.4.16(postcss@8.4.31)
-      next:
-        specifier: 14.2.0-canary.67
-        version: 14.2.0-canary.67(react-dom@18.2.0)(react@18.2.0)
-      postcss:
-        specifier: ^8.4.31
-        version: 8.4.31
-      react:
-        specifier: ^18.2.0
-        version: 18.2.0
-      tailwindcss:
-        specifier: ^3.4.4
-        version: 3.4.4
-      tsconfig:
-        specifier: workspace:*
-        version: link:../tsconfig
-      tsup:
-        specifier: ^6.1.3
-        version: 6.7.0(postcss@8.4.31)(typescript@5.6.2)
-      typescript:
-        specifier: ^5.1.6
-        version: 5.6.2
 
 packages:
 
@@ -5789,7 +5792,7 @@ packages:
       react: ^16.8 || ^17.0 || ^18.0
       react-dom: ^16.8 || ^17.0 || ^18.0
     dependencies:
-      '@babel/runtime': 7.23.1
+      '@babel/runtime': 7.23.9
       '@radix-ui/primitive': 1.0.0
       '@radix-ui/react-collapsible': 1.0.1(react-dom@18.2.0)(react@18.2.0)
       '@radix-ui/react-collection': 1.0.1(react-dom@18.2.0)(react@18.2.0)
@@ -6649,7 +6652,7 @@ packages:
       react: ^16.8 || ^17.0 || ^18.0
       react-dom: ^16.8 || ^17.0 || ^18.0
     dependencies:
-      '@babel/runtime': 7.23.1
+      '@babel/runtime': 7.23.9
       '@radix-ui/primitive': 1.0.0
       '@radix-ui/react-collection': 1.0.2(react-dom@18.2.0)(react@18.2.0)
       '@radix-ui/react-compose-refs': 1.0.0(react@18.2.0)
@@ -7365,7 +7368,7 @@ packages:
       react: ^16.8 || ^17.0 || ^18.0
       react-dom: ^16.8 || ^17.0 || ^18.0
     dependencies:
-      '@babel/runtime': 7.23.1
+      '@babel/runtime': 7.23.9
       '@radix-ui/primitive': 1.0.0
       '@radix-ui/react-compose-refs': 1.0.0(react@18.2.0)
       '@radix-ui/react-context': 1.0.0(react@18.2.0)
@@ -8072,7 +8075,7 @@ packages:
       '@react-types/datepicker': 3.7.4(react@18.2.0)
       '@react-types/dialog': 3.5.10(react@18.2.0)
       '@react-types/shared': 3.23.1(react@18.2.0)
-      '@swc/helpers': 0.5.11
+      '@swc/helpers': 0.5.12
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
     dev: false

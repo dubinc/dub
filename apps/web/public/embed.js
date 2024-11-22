@@ -1,9 +1,13 @@
+
+
 (function () {
   window.Dub = window.Dub || {};
 
   // Default configurations
   Dub.options = {
     linkToken: null,
+    widgetUrl: "http://localhost:8888/embed/widget",
+    dashboardUrl: "http://localhost:8888/embed/dashboard",
   };
 
   const buttonStyles = {
@@ -25,10 +29,37 @@
     zIndex: "9998",
   };
 
-  // Add a floating button to the page
-  function createFloatingButton() {
+  const createIframe = (iframeUrl, linkToken) => {
+    const iframe = document.createElement("iframe");
+
+    iframe.src = `${iframeUrl}?token=${linkToken}`;
+    iframe.style.width = "100%";
+    iframe.style.height = "100%";
+    iframe.style.border = "none";
+    iframe.setAttribute("credentialssupport", "");
+    iframe.setAttribute("allow", "same-origin");
+    iframe.crossOrigin = "use-credentials";
+
+    return iframe;
+  };
+
+  // Find the button that should trigger the widget open
+  const initializeDubButton = () => {
+    const button = document.querySelector("[data-dub-token]");
+
+    if (!button) {
+      console.log("No button found with data-dub-token");
+      return;
+    }
+
+    button.addEventListener("click", () => {
+      console.log("Button clicked");
+    });
+  };
+
+  // Add a floating button
+  const createFloatingButton = () => {
     const button = document.createElement("div");
-    button.id = "floating-widget-button";
     Object.assign(button.style, buttonStyles);
 
     button.innerHTML = `
@@ -51,32 +82,25 @@
         return;
       }
 
-      // Create iframe container
       const container = document.createElement("div");
       container.id = "dub-widget-container";
       Object.assign(container.style, containerStyles);
 
-      // Create iframe
-      const iframe = document.createElement("iframe");
-      iframe.src = `http://localhost:8888/embed/widget?token=${Dub.options.linkToken}`;
-      iframe.style.width = "100%";
-      iframe.style.height = "100%";
-      iframe.style.border = "none";
-      iframe.setAttribute("credentialssupport", "");
-      iframe.setAttribute("allow", "same-origin");
-      iframe.crossOrigin = "use-credentials";
+      const { iframeUrl, linkToken } = Dub.options;
+
+      const iframe = createIframe(iframeUrl, linkToken);
 
       container.appendChild(iframe);
       document.body.appendChild(container);
     });
 
     document.body.appendChild(button);
-  }
+  };
 
   // Initialize when DOM is ready
   function init() {
     setTimeout(createFloatingButton, 100);
-    console.log("Initialized");
+    // setTimeout(initializeDubButton, 100);
   }
 
   if (document.readyState === "loading") {

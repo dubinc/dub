@@ -1,18 +1,21 @@
 {
-  "name": "@dub/widgets",
-  "description": "UI widgets for Dub Partners.",
-  "version": "0.1.66",
+  "name": "@dub/embed-react",
+  "description": "Embed React components for Dub.",
+  "version": "0.0.1",
   "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist/**"
   ],
   "scripts": {
     "build": "tsup",
     "lint": "eslint src/",
+    "dev": "tsup --watch",
     "check-types": "tsc --noEmit"
   },
   "peerDependencies": {
-    "next": "14.2.0-canary.47",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
