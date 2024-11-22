@@ -4,11 +4,11 @@ import {
   Button,
   Check2,
   Copy,
-  MoneyBill2,
   ToggleGroup,
   useCopyToClipboard,
   Wordmark,
 } from "@dub/ui";
+import { GiftFill } from "@dub/ui/src/icons";
 import { currencyFormatter, getPrettyUrl } from "@dub/utils";
 import { useState } from "react";
 import { useReferralLink } from "../use-referral-link";
@@ -25,13 +25,15 @@ export function EmbedWidgetPageClient() {
 
   return (
     <div>
-      <div className="flex flex-col gap-2 rounded-lg rounded-b-none bg-black p-8">
-        <MoneyBill2 className="flex size-14 rounded-full bg-gray-800 p-2 text-white" />
-        <h2 className="mt-4 text-xl font-medium text-white">
+      <div className="flex flex-col gap-2 rounded-lg rounded-b-none bg-neutral-900 p-8">
+        <div className="w-fit rounded-full bg-neutral-800 p-3">
+          <GiftFill className="size-5 text-white" />
+        </div>
+        <h2 className="mt-4 text-lg font-medium text-white">
           Refer a friend and earn
         </h2>
 
-        <p className="text-sm text-gray-300">
+        <p className="text-sm text-white">
           Earn additional credits and cash when you refer a friend and they sign
           up for {program?.name}
         </p>
@@ -46,8 +48,8 @@ export function EmbedWidgetPageClient() {
           selected={selectedTab}
           selectAction={(option: Tab) => setSelectedTab(option)}
           className="grid grid-cols-2 bg-neutral-100"
-          optionClassName="w-full h-10"
-          indicatorClassName="rounded-md bg-white border-none shadow-sm"
+          optionClassName="w-full h-9 flex items-center justify-center font-medium"
+          indicatorClassName="rounded-lg bg-white border border-neutral-100 shadow-sm"
         />
 
         <div className="mt-4">
