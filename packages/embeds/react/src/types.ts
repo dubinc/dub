@@ -7,6 +7,7 @@ export interface DubEmbed {
   init: (options: Options) => void;
 
   isWidgetOpen: boolean;
+  toggleWidget: () => void;
   openWidget: () => void;
   closeWidget: () => void;
 

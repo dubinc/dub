@@ -26,6 +26,7 @@ const POPUP_STYLES: Partial<CSSStyleDeclaration> = {
   backgroundColor: "white",
   borderRadius: "12px",
   border: "1px solid #E5E5E5",
+  boxShadow: "0px 4px 20px 0px #0000000D",
   margin: "16px",
   overflow: "hidden",
   transformOrigin: "bottom right",
@@ -92,29 +93,6 @@ const renderWidget = (options: Options): HTMLElement | null => {
   return container;
 };
 
-// Initialize when an external button is clicked
-// const addButtonListener = (): void => {
-//   const button = document.querySelector(
-//     "[data-dub-token]",
-//   ) as HTMLElement | null;
-
-//   if (!button) {
-//     console.error("[Dub] No button found with data-dub-token.");
-//     return;
-//   }
-
-//   button.addEventListener("click", () => {
-//     const token = button.getAttribute("data-dub-token");
-
-//     if (!token) {
-//       console.error("[Dub] A link token is required to embed the widget.");
-//       return;
-//     }
-
-//     renderWidget({ token });
-//   });
-// };
-
 let isWidgetOpen = false;
 
 export const openWidget = (): void => {
@@ -163,8 +141,11 @@ export const closeWidget = (): void => {
     window.Dub.isWidgetOpen = false;
 };
 
-// Initialize when DOM is ready
-const init = (options: Options) => {
+export const toggleWidget = (): void => {
+  isWidgetOpen ? closeWidget() : openWidget();
+};
+
+export const init = (options: Options) => {
   console.debug("[Dub] Initializing");
 
   const container = renderWidget(options);
@@ -173,12 +154,12 @@ const init = (options: Options) => {
   createFloatingButton({
     container,
     onClick: () => {
-      isWidgetOpen ? closeWidget() : openWidget();
+      toggleWidget();
     },
   });
 };
 
-const destroy = (): void => {
+export const destroy = (): void => {
   document.querySelectorAll(`#${DUB_CONTAINER_ID}`).forEach((c) => c.remove());
 };
 
@@ -187,5 +168,3 @@ const destroy = (): void => {
 // - Add a close button
 // - Inline embed (dashboard)
 // - Reuse addEventListener logic
-
-export { destroy, init };
