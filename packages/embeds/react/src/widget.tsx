@@ -1,26 +1,13 @@
 import { APP_DOMAIN } from "@dub/utils";
 import { useEffect } from "react";
-
-interface DubWidgetProps {
-  linkToken: string;
-  onTokenExpired?: () => void;
-  url?: string;
-}
-
-const iframeStyles = {
-  width: "100%",
-  height: "100%",
-  border: "none",
-  credentialssupport: "",
-  allow: "same-origin",
-  crossOrigin: "use-credentials",
-};
+import { DubEmbedProps } from "./types";
+import { iframeStyles } from "./utils";
 
 export const DubWidget = ({
   linkToken,
   onTokenExpired,
   url = `${APP_DOMAIN}/embed/widget`,
-}: DubWidgetProps) => {
+}: DubEmbedProps) => {
   // Listen for messages from the iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
