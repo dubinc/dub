@@ -14,12 +14,11 @@ import {
   StatusBadge,
   Table,
   ToggleGroup,
-  useCopyToClipboard,
   useRouterStuff,
   useTable,
   useTablePagination,
 } from "@dub/ui";
-import { Copy, GreekTemple } from "@dub/ui/src/icons";
+import { GreekTemple, LinesY } from "@dub/ui/src/icons";
 import {
   cn,
   COUNTRIES,
@@ -27,8 +26,9 @@ import {
   DICEBEAR_AVATAR_URL,
   formatDate,
   getPrettyUrl,
+  nFormatter,
 } from "@dub/utils";
-import { ChevronLeft, Link2 } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -49,12 +49,12 @@ function PartnerDetailsSheetContent({
   partner,
   setIsOpen,
 }: PartnerDetailsSheetProps) {
+  const { slug } = useWorkspace();
+
   const badge = PartnerStatusBadges[partner.status];
 
   const saleAmount = (partner.link?.saleAmount ?? 0) / 100;
   const earnings = (partner.earnings ?? 0) / 100;
-
-  const [, copyToClipboard] = useCopyToClipboard();
 
   const [selectedTab, setSelectedTab] = useState<"overview" | "payouts">(
     "overview",
@@ -97,28 +97,19 @@ function PartnerDetailsSheetContent({
             </div>
             <div className="flex min-w-[40%] shrink grow basis-1/2 flex-wrap items-center justify-end gap-2">
               {partner.link && (
-                <button
-                  type="button"
-                  title="Copy link"
-                  onClick={() => {
-                    if (!partner.link) return;
-                    toast.promise(copyToClipboard(partner.link.shortLink), {
-                      success: "Copied to clipboard",
-                    });
-                  }}
-                  className="group flex min-w-0 items-center gap-1 overflow-hidden rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700 transition-colors duration-100 hover:bg-neutral-200/70 active:bg-neutral-200"
+                <a
+                  href={`/${slug}/analytics?domain=${partner.link.domain}&key=${partner.link.key}`}
+                  target="_blank"
+                  className="group flex min-w-0 items-center gap-1.5 overflow-hidden rounded-full bg-neutral-100 px-2.5 py-1 text-xs text-neutral-700 transition-colors duration-100 hover:bg-neutral-200/70 active:bg-neutral-200"
                 >
-                  <div className="relative size-3 shrink-0 text-neutral-600">
-                    <Link2 className="absolute left-0 top-0 size-3 transition-[opacity,transform] duration-150 group-hover:-translate-y-2 group-hover:opacity-0" />
-                    <Copy className="absolute left-0 top-0 size-3 translate-y-2 opacity-0 transition-[opacity,transform] duration-150 group-hover:translate-y-0 group-hover:opacity-100" />
-                  </div>
+                  <LinesY className="size-3.5" />
                   <span className="truncate">
                     {getPrettyUrl(partner.link.shortLink)}
                   </span>
-                </button>
+                </a>
               )}
               {partner.country && (
-                <div className="flex min-w-20 items-center gap-2 rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700">
+                <div className="flex min-w-20 items-center gap-2 rounded-full bg-neutral-100 px-2.5 py-1 text-xs text-neutral-700">
                   <img
                     alt=""
                     src={`https://flag.vercel.app/m/${partner.country}.svg`}
@@ -134,6 +125,24 @@ function PartnerDetailsSheetContent({
           <div className="mt-6 flex divide-x divide-neutral-200">
             {[
               [
+                "Clicks",
+                !partner.link
+                  ? "-"
+                  : nFormatter(partner.link?.clicks, { full: true }),
+              ],
+              [
+                "Leads",
+                !partner.link
+                  ? "-"
+                  : nFormatter(partner.link?.leads, { full: true }),
+              ],
+              [
+                "Sales",
+                !partner.link
+                  ? "-"
+                  : nFormatter(partner.link?.sales, { full: true }),
+              ],
+              [
                 "Revenue",
                 !partner.link
                   ? "-"
@@ -142,7 +151,6 @@ function PartnerDetailsSheetContent({
                       maximumFractionDigits: 2,
                     }),
               ],
-              ["Sales", !partner.link ? "-" : partner.link?.sales],
               [
                 "Earnings",
                 currencyFormatter(earnings, {

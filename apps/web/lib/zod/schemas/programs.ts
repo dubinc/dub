@@ -51,6 +51,8 @@ export const ProgramEnrollmentSchema = z.object({
   link: LinkSchema.pick({
     id: true,
     shortLink: true,
+    domain: true,
+    key: true,
     url: true,
     clicks: true,
     leads: true,
