@@ -17,9 +17,9 @@ const CORS_HEADERS = {
 
 export async function GET(req: NextRequest) {
   try {
-    await ratelimitOrThrow(req, "qr");
-
     const paramsParsed = getQRCodeQuerySchema.parse(getSearchParams(req.url));
+
+    await ratelimitOrThrow(req, "qr");
 
     const { logo, url, size, level, fgColor, bgColor, margin, hideLogo } =
       paramsParsed;
