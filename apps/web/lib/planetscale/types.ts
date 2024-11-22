@@ -23,6 +23,7 @@ export interface EdgeLinkProps {
 export interface EdgeDomainProps {
   id: string;
   slug: string;
+  logo: string | null;
   verified: number;
   placeholder: string;
   expiredUrl: string | null;

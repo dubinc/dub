@@ -1,6 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { ratelimitOrThrow } from "@/lib/api/utils";
-import { getShortLinkViaEdge, getWorkspaceViaEdge } from "@/lib/planetscale";
+import { getShortLinkViaEdge } from "@/lib/planetscale";
+import { getDomainViaEdge } from "@/lib/planetscale/get-domain-via-edge";
 import { QRCodeSVG } from "@/lib/qr/utils";
 import { getQRCodeQuerySchema } from "@/lib/zod/schemas/qr";
 import { DUB_QR_LOGO, getSearchParams } from "@dub/utils";
@@ -16,30 +17,33 @@ const CORS_HEADERS = {
 
 export async function GET(req: NextRequest) {
   try {
-    const params = getSearchParams(req.url);
-
-    let { url, logo, size, level, fgColor, bgColor, margin, hideLogo } =
-      getQRCodeQuerySchema.parse(params);
-
     await ratelimitOrThrow(req, "qr");
 
+    const paramsParsed = getQRCodeQuerySchema.parse(getSearchParams(req.url));
+
+    const { url, size, level, fgColor, bgColor, margin, hideLogo } =
+      paramsParsed;
+
+    let { logo } = paramsParsed;
+
     const shortLink = await getShortLinkViaEdge(url.split("?")[0]);
+
+    // it is a Dub link.
     if (shortLink) {
-      const workspace = await getWorkspaceViaEdge(shortLink.projectId);
-      // Free workspaces should always use the default logo.
-      if (!workspace || workspace.plan === "free") {
-        logo = DUB_QR_LOGO;
-        /*
+      const domain = await getDomainViaEdge(shortLink.domain);
+
+      /*
           If:
           - no logo is passed
-          - the workspace has a logo
+          - the domain has a logo
           - the hideLogo flag is not set
-          then we should use the workspace logo.
-        */
-      } else if (!logo && workspace.logo && !hideLogo) {
-        logo = workspace.logo;
+          then we should use the domain logo.
+      */
+      if (!logo && domain?.logo && !hideLogo) {
+        logo = domain.logo;
+      } else if (!domain?.logo) {
+        logo = DUB_QR_LOGO;
       }
-      // if the link is not on Dub, use the default logo.
     } else {
       logo = DUB_QR_LOGO;
     }

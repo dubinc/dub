@@ -6,6 +6,7 @@ import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
   BlurImage,
   Button,
+  FileUpload,
   InfoTooltip,
   SimpleTooltipContent,
   Switch,
@@ -41,12 +42,11 @@ export function AddEditDomainForm({
       primary: false,
       archived: false,
       projectId: workspaceId || "",
+      logo: "",
     },
   );
 
-  console.log({ props, data });
-
-  const { slug: domain, placeholder, expiredUrl, notFoundUrl } = data;
+  const { slug: domain, placeholder, expiredUrl, notFoundUrl, logo } = data;
 
   const [lockDomain, setLockDomain] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -155,6 +155,23 @@ export function AddEditDomainForm({
       className={cn("flex flex-col gap-y-6 text-left", className)}
     >
       <div>
+        <div className="mb-4 flex items-center justify-center">
+          <FileUpload
+            accept="images"
+            className="h-20 w-20 rounded-full border border-gray-300"
+            iconClassName="w-5 h-5"
+            variant="plain"
+            imageSrc={logo}
+            readFile
+            onChange={({ src }) => {
+              setData((d) => ({ ...d, logo: src }));
+            }}
+            content={null}
+            maxFileSizeMB={2}
+            targetResolution={{ width: 240, height: 240 }}
+          />
+        </div>
+
         <div className="flex items-center justify-between">
           <label htmlFor="domain" className="flex items-center gap-x-2">
             <h2 className="text-sm font-medium text-gray-700">Domain</h2>

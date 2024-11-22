@@ -4,12 +4,13 @@ import { createLink, transformLink } from "@/lib/api/links";
 import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { storage } from "@/lib/storage";
 import {
   DomainSchema,
   createDomainBodySchema,
   getDomainsQuerySchemaExtended,
 } from "@/lib/zod/schemas/domains";
-import { DEFAULT_LINK_PROPS } from "@dub/utils";
+import { DEFAULT_LINK_PROPS, nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/domains – get all domains for a workspace
@@ -77,7 +78,7 @@ export const GET = withWorkspace(
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
     const body = await parseRequestBody(req);
-    const { slug, placeholder, expiredUrl, notFoundUrl } =
+    const { slug, placeholder, expiredUrl, notFoundUrl, logo } =
       createDomainBodySchema.parse(body);
 
     const totalDomains = await prisma.domain.count({
@@ -123,10 +124,16 @@ export const POST = withWorkspace(
       return new Response(vercelResponse.error.message, { status: 422 });
     }
 
+    const domainId = createId({ prefix: "dom_" });
+
+    const logoUploaded = logo
+      ? await storage.upload(`logos/${domainId}_${nanoid(7)}`, logo)
+      : null;
+
     const [domainRecord, _] = await Promise.all([
       prisma.domain.create({
         data: {
-          id: createId({ prefix: "dom_" }),
+          id: domainId,
           slug: slug,
           projectId: workspace.id,
           primary: totalDomains === 0,
@@ -135,6 +142,7 @@ export const POST = withWorkspace(
             expiredUrl,
             notFoundUrl,
           }),
+          ...(logoUploaded && { logo: logoUploaded.url }),
         },
       }),
 

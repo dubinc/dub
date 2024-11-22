@@ -9,12 +9,14 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import {
   DomainSchema,
   updateDomainBodySchema,
 } from "@/lib/zod/schemas/domains";
+import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -37,7 +39,11 @@ export const GET = withWorkspace(
 // PUT /api/domains/[domain] – edit a workspace's domain
 export const PATCH = withWorkspace(
   async ({ req, workspace, params }) => {
-    const { slug: domain, registeredDomain } = await getDomainOrThrow({
+    const {
+      slug: domain,
+      registeredDomain,
+      id: domainId,
+    } = await getDomainOrThrow({
       workspace,
       domain: params.domain,
       dubDomainChecks: true,
@@ -49,6 +55,7 @@ export const PATCH = withWorkspace(
       expiredUrl,
       notFoundUrl,
       archived,
+      logo,
     } = updateDomainBodySchema.parse(await parseRequestBody(req));
 
     if (workspace.plan === "free" && expiredUrl) {
@@ -85,6 +92,10 @@ export const PATCH = withWorkspace(
       }
     }
 
+    const logoUploaded = logo
+      ? await storage.upload(`logos/${domainId}_${nanoid(7)}`, logo)
+      : null;
+
     const domainRecord = await prisma.domain.update({
       where: {
         slug: domain,
@@ -97,6 +108,7 @@ export const PATCH = withWorkspace(
           expiredUrl,
           notFoundUrl,
         }),
+        ...(logoUploaded && { logo: logoUploaded.url }),
       },
       include: {
         registeredDomain: true,

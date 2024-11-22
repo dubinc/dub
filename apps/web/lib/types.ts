@@ -165,6 +165,7 @@ export interface DomainProps {
   projectId: string;
   link?: LinkProps;
   registeredDomain?: RegisteredDomainProps;
+  logo?: string;
 }
 
 export interface RegisteredDomainProps {

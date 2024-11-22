@@ -41,6 +41,7 @@ export const DomainSchema = z.object({
       "The URL to redirect to when a link under this domain doesn't exist.",
     )
     .openapi({ example: "https://acme.com/not-found" }),
+  logo: z.string().nullable().describe("The logo of the domain."),
   createdAt: z.date().describe("The date the domain was created."),
   updatedAt: z.date().describe("The date the domain was last updated."),
   registeredDomain: z
@@ -118,6 +119,7 @@ export const createDomainBodySchema = z.object({
       "Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened.",
     )
     .openapi({ example: "https://dub.co/help/article/what-is-dub" }),
+  logo: z.string().url().nullish().describe("The logo of the domain."),
 });
 
 export const updateDomainBodySchema = createDomainBodySchema.partial();
