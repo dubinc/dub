@@ -1,20 +1,12 @@
-// TODO:
-// - Add a loading state
-// - Add a close button
-// - Inline embed (dashboard)
-// - Floating button + widget
-// - Open on a button click
-// - Reuse addEventListener logic
-
-import { DubOptions } from "./types";
+import { DubEmbed, Options } from "./types";
 
 declare global {
   interface Window {
-    Dub: DubOptions;
+    Dub: DubEmbed;
   }
 }
 
-window.Dub = window.Dub || {};
+window.Dub = (window.Dub || {}) as DubEmbed;
 
 const buttonStyles: Partial<CSSStyleDeclaration> = {
   position: "fixed",
@@ -35,16 +27,7 @@ const containerStyles: Partial<CSSStyleDeclaration> = {
   zIndex: "9998",
 };
 
-const defaultOptions = {
-  url: "http://localhost:8888/embed/widget",
-};
-
-const getOptions = (): DubOptions & { url: string } => {
-  return {
-    ...defaultOptions,
-    ...window.Dub,
-  };
-};
+const widgetUrl = "http://localhost:8888/embed/widget";
 
 const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
   const iframe = document.createElement("iframe");
@@ -58,8 +41,44 @@ const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
   return iframe;
 };
 
+const renderWidget = (
+  options: Pick<Options, "token" | "onOpen" | "onClose">,
+): void => {
+  const containerId = "dub-widget-container";
+  const { token, onOpen, onClose } = options;
+
+  const existingContainer = document.getElementById(containerId);
+
+  if (existingContainer) {
+    document.body.removeChild(existingContainer);
+    onClose?.();
+    return;
+  }
+
+  if (!token) {
+    console.error("[Dub] A link token is required to embed the widget.");
+    return;
+  }
+
+  const container = document.createElement("div");
+  container.id = containerId;
+  Object.assign(container.style, containerStyles);
+
+  const iframe = createIframe(widgetUrl, token);
+
+  container.appendChild(iframe);
+  document.body.appendChild(container);
+
+  onOpen?.();
+};
+
+// Open the widget via JavaScript API
+window.Dub.open = (options: Options) => {
+  renderWidget(options);
+};
+
 // Initialize when an external button is clicked
-const initializeButton = (): void => {
+const addButtonListener = (): void => {
   const button = document.querySelector(
     "[data-dub-token]",
   ) as HTMLElement | null;
@@ -70,14 +89,6 @@ const initializeButton = (): void => {
   }
 
   button.addEventListener("click", () => {
-    const existingContainer = document.getElementById("dub-widget-container");
-
-    if (existingContainer) {
-      // If the container exists, remove it (close the widget)
-      document.body.removeChild(existingContainer);
-      return;
-    }
-
     const token = button.getAttribute("data-dub-token");
 
     if (!token) {
@@ -85,64 +96,14 @@ const initializeButton = (): void => {
       return;
     }
 
-    const { url } = getOptions();
-
-    const container = document.createElement("div");
-    container.id = "dub-widget-container";
-    Object.assign(container.style, containerStyles);
-
-    const iframe = createIframe(url, token);
-
-    container.appendChild(iframe);
-    document.body.appendChild(container);
+    renderWidget({ token });
   });
-};
-
-// Initialize when Dub floating button is clicked
-const createFloatingButton = (): void => {
-  const button = document.createElement("div");
-  Object.assign(button.style, buttonStyles);
-
-  button.innerHTML = `
-      <button>
-        <span>Click Me</span>
-      </button>
-    `;
-
-  button.addEventListener("click", () => {
-    const existingContainer = document.getElementById("dub-widget-container");
-
-    if (existingContainer) {
-      // If the container exists, remove it (close the widget)
-      document.body.removeChild(existingContainer);
-      return;
-    }
-
-    const { token, url } = getOptions();
-
-    if (!token) {
-      console.error("[Dub] A link token is required to embed the widget.");
-      return;
-    }
-
-    const container = document.createElement("div");
-    container.id = "dub-widget-container";
-    Object.assign(container.style, containerStyles);
-
-    const iframe = createIframe(url, token);
-
-    container.appendChild(iframe);
-    document.body.appendChild(container);
-  });
-
-  document.body.appendChild(button);
 };
 
 // Initialize when DOM is ready
 const init = () => {
   console.debug("[Dub] Initializing");
-  //setTimeout(createFloatingButton, 100);
-  setTimeout(initializeButton, 100);
+  setTimeout(addButtonListener, 100);
 };
 
 if (document.readyState === "loading") {
@@ -150,3 +111,38 @@ if (document.readyState === "loading") {
 } else {
   init();
 }
+
+// Initialize when Dub floating button is clicked
+// const createFloatingButton = (): void => {
+//   const button = document.createElement("div");
+//   Object.assign(button.style, buttonStyles);
+
+//   button.innerHTML = `
+//       <button>
+//         <span>Click Me</span>
+//       </button>
+//     `;
+
+//   button.addEventListener("click", () => {
+//     const token = button.getAttribute("data-dub-token");
+
+//     if (!token) {
+//       console.error("[Dub] A link token is required to embed the widget.");
+//       return;
+//     }
+
+//     renderWidget({ token });
+//   });
+
+//   document.body.appendChild(button);
+// };
+
+// TODO:
+// - Add a loading state
+// - Add a close button
+// - Inline embed (dashboard)
+// - Floating button + widget
+// - Open on a button click
+// - Reuse addEventListener logic
+
+// export {};

@@ -20,8 +20,8 @@ export function EmbedWidgetPageClient() {
   const [copied, copyToClipboard] = useCopyToClipboard();
   const [selectedTab, setSelectedTab] = useState<Tab>("invite");
 
-  const { link, isLoading: isLoadingLink } = useReferralLink();
   const { program } = useReferralProgram();
+  const { link, isLoading: isLoadingLink } = useReferralLink();
 
   return (
     <div>

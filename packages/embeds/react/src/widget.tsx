@@ -1,9 +1,9 @@
 import { APP_DOMAIN } from "@dub/utils";
 import { useEffect } from "react";
-import { DubOptions } from "./types";
+import { DubEmbedOptions } from "./types";
 import { iframeStyles } from "./utils";
 
-export const DubWidget = ({ token, onTokenExpired }: DubOptions) => {
+export const DubWidget = ({ token, onTokenExpired }: DubEmbedOptions) => {
   // Listen for messages from the iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
