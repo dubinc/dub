@@ -25,6 +25,24 @@ import { sendCsvImportEmails } from "./utils";
 
 export const dynamic = "force-dynamic";
 
+// Type for mapper return value
+type MapperResult =
+  | {
+      success: true;
+      data: {
+        domain: string;
+        key: string;
+        createdAt?: Date;
+        tags?: string[];
+        [key: string]: any;
+      };
+    }
+  | {
+      success?: false;
+      error: string;
+      link: { domain: string; key: string };
+    };
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -34,37 +52,65 @@ export async function POST(req: Request) {
 
     if (!id || !url) throw new Error("Missing ID or URL for the import file");
 
-    const mapper = (row: Record<string, string>) => {
-      const actualKey = normalizeString(mapping.link);
-      const linkUrl = actualKey ? getPrettyUrl(row[actualKey]) : "";
-
-      return {
-        ...Object.fromEntries(
-          Object.entries(mapping).map(([key, value]) => {
-            // Find the actual key for each mapped field
-            const csvKey = Object.keys(row).find(
-              (k) => normalizeString(k) === normalizeString(value),
-            );
-            return [key, csvKey ? row[csvKey] : undefined];
-          }),
-        ),
-        domain: linkUrl.split("/")[0],
-        // domain.com/path/to/page => path/to/page
-        key: linkUrl.split("/").slice(1).join("/") || "_root",
-        createdAt: mapping.createdAt
-          ? parseDateTime(row[mapping.createdAt])
-          : undefined,
-        tags: mapping.tags
-          ? [
-              ...new Set(
-                row[mapping.tags]
-                  ?.split(",")
-                  .map((tag) => tag.trim())
-                  .filter(Boolean),
-              ),
-            ]
-          : undefined,
+    const mapper = (row: Record<string, string>): MapperResult => {
+      const getValueByNormalizedKey = (targetKey: string): string => {
+        const key = Object.keys(row).find(
+          (k) => normalizeString(k) === normalizeString(targetKey),
+        );
+        return key ? row[key].trim() : "";
       };
+
+      // Validate required fields
+      const linkValue = getValueByNormalizedKey(mapping.link);
+      if (!linkValue) {
+        return {
+          error: "Missing link value",
+          link: { domain: "unknown", key: "unknown" },
+        };
+      }
+
+      const linkUrl = getPrettyUrl(linkValue);
+      if (!linkUrl) {
+        return {
+          error: "Invalid link format",
+          link: { domain: "unknown", key: "unknown" },
+        };
+      }
+
+      const domain = linkUrl.split("/")[0];
+      const key = linkUrl.split("/").slice(1).join("/") || "_root";
+
+      try {
+        return {
+          success: true,
+          data: {
+            ...Object.fromEntries(
+              Object.entries(mapping).map(([key, value]) => [
+                key,
+                getValueByNormalizedKey(value),
+              ]),
+            ),
+            domain,
+            key,
+            createdAt: mapping.createdAt
+              ? parseDateTime(getValueByNormalizedKey(mapping.createdAt)) ||
+                undefined
+              : undefined,
+            tags: mapping.tags
+              ? getValueByNormalizedKey(mapping.tags)
+                  .split(",")
+                  .map((tag) => tag.trim())
+                  .filter(Boolean)
+                  .map((tag) => normalizeString(tag))
+              : undefined,
+          },
+        };
+      } catch (error) {
+        return {
+          error: error.message || "Error processing row",
+          link: { domain, key },
+        };
+      }
     };
 
     let cursor = parseInt(
@@ -117,14 +163,19 @@ export async function POST(req: Request) {
             return;
           }
 
-          // Find links that already exist in the workspace (we check matching of *both* domain and key below)
+          // Find links that already exist in the workspace
           const alreadyCreatedLinks = await prisma.link.findMany({
             where: {
               domain: {
                 in: domains.map((domain) => domain.slug),
               },
               key: {
-                in: data.map((row) => mapper(row).key),
+                in: data.map((row) => {
+                  const result = mapper(row);
+                  return "success" in result && result.success
+                    ? result.data.key
+                    : result.link.key;
+                }),
               },
             },
             select: {
@@ -133,24 +184,31 @@ export async function POST(req: Request) {
             },
           });
 
-          // Find which links still need to be created
+          // Fix the linksToCreate typing and filtering
           const linksToCreate = data
             .map((row) => mapper(row))
             .filter(
-              (link) =>
+              (result): result is Extract<MapperResult, { success: true }> =>
+                "success" in result &&
+                result.success === true &&
                 !alreadyCreatedLinks.some(
-                  (l) => l.domain === link.domain && l.key === link.key,
-                ) && link.key !== "_root",
-            );
+                  (l) =>
+                    l.domain === result.data.domain &&
+                    l.key === result.data.key,
+                ) &&
+                result.data.key !== "_root",
+            )
+            .map((result) => result.data);
 
+          // Fix the selectedTags extraction
           const selectedTags = [
             ...new Set(
               linksToCreate
-                .map(({ tags }) => tags)
+                .map(({ tags }) => tags || [])
                 .flat()
-                .filter(Boolean),
+                .filter((tag): tag is string => Boolean(tag)),
             ),
-          ] as string[];
+          ];
 
           // Find tags that need to be added to the workspace
           const tagsNotInWorkspace = selectedTags.filter(
@@ -218,22 +276,27 @@ export async function POST(req: Request) {
 
           addedDomains.push(...domainsNotInWorkspace);
 
-          // Process all links
+          // Fix the processedLinks typing
+          type ProcessedLink = {
+            error: string | null;
+            link: ProcessedLinkProps;
+          };
+
           const processedLinks = await Promise.all(
-            linksToCreate.map(({ createdAt, tags, ...link }) =>
-              processLink({
-                payload: {
-                  ...createLinkBodySchema.parse({
-                    ...link,
-                    tagNames: tags || undefined,
-                  }),
-                  // 'createdAt' is not a valid field in createLinkBodySchema – but is valid for CSV imports
-                  createdAt: createdAt?.toISOString(),
-                },
-                workspace: workspace as WorkspaceProps,
-                userId,
-                bulk: true,
-              }),
+            linksToCreate.map(
+              ({ createdAt, tags, ...link }) =>
+                processLink({
+                  payload: {
+                    ...createLinkBodySchema.parse({
+                      ...link,
+                      tagNames: tags || undefined,
+                    }),
+                    createdAt: createdAt?.toISOString(),
+                  },
+                  workspace,
+                  userId,
+                  bulk: true,
+                }) as Promise<ProcessedLink>,
             ),
           );
 
