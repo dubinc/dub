@@ -19,16 +19,18 @@ export const withdrawFundsAction = authPartnerActionClient
     const { platform } = parsedInput;
 
     if (!partner.dotsUserId) {
-      throw new Error("Partner does not have a Dots user ID");
+      throw new Error("Partner does not have a Dots user ID.");
     }
 
     const dotsUser = await retrieveDotsUser(partner);
+
     if (!dotsUser.wallet) {
       throw new Error("Invalid wallet configuration.");
     }
+
     const amountToWithdraw = dotsUser.wallet.withdrawable_amount;
 
-    const response = await createWithdrawal({
+    return await createWithdrawal({
       dotsUserId: partner.dotsUserId,
       amount: amountToWithdraw,
       platform,
@@ -39,6 +41,4 @@ export const withdrawFundsAction = authPartnerActionClient
           ? "platform"
           : "user",
     });
-
-    return response;
   });

@@ -1,11 +1,11 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { calculateEarnings } from "@/lib/api/sales/commission";
-import { withAuth } from "@/lib/referrals/auth";
+import { withEmbedToken } from "@/lib/auth/embed-token";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
 
 // GET /api/analytics/client - get analytics for the current link
-export const GET = withAuth(async ({ link, searchParams, program }) => {
+export const GET = withEmbedToken(async ({ link, searchParams, program }) => {
   const parsedParams = analyticsQuerySchema
     .pick({
       event: true,

@@ -21,7 +21,7 @@ export const ForgotPasswordForm = () => {
       router.push("/login");
     },
     onError({ error }) {
-      toast.error(error.serverError?.serverError);
+      toast.error(error.serverError);
     },
   });
 

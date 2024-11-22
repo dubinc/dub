@@ -26,7 +26,7 @@ export const WorkspacePublicKey = () => {
       mutate(`/api/workspaces/${slug}`);
     },
     onError({ error }) {
-      toast.error(error.serverError?.serverError);
+      toast.error(error.serverError);
     },
   });
 

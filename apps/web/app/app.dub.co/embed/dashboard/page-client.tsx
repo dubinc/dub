@@ -19,10 +19,10 @@ import { Copy, MoneyBill2 } from "@dub/ui/src/icons";
 import { getPrettyUrl } from "@dub/utils";
 import { notFound } from "next/navigation";
 import { useContext } from "react";
-import { SaleTable } from "./sale-table";
 import useReferralAnalytics from "../use-referral-analytics";
 import { useReferralLink } from "../use-referral-link";
 import { useReferralProgram } from "../use-referral-program";
+import { SaleTable } from "./sale-table";
 
 export function RewardDashboardPageClient() {
   const { program } = useReferralProgram();
@@ -46,8 +46,6 @@ export function RewardDashboardPageClient() {
     token?: string;
   };
 
-  const color = program?.brandColor || "#8B5CF6";
-
   if (!token) {
     notFound();
   }
@@ -60,7 +58,9 @@ export function RewardDashboardPageClient() {
   return (
     <>
       <div className="relative flex flex-col rounded-lg border border-neutral-300 bg-gradient-to-r from-neutral-50 p-4 md:p-6">
-        {program && <HeroBackground logo={program?.logo} color={color} />}
+        {program && (
+          <HeroBackground logo={program?.logo} color={program?.brandColor} />
+        )}
 
         <span className="flex items-center gap-2 text-sm text-neutral-500">
           <MoneyBill2 className="size-4" />
@@ -111,7 +111,7 @@ export function RewardDashboardPageClient() {
             start: start ? new Date(start) : undefined,
             end: end ? new Date(end) : undefined,
             interval,
-            color,
+            color: program?.brandColor ?? undefined,
           }}
         >
           <div className="mt-6 rounded-lg border border-neutral-300">

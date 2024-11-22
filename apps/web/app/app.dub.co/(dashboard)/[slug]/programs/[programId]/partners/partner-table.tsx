@@ -134,6 +134,21 @@ export function PartnerTable() {
           );
         },
       },
+      // TODO: Add these once we support hiding/showing columns
+      // {
+      //   header: "Clicks",
+      //   accessorFn: (d) =>
+      //     d.status !== "pending"
+      //       ? nFormatter(d.link?.clicks, { full: true })
+      //       : "-",
+      // },
+      // {
+      //   header: "Leads",
+      //   accessorFn: (d) =>
+      //     d.status !== "pending"
+      //       ? nFormatter(d.link?.leads, { full: true })
+      //       : "-",
+      // },
       {
         header: "Sales",
         accessorFn: (d) =>
