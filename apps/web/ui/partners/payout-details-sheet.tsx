@@ -159,6 +159,8 @@ function PayoutDetailsSheetContent({
     error: error ? "Failed to load sales" : undefined,
   } as any);
 
+  const { queryParams } = useRouterStuff();
+
   const { executeAsync, isExecuting } = useAction(createPartnerPayoutAction, {
     onSuccess: async () => {
       await mutate(
@@ -170,6 +172,7 @@ function PayoutDetailsSheetContent({
       );
       toast.success("Successfully confirmed payout!");
       setIsOpen(false);
+      queryParams({ del: "payoutId" });
     },
     onError({ error }) {
       toast.error(error.serverError);
