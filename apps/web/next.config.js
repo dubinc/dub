@@ -98,8 +98,8 @@ module.exports = withAxiom({
         source: "/embed/:path*",
         headers: [
           {
-            key: "X-Frame-Options",
-            value: "ALLOW",
+            key: "Content-Security-Policy",
+            value: "frame-ancestors *",
           },
         ],
       },
