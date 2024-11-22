@@ -16,18 +16,15 @@ import {
   Wordmark,
 } from "@dub/ui";
 import { Copy, MoneyBill2 } from "@dub/ui/src/icons";
-import { fetcher, getPrettyUrl } from "@dub/utils";
-import { ProgramEnrollment, ProgramInvite } from "@prisma/client";
+import { getPrettyUrl } from "@dub/utils";
 import { notFound } from "next/navigation";
 import { useContext } from "react";
-import useSWR from "swr";
-import { RequestPartnerInviteForm } from "./request-partner-invite-form";
+import useReferralAnalytics from "../use-referral-analytics";
+import { useReferralLink } from "../use-referral-link";
+import { useReferralProgram } from "../use-referral-program";
 import { SaleTable } from "./sale-table";
-import useReferralAnalytics from "./use-referral-analytics";
-import { useReferralLink } from "./use-referral-link";
-import { useReferralProgram } from "./use-referral-program";
 
-export function ReferralsEmbedPageClient() {
+export function RewardDashboardPageClient() {
   const { program } = useReferralProgram();
   const { searchParamsObj } = useRouterStuff();
   const [copied, copyToClipboard] = useCopyToClipboard();
@@ -48,19 +45,6 @@ export function ReferralsEmbedPageClient() {
     interval?: IntervalOptions;
     token?: string;
   };
-
-  const { data, isLoading } = useSWR<{
-    programEnrollment: ProgramEnrollment;
-    programInvite: ProgramInvite;
-  }>(`/api/referrals/invite`, fetcher);
-
-  const { data: salesCount } = useSWR<{ count: number }>(
-    "/api/referrals/sales/count",
-    fetcher,
-  );
-
-  const hasEnrolled = data?.programEnrollment;
-  const hasInvited = data?.programInvite;
 
   if (!token) {
     notFound();
@@ -152,11 +136,6 @@ export function ReferralsEmbedPageClient() {
           </div>
         </ProgramOverviewContext.Provider>
       </div>
-
-      {/* TODO: UI needs tweaking */}
-      {!isLoading && !hasEnrolled && !hasInvited && salesCount?.count && (
-        <RequestPartnerInviteForm />
-      )}
 
       <div className="flex items-center justify-center">
         <a

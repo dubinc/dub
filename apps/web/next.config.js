@@ -95,7 +95,7 @@ module.exports = withAxiom({
         ],
       },
       {
-        source: "/embed",
+        source: "/embed/:path*",
         headers: [
           {
             key: "X-Frame-Options",
