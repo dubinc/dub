@@ -55,7 +55,7 @@ const DepositFundsForm = ({ closeModal }: { closeModal: () => void }) => {
         toast.success("Funds deposited successfully.");
       },
       onError({ error }) {
-        toast.error(error.serverError?.serverError);
+        toast.error(error.serverError);
       },
     },
   );

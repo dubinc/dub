@@ -44,7 +44,7 @@ export function OnboardingForm() {
       router.push(`/onboarding/verify?partner=${data.partnerId}`);
     },
     onError: ({ error, input }) => {
-      toast.error(error.serverError?.serverError);
+      toast.error(error.serverError);
       reset(input);
     },
   });

@@ -17,26 +17,17 @@ export const createDotsFlowAction = authPartnerActionClient
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
     const { flow } = parsedInput;
+
     if (!flow) {
       throw new Error("Missing flow parameter");
     }
 
-    try {
-      const response = await createDotsFlow({
-        step: flow,
-        dotsUserId: partner.dotsUserId,
-      });
+    const response = await createDotsFlow({
+      step: flow,
+      dotsUserId: partner.dotsUserId,
+    });
 
-      await redis.set(`dots-flow-cache:${partner.id}`, response.id);
+    await redis.set(`dots-flow-cache:${partner.id}`, response.id);
 
-      return {
-        ok: true,
-        ...response,
-      };
-    } catch (e) {
-      return {
-        ok: false,
-        error: e.message,
-      };
-    }
+    return response;
   });

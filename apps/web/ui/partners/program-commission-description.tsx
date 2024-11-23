@@ -30,18 +30,21 @@ export function ProgramCommissionDescription({
             })}{" "}
       </strong>
       for each sale
-      {program.recurringCommission &&
-      ((program.recurringDuration && program.recurringDuration > 0) ||
-        program.isLifetimeRecurring) ? (
+      {program.isLifetimeRecurring ? (
+        <strong className={cn("font-semibold", periodClassName)}>
+          {" "}
+          for the customer's lifetime.
+        </strong>
+      ) : program.recurringCommission &&
+        program.recurringDuration &&
+        program.recurringDuration > 0 ? (
         <>
           , and again{" "}
           <strong className={cn("font-semibold", periodClassName)}>
             every {program.recurringInterval || "cycle"} for{" "}
-            {program.isLifetimeRecurring
-              ? "the customer's lifetime."
-              : program.recurringDuration
-                ? `${program.recurringDuration} ${pluralize(program.recurringInterval || "cycle", program.recurringDuration)}.`
-                : null}
+            {program.recurringDuration
+              ? `${program.recurringDuration} ${pluralize(program.recurringInterval || "cycle", program.recurringDuration)}.`
+              : null}
           </strong>
         </>
       ) : (

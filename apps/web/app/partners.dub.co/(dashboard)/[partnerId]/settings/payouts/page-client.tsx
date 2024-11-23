@@ -42,7 +42,7 @@ export function PayoutsSettingsPageClient() {
       setModalState({ show: true, iframeSrc: data.link });
     },
     onError({ error }) {
-      toast.error(error.serverError?.serverError);
+      toast.error(error.serverError);
     },
   });
 

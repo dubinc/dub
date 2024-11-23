@@ -6,6 +6,7 @@ import { formatDate } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
 import PartnerPayoutSent from "emails/partner-payout-sent";
+import { v5 as uuidv5 } from "uuid";
 import { z } from "zod";
 import { createOrgTransfer } from "../../dots/create-org-transfer";
 import { createTransfer } from "../../dots/create-transfer";
@@ -47,17 +48,19 @@ export const createPartnerPayoutAction = authActionClient
       throw new Error("Partner is not properly enrolled in this program");
     }
 
-    const [transfer, orgTransfer] = await Promise.all([
-      createTransfer({
-        amount: payout.amount,
-        dotsAppId: workspace.dotsAppId,
-        dotsUserId: programEnrollment.dotsUserId,
-      }),
-      createOrgTransfer({
-        amount: payout.fee,
-        dotsAppId: workspace.dotsAppId,
-      }),
-    ]);
+    const transfer = await createTransfer({
+      amount: payout.amount,
+      dotsAppId: workspace.dotsAppId,
+      dotsUserId: programEnrollment.dotsUserId,
+      idempotencyKey: uuidv5(payout.id, uuidv5.URL), // pass a unique idempotency key for each payout to avoid duplicate payouts
+    });
+
+    // we're splitting this out of the Promise.all() to avoid a race condition
+    // e.g. if the transfer fails, we shouldn't proceed with creating the org transfer
+    const orgTransfer = await createOrgTransfer({
+      amount: payout.fee,
+      dotsAppId: workspace.dotsAppId,
+    });
 
     await Promise.all([
       prisma.payout.update({
