@@ -434,21 +434,6 @@ export default function Toggle({
           })) ?? null,
       },
       {
-        key: "continent",
-        icon: MapPosition,
-        label: "Continent",
-        getOptionIcon: (value) => (
-          <ContinentIcon display={value} className="size-2.5" />
-        ),
-        getOptionLabel: (value) => CONTINENTS[value],
-        options:
-          continents?.map(({ continent, count }) => ({
-            value: continent,
-            label: CONTINENTS[continent],
-            right: nFormatter(count, { full: true }),
-          })) ?? null,
-      },
-      {
         key: "region",
         icon: LocationPin,
         label: "Region",
@@ -463,6 +448,21 @@ export default function Toggle({
                 className="h-2.5 w-4"
               />
             ),
+            right: nFormatter(count, { full: true }),
+          })) ?? null,
+      },
+      {
+        key: "continent",
+        icon: MapPosition,
+        label: "Continent",
+        getOptionIcon: (value) => (
+          <ContinentIcon display={value} className="size-2.5" />
+        ),
+        getOptionLabel: (value) => CONTINENTS[value],
+        options:
+          continents?.map(({ continent, count }) => ({
+            value: continent,
+            label: CONTINENTS[continent],
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },

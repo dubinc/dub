@@ -22,11 +22,11 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     end,
     qr,
     trigger,
+    region,
+    country,
     timezone = "UTC",
     isDemo,
     isDeprecatedClicksEndpoint = false,
-    region,
-    country,
   } = params;
 
   const tagIds = combineTagIds(params);

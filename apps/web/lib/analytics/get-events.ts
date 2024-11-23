@@ -32,6 +32,8 @@ export const getEvents = async (params: EventsFilters) => {
     end,
     qr,
     trigger,
+    region,
+    country,
     isDemo,
   } = params;
 
@@ -47,6 +49,12 @@ export const getEvents = async (params: EventsFilters) => {
     } else if (trigger === "link") {
       qr = false;
     }
+  }
+
+  if (region) {
+    const split = region.split("-");
+    country = split[0];
+    region = split[1];
   }
 
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
@@ -65,6 +73,8 @@ export const getEvents = async (params: EventsFilters) => {
     eventType,
     workspaceId,
     qr,
+    country,
+    region,
     offset: (params.page - 1) * params.limit,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
