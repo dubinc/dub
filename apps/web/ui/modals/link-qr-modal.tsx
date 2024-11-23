@@ -14,6 +14,7 @@ import {
   Switch,
   Tooltip,
   TooltipContent,
+  useCopyToClipboard,
   useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
@@ -442,24 +443,22 @@ function CopyPopover({
   props: QRLinkProps;
 }>) {
   const [openPopover, setOpenPopover] = useState(false);
+  const [copiedURL, copyUrlToClipboard] = useCopyToClipboard(2000);
+  const [copiedImage, copyImageToClipboard] = useCopyToClipboard(2000);
 
-  const [copiedImage, setCopiedImage] = useState(false);
   const copyToClipboard = async () => {
     try {
       const canvas = await getQRAsCanvas(qrData, "image/png", true);
       (canvas as HTMLCanvasElement).toBlob(async function (blob) {
         // @ts-ignore
         const item = new ClipboardItem({ "image/png": blob });
-        await navigator.clipboard.write([item]);
-        setCopiedImage(true);
-        setTimeout(() => setCopiedImage(false), 2000);
+        await copyImageToClipboard(item);
         setOpenPopover(false);
       });
     } catch (e) {
       throw e;
     }
   };
-  const [copiedURL, setCopiedURL] = useState(false);
 
   return (
     <Popover
@@ -490,18 +489,16 @@ function CopyPopover({
           <button
             type="button"
             onClick={() => {
-              navigator.clipboard.writeText(
-                `${API_DOMAIN}/qr?url=${linkConstructor({
-                  key: props.key,
-                  domain: props.domain,
-                  searchParams: {
-                    qr: "1",
-                  },
-                })}${qrData.hideLogo ? "&hideLogo=true" : ""}`,
-              );
-              toast.success("Copied QR code URL to clipboard!");
-              setCopiedURL(true);
-              setTimeout(() => setCopiedURL(false), 2000);
+              const url = `${API_DOMAIN}/qr?url=${linkConstructor({
+                key: props.key,
+                domain: props.domain,
+                searchParams: {
+                  qr: "1",
+                },
+              })}${qrData.hideLogo ? "&hideLogo=true" : ""}`;
+              toast.promise(copyUrlToClipboard(url), {
+                success: "Copied QR code URL to clipboard!",
+              });
               setOpenPopover(false);
             }}
             className="rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"

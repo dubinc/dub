@@ -45,7 +45,9 @@ export const WorkspaceSchema = z
     stripeConnectId: z
       .string()
       .nullable()
-      .describe("[BETA]: The Stripe Connect ID of the workspace."),
+      .describe(
+        "[BETA – Dub Conversions]: The Stripe Connect ID of the workspace.",
+      ),
 
     usage: z.number().describe("The usage of the workspace."),
     usageLimit: z.number().describe("The usage limit of the workspace."),
@@ -112,6 +114,27 @@ export const WorkspaceSchema = z
       .string()
       .nullable()
       .describe("The publishable key of the workspace."),
+    bankAccountName: z
+      .string()
+      .nullable()
+      .describe(
+        "[BETA – Dub Partners]: The name of the connected bank account.",
+      ),
+    partialAccountNumber: z
+      .string()
+      .nullable()
+      .describe(
+        "[BETA – Dub Partners]: The partial account number of the bank account.",
+      ),
+    routingNumber: z
+      .string()
+      .nullable()
+      .describe(
+        "[BETA – Dub Partners]: The routing number of the bank account.",
+      ),
+    bankAccountVerified: z
+      .boolean()
+      .describe("[BETA – Dub Partners]: Whether the bank account is verified."),
   })
   .openapi({
     title: "Workspace",

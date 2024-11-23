@@ -1,6 +1,6 @@
 import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { useRouterStuff } from "@dub/ui";
-import { CONTINENTS, COUNTRIES } from "@dub/utils";
+import { CONTINENTS, COUNTRIES, REGIONS } from "@dub/utils";
 import { useContext, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
@@ -10,14 +10,15 @@ import ContinentIcon from "./continent-icon";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Locations() {
-  const { queryParams } = useRouterStuff();
+  const { queryParams, searchParams } = useRouterStuff();
 
   const { selectedTab } = useContext(AnalyticsContext);
   const dataKey = selectedTab === "sales" ? "saleAmount" : "count";
 
-  const [tab, setTab] = useState<"countries" | "cities" | "continents">(
-    "countries",
-  );
+  const [tab, setTab] = useState<
+    "countries" | "cities" | "continents" | "regions"
+  >("countries");
+
   const data = useAnalyticsFilterOption(tab);
   const singularTabName = SINGULAR_ANALYTICS_ENDPOINTS[tab];
 
@@ -26,6 +27,7 @@ export default function Locations() {
       tabs={[
         { id: "countries", label: "Countries" },
         { id: "cities", label: "Cities" },
+        { id: "regions", label: "Regions" },
         { id: "continents", label: "Continents" },
       ]}
       selectedTabId={tab}
@@ -59,11 +61,17 @@ export default function Locations() {
                         ? CONTINENTS[d.continent]
                         : tab === "countries"
                           ? COUNTRIES[d.country]
-                          : d.city,
+                          : tab === "regions"
+                            ? REGIONS[d.region] || d.region.split("-")[1]
+                            : d.city,
                     href: queryParams({
-                      set: {
-                        [singularTabName]: d[singularTabName],
-                      },
+                      ...(searchParams.has(singularTabName)
+                        ? { del: singularTabName }
+                        : {
+                            set: {
+                              [singularTabName]: d[singularTabName],
+                            },
+                          }),
                       getNewPath: true,
                     }) as string,
                     value: d[dataKey] || 0,

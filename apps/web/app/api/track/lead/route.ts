@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { parseRequestBody } from "@/lib/api/utils";
+import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { generateRandomName } from "@/lib/names";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
@@ -24,22 +24,32 @@ export const POST = withWorkspaceEdge(
     const {
       clickId,
       eventName,
-      customerId: externalId,
+      externalId,
+      customerId, // deprecated
       customerName,
       customerEmail,
       customerAvatar,
       metadata,
     } = trackLeadRequestSchema.parse(await parseRequestBody(req));
 
+    const customerExternalId = customerId || externalId;
+
+    if (!customerExternalId) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "externalId is required",
+      });
+    }
+
     // deduplicate lead events – only record 1 event per hour
     const { success } = await ratelimit(1, "1 h").limit(
-      `recordLead:${externalId}:${eventName.toLowerCase().replace(" ", "-")}`,
+      `recordLead:${customerExternalId}:${eventName.toLowerCase().replace(" ", "-")}`,
     );
 
     if (!success) {
       throw new DubApiError({
         code: "rate_limit_exceeded",
-        message: `Rate limit exceeded for customer ${externalId}: ${eventName}`,
+        message: `Rate limit exceeded for customer ${customerExternalId}: ${eventName}`,
       });
     }
 
@@ -67,14 +77,15 @@ export const POST = withWorkspaceEdge(
           where: {
             projectId_externalId: {
               projectId: workspace.id,
-              externalId,
+              externalId: customerExternalId,
             },
           },
           create: {
+            id: createId({ prefix: "cus_" }),
             name: finalCustomerName,
             email: customerEmail,
             avatar: customerAvatar,
-            externalId,
+            externalId: customerExternalId,
             projectId: workspace.id,
             projectConnectId: workspace.stripeConnectId,
           },
@@ -121,10 +132,12 @@ export const POST = withWorkspaceEdge(
           ...clickData,
           link,
           eventName,
-          customerId: customer.externalId,
+          customerId: customer.id,
+          customerExternalId: customer.externalId,
           customerName: customer.name,
           customerEmail: customer.email,
           customerAvatar: customer.avatar,
+          customerCreatedAt: customer.createdAt,
         });
 
         await sendWorkspaceWebhookOnEdge({
@@ -140,10 +153,10 @@ export const POST = withWorkspaceEdge(
         id: clickId,
       },
       customer: {
-        id: externalId,
         name: finalCustomerName,
         email: customerEmail,
         avatar: customerAvatar,
+        externalId: customerExternalId,
       },
     });
 
@@ -151,7 +164,6 @@ export const POST = withWorkspaceEdge(
       ...lead,
       // for backwards compatibility – will remove soon
       clickId,
-      customerId: externalId,
       customerName: finalCustomerName,
       customerEmail: customerEmail,
       customerAvatar: customerAvatar,

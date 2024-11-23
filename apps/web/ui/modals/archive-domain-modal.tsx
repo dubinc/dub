@@ -31,6 +31,14 @@ const sendArchiveRequest = ({
   });
 };
 
+const revalidateDomains = () => {
+  return mutate(
+    (key) => typeof key === "string" && key.startsWith("/api/domains"),
+    undefined,
+    { revalidate: true },
+  );
+};
+
 function ArchiveDomainModal({
   showArchiveDomainModal,
   setShowArchiveDomainModal,
@@ -63,13 +71,7 @@ function ArchiveDomainModal({
       return;
     }
 
-    await mutate(
-      (key) => typeof key === "string" && key.startsWith("/api/domains"),
-      undefined,
-      {
-        revalidate: true,
-      },
-    );
+    revalidateDomains();
     setShowArchiveDomainModal(false);
     toastWithUndo({
       id: "domain-archive-undo-toast",
@@ -89,12 +91,8 @@ function ArchiveDomainModal({
       {
         loading: "Undo in progress...",
         error: "Failed to roll back changes. An error occurred.",
-        success: async () => {
-          await mutate(
-            (key) => typeof key === "string" && key.startsWith("/api/domains"),
-            undefined,
-            { revalidate: true },
-          );
+        success: () => {
+          revalidateDomains();
           return "Undo successful! Changes reverted.";
         },
       },

@@ -1,13 +1,39 @@
 import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
-import { Link, Project, UtmTemplate, Webhook } from "@dub/prisma";
+import {
+  Link,
+  PayoutStatus,
+  ProgramEnrollmentStatus,
+  Project,
+  SaleStatus,
+  UtmTemplate,
+  Webhook,
+} from "@dub/prisma";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
-import { trackCustomerResponseSchema } from "./zod/schemas/customers";
+import {
+  CustomerSchema,
+  trackCustomerResponseSchema,
+} from "./zod/schemas/customers";
 import { integrationSchema } from "./zod/schemas/integration";
 import { trackLeadResponseSchema } from "./zod/schemas/leads";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
+import {
+  EnrolledPartnerSchema,
+  PartnerPayoutResponseSchema,
+  PartnerSaleResponseSchema,
+  PartnerSchema,
+  PayoutResponseSchema,
+  PayoutSchema,
+  SaleResponseSchema,
+  SaleSchema,
+} from "./zod/schemas/partners";
+import {
+  ProgramEnrollmentSchema,
+  ProgramInviteSchema,
+  ProgramSchema,
+} from "./zod/schemas/programs";
 import { trackSaleResponseSchema } from "./zod/schemas/sales";
 import { tokenSchema } from "./zod/schemas/token";
 import { usageResponse } from "./zod/schemas/usage";
@@ -19,9 +45,10 @@ import {
 
 export type LinkProps = Link;
 
-export interface LinkWithTagsProps extends LinkProps {
+export interface ExpandedLinkProps extends LinkProps {
   tags: TagProps[];
   webhookIds: string[];
+  dashboardId: string | null;
 }
 
 export interface SimpleLinkProps {
@@ -71,7 +98,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "referrals" | "webhooks";
+export type BetaFeatures = "referrals" | "webhooks" | "noDubLink";
 
 export type AddOns = "conversion" | "sso";
 
@@ -91,6 +118,13 @@ export interface WorkspaceProps extends Project {
     [key in BetaFeatures]: boolean;
   };
 }
+
+export type ExpandedWorkspaceProps = WorkspaceProps & {
+  programs: {
+    id: string;
+    name: string;
+  }[];
+};
 
 export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;
 
@@ -269,4 +303,36 @@ export type TrackLeadResponse = z.infer<typeof trackLeadResponseSchema>;
 
 export type TrackSaleResponse = z.infer<typeof trackSaleResponseSchema>;
 
+export type Customer = z.infer<typeof CustomerSchema>;
+
 export type UsageResponse = z.infer<typeof usageResponse>;
+
+export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
+
+export type SaleProps = z.infer<typeof SaleSchema>;
+
+export type SalesCount = Record<SaleStatus | "all", number>;
+
+export type SaleResponse = z.infer<typeof SaleResponseSchema>;
+
+export type PartnerSaleResponse = z.infer<typeof PartnerSaleResponseSchema>;
+
+export type CustomerProps = z.infer<typeof CustomerSchema>;
+
+export type PartnerProps = z.infer<typeof PartnerSchema>;
+
+export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
+
+export type ProgramProps = z.infer<typeof ProgramSchema>;
+
+export type ProgramInviteProps = z.infer<typeof ProgramInviteSchema>;
+
+export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
+
+export type PayoutsCount = Record<PayoutStatus | "all", number>;
+
+export type PayoutProps = z.infer<typeof PayoutSchema>;
+
+export type PayoutResponse = z.infer<typeof PayoutResponseSchema>;
+
+export type PartnerPayoutResponse = z.infer<typeof PartnerPayoutResponseSchema>;

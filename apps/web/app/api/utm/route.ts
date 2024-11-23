@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { createId } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { createUTMTemplateBodySchema } from "@/lib/zod/schemas/utm";
 import { prisma } from "@dub/prisma";
@@ -48,6 +49,7 @@ export const POST = withWorkspace(
 
     const response = await prisma.utmTemplate.create({
       data: {
+        id: createId({ prefix: "utm_" }),
         projectId: workspace.id,
         userId: session?.user.id,
         ...props,

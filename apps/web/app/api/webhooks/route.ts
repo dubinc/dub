@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
-import { parseRequestBody } from "@/lib/api/utils";
+import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { webhookCache } from "@/lib/webhook/cache";
 import { WEBHOOK_ID_PREFIX } from "@/lib/webhook/constants";
@@ -8,7 +8,6 @@ import { transformWebhook } from "@/lib/webhook/transform";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";
 import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { prisma } from "@dub/prisma";
-import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
 import WebhookAdded from "emails/webhook-added";
@@ -92,7 +91,7 @@ export const POST = withWorkspace(
 
     const webhook = await prisma.webhook.create({
       data: {
-        id: `${WEBHOOK_ID_PREFIX}${nanoid(25)}`,
+        id: createId({ prefix: WEBHOOK_ID_PREFIX }),
         name,
         url,
         secret,

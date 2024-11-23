@@ -85,18 +85,20 @@ export const analyticsQuerySchema = z.object({
     .enum(intervals)
     .optional()
     .describe(
-      "The interval to retrieve analytics for. Takes precedence over start and end. If undefined, defaults to 24h.",
+      "The interval to retrieve analytics for. If undefined, defaults to 24h.",
     ),
   start: parseDateSchema
     .refine((value: Date) => value >= DUB_FOUNDING_DATE, {
       message: `The start date cannot be earlier than ${formatDate(DUB_FOUNDING_DATE)}.`,
     })
     .optional()
-    .describe("The start date and time when to retrieve analytics from."),
+    .describe(
+      "The start date and time when to retrieve analytics from. Takes precedence over `interval`.",
+    ),
   end: parseDateSchema
     .optional()
     .describe(
-      "The end date and time when to retrieve analytics from. If not provided, defaults to the current date.",
+      "The end date and time when to retrieve analytics from. If not provided, defaults to the current date. Takes precedence over `interval`.",
     ),
   timezone: z
     .string()
@@ -105,11 +107,6 @@ export const analyticsQuerySchema = z.object({
       "The IANA time zone code for aligning timeseries granularity (e.g. America/New_York). Defaults to UTC.",
     )
     .openapi({ example: "America/New_York", default: "UTC" }),
-  continent: z
-    .enum(CONTINENT_CODES)
-    .optional()
-    .describe("The continent to retrieve analytics for.")
-    .openapi({ ref: "continentCode" }),
   country: z
     .enum(COUNTRY_CODES)
     .optional()
@@ -120,6 +117,16 @@ export const analyticsQuerySchema = z.object({
     .optional()
     .describe("The city to retrieve analytics for.")
     .openapi({ example: "New York" }),
+  region: z
+    .string()
+    .optional()
+    .describe("The ISO 3166-2 region code to retrieve analytics for.")
+    .openapi({ ref: "regionCode" }),
+  continent: z
+    .enum(CONTINENT_CODES)
+    .optional()
+    .describe("The continent to retrieve analytics for.")
+    .openapi({ ref: "continentCode" }),
   device: z
     .string()
     .optional()
@@ -161,7 +168,15 @@ export const analyticsQuerySchema = z.object({
   tagId: z
     .string()
     .optional()
-    .describe("The tag ID to retrieve analytics for."),
+    .describe(
+      "Deprecated. Use `tagIds` instead. The tag ID to retrieve analytics for.",
+    )
+    .openapi({ deprecated: true }),
+  tagIds: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe("The tag IDs to retrieve analytics for."),
   qr: booleanQuerySchema
     .optional()
     .describe(
@@ -189,6 +204,7 @@ export const analyticsFilterTB = z
           return v;
         }
       }),
+    programId: z.string().optional(),
     root: z.boolean().optional(),
     qr: z.boolean().optional(),
     start: z.string(),
@@ -202,13 +218,14 @@ export const analyticsFilterTB = z
       city: true,
       country: true,
       continent: true,
+      region: true,
       device: true,
       domain: true,
       linkId: true,
       os: true,
       referer: true,
       refererUrl: true,
-      tagId: true,
+      tagIds: true,
       url: true,
     }),
   );

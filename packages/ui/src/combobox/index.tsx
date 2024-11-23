@@ -192,6 +192,7 @@ export function Combobox({
           height
           style={{ transform: "translateZ(0)" }} // Fixes overflow on some browsers
           transition={{ ease: "easeInOut", duration: 0.1 }}
+          className="pointer-events-auto"
         >
           <Command loop shouldFilter={shouldFilter}>
             <div className="flex items-center overflow-hidden rounded-t-lg border-b border-gray-200">

@@ -1,4 +1,4 @@
-import { getContentAPI } from "@/lib/fetchers";
+import { getContentAPI } from "@/lib/fetchers/get-content-api";
 import { ClientOnly } from "@dub/ui";
 import { News, NewsArticle } from "./news";
 

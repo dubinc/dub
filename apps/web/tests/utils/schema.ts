@@ -44,6 +44,7 @@ export const expectedLink: Partial<Link> & {
   expiredUrl: null,
   externalId: null,
   identifier: null,
+  programId: null,
 };
 
 export const expectedTag: Partial<Tag> = {

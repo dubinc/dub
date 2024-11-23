@@ -3,12 +3,12 @@ import {
   bulkCreateLinks,
   checkIfLinksHaveTags,
   checkIfLinksHaveWebhooks,
-  combineTagIds,
   processLink,
 } from "@/lib/api/links";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { bulkUpdateLinks } from "@/lib/api/links/bulk-update-links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
+import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { storage } from "@/lib/storage";
@@ -388,6 +388,7 @@ export const DELETE = withWorkspace(
     const links = await prisma.link.findMany({
       where: {
         projectId: workspace.id,
+        programId: null,
         OR: [
           ...(linkIds.size > 0 ? [{ id: { in: Array.from(linkIds) } }] : []),
           ...(externalIds.size > 0
@@ -396,11 +397,7 @@ export const DELETE = withWorkspace(
         ],
       },
       include: {
-        tags: {
-          select: {
-            id: true,
-          },
-        },
+        tags: true,
       },
     });
 

@@ -1,3 +1,4 @@
+import { createId } from "@/lib/api/utils";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
@@ -53,6 +54,7 @@ export async function customerCreated(event: Stripe.Event) {
   // Create customer
   const customer = await prisma.customer.create({
     data: {
+      id: createId({ prefix: "cus_" }),
       name: stripeCustomer.name,
       email: stripeCustomer.email,
       stripeCustomerId: stripeCustomer.id,
@@ -113,10 +115,12 @@ export async function customerCreated(event: Stripe.Event) {
       data: transformLeadEventData({
         ...leadData,
         link,
-        customerId: customer.externalId,
+        customerId: customer.id,
+        customerExternalId: customer.externalId,
         customerName: customer.name,
         customerEmail: customer.email,
         customerAvatar: customer.avatar,
+        customerCreatedAt: customer.createdAt,
       }),
     }),
   );

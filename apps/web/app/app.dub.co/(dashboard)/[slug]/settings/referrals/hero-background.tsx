@@ -4,7 +4,7 @@ import Image from "next/image";
 const heroGradient =
   "conic-gradient(from 45deg at 65% 70%, #855AFC 0deg, #3A8BFD 72deg, #00FFF9 144deg, #5CFF80 197.89deg, #EAB308 260.96deg, #FF0000 360deg)";
 
-export function HeroBackground({ slug }: { slug: string }) {
+export function HeroBackground() {
   return (
     <div className="pointer-events-none absolute inset-0 [mask-image:radial-gradient(100%_100%_at_top_right,black,transparent)] max-[350px]:opacity-50 sm:[mask-image:linear-gradient(to_right,transparent_50%,black_70%)]">
       <div className="absolute -right-[60px] top-[40px] isolate w-[600px] -translate-y-1/2 overflow-hidden bg-white sm:-right-[60px] sm:top-1/2 sm:w-[1200px] md:right-0">

@@ -1,7 +1,7 @@
 import { addDomainToVercel, validateDomain } from "@/lib/api/domains";
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { createLink, transformLink } from "@/lib/api/links";
-import { parseRequestBody } from "@/lib/api/utils";
+import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
   DomainSchema,
@@ -126,6 +126,7 @@ export const POST = withWorkspace(
     const [domainRecord, _] = await Promise.all([
       prisma.domain.create({
         data: {
+          id: createId({ prefix: "dom_" }),
           slug: slug,
           projectId: workspace.id,
           primary: totalDomains === 0,

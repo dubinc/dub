@@ -63,6 +63,12 @@ export const PATCH = withWorkspace(
       newDomain && newDomain.toLowerCase() !== domain.toLowerCase();
 
     if (domainUpdated) {
+      if (registeredDomain) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: "You cannot update a Dub-provisioned domain.",
+        });
+      }
       const validDomain = await validateDomain(newDomain);
       if (validDomain.error && validDomain.code) {
         throw new DubApiError({
@@ -85,7 +91,7 @@ export const PATCH = withWorkspace(
       },
       data: {
         archived,
-        ...(domainUpdated && !registeredDomain && { slug: newDomain }),
+        ...(domainUpdated && { slug: newDomain }),
         ...(placeholder && { placeholder }),
         ...(workspace.plan != "free" && {
           expiredUrl,
@@ -124,6 +130,7 @@ export const PATCH = withWorkspace(
               key: link.key,
               url: link.url,
               tag_ids: link.tags.map((tag) => tag.tagId),
+              program_id: link.programId ?? "",
               workspace_id: link.projectId,
               created_at: link.createdAt,
             })),

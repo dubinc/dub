@@ -17,6 +17,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
+import { completeProgramApplications } from "../partners/complete-program-applications";
 import {
   exceededLoginAttemptsThreshold,
   incrementLoginAttempts,
@@ -479,6 +480,9 @@ export const authOptions: NextAuthOptions = {
           })(),
         );
       }
+
+      // Complete any outstanding program applications
+      await completeProgramApplications(message.user.id);
     },
   },
 };

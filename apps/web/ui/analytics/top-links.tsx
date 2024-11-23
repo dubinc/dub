@@ -8,7 +8,7 @@ import BarList from "./bar-list";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function TopLinks() {
-  const { queryParams } = useRouterStuff();
+  const { queryParams, searchParams } = useRouterStuff();
 
   const { selectedTab } = useContext(AnalyticsContext);
   const dataKey = selectedTab === "sales" ? "saleAmount" : "count";
@@ -47,14 +47,22 @@ export default function TopLinks() {
                       (tab === "links" && d["shortLink"]
                         ? d["shortLink"]
                         : d.url) ?? "Unknown",
+                    // TODO: simplify this once we switch from domain+key to linkId
                     href: queryParams({
-                      set: {
-                        ...(tab === "links"
-                          ? { domain: d.domain, key: d.key || "_root" }
-                          : {
-                              url: d.url,
-                            }),
-                      },
+                      ...((tab === "links" &&
+                        searchParams.has("domain") &&
+                        searchParams.has("key")) ||
+                      (tab === "urls" && searchParams.has("url"))
+                        ? { del: tab === "links" ? ["domain", "key"] : "url" }
+                        : {
+                            set: {
+                              ...(tab === "links"
+                                ? { domain: d.domain, key: d.key || "_root" }
+                                : {
+                                    url: d.url,
+                                  }),
+                            },
+                          }),
                       getNewPath: true,
                     }) as string,
                     value: d[dataKey] || 0,

@@ -26,7 +26,7 @@ import {
 import { CursorRays, LinkBroken } from "@dub/ui/src/icons";
 import { ToggleGroup } from "@dub/ui/src/toggle-group";
 import { InfoTooltip, TooltipContent } from "@dub/ui/src/tooltip";
-import { capitalize } from "@dub/utils";
+import { capitalize, pluralize } from "@dub/utils";
 import { ChevronDown, Crown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { DefaultDomains } from "./default-domains";
@@ -79,9 +79,10 @@ export default function WorkspaceDomainsClient() {
 
   const disabledTooltip = exceededDomains ? (
     <TooltipContent
-      title={`You can only add up to ${domainsLimit} domain${
-        domainsLimit === 1 ? "" : "s"
-      } on the ${capitalize(plan)} plan. Upgrade to add more domains`}
+      title={`You can only add up to ${domainsLimit} ${pluralize(
+        "domain",
+        domainsLimit || 0,
+      )} on the ${capitalize(plan)} plan. Upgrade to add more domains`}
       cta="Upgrade"
       onClick={() => {
         queryParams({

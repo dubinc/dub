@@ -7,7 +7,7 @@ import {
 import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
 import { geolocation, ipAddress } from "@vercel/functions";
 import { userAgent } from "next/server";
-import { LinkWithTags, transformLink } from "../api/links/utils/transform-link";
+import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
 import {
   detectBot,
   detectQr,
@@ -67,13 +67,20 @@ export async function recordClick({
 
   const isQr = detectQr(req);
 
-  // get continent & geolocation data
-  const continent =
+  // get continent, region & geolocation data
+  // interesting, geolocation().region is Vercel's edge region – NOT the actual region
+  // so we use the x-vercel-ip-country-region to get the actual region
+  const { continent, region } =
     process.env.VERCEL === "1"
-      ? req.headers.get("x-vercel-ip-continent")
-      : LOCALHOST_GEO_DATA.continent;
+      ? {
+          continent: req.headers.get("x-vercel-ip-continent"),
+          region: req.headers.get("x-vercel-ip-country-region"),
+        }
+      : LOCALHOST_GEO_DATA;
+
   const geo =
     process.env.VERCEL === "1" ? geolocation(req) : LOCALHOST_GEO_DATA;
+
   const isEuCountry = geo.country && EU_COUNTRY_CODES.includes(geo.country);
 
   const ua = userAgent(req);
@@ -95,10 +102,11 @@ export async function recordClick({
       typeof ip === "string" && ip.trim().length > 0 && !isEuCountry ? ip : "",
     continent: continent || "",
     country: geo.country || "Unknown",
+    region: region || "Unknown",
     city: geo.city || "Unknown",
-    region: geo.region || "Unknown",
     latitude: geo.latitude || "Unknown",
     longitude: geo.longitude || "Unknown",
+    vercel_region: req.headers.get("x-vercel-id") || "",
     device: capitalize(ua.device.type) || "Desktop",
     device_vendor: ua.device.vendor || "Unknown",
     device_model: ua.device.model || "Unknown",
@@ -170,7 +178,7 @@ export async function recordClick({
         // @ts-ignore – bot & qr should be boolean
         data: transformClickEventData({
           ...clickData,
-          link: transformLink(link as LinkWithTags),
+          link: transformLink(link as ExpandedLink),
         }),
       });
     }

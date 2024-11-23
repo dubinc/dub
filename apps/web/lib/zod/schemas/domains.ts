@@ -114,7 +114,6 @@ export const createDomainBodySchema = z.object({
     .openapi({ example: false }),
   placeholder: parseUrlSchemaAllowEmpty({ maxLength: 100 })
     .nullish()
-    .default("https://dub.co/help/article/what-is-dub")
     .describe(
       "Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened.",
     )

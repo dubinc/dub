@@ -1,7 +1,8 @@
 import z from "@/lib/zod";
 import { getLinksQuerySchemaExtended } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
-import { combineTagIds, transformLink } from "./utils";
+import { combineTagIds } from "../tags/combine-tag-ids";
+import { transformLink } from "./utils";
 
 export async function getLinksForWorkspace({
   workspaceId,
@@ -18,6 +19,7 @@ export async function getLinksForWorkspace({
   withTags,
   includeUser,
   includeWebhooks,
+  includeDashboard,
   linkIds,
 }: z.infer<typeof getLinksQuerySchemaExtended> & {
   workspaceId: string;
@@ -78,6 +80,7 @@ export async function getLinksForWorkspace({
       },
       user: includeUser,
       webhooks: includeWebhooks,
+      dashboard: includeDashboard,
     },
     orderBy: {
       [sort]: "desc",

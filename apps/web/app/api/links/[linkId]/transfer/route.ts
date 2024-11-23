@@ -21,7 +21,7 @@ const transferLinkBodySchema = z.object({
 export const POST = withWorkspace(
   async ({ req, headers, session, params, workspace }) => {
     const link = await getLinkOrThrow({
-      workspace,
+      workspaceId: workspace.id,
       linkId: params.linkId,
     });
 
@@ -91,22 +91,9 @@ export const POST = withWorkspace(
           key: link.key,
           url: link.url,
           tag_ids: [],
+          program_id: link.programId ?? "",
           workspace_id: newWorkspaceId,
           created_at: link.createdAt,
-        }),
-        // decrement old workspace usage
-        prisma.project.update({
-          where: {
-            id: workspace.id,
-          },
-          data: {
-            usage: {
-              decrement: linkClicks,
-            },
-            linksUsage: {
-              decrement: 1,
-            },
-          },
         }),
         // increment new workspace usage
         prisma.project.update({

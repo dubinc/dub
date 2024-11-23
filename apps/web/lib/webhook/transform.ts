@@ -4,7 +4,7 @@ import {
 } from "@/lib/webhook/schemas";
 import type { Webhook } from "@dub/prisma";
 import { nanoid, toCamelCase } from "@dub/utils";
-import { LinkWithTags, transformLink } from "../api/links/utils/transform-link";
+import { ExpandedLink, transformLink } from "../api/links";
 import { WebhookTrigger } from "../types";
 import z from "../zod";
 import { clickEventSchema, clickEventSchemaTB } from "../zod/schemas/clicks";
@@ -55,18 +55,20 @@ export const transformLeadEventData = (data: any) => {
     ...lead,
     customer: {
       id: lead.customerId,
+      externalId: lead.customerExternalId,
       name: lead.customerName,
       email: lead.customerEmail,
       avatar:
         lead.customerAvatar ||
         `https://api.dicebear.com/9.x/micah/svg?seed=${lead.customerId}`,
+      createdAt: lead.customerCreatedAt,
     },
     click: {
       ...lead,
       id: lead.clickId,
     },
     // transformLink -> add shortLink, qrCode, workspaceId, etc.
-    link: transformLink(lead.link as LinkWithTags),
+    link: transformLink(lead.link as ExpandedLink),
   });
 };
 
@@ -81,7 +83,11 @@ export const transformSaleEventData = (data: any) => {
       id: sale.customerId,
       name: sale.customerName,
       email: sale.customerEmail,
-      avatar: sale.customerAvatar,
+      avatar:
+        sale.customerAvatar ||
+        `https://api.dicebear.com/9.x/micah/svg?seed=${sale.customerId}`,
+      externalId: sale.customerExternalId,
+      createdAt: sale.customerCreatedAt,
     },
     sale: {
       amount: sale.amount,
@@ -96,7 +102,7 @@ export const transformSaleEventData = (data: any) => {
       bot: sale.bot === 1,
     },
     // transformLink -> add shortLink, qrCode, workspaceId, etc.
-    link: transformLink(sale.link as LinkWithTags),
+    link: transformLink(sale.link as ExpandedLink),
   });
 };
 

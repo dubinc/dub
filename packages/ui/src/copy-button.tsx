@@ -1,10 +1,9 @@
 "use client";
-
 import { cn } from "@dub/utils";
 import { VariantProps, cva } from "class-variance-authority";
 import { LucideIcon } from "lucide-react";
-import { useState } from "react";
 import { toast } from "sonner";
+import { useCopyToClipboard } from "./hooks";
 import { Copy, Tick } from "./icons";
 
 const copyButtonVariants = cva(
@@ -34,17 +33,15 @@ export function CopyButton({
   icon?: LucideIcon;
   successMessage?: string;
 } & VariantProps<typeof copyButtonVariants>) {
-  const [copied, setCopied] = useState(false);
+  const [copied, copyToClipboard] = useCopyToClipboard();
   const Comp = icon || Copy;
   return (
     <button
       onClick={(e) => {
         e.stopPropagation();
-        setCopied(true);
-        navigator.clipboard.writeText(value).then(() => {
-          toast.success(successMessage || "Copied to clipboard!");
+        toast.promise(copyToClipboard(value), {
+          success: successMessage || "Copied to clipboard!",
         });
-        setTimeout(() => setCopied(false), 3000);
       }}
       className={cn(copyButtonVariants({ variant }), className)}
       type="button"

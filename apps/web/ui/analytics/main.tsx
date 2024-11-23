@@ -1,5 +1,4 @@
 import { EventType } from "@/lib/analytics/types";
-import useWorkspace from "@/lib/swr/use-workspace";
 import {
   Button,
   CountingNumbers,
@@ -7,7 +6,7 @@ import {
   Tooltip,
   useRouterStuff,
 } from "@dub/ui";
-import { ChartLine, Filter2, SquareLayoutGrid6 } from "@dub/ui/src/icons";
+import { ChartLine, Filter2 } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import { ChevronRight, Lock } from "lucide-react";
 import Link from "next/link";
@@ -23,15 +22,8 @@ type Tab = {
 };
 
 export default function Main() {
-  const { conversionEnabled } = useWorkspace();
-  const {
-    totalEvents,
-    requiresUpgrade,
-    adminPage,
-    demoPage,
-    selectedTab,
-    view,
-  } = useContext(AnalyticsContext);
+  const { totalEvents, requiresUpgrade, showConversions, selectedTab, view } =
+    useContext(AnalyticsContext);
   const { queryParams } = useRouterStuff();
 
   const tabs = useMemo(
@@ -42,7 +34,7 @@ export default function Main() {
           label: "Clicks",
           colorClassName: "text-blue-500/50",
         },
-        ...(conversionEnabled || adminPage || demoPage
+        ...(showConversions
           ? [
               {
                 id: "leads",
@@ -57,7 +49,7 @@ export default function Main() {
             ]
           : []),
       ] as Tab[],
-    [conversionEnabled],
+    [showConversions],
   );
 
   const tab = tabs.find(({ id }) => id === selectedTab) ?? tabs[0];
@@ -149,9 +141,11 @@ export default function Main() {
             );
           })}
         </div>
-        <div className="hidden sm:block">
-          <ViewButtons />
-        </div>
+        {showConversions && (
+          <div className="hidden sm:block">
+            <ViewButtons />
+          </div>
+        )}
       </div>
       <div className="relative">
         {view === "default" && (
@@ -160,71 +154,51 @@ export default function Main() {
           </div>
         )}
         {view === "funnel" && <AnalyticsFunnelChart />}
-        <div className="absolute right-2 top-2 w-fit sm:hidden">
-          <ViewButtons />
-        </div>
+        {showConversions && (
+          <div className="absolute right-2 top-2 w-fit sm:hidden">
+            <ViewButtons />
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
 function ViewButtons() {
-  const { slug, conversionEnabled } = useWorkspace();
-  const { basePath, adminPage, demoPage, view } = useContext(AnalyticsContext);
-  const { router, queryParams, getQueryString } = useRouterStuff();
-  const isPublicStatsPage = basePath.startsWith("/stats");
+  const { view } = useContext(AnalyticsContext);
+  const { queryParams } = useRouterStuff();
 
   return (
     <div className="flex shrink-0 items-center gap-1 border-gray-100 pr-2 pt-2 sm:pr-6 sm:pt-6">
-      {(conversionEnabled || adminPage || demoPage) && (
-        <>
-          <Tooltip content="Line Chart">
-            <Button
-              variant="secondary"
-              className={cn(
-                "h-9 border-transparent px-2 hover:border-gray-200",
-                view === "default" && "border border-gray-200 bg-gray-100",
-              )}
-              icon={<ChartLine className="h-4 w-4 text-gray-600" />}
-              onClick={() => {
-                queryParams({
-                  del: "view",
-                });
-              }}
-            />
-          </Tooltip>
-          <Tooltip content="Funnel Chart">
-            <Button
-              variant="secondary"
-              className={cn(
-                "h-9 border-transparent px-2 hover:border-gray-200",
-                view === "funnel" && "border border-gray-200 bg-gray-100",
-              )}
-              icon={<Filter2 className="h-4 w-4 -rotate-90 text-gray-600" />}
-              onClick={() => {
-                queryParams({
-                  set: {
-                    view: "funnel",
-                  },
-                });
-              }}
-            />
-          </Tooltip>
-        </>
-      )}
-      <Tooltip content="View Events">
+      <Tooltip content="Line Chart">
         <Button
           variant="secondary"
-          className="h-9 border-transparent px-2 hover:border-gray-200"
-          icon={<SquareLayoutGrid6 className="h-4 w-4 text-gray-600" />}
+          className={cn(
+            "h-9 border-transparent px-2 hover:border-gray-200",
+            view === "default" && "border border-gray-200 bg-gray-100",
+          )}
+          icon={<ChartLine className="h-4 w-4 text-gray-600" />}
           onClick={() => {
-            if (isPublicStatsPage) {
-              window.open("https://d.to/events");
-            } else {
-              router.push(
-                `/${slug}/events${getQueryString({}, { ignore: ["view"] })}`,
-              );
-            }
+            queryParams({
+              del: "view",
+            });
+          }}
+        />
+      </Tooltip>
+      <Tooltip content="Funnel Chart">
+        <Button
+          variant="secondary"
+          className={cn(
+            "h-9 border-transparent px-2 hover:border-gray-200",
+            view === "funnel" && "border border-gray-200 bg-gray-100",
+          )}
+          icon={<Filter2 className="h-4 w-4 -rotate-90 text-gray-600" />}
+          onClick={() => {
+            queryParams({
+              set: {
+                view: "funnel",
+              },
+            });
           }}
         />
       </Tooltip>

@@ -1,4 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
+import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
+import { createSaleData } from "@/lib/api/sales/sale";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
@@ -20,7 +22,8 @@ export const runtime = "edge";
 export const POST = withWorkspaceEdge(
   async ({ req, workspace }) => {
     const {
-      customerId: externalId,
+      externalId,
+      customerId, // deprecated
       paymentProcessor,
       invoiceId,
       amount,
@@ -29,12 +32,21 @@ export const POST = withWorkspaceEdge(
       eventName,
     } = trackSaleRequestSchema.parse(await parseRequestBody(req));
 
+    const customerExternalId = customerId || externalId;
+
+    if (!customerExternalId) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "externalId is required",
+      });
+    }
+
     // Find customer
     const customer = await prismaEdge.customer.findUnique({
       where: {
         projectId_externalId: {
           projectId: workspace.id,
-          externalId,
+          externalId: customerExternalId,
         },
       },
     });
@@ -42,7 +54,7 @@ export const POST = withWorkspaceEdge(
     if (!customer) {
       throw new DubApiError({
         code: "not_found",
-        message: `Customer not found for customerId: ${externalId}`,
+        message: `Customer not found for externalId: ${customerExternalId}`,
       });
     }
 
@@ -52,7 +64,7 @@ export const POST = withWorkspaceEdge(
     if (!leadEvent || leadEvent.data.length === 0) {
       throw new DubApiError({
         code: "not_found",
-        message: `Lead event not found for customerId: ${externalId}`,
+        message: `Lead event not found for externalId: ${customerExternalId}`,
       });
     }
 
@@ -62,10 +74,12 @@ export const POST = withWorkspaceEdge(
 
     waitUntil(
       (async () => {
+        const eventId = nanoid(16);
+
         const [_sale, link, _project] = await Promise.all([
           recordSale({
             ...clickData,
-            event_id: nanoid(16),
+            event_id: eventId,
             event_name: eventName,
             customer_id: customer.id,
             payment_processor: paymentProcessor,
@@ -74,6 +88,7 @@ export const POST = withWorkspaceEdge(
             invoice_id: invoiceId || "",
             metadata: metadata ? JSON.stringify(metadata) : "",
           }),
+
           // update link sales count
           prismaEdge.link.update({
             where: {
@@ -104,6 +119,56 @@ export const POST = withWorkspaceEdge(
           }),
         ]);
 
+        // for program links
+        if (link.programId) {
+          const { program, partner } =
+            await prismaEdge.programEnrollment.findUniqueOrThrow({
+              where: {
+                linkId: link.id,
+              },
+              select: {
+                program: true,
+                partner: {
+                  select: {
+                    id: true,
+                  },
+                },
+              },
+            });
+
+          const saleRecord = createSaleData({
+            customerId: customer.id,
+            linkId: link.id,
+            clickId: clickData.click_id,
+            invoiceId,
+            eventId,
+            paymentProcessor,
+            amount,
+            currency,
+            partnerId: partner.id,
+            program,
+            metadata: clickData,
+          });
+
+          await Promise.allSettled([
+            prismaEdge.sale.create({
+              data: saleRecord,
+            }),
+            notifyPartnerSale({
+              partner: {
+                id: partner.id,
+                referralLink: link.shortLink,
+              },
+              program,
+              sale: {
+                amount: saleRecord.amount,
+                earnings: saleRecord.earnings,
+              },
+            }),
+          ]);
+        }
+
+        // Send workspace webhook
         const sale = transformSaleEventData({
           ...clickData,
           link,
@@ -112,10 +177,12 @@ export const POST = withWorkspaceEdge(
           invoiceId,
           amount,
           currency,
-          customerId: customer.externalId,
+          customerId: customer.id,
+          customerExternalId: customer.externalId,
           customerName: customer.name,
           customerEmail: customer.email,
           customerAvatar: customer.avatar,
+          customerCreatedAt: customer.createdAt,
         });
 
         await sendWorkspaceWebhookOnEdge({
@@ -128,12 +195,7 @@ export const POST = withWorkspaceEdge(
 
     const sale = trackSaleResponseSchema.parse({
       eventName,
-      customer: {
-        id: customer.externalId,
-        name: customer.name,
-        email: customer.email,
-        avatar: customer.avatar,
-      },
+      customer,
       sale: {
         amount,
         currency,
@@ -146,7 +208,6 @@ export const POST = withWorkspaceEdge(
     return NextResponse.json({
       ...sale,
       // for backwards compatibility – will remove soon
-      customerId: externalId,
       amount,
       currency,
       invoiceId,

@@ -1,22 +1,15 @@
 "use client";
 
-import {
-  ALL_TOOLS,
-  COMPARE_PAGES,
-  LEGAL_PAGES,
-  cn,
-  createHref,
-  fetcher,
-} from "@dub/utils";
+import { ALL_TOOLS, cn, createHref, fetcher } from "@dub/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
-import { FEATURES_LIST } from "./content";
+import { COMPARE_PAGES, FEATURES_LIST, LEGAL_PAGES } from "./content";
 import { Github, LinkedIn, Twitter, YouTube } from "./icons";
 import { MaxWidthWrapper } from "./max-width-wrapper";
-import { NavLogo } from "./nav-logo";
+import { NavWordmark } from "./nav-wordmark";
 
 const navigation = {
   features: FEATURES_LIST.map(({ title, href }) => ({
@@ -25,12 +18,13 @@ const navigation = {
   })),
   product: [
     { name: "Blog", href: "/blog" },
-    { name: "Brand", href: "/brand" },
     { name: "Changelog", href: "/changelog" },
     { name: "Customers", href: "/customers" },
     { name: "Enterprise", href: "/enterprise" },
     { name: "Pricing", href: "/pricing" },
+    { name: "Docs", href: "/docs" },
     { name: "Help Center", href: "/help" },
+    { name: "Brand", href: "/brand" },
   ],
   compare: COMPARE_PAGES.map(({ name, slug }) => ({
     name,
@@ -46,8 +40,11 @@ const navigation = {
   })),
 };
 
-export function Footer() {
-  const { domain = "dub.co" } = useParams() as { domain: string };
+export function Footer({ staticDomain }: { staticDomain?: string }) {
+  let { domain = "dub.co" } = useParams() as { domain: string };
+  if (staticDomain) {
+    domain = staticDomain;
+  }
 
   return (
     <footer>
@@ -66,7 +63,7 @@ export function Footer() {
               <span className="sr-only">
                 {process.env.NEXT_PUBLIC_APP_NAME} Logo
               </span>
-              <NavLogo className="h-8 text-gray-800" />
+              <NavWordmark className="h-8 text-gray-800" />
             </Link>
             <p className="max-w-xs text-sm text-gray-500">
               Giving modern marketing teams superpowers with short links that
@@ -118,9 +115,7 @@ export function Footer() {
           <div className="mt-16 grid grid-cols-2 gap-4 xl:col-span-2 xl:mt-0">
             <div className="md:grid md:grid-cols-2">
               <div>
-                <h3 className="text-sm font-semibold text-gray-800">
-                  Features
-                </h3>
+                <h3 className="text-sm font-semibold text-gray-800">Product</h3>
                 <ul role="list" className="mt-4 space-y-4">
                   {navigation.features.map((item) => (
                     <li key={item.name}>
@@ -140,7 +135,9 @@ export function Footer() {
                 </ul>
               </div>
               <div className="mt-10 md:mt-0">
-                <h3 className="text-sm font-semibold text-gray-800">Product</h3>
+                <h3 className="text-sm font-semibold text-gray-800">
+                  Resources
+                </h3>
                 <ul role="list" className="mt-4 space-y-4">
                   {navigation.product.map((item) => (
                     <li key={item.name}>

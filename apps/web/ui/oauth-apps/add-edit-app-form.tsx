@@ -370,7 +370,7 @@ export default function AddOAuthAppForm({
           </Reorder.Group>
 
           <FileUpload
-            accept="any"
+            accept="images"
             className="mt-2 aspect-[5/1] w-full rounded-md border border-dashed border-gray-300"
             iconClassName="w-5 h-5"
             variant="plain"

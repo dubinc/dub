@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
   try {
     const params = getSearchParams(req.url);
 
-    let { url, logo, size, level, fgColor, bgColor, hideLogo, includeMargin } =
+    let { url, logo, size, level, fgColor, bgColor, margin, hideLogo } =
       getQRCodeQuerySchema.parse(params);
 
     await ratelimitOrThrow(req, "qr");
@@ -49,9 +49,9 @@ export async function GET(req: NextRequest) {
         value: url,
         size,
         level,
-        includeMargin,
         fgColor,
         bgColor,
+        margin,
         ...(logo
           ? {
               imageSettings: {

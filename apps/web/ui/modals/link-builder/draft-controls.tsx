@@ -1,4 +1,4 @@
-import { LinkWithTagsProps } from "@/lib/types";
+import { ExpandedLinkProps } from "@/lib/types";
 import { AnimatedSizeContainer, Button, Popover, useMediaQuery } from "@dub/ui";
 import {
   CircleCheck,
@@ -28,7 +28,7 @@ export type DraftControlsHandle = {
 };
 
 type DraftControlsProps = {
-  props?: LinkWithTagsProps;
+  props?: ExpandedLinkProps;
   workspaceId: string;
 };
 

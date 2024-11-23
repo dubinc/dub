@@ -1,12 +1,13 @@
 "use client";
 
 import { PosthogPageview } from "@/ui/layout/posthog-pageview";
-import { ModalProvider } from "@/ui/modals/modal-provider";
-import { SessionProvider } from "next-auth/react";
+import { Analytics as DubAnalytics } from "@dub/analytics/react";
+import { KeyboardShortcutProvider, TooltipProvider } from "@dub/ui";
 import PlausibleProvider from "next-plausible";
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
 import { ReactNode } from "react";
+import { Toaster } from "sonner";
 
 if (typeof window !== "undefined") {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
@@ -18,7 +19,7 @@ if (typeof window !== "undefined") {
   });
 }
 
-export default function Providers({ children }: { children: ReactNode }) {
+export default function RootProviders({ children }: { children: ReactNode }) {
   return (
     <PostHogProvider client={posthog}>
       <PlausibleProvider
@@ -30,12 +31,14 @@ export default function Providers({ children }: { children: ReactNode }) {
           "data-api": "/_proxy/plausible/event",
         }}
       />
-      <SessionProvider>
-        <ModalProvider>
+      <TooltipProvider>
+        <KeyboardShortcutProvider>
+          <Toaster closeButton className="pointer-events-auto" />
           <PosthogPageview />
           {children}
-        </ModalProvider>
-      </SessionProvider>
+          <DubAnalytics apiKey={process.env.NEXT_PUBLIC_DUB_PUBLISHABLE_KEY} />
+        </KeyboardShortcutProvider>
+      </TooltipProvider>
     </PostHogProvider>
   );
 }

@@ -20,7 +20,7 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ headers, workspace, params }) => {
     const link = await getLinkOrThrow({
-      workspace,
+      workspaceId: workspace.id,
       linkId: params.linkId,
     });
 
@@ -57,7 +57,7 @@ export const GET = withWorkspace(
 export const PATCH = withWorkspace(
   async ({ req, headers, workspace, params }) => {
     const link = await getLinkOrThrow({
-      workspace,
+      workspaceId: workspace.id,
       linkId: params.linkId,
     });
 
@@ -173,9 +173,16 @@ export const PUT = PATCH;
 export const DELETE = withWorkspace(
   async ({ headers, params, workspace }) => {
     const link = await getLinkOrThrow({
-      workspace,
+      workspaceId: workspace.id,
       linkId: params.linkId,
     });
+
+    if (link.programId) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You can't delete a link that's part of a program.",
+      });
+    }
 
     await deleteLink(link.id);
 

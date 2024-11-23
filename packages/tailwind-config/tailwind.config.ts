@@ -32,10 +32,19 @@ const config: Config = {
           "monospace",
         ],
       },
+      fontSize: {
+        "2xs": [
+          "0.625rem",
+          {
+            lineHeight: "0.875rem",
+          },
+        ],
+      },
       animation: {
         // Modal
         "scale-in": "scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
         "fade-in": "fade-in 0.2s ease-out forwards",
+        "scale-in-fade": "scale-in-fade 0.2s ease-out forwards",
         // Popover, Tooltip
         "slide-up-fade": "slide-up-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
         "slide-right-fade":
@@ -73,6 +82,10 @@ const config: Config = {
         "fade-in": {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
+        },
+        "scale-in-fade": {
+          "0%": { transform: "scale(0.95)", opacity: "0" },
+          "100%": { transform: "scale(1)", opacity: "1" },
         },
         // Popover, Tooltip
         "slide-up-fade": {

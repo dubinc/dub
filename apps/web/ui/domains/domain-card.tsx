@@ -16,6 +16,7 @@ import {
   Refresh2,
   StatusBadge,
   Tooltip,
+  useCopyToClipboard,
   useInViewport,
   useMediaQuery,
   Wordmark,
@@ -62,7 +63,6 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   }>(
     workspaceId &&
       isVisible &&
-      !props.verified &&
       `/api/domains/${domain}/verify?workspaceId=${workspaceId}`,
     fetcher,
   );
@@ -314,17 +314,16 @@ function Menu({
     props: linkProps || DEFAULT_LINK_PROPS,
   });
 
-  const [copiedLinkId, setCopiedLinkId] = useState(false);
+  const [copiedLinkId, copyToClipboard] = useCopyToClipboard();
 
   const copyLinkId = () => {
     if (!linkProps) {
       toast.error("Link ID not found");
       return;
     }
-    navigator.clipboard.writeText(linkProps.id);
-    setCopiedLinkId(true);
-    toast.success("Link ID copied!");
-    setTimeout(() => setCopiedLinkId(false), 3000);
+    toast.promise(copyToClipboard(linkProps.id), {
+      success: "Link ID copied!",
+    });
   };
 
   const activeDomainsCount = activeWorkspaceDomains?.length || 0;

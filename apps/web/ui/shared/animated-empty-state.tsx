@@ -1,4 +1,6 @@
-import { buttonVariants } from "@dub/ui";
+"use client";
+
+import { Badge, buttonVariants } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { CSSProperties, PropsWithChildren, ReactNode } from "react";
@@ -8,14 +10,16 @@ export function AnimatedEmptyState({
   description,
   cardContent,
   addButton,
+  pillContent,
   learnMoreHref,
   learnMoreClassName,
   className,
 }: {
   title: string;
   description: string;
-  cardContent: ReactNode;
-  addButton: ReactNode;
+  cardContent: ReactNode | ((index: number) => ReactNode);
+  addButton?: ReactNode;
+  pillContent?: string;
   learnMoreHref?: string;
   learnMoreClassName?: string;
   className?: string;
@@ -33,13 +37,20 @@ export function AnimatedEmptyState({
           className="animate-infinite-scroll-y flex flex-col [animation-duration:10s]"
         >
           {[...Array(6)].map((_, idx) => (
-            <Card key={idx}>{cardContent}</Card>
+            <Card key={idx}>
+              {typeof cardContent === "function"
+                ? cardContent(idx % 3)
+                : cardContent}
+            </Card>
           ))}
         </div>
       </div>
-      <div className="max-w-sm text-pretty text-center">
+      {pillContent && <Badge variant="blueGradient">{pillContent}</Badge>}
+      <div className="max-w-xs text-pretty text-center">
         <span className="text-base font-medium text-neutral-900">{title}</span>
-        <p className="mt-2 text-sm text-neutral-500">{description}</p>
+        <p className="mt-2 text-pretty text-sm text-neutral-500">
+          {description}
+        </p>
       </div>
       <div className="flex items-center gap-2">
         {addButton}
@@ -48,7 +59,7 @@ export function AnimatedEmptyState({
             href={learnMoreHref}
             target="_blank"
             className={cn(
-              buttonVariants({ variant: "secondary" }),
+              buttonVariants({ variant: addButton ? "secondary" : "primary" }),
               "flex h-9 items-center whitespace-nowrap rounded-lg border px-4 text-sm",
               learnMoreClassName,
             )}
