@@ -4,7 +4,7 @@ import {
 } from "@/lib/webhook/schemas";
 import type { Webhook } from "@dub/prisma";
 import { nanoid, toCamelCase } from "@dub/utils";
-import { ExpandedLink, transformLink } from "../api/links";
+import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
 import { WebhookTrigger } from "../types";
 import z from "../zod";
 import { clickEventSchema, clickEventSchemaTB } from "../zod/schemas/clicks";

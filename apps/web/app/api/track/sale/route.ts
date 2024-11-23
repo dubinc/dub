@@ -16,7 +16,8 @@ import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
+// export const runtime = "edge";
+// TODO: Fix this
 
 // POST /api/track/sale – Track a sale conversion event
 export const POST = withWorkspaceEdge(
