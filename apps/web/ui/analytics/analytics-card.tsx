@@ -2,7 +2,6 @@ import { EventType } from "@/lib/analytics/types";
 import { Button, Modal, Popover, TabSelect, useMediaQuery } from "@dub/ui";
 import { CursorRays, InvoiceDollar, UserCheck } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
-import { Command } from "cmdk";
 import {
   Dispatch,
   ReactNode,
@@ -67,25 +66,24 @@ export function AnalyticsCard<T extends string>({
               openPopover={isOpen}
               setOpenPopover={setIsOpen}
               content={
-                <Command tabIndex={0} loop className="focus:outline-none">
-                  <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
-                    {tabs.map(({ id, label, icon: Icon }) => (
-                      <Command.Item
-                        className={cn(
-                          "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-600",
-                          "data-[selected=true]:bg-gray-100",
-                        )}
-                        onSelect={() => {
-                          onSelectTab?.(id);
-                          setIsOpen(false);
-                        }}
-                      >
-                        {<Icon className="size-4" />}
-                        {label}
-                      </Command.Item>
-                    ))}
-                  </Command.List>
-                </Command>
+                <div className="grid w-full gap-px p-2 sm:w-48">
+                  {tabs.map(({ id, label, icon: Icon }) => (
+                    <Button
+                      key={id}
+                      text={label}
+                      variant="outline"
+                      onClick={() => {
+                        onSelectTab?.(id);
+                        setIsOpen(false);
+                      }}
+                      icon={<Icon className="size-4" />}
+                      className={cn(
+                        "h-9 w-full justify-start px-2 font-medium",
+                        selectedTabId === id && "bg-gray-100",
+                      )}
+                    />
+                  ))}
+                </div>
               }
               align="end"
             >
