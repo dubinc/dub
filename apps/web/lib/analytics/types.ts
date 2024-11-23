@@ -26,7 +26,6 @@ export type EventType = (typeof EVENT_TYPES)[number];
 export type AnalyticsView = (typeof ANALYTICS_VIEWS)[number];
 
 export type DeviceTabs = "devices" | "browsers" | "os" | "triggers";
-export type RefererTabs = "referers" | "referer_urls";
 
 export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
   workspaceId?: string;
