@@ -1,10 +1,5 @@
-export interface DubEmbedOptions {
-  token: string;
-  onTokenExpired?: () => void;
-}
-
 export interface DubEmbed {
-  init: (options: Options) => void;
+  init: (options: DubOptions) => void;
   isWidgetOpen: boolean;
   toggleWidget: () => void;
   openWidget: () => void;
@@ -12,7 +7,7 @@ export interface DubEmbed {
   destroy: () => void;
 }
 
-export interface Options {
+export interface DubOptions {
   // The link token
   token: string;
 

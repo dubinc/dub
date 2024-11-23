@@ -1,10 +1,4 @@
-import {
-  closeWidget,
-  destroy,
-  init,
-  openWidget,
-  toggleWidget,
-} from "./embed-core";
+import { closeWidget, destroy, init, openWidget, toggleWidget } from "./core";
 import { DubEmbed } from "./types";
 
 declare global {

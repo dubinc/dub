@@ -1,11 +1,11 @@
+import {
+  DASHBOARD_URL,
+  DUB_CONTAINER_ID,
+  DUB_POPUP_ID,
+  WIDGET_URL,
+} from "./constants";
 import { createFloatingButton } from "./floating-button";
-import { DubEmbed, DubWidgetPlacement, Options } from "./types";
-
-declare global {
-  interface Window {
-    Dub: DubEmbed;
-  }
-}
+import { DubOptions, DubWidgetPlacement } from "./types";
 
 const CONTAINER_STYLES = (
   placement: DubWidgetPlacement,
@@ -72,11 +72,6 @@ const POPUP_STYLES = (
   pointerEvents: "auto",
 });
 
-const DASHBOARD_URL = "http://localhost:8888/embed/dashboard";
-const WIDGET_URL = "http://localhost:8888/embed/widget";
-const DUB_CONTAINER_ID = "dub-embed-container";
-const DUB_POPUP_ID = "dub-embed-popup";
-
 let isWidgetOpen = false;
 
 const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
@@ -93,7 +88,7 @@ const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
 };
 
 const renderDashboard = (
-  options: Pick<Options, "token">,
+  options: Pick<DubOptions, "token">,
 ): HTMLElement | null => {
   console.debug("[Dub] Rendering dashboard.", options);
 
@@ -123,7 +118,7 @@ const renderDashboard = (
   return container;
 };
 
-const renderWidget = (options: Options): HTMLElement | null => {
+const renderWidget = (options: DubOptions): HTMLElement | null => {
   console.debug("[Dub] Rendering widget.", options);
 
   const { token, placement, onOpen, onClose, containerStyles, popupStyles } =
@@ -221,7 +216,7 @@ export const toggleWidget = (): void => {
   isWidgetOpen ? closeWidget() : openWidget();
 };
 
-export const init = (options: Options) => {
+export const init = (options: DubOptions) => {
   options.trigger = options.trigger ?? "floating-button";
   options.placement = options.placement ?? "bottom-right";
   options.type = options.type ?? "widget";

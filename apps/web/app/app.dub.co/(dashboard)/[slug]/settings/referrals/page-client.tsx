@@ -39,7 +39,7 @@ export default function ReferralsPageClient() {
   return publicToken ? (
     <DubDashboard
       token={publicToken}
-      onTokenExpired={() => createPublicToken()}
+      // onTokenExpired={() => createPublicToken()} // TODO: Will fix this
     />
   ) : (
     <LoadingSpinner className="my-auto h-full w-5 text-gray-400" />
