@@ -103,7 +103,7 @@ export async function recordClick({
     region: region || "Unknown",
     latitude: geo.latitude || "Unknown",
     longitude: geo.longitude || "Unknown",
-    vercel_region: geo.region || "Unknown",
+    vercel_region: req.headers.get("x-vercel-id") || "",
     device: capitalize(ua.device.type) || "Desktop",
     device_vendor: ua.device.vendor || "Unknown",
     device_model: ua.device.model || "Unknown",
