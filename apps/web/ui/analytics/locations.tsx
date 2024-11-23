@@ -64,7 +64,7 @@ export default function Locations() {
                           : tab === "regions"
                             ? REGIONS[
                                 `${d.country}-${d.region}`.toUpperCase()
-                              ] || "Unknown"
+                              ] || d.region
                             : d.city,
                     href: queryParams({
                       ...(searchParams.has(singularTabName)

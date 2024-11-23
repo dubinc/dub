@@ -36,6 +36,7 @@ import {
   Globe2,
   Hyperlink,
   LinkBroken,
+  LocationPin,
   Magic,
   MapPosition,
   MobilePhone,
@@ -52,6 +53,7 @@ import {
   DUB_DEMO_LINKS,
   DUB_LOGO,
   GOOGLE_FAVICON_URL,
+  REGIONS,
   capitalize,
   cn,
   fetcher,
@@ -149,6 +151,7 @@ export default function Toggle({
       key,
       continent,
       country,
+      region,
       city,
       device,
       browser,
@@ -174,6 +177,7 @@ export default function Toggle({
         : []),
       ...(continent ? [{ key: "continent", value: continent }] : []),
       ...(country ? [{ key: "country", value: country }] : []),
+      ...(region ? [{ key: "region", value: region }] : []),
       ...(city ? [{ key: "city", value: city }] : []),
       ...(device ? [{ key: "device", value: device }] : []),
       ...(browser ? [{ key: "browser", value: browser }] : []),
@@ -198,6 +202,9 @@ export default function Toggle({
   });
   const countries = useAnalyticsFilterOption("countries", {
     cacheOnly: !isRequested("country"),
+  });
+  const regions = useAnalyticsFilterOption("regions", {
+    cacheOnly: !isRequested("region"),
   });
   const cities = useAnalyticsFilterOption("cities", {
     cacheOnly: !isRequested("city"),
@@ -438,6 +445,24 @@ export default function Toggle({
           continents?.map(({ continent, count }) => ({
             value: continent,
             label: CONTINENTS[continent],
+            right: nFormatter(count, { full: true }),
+          })) ?? null,
+      },
+      {
+        key: "region",
+        icon: LocationPin,
+        label: "Region",
+        options:
+          regions?.map(({ region, country, count }) => ({
+            value: region,
+            label: REGIONS[`${country}-${region}`.toUpperCase()] || region,
+            icon: (
+              <img
+                alt={country}
+                src={`https://flag.vercel.app/m/${country}.svg`}
+                className="h-2.5 w-4"
+              />
+            ),
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },

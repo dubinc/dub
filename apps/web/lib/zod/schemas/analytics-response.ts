@@ -86,6 +86,33 @@ export const analyticsResponse = {
     })
     .openapi({ ref: "AnalyticsContinents" }),
 
+  countries: z
+    .object({
+      country: z
+        .enum(COUNTRY_CODES)
+        .describe(
+          "The 2-letter ISO 3166-1 country code for the country associated with the location of the user. Learn more: https://d.to/geo",
+        ),
+      city: z.literal("*").default("*"),
+      clicks: z
+        .number()
+        .describe("The number of clicks from this country")
+        .default(0),
+      leads: z
+        .number()
+        .describe("The number of leads from this country")
+        .default(0),
+      sales: z
+        .number()
+        .describe("The number of sales from this country")
+        .default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales from this country, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsCountries" }),
+
   regions: z
     .object({
       region: z
@@ -114,33 +141,6 @@ export const analyticsResponse = {
         .default(0),
     })
     .openapi({ ref: "AnalyticsRegions" }),
-
-  countries: z
-    .object({
-      country: z
-        .enum(COUNTRY_CODES)
-        .describe(
-          "The 2-letter ISO 3166-1 country code for the country associated with the location of the user. Learn more: https://d.to/geo",
-        ),
-      city: z.literal("*").default("*"),
-      clicks: z
-        .number()
-        .describe("The number of clicks from this country")
-        .default(0),
-      leads: z
-        .number()
-        .describe("The number of leads from this country")
-        .default(0),
-      sales: z
-        .number()
-        .describe("The number of sales from this country")
-        .default(0),
-      saleAmount: z
-        .number()
-        .describe("The total amount of sales from this country, in cents")
-        .default(0),
-    })
-    .openapi({ ref: "AnalyticsCountries" }),
 
   cities: z
     .object({

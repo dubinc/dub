@@ -113,16 +113,16 @@ export const analyticsQuerySchema = z.object({
     .optional()
     .describe("The continent to retrieve analytics for.")
     .openapi({ ref: "continentCode" }),
-  region: z
-    .enum(REGION_CODES)
-    .optional()
-    .describe("The region to retrieve analytics for.")
-    .openapi({ ref: "regionCode" }),
   country: z
     .enum(COUNTRY_CODES)
     .optional()
     .describe("The country to retrieve analytics for.")
     .openapi({ ref: "countryCode" }),
+  region: z
+    .enum(REGION_CODES)
+    .optional()
+    .describe("The region to retrieve analytics for.")
+    .openapi({ ref: "regionCode" }),
   city: z
     .string()
     .optional()
