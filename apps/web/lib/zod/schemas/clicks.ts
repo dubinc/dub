@@ -40,6 +40,7 @@ export const clickEventSchemaTBEndpoint = z.object({
   country: z.string().nullable(),
   city: z.string().nullable(),
   region: z.string().nullable(),
+  region_processed: z.string().nullable(),
   continent: z.string().nullable(),
   device: z.string().nullable(),
   browser: z.string().nullable(),

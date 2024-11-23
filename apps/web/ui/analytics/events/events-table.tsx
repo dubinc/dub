@@ -270,7 +270,7 @@ export default function EventsTable({
                 />
               )}
               <span className="truncate">
-                {REGIONS[`${row.original.country}-${getValue()}`] || getValue()}
+                {REGIONS[getValue()] || getValue().split("-")[1]}
               </span>
             </div>
           ),

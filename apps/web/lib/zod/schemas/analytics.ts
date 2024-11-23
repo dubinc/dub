@@ -13,7 +13,6 @@ import {
   COUNTRY_CODES,
   DUB_FOUNDING_DATE,
   PAGINATION_LIMIT,
-  REGION_CODES,
   capitalize,
   formatDate,
 } from "@dub/utils";
@@ -108,26 +107,26 @@ export const analyticsQuerySchema = z.object({
       "The IANA time zone code for aligning timeseries granularity (e.g. America/New_York). Defaults to UTC.",
     )
     .openapi({ example: "America/New_York", default: "UTC" }),
-  continent: z
-    .enum(CONTINENT_CODES)
-    .optional()
-    .describe("The continent to retrieve analytics for.")
-    .openapi({ ref: "continentCode" }),
   country: z
     .enum(COUNTRY_CODES)
     .optional()
     .describe("The country to retrieve analytics for.")
     .openapi({ ref: "countryCode" }),
-  region: z
-    .enum(REGION_CODES)
-    .optional()
-    .describe("The region to retrieve analytics for.")
-    .openapi({ ref: "regionCode" }),
   city: z
     .string()
     .optional()
     .describe("The city to retrieve analytics for.")
     .openapi({ example: "New York" }),
+  region: z
+    .string()
+    .optional()
+    .describe("The ISO 3166-2 region code to retrieve analytics for.")
+    .openapi({ ref: "regionCode" }),
+  continent: z
+    .enum(CONTINENT_CODES)
+    .optional()
+    .describe("The continent to retrieve analytics for.")
+    .openapi({ ref: "continentCode" }),
   device: z
     .string()
     .optional()

@@ -455,7 +455,7 @@ export default function Toggle({
         options:
           regions?.map(({ region, country, count }) => ({
             value: region,
-            label: REGIONS[`${country}-${region}`.toUpperCase()] || region,
+            label: REGIONS[region] || region.split("-")[1],
             icon: (
               <img
                 alt={country}

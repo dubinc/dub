@@ -62,7 +62,7 @@ export default function Locations() {
                         : tab === "countries"
                           ? COUNTRIES[d.country]
                           : tab === "regions"
-                            ? REGIONS[`${d.country}-${d.region}`] || d.region
+                            ? REGIONS[d.region] || d.region.split("-")[1]
                             : d.city,
                     href: queryParams({
                       ...(searchParams.has(singularTabName)
