@@ -73,6 +73,10 @@ const POPUP_STYLES = (
 });
 
 const WIDGET_URL = "http://localhost:8888/embed/widget";
+const DUB_CONTAINER_ID = "dub-embed-container";
+const DUB_POPUP_ID = "dub-embed-popup";
+
+let isWidgetOpen = false;
 
 const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
   const iframe = document.createElement("iframe");
@@ -85,9 +89,6 @@ const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
 
   return iframe;
 };
-
-const DUB_CONTAINER_ID = "dub-embed-container";
-const DUB_POPUP_ID = "dub-embed-popup";
 
 const renderWidget = (options: Options): HTMLElement | null => {
   const { token, placement, onOpen, onClose, containerStyles, popupStyles } =
@@ -110,7 +111,7 @@ const renderWidget = (options: Options): HTMLElement | null => {
   container.id = DUB_CONTAINER_ID;
   Object.assign(container.style, {
     ...CONTAINER_STYLES(placement ?? "bottom-right"),
-    containerStyles,
+    ...containerStyles,
   });
 
   const popup: HTMLElement =
@@ -134,8 +135,6 @@ const renderWidget = (options: Options): HTMLElement | null => {
 
   return container;
 };
-
-let isWidgetOpen = false;
 
 export const openWidget = (): void => {
   const popup = document.getElementById(DUB_POPUP_ID);
@@ -210,9 +209,3 @@ export const init = (options: Options) => {
 export const destroy = (): void => {
   document.querySelectorAll(`#${DUB_CONTAINER_ID}`).forEach((c) => c.remove());
 };
-
-// TODO:
-// - Add a loading state
-// - Add a close button
-// - Inline embed (dashboard)
-// - Reuse addEventListener logic
