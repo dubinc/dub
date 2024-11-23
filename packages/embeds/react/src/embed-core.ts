@@ -72,6 +72,7 @@ const POPUP_STYLES = (
   pointerEvents: "auto",
 });
 
+const DASHBOARD_URL = "http://localhost:8888/embed/dashboard";
 const WIDGET_URL = "http://localhost:8888/embed/widget";
 const DUB_CONTAINER_ID = "dub-embed-container";
 const DUB_POPUP_ID = "dub-embed-popup";
@@ -91,7 +92,40 @@ const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
   return iframe;
 };
 
+const renderDashboard = (
+  options: Pick<Options, "token">,
+): HTMLElement | null => {
+  console.debug("[Dub] Rendering dashboard.", options);
+
+  const { token } = options;
+
+  const existingContainer = document.getElementById(DUB_CONTAINER_ID);
+
+  if (existingContainer) {
+    document.body.removeChild(existingContainer);
+    return existingContainer;
+  }
+
+  if (!token) {
+    console.error("[Dub] A link token is required to embed the widget.");
+    return null;
+  }
+
+  const container = document.createElement("div");
+  container.id = DUB_CONTAINER_ID;
+
+  const iframe = createIframe(DASHBOARD_URL, token);
+
+  container.appendChild(iframe);
+
+  document.body.appendChild(container);
+
+  return container;
+};
+
 const renderWidget = (options: Options): HTMLElement | null => {
+  console.debug("[Dub] Rendering widget.", options);
+
   const { token, placement, onOpen, onClose, containerStyles, popupStyles } =
     options;
 
@@ -190,11 +224,18 @@ export const toggleWidget = (): void => {
 export const init = (options: Options) => {
   options.trigger = options.trigger ?? "floating-button";
   options.placement = options.placement ?? "bottom-right";
+  options.type = options.type ?? "widget";
 
-  console.debug("[Dub] Initializing");
+  console.debug("[Dub] Initializing.", options);
 
-  const container = renderWidget(options);
-  if (!container) return;
+  const container =
+    options.type === "dashboard"
+      ? renderDashboard(options)
+      : renderWidget(options);
+
+  if (!container) {
+    return;
+  }
 
   if (options.trigger === "floating-button")
     createFloatingButton({

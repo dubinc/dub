@@ -1,5 +1,5 @@
 import ReactDom from "react-dom";
-import { DubDashboard } from "../dashboard";
+import { DubDashboard } from "../../dashboard";
 
 const App = () => {
   return (

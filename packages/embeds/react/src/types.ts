@@ -16,6 +16,9 @@ export interface Options {
   // The link token
   token: string;
 
+  // The type of embed (defaults to widget)
+  type?: "dashboard" | "widget";
+
   // The trigger for the widget
   trigger?: DubWidgetTrigger;
 
@@ -28,6 +31,7 @@ export interface Options {
   // The placement of the widget
   placement?: DubWidgetPlacement;
 
+  // The styles for the widget container
   containerStyles?: Partial<CSSStyleDeclaration>;
   popupStyles?: Partial<CSSStyleDeclaration>;
   buttonStyles?: Partial<CSSStyleDeclaration>;
