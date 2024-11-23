@@ -72,6 +72,10 @@ export async function recordClick({
     process.env.VERCEL === "1"
       ? req.headers.get("x-vercel-ip-continent")
       : LOCALHOST_GEO_DATA.continent;
+  const region =
+    process.env.VERCEL === "1"
+      ? req.headers.get("x-vercel-ip-country-region")
+      : LOCALHOST_GEO_DATA.region;
   const geo =
     process.env.VERCEL === "1" ? geolocation(req) : LOCALHOST_GEO_DATA;
   const isEuCountry = geo.country && EU_COUNTRY_CODES.includes(geo.country);
@@ -96,9 +100,10 @@ export async function recordClick({
     continent: continent || "",
     country: geo.country || "Unknown",
     city: geo.city || "Unknown",
-    region: geo.region || "Unknown",
+    region: region || "Unknown",
     latitude: geo.latitude || "Unknown",
     longitude: geo.longitude || "Unknown",
+    vercel_region: geo.region || "Unknown",
     device: capitalize(ua.device.type) || "Desktop",
     device_vendor: ua.device.vendor || "Unknown",
     device_model: ua.device.model || "Unknown",
