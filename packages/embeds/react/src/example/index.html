@@ -1,0 +1,27 @@
+<html></html>
+  <head>
+    <script
+      src="https://unpkg.com/react@17/umd/react.development.js"
+      crossorigin
+    ></script>
+    <script
+      src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"
+      crossorigin
+    ></script>
+    <script type="module" src="../../dist/embed.js"></script>
+  </head>
+  <body>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        Dub.init({
+          token: "dub_embed_jnAD1TyhbTfCDfyAYFN5DR5ndXUXm9helYCX",
+          // trigger: "manual",
+          // placement: "center",
+        });
+      });
+    </script>
+
+    <!-- Custom toggle button -->
+    <button onclick="window.Dub.toggleWidget()">Click Me</button>
+  </body>
+</html>
