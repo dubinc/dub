@@ -67,17 +67,20 @@ export async function recordClick({
 
   const isQr = detectQr(req);
 
-  // get continent & geolocation data
-  const continent =
+  // get continent, region & geolocation data
+  // interesting, geolocation().region is Vercel's edge region – NOT the actual region
+  // so we use the x-vercel-ip-country-region to get the actual region
+  const { continent, region } =
     process.env.VERCEL === "1"
-      ? req.headers.get("x-vercel-ip-continent")
-      : LOCALHOST_GEO_DATA.continent;
-  const region =
-    process.env.VERCEL === "1"
-      ? req.headers.get("x-vercel-ip-country-region")
-      : LOCALHOST_GEO_DATA.region;
+      ? {
+          continent: req.headers.get("x-vercel-ip-continent"),
+          region: req.headers.get("x-vercel-ip-country-region"),
+        }
+      : LOCALHOST_GEO_DATA;
+
   const geo =
     process.env.VERCEL === "1" ? geolocation(req) : LOCALHOST_GEO_DATA;
+
   const isEuCountry = geo.country && EU_COUNTRY_CODES.includes(geo.country);
 
   const ua = userAgent(req);
