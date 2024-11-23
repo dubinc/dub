@@ -21,6 +21,7 @@ import { CursorRays, Globe, Magnifier, QRCode } from "@dub/ui/src/icons";
 import {
   CONTINENTS,
   COUNTRIES,
+  REGIONS,
   capitalize,
   currencyFormatter,
   fetcher,
@@ -206,25 +207,6 @@ export default function EventsTable({
           },
         },
         {
-          id: "continent",
-          header: "Continent",
-          accessorKey: "click.continent",
-          meta: {
-            filterParams: ({ getValue }) => ({ continent: getValue() }),
-          },
-          cell: ({ getValue }) => (
-            <div
-              className="flex items-center gap-3"
-              title={CONTINENTS[getValue()] ?? "Unknown"}
-            >
-              <ContinentIcon display={getValue()} className="size-4 shrink-0" />
-              <span className="truncate">
-                {CONTINENTS[getValue()] ?? "Unknown"}
-              </span>
-            </div>
-          ),
-        },
-        {
           id: "country",
           header: "Country",
           accessorKey: "click.country",
@@ -255,6 +237,9 @@ export default function EventsTable({
           id: "city",
           header: "City",
           accessorKey: "click.city",
+          meta: {
+            filterParams: ({ getValue }) => ({ city: getValue() }),
+          },
           minSize: 160,
           cell: ({ getValue, row }) => (
             <div className="flex items-center gap-3" title={getValue()}>
@@ -268,6 +253,50 @@ export default function EventsTable({
                 />
               )}
               <span className="truncate">{getValue()}</span>
+            </div>
+          ),
+        },
+        {
+          id: "region",
+          header: "Region",
+          accessorKey: "click.region",
+          meta: {
+            filterParams: ({ getValue }) => ({ region: getValue() }),
+          },
+          minSize: 160,
+          cell: ({ getValue, row }) => (
+            <div className="flex items-center gap-3" title={getValue()}>
+              {!row.original.country || row.original.country === "Unknown" ? (
+                <Globe className="size-4 shrink-0" />
+              ) : (
+                <img
+                  alt={row.original.country}
+                  src={`https://hatscripts.github.io/circle-flags/flags/${row.original.country.toLowerCase()}.svg`}
+                  className="size-4 shrink-0"
+                />
+              )}
+              <span className="truncate">
+                {REGIONS[getValue()] || getValue().split("-")[1]}
+              </span>
+            </div>
+          ),
+        },
+        {
+          id: "continent",
+          header: "Continent",
+          accessorKey: "click.continent",
+          meta: {
+            filterParams: ({ getValue }) => ({ continent: getValue() }),
+          },
+          cell: ({ getValue }) => (
+            <div
+              className="flex items-center gap-3"
+              title={CONTINENTS[getValue()] ?? "Unknown"}
+            >
+              <ContinentIcon display={getValue()} className="size-4 shrink-0" />
+              <span className="truncate">
+                {CONTINENTS[getValue()] ?? "Unknown"}
+              </span>
             </div>
           ),
         },

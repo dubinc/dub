@@ -22,6 +22,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     end,
     qr,
     trigger,
+    region,
+    country,
     timezone = "UTC",
     isDemo,
     isDeprecatedClicksEndpoint = false,
@@ -68,6 +70,12 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     }
   }
 
+  if (region) {
+    const split = region.split("-");
+    country = split[0];
+    region = split[1];
+  }
+
   // Create a Tinybird pipe
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
     pipe: `v2_${groupBy}`,
@@ -85,6 +93,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
     granularity,
     timezone,
+    country,
+    region,
   });
 
   if (groupBy === "count") {
