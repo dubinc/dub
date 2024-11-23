@@ -1,7 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/utils";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 import { backfillLinkData } from "./backfill-link-data";

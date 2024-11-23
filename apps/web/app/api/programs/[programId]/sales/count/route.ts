@@ -1,9 +1,8 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { getSalesCountQuerySchema } from "@/lib/zod/schemas/partners";
-import { SaleStatus } from "@prisma/client";
+import { prisma, SaleStatus } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/programs/[programId]/sales/count

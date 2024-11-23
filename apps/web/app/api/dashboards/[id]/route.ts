@@ -1,5 +1,5 @@
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 

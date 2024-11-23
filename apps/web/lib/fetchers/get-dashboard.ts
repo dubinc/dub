@@ -1,5 +1,5 @@
+import { prismaEdge } from "@dub/prisma/edge";
 import { cache } from "react";
-import { prismaEdge } from "../prisma/edge";
 
 export const getDashboard = cache(async ({ id }: { id: string }) => {
   return await prismaEdge.dashboard.findUnique({

@@ -1,5 +1,5 @@
 import { createId } from "@/lib/api/utils";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 
 // Payout are calcuated at the end of the month
 export const processMonthlyPartnerPayouts = async () => {

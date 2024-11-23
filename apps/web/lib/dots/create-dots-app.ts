@@ -1,4 +1,4 @@
-import { Project } from "@prisma/client";
+import { Project } from "@dub/prisma";
 import z from "../zod";
 import { dotsFetch } from "./fetch";
 

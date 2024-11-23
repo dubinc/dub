@@ -1,7 +1,7 @@
 "use server";
 
 import { limiter } from "@/lib/cron/limiter";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { formatDate } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";

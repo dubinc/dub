@@ -5,9 +5,9 @@ import { createDotsUser } from "@/lib/dots/create-dots-user";
 import { sendVerificationToken } from "@/lib/dots/send-verification-token";
 import { userIsInBeta } from "@/lib/edge-config";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
-import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
+import { prisma } from "@dub/prisma";
 import { COUNTRY_PHONE_CODES, nanoid } from "@dub/utils";
 import { authUserActionClient } from "../safe-action";
 
