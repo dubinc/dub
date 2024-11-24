@@ -195,7 +195,7 @@ function AdvancedModal({
               className="h-9 w-fit"
               onClick={(e) => {
                 e.stopPropagation();
-                setShowAdvancedModal(false)
+                setShowAdvancedModal(false);
               }}
             />
             <Button
