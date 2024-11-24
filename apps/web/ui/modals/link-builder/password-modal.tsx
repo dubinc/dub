@@ -176,7 +176,8 @@ function PasswordModalInner({
             <button
               type="button"
               className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 setValueParent("password", null, { shouldDirty: true });
                 setShowPasswordModal(false);
               }}
@@ -191,7 +192,8 @@ function PasswordModalInner({
             variant="secondary"
             text="Cancel"
             className="h-9 w-fit"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               reset();
               setShowPasswordModal(false);
             }}

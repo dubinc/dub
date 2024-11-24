@@ -255,7 +255,8 @@ function UTMModalInner({ setShowUTMModal }: UTMModalProps) {
             variant="secondary"
             text="Cancel"
             className="h-9 w-fit"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               reset();
               setShowUTMModal(false);
             }}

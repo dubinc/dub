@@ -365,7 +365,8 @@ function TargetingModal({
                 <button
                   type="button"
                   className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setValueParent("ios", null, { shouldDirty: true });
                     setValueParent("android", null, { shouldDirty: true });
                     setValueParent("geo", null, { shouldDirty: true });
@@ -382,7 +383,8 @@ function TargetingModal({
                 variant="secondary"
                 text="Cancel"
                 className="h-9 w-fit"
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   reset();
                   setShowTargetingModal(false);
                 }}

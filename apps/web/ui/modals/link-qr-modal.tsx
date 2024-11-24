@@ -335,7 +335,8 @@ function LinkQRModalInner({
           variant="secondary"
           text="Cancel"
           className="h-9 w-fit"
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             setShowLinkQRModal(false);
           }}
         />
