@@ -12,6 +12,7 @@ const schema = z.object({
   workspaceId: z.string(),
 });
 
+// POST /api/cron/workspaces/delete
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -38,7 +39,7 @@ export async function POST(req: Request) {
       include: {
         tags: true,
       },
-      take: 100,
+      take: 100, // TODO: We can adjust this number based on the performance
     });
 
     if (links.length > 0) {

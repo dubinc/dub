@@ -11,6 +11,7 @@ const schema = z.object({
   workspaceId: z.string(),
 });
 
+// POST /api/cron/domains/delete
 export async function POST(req: Request) {
   try {
     const body = await req.json();
