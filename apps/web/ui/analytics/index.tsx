@@ -8,7 +8,7 @@ import { cn } from "@dub/utils";
 
 import AnalyticsProvider, {
   AnalyticsContext,
-  dashboardProps,
+  AnalyticsDashboardProps,
 } from "./analytics-provider";
 import Devices from "./devices";
 import Locations from "./locations";
@@ -24,7 +24,7 @@ export default function Analytics({
 }: {
   adminPage?: boolean;
   demoPage?: boolean;
-  dashboardProps?: dashboardProps;
+  dashboardProps?: AnalyticsDashboardProps;
 }) {
   return (
     <AnalyticsProvider {...{ adminPage, demoPage, dashboardProps }}>
