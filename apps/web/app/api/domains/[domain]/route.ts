@@ -5,12 +5,11 @@ import {
   validateDomain,
 } from "@/lib/api/domains";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
+import { queueDomainUpdate } from "@/lib/api/domains/queue";
 import { DubApiError } from "@/lib/api/errors";
-import { linkCache } from "@/lib/api/links/cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { recordLink } from "@/lib/tinybird";
 import {
   DomainSchema,
   updateDomainBodySchema,
@@ -103,43 +102,22 @@ export const PATCH = withWorkspace(
       },
     });
 
-    waitUntil(
-      (async () => {
-        if (domainUpdated) {
+    if (domainUpdated) {
+      waitUntil(
+        Promise.all([
           // remove old domain from Vercel
-          await removeDomainFromVercel(domain);
+          removeDomainFromVercel(domain),
 
-          const allLinks = await prisma.link.findMany({
-            where: {
-              domain: newDomain,
-            },
-            include: {
-              tags: true,
-            },
-          });
-
-          // rename redis keys
-          await linkCache.rename({
-            links: allLinks,
+          // trigger the queue to rename the redis keys and update the links in Tinybird
+          queueDomainUpdate({
+            workspaceId: workspace.id,
             oldDomain: domain,
-          });
-
-          // update all links in Tinybird
-          recordLink(
-            allLinks.map((link) => ({
-              link_id: link.id,
-              domain: link.domain,
-              key: link.key,
-              url: link.url,
-              tag_ids: link.tags.map((tag) => tag.tagId),
-              program_id: link.programId ?? "",
-              workspace_id: link.projectId,
-              created_at: link.createdAt,
-            })),
-          );
-        }
-      })(),
-    );
+            newDomain: newDomain,
+            page: 1,
+          }),
+        ]),
+      );
+    }
 
     return NextResponse.json(DomainSchema.parse(domainRecord));
   },

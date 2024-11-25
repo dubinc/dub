@@ -73,17 +73,23 @@ class LinkCache {
   }
 
   async rename({
-    oldDomain,
     links,
+    oldDomain,
   }: {
-    oldDomain: string;
     links: Pick<LinkProps, "domain" | "key">[];
+    oldDomain: string;
   }) {
+    if (links.length === 0) {
+      return;
+    }
+
     const pipeline = redis.pipeline();
 
     links.forEach(({ domain, key }) => {
       const oldCacheKey = this._createKey({ domain: oldDomain, key });
       const newCacheKey = this._createKey({ domain, key });
+
+      console.log(`Renaming ${oldCacheKey} to ${newCacheKey}`);
 
       pipeline.rename(oldCacheKey, newCacheKey);
     });

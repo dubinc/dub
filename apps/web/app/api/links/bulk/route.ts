@@ -401,6 +401,8 @@ export const DELETE = withWorkspace(
       },
     });
 
+    console.log(links);
+
     const { count: deletedCount } = await prisma.link.deleteMany({
       where: {
         id: { in: links.map((link) => link.id) },

@@ -1,9 +1,9 @@
-import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK, R2_URL } from "@dub/utils";
+import { R2_URL } from "@dub/utils";
 import { storage } from "../../storage";
 import { recordLink } from "../../tinybird";
 import { linkCache } from "../links/cache";
+import { queueDomainDeletion } from "./queue";
 import { removeDomainFromVercel } from "./remove-domain-vercel";
 
 // Delete a domain and all links & images associated with it
@@ -150,24 +150,5 @@ export async function markDomainAsDeleted({
         workspaceId,
       });
     }
-  });
-}
-
-async function queueDomainDeletion({
-  workspaceId,
-  domain,
-  delay,
-}: {
-  workspaceId: string;
-  domain: string;
-  delay?: number;
-}) {
-  return await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/domains/delete`,
-    ...(delay && { delay }),
-    body: {
-      workspaceId,
-      domain,
-    },
   });
 }
