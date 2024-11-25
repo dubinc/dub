@@ -1,5 +1,7 @@
 import {
+  CLOSE_ICON,
   DASHBOARD_URL,
+  DUB_CLOSE_BUTTON_ID,
   DUB_CONTAINER_ID,
   DUB_POPUP_ID,
   WIDGET_URL,
@@ -46,7 +48,8 @@ const CONTAINER_STYLES = (
       transform: "translate(-50%, -50%)",
     },
   }[placement],
-  width: "400px",
+  width: "100%",
+  maxWidth: "400px",
   zIndex: "9998",
   pointerEvents: "none",
 });
@@ -54,7 +57,7 @@ const CONTAINER_STYLES = (
 const POPUP_STYLES = (
   placement: DubWidgetPlacement,
 ): Partial<CSSStyleDeclaration> => ({
-  width: "100%",
+  width: "calc(100% - 32px)",
   height: "100dvh",
   maxHeight: "500px",
   backgroundColor: "white",
@@ -73,6 +76,14 @@ const POPUP_STYLES = (
   pointerEvents: "auto",
 });
 
+const CLOSE_BUTTON_STYLE = {
+  position: "absolute",
+  top: "24px",
+  right: "24px",
+  padding: "4px",
+  color: "white",
+};
+
 let isWidgetOpen = false;
 
 const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
@@ -80,7 +91,7 @@ const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
 
   iframe.src = `${iframeUrl}?token=${token}`;
   iframe.style.width = "100%";
-  iframe.style.height = "100vh";
+  iframe.style.height = "100%";
   iframe.style.border = "none";
   iframe.setAttribute("credentialssupport", "");
   iframe.setAttribute("allow", "clipboard-write");
@@ -191,7 +202,15 @@ const renderWidget = (options: DubOptions): HTMLElement | null => {
 
   const iframe = createIframe(WIDGET_URL, token);
 
+  // Close button
+  const closeButton = document.createElement("button");
+  closeButton.id = DUB_CLOSE_BUTTON_ID;
+  closeButton.innerHTML = CLOSE_ICON;
+  Object.assign(closeButton.style, CLOSE_BUTTON_STYLE);
+  closeButton.addEventListener("click", () => closeWidget());
+
   popup.appendChild(iframe);
+  popup.appendChild(closeButton);
   container.appendChild(popup);
 
   // Listen the message from the iframe
