@@ -48,7 +48,8 @@ const CONTAINER_STYLES = (
       transform: "translate(-50%, -50%)",
     },
   }[placement],
-  width: "400px",
+  width: "100%",
+  maxWidth: "400px",
   zIndex: "9998",
   pointerEvents: "none",
 });
@@ -56,7 +57,7 @@ const CONTAINER_STYLES = (
 const POPUP_STYLES = (
   placement: DubWidgetPlacement,
 ): Partial<CSSStyleDeclaration> => ({
-  width: "100%",
+  width: "calc(100% - 32px)",
   height: "100dvh",
   maxHeight: "500px",
   backgroundColor: "white",
