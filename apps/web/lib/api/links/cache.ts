@@ -89,9 +89,7 @@ class LinkCache {
       const oldCacheKey = this._createKey({ domain: oldDomain, key });
       const newCacheKey = this._createKey({ domain, key });
 
-      console.log(`Renaming ${oldCacheKey} to ${newCacheKey}`);
-
-      pipeline.rename(oldCacheKey, newCacheKey);
+      pipeline.renamenx(oldCacheKey, newCacheKey);
     });
 
     return await pipeline.exec();

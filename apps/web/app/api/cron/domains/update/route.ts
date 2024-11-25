@@ -83,10 +83,8 @@ export async function POST(req: Request) {
       oldDomain,
       newDomain,
       page: page + 1,
-      delay: 1000,
+      delay: 2,
     });
-
-    console.log(`Updated page ${page + 1} of links for domain ${oldDomain}`);
 
     return new Response("Domain's links updated.");
   } catch (error) {
