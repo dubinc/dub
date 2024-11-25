@@ -20,7 +20,7 @@ import {
   nFormatter,
 } from "@dub/utils";
 import { Link, Program } from "@prisma/client";
-import { useState } from "react";
+import { CSSProperties, useState } from "react";
 import useSWR from "swr";
 import { LinkToken } from "../token";
 
@@ -30,10 +30,12 @@ export function EmbedWidgetPageClient({
   program,
   link,
   earnings,
+  accentColor,
 }: {
   program: Program;
   link: Link;
   earnings: number;
+  accentColor: string;
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
   const [selectedTab, setSelectedTab] = useState<Tab>("invite");
@@ -53,8 +55,11 @@ export function EmbedWidgetPageClient({
   );
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <div className="flex flex-col gap-2 rounded-lg rounded-b-none bg-black p-5">
+    <div
+      className="flex min-h-screen flex-col"
+      style={{ "--accent-color": accentColor } as CSSProperties}
+    >
+      <div className="flex flex-col gap-2 rounded-lg rounded-b-none bg-[var(--accent-color,black)] p-5">
         <div className="w-fit rounded-full bg-white/20 p-3">
           <GiftFill className="size-5 text-white" />
         </div>
@@ -103,6 +108,7 @@ export function EmbedWidgetPageClient({
                   }
                   text={copied ? "Copied link" : "Copy link"}
                   onClick={() => copyToClipboard(getPrettyUrl(link.shortLink))}
+                  className="enabled:border-[var(--accent-color)] enabled:bg-[var(--accent-color)] enabled:hover:bg-[var(--accent-color)]"
                 />
               </div>
               <div className="mt-4 grid grid-cols-3 gap-2">
@@ -133,7 +139,7 @@ export function EmbedWidgetPageClient({
                       className="flex h-7 items-center justify-center rounded-md border border-neutral-300 text-neutral-800 transition-colors duration-75 hover:bg-neutral-50 active:bg-neutral-100"
                     >
                       <Icon
-                        className="size-4 text-current"
+                        className="size-4 text-neutral-800"
                         fill="currentColor"
                       />
                     </a>

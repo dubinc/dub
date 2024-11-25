@@ -17,7 +17,6 @@ export function ReferButton() {
       token="dub_embed_zNettp9ZaXTmdq3VM0lODQjeIfADNqM1qj2w"
       trigger="manual"
       placement="top-left"
-      anchorId="dub-refer-button"
     >
       <button
         type="button"
