@@ -370,7 +370,6 @@ export const getCurrentPlan = (plan: string) => {
 
 export const getNextPlan = (plan?: string | null) => {
   if (!plan) return PRO_PLAN;
-  if (plan.toLowerCase() === "enterprise") return null;
   return PLANS[
     PLANS.findIndex((p) => p.name.toLowerCase() === plan.toLowerCase()) + 1
   ];
