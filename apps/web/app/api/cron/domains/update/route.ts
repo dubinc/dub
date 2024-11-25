@@ -51,11 +51,6 @@ export async function POST(req: Request) {
       return new Response("No more links to update. Exiting...");
     }
 
-    await linkCache.rename({
-      links,
-      oldDomain,
-    });
-
     await Promise.all([
       // rename redis keys
       linkCache.rename({
