@@ -161,7 +161,7 @@ export function EmbedWidgetPageClient({
                   { label: "Signups", value: link.leads },
                   { label: "Total earned", value: earnings },
                 ].map(({ label, value }) => (
-                  <div className="flex flex-col gap-2 rounded-lg bg-neutral-100 p-3 shadow-sm">
+                  <div className="flex flex-col gap-1.5 rounded-lg bg-neutral-100 p-2 shadow-sm">
                     <span className="text-xs text-neutral-500">{label}</span>
                     <span className="text-sm font-semibold text-neutral-600">
                       {label === "Total earned"
