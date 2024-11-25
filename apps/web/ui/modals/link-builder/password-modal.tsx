@@ -156,6 +156,7 @@ function PasswordModalInner({
           <input
             type={showPassword ? "text" : "password"}
             placeholder="Create password"
+            data-1p-ignore
             className={`${
               errors.password
                 ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
