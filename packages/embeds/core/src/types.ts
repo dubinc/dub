@@ -47,10 +47,10 @@ export type DubWidgetPlacement =
   | "top-left"
   | "center";
 
-export interface IfameMessage {
-  originator: "Dub";
-  event: "ERROR";
-  data: {
+export interface IframeMessage {
+  originator?: "Dub";
+  event?: "ERROR";
+  data?: {
     code: string;
     message: string;
   };

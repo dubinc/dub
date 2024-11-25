@@ -6,7 +6,7 @@ import {
 } from "./constants";
 import { EmbedError } from "./error";
 import { createFloatingButton } from "./floating-button";
-import { DubOptions, DubWidgetPlacement, IfameMessage } from "./types";
+import { DubOptions, DubWidgetPlacement, IframeMessage } from "./types";
 
 const CONTAINER_STYLES = (
   placement: DubWidgetPlacement,
@@ -122,20 +122,20 @@ const renderDashboard = (
 
   // Listen the message from the iframe
   window.addEventListener("message", (e) => {
-    const { data, event } = e.data as IfameMessage;
+    const { data, event } = e.data as IframeMessage;
 
     console.debug("[Dub] Iframe message", data);
 
     if (event === "ERROR") {
       onError?.(
         new EmbedError({
-          code: data.code,
-          message: data.message,
+          code: data?.code ?? "",
+          message: data?.message ?? "",
         }),
       );
     }
 
-    if (data.code === "unauthorized") {
+    if (data?.code === "unauthorized") {
       onTokenExpired?.();
     }
   });
@@ -196,20 +196,20 @@ const renderWidget = (options: DubOptions): HTMLElement | null => {
 
   // Listen the message from the iframe
   window.addEventListener("message", (e) => {
-    const { data, event } = e.data as IfameMessage;
+    const { data, event } = e.data as IframeMessage;
 
     console.debug("[Dub] Iframe message", data);
 
     if (event === "ERROR") {
       onError?.(
         new EmbedError({
-          code: data.code,
-          message: data.message,
+          code: data?.code ?? "",
+          message: data?.message ?? "",
         }),
       );
     }
 
-    if (data.code === "unauthorized") {
+    if (data?.code === "unauthorized") {
       onTokenExpired?.();
     }
   });
