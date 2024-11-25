@@ -44,7 +44,7 @@ export default async function dashboardPage({
 
   if (
     data.password &&
-    cookies().get(`dub_${params.dashboardId}`)?.value !== data.password
+    cookies().get(`dub_password_${params.dashboardId}`)?.value !== data.password
   ) {
     return (
       <main className="flex h-screen w-screen items-center justify-center">
