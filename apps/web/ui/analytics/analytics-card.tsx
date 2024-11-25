@@ -2,6 +2,7 @@ import { EventType } from "@/lib/analytics/types";
 import { Button, Modal, Popover, TabSelect, useMediaQuery } from "@dub/ui";
 import { CursorRays, InvoiceDollar, UserCheck } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
+import { ChevronsUpDown } from "lucide-react";
 import {
   Dispatch,
   ReactNode,
@@ -93,6 +94,12 @@ export function AnalyticsCard<T extends string>({
                 variant="outline"
                 icon={<SelectedTabIcon className="size-4" />}
                 text={selectedTab.label}
+                right={
+                  <ChevronsUpDown
+                    className="size-4 shrink-0 text-gray-400"
+                    aria-hidden="true"
+                  />
+                }
               />
             </Popover>
           ) : (
