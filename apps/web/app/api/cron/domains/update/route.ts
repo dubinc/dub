@@ -15,7 +15,7 @@ const schema = z.object({
   page: z.number(),
 });
 
-const pageSize = 2;
+const pageSize = 100;
 
 // POST /api/cron/domains/update
 export async function POST(req: Request) {
