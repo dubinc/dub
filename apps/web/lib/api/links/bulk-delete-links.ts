@@ -2,14 +2,14 @@ import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { R2_URL } from "@dub/utils";
-import { Link, Tag } from "@prisma/client";
+import { Link } from "@prisma/client";
 import { linkCache } from "./cache";
 
 export async function bulkDeleteLinks({
   links,
   workspaceId,
 }: {
-  links: (Link & { tags: Pick<Tag, "id">[] })[];
+  links: (Link & { tags: { tagId: string }[] })[];
   workspaceId: string;
 }) {
   if (links.length === 0) {
@@ -27,9 +27,10 @@ export async function bulkDeleteLinks({
         domain: link.domain,
         key: link.key,
         url: link.url,
+        tag_ids: link.tags.map(({ tagId }) => tagId),
+        program_id: link.programId ?? "",
         workspace_id: link.projectId,
         created_at: link.createdAt,
-        tag_ids: link.tags.map(({ id }) => id),
         deleted: true,
       })),
     ),

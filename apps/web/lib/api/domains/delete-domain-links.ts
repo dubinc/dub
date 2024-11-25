@@ -38,6 +38,7 @@ export async function deleteDomainAndLinks({
         url: link.url,
         tag_ids: link.tags.map((tag) => tag.id),
         workspace_id: workspaceId,
+        program_id: link.programId ?? "",
         created_at: link.createdAt,
         deleted: true,
       })),

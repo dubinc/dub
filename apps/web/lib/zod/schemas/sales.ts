@@ -106,6 +106,8 @@ export const saleEventSchemaTBEndpoint = z.object({
   continent: z.string().nullable(),
   country: z.string().nullable(),
   city: z.string().nullable(),
+  region: z.string().nullable(),
+  region_processed: z.string().nullable(),
   device: z.string().nullable(),
   browser: z.string().nullable(),
   os: z.string().nullable(),

@@ -3,6 +3,7 @@
 import { createDotsFlowAction } from "@/lib/actions/partners/create-dots-flow";
 import useDotsUser from "@/lib/swr/use-dots-user";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import usePayoutMethods from "@/lib/swr/use-payout-methods";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { usePayoutWithdrawSheet } from "@/ui/partners/payout-withdraw-sheet";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -21,13 +22,16 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { PartnerWithdrawalsActivity } from "./activity";
 import { ComplianceButton } from "./compliance-button";
-import PayoutMethodCard from "./payout-method-card";
+import PayoutMethodCard, {
+  PayoutMethodCardSkeleton,
+} from "./payout-method-card";
 
 export function PayoutsSettingsPageClient() {
   const { partnerId } = useParams<{ partnerId: string }>();
   const { partner } = usePartnerProfile();
 
   const { dotsUser, isLoading, mutate } = useDotsUser();
+  const { payoutMethods, isLoading: payoutMethodsLoading } = usePayoutMethods();
 
   const { executeAsync, isExecuting } = useAction(createDotsFlowAction, {
     onSuccess({ data }) {
@@ -38,7 +42,7 @@ export function PayoutsSettingsPageClient() {
       setModalState({ show: true, iframeSrc: data.link });
     },
     onError({ error }) {
-      toast.error(error.serverError?.serverError);
+      toast.error(error.serverError);
     },
   });
 
@@ -65,7 +69,7 @@ export function PayoutsSettingsPageClient() {
         >
           <button
             onClick={() => setModalState({ show: false, iframeSrc: "" })}
-            className="group absolute right-4 top-8 rounded-full p-2 transition-colors hover:bg-neutral-100 sm:top-4"
+            className="group absolute right-4 top-8 hidden rounded-full p-2 transition-colors hover:bg-neutral-100 sm:top-4 sm:block"
           >
             <X className="size-5 text-neutral-700 transition-all group-hover:scale-110 group-active:scale-90" />
           </button>
@@ -79,79 +83,81 @@ export function PayoutsSettingsPageClient() {
         {partner?.dotsUserId && dotsUser?.verified ? (
           <div className="grid grid-cols-1 gap-4">
             <div className="grid gap-4 rounded-lg border border-neutral-300 bg-white p-5">
-              <div className="grid divide-neutral-200 rounded-lg border border-neutral-200 bg-neutral-50 max-sm:divide-y sm:grid-cols-[repeat(2,minmax(0,1fr))] sm:divide-x">
-                <div className="flex flex-col p-4">
-                  <div className="flex flex-wrap justify-between gap-x-5 gap-y-1">
-                    <div className="whitespace-nowrap p-1 text-sm text-neutral-500">
-                      Withdrawable balance
+              {dotsUser?.wallet && (
+                <div className="grid divide-neutral-200 rounded-lg border border-neutral-200 bg-neutral-50 max-sm:divide-y sm:grid-cols-[repeat(2,minmax(0,1fr))] sm:divide-x">
+                  <div className="flex flex-col p-4">
+                    <div className="flex flex-wrap justify-between gap-x-5 gap-y-1">
+                      <div className="whitespace-nowrap p-1 text-sm text-neutral-500">
+                        Withdrawable balance
+                      </div>
+                      <div>
+                        {dotsUser ? (
+                          <Button
+                            text="Withdraw funds"
+                            onClick={() => setShowPayoutWithdrawSheet(true)}
+                            className="h-7 w-fit px-2"
+                            disabledTooltip={
+                              payoutMethods.length === 0
+                                ? "You need to connect a payout method first"
+                                : !dotsUser.compliance.submitted
+                                  ? "You need to verify your identity first"
+                                  : !dotsUser.wallet.withdrawable_amount
+                                    ? "You need a positive balance to withdraw funds"
+                                    : undefined
+                            }
+                          />
+                        ) : (
+                          <div className="h-7 w-24 animate-pulse rounded-md bg-neutral-200" />
+                        )}
+                      </div>
                     </div>
-                    <div>
+                    <div className="mt-6 flex grow flex-col justify-end p-1">
+                      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
+                        <div className="whitespace-nowrap text-2xl text-neutral-800">
+                          {currencyFormatter(
+                            dotsUser.wallet.withdrawable_amount / 100,
+                            {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            },
+                          )}{" "}
+                          USD
+                        </div>
+                        {partner.country === "US" &&
+                          dotsUser.wallet.withdrawable_amount > 0 && (
+                            <FreeWithdrawalProgress
+                              balance={dotsUser.wallet.withdrawable_amount}
+                            />
+                          )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col p-4">
+                    <div className="flex justify-between gap-5">
+                      <div className="p-1 text-sm text-neutral-500">
+                        Pending balance
+                      </div>
+                    </div>
+                    <div className="mt-6 flex grow flex-col justify-end p-1">
                       {dotsUser ? (
-                        <Button
-                          text="Withdraw funds"
-                          onClick={() => setShowPayoutWithdrawSheet(true)}
-                          className="h-7 w-fit px-2"
-                          disabledTooltip={
-                            dotsUser.payout_methods.length === 0
-                              ? "You need to connect a payout method first"
-                              : !dotsUser.compliance.submitted
-                                ? "You need to verify your identity first"
-                                : !dotsUser.wallet.withdrawable_amount
-                                  ? "You need a positive balance to withdraw funds"
-                                  : undefined
-                          }
-                        />
+                        <div className="text-2xl text-neutral-800">
+                          {currencyFormatter(
+                            dotsUser?.wallet.pending_amount / 100,
+                            {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            },
+                          )}{" "}
+                          USD
+                        </div>
                       ) : (
-                        <div className="h-7 w-24 animate-pulse rounded-md bg-neutral-200" />
+                        <div className="h-8 w-32 animate-pulse rounded bg-neutral-200" />
                       )}
                     </div>
                   </div>
-                  <div className="mt-6 flex grow flex-col justify-end p-1">
-                    <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
-                      <div className="whitespace-nowrap text-2xl text-neutral-800">
-                        {currencyFormatter(
-                          dotsUser.wallet.withdrawable_amount / 100,
-                          {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          },
-                        )}{" "}
-                        USD
-                      </div>
-                      {partner.country === "US" &&
-                        dotsUser.wallet.withdrawable_amount > 0 && (
-                          <FreeWithdrawalProgress
-                            balance={dotsUser.wallet.withdrawable_amount}
-                          />
-                        )}
-                    </div>
-                  </div>
                 </div>
-                <div className="flex flex-col p-4">
-                  <div className="flex justify-between gap-5">
-                    <div className="p-1 text-sm text-neutral-500">
-                      Pending balance
-                    </div>
-                  </div>
-                  <div className="mt-6 flex grow flex-col justify-end p-1">
-                    {dotsUser ? (
-                      <div className="text-2xl text-neutral-800">
-                        {currencyFormatter(
-                          dotsUser?.wallet.pending_amount / 100,
-                          {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          },
-                        )}{" "}
-                        USD
-                      </div>
-                    ) : (
-                      <div className="h-8 w-32 animate-pulse rounded bg-neutral-200" />
-                    )}
-                  </div>
-                </div>
-              </div>
-              {dotsUser?.payout_methods.length === 0 ? (
+              )}
+              {!payoutMethodsLoading && payoutMethods.length === 0 ? (
                 <AnimatedEmptyState
                   title="No payout methods connected"
                   description="Connect a payout method to start withdrawing funds"
@@ -188,15 +194,19 @@ export function PayoutsSettingsPageClient() {
                     />
                   </div>
                   <div className="grid gap-4">
-                    {dotsUser.payout_methods.map(
-                      ({ platform, default: isDefault }) => (
-                        <PayoutMethodCard
-                          key={platform}
-                          platform={platform}
-                          isDefault={isDefault}
-                        />
-                      ),
-                    )}
+                    {payoutMethodsLoading
+                      ? Array.from({ length: 3 }).map((_, i) => (
+                          <PayoutMethodCardSkeleton key={i} />
+                        ))
+                      : payoutMethods.map(
+                          ({ platform, default: isDefault }) => (
+                            <PayoutMethodCard
+                              key={platform}
+                              platform={platform}
+                              isDefault={isDefault}
+                            />
+                          ),
+                        )}
                   </div>
                 </div>
               )}

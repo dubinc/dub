@@ -2,7 +2,7 @@ DESCRIPTION >
 	Timeseries data
 
 
-TOKEN "v1_usage_endpoint_read_1647" READ
+TOKEN "v2_usage_endpoint_read_1647" READ
 
 NODE day_intervals
 SQL >
@@ -118,7 +118,6 @@ SQL >
                 required=True,
             )
         }}
-        AND deleted = 0
         AND created_at >= {{ DateTime(start, '2024-09-03 00:00:00') }}
         AND created_at < {{ DateTime(end, '2024-10-03 00:00:00') }}
     GROUP BY interval
@@ -135,10 +134,8 @@ SQL >
     LEFT JOIN usage_links_data USING interval
 
 
-NODE usage_revenue_data
-DESCRIPTION >
-    undefined
 
+NODE usage_revenue_data
 SQL >
 
     %
@@ -154,6 +151,8 @@ SQL >
     GROUP BY interval
     ORDER BY interval
 
+
+
 NODE usage_revenue
 SQL >
 
@@ -161,6 +160,8 @@ SQL >
     SELECT formatDateTime(interval, '%FT%T.000%z') as date, revenue as value
     FROM day_intervals
     LEFT JOIN usage_revenue_data USING interval
+
+
 
 NODE endpoint
 SQL >

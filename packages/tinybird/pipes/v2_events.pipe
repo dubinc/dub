@@ -34,7 +34,11 @@ NODE click_events
 SQL >
 
     %
-    SELECT *, splitByString('?', referer_url)[1] as referer_url_processed, 'click' as event
+    SELECT
+        *,
+        splitByString('?', referer_url)[1] as referer_url_processed,
+        CONCAT(country, '-', region) as region_processed,
+        'click' as event
     FROM dub_click_events_mv
     WHERE
         timestamp >= {{ DateTime(start, '2024-06-01 00:00:00') }}
@@ -45,6 +49,7 @@ SQL >
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
+        {% if defined(region) %} AND region = {{ region }} {% end %}
         {% if defined(city) %} AND city = {{ city }} {% end %}
         {% if defined(device) %} AND device = {{ device }} {% end %}
         {% if defined(browser) %} AND browser = {{ browser }} {% end %}
@@ -65,6 +70,7 @@ SQL >
     SELECT
         *,
         splitByString('?', referer_url)[1] as referer_url_processed,
+        CONCAT(country, '-', region) as region_processed,
         'lead' as event
     FROM dub_lead_events_mv
     WHERE
@@ -76,6 +82,7 @@ SQL >
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
+        {% if defined(region) %} AND region = {{ region }} {% end %}
         {% if defined(city) %} AND city = {{ city }} {% end %}
         {% if defined(device) %} AND device = {{ device }} {% end %}
         {% if defined(browser) %} AND browser = {{ browser }} {% end %}
@@ -96,6 +103,7 @@ SQL >
     SELECT
         *,
         amount as saleAmount,
+        CONCAT(country, '-', region) as region_processed,
         splitByString('?', referer_url)[1] as referer_url_processed,
         'sale' as event
     FROM dub_sale_events_mv
@@ -108,6 +116,7 @@ SQL >
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
+        {% if defined(region) %} AND region = {{ region }} {% end %}
         {% if defined(city) %} AND city = {{ city }} {% end %}
         {% if defined(device) %} AND device = {{ device }} {% end %}
         {% if defined(browser) %} AND browser = {{ browser }} {% end %}

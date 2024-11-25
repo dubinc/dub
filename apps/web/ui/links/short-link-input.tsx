@@ -263,8 +263,13 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
             }}
             onBlur={(e) => {
               // if the key is changed, check if key exists
-              if (e.target.value && existingLinkProps?.key !== e.target.value) {
-                runKeyChecks(e.target.value);
+              if (e.target.value) {
+                // no need to check if the link key didn't change (for editing existing links)
+                if (existingLinkProps?.key === e.target.value) {
+                  return;
+                } else {
+                  runKeyChecks(e.target.value);
+                }
               } else if (
                 domain &&
                 workspaceId &&

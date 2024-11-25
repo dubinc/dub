@@ -2,17 +2,22 @@ import { dotsFetch } from "./fetch";
 import { DotsFlowSteps } from "./types";
 
 export const createDotsFlow = async ({
-  steps,
+  step,
   dotsUserId,
 }: {
-  steps?: DotsFlowSteps[];
+  step: DotsFlowSteps;
   dotsUserId?: string | null;
 }) => {
   return await dotsFetch("/flows", {
     method: "POST",
     dotsAppId: "default",
     body: {
-      steps,
+      steps: [
+        {
+          name: step,
+          auto_payout_enabled: false,
+        },
+      ],
       user_id: dotsUserId,
     },
   });

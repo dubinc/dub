@@ -52,14 +52,17 @@ export const EnrolledPartnerSchema = PartnerSchema.omit({
     earnings: z.number(),
   });
 
+export const PAYOUTS_MAX_PAGE_SIZE = 100;
+
 export const payoutsQuerySchema = z
   .object({
     status: z.nativeEnum(PayoutStatus).optional(),
     search: z.string().optional(),
+    partnerId: z.string().optional(),
     order: z.enum(["asc", "desc"]).default("desc"),
     sortBy: z.enum(["periodStart", "total"]).default("periodStart"),
   })
-  .merge(getPaginationQuerySchema({ pageSize: 100 }));
+  .merge(getPaginationQuerySchema({ pageSize: PAYOUTS_MAX_PAGE_SIZE }));
 
 export const PayoutSchema = z.object({
   id: z.string(),
@@ -150,6 +153,7 @@ export const getPartnerSalesCountQuerySchema = getSalesCountQuerySchema.omit({
 
 export const onboardPartnerSchema = z.object({
   name: z.string().trim().min(1).max(100),
+  logo: z.string().optional(),
   image: z.string(),
   country: z.enum(COUNTRY_CODES),
   phoneNumber: z.string().trim().min(1).max(24),

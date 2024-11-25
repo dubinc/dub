@@ -104,7 +104,9 @@ export const EmailSignIn = () => {
                   toast.success("Email sent - check your inbox!");
                   setEmail("");
                   setClickedMethod(undefined);
-                } else if (provider === "credentials") router.push(next ?? "/");
+                } else if (provider === "credentials") {
+                  router.push(next || "/");
+                }
               });
             } else {
               setClickedMethod(undefined);

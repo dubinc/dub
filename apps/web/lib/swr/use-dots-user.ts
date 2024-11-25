@@ -1,10 +1,14 @@
 import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import { DotsUser } from "../dots/types";
 
 export default function useDotsUser() {
-  const { partnerId } = useParams();
+  let { partnerId } = useParams();
+  const searchParams = useSearchParams();
+  if (!partnerId) {
+    partnerId = searchParams.get("partner") ?? "";
+  }
 
   const {
     data: dotsUser,

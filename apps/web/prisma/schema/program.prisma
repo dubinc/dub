@@ -63,28 +63,23 @@ model Program {
 }
 
 model ProgramEnrollment {
-  id         String                  @id @default(cuid())
-  partnerId  String
-  programId  String
-  linkId     String?                 @unique
-  dotsUserId String?                 @unique
-  status     ProgramEnrollmentStatus @default(pending)
-  applicationId String? @unique
-  createdAt  DateTime                @default(now())
-  updatedAt  DateTime                @updatedAt
+  id            String                  @id @default(cuid())
+  partnerId     String
+  programId     String
+  applicationId String?                 @unique
+  linkId        String?                 @unique
+  dotsUserId    String?                 @unique
+  status        ProgramEnrollmentStatus @default(pending)
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
 
-  partner Partner @relation(fields: [partnerId], references: [id])
-  program Program @relation(fields: [programId], references: [id])
-  link    Link?   @relation(fields: [linkId], references: [id])
+  partner     Partner             @relation(fields: [partnerId], references: [id])
+  program     Program             @relation(fields: [programId], references: [id])
+  link        Link?               @relation(fields: [linkId], references: [id])
+  application ProgramApplication? @relation(fields: [applicationId], references: [id])
 
   @@unique([partnerId, programId])
   @@index([programId])
-}
-
-enum ProgramApplicationStatus {
-  pending
-  approved
-  rejected
 }
 
 model ProgramApplication {
@@ -93,14 +88,15 @@ model ProgramApplication {
   partnerId String?
   name      String
   email     String
-  plan      String
-  website   String?
-  comments  String?
-  status    ProgramApplicationStatus @default(pending)
+  proposal  String?                  @db.LongText
+  website   String?                  @db.Text
+  comments  String?                  @db.LongText
   createdAt DateTime                 @default(now())
   updatedAt DateTime                 @updatedAt
-  program   Program                  @relation(fields: [programId], references: [id])
+
   partner   Partner?                 @relation(fields: [partnerId], references: [id])
+  program   Program                  @relation(fields: [programId], references: [id])
+  enrollment ProgramEnrollment?
 
   @@index([programId])
   @@index([partnerId])
