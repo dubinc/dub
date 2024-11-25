@@ -7,7 +7,7 @@ export interface DubEmbed {
   destroy: () => void;
 }
 
-export interface DubOptions {
+export type DubOptions = {
   // The link token
   token: string;
 
@@ -32,11 +32,14 @@ export interface DubOptions {
   // The placement of the widget
   placement?: DubWidgetPlacement;
 
+  // The ID of the anchor element
+  anchorId?: string;
+
   // The styles for the widget container
   containerStyles?: Partial<CSSStyleDeclaration>;
   popupStyles?: Partial<CSSStyleDeclaration>;
   buttonStyles?: Partial<CSSStyleDeclaration>;
-}
+};
 
 export type DubWidgetTrigger = "floating-button" | "manual";
 

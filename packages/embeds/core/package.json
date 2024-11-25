@@ -35,5 +35,8 @@
   ],
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "@floating-ui/dom": "^1.6.12"
   }
 }

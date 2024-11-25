@@ -1,3 +1,4 @@
+import { setAnchoredPosition } from "./anchor";
 import {
   CLOSE_ICON,
   DASHBOARD_URL,
@@ -10,9 +11,11 @@ import { EmbedError } from "./error";
 import { createFloatingButton } from "./floating-button";
 import { DubOptions, DubWidgetPlacement, IframeMessage } from "./types";
 
-const CONTAINER_STYLES = (
-  placement: DubWidgetPlacement,
-): Partial<CSSStyleDeclaration> => ({
+const CONTAINER_STYLES = ({
+  placement,
+}: {
+  placement: DubWidgetPlacement;
+}): Partial<CSSStyleDeclaration> => ({
   position: "fixed",
   display: "flex",
   ...{
@@ -54,17 +57,21 @@ const CONTAINER_STYLES = (
   pointerEvents: "none",
 });
 
-const POPUP_STYLES = (
-  placement: DubWidgetPlacement,
-): Partial<CSSStyleDeclaration> => ({
-  width: "calc(100% - 32px)",
+const POPUP_STYLES = ({
+  placement,
+  anchor,
+}: {
+  placement: DubWidgetPlacement;
+  anchor: boolean;
+}): Partial<CSSStyleDeclaration> => ({
+  width: anchor ? "100%" : "calc(100% - 32px)",
   height: "100dvh",
   maxHeight: "500px",
   backgroundColor: "white",
   borderRadius: "12px",
   border: "1px solid #E5E5E5",
   boxShadow: "0px 4px 20px 0px #0000000D",
-  margin: "16px",
+  margin: anchor ? undefined : "16px",
   overflow: "hidden",
   ...{
     "bottom-right": { transformOrigin: "bottom right" },
@@ -99,12 +106,14 @@ const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
   return iframe;
 };
 
+type RenderDashboardResult = { container: HTMLElement | null };
+
 const renderDashboard = (
   options: Pick<
     DubOptions,
     "token" | "containerStyles" | "onError" | "onTokenExpired"
   >,
-): HTMLElement | null => {
+): RenderDashboardResult => {
   console.debug("[Dub] Rendering dashboard.", options);
 
   const { token, containerStyles, onError, onTokenExpired } = options;
@@ -113,12 +122,12 @@ const renderDashboard = (
 
   if (existingContainer) {
     document.body.removeChild(existingContainer);
-    return existingContainer;
+    return { container: existingContainer };
   }
 
   if (!token) {
     console.error("[Dub] A link token is required to embed the widget.");
-    return null;
+    return { container: null };
   }
 
   const container = document.createElement("div");
@@ -153,10 +162,15 @@ const renderDashboard = (
 
   document.body.appendChild(container);
 
-  return container;
+  return { container };
 };
 
-const renderWidget = (options: DubOptions): HTMLElement | null => {
+type RenderWidgetResult = {
+  container: HTMLElement | null;
+  updatePosition?: () => void;
+};
+
+const renderWidget = (options: DubOptions): RenderWidgetResult => {
   console.debug("[Dub] Rendering widget.", options);
 
   const {
@@ -164,6 +178,7 @@ const renderWidget = (options: DubOptions): HTMLElement | null => {
     placement,
     containerStyles,
     popupStyles,
+    anchorId,
     onOpen,
     onClose,
     onError,
@@ -175,18 +190,20 @@ const renderWidget = (options: DubOptions): HTMLElement | null => {
   if (existingContainer) {
     document.body.removeChild(existingContainer);
     onClose?.();
-    return existingContainer;
+    return { container: existingContainer };
   }
 
   if (!token) {
     console.error("[Dub] A link token is required to embed the widget.");
-    return null;
+    return { container: null };
   }
 
   const container = document.createElement("div");
   container.id = DUB_CONTAINER_ID;
   Object.assign(container.style, {
-    ...CONTAINER_STYLES(placement ?? "bottom-right"),
+    ...CONTAINER_STYLES({
+      placement: placement ?? "bottom-right",
+    }),
     ...containerStyles,
   });
 
@@ -195,7 +212,10 @@ const renderWidget = (options: DubOptions): HTMLElement | null => {
     document.createElement("div");
   popup.id = DUB_POPUP_ID;
   Object.assign(popup.style, {
-    ...POPUP_STYLES(placement ?? "bottom-right"),
+    ...POPUP_STYLES({
+      placement: placement ?? "bottom-right",
+      anchor: !!anchorId,
+    }),
     ...popupStyles,
     display: "none",
   });
@@ -235,9 +255,17 @@ const renderWidget = (options: DubOptions): HTMLElement | null => {
 
   document.body.appendChild(container);
 
+  let updatePosition: (() => void) | undefined;
+
+  if (anchorId) {
+    updatePosition = () => setAnchoredPosition({ anchorId, placement });
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+  }
+
   onOpen?.();
 
-  return container;
+  return { container, updatePosition };
 };
 
 export const openWidget = (): void => {
@@ -297,26 +325,35 @@ export const init = (options: DubOptions) => {
 
   console.debug("[Dub] Initializing.", options);
 
-  const container =
+  const renderResult: RenderDashboardResult | RenderWidgetResult =
     options.type === "dashboard"
       ? renderDashboard(options)
       : renderWidget(options);
 
-  if (!container) {
-    return;
+  if (!renderResult.container) {
+    return { destroy: () => {} };
   }
 
   if (options.trigger === "floating-button")
     createFloatingButton({
-      container,
+      container: renderResult.container,
       buttonStyles: options.buttonStyles,
       placement: options.placement,
       onClick: () => {
         toggleWidget();
       },
     });
+
+  return {
+    ...renderResult,
+    destroy: () => {
+      document
+        .querySelectorAll(`#${DUB_CONTAINER_ID}`)
+        .forEach((c) => c.remove());
+      if ("updatePosition" in renderResult && renderResult.updatePosition)
+        window.removeEventListener("resize", renderResult.updatePosition);
+    },
+  };
 };
 
-export const destroy = (): void => {
-  document.querySelectorAll(`#${DUB_CONTAINER_ID}`).forEach((c) => c.remove());
-};
+export const destroy = (): void => {};
