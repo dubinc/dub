@@ -11,7 +11,7 @@ import {
 import { GiftFill } from "@dub/ui/src/icons";
 import { currencyFormatter, getPrettyUrl } from "@dub/utils";
 import { Link, Program } from "@prisma/client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Tab = "invite" | "rewards";
 
@@ -26,17 +26,17 @@ export function EmbedWidgetPageClient({
   const [selectedTab, setSelectedTab] = useState<Tab>("invite");
 
   // useEffect(() => {
-  //   if (linkError) {
+  //   if (error) {
   //     window.parent.postMessage(
   //       {
   //         originator: "Dub",
   //         event: "ERROR",
-  //         data: linkError.info,
+  //         data: error.info,
   //       },
   //       "*",
   //     );
   //   }
-  // }, [linkError]);
+  // }, [error]);
 
   return (
     <div>
