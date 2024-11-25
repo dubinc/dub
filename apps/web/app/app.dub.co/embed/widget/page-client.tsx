@@ -81,7 +81,7 @@ export function EmbedWidgetPageClient({
           selected={selectedTab}
           selectAction={(option: Tab) => setSelectedTab(option)}
           className="grid grid-cols-2 border-transparent bg-neutral-100"
-          optionClassName="w-full h-9 flex items-center justify-center font-medium"
+          optionClassName="w-full h-8 flex items-center justify-center font-medium"
           indicatorClassName="rounded-lg bg-white border border-neutral-100 shadow-sm"
         />
 
@@ -140,12 +140,9 @@ export function EmbedWidgetPageClient({
                       href={href}
                       title={title}
                       target="_blank"
-                      className="flex h-7 items-center justify-center rounded-md border border-neutral-300 text-neutral-800 transition-colors duration-75 hover:bg-neutral-50 active:bg-neutral-100"
+                      className="flex h-8 items-center justify-center rounded-md border border-neutral-300 text-neutral-800 transition-colors duration-75 hover:bg-neutral-50 active:bg-neutral-100"
                     >
-                      <Icon
-                        className="size-4 text-neutral-800"
-                        fill="currentColor"
-                      />
+                      <Icon className="size-4 text-neutral-800" />
                     </a>
                   );
                 })}
