@@ -5,16 +5,42 @@ import { DubWidget } from "@dub/embed-react";
 import { Gift } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export function ReferButton() {
-  const { flags } = useWorkspace();
+  const { id: workspaceId, flags } = useWorkspace();
 
-  if (!flags || !flags.referrals) return null;
+  const [publicToken, setPublicToken] = useState<string | null>(null);
+
+  // Get publicToken from server when component mounts
+  const createPublicToken = async () => {
+    const response = await fetch(`/api/workspaces/${workspaceId}/embed-token`, {
+      method: "POST",
+    });
+
+    if (!response.ok) {
+      throw toast.error("Failed to create public token");
+    }
+
+    const { publicToken } = (await response.json()) as {
+      publicToken: string;
+    };
+
+    setPublicToken(publicToken);
+  };
+
+  useEffect(() => {
+    if (flags && flags.referrals) {
+      createPublicToken();
+    }
+  }, [flags]);
+
+  if (!publicToken) return null;
 
   return (
     <DubWidget
-      // TODO: Fetch token for this workspace
-      token="dub_embed_zNettp9ZaXTmdq3VM0lODQjeIfADNqM1qj2w"
+      token={publicToken}
       trigger="manual"
       placement="top-left"
       anchorId="dub-refer-button"
