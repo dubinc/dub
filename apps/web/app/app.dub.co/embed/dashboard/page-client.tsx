@@ -18,7 +18,7 @@ import {
 import { Copy, MoneyBill2 } from "@dub/ui/src/icons";
 import { getPrettyUrl } from "@dub/utils";
 import { Link, Program } from "@prisma/client";
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import { LinkToken } from "../token";
 import useReferralAnalytics from "../use-referral-analytics";
 import { SaleTable } from "./sale-table";
@@ -149,19 +149,6 @@ const EarningsChartContainer = () => {
     start,
     end,
   });
-
-  useEffect(() => {
-    if (error) {
-      window.parent.postMessage(
-        {
-          originator: "Dub",
-          event: "ERROR",
-          data: error.info,
-        },
-        "*",
-      );
-    }
-  }, [error]);
 
   return (
     <EarningsChart
