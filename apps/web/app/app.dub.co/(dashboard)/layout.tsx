@@ -28,7 +28,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
           {children}
         </MainNav>
       </div>
-      <DubWidget token="dub_embed_xxx" />
+      {/* <DubWidget token="dub_embed_xxx" /> */}
       <Toolbar show={["onboarding"]} />
     </>
   );

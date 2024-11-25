@@ -4,8 +4,9 @@ import {
   DUB_POPUP_ID,
   WIDGET_URL,
 } from "./constants";
+import { EmbedError } from "./error";
 import { createFloatingButton } from "./floating-button";
-import { DubOptions, DubWidgetPlacement } from "./types";
+import { DubOptions, DubWidgetPlacement, IfameMessage } from "./types";
 
 const CONTAINER_STYLES = (
   placement: DubWidgetPlacement,
@@ -79,7 +80,7 @@ const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
 
   iframe.src = `${iframeUrl}?token=${token}`;
   iframe.style.width = "100%";
-  iframe.style.height = "100%";
+  iframe.style.height = "100vh";
   iframe.style.border = "none";
   iframe.setAttribute("credentialssupport", "");
   iframe.setAttribute("allow", "clipboard-write");
@@ -88,11 +89,14 @@ const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
 };
 
 const renderDashboard = (
-  options: Pick<DubOptions, "token">,
+  options: Pick<
+    DubOptions,
+    "token" | "containerStyles" | "onError" | "onTokenExpired"
+  >,
 ): HTMLElement | null => {
   console.debug("[Dub] Rendering dashboard.", options);
 
-  const { token } = options;
+  const { token, containerStyles, onError, onTokenExpired } = options;
 
   const existingContainer = document.getElementById(DUB_CONTAINER_ID);
 
@@ -110,8 +114,31 @@ const renderDashboard = (
   container.id = DUB_CONTAINER_ID;
 
   const iframe = createIframe(DASHBOARD_URL, token);
+  Object.assign(iframe.style, {
+    ...containerStyles,
+  });
 
   container.appendChild(iframe);
+
+  // Listen the message from the iframe
+  window.addEventListener("message", (e) => {
+    const { data, event } = e.data as IfameMessage;
+
+    console.debug("[Dub] Iframe message", data);
+
+    if (event === "ERROR") {
+      onError?.(
+        new EmbedError({
+          code: data.code,
+          message: data.message,
+        }),
+      );
+    }
+
+    if (data.code === "unauthorized") {
+      onTokenExpired?.();
+    }
+  });
 
   document.body.appendChild(container);
 
@@ -121,8 +148,16 @@ const renderDashboard = (
 const renderWidget = (options: DubOptions): HTMLElement | null => {
   console.debug("[Dub] Rendering widget.", options);
 
-  const { token, placement, onOpen, onClose, containerStyles, popupStyles } =
-    options;
+  const {
+    token,
+    placement,
+    containerStyles,
+    popupStyles,
+    onOpen,
+    onClose,
+    onError,
+    onTokenExpired,
+  } = options;
 
   const existingContainer = document.getElementById(DUB_CONTAINER_ID);
 
@@ -158,6 +193,26 @@ const renderWidget = (options: DubOptions): HTMLElement | null => {
 
   popup.appendChild(iframe);
   container.appendChild(popup);
+
+  // Listen the message from the iframe
+  window.addEventListener("message", (e) => {
+    const { data, event } = e.data as IfameMessage;
+
+    console.debug("[Dub] Iframe message", data);
+
+    if (event === "ERROR") {
+      onError?.(
+        new EmbedError({
+          code: data.code,
+          message: data.message,
+        }),
+      );
+    }
+
+    if (data.code === "unauthorized") {
+      onTokenExpired?.();
+    }
+  });
 
   document.body.appendChild(container);
 

@@ -23,6 +23,12 @@ export interface DubOptions {
   // The widget was closed
   onClose?: () => void;
 
+  // An error occurred in the APIs
+  onError?: (error: Error) => void;
+
+  // The token expired
+  onTokenExpired?: () => void;
+
   // The placement of the widget
   placement?: DubWidgetPlacement;
 
@@ -40,3 +46,12 @@ export type DubWidgetPlacement =
   | "top-right"
   | "top-left"
   | "center";
+
+export interface IfameMessage {
+  originator: "Dub";
+  event: "ERROR";
+  data: {
+    code: string;
+    message: string;
+  };
+}

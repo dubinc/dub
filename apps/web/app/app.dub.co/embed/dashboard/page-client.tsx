@@ -18,7 +18,7 @@ import {
 import { Copy, MoneyBill2 } from "@dub/ui/src/icons";
 import { getPrettyUrl } from "@dub/utils";
 import { notFound } from "next/navigation";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import useReferralAnalytics from "../use-referral-analytics";
 import { useReferralLink } from "../use-referral-link";
 import { useReferralProgram } from "../use-referral-program";
@@ -46,13 +46,21 @@ export function RewardDashboardPageClient() {
     token?: string;
   };
 
+  useEffect(() => {
+    if (linkError) {
+      window.parent.postMessage(
+        {
+          originator: "Dub",
+          event: "ERROR",
+          data: linkError.info,
+        },
+        "*",
+      );
+    }
+  }, [linkError]);
+
   if (!token) {
     notFound();
-  }
-
-  // Inform parent that the token has expired
-  if (linkError && linkError.status === 401) {
-    window.parent.postMessage("TOKEN_EXPIRED", "*");
   }
 
   return (
@@ -141,7 +149,7 @@ export function RewardDashboardPageClient() {
         <a
           href="https://d.to/conversions"
           target="_blank"
-          className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-white p-2 transition-colors"
+          className="mt-2 flex items-center justify-center gap-1 rounded-lg bg-white p-2 transition-colors"
         >
           <p className="text-sm text-gray-700">Powered by</p>
           <Wordmark className="h-4" />
