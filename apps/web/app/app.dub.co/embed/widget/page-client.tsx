@@ -94,7 +94,7 @@ export function EmbedWidgetPageClient({
                   type="text"
                   readOnly
                   value={getPrettyUrl(link.shortLink)}
-                  className="h-10 w-full rounded-md border border-neutral-300 px-3 text-center text-sm text-neutral-600 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
+                  className="h-10 w-full rounded-md border border-neutral-300 px-3 text-center text-sm text-neutral-600 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
                 />
 
                 <Button
@@ -184,9 +184,9 @@ export function EmbedWidgetPageClient({
           <a
             href="https://d.to/conversions"
             target="_blank"
-            className="flex items-center justify-center gap-1 rounded-lg bg-white p-2 pb-5 pt-2 transition-colors"
+            className="flex items-center justify-center gap-1 rounded-lg bg-white p-2 pb-2.5 transition-colors"
           >
-            <p className="text-sm text-gray-700">Powered by</p>
+            <p className="text-sm text-neutral-500">Powered by</p>
             <Wordmark className="h-4" />
           </a>
         </div>
