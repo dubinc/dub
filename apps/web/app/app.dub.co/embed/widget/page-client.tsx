@@ -45,11 +45,6 @@ export function EmbedWidgetPageClient({
     fetcher,
   );
 
-  const { data: salesCount } = useSWR<{ count: number }>(
-    `/api/referrals/sales/count`,
-    fetcher,
-  );
-
   return (
     <div
       className="flex min-h-screen flex-col"
@@ -77,9 +72,9 @@ export function EmbedWidgetPageClient({
               value: "rewards",
               label: "Rewards",
               badge:
-                salesCount && salesCount.count > 0 ? (
-                  <div className="rounded bg-[var(--accent-color)] px-1 py-0.5 text-xs text-white">
-                    {salesCount.count}
+                link.sales > 0 ? (
+                  <div className="rounded bg-[var(--accent-color)] px-1.5 py-0.5 text-xs text-white">
+                    {link.sales}
                   </div>
                 ) : undefined,
             },
