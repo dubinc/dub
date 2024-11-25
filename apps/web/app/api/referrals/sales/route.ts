@@ -18,9 +18,14 @@ export const GET = withEmbedToken(async ({ link }) => {
       status: true,
       createdAt: true,
       updatedAt: true,
-      customer: true,
+      customer: {
+        select: {
+          email: true,
+          avatar: true,
+        },
+      },
     },
-    take: 10,
+    take: 3,
     orderBy: {
       createdAt: "desc",
     },
