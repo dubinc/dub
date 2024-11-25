@@ -11,9 +11,6 @@ export type DubOptions = {
   // The link token
   token: string;
 
-  // The type of embed (defaults to widget)
-  type?: "dashboard" | "widget";
-
   // The trigger for the widget
   trigger?: DubWidgetTrigger;
 

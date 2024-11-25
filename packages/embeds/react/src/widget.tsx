@@ -13,13 +13,12 @@ import {
 } from "react";
 
 export const DubWidget = memo(
-  ({ children, ...options }: PropsWithChildren<Omit<DubOptions, "type">>) => {
+  ({ children, ...options }: PropsWithChildren<DubOptions>) => {
     const id = useId();
 
     useEffect(() => {
       const { destroy } = init({
         ...options,
-        type: "widget",
         anchorId: children && options.placement !== "center" ? id : undefined,
       });
 

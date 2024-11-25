@@ -1,7 +1,6 @@
 import { setAnchoredPosition } from "./anchor";
 import {
   CLOSE_ICON,
-  DASHBOARD_URL,
   DUB_CLOSE_BUTTON_ID,
   DUB_CONTAINER_ID,
   DUB_POPUP_ID,
@@ -110,71 +109,7 @@ const createIframe = (
   return iframe;
 };
 
-type RenderDashboardResult = { container: HTMLElement | null };
-
-const renderDashboard = (
-  options: Pick<
-    DubOptions,
-    "token" | "containerStyles" | "onError" | "onTokenExpired"
-  >,
-): RenderDashboardResult => {
-  console.debug("[Dub] Rendering dashboard.", options);
-
-  const { token, containerStyles, onError, onTokenExpired } = options;
-
-  const existingContainer = document.getElementById(DUB_CONTAINER_ID);
-
-  if (existingContainer) {
-    document.body.removeChild(existingContainer);
-    return { container: existingContainer };
-  }
-
-  if (!token) {
-    console.error("[Dub] A link token is required to embed the widget.");
-    return { container: null };
-  }
-
-  const container = document.createElement("div");
-  container.id = DUB_CONTAINER_ID;
-
-  const iframe = createIframe(DASHBOARD_URL, token);
-  Object.assign(iframe.style, {
-    ...containerStyles,
-  });
-
-  container.appendChild(iframe);
-
-  // Listen the message from the iframe
-  window.addEventListener("message", (e) => {
-    const { data, event } = e.data as IframeMessage;
-
-    console.debug("[Dub] Iframe message", data);
-
-    if (event === "ERROR") {
-      onError?.(
-        new EmbedError({
-          code: data?.code ?? "",
-          message: data?.message ?? "",
-        }),
-      );
-    }
-
-    if (data?.code === "unauthorized") {
-      onTokenExpired?.();
-    }
-  });
-
-  document.body.appendChild(container);
-
-  return { container };
-};
-
-type RenderWidgetResult = {
-  container: HTMLElement | null;
-  updatePosition?: () => void;
-};
-
-const renderWidget = (options: DubOptions): RenderWidgetResult => {
+const renderWidget = (options: DubOptions) => {
   console.debug("[Dub] Rendering widget.", options);
 
   const {
@@ -326,22 +261,18 @@ export const toggleWidget = (): void => {
 export const init = (options: DubOptions) => {
   options.trigger = options.trigger ?? "floating-button";
   options.placement = options.placement ?? "bottom-right";
-  options.type = options.type ?? "widget";
 
   console.debug("[Dub] Initializing.", options);
 
-  const renderResult: RenderDashboardResult | RenderWidgetResult =
-    options.type === "dashboard"
-      ? renderDashboard(options)
-      : renderWidget(options);
+  const { container, updatePosition } = renderWidget(options);
 
-  if (!renderResult.container) {
+  if (!container) {
     return { destroy: () => {} };
   }
 
   if (options.trigger === "floating-button")
     createFloatingButton({
-      container: renderResult.container,
+      container: container,
       buttonStyles: options.buttonStyles,
       placement: options.placement,
       onClick: () => {
@@ -350,13 +281,12 @@ export const init = (options: DubOptions) => {
     });
 
   return {
-    ...renderResult,
     destroy: () => {
       document
         .querySelectorAll(`#${DUB_CONTAINER_ID}`)
         .forEach((c) => c.remove());
-      if ("updatePosition" in renderResult && renderResult.updatePosition)
-        window.removeEventListener("resize", renderResult.updatePosition);
+
+      if (updatePosition) window.removeEventListener("resize", updatePosition);
     },
   };
 };
