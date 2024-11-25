@@ -133,24 +133,23 @@ export default async function LinkMiddleware(
 
   // if the link is password protected
   if (password) {
-    const pw = req.nextUrl.searchParams.get("pw");
+    const pw =
+      req.nextUrl.searchParams.get("pw") ||
+      req.cookies.get(`dub_password_${linkId}`)?.value;
 
     // rewrite to auth page (/password/[domain]/[key]) if:
     // - no `pw` param is provided
     // - the `pw` param is incorrect
     // this will also ensure that no clicks are tracked unless the password is correct
     if (!pw || (await getLinkViaEdge(domain, key))?.password !== pw) {
-      return NextResponse.rewrite(
-        new URL(`/password/${domain}/${encodeURIComponent(key)}`, req.url),
-        {
-          headers: {
-            ...DUB_HEADERS,
-            ...(!shouldIndex && {
-              "X-Robots-Tag": "googlebot: noindex",
-            }),
-          },
+      return NextResponse.rewrite(new URL(`/password/${linkId}`, req.url), {
+        headers: {
+          ...DUB_HEADERS,
+          ...(!shouldIndex && {
+            "X-Robots-Tag": "googlebot: noindex",
+          }),
         },
-      );
+      });
     } else if (pw) {
       // strip it from the URL if it's correct
       req.nextUrl.searchParams.delete("pw");
