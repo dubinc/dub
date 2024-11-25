@@ -2,18 +2,24 @@
 
 import { PartnerSaleResponse } from "@/lib/types";
 import {
+  AnimatedSizeContainer,
   Button,
-  Check2,
-  Copy,
-  LinkedIn,
   LoadingSpinner,
   ToggleGroup,
-  Twitter,
   useCopyToClipboard,
   Wordmark,
 } from "@dub/ui";
-import { EnvelopeArrowRight, GiftFill, QRCode } from "@dub/ui/src/icons";
 import {
+  Check2,
+  Copy,
+  EnvelopeArrowRight,
+  GiftFill,
+  LinkedIn,
+  QRCode,
+  Twitter,
+} from "@dub/ui/src/icons";
+import {
+  cn,
   currencyFormatter,
   fetcher,
   getPrettyUrl,
@@ -50,19 +56,36 @@ export function EmbedWidgetPageClient({
       className="flex min-h-screen flex-col"
       style={{ "--accent-color": accentColor } as CSSProperties}
     >
-      <div className="flex flex-col gap-2 rounded-lg rounded-b-none bg-[var(--accent-color,black)] p-5">
-        <div className="w-fit rounded-full bg-white/20 p-3">
-          <GiftFill className="size-5 text-white" />
-        </div>
-        <h2 className="mt-2 text-base font-semibold text-white">
-          Refer a friend and earn
-        </h2>
+      <AnimatedSizeContainer height>
+        <div
+          className={cn(
+            "flex flex-col gap-4 rounded-lg rounded-b-none bg-[var(--accent-color,black)] p-5",
+            {
+              "flex-row items-center gap-3": selectedTab === "rewards",
+            },
+          )}
+        >
+          <div className="w-fit rounded-full bg-white/20">
+            <GiftFill
+              className={cn("m-3 size-5 text-white", {
+                "m-2 size-4": selectedTab === "rewards",
+              })}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <h2 className="text-base font-semibold text-white">
+              Refer a friend and earn
+            </h2>
 
-        <p className="text-sm text-white/80">
-          Earn additional credits and cash when you refer a friend and they sign
-          up for {program?.name}
-        </p>
-      </div>
+            {selectedTab === "invite" && (
+              <p className="text-sm text-white/80">
+                Earn additional credits and cash when you refer a friend and
+                they sign up for {program?.name}
+              </p>
+            )}
+          </div>
+        </div>
+      </AnimatedSizeContainer>
 
       <div className="p-5">
         <ToggleGroup
