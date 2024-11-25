@@ -5,12 +5,20 @@ import {
   Button,
   Check2,
   Copy,
+  Facebook,
+  LinkedIn,
   ToggleGroup,
+  Twitter,
   useCopyToClipboard,
   Wordmark,
 } from "@dub/ui";
 import { GiftFill } from "@dub/ui/src/icons";
-import { currencyFormatter, fetcher, getPrettyUrl } from "@dub/utils";
+import {
+  currencyFormatter,
+  fetcher,
+  getPrettyUrl,
+  nFormatter,
+} from "@dub/utils";
 import { Link, Program } from "@prisma/client";
 import { useState } from "react";
 import useSWR from "swr";
@@ -21,9 +29,11 @@ type Tab = "invite" | "rewards";
 export function EmbedWidgetPageClient({
   program,
   link,
+  earnings,
 }: {
   program: Program;
   link: Link;
+  earnings: number;
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
   const [selectedTab, setSelectedTab] = useState<Tab>("invite");
@@ -58,7 +68,7 @@ export function EmbedWidgetPageClient({
         </p>
       </div>
 
-      <div className="mt-4 p-4">
+      <div className="p-5">
         <ToggleGroup
           options={[
             { value: "invite", label: "Invite" },
@@ -66,12 +76,12 @@ export function EmbedWidgetPageClient({
           ]}
           selected={selectedTab}
           selectAction={(option: Tab) => setSelectedTab(option)}
-          className="grid grid-cols-2 bg-neutral-100"
+          className="grid grid-cols-2 border-transparent bg-neutral-100"
           optionClassName="w-full h-9 flex items-center justify-center font-medium"
           indicatorClassName="rounded-lg bg-white border border-neutral-100 shadow-sm"
         />
 
-        <div className="mt-4">
+        <div className="mt-6">
           {selectedTab === "invite" && (
             <>
               <div className="flex flex-col gap-2">
@@ -80,7 +90,7 @@ export function EmbedWidgetPageClient({
                   type="text"
                   readOnly
                   value={getPrettyUrl(link.shortLink)}
-                  className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 lg:min-w-64 xl:min-w-72"
+                  className="h-10 w-full rounded-md border border-neutral-300 px-3 text-center text-sm text-neutral-600 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
                 />
 
                 <Button
@@ -95,34 +105,67 @@ export function EmbedWidgetPageClient({
                   onClick={() => copyToClipboard(getPrettyUrl(link.shortLink))}
                 />
               </div>
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                {/* TODO: Add social sharing messages */}
+                {[
+                  {
+                    title: "Facebook",
+                    icon: Facebook,
+                    href: `https://www.facebook.com/sharer/sharer.php?u=#${link.shortLink}`,
+                  },
+                  {
+                    title: "LinkedIn",
+                    icon: LinkedIn,
+                    href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(link.shortLink)}`,
+                  },
+                  {
+                    title: "X",
+                    icon: Twitter,
+                    href: `https://x.com/intent/tweet?text=${encodeURIComponent(link.shortLink)}`,
+                  },
+                ].map(({ title, href, icon: Icon }) => {
+                  return (
+                    <a
+                      key={href}
+                      href={href}
+                      title={title}
+                      target="_blank"
+                      className="flex h-7 items-center justify-center rounded-md border border-neutral-300 text-neutral-800 transition-colors duration-75 hover:bg-neutral-50 active:bg-neutral-100"
+                    >
+                      <Icon
+                        className="size-4 text-current"
+                        fill="currentColor"
+                      />
+                    </a>
+                  );
+                })}
+              </div>
             </>
           )}
 
           {selectedTab === "rewards" && (
             <>
-              <h2 className="text-lg font-bold">Rewards earned</h2>
-              <div className="mt-4 grid grid-cols-3 gap-4">
-                <div className="flex flex-col gap-2 rounded-lg bg-gray-100 p-3 shadow-sm">
-                  <span className="text-sm text-gray-600">Clicks</span>
-                  <span className="text-lg font-medium text-gray-500">
-                    {link.clicks}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-2 rounded-lg bg-gray-100 p-3 shadow-sm">
-                  <span className="text-sm text-gray-600">Signups</span>
-                  <span className="text-lg font-medium text-gray-500">
-                    {link.leads}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-2 rounded-lg bg-gray-100 p-3 shadow-sm">
-                  <span className="text-sm text-gray-600">Total earned</span>
-                  <span className="text-lg font-medium text-gray-500">
-                    {currencyFormatter(link.saleAmount / 100, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </span>
-                </div>
+              <h2 className="text-sm font-semibold text-neutral-900">
+                Activity
+              </h2>
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                {[
+                  { label: "Clicks", value: link.clicks },
+                  { label: "Signups", value: link.leads },
+                  { label: "Total earned", value: earnings },
+                ].map(({ label, value }) => (
+                  <div className="flex flex-col gap-2 rounded-lg bg-neutral-100 p-3 shadow-sm">
+                    <span className="text-xs text-neutral-500">{label}</span>
+                    <span className="text-sm font-semibold text-neutral-600">
+                      {label === "Total earned"
+                        ? currencyFormatter(value / 100, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })
+                        : nFormatter(value)}
+                    </span>
+                  </div>
+                ))}
               </div>
             </>
           )}
@@ -134,7 +177,7 @@ export function EmbedWidgetPageClient({
           <a
             href="https://d.to/conversions"
             target="_blank"
-            className="flex items-center justify-center gap-1 rounded-lg bg-white p-2 py-5 transition-colors"
+            className="flex items-center justify-center gap-1 rounded-lg bg-white p-2 pb-5 pt-2 transition-colors"
           >
             <p className="text-sm text-gray-700">Powered by</p>
             <Wordmark className="h-4" />

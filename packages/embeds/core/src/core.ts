@@ -66,7 +66,7 @@ const POPUP_STYLES = ({
 }): Partial<CSSStyleDeclaration> => ({
   width: anchor ? "100%" : "calc(100% - 32px)",
   height: "100dvh",
-  maxHeight: anchor ? "468px" : "500px",
+  maxHeight: anchor ? "500px" : "532px",
   backgroundColor: "white",
   borderRadius: "12px",
   border: "1px solid #E5E5E5",

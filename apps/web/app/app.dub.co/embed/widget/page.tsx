@@ -8,7 +8,9 @@ export default async function EmbedWidgetPage({
 }) {
   const { token } = searchParams;
 
-  const { link, program } = await getLinkAndProgram(token);
+  const { link, program, earnings } = await getLinkAndProgram(token);
 
-  return <EmbedWidgetPageClient program={program} link={link} />;
+  return (
+    <EmbedWidgetPageClient program={program} link={link} earnings={earnings} />
+  );
 }
