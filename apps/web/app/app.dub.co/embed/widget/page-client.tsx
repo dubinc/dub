@@ -7,6 +7,7 @@ import {
   Copy,
   Facebook,
   LinkedIn,
+  LoadingSpinner,
   ToggleGroup,
   Twitter,
   useCopyToClipboard,
@@ -40,14 +41,10 @@ export function EmbedWidgetPageClient({
   const [copied, copyToClipboard] = useCopyToClipboard();
   const [selectedTab, setSelectedTab] = useState<Tab>("invite");
 
-  // TODO:
-  // Add sales table
-
-  const {
-    data: sales,
-    isLoading,
-    error,
-  } = useSWR<PartnerSaleResponse[]>(`/api/referrals/sales`, fetcher);
+  const { data: sales, isLoading } = useSWR<PartnerSaleResponse[]>(
+    `/api/referrals/sales`,
+    fetcher,
+  );
 
   const { data: salesCount } = useSWR<{ count: number }>(
     `/api/referrals/sales/count`,
@@ -77,7 +74,16 @@ export function EmbedWidgetPageClient({
         <ToggleGroup
           options={[
             { value: "invite", label: "Invite" },
-            { value: "rewards", label: "Rewards" },
+            {
+              value: "rewards",
+              label: "Rewards",
+              badge:
+                salesCount && salesCount.count > 0 ? (
+                  <div className="rounded bg-[var(--accent-color)] px-1 py-0.5 text-xs text-white">
+                    {salesCount.count}
+                  </div>
+                ) : undefined,
+            },
           ]}
           selected={selectedTab}
           selectAction={(option: Tab) => setSelectedTab(option)}
@@ -172,6 +178,46 @@ export function EmbedWidgetPageClient({
                     </span>
                   </div>
                 ))}
+              </div>
+              <div className="mt-4">
+                {sales ? (
+                  sales.length ? (
+                    <div className="mt-4 grid grid-cols-1 divide-y divide-neutral-200 rounded-md border border-neutral-200">
+                      {sales.slice(0, 3).map((sale) => (
+                        <div
+                          key={sale.id}
+                          className="flex items-center justify-between gap-4 px-3 py-2.5"
+                        >
+                          <div className="flex min-w-0 flex-col">
+                            <span className="truncate text-sm font-medium text-neutral-600">
+                              {sale.customer.email}
+                            </span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium text-neutral-600">
+                              {currencyFormatter(sale.earnings / 100, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-8 text-center text-xs text-neutral-400">
+                      No sales yet
+                    </p>
+                  )
+                ) : isLoading ? (
+                  <div className="mt-8 flex items-center justify-center">
+                    <LoadingSpinner className="size-4" />
+                  </div>
+                ) : (
+                  <p className="mt-8 text-center text-xs text-neutral-400">
+                    No sales yet
+                  </p>
+                )}
               </div>
             </>
           )}
