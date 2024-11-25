@@ -17,22 +17,20 @@ import {
 } from "@dub/ui";
 import { Copy, MoneyBill2 } from "@dub/ui/src/icons";
 import { getPrettyUrl } from "@dub/utils";
-import { notFound } from "next/navigation";
+import { Link, Program } from "@prisma/client";
 import { useContext, useEffect } from "react";
 import useReferralAnalytics from "../use-referral-analytics";
-import { useReferralLink } from "../use-referral-link";
-import { useReferralProgram } from "../use-referral-program";
 import { SaleTable } from "./sale-table";
 
-export function RewardDashboardPageClient() {
-  const { program } = useReferralProgram();
+export function RewardDashboardPageClient({
+  program,
+  link,
+}: {
+  program: Program;
+  link: Link;
+}) {
   const { searchParamsObj } = useRouterStuff();
   const [copied, copyToClipboard] = useCopyToClipboard();
-  const {
-    link,
-    isLoading: isLoadingLink,
-    error: linkError,
-  } = useReferralLink();
 
   const {
     start,
@@ -46,28 +44,11 @@ export function RewardDashboardPageClient() {
     token?: string;
   };
 
-  useEffect(() => {
-    if (linkError) {
-      window.parent.postMessage(
-        {
-          originator: "Dub",
-          event: "ERROR",
-          data: linkError.info,
-        },
-        "*",
-      );
-    }
-  }, [linkError]);
-
-  if (!token) {
-    notFound();
-  }
-
   return (
     <>
       <div className="relative flex flex-col rounded-lg border border-neutral-300 bg-gradient-to-r from-neutral-50 p-4 md:p-6">
         {program && (
-          <HeroBackground logo={program?.logo} color={program?.brandColor} />
+          <HeroBackground logo={program.logo} color={program.brandColor} />
         )}
 
         <span className="flex items-center gap-2 text-sm text-neutral-500">
@@ -76,11 +57,7 @@ export function RewardDashboardPageClient() {
         </span>
 
         <div className="relative mt-24 text-lg text-neutral-900 sm:max-w-[50%]">
-          {program ? (
-            <ProgramCommissionDescription program={program} />
-          ) : (
-            <div className="mb-7 h-7 w-full animate-pulse rounded-md bg-neutral-200" />
-          )}
+          <ProgramCommissionDescription program={program} />
         </div>
 
         <span className="mb-1.5 mt-6 block text-sm text-neutral-800">
@@ -88,16 +65,13 @@ export function RewardDashboardPageClient() {
         </span>
 
         <div className="xs:flex-row relative flex flex-col items-center gap-2">
-          {!isLoadingLink && link ? (
-            <input
-              type="text"
-              readOnly
-              value={getPrettyUrl(link.shortLink)}
-              className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 lg:min-w-64 xl:min-w-72"
-            />
-          ) : (
-            <div className="h-10 w-16 animate-pulse rounded-md bg-neutral-200 lg:w-72" />
-          )}
+          <input
+            type="text"
+            readOnly
+            value={getPrettyUrl(link.shortLink)}
+            className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 lg:min-w-64 xl:min-w-72"
+          />
+
           <Button
             icon={
               copied ? (
@@ -108,7 +82,7 @@ export function RewardDashboardPageClient() {
             }
             text={copied ? "Copied link" : "Copy link"}
             className="xs:w-fit"
-            onClick={() => copyToClipboard(getPrettyUrl(link?.shortLink))}
+            onClick={() => copyToClipboard(getPrettyUrl(link.shortLink))}
           />
         </div>
       </div>
@@ -119,7 +93,7 @@ export function RewardDashboardPageClient() {
             start: start ? new Date(start) : undefined,
             end: end ? new Date(end) : undefined,
             interval,
-            color: program?.brandColor ?? undefined,
+            color: program.brandColor ?? undefined,
           }}
         >
           <div className="mt-6 rounded-lg border border-neutral-300">
@@ -174,6 +148,19 @@ const EarningsChartContainer = () => {
     start,
     end,
   });
+
+  useEffect(() => {
+    if (error) {
+      window.parent.postMessage(
+        {
+          originator: "Dub",
+          event: "ERROR",
+          data: error.info,
+        },
+        "*",
+      );
+    }
+  }, [error]);
 
   return (
     <EarningsChart

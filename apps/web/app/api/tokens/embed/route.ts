@@ -13,6 +13,7 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
   const { linkId } = createReferralTokenSchema.parse(
     await parseRequestBody(req),
   );
+
   await getLinkOrThrow({ linkId, workspaceId: workspace.id });
 
   const token = await createOrRetrieveEmbedToken(linkId);

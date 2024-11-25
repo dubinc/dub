@@ -10,35 +10,33 @@ import {
 } from "@dub/ui";
 import { GiftFill } from "@dub/ui/src/icons";
 import { currencyFormatter, getPrettyUrl } from "@dub/utils";
-import { useEffect, useState } from "react";
-import { useReferralLink } from "../use-referral-link";
-import { useReferralProgram } from "../use-referral-program";
+import { Link, Program } from "@prisma/client";
+import { useState } from "react";
 
 type Tab = "invite" | "rewards";
 
-export function EmbedWidgetPageClient() {
+export function EmbedWidgetPageClient({
+  program,
+  link,
+}: {
+  program: Program;
+  link: Link;
+}) {
   const [copied, copyToClipboard] = useCopyToClipboard();
   const [selectedTab, setSelectedTab] = useState<Tab>("invite");
 
-  const { program } = useReferralProgram();
-  const {
-    link,
-    isLoading: isLoadingLink,
-    error: linkError,
-  } = useReferralLink();
-
-  useEffect(() => {
-    if (linkError) {
-      window.parent.postMessage(
-        {
-          originator: "Dub",
-          event: "ERROR",
-          data: linkError.info,
-        },
-        "*",
-      );
-    }
-  }, [linkError]);
+  // useEffect(() => {
+  //   if (linkError) {
+  //     window.parent.postMessage(
+  //       {
+  //         originator: "Dub",
+  //         event: "ERROR",
+  //         data: linkError.info,
+  //       },
+  //       "*",
+  //     );
+  //   }
+  // }, [linkError]);
 
   return (
     <div>
@@ -74,16 +72,13 @@ export function EmbedWidgetPageClient() {
             <>
               <div className="flex flex-col gap-2">
                 <span className="text-sm text-neutral-500">Invite link</span>
-                {!isLoadingLink && link ? (
-                  <input
-                    type="text"
-                    readOnly
-                    value={getPrettyUrl(link.shortLink)}
-                    className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 lg:min-w-64 xl:min-w-72"
-                  />
-                ) : (
-                  <div className="h-10 animate-pulse rounded-md bg-neutral-200" />
-                )}
+                <input
+                  type="text"
+                  readOnly
+                  value={getPrettyUrl(link.shortLink)}
+                  className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 lg:min-w-64 xl:min-w-72"
+                />
+
                 <Button
                   icon={
                     copied ? (
@@ -93,8 +88,7 @@ export function EmbedWidgetPageClient() {
                     )
                   }
                   text={copied ? "Copied link" : "Copy link"}
-                  onClick={() => copyToClipboard(getPrettyUrl(link?.shortLink))}
-                  disabled={isLoadingLink}
+                  onClick={() => copyToClipboard(getPrettyUrl(link.shortLink))}
                 />
               </div>
             </>
@@ -103,46 +97,29 @@ export function EmbedWidgetPageClient() {
           {selectedTab === "rewards" && (
             <>
               <h2 className="text-lg font-bold">Rewards earned</h2>
-              {isLoadingLink || !link ? (
-                <div className="mt-4 grid grid-cols-3 gap-4">
-                  <div className="flex animate-pulse flex-col gap-2 rounded-lg bg-gray-200 p-3 shadow-sm">
-                    <span className="h-4 w-1/2 rounded bg-gray-300"></span>
-                    <span className="h-6 w-3/4 rounded bg-gray-300"></span>
-                  </div>
-                  <div className="flex animate-pulse flex-col gap-2 rounded-lg bg-gray-200 p-3 shadow-sm">
-                    <span className="h-4 w-1/2 rounded bg-gray-300"></span>
-                    <span className="h-6 w-3/4 rounded bg-gray-300"></span>
-                  </div>
-                  <div className="flex animate-pulse flex-col gap-2 rounded-lg bg-gray-200 p-3 shadow-sm">
-                    <span className="h-4 w-1/2 rounded bg-gray-300"></span>
-                    <span className="h-6 w-3/4 rounded bg-gray-300"></span>
-                  </div>
+              <div className="mt-4 grid grid-cols-3 gap-4">
+                <div className="flex flex-col gap-2 rounded-lg bg-gray-100 p-3 shadow-sm">
+                  <span className="text-sm text-gray-600">Clicks</span>
+                  <span className="text-lg font-medium text-gray-500">
+                    {link.clicks}
+                  </span>
                 </div>
-              ) : (
-                <div className="mt-4 grid grid-cols-3 gap-4">
-                  <div className="flex flex-col gap-2 rounded-lg bg-gray-100 p-3 shadow-sm">
-                    <span className="text-sm text-gray-600">Clicks</span>
-                    <span className="text-lg font-medium text-gray-500">
-                      {link.clicks}
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-2 rounded-lg bg-gray-100 p-3 shadow-sm">
-                    <span className="text-sm text-gray-600">Signups</span>
-                    <span className="text-lg font-medium text-gray-500">
-                      {link.leads}
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-2 rounded-lg bg-gray-100 p-3 shadow-sm">
-                    <span className="text-sm text-gray-600">Total earned</span>
-                    <span className="text-lg font-medium text-gray-500">
-                      {currencyFormatter(link.saleAmount / 100, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </span>
-                  </div>
+                <div className="flex flex-col gap-2 rounded-lg bg-gray-100 p-3 shadow-sm">
+                  <span className="text-sm text-gray-600">Signups</span>
+                  <span className="text-lg font-medium text-gray-500">
+                    {link.leads}
+                  </span>
                 </div>
-              )}
+                <div className="flex flex-col gap-2 rounded-lg bg-gray-100 p-3 shadow-sm">
+                  <span className="text-sm text-gray-600">Total earned</span>
+                  <span className="text-lg font-medium text-gray-500">
+                    {currencyFormatter(link.saleAmount / 100, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+              </div>
             </>
           )}
 
