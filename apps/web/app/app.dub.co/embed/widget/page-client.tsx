@@ -5,7 +5,6 @@ import {
   Button,
   Check2,
   Copy,
-  Facebook,
   LinkedIn,
   LoadingSpinner,
   ToggleGroup,
@@ -13,7 +12,7 @@ import {
   useCopyToClipboard,
   Wordmark,
 } from "@dub/ui";
-import { GiftFill } from "@dub/ui/src/icons";
+import { EnvelopeArrowRight, GiftFill, QRCode } from "@dub/ui/src/icons";
 import {
   currencyFormatter,
   fetcher,
@@ -88,7 +87,7 @@ export function EmbedWidgetPageClient({
           selected={selectedTab}
           selectAction={(option: Tab) => setSelectedTab(option)}
           className="grid grid-cols-2 border-transparent bg-neutral-100"
-          optionClassName="w-full h-9 flex items-center justify-center font-medium"
+          optionClassName="w-full h-8 flex items-center justify-center font-medium"
           indicatorClassName="rounded-lg bg-white border border-neutral-100 shadow-sm"
         />
 
@@ -117,13 +116,13 @@ export function EmbedWidgetPageClient({
                   className="enabled:border-[var(--accent-color)] enabled:bg-[var(--accent-color)] enabled:hover:bg-[var(--accent-color)]"
                 />
               </div>
-              <div className="mt-4 grid grid-cols-3 gap-2">
+              <div className="mt-4 grid grid-cols-4 gap-2">
                 {/* TODO: Add social sharing messages */}
                 {[
                   {
-                    title: "Facebook",
-                    icon: Facebook,
-                    href: `https://www.facebook.com/sharer/sharer.php?u=#${link.shortLink}`,
+                    title: "X",
+                    icon: Twitter,
+                    href: `https://x.com/intent/tweet?text=${encodeURIComponent(link.shortLink)}`,
                   },
                   {
                     title: "LinkedIn",
@@ -131,9 +130,14 @@ export function EmbedWidgetPageClient({
                     href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(link.shortLink)}`,
                   },
                   {
-                    title: "X",
-                    icon: Twitter,
-                    href: `https://x.com/intent/tweet?text=${encodeURIComponent(link.shortLink)}`,
+                    title: "Email",
+                    icon: EnvelopeArrowRight,
+                    href: `mailto:?subject=Check out this link&body=${encodeURIComponent(link.shortLink)}`,
+                  },
+                  {
+                    title: "QR Code",
+                    icon: QRCode,
+                    href: `https://api.dub.co/qr?url=${link.shortLink}?qr=1`,
                   },
                 ].map(({ title, href, icon: Icon }) => {
                   return (
@@ -142,12 +146,9 @@ export function EmbedWidgetPageClient({
                       href={href}
                       title={title}
                       target="_blank"
-                      className="flex h-7 items-center justify-center rounded-md border border-neutral-300 text-neutral-800 transition-colors duration-75 hover:bg-neutral-50 active:bg-neutral-100"
+                      className="flex h-8 items-center justify-center rounded-md border border-neutral-300 text-neutral-800 transition-colors duration-75 hover:bg-neutral-50 active:bg-neutral-100"
                     >
-                      <Icon
-                        className="size-4 text-neutral-800"
-                        fill="currentColor"
-                      />
+                      <Icon className="size-4 text-neutral-800" />
                     </a>
                   );
                 })}
@@ -166,7 +167,7 @@ export function EmbedWidgetPageClient({
                   { label: "Signups", value: link.leads },
                   { label: "Total earned", value: earnings },
                 ].map(({ label, value }) => (
-                  <div className="flex flex-col gap-2 rounded-lg bg-neutral-100 p-3 shadow-sm">
+                  <div className="flex flex-col gap-1.5 rounded-lg bg-neutral-100 p-2 shadow-sm">
                     <span className="text-xs text-neutral-500">{label}</span>
                     <span className="text-sm font-semibold text-neutral-600">
                       {label === "Total earned"

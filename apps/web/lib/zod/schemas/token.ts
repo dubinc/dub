@@ -40,3 +40,12 @@ export const tokenSchema = z.object({
     isMachine: z.boolean(),
   }),
 });
+
+export const createEmbedTokenSchema = z.object({
+  linkId: z.string().min(1),
+});
+
+export const embedTokenSchema = z.object({
+  publicToken: z.string(),
+  expires: z.date(),
+});
