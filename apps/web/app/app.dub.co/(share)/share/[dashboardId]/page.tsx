@@ -7,7 +7,7 @@ import { APP_DOMAIN, constructMetadata } from "@dub/utils";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import DashboardPasswordForm from "./password-form";
+import DashboardPasswordForm from "./form";
 
 export const runtime = "edge";
 
