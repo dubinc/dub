@@ -5,14 +5,13 @@ import {
   Button,
   Check2,
   Copy,
-  Facebook,
   LinkedIn,
   ToggleGroup,
   Twitter,
   useCopyToClipboard,
   Wordmark,
 } from "@dub/ui";
-import { GiftFill } from "@dub/ui/src/icons";
+import { EnvelopeArrowRight, GiftFill, QRCode } from "@dub/ui/src/icons";
 import {
   currencyFormatter,
   fetcher,
@@ -111,13 +110,13 @@ export function EmbedWidgetPageClient({
                   className="enabled:border-[var(--accent-color)] enabled:bg-[var(--accent-color)] enabled:hover:bg-[var(--accent-color)]"
                 />
               </div>
-              <div className="mt-4 grid grid-cols-3 gap-2">
+              <div className="mt-4 grid grid-cols-4 gap-2">
                 {/* TODO: Add social sharing messages */}
                 {[
                   {
-                    title: "Facebook",
-                    icon: Facebook,
-                    href: `https://www.facebook.com/sharer/sharer.php?u=#${link.shortLink}`,
+                    title: "X",
+                    icon: Twitter,
+                    href: `https://x.com/intent/tweet?text=${encodeURIComponent(link.shortLink)}`,
                   },
                   {
                     title: "LinkedIn",
@@ -125,9 +124,14 @@ export function EmbedWidgetPageClient({
                     href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(link.shortLink)}`,
                   },
                   {
-                    title: "X",
-                    icon: Twitter,
-                    href: `https://x.com/intent/tweet?text=${encodeURIComponent(link.shortLink)}`,
+                    title: "Email",
+                    icon: EnvelopeArrowRight,
+                    href: `mailto:?subject=Check out this link&body=${encodeURIComponent(link.shortLink)}`,
+                  },
+                  {
+                    title: "QR Code",
+                    icon: QRCode,
+                    href: `https://api.dub.co/qr?url=${link.shortLink}?qr=1`,
                   },
                 ].map(({ title, href, icon: Icon }) => {
                   return (
