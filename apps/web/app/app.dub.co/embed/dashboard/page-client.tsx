@@ -19,6 +19,7 @@ import { Copy, MoneyBill2 } from "@dub/ui/src/icons";
 import { getPrettyUrl } from "@dub/utils";
 import { Link, Program } from "@prisma/client";
 import { useContext, useEffect } from "react";
+import { LinkToken } from "../token";
 import useReferralAnalytics from "../use-referral-analytics";
 import { SaleTable } from "./sale-table";
 
@@ -127,6 +128,8 @@ export function RewardDashboardPageClient({
           <Wordmark className="h-4" />
         </a>
       </div>
+
+      <LinkToken />
     </>
   );
 }

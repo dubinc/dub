@@ -1,5 +1,6 @@
 "use client";
 
+import { PartnerSaleResponse } from "@/lib/types";
 import {
   Button,
   Check2,
@@ -9,9 +10,11 @@ import {
   Wordmark,
 } from "@dub/ui";
 import { GiftFill } from "@dub/ui/src/icons";
-import { currencyFormatter, getPrettyUrl } from "@dub/utils";
+import { currencyFormatter, fetcher, getPrettyUrl } from "@dub/utils";
 import { Link, Program } from "@prisma/client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import useSWR from "swr";
+import { LinkToken } from "../token";
 
 type Tab = "invite" | "rewards";
 
@@ -25,18 +28,19 @@ export function EmbedWidgetPageClient({
   const [copied, copyToClipboard] = useCopyToClipboard();
   const [selectedTab, setSelectedTab] = useState<Tab>("invite");
 
-  // useEffect(() => {
-  //   if (error) {
-  //     window.parent.postMessage(
-  //       {
-  //         originator: "Dub",
-  //         event: "ERROR",
-  //         data: error.info,
-  //       },
-  //       "*",
-  //     );
-  //   }
-  // }, [error]);
+  // TODO:
+  // Add sales table
+
+  const {
+    data: sales,
+    isLoading,
+    error,
+  } = useSWR<PartnerSaleResponse[]>(`/api/referrals/sales`, fetcher);
+
+  const { data: salesCount } = useSWR<{ count: number }>(
+    `/api/referrals/sales/count`,
+    fetcher,
+  );
 
   return (
     <div>
@@ -133,6 +137,8 @@ export function EmbedWidgetPageClient({
               <Wordmark className="h-4" />
             </a>
           </div>
+
+          <LinkToken />
         </div>
       </div>
     </div>

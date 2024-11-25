@@ -4,7 +4,6 @@ import { HelpButtonRSC } from "@/ui/layout/sidebar/help-button-rsc";
 import { NewsRSC } from "@/ui/layout/sidebar/news-rsc";
 import { ReferButton } from "@/ui/layout/sidebar/refer-button";
 import Toolbar from "@/ui/layout/toolbar/toolbar";
-import { DubWidget } from "@dub/embed-react";
 import { constructMetadata } from "@dub/utils";
 import { ReactNode } from "react";
 

@@ -2,7 +2,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
 import { getSearchParams } from "@dub/utils";
-import { Link, Program, Project } from "@prisma/client";
+import { EmbedPublicToken, Link, Program, Project } from "@prisma/client";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { cookies } from "next/headers";
 import { EMBED_PUBLIC_TOKEN_COOKIE_NAME } from "../referrals/constants";
@@ -15,6 +15,7 @@ interface WithEmbedTokenHandler {
     workspace,
     link,
     program,
+    linkToken,
   }: {
     req: Request;
     params: Record<string, string>;
@@ -22,6 +23,7 @@ interface WithEmbedTokenHandler {
     workspace: Project;
     link: Link;
     program: Program;
+    linkToken: EmbedPublicToken;
   }): Promise<Response>;
 }
 
@@ -51,13 +53,13 @@ export const withEmbedToken = (handler: WithEmbedTokenHandler) => {
           });
         }
 
-        const publicToken = await prisma.embedPublicToken.findUnique({
+        const linkToken = await prisma.embedPublicToken.findUnique({
           where: {
             publicToken: tokenFromCookie,
           },
         });
 
-        if (!publicToken) {
+        if (!linkToken) {
           cookieStore.delete(EMBED_PUBLIC_TOKEN_COOKIE_NAME);
 
           throw new DubApiError({
@@ -66,7 +68,7 @@ export const withEmbedToken = (handler: WithEmbedTokenHandler) => {
           });
         }
 
-        if (publicToken.expires < new Date()) {
+        if (linkToken.expires < new Date()) {
           cookieStore.delete(EMBED_PUBLIC_TOKEN_COOKIE_NAME);
 
           throw new DubApiError({
@@ -96,7 +98,7 @@ export const withEmbedToken = (handler: WithEmbedTokenHandler) => {
 
         link = await prisma.link.findUniqueOrThrow({
           where: {
-            id: publicToken.linkId,
+            id: linkToken.linkId,
           },
         });
 
@@ -128,6 +130,7 @@ export const withEmbedToken = (handler: WithEmbedTokenHandler) => {
           workspace,
           link,
           program,
+          linkToken,
         });
       } catch (error) {
         req.log.error(error);
