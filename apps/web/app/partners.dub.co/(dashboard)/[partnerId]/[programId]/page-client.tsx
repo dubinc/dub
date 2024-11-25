@@ -194,7 +194,7 @@ function EarningsChart() {
           </div>
         </div>
         <div className="w-full md:w-auto">
-          <SimpleDateRangePicker className="h-8 w-full md:w-fit" />
+          <SimpleDateRangePicker className="h-8 w-full md:w-fit" align="end" />
         </div>
       </div>
       <div className="relative mt-4 h-64 w-full">
