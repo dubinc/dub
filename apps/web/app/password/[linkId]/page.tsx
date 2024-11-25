@@ -1,9 +1,13 @@
-import { prisma } from "@/lib/prisma";
+import { prismaEdge } from "@/lib/prisma/edge";
 import { NewBackground } from "@/ui/shared/new-background";
 import { BlurImage, Logo } from "@dub/ui";
 import { constructMetadata, isDubDomain } from "@dub/utils";
+import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import PasswordForm from "./form";
+
+export const dynamic = "force-dynamic";
+export const runtime = "edge";
 
 const title = "Password Required";
 const description =
@@ -13,19 +17,14 @@ const image = "https://assets.dub.co/misc/password-protected.png";
 export async function generateMetadata({
   params,
 }: {
-  params: { domain: string; key: string };
+  params: { linkId: string };
 }) {
-  const domain = params.domain;
-  const key = decodeURIComponent(params.key);
-
-  const link = await prisma.link.findUnique({
+  const link = await prismaEdge.link.findUnique({
     where: {
-      domain_key: {
-        domain,
-        key,
-      },
+      id: params.linkId,
     },
     select: {
+      domain: true,
       project: {
         select: {
           logo: true,
@@ -41,12 +40,12 @@ export async function generateMetadata({
 
   return constructMetadata({
     title:
-      isDubDomain(domain) || link.project?.plan === "free"
+      isDubDomain(link.domain) || link.project?.plan === "free"
         ? `${title} - Dub.co`
         : title,
     description,
     image,
-    ...(!isDubDomain(domain) &&
+    ...(!isDubDomain(link.domain) &&
       link.project?.plan !== "free" &&
       link.project?.logo && {
         icons: link.project.logo,
@@ -55,45 +54,21 @@ export async function generateMetadata({
   });
 }
 
-export async function generateStaticParams() {
-  const passwordProtectedLinks = await prisma.link.findMany({
-    where: {
-      password: {
-        not: null,
-      },
-    },
-    select: {
-      domain: true,
-      key: true,
-    },
-  });
-
-  return passwordProtectedLinks.map(({ domain, key }) => ({
-    params: {
-      domain,
-      key: encodeURIComponent(key),
-    },
-  }));
-}
-
 export default async function PasswordProtectedLinkPage({
   params,
 }: {
-  params: { domain: string; key: string };
+  params: { linkId: string };
 }) {
-  const domain = params.domain;
-  const key = decodeURIComponent(params.key);
-
-  const link = await prisma.link.findUnique({
+  const link = await prismaEdge.link.findUnique({
     where: {
-      domain_key: {
-        domain,
-        key,
-      },
+      id: params.linkId,
     },
     select: {
+      id: true,
+      domain: true,
+      key: true,
       password: true,
-      url: true,
+      shortLink: true,
       project: {
         select: {
           name: true,
@@ -108,8 +83,11 @@ export default async function PasswordProtectedLinkPage({
     notFound();
   }
 
-  if (!link.password) {
-    redirect(link.url);
+  if (
+    !link.password ||
+    cookies().get(`dub_password_${link.id}`)?.value === link.password
+  ) {
+    redirect(link.shortLink);
   }
 
   return (
@@ -117,7 +95,7 @@ export default async function PasswordProtectedLinkPage({
       <NewBackground />
       <div className="z-10 w-full max-w-md overflow-hidden rounded-2xl border border-gray-100 shadow-xl">
         <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 py-6 pt-8 text-center sm:px-16">
-          {!isDubDomain(domain) &&
+          {!isDubDomain(link.domain) &&
           link.project?.plan !== "free" &&
           link.project?.logo ? (
             <BlurImage

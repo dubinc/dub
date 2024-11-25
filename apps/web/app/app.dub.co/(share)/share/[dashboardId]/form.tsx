@@ -7,7 +7,6 @@ import { useFormState, useFormStatus } from "react-dom";
 import { verifyPassword } from "./action";
 
 const initialState = {
-  redirect: null,
   error: null,
 };
 

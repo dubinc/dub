@@ -2,30 +2,19 @@
 
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { Button, useMediaQuery } from "@dub/ui";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useParams } from "next/navigation";
 import { useFormState, useFormStatus } from "react-dom";
 import { verifyPassword } from "./action";
 
 const initialState = {
-  redirect: null,
   error: null,
 };
 
 export default function PasswordForm() {
-  const { domain, key } = useParams() as {
-    domain: string;
-    key: string;
+  const { linkId } = useParams() as {
+    linkId: string;
   };
   const [state, formAction] = useFormState(verifyPassword, initialState);
-
-  const router = useRouter();
-
-  useEffect(() => {
-    if (state.redirect) {
-      router.push(state.redirect);
-    }
-  }, [state]);
 
   const { isMobile } = useMediaQuery();
 
@@ -40,8 +29,7 @@ export default function PasswordForm() {
           PASSWORD
         </label>
         <div className="relative mt-1 rounded-md shadow-sm">
-          <input type="hidden" name="domain" value={domain} />
-          <input type="hidden" name="key" value={key} />
+          <input type="hidden" name="linkId" value={linkId} />
           <input
             type="password"
             name="password"
