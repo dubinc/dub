@@ -1,5 +1,7 @@
 import {
+  CLOSE_ICON,
   DASHBOARD_URL,
+  DUB_CLOSE_BUTTON_ID,
   DUB_CONTAINER_ID,
   DUB_POPUP_ID,
   WIDGET_URL,
@@ -72,6 +74,14 @@ const POPUP_STYLES = (
   }[placement],
   pointerEvents: "auto",
 });
+
+const CLOSE_BUTTON_STYLE = {
+  position: "absolute",
+  top: "24px",
+  right: "24px",
+  padding: "4px",
+  color: "white",
+};
 
 let isWidgetOpen = false;
 
@@ -191,7 +201,15 @@ const renderWidget = (options: DubOptions): HTMLElement | null => {
 
   const iframe = createIframe(WIDGET_URL, token);
 
+  // Close button
+  const closeButton = document.createElement("button");
+  closeButton.id = DUB_CLOSE_BUTTON_ID;
+  closeButton.innerHTML = CLOSE_ICON;
+  Object.assign(closeButton.style, CLOSE_BUTTON_STYLE);
+  closeButton.addEventListener("click", () => closeWidget());
+
   popup.appendChild(iframe);
+  popup.appendChild(closeButton);
   container.appendChild(popup);
 
   // Listen the message from the iframe
