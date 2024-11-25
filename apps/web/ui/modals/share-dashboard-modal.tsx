@@ -252,7 +252,7 @@ function ShareDashboardModalInner({
                       </div>
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-sm text-gray-600">
-                          Require password
+                          Password protection
                         </p>
                         <Switch
                           checked={watch("password") !== null}
