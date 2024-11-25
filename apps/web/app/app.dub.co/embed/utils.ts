@@ -30,6 +30,10 @@ export const getLinkAndProgram = async (linkToken: string) => {
 
   const { program, ...link } = linkAndProgram;
 
+  if (!program) {
+    notFound();
+  }
+
   return {
     program,
     link,
