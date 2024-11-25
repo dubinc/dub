@@ -1,6 +1,6 @@
 "use client";
 
-import { DubOptions, init, toggleWidget } from "@dub/embed-core";
+import { DubOptions, init } from "@dub/embed-core";
 import {
   Children,
   cloneElement,
@@ -10,23 +10,28 @@ import {
   PropsWithChildren,
   useEffect,
   useId,
+  useRef,
 } from "react";
 
 export const DubWidget = memo(
   ({ children, ...options }: PropsWithChildren<DubOptions>) => {
     const id = useId();
+    const toggleWidgetRef = useRef<() => void>();
 
     useEffect(() => {
-      const { destroy } = init({
-        ...options,
-        anchorId: children && options.placement !== "center" ? id : undefined,
-      });
+      const { destroy, toggleWidget } =
+        init({
+          ...options,
+          anchorId: children && options.placement !== "center" ? id : undefined,
+        }) || {};
 
-      return () => destroy();
+      toggleWidgetRef.current = toggleWidget;
+
+      return () => destroy?.();
     }, [children, id, options]);
 
     return children ? (
-      <Slot id={id} onClick={() => toggleWidget()}>
+      <Slot id={id} onClick={() => toggleWidgetRef.current?.()}>
         {children}
       </Slot>
     ) : null;

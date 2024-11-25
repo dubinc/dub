@@ -8,7 +8,12 @@ import {
 } from "./constants";
 import { EmbedError } from "./error";
 import { createFloatingButton } from "./floating-button";
-import { DubOptions, DubWidgetPlacement, IframeMessage } from "./types";
+import {
+  DubInitResult,
+  DubOptions,
+  DubWidgetPlacement,
+  IframeMessage,
+} from "./types";
 
 const CONTAINER_STYLES = ({
   placement,
@@ -90,8 +95,6 @@ const CLOSE_BUTTON_STYLE = {
   color: "white",
 };
 
-let isWidgetOpen = false;
-
 const createIframe = (
   iframeUrl: string,
   token: string,
@@ -109,7 +112,13 @@ const createIframe = (
   return iframe;
 };
 
-const renderWidget = (options: DubOptions) => {
+/**
+ * Generates and renders all of the widget's DOM elements.
+ */
+const renderWidget = (
+  options: DubOptions,
+  { closeWidget }: { closeWidget: () => void },
+) => {
   console.debug("[Dub] Rendering widget.", options);
 
   const {
@@ -208,7 +217,18 @@ const renderWidget = (options: DubOptions) => {
   return { container, updatePosition };
 };
 
-export const openWidget = (): void => {
+/**
+ * Checks if the widget is open.
+ */
+const isWidgetOpen = (): boolean => {
+  const popup = document.getElementById(DUB_POPUP_ID);
+  return popup?.style.display === "block";
+};
+
+/**
+ * Opens the widget.
+ */
+const openWidget = (): void => {
   const popup = document.getElementById(DUB_POPUP_ID);
   if (!popup) {
     console.error("[Dub] No popup found.");
@@ -228,13 +248,12 @@ export const openWidget = (): void => {
       fill: "forwards",
     },
   );
-
-  isWidgetOpen = true;
-  if (typeof window !== "undefined" && window.Dub)
-    window.Dub.isWidgetOpen = true;
 };
 
-export const closeWidget = (): void => {
+/**
+ * Closes the widget.
+ */
+const closeWidget = (): void => {
   const popup = document.getElementById(DUB_POPUP_ID);
   if (!popup) return;
 
@@ -246,29 +265,29 @@ export const closeWidget = (): void => {
   });
 
   animation.onfinish = () => {
-    if (popup && !isWidgetOpen) popup.style.display = "none";
+    if (popup?.isConnected) popup.style.display = "none";
   };
-
-  isWidgetOpen = false;
-  if (typeof window !== "undefined" && window.Dub)
-    window.Dub.isWidgetOpen = false;
 };
 
-export const toggleWidget = (): void => {
-  isWidgetOpen ? closeWidget() : openWidget();
+/**
+ * Toggles the widget open state.
+ */
+const toggleWidget = (): void => {
+  isWidgetOpen() ? closeWidget() : openWidget();
 };
 
-export const init = (options: DubOptions) => {
+/**
+ * Initializes the Dub embed widget.
+ */
+export const init = (options: DubOptions): DubInitResult => {
   options.trigger = options.trigger ?? "floating-button";
   options.placement = options.placement ?? "bottom-right";
 
   console.debug("[Dub] Initializing.", options);
 
-  const { container, updatePosition } = renderWidget(options);
+  const { container, updatePosition } = renderWidget(options, { closeWidget });
 
-  if (!container) {
-    return { destroy: () => {} };
-  }
+  if (!container) return null;
 
   if (options.trigger === "floating-button")
     createFloatingButton({
@@ -281,6 +300,10 @@ export const init = (options: DubOptions) => {
     });
 
   return {
+    openWidget,
+    closeWidget,
+    toggleWidget,
+    isWidgetOpen,
     destroy: () => {
       document
         .querySelectorAll(`#${DUB_CONTAINER_ID}`)
@@ -290,5 +313,3 @@ export const init = (options: DubOptions) => {
     },
   };
 };
-
-export const destroy = (): void => {};

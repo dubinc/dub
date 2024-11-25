@@ -1,10 +1,13 @@
-export interface DubEmbed {
-  init: (options: DubOptions) => void;
-  isWidgetOpen: boolean;
-  toggleWidget: () => void;
+export type DubInitResult = {
   openWidget: () => void;
   closeWidget: () => void;
+  toggleWidget: () => void;
+  isWidgetOpen: () => boolean;
   destroy: () => void;
+} | null;
+
+export interface DubEmbed {
+  init: (options: DubOptions) => void;
 }
 
 export type DubOptions = {
