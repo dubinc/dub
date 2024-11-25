@@ -29,7 +29,7 @@ import useSWR from "swr";
 import { defaultConfig } from "swr/_internal";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 
-export interface dashboardProps {
+export interface AnalyticsDashboardProps {
   domain: string;
   key: string;
   url: string;
@@ -59,7 +59,7 @@ export const AnalyticsContext = createContext<{
   partnerPage?: boolean;
   showConversions?: boolean;
   requiresUpgrade?: boolean;
-  dashboardProps?: dashboardProps;
+  dashboardProps?: AnalyticsDashboardProps;
 }>({
   basePath: "",
   baseApiPath: "",
@@ -86,7 +86,7 @@ export default function AnalyticsProvider({
 }: PropsWithChildren<{
   adminPage?: boolean;
   demoPage?: boolean;
-  dashboardProps?: dashboardProps;
+  dashboardProps?: AnalyticsDashboardProps;
 }>) {
   const searchParams = useSearchParams();
   const pathname = usePathname();

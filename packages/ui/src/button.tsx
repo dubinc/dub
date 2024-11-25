@@ -13,7 +13,7 @@ export const buttonVariants = cva("transition-all", {
         "border-gray-200 bg-white text-gray-900 hover:bg-gray-50 focus-visible:border-gray-500 outline-none",
         "data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
       ),
-      outline: "border-transparent text-gray-500 duration-75 hover:bg-gray-100",
+      outline: "border-transparent text-neutral-600 hover:bg-neutral-100",
       success:
         "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:ring-4 hover:ring-blue-100",
       danger:
@@ -35,6 +35,7 @@ export interface ButtonProps
   loading?: boolean;
   icon?: ReactNode;
   shortcut?: string;
+  right?: ReactNode;
   disabledTooltip?: string | ReactNode;
 }
 
@@ -49,6 +50,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       icon,
       shortcut,
       disabledTooltip,
+      right,
       ...props
     }: ButtonProps,
     forwardedRef,
@@ -140,6 +142,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             {shortcut}
           </kbd>
         )}
+        {right}
       </button>
     );
   },
