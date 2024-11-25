@@ -1,5 +1,11 @@
 import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { useRouterStuff } from "@dub/ui";
+import {
+  FlagWavy,
+  LocationPin,
+  MapPosition,
+  OfficeBuilding,
+} from "@dub/ui/src/icons";
 import { CONTINENTS, COUNTRIES, REGIONS } from "@dub/utils";
 import { useContext, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
@@ -25,10 +31,10 @@ export default function Locations() {
   return (
     <AnalyticsCard
       tabs={[
-        { id: "countries", label: "Countries" },
-        { id: "cities", label: "Cities" },
-        { id: "regions", label: "Regions" },
-        { id: "continents", label: "Continents" },
+        { id: "countries", label: "Countries", icon: FlagWavy },
+        { id: "cities", label: "Cities", icon: OfficeBuilding },
+        { id: "regions", label: "Regions", icon: LocationPin },
+        { id: "continents", label: "Continents", icon: MapPosition },
       ]}
       selectedTabId={tab}
       onSelectTab={setTab}

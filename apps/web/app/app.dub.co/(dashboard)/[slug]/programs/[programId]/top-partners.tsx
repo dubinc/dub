@@ -1,6 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { buttonVariants, Tooltip } from "@dub/ui";
+import { buttonVariants } from "@dub/ui";
 import {
   cn,
   COUNTRIES,
@@ -82,14 +82,12 @@ export function TopPartners() {
                       </span>
                     </div>
                   </div>
-                  <Tooltip content="Total earnings">
-                    <span className="text-sm text-neutral-500">
-                      {currencyFormatter(partner.earnings / 100, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </span>
-                  </Tooltip>
+                  <span className="text-sm text-neutral-500">
+                    {currencyFormatter(partner.earnings / 100, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
                 </div>
               ))}
             </div>

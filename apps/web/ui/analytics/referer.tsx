@@ -1,5 +1,6 @@
 import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { BlurImage, useRouterStuff } from "@dub/ui";
+import { ReferredVia } from "@dub/ui/src/icons";
 import { getApexDomain, GOOGLE_FAVICON_URL } from "@dub/utils";
 import { Link2 } from "lucide-react";
 import { useContext, useState } from "react";
@@ -22,8 +23,8 @@ export default function Referer() {
   return (
     <AnalyticsCard
       tabs={[
-        { id: "referers", label: "Referrers" },
-        { id: "referer_urls", label: "Referrer URLs" },
+        { id: "referers", label: "Referrers", icon: ReferredVia },
+        { id: "referer_urls", label: "Referrer URLs", icon: ReferredVia },
       ]}
       selectedTabId={tab}
       onSelectTab={setTab}

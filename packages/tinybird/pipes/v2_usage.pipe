@@ -2,7 +2,7 @@ DESCRIPTION >
 	Timeseries data
 
 
-TOKEN "v1_usage_endpoint_read_1647" READ
+TOKEN "v2_usage_endpoint_read_1647" READ
 
 NODE day_intervals
 SQL >
