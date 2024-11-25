@@ -43,16 +43,16 @@ export function EmbedWidgetPageClient({
   );
 
   return (
-    <div>
-      <div className="flex flex-col gap-2 rounded-lg rounded-b-none bg-neutral-900 p-8">
-        <div className="w-fit rounded-full bg-neutral-800 p-3">
+    <div className="flex min-h-screen flex-col">
+      <div className="flex flex-col gap-2 rounded-lg rounded-b-none bg-black p-5">
+        <div className="w-fit rounded-full bg-white/20 p-3">
           <GiftFill className="size-5 text-white" />
         </div>
-        <h2 className="mt-4 text-lg font-medium text-white">
+        <h2 className="mt-2 text-base font-semibold text-white">
           Refer a friend and earn
         </h2>
 
-        <p className="text-sm text-white">
+        <p className="text-sm text-white/80">
           Earn additional credits and cash when you refer a friend and they sign
           up for {program?.name}
         </p>
@@ -126,19 +126,19 @@ export function EmbedWidgetPageClient({
               </div>
             </>
           )}
-
-          <div className="flex items-center justify-center">
-            <a
-              href="https://d.to/conversions"
-              target="_blank"
-              className="mt-2 flex items-center justify-center gap-1 rounded-lg bg-white p-2 transition-colors"
-            >
-              <p className="text-sm text-gray-700">Powered by</p>
-              <Wordmark className="h-4" />
-            </a>
-          </div>
-
           <LinkToken />
+        </div>
+      </div>
+      <div className="flex grow flex-col justify-end">
+        <div className="flex items-center justify-center">
+          <a
+            href="https://d.to/conversions"
+            target="_blank"
+            className="flex items-center justify-center gap-1 rounded-lg bg-white p-2 py-5 transition-colors"
+          >
+            <p className="text-sm text-gray-700">Powered by</p>
+            <Wordmark className="h-4" />
+          </a>
         </div>
       </div>
     </div>

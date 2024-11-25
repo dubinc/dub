@@ -91,7 +91,7 @@ const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
 
   iframe.src = `${iframeUrl}?token=${token}`;
   iframe.style.width = "100%";
-  iframe.style.height = "100vh";
+  iframe.style.height = "100%";
   iframe.style.border = "none";
   iframe.setAttribute("credentialssupport", "");
   iframe.setAttribute("allow", "clipboard-write");
