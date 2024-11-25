@@ -3,7 +3,17 @@
 import { destroy, DubOptions, init } from "@dub/embed-core";
 import { useEffect } from "react";
 
-export const DubDashboard = (options: DubOptions) => {
+export const DubDashboard = (
+  options: Omit<
+    DubOptions,
+    | "type"
+    | "buttonStyle"
+    | "trigger"
+    | "containerStyles"
+    | "popupStyles"
+    | "buttonStyles"
+  >,
+) => {
   useEffect(() => {
     init({
       ...options,

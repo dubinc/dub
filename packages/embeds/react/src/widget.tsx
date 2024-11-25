@@ -3,7 +3,7 @@
 import { destroy, DubOptions, init } from "@dub/embed-core";
 import { useEffect } from "react";
 
-export const DubWidget = (options: DubOptions) => {
+export const DubWidget = (options: Omit<DubOptions, "type">) => {
   useEffect(() => {
     init({
       ...options,
