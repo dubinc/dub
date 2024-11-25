@@ -1,7 +1,7 @@
 import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { EMBED_PUBLIC_TOKEN_COOKIE_NAME } from "../referrals/constants";
-import { retrieveLinkToken } from "../referrals/retrieve-referral-token";
+import { embedToken } from "../referrals/embed-token";
 import NewLinkMiddleware from "./new-link";
 import { appRedirect } from "./utils/app-redirect";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
@@ -20,14 +20,14 @@ export default async function AppMiddleware(req: NextRequest) {
     const token = req.nextUrl.searchParams.get("token");
 
     if (token) {
-      const linkToken = await retrieveLinkToken(token);
+      const linkId = await embedToken.get(token);
 
-      if (linkToken) {
+      if (linkId) {
         return NextResponse.rewrite(
           new URL(`/app.dub.co${fullPath}`, req.url),
           {
             headers: {
-              "Set-Cookie": `${EMBED_PUBLIC_TOKEN_COOKIE_NAME}=${linkToken.publicToken}; HttpOnly; Secure; SameSite=None; Path=/`,
+              "Set-Cookie": `${EMBED_PUBLIC_TOKEN_COOKIE_NAME}=${token}; HttpOnly; Secure; SameSite=None; Path=/`,
             },
           },
         );

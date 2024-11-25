@@ -30,7 +30,7 @@ export default function ReferralsPageClient() {
 
   useEffect(() => {
     createPublicToken();
-  }, []);
+  }, [slug]);
 
   if (!flags?.referrals) {
     redirect(`/${slug}/settings`);

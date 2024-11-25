@@ -1,23 +1,17 @@
 import { prisma } from "@/lib/prisma";
+import { embedToken } from "@/lib/referrals/embed-token";
 import { notFound } from "next/navigation";
 
-export const getLinkAndProgram = async (linkToken: string) => {
-  const token = await prisma.embedPublicToken.findUnique({
-    where: {
-      publicToken: linkToken,
-      expires: {
-        gt: new Date(),
-      },
-    },
-  });
+export const getLinkAndProgram = async (token: string) => {
+  const linkId = await embedToken.get(token);
 
-  if (!token) {
+  if (!linkId) {
     notFound();
   }
 
   const linkAndProgram = await prisma.link.findUnique({
     where: {
-      id: token.linkId,
+      id: linkId,
     },
     include: {
       program: true,

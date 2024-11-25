@@ -2,10 +2,11 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
 import { getSearchParams } from "@dub/utils";
-import { EmbedPublicToken, Link, Program, Project } from "@prisma/client";
+import { Link, Program, Project } from "@prisma/client";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { cookies } from "next/headers";
 import { EMBED_PUBLIC_TOKEN_COOKIE_NAME } from "../referrals/constants";
+import { embedToken } from "../referrals/embed-token";
 
 interface WithEmbedTokenHandler {
   ({
@@ -23,7 +24,7 @@ interface WithEmbedTokenHandler {
     workspace: Project;
     link: Link;
     program: Program;
-    linkToken: EmbedPublicToken;
+    linkToken: string;
   }): Promise<Response>;
 }
 
@@ -53,27 +54,12 @@ export const withEmbedToken = (handler: WithEmbedTokenHandler) => {
           });
         }
 
-        const linkToken = await prisma.embedPublicToken.findUnique({
-          where: {
-            publicToken: tokenFromCookie,
-          },
-        });
+        const linkId = await embedToken.get(tokenFromCookie);
 
-        if (!linkToken) {
-          cookieStore.delete(EMBED_PUBLIC_TOKEN_COOKIE_NAME);
-
+        if (!linkId) {
           throw new DubApiError({
             code: "unauthorized",
-            message: "Invalid public token.",
-          });
-        }
-
-        if (linkToken.expires < new Date()) {
-          cookieStore.delete(EMBED_PUBLIC_TOKEN_COOKIE_NAME);
-
-          throw new DubApiError({
-            code: "unauthorized",
-            message: "Public token expired.",
+            message: "Link token not found or expired.",
           });
         }
 
@@ -98,7 +84,7 @@ export const withEmbedToken = (handler: WithEmbedTokenHandler) => {
 
         link = await prisma.link.findUniqueOrThrow({
           where: {
-            id: linkToken.linkId,
+            id: linkId,
           },
         });
 
@@ -130,7 +116,7 @@ export const withEmbedToken = (handler: WithEmbedTokenHandler) => {
           workspace,
           link,
           program,
-          linkToken,
+          linkToken: tokenFromCookie,
         });
       } catch (error) {
         req.log.error(error);
