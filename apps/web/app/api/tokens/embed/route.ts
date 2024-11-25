@@ -5,15 +5,15 @@ import { withWorkspace } from "@/lib/auth";
 import { embedToken } from "@/lib/referrals/embed-token";
 import { ratelimit } from "@/lib/upstash";
 import {
-  createReferralTokenSchema,
-  referralTokenSchema,
-} from "@/lib/zod/schemas/referrals";
+  createEmbedTokenSchema,
+  embedTokenSchema,
+} from "@/lib/zod/schemas/token";
 import { NextResponse } from "next/server";
 
 // POST /api/tokens/embed - create a new embed token for the given link
 export const POST = withWorkspace(
   async ({ workspace, req }) => {
-    const { linkId } = createReferralTokenSchema.parse(
+    const { linkId } = createEmbedTokenSchema.parse(
       await parseRequestBody(req),
     );
 
@@ -34,7 +34,9 @@ export const POST = withWorkspace(
 
     const response = await embedToken.create(linkId);
 
-    return NextResponse.json(referralTokenSchema.parse(response), {
+    console.log("response", response);
+
+    return NextResponse.json(embedTokenSchema.parse(response), {
       status: 201,
     });
   },
