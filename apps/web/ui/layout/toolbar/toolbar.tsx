@@ -19,10 +19,14 @@ export default function Toolbar(props: ToolbarProps) {
 }
 
 async function ToolbarRSC({ show = ["onboarding", "help"] }: ToolbarProps) {
-  const { popularHelpArticles, allHelpArticles } = {
-    popularHelpArticles: [],
-    allHelpArticles: [],
-  };
+  const { popularHelpArticles, allHelpArticles } = await fetch(
+    "https://dub.co/api/content",
+    {
+      next: {
+        revalidate: 60 * 60 * 24, // cache for 24 hours
+      },
+    },
+  ).then((res) => res.json());
 
   return (
     <div className="flex items-center gap-3">

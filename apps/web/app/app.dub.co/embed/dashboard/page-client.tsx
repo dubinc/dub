@@ -36,12 +36,10 @@ export function RewardDashboardPageClient({
     start,
     end,
     interval = "30d",
-    token,
   } = searchParamsObj as {
     start?: string;
     end?: string;
     interval?: IntervalOptions;
-    token?: string;
   };
 
   return (
