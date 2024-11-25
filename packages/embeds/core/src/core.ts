@@ -66,7 +66,7 @@ const POPUP_STYLES = ({
 }): Partial<CSSStyleDeclaration> => ({
   width: anchor ? "100%" : "calc(100% - 32px)",
   height: "100dvh",
-  maxHeight: anchor ? "468px" : "500px",
+  maxHeight: anchor ? "500px" : "532px",
   backgroundColor: "white",
   borderRadius: "12px",
   border: "1px solid #E5E5E5",
@@ -93,10 +93,14 @@ const CLOSE_BUTTON_STYLE = {
 
 let isWidgetOpen = false;
 
-const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
+const createIframe = (
+  iframeUrl: string,
+  token: string,
+  accentColor?: string,
+): HTMLIFrameElement => {
   const iframe = document.createElement("iframe");
 
-  iframe.src = `${iframeUrl}?token=${token}`;
+  iframe.src = `${iframeUrl}?token=${token}&accentColor=${encodeURIComponent(accentColor ?? "#000")}`;
   iframe.style.width = "100%";
   iframe.style.height = "100%";
   iframe.style.border = "none";
@@ -176,6 +180,7 @@ const renderWidget = (options: DubOptions): RenderWidgetResult => {
   const {
     token,
     placement,
+    accentColor,
     containerStyles,
     popupStyles,
     anchorId,
@@ -220,7 +225,7 @@ const renderWidget = (options: DubOptions): RenderWidgetResult => {
     display: "none",
   });
 
-  const iframe = createIframe(WIDGET_URL, token);
+  const iframe = createIframe(WIDGET_URL, token, accentColor);
 
   // Close button
   const closeButton = document.createElement("button");

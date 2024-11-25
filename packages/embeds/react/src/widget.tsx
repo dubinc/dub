@@ -20,7 +20,7 @@ export const DubWidget = memo(
       const { destroy } = init({
         ...options,
         type: "widget",
-        anchorId: children ? id : undefined,
+        anchorId: children && options.placement !== "center" ? id : undefined,
       });
 
       return () => destroy();

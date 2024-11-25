@@ -43,7 +43,6 @@ export function ReferButton() {
       token={publicToken}
       trigger="manual"
       placement="top-left"
-      anchorId="dub-refer-button"
     >
       <button
         type="button"

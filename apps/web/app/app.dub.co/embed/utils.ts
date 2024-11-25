@@ -31,5 +31,8 @@ export const getLinkAndProgram = async (token: string) => {
   return {
     program,
     link,
+    earnings:
+      (program.commissionType === "percentage" ? link.saleAmount : link.sales) *
+      (program.commissionAmount / 100),
   };
 };
