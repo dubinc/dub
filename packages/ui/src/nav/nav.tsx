@@ -77,7 +77,7 @@ export function Nav({
   const scrolledHalf = useScroll(40);
   const selectedLayout = useSelectedLayoutSegment();
   const { data: session, isLoading } = useSWR(
-    domain === "dub.co" && "/api/auth/session",
+    domain.endsWith("dub.co") && "/api/auth/session",
     fetcher,
     {
       dedupingInterval: 60000,
