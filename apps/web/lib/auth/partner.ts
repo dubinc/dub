@@ -94,7 +94,7 @@ export const withPartner = (handler: WithPartnerHandler, {}: {} = {}) => {
       }
     },
     {
-      logRequestDetails: true,
+      logRequestDetails: ["body", "nextUrl"],
     },
   );
 };

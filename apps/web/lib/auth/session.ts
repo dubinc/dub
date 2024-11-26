@@ -120,6 +120,6 @@ export const withSession = (handler: WithSessionHandler) =>
       }
     },
     {
-      logRequestDetails: true,
+      logRequestDetails: ["body", "nextUrl"],
     },
   );

@@ -398,7 +398,7 @@ export const withWorkspace = (
       }
     },
     {
-      logRequestDetails: true,
+      logRequestDetails: ["body", "nextUrl"],
     },
   );
 };
