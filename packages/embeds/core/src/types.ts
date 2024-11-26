@@ -32,8 +32,8 @@ export type DubOptions = {
   // The token expired
   onTokenExpired?: () => void;
 
-  // The placement of the widget
-  placement?: DubWidgetPlacement;
+  // The placement of the floating button
+  buttonPlacement?: DubFloatingButtonPlacement;
 
   // The styles for the widget container
   containerStyles?: Partial<CSSStyleDeclaration>;
@@ -43,12 +43,11 @@ export type DubOptions = {
 
 export type DubWidgetTrigger = "floating-button" | "manual";
 
-export type DubWidgetPlacement =
+export type DubFloatingButtonPlacement =
   | "bottom-right"
   | "bottom-left"
   | "top-right"
-  | "top-left"
-  | "center";
+  | "top-left";
 
 export interface IframeMessage {
   originator?: "Dub";

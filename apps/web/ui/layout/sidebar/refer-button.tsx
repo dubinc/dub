@@ -41,11 +41,7 @@ export function ReferButton() {
   if (!flags?.referrals || !referralLinkId || !publicToken) return null;
 
   return (
-    <DubWidget
-      token={publicToken}
-      trigger="manual"
-      placement={isMobile ? "center" : "top-left"}
-    >
+    <DubWidget token={publicToken} trigger="manual">
       <button
         type="button"
         className={cn(
