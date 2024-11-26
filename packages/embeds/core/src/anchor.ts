@@ -3,9 +3,10 @@ import { DUB_CONTAINER_ID } from "./constants";
 import { DubOptions } from "./types";
 
 export function setAnchoredPosition({
+  prefix,
   anchorId,
   placement,
-}: Pick<DubOptions, "anchorId" | "placement">) {
+}: { prefix?: string } & Pick<DubOptions, "anchorId" | "placement">) {
   if (!anchorId) return;
 
   const anchor = document.getElementById(anchorId);
@@ -14,9 +15,11 @@ export function setAnchoredPosition({
     return;
   }
 
-  const container = document.getElementById(DUB_CONTAINER_ID);
+  const container = document.getElementById(`${prefix}${DUB_CONTAINER_ID}`);
   if (!container) {
-    console.error(`[Dub] No container found with id: ${DUB_CONTAINER_ID}`);
+    console.error(
+      `[Dub] No container found with id: ${prefix}${DUB_CONTAINER_ID}`,
+    );
     return;
   }
 

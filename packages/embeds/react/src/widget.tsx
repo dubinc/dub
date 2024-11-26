@@ -21,6 +21,7 @@ export const DubWidget = memo(
     useEffect(() => {
       const { destroy, toggleWidget } =
         init({
+          id,
           ...options,
           anchorId: children && options.placement !== "center" ? id : undefined,
         }) || {};

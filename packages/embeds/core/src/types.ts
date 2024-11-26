@@ -17,6 +17,9 @@ export type DubOptions = {
   // The trigger for the widget
   trigger?: DubWidgetTrigger;
 
+  // The ID of the widget (for multiple widgets on the same page)
+  id?: string;
+
   // The widget was opened
   onOpen?: () => void;
 

@@ -24,18 +24,20 @@ const FLOATING_BUTTON_STYLES = (
 });
 
 export const createFloatingButton = ({
+  prefix,
   container,
   buttonStyles,
   placement,
   onClick,
 }: {
+  prefix?: string;
   container: HTMLElement;
   buttonStyles?: Record<string, any>;
   placement: DubWidgetPlacement;
   onClick: () => void;
 }): void => {
   const button = document.createElement("button");
-  button.id = DUB_FLOATING_BUTTON_ID;
+  button.id = `${prefix}${DUB_FLOATING_BUTTON_ID}`;
   Object.assign(button.style, {
     ...FLOATING_BUTTON_STYLES(placement),
     ...buttonStyles,
