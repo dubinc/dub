@@ -65,9 +65,8 @@ const App = () => {
   const [token, setToken] = useState("");
 
   const createToken = async () => {
-    const res = await fetch("/api/create-token");
-    const data = await res.json();
-    setToken(data.token);
+    // create a token for the token
+    setToken("PUBLIC_LINK_TOKEN");
   };
 
   useEffect(() => {
@@ -79,7 +78,7 @@ const App = () => {
     onTokenExpired={createToken} 
   />`;
 
-const htmlSnippet = `<script type="module" src="https://www.dubcdn.com/analytics/embed.js"></script>
+const htmlSnippet = `<script type="module" src="https://www.dubcdn.com/embed/script.js"></script>
 
 <script>
   const createToken = async () => {
@@ -115,7 +114,7 @@ function CodeSnippet({ code, lang }: { code: string; lang: string }) {
   return (
     <div
       dangerouslySetInnerHTML={{ __html: highlightedCode }}
-      style={{ fontSize: "14px", marginTop: "10px" }}
+      style={{ fontSize: "14px", marginTop: "10px", overflowX: "auto" }}
     />
   );
 }
