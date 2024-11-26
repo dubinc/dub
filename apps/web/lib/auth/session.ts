@@ -119,7 +119,4 @@ export const withSession = (handler: WithSessionHandler) =>
         return handleAndReturnErrorResponse(error);
       }
     },
-    {
-      logRequestDetails: ["body", "nextUrl"],
-    },
   );

@@ -93,8 +93,5 @@ export const withPartner = (handler: WithPartnerHandler, {}: {} = {}) => {
         return handleAndReturnErrorResponse(error);
       }
     },
-    {
-      logRequestDetails: ["body", "nextUrl"],
-    },
   );
 };
