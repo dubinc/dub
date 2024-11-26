@@ -9,9 +9,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-export function ReferButton({ variant }: { variant: "mobile" | "desktop" }) {
+export function ReferButton() {
   const { id: workspaceId, flags, referralLinkId } = useWorkspace();
-  const { device } = useMediaQuery();
+  const { isMobile } = useMediaQuery();
 
   const [publicToken, setPublicToken] = useState<string | null>(null);
 
@@ -38,19 +38,13 @@ export function ReferButton({ variant }: { variant: "mobile" | "desktop" }) {
     }
   }, [flags, referralLinkId]);
 
-  if (
-    !flags?.referrals ||
-    !referralLinkId ||
-    !publicToken ||
-    variant !== device
-  )
-    return null;
+  if (!flags?.referrals || !referralLinkId || !publicToken) return null;
 
   return (
     <DubWidget
       token={publicToken}
       trigger="manual"
-      placement={variant === "mobile" ? "center" : "top-left"}
+      placement={isMobile ? "center" : "top-left"}
     >
       <button
         type="button"
