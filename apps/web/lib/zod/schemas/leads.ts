@@ -52,7 +52,6 @@ export const trackLeadRequestSchema = z.object({
     .describe("Email of the customer in the client's app."),
   customerAvatar: z
     .string()
-    .max(100)
     .nullish()
     .default(null)
     .describe("Avatar of the customer in the client's app."),
