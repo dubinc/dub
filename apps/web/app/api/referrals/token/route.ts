@@ -1,4 +1,4 @@
-import { withEmbedToken } from "@/lib/auth/embed-token";
+import { withEmbedToken } from "@/lib/embed/auth";
 import { NextResponse } from "next/server";
 
 // GET /api/referrals/token - get the embed token for the given link

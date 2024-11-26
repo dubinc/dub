@@ -1,4 +1,4 @@
-import { withEmbedToken } from "@/lib/auth/embed-token";
+import { withEmbedToken } from "@/lib/embed/auth";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { PartnerSaleResponseSchema } from "@/lib/zod/schemas/partners";

@@ -1,7 +1,7 @@
 import { invitePartner } from "@/lib/api/partners/invite-partner";
 import { parseRequestBody } from "@/lib/api/utils";
-import { withEmbedToken } from "@/lib/auth/embed-token";
 import { requestPartnerInviteSchema } from "@/lib/dots/schemas";
+import { withEmbedToken } from "@/lib/embed/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 

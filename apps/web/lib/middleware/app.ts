@@ -1,7 +1,7 @@
 import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
-import { EMBED_PUBLIC_TOKEN_COOKIE_NAME } from "../referrals/constants";
-import { embedToken } from "../referrals/embed-token";
+import { EMBED_PUBLIC_TOKEN_COOKIE_NAME } from "../embed/constants";
+import { embedToken } from "../embed/embed-token";
 import NewLinkMiddleware from "./new-link";
 import { appRedirect } from "./utils/app-redirect";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";

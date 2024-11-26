@@ -46,7 +46,7 @@ export function EmbedWidgetPageClient({
   const [selectedTab, setSelectedTab] = useState<Tab>("invite");
 
   const { data: sales, isLoading } = useSWR<PartnerSaleResponse[]>(
-    `/api/referrals/sales`,
+    "/api/referrals/sales",
     fetcher,
   );
 

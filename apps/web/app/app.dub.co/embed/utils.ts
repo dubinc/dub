@@ -1,5 +1,5 @@
+import { embedToken } from "@/lib/embed/embed-token";
 import { prisma } from "@/lib/prisma";
-import { embedToken } from "@/lib/referrals/embed-token";
 import { notFound } from "next/navigation";
 
 export const getLinkAndProgram = async (token: string) => {
