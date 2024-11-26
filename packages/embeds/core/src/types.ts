@@ -35,9 +35,6 @@ export type DubOptions = {
   // The placement of the widget
   placement?: DubWidgetPlacement;
 
-  // The ID of the anchor element
-  anchorId?: string;
-
   // The styles for the widget container
   containerStyles?: Partial<CSSStyleDeclaration>;
   popupStyles?: Partial<CSSStyleDeclaration>;

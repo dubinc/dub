@@ -1,4 +1,3 @@
-import { setAnchoredPosition } from "./anchor";
 import {
   CLOSE_ICON,
   DUB_CLOSE_BUTTON_ID,
@@ -64,18 +63,16 @@ const CONTAINER_STYLES = ({
 
 const POPUP_STYLES = ({
   placement,
-  anchor,
 }: {
   placement: DubWidgetPlacement;
-  anchor: boolean;
 }): Partial<CSSStyleDeclaration> => ({
-  width: anchor ? "100%" : "calc(100% - 32px)",
+  width: "calc(100% - 32px)",
   height: "100dvh",
-  maxHeight: anchor ? "500px" : "532px",
+  maxHeight: "532px",
   backgroundColor: "white",
   borderRadius: "12px",
   boxShadow: "0px 8px 30px rgba(0, 0, 0, 0.12), 0px 2px 4px rgba(0, 0, 0, 0.1)",
-  margin: anchor ? undefined : "16px",
+  margin: "16px",
   overflow: "hidden",
   ...{
     "bottom-right": { transformOrigin: "bottom right" },
@@ -130,8 +127,6 @@ const renderWidget = (
     placement,
     containerStyles,
     popupStyles,
-    anchorId,
-    onOpen,
     onClose,
     onError,
     onTokenExpired,
@@ -177,7 +172,6 @@ const renderWidget = (
   Object.assign(popup.style, {
     ...POPUP_STYLES({
       placement: placement ?? "bottom-right",
-      anchor: !!anchorId,
     }),
     ...popupStyles,
     display: "none",
@@ -218,17 +212,7 @@ const renderWidget = (
 
   document.body.appendChild(container);
 
-  let updatePosition: (() => void) | undefined;
-
-  if (anchorId) {
-    updatePosition = () => setAnchoredPosition({ prefix, anchorId, placement });
-    updatePosition();
-    window.addEventListener("resize", updatePosition);
-  }
-
-  onOpen?.();
-
-  return { container, updatePosition };
+  return { container };
 };
 
 /**
@@ -358,7 +342,7 @@ export const init = (options: DubOptions): DubInitResult => {
 
   const prefix = options.id ? `${options.id}-` : "";
 
-  const { container, updatePosition } = renderWidget(options, {
+  const { container } = renderWidget(options, {
     prefix,
     closeWidget: closeWidget(prefix),
   });
@@ -380,18 +364,14 @@ export const init = (options: DubOptions): DubInitResult => {
   }
 
   return {
-    openWidget: openWidget(prefix, updatePosition),
+    openWidget: openWidget(prefix),
     closeWidget: closeWidget(prefix),
-    toggleWidget: toggleWidget(prefix, updatePosition),
+    toggleWidget: toggleWidget(prefix),
     isWidgetOpen: isWidgetOpen(prefix),
     destroy: () => {
       document
         .querySelectorAll("#" + CSS.escape(`${prefix}${DUB_CONTAINER_ID}`))
         .forEach((c) => c.remove());
-
-      if (updatePosition) {
-        window.removeEventListener("resize", updatePosition);
-      }
     },
   };
 };
