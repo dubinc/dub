@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import useSWR from "swr";
 
 export const LinkToken = () => {
-  const { error } = useSWR<{ token: number }>("/api/referrals/token", fetcher, {
+  const { error } = useSWR<{ token: number }>("/api/embed/token", fetcher, {
     revalidateOnFocus: true,
     refreshInterval: 50000,
   });
