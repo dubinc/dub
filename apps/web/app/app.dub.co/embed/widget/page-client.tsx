@@ -53,7 +53,7 @@ export function EmbedWidgetPageClient({
     <div
       className="flex min-h-screen flex-col"
       style={
-        { "--accent-color": program.brandColor || "#000000" } as CSSProperties
+        { "--accent-color": program.brandColor || "#171717" } as CSSProperties
       }
     >
       <div
