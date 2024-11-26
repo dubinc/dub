@@ -13,6 +13,9 @@
     "dev": "tsup --watch",
     "check-types": "tsc --noEmit"
   },
+  "dependencies": {
+    "@floating-ui/dom": "^1.6.12"
+  },
   "devDependencies": {
     "@types/js-cookie": "^3.0.6",
     "tsconfig": "workspace:*",
@@ -35,8 +38,5 @@
   ],
   "publishConfig": {
     "access": "public"
-  },
-  "dependencies": {
-    "@floating-ui/dom": "^1.6.12"
   }
 }

@@ -348,9 +348,11 @@ export const init = (options: DubOptions): DubInitResult => {
 
   const { container, updatePosition } = renderWidget(options, { closeWidget });
 
-  if (!container) return null;
+  if (!container) {
+    return null;
+  }
 
-  if (options.trigger === "floating-button")
+  if (options.trigger === "floating-button") {
     createFloatingButton({
       container: container,
       buttonStyles: options.buttonStyles,
@@ -359,6 +361,7 @@ export const init = (options: DubOptions): DubInitResult => {
         toggleWidget();
       },
     });
+  }
 
   return {
     openWidget,
@@ -370,7 +373,9 @@ export const init = (options: DubOptions): DubInitResult => {
         .querySelectorAll(`#${DUB_CONTAINER_ID}`)
         .forEach((c) => c.remove());
 
-      if (updatePosition) window.removeEventListener("resize", updatePosition);
+      if (updatePosition) {
+        window.removeEventListener("resize", updatePosition);
+      }
     },
   };
 };
