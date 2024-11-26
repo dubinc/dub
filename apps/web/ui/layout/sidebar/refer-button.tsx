@@ -2,6 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DubWidget } from "@dub/embed-react";
+import { useMediaQuery } from "@dub/ui";
 import { Gift } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
@@ -10,6 +11,7 @@ import { toast } from "sonner";
 
 export function ReferButton() {
   const { id: workspaceId, flags, referralLinkId } = useWorkspace();
+  const { isMobile } = useMediaQuery();
 
   const [publicToken, setPublicToken] = useState<string | null>(null);
 
@@ -39,7 +41,11 @@ export function ReferButton() {
   if (!flags?.referrals || !referralLinkId || !publicToken) return null;
 
   return (
-    <DubWidget token={publicToken} trigger="manual" placement="top-left">
+    <DubWidget
+      token={publicToken}
+      trigger="manual"
+      placement={isMobile ? "top-right" : "top-left"}
+    >
       <button
         type="button"
         className={cn(

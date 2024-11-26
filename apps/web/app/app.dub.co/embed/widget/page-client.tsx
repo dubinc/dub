@@ -13,6 +13,7 @@ import {
   Check2,
   Copy,
   EnvelopeArrowRight,
+  Gift,
   GiftFill,
   LinkedIn,
   QRCode,
@@ -208,7 +209,7 @@ export function EmbedWidgetPageClient({
                   { label: "Signups", value: link.leads },
                   { label: "Total earned", value: earnings },
                 ].map(({ label, value }) => (
-                  <div className="flex flex-col gap-1.5 rounded-lg bg-neutral-100 p-2 shadow-sm">
+                  <div className="flex flex-col gap-1.5 rounded-lg border border-neutral-200 bg-neutral-50 p-2">
                     <span className="text-xs text-neutral-500">{label}</span>
                     <span className="text-sm font-semibold text-neutral-600">
                       {label === "Total earned"
@@ -247,18 +248,14 @@ export function EmbedWidgetPageClient({
                       ))}
                     </div>
                   ) : (
-                    <p className="mt-8 text-center text-xs text-neutral-400">
-                      No sales yet
-                    </p>
+                    <EmptyState />
                   )
                 ) : isLoading ? (
                   <div className="mt-8 flex items-center justify-center">
                     <LoadingSpinner className="size-4" />
                   </div>
                 ) : (
-                  <p className="mt-8 text-center text-xs text-neutral-400">
-                    No sales yet
-                  </p>
+                  <EmptyState />
                 )}
               </div>
             </>
@@ -281,3 +278,15 @@ export function EmbedWidgetPageClient({
     </div>
   );
 }
+
+const EmptyState = () => {
+  return (
+    <div className="flex h-40 w-full flex-col items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50">
+      <Gift className="size-6 text-neutral-400" />
+      <p className="max-w-60 text-pretty text-center text-xs text-neutral-400">
+        No sales yet. When you refer a friend and they make a purchase, they'll
+        show up here.
+      </p>
+    </div>
+  );
+};
