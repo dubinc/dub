@@ -106,7 +106,7 @@ class DubWidget {
     Object.assign(container.style, {
       ...CONTAINER_STYLES,
       ...containerStyles,
-      display: "none",
+      visibility: "hidden",
     });
 
     container.addEventListener("click", (e) => {
@@ -168,7 +168,7 @@ class DubWidget {
     const container = document.getElementById(
       `${this.prefix}${DUB_CONTAINER_ID}`,
     );
-    return container?.style.display !== "none";
+    return container?.style.visibility !== "hidden";
   }
 
   /**
@@ -185,7 +185,7 @@ class DubWidget {
     }
 
     if (container) {
-      container.style.display = "flex";
+      container.style.visibility = "visible";
       container.animate(
         [
           {
@@ -250,7 +250,7 @@ class DubWidget {
           fill: "forwards",
         },
       ).onfinish = () => {
-        container.style.display = "none";
+        container.style.visibility = "hidden";
       };
     }
   }
