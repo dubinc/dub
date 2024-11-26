@@ -4,7 +4,7 @@ import { withWorkspace } from "@/lib/auth";
 import { embedToken } from "@/lib/referrals/embed-token";
 import {
   createEmbedTokenSchema,
-  embedTokenSchema,
+  EmbedTokenSchema,
 } from "@/lib/zod/schemas/token";
 import { NextResponse } from "next/server";
 
@@ -19,7 +19,7 @@ export const POST = withWorkspace(
 
     const response = await embedToken.create(linkId);
 
-    return NextResponse.json(embedTokenSchema.parse(response), {
+    return NextResponse.json(EmbedTokenSchema.parse(response), {
       status: 201,
     });
   },
