@@ -4,7 +4,7 @@ import z from "@/lib/zod";
 import { PartnerSaleResponseSchema } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 
-// GET /api/referrals/sales – get sales for a link
+// GET /api/embed/sales – get sales for a link from an embed token
 export const GET = withEmbedToken(async ({ link }) => {
   const sales = await prisma.sale.findMany({
     where: {
