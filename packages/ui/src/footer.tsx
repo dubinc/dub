@@ -68,15 +68,26 @@ const linkListClassName = "flex flex-col mt-2.5 gap-2.5";
 const linkListItemClassName =
   "text-sm text-neutral-400 hover:text-neutral-600 transition-colors duration-75";
 
-export function Footer({ staticDomain }: { staticDomain?: string }) {
+export function Footer({
+  staticDomain,
+  className,
+}: {
+  staticDomain?: string;
+  className?: string;
+}) {
   let { domain = "dub.co" } = useParams() as { domain: string };
   if (staticDomain) {
     domain = staticDomain;
   }
 
   return (
-    <footer>
-      <MaxWidthWrapper className="relative z-10 overflow-hidden py-16 backdrop-blur-lg md:rounded-t-2xl">
+    <MaxWidthWrapper
+      className={cn(
+        "relative z-10 overflow-hidden py-16 md:rounded-t-2xl",
+        className,
+      )}
+    >
+      <footer>
         <div className="xl:grid xl:grid-cols-3 xl:gap-8">
           <div className="flex flex-col gap-6">
             <div className="grow">
@@ -241,8 +252,8 @@ export function Footer({ staticDomain }: { staticDomain?: string }) {
             © {new Date().getFullYear()} Dub Technologies, Inc.
           </p>
         </div>
-      </MaxWidthWrapper>
-    </footer>
+      </footer>
+    </MaxWidthWrapper>
   );
 }
 
