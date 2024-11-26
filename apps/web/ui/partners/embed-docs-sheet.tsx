@@ -1,6 +1,5 @@
-import useWorkspace from "@/lib/swr/use-workspace";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet, useRouterStuff } from "@dub/ui";
+import { Button, Sheet, TabSelect, useRouterStuff } from "@dub/ui";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { codeToHtml } from "shiki";
 
@@ -8,8 +7,10 @@ interface EmbedDocsSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
+type Tab = "react" | "html";
+
 function EmbedDocsSheetContent({ setIsOpen }: EmbedDocsSheetProps) {
-  const { slug } = useWorkspace();
+  const [tab, setTab] = useState<Tab>("react");
 
   return (
     <>
@@ -26,22 +27,44 @@ function EmbedDocsSheetContent({ setIsOpen }: EmbedDocsSheetProps) {
             />
           </Sheet.Close>
         </div>
-        <div className="p-6">
-          <div>
-            <h2 className="text-lg font-medium">React</h2>
-            <p className="text-sm text-neutral-500">
-              Embed the widget in React app
-            </p>
-            <CodeSnippet code={reactSnippet} lang="javascript" />
+        <div className="p-3">
+          <TabSelect
+            variant="accent"
+            options={[
+              { id: "react", label: "React" },
+              { id: "html", label: "HTML" },
+            ]}
+            selected={tab}
+            onSelect={(id: Tab) => {
+              setTab(id);
+            }}
+          />
+
+          <div className="border-t border-neutral-200 pt-4">
+            {tab === "react" && (
+              <div>
+                <CodeSnippet code={reactSnippet} lang="javascript" />
+              </div>
+            )}
+
+            {tab === "html" && (
+              <div>
+                <CodeSnippet code={htmlSnippet} lang="html" />
+              </div>
+            )}
           </div>
 
-          <div className="mt-4">
-            <h2 className="text-lg font-medium">HTML</h2>
-            <p className="text-sm text-neutral-500">
-              Embed the widget in non-React app
-            </p>
-            <CodeSnippet code={htmlSnippet} lang="html" />
-          </div>
+          <p className="mt-10 text-sm text-neutral-500">
+            View detailed{" "}
+            <a
+              href="https://dub.co/docs/sdks/client-side/embed"
+              target="_blank"
+              className="underline transition-colors duration-75 hover:text-neutral-600"
+            >
+              installation guides
+            </a>{" "}
+            to add Dub Embed to your website.
+          </p>
         </div>
       </div>
       <div className="flex grow flex-col justify-end">
@@ -82,9 +105,8 @@ const htmlSnippet = `<script type="module" src="https://www.dubcdn.com/embed/scr
 
 <script>
   const createToken = async () => {
-    const res = await fetch("/api/create-token");
-    const data = await res.json();
-    return data.token;
+    // create a token for the token
+    return "PUBLIC_LINK_TOKEN";
   };
 
   document.addEventListener("DOMContentLoaded", () => {
