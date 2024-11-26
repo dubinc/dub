@@ -1,8 +1,9 @@
 import { defineConfig, Options } from "tsup";
 
 export default defineConfig((options: Options) => ({
+  clean: true,
   entry: {
-    embed: "src/embed.ts", // Standalone entry for embed.ts
+    "embed/script": "src/embed.ts", // Standalone entry for embed.ts
     index: "src/index.ts", // Entry for all other files via index.ts
   },
   format: ["cjs"],
