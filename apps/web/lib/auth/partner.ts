@@ -93,5 +93,8 @@ export const withPartner = (handler: WithPartnerHandler, {}: {} = {}) => {
         return handleAndReturnErrorResponse(error);
       }
     },
+    {
+      logRequestDetails: true,
+    },
   );
 };

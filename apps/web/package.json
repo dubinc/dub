@@ -78,7 +78,7 @@
     "nanoid": "^5.0.1",
     "next": "14.3.0-canary.42",
     "next-auth": "^4.24.4",
-    "next-axiom": "^1.3.0",
+    "next-axiom": "^1.6.0",
     "next-plausible": "^3.12.0",
     "next-safe-action": "7.9.9",
     "node-html-parser": "^6.1.4",
