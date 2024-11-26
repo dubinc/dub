@@ -39,11 +39,7 @@ export function ReferButton() {
   if (!publicToken) return null;
 
   return (
-    <DubWidget
-      token={publicToken}
-      trigger="manual"
-      placement="top-left"
-    >
+    <DubWidget token={publicToken} trigger="manual" placement="top-left">
       <button
         type="button"
         className={cn(
