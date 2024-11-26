@@ -73,8 +73,7 @@ const POPUP_STYLES = ({
   maxHeight: anchor ? "500px" : "532px",
   backgroundColor: "white",
   borderRadius: "12px",
-  border: "1px solid #E5E5E5",
-  boxShadow: "0px 4px 20px 0px #0000000D",
+  boxShadow: "0px 8px 30px rgba(0, 0, 0, 0.12), 0px 2px 4px rgba(0, 0, 0, 0.1)",
   margin: anchor ? undefined : "16px",
   overflow: "hidden",
   ...{
@@ -94,6 +93,14 @@ const CLOSE_BUTTON_STYLES = {
   padding: "4px",
   color: "white",
 };
+
+// const BACKDROP_STYLES: Partial<CSSStyleDeclaration> = {
+//   position: "fixed",
+//   inset: "0",
+//   zIndex: "9997",
+//   backgroundColor: "rgba(115, 115, 115, 0.3)",
+//   pointerEvents: "none",
+// };
 
 const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
   const iframe = document.createElement("iframe");
@@ -150,6 +157,15 @@ const renderWidget = (
     }),
     ...containerStyles,
   });
+
+  // const backdrop = document.createElement("div");
+  // backdrop.id = "dub-backdrop";
+  // Object.assign(backdrop.style, {
+  //   ...BACKDROP_STYLES,
+  //   display: "none",
+  // });
+
+  // document.body.appendChild(backdrop);
 
   const popup: HTMLElement =
     container.querySelector(`#${DUB_POPUP_ID}`) ??
@@ -225,6 +241,7 @@ const isWidgetOpen = (): boolean => {
  */
 const openWidget = (): void => {
   const popup = document.getElementById(DUB_POPUP_ID);
+  // const backdrop = document.getElementById("dub-backdrop");
   if (!popup) {
     console.error("[Dub] No popup found.");
     return;
@@ -232,13 +249,35 @@ const openWidget = (): void => {
 
   popup.getAnimations().forEach((a) => a.cancel());
   popup.style.display = "block";
+
+  // if (backdrop) {
+  //   backdrop.style.display = "block";
+  //   backdrop.animate(
+  //     [
+  //       {
+  //         opacity: 0,
+  //         backgroundColor: "rgba(115, 115, 115, 0)",
+  //       },
+  //       {
+  //         opacity: 1,
+  //         backgroundColor: "rgba(115, 115, 115, 0.3)",
+  //       },
+  //     ],
+  //     {
+  //       duration: 250,
+  //       easing: "ease-out",
+  //       fill: "forwards",
+  //     },
+  //   );
+  // }
+
   popup.animate(
     [
-      { transform: "scale(0.8)", opacity: 0 },
-      { transform: "scale(1)", opacity: 1 },
+      { transform: "translateY(10px)", opacity: 0 },
+      { transform: "translateY(0)", opacity: 1 },
     ],
     {
-      duration: 100,
+      duration: 250,
       easing: "ease-in-out",
       fill: "forwards",
     },
@@ -250,14 +289,40 @@ const openWidget = (): void => {
  */
 const closeWidget = (): void => {
   const popup = document.getElementById(DUB_POPUP_ID);
+  // const backdrop = document.getElementById("dub-backdrop");
   if (!popup) return;
 
   popup.getAnimations().forEach((a) => a.cancel());
-  const animation = popup.animate([{ opacity: 0, transform: "scale(0.8)" }], {
-    duration: 100,
-    easing: "ease-in-out",
-    fill: "forwards",
-  });
+  const animation = popup.animate(
+    [{ transform: "translateY(10px)", opacity: 0 }],
+    {
+      duration: 100,
+      easing: "ease-in-out",
+      fill: "forwards",
+    },
+  );
+
+  // if (backdrop) {
+  //   backdrop.animate(
+  //     [
+  //       {
+  //         opacity: 1,
+  //         backgroundColor: "rgba(115, 115, 115, 0.3)",
+  //       },
+  //       {
+  //         opacity: 0,
+  //         backgroundColor: "rgba(115, 115, 115, 0)",
+  //       },
+  //     ],
+  //     {
+  //       duration: 250,
+  //       easing: "ease-in",
+  //       fill: "forwards",
+  //     },
+  //   ).onfinish = () => {
+  //     backdrop.style.display = "none";
+  //   };
+  // }
 
   animation.onfinish = () => {
     if (popup?.isConnected) popup.style.display = "none";
