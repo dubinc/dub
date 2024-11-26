@@ -56,36 +56,59 @@ export function EmbedWidgetPageClient({
       className="flex min-h-screen flex-col"
       style={{ "--accent-color": accentColor } as CSSProperties}
     >
-      <AnimatedSizeContainer height>
-        <div
-          className={cn(
-            "flex flex-col gap-4 rounded-lg rounded-b-none bg-[var(--accent-color,black)] p-5",
-            {
-              "flex-row items-center gap-3": selectedTab === "rewards",
-            },
-          )}
+      <div
+        className={cn(
+          "flex flex-col rounded-lg rounded-b-none bg-[var(--accent-color,black)]",
+        )}
+      >
+        <AnimatedSizeContainer
+          height
+          transition={{ type: "easeInOut", duration: 0.2 }}
+          className="flex flex-col justify-end"
         >
-          <div className="w-fit rounded-full bg-white/20">
-            <GiftFill
-              className={cn("m-3 size-5 text-white", {
-                "m-2 size-4": selectedTab === "rewards",
-              })}
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <h2 className="text-base font-semibold text-white">
+          <div className="flex h-full flex-col justify-end px-5 pt-5">
+            <div
+              className={cn(
+                "mb-4 transition-opacity duration-200",
+                selectedTab === "rewards" && "-mt-[3.75rem] opacity-0",
+              )}
+            >
+              <div className="flex size-11 items-center justify-center rounded-full bg-white/20">
+                <GiftFill className="size-5 shrink-0 text-white" />
+              </div>
+            </div>
+            <h2 className="flex items-center text-base font-semibold text-white">
+              <div
+                className={cn(
+                  "transition-[margin-left,opacity] duration-200",
+                  selectedTab === "invite" && "-ml-10 opacity-0",
+                )}
+              >
+                <div className="mr-2 flex size-8 items-center justify-center rounded-full bg-white/20">
+                  <GiftFill className="size-4 shrink-0 text-white" />
+                </div>
+              </div>
               Refer a friend and earn
             </h2>
-
-            {selectedTab === "invite" && (
-              <p className="text-sm text-white/80">
-                Earn additional credits and cash when you refer a friend and
-                they sign up for {program?.name}
-              </p>
-            )}
           </div>
-        </div>
-      </AnimatedSizeContainer>
+        </AnimatedSizeContainer>
+        <AnimatedSizeContainer
+          height
+          transition={{ type: "easeInOut", duration: 0.2 }}
+        >
+          <div
+            className={cn(
+              "px-5 pb-5 opacity-100 transition-opacity duration-200",
+              selectedTab === "rewards" && "h-0 opacity-0",
+            )}
+          >
+            <p className="pt-2 text-sm text-white/80">
+              Earn additional credits and cash when you refer a friend and they
+              sign up for {program?.name}
+            </p>
+          </div>
+        </AnimatedSizeContainer>
+      </div>
 
       <div className="p-5">
         <ToggleGroup

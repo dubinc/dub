@@ -87,10 +87,10 @@ const POPUP_STYLES = ({
   pointerEvents: "auto",
 });
 
-const CLOSE_BUTTON_STYLE = {
+const CLOSE_BUTTON_STYLES = {
   position: "absolute",
-  top: "24px",
-  right: "24px",
+  top: "20px",
+  right: "20px",
   padding: "4px",
   color: "white",
 };
@@ -175,7 +175,7 @@ const renderWidget = (
   const closeButton = document.createElement("button");
   closeButton.id = DUB_CLOSE_BUTTON_ID;
   closeButton.innerHTML = CLOSE_ICON;
-  Object.assign(closeButton.style, CLOSE_BUTTON_STYLE);
+  Object.assign(closeButton.style, CLOSE_BUTTON_STYLES);
   closeButton.addEventListener("click", () => closeWidget());
 
   popup.appendChild(iframe);
