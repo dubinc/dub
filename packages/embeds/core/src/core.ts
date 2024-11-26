@@ -3,6 +3,7 @@ import {
   CLOSE_ICON,
   DUB_CLOSE_BUTTON_ID,
   DUB_CONTAINER_ID,
+  DUB_POPUP_BACKDROP_ID,
   DUB_POPUP_ID,
   WIDGET_URL,
 } from "./constants";
@@ -94,13 +95,13 @@ const CLOSE_BUTTON_STYLES = {
   color: "white",
 };
 
-// const BACKDROP_STYLES: Partial<CSSStyleDeclaration> = {
-//   position: "fixed",
-//   inset: "0",
-//   zIndex: "9997",
-//   backgroundColor: "rgba(115, 115, 115, 0.3)",
-//   pointerEvents: "none",
-// };
+const BACKDROP_STYLES: Partial<CSSStyleDeclaration> = {
+  position: "fixed",
+  inset: "0",
+  zIndex: "9997",
+  backgroundColor: "rgba(115, 115, 115, 0.3)",
+  pointerEvents: "none",
+};
 
 const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
   const iframe = document.createElement("iframe");
@@ -158,14 +159,14 @@ const renderWidget = (
     ...containerStyles,
   });
 
-  // const backdrop = document.createElement("div");
-  // backdrop.id = "dub-backdrop";
-  // Object.assign(backdrop.style, {
-  //   ...BACKDROP_STYLES,
-  //   display: "none",
-  // });
+  const backdrop = document.createElement("div");
+  backdrop.id = DUB_POPUP_BACKDROP_ID;
+  Object.assign(backdrop.style, {
+    ...BACKDROP_STYLES,
+    display: "none",
+  });
 
-  // document.body.appendChild(backdrop);
+  document.body.appendChild(backdrop);
 
   const popup: HTMLElement =
     container.querySelector(`#${DUB_POPUP_ID}`) ??
@@ -241,7 +242,7 @@ const isWidgetOpen = (): boolean => {
  */
 const openWidget = (): void => {
   const popup = document.getElementById(DUB_POPUP_ID);
-  // const backdrop = document.getElementById("dub-backdrop");
+  const backdrop = document.getElementById(DUB_POPUP_BACKDROP_ID);
   if (!popup) {
     console.error("[Dub] No popup found.");
     return;
@@ -250,26 +251,26 @@ const openWidget = (): void => {
   popup.getAnimations().forEach((a) => a.cancel());
   popup.style.display = "block";
 
-  // if (backdrop) {
-  //   backdrop.style.display = "block";
-  //   backdrop.animate(
-  //     [
-  //       {
-  //         opacity: 0,
-  //         backgroundColor: "rgba(115, 115, 115, 0)",
-  //       },
-  //       {
-  //         opacity: 1,
-  //         backgroundColor: "rgba(115, 115, 115, 0.3)",
-  //       },
-  //     ],
-  //     {
-  //       duration: 250,
-  //       easing: "ease-out",
-  //       fill: "forwards",
-  //     },
-  //   );
-  // }
+  if (backdrop) {
+    backdrop.style.display = "block";
+    backdrop.animate(
+      [
+        {
+          opacity: 0,
+          backgroundColor: "rgba(115, 115, 115, 0)",
+        },
+        {
+          opacity: 1,
+          backgroundColor: "rgba(115, 115, 115, 0.3)",
+        },
+      ],
+      {
+        duration: 250,
+        easing: "ease-out",
+        fill: "forwards",
+      },
+    );
+  }
 
   popup.animate(
     [
@@ -289,7 +290,7 @@ const openWidget = (): void => {
  */
 const closeWidget = (): void => {
   const popup = document.getElementById(DUB_POPUP_ID);
-  // const backdrop = document.getElementById("dub-backdrop");
+  const backdrop = document.getElementById(DUB_POPUP_BACKDROP_ID);
   if (!popup) return;
 
   popup.getAnimations().forEach((a) => a.cancel());
@@ -302,27 +303,27 @@ const closeWidget = (): void => {
     },
   );
 
-  // if (backdrop) {
-  //   backdrop.animate(
-  //     [
-  //       {
-  //         opacity: 1,
-  //         backgroundColor: "rgba(115, 115, 115, 0.3)",
-  //       },
-  //       {
-  //         opacity: 0,
-  //         backgroundColor: "rgba(115, 115, 115, 0)",
-  //       },
-  //     ],
-  //     {
-  //       duration: 250,
-  //       easing: "ease-in",
-  //       fill: "forwards",
-  //     },
-  //   ).onfinish = () => {
-  //     backdrop.style.display = "none";
-  //   };
-  // }
+  if (backdrop) {
+    backdrop.animate(
+      [
+        {
+          opacity: 1,
+          backgroundColor: "rgba(115, 115, 115, 0.3)",
+        },
+        {
+          opacity: 0,
+          backgroundColor: "rgba(115, 115, 115, 0)",
+        },
+      ],
+      {
+        duration: 250,
+        easing: "ease-in",
+        fill: "forwards",
+      },
+    ).onfinish = () => {
+      backdrop.style.display = "none";
+    };
+  }
 
   animation.onfinish = () => {
     if (popup?.isConnected) popup.style.display = "none";

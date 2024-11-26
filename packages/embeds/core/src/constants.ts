@@ -3,6 +3,7 @@ export const WIDGET_URL = `http://localhost:8888/embed/widget`;
 
 export const DUB_CONTAINER_ID = "dub-embed-container";
 export const DUB_POPUP_ID = "dub-embed-popup";
+export const DUB_POPUP_BACKDROP_ID = "dub-embed-backdrop";
 export const DUB_CLOSE_BUTTON_ID = "dub-embed-close";
 
 export const GIFT_ICON =
