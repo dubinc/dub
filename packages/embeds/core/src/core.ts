@@ -95,14 +95,10 @@ const CLOSE_BUTTON_STYLES = {
   color: "white",
 };
 
-const createIframe = (
-  iframeUrl: string,
-  token: string,
-  accentColor?: string,
-): HTMLIFrameElement => {
+const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
   const iframe = document.createElement("iframe");
 
-  iframe.src = `${iframeUrl}?token=${token}&accentColor=${encodeURIComponent(accentColor ?? "#000")}`;
+  iframe.src = `${iframeUrl}?token=${token}`;
   iframe.style.width = "100%";
   iframe.style.height = "100%";
   iframe.style.border = "none";
@@ -124,7 +120,6 @@ const renderWidget = (
   const {
     token,
     placement,
-    accentColor,
     containerStyles,
     popupStyles,
     anchorId,
@@ -169,7 +164,7 @@ const renderWidget = (
     display: "none",
   });
 
-  const iframe = createIframe(WIDGET_URL, token, accentColor);
+  const iframe = createIframe(WIDGET_URL, token);
 
   // Close button
   const closeButton = document.createElement("button");

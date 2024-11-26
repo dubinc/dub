@@ -35,9 +35,6 @@ export type DubOptions = {
   // The ID of the anchor element
   anchorId?: string;
 
-  // Custom accent color
-  accentColor?: string;
-
   // The styles for the widget container
   containerStyles?: Partial<CSSStyleDeclaration>;
   popupStyles?: Partial<CSSStyleDeclaration>;

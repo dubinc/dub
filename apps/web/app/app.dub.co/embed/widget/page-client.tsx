@@ -36,12 +36,10 @@ export function EmbedWidgetPageClient({
   program,
   link,
   earnings,
-  accentColor,
 }: {
   program: Program;
   link: Link;
   earnings: number;
-  accentColor: string;
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
   const [selectedTab, setSelectedTab] = useState<Tab>("invite");
@@ -54,7 +52,9 @@ export function EmbedWidgetPageClient({
   return (
     <div
       className="flex min-h-screen flex-col"
-      style={{ "--accent-color": accentColor } as CSSProperties}
+      style={
+        { "--accent-color": program.brandColor || "#000000" } as CSSProperties
+      }
     >
       <div
         className={cn(

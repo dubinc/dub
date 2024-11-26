@@ -4,18 +4,13 @@ import { EmbedWidgetPageClient } from "./page-client";
 export default async function EmbedWidgetPage({
   searchParams,
 }: {
-  searchParams: { token: string; accentColor?: string };
+  searchParams: { token: string };
 }) {
-  const { token, accentColor } = searchParams;
+  const { token } = searchParams;
 
   const { link, program, earnings } = await getLinkAndProgram(token);
 
   return (
-    <EmbedWidgetPageClient
-      program={program}
-      link={link}
-      earnings={earnings}
-      accentColor={accentColor ?? "#000"}
-    />
+    <EmbedWidgetPageClient program={program} link={link} earnings={earnings} />
   );
 }
