@@ -23,7 +23,6 @@ export const DubWidget = memo(
         init({
           id,
           ...options,
-          anchorId: children && options.placement !== "center" ? id : undefined,
         }) || {};
 
       toggleWidgetRef.current = toggleWidget;
