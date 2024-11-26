@@ -5,14 +5,16 @@
   <body>
     <h1>Dub Referral Widget</h1>
     <script>
+      let toggle = null;
       document.addEventListener("DOMContentLoaded", () => {
-        Dub.init({
+        const widget = Dub.init({
           token: "dub_embed_",
         });
+        toggle = widget.toggleWidget;
       });
     </script>
 
     <!-- Custom toggle button -->
-    <button onclick="window.Dub.toggleWidget()">Click Me</button>
+    <button onclick="toggle()">Click Me</button>
   </body>
 </html>
