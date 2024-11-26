@@ -49,7 +49,7 @@ export function PageContent({
             <div className="hidden md:block">{titleControls}</div>
           )}
           <div className="flex items-center gap-4 md:hidden">
-            <ReferButton />
+            <ReferButton variant="mobile" />
             <HelpButtonRSC />
             <UserDropdown />
           </div>

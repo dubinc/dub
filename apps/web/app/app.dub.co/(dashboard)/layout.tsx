@@ -18,7 +18,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
           sidebar={AppSidebarNav}
           toolContent={
             <>
-              <ReferButton />
+              <ReferButton variant="desktop" />
               <HelpButtonRSC />
             </>
           }
