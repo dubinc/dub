@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export function ReferButton() {
-  const { id: workspaceId, flags } = useWorkspace();
+  const { id: workspaceId, flags, referralLinkId } = useWorkspace();
 
   const [publicToken, setPublicToken] = useState<string | null>(null);
 
@@ -31,12 +31,12 @@ export function ReferButton() {
   };
 
   useEffect(() => {
-    if (flags && flags.referrals) {
+    if (flags && flags.referrals && referralLinkId) {
       createPublicToken();
     }
-  }, [flags]);
+  }, [flags, referralLinkId]);
 
-  if (!publicToken) return null;
+  if (!flags?.referrals || !referralLinkId || !publicToken) return null;
 
   return (
     <DubWidget token={publicToken} trigger="manual" placement="top-left">
