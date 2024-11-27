@@ -2,7 +2,7 @@ model Customer {
   id               String   @id @default(cuid())
   name             String?
   email            String?
-  avatar           String?
+  avatar           String?  @db.LongText
   externalId       String?
   project          Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId        String
