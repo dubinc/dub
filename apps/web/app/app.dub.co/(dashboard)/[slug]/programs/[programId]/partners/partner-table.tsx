@@ -192,6 +192,7 @@ export function PartnerTable() {
         set: {
           partnerId: row.original.id,
         },
+        scroll: false,
       });
     },
     pagination,
@@ -207,6 +208,7 @@ export function PartnerTable() {
           ...(sortBy && { sort: sortBy }),
           ...(sortOrder && { order: sortOrder }),
         },
+        scroll: false,
       }),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
