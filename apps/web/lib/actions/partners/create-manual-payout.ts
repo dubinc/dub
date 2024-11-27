@@ -1,5 +1,6 @@
 "use server";
 
+import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { createId } from "@/lib/api/utils";
 import { createSalesPayout } from "@/lib/partners/create-sales-payout";
 import { processPartnerPayout } from "@/lib/partners/process-payout";
@@ -41,20 +42,24 @@ export const createManualPayoutAction = authActionClient
       throw new Error("Partner payouts are not enabled for this workspace.");
     }
 
-    const result = await prisma.programEnrollment.findUniqueOrThrow({
-      where: {
-        partnerId_programId: {
-          partnerId,
-          programId,
-        },
-      },
-      select: {
-        dotsUserId: true,
-        program: true,
-      },
-    });
+    const [program, programEnrollment] = await Promise.all([
+      getProgramOrThrow({
+        workspaceId: workspace.id,
+        programId,
+      }),
 
-    const { program, ...programEnrollment } = result;
+      prisma.programEnrollment.findUniqueOrThrow({
+        where: {
+          partnerId_programId: {
+            partnerId,
+            programId,
+          },
+        },
+        select: {
+          dotsUserId: true,
+        },
+      }),
+    ]);
 
     if (!programEnrollment.dotsUserId) {
       throw new Error("Partner is not properly enrolled in this program.");
