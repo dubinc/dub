@@ -185,7 +185,7 @@ function ShareDashboardModalInner({
       <h3 className="border-b border-gray-200 px-4 py-4 text-lg font-medium sm:px-6">
         Share dashboard
       </h3>
-      <div className="px-6 pb-6 pt-4">
+      <div className="bg-gray-50 px-6 pb-6 pt-4">
         <LinkCard link={link} isError={Boolean(linkError)} />
         <AnimatedSizeContainer
           height
