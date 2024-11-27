@@ -10,10 +10,10 @@ import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   CardList,
   PaginationControls,
-  Tag,
   usePagination,
   useRouterStuff,
 } from "@dub/ui";
+import { Tag } from "@dub/ui/src/icons";
 import { createContext, Dispatch, SetStateAction, useState } from "react";
 import { TagCard } from "./tag-card";
 import { TagCardPlaceholder } from "./tag-card-placeholder";
@@ -50,24 +50,39 @@ export default function WorkspaceTagsClient() {
 
   return (
     <>
+      <AddEditTagModal />
       <div className="grid gap-4 pb-10">
-        {workspaceId && <AddEditTagModal />}
-        {loading || tags?.length ? (
-          <>
-            <div className="flex w-full flex-wrap items-center justify-between gap-3 gap-6 sm:w-auto">
-              <SearchBoxPersisted
-                loading={loading}
-                onChangeDebounced={(t) => {
-                  if (t) {
-                    queryParams({ set: { search: t }, del: "page" });
-                  } else {
-                    queryParams({ del: "search" });
-                  }
-                }}
-              />
-              <AddTagButton />
-            </div>
+        <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto">
+          <SearchBoxPersisted
+            loading={loading}
+            onChangeDebounced={(t) => {
+              if (t) {
+                queryParams({ set: { search: t }, del: "page" });
+              } else {
+                queryParams({ del: "search" });
+              }
+            }}
+          />
+          <AddTagButton />
+        </div>
 
+        {!loading && tags?.length === 0 ? (
+          <AnimatedEmptyState
+            title="No tags found"
+            description="Create tags to organize your links"
+            cardContent={
+              <>
+                <div className="flex size-7 items-center justify-center rounded-md border border-neutral-200 bg-neutral-50">
+                  <Tag className="size-4 text-neutral-700" />
+                </div>
+                <div className="h-2.5 w-28 min-w-0 rounded-sm bg-neutral-200" />
+              </>
+            }
+            addButton={<AddTagButton />}
+            learnMoreHref="https://dub.co/help/article/how-to-use-tags"
+          />
+        ) : (
+          <>
             <TagsListContext.Provider
               value={{ openMenuTagId, setOpenMenuTagId }}
             >
@@ -88,22 +103,6 @@ export default function WorkspaceTagsClient() {
               />
             </div>
           </>
-        ) : (
-          <AnimatedEmptyState
-            className="mt-6"
-            title="No tags found"
-            description="Create tags to organize your links"
-            cardContent={
-              <>
-                <div className="flex size-7 items-center justify-center rounded-md border border-neutral-200 bg-neutral-50">
-                  <Tag className="size-4 text-neutral-700" />
-                </div>
-                <div className="h-2.5 w-28 min-w-0 rounded-sm bg-neutral-200" />
-              </>
-            }
-            addButton={<AddTagButton />}
-            learnMoreHref="https://dub.co/help/article/how-to-use-tags"
-          />
         )}
       </div>
     </>
