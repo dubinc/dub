@@ -162,7 +162,8 @@ export function PayoutTable() {
         minSize: 43,
         size: 43,
         maxSize: 43,
-        cell: ({ row }) => <RowMenuButton row={row} />,
+        cell: ({ row }) =>
+          row.original.type === "sales" ? <RowMenuButton row={row} /> : "",
       },
     ],
     pagination,
