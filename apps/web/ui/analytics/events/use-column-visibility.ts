@@ -6,6 +6,7 @@ export const eventColumns = {
   clicks: {
     all: [
       "trigger",
+      "link",
       "country",
       "city",
       "region",
@@ -18,11 +19,12 @@ export const eventColumns = {
       "ip",
       "timestamp",
     ],
-    defaultVisible: ["trigger", "country", "device", "timestamp"],
+    defaultVisible: ["trigger", "link", "country", "device", "timestamp"],
   },
   leads: {
     all: [
       "event",
+      "link",
       "customer",
       "country",
       "city",
@@ -36,12 +38,21 @@ export const eventColumns = {
       "ip",
       "timestamp",
     ],
-    defaultVisible: ["event", "customer", "country", "device", "timestamp"],
+    defaultVisible: [
+      "event",
+      "link",
+      "customer",
+      "country",
+      "device",
+      "timestamp",
+    ],
   },
   sales: {
     all: [
       "event",
       "customer",
+      "link",
+      "invoiceId",
       "country",
       "city",
       "region",
@@ -55,7 +66,14 @@ export const eventColumns = {
       "timestamp",
       "saleAmount",
     ],
-    defaultVisible: ["event", "customer", "country", "saleAmount", "timestamp"],
+    defaultVisible: [
+      "event",
+      "link",
+      "customer",
+      "country",
+      "saleAmount",
+      "timestamp",
+    ],
   },
 };
 
@@ -69,7 +87,7 @@ const getDefaultColumnVisibility = (tab: EventType) => {
 export function useColumnVisibility() {
   const [columnVisibility, setColumnVisibility] = useLocalStorage<
     Record<EventType, VisibilityState>
-  >("events-columns", {
+  >("events-table-columns", {
     clicks: getDefaultColumnVisibility("clicks"),
     leads: getDefaultColumnVisibility("leads"),
     sales: getDefaultColumnVisibility("sales"),
