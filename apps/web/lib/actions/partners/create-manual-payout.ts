@@ -18,10 +18,11 @@ const schema = z.object({
   end: parseDateSchema,
   type: z.nativeEnum(PayoutType),
   eventCount: z.number().default(0),
-  amount: z.number(),
+  amount: z.number().default(0),
   description: z.string().max(5000).nullish(),
-  metadata: z.record(z.string(), z.number()).nullish(),
 });
+
+// When leads:
 
 export const createManualPayoutAction = authActionClient
   .schema(schema)
