@@ -27,7 +27,7 @@ export const config = {
      * 3. /_proxy/ (proxies for third-party services)
      * 4. Metadata files: favicon.ico, sitemap.xml, robots.txt, manifest.webmanifest, .well-known
      */
-    "/((?!api/|_next/|_proxy/|favicon.ico|sitemap.xml|robots.txt|manifest.webmanifest|.well-known|embed.js).*)",
+    "/((?!api/|_next/|_proxy/|favicon.ico|sitemap.xml|robots.txt|manifest.webmanifest|.well-known).*)",
   ],
 };
 
