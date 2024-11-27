@@ -54,7 +54,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
 
   const { id: workspaceId, slug } = useWorkspace();
 
-  const domainRef = useRef<HTMLDivElement>(null);
+  const domainRef = useRef<HTMLDivElement | null>(null);
   const isVisible = useInViewport(domainRef, { defaultValue: true });
 
   const { data, isValidating, mutate } = useSWRImmutable<{

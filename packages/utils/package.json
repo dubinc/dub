@@ -16,16 +16,16 @@
     "check-types": "tsc --noEmit"
   },
   "peerDependencies": {
-    "next": "14.3.0-canary.81",
-    "react": "19.0.0-rc-77f43893-20241010"
+    "next": "15.0.3",
+    "react": "19.0.0-rc.1"
   },
   "devDependencies": {
     "@types/ms": "^0.7.31",
     "@types/node": "18.11.9",
     "@types/punycode": "^2.1.4",
     "@types/react": "npm:types-react@rc",
-    "next": "14.3.0-canary.81",
-    "react": "19.0.0-rc-77f43893-20241010",
+    "next": "15.0.3",
+    "react": "19.0.0-rc.1",
     "tsconfig": "workspace:*",
     "tsup": "^6.1.3",
     "typescript": "^5.1.6"

@@ -6,7 +6,7 @@ import { RefObject, useEffect, useState } from "react";
  * More about ResizeObserver: https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver
  */
 export function useResizeObserver(
-  elementRef: RefObject<Element>,
+  elementRef: RefObject<Element | null>,
 ): ResizeObserverEntry | undefined {
   const [entry, setEntry] = useState<ResizeObserverEntry>();
 

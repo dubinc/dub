@@ -3,7 +3,7 @@
 import { RefObject, useEffect, useState } from "react";
 
 export function useInViewport(
-  elementRef: RefObject<Element>,
+  elementRef: RefObject<Element | null>,
   options: { root?: RefObject<Element>; defaultValue?: boolean } = {},
 ) {
   const { root, defaultValue } = options;

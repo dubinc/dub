@@ -26,6 +26,7 @@ function WelcomeModal({
   const searchParams = useSearchParams();
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  // @ts-ignore
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
   const planId = searchParams.get("plan");

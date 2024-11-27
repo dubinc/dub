@@ -144,6 +144,7 @@ export function InputSelect({
   const { getReferenceProps, getFloatingProps } = useInteractions([dismiss]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  // @ts-ignore
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
   const { isMobile } = useMediaQuery();

@@ -57,7 +57,10 @@ export function FilterSelect({
   const listDimensions = useRef<{
     width: number;
     height: number;
-  }>();
+  }>({
+    width: 0,
+    height: 0,
+  });
 
   const [isOpen, setIsOpen] = useState(false);
 

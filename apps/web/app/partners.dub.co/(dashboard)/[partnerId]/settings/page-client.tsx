@@ -67,6 +67,7 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
   });
 
   const formRef = useRef<HTMLFormElement>(null);
+  // @ts-ignore
   const { handleKeyDown } = useEnterSubmit(formRef);
 
   const { executeAsync, isExecuting } = useAction(updatePartnerProfileAction, {
