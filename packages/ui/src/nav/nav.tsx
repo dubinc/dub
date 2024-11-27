@@ -2,7 +2,7 @@
 
 import { APP_DOMAIN, cn, createHref, fetcher } from "@dub/utils";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
-import { LayoutGroup, motion } from "framer-motion";
+import { LayoutGroup } from "framer-motion";
 import Cookies from "js-cookie";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
@@ -48,9 +48,13 @@ export const navItems = [
 ];
 
 const navItemClassName = cn(
-  "relative block rounded-md px-4 py-2 text-sm font-medium text-neutral-700 hover:text-neutral-900",
+  "relative block rounded-md px-4 py-2 text-sm rounded-lg font-medium text-neutral-700 hover:text-neutral-900 transition-colors",
   "dark:text-white/90 dark:hover:text-white",
-  "transition-colors",
+  "hover:bg-neutral-900/5 dark:hover:bg-white/10",
+  "data-[active=true]:bg-neutral-900/5 dark:data-[active=true]:bg-white/10",
+
+  // Hide active state when another item is hovered
+  "group-has-[:hover]:data-[active=true]:[&:not(:hover)]:bg-transparent",
 );
 
 export function Nav({
@@ -119,10 +123,9 @@ export function Nav({
                 delayDuration={0}
                 className="relative hidden lg:block"
               >
-                <NavigationMenuPrimitive.List className="relative z-0 flex">
+                <NavigationMenuPrimitive.List className="group relative z-0 flex">
                   {navItems.map(
                     ({ name, href, segments, content: Content }) => {
-                      console.log(pathname, segments);
                       const isActive = segments.some((segment) =>
                         segment === "/"
                           ? pathname === segment
@@ -141,14 +144,16 @@ export function Nav({
                                   utm_content: name,
                                 })}
                                 className={navItemClassName}
+                                data-active={isActive}
                               >
                                 {name}
-                                {isActive && <Indicator />}
                               </Link>
                             ) : (
-                              <button className={navItemClassName}>
+                              <button
+                                className={navItemClassName}
+                                data-active={isActive}
+                              >
                                 {name}
-                                {isActive && <Indicator />}
                               </button>
                             )}
                           </WithTrigger>
@@ -238,17 +243,5 @@ function WithTrigger({
     </NavigationMenuPrimitive.Trigger>
   ) : (
     children
-  );
-}
-
-function Indicator() {
-  return (
-    <motion.div
-      layoutId="indicator"
-      transition={{
-        duration: 0.1,
-      }}
-      className="pointer-events-none absolute inset-0 -z-[1] rounded-lg bg-neutral-900/5 dark:bg-white/10"
-    />
   );
 }
