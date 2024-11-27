@@ -56,14 +56,14 @@ export async function recordClick({
 
   const cacheKey = `recordClick:${linkId}:${ip}`;
 
-  // if (!skipRatelimit) {
-  //   // by default, we deduplicate clicks from the same IP address + link ID – only record 1 click per hour
-  //   // here, we check if the clickId is cached in Redis within the last hour
-  //   const cachedClickId = await redis.get<string>(cacheKey);
-  //   if (cachedClickId) {
-  //     return null;
-  //   }
-  // }
+  if (!skipRatelimit) {
+    // by default, we deduplicate clicks from the same IP address + link ID – only record 1 click per hour
+    // here, we check if the clickId is cached in Redis within the last hour
+    const cachedClickId = await redis.get<string>(cacheKey);
+    if (cachedClickId) {
+      return null;
+    }
+  }
 
   const isQr = detectQr(req);
 
