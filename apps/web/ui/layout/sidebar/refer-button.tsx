@@ -31,12 +31,13 @@ export function ReferButton() {
   };
 
   useEffect(() => {
-    if (flags && flags.referrals && referralLinkId) {
+    // only create public token if referralLinkId is set
+    if (referralLinkId) {
       createPublicToken();
     }
   }, [flags, referralLinkId]);
 
-  if (!flags?.referrals || !referralLinkId || !publicToken) return null;
+  if (!referralLinkId || !publicToken) return null;
 
   return (
     <DubWidget token={publicToken} trigger="manual">
