@@ -1,4 +1,4 @@
-export const WIDGET_URL = "https://preview.dub.co/embed/widget";
+export const WIDGET_URL = "https://preview.dub.co/embed/widget"; // TODO: update to app.dub.co before launch
 
 export const DUB_CONTAINER_ID = "dub-embed-container";
 export const DUB_POPUP_ID = "dub-embed-popup";
