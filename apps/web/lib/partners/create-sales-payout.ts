@@ -2,7 +2,7 @@ import { createId } from "@/lib/api/utils";
 import { prisma } from "@/lib/prisma";
 
 // Calculate the commission earned for the partner for the given program
-export const createSalesPayouts = async ({
+export const createSalesPayout = async ({
   programId,
   partnerId,
   periodStart,

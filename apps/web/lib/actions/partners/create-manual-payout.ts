@@ -1,7 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/utils";
-import { createSalesPayouts } from "@/lib/partners/create-sales-payout";
+import { createSalesPayout } from "@/lib/partners/create-sales-payout";
 import { processPartnerPayout } from "@/lib/partners/process-payout";
 import { prisma } from "@/lib/prisma";
 import { parseDateSchema } from "@/lib/zod/schemas/utils";
@@ -76,8 +76,8 @@ export const createManualPayoutAction = authActionClient
           type,
           description,
           eventCount,
-          periodStart: start,
-          periodEnd: end,
+          periodStart: start as Date,
+          periodEnd: end as Date,
           amount: amountInCents,
           total: amountInCents + fee,
         },
@@ -86,11 +86,11 @@ export const createManualPayoutAction = authActionClient
 
     // Create a payout for sales
     if (type === "sales") {
-      payout = await createSalesPayouts({
+      payout = await createSalesPayout({
         programId,
         partnerId,
-        periodStart: start,
-        periodEnd: end,
+        periodStart: start as Date,
+        periodEnd: end as Date,
       });
     }
 

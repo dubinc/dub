@@ -1,4 +1,4 @@
-import { createPartnerPayouts } from "@/lib/partners/create-payout";
+import { createSalesPayout } from "@/lib/partners/create-sales-payout";
 import { prisma } from "@/lib/prisma";
 
 // Payout are calcuated at the end of the month
@@ -30,7 +30,7 @@ export const processMonthlyPartnerPayouts = async () => {
   // TODO:
   // We need a batter way to handle this recursively
   for (const { programId, partnerId } of partners) {
-    await createPartnerPayouts({
+    await createSalesPayout({
       programId,
       partnerId,
       periodStart,
