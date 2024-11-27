@@ -1,8 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { StatusBadge, Tooltip } from "@dub/ui";
-import { SimpleTooltipContent } from "@dub/ui/src/tooltip";
+import { SimpleTooltipContent, StatusBadge, Tooltip } from "@dub/ui";
 import { Fragment } from "react";
 
 export const BankAccount = () => {

@@ -1,7 +1,11 @@
 import { AnalyticsResponseOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
-import { MiniAreaChart } from "@dub/blocks";
-import { CountingNumbers, useMediaQuery, useRouterStuff } from "@dub/ui";
+import {
+  CountingNumbers,
+  MiniAreaChart,
+  useMediaQuery,
+  useRouterStuff,
+} from "@dub/ui";
 import { capitalize, cn, fetcher } from "@dub/utils";
 import { useCallback, useContext, useEffect } from "react";
 import useSWR from "swr";

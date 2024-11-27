@@ -1,9 +1,15 @@
 "use client";
 
 import { WebhookEventProps } from "@/lib/types";
-import { Button, Sheet, useCopyToClipboard, useMediaQuery } from "@dub/ui";
+import {
+  Button,
+  ButtonTooltip,
+  Sheet,
+  Tooltip,
+  useCopyToClipboard,
+  useMediaQuery,
+} from "@dub/ui";
 import { CircleCheck, CircleHalfDottedClock, Copy } from "@dub/ui/src/icons";
-import { ButtonTooltip, Tooltip } from "@dub/ui/src/tooltip";
 import { PropsWithChildren, useEffect, useState } from "react";
 import { Highlighter } from "shiki";
 import { toast } from "sonner";

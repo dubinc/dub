@@ -172,7 +172,7 @@ function PayoutDetailsSheetContent({
       );
       toast.success("Successfully confirmed payout!");
       setIsOpen(false);
-      queryParams({ del: "payoutId" });
+      queryParams({ del: "payoutId", scroll: false });
     },
     onError({ error }) {
       toast.error(error.serverError);
@@ -269,7 +269,7 @@ export function PayoutDetailsSheet({
       open={isOpen}
       onOpenChange={rest.setIsOpen}
       onClose={() => {
-        queryParams({ del: "payoutId" });
+        queryParams({ del: "payoutId", scroll: false });
       }}
     >
       <PayoutDetailsSheetContent {...rest} />

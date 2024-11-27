@@ -87,6 +87,7 @@ const prefixes = [
   "pn_",
   "sale_",
   "pga_",
+  "dub_embed_",
 ] as const;
 
 export const createId = ({

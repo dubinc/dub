@@ -1,7 +1,6 @@
 "use client";
 
-import { EmptyState as EmptyStateBlock } from "@dub/blocks";
-import { buttonVariants } from "@dub/ui";
+import { buttonVariants, EmptyState as EmptyStateBlock } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { ComponentProps } from "react";
