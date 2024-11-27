@@ -17,6 +17,8 @@ export const partnersColumns = {
     "createdAt",
     "status",
     "location",
+    "clicks",
+    "leads",
     "sales",
     "earnings",
   ],

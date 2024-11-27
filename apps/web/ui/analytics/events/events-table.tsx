@@ -122,6 +122,35 @@ export default function EventsTable({
             ) || <span className="text-gray-400">-</span>,
         },
         {
+          id: "link",
+          header: "Link",
+          accessorKey: "link",
+          minSize: 250,
+          maxSize: 200,
+          meta: {
+            filterParams: ({ getValue }) => ({
+              domain: getValue().domain,
+              key: getValue().key,
+            }),
+          },
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3">
+              <LinkLogo
+                apexDomain={getApexDomain(getValue().url)}
+                className="size-4 shrink-0 sm:size-4"
+              />
+              <CopyText
+                value={getValue().shortLink}
+                successMessage="Copied link to clipboard!"
+              >
+                <span className="truncate" title={getValue().shortLink}>
+                  {getPrettyUrl(getValue().shortLink)}
+                </span>
+              </CopyText>
+            </div>
+          ),
+        },
+        {
           id: "customer",
           header: "Customer",
           accessorKey: "customer",
@@ -388,6 +417,19 @@ export default function EventsTable({
               <span className="text-gray-400">USD</span>
             </div>
           ),
+        },
+        // Sale invoice ID
+        {
+          id: "invoiceId",
+          header: "Invoice ID",
+          accessorKey: "sale.invoiceId",
+          maxSize: 200,
+          cell: ({ getValue }) =>
+            (
+              <span className="truncate" title={getValue()}>
+                {getValue()}
+              </span>
+            ) || <span className="text-gray-400">-</span>,
         },
         // Date
         {
