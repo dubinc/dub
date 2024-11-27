@@ -1,4 +1,4 @@
-import { REFERRAL_CLICKS_QUOTA_BONUS } from "@/lib/referrals/constants";
+import { REFERRAL_CLICKS_QUOTA_BONUS } from "@/lib/embed/constants";
 import { DUB_WORDMARK, getPrettyUrl } from "@dub/utils";
 import {
   Body,

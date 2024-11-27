@@ -11,7 +11,6 @@ import {
   ConnectedDots4,
   CubeSettings,
   Gear2,
-  Gift,
   Globe,
   Key,
   MoneyBills2,
@@ -169,15 +168,6 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: ShieldCheck,
             href: `/${slug}/settings/security`,
           },
-          ...(flags?.referrals
-            ? [
-                {
-                  name: "Referrals",
-                  icon: Gift,
-                  href: `/${slug}/settings/referrals`,
-                },
-              ]
-            : []),
         ],
       },
       {

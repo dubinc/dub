@@ -6,9 +6,9 @@ import {
   SimpleTooltipContent,
   Tooltip,
   useKeyboardShortcut,
+  UTM_PARAMETERS,
 } from "@dub/ui";
 import { Crosshairs3, Trash } from "@dub/ui/src/icons";
-import { UTM_PARAMETERS } from "@dub/ui/src/utm-builder";
 import {
   cn,
   constructURLFromUTMParams,
