@@ -72,8 +72,6 @@ export const POST = withWorkspaceEdge(
       .omit({ timestamp: true })
       .parse(leadEvent.data[0]);
 
-    console.log("clickData", clickData);
-
     waitUntil(
       (async () => {
         const eventId = nanoid(16);
@@ -120,8 +118,6 @@ export const POST = withWorkspaceEdge(
             },
           }),
         ]);
-
-        console.log("link", link);
 
         // for program links
         if (link.programId) {
