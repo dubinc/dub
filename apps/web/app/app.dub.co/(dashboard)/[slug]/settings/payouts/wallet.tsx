@@ -3,8 +3,7 @@
 import useDotsApp from "@/lib/swr/use-dots-app";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useDepositFundsModal } from "@/ui/modals/deposit-funds-modal";
-import { Button } from "@dub/ui";
-import { SimpleTooltipContent } from "@dub/ui/src/tooltip";
+import { Button, SimpleTooltipContent } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
 
 export const Wallet = () => {

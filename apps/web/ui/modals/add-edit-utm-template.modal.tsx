@@ -1,7 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UtmTemplateProps } from "@/lib/types";
-import { Button, Modal, useMediaQuery } from "@dub/ui";
-import { UTMBuilder } from "@dub/ui/src/utm-builder";
+import { Button, Modal, useMediaQuery, UTMBuilder } from "@dub/ui";
 import posthog from "posthog-js";
 import {
   Dispatch,

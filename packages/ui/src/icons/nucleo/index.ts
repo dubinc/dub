@@ -53,6 +53,7 @@ export * from "./dots";
 export * from "./download";
 export * from "./duplicate";
 export * from "./earth-position";
+export * from "./envelope-arrow-right";
 export * from "./eye";
 export * from "./eye-slash";
 export * from "./file-zip2";

@@ -7,8 +7,13 @@ import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { PaginationControls } from "@dub/blocks";
-import { CardList, Tag, usePagination, useRouterStuff } from "@dub/ui";
+import {
+  CardList,
+  PaginationControls,
+  Tag,
+  usePagination,
+  useRouterStuff,
+} from "@dub/ui";
 import { createContext, Dispatch, SetStateAction, useState } from "react";
 import { TagCard } from "./tag-card";
 import { TagCardPlaceholder } from "./tag-card-placeholder";

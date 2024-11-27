@@ -1,0 +1,20 @@
+<html></html>
+  <head>
+    <script type="module" src="../../dist/embed/script.js"></script>
+  </head>
+  <body>
+    <h1>Dub Referral Widget</h1>
+    <script>
+      let toggle = null;
+      document.addEventListener("DOMContentLoaded", () => {
+        const widget = Dub.init({
+          token: "dub_embed_",
+        });
+        toggle = widget.toggleWidget;
+      });
+    </script>
+
+    <!-- Custom toggle button -->
+    <button onclick="toggle()">Click Me</button>
+  </body>
+</html>
