@@ -39,13 +39,13 @@ export const GET = withWorkspace(
       skip: (page - 1) * pageSize,
       take: pageSize,
       orderBy:
-        sortBy === "earnings"
-          ? {
+        sortBy === "createdAt"
+          ? { [sortBy]: order }
+          : {
               link: {
-                saleAmount: order,
+                [sortBy === "earnings" ? "saleAmount" : sortBy]: order,
               },
-            }
-          : { [sortBy]: order },
+            },
     });
 
     const partners = programEnrollments.map((enrollment) => ({

@@ -25,6 +25,9 @@ export const ComplianceButton = ({
         iframeSrc: `${data.link}?styles=${dotsFlowConfigurations}`,
       });
     },
+    onError({ error }) {
+      toast.error(error.serverError);
+    },
   });
 
   return (

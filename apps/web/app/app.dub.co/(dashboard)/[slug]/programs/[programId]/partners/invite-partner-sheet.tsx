@@ -52,7 +52,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
       setIsOpen(false);
     },
     onError({ error }) {
-      toast.error(error.serverError?.serverError);
+      toast.error(error.serverError);
     },
   });
 

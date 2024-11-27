@@ -176,12 +176,14 @@ export function PayoutTable() {
           ...(sortBy && { sort: sortBy }),
           ...(sortOrder && { order: sortOrder }),
         },
+        scroll: false,
       }),
     onRowClick: (row) => {
       queryParams({
         set: {
           payoutId: row.original.id,
         },
+        scroll: false,
       });
     },
     columnPinning: { right: ["menu"] },

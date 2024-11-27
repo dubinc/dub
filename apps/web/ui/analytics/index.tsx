@@ -8,7 +8,7 @@ import { cn } from "@dub/utils";
 
 import AnalyticsProvider, {
   AnalyticsContext,
-  dashboardProps,
+  AnalyticsDashboardProps,
 } from "./analytics-provider";
 import Devices from "./devices";
 import Locations from "./locations";
@@ -24,7 +24,7 @@ export default function Analytics({
 }: {
   adminPage?: boolean;
   demoPage?: boolean;
-  dashboardProps?: dashboardProps;
+  dashboardProps?: AnalyticsDashboardProps;
 }) {
   return (
     <AnalyticsProvider {...{ adminPage, demoPage, dashboardProps }}>
@@ -36,7 +36,7 @@ export default function Analytics({
               <div className="mx-auto grid max-w-screen-xl gap-5 px-3 lg:px-10">
                 <Main />
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                  {!partnerPage && <TopLinks />}
+                  {!dashboardProps && !partnerPage && <TopLinks />}
                   <Locations />
                   <Devices />
                   <Referer />

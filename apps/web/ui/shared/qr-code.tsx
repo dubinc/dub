@@ -1,4 +1,5 @@
 import { getQRData, QRCodeSVG } from "@/lib/qr";
+import { DEFAULT_MARGIN } from "@/lib/qr/constants";
 import { useMemo } from "react";
 
 export function QRCode({
@@ -7,16 +8,18 @@ export function QRCode({
   hideLogo,
   logo,
   scale = 1,
+  margin = DEFAULT_MARGIN,
 }: {
   url: string;
   fgColor?: string;
   hideLogo?: boolean;
   logo?: string;
   scale?: number;
+  margin?: number;
 }) {
   const qrData = useMemo(
-    () => getQRData({ url, fgColor, hideLogo, logo }),
-    [url, fgColor, hideLogo, logo],
+    () => getQRData({ url, fgColor, hideLogo, logo, margin }),
+    [url, fgColor, hideLogo, logo, margin],
   );
 
   return (
@@ -26,7 +29,7 @@ export function QRCode({
       bgColor={qrData.bgColor}
       fgColor={qrData.fgColor}
       level={qrData.level}
-      includeMargin={false}
+      margin={qrData.margin}
       {...(qrData.imageSettings && {
         imageSettings: {
           ...qrData.imageSettings,

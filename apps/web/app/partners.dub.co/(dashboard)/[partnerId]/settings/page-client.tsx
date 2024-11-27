@@ -1,6 +1,6 @@
 "use client";
 
-import { updatePartnerProfile } from "@/lib/actions/partners/update-partner-profile";
+import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProps } from "@/lib/types";
 import {
@@ -12,6 +12,7 @@ import {
   useEnterSubmit,
 } from "@dub/ui";
 import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
 import { PropsWithChildren, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -68,21 +69,24 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
   const formRef = useRef<HTMLFormElement>(null);
   const { handleKeyDown } = useEnterSubmit(formRef);
 
+  const { executeAsync, isExecuting } = useAction(updatePartnerProfileAction, {
+    onSuccess: async () => {
+      toast.success("Profile updated successfully.");
+    },
+    onError({ error }) {
+      setError("root.serverError", {
+        message: error.serverError,
+      });
+
+      toast.error(error.serverError);
+    },
+  });
+
   return (
     <form
       ref={formRef}
       onSubmit={handleSubmit(async (data) => {
-        try {
-          const result = await updatePartnerProfile({ ...data, partnerId });
-          if (!result?.data?.ok) throw new Error("Failed to save profile");
-          toast.success("Profile updated successfully");
-        } catch (error) {
-          console.error(error);
-          setError("root.serverError", {
-            message: "Failed to save profile. Please try again.",
-          });
-          toast.error("Failed to save profile. Please try again.");
-        }
+        await executeAsync({ ...data, partnerId });
       })}
     >
       <div className="px-5">
@@ -183,7 +187,7 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
           type="submit"
           text="Save changes"
           className="h-8 w-fit px-2.5"
-          loading={isSubmitting}
+          loading={isSubmitting || isExecuting}
         />
       </div>
     </form>

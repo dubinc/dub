@@ -9,11 +9,10 @@ import qrcodegen from "./codegen";
 import {
   DEFAULT_BGCOLOR,
   DEFAULT_FGCOLOR,
-  DEFAULT_INCLUDEMARGIN,
   DEFAULT_LEVEL,
+  DEFAULT_MARGIN,
   DEFAULT_SIZE,
   ERROR_LEVEL_MAP,
-  MARGIN_SIZE,
 } from "./constants";
 import { QRProps, QRPropsCanvas } from "./types";
 import {
@@ -32,7 +31,7 @@ export function QRCodeCanvas(props: QRPropsCanvas) {
     level = DEFAULT_LEVEL,
     bgColor = DEFAULT_BGCOLOR,
     fgColor = DEFAULT_FGCOLOR,
-    includeMargin = DEFAULT_INCLUDEMARGIN,
+    margin = DEFAULT_MARGIN,
     style,
     imageSettings,
     ...otherProps
@@ -63,12 +62,11 @@ export function QRCodeCanvas(props: QRPropsCanvas) {
         ERROR_LEVEL_MAP[level],
       ).getModules();
 
-      const margin = includeMargin ? MARGIN_SIZE : 0;
       const numCells = cells.length + margin * 2;
       const calculatedImageSettings = getImageSettings(
         cells,
         size,
-        includeMargin,
+        margin,
         imageSettings,
       );
 
@@ -168,7 +166,7 @@ export async function getQRAsSVGDataUri(props: QRProps) {
     level = DEFAULT_LEVEL,
     bgColor = DEFAULT_BGCOLOR,
     fgColor = DEFAULT_FGCOLOR,
-    includeMargin = DEFAULT_INCLUDEMARGIN,
+    margin = DEFAULT_MARGIN,
     imageSettings,
   } = props;
 
@@ -177,12 +175,11 @@ export async function getQRAsSVGDataUri(props: QRProps) {
     ERROR_LEVEL_MAP[level],
   ).getModules();
 
-  const margin = includeMargin ? MARGIN_SIZE : 0;
   const numCells = cells.length + margin * 2;
   const calculatedImageSettings = getImageSettings(
     cells,
     size,
-    includeMargin,
+    margin,
     imageSettings,
   );
 
@@ -266,7 +263,7 @@ export async function getQRAsCanvas(
     level = DEFAULT_LEVEL,
     bgColor = DEFAULT_BGCOLOR,
     fgColor = DEFAULT_FGCOLOR,
-    includeMargin = DEFAULT_INCLUDEMARGIN,
+    margin = DEFAULT_MARGIN,
     imageSettings,
   } = props;
 
@@ -277,12 +274,11 @@ export async function getQRAsCanvas(
     value,
     ERROR_LEVEL_MAP[level],
   ).getModules();
-  const margin = includeMargin ? MARGIN_SIZE : 0;
   const numCells = cells.length + margin * 2;
   const calculatedImageSettings = getImageSettings(
     cells,
     size,
-    includeMargin,
+    margin,
     imageSettings,
   );
 
@@ -348,12 +344,13 @@ export function getQRData({
   fgColor,
   hideLogo,
   logo,
+  margin,
 }: {
   url: string;
   fgColor?: string;
   hideLogo?: boolean;
   logo?: string;
-  scale?: number;
+  margin?: number;
 }) {
   return {
     value: `${url}?qr=1`,
@@ -362,7 +359,7 @@ export function getQRData({
     size: 1024,
     level: "Q", // QR Code error correction level: https://blog.qrstuff.com/general/qr-code-error-correction
     hideLogo,
-    includeMargin: false,
+    margin,
     ...(!hideLogo && {
       imageSettings: {
         src: logo || DUB_QR_LOGO,

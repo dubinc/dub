@@ -5,11 +5,12 @@ import ManageSubscriptionButton from "@/ui/workspaces/manage-subscription-button
 import { AnimatedSizeContainer, Icon } from "@dub/ui";
 import { buttonVariants } from "@dub/ui/src/button";
 import { CursorRays, Hyperlink } from "@dub/ui/src/icons";
-import { cn, getFirstAndLastDay, nFormatter } from "@dub/utils";
+import { cn, getFirstAndLastDay, getNextPlan, nFormatter } from "@dub/utils";
+import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { CSSProperties, useMemo } from "react";
+import { CSSProperties, useMemo, useState } from "react";
 
 export function Usage() {
   const { slug } = useParams() as { slug?: string };
@@ -42,6 +43,10 @@ function UsageInner() {
     }
     return [];
   }, [billingCycleStart]);
+
+  const [hovered, setHovered] = useState(false);
+
+  const nextPlan = getNextPlan(plan);
 
   // Warn the user if they're >= 90% of any limit
   const warnings = useMemo(
@@ -77,6 +82,8 @@ function UsageInner() {
             label="Events"
             usage={usage}
             limit={usageLimit}
+            showNextPlan={hovered}
+            nextPlanLimit={nextPlan?.limits.clicks}
             warning={warnings[0]}
           />
           <UsageRow
@@ -84,6 +91,8 @@ function UsageInner() {
             label="Links"
             usage={linksUsage}
             limit={linksLimit}
+            showNextPlan={hovered}
+            nextPlanLimit={nextPlan?.limits.links}
             warning={warnings[1]}
           />
         </div>
@@ -110,6 +119,12 @@ function UsageInner() {
             text="Update Payment Method"
             variant="primary"
             className="mt-4 w-full"
+            onMouseEnter={() => {
+              setHovered(true);
+            }}
+            onMouseLeave={() => {
+              setHovered(false);
+            }}
           />
         ) : warning || plan === "free" ? (
           <Link
@@ -118,6 +133,12 @@ function UsageInner() {
               buttonVariants(),
               "mt-4 flex h-9 items-center justify-center rounded-md border px-4 text-sm",
             )}
+            onMouseEnter={() => {
+              setHovered(true);
+            }}
+            onMouseLeave={() => {
+              setHovered(false);
+            }}
           >
             {plan === "free" ? "Get Dub Pro" : "Upgrade plan"}
           </Link>
@@ -132,12 +153,16 @@ function UsageRow({
   label,
   usage,
   limit,
+  showNextPlan,
+  nextPlanLimit,
   warning,
 }: {
   icon: Icon;
   label: string;
   usage?: number;
   limit?: number;
+  showNextPlan: boolean;
+  nextPlanLimit?: number;
   warning: boolean;
 }) {
   const loading = usage === undefined || limit === undefined;
@@ -151,9 +176,50 @@ function UsageRow({
           <span className="text-xs font-medium text-neutral-700">{label}</span>
         </div>
         {!loading ? (
-          <span className="text-xs font-medium text-neutral-600">
-            {formatNumber(usage)} of {formatNumber(limit)}
-          </span>
+          <div className="flex items-center">
+            <span className="text-xs font-medium text-neutral-600">
+              {formatNumber(usage)} of{" "}
+              <motion.span
+                className={cn(
+                  "relative transition-colors duration-150",
+                  showNextPlan && nextPlanLimit
+                    ? "text-neutral-400"
+                    : "text-neutral-600",
+                )}
+              >
+                {formatNumber(limit)}
+                {showNextPlan && nextPlanLimit && (
+                  <motion.span
+                    className="absolute bottom-[45%] left-0 h-[1px] bg-neutral-400"
+                    initial={{ width: "0%" }}
+                    animate={{ width: "100%" }}
+                    transition={{
+                      duration: 0.25,
+                      ease: "easeInOut",
+                    }}
+                  />
+                )}
+              </motion.span>
+            </span>
+            <AnimatePresence>
+              {showNextPlan && nextPlanLimit && (
+                <motion.div
+                  className="flex items-center"
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{ width: "auto", opacity: 1 }}
+                  exit={{ width: 0, opacity: 0 }}
+                  transition={{
+                    duration: 0.25,
+                    ease: [0.4, 0, 0.2, 1], // Custom cubic-bezier for smooth movement
+                  }}
+                >
+                  <motion.span className="ml-1 whitespace-nowrap text-xs font-medium text-blue-600">
+                    {formatNumber(nextPlanLimit)}
+                  </motion.span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         ) : (
           <div className="h-4 w-16 animate-pulse rounded-md bg-neutral-500/10" />
         )}
@@ -193,6 +259,6 @@ const formatNumber = (value: number) =>
   value >= 1000000000
     ? "∞"
     : nFormatter(value, {
-        full: value !== undefined && value < 9999,
+        full: value !== undefined && value < 999999,
         digits: 1,
       });

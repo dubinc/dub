@@ -74,7 +74,7 @@ export default function ProgramPageClient() {
           {program ? (
             <ProgramCommissionDescription program={program} />
           ) : (
-            <div className="mb-7 h-7 w-full animate-pulse rounded-md bg-neutral-200" />
+            <div className="h-7 w-5/6 animate-pulse rounded-md bg-neutral-200" />
           )}
         </div>
         <span className="mb-1.5 mt-6 block text-sm text-neutral-800">
@@ -194,7 +194,7 @@ function EarningsChart() {
           </div>
         </div>
         <div className="w-full md:w-auto">
-          <SimpleDateRangePicker className="h-8 w-full md:w-fit" />
+          <SimpleDateRangePicker className="h-8 w-full md:w-fit" align="end" />
         </div>
       </div>
       <div className="relative mt-4 h-64 w-full">

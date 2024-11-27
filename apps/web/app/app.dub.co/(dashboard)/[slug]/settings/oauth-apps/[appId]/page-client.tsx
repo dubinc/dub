@@ -36,7 +36,7 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
         toast.success("New client secret generated.");
       },
       onError: ({ error }) => {
-        toast.error(error.serverError?.serverError);
+        toast.error(error.serverError);
       },
     },
   );

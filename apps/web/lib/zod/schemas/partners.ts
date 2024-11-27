@@ -20,7 +20,9 @@ export const partnersQuerySchema = z
     country: z.string().optional(),
     search: z.string().optional(),
     order: z.enum(["asc", "desc"]).default("desc"),
-    sortBy: z.enum(["createdAt", "earnings"]).default("createdAt"),
+    sortBy: z
+      .enum(["createdAt", "clicks", "leads", "sales", "earnings"])
+      .default("createdAt"),
     ids: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
@@ -153,6 +155,7 @@ export const getPartnerSalesCountQuerySchema = getSalesCountQuerySchema.omit({
 
 export const onboardPartnerSchema = z.object({
   name: z.string().trim().min(1).max(100),
+  logo: z.string().optional(),
   image: z.string(),
   country: z.enum(COUNTRY_CODES),
   phoneNumber: z.string().trim().min(1).max(24),
