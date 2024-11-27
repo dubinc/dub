@@ -1,5 +1,5 @@
 import { NewBackground } from "@/ui/shared/new-background";
-import { Wordmark } from "@dub/ui/src/wordmark";
+import { Wordmark } from "@dub/ui";
 import Link from "next/link";
 
 export default function NotFound() {

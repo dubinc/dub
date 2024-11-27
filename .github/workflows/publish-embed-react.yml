@@ -1,0 +1,43 @@
+name: Publish `@dub/embed-react`
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/embeds/react/**"
+  release:
+    types: [published]
+    workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm --filter @dub/embed-react build
+
+      - name: Publish
+        run: pnpm --filter @dub/embed-react publish --no-git-checks
+        if: github.event.release.prerelease == false
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish beta
+        run: pnpm --filter @dub/embed-react publish --no-git-checks --tag beta
+        if: github.event.release.prerelease == true
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

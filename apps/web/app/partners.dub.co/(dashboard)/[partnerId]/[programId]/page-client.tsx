@@ -8,14 +8,15 @@ import { ChartContext } from "@/ui/charts/chart-context";
 import TimeSeriesChart from "@/ui/charts/time-series-chart";
 import XAxis from "@/ui/charts/x-axis";
 import YAxis from "@/ui/charts/y-axis";
+import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { MiniAreaChart } from "@dub/blocks";
 import {
   Button,
   buttonVariants,
   Check2,
   MaxWidthWrapper,
+  MiniAreaChart,
   useCopyToClipboard,
   useRouterStuff,
 } from "@dub/ui";
@@ -31,7 +32,6 @@ import { LinearGradient } from "@visx/gradient";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { createContext, useContext, useId, useMemo } from "react";
-import { HeroBackground } from "./hero-background";
 import { SaleTablePartner } from "./sales/sale-table";
 
 const ProgramOverviewContext = createContext<{
