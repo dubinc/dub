@@ -80,7 +80,11 @@ function PayoutDetailsSheetContent({
             ? undefined
             : "numeric",
       })}-${formatDate(payout.periodEnd, { month: "short" })}`,
-      Sales: payout._count.sales,
+
+      ...(payout.type !== "custom" && {
+        [capitalize(payout.type) as string]: payout.eventCount,
+      }),
+
       Amount: currencyFormatter(payout.amount / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -98,6 +102,7 @@ function PayoutDetailsSheetContent({
           {statusBadge.label}
         </StatusBadge>
       ),
+      Notes: payout.description || "-",
     };
   }, [payout]);
 
@@ -207,20 +212,23 @@ function PayoutDetailsSheetContent({
             ))}
           </div>
         </div>
-        <div className="p-6 pt-2">
-          <Table {...table} />
-          <div className="mt-2 flex justify-end">
-            <Link
-              href={`/${slug}/programs/${programId}/sales?payoutId=${payout.id}&interval=all`}
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "flex h-7 items-center rounded-lg border px-2 text-sm",
-              )}
-            >
-              View all
-            </Link>
+
+        {payout.type === "sales" && (
+          <div className="p-6 pt-2">
+            <Table {...table} />
+            <div className="mt-2 flex justify-end">
+              <Link
+                href={`/${slug}/programs/${programId}/sales?payoutId=${payout.id}&interval=all`}
+                className={cn(
+                  buttonVariants({ variant: "secondary" }),
+                  "flex h-7 items-center rounded-lg border px-2 text-sm",
+                )}
+              >
+                View all
+              </Link>
+            </div>
           </div>
-        </div>
+        )}
       </div>
       <div className="flex grow flex-col justify-end">
         <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">

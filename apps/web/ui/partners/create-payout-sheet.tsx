@@ -221,7 +221,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
             <textarea
               {...register("description")}
               className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-              placeholder="A small internal note about this payout."
+              placeholder="A note to partner about this payout."
             />
           </div>
         </div>

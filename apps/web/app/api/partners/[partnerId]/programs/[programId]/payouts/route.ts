@@ -39,13 +39,5 @@ export const GET = withPartner(async ({ partner, params, searchParams }) => {
     },
   });
 
-  return NextResponse.json(
-    z
-      .array(
-        PartnerPayoutResponseSchema.omit({
-          description: true,
-        }),
-      )
-      .parse(payouts),
-  );
+  return NextResponse.json(z.array(PartnerPayoutResponseSchema).parse(payouts));
 });

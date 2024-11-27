@@ -10,6 +10,7 @@ import {
   useTable,
 } from "@dub/ui";
 import {
+  capitalize,
   cn,
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
@@ -56,7 +57,11 @@ function PayoutDetailsSheetContent({
             ? undefined
             : "numeric",
       })}-${formatDate(payout.periodEnd, { month: "short" })}`,
-      Sales: sales?.length || 0,
+
+      ...(payout.type !== "custom" && {
+        [capitalize(payout.type) as string]: payout.eventCount,
+      }),
+
       Amount: currencyFormatter(payout.amount / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -66,6 +71,7 @@ function PayoutDetailsSheetContent({
           {statusBadge.label}
         </StatusBadge>
       ),
+      Notes: payout.description || "-",
     };
   }, [payout, sales]);
 
@@ -119,36 +125,50 @@ function PayoutDetailsSheetContent({
   } as any);
 
   return (
-    <div>
-      <div className="flex items-start justify-between border-b border-neutral-200 p-6">
-        <Sheet.Title className="text-xl font-semibold">
-          Payout details
-        </Sheet.Title>
-        <Sheet.Close asChild>
+    <>
+      <div>
+        <div className="flex items-start justify-between border-b border-neutral-200 p-6">
+          <Sheet.Title className="text-xl font-semibold">
+            Payout details
+          </Sheet.Title>
+          <Sheet.Close asChild>
+            <Button
+              variant="outline"
+              icon={<X className="size-5" />}
+              className="h-auto w-fit p-1"
+            />
+          </Sheet.Close>
+        </div>
+        <div className="flex flex-col gap-4 p-6">
+          <div className="text-base font-medium text-neutral-900">
+            Invoice details
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            {Object.entries(invoiceData).map(([key, value]) => (
+              <Fragment key={key}>
+                <div className="font-medium text-neutral-500">{key}</div>
+                <div className="text-neutral-800">{value}</div>
+              </Fragment>
+            ))}
+          </div>
+        </div>
+        <div className="p-6 pt-2">
+          {payout.type === "sales" && <Table {...table} />}
+        </div>
+      </div>
+
+      <div className="flex grow flex-col justify-end">
+        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
           <Button
-            variant="outline"
-            icon={<X className="size-5" />}
-            className="h-auto w-fit p-1"
+            type="button"
+            variant="secondary"
+            onClick={() => setIsOpen(false)}
+            text="Close"
+            className="w-fit"
           />
-        </Sheet.Close>
-      </div>
-      <div className="flex flex-col gap-4 p-6">
-        <div className="text-base font-medium text-neutral-900">
-          Invoice details
-        </div>
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          {Object.entries(invoiceData).map(([key, value]) => (
-            <Fragment key={key}>
-              <div className="font-medium text-neutral-500">{key}</div>
-              <div className="text-neutral-800">{value}</div>
-            </Fragment>
-          ))}
         </div>
       </div>
-      <div className="p-6 pt-2">
-        <Table {...table} />
-      </div>
-    </div>
+    </>
   );
 }
 
