@@ -14,13 +14,12 @@ import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   Button,
   buttonVariants,
-  Check2,
   MaxWidthWrapper,
   MiniAreaChart,
   useCopyToClipboard,
   useRouterStuff,
 } from "@dub/ui";
-import { Copy, LoadingSpinner, MoneyBill2 } from "@dub/ui/src/icons";
+import { Check, Copy, LoadingSpinner, MoneyBill2 } from "@dub/ui/src/icons";
 import {
   cn,
   currencyFormatter,
@@ -93,16 +92,31 @@ export default function ProgramPageClient() {
           )}
           <Button
             icon={
-              copied ? (
-                <Check2 className="size-4" />
-              ) : (
-                <Copy className="size-4" />
-              )
+              <div className="relative size-4">
+                <div
+                  className={cn(
+                    "absolute inset-0 transition-[transform,opacity]",
+                    copied && "translate-y-1 opacity-0",
+                  )}
+                >
+                  <Copy className="size-4" />
+                </div>
+                <div
+                  className={cn(
+                    "absolute inset-0 transition-[transform,opacity]",
+                    !copied && "translate-y-1 opacity-0",
+                  )}
+                >
+                  <Check className="size-4" />
+                </div>
+              </div>
             }
             text={copied ? "Copied link" : "Copy link"}
             className="xs:w-fit"
+            disabled={!programEnrollment?.link?.shortLink}
             onClick={() =>
-              copyToClipboard(getPrettyUrl(programEnrollment?.link?.shortLink))
+              programEnrollment?.link?.shortLink &&
+              copyToClipboard(programEnrollment?.link?.shortLink)
             }
           />
         </div>
