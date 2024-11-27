@@ -101,7 +101,7 @@ export const DestinationUrlInput = forwardRef<
               const parentParams = getParamsFromURL(url);
 
               UTM_PARAMETERS.filter((p) => p.key !== "ref").forEach((p) =>
-                setValueParent(p.key, parentParams?.[p.key], {
+                setValueParent(p.key, parentParams?.[p.key] as string, {
                   shouldDirty: true,
                 }),
               );
