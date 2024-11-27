@@ -83,7 +83,7 @@ export function Footer({
   return (
     <MaxWidthWrapper
       className={cn(
-        "relative z-10 overflow-hidden py-16 md:rounded-t-2xl",
+        "relative z-10 overflow-hidden border border-b-0 border-neutral-200 bg-white/50 py-16 backdrop-blur-lg md:rounded-t-2xl",
         className,
       )}
     >
@@ -236,8 +236,12 @@ export function Footer({
         <div className="mt-12 grid grid-cols-1 items-center gap-8 sm:grid-cols-3">
           <StatusBadge />
           <Link
-            href="https://dub.co/blog/soc2"
-            target="_blank"
+            href={createHref("/blog/soc2", domain, {
+              utm_source: "Custom Domain",
+              utm_medium: "Footer",
+              utm_campaign: domain,
+              utm_content: "SOC2",
+            })}
             className="flex sm:justify-center"
           >
             <Image
