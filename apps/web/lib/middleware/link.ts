@@ -31,6 +31,8 @@ export default async function LinkMiddleware(
   req: NextRequest,
   ev: NextFetchEvent,
 ) {
+  const cookieStore = await cookies();
+
   let { domain, fullKey: originalKey } = parse(req);
 
   if (!domain) {
@@ -186,7 +188,6 @@ export default async function LinkMiddleware(
     }
   }
 
-  const cookieStore = cookies();
   let clickId =
     cookieStore.get("dub_id")?.value || cookieStore.get("dclid")?.value;
   if (!clickId) {

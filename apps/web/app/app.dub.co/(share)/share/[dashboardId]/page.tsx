@@ -36,6 +36,8 @@ export default async function dashboardPage({
 }: {
   params: { dashboardId: string };
 }) {
+  const cookieStore = await cookies();
+
   const data = await getDashboard({ id: params.dashboardId });
 
   // if the dashboard or link doesn't exist
@@ -45,7 +47,8 @@ export default async function dashboardPage({
 
   if (
     data.password &&
-    cookies().get(`dub_password_${params.dashboardId}`)?.value !== data.password
+    cookieStore.get(`dub_password_${params.dashboardId}`)?.value !==
+      data.password
   ) {
     return (
       <main className="flex h-screen w-screen items-center justify-center">

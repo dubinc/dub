@@ -125,6 +125,8 @@ async function createApplication({
   program: Program;
   data: z.infer<typeof createProgramApplicationSchema>;
 }) {
+  const cookieStore = await cookies();
+
   const [application, _] = await Promise.all([
     prisma.programApplication.create({
       data: {
@@ -139,9 +141,6 @@ async function createApplication({
       value: data.email,
     }),
   ]);
-
-  // Add application ID to cookie
-  const cookieStore = cookies();
 
   const existingApplicationIds =
     cookieStore.get("programApplicationIds")?.value?.split(",") || [];

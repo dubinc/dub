@@ -4,6 +4,8 @@ import { prismaEdge } from "@/lib/prisma/edge";
 import { cookies } from "next/headers";
 
 export async function verifyPassword(_prevState: any, data: FormData) {
+  const cookieStore = await cookies();
+
   const dashboardId = data.get("dashboardId") as string;
   const password = data.get("password") as string;
 
@@ -19,7 +21,7 @@ export async function verifyPassword(_prevState: any, data: FormData) {
     return { error: "Invalid password" };
   }
 
-  cookies().set(`dub_password_${dashboardId}`, password, {
+  cookieStore.set(`dub_password_${dashboardId}`, password, {
     path: `/share/${dashboardId}`,
     httpOnly: true,
     secure: true,

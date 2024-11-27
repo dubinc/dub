@@ -59,6 +59,8 @@ export default async function PasswordProtectedLinkPage({
 }: {
   params: { linkId: string };
 }) {
+  const cookieStore = await cookies();
+
   const link = await prismaEdge.link.findUnique({
     where: {
       id: params.linkId,
@@ -85,7 +87,7 @@ export default async function PasswordProtectedLinkPage({
 
   if (
     !link.password ||
-    cookies().get(`dub_password_${link.id}`)?.value === link.password
+    cookieStore.get(`dub_password_${link.id}`)?.value === link.password
   ) {
     redirect(link.shortLink);
   }
