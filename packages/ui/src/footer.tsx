@@ -66,7 +66,7 @@ const navigation = {
 const linkListHeaderClassName = "text-sm font-medium text-neutral-900";
 const linkListClassName = "flex flex-col mt-2.5 gap-2.5";
 const linkListItemClassName =
-  "text-sm text-neutral-400 hover:text-neutral-600 transition-colors duration-75";
+  "text-sm text-neutral-500 hover:text-neutral-700 transition-colors duration-75";
 
 export function Footer({
   staticDomain,
@@ -252,7 +252,7 @@ export function Footer({
               className="h-8 transition-[filter] duration-75 hover:brightness-90"
             />
           </Link>
-          <p className="text-xs text-neutral-400 sm:text-right">
+          <p className="text-xs text-neutral-500 sm:text-right">
             © {new Date().getFullYear()} Dub Technologies, Inc.
           </p>
         </div>
