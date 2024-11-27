@@ -1,21 +1,21 @@
 "use client";
 
 import { useCreatePayoutSheet } from "@/ui/partners/create-payout-sheet";
-import { Button } from "@dub/ui";
-import { Plus } from "@dub/ui/src/icons";
+import { Button, useKeyboardShortcut } from "@dub/ui";
 
 export function CreatePayoutButton() {
   const { createPayoutSheet, setIsOpen: setShowCreatePayoutSheet } =
     useCreatePayoutSheet();
 
+  useKeyboardShortcut("p", () => setShowCreatePayoutSheet(true));
+
   return (
     <>
       <Button
         type="button"
-        variant="secondary"
         onClick={() => setShowCreatePayoutSheet(true)}
         text="Create payout"
-        icon={<Plus className="size-4" />}
+        shortcut="P"
       />
       {createPayoutSheet}
     </>

@@ -28,7 +28,6 @@ export function ProgramPayoutsPageClient() {
             )}
           >
             <Gear className="size-4" />
-            Settings
           </Link>
         </div>
       }

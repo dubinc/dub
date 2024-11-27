@@ -63,8 +63,17 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
 
   const partnerOptions = useMemo(() => {
     return partners?.map((partner) => ({
-      label: partner.name,
       value: partner.id,
+      label: partner.name,
+      icon: (
+        <img
+          src={
+            partner.image ||
+            `https://api.dicebear.com/9.x/micah/svg?seed=${partner.id}`
+          }
+          className="size-4 rounded-full"
+        />
+      ),
     }));
   }, [partners]);
 
@@ -125,7 +134,10 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
           </Sheet.Close>
         </div>
         <div className="flex flex-col gap-3 p-6">
-          <div>
+          <div className="flex flex-col gap-2">
+            <label className="flex items-center space-x-2 text-sm font-medium text-gray-900">
+              Partner
+            </label>
             <Combobox
               selected={
                 partnerOptions?.find((o) => o.value === partnerId) ?? null
@@ -175,9 +187,12 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
             />
           </div>
 
-          <div>
-            <label htmlFor="type" className="flex items-center space-x-2">
-              <h2 className="text-sm font-medium text-gray-900">Type</h2>
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor="type"
+              className="flex items-center space-x-2 text-sm font-medium text-gray-900"
+            >
+              Type
             </label>
             <select
               {...register("type", { required: true })}
@@ -192,11 +207,14 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
           </div>
 
           {type !== "sales" && (
-            <div>
-              <label htmlFor="amount" className="flex items-center space-x-2">
-                <h2 className="text-sm font-medium text-gray-900">Amount</h2>
+            <div className="flex flex-col gap-2">
+              <label
+                htmlFor="amount"
+                className="flex items-center space-x-2 text-sm font-medium text-gray-900"
+              >
+                Amount
               </label>
-              <div className="relative mt-2 rounded-md shadow-sm">
+              <div className="relative rounded-md shadow-sm">
                 <input
                   {...register("amount", {
                     required: true,
@@ -211,12 +229,12 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
             </div>
           )}
 
-          <div>
+          <div className="flex flex-col gap-2">
             <label
               htmlFor="description"
-              className="flex items-center space-x-2"
+              className="flex items-center space-x-2 text-sm font-medium text-gray-900"
             >
-              <h2 className="text-sm font-medium text-gray-900">Description</h2>
+              Description
             </label>
             <textarea
               {...register("description")}
