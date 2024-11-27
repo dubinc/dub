@@ -22,13 +22,13 @@ import { Stats } from "./stats";
 
 export const revalidate = 0;
 
-export default function ReferralsPage({
-  params: { slug },
-  searchParams,
-}: {
-  params: { slug: string };
-  searchParams: { event?: string; page?: string };
+export default async function ReferralsPage(props: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ event?: string; page?: string }>;
 }) {
+  const params = await props.params;
+  const searchParams = await props.searchParams;
+
   const event = (searchParams.event ?? "clicks") as EventType;
   const page = parseInt(searchParams.page ?? "1") || 1;
 
@@ -74,7 +74,7 @@ export default function ReferralsPage({
 
               {/* Referral link + invite button or empty/error states */}
               <Suspense fallback={<ReferralLinkSkeleton />}>
-                <ReferralLink slug={slug} />
+                <ReferralLink slug={params.slug} />
               </Suspense>
             </div>
           </div>
@@ -92,7 +92,7 @@ export default function ReferralsPage({
           </a>
         </div>
         <div className="mt-8">
-          <Stats slug={slug} />
+          <Stats slug={params.slug} />
         </div>
         <div className="mt-12">
           <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
@@ -100,10 +100,10 @@ export default function ReferralsPage({
             <EventTabs />
           </div>
           <Suspense
-            key={`${slug}-${event}-${page}`}
+            key={`${params.slug}-${event}-${page}`}
             fallback={<EventListSkeleton />}
           >
-            <ActivityListRSC slug={slug} event={event} page={page} />
+            <ActivityListRSC slug={params.slug} event={event} page={page} />
           </Suspense>
         </div>
       </div>
@@ -146,11 +146,13 @@ const placeholderEvents = {
         key: "",
         url: "https://dub.co",
         country: randomValue(["US", "GB", "CA", "AU", "DE", "FR", "ES", "IT"]),
+
         event_name: [
           "Subscription creation",
           "Subscription paid",
           "Plan upgraded",
         ][idx % 3],
+
         // TODO update to saleAmount
         amount: [1100, 4900, 2400][idx % 3],
       }) as any,

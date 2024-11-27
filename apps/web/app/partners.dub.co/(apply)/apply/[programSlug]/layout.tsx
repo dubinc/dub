@@ -5,11 +5,17 @@ import { constructMetadata } from "@dub/utils/src/functions";
 import { notFound } from "next/navigation";
 import { PropsWithChildren } from "react";
 
-export async function generateMetadata({
-  params: { programSlug },
-}: {
-  params: { programSlug: string };
-}) {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ programSlug: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    programSlug
+  } = params;
+
   const program = await getProgram({ slug: programSlug });
 
   if (!program || !program.landerData) {
@@ -30,10 +36,17 @@ export async function generateMetadata({
   });
 }
 
-export default async function ApplyLayout({
-  children,
-  params: { programSlug },
-}: PropsWithChildren<{ params: { programSlug: string } }>) {
+export default async function ApplyLayout(props: PropsWithChildren<{ params: Promise<{ programSlug: string }> }>) {
+  const params = await props.params;
+
+  const {
+    programSlug
+  } = params;
+
+  const {
+    children
+  } = props;
+
   const program = await getProgram({ slug: programSlug });
 
   if (!program || !program.landerData) {

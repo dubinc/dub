@@ -5,13 +5,13 @@ import { InputPassword } from "@dub/ui";
 
 export const runtime = "nodejs";
 
-interface Props {
-  params: {
-    token: string;
-  };
-}
+export default async function ResetPasswordPage({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}) {
+  const { token } = await params;
 
-export default async function ResetPasswordPage({ params: { token } }: Props) {
   const validToken = await isValidToken(token);
 
   if (!validToken) {

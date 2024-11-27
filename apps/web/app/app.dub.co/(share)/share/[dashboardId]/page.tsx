@@ -12,11 +12,12 @@ import DashboardPasswordForm from "./form";
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { dashboardId: string };
-}) {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ dashboardId: string }>;
+  }
+) {
+  const params = await props.params;
   const data = await getDashboard({ id: params.dashboardId });
 
   // if the dashboard or link doesn't exist
@@ -31,11 +32,12 @@ export async function generateMetadata({
   });
 }
 
-export default async function dashboardPage({
-  params,
-}: {
-  params: { dashboardId: string };
-}) {
+export default async function dashboardPage(
+  props: {
+    params: Promise<{ dashboardId: string }>;
+  }
+) {
+  const params = await props.params;
   const cookieStore = await cookies();
 
   const data = await getDashboard({ id: params.dashboardId });

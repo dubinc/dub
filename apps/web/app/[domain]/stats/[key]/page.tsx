@@ -7,13 +7,15 @@ export const runtime = "edge";
 export default async function OldStatsPage({
   params,
 }: {
-  params: { domain: string; key: string };
+  params: Promise<{ domain: string; key: string }>;
 }) {
+  const { domain, key } = await params;
+
   const link = await prismaEdge.link.findUnique({
     where: {
       domain_key: {
-        domain: params.domain,
-        key: params.key,
+        domain,
+        key,
       },
     },
     select: {

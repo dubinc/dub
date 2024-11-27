@@ -8,11 +8,17 @@ import { ApplyButton } from "./apply-button";
 import { DetailsGrid } from "./details-grid";
 import { Header } from "./header";
 
-export default async function ApplyPage({
-  params: { programSlug },
-}: {
-  params: { programSlug: string };
-}) {
+export default async function ApplyPage(
+  props: {
+    params: Promise<{ programSlug: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    programSlug
+  } = params;
+
   const program = await getProgram({ slug: programSlug });
 
   if (!program || !program.landerData) {

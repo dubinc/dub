@@ -1,13 +1,14 @@
 import { getDefaultWorkspace } from "@/lib/fetchers";
 import { redirect } from "next/navigation";
 
-export default async function OldLinksStatsPage({
-  params,
-}: {
-  params: {
-    key: string;
-  };
-}) {
+export default async function OldLinksStatsPage(
+  props: {
+    params: Promise<{
+      key: string;
+    }>;
+  }
+) {
+  const params = await props.params;
   const defaultWorkspace = await getDefaultWorkspace();
   if (!defaultWorkspace) {
     redirect("/");

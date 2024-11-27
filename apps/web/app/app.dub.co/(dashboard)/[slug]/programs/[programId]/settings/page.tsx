@@ -4,11 +4,12 @@ import { DeleteProgram } from "./delete-program";
 import { ProgramSettings } from "./program-settings";
 import { TrackingSettings } from "./tracking-settings";
 
-export default async function ProgramSettingsPage({
-  params,
-}: {
-  params: { slug: string; programId: string };
-}) {
+export default async function ProgramSettingsPage(
+  props: {
+    params: Promise<{ slug: string; programId: string }>;
+  }
+) {
+  const params = await props.params;
   const { programId } = params;
 
   return (
