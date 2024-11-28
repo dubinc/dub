@@ -47,7 +47,7 @@ export default function UploadLogo() {
       <div className="flex flex-col space-y-3 p-5 sm:p-10">
         <h2 className="text-xl font-medium">Workspace Logo</h2>
         <p className="text-sm text-gray-500">
-          This is your workspace's logo on {process.env.NEXT_PUBLIC_APP_NAME}
+          This is your workspace's logo on {process.env.NEXT_PUBLIC_APP_NAME}.
         </p>
         <div className="mt-1">
           <FileUpload
