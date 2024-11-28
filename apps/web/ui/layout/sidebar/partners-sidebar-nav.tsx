@@ -3,7 +3,7 @@
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import usePartnerProgramInvites from "@/lib/swr/use-partner-program-invites";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { Button, useRouterStuff } from "@dub/ui";
+import { Button, useCopyToClipboard, useRouterStuff } from "@dub/ui";
 import {
   ArrowRight,
   ChartActivity2,
@@ -26,8 +26,7 @@ import { cn, currencyFormatter } from "@dub/utils";
 import { Store } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { ReactNode, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
+import { ReactNode, useMemo } from "react";
 import { PartnerProgramDropdown } from "./partner-program-dropdown";
 import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
 
@@ -212,8 +211,7 @@ function ProgramInfo() {
   };
   const { programEnrollment } = useProgramEnrollment();
 
-  const [isCopied, setIsCopied] = useState(false);
-  const copyTimeout = useRef<NodeJS.Timeout | null>(null);
+  const [copied, copyToClipboard] = useCopyToClipboard();
 
   const { data: analytics, loading } = usePartnerAnalytics();
 
@@ -247,7 +245,7 @@ function ProgramInfo() {
                 <div
                   className={cn(
                     "absolute inset-0 transition-[transform,opacity]",
-                    isCopied && "translate-y-1 opacity-0",
+                    copied && "translate-y-1 opacity-0",
                   )}
                 >
                   <Copy className="size-4" />
@@ -255,22 +253,18 @@ function ProgramInfo() {
                 <div
                   className={cn(
                     "absolute inset-0 transition-[transform,opacity]",
-                    !isCopied && "translate-y-1 opacity-0",
+                    !copied && "translate-y-1 opacity-0",
                   )}
                 >
                   <Check className="size-4" />
                 </div>
               </div>
             }
-            onClick={() => {
-              navigator.clipboard.writeText(
-                programEnrollment.link?.shortLink || "",
-              );
-              toast.success("Copied to clipboard");
-              setIsCopied(true);
-              if (copyTimeout.current) clearTimeout(copyTimeout.current);
-              copyTimeout.current = setTimeout(() => setIsCopied(false), 1000);
-            }}
+            disabled={!programEnrollment.link?.shortLink}
+            onClick={() =>
+              programEnrollment.link?.shortLink &&
+              copyToClipboard(programEnrollment.link?.shortLink)
+            }
           />
         </div>
       </div>

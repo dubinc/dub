@@ -3,8 +3,12 @@
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import { ExpandedLinkProps, UserProps } from "@/lib/types";
-import { PaginationControls } from "@dub/blocks/src/pagination-controls";
-import { CardList, MaxWidthWrapper, usePagination } from "@dub/ui";
+import {
+  CardList,
+  MaxWidthWrapper,
+  PaginationControls,
+  usePagination,
+} from "@dub/ui";
 import { CursorRays, Hyperlink, LoadingSpinner } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import { useSearchParams } from "next/navigation";

@@ -15,6 +15,7 @@ import {
   CustomerSchema,
   trackCustomerResponseSchema,
 } from "./zod/schemas/customers";
+import { dashboardSchema } from "./zod/schemas/dashboard";
 import { integrationSchema } from "./zod/schemas/integration";
 import { trackLeadResponseSchema } from "./zod/schemas/leads";
 import { createLinkBodySchema } from "./zod/schemas/links";
@@ -98,7 +99,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "referrals" | "webhooks" | "noDubLink";
+export type BetaFeatures = "webhooks" | "noDubLink";
 
 export type AddOns = "conversion" | "sso";
 
@@ -230,6 +231,8 @@ export const tagColors = [
   "pink",
   "brown",
 ] as const;
+
+export type DashboardProps = z.infer<typeof dashboardSchema>;
 
 export type MetaTag = z.infer<typeof metaTagsSchema>;
 

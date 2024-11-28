@@ -246,6 +246,7 @@ function NewsCard({
               src={image}
               alt=""
               fill
+              sizes="10vw"
               className="rounded object-cover object-center"
               draggable={false}
             />

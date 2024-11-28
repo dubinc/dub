@@ -1,0 +1,42 @@
+{
+  "name": "@dub/embed-core",
+  "description": "Vanilla JS core script that embeds Dub dashboards & widgets.",
+  "version": "0.0.1",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "files": [
+    "dist/**"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "lint": "eslint src/",
+    "dev": "tsup --watch",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@floating-ui/dom": "^1.6.12"
+  },
+  "devDependencies": {
+    "@types/js-cookie": "^3.0.6",
+    "tsconfig": "workspace:*",
+    "tsup": "^6.1.3",
+    "typescript": "^5.1.6"
+  },
+  "author": "Steven Tey <stevensteel97@gmail.com>",
+  "homepage": "https://dub.co",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/steven-tey/dub.git"
+  },
+  "bugs": {
+    "url": "https://github.com/steven-tey/dub/issues"
+  },
+  "keywords": [
+    "dub",
+    "dub.co",
+    "ui"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

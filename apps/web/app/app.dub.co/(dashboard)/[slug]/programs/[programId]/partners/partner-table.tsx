@@ -2,6 +2,7 @@
 
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import { EnrolledPartnerProps } from "@/lib/types";
+import EditColumnsButton from "@/ui/analytics/events/edit-columns-button";
 import { PartnerDetailsSheet } from "@/ui/partners/partner-details-sheet";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -34,6 +35,7 @@ import { Command } from "cmdk";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
+import { partnersColumns, useColumnVisibility } from "./use-column-visibility";
 import { usePartnerFilters } from "./use-partner-filters";
 
 export function PartnerTable() {
@@ -75,13 +77,16 @@ export function PartnerTable() {
     }
   }, [searchParams, partners]);
 
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility();
   const { pagination, setPagination } = usePagination();
 
-  const table = useTable({
+  const { table, ...tableProps } = useTable({
     data: partners || [],
     columns: [
       {
+        id: "partner",
         header: "Partner",
+        enableHiding: false,
         cell: ({ row }) => {
           return (
             <div className="flex items-center gap-2">
@@ -104,6 +109,7 @@ export function PartnerTable() {
         accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
       },
       {
+        id: "status",
         header: "Status",
         cell: ({ row }) => {
           const badge = PartnerStatusBadges[row.original.status];
@@ -117,6 +123,7 @@ export function PartnerTable() {
         },
       },
       {
+        id: "location",
         header: "Location",
         cell: ({ row }) => {
           const country = row.original.country;
@@ -134,22 +141,24 @@ export function PartnerTable() {
           );
         },
       },
-      // TODO: Add these once we support hiding/showing columns
-      // {
-      //   header: "Clicks",
-      //   accessorFn: (d) =>
-      //     d.status !== "pending"
-      //       ? nFormatter(d.link?.clicks, { full: true })
-      //       : "-",
-      // },
-      // {
-      //   header: "Leads",
-      //   accessorFn: (d) =>
-      //     d.status !== "pending"
-      //       ? nFormatter(d.link?.leads, { full: true })
-      //       : "-",
-      // },
       {
+        id: "clicks",
+        header: "Clicks",
+        accessorFn: (d) =>
+          d.status !== "pending"
+            ? nFormatter(d.link?.clicks, { full: true })
+            : "-",
+      },
+      {
+        id: "leads",
+        header: "Leads",
+        accessorFn: (d) =>
+          d.status !== "pending"
+            ? nFormatter(d.link?.leads, { full: true })
+            : "-",
+      },
+      {
+        id: "sales",
         header: "Sales",
         accessorFn: (d) =>
           d.status !== "pending"
@@ -174,19 +183,23 @@ export function PartnerTable() {
         minSize: 43,
         size: 43,
         maxSize: 43,
+        header: () => <EditColumnsButton table={table} />,
         cell: ({ row }) => <RowMenuButton row={row} />,
       },
-    ],
+    ].filter((c) => c.id === "menu" || partnersColumns.all.includes(c.id)),
     onRowClick: (row) => {
       queryParams({
         set: {
           partnerId: row.original.id,
         },
+        scroll: false,
       });
     },
     pagination,
     onPaginationChange: setPagination,
-    sortableColumns: ["createdAt", "earnings"],
+    columnVisibility,
+    onColumnVisibilityChange: setColumnVisibility,
+    sortableColumns: ["createdAt", "clicks", "leads", "sales", "earnings"],
     sortBy,
     sortOrder: order,
     onSortChange: ({ sortBy, sortOrder }) =>
@@ -195,6 +208,7 @@ export function PartnerTable() {
           ...(sortBy && { sort: sortBy }),
           ...(sortOrder && { order: sortOrder }),
         },
+        scroll: false,
       }),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
@@ -242,7 +256,7 @@ export function PartnerTable() {
         </AnimatedSizeContainer>
       </div>
       {partners?.length !== 0 ? (
-        <Table {...table} />
+        <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState
           title="No partners found"

@@ -122,3 +122,7 @@ export const dotsUserSchema = z.object({
   default_payout_method: dotsPayoutPlatforms.nullish(),
   compliance: z.any(),
 });
+
+export const requestPartnerInviteSchema = z.object({
+  email: z.string().email(),
+});

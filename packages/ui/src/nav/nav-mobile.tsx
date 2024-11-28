@@ -32,7 +32,7 @@ export function NavMobile({
   }, [open]);
 
   const { data: session } = useSWR(
-    domain === "dub.co" && "/api/auth/session",
+    domain.endsWith("dub.co") && "/api/auth/session",
     fetcher,
     {
       dedupingInterval: 60000,

@@ -1,5 +1,6 @@
 import { PlanProps } from "@/lib/types";
 import { Badge } from "@dub/ui";
+import { capitalize } from "@dub/utils";
 
 export default function PlanBadge({ plan }: { plan: PlanProps }) {
   return (
@@ -14,7 +15,7 @@ export default function PlanBadge({ plan }: { plan: PlanProps }) {
               : "black"
       }
     >
-      {plan}
+      {capitalize(plan)}
     </Badge>
   );
 }
