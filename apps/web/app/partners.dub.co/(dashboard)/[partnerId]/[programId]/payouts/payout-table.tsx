@@ -11,7 +11,12 @@ import {
   useTable,
 } from "@dub/ui";
 import { MoneyBill2 } from "@dub/ui/src/icons";
-import { currencyFormatter, formatDate, nFormatter } from "@dub/utils";
+import {
+  capitalize,
+  currencyFormatter,
+  formatDate,
+  nFormatter,
+} from "@dub/utils";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -62,16 +67,24 @@ export function PayoutTable() {
       {
         id: "periodStart",
         header: "Period",
-        accessorFn: (d) =>
-          `${formatDate(d.periodStart, { month: "short", year: new Date(d.periodStart).getFullYear() === new Date(d.periodEnd).getFullYear() ? undefined : "numeric" })}-${formatDate(
+        accessorFn: (d) => {
+          if (!d.periodStart || !d.periodEnd) {
+            return "-";
+          }
+
+          return `${formatDate(d.periodStart, { month: "short", year: new Date(d.periodStart).getFullYear() === new Date(d.periodEnd).getFullYear() ? undefined : "numeric" })}-${formatDate(
             d.periodEnd,
             { month: "short" },
-          )}`,
+          )}`;
+        },
       },
       {
-        id: "sales",
-        header: "Sales",
-        accessorFn: (d) => nFormatter(d._count.sales, { full: true }),
+        id: "quantity",
+        header: "Quantity",
+        accessorFn: (d) =>
+          d.quantity
+            ? `${nFormatter(d.quantity, { full: true })} ${capitalize(d.type)}`
+            : "-",
       },
       {
         id: "amount",

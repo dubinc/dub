@@ -72,14 +72,18 @@ function PayoutDetailsSheetContent({
           <div>{payout.partner.name}</div>
         </Link>
       ),
-      Period: `${formatDate(payout.periodStart, {
-        month: "short",
-        year:
-          new Date(payout.periodStart).getFullYear() ===
-          new Date(payout.periodEnd).getFullYear()
-            ? undefined
-            : "numeric",
-      })}-${formatDate(payout.periodEnd, { month: "short" })}`,
+
+      Period:
+        !payout.periodStart || !payout.periodEnd
+          ? "-"
+          : `${formatDate(payout.periodStart, {
+              month: "short",
+              year:
+                new Date(payout.periodStart).getFullYear() ===
+                new Date(payout.periodEnd).getFullYear()
+                  ? undefined
+                  : "numeric",
+            })}-${formatDate(payout.periodEnd, { month: "short" })}`,
 
       ...(payout.quantity && {
         [capitalize(payout.type) as string]: payout.quantity,

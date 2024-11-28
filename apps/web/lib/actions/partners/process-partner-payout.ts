@@ -80,6 +80,9 @@ export const processPartnerPayoutAction = authActionClient
         : []),
     ]);
 
+    // TODO:
+    // Add email for other payout types
+
     if (payout.type === "sales") {
       waitUntil(
         (async () => {
