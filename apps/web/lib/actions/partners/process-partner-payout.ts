@@ -80,52 +80,54 @@ export const processPartnerPayoutAction = authActionClient
         : []),
     ]);
 
-    waitUntil(
-      (async () => {
-        const partnerUsers = await prisma.partnerUser.findMany({
-          where: {
-            partnerId: payout.partnerId,
-          },
-          include: {
-            user: {
-              select: {
-                email: true,
+    if (payout.type === "sales") {
+      waitUntil(
+        (async () => {
+          const partnerUsers = await prisma.partnerUser.findMany({
+            where: {
+              partnerId: payout.partnerId,
+            },
+            include: {
+              user: {
+                select: {
+                  email: true,
+                },
               },
             },
-          },
-        });
+          });
 
-        await Promise.all(
-          partnerUsers.map(({ user }) =>
-            limiter.schedule(() =>
-              sendEmail({
-                subject: "You've been paid!",
-                email: user.email!,
-                from: "Dub Partners <system@dub.co>",
-                react: PartnerPayoutSent({
+          await Promise.all(
+            partnerUsers.map(({ user }) =>
+              limiter.schedule(() =>
+                sendEmail({
+                  subject: "You've been paid!",
                   email: user.email!,
-                  program,
-                  payout: {
-                    id: payout.id,
-                    amount: payout.amount,
-                    startDate: formatDate(payout.periodStart, {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    }),
-                    endDate: formatDate(payout.periodEnd, {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    }),
-                  },
+                  from: "Dub Partners <system@dub.co>",
+                  react: PartnerPayoutSent({
+                    email: user.email!,
+                    program,
+                    payout: {
+                      id: payout.id,
+                      amount: payout.amount,
+                      startDate: formatDate(payout.periodStart!, {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      }),
+                      endDate: formatDate(payout.periodEnd!, {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      }),
+                    },
+                  }),
                 }),
-              }),
+              ),
             ),
-          ),
-        );
-      })(),
-    );
+          );
+        })(),
+      );
+    }
 
     return {
       transfer,
