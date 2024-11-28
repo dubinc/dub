@@ -1,5 +1,5 @@
 import { REDIRECTION_QUERY_PARAM } from "@dub/utils/src/constants";
-import { getUrlFromString } from "@dub/utils/src/functions";
+import { getUrlFromStringIfValid } from "@dub/utils/src/functions";
 import { NextRequest } from "next/server";
 
 export const getFinalUrl = (
@@ -10,7 +10,7 @@ export const getFinalUrl = (
   const searchParams = req.nextUrl.searchParams;
 
   // if there is a redirection url set, then use it instead of the target url
-  const redirectionUrl = getUrlFromString(
+  const redirectionUrl = getUrlFromStringIfValid(
     searchParams.get(REDIRECTION_QUERY_PARAM) ?? "",
   );
 
@@ -64,7 +64,7 @@ export const getFinalUrlForRecordClick = ({
   const searchParams = new URL(req.url).searchParams;
 
   // if there is a redirection url set, then use it instead of the target url
-  const redirectionUrl = getUrlFromString(
+  const redirectionUrl = getUrlFromStringIfValid(
     searchParams.get(REDIRECTION_QUERY_PARAM) ?? "",
   );
 
