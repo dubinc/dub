@@ -114,6 +114,7 @@ export default function EventsTabs({
                         ? {
                             style: "currency",
                             currency: "USD",
+                            trailingZeroDisplay: "stripIfInteger",
                           }
                         : {
                             notation:

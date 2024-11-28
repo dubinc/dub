@@ -79,7 +79,9 @@ function PlanCard({
           format={{
             style: "currency",
             currency: "USD",
+            trailingZeroDisplay: "stripIfInteger",
           }}
+          continuous
         />
         <span className="ml-1 text-sm font-medium">
           per month
