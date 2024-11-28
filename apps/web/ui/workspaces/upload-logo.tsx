@@ -22,12 +22,12 @@ export default function UploadLogo() {
       onSubmit={async (e) => {
         setUploading(true);
         e.preventDefault();
-        fetch(`/api/workspaces/${id}/logo`, {
-          method: "POST",
+        fetch(`/api/workspaces/${id}`, {
+          method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ image }),
+          body: JSON.stringify({ logo: image }),
         }).then(async (res) => {
           if (res.status === 200) {
             await Promise.all([
