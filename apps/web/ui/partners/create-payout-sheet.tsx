@@ -16,7 +16,14 @@ import {
 import { cn } from "@dub/utils";
 import { PayoutType } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useId, useMemo, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useId,
+  useMemo,
+  useState,
+} from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -58,8 +65,8 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
 
   const partnerId = watch("partnerId");
   const payoutType = watch("type");
-
-  const partner = partners?.find((p) => p.id === partnerId);
+  const start = watch("start");
+  const end = watch("end");
 
   const partnerOptions = useMemo(() => {
     return partners?.map((partner) => ({
@@ -77,21 +84,34 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
     }));
   }, [partners]);
 
-  // const searchParams = useMemo(() => {
-  //   return partner?.link
-  //     ? {
-  //         workspaceId,
-  //         event: "composite",
-  //         start: dateRange.start.toISOString(),
-  //         end: dateRange.end.toISOString(),
-  //         linkId: partner?.link?.id,
-  //       }
-  //     : null;
-  // }, [partner?.link, dateRange.start, dateRange.end, workspaceId]);
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      const searchParams = new URLSearchParams({
+        workspaceId: workspaceId!,
+        event: payoutType,
+        start: start?.toISOString() || "",
+        end: end?.toISOString() || "",
+        page: "1",
+        sortBy: "timestamp",
+        order: "desc",
+      });
 
-  // const { data: events } = useSWR<{
-  //   [key in AnalyticsResponseOptions]: number;
-  // }>(searchParams ? `/api/analytics?${searchParams.toString()}` : null);
+      const response = await fetch(`/api/events?${searchParams.toString()}`);
+      const events = await response.json();
+    };
+
+    if (payoutType === "custom" || !start || !end) {
+      return;
+    }
+
+    const partner = partners?.find((p) => p.id === partnerId);
+
+    if (!partner) {
+      return;
+    }
+
+    fetchAnalytics();
+  }, [partnerId, start, end, payoutType]);
 
   const { executeAsync, isExecuting } = useAction(createManualPayoutAction, {
     onSuccess: async () => {
