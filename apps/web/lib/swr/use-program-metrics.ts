@@ -19,6 +19,9 @@ export default function useProgramMetrics() {
       workspaceId,
     })}`,
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   return {
