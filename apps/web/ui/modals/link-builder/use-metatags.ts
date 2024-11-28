@@ -12,7 +12,14 @@ export function useMetatags({
   enabled: boolean;
 }) {
   const { watch, setValue } = useFormContext<LinkFormData>();
-  const [url, password, proxy] = watch(["url", "password", "proxy"]);
+  const [url, password, proxy, title, description, image] = watch([
+    "url",
+    "password",
+    "proxy",
+    "title",
+    "description",
+    "image",
+  ]);
   const [debouncedUrl] = useDebounce(getUrlWithoutUTMParams(url), 500);
 
   const [generatingMetatags, setGeneratingMetatags] = useState(initial);
@@ -36,11 +43,7 @@ export function useMetatags({
      * - custom OG proxy is not enabled
      * - url is not empty
      **/
-    if (enabled && !proxy) {
-      setValue("title", null);
-      setValue("description", null);
-      setValue("image", null);
-
+    if (enabled) {
       try {
         // if url is valid, continue to generate metatags, else return null
         new URL(debouncedUrl);
@@ -48,9 +51,10 @@ export function useMetatags({
         fetch(`/api/metatags?url=${debouncedUrl}`).then(async (res) => {
           if (res.status === 200) {
             const results = await res.json();
-            setValue("title", truncate(results.title, 120));
-            setValue("description", truncate(results.description, 240));
-            setValue("image", results.image);
+            !title && setValue("title", truncate(results.title, 120));
+            !description &&
+              setValue("description", truncate(results.description, 240));
+            !image && setValue("image", results.image);
           }
           // set timeout to prevent flickering
           setTimeout(() => setGeneratingMetatags(false), 200);
