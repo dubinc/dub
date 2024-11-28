@@ -79,7 +79,6 @@ function PlanCard({
           format={{
             style: "currency",
             currency: "USD",
-            trailingZeroDisplay: "stripIfInteger",
           }}
         />
         <span className="ml-1 text-sm font-medium">

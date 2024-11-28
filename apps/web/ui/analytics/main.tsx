@@ -119,7 +119,6 @@ export default function Main() {
                               ? {
                                   style: "currency",
                                   currency: "USD",
-                                  trailingZeroDisplay: "stripIfInteger",
                                 }
                               : {
                                   notation:
