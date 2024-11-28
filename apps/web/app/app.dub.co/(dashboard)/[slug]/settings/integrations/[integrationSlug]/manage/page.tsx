@@ -5,20 +5,22 @@ import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-export default async function IntegrationManagePage(
-  props: {
-    params: Promise<{ slug: string; integrationSlug: string }>;
-  }
-) {
-  const params = await props.params;
+export default async function IntegrationManagePage({
+  params,
+}: {
+  params: Promise<{ slug: string; integrationSlug: string }>;
+}) {
+  const { slug, integrationSlug } = await params;
+
   // this is only available for Dub workspace for now
   // we might open this up to other workspaces in the future
-  if (params.slug !== "dub") {
+  if (slug !== "dub") {
     notFound();
   }
+
   const integration = await prisma.integration.findUnique({
     where: {
-      slug: params.integrationSlug,
+      slug: integrationSlug,
     },
   });
   if (!integration) {
@@ -27,7 +29,7 @@ export default async function IntegrationManagePage(
   return (
     <MaxWidthWrapper className="grid max-w-screen-lg gap-8">
       <Link
-        href={`/${params.slug}/settings/integrations`}
+        href={`/${slug}/settings/integrations`}
         className="flex items-center gap-x-1"
       >
         <ChevronLeft className="size-4" />

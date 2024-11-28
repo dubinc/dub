@@ -10,14 +10,14 @@ import { notFound, redirect } from "next/navigation";
 
 export const runtime = "edge";
 
-export async function generateMetadata(
-  props: {
-    params: Promise<{ domain: string; key: string }>;
-  }
-) {
-  const params = await props.params;
-  const domain = params.domain;
-  const key = decodeURIComponent(params.key); // key can potentially be encoded
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ domain: string; key: string }>;
+}) {
+  let { domain, key } = await params;
+
+  key = decodeURIComponent(key); // key can potentially be encoded
 
   const data = await getLinkViaEdge(domain, key);
 
@@ -37,14 +37,14 @@ export async function generateMetadata(
   });
 }
 
-export default async function ProxyPage(
-  props: {
-    params: Promise<{ domain: string; key: string }>;
-  }
-) {
-  const params = await props.params;
-  const domain = params.domain;
-  const key = decodeURIComponent(params.key);
+export default async function ProxyPage({
+  params,
+}: {
+  params: Promise<{ domain: string; key: string }>;
+}) {
+  let { domain, key } = await params;
+
+  key = decodeURIComponent(key);
 
   const data = await getLinkViaEdge(domain, key);
 

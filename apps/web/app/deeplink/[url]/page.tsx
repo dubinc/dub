@@ -1,9 +1,14 @@
 export const runtime = "edge";
 
-export default async function DeepLinkPage(props: { params: Promise<{ url: string }> }) {
-  const params = await props.params;
+export default async function DeepLinkPage({
+  params,
+}: {
+  params: Promise<{ url: string }>;
+}) {
+  let { url } = await params;
+
   // First decode the full URL parameter from the route
-  const url = decodeURIComponent(params.url);
+  url = decodeURIComponent(url);
   // Split into base URL and query string
   const [baseUrl, queryString] = url.split("?");
 

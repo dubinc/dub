@@ -20,20 +20,20 @@ export const metadata = constructMetadata({
 });
 
 // OAuth app consent page
-export default async function Authorize(
-  props: {
-    searchParams?: Promise<z.infer<typeof authorizeRequestSchema>>;
-  }
-) {
-  const searchParams = await props.searchParams;
+export default async function Authorize({
+  searchParams,
+}: {
+  searchParams?: Promise<z.infer<typeof authorizeRequestSchema>>;
+}) {
   const session = await getSession();
 
   if (!session) {
     redirect("/login");
   }
 
-  const { error, integration, requestParams } =
-    await vaidateAuthorizeRequest(searchParams);
+  const { error, integration, requestParams } = await vaidateAuthorizeRequest(
+    await searchParams,
+  );
 
   if (error || !integration) {
     return (

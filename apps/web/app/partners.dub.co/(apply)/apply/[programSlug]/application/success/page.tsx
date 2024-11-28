@@ -38,24 +38,15 @@ const FEATURES = [
   },
 ];
 
-export default async function SuccessPage(
-  props: {
-    params: Promise<{ programSlug: string }>;
-    searchParams: Promise<{ applicationId?: string; enrollmentId?: string }>;
-  }
-) {
-  const searchParams = await props.searchParams;
-
-  const {
-    applicationId,
-    enrollmentId
-  } = searchParams;
-
-  const params = await props.params;
-
-  const {
-    programSlug
-  } = params;
+export default async function SuccessPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ programSlug: string }>;
+  searchParams: Promise<{ applicationId?: string; enrollmentId?: string }>;
+}) {
+  const { programSlug } = await params;
+  const { applicationId, enrollmentId } = await searchParams;
 
   const program = await getProgram({ slug: programSlug });
 

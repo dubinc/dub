@@ -5,16 +5,12 @@ import { DetailsGrid } from "../details-grid";
 import { Header } from "../header";
 import { ProgramApplicationForm } from "./form";
 
-export default async function ApplicationPage(
-  props: {
-    params: Promise<{ programSlug: string }>;
-  }
-) {
-  const params = await props.params;
-
-  const {
-    programSlug
-  } = params;
+export default async function ApplicationPage({
+  params,
+}: {
+  params: Promise<{ programSlug: string }>;
+}) {
+  const { programSlug } = await params;
 
   const program = await getProgram({ slug: programSlug });
 
