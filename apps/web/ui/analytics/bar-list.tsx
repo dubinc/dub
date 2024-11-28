@@ -1,8 +1,12 @@
 "use client";
 
 import { LinkProps } from "@/lib/types";
-import { NumberTooltip, Tooltip, useMediaQuery } from "@dub/ui";
-import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
+import {
+  LinkifyTooltipContent,
+  NumberTooltip,
+  Tooltip,
+  useMediaQuery,
+} from "@dub/ui";
 import { cn, getPrettyUrl, nFormatter } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";

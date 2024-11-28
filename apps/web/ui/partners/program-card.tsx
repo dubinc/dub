@@ -1,7 +1,6 @@
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import { ProgramEnrollmentProps, ProgramProps } from "@/lib/types";
-import { MiniAreaChart } from "@dub/blocks";
-import { BlurImage, StatusBadge } from "@dub/ui";
+import { BlurImage, MiniAreaChart, StatusBadge } from "@dub/ui";
 import {
   cn,
   currencyFormatter,

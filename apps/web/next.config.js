@@ -90,6 +90,15 @@ module.exports = withAxiom({
           },
         ],
       },
+      {
+        source: "/embed/:path*",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: "frame-ancestors *",
+          },
+        ],
+      },
     ];
   },
   async redirects() {
