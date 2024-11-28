@@ -1,7 +1,6 @@
+import { REDIRECTION_QUERY_PARAM } from "@dub/utils/src/constants";
 import { getUrlFromString } from "@dub/utils/src/functions";
 import { NextRequest } from "next/server";
-
-const REDIRECTION_QUERY_PARAM = "redir_url";
 
 export const getFinalUrl = (
   url: string,
