@@ -179,6 +179,10 @@ function PasswordModalInner({
               className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
               onClick={() => {
                 setValueParent("password", null, { shouldDirty: true });
+                ["title", "description", "image"].forEach(
+                  (key: "title" | "description" | "image") =>
+                    setValueParent(key, null, { shouldDirty: true }),
+                );
                 setShowPasswordModal(false);
               }}
             >
