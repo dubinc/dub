@@ -22,9 +22,9 @@ model Payout {
   status         PayoutStatus @default(pending)
   type           PayoutType   @default(sales)
   description    String?
-  periodStart    DateTime
-  periodEnd      DateTime
-  eventCount     Int          @default(0) // Number of clicks/leads/sales in this payout
+  periodStart    DateTime?
+  periodEnd      DateTime?
+  quantity       Int? // Number of clicks/leads/sales in this payout
   dotsTransferId String?      @unique
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt

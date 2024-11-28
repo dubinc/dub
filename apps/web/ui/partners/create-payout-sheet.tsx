@@ -4,6 +4,7 @@ import { createManualPayoutAction } from "@/lib/actions/partners/create-manual-p
 import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { createManualPayoutSchema } from "@/lib/zod/schemas/payouts";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -19,21 +20,22 @@ import { Dispatch, SetStateAction, useId, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { z } from "zod";
 
 interface CreatePayoutSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-interface FormData {
-  dateRange: {
-    start: Date;
-    end: Date;
-  };
-  amount: number;
-  partnerId: string;
-  type: PayoutType;
-  description?: string;
-}
+const schema = createManualPayoutSchema.pick({
+  partnerId: true,
+  type: true,
+  start: true,
+  end: true,
+  amount: true,
+  description: true,
+});
+
+type FormData = z.infer<typeof schema>;
 
 function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
   const dateRangePickerId = useId();
@@ -41,24 +43,23 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
   const { data: partners } = usePartners();
   const { id: workspaceId } = useWorkspace();
 
-  const today = new Date();
-
-  const { register, handleSubmit, watch, setValue } = useForm<FormData>({
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+    clearErrors,
+  } = useForm<FormData>({
     defaultValues: {
-      dateRange: {
-        start: new Date(
-          today.getFullYear(),
-          today.getMonth(),
-          today.getDate() - 31,
-        ),
-        end: new Date(today.getFullYear(), today.getMonth(), today.getDate()),
-      },
+      type: "sales",
     },
+    // resolver: zodResolver(schema),
   });
 
   const partnerId = watch("partnerId");
-  const dateRange = watch("dateRange");
-  const type = watch("type");
+  const payoutType = watch("type");
+
   const partner = partners?.find((p) => p.id === partnerId);
 
   const partnerOptions = useMemo(() => {
@@ -102,21 +103,26 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
       );
     },
     onError({ error }) {
+      console.log("error", error);
       toast.error(error.serverError);
     },
   });
 
   const onSubmit = async (data: FormData) => {
+    console.log("data", data);
+
     if (workspaceId && program) {
       await executeAsync({
         ...data,
         workspaceId,
         programId: program.id,
-        start: data.dateRange.start.toISOString(),
-        end: data.dateRange.end.toISOString(),
+        start: data.start ? data.start.toISOString() : null,
+        end: data.end ? data.end.toISOString() : null,
       });
     }
   };
+
+  const isValid = Object.keys(errors).length === 0;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
@@ -133,7 +139,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
             />
           </Sheet.Close>
         </div>
-        <div className="flex flex-col gap-3 p-6">
+        <div className="flex flex-col gap-4 p-6">
           <div className="flex flex-col gap-2">
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-900">
               Partner
@@ -145,6 +151,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
               setSelected={(option) => {
                 if (option) {
                   setValue("partnerId", option.value);
+                  clearErrors("partnerId");
                 }
               }}
               options={partnerOptions}
@@ -158,33 +165,13 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
                   "data-[state=open]:ring-1 data-[state=open]:ring-gray-500 data-[state=open]:border-gray-500",
                   "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
                   !partnerId && "text-gray-400",
+                  errors.partnerId && "border-red-500",
                 ),
               }}
             />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor={dateRangePickerId}
-              className="block text-sm font-medium text-gray-700"
-            >
-              Date Range
-            </label>
-            <DateRangePicker
-              id={dateRangePickerId}
-              onChange={(dateRange) => {
-                if (dateRange) {
-                  setValue("dateRange", {
-                    start: dateRange.from!,
-                    end: dateRange.to!,
-                  });
-                }
-              }}
-              value={{
-                from: dateRange.start,
-                to: dateRange.end,
-              }}
-            />
+            {errors.partnerId && (
+              <p className="text-xs text-red-600">{errors.partnerId.message}</p>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -192,7 +179,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
               htmlFor="type"
               className="flex items-center space-x-2 text-sm font-medium text-gray-900"
             >
-              Type
+              What type of payout is this?
             </label>
             <select
               {...register("type", { required: true })}
@@ -206,7 +193,25 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
             </select>
           </div>
 
-          {type !== "sales" && (
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor={dateRangePickerId}
+              className="block text-sm font-medium text-gray-700"
+            >
+              Range for payout {payoutType === "custom" ? "(optional)" : ""}
+            </label>
+            <DateRangePicker
+              id={dateRangePickerId}
+              onChange={(dateRange) => {
+                if (dateRange) {
+                  setValue("start", dateRange.from!);
+                  setValue("end", dateRange.to!);
+                }
+              }}
+            />
+          </div>
+
+          {payoutType !== "sales" && (
             <div className="flex flex-col gap-2">
               <label
                 htmlFor="amount"
@@ -218,7 +223,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
                 <input
                   {...register("amount", {
                     required: true,
-                    setValueAs: (value) => Number(value),
+                    setValueAs: (value) => Number(value) || "",
                   })}
                   className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                   placeholder="500"
@@ -234,7 +239,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
               htmlFor="description"
               className="flex items-center space-x-2 text-sm font-medium text-gray-900"
             >
-              Description
+              Description (optional)
             </label>
             <textarea
               {...register("description")}
@@ -261,6 +266,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
             text="Create payout"
             className="w-fit"
             loading={isExecuting}
+            // disabled={!isValid}
           />
         </div>
       </div>

@@ -58,8 +58,8 @@ function PayoutDetailsSheetContent({
             : "numeric",
       })}-${formatDate(payout.periodEnd, { month: "short" })}`,
 
-      ...(payout.type !== "custom" && {
-        [capitalize(payout.type) as string]: payout.eventCount,
+      ...(payout.quantity && {
+        [capitalize(payout.type) as string]: payout.quantity,
       }),
 
       Amount: currencyFormatter(payout.amount / 100, {

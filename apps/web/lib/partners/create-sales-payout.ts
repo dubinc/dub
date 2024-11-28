@@ -58,7 +58,7 @@ export const createSalesPayout = async ({
         total: amount + fee,
         periodStart,
         periodEnd,
-        eventCount: sales.length,
+        quantity: sales.length,
       },
     });
 

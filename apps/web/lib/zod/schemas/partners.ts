@@ -80,7 +80,7 @@ export const PayoutSchema = z.object({
   periodStart: z.date(),
   periodEnd: z.date(),
   dotsTransferId: z.string().nullable(),
-  eventCount: z.number(),
+  quantity: z.number().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

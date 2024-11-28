@@ -1,4 +1,4 @@
-import { createPartnerPayoutAction } from "@/lib/actions/partners/create-partner-payout";
+import { processPartnerPayoutAction } from "@/lib/actions/partners/process-partner-payout";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse, SaleResponse } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
@@ -81,8 +81,8 @@ function PayoutDetailsSheetContent({
             : "numeric",
       })}-${formatDate(payout.periodEnd, { month: "short" })}`,
 
-      ...(payout.type !== "custom" && {
-        [capitalize(payout.type) as string]: payout.eventCount,
+      ...(payout.quantity && {
+        [capitalize(payout.type) as string]: payout.quantity,
       }),
 
       Amount: currencyFormatter(payout.amount / 100, {
@@ -166,7 +166,7 @@ function PayoutDetailsSheetContent({
 
   const { queryParams } = useRouterStuff();
 
-  const { executeAsync, isExecuting } = useAction(createPartnerPayoutAction, {
+  const { executeAsync, isExecuting } = useAction(processPartnerPayoutAction, {
     onSuccess: async () => {
       await mutate(
         (key) =>
