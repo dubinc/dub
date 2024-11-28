@@ -9,7 +9,7 @@ import { VerifyEmailForm } from "@/ui/auth/register/verify-email-form";
 import { truncate } from "@dub/utils";
 import Link from "next/link";
 
-export default function RegisterPageClient() {
+export default async function RegisterPageClient() {
   return (
     <RegisterProvider>
       <div className="mx-auto my-10 w-full max-w-md md:mt-16 lg:mt-20">

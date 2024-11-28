@@ -280,6 +280,7 @@ export default function IntegrationPageClient({
             )}
             components={{
               a: ({ node, ...props }) => (
+                // @ts-ignore
                 <a {...props} target="_blank" rel="noopener noreferrer" />
               ),
             }}

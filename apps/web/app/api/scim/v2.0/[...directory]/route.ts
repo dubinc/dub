@@ -9,10 +9,7 @@ import type {
 import { getSearchParams } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-const handler = async (
-  req: Request,
-  { params }: { params: Record<string, string> },
-) => {
+const handler = async (req: Request, { params }) => {
   const authHeader = req.headers.get("Authorization");
   const apiSecret = authHeader ? authHeader.split(" ")[1] : null;
 

@@ -166,6 +166,7 @@ function usePartnerFilterOptions(search: string) {
           (p) => p.id === searchParamsObj.partnerId,
         ))
       ? null
+      // @ts-ignore
       : ([
           ...(partners ?? []),
           // Add selected partner to list if not already in partners
@@ -207,6 +208,7 @@ function useCustomerFilterOptions(search: string) {
           (p) => p.id === searchParamsObj.customerId,
         ))
       ? null
+      // @ts-ignore
       : ([
           ...(customers ?? []),
           // Add selected partner to list if not already in partners

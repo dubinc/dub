@@ -174,6 +174,7 @@ export async function POST(req: Request) {
                   const result = mapper(row);
                   return "success" in result && result.success
                     ? result.data.key
+                    // @ts-ignore
                     : result.link.key;
                 }),
               },

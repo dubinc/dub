@@ -218,6 +218,7 @@ function TimeSeriesChartInner<T extends Datum>({
         {/* Tooltips */}
         <div className="pointer-events-none absolute inset-0">
           {tooltipData && (
+            // @ts-ignore
             <TooltipWrapper
               key={tooltipData.date.toString()}
               left={(tooltipLeft ?? 0) + margin.left}

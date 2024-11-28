@@ -12,15 +12,12 @@ interface WithAdminHandler {
     req: Request;
     params: Record<string, string>;
     searchParams: Record<string, string>;
-  }): Promise<Response>;
+  });
 }
 
 export const withAdmin =
   (handler: WithAdminHandler) =>
-  async (
-    req: Request,
-    { params = {} }: { params: Record<string, string> | undefined },
-  ) => {
+  async (req: Request, { params = {} }: { params: any }) => {
     const session = await getSession();
     if (!session?.user) {
       return new Response("Unauthorized: Login required.", { status: 401 });

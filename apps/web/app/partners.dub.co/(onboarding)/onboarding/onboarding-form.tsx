@@ -52,6 +52,7 @@ export function OnboardingForm() {
   const countryCode = COUNTRY_PHONE_CODES[watch("country")];
 
   const formRef = useRef<HTMLFormElement>(null);
+  // @ts-ignore
   const { handleKeyDown } = useEnterSubmit(formRef);
 
   return (

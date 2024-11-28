@@ -1,9 +1,11 @@
 import { getDefaultWorkspace } from "@/lib/fetchers";
 import { redirect } from "next/navigation";
 
-export default async function OldLinksAnalytics(
-  searchParams: Promise<{ domain?: string; key?: string }>,
-) {
+export default async function OldLinksAnalytics({
+  searchParams,
+}: {
+  searchParams: Promise<{ domain?: string; key?: string }>;
+}) {
   const { domain, key } = await searchParams;
 
   const defaultWorkspace = await getDefaultWorkspace();
