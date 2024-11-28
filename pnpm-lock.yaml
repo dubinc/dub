@@ -66,6 +66,9 @@ importers:
       '@next-auth/prisma-adapter':
         specifier: ^1.0.5
         version: 1.0.5(@prisma/client@5.18.0)(next-auth@4.24.4)
+      '@number-flow/react':
+        specifier: ^0.4.1
+        version: 0.4.1(react-dom@18.2.0)(react@18.2.0)
       '@planetscale/database':
         specifier: ^1.18.0
         version: 1.18.0
@@ -5162,6 +5165,18 @@ packages:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.15.0
+
+  /@number-flow/react@0.4.1(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-Vevf2iFJ+Tiqm2Sy2kKmdq0B3iZ+JrVleXmZgxqmbG6JSEU7EIK/yWR2XpPOkbJ8LvDQSUr8Zxpoq2gv7CdsGQ==}
+    peerDependencies:
+      react: ^18 || ^19.0.0-rc-915b914b3a-20240515
+      react-dom: ^18
+    dependencies:
+      esm-env: 1.2.0
+      number-flow: 0.4.0
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    dev: false
 
   /@one-ini/wasm@0.1.1:
     resolution: {integrity: sha512-XuySG1E38YScSJoMlqovLru4KTUNSjgVTIjyh7qMX6aNN5HY5Ct5LhRJdxO79JtTzKfzV/bnWpz+zquYrISsvw==}
@@ -13178,6 +13193,10 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
+  /esm-env@1.2.0:
+    resolution: {integrity: sha512-OhSQuHL3mUcaQHjGe8UMG8GsJIJHYYz0flR0h9fiTPNMupLMkb7TvcRD0EeJXW5a8GHBgfz08b6FDLNK7kkPQA==}
+    dev: false
+
   /espree@9.6.1:
     resolution: {integrity: sha512-oruZaFkjorTpF32kDSI5/75ViwGeZginGGy2NoOSg3Q9bnwlnmDm4HLnkl0RE3n+njDXR037aY1+x58Z/zFdwQ==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
@@ -17491,6 +17510,12 @@ packages:
 
   /nullthrows@1.1.1:
     resolution: {integrity: sha512-2vPPEi+Z7WqML2jZYddDIfy5Dqb0r2fze2zTxNNknZaFpVHU3mFB3R+DWeJWGVx0ecvttSGlJTI+WG+8Z4cDWw==}
+    dev: false
+
+  /number-flow@0.4.0:
+    resolution: {integrity: sha512-sG2ngZe0y3M8DSa9VQfMA5J9Yi1i4RYaaZ/lgawTJpICftFAGaFgTUydaavZmUbOZcBnjDqNizcsyb1MDhrGaw==}
+    dependencies:
+      esm-env: 1.2.0
     dev: false
 
   /nwsapi@2.2.10:

@@ -22,6 +22,7 @@
     "@dub/utils": "workspace:*",
     "@hookform/resolvers": "^3.9.0",
     "@next-auth/prisma-adapter": "^1.0.5",
+    "@number-flow/react": "^0.4.1",
     "@planetscale/database": "^1.18.0",
     "@prisma/adapter-planetscale": "5.18.0",
     "@prisma/client": "5.18.0",
