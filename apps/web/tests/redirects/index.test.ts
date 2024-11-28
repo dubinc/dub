@@ -1,3 +1,4 @@
+import { REDIRECTION_QUERY_PARAM } from "@dub/utils/src/constants";
 import { describe, expect, test } from "vitest";
 import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
@@ -86,6 +87,20 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     });
 
     expect(response.headers.get("location")).toBe("/?dub-no-track=1");
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
+  test("redirection url", async () => {
+    const response = await fetch(
+      `${h.baseUrl}/redir-url-test?${REDIRECTION_QUERY_PARAM}=https://dub.co/blog`,
+      {
+        ...fetchOptions,
+        headers: {},
+      },
+    );
+
+    expect(response.headers.get("location")).toBe("https://dub.co/blog");
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
     expect(response.status).toBe(302);
   });
