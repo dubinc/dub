@@ -273,7 +273,7 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
             <div className="flex flex-col gap-6">
               <div>
                 <label
-                  htmlFor="duration"
+                  htmlFor="commissionType"
                   className="text-sm font-medium text-neutral-800"
                 >
                   Payout model
@@ -291,7 +291,7 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
 
               <div>
                 <label
-                  htmlFor="duration"
+                  htmlFor="amount"
                   className="text-sm font-medium text-neutral-800"
                 >
                   Amount
