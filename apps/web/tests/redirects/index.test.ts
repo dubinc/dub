@@ -93,7 +93,7 @@ describe.runIf(env.CI)("Link Redirects", async () => {
 
   test("redirection url", async () => {
     const response = await fetch(
-      `${h.baseUrl}/${REDIRECTION_QUERY_PARAM}=https://dub.co/blog`,
+      `${h.baseUrl}/redir-url-test?${REDIRECTION_QUERY_PARAM}=https://dub.co/blog`,
       {
         ...fetchOptions,
         headers: {},
