@@ -12,13 +12,13 @@ import DashboardPasswordForm from "./form";
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
 
-export async function generateMetadata(
-  props: {
-    params: Promise<{ dashboardId: string }>;
-  }
-) {
-  const params = await props.params;
-  const data = await getDashboard({ id: params.dashboardId });
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ dashboardId: string }>;
+}) {
+  const { dashboardId } = await params;
+  const data = await getDashboard({ id: dashboardId });
 
   // if the dashboard or link doesn't exist
   if (!data?.link) {
@@ -32,15 +32,15 @@ export async function generateMetadata(
   });
 }
 
-export default async function dashboardPage(
-  props: {
-    params: Promise<{ dashboardId: string }>;
-  }
-) {
-  const params = await props.params;
+export default async function dashboardPage({
+  params,
+}: {
+  params: Promise<{ dashboardId: string }>;
+}) {
+  const { dashboardId } = await params;
   const cookieStore = await cookies();
 
-  const data = await getDashboard({ id: params.dashboardId });
+  const data = await getDashboard({ id: dashboardId });
 
   // if the dashboard or link doesn't exist
   if (!data?.link) {
@@ -49,8 +49,7 @@ export default async function dashboardPage(
 
   if (
     data.password &&
-    cookieStore.get(`dub_password_${params.dashboardId}`)?.value !==
-      data.password
+    cookieStore.get(`dub_password_${dashboardId}`)?.value !== data.password
   ) {
     return (
       <main className="flex h-screen w-screen items-center justify-center">

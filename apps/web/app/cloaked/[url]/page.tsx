@@ -8,13 +8,14 @@ import { getMetaTags } from "app/api/metatags/utils";
 export const runtime = "edge";
 export const fetchCache = "force-no-store";
 
-export async function generateMetadata(
-  props: {
-    params: Promise<{ url: string }>;
-  }
-) {
-  const params = await props.params;
-  const url = decodeURIComponent(params.url); // key can potentially be encoded
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ url: string }>;
+}) {
+  let { url } = await params;
+
+  url = decodeURIComponent(url); // key can potentially be encoded
 
   const metatags = await getMetaTags(url);
 
@@ -29,9 +30,14 @@ export async function generateMetadata(
   });
 }
 
-export default async function CloakedPage(props: { params: Promise<{ url: string }> }) {
-  const params = await props.params;
-  const url = decodeURIComponent(params.url);
+export default async function CloakedPage({
+  params,
+}: {
+  params: Promise<{ url: string }>;
+}) {
+  let { url } = await params;
+
+  url = decodeURIComponent(url);
 
   return <iframe src={url} className="min-h-screen w-full border-none" />;
 }
