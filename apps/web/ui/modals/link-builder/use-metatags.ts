@@ -44,6 +44,11 @@ export function useMetatags({
      * - url is not empty
      **/
     if (enabled) {
+      if (!proxy) {
+        setValue("title", null);
+        setValue("description", null);
+        setValue("image", null);
+      }
       try {
         // if url is valid, continue to generate metatags, else return null
         new URL(debouncedUrl);
@@ -51,10 +56,10 @@ export function useMetatags({
         fetch(`/api/metatags?url=${debouncedUrl}`).then(async (res) => {
           if (res.status === 200) {
             const results = await res.json();
-            !title && setValue("title", truncate(results.title, 120));
-            !description &&
+            if (!title) setValue("title", truncate(results.title, 120));
+            if (!description)
               setValue("description", truncate(results.description, 240));
-            !image && setValue("image", results.image);
+            if (!image) setValue("image", results.image);
           }
           // set timeout to prevent flickering
           setTimeout(() => setGeneratingMetatags(false), 200);

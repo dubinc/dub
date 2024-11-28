@@ -438,6 +438,10 @@ function OGModalInner({
                   className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
                   onClick={() => {
                     setValueParent("proxy", false, { shouldDirty: true });
+                    ["title", "description", "image"].forEach(
+                      (key: "title" | "description" | "image") =>
+                        setValueParent(key, null, { shouldDirty: true }),
+                    );
                     setShowOGModal(false);
                   }}
                 >

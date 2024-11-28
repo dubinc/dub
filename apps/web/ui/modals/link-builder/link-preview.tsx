@@ -280,8 +280,8 @@ function DefaultOGPreview({ title, description, children }: OGPreviewProps) {
         value={title || "Add a title..."}
         maxRows={2}
         onChange={(e) => {
-          setValue("title", e.currentTarget.value);
-          setValue("proxy", true);
+          setValue("title", e.currentTarget.value, { shouldDirty: true });
+          setValue("proxy", true, { shouldDirty: true });
         }}
       />
       <ReactTextareaAutosize
@@ -289,8 +289,10 @@ function DefaultOGPreview({ title, description, children }: OGPreviewProps) {
         value={description || "Add a description..."}
         maxRows={2}
         onChange={(e) => {
-          setValue("description", e.currentTarget.value);
-          setValue("proxy", true);
+          setValue("description", e.currentTarget.value, {
+            shouldDirty: true,
+          });
+          setValue("proxy", true, { shouldDirty: true });
         }}
       />
     </div>
@@ -318,8 +320,10 @@ function FacebookOGPreview({
               className="truncate border-none bg-transparent p-0 text-xs font-semibold text-[#1d2129] outline-none focus:ring-0"
               value={title || "Add a title..."}
               onChange={(e) => {
-                setValue("title", e.currentTarget.value);
-                setValue("proxy", true);
+                setValue("title", e.currentTarget.value, {
+                  shouldDirty: true,
+                });
+                setValue("proxy", true, { shouldDirty: true });
               }}
             />
             <ReactTextareaAutosize
@@ -327,8 +331,10 @@ function FacebookOGPreview({
               value={description || "Add a description..."}
               maxRows={2}
               onChange={(e) => {
-                setValue("description", e.currentTarget.value);
-                setValue("proxy", true);
+                setValue("description", e.currentTarget.value, {
+                  shouldDirty: true,
+                });
+                setValue("proxy", true, { shouldDirty: true });
               }}
             />
           </div>
@@ -355,8 +361,10 @@ function LinkedInOGPreview({ title, hostname, children }: OGPreviewProps) {
           value={title || "Add a title..."}
           maxRows={2}
           onChange={(e) => {
-            setValue("title", e.currentTarget.value);
-            setValue("proxy", true);
+            setValue("title", e.currentTarget.value, {
+              shouldDirty: true,
+            });
+            setValue("proxy", true, { shouldDirty: true });
           }}
         />
         <p className="text-xs text-[#00000099]">{hostname || "domain.com"}</p>
