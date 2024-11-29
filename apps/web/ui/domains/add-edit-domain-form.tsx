@@ -1,3 +1,4 @@
+import { isValidDomain } from "@/lib/api/domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
 import { createDomainBodySchema } from "@/lib/zod/schemas/domains";
@@ -7,8 +8,10 @@ import {
   AnimatedSizeContainer,
   Badge,
   Button,
+  FileUpload,
   InfoTooltip,
   LoadingSpinner,
+  ShimmerDots,
   SimpleTooltipContent,
   Switch,
   useMediaQuery,
@@ -24,12 +27,54 @@ import {
 } from "lucide-react";
 import posthog from "posthog-js";
 import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { useDebouncedCallback } from "use-debounce";
 import { z } from "zod";
+import { QRCode } from "../shared/qr-code";
 
 type FormData = z.infer<typeof createDomainBodySchema>;
+
+type DomainStatus = "checking" | "conflict" | "has site" | "available" | "idle";
+
+const STATUS_CONFIG: Record<
+  DomainStatus,
+  {
+    prefix?: string;
+    useStrong?: boolean;
+    suffix?: string;
+    icon?: React.ElementType;
+    className?: string;
+    message?: string;
+  }
+> = {
+  checking: {
+    prefix: "Checking availability for",
+    useStrong: true,
+    suffix: "...",
+    icon: LoadingSpinner,
+  },
+  conflict: {
+    suffix: "is already in use.",
+    icon: AlertCircleFill,
+    className: "bg-red-100 text-red-600",
+  },
+  "has site": {
+    suffix:
+      "already has a site connected. Ensure you want to connect this domain for shortlinks.",
+    icon: AlertCircleFill,
+    className: "bg-amber-100 text-amber-600",
+  },
+  available: {
+    suffix: "is ready to connect.",
+    icon: CheckCircleFill,
+    className: "bg-green-100 text-green-600",
+  },
+  idle: {
+    message: "Enter a valid domain to check availability.",
+  },
+};
 
 export function AddEditDomainForm({
   props,
@@ -44,12 +89,13 @@ export function AddEditDomainForm({
 }) {
   const { id: workspaceId, plan } = useWorkspace();
   const [lockDomain, setLockDomain] = useState(true);
-  const [domainStatus, setDomainStatus] = useState<
-    "checking" | "conflict" | "has site" | "available" | null
-  >(props ? "available" : null);
+  const [domainStatus, setDomainStatus] = useState<DomainStatus>(
+    props ? "available" : "idle",
+  );
 
   const {
     register,
+    control,
     handleSubmit,
     watch,
     setValue,
@@ -66,8 +112,22 @@ export function AddEditDomainForm({
 
   const domain = watch("slug");
 
+  const debouncedValidateDomain = useDebouncedCallback(
+    async (value: string) => {
+      if (!isValidDomain(value)) return;
+      setDomainStatus("checking");
+      fetch(`/api/domains/${value}/validate`).then(async (res) => {
+        const data = await res.json();
+        setDomainStatus(data.status);
+      });
+    },
+    500,
+  );
+
   const saveDisabled = useMemo(() => {
-    return isSubmitting || domainStatus !== "available" || (props && !isDirty);
+    return (
+      !["available", "has site"].includes(domainStatus) || (props && !isDirty)
+    );
   }, [isSubmitting, domainStatus, props, isDirty]);
 
   const endpoint = useMemo(() => {
@@ -138,6 +198,8 @@ export function AddEditDomainForm({
     }
   };
 
+  const currentStatusProps = STATUS_CONFIG[domainStatus];
+
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -183,38 +245,16 @@ export function AddEditDomainForm({
             <div
               className={cn(
                 "-m-1 rounded-[0.625rem] p-1",
-                domainStatus === "conflict"
-                  ? "bg-orange-100 text-orange-800"
-                  : domainStatus === "available"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-neutral-200 text-neutral-500",
+                currentStatusProps.className ||
+                  "bg-neutral-200 text-neutral-500",
               )}
             >
               <div className="flex rounded-md border border-neutral-300 bg-white">
                 <input
                   {...register("slug", {
                     onChange: (e) => {
-                      if (e.target.value.trim()) {
-                        setDomainStatus("checking");
-                      } else {
-                        setDomainStatus(null);
-                      }
-                    },
-                    onBlur: (e) => {
-                      if (
-                        e.target.value.length > 0 &&
-                        e.target.value.toLowerCase() !==
-                          props?.slug.toLowerCase()
-                      ) {
-                        fetch(`/api/domains/${e.target.value}/exists`).then(
-                          async (res) => {
-                            const exists = await res.json();
-                            setDomainStatus(
-                              exists === 1 ? "conflict" : "available",
-                            );
-                          },
-                        );
-                      }
+                      setDomainStatus("idle");
+                      debouncedValidateDomain(e.target.value);
                     },
                   })}
                   className="block w-full rounded-md border-0 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
@@ -227,43 +267,29 @@ export function AddEditDomainForm({
                 height
                 transition={{ ease: "easeInOut", duration: 0.1 }}
               >
-                <div className="flex justify-between gap-3 p-2 text-sm">
+                <div className="flex items-center justify-between gap-4 p-2 text-sm">
                   <p>
-                    {domainStatus === "checking" ? (
+                    {domainStatus !== "idle" ? (
                       <>
-                        Checking availability for{" "}
-                        <strong className="font-semibold underline underline-offset-2">
-                          {domain}
-                        </strong>
-                        ...
-                      </>
-                    ) : domainStatus === "conflict" ? (
-                      <>
-                        The domain{" "}
-                        <span className="font-semibold underline underline-offset-2">
-                          {domain}
-                        </span>{" "}
-                        is already in use.
-                      </>
-                    ) : domainStatus === "available" ? (
-                      <>
-                        The domain{" "}
-                        <span className="font-semibold underline underline-offset-2">
-                          {domain}
-                        </span>{" "}
-                        looks clear to connect.
+                        {currentStatusProps.prefix || "The domain"}{" "}
+                        {currentStatusProps.useStrong ? (
+                          <strong className="font-semibold underline underline-offset-2">
+                            {domain}
+                          </strong>
+                        ) : (
+                          <span className="font-semibold underline underline-offset-2">
+                            {domain}
+                          </span>
+                        )}{" "}
+                        {currentStatusProps.suffix}
                       </>
                     ) : (
-                      "Your domain will be used for shortlinks on Dub, and cannot be used for anything else while connected."
+                      currentStatusProps.message
                     )}
                   </p>
-                  {domainStatus === "checking" ? (
-                    <LoadingSpinner className="mr-0.5 mt-0.5 size-4 shrink-0" />
-                  ) : domainStatus === "conflict" ? (
-                    <AlertCircleFill className="size-5 shrink-0 text-orange-500" />
-                  ) : domainStatus === "available" ? (
-                    <CheckCircleFill className="size-5 shrink-0 text-green-500" />
-                  ) : null}
+                  {currentStatusProps.icon && (
+                    <currentStatusProps.icon className="size-5 shrink-0" />
+                  )}
                 </div>
               </AnimatedSizeContainer>
             </div>
@@ -280,10 +306,10 @@ export function AddEditDomainForm({
                 const [showOption, setShowOption] = useState(!!watch(id));
                 return (
                   <div key={id}>
-                    <label className="flex items-center justify-between gap-2">
+                    <label className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-3">
-                        <div className="rounded-lg border border-neutral-200 bg-white p-2">
-                          <Icon className="size-5 text-neutral-600" />
+                        <div className="hidden rounded-lg border border-neutral-200 bg-white p-2 sm:block">
+                          <Icon className="size-5 text-neutral-500" />
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
@@ -321,11 +347,48 @@ export function AddEditDomainForm({
                       className="-m-1 overflow-hidden p-1"
                     >
                       <div className="relative mt-2 rounded-md shadow-sm">
-                        <input
-                          {...register(id)}
-                          className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                          placeholder="https://yourwebsite.com"
-                        />
+                        {id === "logo" ? (
+                          <div className="flex h-24 items-center justify-center overflow-hidden rounded-md border border-gray-300">
+                            {!isMobile && (
+                              <ShimmerDots className="pointer-events-none z-10 opacity-30 [mask-image:radial-gradient(40%_80%,transparent_50%,black)]" />
+                            )}
+                            <Controller
+                              control={control}
+                              name="logo"
+                              rules={{ required: true }}
+                              render={({ field }) => (
+                                <FileUpload
+                                  accept="images"
+                                  className="h-24 rounded-md"
+                                  iconClassName="size-5 text-neutral-700"
+                                  variant="plain"
+                                  imageSrc={field.value}
+                                  readFile
+                                  onChange={({ src }) => field.onChange(src)}
+                                  maxFileSizeMB={2}
+                                  targetResolution={{
+                                    width: 160,
+                                    height: 160,
+                                  }}
+                                  customPreview={
+                                    <QRCode
+                                      url="https://dub.co"
+                                      fgColor="#000"
+                                      logo={field.value || ""}
+                                      scale={0.6}
+                                    />
+                                  }
+                                />
+                              )}
+                            />
+                          </div>
+                        ) : (
+                          <input
+                            {...register(id)}
+                            className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                            placeholder="https://yourwebsite.com"
+                          />
+                        )}
                       </div>
                     </motion.div>
                   </div>
@@ -355,26 +418,26 @@ const ADVANCED_OPTIONS: {
   {
     id: "logo",
     title: "Custom QR code logo",
-    description: "Set a custom logo for shortlink QR codes",
+    description: "Which logo to use for shortlink QR codes",
     icon: QrCode,
     proFeature: true,
   },
   {
     id: "expiredUrl",
     title: "Default expiration URL",
-    description: "Redirects when the shortlink has expired",
+    description: "Where to redirect when shortlinks expire",
     icon: Milestone,
   },
   {
     id: "notFoundUrl",
     title: "Not found URL",
-    description: "Redirects when the shortlink doesn't exist",
+    description: "Where to redirect when shortlinks don't exist",
     icon: Binoculars,
   },
   {
     id: "placeholder",
     title: "Input placeholder URL",
-    description: "Set a placeholder URL for the link builder",
+    description: "Which placeholder URL to show in the link builder",
     icon: TextCursorInput,
   },
 ];
