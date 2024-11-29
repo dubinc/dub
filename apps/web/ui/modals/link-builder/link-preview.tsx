@@ -35,7 +35,7 @@ import { useDebounce } from "use-debounce";
 import { LinkFormData, LinkModalContext } from ".";
 import { useOGModal } from "./og-modal";
 
-const tabs = ["default", "facebook", "linkedin", "x"] as const;
+const tabs = ["default", "x", "linkedin", "facebook"] as const;
 type Tab = (typeof tabs)[number];
 
 const tabTitles: Record<Tab, string> = {
@@ -47,9 +47,9 @@ const tabTitles: Record<Tab, string> = {
 
 const tabIcons: Record<Tab, Icon> = {
   default: GlobePointer,
-  facebook: Facebook,
-  linkedin: LinkedIn,
   x: Twitter,
+  linkedin: LinkedIn,
+  facebook: Facebook,
 };
 
 type OGPreviewProps = PropsWithChildren<{
@@ -61,14 +61,14 @@ type OGPreviewProps = PropsWithChildren<{
 
 const tabComponents: Record<Tab, ComponentType<OGPreviewProps>> = {
   default: DefaultOGPreview,
-  facebook: FacebookOGPreview,
-  linkedin: LinkedInOGPreview,
   x: XOGPreview,
+  linkedin: LinkedInOGPreview,
+  facebook: FacebookOGPreview,
 };
 
 export function LinkPreview() {
   const { watch, setValue } = useFormContext<LinkFormData>();
-  const { title, description, image, url, password } = watch();
+  const { proxy, title, description, image, url, password } = watch();
 
   const [debouncedUrl] = useDebounce(url, 500);
   const hostname = useMemo(() => {
@@ -109,7 +109,9 @@ export function LinkPreview() {
         <Button
           type="button"
           variant="outline"
-          icon={<Pen2 className="mx-px size-4" />}
+          icon={
+            <Pen2 className={cn("mx-px size-4", proxy && "text-blue-500")} />
+          }
           className="h-7 w-fit px-1"
           onClick={() => setShowOGModal(true)}
         />
@@ -273,28 +275,26 @@ function DefaultOGPreview({ title, description, children }: OGPreviewProps) {
       <div className="group relative overflow-hidden rounded-md border border-gray-300">
         {children}
       </div>
-      {title && (
-        <ReactTextareaAutosize
-          className="mt-4 line-clamp-2 w-full resize-none border-none p-0 text-xs font-medium text-gray-700 outline-none focus:ring-0"
-          value={title}
-          maxRows={2}
-          onChange={(e) => {
-            setValue("title", e.currentTarget.value);
-            setValue("proxy", true);
-          }}
-        />
-      )}
-      {description && (
-        <ReactTextareaAutosize
-          className="mt-2.5 line-clamp-2 w-full resize-none border-none p-0 text-xs text-gray-700/80 outline-none focus:ring-0"
-          value={description}
-          maxRows={2}
-          onChange={(e) => {
-            setValue("description", e.currentTarget.value);
-            setValue("proxy", true);
-          }}
-        />
-      )}
+      <ReactTextareaAutosize
+        className="mt-4 line-clamp-2 w-full resize-none border-none p-0 text-xs font-medium text-gray-700 outline-none focus:ring-0"
+        value={title || "Add a title..."}
+        maxRows={2}
+        onChange={(e) => {
+          setValue("title", e.currentTarget.value, { shouldDirty: true });
+          setValue("proxy", true, { shouldDirty: true });
+        }}
+      />
+      <ReactTextareaAutosize
+        className="mt-1.5 line-clamp-2 w-full resize-none border-none p-0 text-xs text-gray-700/80 outline-none focus:ring-0"
+        value={description || "Add a description..."}
+        maxRows={2}
+        onChange={(e) => {
+          setValue("description", e.currentTarget.value, {
+            shouldDirty: true,
+          });
+          setValue("proxy", true, { shouldDirty: true });
+        }}
+      />
     </div>
   );
 }
@@ -316,27 +316,27 @@ function FacebookOGPreview({
             {hostname && (
               <p className="text-xs uppercase text-[#606770]">{hostname}</p>
             )}
-            {(title || title === "") && (
-              <input
-                className="truncate border-none bg-transparent p-0 text-xs font-semibold text-[#1d2129] outline-none focus:ring-0"
-                value={title}
-                onChange={(e) => {
-                  setValue("title", e.currentTarget.value);
-                  setValue("proxy", true);
-                }}
-              />
-            )}
-            {(description || description === "") && (
-              <ReactTextareaAutosize
-                className="mb-1 line-clamp-2 w-full resize-none rounded-md border-none bg-gray-200 bg-transparent p-0 text-xs text-[#606770] outline-none focus:ring-0"
-                value={description}
-                maxRows={2}
-                onChange={(e) => {
-                  setValue("description", e.currentTarget.value);
-                  setValue("proxy", true);
-                }}
-              />
-            )}
+            <input
+              className="truncate border-none bg-transparent p-0 text-xs font-semibold text-[#1d2129] outline-none focus:ring-0"
+              value={title || "Add a title..."}
+              onChange={(e) => {
+                setValue("title", e.currentTarget.value, {
+                  shouldDirty: true,
+                });
+                setValue("proxy", true, { shouldDirty: true });
+              }}
+            />
+            <ReactTextareaAutosize
+              className="mb-1 line-clamp-2 w-full resize-none rounded-md border-none bg-gray-200 bg-transparent p-0 text-xs text-[#606770] outline-none focus:ring-0"
+              value={description || "Add a description..."}
+              maxRows={2}
+              onChange={(e) => {
+                setValue("description", e.currentTarget.value, {
+                  shouldDirty: true,
+                });
+                setValue("proxy", true, { shouldDirty: true });
+              }}
+            />
           </div>
         )}
       </div>
@@ -355,44 +355,34 @@ function LinkedInOGPreview({ title, hostname, children }: OGPreviewProps) {
       >
         {children}
       </div>
-      {(hostname || title) && (
-        <div className="grid gap-2">
-          {(title || title === "") && (
-            <ReactTextareaAutosize
-              className="line-clamp-2 w-full resize-none border-none p-0 text-sm font-semibold text-[#000000E6] outline-none focus:ring-0"
-              value={title}
-              maxRows={2}
-              onChange={(e) => {
-                setValue("title", e.currentTarget.value);
-                setValue("proxy", true);
-              }}
-            />
-          )}
-          {hostname && <p className="text-xs text-[#00000099]">{hostname}</p>}
-        </div>
-      )}
+      <div className="grid gap-2">
+        <ReactTextareaAutosize
+          className="line-clamp-2 w-full resize-none border-none p-0 text-sm font-semibold text-[#000000E6] outline-none focus:ring-0"
+          value={title || "Add a title..."}
+          maxRows={2}
+          onChange={(e) => {
+            setValue("title", e.currentTarget.value, {
+              shouldDirty: true,
+            });
+            setValue("proxy", true, { shouldDirty: true });
+          }}
+        />
+        <p className="text-xs text-[#00000099]">{hostname || "domain.com"}</p>
+      </div>
     </div>
   );
 }
 
 function XOGPreview({ title, hostname, children }: OGPreviewProps) {
-  const hasTitle = title || title === "";
   return (
     <div>
       <div className="group relative overflow-hidden rounded-2xl border border-gray-300">
         {children}
         <div className="absolute bottom-2 left-0 w-full px-2">
-          <div
-            className={cn(
-              "w-fit max-w-full rounded px-1.5 py-px",
-              hasTitle ? "bg-black/[0.77]" : "bg-gray-200",
-            )}
-          >
-            {hasTitle && (
-              <span className="block max-w-sm truncate text-xs text-white">
-                {title}
-              </span>
-            )}
+          <div className="w-fit max-w-full rounded bg-black/[0.77] px-1.5 py-px">
+            <span className="block max-w-sm truncate text-xs text-white">
+              {title || "Add a title..."}
+            </span>
           </div>
         </div>
       </div>
