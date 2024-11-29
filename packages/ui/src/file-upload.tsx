@@ -218,11 +218,11 @@ export function FileUpload({
       />
       <div
         className={cn(
-          "absolute inset-0 z-[3] flex flex-col items-center justify-center rounded-[inherit] bg-white transition-all",
+          "absolute inset-0 z-[3] flex flex-col items-center justify-center rounded-[inherit] border-2 border-transparent bg-white transition-all",
           disabled && "bg-gray-50",
           dragActive &&
             !disabled &&
-            "cursor-copy border-2 border-black bg-gray-50 opacity-100",
+            "cursor-copy border-black bg-gray-50 opacity-100",
           imageSrc
             ? cn(
                 "opacity-0",
