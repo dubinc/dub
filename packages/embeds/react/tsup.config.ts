@@ -1,9 +1,7 @@
-import { defineConfig, Options } from "tsup";
+import { defineConfig } from "tsup";
 
-export default defineConfig((options: Options) => ({
-  entry: {
-    index: "src/index.ts", // Entry for all other files via index.ts
-  },
+export default defineConfig({
+  entry: ["src/index.ts"],
   format: ["esm", "cjs"],
   esbuildOptions(options) {
     options.banner = {
@@ -18,5 +16,6 @@ export default defineConfig((options: Options) => ({
   dts: true,
   minify: true,
   external: ["react"],
-  ...options,
-}));
+  clean: true,
+  splitting: false,
+});
