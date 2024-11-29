@@ -73,30 +73,32 @@ const getQRCodeLogo = async ({
     return DUB_QR_LOGO;
   }
 
-  // hideLogo is set or logo is passed
-  if (hideLogo || logo) {
-    const workspace = await getWorkspaceViaEdge(shortLink.projectId);
+  const workspace = await getWorkspaceViaEdge(shortLink.projectId);
 
-    if (workspace?.plan === "free") {
-      return DUB_QR_LOGO;
-    }
-
-    if (hideLogo) {
-      return null;
-    }
-
-    return logo;
-  }
-
-  // Dub owned domain
-  if (isDubDomain(shortLink.domain)) {
+  if (workspace?.plan === "free") {
     return DUB_QR_LOGO;
   }
 
-  // if no logo is passed, use domain logo
+  // if hideLogo is set, return null
+  if (hideLogo) {
+    return null;
+  }
+
+  // if logo is passed, return it
+  if (logo) {
+    return logo;
+  }
+
+  // if it's a Dub owned domain and no  workspace logo is set, use the Dub logo
+  if (isDubDomain(shortLink.domain) && !workspace?.logo) {
+    return DUB_QR_LOGO;
+  }
+
+  // if it's a custom domain, check if it has a logo
   const domain = await getDomainViaEdge(shortLink.domain);
 
-  return domain?.logo || DUB_QR_LOGO;
+  // return domain logo if it has one, otherwise fallback to workspace logo, and finally fallback to Dub logo
+  return domain?.logo || workspace?.logo || DUB_QR_LOGO;
 };
 
 export function OPTIONS() {
