@@ -148,7 +148,9 @@ export function AddEditDomainForm({
       <div>
         <div className="flex items-center justify-between">
           <label htmlFor="domain" className="flex items-center gap-x-2">
-            <h2 className="text-sm font-medium text-gray-700">Your domain</h2>
+            <h2 className="text-sm font-medium text-neutral-700">
+              Your domain
+            </h2>
             <InfoTooltip
               content={
                 <SimpleTooltipContent
@@ -161,7 +163,7 @@ export function AddEditDomainForm({
           </label>
           {props && lockDomain && !isDubProvisioned && (
             <button
-              className="flex items-center gap-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
+              className="flex items-center gap-x-2 text-sm text-neutral-500 transition-all duration-75 hover:text-black active:scale-95"
               type="button"
               onClick={() => {
                 window.confirm(
@@ -175,7 +177,7 @@ export function AddEditDomainForm({
           )}
         </div>
         {props && lockDomain ? (
-          <div className="mt-2 cursor-not-allowed rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-500 shadow-sm">
+          <div className="mt-2 cursor-not-allowed rounded-md border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-500 shadow-sm">
             {domain}
           </div>
         ) : (
@@ -187,10 +189,10 @@ export function AddEditDomainForm({
                   ? "bg-orange-100 text-orange-800"
                   : domainStatus === "available"
                     ? "bg-green-100 text-green-800"
-                    : "bg-gray-200 text-gray-500",
+                    : "bg-neutral-200 text-neutral-500",
               )}
             >
-              <div className="flex rounded-md border border-gray-300 bg-white">
+              <div className="flex rounded-md border border-neutral-300 bg-white">
                 <input
                   {...register("slug", {
                     onChange: (e) => {
@@ -217,7 +219,7 @@ export function AddEditDomainForm({
                       }
                     },
                   })}
-                  className="block w-full rounded-md border-0 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
+                  className="block w-full rounded-md border-0 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
                   placeholder="go.acme.com"
                   autoFocus={!isMobile}
                 />
@@ -273,7 +275,7 @@ export function AddEditDomainForm({
 
       {showAdvancedOptions && (
         <>
-          <div className="h-0.5 w-full bg-gray-200" />
+          <div className="h-0.5 w-full bg-neutral-200" />
           <div className="flex flex-col gap-y-6">
             {ADVANCED_OPTIONS.map(
               ({ id, title, description, icon: Icon, proFeature }) => {
@@ -284,12 +286,12 @@ export function AddEditDomainForm({
                   <div key={id}>
                     <label className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-3">
-                        <div className="rounded-lg border border-gray-200 bg-white p-2">
-                          <Icon className="size-5 text-gray-600" />
+                        <div className="rounded-lg border border-neutral-200 bg-white p-2">
+                          <Icon className="size-5 text-neutral-600" />
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <h2 className="text-sm font-medium text-gray-900">
+                            <h2 className="text-sm font-medium text-neutral-900">
                               {title}
                             </h2>
                             {proFeature && plan === "free" && (
@@ -299,7 +301,9 @@ export function AddEditDomainForm({
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-gray-500">{description}</p>
+                          <p className="text-sm text-neutral-500">
+                            {description}
+                          </p>
                         </div>
                       </div>
                       <Switch
@@ -329,7 +333,7 @@ export function AddEditDomainForm({
                           {...register(
                             id as keyof z.infer<typeof domainFormSchema>,
                           )}
-                          className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                          className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                           placeholder="https://yourwebsite.com"
                         />
                       </div>
