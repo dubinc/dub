@@ -108,17 +108,19 @@ export function Nav({
           />
           <MaxWidthWrapper className={cn("relative", maxWidthWrapperClassName)}>
             <div className="flex h-14 items-center justify-between">
-              <Link
-                className="grow basis-0"
-                href={createHref("/home", domain, {
-                  utm_source: "Custom Domain",
-                  utm_medium: "Navbar",
-                  utm_campaign: domain,
-                  utm_content: "Logo",
-                })}
-              >
-                <NavWordmark />
-              </Link>
+              <div className="grow basis-0">
+                <Link
+                  className="block w-fit py-2 pr-2"
+                  href={createHref("/home", domain, {
+                    utm_source: "Custom Domain",
+                    utm_medium: "Navbar",
+                    utm_campaign: domain,
+                    utm_content: "Logo",
+                  })}
+                >
+                  <NavWordmark />
+                </Link>
+              </div>
               <NavigationMenuPrimitive.Root
                 delayDuration={0}
                 className="relative hidden lg:block"

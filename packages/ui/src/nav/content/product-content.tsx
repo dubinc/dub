@@ -4,7 +4,11 @@ import { COMPARE_PAGES, CUSTOMER_STORIES } from "../../content";
 import { CubeSettingsFill, Toggle2Fill } from "../../icons";
 import { AnalyticsGraphic } from "./graphics/analytics-graphic";
 import { LinksGraphic } from "./graphics/links-graphic";
-import { ContentLinkCard, contentHeadingClassName } from "./shared";
+import {
+  ContentLinkCard,
+  LargeLinkCard,
+  contentHeadingClassName,
+} from "./shared";
 
 const largeLinks = [
   {
@@ -58,24 +62,14 @@ export function ProductContent({ domain }: { domain: string }) {
           </div>
         </Link>
         <div className="grid grow grid-rows-2 gap-4">
-          {largeLinks.map(({ title, description, icon: Icon, href }) => (
-            <Link
+          {largeLinks.map(({ title, description, icon, href }) => (
+            <LargeLinkCard
               key={title}
+              title={title}
+              description={description}
+              icon={icon}
               href={createHref(href, domain)}
-              className="group relative flex flex-col rounded-xl border border-neutral-100 bg-neutral-50 transition-colors duration-75 hover:bg-neutral-100 active:bg-neutral-200 dark:border-white/20 dark:bg-white/10 dark:hover:bg-white/15 dark:active:bg-white/20"
-            >
-              <div className="flex items-center justify-between p-5">
-                <div>
-                  <span className="text-sm font-medium text-neutral-900 dark:text-white">
-                    {title}
-                  </span>
-                  <p className="mt-1 text-sm text-neutral-500 dark:text-white/60">
-                    {description}
-                  </p>
-                </div>
-                <Icon className="size-6 text-neutral-700 dark:text-neutral-200" />
-              </div>
-            </Link>
+            />
           ))}
         </div>
       </div>

@@ -1,12 +1,11 @@
 import {
-  Blog,
-  Book2,
-  BulletList,
+  Book2Fill,
+  BulletListFill,
   ChartLine,
   Code,
+  FeatherFill,
   Go,
-  Headset,
-  HexadecagonStar,
+  HeadsetFill,
   Hyperlink,
   OfficeBuilding,
   Paintbrush,
@@ -138,29 +137,28 @@ export const SDKS = [
 
 export const RESOURCES = [
   {
-    icon: Blog,
+    icon: FeatherFill,
     title: "Blog",
+    description: "Insights and stories",
     href: "/blog",
   },
   {
-    icon: BulletList,
-    title: "Changelog",
-    href: "/changelog",
-  },
-  {
-    icon: Book2,
+    icon: Book2Fill,
     title: "Docs",
+    description: "Platform documentation",
     href: "/docs",
   },
   {
-    icon: Headset,
-    title: "Help Center",
-    href: "/help",
+    icon: BulletListFill,
+    title: "Changelog",
+    description: "Releases and updates",
+    href: "/changelog",
   },
   {
-    icon: HexadecagonStar,
-    title: "Brand",
-    href: "/brand",
+    icon: HeadsetFill,
+    title: "Help Center",
+    description: "Answers to your questions",
+    href: "/help",
   },
 ];
 
