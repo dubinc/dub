@@ -114,9 +114,9 @@ export const PATCH = withWorkspace(
         slug: domain,
       },
       data: {
-        archived,
         ...(domainUpdated && { slug: newDomain }),
-        ...(placeholder && { placeholder }),
+        archived,
+        placeholder,
         expiredUrl,
         notFoundUrl,
         logo: deleteLogo ? null : logoUploaded?.url || oldLogo,
