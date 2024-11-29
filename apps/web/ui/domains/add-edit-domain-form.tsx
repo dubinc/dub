@@ -1,3 +1,4 @@
+import { isValidDomain } from "@/lib/api/domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
 import { AlertCircleFill, CheckCircleFill, Lock } from "@/ui/shared/icons";
@@ -26,6 +27,7 @@ import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { useDebouncedCallback } from "use-debounce";
 import { z } from "zod";
 
 const domainFormSchema = z.object({
@@ -51,7 +53,7 @@ export function AddEditDomainForm({
   const isDubProvisioned = !!props?.registeredDomain;
   const [lockDomain, setLockDomain] = useState(true);
   const [domainStatus, setDomainStatus] = useState<
-    "checking" | "conflict" | "has site" | "available" | null
+    "checking" | "invalid" | "conflict" | "has site" | "available" | null
   >(props ? "available" : null);
 
   const {
@@ -71,6 +73,21 @@ export function AddEditDomainForm({
   });
 
   const domain = watch("slug");
+
+  const debouncedValidateDomain = useDebouncedCallback(
+    async (value: string) => {
+      setDomainStatus("checking");
+      if (!isValidDomain(value)) {
+        setDomainStatus("invalid");
+        return;
+      }
+      fetch(`/api/domains/${value}/validate`).then(async (res) => {
+        const data = await res.json();
+        setDomainStatus(data.status);
+      });
+    },
+    500,
+  );
 
   const saveDisabled = useMemo(() => {
     return isSubmitting || domainStatus !== "available" || (props && !isDirty);
@@ -185,7 +202,7 @@ export function AddEditDomainForm({
             <div
               className={cn(
                 "-m-1 rounded-[0.625rem] p-1",
-                domainStatus === "conflict"
+                domainStatus === "conflict" || domainStatus === "has site"
                   ? "bg-orange-100 text-orange-800"
                   : domainStatus === "available"
                     ? "bg-green-100 text-green-800"
@@ -196,27 +213,8 @@ export function AddEditDomainForm({
                 <input
                   {...register("slug", {
                     onChange: (e) => {
-                      if (e.target.value.trim()) {
-                        setDomainStatus("checking");
-                      } else {
-                        setDomainStatus(null);
-                      }
-                    },
-                    onBlur: (e) => {
-                      if (
-                        e.target.value.length > 0 &&
-                        e.target.value.toLowerCase() !==
-                          props?.slug.toLowerCase()
-                      ) {
-                        fetch(`/api/domains/${e.target.value}/exists`).then(
-                          async (res) => {
-                            const exists = await res.json();
-                            setDomainStatus(
-                              exists === 1 ? "conflict" : "available",
-                            );
-                          },
-                        );
-                      }
+                      setDomainStatus(null);
+                      debouncedValidateDomain(e.target.value);
                     },
                   })}
                   className="block w-full rounded-md border-0 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
@@ -229,14 +227,14 @@ export function AddEditDomainForm({
                 height
                 transition={{ ease: "easeInOut", duration: 0.1 }}
               >
-                <div className="flex justify-between gap-3 p-2 text-sm">
+                <div className="flex items-center justify-between gap-4 p-2 text-sm">
                   <p>
                     {domainStatus === "checking" ? (
                       <>
                         Checking availability for{" "}
                         <strong className="font-semibold underline underline-offset-2">
                           {domain}
-                        </strong>
+                        </strong>{" "}
                         ...
                       </>
                     ) : domainStatus === "conflict" ? (
@@ -247,6 +245,15 @@ export function AddEditDomainForm({
                         </span>{" "}
                         is already in use.
                       </>
+                    ) : domainStatus === "has site" ? (
+                      <>
+                        The domain{" "}
+                        <span className="font-semibold underline underline-offset-2">
+                          {domain}
+                        </span>{" "}
+                        already has a site connected. Ensure you want to connect
+                        this domain for shortlinks.
+                      </>
                     ) : domainStatus === "available" ? (
                       <>
                         The domain{" "}
@@ -256,12 +263,13 @@ export function AddEditDomainForm({
                         looks clear to connect.
                       </>
                     ) : (
-                      "Your domain will be used for shortlinks on Dub, and cannot be used for anything else while connected."
+                      "Enter a valid domain to check availability."
                     )}
                   </p>
                   {domainStatus === "checking" ? (
                     <LoadingSpinner className="mr-0.5 mt-0.5 size-4 shrink-0" />
-                  ) : domainStatus === "conflict" ? (
+                  ) : domainStatus === "conflict" ||
+                    domainStatus === "has site" ? (
                     <AlertCircleFill className="size-5 shrink-0 text-orange-500" />
                   ) : domainStatus === "available" ? (
                     <CheckCircleFill className="size-5 shrink-0 text-green-500" />
@@ -284,10 +292,10 @@ export function AddEditDomainForm({
                 );
                 return (
                   <div key={id}>
-                    <label className="flex items-center justify-between gap-2">
+                    <label className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-3">
-                        <div className="rounded-lg border border-neutral-200 bg-white p-2">
-                          <Icon className="size-5 text-neutral-600" />
+                        <div className="hidden rounded-lg border border-neutral-200 bg-white p-2 sm:block">
+                          <Icon className="size-5 text-neutral-500" />
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
@@ -359,26 +367,26 @@ const ADVANCED_OPTIONS = [
   {
     id: "logo",
     title: "Custom QR code logo",
-    description: "Set a custom logo for shortlink QR codes",
+    description: "Which logo to use for shortlink QR codes",
     icon: QrCode,
     proFeature: true,
   },
   {
     id: "expiredUrl",
     title: "Default expiration URL",
-    description: "Redirects when the shortlink has expired",
+    description: "Where to redirect when shortlinks expire",
     icon: Milestone,
   },
   {
     id: "notFoundUrl",
     title: "Not found URL",
-    description: "Redirects when the shortlink doesn't exist",
+    description: "Where to redirect when shortlinks don't exist",
     icon: Binoculars,
   },
   {
     id: "placeholder",
     title: "Input placeholder URL",
-    description: "Set a placeholder URL for the link builder",
+    description: "Which placeholder URL to show in the link builder",
     icon: TextCursorInput,
   },
 ];
