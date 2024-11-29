@@ -8,7 +8,7 @@ export const parseUrlSchema = z
 
 export const parseUrlSchemaAllowEmpty = ({
   maxLength,
-  trim = true,
+  trim = false,
 }: {
   maxLength?: number;
   trim?: boolean;
