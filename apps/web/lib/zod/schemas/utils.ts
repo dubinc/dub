@@ -8,10 +8,16 @@ export const parseUrlSchema = z
 
 export const parseUrlSchemaAllowEmpty = ({
   maxLength,
+  trim = false,
 }: {
   maxLength?: number;
+  trim?: boolean;
 } = {}) => {
   let schema = z.string();
+
+  if (trim) {
+    schema = schema.trim();
+  }
 
   if (maxLength) {
     schema = schema.max(maxLength, {
