@@ -16,7 +16,7 @@ import {
   DomainSchema,
   updateDomainBodySchema,
 } from "@/lib/zod/schemas/domains";
-import { nanoid } from "@dub/utils";
+import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -43,6 +43,7 @@ export const PATCH = withWorkspace(
       slug: domain,
       registeredDomain,
       id: domainId,
+      logo: oldLogo,
     } = await getDomainOrThrow({
       workspace,
       domain: params.domain,
@@ -94,7 +95,7 @@ export const PATCH = withWorkspace(
 
     const logoUploaded =
       logo && workspace.plan !== "free"
-        ? await storage.upload(`logos/${domainId}_${nanoid(7)}`, logo)
+        ? await storage.upload(`domains/${domainId}/logo_${nanoid(7)}`, logo)
         : null;
 
     const domainRecord = await prisma.domain.update({
@@ -125,6 +126,11 @@ export const PATCH = withWorkspace(
             // rename redis key
             redis.rename(domain.toLowerCase(), newDomain.toLowerCase()),
           ]);
+
+          // remove old logo
+          if (oldLogo) {
+            await storage.delete(oldLogo.replace(`${R2_URL}/`, ""));
+          }
 
           const allLinks = await prisma.link.findMany({
             where: {

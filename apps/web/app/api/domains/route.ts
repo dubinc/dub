@@ -128,7 +128,7 @@ export const POST = withWorkspace(
 
     const logoUploaded =
       logo && workspace.plan !== "free"
-        ? await storage.upload(`logos/${domainId}_${nanoid(7)}`, logo)
+        ? await storage.upload(`domains/${domainId}/logo_${nanoid(7)}`, logo)
         : null;
 
     const [domainRecord, _] = await Promise.all([
