@@ -1,23 +1,40 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
-import { Lock } from "@/ui/shared/icons";
-import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
+import { AlertCircleFill, CheckCircleFill, Lock } from "@/ui/shared/icons";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
-  BlurImage,
+  AnimatedSizeContainer,
+  Badge,
   Button,
-  FileUpload,
   InfoTooltip,
+  LoadingSpinner,
   SimpleTooltipContent,
   Switch,
+  useMediaQuery,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { motion } from "framer-motion";
+import {
+  Binoculars,
+  Crown,
+  Milestone,
+  QrCode,
+  TextCursorInput,
+} from "lucide-react";
 import posthog from "posthog-js";
 import { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import DomainInput from "./domain-input";
+import { z } from "zod";
+
+const domainFormSchema = z.object({
+  slug: z.string().min(1, "Domain is required"),
+  logo: z.string().optional(),
+  expiredUrl: z.string().url().optional().or(z.literal("")),
+  notFoundUrl: z.string().url().optional().or(z.literal("")),
+  placeholder: z.string().url().optional().or(z.literal("")),
+});
 
 export function AddEditDomainForm({
   props,
@@ -31,45 +48,33 @@ export function AddEditDomainForm({
   className?: string;
 }) {
   const { id: workspaceId, plan } = useWorkspace();
-
   const isDubProvisioned = !!props?.registeredDomain;
-
-  const [data, setData] = useState<DomainProps>(
-    props || {
-      id: "",
-      slug: "",
-      verified: false,
-      primary: false,
-      archived: false,
-      projectId: workspaceId || "",
-      logo: "",
-    },
-  );
-
-  const { slug: domain, placeholder, expiredUrl, notFoundUrl, logo } = data;
-
   const [lockDomain, setLockDomain] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [domainError, setDomainError] = useState<string | null>(null);
+  const [domainStatus, setDomainStatus] = useState<
+    "checking" | "conflict" | "has site" | "available" | null
+  >(props ? "available" : null);
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { isSubmitting, isDirty },
+  } = useForm<z.infer<typeof domainFormSchema>>({
+    defaultValues: {
+      slug: props?.slug || "",
+      logo: props?.logo || "",
+      expiredUrl: props?.expiredUrl || "",
+      notFoundUrl: props?.notFoundUrl || "",
+      placeholder: props?.placeholder || "",
+    },
+  });
+
+  const domain = watch("slug");
 
   const saveDisabled = useMemo(() => {
-    /* 
-      Disable save if:
-      - saving is in progress
-      - domain is invalid
-      - for an existing domain, there's no changes
-    */
-    if (
-      saving ||
-      domainError ||
-      (props &&
-        Object.entries(props).every(([key, value]) => data[key] === value))
-    ) {
-      return true;
-    } else {
-      return false;
-    }
-  }, [saving, domainError, props, data]);
+    return isSubmitting || domainStatus !== "available" || (props && !isDirty);
+  }, [isSubmitting, domainStatus, props, isDirty]);
 
   const endpoint = useMemo(() => {
     if (props) {
@@ -87,98 +92,63 @@ export function AddEditDomainForm({
     }
   }, [props, workspaceId]);
 
-  const [showDefaultExpirationUrl, setShowDefaultExpirationUrl] = useState(
-    !!data.expiredUrl,
-  );
-  const [showNotFoundUrl, setShowNotFoundUrl] = useState(!!data.notFoundUrl);
+  const { isMobile } = useMediaQuery();
 
-  const [showPlaceholderUrl, setShowPlaceholderUrl] = useState(
-    !!data.placeholder,
-  );
+  const onSubmit = async (formData: z.infer<typeof domainFormSchema>) => {
+    try {
+      const res = await fetch(endpoint.url, {
+        method: endpoint.method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (res.ok) {
+        await Promise.all([
+          mutate(
+            (key) => typeof key === "string" && key.startsWith("/api/domains"),
+          ),
+          mutate(
+            (key) => typeof key === "string" && key.startsWith("/api/links"),
+            undefined,
+            { revalidate: true },
+          ),
+        ]);
+        const data = await res.json();
+        posthog.capture(props ? "domain_updated" : "domain_created", data);
+        toast.success(endpoint.successMessage);
+        onSuccess?.(data);
+      } else {
+        const { error } = await res.json();
+        if (res.status === 422) {
+          setDomainStatus("conflict");
+        }
+        if (error.message.includes("Upgrade to Pro")) {
+          toast.custom(() => (
+            <UpgradeRequiredToast
+              title="You've discovered a Pro feature!"
+              message={error.message}
+            />
+          ));
+        } else {
+          toast.error(error.message);
+        }
+      }
+    } catch (error) {
+      toast.error("Failed to add domain");
+    }
+  };
 
   return (
     <form
-      onSubmit={async (e) => {
-        e.preventDefault();
-        setSaving(true);
-        fetch(endpoint.url, {
-          method: endpoint.method,
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        })
-          .then(async (res) => {
-            if (res.ok) {
-              await Promise.all([
-                mutate(
-                  (key) =>
-                    typeof key === "string" && key.startsWith("/api/domains"),
-                ),
-                mutate(
-                  (key) =>
-                    typeof key === "string" && key.startsWith("/api/links"),
-                  undefined,
-                  { revalidate: true },
-                ),
-              ]);
-              const data = await res.json();
-              posthog.capture(
-                props ? "domain_updated" : "domain_created",
-                data,
-              );
-              toast.success(endpoint.successMessage);
-              onSuccess?.(data);
-            } else {
-              setSaving(false);
-              const { error } = await res.json();
-              if (res.status === 422) {
-                setDomainError(error.message);
-              }
-              if (error.message.includes("Upgrade to Pro")) {
-                toast.custom(() => (
-                  <UpgradeRequiredToast
-                    title="You've discovered a Pro feature!"
-                    message={error.message}
-                  />
-                ));
-              } else {
-                toast.error(error.message);
-              }
-            }
-          })
-          .catch(() => {
-            setSaving(false);
-            toast.error("Failed to add domain");
-          });
-      }}
+      onSubmit={handleSubmit(onSubmit)}
       className={cn("flex flex-col gap-y-6 text-left", className)}
     >
       <div>
-        <div className="mb-4 flex flex-col items-center justify-center gap-2">
-          <FileUpload
-            accept="images"
-            className="h-20 w-20 rounded-full border border-gray-300"
-            iconClassName="w-5 h-5"
-            variant="plain"
-            imageSrc={logo}
-            readFile
-            onChange={({ src }) => {
-              setData((d) => ({ ...d, logo: src }));
-            }}
-            content={null}
-            maxFileSizeMB={2}
-            targetResolution={{ width: 240, height: 240 }}
-            disabled={plan === "free"}
-          />
-          <div>
-            <ProBadgeTooltip content="Upload a custom logo to use on QR codes for links under this domain." />
-          </div>
-        </div>
-
         <div className="flex items-center justify-between">
           <label htmlFor="domain" className="flex items-center gap-x-2">
-            <h2 className="text-sm font-medium text-gray-700">Domain</h2>
+            <h2 className="text-sm font-medium text-gray-700">Your domain</h2>
             <InfoTooltip
               content={
                 <SimpleTooltipContent
@@ -209,163 +179,198 @@ export function AddEditDomainForm({
             {domain}
           </div>
         ) : (
-          <DomainInput
-            identifier="slug"
-            data={data}
-            setData={setData}
-            domainError={domainError}
-            setDomainError={setDomainError}
-          />
+          <div className="mt-2">
+            <div
+              className={cn(
+                "-m-1 rounded-[0.625rem] p-1",
+                domainStatus === "conflict"
+                  ? "bg-orange-100 text-orange-800"
+                  : domainStatus === "available"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-gray-200 text-gray-500",
+              )}
+            >
+              <div className="flex rounded-md border border-gray-300 bg-white">
+                <input
+                  {...register("slug", {
+                    onChange: (e) => {
+                      if (e.target.value.trim()) {
+                        setDomainStatus("checking");
+                      } else {
+                        setDomainStatus(null);
+                      }
+                    },
+                    onBlur: (e) => {
+                      if (
+                        e.target.value.length > 0 &&
+                        e.target.value.toLowerCase() !==
+                          props?.slug.toLowerCase()
+                      ) {
+                        fetch(`/api/domains/${e.target.value}/exists`).then(
+                          async (res) => {
+                            const exists = await res.json();
+                            setDomainStatus(
+                              exists === 1 ? "conflict" : "available",
+                            );
+                          },
+                        );
+                      }
+                    },
+                  })}
+                  className="block w-full rounded-md border-0 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
+                  placeholder="go.acme.com"
+                  autoFocus={!isMobile}
+                />
+              </div>
+
+              <AnimatedSizeContainer
+                height
+                transition={{ ease: "easeInOut", duration: 0.1 }}
+              >
+                <div className="flex justify-between gap-3 p-2 text-sm">
+                  <p>
+                    {domainStatus === "checking" ? (
+                      <>
+                        Checking availability for{" "}
+                        <strong className="font-semibold underline underline-offset-2">
+                          {domain}
+                        </strong>
+                        ...
+                      </>
+                    ) : domainStatus === "conflict" ? (
+                      <>
+                        The domain{" "}
+                        <span className="font-semibold underline underline-offset-2">
+                          {domain}
+                        </span>{" "}
+                        is already in use.
+                      </>
+                    ) : domainStatus === "available" ? (
+                      <>
+                        The domain{" "}
+                        <span className="font-semibold underline underline-offset-2">
+                          {domain}
+                        </span>{" "}
+                        looks clear to connect.
+                      </>
+                    ) : (
+                      "Your domain will be used for shortlinks on Dub, and cannot be used for anything else while connected."
+                    )}
+                  </p>
+                  {domainStatus === "checking" ? (
+                    <LoadingSpinner className="mr-0.5 mt-0.5 size-4 shrink-0" />
+                  ) : domainStatus === "conflict" ? (
+                    <AlertCircleFill className="size-5 shrink-0 text-orange-500" />
+                  ) : domainStatus === "available" ? (
+                    <CheckCircleFill className="size-5 shrink-0 text-green-500" />
+                  ) : null}
+                </div>
+              </AnimatedSizeContainer>
+            </div>
+          </div>
         )}
       </div>
 
       {showAdvancedOptions && (
-        <div className="flex flex-col gap-y-6">
-          <div>
-            <label className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm font-medium text-gray-900">
-                  Default Expiration URL
-                </h2>
-                <ProBadgeTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="Redirect users to a specific URL when any link under this domain has expired."
-                      cta="Learn more."
-                      href="https://dub.co/help/article/link-expiration#setting-a-default-expiration-url-for-all-links-under-a-domain"
-                    />
-                  }
-                />
-              </div>
-              <Switch
-                checked={showDefaultExpirationUrl}
-                fn={(checked) => {
-                  setShowDefaultExpirationUrl(checked);
-                  if (!checked) setData((d) => ({ ...d, expiredUrl: "" }));
-                }}
-              />
-            </label>
-            <motion.div
-              animate={{ height: showDefaultExpirationUrl ? "auto" : 0 }}
-              transition={{ duration: 0.1 }}
-              initial={false}
-              className="-m-1 overflow-hidden p-1"
-            >
-              <div className="relative mt-2 rounded-md shadow-sm">
-                <input
-                  name="expiredUrl"
-                  id="expiredUrl"
-                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                  placeholder="https://yourwebsite.com"
-                  value={expiredUrl}
-                  onChange={(e) =>
-                    setData((d) => ({ ...d, expiredUrl: e.target.value }))
-                  }
-                />
-              </div>
-            </motion.div>
-          </div>
-
-          <div>
-            <label className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm font-medium text-gray-900">
-                  Not Found URL
-                </h2>
-                <ProBadgeTooltip content="Redirect users to a specific URL when a link under this domain doesn't exist." />
-              </div>
-              <Switch
-                checked={showNotFoundUrl}
-                fn={(checked) => {
-                  setShowNotFoundUrl(checked);
-                  if (!checked) setData((d) => ({ ...d, notFoundUrl: "" }));
-                }}
-              />
-            </label>
-            <motion.div
-              animate={{ height: showNotFoundUrl ? "auto" : 0 }}
-              transition={{ duration: 0.1 }}
-              initial={false}
-              className="-m-1 overflow-hidden p-1"
-            >
-              <div className="relative mt-2 rounded-md shadow-sm">
-                <input
-                  name="notFoundUrl"
-                  id="notFoundUrl"
-                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                  placeholder="https://yourwebsite.com"
-                  value={notFoundUrl}
-                  onChange={(e) =>
-                    setData((d) => ({ ...d, notFoundUrl: e.target.value }))
-                  }
-                />
-              </div>
-            </motion.div>
-          </div>
-
-          <div>
-            <label className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm font-medium text-gray-900">
-                  Input Placeholder URL
-                </h2>
-                <InfoTooltip
-                  content={
-                    <div className="flex max-w-sm flex-col items-center justify-center">
-                      <div className="border-b border-gray-200">
-                        <BlurImage
-                          src="https://assets.dub.co/help/domain-input-placeholder-url.png"
-                          alt="Input Placeholder URL"
-                          className="aspect-[782/506]"
-                          width={782}
-                          height={506}
+        <>
+          <div className="h-0.5 w-full bg-gray-200" />
+          <div className="flex flex-col gap-y-6">
+            {ADVANCED_OPTIONS.map(
+              ({ id, title, description, icon: Icon, proFeature }) => {
+                const [showOption, setShowOption] = useState(
+                  !!watch(id as keyof z.infer<typeof domainFormSchema>),
+                );
+                return (
+                  <div key={id}>
+                    <label className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-lg border border-gray-200 bg-white p-2">
+                          <Icon className="size-5 text-gray-600" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h2 className="text-sm font-medium text-gray-900">
+                              {title}
+                            </h2>
+                            {proFeature && plan === "free" && (
+                              <Badge className="flex items-center space-x-1 bg-white">
+                                <Crown size={12} />
+                                <p className="uppercase">Pro</p>
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-500">{description}</p>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={showOption}
+                        fn={(checked) => {
+                          setShowOption(checked);
+                          if (!checked)
+                            setValue(
+                              id as keyof z.infer<typeof domainFormSchema>,
+                              "",
+                            );
+                        }}
+                      />
+                    </label>
+                    <motion.div
+                      animate={{ height: showOption ? "auto" : 0 }}
+                      transition={{ duration: 0.1 }}
+                      initial={false}
+                      className="-m-1 overflow-hidden p-1"
+                    >
+                      <div className="relative mt-2 rounded-md shadow-sm">
+                        <input
+                          {...register(
+                            id as keyof z.infer<typeof domainFormSchema>,
+                          )}
+                          className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                          placeholder="https://yourwebsite.com"
                         />
                       </div>
-                      <p className="max-w-xs px-4 py-2 text-center text-sm text-gray-700">
-                        Provide context to your teammates in the link creation
-                        modal by showing them an example of a link to be
-                        shortened.
-                      </p>
-                    </div>
-                  }
-                  side="right"
-                />
-              </div>
-              <Switch
-                checked={showPlaceholderUrl}
-                fn={(checked) => {
-                  setShowPlaceholderUrl(checked);
-                  if (!checked) setData((d) => ({ ...d, placeholder: "" }));
-                }}
-              />
-            </label>
-            <motion.div
-              animate={{ height: showPlaceholderUrl ? "auto" : 0 }}
-              transition={{ duration: 0.1 }}
-              initial={false}
-              className="-m-1 overflow-hidden p-1"
-            >
-              <div className="relative mt-2 rounded-md shadow-sm">
-                <input
-                  name="placeholder"
-                  id="placeholder"
-                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                  placeholder="https://dub.co/help/article/what-is-dub"
-                  value={placeholder}
-                  onChange={(e) =>
-                    setData((d) => ({ ...d, placeholder: e.target.value }))
-                  }
-                />
-              </div>
-            </motion.div>
+                    </motion.div>
+                  </div>
+                );
+              },
+            )}
           </div>
-        </div>
+        </>
       )}
+
       <Button
         text={props ? "Save changes" : "Add domain"}
         disabled={saveDisabled}
-        loading={saving}
+        loading={isSubmitting}
       />
     </form>
   );
 }
+
+const ADVANCED_OPTIONS = [
+  {
+    id: "logo",
+    title: "Custom QR code logo",
+    description: "Set a custom logo for shortlink QR codes",
+    icon: QrCode,
+    proFeature: true,
+  },
+  {
+    id: "expiredUrl",
+    title: "Default expiration URL",
+    description: "Redirects when the shortlink has expired",
+    icon: Milestone,
+  },
+  {
+    id: "notFoundUrl",
+    title: "Not found URL",
+    description: "Redirects when the shortlink doesn't exist",
+    icon: Binoculars,
+  },
+  {
+    id: "placeholder",
+    title: "Input placeholder URL",
+    description: "Set a placeholder URL for the link builder",
+    icon: TextCursorInput,
+  },
+];

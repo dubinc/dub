@@ -119,7 +119,7 @@ export const createDomainBodySchema = z.object({
       "Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened.",
     )
     .openapi({ example: "https://dub.co/help/article/what-is-dub" }),
-  logo: z.string().url().nullish().describe("The logo of the domain."),
+  logo: z.string().nullish().describe("The logo of the domain."),
 });
 
 export const updateDomainBodySchema = createDomainBodySchema.partial();
