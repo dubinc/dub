@@ -16,7 +16,7 @@ import {
   DomainSchema,
   updateDomainBodySchema,
 } from "@/lib/zod/schemas/domains";
-import { nanoid, R2_URL } from "@dub/utils";
+import { combineWords, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -59,12 +59,21 @@ export const PATCH = withWorkspace(
       logo,
     } = updateDomainBodySchema.parse(await parseRequestBody(req));
 
-    if (workspace.plan === "free" && expiredUrl) {
-      throw new DubApiError({
-        code: "forbidden",
-        message:
-          "You can only use Default Expiration URLs on a Pro plan and above. Upgrade to Pro to use these features.",
-      });
+    if (workspace.plan === "free") {
+      if (logo || expiredUrl || notFoundUrl) {
+        const proFeaturesString = combineWords(
+          [
+            logo && "custom QR code logos",
+            expiredUrl && "default expiration URLs",
+            notFoundUrl && "not found URLs",
+          ].filter(Boolean) as string[],
+        );
+
+        throw new DubApiError({
+          code: "forbidden",
+          message: `You can only set ${proFeaturesString} on a Pro plan and above. Upgrade to Pro to use these features.`,
+        });
+      }
     }
 
     const domainUpdated =
@@ -93,10 +102,9 @@ export const PATCH = withWorkspace(
       }
     }
 
-    const logoUploaded =
-      logo && workspace.plan !== "free"
-        ? await storage.upload(`domains/${domainId}/logo_${nanoid(7)}`, logo)
-        : null;
+    const logoUploaded = logo
+      ? await storage.upload(`domains/${domainId}/logo_${nanoid(7)}`, logo)
+      : null;
 
     const domainRecord = await prisma.domain.update({
       where: {
@@ -106,11 +114,9 @@ export const PATCH = withWorkspace(
         archived,
         ...(domainUpdated && { slug: newDomain }),
         ...(placeholder && { placeholder }),
-        ...(workspace.plan != "free" && {
-          expiredUrl,
-          notFoundUrl,
-          ...(logoUploaded && { logo: logoUploaded.url }),
-        }),
+        expiredUrl,
+        notFoundUrl,
+        ...(logoUploaded && { logo: logoUploaded.url }),
       },
       include: {
         registeredDomain: true,
@@ -128,7 +134,7 @@ export const PATCH = withWorkspace(
           ]);
 
           // remove old logo
-          if (oldLogo) {
+          if (logoUploaded && oldLogo) {
             await storage.delete(oldLogo.replace(`${R2_URL}/`, ""));
           }
 

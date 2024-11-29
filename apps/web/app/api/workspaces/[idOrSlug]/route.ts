@@ -86,7 +86,7 @@ export const PATCH = withWorkspace(
 
       waitUntil(
         (async () => {
-          if (workspace.logo) {
+          if (logoUploaded && workspace.logo) {
             await storage.delete(workspace.logo.replace(`${R2_URL}/`, ""));
           }
         })(),

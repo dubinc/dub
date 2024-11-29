@@ -6,11 +6,11 @@ import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import {
-  DomainSchema,
   createDomainBodySchema,
+  DomainSchema,
   getDomainsQuerySchemaExtended,
 } from "@/lib/zod/schemas/domains";
-import { DEFAULT_LINK_PROPS, nanoid } from "@dub/utils";
+import { combineWords, DEFAULT_LINK_PROPS, nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/domains – get all domains for a workspace
@@ -78,7 +78,7 @@ export const GET = withWorkspace(
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
     const body = await parseRequestBody(req);
-    const { slug, placeholder, expiredUrl, notFoundUrl, logo } =
+    const { slug, logo, expiredUrl, notFoundUrl, placeholder } =
       createDomainBodySchema.parse(body);
 
     const totalDomains = await prisma.domain.count({
@@ -98,12 +98,21 @@ export const POST = withWorkspace(
       );
     }
 
-    if (workspace.plan === "free" && expiredUrl) {
-      throw new DubApiError({
-        code: "forbidden",
-        message:
-          "You can only use Default Expiration URLs on a Pro plan and above. Upgrade to Pro to use these features.",
-      });
+    if (workspace.plan === "free") {
+      if (logo || expiredUrl || notFoundUrl) {
+        const proFeaturesString = combineWords(
+          [
+            logo && "custom QR code logos",
+            expiredUrl && "default expiration URLs",
+            notFoundUrl && "not found URLs",
+          ].filter(Boolean) as string[],
+        );
+
+        throw new DubApiError({
+          code: "forbidden",
+          message: `You can only set ${proFeaturesString} on a Pro plan and above. Upgrade to Pro to use these features.`,
+        });
+      }
     }
 
     const validDomain = await validateDomain(slug);
@@ -126,10 +135,9 @@ export const POST = withWorkspace(
 
     const domainId = createId({ prefix: "dom_" });
 
-    const logoUploaded =
-      logo && workspace.plan !== "free"
-        ? await storage.upload(`domains/${domainId}/logo_${nanoid(7)}`, logo)
-        : null;
+    const logoUploaded = logo
+      ? await storage.upload(`domains/${domainId}/logo_${nanoid(7)}`, logo)
+      : null;
 
     const [domainRecord, _] = await Promise.all([
       prisma.domain.create({
@@ -139,11 +147,9 @@ export const POST = withWorkspace(
           projectId: workspace.id,
           primary: totalDomains === 0,
           ...(placeholder && { placeholder }),
-          ...(workspace.plan !== "free" && {
-            expiredUrl,
-            notFoundUrl,
-            ...(logoUploaded && { logo: logoUploaded.url }),
-          }),
+          expiredUrl,
+          notFoundUrl,
+          ...(logoUploaded && { logo: logoUploaded.url }),
         },
       }),
 
