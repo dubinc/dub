@@ -136,7 +136,7 @@ export function AddEditDomainForm({
         }
       }
     } catch (error) {
-      toast.error("Failed to add domain");
+      toast.error(`Failed to ${props ? "update" : "add"} domain`);
     }
   };
 
@@ -306,11 +306,15 @@ export function AddEditDomainForm({
                         checked={showOption}
                         fn={(checked) => {
                           setShowOption(checked);
-                          if (!checked)
+                          if (!checked) {
                             setValue(
                               id as keyof z.infer<typeof domainFormSchema>,
                               "",
+                              {
+                                shouldDirty: true,
+                              },
                             );
+                          }
                         }}
                       />
                     </label>

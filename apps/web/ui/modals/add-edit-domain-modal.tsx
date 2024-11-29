@@ -29,7 +29,7 @@ function AddEditDomainModal({
       className="max-w-lg"
     >
       <h3 className="border-b border-gray-200 px-4 py-4 text-lg font-medium sm:px-6">
-        {props ? "Edit" : "Add"} Domain
+        {props ? "Update" : "Add"} Domain
       </h3>
       <div className="bg-gray-50">
         <AddEditDomainForm
