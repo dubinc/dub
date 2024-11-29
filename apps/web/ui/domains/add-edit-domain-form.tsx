@@ -367,6 +367,7 @@ export function AddEditDomainForm({
                               render={({ field }) => (
                                 <FileUpload
                                   accept="images"
+                                  className="h-24 rounded-md"
                                   iconClassName="size-5 text-neutral-700"
                                   variant="plain"
                                   imageSrc={field.value}
