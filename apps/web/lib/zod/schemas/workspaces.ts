@@ -1,10 +1,6 @@
 import { isReservedKey } from "@/lib/edge-config";
 import z from "@/lib/zod";
-import {
-  DEFAULT_REDIRECTS,
-  validDomainRegex,
-  validSlugRegex,
-} from "@dub/utils";
+import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { DomainSchema } from "./domains";
 import { planSchema, roleSchema } from "./misc";
@@ -151,17 +147,7 @@ export const createWorkspaceSchema = z.object({
     .refine(async (v) => !((await isReservedKey(v)) || DEFAULT_REDIRECTS[v]), {
       message: "Cannot use reserved slugs",
     }),
-  domain: z
-    .string()
-    .refine((v) => validDomainRegex.test(v), {
-      message: "Invalid domain format",
-    })
-    .optional(),
+  logo: z.string().optional(),
 });
 
-export const updateWorkspaceSchema = createWorkspaceSchema
-  .pick({
-    name: true,
-    slug: true,
-  })
-  .partial();
+export const updateWorkspaceSchema = createWorkspaceSchema.partial();
