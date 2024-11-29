@@ -19,6 +19,7 @@ export function BlockMarkdown({
       )}
       components={{
         a: ({ node, ...props }) => (
+          // @ts-ignore
           <a {...props} target="_blank" rel="noopener noreferrer" />
         ),
       }}

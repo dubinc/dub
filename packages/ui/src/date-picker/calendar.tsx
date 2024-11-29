@@ -89,7 +89,7 @@ function Calendar({
   ...props
 }: CalendarProps & { showYearNavigation?: boolean }) {
   return (
-    (<DayPicker
+    <DayPicker
       mode={mode}
       weekStartsOn={weekStartsOn}
       numberOfMonths={numberOfMonths}
@@ -230,7 +230,7 @@ function Calendar({
             useDayRender(
               date,
               displayMonth,
-              buttonRef as RefObject<HTMLButtonElement | null>,
+              buttonRef as RefObject<HTMLButtonElement>,
             );
 
           const { selected, today, disabled, range_middle } = activeModifiers;
@@ -272,7 +272,7 @@ function Calendar({
         },
       }}
       {...(props as SingleProps & RangeProps)}
-    />)
+    />
   );
 }
 

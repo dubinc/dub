@@ -1,5 +1,6 @@
 // allow letters, numbers, '-', '_', '/', '.', and emojis
 export const validKeyRegex = new RegExp(
+  // @ts-ignore
   /^[0-9A-Za-z_\u0080-\uFFFF\/\-\p{Emoji}.]+$/u,
 );
 
