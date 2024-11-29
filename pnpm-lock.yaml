@@ -65,7 +65,7 @@ importers:
         version: 3.9.0(react-hook-form@7.52.1)
       '@next-auth/prisma-adapter':
         specifier: ^1.0.5
-        version: 1.0.5(@prisma/client@5.18.0)(next-auth@4.24.4)
+        version: 1.0.5(@prisma/client@5.18.0)(next-auth@4.24.9)
       '@number-flow/react':
         specifier: ^0.4.1
         version: 0.4.1(react-dom@19.0.0-rc.1)(react@19.0.0-rc.1)
@@ -238,8 +238,8 @@ importers:
         specifier: 15.0.3
         version: 15.0.3(@babel/core@7.24.5)(@opentelemetry/api@1.8.0)(react-dom@19.0.0-rc.1)(react@19.0.0-rc.1)
       next-auth:
-        specifier: ^4.24.4
-        version: 4.24.4(next@15.0.3)(nodemailer@6.9.3)(react-dom@19.0.0-rc.1)(react@19.0.0-rc.1)
+        specifier: ^4.24.9
+        version: 4.24.9(next@15.0.3)(nodemailer@6.9.3)(react-dom@19.0.0-rc.1)(react@19.0.0-rc.1)
       next-axiom:
         specifier: ^1.6.0
         version: 1.6.0(next@15.0.3)(react@19.0.0-rc.1)
@@ -4989,14 +4989,14 @@ packages:
       sparse-bitfield: 3.0.3
     dev: false
 
-  /@next-auth/prisma-adapter@1.0.5(@prisma/client@5.18.0)(next-auth@4.24.4):
+  /@next-auth/prisma-adapter@1.0.5(@prisma/client@5.18.0)(next-auth@4.24.9):
     resolution: {integrity: sha512-VqMS11IxPXrPGXw6Oul6jcyS/n8GLOWzRMrPr3EMdtD6eOalM6zz05j08PcNiis8QzkfuYnCv49OvufTuaEwYQ==}
     peerDependencies:
       '@prisma/client': '>=2.26.0 || >=3'
       next-auth: ^4
     dependencies:
       '@prisma/client': 5.18.0(prisma@5.18.0)
-      next-auth: 4.24.4(next@15.0.3)(nodemailer@6.9.3)(react-dom@19.0.0-rc.1)(react@19.0.0-rc.1)
+      next-auth: 4.24.9(next@15.0.3)(nodemailer@6.9.3)(react-dom@19.0.0-rc.1)(react@19.0.0-rc.1)
     dev: false
 
   /@next/env@14.1.4:
@@ -11835,8 +11835,8 @@ packages:
     engines: {node: '>= 0.6'}
     dev: false
 
-  /cookie@0.5.0:
-    resolution: {integrity: sha512-YZ3GUyn/o8gfKJlnlX7g7xq4gyO6OSuhGPKaaGssGB2qgDUS0gPgtTvoyZLTt9Ab6dC4hfc9dV5arkvc/OCmrw==}
+  /cookie@0.7.2:
+    resolution: {integrity: sha512-yki5XnKuf750l50uGTllt6kKILY4nQ1eNIQatoXEByZ5dWgnKqbnqmTrBE5B4N7lrMJKQ2ytWMiTO2o0v6Ew/w==}
     engines: {node: '>= 0.6'}
     dev: false
 
@@ -17500,27 +17500,30 @@ packages:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
     dev: false
 
-  /next-auth@4.24.4(next@15.0.3)(nodemailer@6.9.3)(react-dom@19.0.0-rc.1)(react@19.0.0-rc.1):
-    resolution: {integrity: sha512-5DGffi+OpkbU62vPQIJ1z+hFnmow+ec5Qrn9m6eoglIO51m0DlrmLxBduZEwKAYDEg9k2joi1yelgmq1vqK3aQ==}
+  /next-auth@4.24.9(next@15.0.3)(nodemailer@6.9.3)(react-dom@19.0.0-rc.1)(react@19.0.0-rc.1):
+    resolution: {integrity: sha512-1eSvaJb5I3EIzSkU+HMBnLPQTD+q23CuBhWRW6PvT7x5wVHTAkOTpnLobczPjqra38ai8E6uSlVy/HSV3gecXw==}
     peerDependencies:
-      next: ^12.2.5 || ^13 || ^14
+      '@auth/core': 0.34.2
+      next: ^12.2.5 || ^13 || ^14 || ^15
       nodemailer: ^6.6.5
       react: ^17.0.2 || ^18
       react-dom: ^17.0.2 || ^18
     peerDependenciesMeta:
+      '@auth/core':
+        optional: true
       nodemailer:
         optional: true
     dependencies:
-      '@babel/runtime': 7.23.2
+      '@babel/runtime': 7.23.9
       '@panva/hkdf': 1.1.1
-      cookie: 0.5.0
-      jose: 4.15.4
+      cookie: 0.7.2
+      jose: 4.15.5
       next: 15.0.3(@babel/core@7.24.5)(@opentelemetry/api@1.8.0)(react-dom@19.0.0-rc.1)(react@19.0.0-rc.1)
       nodemailer: 6.9.3
       oauth: 0.9.15
-      openid-client: 5.6.1
-      preact: 10.18.1
-      preact-render-to-string: 5.2.6(preact@10.18.1)
+      openid-client: 5.6.5
+      preact: 10.22.1
+      preact-render-to-string: 5.2.6(preact@10.22.1)
       react: 19.0.0-rc.1
       react-dom: 19.0.0-rc.1(react@19.0.0-rc.1)
       uuid: 8.3.2
@@ -17999,15 +18002,6 @@ packages:
     resolution: {integrity: sha512-KL1mKwkZii5ce+tb24KCUmQHyWB/oanG5fzUY35UB+wenWJv4Kr/IWBntpn5R8ODiJcxx13ZDophcpHnLGeIOw==}
     dependencies:
       yaml: 2.3.4
-    dev: false
-
-  /openid-client@5.6.1:
-    resolution: {integrity: sha512-PtrWsY+dXg6y8mtMPyL/namZSYVz8pjXz3yJiBNZsEdCnu9miHLB4ELVC85WvneMKo2Rg62Ay7NkuCpM0bgiLQ==}
-    dependencies:
-      jose: 4.15.5
-      lru-cache: 6.0.0
-      object-hash: 2.2.0
-      oidc-token-hash: 5.0.3
     dev: false
 
   /openid-client@5.6.5:
@@ -18528,17 +18522,13 @@ packages:
       web-vitals: 4.2.2
     dev: false
 
-  /preact-render-to-string@5.2.6(preact@10.18.1):
+  /preact-render-to-string@5.2.6(preact@10.22.1):
     resolution: {integrity: sha512-JyhErpYOvBV1hEPwIxc/fHWXPfnEGdRKxc8gFdAZ7XV4tlzyzG847XAyEZqoDnynP88akM4eaHcSOzNcLWFguw==}
     peerDependencies:
       preact: '>=10'
     dependencies:
-      preact: 10.18.1
+      preact: 10.22.1
       pretty-format: 3.8.0
-    dev: false
-
-  /preact@10.18.1:
-    resolution: {integrity: sha512-mKUD7RRkQQM6s7Rkmi7IFkoEHjuFqRQUaXamO61E6Nn7vqF/bo7EZCmSyrUnp2UWHw0O7XjZ2eeXis+m7tf4lg==}
     dev: false
 
   /preact@10.22.1:
