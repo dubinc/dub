@@ -73,11 +73,6 @@ const getQRCodeLogo = async ({
     return DUB_QR_LOGO;
   }
 
-  // Dub owned domain
-  if (isDubDomain(shortLink.domain)) {
-    return DUB_QR_LOGO;
-  }
-
   // hideLogo is set or logo is passed
   if (hideLogo || logo) {
     const workspace = await getWorkspaceViaEdge(shortLink.projectId);
@@ -91,6 +86,11 @@ const getQRCodeLogo = async ({
     }
 
     return logo;
+  }
+
+  // Dub owned domain
+  if (isDubDomain(shortLink.domain)) {
+    return DUB_QR_LOGO;
   }
 
   // if no logo is passed, use domain logo
