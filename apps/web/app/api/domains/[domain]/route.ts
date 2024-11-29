@@ -119,7 +119,7 @@ export const PATCH = withWorkspace(
         ...(placeholder && { placeholder }),
         expiredUrl,
         notFoundUrl,
-        logo: deleteLogo ? null : logoUploaded?.url,
+        logo: deleteLogo ? null : logoUploaded?.url || oldLogo,
       },
       include: {
         registeredDomain: true,
