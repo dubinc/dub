@@ -151,8 +151,6 @@ export function AddEditDomainForm({
   const isDubProvisioned = !!props?.registeredDomain;
 
   const onSubmit = async (formData: FormData) => {
-    console.log("formData", formData);
-
     try {
       const res = await fetch(endpoint.url, {
         method: endpoint.method,
