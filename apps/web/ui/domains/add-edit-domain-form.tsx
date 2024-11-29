@@ -1,5 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
+import { createDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { AlertCircleFill, CheckCircleFill, Lock } from "@/ui/shared/icons";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
@@ -28,13 +29,7 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
 
-const domainFormSchema = z.object({
-  slug: z.string().min(1, "Domain is required"),
-  logo: z.string().optional(),
-  expiredUrl: z.string().url().optional().or(z.literal("")),
-  notFoundUrl: z.string().url().optional().or(z.literal("")),
-  placeholder: z.string().url().optional().or(z.literal("")),
-});
+type FormData = z.infer<typeof createDomainBodySchema>;
 
 export function AddEditDomainForm({
   props,
@@ -48,7 +43,6 @@ export function AddEditDomainForm({
   className?: string;
 }) {
   const { id: workspaceId, plan } = useWorkspace();
-  const isDubProvisioned = !!props?.registeredDomain;
   const [lockDomain, setLockDomain] = useState(true);
   const [domainStatus, setDomainStatus] = useState<
     "checking" | "conflict" | "has site" | "available" | null
@@ -60,13 +54,13 @@ export function AddEditDomainForm({
     watch,
     setValue,
     formState: { isSubmitting, isDirty },
-  } = useForm<z.infer<typeof domainFormSchema>>({
+  } = useForm<FormData>({
     defaultValues: {
-      slug: props?.slug || "",
-      logo: props?.logo || "",
-      expiredUrl: props?.expiredUrl || "",
-      notFoundUrl: props?.notFoundUrl || "",
-      placeholder: props?.placeholder || "",
+      slug: props?.slug,
+      logo: props?.logo,
+      expiredUrl: props?.expiredUrl,
+      notFoundUrl: props?.notFoundUrl,
+      placeholder: props?.placeholder,
     },
   });
 
@@ -94,7 +88,11 @@ export function AddEditDomainForm({
 
   const { isMobile } = useMediaQuery();
 
-  const onSubmit = async (formData: z.infer<typeof domainFormSchema>) => {
+  const isDubProvisioned = !!props?.registeredDomain;
+
+  const onSubmit = async (formData: FormData) => {
+    console.log("formData", formData);
+
     try {
       const res = await fetch(endpoint.url, {
         method: endpoint.method,
@@ -279,9 +277,7 @@ export function AddEditDomainForm({
           <div className="flex flex-col gap-y-6">
             {ADVANCED_OPTIONS.map(
               ({ id, title, description, icon: Icon, proFeature }) => {
-                const [showOption, setShowOption] = useState(
-                  !!watch(id as keyof z.infer<typeof domainFormSchema>),
-                );
+                const [showOption, setShowOption] = useState(!!watch(id));
                 return (
                   <div key={id}>
                     <label className="flex items-center justify-between gap-2">
@@ -311,13 +307,9 @@ export function AddEditDomainForm({
                         fn={(checked) => {
                           setShowOption(checked);
                           if (!checked) {
-                            setValue(
-                              id as keyof z.infer<typeof domainFormSchema>,
-                              "",
-                              {
-                                shouldDirty: true,
-                              },
-                            );
+                            setValue(id, "", {
+                              shouldDirty: true,
+                            });
                           }
                         }}
                       />
@@ -330,9 +322,7 @@ export function AddEditDomainForm({
                     >
                       <div className="relative mt-2 rounded-md shadow-sm">
                         <input
-                          {...register(
-                            id as keyof z.infer<typeof domainFormSchema>,
-                          )}
+                          {...register(id)}
                           className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                           placeholder="https://yourwebsite.com"
                         />
@@ -355,7 +345,13 @@ export function AddEditDomainForm({
   );
 }
 
-const ADVANCED_OPTIONS = [
+const ADVANCED_OPTIONS: {
+  id: keyof FormData;
+  title: string;
+  description: string;
+  icon: any;
+  proFeature?: boolean;
+}[] = [
   {
     id: "logo",
     title: "Custom QR code logo",
