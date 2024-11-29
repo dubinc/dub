@@ -10,18 +10,6 @@ import { useContext, useState } from "react";
 import { toast } from "sonner";
 import { errorCodes, LoginFormContext } from "./login-form";
 
-const isSafeUrl = (url: string) => {
-  const parsedUrl = new URL(url, window.location.href);
-  const currentDomain = window.location.hostname;
-
-  // Check if the hostname is the same (for internal URLs) or if it's a relative path
-  if (parsedUrl.hostname === currentDomain || parsedUrl.hostname === "") {
-    return true;
-  }
-
-  return false;
-};
-
 export const EmailSignIn = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -130,7 +118,9 @@ export const EmailSignIn = () => {
             }
 
             if (provider === "credentials") {
-              next = next ? (isSafeUrl(next) ? next : "/") : "/";
+              const isRelative = next?.startsWith("/");
+              next = `${window.location.origin}${isRelative ? next : "/"}`;
+
               router.push(next);
             }
           });
