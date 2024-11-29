@@ -1,7 +1,7 @@
 {
   "name": "@dub/embed-react",
   "description": "Embed React components for Dub.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
