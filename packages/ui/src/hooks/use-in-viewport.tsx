@@ -4,7 +4,7 @@ import { RefObject, useEffect, useState } from "react";
 
 export function useInViewport(
   elementRef: RefObject<Element | null>,
-  options: { root?: RefObject<Element>; defaultValue?: boolean } = {},
+  options: { root?: RefObject<Element | null>; defaultValue?: boolean } = {},
 ) {
   const { root, defaultValue } = options;
   const [visible, setVisible] = useState(defaultValue ?? false);
