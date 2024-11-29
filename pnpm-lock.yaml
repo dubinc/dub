@@ -193,8 +193,8 @@ importers:
         specifier: ^3.6.0
         version: 3.6.0
       dub:
-        specifier: ^0.43.4
-        version: 0.43.4(zod@3.22.4)
+        specifier: ^0.46.1
+        version: 0.46.1(react-dom@18.2.0)(react@18.2.0)(zod@3.22.4)
       framer-motion:
         specifier: ^10.16.16
         version: 10.18.0(react-dom@18.2.0)(react@18.2.0)
@@ -12479,11 +12479,15 @@ packages:
       zod: 3.23.8
     dev: false
 
-  /dub@0.43.4(zod@3.22.4):
-    resolution: {integrity: sha512-HqNnCFgWy9PWvYUrLGDvjba4mqGpjkc+x74yaHhVG5Cm2gTQiIF7kmfUDmz6GOog/Gc9S3C0PicjmqgbMBgbaw==}
+  /dub@0.46.1(react-dom@18.2.0)(react@18.2.0)(zod@3.22.4):
+    resolution: {integrity: sha512-3VRmxY3oAl4w3PCpwIO6R+SQCumlIJKZR5RCF9lPhj5IeUAGVTZsms3bMwKmO+uwQoWZ79ymZHnMOmmZvUaEsg==}
     peerDependencies:
+      react: ^18 || ^19
+      react-dom: ^18 || ^19
       zod: '>= 3'
     dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
       zod: 3.22.4
     dev: false
 
