@@ -11,16 +11,16 @@ import {
   OfficeBuilding,
   Paintbrush,
   Php,
-  Prisma,
+  ProductHunt,
   Python,
   QRCode,
   Raycast,
   Ruby,
-  Tinybird,
   Typescript,
   Users,
   WindowSettings,
 } from "./icons";
+import { Elxo } from "./icons/elxo";
 
 export const FEATURES_LIST = [
   {
@@ -66,24 +66,22 @@ export const CUSTOMER_STORIES = [
     icon: Raycast,
     iconClassName: "group-hover:text-[#FF6363]",
     title: "Raycast",
-    description:
-      "How Raycast added link-sharing features to Ray.so with Dub.co's link infrastructure",
+    description: "Complex link infrastructure",
     href: "/customers/raycast",
   },
   {
-    icon: Tinybird,
-    iconClassName: "group-hover:text-[#268472]",
-    title: "Tinybird",
-    description:
-      "How Tinybird uses Dub.co to enhance their digital marketing strategies",
-    href: "/customers/tinybird",
+    icon: ProductHunt,
+    iconClassName: "group-hover:text-[#FF6154]",
+    title: "Product Hunt",
+    description: "Unlocking new growth",
+    href: "/customers/product-hunt",
   },
   {
-    icon: Prisma,
-    iconClassName: "group-hover:text-[#4C51BF]",
-    title: "Prisma",
-    description: "How Prisma uses Dub.co to improve insights for pris.ly links",
-    href: "/customers/prisma",
+    icon: Elxo,
+    iconClassName: "group-hover:text-[#353D7C]",
+    title: "Elxo",
+    description: "Overcoming API latency",
+    href: "/customers/elxo",
   },
 ];
 
