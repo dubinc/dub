@@ -106,6 +106,9 @@ export const PATCH = withWorkspace(
       ? await storage.upload(`domains/${domainId}/logo_${nanoid(7)}`, logo)
       : null;
 
+    // If logo is null, we want to delete the logo (explicitly set in the request body to null or "")
+    const deleteLogo = logo === null && oldLogo;
+
     const domainRecord = await prisma.domain.update({
       where: {
         slug: domain,
@@ -116,7 +119,7 @@ export const PATCH = withWorkspace(
         ...(placeholder && { placeholder }),
         expiredUrl,
         notFoundUrl,
-        ...(logoUploaded && { logo: logoUploaded.url }),
+        logo: deleteLogo ? null : logoUploaded?.url,
       },
       include: {
         registeredDomain: true,
@@ -125,6 +128,11 @@ export const PATCH = withWorkspace(
 
     waitUntil(
       (async () => {
+        // remove old logo
+        if (oldLogo && (logo === null || logoUploaded)) {
+          await storage.delete(oldLogo.replace(`${R2_URL}/`, ""));
+        }
+
         if (domainUpdated) {
           await Promise.all([
             // remove old domain from Vercel
@@ -132,11 +140,6 @@ export const PATCH = withWorkspace(
             // rename redis key
             redis.rename(domain.toLowerCase(), newDomain.toLowerCase()),
           ]);
-
-          // remove old logo
-          if (logoUploaded && oldLogo) {
-            await storage.delete(oldLogo.replace(`${R2_URL}/`, ""));
-          }
 
           const allLinks = await prisma.link.findMany({
             where: {
