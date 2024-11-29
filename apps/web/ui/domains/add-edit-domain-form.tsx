@@ -110,6 +110,7 @@ export function AddEditDomainForm({
     },
   });
 
+
   const domain = watch("slug");
 
   const debouncedValidateDomain = useDebouncedCallback(
@@ -336,6 +337,7 @@ export function AddEditDomainForm({
                             });
                           }
                         }}
+                        disabled={isSubmitting}
                       />
                     </label>
                     <motion.div
@@ -353,7 +355,6 @@ export function AddEditDomainForm({
                             <Controller
                               control={control}
                               name="logo"
-                              rules={{ required: true }}
                               render={({ field }) => (
                                 <FileUpload
                                   accept="images"
