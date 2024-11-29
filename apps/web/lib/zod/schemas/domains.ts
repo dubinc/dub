@@ -91,16 +91,19 @@ export const createDomainBodySchema = z.object({
     .string({ required_error: "slug is required" })
     .min(1, "slug cannot be empty.")
     .max(190, "slug cannot be longer than 190 characters.")
+    .trim()
     .describe("Name of the domain.")
     .openapi({ example: "acme.com" }),
-  expiredUrl: parseUrlSchemaAllowEmpty()
+  expiredUrl: parseUrlSchemaAllowEmpty({ trim: true })
     .nullish()
+    .transform((v) => v || null)
     .describe(
       "Redirect users to a specific URL when any link under this domain has expired.",
     )
     .openapi({ example: "https://acme.com/expired" }),
-  notFoundUrl: parseUrlSchemaAllowEmpty()
+  notFoundUrl: parseUrlSchemaAllowEmpty({ trim: true })
     .nullish()
+    .transform((v) => v || null)
     .describe(
       "Redirect users to a specific URL when a link under this domain doesn't exist.",
     )
@@ -113,13 +116,19 @@ export const createDomainBodySchema = z.object({
       "Whether to archive this domain. `false` will unarchive a previously archived domain.",
     )
     .openapi({ example: false }),
-  placeholder: parseUrlSchemaAllowEmpty({ maxLength: 100 })
+  placeholder: parseUrlSchemaAllowEmpty({ maxLength: 100, trim: true })
     .nullish()
+    .transform((v) => v || null)
     .describe(
       "Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened.",
     )
     .openapi({ example: "https://dub.co/help/article/what-is-dub" }),
-  logo: z.string().nullish().describe("The logo of the domain."),
+  logo: z
+    .string()
+    .trim()
+    .nullish()
+    .transform((v) => v || null)
+    .describe("The logo of the domain."),
 });
 
 export const updateDomainBodySchema = createDomainBodySchema.partial();
