@@ -193,8 +193,8 @@ importers:
         specifier: ^3.6.0
         version: 3.6.0
       dub:
-        specifier: ^0.43.4
-        version: 0.43.4(zod@3.22.4)
+        specifier: ^0.46.1
+        version: 0.46.1(react-dom@19.0.0-rc.1)(react@19.0.0-rc.1)(zod@3.22.4)
       eslint-config-next:
         specifier: ^15.0.3
         version: 15.0.3(eslint@8.48.0)(typescript@5.4.4)
@@ -1842,7 +1842,7 @@ packages:
       '@babel/core': 7.24.5
       '@babel/helper-compilation-targets': 7.25.2
       '@babel/helper-plugin-utils': 7.25.9
-      debug: 4.3.4
+      debug: 4.3.7
       lodash.debounce: 4.0.8
       resolve: 1.22.6
     transitivePeerDependencies:
@@ -3263,7 +3263,7 @@ packages:
       '@babel/parser': 7.26.2
       '@babel/template': 7.25.9
       '@babel/types': 7.26.0
-      debug: 4.3.4
+      debug: 4.3.7
       globals: 11.12.0
     transitivePeerDependencies:
       - supports-color
@@ -10769,12 +10769,6 @@ packages:
       tslib: 2.6.2
     dev: false
 
-  /aria-query@5.3.0:
-    resolution: {integrity: sha512-b0P0sZPKtyu8HkeRAfCq0IfURZK+SuwMjY1UXGBU27wpAiTwQAIlq56IbIO+ytk/JjS1fMR14ee5WBBfKi5J6A==}
-    dependencies:
-      dequal: 2.0.3
-    dev: false
-
   /aria-query@5.3.2:
     resolution: {integrity: sha512-COROpnaoap1E2F000S62r6A60uHZnmlvomhfyT2DlTcrY1OrBKn2UhH7qn5wTC9zMvD0AY7csdPSNwKP+7WiQw==}
     engines: {node: '>= 0.4'}
@@ -10984,12 +10978,6 @@ packages:
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
-    dev: false
-
-  /axobject-query@4.0.0:
-    resolution: {integrity: sha512-+60uv1hiVFhHZeO+Lz0RYzsVHy5Wr1ayX0mwda9KPDVLNJgZ1T9Ny7VmFbLDzxsH0D87I86vgj3gFrjTJUYznw==}
-    dependencies:
-      dequal: 2.0.3
     dev: false
 
   /axobject-query@4.1.0:
@@ -12505,11 +12493,15 @@ packages:
       zod: 3.23.8
     dev: false
 
-  /dub@0.43.4(zod@3.22.4):
-    resolution: {integrity: sha512-HqNnCFgWy9PWvYUrLGDvjba4mqGpjkc+x74yaHhVG5Cm2gTQiIF7kmfUDmz6GOog/Gc9S3C0PicjmqgbMBgbaw==}
+  /dub@0.46.1(react-dom@19.0.0-rc.1)(react@19.0.0-rc.1)(zod@3.22.4):
+    resolution: {integrity: sha512-3VRmxY3oAl4w3PCpwIO6R+SQCumlIJKZR5RCF9lPhj5IeUAGVTZsms3bMwKmO+uwQoWZ79ymZHnMOmmZvUaEsg==}
     peerDependencies:
+      react: ^18 || ^19
+      react-dom: ^18 || ^19
       zod: '>= 3'
     dependencies:
+      react: 19.0.0-rc.1
+      react-dom: 19.0.0-rc.1(react@19.0.0-rc.1)
       zod: 3.22.4
     dev: false
 
@@ -20619,8 +20611,8 @@ packages:
       '@jridgewell/trace-mapping': 0.3.25
       '@types/estree': 1.0.5
       acorn: 8.11.3
-      aria-query: 5.3.0
-      axobject-query: 4.0.0
+      aria-query: 5.3.2
+      axobject-query: 4.1.0
       code-red: 1.0.4
       css-tree: 2.3.1
       estree-walker: 3.0.3
