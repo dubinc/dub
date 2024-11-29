@@ -66,7 +66,7 @@ export default function WorkspaceSettingsClient() {
           pattern: "^[a-z0-9-]+$",
           maxLength: 48,
         }}
-        helpText="Only lowercase letters, numbers, and dashes. Max 48 characters"
+        helpText="Only lowercase letters, numbers, and dashes. Max 48 characters."
         disabledTooltip={permissionsError || undefined}
         handleSubmit={(data) =>
           fetch(`/api/workspaces/${id}`, {
@@ -91,8 +91,8 @@ export default function WorkspaceSettingsClient() {
           })
         }
       />
-      <WorkspaceId />
       <UploadLogo />
+      <WorkspaceId />
       <DeleteWorkspace />
     </>
   );
