@@ -10,10 +10,22 @@ import { useContext, useState } from "react";
 import { toast } from "sonner";
 import { errorCodes, LoginFormContext } from "./login-form";
 
+const isSafeUrl = (url: string) => {
+  const parsedUrl = new URL(url, window.location.href);
+  const currentDomain = window.location.hostname;
+
+  // Check if the hostname is the same (for internal URLs) or if it's a relative path
+  if (parsedUrl.hostname === currentDomain || parsedUrl.hostname === "") {
+    return true;
+  }
+
+  return false;
+};
+
 export const EmailSignIn = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams?.get("next");
+  let next = searchParams?.get("next");
   const { isMobile } = useMediaQuery();
 
   const [email, setEmail] = useState("");
@@ -77,40 +89,49 @@ export const EmailSignIn = () => {
             }
 
             const { accountExists, hasPassword } = await res.json();
-            if (accountExists) {
-              const provider =
-                hasPassword && password ? "credentials" : "email";
 
-              signIn(provider, {
-                email,
-                redirect: false,
-                callbackUrl: next || "/",
-                ...(password && { password }),
-              }).then((res) => {
-                if (!res) return;
-
-                // Handle errors
-                if (!res.ok && res.error) {
-                  if (errorCodes[res.error]) toast.error(errorCodes[res.error]);
-                  else toast.error(res.error);
-
-                  setClickedMethod(undefined);
-                  return;
-                }
-
-                // Handle success
-                setLastUsedAuthMethod("email");
-                if (provider === "email") {
-                  toast.success("Email sent - check your inbox!");
-                  setEmail("");
-                  setClickedMethod(undefined);
-                } else if (provider === "credentials") {
-                  router.push(next || "/");
-                }
-              });
-            } else {
+            if (!accountExists) {
               setClickedMethod(undefined);
               toast.error("No account found with that email address.");
+              return;
+            }
+
+            const provider = hasPassword && password ? "credentials" : "email";
+
+            const response = await signIn(provider, {
+              email,
+              redirect: false,
+              callbackUrl: next || "/",
+              ...(password && { password }),
+            });
+
+            if (!response) {
+              return;
+            }
+
+            if (!response.ok && response.error) {
+              if (errorCodes[response.error]) {
+                toast.error(errorCodes[response.error]);
+              } else {
+                toast.error(response.error);
+              }
+
+              setClickedMethod(undefined);
+              return;
+            }
+
+            setLastUsedAuthMethod("email");
+
+            if (provider === "email") {
+              toast.success("Email sent - check your inbox!");
+              setEmail("");
+              setClickedMethod(undefined);
+              return;
+            }
+
+            if (provider === "credentials") {
+              next = next ? (isSafeUrl(next) ? next : "/") : "/";
+              router.push(next);
             }
           });
         }}
