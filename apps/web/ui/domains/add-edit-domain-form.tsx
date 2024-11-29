@@ -110,7 +110,6 @@ export function AddEditDomainForm({
     },
   });
 
-
   const domain = watch("slug");
 
   const debouncedValidateDomain = useDebouncedCallback(
@@ -158,7 +157,10 @@ export function AddEditDomainForm({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          ...(formData.logo === props?.logo && { logo: undefined }),
+        }),
       });
 
       if (res.ok) {
