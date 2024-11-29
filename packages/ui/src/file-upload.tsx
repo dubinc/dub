@@ -1,9 +1,8 @@
 import { cn, resizeImage } from "@dub/utils";
 import { VariantProps, cva } from "class-variance-authority";
-import { UploadCloud } from "lucide-react";
 import { DragEvent, ReactNode, useState } from "react";
 import { toast } from "sonner";
-import { LoadingCircle } from "./icons";
+import { CloudUpload, LoadingCircle } from "./icons";
 
 type AcceptedFileFormats = "any" | "images" | "csv";
 
@@ -58,7 +57,10 @@ export type FileUploadProps = FileUploadReadFileProps & {
   className?: string;
   iconClassName?: string;
   previewClassName?: string;
-
+  /**
+   * Custom preview component to display instead of the default
+   */
+  customPreview?: ReactNode;
   /**
    * Image to display (generally for image uploads)
    */
@@ -109,6 +111,7 @@ export function FileUpload({
   className,
   iconClassName,
   previewClassName,
+  customPreview,
   accept = "any",
   imageSrc,
   loading = false,
@@ -228,7 +231,7 @@ export function FileUpload({
             : cn(!disabled && "group-hover:bg-gray-50"),
         )}
       >
-        <UploadCloud
+        <CloudUpload
           className={cn(
             "size-7 transition-all duration-75",
             !disabled
@@ -256,16 +259,17 @@ export function FileUpload({
         )}
         <span className="sr-only">{accessibilityLabel}</span>
       </div>
-      {imageSrc && (
-        <img
-          src={imageSrc}
-          alt="Preview"
-          className={cn(
-            "h-full w-full rounded-[inherit] object-cover",
-            previewClassName,
-          )}
-        />
-      )}
+      {imageSrc &&
+        (customPreview ?? (
+          <img
+            src={imageSrc}
+            alt="Preview"
+            className={cn(
+              "h-full w-full rounded-[inherit] object-cover",
+              previewClassName,
+            )}
+          />
+        ))}
       {clickToUpload && (
         <div className="sr-only mt-1 flex shadow-sm">
           <input

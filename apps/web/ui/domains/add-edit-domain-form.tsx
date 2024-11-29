@@ -7,8 +7,10 @@ import {
   AnimatedSizeContainer,
   Badge,
   Button,
+  FileUpload,
   InfoTooltip,
   LoadingSpinner,
+  ShimmerDots,
   SimpleTooltipContent,
   Switch,
   useMediaQuery,
@@ -24,11 +26,12 @@ import {
 } from "lucide-react";
 import posthog from "posthog-js";
 import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebouncedCallback } from "use-debounce";
 import { z } from "zod";
+import { QRCode } from "../shared/qr-code";
 
 const domainFormSchema = z.object({
   slug: z.string().min(1, "Domain is required"),
@@ -98,6 +101,7 @@ export function AddEditDomainForm({
 
   const {
     register,
+    control,
     handleSubmit,
     watch,
     setValue,
@@ -351,13 +355,49 @@ export function AddEditDomainForm({
                       className="-m-1 overflow-hidden p-1"
                     >
                       <div className="relative mt-2 rounded-md shadow-sm">
-                        <input
-                          {...register(
-                            id as keyof z.infer<typeof domainFormSchema>,
-                          )}
-                          className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                          placeholder="https://yourwebsite.com"
-                        />
+                        {id === "logo" ? (
+                          <div className="flex h-24 items-center justify-center overflow-hidden rounded-md border border-gray-300">
+                            {!isMobile && (
+                              <ShimmerDots className="pointer-events-none z-10 opacity-30 [mask-image:radial-gradient(40%_80%,transparent_50%,black)]" />
+                            )}
+                            <Controller
+                              control={control}
+                              name="logo"
+                              rules={{ required: true }}
+                              render={({ field }) => (
+                                <FileUpload
+                                  accept="images"
+                                  iconClassName="size-5 text-neutral-700"
+                                  variant="plain"
+                                  imageSrc={field.value}
+                                  readFile
+                                  onChange={({ src }) => field.onChange(src)}
+                                  maxFileSizeMB={2}
+                                  targetResolution={{
+                                    width: 160,
+                                    height: 160,
+                                  }}
+                                  customPreview={
+                                    <QRCode
+                                      url="https://dub.co"
+                                      fgColor="#000"
+                                      logo={field.value}
+                                      scale={0.6}
+                                    />
+                                  }
+                                />
+                              )}
+                            />
+                          </div>
+                        ) : (
+                          <input
+                            {...register(
+                              id as keyof z.infer<typeof domainFormSchema>,
+                            )}
+                            className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                            placeholder="https://yourwebsite.com"
+                          />
+                        )}
                       </div>
                     </motion.div>
                   </div>
