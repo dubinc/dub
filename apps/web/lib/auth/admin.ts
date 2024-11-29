@@ -17,11 +17,18 @@ interface WithAdminHandler {
 
 export const withAdmin =
   (handler: WithAdminHandler) =>
-  async (req: Request, { params = {} }: { params: any }) => {
+  async (
+    req: Request,
+    segmentData: {
+      params: Promise<Record<string, string>>;
+    },
+  ) => {
     const session = await getSession();
     if (!session?.user) {
       return new Response("Unauthorized: Login required.", { status: 401 });
     }
+
+    const params = await segmentData.params;
 
     const response = await prisma.projectUsers.findUnique({
       where: {
