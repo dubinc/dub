@@ -70,7 +70,7 @@ export const createManualPayoutAction = authActionClient
         quantity = count[type];
       }
 
-      const amountInCents = amount * 100;
+      const amountInCents = (quantity || 1) * (amount || 0) * 100;
       const fee = amountInCents * 0.02;
 
       payout = await prisma.payout.create({
