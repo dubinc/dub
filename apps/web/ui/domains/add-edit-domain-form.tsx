@@ -40,16 +40,17 @@ const domainFormSchema = z.object({
 
 type DomainStatus = "checking" | "conflict" | "has site" | "available" | "idle";
 
-interface StatusConfig {
-  prefix?: string;
-  useStrong?: boolean;
-  suffix?: string;
-  icon?: React.ElementType;
-  className?: string;
-  message?: string;
-}
-
-const STATUS_CONFIG: Record<DomainStatus, StatusConfig> = {
+const STATUS_CONFIG: Record<
+  DomainStatus,
+  {
+    prefix?: string;
+    useStrong?: boolean;
+    suffix?: string;
+    icon?: React.ElementType;
+    className?: string;
+    message?: string;
+  }
+> = {
   checking: {
     prefix: "Checking availability for",
     useStrong: true,
