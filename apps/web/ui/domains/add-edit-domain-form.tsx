@@ -38,6 +38,45 @@ const domainFormSchema = z.object({
   placeholder: z.string().url().optional().or(z.literal("")),
 });
 
+type DomainStatus = "checking" | "conflict" | "has site" | "available" | "idle";
+
+interface StatusConfig {
+  prefix?: string;
+  useStrong?: boolean;
+  suffix?: string;
+  icon?: React.ElementType;
+  className?: string;
+  message?: string;
+}
+
+const STATUS_CONFIG: Record<DomainStatus, StatusConfig> = {
+  checking: {
+    prefix: "Checking availability for",
+    useStrong: true,
+    suffix: "...",
+    icon: LoadingSpinner,
+  },
+  conflict: {
+    suffix: "is already in use.",
+    icon: AlertCircleFill,
+    className: "bg-red-100 text-red-600",
+  },
+  "has site": {
+    suffix:
+      "already has a site connected. Ensure you want to connect this domain for shortlinks.",
+    icon: AlertCircleFill,
+    className: "bg-amber-100 text-amber-600",
+  },
+  available: {
+    suffix: "is ready to connect.",
+    icon: CheckCircleFill,
+    className: "bg-green-100 text-green-600",
+  },
+  idle: {
+    message: "Enter a valid domain to check availability.",
+  },
+};
+
 export function AddEditDomainForm({
   props,
   onSuccess,
@@ -52,9 +91,9 @@ export function AddEditDomainForm({
   const { id: workspaceId, plan } = useWorkspace();
   const isDubProvisioned = !!props?.registeredDomain;
   const [lockDomain, setLockDomain] = useState(true);
-  const [domainStatus, setDomainStatus] = useState<
-    "checking" | "invalid" | "conflict" | "has site" | "available" | null
-  >(props ? "available" : null);
+  const [domainStatus, setDomainStatus] = useState<DomainStatus>(
+    props ? "available" : "idle",
+  );
 
   const {
     register,
@@ -76,11 +115,8 @@ export function AddEditDomainForm({
 
   const debouncedValidateDomain = useDebouncedCallback(
     async (value: string) => {
+      if (!isValidDomain(value)) return;
       setDomainStatus("checking");
-      if (!isValidDomain(value)) {
-        setDomainStatus("invalid");
-        return;
-      }
       fetch(`/api/domains/${value}/validate`).then(async (res) => {
         const data = await res.json();
         setDomainStatus(data.status);
@@ -90,7 +126,9 @@ export function AddEditDomainForm({
   );
 
   const saveDisabled = useMemo(() => {
-    return isSubmitting || domainStatus !== "available" || (props && !isDirty);
+    return (
+      !["available", "has site"].includes(domainStatus) || (props && !isDirty)
+    );
   }, [isSubmitting, domainStatus, props, isDirty]);
 
   const endpoint = useMemo(() => {
@@ -157,6 +195,8 @@ export function AddEditDomainForm({
     }
   };
 
+  const currentStatusProps = STATUS_CONFIG[domainStatus];
+
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -202,18 +242,15 @@ export function AddEditDomainForm({
             <div
               className={cn(
                 "-m-1 rounded-[0.625rem] p-1",
-                domainStatus === "conflict" || domainStatus === "has site"
-                  ? "bg-orange-100 text-orange-800"
-                  : domainStatus === "available"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-neutral-200 text-neutral-500",
+                currentStatusProps.className ||
+                  "bg-neutral-200 text-neutral-500",
               )}
             >
               <div className="flex rounded-md border border-neutral-300 bg-white">
                 <input
                   {...register("slug", {
                     onChange: (e) => {
-                      setDomainStatus(null);
+                      setDomainStatus("idle");
                       debouncedValidateDomain(e.target.value);
                     },
                   })}
@@ -229,51 +266,27 @@ export function AddEditDomainForm({
               >
                 <div className="flex items-center justify-between gap-4 p-2 text-sm">
                   <p>
-                    {domainStatus === "checking" ? (
+                    {domainStatus !== "idle" ? (
                       <>
-                        Checking availability for{" "}
-                        <strong className="font-semibold underline underline-offset-2">
-                          {domain}
-                        </strong>{" "}
-                        ...
-                      </>
-                    ) : domainStatus === "conflict" ? (
-                      <>
-                        The domain{" "}
-                        <span className="font-semibold underline underline-offset-2">
-                          {domain}
-                        </span>{" "}
-                        is already in use.
-                      </>
-                    ) : domainStatus === "has site" ? (
-                      <>
-                        The domain{" "}
-                        <span className="font-semibold underline underline-offset-2">
-                          {domain}
-                        </span>{" "}
-                        already has a site connected. Ensure you want to connect
-                        this domain for shortlinks.
-                      </>
-                    ) : domainStatus === "available" ? (
-                      <>
-                        The domain{" "}
-                        <span className="font-semibold underline underline-offset-2">
-                          {domain}
-                        </span>{" "}
-                        looks clear to connect.
+                        {currentStatusProps.prefix || "The domain"}{" "}
+                        {currentStatusProps.useStrong ? (
+                          <strong className="font-semibold underline underline-offset-2">
+                            {domain}
+                          </strong>
+                        ) : (
+                          <span className="font-semibold underline underline-offset-2">
+                            {domain}
+                          </span>
+                        )}{" "}
+                        {currentStatusProps.suffix}
                       </>
                     ) : (
-                      "Enter a valid domain to check availability."
+                      currentStatusProps.message
                     )}
                   </p>
-                  {domainStatus === "checking" ? (
-                    <LoadingSpinner className="mr-0.5 mt-0.5 size-4 shrink-0" />
-                  ) : domainStatus === "conflict" ||
-                    domainStatus === "has site" ? (
-                    <AlertCircleFill className="size-5 shrink-0 text-orange-500" />
-                  ) : domainStatus === "available" ? (
-                    <CheckCircleFill className="size-5 shrink-0 text-green-500" />
-                  ) : null}
+                  {currentStatusProps.icon && (
+                    <currentStatusProps.icon className="size-5 shrink-0" />
+                  )}
                 </div>
               </AnimatedSizeContainer>
             </div>
