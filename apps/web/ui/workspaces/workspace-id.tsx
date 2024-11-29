@@ -26,13 +26,17 @@ export default function WorkspaceId() {
           )}
         </div>
         <div className="flex items-center justify-between rounded-b-lg border-t border-gray-200 bg-gray-50 px-3 py-5 sm:px-10">
-          <a
-            href="https://dub.co/help/article/how-to-get-workspace-id"
-            target="_blank"
-            className="text-sm text-gray-400 underline underline-offset-4 transition-colors hover:text-gray-700"
-          >
-            Learn more about Workspace ID
-          </a>
+          <p className="text-sm text-gray-500">
+            Used to identify your workspace when interacting with the{" "}
+            <a
+              href="https://dub.co/api"
+              target="_blank"
+              className="underline underline-offset-2 transition-colors hover:text-gray-700"
+            >
+              Dub API
+            </a>
+            .
+          </p>
         </div>
       </div>
     </>

@@ -1,4 +1,5 @@
 import { cn } from "@dub/utils";
+import { useId } from "react";
 
 export function Grid({
   cellSize = 12,
@@ -11,6 +12,8 @@ export function Grid({
   patternOffset?: [number, number];
   className?: string;
 }) {
+  const id = useId();
+
   return (
     <svg
       className={cn(
@@ -22,7 +25,7 @@ export function Grid({
     >
       <defs>
         <pattern
-          id="grid"
+          id={`grid-${id}`}
           x={patternOffset[0] - 1}
           y={patternOffset[1] - 1}
           width={cellSize}
@@ -37,7 +40,7 @@ export function Grid({
           />
         </pattern>
       </defs>
-      <rect fill="url(#grid)" width="100%" height="100%" />
+      <rect fill={`url(#grid-${id})`} width="100%" height="100%" />
     </svg>
   );
 }
