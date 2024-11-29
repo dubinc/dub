@@ -40,7 +40,7 @@ export const DestinationUrlInput = forwardRef<
     const inputId = useId();
     const { isMobile } = useMediaQuery();
 
-    const { setValue: setValueParent } = useFormContext<LinkFormData>();
+    const formContext = useFormContext<LinkFormData>();
 
     return (
       <div>
@@ -94,18 +94,20 @@ export const DestinationUrlInput = forwardRef<
             } block w-full rounded-md focus:outline-none sm:text-sm`}
             aria-invalid="true"
             {...inputProps}
-            onChange={(e) => {
-              const url = e.target.value;
+            {...(formContext && {
+              onChange: (e) => {
+                const url = e.target.value;
 
-              setValueParent("url", url);
-              const parentParams = getParamsFromURL(url);
+                formContext.setValue("url", url);
+                const parentParams = getParamsFromURL(url);
 
-              UTM_PARAMETERS.filter((p) => p.key !== "ref").forEach((p) =>
-                setValueParent(p.key as any, parentParams?.[p.key], {
-                  shouldDirty: true,
-                }),
-              );
-            }}
+                UTM_PARAMETERS.filter((p) => p.key !== "ref").forEach((p) =>
+                  formContext.setValue(p.key as any, parentParams?.[p.key], {
+                    shouldDirty: true,
+                  }),
+                );
+              },
+            })}
           />
           {error && (
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">

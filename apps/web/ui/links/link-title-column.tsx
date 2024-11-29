@@ -20,7 +20,7 @@ import {
   Cards,
   CircleHalfDottedClock,
   EarthPosition,
-  EyeSlash,
+  Incognito,
   InputPassword,
   Page2,
   Robot,
@@ -44,8 +44,8 @@ import { ResponseLink } from "./links-container";
 import { LinksDisplayContext } from "./links-display-provider";
 
 const quickViewSettings = [
-  { label: "Custom Social Media Cards", icon: Cards, key: "proxy" },
-  { label: "Link Cloaking", icon: EyeSlash, key: "rewrite" },
+  { label: "Custom Link Preview", icon: Cards, key: "proxy" },
+  { label: "Link Cloaking", icon: Incognito, key: "rewrite" },
   { label: "Password Protection", icon: InputPassword, key: "password" },
   { label: "Link Expiration", icon: CircleHalfDottedClock, key: "expiresAt" },
   { label: "iOS Targeting", icon: Apple, key: "ios" },
