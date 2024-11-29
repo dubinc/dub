@@ -75,7 +75,7 @@
     "js-cookie": "^3.0.5",
     "json-2-csv": "^5.5.0",
     "jszip": "^3.10.1",
-    "lucide-react": "^0.367.0",
+    "lucide-react": "^0.462.0",
     "nanoid": "^5.0.1",
     "next": "14.3.0-canary.42",
     "next-auth": "^4.24.4",
