@@ -1,62 +1,53 @@
 import {
   Book2Fill,
   BulletListFill,
-  ChartLine,
-  Code,
+  ConnectedDotsFill,
+  CubeSettingsFill,
   FeatherFill,
   Go,
   HeadsetFill,
   Hyperlink,
-  OfficeBuilding,
-  Paintbrush,
+  LinesY,
+  MessageSmile,
   Php,
   ProductHunt,
   Python,
-  QRCode,
   Raycast,
   Ruby,
   Typescript,
-  Users,
-  WindowSettings,
 } from "./icons";
 import { Elxo } from "./icons/elxo";
 
 export const FEATURES_LIST = [
   {
-    title: "Advanced Analytics",
-    description: "Powerful Analytics For The Modern Marketer",
-    icon: ChartLine,
+    title: "Dub Links",
+    description: "Short links with superpowers",
+    icon: Hyperlink,
+    href: "/home",
+  },
+  {
+    title: "Dub Analytics",
+    description: "Powerful real-time analytics",
+    icon: LinesY,
     href: "/help/article/dub-analytics",
   },
   {
-    title: "Branded Links",
-    description: "Branded Links That Stand Out",
-    icon: Hyperlink,
-    href: "/features/branded-links",
-  },
-  {
-    title: "QR Codes",
-    description: "Gorgeous QR codes for your links",
-    icon: QRCode,
-    href: "/features/qr-codes",
-  },
-  {
-    title: "Personalization",
-    description: "Personalize Your Short Links",
-    icon: Paintbrush,
-    href: "/features/personalization",
-  },
-  {
-    title: "Collaboration",
-    description: "Collaborate With Your Team",
-    icon: Users,
-    href: "/features/collaboration",
-  },
-  {
-    title: "API",
-    description: "Programmatic Link Creation",
-    icon: WindowSettings,
+    title: "Dub API",
+    description: "Programmatic link creation at scale",
+    icon: CubeSettingsFill,
     href: "/docs/api-reference/introduction",
+  },
+  {
+    title: "Dub Integrations",
+    description: "Connect Dub with your favorite tools",
+    icon: ConnectedDotsFill,
+    href: "/docs/integrations",
+  },
+  {
+    title: "Customer Stories",
+    description: "See how our customers use Dub",
+    icon: MessageSmile,
+    href: "/customers",
   },
 ];
 
@@ -81,21 +72,6 @@ export const CUSTOMER_STORIES = [
     title: "Elxo",
     description: "Overcoming API latency",
     href: "/customers/elxo",
-  },
-];
-
-export const PROFILES = [
-  {
-    icon: Code,
-    title: "Developers",
-    description: "API for efficient link management",
-    href: "/docs/introduction",
-  },
-  {
-    icon: OfficeBuilding,
-    title: "Enterprise",
-    description: "Scalable link management solutions",
-    href: "/enterprise",
   },
 ];
 

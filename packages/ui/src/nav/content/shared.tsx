@@ -96,7 +96,7 @@ export function LargeLinkCard({
   return (
     <Link
       {...rest}
-      className="group relative flex flex-col rounded-xl border border-neutral-100 bg-neutral-50 transition-colors duration-75 hover:bg-neutral-100 active:bg-neutral-200 dark:border-white/20 dark:bg-white/10 dark:hover:bg-white/15 dark:active:bg-white/20"
+      className="group relative flex flex-col rounded-xl border border-neutral-100 bg-neutral-50 transition-colors duration-150 hover:bg-neutral-100 active:bg-neutral-200 dark:border-white/20 dark:bg-white/10 dark:hover:bg-white/15 dark:active:bg-white/20"
     >
       <div className="flex items-center justify-between px-5 py-4">
         <div>

@@ -27,7 +27,7 @@ export const navItems = [
     name: "Product",
     content: ProductContent,
     childItems: FEATURES_LIST,
-    segments: ["/", "/home", "/features"],
+    segments: ["/features", "/customers", "/compare"],
   },
   {
     name: "Resources",
@@ -129,9 +129,7 @@ export function Nav({
                   {navItems.map(
                     ({ name, href, segments, content: Content }) => {
                       const isActive = segments.some((segment) =>
-                        segment === "/"
-                          ? pathname === segment
-                          : pathname?.startsWith(segment),
+                        pathname?.startsWith(segment),
                       );
                       return (
                         <NavigationMenuPrimitive.Item key={name}>
