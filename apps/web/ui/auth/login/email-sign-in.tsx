@@ -13,7 +13,7 @@ import { errorCodes, LoginFormContext } from "./login-form";
 export const EmailSignIn = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  let next = searchParams?.get("next");
+  const next = searchParams?.get("next");
   const { isMobile } = useMediaQuery();
 
   const [email, setEmail] = useState("");
