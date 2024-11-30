@@ -112,16 +112,16 @@ export const RESOURCES = [
     href: "/blog",
   },
   {
-    icon: Book2Fill,
-    title: "Docs",
-    description: "Platform documentation",
-    href: "/docs",
-  },
-  {
     icon: BulletListFill,
     title: "Changelog",
     description: "Releases and updates",
     href: "/changelog",
+  },
+  {
+    icon: Book2Fill,
+    title: "Docs",
+    description: "Platform documentation",
+    href: "/docs",
   },
   {
     icon: HeadsetFill,
