@@ -1,8 +1,12 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { LinkProps } from "@/lib/types";
+import { DashboardProps, LinkProps } from "@/lib/types";
+import z from "@/lib/zod";
+import { updateDashboardBodySchema } from "@/lib/zod/schemas/dashboard";
 import {
   AnimatedSizeContainer,
+  Button,
   Copy,
+  Input,
   LinkLogo,
   Modal,
   Switch,
@@ -17,7 +21,8 @@ import {
   getPrettyUrl,
   linkConstructor,
 } from "@dub/utils";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR from "swr";
 
@@ -48,17 +53,35 @@ function ShareDashboardModalInner({
       ? `/api/links/info?${new URLSearchParams({ workspaceId, domain, key }).toString()}`
       : undefined,
     fetcher,
+    {
+      dedupingInterval: 60000,
+    },
   );
 
-  const { data, mutate } = useSWR<{ id: string }>(
+  const { data: dashboard, mutate } = useSWR<DashboardProps>(
     link?.id
       ? `/api/links/${link.id}/dashboard?workspaceId=${workspaceId}`
       : undefined,
     fetcher,
     {
-      onSuccess: (data) => setChecked(Boolean(data)),
+      dedupingInterval: 60000,
     },
   );
+  const [checked, setChecked] = useState(Boolean(dashboard));
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { isDirty, isSubmitting },
+  } = useForm<z.infer<typeof updateDashboardBodySchema>>();
+
+  useEffect(() => {
+    setChecked(Boolean(dashboard));
+    setValue("doIndex", dashboard?.doIndex ?? false);
+    setValue("password", dashboard?.password ?? null);
+  }, [dashboard]);
 
   const [isCreating, setIsCreating] = useState(false);
   const [copied, copyToClipboard] = useCopyToClipboard();
@@ -97,8 +120,34 @@ function ShareDashboardModalInner({
     setIsCreating(false);
   };
 
+  const handleUpdate = async (
+    formData: z.infer<typeof updateDashboardBodySchema>,
+  ) => {
+    if (!dashboard) {
+      return;
+    }
+
+    const res = await fetch(
+      `/api/dashboards/${dashboard.id}?workspaceId=${workspaceId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      },
+    );
+
+    if (res.ok) {
+      await mutate();
+      toast.success("Saved changes.");
+    } else {
+      toast.error("Failed to save changes.");
+    }
+  };
+
   const handleRemove = async () => {
-    if (!data) {
+    if (!dashboard) {
       return;
     }
 
@@ -114,7 +163,7 @@ function ShareDashboardModalInner({
     setIsRemoving(true);
 
     const res = await fetch(
-      `/api/dashboards/${data.id}?workspaceId=${workspaceId}`,
+      `/api/dashboards/${dashboard.id}?workspaceId=${workspaceId}`,
       {
         method: "DELETE",
       },
@@ -131,20 +180,18 @@ function ShareDashboardModalInner({
     setIsRemoving(false);
   };
 
-  const [checked, setChecked] = useState(Boolean(data));
-
   return (
     <>
       <h3 className="border-b border-gray-200 px-4 py-4 text-lg font-medium sm:px-6">
         Share dashboard
       </h3>
-      <div className="px-6 pb-6 pt-4">
+      <div className="bg-gray-50 px-6 pb-6 pt-4">
         <LinkCard link={link} isError={Boolean(linkError)} />
         <AnimatedSizeContainer
           height
           transition={{ duration: 0.2, ease: "easeInOut" }}
         >
-          {data !== undefined ? (
+          {dashboard !== undefined ? (
             <>
               <label className="flex cursor-pointer items-center justify-between gap-2 pt-6">
                 <span className="flex items-center gap-2 text-sm text-gray-600">
@@ -158,18 +205,18 @@ function ShareDashboardModalInner({
                 />
               </label>
               {checked &&
-                (data ? (
+                (dashboard ? (
                   <div className="pt-4 text-sm">
                     <div className="divide-x-200 flex items-center justify-between divide-x overflow-hidden rounded-md border border-gray-200 bg-gray-100">
                       <div className="scrollbar-hide overflow-scroll pl-3">
                         <p className="whitespace-nowrap text-gray-400">
-                          {getPrettyUrl(`${APP_DOMAIN}/share/${data.id}`)}
+                          {getPrettyUrl(`${APP_DOMAIN}/share/${dashboard.id}`)}
                         </p>
                       </div>
                       <button
                         className="flex h-8 items-center gap-2 whitespace-nowrap border-l bg-white px-3 hover:bg-gray-50 active:bg-gray-100"
                         onClick={() => {
-                          const url = `${APP_DOMAIN}/share/${data.id}`;
+                          const url = `${APP_DOMAIN}/share/${dashboard.id}`;
                           toast.promise(copyToClipboard(url), {
                             success: "Copied to clipboard",
                           });
@@ -183,6 +230,53 @@ function ShareDashboardModalInner({
                         Copy link
                       </button>
                     </div>
+                    <form
+                      className="grid w-full gap-3 px-px pt-4"
+                      onSubmit={handleSubmit(handleUpdate)}
+                    >
+                      <p className="text-base font-medium">Settings</p>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm text-gray-600">
+                          Search engine indexing
+                        </p>
+                        <Switch
+                          checked={watch("doIndex")}
+                          fn={(checked) => {
+                            setValue("doIndex", checked, {
+                              shouldDirty: true,
+                            });
+                          }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm text-gray-600">
+                          Password protection
+                        </p>
+                        <Switch
+                          checked={watch("password") !== null}
+                          fn={(checked) => {
+                            setValue("password", checked ? "" : null, {
+                              shouldDirty: true,
+                            });
+                          }}
+                        />
+                      </div>
+                      {watch("password") !== null && (
+                        <Input
+                          data-1p-ignore
+                          type="password"
+                          {...register("password")}
+                          required
+                        />
+                      )}
+                      <Button
+                        type="submit"
+                        loading={isSubmitting}
+                        disabled={!isDirty}
+                        text="Save changes"
+                        className="h-9"
+                      />
+                    </form>
                   </div>
                 ) : (
                   <div className="mt-4 h-7 w-full animate-pulse rounded-md bg-gray-200" />

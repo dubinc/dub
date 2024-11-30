@@ -6,7 +6,6 @@ import { SimpleLinkProps } from "@/lib/types";
 import { useAcceptInviteModal } from "@/ui/modals/accept-invite-modal";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
 import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
-import { useCompleteSetupModal } from "@/ui/modals/complete-setup-modal";
 import { useImportBitlyModal } from "@/ui/modals/import-bitly-modal";
 import { useImportCsvModal } from "@/ui/modals/import-csv-modal";
 import { useImportShortModal } from "@/ui/modals/import-short-modal";
@@ -32,7 +31,6 @@ import { useWelcomeModal } from "./welcome-modal";
 
 export const ModalContext = createContext<{
   setShowAddWorkspaceModal: Dispatch<SetStateAction<boolean>>;
-  setShowCompleteSetupModal: Dispatch<SetStateAction<boolean>>;
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
   setShowLinkBuilder: Dispatch<SetStateAction<boolean>>;
   setShowAddEditTagModal: Dispatch<SetStateAction<boolean>>;
@@ -42,7 +40,6 @@ export const ModalContext = createContext<{
   setShowImportCsvModal: Dispatch<SetStateAction<boolean>>;
 }>({
   setShowAddWorkspaceModal: () => {},
-  setShowCompleteSetupModal: () => {},
   setShowAddEditDomainModal: () => {},
   setShowLinkBuilder: () => {},
   setShowAddEditTagModal: () => {},
@@ -76,8 +73,6 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
 
   const { AddWorkspaceModal, setShowAddWorkspaceModal } =
     useAddWorkspaceModal();
-  const { CompleteSetupModal, setShowCompleteSetupModal } =
-    useCompleteSetupModal();
   const { AcceptInviteModal, setShowAcceptInviteModal } =
     useAcceptInviteModal();
   const { setShowAddEditDomainModal, AddEditDomainModal } =
@@ -187,7 +182,6 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
     <ModalContext.Provider
       value={{
         setShowAddWorkspaceModal,
-        setShowCompleteSetupModal,
         setShowAddEditDomainModal,
         setShowLinkBuilder,
         setShowAddEditTagModal,
@@ -199,7 +193,6 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
     >
       <AddWorkspaceModal />
       <AcceptInviteModal />
-      <CompleteSetupModal />
       <AddEditDomainModal />
       <LinkBuilder />
       <AddEditTagModal />

@@ -1,8 +1,16 @@
 "use client";
 
 import { DomainProps } from "@/lib/types";
-import { InfoTooltip, SimpleTooltipContent, useMediaQuery } from "@dub/ui";
+import {
+  InfoTooltip,
+  SimpleTooltipContent,
+  useMediaQuery,
+  UTM_PARAMETERS,
+} from "@dub/ui";
+import { getParamsFromURL } from "@dub/utils";
 import { forwardRef, HTMLProps, ReactNode, useId } from "react";
+import { useFormContext } from "react-hook-form";
+import { LinkFormData } from "../modals/link-builder";
 import { AlertCircleFill } from "../shared/icons";
 import { ProBadgeTooltip } from "../shared/pro-badge-tooltip";
 
@@ -31,6 +39,8 @@ export const DestinationUrlInput = forwardRef<
   ) => {
     const inputId = useId();
     const { isMobile } = useMediaQuery();
+
+    const formContext = useFormContext<LinkFormData>();
 
     return (
       <div>
@@ -84,6 +94,20 @@ export const DestinationUrlInput = forwardRef<
             } block w-full rounded-md focus:outline-none sm:text-sm`}
             aria-invalid="true"
             {...inputProps}
+            {...(formContext && {
+              onChange: (e) => {
+                const url = e.target.value;
+
+                formContext.setValue("url", url);
+                const parentParams = getParamsFromURL(url);
+
+                UTM_PARAMETERS.filter((p) => p.key !== "ref").forEach((p) =>
+                  formContext.setValue(p.key as any, parentParams?.[p.key], {
+                    shouldDirty: true,
+                  }),
+                );
+              },
+            })}
           />
           {error && (
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">

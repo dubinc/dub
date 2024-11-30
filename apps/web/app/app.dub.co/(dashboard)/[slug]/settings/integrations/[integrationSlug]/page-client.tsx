@@ -17,6 +17,8 @@ import {
   MaxWidthWrapper,
   Popover,
   TokenAvatar,
+  Tooltip,
+  TooltipContent,
 } from "@dub/ui";
 import {
   CircleWarning,
@@ -25,7 +27,6 @@ import {
   OfficeBuilding,
   ShieldCheck,
 } from "@dub/ui/src/icons";
-import { Tooltip, TooltipContent } from "@dub/ui/src/tooltip";
 import {
   cn,
   formatDate,
@@ -56,7 +57,7 @@ export default function IntegrationPageClient({
       window.location.href = data.url;
     },
     onError: ({ error }) => {
-      toast.error(error.serverError?.serverError);
+      toast.error(error.serverError);
     },
   });
 

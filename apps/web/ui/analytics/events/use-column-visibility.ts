@@ -2,17 +2,15 @@ import { EventType } from "@/lib/analytics/types";
 import { useLocalStorage } from "@dub/ui";
 import { VisibilityState } from "@tanstack/react-table";
 
-export const eventColumns: Record<
-  EventType,
-  { all: string[]; defaultVisible: string[] }
-> = {
+export const eventColumns = {
   clicks: {
     all: [
       "trigger",
       "link",
-      "continent",
       "country",
       "city",
+      "region",
+      "continent",
       "device",
       "browser",
       "os",
@@ -28,9 +26,10 @@ export const eventColumns: Record<
       "event",
       "link",
       "customer",
-      "continent",
       "country",
       "city",
+      "region",
+      "continent",
       "device",
       "browser",
       "os",
@@ -52,11 +51,12 @@ export const eventColumns: Record<
     all: [
       "event",
       "customer",
-      "invoiceId",
       "link",
-      "continent",
+      "invoiceId",
       "country",
       "city",
+      "region",
+      "continent",
       "device",
       "browser",
       "os",
@@ -77,18 +77,17 @@ export const eventColumns: Record<
   },
 };
 
-const getDefaultColumnVisibility = (tab: EventType) =>
-  Object.fromEntries(
-    eventColumns[tab].all.map((id) => [
-      id,
-      eventColumns[tab].defaultVisible.includes(id),
-    ]),
+const getDefaultColumnVisibility = (tab: EventType) => {
+  const columns = eventColumns[tab];
+  return Object.fromEntries(
+    columns.all.map((id) => [id, columns.defaultVisible.includes(id)]),
   );
+};
 
 export function useColumnVisibility() {
   const [columnVisibility, setColumnVisibility] = useLocalStorage<
     Record<EventType, VisibilityState>
-  >("events-columns", {
+  >("events-table-columns", {
     clicks: getDefaultColumnVisibility("clicks"),
     leads: getDefaultColumnVisibility("leads"),
     sales: getDefaultColumnVisibility("sales"),

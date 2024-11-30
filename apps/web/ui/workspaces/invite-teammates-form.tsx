@@ -71,10 +71,9 @@ export function InviteTeammatesForm({
               () => <InviteSavedToast teammates={teammates.length} />,
               { duration: 7000 },
             );
-          } else
+          } else {
             toast.success(`${pluralize("Invitation", teammates.length)} sent!`);
 
-          if (!saveOnly) {
             teammates.forEach(({ email }) =>
               posthog.capture("teammate_invited", {
                 workspace: slug,

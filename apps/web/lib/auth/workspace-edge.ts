@@ -312,7 +312,9 @@ export const withWorkspaceEdge = (
 
         // beta feature checks
         if (featureFlag) {
-          const flags = await getFeatureFlags({ workspaceId: workspace.id });
+          const flags = await getFeatureFlags({
+            workspaceId: workspace.id,
+          });
 
           if (!flags[featureFlag]) {
             throw new DubApiError({
@@ -415,6 +417,9 @@ export const withWorkspaceEdge = (
         req.log.error(error);
         return handleAndReturnErrorResponse(error, headers);
       }
+    },
+    {
+      logRequestDetails: ["body", "nextUrl"],
     },
   );
 };

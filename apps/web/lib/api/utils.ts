@@ -71,12 +71,31 @@ export const extractPublishableKey = (req: Request) => {
   return authorizationHeader.replace("Bearer ", "");
 };
 
+const prefixes = [
+  "link_",
+  "tag_",
+  "dom_",
+  "po_",
+  "dash_",
+  "int_",
+  "app_",
+  "cus_",
+  "utm_",
+  "wh_",
+  "pgi_",
+  "pge_",
+  "pn_",
+  "sale_",
+  "pga_",
+  "dub_embed_",
+] as const;
+
 export const createId = ({
-  length = 24,
   prefix,
+  length = 24,
 }: {
+  prefix?: (typeof prefixes)[number];
   length?: number;
-  prefix?: string;
 }) => {
   return `${prefix || ""}${nanoid(length)}`;
 };

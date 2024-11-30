@@ -4,6 +4,7 @@ import {
 } from "@/lib/analytics/constants";
 import { DeviceTabs } from "@/lib/analytics/types";
 import { useRouterStuff } from "@dub/ui";
+import { Cube, CursorRays, MobilePhone, Window } from "@dub/ui/src/icons";
 import { useContext, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
@@ -25,10 +26,10 @@ export default function Devices() {
   return (
     <AnalyticsCard
       tabs={[
-        { id: "devices", label: "Devices" },
-        { id: "browsers", label: "Browsers" },
-        { id: "os", label: "OS" },
-        { id: "triggers", label: "Triggers" },
+        { id: "devices", label: "Devices", icon: MobilePhone },
+        { id: "browsers", label: "Browsers", icon: Window },
+        { id: "os", label: "OS", icon: Cube },
+        { id: "triggers", label: "Triggers", icon: CursorRays },
       ]}
       selectedTabId={tab}
       onSelectTab={setTab}

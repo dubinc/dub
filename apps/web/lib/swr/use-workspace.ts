@@ -1,4 +1,4 @@
-import { WorkspaceProps } from "@/lib/types";
+import { ExpandedWorkspaceProps } from "@/lib/types";
 import { PRO_PLAN, fetcher, getNextPlan } from "@dub/utils";
 import { useParams, useSearchParams } from "next/navigation";
 import useSWR from "swr";
@@ -14,9 +14,13 @@ export default function useWorkspace() {
     data: workspace,
     error,
     mutate,
-  } = useSWR<WorkspaceProps>(slug && `/api/workspaces/${slug}`, fetcher, {
-    dedupingInterval: 60000,
-  });
+  } = useSWR<ExpandedWorkspaceProps>(
+    slug && `/api/workspaces/${slug}`,
+    fetcher,
+    {
+      dedupingInterval: 60000,
+    },
+  );
 
   return {
     ...workspace,

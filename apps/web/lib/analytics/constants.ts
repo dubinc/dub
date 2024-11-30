@@ -101,6 +101,7 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "count",
   "timeseries",
   "continents",
+  "regions",
   "countries",
   "cities",
   "devices",
@@ -116,6 +117,7 @@ export const VALID_ANALYTICS_ENDPOINTS = [
 
 export const SINGULAR_ANALYTICS_ENDPOINTS = {
   continents: "continent",
+  regions: "region",
   countries: "country",
   cities: "city",
   devices: "device",
@@ -132,9 +134,10 @@ export const VALID_ANALYTICS_FILTERS = [
   "interval",
   "start",
   "end",
-  "continent",
   "country",
   "city",
+  "region",
+  "continent",
   "device",
   "browser",
   "os",
@@ -143,6 +146,7 @@ export const VALID_ANALYTICS_FILTERS = [
   "refererUrl",
   "url",
   "tagId",
+  "tagIds",
   "qr",
   "root",
 ];

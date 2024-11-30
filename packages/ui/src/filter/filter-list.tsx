@@ -53,9 +53,10 @@ export function FilterList({
 
               const filter = filters.find((f) => f.key === key);
               if (!filter) {
-                throw new Error(
+                console.error(
                   "Filter.List received an activeFilter without a corresponding filter",
                 );
+                return null;
               }
 
               return (
@@ -84,7 +85,7 @@ export function FilterList({
 
                 return (
                   <motion.div
-                    key={key}
+                    key={`${key}-${value}`}
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-center divide-x rounded-md border border-gray-200 bg-white text-sm text-black"

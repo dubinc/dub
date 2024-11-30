@@ -1,6 +1,7 @@
 import { cn } from "@dub/utils";
-import { AlertCircle, EyeIcon, EyeOffIcon } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import React, { useCallback, useState } from "react";
+import { Eye, EyeSlash } from "./icons";
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -58,12 +59,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                 }
               >
                 {isPasswordVisible ? (
-                  <EyeIcon
+                  <Eye
                     className="size-4 flex-none text-gray-500 transition hover:text-gray-700"
                     aria-hidden
                   />
                 ) : (
-                  <EyeOffIcon
+                  <EyeSlash
                     className="size-4 flex-none text-gray-500 transition hover:text-gray-700"
                     aria-hidden
                   />

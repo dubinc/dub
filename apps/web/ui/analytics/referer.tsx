@@ -1,6 +1,6 @@
 import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
-import { RefererTabs } from "@/lib/analytics/types";
 import { BlurImage, useRouterStuff } from "@dub/ui";
+import { ReferredVia } from "@dub/ui/src/icons";
 import { getApexDomain, GOOGLE_FAVICON_URL } from "@dub/utils";
 import { Link2 } from "lucide-react";
 import { useContext, useState } from "react";
@@ -16,15 +16,15 @@ export default function Referer() {
   const { selectedTab } = useContext(AnalyticsContext);
   const dataKey = selectedTab === "sales" ? "saleAmount" : "count";
 
-  const [tab, setTab] = useState<RefererTabs>("referers");
+  const [tab, setTab] = useState<"referers" | "referer_urls">("referers");
   const data = useAnalyticsFilterOption(tab);
   const singularTabName = SINGULAR_ANALYTICS_ENDPOINTS[tab];
 
   return (
     <AnalyticsCard
       tabs={[
-        { id: "referers", label: "Referrers" },
-        { id: "referer_urls", label: "Referrer URLs" },
+        { id: "referers", label: "Referrers", icon: ReferredVia },
+        { id: "referer_urls", label: "Referrer URLs", icon: ReferredVia },
       ]}
       selectedTabId={tab}
       onSelectTab={setTab}

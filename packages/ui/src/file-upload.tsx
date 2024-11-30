@@ -1,12 +1,13 @@
-import { cn } from "@dub/utils";
+import { cn, resizeImage } from "@dub/utils";
 import { VariantProps, cva } from "class-variance-authority";
-import { UploadCloud } from "lucide-react";
 import { DragEvent, ReactNode, useState } from "react";
 import { toast } from "sonner";
-import { LoadingCircle } from "./icons";
+import { CloudUpload, LoadingCircle } from "./icons";
+
+type AcceptedFileFormats = "any" | "images" | "csv";
 
 const acceptFileTypes: Record<
-  string,
+  AcceptedFileFormats,
   { types: string[]; errorMessage?: string }
 > = {
   any: { types: [] },
@@ -52,11 +53,14 @@ type FileUploadReadFileProps =
     };
 
 export type FileUploadProps = FileUploadReadFileProps & {
-  accept: keyof typeof acceptFileTypes;
-
+  accept: AcceptedFileFormats;
   className?: string;
   iconClassName?: string;
-
+  previewClassName?: string;
+  /**
+   * Custom preview component to display instead of the default
+   */
+  customPreview?: ReactNode;
   /**
    * Image to display (generally for image uploads)
    */
@@ -106,6 +110,8 @@ export function FileUpload({
   variant,
   className,
   iconClassName,
+  previewClassName,
+  customPreview,
   accept = "any",
   imageSrc,
   loading = false,
@@ -113,6 +119,7 @@ export function FileUpload({
   showHoverOverlay = true,
   content,
   maxFileSizeMB = 0,
+  targetResolution,
   accessibilityLabel = "File upload",
   disabled = false,
 }: FileUploadProps) {
@@ -144,16 +151,30 @@ export function FileUpload({
       return;
     }
 
+    let fileToUse = file;
+
+    // Add image resizing logic
+    if (targetResolution && file.type.startsWith("image/")) {
+      try {
+        const resizedFile = await resizeImage(file, targetResolution);
+        const blob = await fetch(resizedFile).then((r) => r.blob());
+        fileToUse = new File([blob], file.name, { type: file.type });
+      } catch (error) {
+        console.error("Error resizing image:", error);
+        // Fallback to original file if resize fails
+      }
+    }
+
+    // File reading logic
     if (readFile) {
       const reader = new FileReader();
       reader.onload = (e) =>
-        onChange?.({ src: e.target?.result as string, file });
-      reader.readAsDataURL(file);
-
+        onChange?.({ src: e.target?.result as string, file: fileToUse });
+      reader.readAsDataURL(fileToUse);
       return;
     }
 
-    onChange?.({ file });
+    onChange?.({ file: fileToUse });
   };
 
   return (
@@ -197,11 +218,11 @@ export function FileUpload({
       />
       <div
         className={cn(
-          "absolute inset-0 z-[3] flex flex-col items-center justify-center rounded-[inherit] bg-white transition-all",
+          "absolute inset-0 z-[3] flex flex-col items-center justify-center rounded-[inherit] border-2 border-transparent bg-white transition-all",
           disabled && "bg-gray-50",
           dragActive &&
             !disabled &&
-            "cursor-copy border-2 border-black bg-gray-50 opacity-100",
+            "cursor-copy border-black bg-gray-50 opacity-100",
           imageSrc
             ? cn(
                 "opacity-0",
@@ -210,7 +231,7 @@ export function FileUpload({
             : cn(!disabled && "group-hover:bg-gray-50"),
         )}
       >
-        <UploadCloud
+        <CloudUpload
           className={cn(
             "size-7 transition-all duration-75",
             !disabled
@@ -238,13 +259,17 @@ export function FileUpload({
         )}
         <span className="sr-only">{accessibilityLabel}</span>
       </div>
-      {imageSrc && (
-        <img
-          src={imageSrc}
-          alt="Preview"
-          className="h-full w-full rounded-[inherit] object-cover"
-        />
-      )}
+      {imageSrc &&
+        (customPreview ?? (
+          <img
+            src={imageSrc}
+            alt="Preview"
+            className={cn(
+              "h-full w-full rounded-[inherit] object-cover",
+              previewClassName,
+            )}
+          />
+        ))}
       {clickToUpload && (
         <div className="sr-only mt-1 flex shadow-sm">
           <input

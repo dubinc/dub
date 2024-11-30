@@ -1,4 +1,4 @@
-import { Button } from "@dub/ui/src/button";
+import { Button } from "@dub/ui";
 import { Download } from "@dub/ui/src/icons";
 import { Dispatch, SetStateAction, useContext, useState } from "react";
 import { toast } from "sonner";

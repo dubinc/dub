@@ -11,7 +11,7 @@ import useDomainsCount from "@/lib/swr/use-domains-count";
 import useTags from "@/lib/swr/use-tags";
 import useTagsCount from "@/lib/swr/use-tags-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { LinkProps, TagProps } from "@/lib/types";
+import { LinkProps } from "@/lib/types";
 import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import {
@@ -36,6 +36,7 @@ import {
   Globe2,
   Hyperlink,
   LinkBroken,
+  LocationPin,
   Magic,
   MapPosition,
   MobilePhone,
@@ -52,6 +53,7 @@ import {
   DUB_DEMO_LINKS,
   DUB_LOGO,
   GOOGLE_FAVICON_URL,
+  REGIONS,
   capitalize,
   cn,
   fetcher,
@@ -71,7 +73,7 @@ import {
 } from "react";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
-import { COLORS_LIST } from "../links/tag-badge";
+import TagBadge from "../links/tag-badge";
 import AnalyticsOptions from "./analytics-options";
 import { AnalyticsContext } from "./analytics-provider";
 import ContinentIcon from "./continent-icon";
@@ -97,7 +99,9 @@ export default function Toggle({
     url,
     adminPage,
     demoPage,
+    partnerPage,
     dashboardProps,
+    showConversions,
     start,
     end,
     interval,
@@ -115,11 +119,8 @@ export default function Toggle({
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
 
-  const { tags, loading: loadingTags } = useTags({
-    query: {
-      search: tagsAsync && selectedFilter === "tagId" ? debouncedSearch : "",
-    },
-  });
+  const { tags, loading: loadingTags } = useTags();
+
   const {
     allDomains: domains,
     primaryDomain,
@@ -132,8 +133,13 @@ export default function Toggle({
     },
   });
 
+  const selectedTagIds = useMemo(
+    () => searchParamsObj.tagIds?.split(",")?.filter(Boolean) ?? [],
+    [searchParamsObj.tagIds],
+  );
+
   const { tags: selectedTags } = useTags({
-    query: { ids: searchParamsObj.tagId ? [searchParamsObj.tagId] : [] },
+    query: { ids: selectedTagIds },
     enabled: tagsAsync,
   });
 
@@ -143,9 +149,9 @@ export default function Toggle({
     const {
       domain,
       key,
-      tagId,
       continent,
       country,
+      region,
       city,
       device,
       browser,
@@ -166,9 +172,12 @@ export default function Toggle({
             },
           ]
         : []),
-      ...(tagId ? [{ key: "tagId", value: tagId }] : []),
+      ...(selectedTagIds.length > 0
+        ? [{ key: "tagIds", value: selectedTagIds }]
+        : []),
       ...(continent ? [{ key: "continent", value: continent }] : []),
       ...(country ? [{ key: "country", value: country }] : []),
+      ...(region ? [{ key: "region", value: region }] : []),
       ...(city ? [{ key: "city", value: city }] : []),
       ...(device ? [{ key: "device", value: device }] : []),
       ...(browser ? [{ key: "browser", value: browser }] : []),
@@ -193,6 +202,9 @@ export default function Toggle({
   });
   const countries = useAnalyticsFilterOption("countries", {
     cacheOnly: !isRequested("country"),
+  });
+  const regions = useAnalyticsFilterOption("regions", {
+    cacheOnly: !isRequested("region"),
   });
   const cities = useAnalyticsFilterOption("cities", {
     cacheOnly: !isRequested("city"),
@@ -349,59 +361,26 @@ export default function Toggle({
               ],
             },
             {
-              key: "tagId",
+              key: "tagIds",
               icon: Tag,
               label: "Tag",
+              multiple: true,
               shouldFilter: !tagsAsync,
               getOptionIcon: (value, props) => {
                 const tagColor =
                   props.option?.data?.color ??
                   tags?.find(({ id }) => id === value)?.color;
                 return tagColor ? (
-                  <div
-                    className={cn(
-                      "rounded-md p-1.5",
-                      COLORS_LIST.find(({ color }) => color === tagColor)?.css,
-                    )}
-                  >
-                    <Tag className="h-2.5 w-2.5" />
-                  </div>
+                  <TagBadge color={tagColor} withIcon className="sm:p-1" />
                 ) : null;
               },
               options:
-                loadingTags ||
-                // Consider tags loading if we can't find the currently filtered tag
-                (searchParamsObj.tagId &&
-                  ![...(selectedTags ?? []), ...(tags ?? [])].some(
-                    (t) => t.id === searchParamsObj.tagId,
-                  ))
-                  ? null
-                  : [
-                      // Add selected tag to list if not already in tags
-                      ...(tags ?? []),
-                      ...(selectedTags
-                        ?.filter((st) => !tags?.some((t) => t.id === st.id))
-                        ?.map((st) => ({ ...st, hideDuringSearch: true })) ??
-                        []),
-                    ].map((tag) => ({
-                      value: tag.id,
-                      icon: (
-                        <div
-                          className={cn(
-                            "rounded-md p-1.5",
-                            COLORS_LIST.find(({ color }) => color === tag.color)
-                              ?.css,
-                          )}
-                        >
-                          <Tag className="h-2.5 w-2.5" />
-                        </div>
-                      ),
-                      label: tag.name,
-                      data: { color: tag.color },
-                      hideDuringSearch: (
-                        tag as TagProps & { hideDuringSearch?: boolean }
-                      ).hideDuringSearch,
-                    })) ?? null,
+                tags?.map(({ id, name, color }) => ({
+                  value: id,
+                  icon: <TagBadge color={color} withIcon className="sm:p-1" />,
+                  label: name,
+                  data: { color },
+                })) ?? null,
             },
           ]),
       {
@@ -444,6 +423,24 @@ export default function Toggle({
           cities?.map(({ city, country, count }) => ({
             value: city,
             label: city,
+            icon: (
+              <img
+                alt={country}
+                src={`https://flag.vercel.app/m/${country}.svg`}
+                className="h-2.5 w-4"
+              />
+            ),
+            right: nFormatter(count, { full: true }),
+          })) ?? null,
+      },
+      {
+        key: "region",
+        icon: LocationPin,
+        label: "Region",
+        options:
+          regions?.map(({ region, country, count }) => ({
+            value: region,
+            label: REGIONS[region] || region.split("-")[1],
             icon: (
               <img
                 alt={country}
@@ -579,7 +576,7 @@ export default function Toggle({
       domainsAsync,
       loadingTags,
       loadingDomains,
-      searchParamsObj.tagId,
+      searchParamsObj.tagIds,
       searchParamsObj.domain,
     ],
   );
@@ -621,17 +618,33 @@ export default function Toggle({
                     key:
                       new URL(`https://${value}`).pathname.slice(1) || "_root",
                   }
-                : {
-                    [key]: value,
-                  },
+                : key === "tagIds"
+                  ? {
+                      tagIds: selectedTagIds.concat(value).join(","),
+                    }
+                  : {
+                      [key]: value,
+                    },
             del: "page",
+            scroll: false,
           });
         }
       }}
-      onRemove={(key) =>
-        queryParams({
-          del: key === "link" ? ["domain", "key"] : key,
-        })
+      onRemove={(key, value) =>
+        queryParams(
+          key === "tagIds" &&
+            !(selectedTagIds.length === 1 && selectedTagIds[0] === value)
+            ? {
+                set: {
+                  tagIds: selectedTagIds.filter((id) => id !== value).join(","),
+                },
+                scroll: false,
+              }
+            : {
+                del: key === "link" ? ["domain", "key"] : key,
+                scroll: false,
+              },
+        )
       }
       onOpenFilter={(key) =>
         setRequestedFilters((rf) => (rf.includes(key) ? rf : [...rf, key]))
@@ -643,7 +656,7 @@ export default function Toggle({
   const dateRangePicker = (
     <DateRangePicker
       className="w-full sm:min-w-[200px] md:w-fit"
-      align={dashboardProps ? "end" : "start"}
+      align={dashboardProps ? "end" : "center"}
       value={
         start && end
           ? {
@@ -682,16 +695,16 @@ export default function Toggle({
         const start = INTERVAL_DATA[value].startDate;
         const end = new Date();
 
-        const requiresUpgrade =
-          adminPage ||
-          demoPage ||
-          DUB_DEMO_LINKS.find((l) => l.domain === domain && l.key === key)
-            ? false
-            : !validDateRangeForPlan({
-                plan: plan || dashboardProps?.workspacePlan,
-                start,
-                end,
-              });
+        const requiresUpgrade = DUB_DEMO_LINKS.find(
+          (l) => l.domain === domain && l.key === key,
+        )
+          ? false
+          : !validDateRangeForPlan({
+              plan: plan || dashboardProps?.workspacePlan,
+              conversionEnabled: showConversions,
+              start,
+              end,
+            });
 
         return {
           id: value,
@@ -779,7 +792,7 @@ export default function Toggle({
                 {isMobile ? filterSelect : dateRangePicker}
                 {!dashboardProps && (
                   <div className="flex grow justify-end gap-2">
-                    {page === "analytics" && (
+                    {page === "analytics" && !partnerPage && (
                       <>
                         {domain && key && <ShareButton />}
                         <Button
@@ -802,7 +815,7 @@ export default function Toggle({
                         <AnalyticsOptions />
                       </>
                     )}
-                    {page === "events" && (
+                    {page === "events" && !partnerPage && (
                       <>
                         <Button
                           variant="secondary"
@@ -836,11 +849,23 @@ export default function Toggle({
                 }))
               : []),
           ]}
-          onRemove={(key) =>
-            queryParams({
-              del: key === "link" ? ["domain", "key", "url"] : key,
-              scroll: false,
-            })
+          onRemove={(key, value) =>
+            queryParams(
+              key === "tagIds" &&
+                !(selectedTagIds.length === 1 && selectedTagIds[0] === value)
+                ? {
+                    set: {
+                      tagIds: selectedTagIds
+                        .filter((id) => id !== value)
+                        .join(","),
+                    },
+                    scroll: false,
+                  }
+                : {
+                    del: key === "link" ? ["domain", "key", "url"] : key,
+                    scroll: false,
+                  },
+            )
           }
           onRemoveAll={() =>
             queryParams({

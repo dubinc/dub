@@ -1,4 +1,5 @@
 import { LinkLogo, useRouterStuff } from "@dub/ui";
+import { Globe, Hyperlink } from "@dub/ui/src/icons";
 import { getApexDomain } from "@dub/utils";
 import { useContext, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
@@ -21,8 +22,8 @@ export default function TopLinks() {
   return (
     <AnalyticsCard
       tabs={[
-        { id: "links", label: "Short Links" },
-        { id: "urls", label: "Destination URLs" },
+        { id: "links", label: "Short Links", icon: Hyperlink },
+        { id: "urls", label: "Destination URLs", icon: Globe },
       ]}
       expandLimit={8}
       hasMore={(data?.length ?? 0) > 8}

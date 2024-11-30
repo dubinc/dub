@@ -13,9 +13,10 @@ import {
 import { linkConstructorSimple } from "@dub/utils/src/functions/link-constructor";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { combineTagIds } from "../tags/combine-tag-ids";
 import { createId } from "../utils";
 import { updateLinksUsage } from "./update-links-usage";
-import { combineTagIds, transformLink } from "./utils";
+import { transformLink } from "./utils";
 
 export async function createLink(link: ProcessedLinkProps) {
   let {
@@ -145,6 +146,7 @@ export async function createLink(link: ProcessedLinkProps) {
         key: response.key,
         url: response.url,
         tag_ids: response.tags.map(({ tag }) => tag.id),
+        program_id: link.programId ?? "",
         workspace_id: response.projectId,
         created_at: response.createdAt,
       }),

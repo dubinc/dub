@@ -18,7 +18,8 @@ import {
   parseDateTime,
   pluralize,
 } from "@dub/utils";
-import { combineTagIds, keyChecks, processKey } from "./utils";
+import { combineTagIds } from "../tags/combine-tag-ids";
+import { keyChecks, processKey } from "./utils";
 
 export async function processLink<T extends Record<string, any>>({
   payload,
@@ -70,6 +71,7 @@ export async function processLink<T extends Record<string, any>>({
     tagNames,
     externalId,
     identifier,
+    programId,
     webhookIds,
   } = payload;
 
@@ -390,6 +392,28 @@ export async function processLink<T extends Record<string, any>>({
               )
               .join(", "),
           code: "unprocessable_entity",
+        };
+      }
+    }
+
+    // Program validity checks
+    if (programId) {
+      if (!workspace?.conversionEnabled) {
+        return {
+          link: payload,
+          error: "Conversion tracking is not enabled for this workspace.",
+          code: "forbidden",
+        };
+      }
+      const program = await prisma.program.findUnique({
+        where: { id: programId },
+      });
+
+      if (!program || program.workspaceId !== workspace?.id) {
+        return {
+          link: payload,
+          error: "Program not found.",
+          code: "not_found",
         };
       }
     }

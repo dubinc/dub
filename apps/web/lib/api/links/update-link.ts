@@ -12,8 +12,9 @@ import {
 } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { combineTagIds } from "../tags/combine-tag-ids";
 import { createId } from "../utils";
-import { combineTagIds, transformLink } from "./utils";
+import { transformLink } from "./utils";
 
 export async function updateLink({
   oldLink,
@@ -170,6 +171,7 @@ export async function updateLink({
         key: response.key,
         url: response.url,
         tag_ids: response.tags.map(({ tag }) => tag.id),
+        program_id: response.programId ?? "",
         workspace_id: response.projectId,
         created_at: response.createdAt,
       }),

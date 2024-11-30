@@ -1,19 +1,28 @@
 import z from "@/lib/zod";
 import { clickEventSchema, clickEventSchemaTB } from "./clicks";
-import { customerSchema } from "./customers";
+import { CustomerSchema } from "./customers";
 import { commonDeprecatedEventFields } from "./deprecated";
 import { linkEventSchema } from "./links";
 
 export const trackSaleRequestSchema = z.object({
-  // Required
-  customerId: z
-    .string({ required_error: "customerId is required" })
+  externalId: z
+    .string()
     .trim()
-    .min(1, "customerId is required")
     .max(100)
+    .default("") // Remove this after migrating users from customerId to externalId
     .describe(
       "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
     ),
+  customerId: z
+    .string()
+    .trim()
+    .max(100)
+    .nullish()
+    .default(null)
+    .describe(
+      "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
+    )
+    .openapi({ deprecated: true }),
   amount: z
     .number({ required_error: "amount is required" })
     .int()
@@ -22,8 +31,6 @@ export const trackSaleRequestSchema = z.object({
   paymentProcessor: z
     .enum(["stripe", "shopify", "paddle"])
     .describe("The payment processor via which the sale was made."),
-
-  // Optional
   eventName: z
     .string()
     .max(50)
@@ -56,6 +63,7 @@ export const trackSaleResponseSchema = z.object({
     name: z.string().nullable(),
     email: z.string().nullable(),
     avatar: z.string().nullable(),
+    externalId: z.string().nullable(),
   }),
   sale: z.object({
     amount: z.number(),
@@ -98,6 +106,8 @@ export const saleEventSchemaTBEndpoint = z.object({
   continent: z.string().nullable(),
   country: z.string().nullable(),
   city: z.string().nullable(),
+  region: z.string().nullable(),
+  region_processed: z.string().nullable(),
   device: z.string().nullable(),
   browser: z.string().nullable(),
   os: z.string().nullable(),
@@ -118,7 +128,7 @@ export const saleEventResponseSchema = z
     // nested objects
     link: linkEventSchema,
     click: clickEventSchema,
-    customer: customerSchema,
+    customer: CustomerSchema,
     sale: trackSaleRequestSchema.pick({
       amount: true,
       invoiceId: true,
