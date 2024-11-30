@@ -1,7 +1,6 @@
-import { defineConfig, Options } from "tsup";
+import { defineConfig } from "tsup";
 
-export default defineConfig((options: Options) => ({
-  clean: true,
+export default defineConfig({
   entry: {
     "embed/script": "src/embed.ts", // Standalone entry for embed.ts
     index: "src/index.ts", // Entry for all other files via index.ts
@@ -14,5 +13,6 @@ export default defineConfig((options: Options) => ({
   },
   dts: true,
   minify: true,
-  ...options,
-}));
+  clean: true,
+  splitting: false,
+});
