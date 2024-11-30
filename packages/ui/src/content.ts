@@ -8,7 +8,6 @@ import {
   HeadsetFill,
   Hyperlink,
   LinesY,
-  MessageSmile,
   Php,
   ProductHunt,
   Python,
@@ -42,12 +41,6 @@ export const FEATURES_LIST = [
     description: "Connect Dub with your favorite tools",
     icon: ConnectedDotsFill,
     href: "/docs/integrations",
-  },
-  {
-    title: "Customer Stories",
-    description: "See how our customers use Dub",
-    icon: MessageSmile,
-    href: "/customers",
   },
 ];
 

@@ -27,7 +27,7 @@ export const navItems = [
     name: "Product",
     content: ProductContent,
     childItems: FEATURES_LIST,
-    segments: ["/features", "/customers", "/compare"],
+    segments: ["/features", "/compare"],
   },
   {
     name: "Resources",
@@ -39,6 +39,11 @@ export const navItems = [
     name: "Enterprise",
     href: "/enterprise",
     segments: ["/enterprise"],
+  },
+  {
+    name: "Customers",
+    href: "/customers",
+    segments: ["/customers"],
   },
   {
     name: "Pricing",
