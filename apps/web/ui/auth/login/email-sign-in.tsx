@@ -89,7 +89,7 @@ export const EmailSignIn = () => {
             const response = await signIn(provider, {
               email,
               redirect: false,
-              callbackUrl: next || "/",
+              callbackUrl: next || "/workspaces",
               ...(password && { password }),
             });
 
@@ -118,7 +118,7 @@ export const EmailSignIn = () => {
             }
 
             if (provider === "credentials") {
-              router.push(response?.url || "/");
+              router.push(response?.url || "/workspaces");
             }
           });
         }}
