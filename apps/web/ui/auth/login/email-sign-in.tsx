@@ -118,10 +118,7 @@ export const EmailSignIn = () => {
             }
 
             if (provider === "credentials") {
-              const isRelative = next?.startsWith("/");
-              next = `${window.location.origin}${isRelative ? next : "/"}`;
-
-              router.push(next);
+              router.push(response?.url || "/");
             }
           });
         }}
