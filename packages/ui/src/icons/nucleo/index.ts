@@ -10,6 +10,7 @@ export * from "./badge-check";
 export * from "./blog";
 export * from "./bolt";
 export * from "./bolt-fill";
+export * from "./book-open";
 export * from "./book2";
 export * from "./book2-fill";
 export * from "./books2";
