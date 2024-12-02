@@ -99,7 +99,6 @@ export async function updateLink({
                   },
                 },
               },
-              id: "new-od",
               createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
             })),
           },
