@@ -67,9 +67,9 @@ export async function createLink(link: ProcessedLinkProps) {
                     name: tagName,
                     projectId: link.projectId as string,
                   },
-                  createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
                 },
               },
+              createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
             })),
           },
         }),
