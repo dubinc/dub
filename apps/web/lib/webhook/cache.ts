@@ -11,21 +11,21 @@ class WebhookCache {
     }
 
     return await redis.set(
-      this._getCacheKey(webhook.id),
+      this._createKey(webhook.id),
       JSON.stringify(this._format(webhook)),
     );
   }
 
   async mget(webhookIds: string[]) {
     const webhooks = await redis.mget<WebhookCacheProps[]>(
-      webhookIds.map(this._getCacheKey),
+      webhookIds.map(this._createKey),
     );
 
     return webhooks.filter(Boolean);
   }
 
   async delete(webhookId: string) {
-    return await redis.del(this._getCacheKey(webhookId));
+    return await redis.del(this._createKey(webhookId));
   }
 
   _format(webhook: WebhookCacheProps) {
@@ -38,7 +38,7 @@ class WebhookCache {
     };
   }
 
-  _getCacheKey(webhookId: string) {
+  _createKey(webhookId: string) {
     return `${WEBHOOK_CACHE_KEY_PREFIX}:${webhookId}`;
   }
 }
