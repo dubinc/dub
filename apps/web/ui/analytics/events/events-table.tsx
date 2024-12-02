@@ -165,7 +165,7 @@ export default function EventsTable({
                     <Avatar
                       user={{
                         name: customer.name,
-                        email: customer.email,
+                        email: customer.email || customer.externalId,
                         image: customer.avatar,
                       }}
                       className="h-8 w-8"
@@ -174,9 +174,11 @@ export default function EventsTable({
                       {display}
                     </p>
                     <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <p>{customer.email}</p>
+                      <p className="max-w-[12rem] truncate">
+                        {customer.email || customer.externalId}
+                      </p>
                       <CopyButton
-                        value={customer.email}
+                        value={customer.email || customer.externalId}
                         variant="neutral"
                         className="p-1 [&>*]:h-3 [&>*]:w-3"
                         successMessage="Copied email to clipboard!"
