@@ -56,24 +56,6 @@ export async function createLink(link: ProcessedLinkProps) {
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       geo: geo || Prisma.JsonNull,
 
-      // Associate tags by tagNames
-      ...(tagNames?.length &&
-        link.projectId && {
-          tags: {
-            create: tagNames.map((tagName, idx) => ({
-              tag: {
-                connect: {
-                  name_projectId: {
-                    name: tagName,
-                    projectId: link.projectId as string,
-                  },
-                  createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
-                },
-              },
-            })),
-          },
-        }),
-
       // Associate tags by IDs (takes priority over tagNames)
       ...(combinedTagIds &&
         combinedTagIds.length > 0 && {

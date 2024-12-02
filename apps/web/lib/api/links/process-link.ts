@@ -76,7 +76,7 @@ export async function processLink<T extends Record<string, any>>({
   } = payload;
 
   let expiresAt: string | Date | null | undefined = payload.expiresAt;
-  const tagIds = combineTagIds(payload);
+  let tagIds = combineTagIds(payload);
 
   // if URL is defined, perform URL checks
   if (url) {
@@ -372,6 +372,7 @@ export async function processLink<T extends Record<string, any>>({
     } else if (tagNames && tagNames.length > 0) {
       const tags = await prisma.tag.findMany({
         select: {
+          id: true,
           name: true,
         },
         where: {
@@ -394,6 +395,8 @@ export async function processLink<T extends Record<string, any>>({
           code: "unprocessable_entity",
         };
       }
+
+      tagIds = tags.map(({ id }) => id);
     }
 
     // Program validity checks
@@ -510,6 +513,9 @@ export async function processLink<T extends Record<string, any>>({
       }),
       ...(webhookIds && {
         webhookIds,
+      }),
+      ...(tagIds && {
+        tagIds,
       }),
     },
     error: null,
