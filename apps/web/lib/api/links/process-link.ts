@@ -505,6 +505,7 @@ export async function processLink<T extends Record<string, any>>({
       url,
       expiresAt,
       expiredUrl,
+      tagIds,
       // make sure projectId is set to the current workspace
       projectId: workspace?.id || null,
       // if userId is passed, set it (we don't change the userId if it's already set, e.g. when editing a link)
@@ -513,9 +514,6 @@ export async function processLink<T extends Record<string, any>>({
       }),
       ...(webhookIds && {
         webhookIds,
-      }),
-      ...(tagIds && {
-        tagIds,
       }),
     },
     error: null,
