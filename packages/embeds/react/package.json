@@ -1,7 +1,7 @@
 {
   "name": "@dub/embed-react",
   "description": "Embed React components for Dub.",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -21,6 +21,7 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@dub/embed-core": "workspace:*",
     "@types/react": "^18.2.47",
     "@types/react-dom": "^18.2.14",
     "autoprefixer": "^10.4.16",
@@ -32,8 +33,7 @@
   },
   "dependencies": {
     "class-variance-authority": "^0.7.0",
-    "vite": "5.2.9",
-    "@dub/embed-core": "workspace:*"
+    "vite": "5.2.9"
   },
   "author": "Steven Tey <stevensteel97@gmail.com>",
   "homepage": "https://dub.co",

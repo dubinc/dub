@@ -1,4 +1,4 @@
-import { ExpandingArrow } from "@dub/ui";
+import { ExpandingArrow, useMediaQuery } from "@dub/ui";
 import { Command, useCommandState } from "cmdk";
 import Fuse from "fuse.js";
 import { ExternalLink, MessageSquareText } from "lucide-react";
@@ -21,6 +21,7 @@ export function HelpArticles({
       query,
     });
   }, 1000);
+  const { isMobile } = useMediaQuery();
 
   return (
     <div>
@@ -32,7 +33,7 @@ export function HelpArticles({
         </div>
         <Command label="help-portal" loop shouldFilter={false}>
           <Command.Input
-            autoFocus
+            autoFocus={!isMobile}
             onInput={(e) => {
               // hack to scroll to top of list when input changes (for some reason beyond my comprehension, setTimeout is needed)
               setTimeout(() => {
@@ -41,7 +42,7 @@ export function HelpArticles({
               debouncedTrackSearch(e.currentTarget.value);
             }}
             placeholder="Search articles, guides, and more..."
-            className="w-full border-none p-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-0"
+            className="w-full border-none p-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-base"
           />
           <Command.List
             ref={commandListRef}

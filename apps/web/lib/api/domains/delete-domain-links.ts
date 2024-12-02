@@ -84,12 +84,16 @@ export async function deleteDomainAndLinks({
     });
   }
 
-  // After all links are deleted, delete the domain
-  await prisma.domain.delete({
+  // After all links are deleted, delete the domain and image
+  const domainRecord = await prisma.domain.delete({
     where: {
       slug: domain,
     },
   });
+
+  if (domainRecord.logo) {
+    await storage.delete(domainRecord.logo.replace(`${R2_URL}/`, ""));
+  }
 }
 
 // Mark the domain as deleted

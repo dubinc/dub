@@ -1,4 +1,5 @@
 import { getQRAsCanvas, getQRAsSVGDataUri, getQRData } from "@/lib/qr";
+import useDomain from "@/lib/swr/use-domain";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { QRLinkProps } from "@/lib/types";
 import { QRCode } from "@/ui/shared/qr-code";
@@ -26,8 +27,7 @@ import {
   Hyperlink,
   Photo,
 } from "@dub/ui/src/icons";
-import { API_DOMAIN, cn, linkConstructor } from "@dub/utils";
-import { DUB_QR_LOGO } from "@dub/utils/src/constants";
+import { API_DOMAIN, cn, DUB_QR_LOGO, linkConstructor } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Dispatch,
@@ -90,9 +90,10 @@ function LinkQRModalInner({
   showLinkQRModal: boolean;
   setShowLinkQRModal: Dispatch<SetStateAction<boolean>>;
 } & LinkQRModalProps) {
-  const { logo: workspaceLogo, plan, id: workspaceId, slug } = useWorkspace();
+  const { plan, id: workspaceId, slug } = useWorkspace();
   const id = useId();
   const { isMobile } = useMediaQuery();
+  const { logo: domainLogo } = useDomain(props.domain);
 
   const url = useMemo(() => {
     return props.key && props.domain
@@ -107,11 +108,11 @@ function LinkQRModalInner({
       hideLogo: false,
     },
   );
+
   const [data, setData] = useState(dataPersisted);
 
-  const logo = workspaceLogo && plan !== "free" ? workspaceLogo : DUB_QR_LOGO;
-
   const hideLogo = data.hideLogo && plan !== "free";
+  const logo = domainLogo || DUB_QR_LOGO;
 
   const qrData = useMemo(
     () =>
