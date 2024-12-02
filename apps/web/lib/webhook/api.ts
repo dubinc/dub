@@ -6,9 +6,9 @@ import {
   identifyWebhookReceiver,
   isLinkLevelWebhook,
 } from "@/lib/webhook/utils";
-import { nanoid } from "@dub/utils";
 import { Project } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { createId } from "../api/utils";
 import { WebhookTrigger } from "../types";
 import { createWebhookSecret } from "./secret";
 
@@ -29,7 +29,7 @@ export async function addWebhook({
 }) {
   const webhook = await prisma.webhook.create({
     data: {
-      id: `${WEBHOOK_ID_PREFIX}${nanoid(25)}`,
+      id: createId({ prefix: WEBHOOK_ID_PREFIX }),
       name,
       url,
       triggers,
