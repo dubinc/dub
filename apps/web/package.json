@@ -138,7 +138,7 @@
     "tailwindcss": "^3.4.4",
     "tsx": "^4.19.2",
     "turbo": "^1.10.14",
-    "typescript": "^5.4.4",
+    "typescript": "^5.6.3",
     "vite": "5.2.9",
     "vite-tsconfig-paths": "^4.3.2",
     "vitest": "1.5.0"
