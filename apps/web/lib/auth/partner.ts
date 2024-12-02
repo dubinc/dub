@@ -41,7 +41,7 @@ export const withPartner = (handler: WithPartnerHandler, {}: {} = {}) => {
           });
         }
 
-        const params = await segmentData.params;
+        const params = (await segmentData.params) || {};
         const searchParams = getSearchParams(req.url);
         const partnerId = params.partnerId || searchParams.partnerId;
 

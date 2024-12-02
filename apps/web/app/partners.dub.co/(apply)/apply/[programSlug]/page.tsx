@@ -8,14 +8,10 @@ import { ApplyButton } from "./apply-button";
 import { DetailsGrid } from "./details-grid";
 import { Header } from "./header";
 
-interface Params {
-  programSlug: string;
-}
-
 export default async function ApplyPage({
   params,
 }: {
-  params: Promise<Params>;
+  params: Promise<{ programSlug: string }>;
 }) {
   const { programSlug } = await params;
 

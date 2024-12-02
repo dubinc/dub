@@ -4,7 +4,6 @@ import { headers } from "next/headers";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const headersList = await headers();
-
   let domain = headersList.get("host");
 
   if (domain === "dub.localhost:8888" || domain?.endsWith(".vercel.app")) {

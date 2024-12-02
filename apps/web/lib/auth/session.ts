@@ -30,7 +30,7 @@ export const withSession = (handler: WithSessionHandler) =>
       },
     ) => {
       try {
-        const params = await segmentData.params;
+        const params = (await segmentData.params) || {};
         let session: Session | undefined;
         let headers = {};
 

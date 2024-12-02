@@ -62,7 +62,6 @@ export default async function PasswordProtectedLinkPage({
   params: Promise<{ linkId: string }>;
 }) {
   const { linkId } = await params;
-
   const cookieStore = await cookies();
 
   const link = await prismaEdge.link.findUnique({

@@ -1,11 +1,13 @@
+import { use } from "react";
+
 export const runtime = "edge";
 
-export default async function DeepLinkPage({
+export default function DeepLinkPage({
   params,
 }: {
   params: Promise<{ url: string }>;
 }) {
-  let { url } = await params;
+  let { url } = use(params);
 
   // First decode the full URL parameter from the route
   url = decodeURIComponent(url);
