@@ -18,6 +18,7 @@ export async function generateMetadata({
   params: Promise<{ dashboardId: string }>;
 }) {
   const { dashboardId } = await params;
+
   const data = await getDashboard({ id: dashboardId });
 
   // if the dashboard or link doesn't exist
