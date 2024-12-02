@@ -1,0 +1,4 @@
+Contact: mailto:security@dub.co
+Expires: 2034-10-21T23:22:00.000Z
+Preferred-Languages: en
+Canonical: https://dub.co/.well-known/security.txt

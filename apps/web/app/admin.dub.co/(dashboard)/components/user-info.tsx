@@ -1,8 +1,6 @@
 "use client";
-
-import { Badge, Copy, Globe2, Tick } from "@dub/ui";
+import { Badge, Copy, Globe2, Tick, useCopyToClipboard } from "@dub/ui";
 import { capitalize, nFormatter } from "@dub/utils";
-import { useState } from "react";
 import { toast } from "sonner";
 
 export interface UserInfoProps {
@@ -17,44 +15,26 @@ export interface UserInfoProps {
     domains: number;
     links: number;
   }[];
-  impersonateUrl: string;
+  impersonateUrl: {
+    app: string;
+    partners: string;
+  };
 }
 
 export default function UserInfo({ data }: { data: UserInfoProps }) {
-  const [copied, setCopied] = useState(false);
-
   return (
-    <>
-      <div className="flex w-full items-center space-x-3">
-        <input
-          type="email"
-          name="email"
-          id="email"
-          value={data.email}
-          readOnly
-          className="w-full rounded-md border-gray-300 text-sm text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
-        />
-        <button
-          type="button"
-          onClick={() => {
-            setCopied(true);
-            navigator.clipboard.writeText(data.impersonateUrl);
-            toast.success("Copied to clipboard");
-            setTimeout(() => {
-              setCopied(false);
-            }, 3000);
-          }}
-          className="rounded-md border border-gray-300 p-2"
-        >
-          {copied ? (
-            <Tick className="h-5 w-5 text-gray-500" />
-          ) : (
-            <Copy className="h-5 w-5 text-gray-500" />
-          )}
-        </button>
-      </div>
+    <div className="grid gap-2">
+      <LoginLinkCopyButton text={data.email} url={data.email} />
+      <LoginLinkCopyButton
+        text="app.dub.co login link"
+        url={data.impersonateUrl.app}
+      />
+      <LoginLinkCopyButton
+        text="partners.dub.co login link"
+        url={data.impersonateUrl.partners}
+      />
       {Object.keys(data.defaultDomainLinks).length > 0 && (
-        <div className="mt-2 grid divide-y divide-gray-200">
+        <div className="grid divide-y divide-gray-200">
           {Object.entries(data.defaultDomainLinks).map(([domain, count]) => (
             <div key={domain} className="flex justify-between py-2">
               <div className="flex items-center space-x-2">
@@ -66,7 +46,7 @@ export default function UserInfo({ data }: { data: UserInfoProps }) {
           ))}
         </div>
       )}
-      <div className="mt-2 grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         {data.workspaces.map((workspace) => (
           <div
             key={workspace.slug}
@@ -105,6 +85,33 @@ export default function UserInfo({ data }: { data: UserInfoProps }) {
           </div>
         ))}
       </div>
-    </>
+    </div>
   );
 }
+
+const LoginLinkCopyButton = ({ text, url }: { text: string; url: string }) => {
+  const [copied, copyToClipboard] = useCopyToClipboard();
+
+  return (
+    <div className="flex w-full items-center space-x-3">
+      <div className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-900">
+        {text}
+      </div>
+      <button
+        type="button"
+        onClick={() =>
+          toast.promise(copyToClipboard(url), {
+            success: "Copied to clipboard",
+          })
+        }
+        className="rounded-md border border-gray-300 p-2"
+      >
+        {copied ? (
+          <Tick className="h-5 w-5 text-gray-500" />
+        ) : (
+          <Copy className="h-5 w-5 text-gray-500" />
+        )}
+      </button>
+    </div>
+  );
+};

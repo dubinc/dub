@@ -4,6 +4,7 @@ import {
 } from "@/lib/analytics/constants";
 import { DeviceTabs } from "@/lib/analytics/types";
 import { useRouterStuff } from "@dub/ui";
+import { Cube, CursorRays, MobilePhone, Window } from "@dub/ui/src/icons";
 import { useContext, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
@@ -13,7 +14,7 @@ import DeviceIcon from "./device-icon";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Devices() {
-  const { queryParams } = useRouterStuff();
+  const { queryParams, searchParams } = useRouterStuff();
 
   const { selectedTab } = useContext(AnalyticsContext);
   const dataKey = selectedTab === "sales" ? "saleAmount" : "count";
@@ -25,10 +26,10 @@ export default function Devices() {
   return (
     <AnalyticsCard
       tabs={[
-        { id: "devices", label: "Devices" },
-        { id: "browsers", label: "Browsers" },
-        { id: "os", label: "OS" },
-        { id: "triggers", label: "Triggers" },
+        { id: "devices", label: "Devices", icon: MobilePhone },
+        { id: "browsers", label: "Browsers", icon: Window },
+        { id: "os", label: "OS", icon: Cube },
+        { id: "triggers", label: "Triggers", icon: CursorRays },
       ]}
       selectedTabId={tab}
       onSelectTab={setTab}
@@ -55,7 +56,13 @@ export default function Devices() {
                         ? TRIGGER_DISPLAY[d.trigger]
                         : d[singularTabName],
                     href: queryParams({
-                      set: { [singularTabName]: d[singularTabName] },
+                      ...(searchParams.has(singularTabName)
+                        ? { del: singularTabName }
+                        : {
+                            set: {
+                              [singularTabName]: d[singularTabName],
+                            },
+                          }),
                       getNewPath: true,
                     }) as string,
                     value: d[dataKey] || 0,

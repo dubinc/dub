@@ -2,7 +2,6 @@
 
 import { editQueryString } from "@/lib/analytics/utils";
 import { generateRandomName } from "@/lib/names";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { clickEventResponseSchema } from "@/lib/zod/schemas/clicks";
 import { leadEventResponseSchema } from "@/lib/zod/schemas/leads";
 import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
@@ -10,6 +9,7 @@ import EmptyState from "@/ui/shared/empty-state";
 import {
   Avatar,
   CopyButton,
+  CopyText,
   LinkLogo,
   Table,
   Tooltip,
@@ -17,18 +17,11 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CopyText } from "@dub/ui/src";
-import {
-  CursorRays,
-  FilterBars,
-  Globe,
-  Magnifier,
-  Menu3,
-  QRCode,
-} from "@dub/ui/src/icons";
+import { CursorRays, Globe, Magnifier, QRCode } from "@dub/ui/src/icons";
 import {
   CONTINENTS,
   COUNTRIES,
+  REGIONS,
   capitalize,
   fetcher,
   getApexDomain,
@@ -37,8 +30,7 @@ import {
 } from "@dub/utils";
 import { Cell, ColumnDef } from "@tanstack/react-table";
 import { Link2 } from "lucide-react";
-import Link from "next/link";
-import { useContext, useEffect, useMemo } from "react";
+import { ReactNode, useContext, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import z from "zod";
 import { AnalyticsContext } from "../analytics-provider";
@@ -47,6 +39,7 @@ import DeviceIcon from "../device-icon";
 import EditColumnsButton from "./edit-columns-button";
 import { EventsContext } from "./events-provider";
 import { exampleData } from "./example-data";
+import FilterButton from "./filter-button";
 import { RowMenuButton } from "./row-menu-button";
 import { eventColumns, useColumnVisibility } from "./use-column-visibility";
 
@@ -61,33 +54,21 @@ type ColumnMeta = {
   ) => Record<string, any>;
 };
 
-const FilterButton = ({ set }: { set: Record<string, any> }) => {
-  const { queryParams } = useRouterStuff();
-
-  return (
-    <div className="absolute right-1 top-0 flex h-full shrink-0 translate-x-3 items-center justify-center bg-[linear-gradient(to_right,transparent,white_10%)] p-2 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100">
-      <Link
-        href={
-          queryParams({
-            set,
-            del: "page",
-            getNewPath: true,
-          }) as string
-        }
-        className="block rounded-md border border-transparent bg-white p-0.5 text-gray-600 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-gray-950"
-      >
-        <span className="sr-only">Filter</span>
-        <FilterBars className="h-3.5 w-3.5" />
-      </Link>
-    </div>
-  );
-};
-
-export default function EventsTable() {
-  const { slug, plan, conversionEnabled } = useWorkspace();
+export default function EventsTable({
+  requiresUpgrade,
+  upgradeOverlay,
+}: {
+  requiresUpgrade?: boolean;
+  upgradeOverlay?: ReactNode;
+}) {
   const { searchParams, queryParams } = useRouterStuff();
   const { setExportQueryString } = useContext(EventsContext);
-  const { selectedTab: tab } = useContext(AnalyticsContext);
+  const {
+    selectedTab: tab,
+    queryString: originalQueryString,
+    eventsApiPath,
+    totalEvents,
+  } = useContext(AnalyticsContext);
   const { columnVisibility, setColumnVisibility } = useColumnVisibility();
 
   const sortBy = searchParams.get("sort") || "timestamp";
@@ -217,25 +198,6 @@ export default function EventsTable() {
           },
         },
         {
-          id: "continent",
-          header: "Continent",
-          accessorKey: "click.continent",
-          meta: {
-            filterParams: ({ getValue }) => ({ continent: getValue() }),
-          },
-          cell: ({ getValue }) => (
-            <div
-              className="flex items-center gap-3"
-              title={CONTINENTS[getValue()] ?? "Unknown"}
-            >
-              <ContinentIcon display={getValue()} className="size-4 shrink-0" />
-              <span className="truncate">
-                {CONTINENTS[getValue()] ?? "Unknown"}
-              </span>
-            </div>
-          ),
-        },
-        {
           id: "country",
           header: "Country",
           accessorKey: "click.country",
@@ -266,6 +228,9 @@ export default function EventsTable() {
           id: "city",
           header: "City",
           accessorKey: "click.city",
+          meta: {
+            filterParams: ({ getValue }) => ({ city: getValue() }),
+          },
           minSize: 160,
           cell: ({ getValue, row }) => (
             <div className="flex items-center gap-3" title={getValue()}>
@@ -279,6 +244,50 @@ export default function EventsTable() {
                 />
               )}
               <span className="truncate">{getValue()}</span>
+            </div>
+          ),
+        },
+        {
+          id: "region",
+          header: "Region",
+          accessorKey: "click.region",
+          meta: {
+            filterParams: ({ getValue }) => ({ region: getValue() }),
+          },
+          minSize: 160,
+          cell: ({ getValue, row }) => (
+            <div className="flex items-center gap-3" title={getValue()}>
+              {!row.original.country || row.original.country === "Unknown" ? (
+                <Globe className="size-4 shrink-0" />
+              ) : (
+                <img
+                  alt={row.original.country}
+                  src={`https://hatscripts.github.io/circle-flags/flags/${row.original.country.toLowerCase()}.svg`}
+                  className="size-4 shrink-0"
+                />
+              )}
+              <span className="truncate">
+                {REGIONS[getValue()] || getValue().split("-")[1]}
+              </span>
+            </div>
+          ),
+        },
+        {
+          id: "continent",
+          header: "Continent",
+          accessorKey: "click.continent",
+          meta: {
+            filterParams: ({ getValue }) => ({ continent: getValue() }),
+          },
+          cell: ({ getValue }) => (
+            <div
+              className="flex items-center gap-3"
+              title={CONTINENTS[getValue()] ?? "Unknown"}
+            >
+              <ContinentIcon display={getValue()} className="size-4 shrink-0" />
+              <span className="truncate">
+                {CONTINENTS[getValue()] ?? "Unknown"}
+              </span>
             </div>
           ),
         },
@@ -353,7 +362,7 @@ export default function EventsTable() {
         },
         {
           id: "refererUrl",
-          header: "Referer URL",
+          header: "Referrer URL",
           accessorKey: "click.refererUrl",
           meta: {
             filterParams: ({ getValue }) => ({ refererUrl: getValue() }),
@@ -370,7 +379,7 @@ export default function EventsTable() {
               )}
               <CopyText
                 value={getValue()}
-                successMessage="Copied referer URL to clipboard!"
+                successMessage="Copied referrer URL to clipboard!"
               >
                 <span className="truncate" title={getValue()}>
                   {getPrettyUrl(getValue())}
@@ -401,7 +410,6 @@ export default function EventsTable() {
           id: "saleAmount",
           header: "Sale Amount",
           accessorKey: "sale.amount",
-          enableHiding: false,
           minSize: 120,
           cell: ({ getValue }) => (
             <div className="flex items-center gap-2">
@@ -470,9 +478,6 @@ export default function EventsTable() {
 
   const { pagination, setPagination } = usePagination();
 
-  const { queryString: originalQueryString, totalEvents } =
-    useContext(AnalyticsContext);
-
   const queryString = useMemo(
     () =>
       editQueryString(originalQueryString, {
@@ -502,11 +507,8 @@ export default function EventsTable() {
     [setExportQueryString, queryString, columnVisibility, tab],
   );
 
-  const needsHigherPlan =
-    (plan === "free" || plan === "pro") && !conversionEnabled;
-
   const { data, isLoading, error } = useSWR<EventDatum[]>(
-    !needsHigherPlan && `/api/events?${queryString}`,
+    !requiresUpgrade && `${eventsApiPath || "/api/events"}?${queryString}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -514,13 +516,13 @@ export default function EventsTable() {
   );
 
   const { table, ...tableProps } = useTable({
-    data: (data ?? (needsHigherPlan ? exampleData[tab] : [])) as EventDatum[],
+    data: (data ?? (requiresUpgrade ? exampleData[tab] : [])) as EventDatum[],
     loading: isLoading,
-    error: error && !needsHigherPlan ? "Failed to fetch events." : undefined,
+    error: error && !requiresUpgrade ? "Failed to fetch events." : undefined,
     columns,
     pagination,
     onPaginationChange: setPagination,
-    rowCount: needsHigherPlan ? 0 : totalEvents?.[tab] ?? 0,
+    rowCount: requiresUpgrade ? 0 : totalEvents?.[tab] ?? 0,
     columnVisibility: columnVisibility[tab],
     onColumnVisibilityChange: (args) => setColumnVisibility(tab, args),
     sortableColumns: ["timestamp"],
@@ -538,9 +540,7 @@ export default function EventsTable() {
       const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
 
       return (
-        <>
-          {meta?.filterParams && <FilterButton set={meta.filterParams(cell)} />}
-        </>
+        meta?.filterParams && <FilterButton set={meta.filterParams(cell)} />
       );
     },
     emptyState: (
@@ -557,19 +557,12 @@ export default function EventsTable() {
     <Table
       {...tableProps}
       table={table}
-      scrollWrapperClassName={needsHigherPlan ? "overflow-x-hidden" : undefined}
+      scrollWrapperClassName={requiresUpgrade ? "overflow-x-hidden" : undefined}
     >
-      {needsHigherPlan && (
+      {requiresUpgrade && (
         <>
           <div className="absolute inset-0 flex touch-pan-y items-center justify-center bg-gradient-to-t from-[#fff_70%] to-[#fff6]">
-            <EmptyState
-              icon={Menu3}
-              title="Real-time Events Stream"
-              description={`Want more data on your link ${tab === "clicks" ? "clicks & QR code scans" : tab}? Upgrade to our Business Plan to get a detailed, real-time stream of events in your workspace.`}
-              learnMore="https://d.to/events"
-              buttonText="Upgrade to Business"
-              buttonLink={`/${slug}/upgrade`}
-            />
+            {upgradeOverlay}
           </div>
           <div className="h-[400px]" />
         </>

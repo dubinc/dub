@@ -3,14 +3,14 @@
 import useIntegrations from "@/lib/swr/use-integrations";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationProps } from "@/lib/types";
-import { BlurImage, TokenAvatar } from "@dub/ui";
+import { BlurImage, TokenAvatar, Tooltip } from "@dub/ui";
 import {
   CircleWarning,
   Download,
   OfficeBuilding,
   ShieldCheck,
 } from "@dub/ui/src/icons";
-import { Tooltip } from "@dub/ui/src/tooltip";
+import { pluralize } from "@dub/utils";
 import Link from "next/link";
 
 export default function IntegrationCard(
@@ -77,8 +77,8 @@ export default function IntegrationCard(
         <div className="flex items-center justify-end gap-1 text-gray-500">
           <Download className="size-4" />
           <span className="text-sm">
-            {integration.installations} install
-            {integration.installations === 1 ? "" : "s"}
+            {integration.installations}{" "}
+            {pluralize("install", integration.installations)}
           </span>
         </div>
       </div>

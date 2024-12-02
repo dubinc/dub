@@ -17,7 +17,5 @@ export const GET = withWorkspace(async ({ workspace, session }) => {
     },
   });
 
-  console.log({ response });
-
   return NextResponse.json(response);
 });

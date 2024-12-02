@@ -9,6 +9,7 @@ import {
   Modal,
   SimpleTooltipContent,
   Tick,
+  useCopyToClipboard,
 } from "@dub/ui";
 import { SAML_PROVIDERS } from "@dub/utils";
 import { Eye, EyeOff, FolderSync, RefreshCcw } from "lucide-react";
@@ -34,9 +35,9 @@ function SCIMModal({
   const [selectedProvider, setSelectedProvider] = useState<
     SAMLProviderProps["scim"] | undefined
   >(provider || undefined);
-  const [copiedBaseUrl, setCopiedBaseUrl] = useState(false);
   const [showBearerToken, setShowBearerToken] = useState(false);
-  const [copiedBearerToken, setCopiedBearerToken] = useState(false);
+  const [copiedBaseUrl, copyBaseUrlToClipboard] = useCopyToClipboard();
+  const [copiedBearerToken, copyBearerTokenToClipboard] = useCopyToClipboard();
 
   const currentProvider = useMemo(
     () => SAML_PROVIDERS.find((p) => p.scim === selectedProvider),
@@ -184,12 +185,10 @@ function SCIMModal({
                     type="button"
                     className="pl-2"
                     onClick={() => {
-                      navigator.clipboard.writeText(
-                        scim.directories[0].scim.endpoint as string,
-                      );
-                      setCopiedBaseUrl(true);
-                      toast.success("Copied to clipboard");
-                      setTimeout(() => setCopiedBaseUrl(false), 3000);
+                      const url = scim.directories[0].scim.endpoint as string;
+                      toast.promise(copyBaseUrlToClipboard(url), {
+                        success: "Copied to clipboard",
+                      });
                     }}
                   >
                     {copiedBaseUrl ? (
@@ -227,12 +226,10 @@ function SCIMModal({
                     <button
                       type="button"
                       onClick={() => {
-                        navigator.clipboard.writeText(
-                          `${scim.directories[0].scim.secret}`,
-                        );
-                        setCopiedBearerToken(true);
-                        toast.success("Copied to clipboard");
-                        setTimeout(() => setCopiedBearerToken(false), 3000);
+                        const token = scim.directories[0].scim.secret as string;
+                        toast.promise(copyBearerTokenToClipboard(token), {
+                          success: "Copied to clipboard",
+                        });
                       }}
                     >
                       {copiedBearerToken ? (

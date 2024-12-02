@@ -1,3 +1,5 @@
+import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
+import { createSaleData } from "@/lib/api/sales/sale";
 import { prisma } from "@/lib/prisma";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
@@ -104,6 +106,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         },
       },
     }),
+
     // update workspace sales usage
     prisma.project.update({
       where: {
@@ -120,6 +123,60 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     }),
   ]);
 
+  // for program links
+  if (link.programId) {
+    const { program, partner } =
+      await prisma.programEnrollment.findUniqueOrThrow({
+        where: {
+          linkId: link.id,
+        },
+        select: {
+          program: true,
+          partner: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+    const saleRecord = createSaleData({
+      customerId: saleData.customer_id,
+      linkId: saleData.link_id,
+      clickId: saleData.click_id,
+      invoiceId: saleData.invoice_id,
+      eventId: saleData.event_id,
+      paymentProcessor: saleData.payment_processor,
+      amount: saleData.amount,
+      currency: saleData.currency,
+      partnerId: partner.id,
+      program,
+      metadata: {
+        ...leadEvent.data[0],
+        stripeMetadata: charge,
+      },
+    });
+
+    await prisma.sale.create({
+      data: saleRecord,
+    });
+
+    waitUntil(
+      notifyPartnerSale({
+        partner: {
+          id: partner.id,
+          referralLink: link.shortLink,
+        },
+        program,
+        sale: {
+          amount: saleRecord.amount,
+          earnings: saleRecord.earnings,
+        },
+      }),
+    );
+  }
+
+  // send workspace webhook
   waitUntil(
     sendWorkspaceWebhook({
       trigger: "sale.created",
@@ -127,10 +184,12 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       data: transformSaleEventData({
         ...saleData,
         link,
-        customerId: customer.externalId,
+        customerId: customer.id,
+        customerExternalId: customer.externalId,
         customerName: customer.name,
         customerEmail: customer.email,
         customerAvatar: customer.avatar,
+        customerCreatedAt: customer.createdAt,
       }),
     }),
   );

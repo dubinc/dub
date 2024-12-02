@@ -1,12 +1,19 @@
 "use client";
 
 import { WebhookEventProps } from "@/lib/types";
-import { Sheet, SheetContent, SheetTrigger, useMediaQuery } from "@dub/ui";
+import {
+  Button,
+  ButtonTooltip,
+  Sheet,
+  Tooltip,
+  useCopyToClipboard,
+  useMediaQuery,
+} from "@dub/ui";
 import { CircleCheck, CircleHalfDottedClock, Copy } from "@dub/ui/src/icons";
-import { ButtonTooltip, Tooltip } from "@dub/ui/src/tooltip";
 import { PropsWithChildren, useEffect, useState } from "react";
 import { Highlighter } from "shiki";
 import { toast } from "sonner";
+import { X } from "../shared/icons";
 
 export type EventListProps = PropsWithChildren<{
   events: WebhookEventProps[];
@@ -47,61 +54,83 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
     }
   }, [highlighter, event]);
 
+  const [, copyToClipboard] = useCopyToClipboard();
+
   const isSuccess = event.http_status >= 200 && event.http_status < 300;
   const { isMobile } = useMediaQuery();
 
-  return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <button className="flex items-center justify-between gap-5 px-3.5 py-3 hover:bg-gray-50 focus:outline-none">
-          <div className="flex items-center gap-5">
-            <div className="flex items-center gap-2.5">
-              <Tooltip
-                content={
-                  isSuccess
-                    ? "This webhook was successfully delivered."
-                    : "This webhook failed to deliver – it will be retried."
-                }
-              >
-                <div>
-                  {isSuccess ? (
-                    <CircleCheck className="size-4 text-green-500" />
-                  ) : (
-                    <CircleHalfDottedClock className="size-4 text-amber-500" />
-                  )}
-                </div>
-              </Tooltip>
-              <div className="text-sm text-gray-500">{event.http_status}</div>
-            </div>
-            <div className="text-sm text-gray-500">{event.event}</div>
-          </div>
+  const [isOpen, setIsOpen] = useState(false);
 
-          <div className="text-xs text-gray-400">
-            {(() => {
-              const date = new Date(event.timestamp);
-              const localDate = new Date(
-                date.getTime() - date.getTimezoneOffset() * 60000,
-              );
-              return isMobile
-                ? localDate.toLocaleTimeString()
-                : localDate.toLocaleString();
-            })()}
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className="flex items-center justify-between gap-5 px-3.5 py-3 hover:bg-gray-50 focus:outline-none"
+      >
+        <div className="flex items-center gap-5">
+          <div className="flex items-center gap-2.5">
+            <Tooltip
+              content={
+                isSuccess
+                  ? "This webhook was successfully delivered."
+                  : "This webhook failed to deliver – it will be retried."
+              }
+            >
+              <div>
+                {isSuccess ? (
+                  <CircleCheck className="size-4 text-green-500" />
+                ) : (
+                  <CircleHalfDottedClock className="size-4 text-amber-500" />
+                )}
+              </div>
+            </Tooltip>
+            <div className="text-sm text-gray-500">{event.http_status}</div>
           </div>
-        </button>
-      </SheetTrigger>
-      <SheetContent className="w-full overflow-y-scroll p-0 sm:w-auto sm:max-w-screen-sm">
+          <div className="text-sm text-gray-500">{event.event}</div>
+        </div>
+
+        <div className="text-xs text-gray-400">
+          {(() => {
+            const date = new Date(event.timestamp);
+            const localDate = new Date(
+              date.getTime() - date.getTimezoneOffset() * 60000,
+            );
+            return isMobile
+              ? localDate.toLocaleTimeString()
+              : localDate.toLocaleString();
+          })()}
+        </div>
+      </button>
+      <Sheet
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        contentProps={{ className: "md:w-[650px]" }}
+      >
         <div className="p-6">
-          <h3 className="text-lg font-semibold">{event.event}</h3>
+          <div className="flex items-start justify-between">
+            <Sheet.Title className="text-lg font-semibold">
+              {event.event}
+            </Sheet.Title>
+            <Sheet.Close asChild>
+              <Button
+                variant="outline"
+                icon={<X className="size-5" />}
+                className="h-auto w-fit p-1"
+              />
+            </Sheet.Close>
+          </div>
           <div className="group flex items-center gap-2">
             <p className="font-mono text-sm text-gray-500">{event.event_id}</p>
             <ButtonTooltip
               tooltipProps={{
                 content: "Copy event ID",
               }}
-              onClick={() => {
-                navigator.clipboard.writeText(event.event_id);
-                toast.success("Copied to clipboard");
-              }}
+              onClick={() =>
+                toast.promise(copyToClipboard(event.event_id), {
+                  success: "Copied to clipboard",
+                })
+              }
             >
               <Copy className="size-4 opacity-0 transition-opacity group-hover:opacity-100" />
             </ButtonTooltip>
@@ -125,8 +154,8 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
             dangerouslySetInnerHTML={{ __html: requestBody }}
           />
         </div>
-      </SheetContent>
-    </Sheet>
+      </Sheet>
+    </>
   );
 };
 

@@ -20,7 +20,7 @@ import {
   Cards,
   CircleHalfDottedClock,
   EarthPosition,
-  EyeSlash,
+  Incognito,
   InputPassword,
   Page2,
   Robot,
@@ -44,8 +44,8 @@ import { ResponseLink } from "./links-container";
 import { LinksDisplayContext } from "./links-display-provider";
 
 const quickViewSettings = [
-  { label: "Custom Social Media Cards", icon: Cards, key: "proxy" },
-  { label: "Link Cloaking", icon: EyeSlash, key: "rewrite" },
+  { label: "Custom Link Preview", icon: Cards, key: "proxy" },
+  { label: "Link Cloaking", icon: Incognito, key: "rewrite" },
   { label: "Password Protection", icon: InputPassword, key: "password" },
   { label: "Link Expiration", icon: CircleHalfDottedClock, key: "expiresAt" },
   { label: "iOS Targeting", icon: Apple, key: "ios" },
@@ -81,13 +81,13 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
           {link.archived ? (
             <Tooltip content="Archived">
               <div>
-                <BoxArchive className="h-4 w-4 shrink-0 p-0.5 text-gray-600 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5" />
+                <BoxArchive className="size-4 shrink-0 p-0.5 text-gray-600 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5" />
               </div>
             </Tooltip>
           ) : (
             <LinkLogo
               apexDomain={getApexDomain(url)}
-              className="h-4 w-4 shrink-0 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5"
+              className="size-4 shrink-0 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5"
               imageProps={{
                 loading: "lazy",
               }}
@@ -219,7 +219,7 @@ function SettingsBadge({ link }: { link: ResponseLink }) {
                   className="flex items-center justify-between gap-4 rounded-lg p-3 transition-colors hover:bg-gray-100"
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className="h-4 w-4 text-gray-600" />
+                    <Icon className="size-4 text-gray-600" />
                     <span className="text-gray-950">{label}</span>
                   </div>
                   <Switch checked />
@@ -370,7 +370,7 @@ function UserAvatar({
       }
     >
       <div>
-        <Avatar user={user} className="h-4 w-4" />
+        <Avatar user={user} className="size-4" />
       </div>
     </Tooltip>
   );

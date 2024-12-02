@@ -1,6 +1,6 @@
 import { tagColors } from "@/lib/types";
 import z from "@/lib/zod";
-import { getPaginationQuerySchema } from "./misc";
+import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 
 export const TAGS_MAX_PAGE_SIZE = 100;
 
@@ -18,6 +18,13 @@ export const getTagsQuerySchema = z
   })
   .merge(getPaginationQuerySchema({ pageSize: TAGS_MAX_PAGE_SIZE }));
 
+export const getTagsQuerySchemaExtended = getTagsQuerySchema.merge(
+  z.object({
+    // Only Dub UI uses the following query parameters
+    includeLinksCount: booleanQuerySchema.default("false"),
+  }),
+);
+
 export const getTagsCountQuerySchema = getTagsQuerySchema.omit({
   ids: true,
   page: true,
@@ -26,7 +33,7 @@ export const getTagsCountQuerySchema = getTagsQuerySchema.omit({
 
 export const tagColorSchema = z
   .enum(tagColors, {
-    errorMap: (issue, ctx) => {
+    errorMap: () => {
       return {
         message: `Invalid color. Must be one of: ${tagColors.join(", ")}`,
       };
@@ -36,14 +43,19 @@ export const tagColorSchema = z
 
 export const createTagBodySchema = z
   .object({
-    name: z.string().min(1).trim().describe("The name of the tag to create."),
+    name: z
+      .string()
+      .trim()
+      .min(1)
+      .max(50)
+      .describe("The name of the tag to create."),
     color: tagColorSchema.describe(
       `The color of the tag. If not provided, a random color will be used from the list: ${tagColors.join(", ")}.`,
     ),
     tag: z
       .string()
-      .min(1)
       .trim()
+      .min(1)
       .describe("The name of the tag to create.")
       .openapi({ deprecated: true }),
   })

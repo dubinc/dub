@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 // GET /api/admin/links/count
 export const GET = withAdmin(async ({ searchParams }) => {
   let { groupBy, search, domain, tagId } = searchParams as {
-    groupBy?: "domain" | "tagId";
+    groupBy?: "domain" | "tagId" | "userId";
     search?: string;
     domain?: string;
     tagId?: string;
@@ -30,7 +30,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
     ...(search && {
       OR: [
         {
-          key: { contains: search },
+          shortLink: { contains: search },
         },
         {
           url: { contains: search },
@@ -66,7 +66,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
       }),
     };
 
-    if (groupBy === "domain") {
+    if (groupBy) {
       response = await prisma.link.groupBy({
         by: [groupBy],
         where,
@@ -76,6 +76,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
             [groupBy]: "desc",
           },
         },
+        take: 500,
       });
     } else {
       response = await prisma.link.count({

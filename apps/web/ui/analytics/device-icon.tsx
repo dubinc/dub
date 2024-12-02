@@ -58,7 +58,7 @@ export default function DeviceIcon({
     if (display === "Mac OS") {
       return (
         <BlurImage
-          src="/_static/icons/macos.png"
+          src="https://assets.dub.co/misc/icons/macos.png"
           alt={display}
           width={20}
           height={20}

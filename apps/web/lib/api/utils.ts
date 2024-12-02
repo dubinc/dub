@@ -1,3 +1,4 @@
+import { nanoid } from "@dub/utils";
 import { ipAddress } from "@vercel/functions";
 import { getToken } from "next-auth/jwt";
 import { headers } from "next/headers";
@@ -68,4 +69,33 @@ export const extractPublishableKey = (req: Request) => {
   }
 
   return authorizationHeader.replace("Bearer ", "");
+};
+
+const prefixes = [
+  "link_",
+  "tag_",
+  "dom_",
+  "po_",
+  "dash_",
+  "int_",
+  "app_",
+  "cus_",
+  "utm_",
+  "wh_",
+  "pgi_",
+  "pge_",
+  "pn_",
+  "sale_",
+  "pga_",
+  "dub_embed_",
+] as const;
+
+export const createId = ({
+  prefix,
+  length = 24,
+}: {
+  prefix?: (typeof prefixes)[number];
+  length?: number;
+}) => {
+  return `${prefix || ""}${nanoid(length)}`;
 };

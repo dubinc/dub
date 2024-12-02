@@ -113,6 +113,35 @@ export const analyticsResponse = {
     })
     .openapi({ ref: "AnalyticsCountries" }),
 
+  regions: z
+    .object({
+      region: z
+        .string()
+        .describe(
+          "The 2-letter ISO 3166-2 region code representing the region associated with the location of the user.",
+        ),
+      country: z
+        .enum(COUNTRY_CODES)
+        .describe("The 2-letter country code of the region: https://d.to/geo"),
+      clicks: z
+        .number()
+        .describe("The number of clicks from this region")
+        .default(0),
+      leads: z
+        .number()
+        .describe("The number of leads from this region")
+        .default(0),
+      sales: z
+        .number()
+        .describe("The number of sales from this region")
+        .default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales from this region, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsRegions" }),
+
   cities: z
     .object({
       city: z.string().describe("The name of the city"),

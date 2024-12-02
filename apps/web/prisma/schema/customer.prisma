@@ -1,16 +1,17 @@
 model Customer {
-  id               String  @id @default(cuid())
+  id               String   @id @default(cuid())
   name             String?
   email            String?
-  avatar           String?
+  avatar           String?  @db.LongText
   externalId       String?
-  project          Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project          Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId        String
   projectConnectId String?
-  stripeCustomerId String? @unique
+  stripeCustomerId String?  @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  sales Sale[]
 
   @@unique([projectId, externalId])
   @@unique([projectConnectId, externalId])

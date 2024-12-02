@@ -156,6 +156,7 @@ function PasswordModalInner({
           <input
             type={showPassword ? "text" : "password"}
             placeholder="Create password"
+            data-1p-ignore
             className={`${
               errors.password
                 ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
@@ -178,6 +179,10 @@ function PasswordModalInner({
               className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
               onClick={() => {
                 setValueParent("password", null, { shouldDirty: true });
+                ["title", "description", "image"].forEach(
+                  (key: "title" | "description" | "image") =>
+                    setValueParent(key, null, { shouldDirty: true }),
+                );
                 setShowPasswordModal(false);
               }}
             >

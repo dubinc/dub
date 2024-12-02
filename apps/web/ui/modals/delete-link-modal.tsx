@@ -66,9 +66,6 @@ function DeleteLinkModalInner({
           setDeleting(true);
           fetch(`/api/links/${props.id}?workspaceId=${id}`, {
             method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-            },
           }).then(async (res) => {
             if (res.status === 200) {
               await mutate(

@@ -1,4 +1,4 @@
-import { REFERRAL_CLICKS_QUOTA_BONUS } from "@/lib/referrals/constants";
+import { REFERRAL_CLICKS_QUOTA_BONUS } from "@/lib/embed/constants";
 import { DUB_WORDMARK, getPrettyUrl } from "@dub/utils";
 import {
   Body,
@@ -72,7 +72,7 @@ export default function NewReferralSignup({
             <Section className="my-8 text-center">
               <Link
                 className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={`https://app.dub.co/${workspace.slug}/settings/referrals`}
+                href={`https://app.dub.co/${workspace.slug}`}
               >
                 View your referral stats
               </Link>

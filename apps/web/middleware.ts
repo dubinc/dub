@@ -14,7 +14,9 @@ import {
   DEFAULT_REDIRECTS,
   isValidUrl,
 } from "@dub/utils";
+import { PARTNERS_HOSTNAMES } from "@dub/utils/src/constants";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
+import PartnersMiddleware from "./lib/middleware/partners";
 
 export const config = {
   matcher: [
@@ -23,10 +25,9 @@ export const config = {
      * 1. /api/ routes
      * 2. /_next/ (Next.js internals)
      * 3. /_proxy/ (proxies for third-party services)
-     * 4. /_static/ (static files inside /public folder)
-     * 5. Metadata files: favicon.ico, sitemap.xml, robots.txt, manifest.webmanifest, .well-known
+     * 4. Metadata files: favicon.ico, sitemap.xml, robots.txt, manifest.webmanifest, .well-known
      */
-    "/((?!api/|_next/|_proxy/|_static/|favicon.ico|sitemap.xml|robots.txt|manifest.webmanifest|.well-known).*)",
+    "/((?!api/|_next/|_proxy/|favicon.ico|sitemap.xml|robots.txt|manifest.webmanifest|.well-known).*)",
   ],
 };
 
@@ -58,6 +59,10 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   // for Admin
   if (ADMIN_HOSTNAMES.has(domain)) {
     return AdminMiddleware(req);
+  }
+
+  if (PARTNERS_HOSTNAMES.has(domain)) {
+    return PartnersMiddleware(req);
   }
 
   if (isValidUrl(fullKey)) {

@@ -1,8 +1,12 @@
 "use client";
 
 import { LinkProps } from "@/lib/types";
-import { NumberTooltip, Tooltip, useMediaQuery } from "@dub/ui";
-import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
+import {
+  LinkifyTooltipContent,
+  NumberTooltip,
+  Tooltip,
+  useMediaQuery,
+} from "@dub/ui";
 import { cn, getPrettyUrl, nFormatter } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
@@ -136,12 +140,12 @@ export function LineItem({
       className={`border-l-2 border-transparent px-4 py-1 ${hoverBackground} min-w-0 transition-all`}
     >
       <div className="group flex items-center justify-between">
-        <div className="relative z-10 flex h-8 w-full max-w-[calc(100%-2rem)] items-center">
-          {tab === "link" && linkData ? (
+        <div className="relative z-10 flex h-8 w-full min-w-0 max-w-[calc(100%-2rem)] items-center">
+          {tab === "links" && linkData ? (
             <Tooltip content={<LinkPreviewTooltip data={linkData} />}>
               {lineItem}
             </Tooltip>
-          ) : tab === "url" ? (
+          ) : tab === "urls" ? (
             <Tooltip
               content={
                 <div className="overflow-auto px-4 py-2">

@@ -2,7 +2,7 @@ import { cn } from "@dub/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 
 const badgeVariants = cva(
-  "max-w-fit rounded-full border px-2 py-px text-xs font-medium capitalize whitespace-nowrap",
+  "max-w-fit rounded-full border px-2 py-px text-xs font-medium whitespace-nowrap",
   {
     variants: {
       variant: {
@@ -13,6 +13,8 @@ const badgeVariants = cva(
         black: "border-black bg-black text-white",
         gray: "border-gray-200 bg-gray-100 text-gray-800",
         neutral: "border-gray-400 text-gray-500",
+        blueGradient:
+          "bg-gradient-to-r from-blue-100 via-blue-100/50 to-blue-100 border border-blue-200 text-blue-900",
         rainbow:
           "bg-gradient-to-r from-violet-600 to-pink-600 text-white border-transparent",
       },

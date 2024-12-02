@@ -1,12 +1,12 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   Button,
+  InfoTooltip,
   Modal,
   SimpleTooltipContent,
   Tooltip,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { InfoTooltip } from "@dub/ui/src";
 import {
   Dispatch,
   SetStateAction,
@@ -37,23 +37,19 @@ function AdvancedModal({
     register,
     handleSubmit,
     formState: { isDirty },
-  } = useForm<Pick<LinkFormData, "externalId" | "identifier">>({
+  } = useForm<Pick<LinkFormData, "externalId">>({
     values: {
       externalId: getValuesParent("externalId"),
-      identifier: getValuesParent("identifier"),
     },
   });
 
-  const [externalIdParent, identifierParent] = watchParent([
-    "externalId",
-    "identifier",
-  ]);
+  const [externalIdParent] = watchParent(["externalId"]);
 
   useKeyboardShortcut("a", () => setShowAdvancedModal(true), {
     modal: true,
   });
 
-  const parentEnabled = Boolean(externalIdParent || identifierParent);
+  const parentEnabled = Boolean(externalIdParent);
 
   const { conversionEnabled } = useWorkspace();
 
@@ -69,9 +65,6 @@ function AdvancedModal({
           e.stopPropagation();
           handleSubmit((data) => {
             setValueParent("externalId", data.externalId, {
-              shouldDirty: true,
-            });
-            setValueParent("identifier", data.identifier, {
               shouldDirty: true,
             });
             setShowAdvancedModal(false);
@@ -136,38 +129,6 @@ function AdvancedModal({
               />
             </div>
           </div>
-
-          {/* Identifier */}
-          {conversionEnabled && (
-            <div>
-              <div className="flex items-center gap-2">
-                <label
-                  htmlFor={`${id}-identifier`}
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Identifier
-                </label>
-                <InfoTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="A unique string to identify this link."
-                      cta="Learn more about identifiers."
-                      href="https://dub.co/help/article/link-identifiers"
-                    />
-                  }
-                />
-              </div>
-              <div className="mt-2 rounded-md shadow-sm">
-                <input
-                  id={`${id}-identifier`}
-                  type="text"
-                  placeholder="Eg: david"
-                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                  {...register("identifier")}
-                />
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="mt-6 flex items-center justify-between">
@@ -178,7 +139,6 @@ function AdvancedModal({
                 className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
                 onClick={() => {
                   setValueParent("externalId", null, { shouldDirty: true });
-                  setValueParent("identifier", null, { shouldDirty: true });
                   setShowAdvancedModal(false);
                 }}
               >

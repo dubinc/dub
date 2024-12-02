@@ -24,6 +24,7 @@ const expectedDomain = {
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
   registeredDomain: null,
+  logo: null,
 };
 
 describe.sequential("/domains/**", async () => {

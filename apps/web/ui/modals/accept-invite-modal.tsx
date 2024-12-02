@@ -1,8 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { LoadingDots, Logo, Modal } from "@dub/ui";
+import { Button, Logo, Modal } from "@dub/ui";
 import { useSession } from "next-auth/react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import {
   Dispatch,
@@ -25,7 +24,7 @@ function AcceptInviteModal({
   const [accepting, setAccepting] = useState(false);
   const { error } = useWorkspace();
   const { data: session } = useSession();
-
+  const router = useRouter();
   return (
     <Modal
       showModal={showAcceptInviteModal}
@@ -46,7 +45,7 @@ function AcceptInviteModal({
             </p>
           </div>
           <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
-            <button
+            <Button
               onClick={() => {
                 setAccepting(true);
                 fetch(`/api/workspaces/${slug}/invites/accept`, {
@@ -66,19 +65,14 @@ function AcceptInviteModal({
                     mutate("/api/workspaces"),
                     mutate(`/api/workspaces/${slug}`),
                   ]);
+                  router.replace(`/${slug}`);
                   setShowAcceptInviteModal(false);
                   toast.success("You now are a part of this workspace!");
                 });
               }}
-              disabled={accepting}
-              className={`${
-                accepting
-                  ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                  : "border-black bg-black text-white hover:bg-white hover:text-black"
-              } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
-            >
-              {accepting ? <LoadingDots /> : <p>Accept invite</p>}
-            </button>
+              loading={accepting}
+              text="Accept invite"
+            />
           </div>
         </>
       ) : (
@@ -93,12 +87,13 @@ function AcceptInviteModal({
             </p>
           </div>
           <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
-            <Link
-              href="/"
-              className="flex h-10 w-full items-center justify-center rounded-md border border-black bg-black text-sm text-white transition-all hover:bg-white hover:text-black focus:outline-none"
-            >
-              Back to dashboard
-            </Link>
+            <Button
+              text="Back to dashboard"
+              onClick={() => {
+                router.push("/");
+                setShowAcceptInviteModal(false);
+              }}
+            />
           </div>
         </>
       )}

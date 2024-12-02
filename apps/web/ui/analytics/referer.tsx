@@ -1,6 +1,6 @@
 import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
-import { RefererTabs } from "@/lib/analytics/types";
 import { BlurImage, useRouterStuff } from "@dub/ui";
+import { ReferredVia } from "@dub/ui/src/icons";
 import { getApexDomain, GOOGLE_FAVICON_URL } from "@dub/utils";
 import { Link2 } from "lucide-react";
 import { useContext, useState } from "react";
@@ -11,20 +11,20 @@ import BarList from "./bar-list";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Referer() {
-  const { queryParams } = useRouterStuff();
+  const { queryParams, searchParams } = useRouterStuff();
 
   const { selectedTab } = useContext(AnalyticsContext);
   const dataKey = selectedTab === "sales" ? "saleAmount" : "count";
 
-  const [tab, setTab] = useState<RefererTabs>("referers");
+  const [tab, setTab] = useState<"referers" | "referer_urls">("referers");
   const data = useAnalyticsFilterOption(tab);
   const singularTabName = SINGULAR_ANALYTICS_ENDPOINTS[tab];
 
   return (
     <AnalyticsCard
       tabs={[
-        { id: "referers", label: "Referers" },
-        { id: "referer_urls", label: "Referer URLs" },
+        { id: "referers", label: "Referrers", icon: ReferredVia },
+        { id: "referer_urls", label: "Referrer URLs", icon: ReferredVia },
       ]}
       selectedTabId={tab}
       onSelectTab={setTab}
@@ -57,9 +57,13 @@ export default function Referer() {
                       ),
                     title: d[singularTabName],
                     href: queryParams({
-                      set: {
-                        [singularTabName]: d[singularTabName],
-                      },
+                      ...(searchParams.has(singularTabName)
+                        ? { del: singularTabName }
+                        : {
+                            set: {
+                              [singularTabName]: d[singularTabName],
+                            },
+                          }),
                       getNewPath: true,
                     }) as string,
                     value: d[dataKey] || 0,

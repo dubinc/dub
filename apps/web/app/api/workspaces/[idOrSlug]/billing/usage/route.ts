@@ -6,12 +6,12 @@ import { getFirstAndLastDay } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 export const GET = withWorkspace(async ({ searchParams, workspace }) => {
-  const { resource } = usageQuerySchema.parse(searchParams);
+  const { resource, timezone } = usageQuerySchema.parse(searchParams);
   const { billingCycleStart } = workspace;
   const { firstDay, lastDay } = getFirstAndLastDay(billingCycleStart);
 
   const pipe = tb.buildPipe({
-    pipe: `v1_usage`,
+    pipe: "v2_usage",
     // we extend this here since we don't need to include all the additional parameters
     // in the actual request query schema
     parameters: usageQuerySchema.extend({
@@ -35,7 +35,12 @@ export const GET = withWorkspace(async ({ searchParams, workspace }) => {
     resource,
     workspaceId: workspace.id,
     start: firstDay.toISOString().replace("T", " ").replace("Z", ""),
-    end: lastDay.toISOString().replace("T", " ").replace("Z", ""),
+    // get end of the day (11:59:59 PM)
+    end: new Date(lastDay.getTime() + 86399999)
+      .toISOString()
+      .replace("T", " ")
+      .replace("Z", ""),
+    timezone,
   });
 
   return NextResponse.json(response.data);

@@ -1,5 +1,11 @@
 import { CheckCircleFill } from "@/ui/shared/icons";
-import { Button, FileUpload, LoadingSpinner, useEnterSubmit } from "@dub/ui";
+import {
+  Button,
+  FileUpload,
+  LoadingSpinner,
+  useEnterSubmit,
+  useMediaQuery,
+} from "@dub/ui";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, Paperclip, Trash2 } from "lucide-react";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
@@ -70,6 +76,8 @@ export function ContactForm({
     }));
   };
 
+  const { isMobile } = useMediaQuery();
+
   const formRef = useRef<HTMLFormElement>(null);
   const [formStatus, setFormStatus] = useState<"idle" | "loading" | "success">(
     "idle",
@@ -132,7 +140,7 @@ export function ContactForm({
                 required
                 placeholder="E.g. My custom domain is not working."
                 minRows={8}
-                autoFocus
+                autoFocus={!isMobile}
                 autoComplete="off"
                 value={data.message}
                 onChange={(e) =>

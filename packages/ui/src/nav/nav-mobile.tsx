@@ -9,8 +9,18 @@ import useSWR from "swr";
 import { AnimatedSizeContainer } from "../animated-size-container";
 import { navItems, type NavTheme } from "./nav";
 
-export function NavMobile({ theme = "light" }: { theme?: NavTheme }) {
-  const { domain = "dub.co" } = useParams() as { domain: string };
+export function NavMobile({
+  theme = "light",
+  staticDomain,
+}: {
+  theme?: NavTheme;
+  staticDomain?: string;
+}) {
+  let { domain = "dub.co" } = useParams() as { domain: string };
+  if (staticDomain) {
+    domain = staticDomain;
+  }
+
   const [open, setOpen] = useState(false);
   // prevent body scroll when modal is open
   useEffect(() => {
@@ -22,7 +32,7 @@ export function NavMobile({ theme = "light" }: { theme?: NavTheme }) {
   }, [open]);
 
   const { data: session } = useSWR(
-    domain === "dub.co" && "/api/auth/session",
+    domain.endsWith("dub.co") && "/api/auth/session",
     fetcher,
     {
       dedupingInterval: 60000,
