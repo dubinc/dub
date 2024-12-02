@@ -9,7 +9,6 @@ import {
 } from "@/lib/webhook/utils";
 import { Project } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { createId } from "../api/utils";
 import { WebhookTrigger } from "../types";
 import { createWebhookSecret } from "./secret";
 
