@@ -69,7 +69,7 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
       await mutate();
     },
     onError: ({ error }) => {
-      toast.error(error.serverError?.serverError);
+      toast.error(error.serverError);
     },
   });
 
