@@ -13,6 +13,7 @@ import { linksPaths } from "./links";
 import { metatagsPath } from "./metatags";
 import { qrCodePaths } from "./qr";
 import { tagsPaths } from "./tags";
+import { tokensPaths } from "./tokens";
 import { trackPaths } from "./track";
 import { workspacesPaths } from "./workspaces";
 
@@ -48,6 +49,7 @@ export const document = createDocument({
     ...trackPaths,
     ...customersPaths,
     ...workspacesPaths,
+    ...tokensPaths,
     ...qrCodePaths,
     ...metatagsPath,
   },

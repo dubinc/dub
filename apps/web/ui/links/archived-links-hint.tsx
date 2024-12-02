@@ -1,7 +1,6 @@
 import useLinksCount from "@/lib/swr/use-links-count";
-import { Button } from "@dub/ui";
+import { Button, Tooltip } from "@dub/ui";
 import { BoxArchive } from "@dub/ui/src/icons";
-import { Tooltip } from "@dub/ui/src/tooltip";
 import { pluralize } from "@dub/utils";
 import { useSearchParams } from "next/navigation";
 import { useContext } from "react";

@@ -10,6 +10,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prettier-check": "prettier --check \"**/*.{ts,tsx,md}\"",
     "publish-cli": "turbo build --filter='@dub/cli' && cd packages/cli && npm publish && cd ../../",
+    "publish-embed-core": "turbo build --filter='@dub/embed-core' && cd packages/embeds/core && npm publish && cd ../../../",
+    "publish-embed-react": "turbo build --filter='@dub/embed-react' && cd packages/embeds/react && npm publish && cd ../../../",
     "publish-tw": "turbo build --filter='@dub/tailwind-config' && cd packages/tailwind-config && npm publish && cd ../../",
     "publish-ui": "turbo build --filter='@dub/ui' && cd packages/ui && npm publish && cd ../../",
     "publish-utils": "turbo build --filter='@dub/utils' && cd packages/utils && npm publish && cd ../../",

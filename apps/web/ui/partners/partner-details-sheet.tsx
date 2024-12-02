@@ -534,7 +534,7 @@ export function PartnerDetailsSheet({
     <Sheet
       open={isOpen}
       onOpenChange={rest.setIsOpen}
-      onClose={() => queryParams({ del: "partnerId" })}
+      onClose={() => queryParams({ del: "partnerId", scroll: false })}
     >
       <PartnerDetailsSheetContent {...rest} />
     </Sheet>

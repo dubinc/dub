@@ -247,6 +247,7 @@ export default function AnalyticsProvider({
     })}`,
     fetcher,
     {
+      keepPreviousData: true,
       onSuccess: () => setRequiresUpgrade(false),
       onError: (error) => {
         const errorMessage = JSON.parse(error.message)?.error.message;

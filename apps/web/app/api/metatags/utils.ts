@@ -5,7 +5,11 @@ import he from "he";
 import { parse } from "node-html-parser";
 
 export const getHtml = async (url: string) => {
-  return await fetchWithTimeout(url)
+  return await fetchWithTimeout(url, {
+    headers: {
+      "User-Agent": "Dub.co Metatags API (https://api.dub.co/metatags)",
+    },
+  })
     .then((r) => r.text())
     .catch(() => null);
 };

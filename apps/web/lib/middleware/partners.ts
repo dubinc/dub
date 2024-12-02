@@ -42,6 +42,7 @@ export default async function PartnersMiddleware(req: NextRequest) {
     if (!defaultPartner) {
       return NextResponse.redirect(new URL("/onboarding", req.url));
     }
+
     return NextResponse.redirect(
       new URL(`/${defaultPartner}${fullPath}`, req.url),
     );

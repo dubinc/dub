@@ -21,7 +21,7 @@ import {
   getPrettyUrl,
   linkConstructor,
 } from "@dub/utils";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -65,9 +65,6 @@ function ShareDashboardModalInner({
     fetcher,
     {
       dedupingInterval: 60000,
-      onSuccess: (data) => {
-        setChecked(Boolean(data));
-      },
     },
   );
   const [checked, setChecked] = useState(Boolean(dashboard));
@@ -78,12 +75,13 @@ function ShareDashboardModalInner({
     watch,
     setValue,
     formState: { isDirty, isSubmitting },
-  } = useForm<z.infer<typeof updateDashboardBodySchema>>({
-    defaultValues: {
-      doIndex: dashboard?.doIndex ?? false,
-      password: dashboard?.password ?? null,
-    },
-  });
+  } = useForm<z.infer<typeof updateDashboardBodySchema>>();
+
+  useEffect(() => {
+    setChecked(Boolean(dashboard));
+    setValue("doIndex", dashboard?.doIndex ?? false);
+    setValue("password", dashboard?.password ?? null);
+  }, [dashboard]);
 
   const [isCreating, setIsCreating] = useState(false);
   const [copied, copyToClipboard] = useCopyToClipboard();
@@ -187,7 +185,7 @@ function ShareDashboardModalInner({
       <h3 className="border-b border-gray-200 px-4 py-4 text-lg font-medium sm:px-6">
         Share dashboard
       </h3>
-      <div className="px-6 pb-6 pt-4">
+      <div className="bg-gray-50 px-6 pb-6 pt-4">
         <LinkCard link={link} isError={Boolean(linkError)} />
         <AnimatedSizeContainer
           height

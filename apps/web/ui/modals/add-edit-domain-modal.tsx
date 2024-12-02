@@ -2,16 +2,8 @@ import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
 import { AddEditDomainForm } from "@/ui/domains/add-edit-domain-form";
-import {
-  BlurImage,
-  Button,
-  ButtonProps,
-  Logo,
-  Modal,
-  TooltipContent,
-} from "@dub/ui";
+import { Button, ButtonProps, Modal, TooltipContent } from "@dub/ui";
 import { capitalize, pluralize } from "@dub/utils";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -29,37 +21,25 @@ function AddEditDomainModal({
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
   props?: DomainProps;
 }) {
-  const { slug } = useParams() as { slug: string };
-  const { logo } = useWorkspace();
-
   return (
     <Modal
-      showModal={showAddEditDomainModal}
+      showModal={showAddEditDomainModal} // TODO change back to showAddEditDomainModal
       setShowModal={setShowAddEditDomainModal}
-      className="max-h-[95dvh]"
+      drawerRootProps={{ repositionInputs: false }}
+      className="max-w-lg"
     >
-      <div className="flex flex-col items-center justify-center gap-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
-        {logo ? (
-          <BlurImage
-            src={logo}
-            alt={`Logo for ${slug}`}
-            className="h-10 w-10 rounded-full border border-gray-200"
-            width={20}
-            height={20}
-          />
-        ) : (
-          <Logo />
-        )}
-        <h1 className="text-lg font-medium">{props ? "Edit" : "Add"} Domain</h1>
+      <h3 className="border-b border-neutral-200 px-4 py-4 text-lg font-medium sm:px-6">
+        {props ? "Update" : "Add"} Domain
+      </h3>
+      <div className="bg-neutral-50">
+        <AddEditDomainForm
+          props={props}
+          onSuccess={() => {
+            setShowAddEditDomainModal(false);
+          }}
+          className="p-8"
+        />
       </div>
-
-      <AddEditDomainForm
-        props={props}
-        onSuccess={() => {
-          setShowAddEditDomainModal(false);
-        }}
-        className="bg-gray-50 px-4 py-8 sm:px-16"
-      />
     </Modal>
   );
 }

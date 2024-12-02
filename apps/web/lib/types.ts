@@ -99,7 +99,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "referrals" | "webhooks" | "noDubLink";
+export type BetaFeatures = "webhooks" | "noDubLink";
 
 export type AddOns = "conversion" | "sso";
 
@@ -166,6 +166,7 @@ export interface DomainProps {
   projectId: string;
   link?: LinkProps;
   registeredDomain?: RegisteredDomainProps;
+  logo?: string;
 }
 
 export interface RegisteredDomainProps {

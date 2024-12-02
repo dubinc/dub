@@ -2,8 +2,7 @@
 
 import z from "@/lib/zod";
 import { updatePasswordSchema } from "@/lib/zod/schemas/auth";
-import { Button, Input, Label } from "@dub/ui";
-import { Tooltip } from "@dub/ui/src/tooltip";
+import { Button, Input, Label, Tooltip } from "@dub/ui";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
