@@ -104,6 +104,13 @@ export const PATCH = withWorkspace(
       },
     });
 
+    const existingWebhook = await prisma.webhook.findUniqueOrThrow({
+      where: {
+        id: webhookId,
+        projectId: workspace.id,
+      },
+    });
+
     const webhook = await prisma.webhook.update({
       where: {
         id: webhookId,
@@ -139,13 +146,6 @@ export const PATCH = withWorkspace(
 
     waitUntil(
       (async () => {
-        const existingWebhook = await prisma.webhook.findUniqueOrThrow({
-          where: {
-            id: webhookId,
-            projectId: workspace.id,
-          },
-        });
-
         // If the webhook is being changed from link level to workspace level, delete the cache
         if (
           isLinkLevelWebhook(existingWebhook) &&
