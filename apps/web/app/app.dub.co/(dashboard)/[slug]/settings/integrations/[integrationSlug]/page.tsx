@@ -24,7 +24,7 @@ export default async function IntegrationPage({
       installations: {
         where: {
           project: {
-            slug: slug,
+            slug,
           },
         },
         include: {
