@@ -311,7 +311,7 @@ describe.sequential("POST /links", async () => {
     });
   });
 
-  test("tags", async () => {
+  test("with tag IDs", async () => {
     const tagsToCreate = [
       { tag: randomId(), color: "red" },
       { tag: randomId(), color: "green" },
@@ -364,6 +364,43 @@ describe.sequential("POST /links", async () => {
         ...tagIds.map((id) => h.deleteTag(id)),
         h.deleteLink(link.id),
       ]);
+    });
+  });
+
+  test("with tag names", async () => {
+    const tagName = randomId();
+
+    const { data: tag } = await http.post<Tag>({
+      path: "/tags",
+      body: { tag: tagName },
+    });
+
+    const { status, data: link } = await http.post<Link & { tags: [] }>({
+      path: "/links",
+      body: {
+        url,
+        domain,
+        tagNames: [tagName],
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(link.tags).toHaveLength(2);
+    expect(link).toStrictEqual({
+      ...expectedLink,
+      url,
+      tagId: expect.any(String), // TODO: Fix this
+      userId: user.id,
+      projectId,
+      workspaceId,
+      shortLink: `https://${domain}/${link.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
+      tags: expect.arrayContaining([tag]),
+    });
+    expect(LinkSchema.strict().parse(link)).toBeTruthy();
+
+    afterAll(async () => {
+      await Promise.all([h.deleteTag(tag.id), h.deleteLink(link.id)]);
     });
   });
 
