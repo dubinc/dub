@@ -9,14 +9,10 @@ import { Suspense } from "react";
 
 export const runtime = "nodejs";
 
-interface Params {
-  code: string;
-}
-
-export default async function InitesPage({
+export default async function InvitesPage({
   params,
 }: {
-  params: Promise<Params>;
+  params: Promise<{ code: string }>;
 }) {
   const { code } = await params;
 
