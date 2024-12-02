@@ -104,7 +104,6 @@ export const PATCH = withWorkspace(
       },
     });
 
-    // Cache the existing webhook before updating it
     const existingWebhook = await prisma.webhook.findUniqueOrThrow({
       where: {
         id: webhookId,
