@@ -372,7 +372,7 @@ describe.sequential("POST /links", async () => {
 
     const { data: tag } = await http.post<Tag>({
       path: "/tags",
-      body: { tag: tagName },
+      body: { tag: tagName, color: "red" },
     });
 
     const { status, data: link } = await http.post<Link & { tags: [] }>({
@@ -385,7 +385,7 @@ describe.sequential("POST /links", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(link.tags).toHaveLength(2);
+    expect(link.tags).toHaveLength(1);
     expect(link).toStrictEqual({
       ...expectedLink,
       url,
@@ -395,7 +395,9 @@ describe.sequential("POST /links", async () => {
       workspaceId,
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
-      tags: expect.arrayContaining([tag]),
+      tags: expect.arrayContaining([
+        { id: tag.id, name: tagName, color: "red" },
+      ]),
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
 
