@@ -4,14 +4,10 @@ import { DeleteProgram } from "./delete-program";
 import { ProgramSettings } from "./program-settings";
 import { TrackingSettings } from "./tracking-settings";
 
-interface Params {
-  programId: string;
-}
-
 export default async function ProgramSettingsPage({
   params,
 }: {
-  params: Promise<Params>;
+  params: Promise<{ programId: string }>;
 }) {
   const { programId } = await params;
 
