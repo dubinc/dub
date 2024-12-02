@@ -87,7 +87,6 @@ export function useTooltip<T extends Datum>({
 
   return {
     handleTooltip,
-    // @ts-ignore
     TooltipWrapper,
     containerRef: visxTooltipInPortal.containerRef,
     ...visxTooltip,

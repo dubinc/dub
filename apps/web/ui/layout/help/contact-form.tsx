@@ -83,7 +83,6 @@ export function ContactForm({
     "idle",
   );
 
-  // @ts-ignore
   const { handleKeyDown } = useEnterSubmit(formRef);
 
   return (
