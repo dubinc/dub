@@ -22,13 +22,11 @@ export const GET = withPartner(async ({ partner, params, searchParams }) => {
   }
 
   const parsedParams = analyticsQuerySchema
-    .pick({
-      event: true,
-      start: true,
-      end: true,
-      interval: true,
-      groupBy: true,
-      timezone: true,
+    .omit({
+      domain: true,
+      key: true,
+      linkId: true,
+      externalId: true,
     })
     .parse(searchParams);
 

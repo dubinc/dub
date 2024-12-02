@@ -21,8 +21,8 @@ import { CursorRays, Globe, Magnifier, QRCode } from "@dub/ui/src/icons";
 import {
   CONTINENTS,
   COUNTRIES,
+  REGIONS,
   capitalize,
-  currencyFormatter,
   fetcher,
   getApexDomain,
   getPrettyUrl,
@@ -41,7 +41,7 @@ import { EventsContext } from "./events-provider";
 import { exampleData } from "./example-data";
 import FilterButton from "./filter-button";
 import { RowMenuButton } from "./row-menu-button";
-import { getEventColumns, useColumnVisibility } from "./use-column-visibility";
+import { eventColumns, useColumnVisibility } from "./use-column-visibility";
 
 export type EventDatum =
   | z.infer<typeof clickEventResponseSchema>
@@ -57,11 +57,9 @@ type ColumnMeta = {
 export default function EventsTable({
   requiresUpgrade,
   upgradeOverlay,
-  partners = false,
 }: {
   requiresUpgrade?: boolean;
   upgradeOverlay?: ReactNode;
-  partners?: boolean;
 }) {
   const { searchParams, queryParams } = useRouterStuff();
   const { setExportQueryString } = useContext(EventsContext);
@@ -71,9 +69,7 @@ export default function EventsTable({
     eventsApiPath,
     totalEvents,
   } = useContext(AnalyticsContext);
-  const { columnVisibility, setColumnVisibility } = useColumnVisibility({
-    partners,
-  });
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility();
 
   const sortBy = searchParams.get("sort") || "timestamp";
   const order = searchParams.get("order") === "asc" ? "asc" : "desc";
@@ -125,39 +121,35 @@ export default function EventsTable({
               </span>
             ) || <span className="text-gray-400">-</span>,
         },
-        ...(!partners
-          ? [
-              {
-                id: "link",
-                header: "Link",
-                accessorKey: "link",
-                minSize: 250,
-                maxSize: 200,
-                meta: {
-                  filterParams: ({ getValue }) => ({
-                    domain: getValue().domain,
-                    key: getValue().key,
-                  }),
-                },
-                cell: ({ getValue }) => (
-                  <div className="flex items-center gap-3">
-                    <LinkLogo
-                      apexDomain={getApexDomain(getValue().url)}
-                      className="size-4 shrink-0 sm:size-4"
-                    />
-                    <CopyText
-                      value={getValue().shortLink}
-                      successMessage="Copied link to clipboard!"
-                    >
-                      <span className="truncate" title={getValue().shortLink}>
-                        {getPrettyUrl(getValue().shortLink)}
-                      </span>
-                    </CopyText>
-                  </div>
-                ),
-              },
-            ]
-          : []),
+        {
+          id: "link",
+          header: "Link",
+          accessorKey: "link",
+          minSize: 250,
+          maxSize: 200,
+          meta: {
+            filterParams: ({ getValue }) => ({
+              domain: getValue().domain,
+              key: getValue().key,
+            }),
+          },
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3">
+              <LinkLogo
+                apexDomain={getApexDomain(getValue().url)}
+                className="size-4 shrink-0 sm:size-4"
+              />
+              <CopyText
+                value={getValue().shortLink}
+                successMessage="Copied link to clipboard!"
+              >
+                <span className="truncate" title={getValue().shortLink}>
+                  {getPrettyUrl(getValue().shortLink)}
+                </span>
+              </CopyText>
+            </div>
+          ),
+        },
         {
           id: "customer",
           header: "Customer",
@@ -206,25 +198,6 @@ export default function EventsTable({
           },
         },
         {
-          id: "continent",
-          header: "Continent",
-          accessorKey: "click.continent",
-          meta: {
-            filterParams: ({ getValue }) => ({ continent: getValue() }),
-          },
-          cell: ({ getValue }) => (
-            <div
-              className="flex items-center gap-3"
-              title={CONTINENTS[getValue()] ?? "Unknown"}
-            >
-              <ContinentIcon display={getValue()} className="size-4 shrink-0" />
-              <span className="truncate">
-                {CONTINENTS[getValue()] ?? "Unknown"}
-              </span>
-            </div>
-          ),
-        },
-        {
           id: "country",
           header: "Country",
           accessorKey: "click.country",
@@ -255,6 +228,9 @@ export default function EventsTable({
           id: "city",
           header: "City",
           accessorKey: "click.city",
+          meta: {
+            filterParams: ({ getValue }) => ({ city: getValue() }),
+          },
           minSize: 160,
           cell: ({ getValue, row }) => (
             <div className="flex items-center gap-3" title={getValue()}>
@@ -268,6 +244,50 @@ export default function EventsTable({
                 />
               )}
               <span className="truncate">{getValue()}</span>
+            </div>
+          ),
+        },
+        {
+          id: "region",
+          header: "Region",
+          accessorKey: "click.region",
+          meta: {
+            filterParams: ({ getValue }) => ({ region: getValue() }),
+          },
+          minSize: 160,
+          cell: ({ getValue, row }) => (
+            <div className="flex items-center gap-3" title={getValue()}>
+              {!row.original.country || row.original.country === "Unknown" ? (
+                <Globe className="size-4 shrink-0" />
+              ) : (
+                <img
+                  alt={row.original.country}
+                  src={`https://hatscripts.github.io/circle-flags/flags/${row.original.country.toLowerCase()}.svg`}
+                  className="size-4 shrink-0"
+                />
+              )}
+              <span className="truncate">
+                {REGIONS[getValue()] || getValue().split("-")[1]}
+              </span>
+            </div>
+          ),
+        },
+        {
+          id: "continent",
+          header: "Continent",
+          accessorKey: "click.continent",
+          meta: {
+            filterParams: ({ getValue }) => ({ continent: getValue() }),
+          },
+          cell: ({ getValue }) => (
+            <div
+              className="flex items-center gap-3"
+              title={CONTINENTS[getValue()] ?? "Unknown"}
+            >
+              <ContinentIcon display={getValue()} className="size-4 shrink-0" />
+              <span className="truncate">
+                {CONTINENTS[getValue()] ?? "Unknown"}
+              </span>
             </div>
           ),
         },
@@ -390,7 +410,6 @@ export default function EventsTable({
           id: "saleAmount",
           header: "Sale Amount",
           accessorKey: "sale.amount",
-          enableHiding: partners,
           minSize: 120,
           cell: ({ getValue }) => (
             <div className="flex items-center gap-2">
@@ -399,43 +418,19 @@ export default function EventsTable({
             </div>
           ),
         },
-        ...(!partners
-          ? [
-              // Sale invoice ID
-              {
-                id: "invoiceId",
-                header: "Invoice ID",
-                accessorKey: "sale.invoiceId",
-                maxSize: 200,
-                cell: ({ getValue }) =>
-                  (
-                    <span className="truncate" title={getValue()}>
-                      {getValue()}
-                    </span>
-                  ) || <span className="text-gray-400">-</span>,
-              },
-            ]
-          : [
-              // Earnings amount
-              {
-                id: "earnings",
-                header: "Earnings",
-                accessorKey: "earnings",
-                enableHiding: false,
-                minSize: 120,
-                cell: ({ getValue }) => (
-                  <div className="flex items-center gap-2">
-                    <span>
-                      {currencyFormatter(getValue() / 100, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </span>
-                    <span className="text-gray-400">USD</span>
-                  </div>
-                ),
-              },
-            ]),
+        // Sale invoice ID
+        {
+          id: "invoiceId",
+          header: "Invoice ID",
+          accessorKey: "sale.invoiceId",
+          maxSize: 200,
+          cell: ({ getValue }) =>
+            (
+              <span className="truncate" title={getValue()}>
+                {getValue()}
+              </span>
+            ) || <span className="text-gray-400">-</span>,
+        },
         // Date
         {
           id: "timestamp",
@@ -477,10 +472,7 @@ export default function EventsTable({
           header: ({ table }) => <EditColumnsButton table={table} />,
           cell: ({ row }) => <RowMenuButton row={row} />,
         },
-      ].filter(
-        (c) =>
-          c.id === "menu" || getEventColumns(partners)[tab].all.includes(c.id),
-      ),
+      ].filter((c) => c.id === "menu" || eventColumns[tab].all.includes(c.id)),
     [tab],
   );
 

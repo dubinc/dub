@@ -52,7 +52,6 @@ export const trackLeadRequestSchema = z.object({
     .describe("Email of the customer in the client's app."),
   customerAvatar: z
     .string()
-    .max(100)
     .nullish()
     .default(null)
     .describe("Avatar of the customer in the client's app."),
@@ -99,6 +98,8 @@ export const leadEventSchemaTBEndpoint = z.object({
   continent: z.string().nullable(),
   country: z.string().nullable(),
   city: z.string().nullable(),
+  region: z.string().nullable(),
+  region_processed: z.string().nullable(),
   device: z.string().nullable(),
   browser: z.string().nullable(),
   os: z.string().nullable(),

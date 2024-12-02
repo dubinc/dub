@@ -4,12 +4,10 @@ import useSWR from "swr";
 import { ProgramInviteProps } from "../types";
 
 export default function usePartnerProgramInvites() {
-  const { partnerId } = useParams() as {
-    partnerId?: string;
-  };
+  const { partnerId } = useParams();
 
   const { data: programInvites } = useSWR<ProgramInviteProps[]>(
-    `/api/partners/${partnerId}/programs/invites`,
+    partnerId && `/api/partners/${partnerId}/programs/invites`,
     fetcher,
     {
       dedupingInterval: 60000,

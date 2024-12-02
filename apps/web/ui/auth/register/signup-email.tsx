@@ -31,7 +31,7 @@ export const SignUpEmail = () => {
       setStep("verify");
     },
     onError: ({ error }) => {
-      toast.error(error.serverError?.serverError);
+      toast.error(error.serverError);
     },
   });
 

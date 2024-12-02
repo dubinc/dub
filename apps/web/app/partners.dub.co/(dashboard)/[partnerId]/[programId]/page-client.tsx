@@ -8,18 +8,18 @@ import { ChartContext } from "@/ui/charts/chart-context";
 import TimeSeriesChart from "@/ui/charts/time-series-chart";
 import XAxis from "@/ui/charts/x-axis";
 import YAxis from "@/ui/charts/y-axis";
+import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { MiniAreaChart } from "@dub/blocks";
 import {
   Button,
   buttonVariants,
-  Check2,
   MaxWidthWrapper,
+  MiniAreaChart,
   useCopyToClipboard,
   useRouterStuff,
 } from "@dub/ui";
-import { Copy, LoadingSpinner, MoneyBill2 } from "@dub/ui/src/icons";
+import { Check, Copy, LoadingSpinner, MoneyBill2 } from "@dub/ui/src/icons";
 import {
   cn,
   currencyFormatter,
@@ -31,7 +31,6 @@ import { LinearGradient } from "@visx/gradient";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { createContext, useContext, useId, useMemo } from "react";
-import { HeroBackground } from "./hero-background";
 import { SaleTablePartner } from "./sales/sale-table";
 
 const ProgramOverviewContext = createContext<{
@@ -59,13 +58,13 @@ export default function ProgramPageClient() {
   };
 
   const program = programEnrollment?.program;
-  const color =
-    program?.id === "prog_MqN7G1vSbuSELpYJwioHyDE8" ? "#8B5CF6" : undefined;
 
   return (
     <MaxWidthWrapper className="pb-10">
       <div className="relative flex flex-col rounded-lg border border-neutral-300 bg-gradient-to-r from-neutral-50 p-4 md:p-6">
-        {program && <HeroBackground logo={program?.logo} color={color} />}
+        {program && (
+          <HeroBackground logo={program?.logo} color={program?.brandColor} />
+        )}
         <span className="flex items-center gap-2 text-sm text-neutral-500">
           <MoneyBill2 className="size-4" />
           Refer and earn
@@ -74,7 +73,7 @@ export default function ProgramPageClient() {
           {program ? (
             <ProgramCommissionDescription program={program} />
           ) : (
-            <div className="mb-7 h-7 w-full animate-pulse rounded-md bg-neutral-200" />
+            <div className="h-7 w-5/6 animate-pulse rounded-md bg-neutral-200" />
           )}
         </div>
         <span className="mb-1.5 mt-6 block text-sm text-neutral-800">
@@ -93,16 +92,31 @@ export default function ProgramPageClient() {
           )}
           <Button
             icon={
-              copied ? (
-                <Check2 className="size-4" />
-              ) : (
-                <Copy className="size-4" />
-              )
+              <div className="relative size-4">
+                <div
+                  className={cn(
+                    "absolute inset-0 transition-[transform,opacity]",
+                    copied && "translate-y-1 opacity-0",
+                  )}
+                >
+                  <Copy className="size-4" />
+                </div>
+                <div
+                  className={cn(
+                    "absolute inset-0 transition-[transform,opacity]",
+                    !copied && "translate-y-1 opacity-0",
+                  )}
+                >
+                  <Check className="size-4" />
+                </div>
+              </div>
             }
             text={copied ? "Copied link" : "Copy link"}
             className="xs:w-fit"
+            disabled={!programEnrollment?.link?.shortLink}
             onClick={() =>
-              copyToClipboard(getPrettyUrl(programEnrollment?.link?.shortLink))
+              programEnrollment?.link?.shortLink &&
+              copyToClipboard(programEnrollment?.link?.shortLink)
             }
           />
         </div>
@@ -112,7 +126,7 @@ export default function ProgramPageClient() {
           start: start ? new Date(start) : undefined,
           end: end ? new Date(end) : undefined,
           interval,
-          color,
+          color: program?.brandColor ?? undefined,
         }}
       >
         <div className="mt-6 rounded-lg border border-neutral-300">
@@ -194,7 +208,7 @@ function EarningsChart() {
           </div>
         </div>
         <div className="w-full md:w-auto">
-          <SimpleDateRangePicker className="h-8 w-full md:w-fit" />
+          <SimpleDateRangePicker className="h-8 w-full md:w-fit" align="end" />
         </div>
       </div>
       <div className="relative mt-4 h-64 w-full">

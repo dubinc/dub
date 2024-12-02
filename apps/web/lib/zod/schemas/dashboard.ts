@@ -11,3 +11,8 @@ export const dashboardSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 });
+
+export const updateDashboardBodySchema = dashboardSchema.pick({
+  doIndex: true,
+  password: true,
+});

@@ -16,9 +16,9 @@ import {
   Modal,
   RadioGroup,
   RadioGroupItem,
+  SimpleTooltipContent,
+  ToggleGroup,
 } from "@dub/ui";
-import { ToggleGroup } from "@dub/ui/src/toggle-group";
-import { SimpleTooltipContent } from "@dub/ui/src/tooltip";
 import { cn } from "@dub/utils";
 import {
   Dispatch,

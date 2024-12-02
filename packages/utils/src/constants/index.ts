@@ -13,4 +13,5 @@ export * from "./middleware";
 export * from "./misc";
 export * from "./partners";
 export * from "./pricing";
+export * from "./regions";
 export * from "./saml";

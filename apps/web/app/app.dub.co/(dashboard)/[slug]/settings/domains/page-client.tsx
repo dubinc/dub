@@ -14,18 +14,20 @@ import { useRegisterDomainSuccessModal } from "@/ui/modals/register-domain-succe
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import EmptyState from "@/ui/shared/empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { PaginationControls } from "@dub/blocks/src/pagination-controls";
 import {
   Badge,
   Button,
+  CursorRays,
   Globe,
+  InfoTooltip,
+  LinkBroken,
+  PaginationControls,
   Popover,
+  ToggleGroup,
+  TooltipContent,
   usePagination,
   useRouterStuff,
 } from "@dub/ui";
-import { CursorRays, LinkBroken } from "@dub/ui/src/icons";
-import { ToggleGroup } from "@dub/ui/src/toggle-group";
-import { InfoTooltip, TooltipContent } from "@dub/ui/src/tooltip";
 import { capitalize, pluralize } from "@dub/utils";
 import { ChevronDown, Crown } from "lucide-react";
 import { useEffect, useState } from "react";

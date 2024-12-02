@@ -15,6 +15,10 @@
     {
       "path": "/api/cron/disposable-emails",
       "schedule": "0 12 * * 1"
+    },
+    {
+      "path": "/api/cron/cleanup-expired-public-tokens",
+      "schedule": "0 12 * * *"
     }
   ],
   "functions": {

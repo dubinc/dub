@@ -48,6 +48,8 @@ export function PayoutTable() {
     onRemoveAll,
     searchQuery,
     isFiltered,
+    setSearch,
+    setSelectedFilter,
   } = usePayoutFilters({ sortBy, order });
 
   const { payoutsCount, error: countError } = usePayoutsCount();
@@ -174,12 +176,14 @@ export function PayoutTable() {
           ...(sortBy && { sort: sortBy }),
           ...(sortOrder && { order: sortOrder }),
         },
+        scroll: false,
       }),
     onRowClick: (row) => {
       queryParams({
         set: {
           payoutId: row.original.id,
         },
+        scroll: false,
       });
     },
     columnPinning: { right: ["menu"] },
@@ -209,6 +213,8 @@ export function PayoutTable() {
               activeFilters={activeFilters}
               onSelect={onSelect}
               onRemove={onRemove}
+              onSearchChange={setSearch}
+              onSelectedFilterChange={setSelectedFilter}
             />
             <SearchBoxPersisted />
           </div>

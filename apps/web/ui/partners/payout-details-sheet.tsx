@@ -1,10 +1,10 @@
 import { createPartnerPayoutAction } from "@/lib/actions/partners/create-partner-payout";
-import useSalesCount from "@/lib/swr/use-sales-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse, SaleResponse } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
+  buttonVariants,
   Sheet,
   StatusBadge,
   Table,
@@ -41,23 +41,15 @@ function PayoutDetailsSheetContent({
   const { id: workspaceId, slug } = useWorkspace();
   const { programId } = useParams() as { programId: string };
 
-  const { salesCount } = useSalesCount({
-    payoutId: payout.id,
-    start: payout.periodStart,
-    end: payout.periodEnd,
-    interval: "all", // technically not needed but typescript is not happy
-  });
-
   const {
     data: sales,
     isLoading,
     error,
   } = useSWR<SaleResponse[]>(
-    `/api/programs/${programId}/sales?workspaceId=${workspaceId}&payoutId=${payout.id}&start=${payout.periodStart}&end=${payout.periodEnd}`,
+    `/api/programs/${programId}/sales?workspaceId=${workspaceId}&payoutId=${payout.id}&interval=all&pageSize=10`,
     fetcher,
   );
 
-  const totalSales = salesCount?.processed || 0;
   const canConfirmPayout = payout.status === "pending";
 
   const invoiceData = useMemo(() => {
@@ -66,8 +58,7 @@ function PayoutDetailsSheetContent({
     return {
       Partner: (
         <Link
-          // TODO: [payouts] – update to partner sheet link when that's ready
-          href={`/${slug}/programs/${programId}/sales?partnerId=${payout.partner.id}&start=${payout.periodStart}&end=${payout.periodEnd}`}
+          href={`/${slug}/programs/${programId}/partners?partnerId=${payout.partner.id}`}
           className="flex items-center gap-2"
         >
           <img
@@ -89,7 +80,7 @@ function PayoutDetailsSheetContent({
             ? undefined
             : "numeric",
       })}-${formatDate(payout.periodEnd, { month: "short" })}`,
-      Sales: totalSales,
+      Sales: payout._count.sales,
       Amount: currencyFormatter(payout.amount / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -108,7 +99,7 @@ function PayoutDetailsSheetContent({
         </StatusBadge>
       ),
     };
-  }, [payout, totalSales]);
+  }, [payout]);
 
   const table = useTable({
     data:
@@ -168,6 +159,8 @@ function PayoutDetailsSheetContent({
     error: error ? "Failed to load sales" : undefined,
   } as any);
 
+  const { queryParams } = useRouterStuff();
+
   const { executeAsync, isExecuting } = useAction(createPartnerPayoutAction, {
     onSuccess: async () => {
       await mutate(
@@ -179,9 +172,10 @@ function PayoutDetailsSheetContent({
       );
       toast.success("Successfully confirmed payout!");
       setIsOpen(false);
+      queryParams({ del: "payoutId", scroll: false });
     },
     onError({ error }) {
-      toast.error(error.serverError?.serverError);
+      toast.error(error.serverError);
     },
   });
 
@@ -215,6 +209,17 @@ function PayoutDetailsSheetContent({
         </div>
         <div className="p-6 pt-2">
           <Table {...table} />
+          <div className="mt-2 flex justify-end">
+            <Link
+              href={`/${slug}/programs/${programId}/sales?payoutId=${payout.id}&interval=all`}
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "flex h-7 items-center rounded-lg border px-2 text-sm",
+              )}
+            >
+              View all
+            </Link>
+          </div>
         </div>
       </div>
       <div className="flex grow flex-col justify-end">
@@ -264,7 +269,7 @@ export function PayoutDetailsSheet({
       open={isOpen}
       onOpenChange={rest.setIsOpen}
       onClose={() => {
-        queryParams({ del: "payoutId" });
+        queryParams({ del: "payoutId", scroll: false });
       }}
     >
       <PayoutDetailsSheetContent {...rest} />
