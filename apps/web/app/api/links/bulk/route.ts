@@ -239,7 +239,7 @@ export const PATCH = withWorkspace(
       );
 
     let { tagNames, expiresAt } = data;
-    const tagIds = combineTagIds(data);
+    let tagIds = combineTagIds(data);
     // tag checks
     if (tagIds && tagIds.length > 0) {
       const tags = await prisma.tag.findMany({
@@ -255,22 +255,29 @@ export const PATCH = withWorkspace(
           message: `Invalid tagIds detected: ${tagIds.filter((tagId) => tags.find(({ id }) => tagId === id) === undefined).join(", ")}`,
         });
       }
-    } else if (tagNames && tagNames.length > 0) {
-      const tags = await prisma.tag.findMany({
-        select: {
-          name: true,
-        },
-        where: {
-          projectId: workspace?.id,
-          name: { in: tagNames },
-        },
-      });
-
-      if (tags.length !== tagNames.length) {
-        throw new DubApiError({
-          code: "unprocessable_entity",
-          message: `Invalid tagNames detected: ${tagNames.filter((tagName) => tags.find(({ name }) => tagName === name) === undefined).join(", ")}`,
+    } else if (tagNames) {
+      if (tagNames.length > 0) {
+        const tags = await prisma.tag.findMany({
+          select: {
+            id: true,
+            name: true,
+          },
+          where: {
+            projectId: workspace?.id,
+            name: { in: tagNames },
+          },
         });
+
+        if (tags.length !== tagNames.length) {
+          throw new DubApiError({
+            code: "unprocessable_entity",
+            message: `Invalid tagNames detected: ${tagNames.filter((tagName) => tags.find(({ name }) => tagName === name) === undefined).join(", ")}`,
+          });
+        }
+
+        tagIds = tags.map(({ id }) => id);
+      } else {
+        tagIds = [];
       }
     }
 
@@ -319,7 +326,6 @@ export const PATCH = withWorkspace(
               tagIds,
               expiresAt,
             },
-            workspaceId: workspace.id,
           })
         : [];
 

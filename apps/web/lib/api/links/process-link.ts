@@ -369,34 +369,38 @@ export async function processLink<T extends Record<string, any>>({
           code: "unprocessable_entity",
         };
       }
-    } else if (tagNames && tagNames.length > 0) {
-      const tags = await prisma.tag.findMany({
-        select: {
-          id: true,
-          name: true,
-        },
-        where: {
-          projectId: workspace?.id,
-          name: { in: tagNames },
-        },
-      });
+    } else if (tagNames) {
+      if (tagNames.length > 0) {
+        const tags = await prisma.tag.findMany({
+          select: {
+            id: true,
+            name: true,
+          },
+          where: {
+            projectId: workspace?.id,
+            name: { in: tagNames },
+          },
+        });
 
-      if (tags.length !== tagNames.length) {
-        return {
-          link: payload,
-          error:
-            "Invalid tagNames detected: " +
-            tagNames
-              .filter(
-                (tagName) =>
-                  tags.find(({ name }) => tagName === name) === undefined,
-              )
-              .join(", "),
-          code: "unprocessable_entity",
-        };
+        if (tags.length !== tagNames.length) {
+          return {
+            link: payload,
+            error:
+              "Invalid tagNames detected: " +
+              tagNames
+                .filter(
+                  (tagName) =>
+                    tags.find(({ name }) => tagName === name) === undefined,
+                )
+                .join(", "),
+            code: "unprocessable_entity",
+          };
+        }
+
+        tagIds = tags.map(({ id }) => id);
+      } else {
+        tagIds = [];
       }
-
-      tagIds = tags.map(({ id }) => id);
     }
 
     // Program validity checks

@@ -61,24 +61,6 @@ export async function bulkCreateLinks({
             expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
             geo: link.geo || undefined,
 
-            // Associate tags by tagNames
-            ...(tagNames?.length &&
-              link.projectId && {
-                tags: {
-                  create: tagNames.filter(Boolean).map((tagName, idx) => ({
-                    tag: {
-                      connect: {
-                        name_projectId: {
-                          name: tagName,
-                          projectId: link.projectId as string,
-                        },
-                      },
-                    },
-                    createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
-                  })),
-                },
-              }),
-
             // Associate tags by IDs (takes priority over tagNames)
             ...(combinedTagIds &&
               combinedTagIds.length > 0 && {

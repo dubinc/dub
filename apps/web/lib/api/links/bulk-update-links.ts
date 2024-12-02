@@ -11,11 +11,9 @@ import { transformLink } from "./utils";
 
 export async function bulkUpdateLinks(
   // omit externalIds from params
-  params: Omit<z.infer<typeof bulkUpdateLinksBodySchema>, "externalIds"> & {
-    workspaceId: string;
-  },
+  params: Omit<z.infer<typeof bulkUpdateLinksBodySchema>, "externalIds">,
 ) {
-  const { linkIds, data, workspaceId } = params;
+  const { linkIds, data } = params;
 
   const {
     url,
@@ -54,24 +52,6 @@ export async function bulkUpdateLinks(
           expiresAt: expiresAt ? new Date(expiresAt) : null,
           geo: geo || Prisma.JsonNull,
           ...(url && getParamsFromURL(url)),
-          // Associate tags by tagNames
-          ...(tagNames &&
-            workspaceId && {
-              tags: {
-                deleteMany: {},
-                create: tagNames.map((tagName, idx) => ({
-                  tag: {
-                    connect: {
-                      name_projectId: {
-                        name: tagName,
-                        projectId: workspaceId as string,
-                      },
-                    },
-                  },
-                  createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
-                })),
-              },
-            }),
 
           // Associate tags by IDs (takes priority over tagNames)
           ...(combinedTagIds && {
