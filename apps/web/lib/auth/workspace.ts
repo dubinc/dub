@@ -71,7 +71,7 @@ export const withWorkspace = (
         params: Promise<Record<string, string>>;
       },
     ) => {
-      const params = await segmentData.params;
+      const params = (await segmentData.params) || {};
       const searchParams = getSearchParams(req.url);
 
       let apiKey: string | undefined = undefined;
