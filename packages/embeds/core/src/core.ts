@@ -25,7 +25,7 @@ const POPUP_STYLES: Partial<CSSStyleDeclaration> = {
   width: "100%",
   height: "100%",
   maxWidth: "400px",
-  maxHeight: "500px",
+  maxHeight: "510px",
   backgroundColor: "white",
   borderRadius: "12px",
   boxShadow: "0px 8px 30px rgba(0, 0, 0, 0.12), 0px 2px 4px rgba(0, 0, 0, 0.1)",

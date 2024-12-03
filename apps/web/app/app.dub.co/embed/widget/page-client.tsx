@@ -4,6 +4,7 @@ import { PartnerSaleResponse } from "@/lib/types";
 import {
   AnimatedSizeContainer,
   Button,
+  buttonVariants,
   LoadingSpinner,
   ToggleGroup,
   useCopyToClipboard,
@@ -40,10 +41,12 @@ export function EmbedWidgetPageClient({
   program,
   link,
   earnings,
+  isEnrolled,
 }: {
   program: Program;
   link: Link;
   earnings: number;
+  isEnrolled: boolean;
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
   const [selectedTab, setSelectedTab] = useState<Tab>("invite");
@@ -136,7 +139,7 @@ export function EmbedWidgetPageClient({
           indicatorClassName="rounded-lg bg-white border border-neutral-100 shadow-sm"
         />
 
-        <div className="mt-6">
+        <div className="mt-5">
           {selectedTab === "invite" && (
             <>
               <div className="flex flex-col gap-2">
@@ -207,9 +210,12 @@ export function EmbedWidgetPageClient({
                 Activity
               </h2>
               <motion.div
-                initial={{ height: 0, opacity: 0 }}
+                initial={{ height: 150, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}
-                transition={{ duration: heroAnimationDuration }}
+                transition={{
+                  duration: heroAnimationDuration + 0.05,
+                  ease: "easeInOut",
+                }}
                 className="overflow-clip"
               >
                 <div className="mt-3 grid grid-cols-3 gap-2">
@@ -232,40 +238,88 @@ export function EmbedWidgetPageClient({
                   ))}
                 </div>
                 <div className="mt-4">
+                  <h2 className="text-sm font-semibold text-neutral-900">
+                    Recent sales
+                  </h2>
                   {sales ? (
                     sales.length ? (
-                      <div className="mt-4 grid grid-cols-1 divide-y divide-neutral-200 rounded-md border border-neutral-200">
-                        {sales.slice(0, 3).map((sale) => (
-                          <div
-                            key={sale.id}
-                            className="flex items-center justify-between gap-4 px-3 py-2.5"
-                          >
-                            <div className="flex min-w-0 flex-col">
-                              <span className="truncate text-sm font-medium text-neutral-600">
-                                {sale.customer.email}
-                              </span>
-                            </div>
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium text-neutral-600">
-                                {currencyFormatter(sale.earnings / 100, {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2,
-                                })}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
+                      <div className="mt-2.5 rounded-md border border-neutral-200">
+                        <div
+                          className={cn(
+                            "grid grid-cols-1",
+                            !isEnrolled &&
+                              "[mask-image:linear-gradient(black,transparent)]",
+                          )}
+                        >
+                          {sales
+                            .slice(0, isEnrolled ? 3 : 1)
+                            .map((sale, idx) => (
+                              <div
+                                key={sale.id}
+                                className={cn(
+                                  "flex items-center justify-between gap-4 border-neutral-200 px-3 py-2.5",
+                                  idx > 0 && "border-t",
+                                )}
+                              >
+                                <div className="flex min-w-0 flex-col">
+                                  <span className="truncate text-sm font-medium text-neutral-600">
+                                    {sale.customer.email}
+                                  </span>
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-medium text-neutral-600">
+                                    {currencyFormatter(sale.earnings / 100, {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    })}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                        {!isEnrolled && (
+                          <p className="px-8 py-4 text-center text-xs text-neutral-500">
+                            To withdraw your earnings or view all of your sales,
+                            create a free Dub partner account below.
+                          </p>
+                        )}
                       </div>
                     ) : (
                       <EmptyState />
                     )
                   ) : isLoading ? (
-                    <div className="mt-8 flex items-center justify-center">
+                    <div className="mt-6 flex items-center justify-center">
                       <LoadingSpinner className="size-4" />
                     </div>
                   ) : (
                     <EmptyState />
                   )}
+                  {!isLoading &&
+                    sales &&
+                    sales.length > 0 &&
+                    (isEnrolled ? (
+                      <a
+                        href="https://partners.dub.co/settings/payouts"
+                        target="_blank"
+                        className={cn(
+                          buttonVariants({ variant: "primary" }),
+                          "mt-3 flex h-10 items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm",
+                        )}
+                      >
+                        Withdraw earnings
+                      </a>
+                    ) : (
+                      <a
+                        href="https://partners.dub.co/register"
+                        target="_blank"
+                        className={cn(
+                          buttonVariants({ variant: "primary" }),
+                          "mt-3 flex h-10 items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm",
+                        )}
+                      >
+                        Create partner account
+                      </a>
+                    ))}
                 </div>
               </motion.div>
             </>
@@ -291,7 +345,7 @@ export function EmbedWidgetPageClient({
 
 const EmptyState = () => {
   return (
-    <div className="flex h-40 w-full flex-col items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50">
+    <div className="mt-2.5 flex h-40 w-full flex-col items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50">
       <Gift className="size-6 text-neutral-400" />
       <p className="max-w-60 text-pretty text-center text-xs text-neutral-400">
         No sales yet. When you refer a friend and they make a purchase, they'll

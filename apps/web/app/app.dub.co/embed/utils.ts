@@ -2,27 +2,28 @@ import { embedToken } from "@/lib/embed/embed-token";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 
-export const getLinkAndProgram = async (token: string) => {
+export const getEmbedData = async (token: string) => {
   const linkId = await embedToken.get(token);
 
   if (!linkId) {
     notFound();
   }
 
-  const linkAndProgram = await prisma.link.findUnique({
+  const linkWithIncludes = await prisma.link.findUnique({
     where: {
       id: linkId,
     },
     include: {
       program: true,
+      programEnrollment: true,
     },
   });
 
-  if (!linkAndProgram) {
+  if (!linkWithIncludes) {
     notFound();
   }
 
-  const { program, ...link } = linkAndProgram;
+  const { program, programEnrollment, ...link } = linkWithIncludes;
 
   if (!program) {
     notFound();
@@ -30,6 +31,7 @@ export const getLinkAndProgram = async (token: string) => {
 
   return {
     program,
+    programEnrollment,
     link,
     earnings:
       (program.commissionType === "percentage" ? link.saleAmount : link.sales) *
