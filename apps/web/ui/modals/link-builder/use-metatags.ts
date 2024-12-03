@@ -37,12 +37,10 @@ export function useMetatags({
       return;
     }
 
-    /**
-     * Only generate metatags if enabled (modal is open and url is not empty)
-     **/
+    // Only generate metatags if enabled (modal is open and url is not empty)
     if (enabled) {
       try {
-        // if url is valid, continue to generate metatags, else return null
+        // if url is valid, continue to generate metatags, else throw error and return null
         new URL(debouncedUrl);
         setGeneratingMetatags(true);
         fetch(`/api/metatags?url=${debouncedUrl}`).then(async (res) => {
