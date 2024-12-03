@@ -1,6 +1,7 @@
 "use client";
 
 import { createManualPayoutAction } from "@/lib/actions/partners/create-manual-payout";
+import { AnalyticsResponseOptions } from "@/lib/analytics/types";
 import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -13,11 +14,30 @@ import {
   Sheet,
   useRouterStuff,
 } from "@dub/ui";
-import { cn, formatDate } from "@dub/utils";
+import {
+  capitalize,
+  cn,
+  currencyFormatter,
+  DICEBEAR_AVATAR_URL,
+  fetcher,
+  formatDate,
+} from "@dub/utils";
+import { nFormatter } from "@dub/utils/src/functions";
 import { PayoutType } from "@prisma/client";
+import {
+  endOfMonth,
+  endOfQuarter,
+  endOfYear,
+  startOfMonth,
+  startOfQuarter,
+  startOfYear,
+  subMonths,
+} from "date-fns";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
+  Fragment,
+  ReactNode,
   SetStateAction,
   useEffect,
   useId,
@@ -26,7 +46,7 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { mutate } from "swr";
+import useSWR, { mutate } from "swr";
 import { z } from "zod";
 
 interface CreatePayoutSheetProps {
@@ -143,6 +163,78 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
     }
   };
 
+  const { data: totalEvents } = useSWR<{
+    [key in AnalyticsResponseOptions]: number;
+  }>(
+    payoutType !== "custom" &&
+      start &&
+      end &&
+      `/api/analytics?${new URLSearchParams({
+        workspaceId: workspaceId!,
+        event: payoutType,
+        start: start?.toISOString() || "",
+        end: end?.toISOString() || "",
+      }).toString()}`,
+    fetcher,
+  );
+
+  const invoiceData = useMemo(() => {
+    const selectedPartner = partners?.find((p) => p.id === partnerId);
+
+    const quantity = totalEvents?.[payoutType];
+    const payoutAmount = quantity && amount ? quantity * amount : undefined;
+
+    return {
+      ...(selectedPartner && {
+        Partner: (
+          <div className="flex items-center gap-2">
+            <img
+              src={
+                selectedPartner.image ||
+                `${DICEBEAR_AVATAR_URL}${selectedPartner.id}`
+              }
+              alt={selectedPartner.name}
+              className="size-5 rounded-full"
+            />
+            <div>{selectedPartner.name}</div>
+          </div>
+        ),
+      }),
+
+      ...(start &&
+        end && {
+          Period: `${formatDate(start, {
+            month: "short",
+            year:
+              new Date(start).getFullYear() === new Date(end).getFullYear()
+                ? undefined
+                : "numeric",
+          })}-${formatDate(end, { month: "short" })}`,
+        }),
+
+      ...(quantity && {
+        [capitalize(payoutType) as string]: nFormatter(quantity, {
+          full: true,
+        }),
+      }),
+
+      ...(payoutAmount && {
+        Amount: currencyFormatter(payoutAmount, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
+        Fee: currencyFormatter(payoutAmount * 0.02, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
+        Total: currencyFormatter(payoutAmount * 1.02, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
+      }),
+    };
+  }, [partnerId, partners, start, end, payoutType, totalEvents, amount]);
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
       <div>
@@ -198,7 +290,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
               htmlFor="type"
               className="flex items-center space-x-2 text-sm font-medium text-gray-900"
             >
-              Payout type
+              Reward type
             </label>
             <select
               {...register("type", { required: true })}
@@ -210,24 +302,6 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
                 </option>
               ))}
             </select>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor={dateRangePickerId}
-              className="block text-sm font-medium text-gray-700"
-            >
-              Payout period {payoutType === "custom" ? "(optional)" : ""}
-            </label>
-            <DateRangePicker
-              id={dateRangePickerId}
-              onChange={(dateRange) => {
-                if (dateRange) {
-                  setValue("start", dateRange.from!);
-                  setValue("end", dateRange.to!);
-                }
-              }}
-            />
           </div>
 
           {payoutType !== "sales" && (
@@ -250,10 +324,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
                   )}
                   {...register("amount", {
                     required: true,
-                    valueAsNumber: true,
-                    min: 0,
                   })}
-                  type="number"
                   autoComplete="off"
                   placeholder="5"
                 />
@@ -266,15 +337,58 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
             </div>
           )}
 
-          {payoutType !== "custom" && start && end && amount && partnerId && (
-            <div className="rounded-md border border-neutral-200 p-4">
-              <p>
-                Given {amount} USD for {payoutType.replace(/s$/, "")} between{" "}
-                {formatDate(start)} and {formatDate(end)}, to{" "}
-                {partners?.find((p) => p.id === partnerId)?.name}
-              </p>
-            </div>
-          )}
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor={dateRangePickerId}
+              className="block text-sm font-medium text-gray-700"
+            >
+              Payout period {payoutType === "custom" ? "(optional)" : ""}
+            </label>
+            <DateRangePicker
+              id={dateRangePickerId}
+              onChange={(dateRange) => {
+                if (dateRange) {
+                  setValue("start", dateRange.from!);
+                  setValue("end", dateRange.to!);
+                }
+              }}
+              align="end"
+              presets={[
+                {
+                  id: "this-month",
+                  label: "This month",
+                  dateRange: {
+                    from: startOfMonth(new Date()),
+                    to: endOfMonth(new Date()),
+                  },
+                },
+                {
+                  id: "last-month",
+                  label: "Last month",
+                  dateRange: {
+                    from: startOfMonth(subMonths(new Date(), 1)),
+                    to: endOfMonth(subMonths(new Date(), 1)),
+                  },
+                },
+                {
+                  id: "this-quarter",
+                  label: "This quarter",
+                  dateRange: {
+                    from: startOfQuarter(new Date()),
+                    to: endOfQuarter(new Date()),
+                  },
+                },
+                {
+                  id: "this-year",
+                  label: "This year",
+                  dateRange: {
+                    from: startOfYear(new Date()),
+                    to: endOfYear(new Date()),
+                  },
+                },
+              ]}
+            />
+          </div>
 
           <div className="flex flex-col gap-2">
             <label
@@ -289,6 +403,22 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
               placeholder="A note to partner about this payout."
             />
           </div>
+
+          {Object.entries(invoiceData).length > 0 && (
+            <div className="flex flex-col gap-2">
+              <p className="text-sm font-medium text-neutral-800">Summary</p>
+              <div className="grid grid-cols-2 gap-3 rounded-md border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-600">
+                {Object.entries(invoiceData).map(([key, value]) => (
+                  <Fragment key={key}>
+                    <div className="font-medium text-neutral-500">{key}</div>
+                    <div className="text-neutral-800">
+                      {value as ReactNode | string}
+                    </div>
+                  </Fragment>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
