@@ -188,7 +188,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
           })}-${formatDate(end, { month: "short" })}`,
         }),
 
-      ...(payoutType !== "custom" && {
+      ...(typeof quantity === "number" && {
         [capitalize(payoutType) as string]: isValidating ? (
           <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
         ) : (
@@ -253,8 +253,9 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
         </div>
         <div className="flex flex-col gap-4 p-6">
           <div className="flex flex-col gap-2">
-            <label className="flex items-center space-x-2 text-sm font-medium text-gray-900">
+            <label className="text-sm font-medium text-gray-900">
               Partner
+              <span className="font-normal text-neutral-500"> (required)</span>
             </label>
             <Combobox
               selected={
@@ -285,58 +286,6 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
               <p className="text-xs text-red-600">{errors.partnerId.message}</p>
             )}
           </div>
-
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor="type"
-              className="flex items-center space-x-2 text-sm font-medium text-gray-900"
-            >
-              Reward type
-            </label>
-            <select
-              {...register("type", { required: true })}
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-            >
-              {Object.values(PayoutType).map((type) => (
-                <option key={type} value={type}>
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {payoutType !== "sales" && (
-            <div>
-              <label
-                htmlFor="amount"
-                className="text-sm font-medium text-neutral-800"
-              >
-                Reward amount
-              </label>
-              <div className="relative mt-2 rounded-md shadow-sm">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-                  $
-                </span>
-                <input
-                  className={cn(
-                    "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                    "pl-6 pr-[6.5rem]",
-                    payoutType === "custom" && "pr-12",
-                  )}
-                  {...register("amount", {
-                    required: true,
-                  })}
-                  autoComplete="off"
-                  placeholder="5"
-                />
-                <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-                  USD
-                  {payoutType !== "custom" &&
-                    ` per ${payoutType.replace(/s$/, "")}`}
-                </span>
-              </div>
-            </div>
-          )}
 
           <div className="flex flex-col gap-2">
             <label
@@ -404,6 +353,58 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
 
           <div className="flex flex-col gap-2">
             <label
+              htmlFor="type"
+              className="flex items-center space-x-2 text-sm font-medium text-gray-900"
+            >
+              Reward type
+            </label>
+            <select
+              {...register("type", { required: true })}
+              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+            >
+              {Object.values(PayoutType).map((type) => (
+                <option key={type} value={type}>
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {payoutType !== "sales" && (
+            <div>
+              <label
+                htmlFor="amount"
+                className="text-sm font-medium text-neutral-800"
+              >
+                Reward amount
+              </label>
+              <div className="relative mt-2 rounded-md shadow-sm">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                  $
+                </span>
+                <input
+                  className={cn(
+                    "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                    "pl-6 pr-[6.5rem]",
+                    payoutType === "custom" && "pr-12",
+                  )}
+                  {...register("amount", {
+                    required: true,
+                  })}
+                  autoComplete="off"
+                  placeholder="5"
+                />
+                <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                  USD
+                  {payoutType !== "custom" &&
+                    ` per ${payoutType.replace(/s$/, "")}`}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-2">
+            <label
               htmlFor="description"
               className="flex items-center space-x-2 text-sm font-medium text-gray-900"
             >
@@ -416,7 +417,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
             />
           </div>
 
-          {Object.entries(invoiceData).length > 0 && (
+          {partnerId && Object.entries(invoiceData).length > 0 && (
             <div className="flex flex-col gap-2">
               <p className="text-sm font-medium text-neutral-800">Summary</p>
               <div className="grid grid-cols-2 gap-3 rounded-md border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-600">
@@ -450,7 +451,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
             text="Create payout"
             className="w-fit"
             loading={isExecuting}
-            // disabled={!isValid}
+            disabled={!partnerId || isExecuting}
           />
         </div>
       </div>

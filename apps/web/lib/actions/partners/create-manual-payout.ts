@@ -16,15 +16,9 @@ export const createManualPayoutAction = authActionClient
     const { programId, partnerId, start, end, type, amount, description } =
       parsedInput;
 
-    console.log(parsedInput);
-
     if (["clicks", "leads", "sales"].includes(type) && (!start || !end)) {
       throw new Error("Please select a date range to create a payout.");
     }
-
-    // if (!workspace.dotsAppId) {
-    //   throw new Error("Partner payouts are not enabled for this workspace.");
-    // }
 
     const [_, programEnrollment] = await Promise.all([
       getProgramOrThrow({
@@ -45,10 +39,6 @@ export const createManualPayoutAction = authActionClient
         },
       }),
     ]);
-
-    // if (!programEnrollment.dotsUserId) {
-    //   throw new Error("Partner is not properly enrolled in this program.");
-    // }
 
     if (!programEnrollment.linkId) {
       throw new Error("No short link found for this partner in this program.");
