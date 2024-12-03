@@ -2,6 +2,7 @@
 
 import { createManualPayoutAction } from "@/lib/actions/partners/create-manual-payout";
 import { AnalyticsResponseOptions } from "@/lib/analytics/types";
+import { calculateEarnings } from "@/lib/api/sales/commission";
 import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -80,10 +81,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
   } = useForm<FormData>({
     defaultValues: {
       type: "sales",
-      amount:
-        program?.commissionType === "flat"
-          ? Number(program.commissionAmount) / 100
-          : undefined,
+      amount: Number(program?.commissionAmount) / 100,
     },
   });
 
@@ -161,13 +159,39 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
     fetcher,
   );
 
+  const { data: salesAmount, isValidating: isValidatingSalesAmount } = useSWR<{
+    amount: number;
+  }>(
+    payoutType === "sales" &&
+      program?.commissionType === "percentage" &&
+      start &&
+      end &&
+      selectedPartner?.link &&
+      `/api/programs/${program?.id}/sales/amount?${new URLSearchParams({
+        workspaceId: workspaceId!,
+        partnerId: selectedPartner.id,
+        start: start?.toISOString() || "",
+        end: end?.toISOString() || "",
+      }).toString()}`,
+    fetcher,
+  );
+
   const invoiceData = useMemo(() => {
     const quantity = totalEvents?.[payoutType];
     let payoutAmount: number | undefined = undefined;
+
     if (payoutType === "custom") {
       payoutAmount = amount;
-    } else if (payoutType === "sales") {
-      // TODO: get actual sales value using data from the Sale table
+    } else if (
+      payoutType === "sales" &&
+      program?.commissionType === "percentage" &&
+      salesAmount?.amount
+    ) {
+      payoutAmount = calculateEarnings({
+        program: program!,
+        sales: quantity,
+        saleAmount: salesAmount.amount / 100,
+      });
     } else {
       payoutAmount = quantity && amount ? quantity * amount : undefined;
     }
@@ -255,6 +279,9 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
     amount,
     isValidating,
   ]);
+
+  const displayPercentSign =
+    payoutType === "sales" && program?.commissionType === "percentage";
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
@@ -414,14 +441,17 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
               Reward amount
             </label>
             <div className="relative mt-2 rounded-md shadow-sm">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-                $
-              </span>
+              {!displayPercentSign && (
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                  $
+                </span>
+              )}
               <input
                 className={cn(
                   "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                  "pl-6 pr-[6.5rem]",
+                  "pr-[6.5rem]",
                   payoutType === "custom" && "pr-12",
+                  !displayPercentSign && "pl-6",
                 )}
                 {...register("amount", {
                   required: true,
@@ -430,7 +460,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
                 placeholder="5"
               />
               <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-                USD
+                {displayPercentSign ? "%" : "USD"}
                 {payoutType !== "custom" &&
                   ` per ${payoutType.replace(/s$/, "")}`}
               </span>

@@ -136,6 +136,12 @@ export const getSalesCountQuerySchema = getSalesQuerySchema.omit({
   sortBy: true,
 });
 
+export const getSalesAmountQuerySchema = getSalesQuerySchema.pick({
+  start: true,
+  end: true,
+  partnerId: true,
+});
+
 export const getPartnerSalesQuerySchema = getSalesQuerySchema.omit({
   partnerId: true,
 });
