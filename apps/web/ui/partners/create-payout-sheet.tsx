@@ -167,6 +167,8 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
       payoutAmount = quantity && amount ? quantity * amount : undefined;
     }
 
+    const amountAsNumber = amount ? Number(amount) : undefined;
+
     return {
       ...(selectedPartner && {
         Partner: (
@@ -203,13 +205,12 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
             full: true,
           })
         ),
-        [`Reward per ${payoutType.replace(/s$/, "")}`]: currencyFormatter(
-          amount,
-          {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          },
-        ),
+        [`Reward per ${payoutType.replace(/s$/, "")}`]: amountAsNumber
+          ? currencyFormatter(amountAsNumber, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })
+          : "-",
       }),
 
       ...(payoutAmount && {
