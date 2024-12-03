@@ -1,10 +1,11 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { DubApiError } from "@/lib/api/errors";
+import { linkCache } from "@/lib/api/links/cache";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
-import { formatRedisLink, redis } from "@/lib/upstash";
+import { formatRedisLink } from "@/lib/upstash/format-redis-link";
 import z from "@/lib/zod";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -79,12 +80,12 @@ export const POST = withWorkspace(
 
     waitUntil(
       Promise.all([
-        redis.hset(link.domain.toLowerCase(), {
-          [link.key.toLowerCase()]: await formatRedisLink({
-            ...link,
-            projectId: newWorkspaceId,
-          }),
+        linkCache.set({
+          link: await formatRedisLink({ ...link, projectId: newWorkspaceId }),
+          domain: link.domain,
+          key: link.key,
         }),
+
         recordLink({
           link_id: link.id,
           domain: link.domain,

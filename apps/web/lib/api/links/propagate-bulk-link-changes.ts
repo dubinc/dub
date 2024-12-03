@@ -1,6 +1,7 @@
 import { recordLink } from "@/lib/tinybird";
 import { RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
+import { linkCache } from "./cache";
 import { ExpandedLink } from "./utils";
 
 export async function propagateBulkLinkChanges(links: ExpandedLink[]) {
@@ -28,7 +29,8 @@ export async function propagateBulkLinkChanges(links: ExpandedLink[]) {
 
   await Promise.all([
     // update Redis
-    pipeline.exec(),
+    linkCache.mset(links),
+
     // update Tinybird
     recordLink(
       links.map((link) => ({
