@@ -158,7 +158,14 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
 
   const invoiceData = useMemo(() => {
     const quantity = totalEvents?.[payoutType];
-    const payoutAmount = quantity && amount ? quantity * amount : undefined;
+    let payoutAmount: number | undefined = undefined;
+    if (payoutType === "custom") {
+      payoutAmount = amount;
+    } else if (payoutType === "sales") {
+      // TODO: get actual sales value using data from the Sale table
+    } else {
+      payoutAmount = quantity && amount ? quantity * amount : undefined;
+    }
 
     return {
       ...(selectedPartner && {
@@ -188,13 +195,20 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
           })}-${formatDate(end, { month: "short" })}`,
         }),
 
-      ...(typeof quantity === "number" && {
+      ...(payoutType !== "custom" && {
         [capitalize(payoutType) as string]: isValidating ? (
           <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
         ) : (
           nFormatter(quantity, {
             full: true,
           })
+        ),
+        [`Reward per ${payoutType.replace(/s$/, "")}`]: currencyFormatter(
+          amount,
+          {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          },
         ),
       }),
 
