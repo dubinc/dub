@@ -163,15 +163,19 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
     }
   };
 
+  const selectedPartner = partners?.find((p) => p.id === partnerId);
+
   const { data: totalEvents } = useSWR<{
     [key in AnalyticsResponseOptions]: number;
   }>(
     payoutType !== "custom" &&
       start &&
       end &&
+      selectedPartner?.link &&
       `/api/analytics?${new URLSearchParams({
         workspaceId: workspaceId!,
         event: payoutType,
+        linkId: selectedPartner.link.id,
         start: start?.toISOString() || "",
         end: end?.toISOString() || "",
       }).toString()}`,
@@ -179,8 +183,6 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
   );
 
   const invoiceData = useMemo(() => {
-    const selectedPartner = partners?.find((p) => p.id === partnerId);
-
     const quantity = totalEvents?.[payoutType];
     const payoutAmount = quantity && amount ? quantity * amount : undefined;
 
@@ -233,7 +235,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
         }),
       }),
     };
-  }, [partnerId, partners, start, end, payoutType, totalEvents, amount]);
+  }, [selectedPartner, partners, start, end, payoutType, totalEvents, amount]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">

@@ -46,7 +46,8 @@ function PayoutDetailsSheetContent({
     isLoading,
     error,
   } = useSWR<SaleResponse[]>(
-    `/api/programs/${programId}/sales?workspaceId=${workspaceId}&payoutId=${payout.id}&interval=all&pageSize=10`,
+    payout.type === "sales" &&
+      `/api/programs/${programId}/sales?workspaceId=${workspaceId}&payoutId=${payout.id}&interval=all&pageSize=10`,
     fetcher,
   );
 
