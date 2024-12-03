@@ -3,7 +3,7 @@ import { linkCache } from "@/lib/api/links/cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { updateWebhookStatusForWorkspace } from "@/lib/webhook/api";
+import { deleteWebhook } from "@/lib/webhook/api";
 import { webhookCache } from "@/lib/webhook/cache";
 import { transformWebhook } from "@/lib/webhook/transform";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";
@@ -247,51 +247,10 @@ export const DELETE = withWorkspace(
   async ({ workspace, params }) => {
     const { webhookId } = params;
 
-    const linkWebhooks = await prisma.linkWebhook.findMany({
-      where: {
-        webhookId,
-      },
-      select: {
-        linkId: true,
-      },
+    await deleteWebhook({
+      webhookId,
+      workspaceId: workspace.id,
     });
-
-    await prisma.webhook.delete({
-      where: {
-        id: webhookId,
-        projectId: workspace.id,
-      },
-    });
-
-    waitUntil(
-      (async () => {
-        const links = await prisma.link.findMany({
-          where: {
-            id: { in: linkWebhooks.map(({ linkId }) => linkId) },
-          },
-          include: {
-            webhooks: {
-              select: {
-                webhookId: true,
-              },
-            },
-          },
-        });
-
-        const formatedLinks = links.map((link) => {
-          return {
-            ...link,
-            webhookIds: link.webhooks.map((webhook) => webhook.webhookId),
-          };
-        });
-
-        await Promise.all([
-          updateWebhookStatusForWorkspace({ workspace }),
-          linkCache.mset(formatedLinks),
-          webhookCache.delete(webhookId),
-        ]);
-      })(),
-    );
 
     return NextResponse.json({
       id: webhookId,

@@ -4,6 +4,7 @@ import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
   Link,
   PayoutStatus,
+  Prisma,
   ProgramEnrollmentStatus,
   Project,
   SaleStatus,
@@ -286,7 +287,7 @@ export type InstalledIntegrationInfoProps = Pick<
       image: string | null;
     };
   } | null;
-  credentials?: Record<string, string>;
+  credentials?: Prisma.JsonValue;
 };
 
 export type WebhookTrigger = keyof typeof WEBHOOK_TRIGGER_DESCRIPTIONS;

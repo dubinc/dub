@@ -50,9 +50,7 @@ export const handleWebhookFailure = async (webhookId: string) => {
 
       // Update the project webhookEnabled flag
       updateWebhookStatusForWorkspace({
-        workspace: {
-          id: webhook.projectId,
-        },
+        workspaceId: webhook.projectId,
       }),
     ]);
   }

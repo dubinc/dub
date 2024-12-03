@@ -98,7 +98,9 @@ export const POST = withWorkspace(
 
     waitUntil(
       Promise.allSettled([
-        updateWebhookStatusForWorkspace({ workspace }),
+        updateWebhookStatusForWorkspace({
+          workspaceId: workspace.id,
+        }),
 
         sendEmail({
           email: session.user.email,

@@ -3,6 +3,7 @@ enum WebhookReceiver {
   zapier
   make
   slack
+  segment
 }
 
 model Webhook {

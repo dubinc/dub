@@ -50,7 +50,9 @@ export const enableOrDisableWebhook = authActionClient
     waitUntil(
       (async () => {
         await Promise.all([
-          updateWebhookStatusForWorkspace({ workspace }),
+          updateWebhookStatusForWorkspace({
+            workspaceId: workspace.id,
+          }),
 
           webhookCache.set(updatedWebhook),
         ]);
