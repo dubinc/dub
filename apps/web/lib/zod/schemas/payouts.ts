@@ -9,6 +9,9 @@ export const createManualPayoutSchema = z.object({
   start: parseDateSchema.nullable(),
   end: parseDateSchema.nullable(),
   type: z.nativeEnum(PayoutType),
-  amount: z.number().default(0),
+  amount: z.preprocess(
+    (val) => parseFloat(val as string),
+    z.number().default(0),
+  ),
   description: z.string().max(5000).nullable(),
 });

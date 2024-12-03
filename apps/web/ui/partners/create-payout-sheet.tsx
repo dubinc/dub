@@ -39,7 +39,6 @@ import {
   Fragment,
   ReactNode,
   SetStateAction,
-  useEffect,
   useId,
   useMemo,
   useState,
@@ -105,41 +104,16 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
     }));
   }, [partners]);
 
-  useEffect(() => {
-    const fetchAnalytics = async () => {
-      const searchParams = new URLSearchParams({
-        workspaceId: workspaceId!,
-        event: payoutType,
-        start: start?.toISOString() || "",
-        end: end?.toISOString() || "",
-        page: "1",
-        sortBy: "timestamp",
-        order: "desc",
-      });
-
-      const response = await fetch(`/api/events?${searchParams.toString()}`);
-      const events = await response.json();
-    };
-
-    if (payoutType === "custom" || !start || !end) {
-      return;
-    }
-
-    const partner = partners?.find((p) => p.id === partnerId);
-
-    if (!partner) {
-      return;
-    }
-
-    fetchAnalytics();
-  }, [partnerId, start, end, payoutType]);
-
   const { executeAsync, isExecuting } = useAction(createManualPayoutAction, {
     onSuccess: async (res) => {
       toast.success("Successfully created payout!");
       setIsOpen(false);
-      mutate(
-        `/api/programs/${program?.id}/payouts?workspaceId=${workspaceId}&sortBy=periodStart&order=desc`,
+      await mutate(
+        (key) =>
+          typeof key === "string" &&
+          key.startsWith(`/api/programs/${program?.id}/payouts`),
+        undefined,
+        { revalidate: true },
       );
       const payoutId = res.data?.id;
       if (payoutId) {
@@ -165,7 +139,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
 
   const selectedPartner = partners?.find((p) => p.id === partnerId);
 
-  const { data: totalEvents } = useSWR<{
+  const { data: totalEvents, isValidating } = useSWR<{
     [key in AnalyticsResponseOptions]: number;
   }>(
     payoutType !== "custom" &&
@@ -214,28 +188,53 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
           })}-${formatDate(end, { month: "short" })}`,
         }),
 
-      ...(quantity && {
-        [capitalize(payoutType) as string]: nFormatter(quantity, {
-          full: true,
-        }),
+      ...(payoutType !== "custom" && {
+        [capitalize(payoutType) as string]: isValidating ? (
+          <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
+        ) : (
+          nFormatter(quantity, {
+            full: true,
+          })
+        ),
       }),
 
       ...(payoutAmount && {
-        Amount: currencyFormatter(payoutAmount, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }),
-        Fee: currencyFormatter(payoutAmount * 0.02, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }),
-        Total: currencyFormatter(payoutAmount * 1.02, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }),
+        Amount: isValidating ? (
+          <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
+        ) : payoutAmount ? (
+          currencyFormatter(payoutAmount, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+        ) : null,
+        Fee: isValidating ? (
+          <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
+        ) : payoutAmount ? (
+          currencyFormatter(payoutAmount * 0.02, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+        ) : null,
+        Total: isValidating ? (
+          <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
+        ) : payoutAmount ? (
+          currencyFormatter(payoutAmount * 1.02, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+        ) : null,
       }),
     };
-  }, [selectedPartner, partners, start, end, payoutType, totalEvents, amount]);
+  }, [
+    selectedPartner,
+    partners,
+    start,
+    end,
+    payoutType,
+    totalEvents,
+    amount,
+    isValidating,
+  ]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
@@ -348,10 +347,21 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
             </label>
             <DateRangePicker
               id={dateRangePickerId}
-              onChange={(dateRange) => {
-                if (dateRange) {
-                  setValue("start", dateRange.from!);
-                  setValue("end", dateRange.to!);
+              value={
+                start && end
+                  ? {
+                      from: start,
+                      to: end,
+                    }
+                  : undefined
+              }
+              onChange={(range, preset) => {
+                if (preset) {
+                  setValue("start", preset.dateRange.from!);
+                  setValue("end", preset.dateRange.to!);
+                } else if (range) {
+                  setValue("start", range.from!);
+                  setValue("end", range.to!);
                 }
               }}
               align="end"
