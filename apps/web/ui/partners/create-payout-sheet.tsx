@@ -81,7 +81,10 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
   } = useForm<FormData>({
     defaultValues: {
       type: "sales",
-      amount: Number(program?.commissionAmount) / 100,
+      amount:
+        program?.commissionType === "flat"
+          ? Number(program?.commissionAmount) / 100
+          : program?.commissionAmount,
     },
   });
 
@@ -176,6 +179,9 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
     fetcher,
   );
 
+  const isPercentBased =
+    payoutType === "sales" && program?.commissionType === "percentage";
+
   const invoiceData = useMemo(() => {
     const quantity = totalEvents?.[payoutType];
     let payoutAmount: number | undefined = undefined;
@@ -190,7 +196,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
       payoutAmount = calculateEarnings({
         program: program!,
         sales: quantity,
-        saleAmount: salesAmount.amount / 100,
+        saleAmount: salesAmount.amount,
       });
     } else {
       payoutAmount = quantity && amount ? quantity * amount : undefined;
@@ -234,12 +240,28 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
             full: true,
           })
         ),
+
         [`Reward per ${payoutType.replace(/s$/, "")}`]: amountAsNumber
-          ? currencyFormatter(amountAsNumber, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })
+          ? !isPercentBased
+            ? currencyFormatter(amountAsNumber, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })
+            : `${amountAsNumber}%`
           : "-",
+      }),
+
+      ...(isPercentBased && {
+        Revenue: isValidatingSalesAmount ? (
+          <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
+        ) : salesAmount?.amount ? (
+          currencyFormatter(salesAmount.amount, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+        ) : (
+          "-"
+        ),
       }),
 
       ...(payoutAmount && {
@@ -262,10 +284,12 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
         Total: isValidating ? (
           <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
         ) : payoutAmount ? (
-          currencyFormatter(payoutAmount * 1.02, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })
+          <strong>
+            {currencyFormatter(payoutAmount * 1.02, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </strong>
         ) : null,
       }),
     };
@@ -279,9 +303,6 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
     amount,
     isValidating,
   ]);
-
-  const displayPercentSign =
-    payoutType === "sales" && program?.commissionType === "percentage";
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
@@ -441,7 +462,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
               Reward amount
             </label>
             <div className="relative mt-2 rounded-md shadow-sm">
-              {!displayPercentSign && (
+              {!isPercentBased && (
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
                   $
                 </span>
@@ -451,7 +472,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
                   "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                   "pr-[6.5rem]",
                   payoutType === "custom" && "pr-12",
-                  !displayPercentSign && "pl-6",
+                  !isPercentBased && "pl-6",
                 )}
                 {...register("amount", {
                   required: true,
@@ -460,7 +481,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
                 placeholder="5"
               />
               <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-                {displayPercentSign ? "%" : "USD"}
+                {isPercentBased ? "%" : "USD"}
                 {payoutType !== "custom" &&
                   ` per ${payoutType.replace(/s$/, "")}`}
               </span>
