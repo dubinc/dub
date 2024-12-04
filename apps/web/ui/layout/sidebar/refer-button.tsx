@@ -40,7 +40,7 @@ export function ReferButton() {
   if (!referralLinkId || !publicToken) return null;
 
   return (
-    <DubWidget token={publicToken} trigger="manual">
+    <DubWidget token={publicToken} options={{ trigger: "manual" }}>
       <button
         type="button"
         className={cn(
