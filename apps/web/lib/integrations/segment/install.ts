@@ -21,6 +21,7 @@ export const installSegmentAction = authActionClient
     const webhook = await createWebhook({
       name: "Segment",
       url: "https://api.segment.io/v1/track",
+      receiver: "segment",
       triggers: [],
       workspace,
       secret: writeKey, // TODO (Kiran): Might need rethink this

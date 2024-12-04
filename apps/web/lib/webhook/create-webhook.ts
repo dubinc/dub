@@ -7,7 +7,7 @@ import {
   identifyWebhookReceiver,
   isLinkLevelWebhook,
 } from "@/lib/webhook/utils";
-import { Project } from "@prisma/client";
+import { Project, WebhookReceiver } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { WebhookTrigger } from "../types";
 import { createWebhookSecret } from "./secret";
@@ -19,6 +19,7 @@ export async function createWebhook({
   triggers,
   workspace,
   linkIds,
+  receiver,
 }: {
   name: string;
   url: string;
@@ -26,6 +27,7 @@ export async function createWebhook({
   triggers: WebhookTrigger[];
   workspace: Pick<Project, "id">;
   linkIds?: string[];
+  receiver?: WebhookReceiver;
 }) {
   const webhook = await prisma.webhook.create({
     data: {
@@ -34,7 +36,7 @@ export async function createWebhook({
       url,
       triggers,
       projectId: workspace.id,
-      receiver: identifyWebhookReceiver(url),
+      receiver: receiver || identifyWebhookReceiver(url),
       secret: secret || createWebhookSecret(),
       links: {
         ...(linkIds &&

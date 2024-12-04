@@ -78,6 +78,7 @@ export const GET = async (req: Request) => {
     const webhook = await createWebhook({
       name: "Slack",
       url: data.incoming_webhook.url,
+      receiver: "slack",
       triggers: ["link.created"],
       workspace,
     });
