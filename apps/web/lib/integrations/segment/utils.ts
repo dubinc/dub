@@ -1,5 +1,3 @@
 export const createSegmentBasicAuthHeader = (writeKey: string) => {
-  const encoded = Buffer.from(`${writeKey}:`).toString("base64");
-
-  return `Basic ${encoded}`;
+  return `Basic ${Buffer.from(`${writeKey}:`).toString("base64")}`;
 };

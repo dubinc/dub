@@ -24,7 +24,7 @@ export const installSegmentAction = authActionClient
       receiver: "segment",
       triggers: [],
       workspace,
-      secret: writeKey, // TODO (Kiran): Might need rethink this
+      secret: writeKey,
     });
 
     await installIntegration({

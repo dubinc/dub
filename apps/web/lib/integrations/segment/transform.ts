@@ -12,8 +12,6 @@ export const formatEventForSegment = (
 ) => {
   const { event, data } = payload;
 
-  console.log("payload", payload);
-
   switch (event) {
     case "link.clicked":
       return transformClickEvent(data);
