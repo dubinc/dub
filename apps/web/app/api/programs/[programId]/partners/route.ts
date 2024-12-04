@@ -35,6 +35,7 @@ export const GET = withWorkspace(
       include: {
         partner: true,
         link: true,
+        application: true,
       },
       skip: (page - 1) * pageSize,
       take: pageSize,

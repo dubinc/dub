@@ -9,7 +9,7 @@ import {
 import { z } from "zod";
 import { CustomerSchema } from "./customers";
 import { getPaginationQuerySchema } from "./misc";
-import { ProgramEnrollmentSchema } from "./programs";
+import { ProgramApplicationSchema, ProgramEnrollmentSchema } from "./programs";
 import { parseDateSchema } from "./utils";
 
 export const PARTNERS_MAX_PAGE_SIZE = 100;
@@ -52,6 +52,7 @@ export const EnrolledPartnerSchema = PartnerSchema.omit({
   })
   .extend({
     earnings: z.number(),
+    application: ProgramApplicationSchema.nullable(),
   });
 
 export const PAYOUTS_MAX_PAGE_SIZE = 100;

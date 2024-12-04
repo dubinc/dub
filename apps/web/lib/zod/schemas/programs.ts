@@ -62,6 +62,19 @@ export const ProgramEnrollmentSchema = z.object({
   createdAt: z.date(),
 });
 
+export const ProgramApplicationSchema = z.object({
+  id: z.string(),
+  programId: z.string(),
+  name: z.string(),
+  email: z.string(),
+  website: z.string().nullable(),
+  comments: z.string().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  partnerId: z.string().nullable(),
+  proposal: z.string().nullable(),
+});
+
 export const getProgramMetricsQuerySchema = z.object({
   interval: z.enum(intervals).default("30d"),
   start: parseDateSchema.optional(),
