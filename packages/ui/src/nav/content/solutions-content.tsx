@@ -1,10 +1,25 @@
 import { cn, createHref } from "@dub/utils";
-import { PROFILES } from "../../content";
+import { Code, OfficeBuilding } from "../../icons";
 import {
   ContentIcon,
   ContentLinkCard,
   contentHeadingClassName,
 } from "./shared";
+
+const PROFILES = [
+  {
+    icon: Code,
+    title: "Developers",
+    description: "API for efficient link management",
+    href: "/docs/introduction",
+  },
+  {
+    icon: OfficeBuilding,
+    title: "Enterprise",
+    description: "Scalable link management solutions",
+    href: "/enterprise",
+  },
+];
 
 export function SolutionsContent({ domain }: { domain: string }) {
   return (
