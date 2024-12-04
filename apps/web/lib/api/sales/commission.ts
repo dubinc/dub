@@ -24,7 +24,7 @@ export const calculateEarnings = ({
     return sales * program.commissionAmount;
   }
 
-  return 0;
+  throw new Error("Invalid commissionType");
 };
 
 // Calculate the recurring commission earned for a sale
