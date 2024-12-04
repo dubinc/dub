@@ -9,16 +9,22 @@ import { createManualPayoutSchema } from "@/lib/zod/schemas/payouts";
 import { Payout } from "@prisma/client";
 import { authActionClient } from "../safe-action";
 
+const schema = createManualPayoutSchema.refine(
+  (data) => {
+    return data.type === "custom" || (data.start && data.end);
+  },
+  {
+    message: "Please select a date range",
+    path: ["start"],
+  },
+);
+
 export const createManualPayoutAction = authActionClient
-  .schema(createManualPayoutSchema)
+  .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { programId, partnerId, start, end, type, amount, description } =
       parsedInput;
-
-    if (["clicks", "leads", "sales"].includes(type) && (!start || !end)) {
-      throw new Error("Please select a date range to create a payout.");
-    }
 
     const [_, programEnrollment] = await Promise.all([
       getProgramOrThrow({
@@ -46,17 +52,27 @@ export const createManualPayoutAction = authActionClient
 
     let payout: Payout | undefined = undefined;
 
+    // Create a payout for sales
+    if (type === "sales") {
+      payout = await createSalesPayout({
+        programId,
+        partnerId,
+        periodStart: start!,
+        periodEnd: end!,
+      });
+    }
+
     // Create a payout for clicks, leads, and custom events
-    if (["clicks", "leads", "custom"].includes(type)) {
+    else {
       let quantity: number | undefined = undefined;
 
       if (type === "clicks" || type === "leads") {
         const count = await getAnalytics({
           linkId: programEnrollment.linkId,
-          event: type as any,
+          event: type,
           groupBy: "count",
-          start: start as Date,
-          end: end as Date,
+          start,
+          end,
         });
 
         quantity = count[type];
@@ -75,20 +91,10 @@ export const createManualPayoutAction = authActionClient
           quantity,
           amount: amountInCents,
           total: amountInCents + fee,
-          periodEnd: end as Date,
-          periodStart: start as Date,
+          periodStart: start,
+          periodEnd: end,
           description,
         },
-      });
-    }
-
-    // Create a payout for sales
-    else if (type === "sales") {
-      payout = await createSalesPayout({
-        programId,
-        partnerId,
-        periodStart: start as Date,
-        periodEnd: end as Date,
       });
     }
 

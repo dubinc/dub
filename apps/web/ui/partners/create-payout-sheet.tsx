@@ -24,6 +24,7 @@ import {
   formatDate,
 } from "@dub/utils";
 import { nFormatter } from "@dub/utils/src/functions";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { PayoutType } from "@prisma/client";
 import {
   endOfMonth,
@@ -53,14 +54,28 @@ interface CreatePayoutSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-const schema = createManualPayoutSchema.pick({
-  partnerId: true,
-  type: true,
-  start: true,
-  end: true,
-  amount: true,
-  description: true,
-});
+const schema = createManualPayoutSchema
+  .pick({
+    partnerId: true,
+    type: true,
+    amount: true,
+    description: true,
+  })
+  .and(
+    z.object({
+      start: z.date().optional(),
+      end: z.date().optional(),
+    }),
+  )
+  .refine(
+    (data) => {
+      return data.type === "custom" || (data.start && data.end);
+    },
+    {
+      message: "Please select a date range",
+      path: ["start"],
+    },
+  );
 
 type FormData = z.infer<typeof schema>;
 
@@ -76,9 +91,10 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
     handleSubmit,
     watch,
     setValue,
-    formState: { errors },
     clearErrors,
+    formState: { errors },
   } = useForm<FormData>({
+    resolver: zodResolver(schema),
     defaultValues: {
       type: "sales",
       amount:
@@ -88,11 +104,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
     },
   });
 
-  const partnerId = watch("partnerId");
-  const payoutType = watch("type");
-  const start = watch("start");
-  const end = watch("end");
-  const amount = watch("amount");
+  const { partnerId, type: payoutType, start, end, amount } = watch();
 
   const partnerOptions = useMemo(() => {
     return partners?.map((partner) => ({
@@ -121,7 +133,9 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
         undefined,
         { revalidate: true },
       );
+
       const payoutId = res.data?.id;
+
       if (payoutId) {
         queryParams({ set: { payoutId } });
       }
@@ -137,8 +151,8 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
         ...data,
         workspaceId,
         programId: program.id,
-        start: data.start ? data.start.toISOString() : null,
-        end: data.end ? data.end.toISOString() : null,
+        start: data.start?.toISOString(),
+        end: data.end?.toISOString(),
       });
     }
   };
@@ -156,8 +170,8 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
         workspaceId: workspaceId!,
         event: payoutType,
         linkId: selectedPartner.link.id,
-        start: start?.toISOString() || "",
-        end: end?.toISOString() || "",
+        start: start?.toISOString(),
+        end: end?.toISOString(),
       }).toString()}`,
     fetcher,
   );
@@ -173,8 +187,8 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
       `/api/programs/${program?.id}/sales/amount?${new URLSearchParams({
         workspaceId: workspaceId!,
         partnerId: selectedPartner.id,
-        start: start?.toISOString() || "",
-        end: end?.toISOString() || "",
+        start: start?.toISOString(),
+        end: end?.toISOString(),
       }).toString()}`,
     fetcher,
   );
@@ -374,12 +388,15 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
               }
               onChange={(range, preset) => {
                 if (preset) {
-                  setValue("start", preset.dateRange.from!);
-                  setValue("end", preset.dateRange.to!);
+                  setValue("start", preset.dateRange.from);
+                  setValue("end", preset.dateRange.to);
                 } else if (range) {
-                  setValue("start", range.from!);
-                  setValue("end", range.to!);
+                  setValue("start", range.from);
+                  setValue("end", range.to);
                 }
+
+                clearErrors("start");
+                clearErrors("end");
               }}
               align="end"
               presets={[
@@ -416,7 +433,11 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
                   },
                 },
               ]}
+              hasError={!!(errors.start || errors.end)}
             />
+            {(errors.start || errors.end) && (
+              <p className="text-xs text-red-600">{errors.start?.message}</p>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -434,6 +455,10 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
 
                 setValue("type", type);
 
+                if (type === "custom") {
+                  clearErrors(["start", "end"]);
+                }
+
                 if (
                   type === "sales" &&
                   program?.commissionAmount &&
@@ -441,7 +466,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
                 ) {
                   setValue("amount", program.commissionAmount / 100);
                 } else {
-                  // @ts-expect-error
+                  // @ts-ignore
                   setValue("amount", null);
                 }
               }}
@@ -473,9 +498,12 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
                   "pr-[6.5rem]",
                   payoutType === "custom" && "pr-12",
                   !isPercentBased && "pl-6",
+                  errors.amount &&
+                    "border-red-600 focus:border-red-500 focus:ring-red-600",
                 )}
                 {...register("amount", {
                   required: true,
+                  valueAsNumber: true,
                 })}
                 autoComplete="off"
                 placeholder="5"
@@ -536,7 +564,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
             text="Create payout"
             className="w-fit"
             loading={isExecuting}
-            disabled={!partnerId || isExecuting}
+            disabled={isExecuting || isValidating}
           />
         </div>
       </div>
