@@ -9,7 +9,7 @@ export const getEmbedData = async (token: string) => {
     notFound();
   }
 
-  const linkWithIncludes = await prisma.link.findUnique({
+  const referralLink = await prisma.link.findUnique({
     where: {
       id: linkId,
     },
@@ -27,11 +27,11 @@ export const getEmbedData = async (token: string) => {
     },
   });
 
-  if (!linkWithIncludes) {
+  if (!referralLink) {
     notFound();
   }
 
-  const { program, programEnrollment, ...link } = linkWithIncludes;
+  const { program, programEnrollment, ...link } = referralLink;
 
   if (!program) {
     notFound();
@@ -39,6 +39,7 @@ export const getEmbedData = async (token: string) => {
 
   return {
     program,
+    // check if the user has an active profile on Dub Partners
     hasPartnerProfile:
       programEnrollment && programEnrollment.partner.users.length > 0
         ? true
