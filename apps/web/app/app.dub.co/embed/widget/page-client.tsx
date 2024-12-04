@@ -5,7 +5,6 @@ import {
   AnimatedSizeContainer,
   Button,
   buttonVariants,
-  LoadingSpinner,
   ToggleGroup,
   useCopyToClipboard,
   Wordmark,
@@ -14,23 +13,18 @@ import {
   Check2,
   Copy,
   EnvelopeArrowRight,
-  Gift,
   GiftFill,
   LinkedIn,
   QRCode,
   Twitter,
 } from "@dub/ui/src/icons";
-import {
-  cn,
-  currencyFormatter,
-  fetcher,
-  getPrettyUrl,
-  nFormatter,
-} from "@dub/utils";
+import { cn, fetcher, getPrettyUrl } from "@dub/utils";
 import { Link, Program } from "@prisma/client";
 import { motion } from "framer-motion";
 import { CSSProperties, useState } from "react";
 import useSWR from "swr";
+import { Activity } from "../activity";
+import { SalesList } from "../sales-list";
 import { LinkToken } from "../token";
 
 type Tab = "invite" | "rewards";
@@ -218,82 +212,20 @@ export function EmbedWidgetPageClient({
                 }}
                 className="overflow-clip"
               >
-                <div className="mt-3 grid grid-cols-3 gap-2">
-                  {[
-                    { label: "Clicks", value: link.clicks },
-                    { label: "Signups", value: link.leads },
-                    { label: "Total earned", value: earnings },
-                  ].map(({ label, value }) => (
-                    <div className="flex flex-col gap-1.5 rounded-lg bg-neutral-100 p-2">
-                      <span className="text-xs text-neutral-500">{label}</span>
-                      <span className="text-sm font-semibold text-neutral-600">
-                        {label === "Total earned"
-                          ? currencyFormatter(value / 100, {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })
-                          : nFormatter(value)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                <Activity
+                  clicks={link.clicks}
+                  leads={link.leads}
+                  earnings={earnings}
+                />
                 <div className="mt-4">
                   <h2 className="text-sm font-semibold text-neutral-900">
                     Recent sales
                   </h2>
-                  {sales ? (
-                    sales.length ? (
-                      <div className="mt-2.5 rounded-md border border-neutral-200">
-                        <div
-                          className={cn(
-                            "grid grid-cols-1",
-                            !hasPartnerProfile &&
-                              "[mask-image:linear-gradient(black,transparent)]",
-                          )}
-                        >
-                          {sales
-                            .slice(0, hasPartnerProfile ? 3 : 1)
-                            .map((sale, idx) => (
-                              <div
-                                key={sale.id}
-                                className={cn(
-                                  "flex items-center justify-between gap-4 border-neutral-200 px-3 py-2.5",
-                                  idx > 0 && "border-t",
-                                )}
-                              >
-                                <div className="flex min-w-0 flex-col">
-                                  <span className="truncate text-sm font-medium text-neutral-600">
-                                    {sale.customer.email}
-                                  </span>
-                                </div>
-                                <div className="flex flex-col">
-                                  <span className="text-sm font-medium text-neutral-600">
-                                    {currencyFormatter(sale.earnings / 100, {
-                                      minimumFractionDigits: 2,
-                                      maximumFractionDigits: 2,
-                                    })}
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
-                        </div>
-                        {!hasPartnerProfile && (
-                          <p className="px-8 py-4 text-center text-xs text-neutral-500">
-                            To withdraw your earnings or view all of your sales,
-                            create a free Dub partner account below.
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                      <EmptyState />
-                    )
-                  ) : isLoading ? (
-                    <div className="mt-6 flex items-center justify-center">
-                      <LoadingSpinner className="size-4" />
-                    </div>
-                  ) : (
-                    <EmptyState />
-                  )}
+                  <SalesList
+                    sales={sales}
+                    isLoading={isLoading}
+                    hasPartnerProfile={hasPartnerProfile}
+                  />
                   {!isLoading &&
                     sales &&
                     sales.length > 0 &&
@@ -342,15 +274,3 @@ export function EmbedWidgetPageClient({
     </div>
   );
 }
-
-const EmptyState = () => {
-  return (
-    <div className="mt-2.5 flex h-40 w-full flex-col items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50">
-      <Gift className="size-6 text-neutral-400" />
-      <p className="max-w-60 text-pretty text-center text-xs text-neutral-400">
-        No sales yet. When you refer a friend and they make a purchase, they'll
-        show up here.
-      </p>
-    </div>
-  );
-};
