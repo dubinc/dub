@@ -2,11 +2,12 @@
 
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
+import { calculateEarnings } from "@/lib/api/sales/commission";
 import { createId } from "@/lib/api/utils";
 import { createSalesPayout } from "@/lib/partners/create-sales-payout";
 import { prisma } from "@/lib/prisma";
 import { createManualPayoutSchema } from "@/lib/zod/schemas/payouts";
-import { Payout } from "@prisma/client";
+import { Payout, Program } from "@prisma/client";
 import { authActionClient } from "../safe-action";
 
 const schema = createManualPayoutSchema.refine(
@@ -26,7 +27,7 @@ export const createManualPayoutAction = authActionClient
     const { programId, partnerId, start, end, type, amount, description } =
       parsedInput;
 
-    const [_, programEnrollment] = await Promise.all([
+    const [program, programEnrollment] = await Promise.all([
       getProgramOrThrow({
         workspaceId: workspace.id,
         programId,
@@ -54,6 +55,20 @@ export const createManualPayoutAction = authActionClient
 
     // Create a payout for sales
     if (type === "sales") {
+      // commission amount changed for this payout
+      // recalculate the earnings for each sale within the period
+      if (program.commissionAmount !== amount) {
+        await updateSalesEarnings({
+          start: start!,
+          end: end!,
+          partnerId,
+          program: {
+            commissionAmount: amount,
+            commissionType: program.commissionType,
+          },
+        });
+      }
+
       payout = await createSalesPayout({
         programId,
         partnerId,
@@ -78,7 +93,7 @@ export const createManualPayoutAction = authActionClient
         quantity = count[type];
       }
 
-      const amountInCents = (quantity || 1) * (amount || 0) * 100;
+      const amountInCents = (quantity || 1) * (amount || 0);
       const fee = amountInCents * 0.02;
 
       payout = await prisma.payout.create({
@@ -106,3 +121,61 @@ export const createManualPayoutAction = authActionClient
 
     return payout;
   });
+
+// Recalculate earnings for sale based on new commission amount
+const updateSalesEarnings = async ({
+  start,
+  end,
+  partnerId,
+  program,
+}: {
+  start: Date;
+  end: Date;
+  partnerId: string;
+  program: Pick<Program, "commissionAmount" | "commissionType">;
+}) => {
+  const sales = await prisma.sale.findMany({
+    where: {
+      status: "pending",
+      partnerId,
+      createdAt: {
+        gte: start.toISOString(),
+        lte: end.toISOString(),
+      },
+    },
+  });
+
+  if (!sales.length) {
+    throw new Error("No sales found for this period.");
+  }
+
+  const { commissionAmount, commissionType } = program;
+
+  // Calculate the new earnings for each sale
+  const updatedEarnings = sales.map((sale) => {
+    return {
+      saleId: sale.id,
+      commissionAmount,
+      earnings: calculateEarnings({
+        program: {
+          commissionAmount,
+          commissionType,
+        },
+        sales: 1,
+        saleAmount: sale.amount,
+      }),
+    };
+  });
+
+  await Promise.all(
+    updatedEarnings.map(({ saleId, commissionAmount, earnings }) =>
+      prisma.sale.update({
+        where: { id: saleId },
+        data: {
+          commissionAmount,
+          earnings,
+        },
+      }),
+    ),
+  );
+};

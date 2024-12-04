@@ -343,7 +343,16 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
 function Summary({ program }: { program: ProgramProps }) {
   const { control } = useFormContext<FormData>();
 
-  const data = useWatch({ control, defaultValue: program }) as FormData;
+  const data = useWatch({
+    control,
+    defaultValue: {
+      ...program,
+      commissionAmount:
+        program.commissionType === "flat"
+          ? program.commissionAmount / 100
+          : program.commissionAmount,
+    },
+  }) as FormData;
 
   return (
     <SettingsRow heading="Summary">
