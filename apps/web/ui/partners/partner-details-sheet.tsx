@@ -227,6 +227,7 @@ function PartnerDetailsSheetContent({
                         key: "website",
                         name: "Website/Social media channel",
                         optional: true,
+                        // TODO: Make URL clickable
                       },
                       {
                         key: "proposal",
