@@ -1,63 +1,46 @@
 import {
-  Blog,
-  Book2,
-  BulletList,
-  ChartLine,
-  Code,
+  Book2Fill,
+  BulletListFill,
+  ConnectedDotsFill,
+  CubeSettingsFill,
+  FeatherFill,
   Go,
-  Headset,
-  HexadecagonStar,
+  HeadsetFill,
   Hyperlink,
-  OfficeBuilding,
-  Paintbrush,
+  LinesY,
   Php,
-  Prisma,
+  ProductHunt,
   Python,
-  QRCode,
   Raycast,
   Ruby,
-  Tinybird,
   Typescript,
-  Users,
-  WindowSettings,
 } from "./icons";
+import { Elxo } from "./icons/elxo";
 
 export const FEATURES_LIST = [
   {
-    title: "Advanced Analytics",
-    description: "Powerful Analytics For The Modern Marketer",
-    icon: ChartLine,
+    title: "Dub Links",
+    description: "Short links with superpowers",
+    icon: Hyperlink,
+    href: "/home",
+  },
+  {
+    title: "Dub Analytics",
+    description: "Powerful real-time analytics",
+    icon: LinesY,
     href: "/help/article/dub-analytics",
   },
   {
-    title: "Branded Links",
-    description: "Branded Links That Stand Out",
-    icon: Hyperlink,
-    href: "/features/branded-links",
-  },
-  {
-    title: "QR Codes",
-    description: "Gorgeous QR codes for your links",
-    icon: QRCode,
-    href: "/features/qr-codes",
-  },
-  {
-    title: "Personalization",
-    description: "Personalize Your Short Links",
-    icon: Paintbrush,
-    href: "/features/personalization",
-  },
-  {
-    title: "Collaboration",
-    description: "Collaborate With Your Team",
-    icon: Users,
-    href: "/features/collaboration",
-  },
-  {
-    title: "API",
-    description: "Programmatic Link Creation",
-    icon: WindowSettings,
+    title: "Dub API",
+    description: "Programmatic link creation at scale",
+    icon: CubeSettingsFill,
     href: "/docs/api-reference/introduction",
+  },
+  {
+    title: "Dub Integrations",
+    description: "Connect Dub with your favorite tools",
+    icon: ConnectedDotsFill,
+    href: "/docs/integrations",
   },
 ];
 
@@ -66,39 +49,22 @@ export const CUSTOMER_STORIES = [
     icon: Raycast,
     iconClassName: "group-hover:text-[#FF6363]",
     title: "Raycast",
-    description:
-      "How Raycast added link-sharing features to Ray.so with Dub.co's link infrastructure",
+    description: "Programmatic link sharing",
     href: "/customers/raycast",
   },
   {
-    icon: Tinybird,
-    iconClassName: "group-hover:text-[#268472]",
-    title: "Tinybird",
-    description:
-      "How Tinybird uses Dub.co to enhance their digital marketing strategies",
-    href: "/customers/tinybird",
+    icon: ProductHunt,
+    iconClassName: "group-hover:text-[#FF6154]",
+    title: "Product Hunt",
+    description: "Unlocking new growth",
+    href: "/customers/product-hunt",
   },
   {
-    icon: Prisma,
-    iconClassName: "group-hover:text-[#4C51BF]",
-    title: "Prisma",
-    description: "How Prisma uses Dub.co to improve insights for pris.ly links",
-    href: "/customers/prisma",
-  },
-];
-
-export const PROFILES = [
-  {
-    icon: Code,
-    title: "Developers",
-    description: "API for efficient link management",
-    href: "/docs/introduction",
-  },
-  {
-    icon: OfficeBuilding,
-    title: "Enterprise",
-    description: "Scalable link management solutions",
-    href: "/enterprise",
+    icon: Elxo,
+    iconClassName: "group-hover:text-[#353D7C]",
+    title: "Elxo",
+    description: "Overcoming API latency",
+    href: "/customers/elxo",
   },
 ];
 
@@ -140,29 +106,28 @@ export const SDKS = [
 
 export const RESOURCES = [
   {
-    icon: Blog,
+    icon: FeatherFill,
     title: "Blog",
+    description: "Insights and stories",
     href: "/blog",
   },
   {
-    icon: BulletList,
+    icon: BulletListFill,
     title: "Changelog",
+    description: "Releases and updates",
     href: "/changelog",
   },
   {
-    icon: Book2,
+    icon: Book2Fill,
     title: "Docs",
+    description: "Platform documentation",
     href: "/docs",
   },
   {
-    icon: Headset,
+    icon: HeadsetFill,
     title: "Help Center",
+    description: "Answers to your questions",
     href: "/help",
-  },
-  {
-    icon: HexadecagonStar,
-    title: "Brand",
-    href: "/brand",
   },
 ];
 
