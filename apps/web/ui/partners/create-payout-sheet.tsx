@@ -215,24 +215,41 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
     fetcher,
   );
 
-  const invoiceData = useMemo(() => {
+  const payoutAmount = useMemo(() => {
     const quantity =
       payoutType === "sales" ? salesCount?.pending : totalEvents?.[payoutType];
 
-    let payoutAmount: number | undefined = undefined;
-
     if (payoutType === "custom") {
-      payoutAmount = amount;
-    } else if (isPercentageBased && salesAmount?.amount) {
-      payoutAmount =
-        calculateEarnings({
-          program: program!,
-          sales: quantity,
-          saleAmount: salesAmount.amount,
-        }) / 100;
-    } else {
-      payoutAmount = quantity && amount ? quantity * amount : undefined;
+      return amount;
     }
+
+    if (isPercentageBased && salesAmount?.amount) {
+      return (
+        calculateEarnings({
+          program: {
+            commissionAmount: amount,
+            commissionType: "percentage",
+          },
+          sales: 1,
+          saleAmount: salesAmount.amount,
+        }) / 100
+      );
+    }
+
+    return quantity && amount ? quantity * amount : undefined;
+  }, [
+    payoutType,
+    salesCount,
+    totalEvents,
+    amount,
+    isPercentageBased,
+    salesAmount,
+    program,
+  ]);
+
+  const invoiceData = useMemo(() => {
+    const quantity =
+      payoutType === "sales" ? salesCount?.pending : totalEvents?.[payoutType];
 
     const amountAsNumber = amount ? Number(amount) : undefined;
 
@@ -337,7 +354,16 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
     isValidating,
     isValidatingSalesAmount,
     isValidatingSalesCount,
+    payoutAmount,
   ]);
+
+  const buttonDisabled =
+    isExecuting ||
+    isValidating ||
+    isValidatingSalesAmount ||
+    isValidatingSalesCount ||
+    !partnerId ||
+    !payoutAmount;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
@@ -586,7 +612,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
             text="Create payout"
             className="w-fit"
             loading={isExecuting}
-            disabled={isExecuting || isValidating}
+            disabled={buttonDisabled}
           />
         </div>
       </div>
