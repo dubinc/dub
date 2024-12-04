@@ -224,11 +224,12 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
     if (payoutType === "custom") {
       payoutAmount = amount;
     } else if (isPercentageBased && salesAmount?.amount) {
-      payoutAmount = calculateEarnings({
-        program: program!,
-        sales: quantity,
-        saleAmount: salesAmount.amount,
-      });
+      payoutAmount =
+        calculateEarnings({
+          program: program!,
+          sales: quantity,
+          saleAmount: salesAmount.amount,
+        }) / 100;
     } else {
       payoutAmount = quantity && amount ? quantity * amount : undefined;
     }
@@ -287,7 +288,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
         Revenue: isValidatingSalesAmount ? (
           <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
         ) : salesAmount?.amount ? (
-          currencyFormatter(salesAmount.amount, {
+          currencyFormatter(salesAmount.amount / 100, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })

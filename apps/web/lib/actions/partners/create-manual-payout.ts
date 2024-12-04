@@ -117,8 +117,6 @@ export const createManualPayoutAction = authActionClient
       throw new Error("Failed to create payout. Please try again.");
     }
 
-    console.info("Manual payout created", payout);
-
     return payout;
   });
 
