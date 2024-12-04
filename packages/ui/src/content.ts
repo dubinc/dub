@@ -49,7 +49,7 @@ export const CUSTOMER_STORIES = [
     icon: Raycast,
     iconClassName: "group-hover:text-[#FF6363]",
     title: "Raycast",
-    description: "Complex link infrastructure",
+    description: "Programmatic link sharing",
     href: "/customers/raycast",
   },
   {
