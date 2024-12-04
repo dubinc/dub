@@ -526,7 +526,8 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
             <textarea
               {...register("description")}
               className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-              placeholder="A note to partner about this payout."
+              placeholder="A note to partner about this payout. Max 190 characters."
+              maxLength={190}
             />
           </div>
 

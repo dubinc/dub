@@ -13,5 +13,8 @@ export const createManualPayoutSchema = z.object({
     z.number().default(0),
   ),
   type: z.nativeEnum(PayoutType),
-  description: z.string().max(5000).nullable(),
-})
+  description: z
+    .string()
+    .max(190, "Description must be less than 190 characters")
+    .nullable(),
+});
