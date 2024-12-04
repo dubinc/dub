@@ -2,9 +2,9 @@ import { Webhook } from "@prisma/client";
 import { sendEmail } from "emails";
 import WebhookDisabled from "emails/webhook-disabled";
 import { prisma } from "../prisma";
-import { updateWebhookStatusForWorkspace } from "./api";
 import { webhookCache } from "./cache";
 import { WEBHOOK_FAILURE_NOTIFY_THRESHOLD } from "./constants";
+import { updateWebhookStatusForWorkspace } from "./update-webhook";
 
 export const handleWebhookFailure = async (webhookId: string) => {
   const webhook = await prisma.webhook.update({

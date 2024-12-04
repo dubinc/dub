@@ -5,7 +5,7 @@ import { getSlackEnv } from "@/lib/integrations/slack/env";
 import { SlackCredential } from "@/lib/integrations/slack/type";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
-import { addWebhook } from "@/lib/webhook/api";
+import { createWebhook } from "@/lib/webhook/create-webhook";
 import z from "@/lib/zod";
 import {
   APP_DOMAIN_WITH_NGROK,
@@ -75,7 +75,7 @@ export const GET = async (req: Request) => {
 
     const data = await response.json();
 
-    const webhook = await addWebhook({
+    const webhook = await createWebhook({
       name: "Slack",
       url: data.incoming_webhook.url,
       triggers: ["link.created"],

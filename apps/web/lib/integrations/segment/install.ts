@@ -1,7 +1,7 @@
 "use server";
 
 import { authActionClient } from "@/lib/actions/safe-action";
-import { addWebhook } from "@/lib/webhook/api";
+import { createWebhook } from "@/lib/webhook/create-webhook";
 import { SEGMENT_INTEGRATION_ID } from "@dub/utils";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -18,7 +18,7 @@ export const installSegmentAction = authActionClient
     const { workspace, user } = ctx;
     const { writeKey } = parsedInput;
 
-    const webhook = await addWebhook({
+    const webhook = await createWebhook({
       name: "Segment",
       url: "https://api.segment.io/v1/track",
       triggers: ["link.clicked"],

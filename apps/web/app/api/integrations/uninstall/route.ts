@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { uninstallSlackIntegration } from "@/lib/integrations/slack/uninstall";
 import { prisma } from "@/lib/prisma";
-import { deleteWebhook } from "@/lib/webhook/api";
+import { deleteWebhook } from "@/lib/webhook/delete-webhook";
 import { NextResponse } from "next/server";
 
 // DELETE /api/integrations/uninstall - uninstall an installation by id

@@ -12,9 +12,7 @@ import { waitUntil } from "@vercel/functions";
 import { WebhookTrigger } from "../types";
 import { createWebhookSecret } from "./secret";
 
-// TODO (Kiran): move the methods to individual files
-
-export async function addWebhook({
+export async function createWebhook({
   name,
   url,
   secret,
@@ -102,82 +100,3 @@ export async function addWebhook({
 
   return webhook;
 }
-
-export const updateWebhookStatusForWorkspace = async ({
-  workspaceId,
-}: {
-  workspaceId: string;
-}) => {
-  const activeWebhooksCount = await prisma.webhook.count({
-    where: {
-      projectId: workspaceId,
-      disabledAt: null,
-    },
-  });
-
-  await prisma.project.update({
-    where: {
-      id: workspaceId,
-    },
-    data: {
-      webhookEnabled: activeWebhooksCount > 0,
-    },
-  });
-};
-
-export const deleteWebhook = async ({
-  webhookId,
-  workspaceId,
-}: {
-  webhookId: string;
-  workspaceId: string;
-}) => {
-  const linkWebhooks = await prisma.linkWebhook.findMany({
-    where: {
-      webhookId,
-    },
-    select: {
-      linkId: true,
-    },
-  });
-
-  await prisma.webhook.delete({
-    where: {
-      id: webhookId,
-      projectId: workspaceId,
-    },
-  });
-
-  waitUntil(
-    (async () => {
-      const links = await prisma.link.findMany({
-        where: {
-          id: { in: linkWebhooks.map(({ linkId }) => linkId) },
-        },
-        include: {
-          webhooks: {
-            select: {
-              webhookId: true,
-            },
-          },
-        },
-      });
-
-      const formatedLinks = links.map((link) => {
-        return {
-          ...link,
-          webhookIds: link.webhooks.map((webhook) => webhook.webhookId),
-        };
-      });
-
-      await Promise.all([
-        updateWebhookStatusForWorkspace({
-          workspaceId,
-        }),
-
-        linkCache.mset(formatedLinks),
-        webhookCache.delete(webhookId),
-      ]);
-    })(),
-  );
-};
