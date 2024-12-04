@@ -20,10 +20,6 @@ import { Activity } from "../activity";
 import { SalesList } from "../sales-list";
 import { LinkToken } from "../token";
 
-type Tab = "invite" | "rewards";
-
-const heroAnimationDuration = 0.2;
-
 export function EmbedInlinePageClient({
   program,
   link,
