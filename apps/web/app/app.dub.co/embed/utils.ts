@@ -15,7 +15,15 @@ export const getEmbedData = async (token: string) => {
     },
     include: {
       program: true,
-      programEnrollment: true,
+      programEnrollment: {
+        select: {
+          partner: {
+            select: {
+              users: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -31,7 +39,10 @@ export const getEmbedData = async (token: string) => {
 
   return {
     program,
-    programEnrollment,
+    hasPartnerProfile:
+      programEnrollment && programEnrollment.partner.users.length > 0
+        ? true
+        : false,
     link,
     earnings:
       (program.commissionType === "percentage" ? link.saleAmount : link.sales) *

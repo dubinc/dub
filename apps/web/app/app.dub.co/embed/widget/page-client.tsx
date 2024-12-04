@@ -41,12 +41,12 @@ export function EmbedWidgetPageClient({
   program,
   link,
   earnings,
-  isEnrolled,
+  hasPartnerProfile,
 }: {
   program: Program;
   link: Link;
   earnings: number;
-  isEnrolled: boolean;
+  hasPartnerProfile: boolean;
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
   const [selectedTab, setSelectedTab] = useState<Tab>("invite");
@@ -247,12 +247,12 @@ export function EmbedWidgetPageClient({
                         <div
                           className={cn(
                             "grid grid-cols-1",
-                            !isEnrolled &&
+                            !hasPartnerProfile &&
                               "[mask-image:linear-gradient(black,transparent)]",
                           )}
                         >
                           {sales
-                            .slice(0, isEnrolled ? 3 : 1)
+                            .slice(0, hasPartnerProfile ? 3 : 1)
                             .map((sale, idx) => (
                               <div
                                 key={sale.id}
@@ -277,7 +277,7 @@ export function EmbedWidgetPageClient({
                               </div>
                             ))}
                         </div>
-                        {!isEnrolled && (
+                        {!hasPartnerProfile && (
                           <p className="px-8 py-4 text-center text-xs text-neutral-500">
                             To withdraw your earnings or view all of your sales,
                             create a free Dub partner account below.
@@ -297,7 +297,7 @@ export function EmbedWidgetPageClient({
                   {!isLoading &&
                     sales &&
                     sales.length > 0 &&
-                    (isEnrolled ? (
+                    (hasPartnerProfile ? (
                       <a
                         href="https://partners.dub.co/settings/payouts"
                         target="_blank"

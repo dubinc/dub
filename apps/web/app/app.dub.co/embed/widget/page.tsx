@@ -8,7 +8,7 @@ export default async function EmbedWidgetPage({
 }) {
   const { token } = searchParams;
 
-  const { link, program, programEnrollment, earnings } =
+  const { link, program, hasPartnerProfile, earnings } =
     await getEmbedData(token);
 
   return (
@@ -16,7 +16,7 @@ export default async function EmbedWidgetPage({
       program={program}
       link={link}
       earnings={earnings}
-      isEnrolled={!!programEnrollment}
+      hasPartnerProfile={hasPartnerProfile}
     />
   );
 }
