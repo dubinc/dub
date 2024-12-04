@@ -1,6 +1,7 @@
 "use client";
 
 import { PartnerSaleResponse } from "@/lib/types";
+import { Link, Program } from "@dub/prisma";
 import {
   AnimatedSizeContainer,
   Button,
@@ -26,7 +27,6 @@ import {
   getPrettyUrl,
   nFormatter,
 } from "@dub/utils";
-import { Link, Program } from "@prisma/client";
 import { CSSProperties, useState } from "react";
 import useSWR from "swr";
 import { LinkToken } from "../token";
