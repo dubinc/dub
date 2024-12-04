@@ -1,4 +1,4 @@
-import { useRouterStuff } from "@dub/ui/src/hooks/use-router-stuff";
+import { useRouterStuff } from "@dub/ui";
 import { FilterBars } from "@dub/ui/src/icons";
 import Link from "next/link";
 

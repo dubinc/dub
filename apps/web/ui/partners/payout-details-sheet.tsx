@@ -46,7 +46,7 @@ function PayoutDetailsSheetContent({
     isLoading,
     error,
   } = useSWR<SaleResponse[]>(
-    `/api/programs/${programId}/sales?workspaceId=${workspaceId}&payoutId=${payout.id}&start=${payout.periodStart}&end=${payout.periodEnd}&pageSize=5`,
+    `/api/programs/${programId}/sales?workspaceId=${workspaceId}&payoutId=${payout.id}&interval=all&pageSize=10`,
     fetcher,
   );
 
@@ -172,7 +172,7 @@ function PayoutDetailsSheetContent({
       );
       toast.success("Successfully confirmed payout!");
       setIsOpen(false);
-      queryParams({ del: "payoutId" });
+      queryParams({ del: "payoutId", scroll: false });
     },
     onError({ error }) {
       toast.error(error.serverError);
@@ -211,7 +211,7 @@ function PayoutDetailsSheetContent({
           <Table {...table} />
           <div className="mt-2 flex justify-end">
             <Link
-              href={`/${slug}/programs/${programId}/sales?payoutId=${payout.id}`}
+              href={`/${slug}/programs/${programId}/sales?payoutId=${payout.id}&interval=all`}
               className={cn(
                 buttonVariants({ variant: "secondary" }),
                 "flex h-7 items-center rounded-lg border px-2 text-sm",
@@ -269,7 +269,7 @@ export function PayoutDetailsSheet({
       open={isOpen}
       onOpenChange={rest.setIsOpen}
       onClose={() => {
-        queryParams({ del: "payoutId" });
+        queryParams({ del: "payoutId", scroll: false });
       }}
     >
       <PayoutDetailsSheetContent {...rest} />

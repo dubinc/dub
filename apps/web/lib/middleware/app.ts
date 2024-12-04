@@ -1,5 +1,7 @@
 import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
+import { EMBED_PUBLIC_TOKEN_COOKIE_NAME } from "../embed/constants";
+import { embedToken } from "../embed/embed-token";
 import NewLinkMiddleware from "./new-link";
 import { appRedirect } from "./utils/app-redirect";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
@@ -13,6 +15,27 @@ export default async function AppMiddleware(req: NextRequest) {
   const user = await getUserViaToken(req);
   const isWorkspaceInvite =
     req.nextUrl.searchParams.get("invite") || path.startsWith("/invites/");
+
+  if (path.startsWith("/embed")) {
+    const token = req.nextUrl.searchParams.get("token");
+
+    if (token) {
+      const linkId = await embedToken.get(token);
+
+      if (linkId) {
+        return NextResponse.rewrite(
+          new URL(`/app.dub.co${fullPath}`, req.url),
+          {
+            headers: {
+              "Set-Cookie": `${EMBED_PUBLIC_TOKEN_COOKIE_NAME}=${token}; HttpOnly; Secure; SameSite=None; Path=/`,
+            },
+          },
+        );
+      }
+    }
+
+    return NextResponse.redirect(new URL("/", req.url));
+  }
 
   // if there's no user and the path isn't /login or /register, redirect to /login
   if (

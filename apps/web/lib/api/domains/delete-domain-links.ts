@@ -16,6 +16,7 @@ export async function deleteDomainAndLinks(domain: string) {
       select: {
         id: true,
         projectId: true,
+        logo: true,
         createdAt: true,
       },
     }),
@@ -76,6 +77,9 @@ export async function deleteDomainAndLinks(domain: string) {
         }),
         // remove the domain from Vercel
         removeDomainFromVercel(domain),
+        // if domain has logo, delete it from R2
+        domainData.logo &&
+          storage.delete(domainData.logo.replace(`${R2_URL}/`, "")),
       ]);
     })(),
   );

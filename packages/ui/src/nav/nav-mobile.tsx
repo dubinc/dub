@@ -32,7 +32,7 @@ export function NavMobile({
   }, [open]);
 
   const { data: session } = useSWR(
-    domain === "dub.co" && "/api/auth/session",
+    domain.endsWith("dub.co") && "/api/auth/session",
     fetcher,
     {
       dedupingInterval: 60000,
@@ -117,6 +117,7 @@ const MobileNavItem = ({
   href?: string;
   childItems?: {
     title: string;
+    description: string;
     href: string;
     icon: ElementType;
     iconClassName?: string;
@@ -144,7 +145,7 @@ const MobileNavItem = ({
           </button>
           {expanded && (
             <div className="grid gap-4 overflow-hidden py-4">
-              {childItems.map(({ title, href, icon: Icon, iconClassName }) => (
+              {childItems.map(({ title, href, icon: Icon, description }) => (
                 <Link
                   key={href}
                   href={createHref(href, domain, {
@@ -154,15 +155,19 @@ const MobileNavItem = ({
                     utm_content: title,
                   })}
                   onClick={() => setOpen(false)}
-                  className="flex w-full space-x-2"
+                  className="flex w-full gap-3"
                 >
-                  <Icon
-                    className={cn(
-                      "h-5 w-5 text-gray-500 dark:text-white/80",
-                      iconClassName,
-                    )}
-                  />
-                  <span className="text-sm">{title}</span>
+                  <div className="flex size-10 items-center justify-center rounded-lg border border-neutral-200 bg-gradient-to-t from-neutral-100">
+                    <Icon className="size-5 text-neutral-700" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-sm font-medium text-neutral-900">
+                        {title}
+                      </h2>
+                    </div>
+                    <p className="text-sm text-neutral-500">{description}</p>
+                  </div>
                 </Link>
               ))}
             </div>

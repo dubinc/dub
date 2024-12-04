@@ -11,6 +11,29 @@ import { Github, LinkedIn, Twitter, YouTube } from "./icons";
 import { MaxWidthWrapper } from "./max-width-wrapper";
 import { NavWordmark } from "./nav-wordmark";
 
+const socials = [
+  {
+    name: "Twitter",
+    icon: Twitter,
+    href: "https://twitter.com/dubdotco",
+  },
+  {
+    name: "LinkedIn",
+    icon: LinkedIn,
+    href: "https://www.linkedin.com/company/dubinc",
+  },
+  {
+    name: "GitHub",
+    icon: Github,
+    href: "https://github.com/dubinc/dub",
+  },
+  {
+    name: "YouTube",
+    icon: YouTube,
+    href: "https://www.youtube.com/@dubdotco",
+  },
+];
+
 const navigation = {
   features: FEATURES_LIST.map(({ title, href }) => ({
     name: title,
@@ -40,83 +63,69 @@ const navigation = {
   })),
 };
 
-export function Footer({ staticDomain }: { staticDomain?: string }) {
+const linkListHeaderClassName = "text-sm font-medium text-neutral-900";
+const linkListClassName = "flex flex-col mt-2.5 gap-2.5";
+const linkListItemClassName =
+  "text-sm text-neutral-500 hover:text-neutral-700 transition-colors duration-75";
+
+export function Footer({
+  staticDomain,
+  className,
+}: {
+  staticDomain?: string;
+  className?: string;
+}) {
   let { domain = "dub.co" } = useParams() as { domain: string };
   if (staticDomain) {
     domain = staticDomain;
   }
 
   return (
-    <footer>
-      <MaxWidthWrapper className="relative z-10 overflow-hidden border border-b-0 border-gray-200 bg-white/50 pb-60 pt-16 backdrop-blur-lg md:rounded-t-2xl">
+    <MaxWidthWrapper
+      className={cn(
+        "relative z-10 overflow-hidden border border-b-0 border-neutral-200 bg-white/50 py-16 backdrop-blur-lg md:rounded-t-2xl",
+        className,
+      )}
+    >
+      <footer>
         <div className="xl:grid xl:grid-cols-3 xl:gap-8">
-          <div className="space-y-6">
-            <Link
-              href={createHref("/", domain, {
-                utm_source: "Custom Domain",
-                utm_medium: "Footer",
-                utm_campaign: domain,
-                utm_content: "Logo",
-              })}
-              className="block max-w-fit"
-            >
-              <span className="sr-only">
-                {process.env.NEXT_PUBLIC_APP_NAME} Logo
-              </span>
-              <NavWordmark className="h-8 text-gray-800" />
-            </Link>
-            <p className="max-w-xs text-sm text-gray-500">
-              Giving modern marketing teams superpowers with short links that
-              stand out.
-            </p>
-            <p className="text-sm leading-5 text-gray-400">
-              © {new Date().getFullYear()} Dub Technologies, Inc.
-            </p>
-            <div className="flex items-center space-x-3">
-              <a
-                href="https://twitter.com/dubdotco"
-                target="_blank"
-                rel="noreferrer"
-                className="group rounded-full border border-gray-200 p-2 transition-colors hover:bg-gray-100"
+          <div className="flex flex-col gap-6">
+            <div className="grow">
+              <Link
+                href={createHref("/", domain, {
+                  utm_source: "Custom Domain",
+                  utm_medium: "Footer",
+                  utm_campaign: domain,
+                  utm_content: "Logo",
+                })}
+                className="block max-w-fit"
               >
-                <span className="sr-only">Twitter</span>
-                <Twitter className="h-4 w-4 text-gray-600 transition-colors group-hover:text-black" />
-              </a>
-              <a
-                href="https://github.com/dubinc/dub"
-                target="_blank"
-                rel="noreferrer"
-                className="group rounded-full border border-gray-200 p-2 transition-colors hover:bg-gray-100"
-              >
-                <span className="sr-only">Github</span>
-                <Github className="h-4 w-4 text-gray-600 transition-colors group-hover:text-black" />
-              </a>
-              <a
-                href="https://www.linkedin.com/company/dubinc"
-                target="_blank"
-                rel="noreferrer"
-                className="group rounded-full border border-gray-200 p-2 transition-colors hover:bg-gray-100"
-              >
-                <span className="sr-only">LinkedIn</span>
-                <LinkedIn className="h-4 w-4 text-gray-600 transition-colors group-hover:text-[#0077b5]" />
-              </a>
-              <a
-                href="https://www.youtube.com/@dubdotco"
-                target="_blank"
-                rel="noreferrer"
-                className="group rounded-full border border-gray-200 p-2 transition-colors hover:bg-gray-100"
-              >
-                <span className="sr-only">YouTube</span>
-                <YouTube className="h-4 w-4 text-gray-600 transition-colors group-hover:text-[#ff0000]" />
-              </a>
+                <span className="sr-only">
+                  {process.env.NEXT_PUBLIC_APP_NAME} Logo
+                </span>
+                <NavWordmark className="h-8 text-gray-800" />
+              </Link>
             </div>
-            <StatusBadge />
+            <div className="flex items-center gap-3">
+              {socials.map(({ name, icon: Icon, href }) => (
+                <a
+                  key={name}
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group rounded-full p-1"
+                >
+                  <span className="sr-only">{name}</span>
+                  <Icon className="size-4 text-neutral-900 transition-colors duration-75 group-hover:text-neutral-600" />
+                </a>
+              ))}
+            </div>
           </div>
           <div className="mt-16 grid grid-cols-2 gap-4 xl:col-span-2 xl:mt-0">
             <div className="md:grid md:grid-cols-2">
               <div>
-                <h3 className="text-sm font-semibold text-gray-800">Product</h3>
-                <ul role="list" className="mt-4 space-y-4">
+                <h3 className={linkListHeaderClassName}>Product</h3>
+                <ul role="list" className={linkListClassName}>
                   {navigation.features.map((item) => (
                     <li key={item.name}>
                       <Link
@@ -126,7 +135,7 @@ export function Footer({ staticDomain }: { staticDomain?: string }) {
                           utm_campaign: domain,
                           utm_content: item.name,
                         })}
-                        className="text-sm text-gray-500 hover:text-gray-800"
+                        className={linkListItemClassName}
                       >
                         {item.name}
                       </Link>
@@ -135,10 +144,8 @@ export function Footer({ staticDomain }: { staticDomain?: string }) {
                 </ul>
               </div>
               <div className="mt-10 md:mt-0">
-                <h3 className="text-sm font-semibold text-gray-800">
-                  Resources
-                </h3>
-                <ul role="list" className="mt-4 space-y-4">
+                <h3 className={linkListHeaderClassName}>Resources</h3>
+                <ul role="list" className={linkListClassName}>
                   {navigation.product.map((item) => (
                     <li key={item.name}>
                       <Link
@@ -148,7 +155,7 @@ export function Footer({ staticDomain }: { staticDomain?: string }) {
                           utm_campaign: domain,
                           utm_content: item.name,
                         })}
-                        className="text-sm text-gray-500 hover:text-gray-800"
+                        className={linkListItemClassName}
                       >
                         {item.name}
                       </Link>
@@ -160,10 +167,8 @@ export function Footer({ staticDomain }: { staticDomain?: string }) {
             <div className="md:grid md:grid-cols-2">
               <div className="flex flex-col space-y-8">
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-800">
-                    Compare
-                  </h3>
-                  <ul role="list" className="mt-4 space-y-4">
+                  <h3 className={linkListHeaderClassName}>Compare</h3>
+                  <ul role="list" className={linkListClassName}>
                     {navigation.compare.map((item) => (
                       <li key={item.name}>
                         <Link
@@ -173,7 +178,7 @@ export function Footer({ staticDomain }: { staticDomain?: string }) {
                             utm_campaign: domain,
                             utm_content: item.name,
                           })}
-                          className="text-sm text-gray-500 hover:text-gray-800"
+                          className={linkListItemClassName}
                         >
                           {item.name}
                         </Link>
@@ -182,8 +187,8 @@ export function Footer({ staticDomain }: { staticDomain?: string }) {
                   </ul>
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-800">Legal</h3>
-                  <ul role="list" className="mt-4 space-y-4">
+                  <h3 className={linkListHeaderClassName}>Legal</h3>
+                  <ul role="list" className={linkListClassName}>
                     {navigation.legal.map((item) => (
                       <li key={item.name}>
                         <Link
@@ -193,7 +198,7 @@ export function Footer({ staticDomain }: { staticDomain?: string }) {
                             utm_campaign: domain,
                             utm_content: item.name,
                           })}
-                          className="text-sm text-gray-500 hover:text-gray-800"
+                          className={linkListItemClassName}
                         >
                           {item.name}
                         </Link>
@@ -204,8 +209,8 @@ export function Footer({ staticDomain }: { staticDomain?: string }) {
               </div>
 
               <div className="mt-10 md:mt-0">
-                <h3 className="text-sm font-semibold text-gray-800">Tools</h3>
-                <ul role="list" className="mt-4 space-y-4">
+                <h3 className={linkListHeaderClassName}>Tools</h3>
+                <ul role="list" className={linkListClassName}>
                   {navigation.tools.map((item) => (
                     <li key={item.name}>
                       <Link
@@ -215,7 +220,7 @@ export function Footer({ staticDomain }: { staticDomain?: string }) {
                           utm_campaign: domain,
                           utm_content: item.name,
                         })}
-                        className="text-sm text-gray-500 hover:text-gray-800"
+                        className={linkListItemClassName}
                       >
                         {item.name}
                       </Link>
@@ -226,15 +231,33 @@ export function Footer({ staticDomain }: { staticDomain?: string }) {
             </div>
           </div>
         </div>
-        <Image
-          src="https://assets.dub.co/footer.png"
-          alt="Dub Technologies, Inc. Logo"
-          width={1959}
-          height={625}
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-0"
-        />
-      </MaxWidthWrapper>
-    </footer>
+
+        {/* Bottom row (status, SOC2, copyright) */}
+        <div className="mt-12 grid grid-cols-1 items-center gap-8 sm:grid-cols-3">
+          <StatusBadge />
+          <Link
+            href={createHref("/blog/soc2", domain, {
+              utm_source: "Custom Domain",
+              utm_medium: "Footer",
+              utm_campaign: domain,
+              utm_content: "SOC2",
+            })}
+            className="flex sm:justify-center"
+          >
+            <Image
+              src="https://assets.dub.co/misc/soc2.svg"
+              alt="AICPA SOC 2 Type II Certified"
+              width={63}
+              height={32}
+              className="h-8 transition-[filter] duration-75 hover:brightness-90"
+            />
+          </Link>
+          <p className="text-xs text-neutral-500 sm:text-right">
+            © {new Date().getFullYear()} Dub Technologies, Inc.
+          </p>
+        </div>
+      </footer>
+    </MaxWidthWrapper>
   );
 }
 
@@ -249,7 +272,7 @@ function StatusBadge() {
     }[];
   }>("https://status.dub.co/api/v1/summary", fetcher);
 
-  const [color, setColor] = useState("bg-gray-200");
+  const [color, setColor] = useState("bg-neutral-200");
   const [status, setStatus] = useState("Loading status...");
 
   useEffect(() => {
@@ -273,24 +296,26 @@ function StatusBadge() {
     <Link
       href="https://status.dub.co"
       target="_blank"
-      className="group flex max-w-fit items-center space-x-2 rounded-md border border-gray-200 bg-white px-3 py-2 transition-colors hover:bg-gray-100"
+      className="group flex max-w-fit items-center gap-2 rounded-lg border border-neutral-200 bg-white py-2 pl-2 pr-2.5 transition-colors hover:bg-neutral-50 active:bg-neutral-100"
     >
-      <div className="relative h-3 w-3">
+      <div className="relative size-2">
         <div
           className={cn(
-            "absolute inset-0 m-auto h-3 w-3 animate-ping items-center justify-center rounded-full group-hover:animate-none",
+            "absolute inset-0 m-auto size-2 animate-ping items-center justify-center rounded-full group-hover:animate-none",
             color,
             status === "Loading status..." && "animate-none",
           )}
         />
         <div
           className={cn(
-            "absolute inset-0 z-10 m-auto h-3 w-3 rounded-full",
+            "absolute inset-0 z-10 m-auto size-2 rounded-full",
             color,
           )}
         />
       </div>
-      <p className="text-sm font-medium text-gray-800">{status}</p>
+      <p className="text-xs font-medium leading-none text-neutral-600">
+        {status}
+      </p>
     </Link>
   );
 }

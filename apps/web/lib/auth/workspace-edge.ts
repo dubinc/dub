@@ -418,5 +418,8 @@ export const withWorkspaceEdge = (
         return handleAndReturnErrorResponse(error, headers);
       }
     },
+    {
+      logRequestDetails: ["body", "nextUrl"],
+    },
   );
 };

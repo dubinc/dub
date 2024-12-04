@@ -25,14 +25,14 @@ export const POST = withWorkspaceEdge(
       clickId,
       eventName,
       externalId,
-      customerId, // deprecated
+      customerId, // deprecated (but we'll support it for backwards compatibility)
       customerName,
       customerEmail,
       customerAvatar,
       metadata,
     } = trackLeadRequestSchema.parse(await parseRequestBody(req));
 
-    const customerExternalId = customerId || externalId;
+    const customerExternalId = externalId || customerId;
 
     if (!customerExternalId) {
       throw new DubApiError({

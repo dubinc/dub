@@ -2,20 +2,21 @@ import { prisma } from "@dub/prisma";
 import { validDomainRegex } from "@dub/utils";
 import { DubApiError } from "../errors";
 
+export const isValidDomain = (domain: string) => {
+  return (
+    validDomainRegex.test(domain) &&
+    // make sure the domain doesn't contain dub.co/dub.sh/d.to
+    !/^(dub\.co|.*\.dub\.co|dub\.sh|.*\.dub\.sh|d\.to|.*\.d\.to)$/i.test(domain)
+  );
+};
+
 export const validateDomain = async (
   domain: string,
 ): Promise<{ error: string | null; code?: DubApiError["code"] }> => {
   if (!domain || typeof domain !== "string") {
     return { error: "Missing domain", code: "unprocessable_entity" };
   }
-  const validDomain =
-    validDomainRegex.test(domain) &&
-    // make sure the domain doesn't contain dub.co/dub.sh/d.to
-    !/^(dub\.co|.*\.dub\.co|dub\.sh|.*\.dub\.sh|d\.to|.*\.d\.to)$/i.test(
-      domain,
-    );
-
-  if (!validDomain) {
+  if (!isValidDomain(domain)) {
     return { error: "Invalid domain", code: "unprocessable_entity" };
   }
   const exists = await domainExists(domain);

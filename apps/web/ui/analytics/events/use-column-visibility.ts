@@ -2,15 +2,11 @@ import { EventType } from "@/lib/analytics/types";
 import { useLocalStorage } from "@dub/ui";
 import { VisibilityState } from "@tanstack/react-table";
 
-export const getEventColumns: (
-  partners?: boolean,
-) => Record<EventType, { all: string[]; defaultVisible: string[] }> = (
-  partners,
-) => ({
+export const eventColumns = {
   clicks: {
     all: [
       "trigger",
-      ...(!partners ? ["link"] : []),
+      "link",
       "country",
       "city",
       "region",
@@ -23,19 +19,12 @@ export const getEventColumns: (
       "ip",
       "timestamp",
     ],
-    defaultVisible: [
-      "trigger",
-      ...(!partners ? ["link"] : []),
-      "country",
-      "device",
-      ...(partners ? ["refererUrl"] : []),
-      "timestamp",
-    ],
+    defaultVisible: ["trigger", "link", "country", "device", "timestamp"],
   },
   leads: {
     all: [
       "event",
-      ...(!partners ? ["link"] : []),
+      "link",
       "customer",
       "country",
       "city",
@@ -51,7 +40,7 @@ export const getEventColumns: (
     ],
     defaultVisible: [
       "event",
-      ...(!partners ? ["link"] : []),
+      "link",
       "customer",
       "country",
       "device",
@@ -62,7 +51,8 @@ export const getEventColumns: (
     all: [
       "event",
       "customer",
-      ...(!partners ? ["link", "invoiceId"] : []),
+      "link",
+      "invoiceId",
       "country",
       "city",
       "region",
@@ -75,38 +65,32 @@ export const getEventColumns: (
       "ip",
       "timestamp",
       "saleAmount",
-      ...(partners ? ["earnings"] : []),
     ],
     defaultVisible: [
       "event",
-      ...(!partners ? ["link"] : []),
+      "link",
       "customer",
       "country",
       "saleAmount",
-      ...(partners ? ["earnings"] : []),
       "timestamp",
     ],
   },
-});
+};
 
-const getDefaultColumnVisibility = (tab: EventType, partners?: boolean) => {
-  const columns = getEventColumns(partners)[tab];
+const getDefaultColumnVisibility = (tab: EventType) => {
+  const columns = eventColumns[tab];
   return Object.fromEntries(
     columns.all.map((id) => [id, columns.defaultVisible.includes(id)]),
   );
 };
 
-export function useColumnVisibility({
-  partners,
-}: {
-  partners?: boolean;
-} = {}) {
+export function useColumnVisibility() {
   const [columnVisibility, setColumnVisibility] = useLocalStorage<
     Record<EventType, VisibilityState>
-  >("events-columns", {
-    clicks: getDefaultColumnVisibility("clicks", partners),
-    leads: getDefaultColumnVisibility("leads", partners),
-    sales: getDefaultColumnVisibility("sales", partners),
+  >("events-table-columns", {
+    clicks: getDefaultColumnVisibility("clicks"),
+    leads: getDefaultColumnVisibility("leads"),
+    sales: getDefaultColumnVisibility("sales"),
   });
 
   return {

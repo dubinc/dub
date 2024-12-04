@@ -1,3 +1,4 @@
+import useDomain from "@/lib/swr/use-domain";
 import { QRCode } from "@/ui/shared/qr-code";
 import {
   Button,
@@ -7,8 +8,7 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import { Pen2, QRCode as QRCodeIcon } from "@dub/ui/src/icons";
-import { linkConstructor } from "@dub/utils";
-import { DUB_QR_LOGO } from "@dub/utils/src/constants";
+import { DUB_QR_LOGO, linkConstructor } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useContext, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
@@ -18,13 +18,14 @@ import { QRCodeDesign, useLinkQRModal } from "../link-qr-modal";
 
 export function QRCodePreview() {
   const { isMobile } = useMediaQuery();
-  const { workspaceLogo, workspacePlan, workspaceId } =
-    useContext(LinkModalContext);
+  const { workspacePlan, workspaceId } = useContext(LinkModalContext);
 
   const { watch } = useFormContext<LinkFormData>();
   const { key: rawKey, domain: rawDomain } = watch();
   const [key] = useDebounce(rawKey, 500);
   const [domain] = useDebounce(rawDomain, 500);
+
+  const { logo: domainLogo } = useDomain(rawDomain);
 
   const [data, setData] = useLocalStorage<QRCodeDesign>(
     `qr-code-design-${workspaceId}`,
@@ -39,9 +40,7 @@ export function QRCodePreview() {
   }, [key, domain]);
 
   const hideLogo = data.hideLogo && workspacePlan !== "free";
-
-  const logo =
-    workspaceLogo && workspacePlan !== "free" ? workspaceLogo : DUB_QR_LOGO;
+  const logo = domainLogo || DUB_QR_LOGO;
 
   const { LinkQRModal, setShowLinkQRModal } = useLinkQRModal({
     props: {

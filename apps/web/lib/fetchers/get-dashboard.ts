@@ -8,6 +8,8 @@ export const getDashboard = cache(async ({ id }: { id: string }) => {
     },
     select: {
       id: true,
+      doIndex: true,
+      password: true,
       showConversions: true,
       link: {
         select: {

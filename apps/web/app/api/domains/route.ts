@@ -3,13 +3,14 @@ import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { createLink, transformLink } from "@/lib/api/links";
 import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { storage } from "@/lib/storage";
 import {
-  DomainSchema,
   createDomainBodySchema,
+  DomainSchema,
   getDomainsQuerySchemaExtended,
 } from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
-import { DEFAULT_LINK_PROPS } from "@dub/utils";
+import { combineWords, DEFAULT_LINK_PROPS, nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/domains – get all domains for a workspace
@@ -77,7 +78,7 @@ export const GET = withWorkspace(
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
     const body = await parseRequestBody(req);
-    const { slug, placeholder, expiredUrl, notFoundUrl } =
+    const { slug, logo, expiredUrl, notFoundUrl, placeholder } =
       createDomainBodySchema.parse(body);
 
     const totalDomains = await prisma.domain.count({
@@ -97,12 +98,21 @@ export const POST = withWorkspace(
       );
     }
 
-    if (workspace.plan === "free" && expiredUrl) {
-      throw new DubApiError({
-        code: "forbidden",
-        message:
-          "You can only use Default Expiration URLs on a Pro plan and above. Upgrade to Pro to use these features.",
-      });
+    if (workspace.plan === "free") {
+      if (logo || expiredUrl || notFoundUrl) {
+        const proFeaturesString = combineWords(
+          [
+            logo && "custom QR code logos",
+            expiredUrl && "default expiration URLs",
+            notFoundUrl && "not found URLs",
+          ].filter(Boolean) as string[],
+        );
+
+        throw new DubApiError({
+          code: "forbidden",
+          message: `You can only set ${proFeaturesString} on a Pro plan and above. Upgrade to Pro to use these features.`,
+        });
+      }
     }
 
     const validDomain = await validateDomain(slug);
@@ -123,18 +133,23 @@ export const POST = withWorkspace(
       return new Response(vercelResponse.error.message, { status: 422 });
     }
 
+    const domainId = createId({ prefix: "dom_" });
+
+    const logoUploaded = logo
+      ? await storage.upload(`domains/${domainId}/logo_${nanoid(7)}`, logo)
+      : null;
+
     const [domainRecord, _] = await Promise.all([
       prisma.domain.create({
         data: {
-          id: createId({ prefix: "dom_" }),
+          id: domainId,
           slug: slug,
           projectId: workspace.id,
           primary: totalDomains === 0,
           ...(placeholder && { placeholder }),
-          ...(workspace.plan !== "free" && {
-            expiredUrl,
-            notFoundUrl,
-          }),
+          expiredUrl,
+          notFoundUrl,
+          ...(logoUploaded && { logo: logoUploaded.url }),
         },
       }),
 

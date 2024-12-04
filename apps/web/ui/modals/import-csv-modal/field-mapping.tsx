@@ -1,7 +1,7 @@
 "use client";
 
 import { generateCsvMapping } from "@/lib/ai/generate-csv-mapping";
-import { Button, IconMenu, InfoTooltip, Popover } from "@dub/ui";
+import { Button, IconMenu, InfoTooltip, Popover, Tooltip } from "@dub/ui";
 import {
   ArrowRight,
   Check,
@@ -9,7 +9,6 @@ import {
   TableIcon,
   Xmark,
 } from "@dub/ui/src/icons";
-import { Tooltip } from "@dub/ui/src/tooltip";
 import {
   cn,
   formatDate,

@@ -1,13 +1,14 @@
 import { DubApiError } from "@/lib/api/errors";
 import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
-import { dub } from "@/lib/dub";
 import { getFeatureFlags } from "@/lib/edge-config";
+import { storage } from "@/lib/storage";
 import {
-  WorkspaceSchema,
   updateWorkspaceSchema,
+  WorkspaceSchema,
 } from "@/lib/zod/schemas/workspaces";
 import { prisma } from "@dub/prisma";
+import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -44,9 +45,17 @@ export const GET = withWorkspace(
 // PATCH /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
-    const { name, slug } = await updateWorkspaceSchema.parseAsync(
+    const { name, slug, logo } = await updateWorkspaceSchema.parseAsync(
       await req.json(),
     );
+
+    const logoUploaded =
+      logo && workspace.plan !== "free"
+        ? await storage.upload(
+            `workspaces/ws_${workspace.id}/logo_${nanoid(7)}`,
+            logo,
+          )
+        : null;
 
     try {
       const response = await prisma.project.update({
@@ -56,6 +65,7 @@ export const PATCH = withWorkspace(
         data: {
           ...(name && { name }),
           ...(slug && { slug }),
+          ...(logoUploaded && { logo: logoUploaded.url }),
         },
         include: {
           domains: true,
@@ -72,16 +82,15 @@ export const PATCH = withWorkspace(
             defaultWorkspace: slug,
           },
         });
-        // Update the workspace's referral link to use the new slug
-        if (workspace.referralLinkId) {
-          waitUntil(
-            dub.links.update(workspace.referralLinkId, {
-              key: slug,
-              identifier: slug,
-            }),
-          );
-        }
       }
+
+      waitUntil(
+        (async () => {
+          if (logoUploaded && workspace.logo) {
+            await storage.delete(workspace.logo.replace(`${R2_URL}/`, ""));
+          }
+        })(),
+      );
 
       return NextResponse.json(
         WorkspaceSchema.parse({
