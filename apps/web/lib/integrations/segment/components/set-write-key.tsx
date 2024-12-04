@@ -9,10 +9,7 @@ import { toast } from "sonner";
 import { installSegmentAction } from "../install";
 import { SegmentSettingsProps } from "./types";
 
-export const UpdateWriteKey = ({
-  installed,
-  credentials,
-}: SegmentSettingsProps) => {
+export function SetWriteKey({ installed, credentials }: SegmentSettingsProps) {
   const { id: workspaceId } = useWorkspace();
   const [writeKey, setWriteKey] = useState(credentials?.writeKey);
 
@@ -96,4 +93,4 @@ export const UpdateWriteKey = ({
       </div>
     </div>
   );
-};
+}

@@ -1,8 +1,8 @@
 "use client";
 
+import { ConfigureWebhook } from "./configure-webhook";
+import { SetWriteKey } from "./set-write-key";
 import { SegmentSettingsProps } from "./types";
-import { UpdateWriteKey } from "./update-write-key";
-import WebhookLinkSelector from "./webhook-link-selector";
 
 export const SegmentSettings = ({
   installed,
@@ -10,8 +10,8 @@ export const SegmentSettings = ({
 }: SegmentSettingsProps) => {
   return (
     <>
-      <UpdateWriteKey installed={installed} credentials={credentials} />
-      {installed && <WebhookLinkSelector credentials={credentials} />}
+      <SetWriteKey installed={installed} credentials={credentials} />
+      {installed && <ConfigureWebhook credentials={credentials} />}
     </>
   );
 };

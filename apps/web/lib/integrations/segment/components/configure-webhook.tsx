@@ -19,7 +19,7 @@ import useSWR, { mutate } from "swr";
 import { useDebounce } from "use-debounce";
 import { SegmentSettingsProps } from "./types";
 
-export default function WebhookLinkSelector({
+export function ConfigureWebhook({
   credentials,
 }: {
   credentials: SegmentSettingsProps["credentials"];
