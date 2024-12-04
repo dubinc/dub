@@ -87,9 +87,9 @@ const transformPayload = ({
 }) => {
   switch (receiver) {
     case "slack":
-      return generateSlackMessage(payload.event, payload.data);
+      return generateSlackMessage(payload);
     case "segment":
-      return formatEventForSegment(payload.data);
+      return formatEventForSegment(payload);
     default:
       return payload;
   }
