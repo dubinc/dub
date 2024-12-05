@@ -20,8 +20,6 @@ import {
   Users6,
   Webhook,
 } from "@dub/ui/src/icons";
-import { Session } from "next-auth";
-import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 import UserSurveyButton from "../user-survey";
@@ -38,7 +36,6 @@ const NAV_AREAS: SidebarNavAreas<{
   queryString: string;
   flags?: Record<BetaFeatures, boolean>;
   programs?: { id: string }[];
-  session?: Session | null;
 }> = {
   // Top-level
   default: ({ slug, queryString, programs }) => ({
@@ -212,7 +209,7 @@ const NAV_AREAS: SidebarNavAreas<{
   }),
 
   // User settings
-  userSettings: ({ session, slug }) => ({
+  userSettings: ({ slug }) => ({
     title: "Settings",
     backHref: `/${slug}`,
     content: [
@@ -230,15 +227,11 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: ShieldCheck,
             href: "/account/settings/security",
           },
-          ...(session?.user?.["referralLinkId"]
-            ? [
-                {
-                  name: "Referrals",
-                  icon: Gift,
-                  href: "/account/settings/referrals",
-                },
-              ]
-            : []),
+          {
+            name: "Referrals",
+            icon: Gift,
+            href: "/account/settings/referrals",
+          },
         ],
       },
     ],
@@ -257,7 +250,6 @@ export function AppSidebarNav({
   const { flags } = useWorkspace();
   const { programs } = usePrograms();
   const { getQueryString } = useRouterStuff();
-  const { data: session } = useSession();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -276,7 +268,6 @@ export function AppSidebarNav({
         queryString: getQueryString(),
         flags,
         programs,
-        session: session || undefined,
       }}
       toolContent={toolContent}
       newsContent={newsContent}
