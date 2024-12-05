@@ -66,8 +66,10 @@ export const LoginFormContext = createContext<{
 
 export default function LoginForm({
   methods = [...authMethods],
+  redirectTo,
 }: {
   methods?: AuthMethod[];
+  redirectTo?: string;
 }) {
   const searchParams = useSearchParams();
   const [showPasswordField, setShowPasswordField] = useState(false);
@@ -100,7 +102,11 @@ export default function LoginForm({
   // Reset the state when leaving the page
   useEffect(() => () => setClickedMethod(undefined), []);
 
-  const authProviders: { method: AuthMethod; component: ComponentType }[] = [
+  const authProviders: {
+    method: AuthMethod;
+    component: ComponentType;
+    props?: Record<string, unknown>;
+  }[] = [
     {
       method: "google",
       component: GoogleButton,
@@ -112,6 +118,7 @@ export default function LoginForm({
     {
       method: "email",
       component: EmailSignIn,
+      props: { redirectTo },
     },
     {
       method: "saml",
@@ -119,9 +126,11 @@ export default function LoginForm({
     },
   ];
 
-  const AuthMethodComponent = authProviders.find(
+  const currentAuthProvider = authProviders.find(
     (provider) => provider.method === authMethod,
-  )?.component;
+  );
+
+  const AuthMethodComponent = currentAuthProvider?.component;
 
   const showEmailPasswordOnly = authMethod === "email" && showPasswordField;
 
@@ -144,7 +153,9 @@ export default function LoginForm({
           <div className="flex flex-col gap-3 p-1">
             {authMethod && (
               <div className="flex flex-col gap-2">
-                {AuthMethodComponent && <AuthMethodComponent />}
+                {AuthMethodComponent && (
+                  <AuthMethodComponent {...currentAuthProvider?.props} />
+                )}
 
                 {!showEmailPasswordOnly &&
                   authMethod === lastUsedAuthMethod && (

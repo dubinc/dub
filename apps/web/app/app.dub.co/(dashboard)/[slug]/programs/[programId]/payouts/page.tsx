@@ -1,11 +1,14 @@
 import { PageContent } from "@/ui/layout/page-content";
-import { ButtonControls } from "./button-controls";
+import { MaxWidthWrapper } from "@dub/ui";
 import { ProgramPayoutsPageClient } from "./page-client";
+import { PayoutsSettingsLink } from "./payout-settings-link";
 
 export default function ProgramPayoutsPage() {
   return (
-    <PageContent title="Payouts" titleControls={<ButtonControls />}>
-      <ProgramPayoutsPageClient />
+    <PageContent title="Payouts" titleControls={<PayoutsSettingsLink />}>
+      <MaxWidthWrapper>
+        <ProgramPayoutsPageClient />
+      </MaxWidthWrapper>
     </PageContent>
   );
 }

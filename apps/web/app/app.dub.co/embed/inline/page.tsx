@@ -1,18 +1,18 @@
 import { getEmbedData } from "../utils";
-import { EmbedWidgetPageClient } from "./page-client";
+import { EmbedInlinePageClient } from "./page-client";
 
-export default async function EmbedWidgetPage({
+export default async function EmbedInlinePage({
   searchParams,
 }: {
-  searchParams: Promise<{ token: string }>;
+  searchParams: { token: string };
 }) {
-  const { token } = await searchParams;
+  const { token } = searchParams;
 
   const { link, program, hasPartnerProfile, earnings } =
     await getEmbedData(token);
 
   return (
-    <EmbedWidgetPageClient
+    <EmbedInlinePageClient
       program={program}
       link={link}
       earnings={earnings}
