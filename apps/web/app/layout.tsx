@@ -3,6 +3,7 @@ import "@/styles/globals.css";
 import { cn, constructMetadata } from "@dub/utils";
 import RootProviders from "./providers";
 
+export const experimental_ppr = true;
 export const metadata = constructMetadata();
 
 export default function RootLayout({

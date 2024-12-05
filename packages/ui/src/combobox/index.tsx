@@ -328,7 +328,7 @@ export function Combobox({
 }
 
 const Scroll = ({ children }: PropsWithChildren) => {
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement | null>(null);
 
   const { scrollProgress, updateScrollProgress } = useScrollProgress(ref);
 

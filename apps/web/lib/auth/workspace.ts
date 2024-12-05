@@ -67,8 +67,11 @@ export const withWorkspace = (
   return withAxiom(
     async (
       req: AxiomRequest,
-      { params = {} }: { params: Record<string, string> | undefined },
+      segmentData: {
+        params: Promise<Record<string, string>>;
+      },
     ) => {
+      const params = (await segmentData.params) || {};
       const searchParams = getSearchParams(req.url);
 
       let apiKey: string | undefined = undefined;

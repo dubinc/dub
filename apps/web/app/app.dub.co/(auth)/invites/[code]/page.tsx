@@ -5,17 +5,17 @@ import { LoadingSpinner } from "@dub/ui";
 import { LinkBroken, Users6 } from "@dub/ui/src/icons";
 import { APP_NAME } from "@dub/utils";
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, use } from "react";
 
 export const runtime = "nodejs";
 
-export default function InitesPage({
+export default function InvitesPage({
   params,
 }: {
-  params: {
-    code: string;
-  };
+  params: Promise<{ code: string }>;
 }) {
+  const { code } = use(params);
+
   return (
     <div className="flex flex-col items-center justify-center gap-6 text-center">
       <Suspense
@@ -27,7 +27,7 @@ export default function InitesPage({
           />
         }
       >
-        <VerifyInvite code={params.code} />
+        <VerifyInvite code={code} />
       </Suspense>
     </div>
   );

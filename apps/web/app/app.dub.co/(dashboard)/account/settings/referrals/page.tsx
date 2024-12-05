@@ -9,8 +9,6 @@ import {
   UserCheck,
 } from "@dub/ui/src/icons";
 
-export const dynamic = "auto";
-
 export default async function ReferralsPage() {
   const session = await getSession();
   const referralLinkId = session?.user.referralLinkId;

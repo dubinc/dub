@@ -27,7 +27,9 @@ export const withPartner = (handler: WithPartnerHandler, {}: {} = {}) => {
   return withAxiom(
     async (
       req: AxiomRequest,
-      { params = {} }: { params: Record<string, string> | undefined },
+      segmentData: {
+        params: Promise<Record<string, string>>;
+      },
     ) => {
       try {
         const session = await getSession();
@@ -39,6 +41,7 @@ export const withPartner = (handler: WithPartnerHandler, {}: {} = {}) => {
           });
         }
 
+        const params = (await segmentData.params) || {};
         const searchParams = getSearchParams(req.url);
         const partnerId = params.partnerId || searchParams.partnerId;
 

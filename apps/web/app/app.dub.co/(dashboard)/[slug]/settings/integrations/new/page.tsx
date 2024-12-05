@@ -3,21 +3,25 @@ import { MaxWidthWrapper } from "@dub/ui";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { use } from "react";
 
 export default function NewIntegrationsPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
+  const { slug } = use(params);
+
   // this is only available for Dub workspace for now
   // we might open this up to other workspaces in the future
-  if (params.slug !== "dub") {
+  if (slug !== "dub") {
     notFound();
   }
+
   return (
     <MaxWidthWrapper className="grid max-w-screen-lg gap-8">
       <Link
-        href={`/${params.slug}/settings/integrations`}
+        href={`/${slug}/settings/integrations`}
         className="flex items-center gap-x-1"
       >
         <ChevronLeft className="size-4" />

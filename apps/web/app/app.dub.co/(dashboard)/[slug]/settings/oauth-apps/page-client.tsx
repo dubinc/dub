@@ -70,7 +70,7 @@ export default function OAuthAppsPageClient() {
         ) : (
           <div className="grid grid-cols-1 gap-3">
             {Array.from({ length: 3 }).map((_, idx) => (
-              <OAuthAppPlaceholder />
+              <OAuthAppPlaceholder key={idx} />
             ))}
           </div>
         )}

@@ -9,7 +9,8 @@ import { ratelimit } from "../upstash";
  */
 export async function completeProgramApplications(userId: string) {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
+
     const programApplicationIds = cookieStore
       .get("programApplicationIds")
       ?.value?.split(",");

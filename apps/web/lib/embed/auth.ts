@@ -42,7 +42,7 @@ export const withEmbedToken = (handler: WithEmbedTokenHandler) => {
         const rateLimit = 60;
         const searchParams = getSearchParams(req.url);
 
-        const cookieStore = cookies();
+        const cookieStore = await cookies();
         const tokenFromCookie = cookieStore.get(
           EMBED_PUBLIC_TOKEN_COOKIE_NAME,
         )?.value;

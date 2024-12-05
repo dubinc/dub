@@ -23,7 +23,7 @@ export const metadata = constructMetadata({
 export default async function Authorize({
   searchParams,
 }: {
-  searchParams?: z.infer<typeof authorizeRequestSchema>;
+  searchParams?: Promise<z.infer<typeof authorizeRequestSchema>>;
 }) {
   const session = await getSession();
 
@@ -31,8 +31,9 @@ export default async function Authorize({
     redirect("/login");
   }
 
-  const { error, integration, requestParams } =
-    await vaidateAuthorizeRequest(searchParams);
+  const { error, integration, requestParams } = await vaidateAuthorizeRequest(
+    await searchParams,
+  );
 
   if (error || !integration) {
     return (

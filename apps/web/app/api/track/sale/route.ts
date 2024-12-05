@@ -1,5 +1,4 @@
 import { DubApiError } from "@/lib/api/errors";
-import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { createSaleData } from "@/lib/api/sales/sale";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
@@ -14,6 +13,7 @@ import {
 } from "@/lib/zod/schemas/sales";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { queueEmail } from "emails/publish-qstash";
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";
@@ -154,15 +154,11 @@ export const POST = withWorkspaceEdge(
             prismaEdge.sale.create({
               data: saleRecord,
             }),
-            notifyPartnerSale({
-              partner: {
-                id: partner.id,
-                referralLink: link.shortLink,
-              },
-              program,
-              sale: {
-                amount: saleRecord.amount,
-                earnings: saleRecord.earnings,
+
+            queueEmail({
+              event: "new-sale-created",
+              payload: {
+                saleId: saleRecord.id,
               },
             }),
           ]);
