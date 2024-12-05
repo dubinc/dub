@@ -12,6 +12,9 @@ const { withAxiom } = require("next-axiom");
 /** @type {import('next').NextConfig} */
 module.exports = withAxiom({
   reactStrictMode: false,
+  experimental: {
+    ppr: "incremental",
+  },
   transpilePackages: ["shiki"],
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
