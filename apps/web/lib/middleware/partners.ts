@@ -43,9 +43,10 @@ export default async function PartnersMiddleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/onboarding", req.url));
     }
 
-    return NextResponse.redirect(
-      new URL(`/${defaultPartner}${fullPath}`, req.url),
-    );
+    if (!isUnauthenticatedPath)
+      return NextResponse.redirect(
+        new URL(`/${defaultPartner}${fullPath}`, req.url),
+      );
   }
 
   // Redirect to home if partner flag is off

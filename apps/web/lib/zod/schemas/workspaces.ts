@@ -65,11 +65,6 @@ export const WorkspaceSchema = z
     aiUsage: z.number().describe("The AI usage of the workspace."),
     aiLimit: z.number().describe("The AI limit of the workspace."),
 
-    referralLinkId: z
-      .string()
-      .nullable()
-      .describe("The ID of the referral link of the workspace."),
-
     conversionEnabled: z
       .boolean()
       .describe(
