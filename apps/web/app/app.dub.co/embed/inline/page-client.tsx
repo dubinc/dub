@@ -10,16 +10,16 @@ import {
   Copy,
   MoneyBill2,
   useCopyToClipboard,
-  useInViewport,
   Wordmark,
 } from "@dub/ui";
 import { cn, fetcher, getPrettyUrl } from "@dub/utils";
 import { Link, Program } from "@prisma/client";
-import { CSSProperties, useRef } from "react";
+import { CSSProperties } from "react";
 import useSWR from "swr";
 import { Activity } from "../activity";
 import { SalesList } from "../sales-list";
 import { LinkToken } from "../token";
+import { useIframeVisibility } from "../use-iframe-visibility";
 
 export function EmbedInlinePageClient({
   program,
@@ -34,17 +34,15 @@ export function EmbedInlinePageClient({
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
 
-  const divRef = useRef<HTMLDivElement>(null);
-  const isVisible = useInViewport(divRef);
+  const isIframeVisible = useIframeVisibility();
 
   const { data: sales, isLoading } = useSWR<PartnerSaleResponse[]>(
-    isVisible && "/api/embed/sales",
+    isIframeVisible && "/api/embed/sales",
     fetcher,
   );
 
   return (
     <div
-      ref={divRef}
       className="flex min-h-screen flex-col"
       style={
         { "--accent-color": program.brandColor || "#171717" } as CSSProperties
@@ -147,7 +145,7 @@ export function EmbedInlinePageClient({
                 ))}
             </div>
           </>
-          {isVisible && <LinkToken />}
+          {isIframeVisible && <LinkToken />}
         </div>
       </div>
       <div className="flex grow flex-col justify-end">

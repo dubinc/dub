@@ -7,7 +7,6 @@ import {
   buttonVariants,
   ToggleGroup,
   useCopyToClipboard,
-  useInViewport,
   Wordmark,
 } from "@dub/ui";
 import {
@@ -22,11 +21,12 @@ import {
 import { cn, fetcher, getPrettyUrl } from "@dub/utils";
 import { Link, Program } from "@prisma/client";
 import { motion } from "framer-motion";
-import { CSSProperties, useRef, useState } from "react";
+import { CSSProperties, useState } from "react";
 import useSWR from "swr";
 import { Activity } from "../activity";
 import { SalesList } from "../sales-list";
 import { LinkToken } from "../token";
+import { useIframeVisibility } from "../use-iframe-visibility";
 
 type Tab = "invite" | "rewards";
 
@@ -46,17 +46,15 @@ export function EmbedWidgetPageClient({
   const [copied, copyToClipboard] = useCopyToClipboard();
   const [selectedTab, setSelectedTab] = useState<Tab>("invite");
 
-  const divRef = useRef<HTMLDivElement>(null);
-  const isVisible = useInViewport(divRef);
+  const isIframeVisible = useIframeVisibility();
 
   const { data: sales, isLoading } = useSWR<PartnerSaleResponse[]>(
-    isVisible && "/api/embed/sales",
+    isIframeVisible && "/api/embed/sales",
     fetcher,
   );
 
   return (
     <div
-      ref={divRef}
       className="flex min-h-screen flex-col"
       style={
         { "--accent-color": program.brandColor || "#171717" } as CSSProperties
@@ -261,7 +259,7 @@ export function EmbedWidgetPageClient({
               </motion.div>
             </>
           )}
-          {isVisible && <LinkToken />}
+          {isIframeVisible && <LinkToken />}
         </div>
       </div>
       <div className="flex grow flex-col justify-end">
