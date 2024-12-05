@@ -4,7 +4,7 @@ import { ReferButton } from "./refer-button";
 
 export async function ReferButtonRSC() {
   const session = await getSession();
-  const referralLinkId = session?.user["referralLinkId"];
+  const referralLinkId = session?.user.referralLinkId;
 
   if (!referralLinkId) return null;
 
