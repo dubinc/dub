@@ -7,7 +7,6 @@ import Toolbar from "@/ui/layout/toolbar/toolbar";
 import { constructMetadata } from "@dub/utils";
 import { ReactNode } from "react";
 
-export const experimental_ppr = true;
 export const metadata = constructMetadata();
 
 export default async function Layout({ children }: { children: ReactNode }) {
