@@ -230,11 +230,15 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: ShieldCheck,
             href: "/account/settings/security",
           },
-          {
-            name: "Referrals",
-            icon: Gift,
-            href: "/account/settings/referrals",
-          },
+          ...(session?.user?.["referralLinkId"]
+            ? [
+                {
+                  name: "Referrals",
+                  icon: Gift,
+                  href: "/account/settings/referrals",
+                },
+              ]
+            : []),
         ],
       },
     ],
