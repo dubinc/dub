@@ -10,7 +10,7 @@ import { useContext, useState } from "react";
 import { toast } from "sonner";
 import { errorCodes, LoginFormContext } from "./login-form";
 
-export const EmailSignIn = () => {
+export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams?.get("next");
@@ -89,7 +89,7 @@ export const EmailSignIn = () => {
             const response = await signIn(provider, {
               email,
               redirect: false,
-              callbackUrl: next || "/workspaces",
+              callbackUrl: next || redirectTo || "/workspaces",
               ...(password && { password }),
             });
 
@@ -118,7 +118,7 @@ export const EmailSignIn = () => {
             }
 
             if (provider === "credentials") {
-              router.push(response?.url || "/workspaces");
+              router.push(response?.url || redirectTo || "/workspaces");
             }
           });
         }}
