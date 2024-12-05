@@ -1,4 +1,3 @@
-import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { createSaleData } from "@/lib/api/sales/sale";
 import { prisma } from "@/lib/prisma";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
@@ -8,6 +7,7 @@ import { transformSaleEventData } from "@/lib/webhook/transform";
 import { nanoid } from "@dub/utils";
 import { Customer } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { queueEmail } from "emails/publish-qstash";
 import type Stripe from "stripe";
 
 // Handle event "checkout.session.completed"
@@ -162,15 +162,10 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     });
 
     waitUntil(
-      notifyPartnerSale({
-        partner: {
-          id: partner.id,
-          referralLink: link.shortLink,
-        },
-        program,
-        sale: {
-          amount: saleRecord.amount,
-          earnings: saleRecord.earnings,
+      queueEmail({
+        event: "new-sale-created",
+        payload: {
+          saleId: saleRecord.id,
         },
       }),
     );
