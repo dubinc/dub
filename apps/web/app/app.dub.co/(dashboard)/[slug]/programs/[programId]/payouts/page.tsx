@@ -8,10 +8,10 @@ export default function ProgramPayoutsPage() {
     <PageContent
       title="Payouts"
       titleControls={
-        <>
+        <div className="flex items-center gap-2">
           <CreatePayoutButton />
           <PayoutsSettingsLink />
-        </>
+        </div>
       }
     >
       <MaxWidthWrapper>
