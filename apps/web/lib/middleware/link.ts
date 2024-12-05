@@ -80,6 +80,8 @@ export default async function LinkMiddleware(
           headers: {
             ...DUB_HEADERS,
             "X-Robots-Tag": "googlebot: noindex",
+            // pass the Referer value to the not found URL
+            Referer: req.url,
           },
           status: 302,
         });
