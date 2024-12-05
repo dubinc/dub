@@ -1,8 +1,17 @@
 import { getSession } from "@/lib/auth/utils";
 import { dub } from "@/lib/dub";
+import { Suspense } from "react";
 import { ReferButton } from "./refer-button";
 
-export async function ReferButtonRSC() {
+export function ReferButtonRSC() {
+  return (
+    <Suspense>
+      <ReferButtonRSCInner />
+    </Suspense>
+  );
+}
+
+async function ReferButtonRSCInner() {
   const session = await getSession();
   const referralLinkId = session?.user.referralLinkId;
 
