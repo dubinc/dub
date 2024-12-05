@@ -55,20 +55,17 @@ export const createManualPayoutAction = authActionClient
 
     // Create a payout for sales
     if (type === "sales") {
-      // commission amount changed for this payout
-      // recalculate the earnings for each sale within the period
-      if (program.commissionAmount !== amount) {
-        await updateSalesEarnings({
-          start: start!,
-          end: end!,
-          partnerId,
-          program: {
-            commissionAmount: amount,
-            commissionType: program.commissionType,
-          },
-        });
-      }
+      await recalculateSalesEarnings({
+        start: start!,
+        end: end!,
+        partnerId,
+        program: {
+          commissionAmount: amount,
+          commissionType: program.commissionType,
+        },
+      });
 
+      // after recalculating the earnings, create the payout
       payout = await createSalesPayout({
         programId,
         partnerId,
@@ -121,7 +118,7 @@ export const createManualPayoutAction = authActionClient
   });
 
 // Recalculate earnings for sale based on new commission amount
-const updateSalesEarnings = async ({
+const recalculateSalesEarnings = async ({
   start,
   end,
   partnerId,
@@ -134,31 +131,43 @@ const updateSalesEarnings = async ({
 }) => {
   const sales = await prisma.sale.findMany({
     where: {
-      status: "pending",
-      partnerId,
-      createdAt: {
-        gte: start.toISOString(),
-        lte: end.toISOString(),
+      AND: {
+        status: "pending",
+        partnerId,
+        createdAt: {
+          gte: start.toISOString(),
+          lte: end.toISOString(),
+        },
       },
+      OR: [
+        {
+          commissionAmount: {
+            not: program.commissionAmount,
+          },
+        },
+        {
+          commissionType: {
+            not: program.commissionType,
+          },
+        },
+      ],
+    },
+    select: {
+      id: true,
+      amount: true,
     },
   });
 
   if (!sales.length) {
-    throw new Error("No sales found for this period.");
+    return;
   }
-
-  const { commissionAmount, commissionType } = program;
 
   // Calculate the new earnings for each sale
   const updatedEarnings = sales.map((sale) => {
     return {
       saleId: sale.id,
-      commissionAmount,
       earnings: calculateEarnings({
-        program: {
-          commissionAmount,
-          commissionType,
-        },
+        program,
         sales: 1,
         saleAmount: sale.amount,
       }),
@@ -166,11 +175,12 @@ const updateSalesEarnings = async ({
   });
 
   await Promise.all(
-    updatedEarnings.map(({ saleId, commissionAmount, earnings }) =>
+    updatedEarnings.map(({ saleId, earnings }) =>
       prisma.sale.update({
         where: { id: saleId },
         data: {
-          commissionAmount,
+          commissionAmount: program.commissionAmount,
+          commissionType: program.commissionType,
           earnings,
         },
       }),
