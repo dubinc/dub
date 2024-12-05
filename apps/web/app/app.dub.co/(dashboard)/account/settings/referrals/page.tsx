@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/auth";
+import { getSession } from "@/lib/auth/utils";
 import { dub } from "@/lib/dub";
 import { DubWidget } from "@dub/embed-react";
 
