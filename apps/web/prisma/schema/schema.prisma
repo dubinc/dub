@@ -26,8 +26,7 @@ model User {
   subscribed            Boolean  @default(true) // email subscription
   source                String? // where the user came from
   defaultWorkspace      String? // slug of the user's default workspace
-  referredByWorkspace   Project? @relation(fields: [referredByWorkspaceId], references: [id])
-  referredByWorkspaceId String? // ID of the workspace that referred this user
+  referralLinkId        String? // this user's referral link ID
 
   // relational data
   accounts              Account[]
@@ -45,7 +44,6 @@ model User {
 
   @@index(source)
   @@index(defaultWorkspace)
-  @@index([referredByWorkspaceId])
 }
 
 model Account {
