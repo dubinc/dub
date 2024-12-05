@@ -13,6 +13,7 @@ import {
   Combobox,
   DateRangePicker,
   Sheet,
+  useEnterSubmit,
   useRouterStuff,
 } from "@dub/ui";
 import {
@@ -43,6 +44,7 @@ import {
   SetStateAction,
   useId,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { useForm } from "react-hook-form";
@@ -85,6 +87,9 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
   const { data: partners } = usePartners();
   const { id: workspaceId } = useWorkspace();
   const { queryParams } = useRouterStuff();
+
+  const formRef = useRef<HTMLFormElement>(null);
+  const { handleKeyDown } = useEnterSubmit(formRef);
 
   const {
     register,
@@ -366,7 +371,11 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
     !payoutAmount;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
+    <form
+      ref={formRef}
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex h-full flex-col"
+    >
       <div>
         <div className="flex items-start justify-between border-b border-neutral-200 p-6">
           <Sheet.Title className="text-xl font-semibold">
@@ -575,6 +584,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
               className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
               placeholder="A note to partner about this payout. Max 190 characters."
               maxLength={190}
+              onKeyDown={handleKeyDown}
             />
           </div>
 

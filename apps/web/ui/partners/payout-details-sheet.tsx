@@ -107,7 +107,7 @@ function PayoutDetailsSheetContent({
           {statusBadge.label}
         </StatusBadge>
       ),
-      Notes: payout.description || "-",
+      Description: payout.description || "-",
     };
   }, [payout]);
 
