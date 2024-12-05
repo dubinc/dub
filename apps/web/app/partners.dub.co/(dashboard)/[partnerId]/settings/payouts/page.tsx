@@ -1,5 +1,4 @@
 import { PageContent } from "@/ui/layout/page-content";
-
 import { MaxWidthWrapper } from "@dub/ui";
 import { PayoutsSettingsPageClient } from "./page-client";
 
