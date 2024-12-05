@@ -25,6 +25,7 @@ import {
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
   formatDate,
+  formatDateTime,
   getPrettyUrl,
   nFormatter,
 } from "@dub/utils";
@@ -50,6 +51,7 @@ function PartnerDetailsSheetContent({
   setIsOpen,
 }: PartnerDetailsSheetProps) {
   const { slug } = useWorkspace();
+  const { program } = useProgram();
 
   const badge = PartnerStatusBadges[partner.status];
 
@@ -59,6 +61,8 @@ function PartnerDetailsSheetContent({
   const [selectedTab, setSelectedTab] = useState<"overview" | "payouts">(
     "overview",
   );
+
+  const isApplication = partner.status === "pending" && partner.application;
 
   return (
     <>
@@ -94,6 +98,18 @@ function PartnerDetailsSheetContent({
                   </StatusBadge>
                 )}
               </div>
+              {isApplication && partner.application && (
+                <span className="mt-1 text-sm font-medium text-neutral-600">
+                  {formatDateTime(partner.application.createdAt, {
+                    month: "short",
+                    year:
+                      new Date(partner.application.createdAt).getFullYear() ===
+                      new Date().getFullYear()
+                        ? undefined
+                        : "numeric",
+                  })}
+                </span>
+              )}
             </div>
             <div className="flex min-w-[40%] shrink grow basis-1/2 flex-wrap items-center justify-end gap-2">
               {partner.link && (
@@ -121,82 +137,127 @@ function PartnerDetailsSheetContent({
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="mt-6 flex divide-x divide-neutral-200">
-            {[
-              [
-                "Clicks",
-                !partner.link
-                  ? "-"
-                  : nFormatter(partner.link?.clicks, { full: true }),
-              ],
-              [
-                "Leads",
-                !partner.link
-                  ? "-"
-                  : nFormatter(partner.link?.leads, { full: true }),
-              ],
-              [
-                "Sales",
-                !partner.link
-                  ? "-"
-                  : nFormatter(partner.link?.sales, { full: true }),
-              ],
-              [
-                "Revenue",
-                !partner.link
-                  ? "-"
-                  : currencyFormatter(saleAmount, {
-                      minimumFractionDigits: saleAmount % 1 === 0 ? 0 : 2,
+          {isApplication ? (
+            <hr className="mt-6 border-neutral-200" />
+          ) : (
+            <>
+              {/* Stats */}
+              <div className="mt-6 flex divide-x divide-neutral-200">
+                {[
+                  [
+                    "Clicks",
+                    !partner.link
+                      ? "-"
+                      : nFormatter(partner.link?.clicks, { full: true }),
+                  ],
+                  [
+                    "Leads",
+                    !partner.link
+                      ? "-"
+                      : nFormatter(partner.link?.leads, { full: true }),
+                  ],
+                  [
+                    "Sales",
+                    !partner.link
+                      ? "-"
+                      : nFormatter(partner.link?.sales, { full: true }),
+                  ],
+                  [
+                    "Revenue",
+                    !partner.link
+                      ? "-"
+                      : currencyFormatter(saleAmount, {
+                          minimumFractionDigits: saleAmount % 1 === 0 ? 0 : 2,
+                          maximumFractionDigits: 2,
+                        }),
+                  ],
+                  [
+                    "Earnings",
+                    currencyFormatter(earnings, {
+                      minimumFractionDigits: earnings % 1 === 0 ? 0 : 2,
                       maximumFractionDigits: 2,
                     }),
-              ],
-              [
-                "Earnings",
-                currencyFormatter(earnings, {
-                  minimumFractionDigits: earnings % 1 === 0 ? 0 : 2,
-                  maximumFractionDigits: 2,
-                }),
-              ],
-            ].map(([label, value]) => (
-              <div key={label} className="flex flex-col px-5 first:pl-0">
-                <span className="text-xs text-neutral-500">{label}</span>
-                <span className="text-base text-neutral-900">{value}</span>
+                  ],
+                ].map(([label, value]) => (
+                  <div key={label} className="flex flex-col px-5 first:pl-0">
+                    <span className="text-xs text-neutral-500">{label}</span>
+                    <span className="text-base text-neutral-900">{value}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          <div className="mt-6">
-            <ToggleGroup
-              className="grid w-full grid-cols-2 rounded-lg border-transparent bg-neutral-100 p-0.5"
-              optionClassName="justify-center text-neutral-600 hover:text-neutral-700"
-              indicatorClassName="rounded-md bg-white"
-              options={[
-                { value: "overview", label: "Overview" },
-                { value: "payouts", label: "Payouts" },
-              ]}
-              selected={selectedTab}
-              selectAction={(value) => setSelectedTab(value as any)}
-            />
-          </div>
+              <div className="mt-6">
+                <ToggleGroup
+                  className="grid w-full grid-cols-2 rounded-lg border-transparent bg-neutral-100 p-0.5"
+                  optionClassName="justify-center text-neutral-600 hover:text-neutral-700"
+                  indicatorClassName="rounded-md bg-white"
+                  options={[
+                    { value: "overview", label: "Overview" },
+                    { value: "payouts", label: "Payouts" },
+                  ]}
+                  selected={selectedTab}
+                  selectAction={(value) => setSelectedTab(value as any)}
+                />
+              </div>
+            </>
+          )}
           <div className="mt-6">
             {selectedTab === "overview" && (
               <div className="flex flex-col gap-6 text-sm text-neutral-500">
                 <h3 className="text-base font-semibold text-neutral-900">
-                  About this partner
+                  {isApplication ? "Application" : "About this partner"}
                 </h3>
 
-                <div>
-                  <h4 className="font-semibold text-neutral-900">
-                    Description
-                  </h4>
-                  <p className="mt-1.5">
-                    {partner.bio || (
-                      <span className="italic text-neutral-400">
-                        No description provided
-                      </span>
-                    )}
-                  </p>
+                <div className="flex flex-col gap-6">
+                  <div>
+                    <h4 className="font-semibold text-neutral-900">
+                      Description
+                    </h4>
+                    <p className="mt-1.5">
+                      {partner.bio || (
+                        <span className="italic text-neutral-400">
+                          No description provided
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                  {isApplication &&
+                    [
+                      {
+                        key: "website",
+                        name: "Website/Social media channel",
+                        optional: true,
+                        // TODO: Make URL clickable
+                      },
+                      {
+                        key: "proposal",
+                        name: `How do you plan to promote ${program?.name || "this program"}?`,
+                      },
+                      {
+                        key: "comments",
+                        name: "Any additional questions or comments?",
+                        optional: true,
+                      },
+                    ].map(({ key, name, optional }) => (
+                      <div key={key}>
+                        <h4 className="font-semibold text-neutral-900">
+                          {name}
+                          {optional && (
+                            <span className="font-normal text-neutral-500">
+                              {" "}
+                              (optional)
+                            </span>
+                          )}
+                        </h4>
+                        <p className="mt-1.5">
+                          {partner.application?.[key] || (
+                            <span className="italic text-neutral-400">
+                              No answer provided
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    ))}
                 </div>
               </div>
             )}
