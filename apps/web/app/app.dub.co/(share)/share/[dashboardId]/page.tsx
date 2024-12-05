@@ -9,8 +9,6 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import DashboardPasswordForm from "./form";
 
-export const dynamic = "force-dynamic";
-
 export async function generateMetadata({
   params,
 }: {
