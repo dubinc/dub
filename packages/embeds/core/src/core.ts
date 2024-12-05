@@ -4,11 +4,19 @@ import {
   DUB_CONTAINER_ID,
   DUB_FLOATING_BUTTON_ID,
   DUB_POPUP_ID,
+  INLINE_URL,
   WIDGET_URL,
 } from "./constants";
 import { EmbedError } from "./error";
 import { createFloatingButton } from "./floating-button";
 import { DubInitResult, DubOptions, IframeMessage } from "./types";
+
+const INLINE_CONTAINER_STYLES = {
+  position: "relative",
+  maxWidth: "1024px",
+  height: "730px",
+  margin: "0 auto",
+};
 
 const CONTAINER_STYLES: Partial<CSSStyleDeclaration> = {
   position: "fixed",
@@ -25,7 +33,7 @@ const POPUP_STYLES: Partial<CSSStyleDeclaration> = {
   width: "100%",
   height: "100%",
   maxWidth: "400px",
-  maxHeight: "500px",
+  maxHeight: "525px",
   backgroundColor: "white",
   borderRadius: "12px",
   boxShadow: "0px 8px 30px rgba(0, 0, 0, 0.12), 0px 2px 4px rgba(0, 0, 0, 0.1)",
@@ -49,6 +57,7 @@ class DubWidget {
   container: HTMLElement | null;
 
   constructor(options: DubOptions) {
+    options.variant = options.variant ?? "popup";
     options.trigger = options.trigger ?? "floating-button";
     options.buttonPlacement = options.buttonPlacement ?? "bottom-right";
 
@@ -61,7 +70,7 @@ class DubWidget {
 
     this.container = this.renderWidget();
 
-    if (options.trigger === "floating-button") {
+    if (options.variant === "popup" && options.trigger === "floating-button") {
       createFloatingButton({
         prefix,
         buttonStyles: options.buttonStyles,
@@ -79,9 +88,10 @@ class DubWidget {
 
     const {
       token,
+      variant,
+      root,
       containerStyles,
       popupStyles,
-      onClose,
       onError,
       onTokenExpired,
     } = this.options;
@@ -90,11 +100,7 @@ class DubWidget {
       `${this.prefix}${DUB_CONTAINER_ID}`,
     );
 
-    if (existingContainer) {
-      document.body.removeChild(existingContainer);
-      onClose?.();
-      return existingContainer;
-    }
+    if (existingContainer) return existingContainer;
 
     if (!token) {
       console.error("[Dub] A link token is required to embed the widget.");
@@ -104,37 +110,43 @@ class DubWidget {
     const container = document.createElement("div");
     container.id = `${this.prefix}${DUB_CONTAINER_ID}`;
     Object.assign(container.style, {
-      ...CONTAINER_STYLES,
+      ...(variant === "inline"
+        ? INLINE_CONTAINER_STYLES
+        : { ...CONTAINER_STYLES, visibility: "hidden" }),
       ...containerStyles,
-      visibility: "hidden",
     });
 
-    container.addEventListener("click", (e) => {
-      if (e.target === container) this.closeWidget();
-    });
+    if (variant === "inline") {
+      const iframe = createIframe(INLINE_URL, token);
+      container.appendChild(iframe);
+    } else {
+      container.addEventListener("click", (e) => {
+        if (e.target === container) this.closeWidget();
+      });
 
-    const popup: HTMLElement =
-      container.querySelector(
-        "#" + CSS.escape(`${this.prefix}${DUB_POPUP_ID}`),
-      ) ?? document.createElement("div");
-    popup.id = `${this.prefix}${DUB_POPUP_ID}`;
-    Object.assign(popup.style, {
-      ...POPUP_STYLES,
-      ...popupStyles,
-    });
+      const popup: HTMLElement =
+        container.querySelector(
+          "#" + CSS.escape(`${this.prefix}${DUB_POPUP_ID}`),
+        ) ?? document.createElement("div");
+      popup.id = `${this.prefix}${DUB_POPUP_ID}`;
+      Object.assign(popup.style, {
+        ...POPUP_STYLES,
+        ...popupStyles,
+      });
 
-    const iframe = createIframe(WIDGET_URL, token);
+      const iframe = createIframe(WIDGET_URL, token);
 
-    // Close button
-    const closeButton = document.createElement("button");
-    closeButton.id = `${this.prefix}${DUB_CLOSE_BUTTON_ID}`;
-    closeButton.innerHTML = CLOSE_ICON;
-    Object.assign(closeButton.style, CLOSE_BUTTON_STYLES);
-    closeButton.addEventListener("click", () => this.closeWidget());
+      // Close button
+      const closeButton = document.createElement("button");
+      closeButton.id = `${this.prefix}${DUB_CLOSE_BUTTON_ID}`;
+      closeButton.innerHTML = CLOSE_ICON;
+      Object.assign(closeButton.style, CLOSE_BUTTON_STYLES);
+      closeButton.addEventListener("click", () => this.closeWidget());
 
-    popup.appendChild(iframe);
-    popup.appendChild(closeButton);
-    container.appendChild(popup);
+      popup.appendChild(iframe);
+      popup.appendChild(closeButton);
+      container.appendChild(popup);
+    }
 
     // Listen the message from the iframe
     window.addEventListener("message", (e) => {
@@ -156,7 +168,7 @@ class DubWidget {
       }
     });
 
-    document.body.appendChild(container);
+    (root ?? document.body).appendChild(container);
 
     return container;
   }

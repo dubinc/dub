@@ -26,7 +26,12 @@ async function ToolbarRSC({ show = ["onboarding", "help"] }: ToolbarProps) {
         revalidate: 60 * 60 * 24, // cache for 24 hours
       },
     },
-  ).then((res) => res.json());
+  )
+    .then((res) => res.json())
+    .catch(() => {
+      console.error("Error fetching help articles");
+      return { popularHelpArticles: [], allHelpArticles: [] };
+    });
 
   return (
     <div className="flex items-center gap-3">
