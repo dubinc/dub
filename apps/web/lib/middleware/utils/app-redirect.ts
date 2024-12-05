@@ -1,5 +1,6 @@
 const APP_REDIRECTS = {
   "/account": "/account/settings",
+  "/referrals": "/account/settings/referrals",
   "/welcome": "/onboarding",
 };
 
