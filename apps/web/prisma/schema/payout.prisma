@@ -4,6 +4,13 @@ enum PayoutStatus {
   failed
 }
 
+enum PayoutType {
+  clicks
+  leads
+  sales
+  custom
+}
+
 model Payout {
   id             String       @id @default(cuid())
   programId      String
@@ -13,8 +20,11 @@ model Payout {
   total          Int          @default(0) // Total amount after fees (amount + fee)
   currency       String       @default("USD")
   status         PayoutStatus @default(pending)
-  periodStart    DateTime
-  periodEnd      DateTime
+  type           PayoutType   @default(sales)
+  description    String?
+  periodStart    DateTime?
+  periodEnd      DateTime?
+  quantity       Int? // Number of clicks/leads/sales in this payout
   dotsTransferId String?      @unique
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
