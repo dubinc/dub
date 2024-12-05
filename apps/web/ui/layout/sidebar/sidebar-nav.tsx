@@ -1,4 +1,4 @@
-import { AnimatedSizeContainer, ClientOnly, Icon, NavWordmark } from "@dub/ui";
+import { AnimatedSizeContainer, Icon, NavWordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronDown, ChevronLeft } from "lucide-react";
 import Link from "next/link";
@@ -59,7 +59,7 @@ export function SidebarNav<T extends Record<any, any>>({
   bottom?: ReactNode;
 }) {
   return (
-    <ClientOnly className="scrollbar-hide relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden">
+    <>
       <nav className="relative flex grow flex-col p-3 text-gray-500">
         <div className="relative flex items-start justify-between gap-1 pb-3">
           {Object.entries(areas).map(([area, areaConfig]) => {
@@ -134,7 +134,7 @@ export function SidebarNav<T extends Record<any, any>>({
       {bottom && (
         <div className="relative flex flex-col justify-end">{bottom}</div>
       )}
-    </ClientOnly>
+    </>
   );
 }
 
