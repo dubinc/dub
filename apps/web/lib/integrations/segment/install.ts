@@ -3,6 +3,7 @@
 import { authActionClient } from "@/lib/actions/safe-action";
 import { createWebhook } from "@/lib/webhook/create-webhook";
 import { SEGMENT_INTEGRATION_ID } from "@dub/utils";
+import { WebhookReceiver } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { installIntegration } from "../install";
@@ -21,7 +22,7 @@ export const installSegmentAction = authActionClient
     const webhook = await createWebhook({
       name: "Segment",
       url: "https://api.segment.io/v1/track",
-      receiver: "segment",
+      receiver: WebhookReceiver.segment,
       triggers: [],
       workspace,
       secret: writeKey,

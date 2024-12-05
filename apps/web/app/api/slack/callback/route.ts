@@ -12,7 +12,7 @@ import {
   getSearchParams,
   SLACK_INTEGRATION_ID,
 } from "@dub/utils";
-import { Project } from "@prisma/client";
+import { Project, WebhookReceiver } from "@prisma/client";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -78,8 +78,8 @@ export const GET = async (req: Request) => {
     const webhook = await createWebhook({
       name: "Slack",
       url: data.incoming_webhook.url,
-      receiver: "slack",
-      triggers: ["link.created"],
+      receiver: WebhookReceiver.slack,
+      triggers: [],
       workspace,
     });
 

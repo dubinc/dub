@@ -38,6 +38,7 @@ model InstalledIntegration {
   project       Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
   refreshTokens OAuthRefreshToken[]
   accessTokens  RestrictedToken[]
+  webhook       Webhook?
 
   @@unique([userId, integrationId, projectId])
   @@index([projectId])
