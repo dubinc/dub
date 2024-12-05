@@ -121,7 +121,7 @@ export const RESOURCES = [
     icon: Book2Fill,
     title: "Docs",
     description: "Platform documentation",
-    href: "/docs",
+    href: "/docs/introduction",
   },
   {
     icon: HeadsetFill,
@@ -141,7 +141,6 @@ export const COMPARE_PAGES = [
 export const LEGAL_PAGES = [
   { name: "Privacy", slug: "privacy" },
   { name: "Terms", slug: "terms" },
-  { name: "Trust Center", slug: "trust" },
   { name: "DPA", slug: "dpa" },
   { name: "Subprocessors", slug: "subprocessors" },
   { name: "Report Abuse", slug: "abuse" },

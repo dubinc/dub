@@ -14,7 +14,13 @@ export type DubOptions = {
   // The link token
   token: string;
 
-  // The trigger for the widget
+  // The variant of the widget
+  variant?: "inline" | "popup";
+
+  // The root element for the widget
+  root?: HTMLElement;
+
+  // The trigger for the popup widget
   trigger?: DubWidgetTrigger;
 
   // The ID of the widget (for multiple widgets on the same page)

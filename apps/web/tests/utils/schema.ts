@@ -75,7 +75,5 @@ export const expectedWorkspace: Partial<Project> = {
   tagsLimit: expect.any(Number),
   usersLimit: expect.any(Number),
 
-  referralLinkId: expect.any(String),
-
   createdAt: expect.any(String),
 };
