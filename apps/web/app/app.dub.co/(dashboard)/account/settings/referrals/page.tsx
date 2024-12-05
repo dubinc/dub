@@ -2,6 +2,8 @@ import { getSession } from "@/lib/auth";
 import { dub } from "@/lib/dub";
 import { DubWidget } from "@dub/embed-react";
 
+export const dynamic = "auto";
+
 export default async function ReferralsPage() {
   const session = await getSession();
   const referralLinkId = session?.user["referralLinkId"];
