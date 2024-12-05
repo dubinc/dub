@@ -2,10 +2,21 @@
 
 import { DubWidget } from "@dub/embed-react";
 import { Gift } from "@dub/ui/src/icons";
-import { cn } from "@dub/utils";
+import { cn, fetcher } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
+import { useSession } from "next-auth/react";
+import { memo } from "react";
+import useSWRImmutable from "swr/immutable";
 
-export function ReferButton({ publicToken }: { publicToken: string }) {
+function ReferButtonComponent() {
+  const { data: session } = useSession();
+
+  const { data: { publicToken } = {} } = useSWRImmutable<{
+    publicToken: string;
+  }>(session?.user?.["referralLinkId"] && "/api/user/embed-tokens", fetcher);
+
+  if (!publicToken) return null;
+
   return (
     <DubWidget token={publicToken} options={{ trigger: "manual" }}>
       <button
@@ -29,3 +40,5 @@ export function ReferButton({ publicToken }: { publicToken: string }) {
     </DubWidget>
   );
 }
+
+export const ReferButton = memo(ReferButtonComponent);
