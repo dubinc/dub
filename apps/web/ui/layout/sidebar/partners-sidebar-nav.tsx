@@ -273,6 +273,7 @@ function ProgramInfo() {
         <div className="mt-2 grid grid-cols-2 gap-2">
           {items.map(({ href, icon: Icon, label, value }) => (
             <Link
+              key={href}
               href={href}
               className="group relative flex flex-col justify-between gap-3 rounded-lg bg-black/5 p-2 transition-colors hover:bg-black/10"
             >

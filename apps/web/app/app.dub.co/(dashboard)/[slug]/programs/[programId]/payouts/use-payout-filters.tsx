@@ -154,8 +154,9 @@ function usePartnerFilterOptions(search: string) {
           (p) => p.id === searchParamsObj.partnerId,
         ))
       ? null
-      : ([
-          ...(partners ? partners : []),
+      : // @ts-ignore
+        ([
+          ...(partners ?? []),
           // Add selected partner to list if not already in partners
           ...(selectedPartners
             ?.filter((st) => !partners?.some((t) => t.id === st.id))

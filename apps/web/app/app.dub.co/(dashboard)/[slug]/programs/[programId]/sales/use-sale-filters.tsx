@@ -166,8 +166,9 @@ function usePartnerFilterOptions(search: string) {
           (p) => p.id === searchParamsObj.partnerId,
         ))
       ? null
-      : ([
-          ...(partners ? partners : []),
+      : // @ts-ignore
+        ([
+          ...(partners ?? []),
           // Add selected partner to list if not already in partners
           ...(selectedPartners
             ?.filter((st) => !partners?.some((t) => t.id === st.id))
@@ -207,8 +208,9 @@ function useCustomerFilterOptions(search: string) {
           (p) => p.id === searchParamsObj.customerId,
         ))
       ? null
-      : ([
-          ...(customers ? customers : []),
+      : // @ts-ignore
+        ([
+          ...(customers ?? []),
           // Add selected partner to list if not already in partners
           ...(selectedCustomers
             ?.filter((st) => !customers?.some((t) => t.id === st.id))
