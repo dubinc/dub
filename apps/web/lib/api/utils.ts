@@ -52,25 +52,6 @@ export const getIP = () => {
   return headers().get("x-real-ip") ?? FALLBACK_IP_ADDRESS;
 };
 
-export const extractPublishableKey = (req: Request) => {
-  const authorizationHeader = req.headers.get("Authorization");
-
-  if (!authorizationHeader) {
-    const searchParams = new URL(req.url).searchParams;
-    const token = searchParams.get("token");
-    if (!token) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "Missing publishable key. Please pass it either as a Authorization Bearer token or as a `token` query parameter. Learn more: https://d.to/pk",
-      });
-    }
-    return token;
-  }
-
-  return authorizationHeader.replace("Bearer ", "");
-};
-
 const prefixes = [
   "link_",
   "tag_",

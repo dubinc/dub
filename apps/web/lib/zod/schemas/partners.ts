@@ -3,6 +3,7 @@ import { COUNTRY_CODES } from "@dub/utils";
 import {
   PartnerStatus,
   PayoutStatus,
+  PayoutType,
   ProgramEnrollmentStatus,
   SaleStatus,
 } from "@prisma/client";
@@ -63,6 +64,7 @@ export const payoutsQuerySchema = z
     partnerId: z.string().optional(),
     order: z.enum(["asc", "desc"]).default("desc"),
     sortBy: z.enum(["periodStart", "total"]).default("periodStart"),
+    type: z.nativeEnum(PayoutType).optional(),
   })
   .merge(getPaginationQuerySchema({ pageSize: PAYOUTS_MAX_PAGE_SIZE }));
 
@@ -73,9 +75,12 @@ export const PayoutSchema = z.object({
   total: z.number(),
   currency: z.string(),
   status: z.nativeEnum(PayoutStatus),
-  periodStart: z.date(),
-  periodEnd: z.date(),
+  type: z.nativeEnum(PayoutType),
+  description: z.string().nullish(),
+  periodStart: z.date().nullable(),
+  periodEnd: z.date().nullable(),
   dotsTransferId: z.string().nullable(),
+  quantity: z.number().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -129,6 +134,12 @@ export const getSalesCountQuerySchema = getSalesQuerySchema.omit({
   pageSize: true,
   order: true,
   sortBy: true,
+});
+
+export const getSalesAmountQuerySchema = getSalesQuerySchema.pick({
+  start: true,
+  end: true,
+  partnerId: true,
 });
 
 export const getPartnerSalesQuerySchema = getSalesQuerySchema.omit({

@@ -1,5 +1,4 @@
 import { deleteDomainAndLinks } from "@/lib/api/domains";
-import { dub } from "@/lib/dub";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { cancelSubscription } from "@/lib/stripe";
@@ -15,10 +14,7 @@ import {
 import { waitUntil } from "@vercel/functions";
 
 export async function deleteWorkspace(
-  workspace: Pick<
-    WorkspaceProps,
-    "id" | "slug" | "logo" | "stripeId" | "referralLinkId"
-  >,
+  workspace: Pick<WorkspaceProps, "id" | "slug" | "logo" | "stripeId">,
 ) {
   const [customDomains, defaultDomainLinks] = await Promise.all([
     prisma.domain.findMany({
@@ -113,13 +109,6 @@ export async function deleteWorkspace(
           storage.delete(workspace.logo.replace(`${R2_URL}/`, "")),
         // if they have a Stripe subscription, cancel it
         workspace.stripeId && cancelSubscription(workspace.stripeId),
-        // set the referral link to `/deleted/[slug]`
-        workspace.referralLinkId &&
-          dub.links.update(workspace.referralLinkId, {
-            key: `/deleted/${workspace.slug}-${workspace.id}`,
-            archived: true,
-            identifier: `/deleted/${workspace.slug}-${workspace.id}`,
-          }),
         // delete the workspace
         prisma.project.delete({
           where: {
@@ -142,10 +131,7 @@ export async function deleteWorkspace(
 }
 
 export async function deleteWorkspaceAdmin(
-  workspace: Pick<
-    WorkspaceProps,
-    "id" | "slug" | "logo" | "stripeId" | "referralLinkId"
-  >,
+  workspace: Pick<WorkspaceProps, "id" | "slug" | "logo" | "stripeId">,
 ) {
   const [customDomains, defaultDomainLinks] = await Promise.all([
     prisma.domain.findMany({
@@ -205,13 +191,6 @@ export async function deleteWorkspaceAdmin(
       storage.delete(workspace.logo.replace(`${R2_URL}/`, "")),
     // if they have a Stripe subscription, cancel it
     workspace.stripeId && cancelSubscription(workspace.stripeId),
-    // set the referral link to `/deleted/[slug]`
-    workspace.referralLinkId &&
-      dub.links.update(workspace.referralLinkId, {
-        key: `/deleted/${workspace.slug}-${workspace.id}`,
-        archived: true,
-        identifier: `/deleted/${workspace.slug}-${workspace.id}`,
-      }),
     // delete the workspace
     prisma.project.delete({
       where: {

@@ -1,46 +1,22 @@
 "use client";
 
-import useWorkspace from "@/lib/swr/use-workspace";
 import { DubWidget } from "@dub/embed-react";
 import { Gift } from "@dub/ui/src/icons";
-import { cn } from "@dub/utils";
+import { cn, fetcher } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import useSWRImmutable from "swr/immutable";
 
 export function ReferButton() {
-  const { id: workspaceId, flags, referralLinkId } = useWorkspace();
+  const { data: { publicToken } = {} } = useSWRImmutable<{
+    publicToken: string;
+  }>("/api/user/embed-tokens", fetcher, {
+    keepPreviousData: true,
+  });
 
-  const [publicToken, setPublicToken] = useState<string | null>(null);
-
-  // Get publicToken from server when component mounts
-  const createPublicToken = async () => {
-    const response = await fetch(`/api/workspaces/${workspaceId}/embed-token`, {
-      method: "POST",
-    });
-
-    if (!response.ok) {
-      throw toast.error("Failed to create public token");
-    }
-
-    const { publicToken } = (await response.json()) as {
-      publicToken: string;
-    };
-
-    setPublicToken(publicToken);
-  };
-
-  useEffect(() => {
-    // only create public token if referralLinkId is set
-    if (referralLinkId) {
-      createPublicToken();
-    }
-  }, [flags, referralLinkId]);
-
-  if (!referralLinkId || !publicToken) return null;
+  if (!publicToken) return null;
 
   return (
-    <DubWidget token={publicToken} trigger="manual">
+    <DubWidget token={publicToken} options={{ trigger: "manual" }}>
       <button
         type="button"
         className={cn(

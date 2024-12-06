@@ -4,7 +4,7 @@ import { PartnerSaleResponse } from "@/lib/types";
 import {
   AnimatedSizeContainer,
   Button,
-  LoadingSpinner,
+  buttonVariants,
   ToggleGroup,
   useCopyToClipboard,
   Wordmark,
@@ -13,41 +13,47 @@ import {
   Check2,
   Copy,
   EnvelopeArrowRight,
-  Gift,
   GiftFill,
   LinkedIn,
   QRCode,
   Twitter,
 } from "@dub/ui/src/icons";
-import {
-  cn,
-  currencyFormatter,
-  fetcher,
-  getPrettyUrl,
-  nFormatter,
-} from "@dub/utils";
+import { cn, fetcher, getPrettyUrl } from "@dub/utils";
 import { Link, Program } from "@prisma/client";
+import { motion } from "framer-motion";
 import { CSSProperties, useState } from "react";
 import useSWR from "swr";
+import { Activity } from "../activity";
+import { SalesList } from "../sales-list";
 import { LinkToken } from "../token";
+import { useIframeVisibility } from "../use-iframe-visibility";
 
 type Tab = "invite" | "rewards";
+
+const heroAnimationDuration = 0.2;
 
 export function EmbedWidgetPageClient({
   program,
   link,
   earnings,
+  hasPartnerProfile,
 }: {
   program: Program;
   link: Link;
   earnings: number;
+  hasPartnerProfile: boolean;
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
   const [selectedTab, setSelectedTab] = useState<Tab>("invite");
 
+  const isIframeVisible = useIframeVisibility();
+
   const { data: sales, isLoading } = useSWR<PartnerSaleResponse[]>(
-    "/api/embed/sales",
+    isIframeVisible && "/api/embed/sales",
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   return (
@@ -64,7 +70,7 @@ export function EmbedWidgetPageClient({
       >
         <AnimatedSizeContainer
           height
-          transition={{ type: "easeInOut", duration: 0.2 }}
+          transition={{ type: "easeInOut", duration: heroAnimationDuration }}
           className="flex flex-col justify-end"
         >
           <div className="flex h-full flex-col justify-end px-5 pt-5">
@@ -95,7 +101,7 @@ export function EmbedWidgetPageClient({
         </AnimatedSizeContainer>
         <AnimatedSizeContainer
           height
-          transition={{ type: "easeInOut", duration: 0.2 }}
+          transition={{ type: "easeInOut", duration: heroAnimationDuration }}
         >
           <div
             className={cn(
@@ -133,7 +139,7 @@ export function EmbedWidgetPageClient({
           indicatorClassName="rounded-lg bg-white border border-neutral-100 shadow-sm"
         />
 
-        <div className="mt-6">
+        <div className="mt-5">
           {selectedTab === "invite" && (
             <>
               <div className="flex flex-col gap-2">
@@ -203,64 +209,60 @@ export function EmbedWidgetPageClient({
               <h2 className="text-sm font-semibold text-neutral-900">
                 Activity
               </h2>
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                {[
-                  { label: "Clicks", value: link.clicks },
-                  { label: "Signups", value: link.leads },
-                  { label: "Total earned", value: earnings },
-                ].map(({ label, value }) => (
-                  <div className="flex flex-col gap-1.5 rounded-lg bg-neutral-100 p-2">
-                    <span className="text-xs text-neutral-500">{label}</span>
-                    <span className="text-sm font-semibold text-neutral-600">
-                      {label === "Total earned"
-                        ? currencyFormatter(value / 100, {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })
-                        : nFormatter(value)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4">
-                {sales ? (
-                  sales.length ? (
-                    <div className="mt-4 grid grid-cols-1 divide-y divide-neutral-200 rounded-md border border-neutral-200">
-                      {sales.slice(0, 3).map((sale) => (
-                        <div
-                          key={sale.id}
-                          className="flex items-center justify-between gap-4 px-3 py-2.5"
-                        >
-                          <div className="flex min-w-0 flex-col">
-                            <span className="truncate text-sm font-medium text-neutral-600">
-                              {sale.customer.email}
-                            </span>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium text-neutral-600">
-                              {currencyFormatter(sale.earnings / 100, {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              })}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <EmptyState />
-                  )
-                ) : isLoading ? (
-                  <div className="mt-8 flex items-center justify-center">
-                    <LoadingSpinner className="size-4" />
-                  </div>
-                ) : (
-                  <EmptyState />
-                )}
-              </div>
+              <motion.div
+                initial={{ height: 150, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                transition={{
+                  duration: heroAnimationDuration + 0.05,
+                  ease: "easeInOut",
+                }}
+                className="overflow-clip"
+              >
+                <Activity
+                  clicks={link.clicks}
+                  leads={link.leads}
+                  earnings={earnings}
+                />
+                <div className="mt-4">
+                  <h2 className="text-sm font-semibold text-neutral-900">
+                    Recent sales
+                  </h2>
+                  <SalesList
+                    sales={sales}
+                    isLoading={isLoading}
+                    hasPartnerProfile={hasPartnerProfile}
+                  />
+                  {!isLoading &&
+                    sales &&
+                    sales.length > 0 &&
+                    (hasPartnerProfile ? (
+                      <a
+                        href="https://partners.dub.co/settings/payouts"
+                        target="_blank"
+                        className={cn(
+                          buttonVariants({ variant: "primary" }),
+                          "mt-3 flex h-10 items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm",
+                        )}
+                      >
+                        Withdraw earnings
+                      </a>
+                    ) : (
+                      <a
+                        href="https://partners.dub.co/register"
+                        target="_blank"
+                        className={cn(
+                          buttonVariants({ variant: "primary" }),
+                          "mt-3 flex h-10 items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm",
+                        )}
+                      >
+                        Create partner account
+                      </a>
+                    ))}
+                </div>
+              </motion.div>
             </>
           )}
-          <LinkToken />
+          {isIframeVisible && <LinkToken />}
         </div>
       </div>
       <div className="flex grow flex-col justify-end">
@@ -278,15 +280,3 @@ export function EmbedWidgetPageClient({
     </div>
   );
 }
-
-const EmptyState = () => {
-  return (
-    <div className="flex h-40 w-full flex-col items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50">
-      <Gift className="size-6 text-neutral-400" />
-      <p className="max-w-60 text-pretty text-center text-xs text-neutral-400">
-        No sales yet. When you refer a friend and they make a purchase, they'll
-        show up here.
-      </p>
-    </div>
-  );
-};
