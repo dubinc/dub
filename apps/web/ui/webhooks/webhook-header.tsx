@@ -2,8 +2,8 @@
 
 import { enableOrDisableWebhook } from "@/lib/actions/enable-disable-webhook";
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import useWebhook from "@/lib/swr/use-webhook";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { WebhookProps } from "@/lib/types";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
@@ -15,36 +15,25 @@ import {
   TokenAvatar,
   useCopyToClipboard,
 } from "@dub/ui";
-import { fetcher } from "@dub/utils";
 import { ChevronLeft, CircleX, Send, Trash } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { notFound, useRouter, useSelectedLayoutSegment } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import useSWR from "swr";
 import { useDeleteWebhookModal } from "../modals/delete-webhook-modal";
 import { useSendTestWebhookModal } from "../modals/send-test-webhook-modal";
 import { WebhookStatus } from "./webhook-status";
 
 export default function WebhookHeader({ webhookId }: { webhookId: string }) {
   const router = useRouter();
+  const { webhook, isLoading, mutate } = useWebhook();
   const { slug, id: workspaceId, role } = useWorkspace();
   const [copiedWebhookId, copyToClipboard] = useCopyToClipboard();
+  const [openPopover, setOpenPopover] = useState(false);
 
   const selectedLayoutSegment = useSelectedLayoutSegment();
   const page = selectedLayoutSegment === null ? "" : selectedLayoutSegment;
-
-  const [openPopover, setOpenPopover] = useState(false);
-
-  const {
-    data: webhook,
-    isLoading,
-    mutate,
-  } = useSWR<WebhookProps>(
-    `/api/webhooks/${webhookId}?workspaceId=${workspaceId}`,
-    fetcher,
-  );
 
   const { DeleteWebhookModal, setDeleteWebhookModal } = useDeleteWebhookModal({
     webhook,
@@ -82,6 +71,14 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
       success: "Webhook ID copied!",
     });
   };
+
+  const disabled =
+    webhook?.installationId !== null || permissionsError !== false;
+  const disabledTooltip = webhook?.installationId
+    ? `This webhook is managed by ${webhook.name} integration.`
+    : permissionsError
+      ? permissionsError
+      : undefined;
 
   return (
     <>
@@ -165,8 +162,8 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
 
                     setOpenPopover(false);
                   }}
-                  disabled={!!permissionsError}
-                  disabledTooltip={permissionsError}
+                  disabled={disabled}
+                  disabledTooltip={disabledTooltip}
                   loading={isExecuting}
                 />
 
@@ -192,8 +189,8 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
                   onClick={() => {
                     setDeleteWebhookModal(true);
                   }}
-                  disabled={!!permissionsError}
-                  disabledTooltip={permissionsError}
+                  disabled={disabled}
+                  disabledTooltip={disabledTooltip}
                 />
               </div>
             }

@@ -51,6 +51,7 @@ export async function createWebhook({
       triggers: true,
       links: true,
       disabledAt: true,
+      installationId: true,
     },
   });
 

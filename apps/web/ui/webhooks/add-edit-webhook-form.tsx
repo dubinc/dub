@@ -100,8 +100,18 @@ export default function AddEditWebhookForm({
   };
 
   const { name, url, secret, triggers, linkIds = [] } = data;
+
   const buttonDisabled = !name || !url || !triggers.length || saving;
-  const canManageWebhook = !permissionsError;
+
+  const updateDisabled =
+    webhook?.installationId !== null || permissionsError !== false;
+
+  const disabledTooltip = webhook?.installationId
+    ? `This webhook is managed by ${webhook.name} integration.`
+    : permissionsError
+      ? permissionsError
+      : undefined;
+
   const enableLinkSelection = LINK_LEVEL_WEBHOOK_TRIGGERS.some((trigger) =>
     triggers.includes(trigger),
   );
@@ -121,7 +131,7 @@ export default function AddEditWebhookForm({
               className={cn(
                 "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
                 {
-                  "cursor-not-allowed bg-gray-50": !canManageWebhook,
+                  "cursor-not-allowed bg-gray-50": updateDisabled,
                 },
               )}
               required
@@ -130,7 +140,7 @@ export default function AddEditWebhookForm({
               autoFocus
               autoComplete="off"
               placeholder="Webhook name"
-              disabled={!canManageWebhook}
+              disabled={updateDisabled}
             />
           </div>
         </div>
@@ -144,7 +154,7 @@ export default function AddEditWebhookForm({
               className={cn(
                 "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
                 {
-                  "cursor-not-allowed bg-gray-50": !canManageWebhook,
+                  "cursor-not-allowed bg-gray-50": updateDisabled,
                 },
               )}
               required
@@ -152,7 +162,7 @@ export default function AddEditWebhookForm({
               onChange={(e) => setData({ ...data, url: e.target.value })}
               autoComplete="off"
               placeholder="Webhook URL"
-              disabled={!canManageWebhook}
+              disabled={updateDisabled}
             />
           </div>
         </div>
@@ -190,7 +200,7 @@ export default function AddEditWebhookForm({
                   value={trigger}
                   id={trigger}
                   checked={triggers.includes(trigger)}
-                  disabled={!canManageWebhook}
+                  disabled={updateDisabled}
                   onCheckedChange={(checked) => {
                     setData({
                       ...data,
@@ -230,7 +240,7 @@ export default function AddEditWebhookForm({
                   value={trigger}
                   id={trigger}
                   checked={triggers.includes(trigger)}
-                  disabled={!canManageWebhook}
+                  disabled={updateDisabled}
                   onCheckedChange={(checked) => {
                     setData({
                       ...data,
@@ -264,7 +274,7 @@ export default function AddEditWebhookForm({
                       linkIds: ids,
                     })
                   }
-                  disabled={!canManageWebhook}
+                  disabled={updateDisabled}
                 />
               </div>
             </div>
@@ -273,11 +283,11 @@ export default function AddEditWebhookForm({
 
         <Button
           text={webhook ? "Save changes" : "Create webhook"}
-          disabled={buttonDisabled}
+          disabled={buttonDisabled || updateDisabled}
           loading={saving}
           type="submit"
-          {...(permissionsError && {
-            disabledTooltip: permissionsError,
+          {...(disabledTooltip && {
+            disabledTooltip,
           })}
         />
       </form>

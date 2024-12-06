@@ -29,6 +29,7 @@ export const GET = withWorkspace(
         triggers: true,
         disabledAt: true,
         links: true,
+        installationId: true,
       },
     });
 
@@ -136,6 +137,7 @@ export const PATCH = withWorkspace(
         secret: true,
         triggers: true,
         disabledAt: true,
+        installationId: true,
         links: {
           select: {
             linkId: true,

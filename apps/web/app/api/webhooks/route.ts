@@ -27,6 +27,7 @@ export const GET = withWorkspace(
         disabledAt: true,
         links: true,
         receiver: true,
+        installationId: true,
       },
       orderBy: {
         updatedAt: "desc",
