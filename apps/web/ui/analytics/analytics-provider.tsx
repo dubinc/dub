@@ -93,13 +93,13 @@ export default function AnalyticsProvider({
   const { id: workspaceId, slug, conversionEnabled } = useWorkspace();
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
-  let { dashboardId, partnerId, programId } = useParams() as {
+  let { dashboardId, partnerId, programSlug } = useParams() as {
     dashboardId?: string;
     partnerId?: string;
-    programId?: string;
+    programSlug?: string;
   };
 
-  const partnerPage = partnerId && programId ? true : false;
+  const partnerPage = partnerId && programSlug ? true : false;
 
   const domainSlug = searchParams?.get("domain");
   // key can be a query param (stats pages in app) or passed as a staticKey (shared analytics dashboards)
@@ -183,11 +183,11 @@ export default function AnalyticsProvider({
         eventsApiPath: `/api/events`,
         domain: domainSlug,
       };
-    } else if (partnerId && programId) {
+    } else if (partnerId && programSlug) {
       return {
-        basePath: `/api/partners/${partnerId}/programs/${programId}/analytics`,
-        baseApiPath: `/api/partners/${partnerId}/programs/${programId}/analytics`,
-        eventsApiPath: `/api/partners/${partnerId}/programs/${programId}/events`,
+        basePath: `/api/partners/${partnerId}/programs/${programSlug}/analytics`,
+        baseApiPath: `/api/partners/${partnerId}/programs/${programSlug}/analytics`,
+        eventsApiPath: `/api/partners/${partnerId}/programs/${programSlug}/events`,
         domain: domainSlug,
       };
     } else {
@@ -206,7 +206,7 @@ export default function AnalyticsProvider({
     dashboardProps?.domain,
     dashboardId,
     partnerId,
-    programId,
+    programSlug,
     domainSlug,
     key,
     selectedTab,

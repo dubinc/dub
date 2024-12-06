@@ -272,8 +272,9 @@ function ProgramInfo() {
       <div>
         <div className="text-neutral-500">Performance</div>
         <div className="mt-2 grid grid-cols-2 gap-2">
-          {items.map(({ href, icon: Icon, label, value }) => (
+          {items.map(({ href, icon: Icon, label, value }, index) => (
             <Link
+              key={index}
               href={href}
               className="group relative flex flex-col justify-between gap-3 rounded-lg bg-black/5 p-2 transition-colors hover:bg-black/10"
             >
