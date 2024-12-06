@@ -75,6 +75,13 @@ export const GET = async (req: Request) => {
 
     const data = await response.json();
 
+    const webhook = await addWebhook({
+      name: "Slack",
+      url: data.incoming_webhook.url,
+      triggers: ["link.created"],
+      workspace,
+    });
+
     const credentials: SlackCredential = {
       appId: data.app_id,
       botUserId: data.bot_user_id,
