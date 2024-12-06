@@ -15,7 +15,6 @@ import {
   TokenAvatar,
   useCopyToClipboard,
 } from "@dub/ui";
-import { fetcher } from "@dub/utils";
 import { ChevronLeft, CircleX, Send, Trash } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
@@ -36,17 +35,6 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
   const selectedLayoutSegment = useSelectedLayoutSegment();
   const page = selectedLayoutSegment === null ? "" : selectedLayoutSegment;
 
-  const [openPopover, setOpenPopover] = useState(false);
-
-  const {
-    data: webhook,
-    isLoading,
-    mutate,
-  } = useSWR<WebhookProps>(
-    `/api/webhooks/${webhookId}?workspaceId=${workspaceId}`,
-    fetcher,
-  );
-  
   const { DeleteWebhookModal, setDeleteWebhookModal } = useDeleteWebhookModal({
     webhook,
   });
