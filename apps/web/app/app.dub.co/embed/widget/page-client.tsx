@@ -51,6 +51,9 @@ export function EmbedWidgetPageClient({
   const { data: sales, isLoading } = useSWR<PartnerSaleResponse[]>(
     isIframeVisible && "/api/embed/sales",
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   return (
