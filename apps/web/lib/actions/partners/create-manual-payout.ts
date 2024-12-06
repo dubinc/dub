@@ -71,6 +71,7 @@ export const createManualPayoutAction = authActionClient
         partnerId,
         periodStart: start!,
         periodEnd: end!,
+        description: description ?? undefined,
       });
     }
 

@@ -291,7 +291,8 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
               new Date(start).getFullYear() === new Date(end).getFullYear()
                 ? undefined
                 : "numeric",
-          })}-${formatDate(end, { month: "short" })}`,
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          })}-${formatDate(end, { month: "short", timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone })}`,
         }),
 
       ...(payoutType !== "custom" && {
