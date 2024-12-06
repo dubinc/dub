@@ -104,4 +104,7 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
     expect(response.status).toBe(302);
   });
+
+  //  DUMMY test to record a hit on track-test
+  await fetch(`${h.baseUrl}/track-test`);
 });
