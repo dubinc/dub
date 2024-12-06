@@ -19,23 +19,23 @@ export const installSegmentAction = authActionClient
     const { workspace, user } = ctx;
     const { writeKey } = parsedInput;
 
-    const webhook = await createWebhook({
-      name: "Segment",
-      url: "https://api.segment.io/v1/track",
-      receiver: WebhookReceiver.segment,
-      triggers: [],
-      workspace,
-      secret: writeKey,
-    });
-
-    await installIntegration({
+    const installation = await installIntegration({
       integrationId: SEGMENT_INTEGRATION_ID,
       userId: user.id,
       workspaceId: workspace.id,
       credentials: {
         writeKey,
-        webhookId: webhook.id,
       },
+    });
+
+    await createWebhook({
+      name: "Segment",
+      url: "https://api.segment.io/v1/track",
+      receiver: WebhookReceiver.segment,
+      triggers: [],
+      workspaceId: workspace.id,
+      secret: writeKey,
+      installationId: installation.id,
     });
 
     revalidatePath(`/${workspace.slug}/settings/integrations/segment`);

@@ -94,7 +94,7 @@ export const POST = withWorkspace(
       triggers,
       linkIds,
       secret,
-      workspace,
+      workspaceId: workspace.id,
     });
 
     waitUntil(

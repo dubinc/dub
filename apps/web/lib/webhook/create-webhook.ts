@@ -3,13 +3,11 @@ import { createId } from "@/lib/api/utils";
 import { prisma } from "@/lib/prisma";
 import { webhookCache } from "@/lib/webhook/cache";
 import { WEBHOOK_ID_PREFIX } from "@/lib/webhook/constants";
-import {
-  identifyWebhookReceiver,
-  isLinkLevelWebhook,
-} from "@/lib/webhook/utils";
-import { Project, WebhookReceiver } from "@prisma/client";
+import { isLinkLevelWebhook } from "@/lib/webhook/utils";
+import { WebhookReceiver } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { WebhookTrigger } from "../types";
+import { z } from "zod";
+import { createWebhookSchema } from "../zod/schemas/webhooks";
 import { createWebhookSecret } from "./secret";
 
 export async function createWebhook({
@@ -17,17 +15,14 @@ export async function createWebhook({
   url,
   secret,
   triggers,
-  workspace,
   linkIds,
+  workspaceId,
   receiver,
-}: {
-  name: string;
-  url: string;
-  secret?: string;
-  triggers: WebhookTrigger[];
-  workspace: Pick<Project, "id">;
-  linkIds?: string[];
+  installationId,
+}: z.infer<typeof createWebhookSchema> & {
+  workspaceId: string;
   receiver?: WebhookReceiver;
+  installationId?: string;
 }) {
   const webhook = await prisma.webhook.create({
     data: {
@@ -35,8 +30,9 @@ export async function createWebhook({
       name,
       url,
       triggers,
-      projectId: workspace.id,
-      receiver: receiver || identifyWebhookReceiver(url),
+      receiver,
+      installationId,
+      projectId: workspaceId,
       secret: secret || createWebhookSecret(),
       links: {
         ...(linkIds &&
@@ -60,7 +56,7 @@ export async function createWebhook({
 
   await prisma.project.update({
     where: {
-      id: workspace.id,
+      id: workspaceId,
     },
     data: {
       webhookEnabled: true,
@@ -72,7 +68,7 @@ export async function createWebhook({
       const links = await prisma.link.findMany({
         where: {
           id: { in: linkIds },
-          projectId: workspace.id,
+          projectId: workspaceId,
         },
         include: {
           webhooks: {
