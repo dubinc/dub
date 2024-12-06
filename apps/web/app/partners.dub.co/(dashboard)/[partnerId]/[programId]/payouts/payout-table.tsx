@@ -2,6 +2,7 @@
 
 import { PartnerPayoutResponse } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
+import { PayoutTypeBadge } from "@/ui/partners/payout-type-badge";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import {
   StatusBadge,
@@ -11,12 +12,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { MoneyBill2 } from "@dub/ui/src/icons";
-import {
-  capitalize,
-  currencyFormatter,
-  formatDate,
-  nFormatter,
-} from "@dub/utils";
+import { currencyFormatter, formatDate } from "@dub/utils";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -79,21 +75,8 @@ export function PayoutTable() {
         },
       },
       {
-        id: "quantity",
-        header: "Quantity",
-        accessorFn: (d) =>
-          d.quantity
-            ? `${nFormatter(d.quantity, { full: true })} ${capitalize(d.type)}`
-            : "-",
-      },
-      {
-        id: "amount",
-        header: "Amount",
-        accessorFn: (d) =>
-          currencyFormatter(d.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        header: "Type",
+        cell: ({ row }) => <PayoutTypeBadge type={row.original.type} />,
       },
       {
         header: "Status",
@@ -107,6 +90,15 @@ export function PayoutTable() {
             "-"
           );
         },
+      },
+      {
+        id: "amount",
+        header: "Amount",
+        accessorFn: (d) =>
+          currencyFormatter(d.amount / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
       },
     ],
     pagination,

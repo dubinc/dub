@@ -1,5 +1,6 @@
 import { PartnerPayoutResponse, PartnerSaleResponse } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
+import { PayoutTypeBadge } from "@/ui/partners/payout-type-badge";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -61,20 +62,34 @@ function PayoutDetailsSheetContent({
                   : "numeric",
             })}-${formatDate(payout.periodEnd, { month: "short" })}`,
 
-      ...(payout.quantity && {
-        [capitalize(payout.type) as string]: payout.quantity,
-      }),
+      Type: <PayoutTypeBadge type={payout.type} />,
 
-      Amount: currencyFormatter(payout.amount / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
       Status: (
         <StatusBadge variant={statusBadge.variant} icon={statusBadge.icon}>
           {statusBadge.label}
         </StatusBadge>
       ),
-      Notes: payout.description || "-",
+      ...(payout.quantity && {
+        [capitalize(payout.type) as string]: payout.quantity,
+        [`Reward per ${payout.type.replace(/s$/, "")}`]: currencyFormatter(
+          payout.amount / payout.quantity / 100,
+          {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          },
+        ),
+      }),
+
+      Amount: (
+        <strong>
+          {currencyFormatter(payout.amount / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+        </strong>
+      ),
+
+      Description: payout.description || "-",
     };
   }, [payout, sales]);
 
@@ -149,7 +164,9 @@ function PayoutDetailsSheetContent({
           <div className="grid grid-cols-2 gap-3 text-sm">
             {Object.entries(invoiceData).map(([key, value]) => (
               <Fragment key={key}>
-                <div className="font-medium text-neutral-500">{key}</div>
+                <div className="flex items-center font-medium text-neutral-500">
+                  {key}
+                </div>
                 <div className="text-neutral-800">{value}</div>
               </Fragment>
             ))}

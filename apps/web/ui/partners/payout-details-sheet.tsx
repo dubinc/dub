@@ -97,8 +97,6 @@ function PayoutDetailsSheetContent({
 
       ...(payout.quantity && {
         [capitalize(payout.type) as string]: payout.quantity,
-      }),
-      ...(payout.quantity && {
         [`Reward per ${payout.type.replace(/s$/, "")}`]: currencyFormatter(
           payout.amount / payout.quantity / 100,
           {
