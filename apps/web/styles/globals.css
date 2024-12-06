@@ -39,3 +39,8 @@ code .line::before {
   background-color: #d1d5db;
   border-radius: 10px;
 }
+
+/* Fix modal content getting covered by Drawer Vaul */
+[data-vaul-drawer][data-vaul-drawer-direction='bottom']::after {
+  height: auto !important;
+}
