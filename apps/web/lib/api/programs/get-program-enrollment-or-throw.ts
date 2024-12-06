@@ -42,7 +42,7 @@ export async function getProgramEnrollmentOrThrow({
     });
   }
 
-  const { link, program } = programEnrollment;
+  const { link } = programEnrollment;
 
   if (!link) {
     throw new DubApiError({
@@ -52,5 +52,8 @@ export async function getProgramEnrollmentOrThrow({
     });
   }
 
-  return { link, program };
+  return {
+    ...programEnrollment,
+    link,
+  };
 }
