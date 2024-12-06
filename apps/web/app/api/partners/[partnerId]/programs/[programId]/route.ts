@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartner } from "@/lib/auth/partner";
 import { prisma } from "@/lib/prisma";
 import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
@@ -6,20 +7,9 @@ import { NextResponse } from "next/server";
 
 // GET /api/partners/[partnerId]/programs/[programId] – get a partner's enrollment in a program
 export const GET = withPartner(async ({ partner, params }) => {
-  const idOrSlug = params.programId;
-
-  let programId: string | undefined;
-  let programSlug: string | undefined;
-
-  idOrSlug.startsWith("prog_")
-    ? (programId = idOrSlug)
-    : (programSlug = idOrSlug);
-
-  const program = await prisma.program.findUniqueOrThrow({
-    where: {
-      id: programId || undefined,
-      slug: programSlug || undefined,
-    },
+  const { program } = await getProgramEnrollmentOrThrow({
+    partnerId: partner.id,
+    programId: params.programId,
   });
 
   const programEnrollment = await prisma.programEnrollment.findUnique({
