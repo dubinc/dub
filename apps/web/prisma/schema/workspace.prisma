@@ -34,8 +34,6 @@ model Project {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   usageLastChecked DateTime @default(now())
-  // TODO: Remove this after we move publishable key to program table
-  publishableKey   String?  @unique
 
   dotsAppId            String? @unique
   bankAccountName      String?

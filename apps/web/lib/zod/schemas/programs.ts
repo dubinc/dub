@@ -17,7 +17,6 @@ export const ProgramSchema = z.object({
   brandColor: z.string().nullable(),
   domain: z.string().nullable(),
   url: z.string().nullable(),
-  publishableKey: z.string().nullable(),
   type: z.nativeEnum(ProgramType),
   cookieLength: z.number(),
   commissionAmount: z.number(),

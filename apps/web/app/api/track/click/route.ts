@@ -1,6 +1,6 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { extractPublishableKey, parseRequestBody } from "@/lib/api/utils";
-import { getLinkViaEdge, getProgramByPublishableKey } from "@/lib/planetscale";
+import { parseRequestBody } from "@/lib/api/utils";
+import { getLinkViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { LOCALHOST_IP, nanoid } from "@dub/utils";
@@ -18,18 +18,16 @@ const CORS_HEADERS = {
 // POST /api/track/click – Track a click event from client side
 export const POST = async (req: Request) => {
   try {
-    const { identifier } = await parseRequestBody(req);
-    const publishableKey = extractPublishableKey(req);
-    const program = await getProgramByPublishableKey(publishableKey);
+    const { domain, key } = await parseRequestBody(req);
 
-    if (!program?.domain) {
+    if (!domain || !key) {
       throw new DubApiError({
-        code: "unauthorized",
-        message: `Program domain not found for publishable key: ${publishableKey}`,
+        code: "bad_request",
+        message: "Missing domain or key",
       });
     }
 
-    const link = await getLinkViaEdge(program.domain, identifier);
+    const link = await getLinkViaEdge(domain, key);
 
     if (!link) {
       return new Response(null, {
