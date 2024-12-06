@@ -85,7 +85,7 @@ export function ProgramCard({
   );
 
   return status === "approved" ? (
-    <Link href={`/${partnerId}/${program.id}`}>{card}</Link>
+    <Link href={`/${partnerId}/${program.slug}`}>{card}</Link>
   ) : (
     card
   );

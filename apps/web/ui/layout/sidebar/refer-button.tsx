@@ -2,10 +2,19 @@
 
 import { DubWidget } from "@dub/embed-react";
 import { Gift } from "@dub/ui/src/icons";
-import { cn } from "@dub/utils";
+import { cn, fetcher } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
+import useSWRImmutable from "swr/immutable";
 
-export function ReferButton({ publicToken }: { publicToken: string }) {
+export function ReferButton() {
+  const { data: { publicToken } = {} } = useSWRImmutable<{
+    publicToken: string;
+  }>("/api/user/embed-tokens", fetcher, {
+    keepPreviousData: true,
+  });
+
+  if (!publicToken) return null;
+
   return (
     <DubWidget token={publicToken} options={{ trigger: "manual" }}>
       <button
