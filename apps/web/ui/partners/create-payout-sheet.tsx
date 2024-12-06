@@ -155,12 +155,19 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
 
   const onSubmit = async (data: FormData) => {
     if (workspaceId && program) {
+      const startDate = data.start
+        ? data.start.getTime() - data.start.getTimezoneOffset() * 60000
+        : undefined;
+      const endDate = data.end
+        ? data.end.getTime() - data.end.getTimezoneOffset() * 60000
+        : undefined;
+
       await executeAsync({
         ...data,
         workspaceId,
         programId: program.id,
-        start: data.start?.toISOString(),
-        end: data.end?.toISOString(),
+        start: startDate ? new Date(startDate).toISOString() : undefined,
+        end: endDate ? new Date(endDate).toISOString() : undefined,
         amount: isPercentageBased ? amount : amount * 100,
       });
     }
@@ -198,6 +205,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
         linkId: selectedPartner.link.id,
         start: start?.toISOString(),
         end: end?.toISOString(),
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       }).toString()}`,
     fetcher,
   );
