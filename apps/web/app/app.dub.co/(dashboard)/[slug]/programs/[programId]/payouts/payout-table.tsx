@@ -4,6 +4,7 @@ import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import { PayoutResponse } from "@/lib/types";
 import { PayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
+import { PayoutTypeBadge } from "@/ui/partners/payout-type-badge";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
@@ -101,6 +102,10 @@ export function PayoutTable() {
             { month: "short" },
           )}`;
         },
+      },
+      {
+        header: "Type",
+        cell: ({ row }) => <PayoutTypeBadge type={row.original.type} />,
       },
       {
         header: "Status",

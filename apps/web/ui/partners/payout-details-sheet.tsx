@@ -27,6 +27,7 @@ import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 import { PayoutStatusBadges } from "./payout-status-badges";
+import { PayoutTypeBadge } from "./payout-type-badge";
 import { SaleRowMenu } from "./sale-row-menu";
 
 type PayoutDetailsSheetProps = {
@@ -86,10 +87,26 @@ function PayoutDetailsSheetContent({
                   : "numeric",
             })}-${formatDate(payout.periodEnd, { month: "short" })}`,
 
+      Type: <PayoutTypeBadge type={payout.type} />,
+
+      Status: (
+        <StatusBadge variant={statusBadge.variant} icon={statusBadge.icon}>
+          {statusBadge.label}
+        </StatusBadge>
+      ),
+
       ...(payout.quantity && {
         [capitalize(payout.type) as string]: payout.quantity,
       }),
-
+      ...(payout.quantity && {
+        [`Reward per ${payout.type.replace(/s$/, "")}`]: currencyFormatter(
+          payout.amount / payout.quantity / 100,
+          {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          },
+        ),
+      }),
       Amount: currencyFormatter(payout.amount / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -98,14 +115,13 @@ function PayoutDetailsSheetContent({
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }),
-      Total: currencyFormatter(payout.total / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
-      Status: (
-        <StatusBadge variant={statusBadge.variant} icon={statusBadge.icon}>
-          {statusBadge.label}
-        </StatusBadge>
+      Total: (
+        <strong>
+          {currencyFormatter(payout.total / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+        </strong>
       ),
       Description: payout.description || "-",
     };
@@ -211,7 +227,9 @@ function PayoutDetailsSheetContent({
           <div className="grid grid-cols-2 gap-3 text-sm">
             {Object.entries(invoiceData).map(([key, value]) => (
               <Fragment key={key}>
-                <div className="font-medium text-neutral-500">{key}</div>
+                <div className="flex items-center font-medium text-neutral-500">
+                  {key}
+                </div>
                 <div className="text-neutral-800">{value}</div>
               </Fragment>
             ))}
