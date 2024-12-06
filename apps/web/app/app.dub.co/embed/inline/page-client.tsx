@@ -19,6 +19,7 @@ import useSWR from "swr";
 import { Activity } from "../activity";
 import { SalesList } from "../sales-list";
 import { LinkToken } from "../token";
+import { useIframeVisibility } from "../use-iframe-visibility";
 
 export function EmbedInlinePageClient({
   program,
@@ -33,9 +34,14 @@ export function EmbedInlinePageClient({
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
 
+  const isIframeVisible = useIframeVisibility();
+
   const { data: sales, isLoading } = useSWR<PartnerSaleResponse[]>(
-    "/api/embed/sales",
+    isIframeVisible && "/api/embed/sales",
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   return (
@@ -142,7 +148,7 @@ export function EmbedInlinePageClient({
                 ))}
             </div>
           </>
-          <LinkToken />
+          {isIframeVisible && <LinkToken />}
         </div>
       </div>
       <div className="flex grow flex-col justify-end">
