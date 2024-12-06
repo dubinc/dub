@@ -7,8 +7,6 @@ export function useIframeVisibility() {
     const isInIframe = window !== window.parent;
 
     if (isInIframe) {
-      const isInitiallyVisible =
-        document.visibilityState === "visible" && !document.hidden;
       setIsIframeVisible(false);
 
       const handleVisibilityChange = () => {
