@@ -2,7 +2,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getLinkViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
-import { redis } from "@/lib/upstash";
+import { ratelimit, redis } from "@/lib/upstash";
 import { LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -27,6 +27,18 @@ export const POST = async (req: Request) => {
       });
     }
 
+    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+
+    const { success } = await ratelimit().limit(
+      `track-click:${domain}-${key}:${ip}`,
+    );
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message: "Don't DDoS me pls 🥺",
+      });
+    }
+
     const link = await getLinkViaEdge(domain, key);
 
     if (!link) {
@@ -36,7 +48,6 @@ export const POST = async (req: Request) => {
       });
     }
 
-    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
     const cacheKey = `recordClick:${link.id}:${ip}`;
 
     let clickId = await redis.get<string>(cacheKey);
