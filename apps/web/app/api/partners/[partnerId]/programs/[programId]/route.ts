@@ -6,16 +6,31 @@ import { NextResponse } from "next/server";
 
 // GET /api/partners/[partnerId]/programs/[programId] – get a partner's enrollment in a program
 export const GET = withPartner(async ({ partner, params }) => {
+  const idOrSlug = params.programId;
+
+  let programId: string | undefined;
+  let programSlug: string | undefined;
+
+  idOrSlug.startsWith("prog_")
+    ? (programId = idOrSlug)
+    : (programSlug = idOrSlug);
+
+  const program = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: programId || undefined,
+      slug: programSlug || undefined,
+    },
+  });
+
   const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
       partnerId_programId: {
         partnerId: partner.id,
-        programId: params.programId,
+        programId: program.id,
       },
     },
     include: {
       link: true,
-      program: true,
     },
   });
 
@@ -26,5 +41,10 @@ export const GET = withPartner(async ({ partner, params }) => {
     });
   }
 
-  return NextResponse.json(ProgramEnrollmentSchema.parse(programEnrollment));
+  return NextResponse.json(
+    ProgramEnrollmentSchema.parse({
+      ...programEnrollment,
+      program,
+    }),
+  );
 });

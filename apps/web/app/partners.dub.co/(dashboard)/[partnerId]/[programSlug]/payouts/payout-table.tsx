@@ -1,5 +1,6 @@
 "use client";
 
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerPayoutResponse } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { PayoutTypeBadge } from "@/ui/partners/payout-type-badge";
@@ -20,7 +21,8 @@ import useSWR from "swr";
 import { PayoutDetailsSheet } from "./payout-details-sheet";
 
 export function PayoutTable() {
-  const { partnerId, programId } = useParams();
+  const { partnerId } = useParams();
+  const { programEnrollment } = useProgramEnrollment();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
   const sortBy = searchParams.get("sort") || "periodStart";
@@ -31,7 +33,8 @@ export function PayoutTable() {
     error,
     isLoading,
   } = useSWR<PartnerPayoutResponse[]>(
-    `/api/partners/${partnerId}/programs/${programId}/payouts?${getQueryString()}`,
+    programEnrollment &&
+      `/api/partners/${partnerId}/programs/${programEnrollment.programId}/payouts?${getQueryString()}`,
     fetcher,
     {
       keepPreviousData: true,

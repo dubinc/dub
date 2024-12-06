@@ -42,7 +42,7 @@ const ProgramOverviewContext = createContext<{
 
 export default function ProgramPageClient() {
   const { getQueryString, searchParamsObj } = useRouterStuff();
-  const { partnerId, programId } = useParams();
+  const { partnerId, programSlug } = useParams();
 
   const { programEnrollment } = useProgramEnrollment();
   const [copied, copyToClipboard] = useCopyToClipboard();
@@ -145,7 +145,7 @@ export default function ProgramPageClient() {
               Recent sales
             </h2>
             <Link
-              href={`/${partnerId}/${programId}/sales${getQueryString()}`}
+              href={`/${partnerId}/${programSlug}/sales${getQueryString()}`}
               className={cn(
                 buttonVariants({ variant: "secondary" }),
                 "flex h-8 items-center rounded-lg border px-2 text-sm",
@@ -173,6 +173,7 @@ function EarningsChart() {
     start,
     end,
   });
+
   const { data: timeseries, error } = usePartnerAnalytics({
     groupBy: "timeseries",
     interval,
@@ -300,7 +301,7 @@ function StatCard({
   title: string;
   event: "clicks" | "leads" | "sales";
 }) {
-  const { partnerId, programId } = useParams();
+  const { partnerId, programSlug } = useParams();
   const { getQueryString } = useRouterStuff();
   const { start, end, interval, color } = useContext(ProgramOverviewContext);
 
@@ -309,6 +310,7 @@ function StatCard({
     start,
     end,
   });
+
   const { data: timeseries, error } = usePartnerAnalytics({
     groupBy: "timeseries",
     interval,
@@ -319,7 +321,7 @@ function StatCard({
 
   return (
     <Link
-      href={`/${partnerId}/${programId}/analytics?event=${event}${getQueryString()?.replace("?", "&")}`}
+      href={`/${partnerId}/${programSlug}/analytics?event=${event}${getQueryString()?.replace("?", "&")}`}
       className="hover:drop-shadow-card-hover block rounded-md border border-neutral-300 bg-white p-5 transition-[filter]"
     >
       <span className="block text-sm text-neutral-500">{title}</span>
