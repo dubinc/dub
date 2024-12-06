@@ -107,7 +107,7 @@ export default function AddEditWebhookForm({
     webhook?.installationId !== null || permissionsError !== false;
 
   const disabledTooltip = webhook?.installationId
-    ? `This webhook is managed by ${webhook.name} integration.`
+    ? `This webhook is managed by an integration.`
     : permissionsError
       ? permissionsError
       : undefined;

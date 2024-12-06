@@ -17,7 +17,6 @@ export default function useProgramEnrollment() {
   return {
     programEnrollment,
     error,
-    loading:
-      partnerId && !programEnrollment && !error ? true : false,
+    loading: partnerId && !programEnrollment && !error ? true : false,
   };
 }
