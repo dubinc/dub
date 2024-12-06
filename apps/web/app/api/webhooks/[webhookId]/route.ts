@@ -57,6 +57,22 @@ export const PATCH = withWorkspace(
       await parseRequestBody(req),
     );
 
+    const existingWebhook = await prisma.webhook.findUniqueOrThrow({
+      where: {
+        id: webhookId,
+        projectId: workspace.id,
+      },
+    });
+
+    // If the webhook is managed by an integration, only the linkIds & triggers can be updated manually.
+    if (existingWebhook.installationId && (name || url)) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "This webhook is managed by an integration. Not all fields can be updated manually.",
+      });
+    }
+
     if (url) {
       const webhookUrlExists = await prisma.webhook.findFirst({
         where: {
@@ -102,13 +118,6 @@ export const PATCH = withWorkspace(
       },
       select: {
         linkId: true,
-      },
-    });
-
-    const existingWebhook = await prisma.webhook.findUniqueOrThrow({
-      where: {
-        id: webhookId,
-        projectId: workspace.id,
       },
     });
 

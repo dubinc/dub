@@ -15,20 +15,10 @@ import { fetcher } from "@dub/utils";
 import { FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
-import { SegmentSettingsProps } from "./types";
 
-export function ConfigureWebhook({
-  credentials,
-}: {
-  credentials: SegmentSettingsProps["credentials"];
-}) {
-  const webhookId = credentials?.webhookId;
+export function ConfigureWebhook({ webhookId }: { webhookId: string }) {
   const [saving, setSaving] = useState(false);
   const { id: workspaceId, role } = useWorkspace();
-
-  // if (!flags?.webhooks) {
-  //   redirect(`/${workspaceSlug}`);
-  // }
 
   const { data: webhook, isLoading } = useSWR<WebhookProps>(
     `/api/webhooks/${webhookId}?workspaceId=${workspaceId}`,
@@ -42,7 +32,10 @@ export function ConfigureWebhook({
 
   useEffect(() => {
     if (webhook) {
-      setData(webhook);
+      setData({
+        linkIds: webhook.linkIds,
+        triggers: webhook.triggers,
+      });
     }
   }, [webhook]);
 

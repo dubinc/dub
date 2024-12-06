@@ -1,17 +1,22 @@
 "use client";
 
+import {
+  InstalledIntegrationInfoProps,
+  SegmentIntegrationCredentials,
+} from "@/lib/types";
 import { ConfigureWebhook } from "./configure-webhook";
 import { SetWriteKey } from "./set-write-key";
-import { SegmentSettingsProps } from "./types";
 
-export const SegmentSettings = ({
-  installed,
-  credentials,
-}: SegmentSettingsProps) => {
+export const SegmentSettings = (props: InstalledIntegrationInfoProps) => {
+  const { installed, credentials, webhookId } = props;
+
   return (
     <>
-      <SetWriteKey installed={installed} credentials={credentials} />
-      {installed && <ConfigureWebhook credentials={credentials} />}
+      <SetWriteKey
+        installed={!!installed?.id}
+        credentials={credentials as SegmentIntegrationCredentials}
+      />
+      {installed && webhookId && <ConfigureWebhook webhookId={webhookId} />}
     </>
   );
 };

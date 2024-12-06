@@ -4,6 +4,6 @@ export interface SegmentSettingsProps {
   };
   credentials: {
     writeKey?: string;
-    webhookId?: string;
   };
+  webhookId?: string;
 }

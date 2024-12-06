@@ -1,15 +1,21 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
+import { SegmentIntegrationCredentials } from "@/lib/types";
 import { Lock } from "@/ui/shared/icons";
 import { Button } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 import { toast } from "sonner";
 import { installSegmentAction } from "../install";
-import { SegmentSettingsProps } from "./types";
 
-export function SetWriteKey({ installed, credentials }: SegmentSettingsProps) {
+export function SetWriteKey({
+  credentials,
+  installed,
+}: {
+  credentials: SegmentIntegrationCredentials;
+  installed: boolean;
+}) {
   const { id: workspaceId } = useWorkspace();
   const [writeKey, setWriteKey] = useState(credentials?.writeKey);
 
@@ -73,7 +79,7 @@ export function SetWriteKey({ installed, credentials }: SegmentSettingsProps) {
               name="writeKey"
               value={writeKey}
               onChange={(e) => setWriteKey(e.target.value)}
-              readOnly={installed?.id ? true : false}
+              readOnly={installed}
             />
           </div>
         </div>
@@ -86,7 +92,7 @@ export function SetWriteKey({ installed, credentials }: SegmentSettingsProps) {
               text="Enable Segment"
               className="w-fit"
               loading={isExecuting}
-              disabled={installed?.id ? true : false || !writeKey}
+              disabled={installed || !writeKey}
             />
           </div>
         </div>

@@ -2,7 +2,6 @@ import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { uninstallSlackIntegration } from "@/lib/integrations/slack/uninstall";
 import { prisma } from "@/lib/prisma";
-import { deleteWebhook } from "@/lib/webhook/delete-webhook";
 import { NextResponse } from "next/server";
 
 // DELETE /api/integrations/uninstall - uninstall an installation by id
@@ -31,31 +30,22 @@ export const DELETE = withWorkspace(
       });
     }
 
-    await prisma.installedIntegration.delete({
+    const { integration } = await prisma.installedIntegration.delete({
       where: {
         id: installationId,
       },
-    });
-
-    const integration = await prisma.integration.findUniqueOrThrow({
-      where: {
-        id: installation.integrationId,
+      select: {
+        integration: {
+          select: {
+            slug: true,
+          },
+        },
       },
     });
 
     if (integration.slug === "slack") {
       await uninstallSlackIntegration({
         installation,
-      });
-    }
-
-    const credentials = installation?.credentials as any;
-
-    // if the integration has added a webhook, delete it
-    if ("webhookId" in credentials) {
-      await deleteWebhook({
-        webhookId: credentials.webhookId,
-        workspaceId: workspace.id,
       });
     }
 

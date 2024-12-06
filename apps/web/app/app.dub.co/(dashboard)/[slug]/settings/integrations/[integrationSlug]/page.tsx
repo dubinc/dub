@@ -33,6 +33,11 @@ export default async function IntegrationPage({
               image: true,
             },
           },
+          webhook: {
+            select: {
+              id: true,
+            },
+          },
         },
       },
     },
@@ -46,6 +51,10 @@ export default async function IntegrationPage({
 
   const credentials = installed
     ? integration.installations[0]?.credentials
+    : undefined;
+
+  const webhookId = installed
+    ? integration.installations[0]?.webhook?.id
     : undefined;
 
   return (
@@ -66,6 +75,7 @@ export default async function IntegrationPage({
             }
           : null,
         credentials,
+        webhookId,
       }}
     />
   );

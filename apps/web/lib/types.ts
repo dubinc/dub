@@ -288,6 +288,7 @@ export type InstalledIntegrationInfoProps = Pick<
     };
   } | null;
   credentials?: Prisma.JsonValue;
+  webhookId?: string; // Only if the webhook is managed by an integration
 };
 
 export type WebhookTrigger = keyof typeof WEBHOOK_TRIGGER_DESCRIPTIONS;
@@ -342,3 +343,7 @@ export type PayoutProps = z.infer<typeof PayoutSchema>;
 export type PayoutResponse = z.infer<typeof PayoutResponseSchema>;
 
 export type PartnerPayoutResponse = z.infer<typeof PartnerPayoutResponseSchema>;
+
+export type SegmentIntegrationCredentials = {
+  writeKey?: string;
+};
