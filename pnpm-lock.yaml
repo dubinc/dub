@@ -46,8 +46,8 @@ importers:
         specifier: ^0.3.9
         version: 0.3.9
       '@dub/analytics':
-        specifier: ^0.0.21
-        version: 0.0.21
+        specifier: ^0.0.22
+        version: 0.0.22
       '@dub/embed-react':
         specifier: workspace:*
         version: link:../../packages/embeds/react
@@ -3388,8 +3388,8 @@ packages:
       '@jridgewell/trace-mapping': 0.3.9
     dev: true
 
-  /@dub/analytics@0.0.21:
-    resolution: {integrity: sha512-XPqgn4IRyD+T4DQ3cSgS9PZzEj5tcjBUYmgNJ9RSU3uEVRyTcRzhmfExe6haoWVF5UsYlLRBueTn59w6lYE/wQ==}
+  /@dub/analytics@0.0.22:
+    resolution: {integrity: sha512-1ctS5N+axdtkmsbil1SMzEI5MDiKUOjVdijwJwfIt5uqz7fnZOrdEY7LilCZz6DGMT3RpmrNGPv4xCo4NpvBlw==}
     dependencies:
       server-only: 0.0.1
     dev: false
