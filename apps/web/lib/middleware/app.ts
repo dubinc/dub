@@ -102,6 +102,7 @@ export default async function AppMiddleware(req: NextRequest) {
         "/workspaces",
         "/analytics",
         "/events",
+        "/programs",
         "/settings",
         "/upgrade",
       ].includes(path) ||
