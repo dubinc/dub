@@ -34,6 +34,7 @@ model Program {
   brandColor          String?
   domain              String?
   url                 String?
+  publishableKey      String?             @unique
   type                ProgramType         @default(affiliate)
   cookieLength        Int                 @default(90)
   commissionAmount    Int                 @default(0)

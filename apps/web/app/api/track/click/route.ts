@@ -1,9 +1,6 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { extractPublishableKey, parseRequestBody } from "@/lib/api/utils";
-import {
-  getLinkByIdentifier,
-  getWorkspaceByPublishableKey,
-} from "@/lib/planetscale";
+import { getLinkViaEdge, getProgramByPublishableKey } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { LOCALHOST_IP, nanoid } from "@dub/utils";
@@ -21,19 +18,18 @@ const CORS_HEADERS = {
 // POST /api/track/click – Track a click event from client side
 export const POST = async (req: Request) => {
   try {
+    const { identifier } = await parseRequestBody(req);
     const publishableKey = extractPublishableKey(req);
-    const workspace = await getWorkspaceByPublishableKey(publishableKey);
+    const program = await getProgramByPublishableKey(publishableKey);
 
-    if (!workspace) {
+    if (!program?.domain) {
       throw new DubApiError({
         code: "unauthorized",
-        message: `Workspace not found for publishable key: ${publishableKey}`,
+        message: `Program domain not found for publishable key: ${publishableKey}`,
       });
     }
 
-    const { identifier } = await parseRequestBody(req);
-
-    const link = await getLinkByIdentifier(workspace.id, identifier);
+    const link = await getLinkViaEdge(program.domain, identifier);
 
     if (!link) {
       return new Response(null, {
