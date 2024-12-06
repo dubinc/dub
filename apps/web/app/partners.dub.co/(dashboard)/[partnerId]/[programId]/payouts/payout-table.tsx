@@ -2,6 +2,7 @@
 
 import { PartnerPayoutResponse } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
+import { PayoutTypeBadge } from "@/ui/partners/payout-type-badge";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import {
   StatusBadge,
@@ -11,7 +12,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { MoneyBill2 } from "@dub/ui/src/icons";
-import { currencyFormatter, formatDate, nFormatter } from "@dub/utils";
+import { currencyFormatter, formatDate } from "@dub/utils";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -62,25 +63,20 @@ export function PayoutTable() {
       {
         id: "periodStart",
         header: "Period",
-        accessorFn: (d) =>
-          `${formatDate(d.periodStart, { month: "short", year: new Date(d.periodStart).getFullYear() === new Date(d.periodEnd).getFullYear() ? undefined : "numeric" })}-${formatDate(
+        accessorFn: (d) => {
+          if (!d.periodStart || !d.periodEnd) {
+            return "-";
+          }
+
+          return `${formatDate(d.periodStart, { month: "short", year: new Date(d.periodStart).getFullYear() === new Date(d.periodEnd).getFullYear() ? undefined : "numeric" })}-${formatDate(
             d.periodEnd,
             { month: "short" },
-          )}`,
+          )}`;
+        },
       },
       {
-        id: "sales",
-        header: "Sales",
-        accessorFn: (d) => nFormatter(d._count.sales, { full: true }),
-      },
-      {
-        id: "amount",
-        header: "Amount",
-        accessorFn: (d) =>
-          currencyFormatter(d.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        header: "Type",
+        cell: ({ row }) => <PayoutTypeBadge type={row.original.type} />,
       },
       {
         header: "Status",
@@ -94,6 +90,15 @@ export function PayoutTable() {
             "-"
           );
         },
+      },
+      {
+        id: "amount",
+        header: "Amount",
+        accessorFn: (d) =>
+          currencyFormatter(d.amount / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
       },
     ],
     pagination,
