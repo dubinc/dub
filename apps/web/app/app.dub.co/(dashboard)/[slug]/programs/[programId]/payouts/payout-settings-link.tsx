@@ -1,7 +1,7 @@
 "use client";
 
 import { buttonVariants } from "@dub/ui";
-import { Gear } from "@dub/ui/src/icons";
+import { GreekTemple } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -13,11 +13,10 @@ export function PayoutsSettingsLink() {
       href={`/${slug}/settings/payouts`}
       className={cn(
         buttonVariants({ variant: "secondary" }),
-        "flex h-10 items-center gap-2 rounded-lg border px-3 text-sm",
+        "flex h-10 items-center rounded-lg border px-3 text-sm",
       )}
     >
-      <Gear className="size-4" />
-      Settings
+      <GreekTemple className="size-4" />
     </Link>
   );
 }

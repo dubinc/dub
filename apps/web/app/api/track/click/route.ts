@@ -1,11 +1,8 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { extractPublishableKey, parseRequestBody } from "@/lib/api/utils";
-import {
-  getLinkByIdentifier,
-  getWorkspaceByPublishableKey,
-} from "@/lib/planetscale";
+import { parseRequestBody } from "@/lib/api/utils";
+import { getLinkViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
-import { redis } from "@/lib/upstash";
+import { ratelimit, redis } from "@/lib/upstash";
 import { LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -21,19 +18,28 @@ const CORS_HEADERS = {
 // POST /api/track/click – Track a click event from client side
 export const POST = async (req: Request) => {
   try {
-    const publishableKey = extractPublishableKey(req);
-    const workspace = await getWorkspaceByPublishableKey(publishableKey);
+    const { domain, key } = await parseRequestBody(req);
 
-    if (!workspace) {
+    if (!domain || !key) {
       throw new DubApiError({
-        code: "unauthorized",
-        message: `Workspace not found for publishable key: ${publishableKey}`,
+        code: "bad_request",
+        message: "Missing domain or key",
       });
     }
 
-    const { identifier } = await parseRequestBody(req);
+    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
-    const link = await getLinkByIdentifier(workspace.id, identifier);
+    const { success } = await ratelimit().limit(
+      `track-click:${domain}-${key}:${ip}`,
+    );
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message: "Don't DDoS me pls 🥺",
+      });
+    }
+
+    const link = await getLinkViaEdge(domain, key);
 
     if (!link) {
       return new Response(null, {
@@ -42,7 +48,6 @@ export const POST = async (req: Request) => {
       });
     }
 
-    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
     const cacheKey = `recordClick:${link.id}:${ip}`;
 
     let clickId = await redis.get<string>(cacheKey);

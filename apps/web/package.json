@@ -15,7 +15,7 @@
     "@ai-sdk/anthropic": "^0.0.51",
     "@boxyhq/saml-jackson": "1.23.9",
     "@chronark/zod-bird": "^0.3.9",
-    "@dub/analytics": "^0.0.21",
+    "@dub/analytics": "^0.0.22",
     "@dub/embed-react": "workspace:*",
     "@dub/tailwind-config": "workspace:*",
     "@dub/ui": "workspace:*",
