@@ -63,7 +63,6 @@ export const expectedWorkspace: Partial<Project> = {
   stripeId: expect.any(String),
   billingCycleStart: expect.any(Number),
   inviteCode: expect.any(String),
-  publishableKey: expect.any(String),
 
   usage: expect.any(Number),
   usageLimit: expect.any(Number),
