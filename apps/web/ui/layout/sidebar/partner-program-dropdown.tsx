@@ -37,18 +37,17 @@ const LINKS = ({ partnerId }: { partnerId: string }) => [
 ];
 
 export function PartnerProgramDropdown() {
-  const { programId } = useParams() as {
-    programId?: string;
-  };
+  const { programSlug } = useParams() as { programSlug?: string };
 
   const { partner } = usePartnerProfile();
   const { programEnrollments } = useProgramEnrollments();
 
   const selectedProgram = useMemo(() => {
     const program = programEnrollments?.find(
-      (programEnrollment) => programEnrollment.programId === programId,
+      (programEnrollment) => programEnrollment.program.slug === programSlug,
     );
-    return programId && program
+
+    return programSlug && program
       ? {
           ...program.program,
           logo:
@@ -56,11 +55,11 @@ export function PartnerProgramDropdown() {
             `${DICEBEAR_AVATAR_URL}${program.program.name}`,
         }
       : undefined;
-  }, [programId, programEnrollments]);
+  }, [programSlug, programEnrollments]);
 
   const [openPopover, setOpenPopover] = useState(false);
 
-  if (!partner || (programId && !programEnrollments)) {
+  if (!partner || (programSlug && !programEnrollments)) {
     return <PartnerDropdownPlaceholder />;
   }
 
@@ -232,10 +231,10 @@ function ProgramList({
   const pathname = usePathname();
 
   const href = useCallback(
-    (id: string) =>
+    (slug: string) =>
       selectedProgram
-        ? pathname?.replace(selectedProgram.id, id).split("?")[0] || "/"
-        : `/${partner.id}/${id}`,
+        ? pathname?.replace(selectedProgram.slug, slug).split("?")[0] || "/"
+        : `/${partner.id}/${slug}`,
     [pathname, selectedProgram, partner],
   );
 
@@ -245,18 +244,18 @@ function ProgramList({
         <p className="px-1 text-xs font-medium text-neutral-500">Programs</p>
       </div>
       <div className="flex flex-col gap-0.5">
-        {programs.map(({ id, name, logo }) => {
-          const isActive = selectedProgram?.id === id;
+        {programs.map(({ slug, name, logo }) => {
+          const isActive = selectedProgram?.slug === slug;
           return (
             <Link
-              key={id}
+              key={slug}
               className={cn(
                 "relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75",
                 "hover:bg-neutral-200/50 active:bg-neutral-200/80",
                 "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
                 isActive && "bg-neutral-200/50",
               )}
-              href={href(id)}
+              href={href(slug)}
               shallow={false}
               onClick={() => setOpenPopover(false)}
             >
@@ -264,7 +263,7 @@ function ProgramList({
                 src={logo || `${DICEBEAR_AVATAR_URL}${name}`}
                 width={28}
                 height={28}
-                alt={id}
+                alt={name}
                 className="size-7 shrink-0 overflow-hidden rounded-full"
               />
               <div>
@@ -279,7 +278,7 @@ function ProgramList({
                   Program
                 </div>
               </div>
-              {selectedProgram?.id === id ? (
+              {selectedProgram?.slug === slug ? (
                 <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-black">
                   <Check2 className="size-4" aria-hidden="true" />
                 </span>

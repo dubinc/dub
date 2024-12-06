@@ -2,8 +2,9 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { addWebhook, updateWebhookStatusForWorkspace } from "@/lib/webhook/api";
+import { createWebhook } from "@/lib/webhook/create-webhook";
 import { transformWebhook } from "@/lib/webhook/transform";
+import { updateWebhookStatusForWorkspace } from "@/lib/webhook/update-webhook";
 import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
@@ -25,13 +26,21 @@ export const GET = withWorkspace(
         triggers: true,
         disabledAt: true,
         links: true,
+        receiver: true,
+        installationId: true,
       },
       orderBy: {
         updatedAt: "desc",
       },
     });
 
-    return NextResponse.json(webhooks.map(transformWebhook));
+    // Make sure the user webhook is always at the top
+    const sortedWebhooks = webhooks.sort(
+      (a, b) =>
+        (b.receiver === "user" ? 1 : 0) - (a.receiver === "user" ? 1 : 0),
+    );
+
+    return NextResponse.json(sortedWebhooks.map(transformWebhook));
   },
   {
     requiredPermissions: ["webhooks.read"],
@@ -87,18 +96,20 @@ export const POST = withWorkspace(
       }
     }
 
-    const webhook = await addWebhook({
+    const webhook = await createWebhook({
       name,
       url,
       triggers,
       linkIds,
       secret,
-      workspace,
+      workspaceId: workspace.id,
     });
 
     waitUntil(
       Promise.allSettled([
-        updateWebhookStatusForWorkspace({ workspace }),
+        updateWebhookStatusForWorkspace({
+          workspaceId: workspace.id,
+        }),
 
         sendEmail({
           email: session.user.email,

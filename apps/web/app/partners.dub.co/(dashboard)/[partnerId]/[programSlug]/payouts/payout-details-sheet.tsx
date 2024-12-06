@@ -1,3 +1,4 @@
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerPayoutResponse, PartnerSaleResponse } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { PayoutTypeBadge } from "@/ui/partners/payout-type-badge";
@@ -32,17 +33,19 @@ function PayoutDetailsSheetContent({
   payout,
   setIsOpen,
 }: PayoutDetailsSheetProps) {
-  const { partnerId, programId } = useParams() as {
+  const { partnerId } = useParams() as {
     partnerId: string;
-    programId: string;
   };
+
+  const { programEnrollment } = useProgramEnrollment();
 
   const {
     data: sales,
     isLoading,
     error,
   } = useSWR<PartnerSaleResponse[]>(
-    `/api/partners/${partnerId}/programs/${programId}/sales?payoutId=${payout.id}&start=${payout.periodStart}&end=${payout.periodEnd}`,
+    programEnrollment &&
+      `/api/partners/${partnerId}/programs/${programEnrollment.programId}/sales?payoutId=${payout.id}&start=${payout.periodStart}&end=${payout.periodEnd}`,
     fetcher,
   );
 

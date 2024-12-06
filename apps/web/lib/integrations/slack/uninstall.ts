@@ -10,7 +10,6 @@ export const uninstallSlackIntegration = async ({
   installation: InstalledIntegration;
 }) => {
   const env = getSlackEnv();
-
   const credentials = installation.credentials as SlackCredential;
 
   // Remove the webhook added by the Slack integration

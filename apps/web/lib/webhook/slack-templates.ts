@@ -1,6 +1,8 @@
 import { APP_DOMAIN } from "@dub/utils";
 import { LinkWebhookEvent } from "dub/models/components";
+import { z } from "zod";
 import { WebhookTrigger } from "../types";
+import { webhookPayloadSchema } from "./schemas";
 import {
   ClickEventWebhookData,
   LeadEventWebhookData,
@@ -9,10 +11,10 @@ import {
 
 const createLinkTemplate = ({
   data,
-  eventType,
+  event,
 }: {
   data: LinkWebhookEvent["data"];
-  eventType: WebhookTrigger;
+  event: WebhookTrigger;
 }) => {
   const eventMessages = {
     "link.created": "*New short link created* :link:",
@@ -26,7 +28,7 @@ const createLinkTemplate = ({
         type: "section",
         text: {
           type: "mrkdwn",
-          text: eventMessages[eventType],
+          text: eventMessages[event],
         },
       },
       {
@@ -207,21 +209,21 @@ const slackTemplates: Record<WebhookTrigger, any> = {
 };
 
 export const generateSlackMessage = (
-  eventType: WebhookTrigger,
-  data: LinkWebhookEvent["data"],
+  payload: z.infer<typeof webhookPayloadSchema>,
 ) => {
-  const template = slackTemplates[eventType];
+  const { event, data } = payload;
+  const template = slackTemplates[event];
 
   if (!template) {
-    throw new Error(`No Slack template found for event type: ${eventType}`);
+    throw new Error(`No Slack template found for event type: ${event}`);
   }
 
   const isLinkEvent = ["link.created", "link.updated", "link.deleted"].includes(
-    eventType,
+    event,
   );
 
   return template({
     data,
-    ...(isLinkEvent && { eventType }),
+    ...(isLinkEvent && { event }),
   });
 };

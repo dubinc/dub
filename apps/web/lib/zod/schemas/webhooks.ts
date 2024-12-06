@@ -7,8 +7,9 @@ export const webhookSchema = z.object({
   url: z.string(),
   secret: z.string(),
   triggers: z.array(z.enum(WEBHOOK_TRIGGERS)),
-  disabledAt: z.date().nullable().optional(),
+  disabledAt: z.date().nullable(),
   linkIds: z.array(z.string()).optional(),
+  installationId: z.string().nullable(),
 });
 
 export const createWebhookSchema = z.object({

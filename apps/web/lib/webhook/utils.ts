@@ -5,6 +5,7 @@ const webhookReceivers: Record<string, WebhookReceiver> = {
   "hooks.zapier.com": "zapier",
   "make.com": "make",
   "hooks.slack.com": "slack",
+  "api.segment.io": "segment",
 };
 
 export const isLinkLevelWebhook = (webhook: Pick<Webhook, "triggers">) => {

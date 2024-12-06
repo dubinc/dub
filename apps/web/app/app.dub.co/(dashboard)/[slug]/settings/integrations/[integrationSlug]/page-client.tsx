@@ -1,6 +1,8 @@
 "use client";
 
 import { getIntegrationInstallUrl } from "@/lib/actions/get-integration-install-url";
+import { SegmentSettings } from "@/lib/integrations/segment/components/settings";
+import { SlackSettings } from "@/lib/integrations/slack/components/settings";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
 import { useUninstallIntegrationModal } from "@/ui/modals/uninstall-integration-modal";
@@ -31,6 +33,7 @@ import {
   cn,
   formatDate,
   getPrettyUrl,
+  SEGMENT_INTEGRATION_ID,
   SLACK_INTEGRATION_ID,
   STRIPE_INTEGRATION_ID,
 } from "@dub/utils";
@@ -64,8 +67,15 @@ export default function IntegrationPageClient({
 
   const { UninstallIntegrationModal, setShowUninstallIntegrationModal } =
     useUninstallIntegrationModal({
-      integration: integration,
+      integration,
     });
+
+  const integrationSettings = {
+    [SLACK_INTEGRATION_ID]: SlackSettings,
+    [SEGMENT_INTEGRATION_ID]: SegmentSettings,
+  };
+
+  const SettingsComponent = integrationSettings[integration.id] || null;
 
   return (
     <MaxWidthWrapper className="grid max-w-screen-lg gap-8">
@@ -289,10 +299,7 @@ export default function IntegrationPageClient({
           </Markdown>
         )}
       </div>
-
-      {integration.installed && integration.id === SLACK_INTEGRATION_ID && (
-        <SlackWebhookSettings webhookId={integration.credentials?.webhookId!} />
-      )}
+      {SettingsComponent && <SettingsComponent {...integration} />}
     </MaxWidthWrapper>
   );
 }

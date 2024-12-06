@@ -9,6 +9,5 @@ export type SlackCredential = {
   incomingWebhook: {
     channel: string;
     channelId: string;
-    webhookId: string;
   };
 };
