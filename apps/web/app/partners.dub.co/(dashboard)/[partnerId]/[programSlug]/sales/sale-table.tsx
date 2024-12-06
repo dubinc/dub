@@ -28,8 +28,9 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
   };
 
   const { data: salesCount } = useSWR<{ count: number }>(
-    programEnrollment &&
-      `/api/partners/${partnerId}/programs/${programEnrollment.programId}/sales/count${getQueryString()}`,
+    programEnrollment
+      ? `/api/partners/${partnerId}/programs/${programEnrollment.programId}/sales/count${getQueryString()}`
+      : undefined,
     fetcher,
   );
 

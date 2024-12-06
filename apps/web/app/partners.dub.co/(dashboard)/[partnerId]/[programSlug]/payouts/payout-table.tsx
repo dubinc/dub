@@ -33,8 +33,9 @@ export function PayoutTable() {
     error,
     isLoading,
   } = useSWR<PartnerPayoutResponse[]>(
-    programEnrollment &&
-      `/api/partners/${partnerId}/programs/${programEnrollment.programId}/payouts?${getQueryString()}`,
+    programEnrollment
+      ? `/api/partners/${partnerId}/programs/${programEnrollment.programId}/payouts?${getQueryString()}`
+      : undefined,
     fetcher,
     {
       keepPreviousData: true,

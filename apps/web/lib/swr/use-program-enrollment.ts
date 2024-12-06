@@ -7,7 +7,9 @@ export default function useProgramEnrollment() {
   const { partnerId, programSlug } = useParams();
 
   const { data: programEnrollment, error } = useSWR<ProgramEnrollmentProps>(
-    `/api/partners/${partnerId}/programs/${programSlug}`,
+    partnerId && programSlug
+      ? `/api/partners/${partnerId}/programs/${programSlug}`
+      : undefined,
     fetcher,
     {
       dedupingInterval: 60000,
