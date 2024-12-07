@@ -94,13 +94,12 @@ export default function AnalyticsProvider({
   const { id: workspaceId, slug, conversionEnabled } = useWorkspace();
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
-  const { partner } = usePartnerProfile();
-
   const { dashboardId, programSlug } = useParams() as {
     dashboardId?: string;
     programSlug?: string;
   };
 
+  const { partner } = usePartnerProfile();
   const partnerPage = partner?.id && programSlug ? true : false;
 
   const domainSlug = searchParams?.get("domain");
@@ -192,12 +191,18 @@ export default function AnalyticsProvider({
         eventsApiPath: `/api/partners/${partner.id}/programs/${programSlug}/events`,
         domain: domainSlug,
       };
-    } else {
+    } else if (dashboardId) {
       // Public stats page, e.g. app.dub.co/share/dsh_123
       return {
         basePath: `/share/${dashboardId}`,
         baseApiPath: "/api/analytics/dashboard",
         domain: dashboardProps?.domain,
+      };
+    } else {
+      return {
+        basePath: "",
+        baseApiPath: "",
+        domain: "",
       };
     }
   }, [

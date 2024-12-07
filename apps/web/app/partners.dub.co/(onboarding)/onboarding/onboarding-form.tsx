@@ -12,6 +12,7 @@ import {
 } from "@dub/ui";
 import { COUNTRIES, COUNTRY_PHONE_CODES } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
+import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef } from "react";
@@ -24,6 +25,7 @@ type OnboardingFormData = z.infer<typeof onboardPartnerSchema>;
 
 export function OnboardingForm() {
   const router = useRouter();
+  const { update } = useSession();
   const { isMobile } = useMediaQuery();
 
   const {
@@ -36,12 +38,9 @@ export function OnboardingForm() {
   } = useForm<OnboardingFormData>();
 
   const { executeAsync, isExecuting } = useAction(onboardPartnerAction, {
-    onSuccess: ({ data }) => {
-      if (!data?.partnerId) {
-        toast.error("Failed to create partner profile. Please try again.");
-        return;
-      }
-      router.push(`/onboarding/verify?partner=${data.partnerId}`);
+    onSuccess: async () => {
+      await update();
+      router.push("/onboarding/verify");
     },
     onError: ({ error, input }) => {
       toast.error(error.serverError);

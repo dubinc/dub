@@ -16,7 +16,8 @@ export default function usePartnerAnalytics(
   const programIdToUse = params?.programId ?? programSlug;
 
   const { data, error } = useSWR<any>(
-    programIdToUse &&
+    partnerId &&
+      programIdToUse &&
       `/api/partners/${partnerId}/programs/${programIdToUse}/analytics?${new URLSearchParams(
         {
           event: params?.event ?? "composite",

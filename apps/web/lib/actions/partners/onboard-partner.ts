@@ -81,6 +81,14 @@ export const onboardPartnerAction = authUserActionClient
           },
         },
       }),
+      prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          defaultPartnerId: partnerId,
+        },
+      }),
       sendVerificationToken({
         dotsUserId: dotsUser.id,
       }),
