@@ -3,7 +3,7 @@ import { ResourcesPageClient } from "./page-client";
 
 export default function ResourcesPage() {
   return (
-    <PageContent title="Resources">
+    <PageContent title="Resources" hideReferButton>
       <ResourcesPageClient />
     </PageContent>
   );

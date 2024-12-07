@@ -4,7 +4,7 @@ import { PartnersDashboardPageClient } from "./page-client";
 
 export default function PartnersDashboard() {
   return (
-    <PageContent title="Programs">
+    <PageContent title="Programs" hideReferButton>
       <PartnersDashboardPageClient />
     </PageContent>
   );

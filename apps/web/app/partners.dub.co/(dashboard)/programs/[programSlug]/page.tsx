@@ -3,7 +3,7 @@ import ProgramPageClient from "./page-client";
 
 export default function ProgramPage() {
   return (
-    <PageContent title="Overview">
+    <PageContent title="Overview" hideReferButton>
       <ProgramPageClient />
     </PageContent>
   );

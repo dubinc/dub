@@ -6,6 +6,7 @@ export default function ProfileSettingsPage() {
     <PageContent
       title="Profile"
       description="This partner profile is shared with program owners when you apply to their programs."
+      hideReferButton
     >
       <ProfileSettingsPageClient />
     </PageContent>

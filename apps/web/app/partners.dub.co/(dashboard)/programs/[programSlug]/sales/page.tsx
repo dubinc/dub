@@ -4,7 +4,7 @@ import { SaleTablePartner } from "./sale-table";
 
 export default function ProgramSales() {
   return (
-    <PageContent title="Sales">
+    <PageContent title="Sales" hideReferButton>
       <MaxWidthWrapper>
         <SaleTablePartner />
       </MaxWidthWrapper>

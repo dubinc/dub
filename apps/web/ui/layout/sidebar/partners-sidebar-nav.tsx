@@ -1,7 +1,6 @@
 "use client";
 
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
-import usePartnerProgramInvites from "@/lib/swr/use-partner-program-invites";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { Button, useCopyToClipboard, useRouterStuff } from "@dub/ui";
 import {
@@ -33,10 +32,9 @@ import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
 const NAV_AREAS: SidebarNavAreas<{
   programSlug?: string;
   queryString?: string;
-  hasInvites?: boolean;
 }> = {
   // Top-level
-  default: ({ hasInvites }) => ({
+  default: () => ({
     showSwitcher: true,
     showNews: true,
     direction: "left",
@@ -48,7 +46,6 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: GridIcon,
             href: "/programs",
             exact: true,
-            hasIndicator: hasInvites,
           },
           {
             name: "Marketplace",
@@ -182,8 +179,6 @@ export function PartnersSidebarNav({
           : "default";
   }, [pathname, programSlug]);
 
-  const { programInvites } = usePartnerProgramInvites();
-
   return (
     <SidebarNav
       areas={NAV_AREAS}
@@ -191,7 +186,6 @@ export function PartnersSidebarNav({
       data={{
         programSlug: programSlug || "",
         queryString: getQueryString(),
-        hasInvites: programInvites && programInvites.length > 0,
       }}
       toolContent={toolContent}
       newsContent={newsContent}

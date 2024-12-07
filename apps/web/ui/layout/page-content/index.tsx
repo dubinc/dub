@@ -10,11 +10,13 @@ export function PageContent({
   title,
   titleControls,
   description,
+  hideReferButton,
   children,
 }: PropsWithChildren<{
   title?: ReactNode;
   titleControls?: ReactNode;
   description?: ReactNode;
+  hideReferButton?: boolean;
 }>) {
   const hasTitle = title !== undefined;
   const hasDescription = description !== undefined;
@@ -49,7 +51,7 @@ export function PageContent({
             <div className="hidden md:block">{titleControls}</div>
           )}
           <div className="flex items-center gap-4 md:hidden">
-            <ReferButton />
+            {!hideReferButton && <ReferButton />}
             <HelpButtonRSC />
             <UserDropdown />
           </div>

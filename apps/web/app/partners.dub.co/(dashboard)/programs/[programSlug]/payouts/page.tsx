@@ -5,7 +5,11 @@ import { PayoutsSettingsLink } from "./payouts-settings-link";
 
 export default function ProgramPayoutsPage() {
   return (
-    <PageContent title="Payouts" titleControls={<PayoutsSettingsLink />}>
+    <PageContent
+      title="Payouts"
+      titleControls={<PayoutsSettingsLink />}
+      hideReferButton
+    >
       <MaxWidthWrapper>
         <PayoutTable />
       </MaxWidthWrapper>

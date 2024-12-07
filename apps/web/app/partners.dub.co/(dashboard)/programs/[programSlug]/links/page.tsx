@@ -11,7 +11,7 @@ import {
 
 export default function ProgramLinks() {
   return (
-    <PageContent title="Links">
+    <PageContent title="Links" hideReferButton>
       <MaxWidthWrapper>
         <AnimatedEmptyState
           title="Links"

@@ -3,7 +3,7 @@ import { PageContent } from "@/ui/layout/page-content";
 
 export default function PartnerAnalytics() {
   return (
-    <PageContent title="Analytics">
+    <PageContent title="Analytics" hideReferButton>
       <Analytics />
     </PageContent>
   );

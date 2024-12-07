@@ -5,7 +5,7 @@ import { MaxWidthWrapper, UserCheck } from "@dub/ui";
 
 export default function PeopleSettings() {
   return (
-    <PageContent title="People">
+    <PageContent title="People" hideReferButton>
       <MaxWidthWrapper>
         <AnimatedEmptyState
           title="People"
