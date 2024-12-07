@@ -1,12 +1,11 @@
 import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";
 import { PayoutMethod } from "../dots/types";
 import useDotsUser from "./use-dots-user";
 
 export default function usePayoutMethods() {
-  const { partnerId } = useParams();
+  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
 
   const { dotsUser } = useDotsUser();
 

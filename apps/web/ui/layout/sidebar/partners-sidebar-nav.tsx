@@ -31,13 +31,12 @@ import { PartnerProgramDropdown } from "./partner-program-dropdown";
 import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
 
 const NAV_AREAS: SidebarNavAreas<{
-  partnerId: string;
   programSlug?: string;
   queryString?: string;
   hasInvites?: boolean;
 }> = {
   // Top-level
-  default: ({ partnerId, hasInvites }) => ({
+  default: ({ hasInvites }) => ({
     showSwitcher: true,
     showNews: true,
     direction: "left",
@@ -47,26 +46,26 @@ const NAV_AREAS: SidebarNavAreas<{
           {
             name: "Programs",
             icon: GridIcon,
-            href: `/${partnerId}`,
+            href: "/programs",
             exact: true,
             hasIndicator: hasInvites,
           },
           {
             name: "Marketplace",
             icon: Store,
-            href: `/${partnerId}/marketplace`,
+            href: "/marketplace",
           },
           {
             name: "Settings",
             icon: Gear,
-            href: `/${partnerId}/settings`,
+            href: "/settings",
           },
         ],
       },
     ],
   }),
 
-  program: ({ partnerId, programSlug, queryString }) => ({
+  program: ({ programSlug, queryString }) => ({
     showSwitcher: true,
     content: [
       {
@@ -74,42 +73,42 @@ const NAV_AREAS: SidebarNavAreas<{
           {
             name: "Overview",
             icon: Gauge6,
-            href: `/${partnerId}/${programSlug}`,
+            href: `/programs/${programSlug}`,
             exact: true,
           },
           {
             name: "Analytics",
             icon: ChartActivity2,
-            href: `/${partnerId}/${programSlug}/analytics${queryString}`,
+            href: `/programs/${programSlug}/analytics${queryString}`,
           },
           {
             name: "Sales",
             icon: CircleDollar,
-            href: `/${partnerId}/${programSlug}/sales${queryString}`,
+            href: `/programs/${programSlug}/sales${queryString}`,
           },
           {
             name: "Payouts",
             icon: MoneyBills2,
-            href: `/${partnerId}/${programSlug}/payouts`,
+            href: `/programs/${programSlug}/payouts`,
           },
           {
             name: "Links",
             icon: Hyperlink,
-            href: `/${partnerId}/${programSlug}/links`,
+            href: `/programs/${programSlug}/links`,
           },
           {
             name: "Resources",
             icon: ColorPalette2,
-            href: `/${partnerId}/${programSlug}/resources`,
+            href: `/programs/${programSlug}/resources`,
           },
         ],
       },
     ],
   }),
 
-  partnerSettings: ({ partnerId }) => ({
+  partnerSettings: () => ({
     title: "Settings",
-    backHref: `/${partnerId}`,
+    backHref: "/programs",
     content: [
       {
         name: "Partner",
@@ -117,18 +116,18 @@ const NAV_AREAS: SidebarNavAreas<{
           {
             name: "Profile",
             icon: User,
-            href: `/${partnerId}/settings`,
+            href: "/settings",
             exact: true,
           },
           {
             name: "Payouts",
             icon: MoneyBills2,
-            href: `/${partnerId}/settings/payouts`,
+            href: "/settings/payouts",
           },
           {
             name: "People",
             icon: Users,
-            href: `/${partnerId}/settings/people`,
+            href: "/settings/people",
           },
         ],
       },
@@ -136,9 +135,9 @@ const NAV_AREAS: SidebarNavAreas<{
   }),
 
   // User settings
-  userSettings: ({ partnerId }) => ({
+  userSettings: () => ({
     title: "Settings",
-    backHref: `/${partnerId}`,
+    backHref: "/programs",
     content: [
       {
         name: "Account",
@@ -167,8 +166,7 @@ export function PartnersSidebarNav({
   toolContent?: ReactNode;
   newsContent?: ReactNode;
 }) {
-  const { partnerId, programSlug } = useParams() as {
-    partnerId?: string;
+  const { programSlug } = useParams() as {
     programSlug?: string;
   };
   const pathname = usePathname();
@@ -177,12 +175,12 @@ export function PartnersSidebarNav({
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
       ? "userSettings"
-      : pathname.startsWith(`/${partnerId}/settings`)
+      : pathname.startsWith("/settings")
         ? "partnerSettings"
-        : pathname.startsWith(`/${partnerId}/${programSlug}`)
+        : pathname.startsWith(`/programs/${programSlug}`)
           ? "program"
           : "default";
-  }, [partnerId, pathname, programSlug]);
+  }, [pathname, programSlug]);
 
   const { programInvites } = usePartnerProgramInvites();
 
@@ -191,7 +189,6 @@ export function PartnersSidebarNav({
       areas={NAV_AREAS}
       currentArea={currentArea}
       data={{
-        partnerId: partnerId || "",
         programSlug: programSlug || "",
         queryString: getQueryString(),
         hasInvites: programInvites && programInvites.length > 0,
@@ -205,8 +202,7 @@ export function PartnersSidebarNav({
 }
 
 function ProgramInfo() {
-  const { partnerId, programSlug } = useParams() as {
-    partnerId?: string;
+  const { programSlug } = useParams() as {
     programSlug?: string;
   };
 
@@ -219,13 +215,13 @@ function ProgramInfo() {
   const items = [
     {
       icon: UserCheck,
-      href: `/${partnerId}/${programSlug}/analytics?event=leads&interval=all`,
+      href: `/${programSlug}/analytics?event=leads&interval=all`,
       label: "Signups",
       value: analytics?.leads,
     },
     {
       icon: MoneyBills2,
-      href: `/${partnerId}/${programSlug}/sales?interval=all`,
+      href: `/${programSlug}/sales?interval=all`,
       label: "Earnings",
       value: `${currencyFormatter((analytics?.earnings || 0) / 100)}`,
     },

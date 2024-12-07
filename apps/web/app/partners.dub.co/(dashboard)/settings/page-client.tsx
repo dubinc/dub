@@ -13,7 +13,6 @@ import {
 } from "@dub/ui";
 import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
 import { PropsWithChildren, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
@@ -47,7 +46,7 @@ export function ProfileSettingsPageClient() {
 }
 
 function ProfileForm({ partner }: { partner: PartnerProps }) {
-  const { partnerId } = useParams<{ partnerId: string }>();
+  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
   const {
     register,
     control,

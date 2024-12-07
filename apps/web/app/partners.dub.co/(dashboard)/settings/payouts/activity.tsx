@@ -9,7 +9,6 @@ import {
   fetcher,
   formatDateTime,
 } from "@dub/utils";
-import { useParams } from "next/navigation";
 import useSWR from "swr";
 
 const StatusBadgeVariants = {
@@ -23,7 +22,7 @@ const StatusBadgeVariants = {
 };
 
 export const PartnerWithdrawalsActivity = () => {
-  const { partnerId } = useParams();
+  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
 
   const { data, error } = useSWR<DotsWithdrawals>(
     `/api/partners/${partnerId}/withdrawals`,

@@ -42,7 +42,8 @@ const ProgramOverviewContext = createContext<{
 
 export default function ProgramPageClient() {
   const { getQueryString, searchParamsObj } = useRouterStuff();
-  const { partnerId, programSlug } = useParams();
+  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
+  const { programSlug } = useParams();
 
   const { programEnrollment } = useProgramEnrollment();
   const [copied, copyToClipboard] = useCopyToClipboard();

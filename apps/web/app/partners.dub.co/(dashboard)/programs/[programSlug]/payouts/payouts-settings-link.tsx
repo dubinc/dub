@@ -3,10 +3,9 @@ import { buttonVariants } from "@dub/ui";
 import { Gear } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 
 export function PayoutsSettingsLink() {
-  const { partnerId } = useParams();
+  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
 
   return (
     <Link

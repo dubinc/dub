@@ -4,7 +4,8 @@ import useSWR from "swr";
 import { ProgramEnrollmentProps } from "../types";
 
 export default function useProgramEnrollment() {
-  const { partnerId, programSlug } = useParams();
+  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
+  const { programSlug } = useParams();
 
   const { data: programEnrollment, error } = useSWR<ProgramEnrollmentProps>(
     partnerId && programSlug

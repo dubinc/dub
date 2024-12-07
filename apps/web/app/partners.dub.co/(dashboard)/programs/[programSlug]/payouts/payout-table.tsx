@@ -15,13 +15,12 @@ import {
 import { MoneyBill2 } from "@dub/ui/src/icons";
 import { currencyFormatter, formatDate } from "@dub/utils";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
-import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { PayoutDetailsSheet } from "./payout-details-sheet";
 
 export function PayoutTable() {
-  const { partnerId } = useParams();
+  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
   const { programEnrollment } = useProgramEnrollment();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 

@@ -17,11 +17,11 @@ import {
   useState,
 } from "react";
 
-const LINKS = ({ partnerId }: { partnerId: string }) => [
+const LINKS = [
   {
     name: "Settings",
     icon: Gear,
-    href: `/${partnerId}/settings`,
+    href: "/settings",
   },
   // {
   //   name: "Help center",
@@ -85,13 +85,12 @@ export function PartnerProgramDropdown() {
             )}
             <div className="p-2">
               <Link
-                key={partner.id}
                 className={cn(
                   "relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75",
                   "hover:bg-neutral-200/50 active:bg-neutral-200/80",
                   "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
                 )}
-                href={`/${partner.id}`}
+                href="/programs"
                 shallow={false}
                 onClick={() => setOpenPopover(false)}
               >
@@ -116,24 +115,22 @@ export function PartnerProgramDropdown() {
                 </div>
               </Link>
               <div className="mt-0.5 flex flex-col gap-0.5">
-                {LINKS({ partnerId: partner.id }).map(
-                  ({ name, icon: Icon, href }) => (
-                    <Link
-                      key={name}
-                      href={href}
-                      className={cn(
-                        "flex items-center gap-x-4 rounded-md px-2.5 py-2 transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
-                        "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-                      )}
-                      onClick={() => setOpenPopover(false)}
-                    >
-                      <Icon className="size-4 text-neutral-500" />
-                      <span className="block truncate text-neutral-600">
-                        {name}
-                      </span>
-                    </Link>
-                  ),
-                )}
+                {LINKS.map(({ name, icon: Icon, href }) => (
+                  <Link
+                    key={name}
+                    href={href}
+                    className={cn(
+                      "flex items-center gap-x-4 rounded-md px-2.5 py-2 transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
+                      "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+                    )}
+                    onClick={() => setOpenPopover(false)}
+                  >
+                    <Icon className="size-4 text-neutral-500" />
+                    <span className="block truncate text-neutral-600">
+                      {name}
+                    </span>
+                  </Link>
+                ))}
               </div>
             </div>
           </ScrollContainer>
@@ -234,8 +231,8 @@ function ProgramList({
     (slug: string) =>
       selectedProgram
         ? pathname?.replace(selectedProgram.slug, slug).split("?")[0] || "/"
-        : `/${partner.id}/${slug}`,
-    [pathname, selectedProgram, partner],
+        : `/programs/${slug}`,
+    [pathname, selectedProgram],
   );
 
   return (

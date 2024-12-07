@@ -3,7 +3,6 @@ import { dotsFlowConfigurations } from "@/lib/dots/styles";
 import useDotsUser from "@/lib/swr/use-dots-user";
 import { Button } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
 import { toast } from "sonner";
 
 export const ComplianceButton = ({
@@ -11,7 +10,7 @@ export const ComplianceButton = ({
 }: {
   setModalState: (state: { show: boolean; iframeSrc: string }) => void;
 }) => {
-  const { partnerId } = useParams<{ partnerId: string }>();
+  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
   const { dotsUser } = useDotsUser();
 
   const { executeAsync, isExecuting } = useAction(createDotsFlowAction, {

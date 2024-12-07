@@ -1,10 +1,9 @@
 import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { PartnerProps } from "../types";
 
 export default function usePartnerProfile() {
-  const { partnerId } = useParams();
+  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
 
   const { data: partner, error } = useSWR<PartnerProps>(
     partnerId && `/api/partners/${partnerId}`,

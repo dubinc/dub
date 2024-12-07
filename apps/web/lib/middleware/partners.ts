@@ -15,43 +15,35 @@ const UNAUTHENTICATED_PATHS = [
 export default async function PartnersMiddleware(req: NextRequest) {
   const { path, fullPath } = parse(req);
 
+  const user = await getUserViaToken(req);
+
   const isUnauthenticatedPath = UNAUTHENTICATED_PATHS.some((p) =>
     path.startsWith(p),
   );
 
-  const user = await getUserViaToken(req);
-
-  if (!user && !isUnauthenticatedPath)
-    return NextResponse.redirect(new URL("/login", req.url)); // Redirect unauthenticated users to login
-  else if (user && path === "/login")
-    return NextResponse.redirect(new URL("/", req.url)); // Redirect authenticated users to dashboard
-
-  const partnersEnabled = user
-    ? await userIsInBeta(user.email, "partnersPortal")
-    : false;
-
-  if (
-    user &&
-    partnersEnabled &&
-    !["/account", "/apply", "/pn_", "/onboarding"].some((p) =>
-      path.startsWith(p),
-    )
-  ) {
-    const defaultPartner = await getDefaultPartner(user);
-
-    if (!defaultPartner) {
-      return NextResponse.redirect(new URL("/onboarding", req.url));
+  if (!user) {
+    if (isUnauthenticatedPath) {
+      return NextResponse.next();
     }
-
-    if (!isUnauthenticatedPath)
-      return NextResponse.redirect(
-        new URL(`/${defaultPartner}${fullPath}`, req.url),
-      );
+    return NextResponse.redirect(new URL("/login", req.url)); // Redirect unauthenticated users to login
   }
 
-  // Redirect to home if partner flag is off
-  if (user && !partnersEnabled && !isUnauthenticatedPath && path !== "/")
+  if (["/login", "/register"].some((p) => path.startsWith(p))) {
+    return NextResponse.redirect(new URL("/", req.url)); // Redirect authenticated users to dashboard
+  }
+
+  const partnersEnabled = await userIsInBeta(user.email, "partnersPortal");
+
+  if (!partnersEnabled && path !== "/")
     return NextResponse.redirect(new URL("/", req.url));
+
+  const defaultPartner = await getDefaultPartner(user);
+
+  if (!defaultPartner && !path.startsWith("/onboarding")) {
+    return NextResponse.redirect(new URL("/onboarding", req.url));
+  } else if (path === "/") {
+    return NextResponse.redirect(new URL("/programs", req.url));
+  }
 
   return NextResponse.rewrite(
     new URL(`/partners.dub.co${fullPath === "/" ? "" : fullPath}`, req.url),

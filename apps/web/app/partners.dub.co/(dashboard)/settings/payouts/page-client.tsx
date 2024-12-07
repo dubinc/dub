@@ -16,7 +16,6 @@ import {
   FREE_WITHDRAWAL_MINIMUM_BALANCE,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { PartnerWithdrawalsActivity } from "./activity";
@@ -26,7 +25,7 @@ import PayoutMethodCard, {
 } from "./payout-method-card";
 
 export function PayoutsSettingsPageClient() {
-  const { partnerId } = useParams<{ partnerId: string }>();
+  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
   const { partner } = usePartnerProfile();
 
   const { dotsUser, isLoading, mutate } = useDotsUser();

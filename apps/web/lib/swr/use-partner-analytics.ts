@@ -7,7 +7,8 @@ import { PartnerAnalyticsFilters } from "../analytics/types";
 export default function usePartnerAnalytics(
   params?: PartnerAnalyticsFilters & { programId?: string },
 ) {
-  const { partnerId, programSlug } = useParams();
+  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
+  const { programSlug } = useParams();
   const searchParams = useSearchParams();
 
   const programIdToUse = params?.programId ?? programSlug;

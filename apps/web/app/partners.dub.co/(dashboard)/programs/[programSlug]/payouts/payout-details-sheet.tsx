@@ -20,7 +20,6 @@ import {
   formatDate,
   formatDateTime,
 } from "@dub/utils";
-import { useParams } from "next/navigation";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
 import useSWR from "swr";
 
@@ -33,9 +32,7 @@ function PayoutDetailsSheetContent({
   payout,
   setIsOpen,
 }: PayoutDetailsSheetProps) {
-  const { partnerId } = useParams() as {
-    partnerId: string;
-  };
+  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
 
   const { programEnrollment } = useProgramEnrollment();
 

@@ -12,7 +12,6 @@ import {
   formatDate,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   Fragment,
@@ -30,7 +29,7 @@ type PayoutWithdrawSheetProps = {
 };
 
 function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
-  const { partnerId } = useParams<{ partnerId: string }>();
+  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
   const { partner, error: partnerError } = usePartnerProfile();
   const { dotsUser, error: dotsUserError } = useDotsUser();
   const { payoutMethods } = usePayoutMethods();
