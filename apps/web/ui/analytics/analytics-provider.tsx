@@ -12,6 +12,7 @@ import {
 } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PlanProps } from "@/lib/types";
 import { fetcher } from "@dub/utils";
@@ -93,13 +94,14 @@ export default function AnalyticsProvider({
   const { id: workspaceId, slug, conversionEnabled } = useWorkspace();
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
-  let { dashboardId, partnerId, programSlug } = useParams() as {
+  const { partner } = usePartnerProfile();
+
+  const { dashboardId, programSlug } = useParams() as {
     dashboardId?: string;
-    partnerId?: string;
     programSlug?: string;
   };
 
-  const partnerPage = partnerId && programSlug ? true : false;
+  const partnerPage = partner?.id && programSlug ? true : false;
 
   const domainSlug = searchParams?.get("domain");
   // key can be a query param (stats pages in app) or passed as a staticKey (shared analytics dashboards)
@@ -183,11 +185,11 @@ export default function AnalyticsProvider({
         eventsApiPath: `/api/events`,
         domain: domainSlug,
       };
-    } else if (partnerId && programSlug) {
+    } else if (partner?.id && programSlug) {
       return {
-        basePath: `/api/partners/${partnerId}/programs/${programSlug}/analytics`,
-        baseApiPath: `/api/partners/${partnerId}/programs/${programSlug}/analytics`,
-        eventsApiPath: `/api/partners/${partnerId}/programs/${programSlug}/events`,
+        basePath: `/api/partners/${partner.id}/programs/${programSlug}/analytics`,
+        baseApiPath: `/api/partners/${partner.id}/programs/${programSlug}/analytics`,
+        eventsApiPath: `/api/partners/${partner.id}/programs/${programSlug}/events`,
         domain: domainSlug,
       };
     } else {
@@ -205,7 +207,7 @@ export default function AnalyticsProvider({
     pathname,
     dashboardProps?.domain,
     dashboardId,
-    partnerId,
+    partner?.id,
     programSlug,
     domainSlug,
     key,

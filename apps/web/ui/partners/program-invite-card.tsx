@@ -64,7 +64,6 @@ export function ProgramInviteCard({ invite }: { invite: ProgramInviteProps }) {
         loading={isExecuting}
         onClick={() =>
           executeAsync({
-            partnerId,
             programInviteId: invite.id,
           })
         }
