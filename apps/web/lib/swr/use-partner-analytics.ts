@@ -43,6 +43,7 @@ export default function usePartnerAnalytics(
     fetcher,
     {
       dedupingInterval: 60000,
+      keepPreviousData: true,
     },
   );
 

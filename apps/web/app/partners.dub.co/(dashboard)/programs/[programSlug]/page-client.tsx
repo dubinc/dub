@@ -20,13 +20,8 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { Check, Copy, LoadingSpinner, MoneyBill2 } from "@dub/ui/src/icons";
-import {
-  cn,
-  currencyFormatter,
-  formatDate,
-  getPrettyUrl,
-  nFormatter,
-} from "@dub/utils";
+import { cn, currencyFormatter, formatDate, getPrettyUrl } from "@dub/utils";
+import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -135,9 +130,11 @@ export default function ProgramPageClient() {
           </div>
         </div>
         <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-3">
-          <StatCard title="Clicks" event="clicks" />
-          <StatCard title="Leads" event="leads" />
-          <StatCard title="Sales" event="sales" />
+          <NumberFlowGroup>
+            <StatCard title="Clicks" event="clicks" />
+            <StatCard title="Leads" event="leads" />
+            <StatCard title="Sales" event="sales" />
+          </NumberFlowGroup>
         </div>
         <div className="mt-6">
           <div className="flex items-center justify-between">
@@ -197,12 +194,16 @@ function EarningsChart() {
           <span className="block text-sm text-neutral-500">Earnings</span>
           <div className="mt-1.5">
             {total !== undefined ? (
-              <span className="text-2xl leading-none text-neutral-800">
-                {currencyFormatter(total / 100, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </span>
+              <NumberFlow
+                className="text-2xl leading-none text-neutral-800"
+                value={total / 100}
+                format={{
+                  style: "currency",
+                  currency: "USD",
+                  // @ts-ignore – this is a valid option but TS is outdated
+                  trailingZeroDisplay: "stripIfInteger",
+                }}
+              />
             ) : (
               <div className="h-7 w-24 animate-pulse rounded-md bg-neutral-200" />
             )}
@@ -321,17 +322,29 @@ function StatCard({
 
   return (
     <Link
-      href={`/${programSlug}/analytics?event=${event}${getQueryString()?.replace("?", "&")}`}
+      href={`/programs/${programSlug}/analytics?event=${event}${getQueryString()?.replace("?", "&")}`}
       className="hover:drop-shadow-card-hover block rounded-md border border-neutral-300 bg-white p-5 transition-[filter]"
     >
       <span className="block text-sm text-neutral-500">{title}</span>
       {total !== undefined ? (
         <div className="flex items-center gap-1 text-2xl text-neutral-800">
-          {nFormatter(total[event])}
+          <NumberFlow
+            value={total[event]}
+            format={{
+              notation: total[event] > 999999 ? "compact" : "standard",
+            }}
+          />
           {event === "sales" && (
-            <span className="text-base text-neutral-500">
-              ({currencyFormatter(total.saleAmount / 100)})
-            </span>
+            <NumberFlow
+              className="text-base text-neutral-500"
+              value={total.saleAmount / 100}
+              format={{
+                style: "currency",
+                currency: "USD",
+                // @ts-ignore – this is a valid option but TS is outdated
+                trailingZeroDisplay: "stripIfInteger",
+              }}
+            />
           )}
         </div>
       ) : (
