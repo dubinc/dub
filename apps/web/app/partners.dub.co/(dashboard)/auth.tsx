@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import { notFound } from "next/navigation";
 import { ReactNode, useEffect } from "react";
 
-export default function PartnerAuth({ children }: { children: ReactNode }) {
+export function PartnerProfileAuth({ children }: { children: ReactNode }) {
   const { data: session, update, status } = useSession();
 
   // if user has no default partner, refresh to get default partner

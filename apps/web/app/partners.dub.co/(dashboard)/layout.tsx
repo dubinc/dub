@@ -1,7 +1,7 @@
 import { MainNav } from "@/ui/layout/main-nav";
 import { HelpButtonRSC } from "@/ui/layout/sidebar/help-button-rsc";
 import { PartnersSidebarNav } from "@/ui/layout/sidebar/partners-sidebar-nav";
-import PartnerAuth from "./auth";
+import { PartnerProfileAuth } from "./auth";
 
 export default function PartnerDashboardLayout({
   children,
@@ -10,7 +10,7 @@ export default function PartnerDashboardLayout({
 }) {
   return (
     <MainNav toolContent={<HelpButtonRSC />} sidebar={PartnersSidebarNav}>
-      <PartnerAuth>{children}</PartnerAuth>
+      <PartnerProfileAuth>{children}</PartnerProfileAuth>
     </MainNav>
   );
 }
