@@ -29,7 +29,6 @@ type PayoutWithdrawSheetProps = {
 };
 
 function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
-  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
   const { partner, error: partnerError } = usePartnerProfile();
   const { dotsUser, error: dotsUserError } = useDotsUser();
   const { payoutMethods } = usePayoutMethods();
@@ -83,9 +82,10 @@ function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
 
   const { executeAsync, isExecuting } = useAction(withdrawFundsAction, {
     onSuccess: async () => {
+      if (!partner) return;
       await Promise.all([
-        mutate(`/api/partners/${partnerId}/dots-user`),
-        mutate(`/api/partners/${partnerId}/withdrawals`),
+        mutate(`/api/partners/${partner.id}/dots-user`),
+        mutate(`/api/partners/${partner.id}/withdrawals`),
       ]);
       setIsOpen(false);
       toast.success("Successfully initiated withdrawal!");
@@ -183,7 +183,6 @@ function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
             onClick={() =>
               selectedPayoutMethod &&
               executeAsync({
-                partnerId,
                 platform: selectedPayoutMethod,
               })
             }

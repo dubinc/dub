@@ -1,9 +1,11 @@
 import { fetcher } from "@dub/utils";
+import { useSession } from "next-auth/react";
 import useSWR from "swr";
 import { PartnerProps } from "../types";
 
 export default function usePartnerProfile() {
-  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
+  const { data: session } = useSession();
+  const partnerId = session?.user?.["defaultPartnerId"];
 
   const { data: partner, error } = useSWR<PartnerProps>(
     partnerId && `/api/partners/${partnerId}`,

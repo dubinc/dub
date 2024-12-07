@@ -23,7 +23,9 @@ export default async function PartnersMiddleware(req: NextRequest) {
 
   if (!user) {
     if (isUnauthenticatedPath) {
-      return NextResponse.next();
+      return NextResponse.rewrite(
+        new URL(`/partners.dub.co${fullPath === "/" ? "" : fullPath}`, req.url),
+      );
     }
     return NextResponse.redirect(new URL("/login", req.url)); // Redirect unauthenticated users to login
   }

@@ -10,7 +10,6 @@ export const ComplianceButton = ({
 }: {
   setModalState: (state: { show: boolean; iframeSrc: string }) => void;
 }) => {
-  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
   const { dotsUser } = useDotsUser();
 
   const { executeAsync, isExecuting } = useAction(createDotsFlowAction, {
@@ -33,9 +32,7 @@ export const ComplianceButton = ({
     <Button
       text={dotsUser?.compliance.submitted ? "Update" : "Submit"}
       variant="secondary"
-      onClick={async () =>
-        await executeAsync({ partnerId, flow: "compliance" })
-      }
+      onClick={async () => await executeAsync({ flow: "compliance" })}
       loading={isExecuting}
       className="h-8 w-fit px-2"
     />

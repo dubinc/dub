@@ -32,8 +32,6 @@ function PayoutDetailsSheetContent({
   payout,
   setIsOpen,
 }: PayoutDetailsSheetProps) {
-  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
-
   const { programEnrollment } = useProgramEnrollment();
 
   const {
@@ -42,7 +40,7 @@ function PayoutDetailsSheetContent({
     error,
   } = useSWR<PartnerSaleResponse[]>(
     programEnrollment
-      ? `/api/partners/${partnerId}/programs/${programEnrollment.programId}/sales?payoutId=${payout.id}&start=${payout.periodStart}&end=${payout.periodEnd}`
+      ? `/api/partners/${programEnrollment.partnerId}/programs/${programEnrollment.programId}/sales?payoutId=${payout.id}&start=${payout.periodStart}&end=${payout.periodEnd}`
       : undefined,
     fetcher,
   );

@@ -46,7 +46,6 @@ export function ProfileSettingsPageClient() {
 }
 
 function ProfileForm({ partner }: { partner: PartnerProps }) {
-  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
   const {
     register,
     control,
@@ -85,7 +84,7 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
     <form
       ref={formRef}
       onSubmit={handleSubmit(async (data) => {
-        await executeAsync({ ...data, partnerId });
+        await executeAsync(data);
       })}
     >
       <div className="px-5">

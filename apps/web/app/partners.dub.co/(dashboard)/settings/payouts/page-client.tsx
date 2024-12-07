@@ -25,7 +25,6 @@ import PayoutMethodCard, {
 } from "./payout-method-card";
 
 export function PayoutsSettingsPageClient() {
-  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
   const { partner } = usePartnerProfile();
 
   const { dotsUser, isLoading, mutate } = useDotsUser();
@@ -168,9 +167,7 @@ export function PayoutsSettingsPageClient() {
                   addButton={
                     <Button
                       text="Connect payout method"
-                      onClick={() =>
-                        executeAsync({ partnerId, flow: "manage-payouts" })
-                      }
+                      onClick={() => executeAsync({ flow: "manage-payouts" })}
                       loading={isExecuting}
                     />
                   }
@@ -184,9 +181,7 @@ export function PayoutsSettingsPageClient() {
                     <Button
                       text="Manage"
                       variant="secondary"
-                      onClick={() =>
-                        executeAsync({ partnerId, flow: "manage-payouts" })
-                      }
+                      onClick={() => executeAsync({ flow: "manage-payouts" })}
                       loading={isExecuting}
                       className="h-8 w-fit px-2"
                     />
@@ -253,9 +248,7 @@ export function PayoutsSettingsPageClient() {
             addButton={
               <Button
                 text="Verify phone number"
-                onClick={() =>
-                  executeAsync({ partnerId, flow: "manage-payouts" })
-                }
+                onClick={() => executeAsync({ flow: "manage-payouts" })}
                 loading={isExecuting}
               />
             }

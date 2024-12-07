@@ -1,6 +1,7 @@
 "use client";
 
 import { DotsWithdrawals } from "@/lib/dots/types";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PlatformBadge } from "@/ui/partners/platform-badge";
 import { StatusBadge, Table, Tooltip, useTable } from "@dub/ui";
 import {
@@ -22,10 +23,10 @@ const StatusBadgeVariants = {
 };
 
 export const PartnerWithdrawalsActivity = () => {
-  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
+  const { partner } = usePartnerProfile();
 
   const { data, error } = useSWR<DotsWithdrawals>(
-    `/api/partners/${partnerId}/withdrawals`,
+    `/api/partners/${partner?.id}/withdrawals`,
     fetcher,
   );
 

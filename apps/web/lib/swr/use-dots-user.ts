@@ -1,9 +1,11 @@
 import { fetcher } from "@dub/utils";
+import { useSession } from "next-auth/react";
 import useSWR from "swr";
 import { DotsUser } from "../dots/types";
 
 export default function useDotsUser() {
-  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
+  const { data: session } = useSession();
+  const partnerId = session?.user?.["defaultPartnerId"];
 
   const {
     data: dotsUser,

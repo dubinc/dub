@@ -1,4 +1,5 @@
 import { fetcher } from "@dub/utils";
+import { useSession } from "next-auth/react";
 import { useParams, useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import { VALID_ANALYTICS_FILTERS } from "../analytics/constants";
@@ -7,7 +8,8 @@ import { PartnerAnalyticsFilters } from "../analytics/types";
 export default function usePartnerAnalytics(
   params?: PartnerAnalyticsFilters & { programId?: string },
 ) {
-  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
+  const { data: session } = useSession();
+  const partnerId = session?.user?.["defaultPartnerId"];
   const { programSlug } = useParams();
   const searchParams = useSearchParams();
 

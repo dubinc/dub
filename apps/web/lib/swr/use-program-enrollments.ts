@@ -1,9 +1,11 @@
 import { fetcher } from "@dub/utils";
+import { useSession } from "next-auth/react";
 import useSWR from "swr";
 import { ProgramEnrollmentProps } from "../types";
 
 export default function useProgramEnrollments() {
-  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
+  const { data: session } = useSession();
+  const partnerId = session?.user?.["defaultPartnerId"];
 
   const { data: programEnrollments, isLoading } = useSWR<
     ProgramEnrollmentProps[]

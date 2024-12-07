@@ -20,7 +20,6 @@ import useSWR from "swr";
 import { PayoutDetailsSheet } from "./payout-details-sheet";
 
 export function PayoutTable() {
-  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
   const { programEnrollment } = useProgramEnrollment();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
@@ -33,7 +32,7 @@ export function PayoutTable() {
     isLoading,
   } = useSWR<PartnerPayoutResponse[]>(
     programEnrollment
-      ? `/api/partners/${partnerId}/programs/${programEnrollment.programId}/payouts?${getQueryString()}`
+      ? `/api/partners/${programEnrollment.partnerId}/programs/${programEnrollment.programId}/payouts?${getQueryString()}`
       : undefined,
     fetcher,
     {

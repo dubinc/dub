@@ -1,5 +1,6 @@
 "use client";
 
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerSaleResponse } from "@/lib/types";
 import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -13,12 +14,10 @@ import {
 } from "@dub/ui";
 import { CircleDollar } from "@dub/ui/src/icons";
 import { currencyFormatter, fetcher, formatDate } from "@dub/utils";
-import { useParams } from "next/navigation";
 import useSWR from "swr";
 
 export function SaleTablePartner({ limit }: { limit?: number }) {
-  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
-  const { programSlug } = useParams();
+  const { programEnrollment } = useProgramEnrollment();
   const { queryParams, searchParamsObj, getQueryString } = useRouterStuff();
 
   const { sortBy = "timestamp", order = "desc" } = searchParamsObj as {
@@ -27,9 +26,8 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
   };
 
   const { data: salesCount } = useSWR<{ count: number }>(
-    partnerId &&
-      programSlug &&
-      `/api/partners/${partnerId}/programs/${programSlug}/sales/count${getQueryString()}`,
+    programEnrollment &&
+      `/api/partners/${programEnrollment.partnerId}/programs/${programEnrollment.programId}/sales/count${getQueryString()}`,
     fetcher,
   );
 
@@ -38,9 +36,8 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
     isLoading,
     error,
   } = useSWR<PartnerSaleResponse[]>(
-    partnerId &&
-      programSlug &&
-      `/api/partners/${partnerId}/programs/${programSlug}/sales${getQueryString()}`,
+    programEnrollment &&
+      `/api/partners/${programEnrollment.partnerId}/programs/${programEnrollment.programId}/sales${getQueryString()}`,
     fetcher,
   );
 

@@ -1,4 +1,5 @@
 import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program-invite";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { ProgramInviteProps } from "@/lib/types";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
 import { BlurImage, Button, StatusBadge } from "@dub/ui";
@@ -8,7 +9,7 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 
 export function ProgramInviteCard({ invite }: { invite: ProgramInviteProps }) {
-  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
+  const { partner } = usePartnerProfile();
 
   const { executeAsync, isExecuting } = useAction(acceptProgramInviteAction, {
     onSuccess: () => {
@@ -16,7 +17,7 @@ export function ProgramInviteCard({ invite }: { invite: ProgramInviteProps }) {
       mutate(
         (key) =>
           typeof key === "string" &&
-          key.startsWith(`/api/partners/${partnerId}/programs`),
+          key.startsWith(`/api/partners/${partner?.id}/programs`),
         undefined,
         { revalidate: true },
       );
