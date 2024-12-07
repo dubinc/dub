@@ -4,10 +4,12 @@ import useSWR from "swr";
 import { ProgramEnrollmentProps } from "../types";
 
 export default function useProgramEnrollment() {
-  const { partnerId, programId } = useParams();
+  const { partnerId, programSlug } = useParams();
 
   const { data: programEnrollment, error } = useSWR<ProgramEnrollmentProps>(
-    `/api/partners/${partnerId}/programs/${programId}`,
+    partnerId && programSlug
+      ? `/api/partners/${partnerId}/programs/${programSlug}`
+      : undefined,
     fetcher,
     {
       dedupingInterval: 60000,

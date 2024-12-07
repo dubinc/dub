@@ -17,7 +17,7 @@ import { useParams } from "next/navigation";
 import useSWR from "swr";
 
 export function SaleTablePartner({ limit }: { limit?: number }) {
-  const { partnerId, programId } = useParams();
+  const { partnerId, programSlug } = useParams();
   const { queryParams, searchParamsObj, getQueryString } = useRouterStuff();
 
   const { sortBy = "timestamp", order = "desc" } = searchParamsObj as {
@@ -26,7 +26,9 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
   };
 
   const { data: salesCount } = useSWR<{ count: number }>(
-    `/api/partners/${partnerId}/programs/${programId}/sales/count${getQueryString()}`,
+    partnerId &&
+      programSlug &&
+      `/api/partners/${partnerId}/programs/${programSlug}/sales/count${getQueryString()}`,
     fetcher,
   );
 
@@ -35,7 +37,9 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
     isLoading,
     error,
   } = useSWR<PartnerSaleResponse[]>(
-    `/api/partners/${partnerId}/programs/${programId}/sales${getQueryString()}`,
+    partnerId &&
+      programSlug &&
+      `/api/partners/${partnerId}/programs/${programSlug}/sales${getQueryString()}`,
     fetcher,
   );
 

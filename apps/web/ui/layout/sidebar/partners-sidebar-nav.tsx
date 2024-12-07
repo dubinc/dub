@@ -32,7 +32,7 @@ import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
 
 const NAV_AREAS: SidebarNavAreas<{
   partnerId: string;
-  programId?: string;
+  programSlug?: string;
   queryString?: string;
   hasInvites?: boolean;
 }> = {
@@ -66,7 +66,7 @@ const NAV_AREAS: SidebarNavAreas<{
     ],
   }),
 
-  program: ({ partnerId, programId, queryString }) => ({
+  program: ({ partnerId, programSlug, queryString }) => ({
     showSwitcher: true,
     content: [
       {
@@ -74,33 +74,33 @@ const NAV_AREAS: SidebarNavAreas<{
           {
             name: "Overview",
             icon: Gauge6,
-            href: `/${partnerId}/${programId}`,
+            href: `/${partnerId}/${programSlug}`,
             exact: true,
           },
           {
             name: "Analytics",
             icon: ChartActivity2,
-            href: `/${partnerId}/${programId}/analytics${queryString}`,
+            href: `/${partnerId}/${programSlug}/analytics${queryString}`,
           },
           {
             name: "Sales",
             icon: CircleDollar,
-            href: `/${partnerId}/${programId}/sales${queryString}`,
+            href: `/${partnerId}/${programSlug}/sales${queryString}`,
           },
           {
             name: "Payouts",
             icon: MoneyBills2,
-            href: `/${partnerId}/${programId}/payouts`,
+            href: `/${partnerId}/${programSlug}/payouts`,
           },
           {
             name: "Links",
             icon: Hyperlink,
-            href: `/${partnerId}/${programId}/links`,
+            href: `/${partnerId}/${programSlug}/links`,
           },
           {
             name: "Resources",
             icon: ColorPalette2,
-            href: `/${partnerId}/${programId}/resources`,
+            href: `/${partnerId}/${programSlug}/resources`,
           },
         ],
       },
@@ -167,9 +167,9 @@ export function PartnersSidebarNav({
   toolContent?: ReactNode;
   newsContent?: ReactNode;
 }) {
-  const { partnerId, programId } = useParams() as {
+  const { partnerId, programSlug } = useParams() as {
     partnerId?: string;
-    programId?: string;
+    programSlug?: string;
   };
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
@@ -179,10 +179,10 @@ export function PartnersSidebarNav({
       ? "userSettings"
       : pathname.startsWith(`/${partnerId}/settings`)
         ? "partnerSettings"
-        : pathname.startsWith(`/${partnerId}/${programId}`)
+        : pathname.startsWith(`/${partnerId}/${programSlug}`)
           ? "program"
           : "default";
-  }, [partnerId, pathname, programId]);
+  }, [partnerId, pathname, programSlug]);
 
   const { programInvites } = usePartnerProgramInvites();
 
@@ -192,23 +192,24 @@ export function PartnersSidebarNav({
       currentArea={currentArea}
       data={{
         partnerId: partnerId || "",
-        programId: programId || "",
+        programSlug: programSlug || "",
         queryString: getQueryString(),
         hasInvites: programInvites && programInvites.length > 0,
       }}
       toolContent={toolContent}
       newsContent={newsContent}
       switcher={<PartnerProgramDropdown />}
-      bottom={<>{programId && <ProgramInfo />}</>}
+      bottom={<>{programSlug && <ProgramInfo />}</>}
     />
   );
 }
 
 function ProgramInfo() {
-  const { partnerId, programId } = useParams() as {
+  const { partnerId, programSlug } = useParams() as {
     partnerId?: string;
-    programId?: string;
+    programSlug?: string;
   };
+
   const { programEnrollment } = useProgramEnrollment();
 
   const [copied, copyToClipboard] = useCopyToClipboard();
@@ -218,13 +219,13 @@ function ProgramInfo() {
   const items = [
     {
       icon: UserCheck,
-      href: `/${partnerId}/${programId}/analytics?event=leads&interval=all`,
+      href: `/${partnerId}/${programSlug}/analytics?event=leads&interval=all`,
       label: "Signups",
       value: analytics?.leads,
     },
     {
       icon: MoneyBills2,
-      href: `/${partnerId}/${programId}/sales?interval=all`,
+      href: `/${partnerId}/${programSlug}/sales?interval=all`,
       label: "Earnings",
       value: `${currencyFormatter((analytics?.earnings || 0) / 100)}`,
     },
@@ -271,8 +272,9 @@ function ProgramInfo() {
       <div>
         <div className="text-neutral-500">Performance</div>
         <div className="mt-2 grid grid-cols-2 gap-2">
-          {items.map(({ href, icon: Icon, label, value }) => (
+          {items.map(({ href, icon: Icon, label, value }, index) => (
             <Link
+              key={index}
               href={href}
               className="group relative flex flex-col justify-between gap-3 rounded-lg bg-black/5 p-2 transition-colors hover:bg-black/10"
             >
