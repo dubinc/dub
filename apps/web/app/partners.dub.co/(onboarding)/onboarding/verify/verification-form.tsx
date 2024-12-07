@@ -3,7 +3,7 @@
 import { resendVerificationCodeAction } from "@/lib/actions/partners/resend-verification-code";
 import { verifyPartnerAction } from "@/lib/actions/partners/verify-partner";
 import useDotsUser from "@/lib/swr/use-dots-user";
-import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import useRefreshSession from "@/lib/swr/use-refresh-session";
 import { Button, LoadingSpinner, useMediaQuery } from "@dub/ui";
 import { MobilePhone } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils/src/functions";
@@ -15,8 +15,9 @@ import { toast } from "sonner";
 
 export function VerificationForm() {
   const router = useRouter();
-  const { partner } = usePartnerProfile();
   const { isMobile } = useMediaQuery();
+
+  useRefreshSession("defaultPartnerId");
 
   const {
     handleSubmit,

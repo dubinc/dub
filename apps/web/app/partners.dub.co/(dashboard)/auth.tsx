@@ -1,28 +1,17 @@
 "use client";
 
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import useRefreshSession from "@/lib/swr/use-refresh-session";
 import LayoutLoader from "@/ui/layout/layout-loader";
-import { useSession } from "next-auth/react";
 import { notFound } from "next/navigation";
-import { ReactNode, useEffect } from "react";
+import { ReactNode } from "react";
 
 export function PartnerProfileAuth({ children }: { children: ReactNode }) {
-  const { data: session, update, status } = useSession();
-
-  // if user has no default partner, refresh to get default partner
-  useEffect(() => {
-    const refreshSession = async () => {
-      if (session?.user && !session.user["defaultPartnerId"]) {
-        console.log("no default partner, refreshing");
-        await update();
-      }
-    };
-    refreshSession();
-  }, [session]);
+  const { loading: sessionLoading } = useRefreshSession("defaultPartnerId");
 
   const { loading, error } = usePartnerProfile();
 
-  if (status === "loading" || loading) {
+  if (sessionLoading || loading) {
     return <LayoutLoader />;
   }
 
