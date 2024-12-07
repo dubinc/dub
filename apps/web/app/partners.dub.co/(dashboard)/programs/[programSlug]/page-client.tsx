@@ -166,12 +166,14 @@ function EarningsChart() {
   const { start, end, interval, color } = useContext(ProgramOverviewContext);
 
   const { data: { earnings: total } = {} } = usePartnerAnalytics({
+    event: "composite",
     interval,
     start,
     end,
   });
 
   const { data: timeseries, error } = usePartnerAnalytics({
+    event: "sales",
     groupBy: "timeseries",
     interval,
     start,
@@ -307,6 +309,7 @@ function StatCard({
   const { start, end, interval, color } = useContext(ProgramOverviewContext);
 
   const { data: total } = usePartnerAnalytics({
+    event: "composite",
     interval,
     start,
     end,
