@@ -17,7 +17,8 @@ import { useParams } from "next/navigation";
 import useSWR from "swr";
 
 export function SaleTablePartner({ limit }: { limit?: number }) {
-  const { partnerId, programSlug } = useParams();
+  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
+  const { programSlug } = useParams();
   const { queryParams, searchParamsObj, getQueryString } = useRouterStuff();
 
   const { sortBy = "timestamp", order = "desc" } = searchParamsObj as {

@@ -302,7 +302,8 @@ function StatCard({
   title: string;
   event: "clicks" | "leads" | "sales";
 }) {
-  const { partnerId, programSlug } = useParams();
+  const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";
+  const { programSlug } = useParams();
   const { getQueryString } = useRouterStuff();
   const { start, end, interval, color } = useContext(ProgramOverviewContext);
 
