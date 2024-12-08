@@ -31,7 +31,6 @@ export const POST = withAdmin(async ({ req }) => {
               slug: true,
               logo: true,
               stripeId: true,
-              referralLinkId: true,
             },
           },
         },

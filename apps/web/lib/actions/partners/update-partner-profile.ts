@@ -8,7 +8,6 @@ import z from "../../zod";
 import { authPartnerActionClient } from "../safe-action";
 
 const updatePartnerProfileSchema = z.object({
-  partnerId: z.string(),
   name: z.string(),
   image: z.string().nullable(),
   description: z.string().nullable(),

@@ -8,18 +8,31 @@ export async function getProgramEnrollmentOrThrow({
   partnerId: string;
   programId: string;
 }) {
-  const programEnrollment = await prisma.programEnrollment.findUnique({
-    where: {
-      partnerId_programId: {
-        partnerId,
-        programId,
-      },
-    },
-    include: {
-      program: true,
-      link: true,
-    },
-  });
+  const programEnrollment = programId.startsWith("prog_")
+    ? await prisma.programEnrollment.findUnique({
+        where: {
+          partnerId_programId: {
+            partnerId,
+            programId,
+          },
+        },
+        include: {
+          program: true,
+          link: true,
+        },
+      })
+    : await prisma.programEnrollment.findFirst({
+        where: {
+          partnerId,
+          program: {
+            slug: programId,
+          },
+        },
+        include: {
+          program: true,
+          link: true,
+        },
+      });
 
   if (!programEnrollment || !programEnrollment.program) {
     throw new DubApiError({
@@ -29,7 +42,7 @@ export async function getProgramEnrollmentOrThrow({
     });
   }
 
-  const { link, program } = programEnrollment;
+  const { link } = programEnrollment;
 
   if (!link) {
     throw new DubApiError({
@@ -39,5 +52,8 @@ export async function getProgramEnrollmentOrThrow({
     });
   }
 
-  return { link, program };
+  return {
+    ...programEnrollment,
+    link,
+  };
 }

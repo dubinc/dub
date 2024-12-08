@@ -126,8 +126,6 @@ export default function AnalyticsAreaChart({
           series={series}
           tooltipClassName="p-0"
           tooltipContent={(d) => {
-            const value =
-              d.values[resource === "sales" ? "saleAmount" : resource];
             return (
               <>
                 <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
@@ -147,8 +145,19 @@ export default function AnalyticsAreaChart({
                       <p className="capitalize text-gray-600">{resource}</p>
                     </div>
                     <p className="text-right font-medium text-gray-900">
-                      {resource === "sales" && "$"}
-                      {nFormatter(value, { full: true })}
+                      {nFormatter(d.values[resource], { full: true })}
+                      {resource === "sales" && (
+                        <span className="ml-1 text-gray-500">
+                          (
+                          {Intl.NumberFormat("en-US", {
+                            style: "currency",
+                            currency: "USD",
+                            // @ts-ignore – this is a valid option but TS is outdated
+                            trailingZeroDisplay: "stripIfInteger",
+                          }).format(d.values.saleAmount)}
+                          )
+                        </span>
+                      )}
                     </p>
                   </Fragment>
                 </div>

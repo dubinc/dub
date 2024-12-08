@@ -25,7 +25,6 @@ model Project {
 
   referralLinkId  String? @unique
   referredSignups Int     @default(0)
-  referredUsers   User[]
 
   webhookEnabled    Boolean @default(false)
   conversionEnabled Boolean @default(false)
@@ -35,7 +34,6 @@ model Project {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   usageLastChecked DateTime @default(now())
-  publishableKey   String?  @unique
 
   dotsAppId            String? @unique
   bankAccountName      String?

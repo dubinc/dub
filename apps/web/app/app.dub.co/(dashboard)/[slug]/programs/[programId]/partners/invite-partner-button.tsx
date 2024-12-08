@@ -1,22 +1,22 @@
 "use client";
 
-import { Button } from "@dub/ui";
-import { Plus } from "@dub/ui/src/icons";
+import { Button, useKeyboardShortcut } from "@dub/ui";
 import { useInvitePartnerSheet } from "./invite-partner-sheet";
 
 export function InvitePartnerButton() {
   const { invitePartnerSheet, setIsOpen: setShowInvitePartnerSheet } =
     useInvitePartnerSheet();
 
+  useKeyboardShortcut("p", () => setShowInvitePartnerSheet(true));
+
   return (
     <>
       {invitePartnerSheet}
       <Button
         type="button"
-        variant="secondary"
         onClick={() => setShowInvitePartnerSheet(true)}
-        text="Invite Partner"
-        icon={<Plus className="size-4" />}
+        text="Invite partner"
+        shortcut="P"
       />
     </>
   );

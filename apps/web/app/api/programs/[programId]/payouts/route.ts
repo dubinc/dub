@@ -12,7 +12,7 @@ import z from "zod";
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
-    const { status, search, partnerId, sortBy, order, page, pageSize } =
+    const { status, search, partnerId, sortBy, order, page, pageSize, type } =
       payoutsQuerySchema.parse(searchParams);
 
     await getProgramOrThrow({
@@ -26,6 +26,7 @@ export const GET = withWorkspace(
         ...(status && { status }),
         ...(search && { partner: { name: { contains: search } } }),
         ...(partnerId && { partnerId }),
+        ...(type && { type }),
       },
       include: {
         partner: true,

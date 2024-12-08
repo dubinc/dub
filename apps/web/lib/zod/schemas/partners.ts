@@ -2,6 +2,7 @@ import { intervals } from "@/lib/analytics/constants";
 import {
   PartnerStatus,
   PayoutStatus,
+  PayoutType,
   ProgramEnrollmentStatus,
   SaleStatus,
 } from "@dub/prisma";
@@ -63,6 +64,7 @@ export const payoutsQuerySchema = z
     partnerId: z.string().optional(),
     order: z.enum(["asc", "desc"]).default("desc"),
     sortBy: z.enum(["periodStart", "total"]).default("periodStart"),
+    type: z.nativeEnum(PayoutType).optional(),
   })
   .merge(getPaginationQuerySchema({ pageSize: PAYOUTS_MAX_PAGE_SIZE }));
 
@@ -73,9 +75,12 @@ export const PayoutSchema = z.object({
   total: z.number(),
   currency: z.string(),
   status: z.nativeEnum(PayoutStatus),
-  periodStart: z.date(),
-  periodEnd: z.date(),
+  type: z.nativeEnum(PayoutType),
+  description: z.string().nullish(),
+  periodStart: z.date().nullable(),
+  periodEnd: z.date().nullable(),
   dotsTransferId: z.string().nullable(),
+  quantity: z.number().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -131,6 +136,12 @@ export const getSalesCountQuerySchema = getSalesQuerySchema.omit({
   sortBy: true,
 });
 
+export const getSalesAmountQuerySchema = getSalesQuerySchema.pick({
+  start: true,
+  end: true,
+  partnerId: true,
+});
+
 export const getPartnerSalesQuerySchema = getSalesQuerySchema.omit({
   partnerId: true,
 });
@@ -155,6 +166,7 @@ export const getPartnerSalesCountQuerySchema = getSalesCountQuerySchema.omit({
 
 export const onboardPartnerSchema = z.object({
   name: z.string().trim().min(1).max(100),
+  email: z.string().trim().min(1).max(190).email(),
   logo: z.string().optional(),
   image: z.string(),
   country: z.enum(COUNTRY_CODES),

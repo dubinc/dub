@@ -1,4 +1,4 @@
-import { createPartnerPayoutAction } from "@/lib/actions/partners/create-partner-payout";
+import { processPartnerPayoutAction } from "@/lib/actions/partners/process-partner-payout";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse, SaleResponse } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
@@ -27,6 +27,7 @@ import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 import { PayoutStatusBadges } from "./payout-status-badges";
+import { PayoutTypeBadge } from "./payout-type-badge";
 import { SaleRowMenu } from "./sale-row-menu";
 
 type PayoutDetailsSheetProps = {
@@ -46,7 +47,8 @@ function PayoutDetailsSheetContent({
     isLoading,
     error,
   } = useSWR<SaleResponse[]>(
-    `/api/programs/${programId}/sales?workspaceId=${workspaceId}&payoutId=${payout.id}&interval=all&pageSize=10`,
+    payout.type === "sales" &&
+      `/api/programs/${programId}/sales?workspaceId=${workspaceId}&payoutId=${payout.id}&interval=all&pageSize=10`,
     fetcher,
   );
 
@@ -72,15 +74,37 @@ function PayoutDetailsSheetContent({
           <div>{payout.partner.name}</div>
         </Link>
       ),
-      Period: `${formatDate(payout.periodStart, {
-        month: "short",
-        year:
-          new Date(payout.periodStart).getFullYear() ===
-          new Date(payout.periodEnd).getFullYear()
-            ? undefined
-            : "numeric",
-      })}-${formatDate(payout.periodEnd, { month: "short" })}`,
-      Sales: payout._count.sales,
+
+      Period:
+        !payout.periodStart || !payout.periodEnd
+          ? "-"
+          : `${formatDate(payout.periodStart, {
+              month: "short",
+              year:
+                new Date(payout.periodStart).getFullYear() ===
+                new Date(payout.periodEnd).getFullYear()
+                  ? undefined
+                  : "numeric",
+            })}-${formatDate(payout.periodEnd, { month: "short" })}`,
+
+      Type: <PayoutTypeBadge type={payout.type} />,
+
+      Status: (
+        <StatusBadge variant={statusBadge.variant} icon={statusBadge.icon}>
+          {statusBadge.label}
+        </StatusBadge>
+      ),
+
+      ...(payout.quantity && {
+        [capitalize(payout.type) as string]: payout.quantity,
+        [`Reward per ${payout.type.replace(/s$/, "")}`]: currencyFormatter(
+          payout.amount / payout.quantity / 100,
+          {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          },
+        ),
+      }),
       Amount: currencyFormatter(payout.amount / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -89,15 +113,15 @@ function PayoutDetailsSheetContent({
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }),
-      Total: currencyFormatter(payout.total / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
-      Status: (
-        <StatusBadge variant={statusBadge.variant} icon={statusBadge.icon}>
-          {statusBadge.label}
-        </StatusBadge>
+      Total: (
+        <strong>
+          {currencyFormatter(payout.total / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+        </strong>
       ),
+      Description: payout.description || "-",
     };
   }, [payout]);
 
@@ -161,7 +185,7 @@ function PayoutDetailsSheetContent({
 
   const { queryParams } = useRouterStuff();
 
-  const { executeAsync, isExecuting } = useAction(createPartnerPayoutAction, {
+  const { executeAsync, isExecuting } = useAction(processPartnerPayoutAction, {
     onSuccess: async () => {
       await mutate(
         (key) =>
@@ -201,26 +225,31 @@ function PayoutDetailsSheetContent({
           <div className="grid grid-cols-2 gap-3 text-sm">
             {Object.entries(invoiceData).map(([key, value]) => (
               <Fragment key={key}>
-                <div className="font-medium text-neutral-500">{key}</div>
+                <div className="flex items-center font-medium text-neutral-500">
+                  {key}
+                </div>
                 <div className="text-neutral-800">{value}</div>
               </Fragment>
             ))}
           </div>
         </div>
-        <div className="p-6 pt-2">
-          <Table {...table} />
-          <div className="mt-2 flex justify-end">
-            <Link
-              href={`/${slug}/programs/${programId}/sales?payoutId=${payout.id}&interval=all`}
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "flex h-7 items-center rounded-lg border px-2 text-sm",
-              )}
-            >
-              View all
-            </Link>
+
+        {payout.type === "sales" && (
+          <div className="p-6 pt-2">
+            <Table {...table} />
+            <div className="mt-2 flex justify-end">
+              <Link
+                href={`/${slug}/programs/${programId}/sales?payoutId=${payout.id}&interval=all`}
+                className={cn(
+                  buttonVariants({ variant: "secondary" }),
+                  "flex h-7 items-center rounded-lg border px-2 text-sm",
+                )}
+              >
+                View all
+              </Link>
+            </div>
           </div>
-        </div>
+        )}
       </div>
       <div className="flex grow flex-col justify-end">
         <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
