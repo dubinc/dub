@@ -27,7 +27,6 @@ export async function processLink<T extends Record<string, any>>({
   userId,
   bulk = false,
   skipKeyChecks = false, // only skip when key doesn't change (e.g. when editing a link)
-  skipIdentifierChecks = false, // only skip when identifier doesn't change (e.g. when editing a link)
   skipExternalIdChecks = false, // only skip when externalId doesn't change (e.g. when editing a link)
 }: {
   payload: NewLinkProps & T;
@@ -38,7 +37,6 @@ export async function processLink<T extends Record<string, any>>({
   userId?: string;
   bulk?: boolean;
   skipKeyChecks?: boolean;
-  skipIdentifierChecks?: boolean;
   skipExternalIdChecks?: boolean;
 }): Promise<
   | {
@@ -70,7 +68,6 @@ export async function processLink<T extends Record<string, any>>({
     doIndex,
     tagNames,
     externalId,
-    identifier,
     programId,
     webhookIds,
   } = payload;
@@ -303,25 +300,6 @@ export async function processLink<T extends Record<string, any>>({
       return {
         link: payload,
         error: "A link with this externalId already exists in this workspace.",
-        code: "conflict",
-      };
-    }
-  }
-
-  if (identifier && workspace && !skipIdentifierChecks) {
-    const link = await prisma.link.findUnique({
-      where: {
-        projectId_identifier: {
-          projectId: workspace.id,
-          identifier,
-        },
-      },
-    });
-
-    if (link) {
-      return {
-        link: payload,
-        error: "A link with this identifier already exists in this workspace.",
         code: "conflict",
       };
     }

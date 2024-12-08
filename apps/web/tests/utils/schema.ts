@@ -43,7 +43,6 @@ export const expectedLink: Partial<Link> & {
   updatedAt: expect.any(String),
   expiredUrl: null,
   externalId: null,
-  identifier: null,
   programId: null,
 };
 

@@ -110,10 +110,6 @@ export const PATCH = withWorkspace(
     const skipExternalIdChecks =
       link.externalId?.toLowerCase() === updatedLink.externalId?.toLowerCase();
 
-    // if identifier is the same, we don't need to check if it exists
-    const skipIdentifierChecks =
-      link.identifier?.toLowerCase() === updatedLink.identifier?.toLowerCase();
-
     const {
       link: processedLink,
       error,
@@ -123,7 +119,6 @@ export const PATCH = withWorkspace(
       workspace,
       skipKeyChecks,
       skipExternalIdChecks,
-      skipIdentifierChecks,
     });
 
     if (error) {

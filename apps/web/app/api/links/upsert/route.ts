@@ -85,11 +85,6 @@ export const PUT = withWorkspace(
         link.externalId?.toLowerCase() ===
         updatedLink.externalId?.toLowerCase();
 
-      // if identifier is the same, we don't need to check if it exists
-      const skipIdentifierChecks =
-        link.identifier?.toLowerCase() ===
-        updatedLink.identifier?.toLowerCase();
-
       const {
         link: processedLink,
         error,
@@ -99,7 +94,6 @@ export const PUT = withWorkspace(
         workspace,
         skipKeyChecks,
         skipExternalIdChecks,
-        skipIdentifierChecks,
       });
 
       if (error) {

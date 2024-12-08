@@ -114,7 +114,7 @@ function AdvancedModal({
                   <SimpleTooltipContent
                     title="A unique identifier for this link in your system."
                     cta="Learn more about external IDs."
-                    href="https://dub.co/help/article/external-ids"
+                    href="https://d.to/externalId"
                   />
                 }
               />
