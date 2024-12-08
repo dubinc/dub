@@ -1,10 +1,11 @@
 import LoginForm from "@/ui/auth/login/login-form";
 import { AuthLayout } from "@/ui/layout/auth-layout";
-import { constructMetadata } from "@dub/utils";
+import { APP_DOMAIN, constructMetadata } from "@dub/utils";
 import Link from "next/link";
 
 export const metadata = constructMetadata({
   title: `Sign in to ${process.env.NEXT_PUBLIC_APP_NAME}`,
+  canonicalUrl: `${APP_DOMAIN}/login`,
 });
 
 export default function LoginPage() {
