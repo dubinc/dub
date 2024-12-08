@@ -12,7 +12,6 @@ import {
   formatDate,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   Fragment,
@@ -30,7 +29,6 @@ type PayoutWithdrawSheetProps = {
 };
 
 function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
-  const { partnerId } = useParams<{ partnerId: string }>();
   const { partner, error: partnerError } = usePartnerProfile();
   const { dotsUser, error: dotsUserError } = useDotsUser();
   const { payoutMethods } = usePayoutMethods();
@@ -82,12 +80,17 @@ function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
     );
   }, [dotsUser, selectedPayoutMethod]);
 
-  const { executeAsync, isExecuting } = useAction(withdrawFundsAction, {
+  const [submitting, setSubmitting] = useState(false);
+
+  const { executeAsync } = useAction(withdrawFundsAction, {
     onSuccess: async () => {
-      await Promise.all([
-        mutate(`/api/partners/${partnerId}/dots-user`),
-        mutate(`/api/partners/${partnerId}/withdrawals`),
-      ]);
+      await mutate(
+        (key) =>
+          typeof key === "string" &&
+          (key.endsWith("/withdrawals") || key.endsWith("/dots-user")),
+        undefined,
+        { revalidate: true },
+      );
       setIsOpen(false);
       toast.success("Successfully initiated withdrawal!");
     },
@@ -181,14 +184,14 @@ function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
             type="button"
             variant="primary"
             disabled={!dotsUser?.id || !selectedPayoutMethod}
-            onClick={() =>
+            onClick={() => {
+              setSubmitting(true);
               selectedPayoutMethod &&
-              executeAsync({
-                partnerId,
-                platform: selectedPayoutMethod,
-              })
-            }
-            loading={isExecuting}
+                executeAsync({
+                  platform: selectedPayoutMethod,
+                });
+            }}
+            loading={submitting}
             text="Confirm withdrawal"
             className="w-fit"
           />

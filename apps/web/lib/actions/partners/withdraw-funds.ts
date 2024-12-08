@@ -8,7 +8,6 @@ import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 
 const schema = z.object({
-  partnerId: z.string(),
   platform: dotsPayoutPlatforms,
 });
 

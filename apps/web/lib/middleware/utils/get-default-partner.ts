@@ -2,23 +2,29 @@ import { prismaEdge } from "@/lib/prisma/edge";
 import { UserProps } from "@/lib/types";
 
 export async function getDefaultPartner(user: UserProps) {
-  const refreshedUser = await prismaEdge.user.findUnique({
-    where: {
-      id: user.id,
-    },
-    select: {
-      partners: {
-        select: {
-          partner: {
-            select: {
-              id: true,
-            },
-          },
-        },
-        take: 1,
-      },
-    },
-  });
+  let defaultPartnerId = user?.defaultPartnerId;
 
-  return refreshedUser?.partners[0]?.partner?.id || undefined;
+  if (!defaultPartnerId) {
+    const refreshedUser = await prismaEdge.user.findUnique({
+      where: {
+        id: user.id,
+      },
+      select: {
+        defaultPartnerId: true,
+        partners: {
+          select: {
+            partnerId: true,
+          },
+          take: 1,
+        },
+      },
+    });
+
+    defaultPartnerId =
+      refreshedUser?.defaultPartnerId ||
+      refreshedUser?.partners[0]?.partnerId ||
+      undefined;
+  }
+
+  return defaultPartnerId;
 }

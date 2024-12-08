@@ -7,11 +7,13 @@ export const createSalesPayout = async ({
   partnerId,
   periodStart,
   periodEnd,
+  description,
 }: {
   programId: string;
   partnerId: string;
   periodStart: Date;
   periodEnd: Date;
+  description?: string;
 }) => {
   return await prisma.$transaction(async (tx) => {
     const sales = await tx.sale.findMany({
@@ -59,6 +61,7 @@ export const createSalesPayout = async ({
         periodStart,
         periodEnd,
         quantity: sales.length,
+        description,
       },
     });
 
