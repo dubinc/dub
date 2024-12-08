@@ -68,7 +68,7 @@ importers:
         version: 3.9.0(react-hook-form@7.52.1)
       '@next-auth/prisma-adapter':
         specifier: ^1.0.5
-        version: 1.0.5(@prisma/client@5.18.0)(next-auth@4.24.4)
+        version: 1.0.5(@prisma/client@6.0.0)(next-auth@4.24.4)
       '@number-flow/react':
         specifier: ^0.4.1
         version: 0.4.1(react-dom@18.2.0)(react@18.2.0)
@@ -76,8 +76,8 @@ importers:
         specifier: ^1.18.0
         version: 1.18.0
       '@prisma/client':
-        specifier: 5.18.0
-        version: 5.18.0(prisma@5.18.0)
+        specifier: 6.0.0
+        version: 6.0.0
       '@prisma/nextjs-monorepo-workaround-plugin':
         specifier: ^6.0.1
         version: 6.0.1
@@ -5012,13 +5012,13 @@ packages:
       sparse-bitfield: 3.0.3
     dev: false
 
-  /@next-auth/prisma-adapter@1.0.5(@prisma/client@5.18.0)(next-auth@4.24.4):
+  /@next-auth/prisma-adapter@1.0.5(@prisma/client@6.0.0)(next-auth@4.24.4):
     resolution: {integrity: sha512-VqMS11IxPXrPGXw6Oul6jcyS/n8GLOWzRMrPr3EMdtD6eOalM6zz05j08PcNiis8QzkfuYnCv49OvufTuaEwYQ==}
     peerDependencies:
       '@prisma/client': '>=2.26.0 || >=3'
       next-auth: ^4
     dependencies:
-      '@prisma/client': 5.18.0(prisma@5.18.0)
+      '@prisma/client': 6.0.0
       next-auth: 4.24.4(next@14.3.0-canary.42)(nodemailer@6.9.3)(react-dom@18.2.0)(react@18.2.0)
     dev: false
 
@@ -5515,6 +5515,17 @@ packages:
         optional: true
     dependencies:
       prisma: 5.18.0
+    dev: false
+
+  /@prisma/client@6.0.0:
+    resolution: {integrity: sha512-tOBhG35ozqZ/5Y6B0TNOa6cwULUW8ijXqBXcgb12bfozqf6eGMyGs+jphywCsj6uojv5lAZZnxVSoLMVebIP+g==}
+    engines: {node: '>=18.18'}
+    requiresBuild: true
+    peerDependencies:
+      prisma: '*'
+    peerDependenciesMeta:
+      prisma:
+        optional: true
     dev: false
 
   /@prisma/debug@5.18.0:
