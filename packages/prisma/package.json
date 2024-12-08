@@ -1,14 +1,14 @@
 {
   "name": "@dub/prisma",
-  "version": "0.0.0",
-  "main": "./index.ts",
-  "types": "./index.ts",
+  "version": "1.0.0",
   "license": "MIT",
+  "main": "./index.ts",
+  "module": "./index.ts",
+  "types": "./index.ts",
   "scripts": {
     "generate": "npx prisma generate --schema=./schema",
     "push": "npx prisma db push --schema=./schema",
-    "studio": "npx prisma studio --schema=./schema --browser none",
-    "build": "pnpm run generate"
+    "studio": "npx prisma studio --schema=./schema --browser none"
   },
   "dependencies": {
     "@planetscale/database": "^1.18.0",

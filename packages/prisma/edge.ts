@@ -11,3 +11,4 @@ export const prismaEdge = new PrismaClient({
 });
 
 export * from "@prisma/client";
+export * from "./enum";
