@@ -209,13 +209,13 @@ function ProgramInfo() {
   const items = [
     {
       icon: UserCheck,
-      href: `/${programSlug}/analytics?event=leads&interval=all`,
+      href: `/programs/${programSlug}/analytics?event=leads&interval=all`,
       label: "Signups",
       value: analytics?.leads,
     },
     {
       icon: MoneyBills2,
-      href: `/${programSlug}/sales?interval=all`,
+      href: `/programs/${programSlug}/sales?interval=all`,
       label: "Earnings",
       value: `${currencyFormatter((analytics?.earnings || 0) / 100)}`,
     },
