@@ -118,7 +118,8 @@
     "vaul": "^0.6.8",
     "zod": "^3.22.4",
     "zod-error": "^1.5.0",
-    "zod-openapi": "^2.19.0"
+    "zod-openapi": "^2.19.0",
+    "@prisma/client": "5.18.0"
   },
   "devDependencies": {
     "@types/he": "^1.2.3",
