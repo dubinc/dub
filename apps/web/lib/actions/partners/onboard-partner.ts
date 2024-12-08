@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { COUNTRY_PHONE_CODES, nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { authUserActionClient } from "../safe-action";
 
 // Onboard a new partner
@@ -97,7 +98,7 @@ export const onboardPartnerAction = authUserActionClient
     ]);
 
     // Complete any outstanding program applications
-    await completeProgramApplications(user.id);
+    waitUntil(completeProgramApplications(user.id));
 
     return {
       partnerId: partner.id,
