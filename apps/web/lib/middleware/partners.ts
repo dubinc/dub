@@ -39,7 +39,7 @@ export default async function PartnersMiddleware(req: NextRequest) {
 
     if (!defaultPartner && !path.startsWith("/onboarding")) {
       return NextResponse.redirect(new URL("/onboarding", req.url));
-    } else if (path === "/") {
+    } else if (path === "/" || path.startsWith("/pn_")) {
       return NextResponse.redirect(new URL("/programs", req.url));
     }
 
