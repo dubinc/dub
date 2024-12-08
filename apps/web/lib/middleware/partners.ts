@@ -21,33 +21,32 @@ export default async function PartnersMiddleware(req: NextRequest) {
     path.startsWith(p),
   );
 
-  if (!user) {
-    if (isUnauthenticatedPath) {
-      return NextResponse.rewrite(
-        new URL(`/partners.dub.co${fullPath === "/" ? "" : fullPath}`, req.url),
-      );
+  if (!user && !isUnauthenticatedPath) {
+    return NextResponse.redirect(
+      new URL(
+        `/login${path === "/" ? "" : `?next=${encodeURIComponent(fullPath)}`}`,
+        req.url,
+      ),
+    );
+  } else if (user) {
+    const partnersEnabled = await userIsInBeta(user.email, "partnersPortal");
+
+    if (!partnersEnabled) {
+      return NextResponse.rewrite(new URL("/partners.dub.co", req.url));
     }
-    return NextResponse.redirect(new URL("/login", req.url)); // Redirect unauthenticated users to login
+
+    const defaultPartner = await getDefaultPartner(user);
+
+    if (!defaultPartner && !path.startsWith("/onboarding")) {
+      return NextResponse.redirect(new URL("/onboarding", req.url));
+    } else if (path === "/") {
+      return NextResponse.redirect(new URL("/programs", req.url));
+    }
+
+    if (["/login", "/register"].some((p) => path.startsWith(p))) {
+      return NextResponse.redirect(new URL("/", req.url)); // Redirect authenticated users to dashboard
+    }
   }
 
-  if (["/login", "/register"].some((p) => path.startsWith(p))) {
-    return NextResponse.redirect(new URL("/", req.url)); // Redirect authenticated users to dashboard
-  }
-
-  const partnersEnabled = await userIsInBeta(user.email, "partnersPortal");
-
-  if (!partnersEnabled && path !== "/")
-    return NextResponse.redirect(new URL("/", req.url));
-
-  const defaultPartner = await getDefaultPartner(user);
-
-  if (!defaultPartner && !path.startsWith("/onboarding")) {
-    return NextResponse.redirect(new URL("/onboarding", req.url));
-  } else if (path === "/") {
-    return NextResponse.redirect(new URL("/programs", req.url));
-  }
-
-  return NextResponse.rewrite(
-    new URL(`/partners.dub.co${fullPath === "/" ? "" : fullPath}`, req.url),
-  );
+  return NextResponse.rewrite(new URL(`/partners.dub.co${fullPath}`, req.url));
 }

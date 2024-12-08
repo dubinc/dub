@@ -12,9 +12,6 @@ import WorkspacesMiddleware from "./workspaces";
 
 export default async function AppMiddleware(req: NextRequest) {
   const { path, fullPath } = parse(req);
-  const user = await getUserViaToken(req);
-  const isWorkspaceInvite =
-    req.nextUrl.searchParams.get("invite") || path.startsWith("/invites/");
 
   if (path.startsWith("/embed")) {
     const token = req.nextUrl.searchParams.get("token");
@@ -36,6 +33,10 @@ export default async function AppMiddleware(req: NextRequest) {
 
     return NextResponse.redirect(new URL("/", req.url));
   }
+
+  const user = await getUserViaToken(req);
+  const isWorkspaceInvite =
+    req.nextUrl.searchParams.get("invite") || path.startsWith("/invites/");
 
   // if there's no user and the path isn't /login or /register, redirect to /login
   if (
