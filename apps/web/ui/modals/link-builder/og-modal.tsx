@@ -436,7 +436,8 @@ function OGModalInner({
                 <button
                   type="button"
                   className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setValueParent("proxy", false, { shouldDirty: true });
                     ["title", "description", "image"].forEach(
                       (key: "title" | "description" | "image") =>
@@ -455,7 +456,8 @@ function OGModalInner({
                 variant="secondary"
                 text="Cancel"
                 className="h-9 w-fit"
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   reset();
                   setShowOGModal(false);
                 }}
