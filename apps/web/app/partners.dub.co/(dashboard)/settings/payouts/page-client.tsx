@@ -28,7 +28,11 @@ export function PayoutsSettingsPageClient() {
   const { partner } = usePartnerProfile();
 
   const { dotsUser, isLoading, mutate } = useDotsUser();
-  const { payoutMethods, isLoading: payoutMethodsLoading } = usePayoutMethods();
+  const {
+    payoutMethods,
+    isLoading: payoutMethodsLoading,
+    mutate: mutatePayoutMethods,
+  } = usePayoutMethods();
 
   const { executeAsync, isExecuting } = useAction(createDotsFlowAction, {
     onSuccess({ data }) {
@@ -61,7 +65,9 @@ export function PayoutsSettingsPageClient() {
         <Modal
           showModal={modalState.show}
           setShowModal={() => setModalState({ show: false, iframeSrc: "" })}
-          onClose={() => mutate()}
+          onClose={async () => {
+            await Promise.all([mutate(), mutatePayoutMethods()]);
+          }}
           className="h-full w-full bg-white p-4 sm:h-[80vh] sm:max-w-md"
         >
           <button

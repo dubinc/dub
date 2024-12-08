@@ -13,7 +13,7 @@ export default function useDotsUser() {
     isLoading,
     mutate,
   } = useSWR<DotsUser>(
-    partnerId ? `/api/partners/${partnerId}/dots-user` : null,
+    partnerId && `/api/partners/${partnerId}/dots-user`,
     fetcher,
     {
       keepPreviousData: true,

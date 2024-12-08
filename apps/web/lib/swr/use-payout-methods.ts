@@ -17,7 +17,7 @@ export default function usePayoutMethods() {
     isLoading,
     mutate,
   } = useSWR<PayoutMethod[]>(
-    partnerId ? `/api/partners/${partnerId}/payout-methods` : null,
+    partnerId && `/api/partners/${partnerId}/payout-methods`,
     fetcher,
   );
 
