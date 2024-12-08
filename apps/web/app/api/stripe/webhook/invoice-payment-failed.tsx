@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { sendEmail } from "emails";
 import FailedPayment from "emails/failed-payment";

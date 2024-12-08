@@ -1,5 +1,4 @@
-import { prisma } from "@/lib/prisma";
-import { Link } from "@prisma/client";
+import { Link, prisma } from "@dub/prisma";
 import { DubApiError } from "../errors";
 
 interface GetLinkParams {

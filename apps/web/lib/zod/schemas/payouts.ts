@@ -1,5 +1,5 @@
 import { parseDateSchema } from "@/lib/zod/schemas/utils";
-import { PayoutType } from "@prisma/client";
+import { PayoutType } from "@dub/prisma";
 import { z } from "zod";
 
 export const createManualPayoutSchema = z.object({

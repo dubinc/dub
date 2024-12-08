@@ -2,7 +2,7 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
 import { dotsFetch } from "@/lib/dots/fetch";
 import { payoutMethodSchema } from "@/lib/dots/schemas";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

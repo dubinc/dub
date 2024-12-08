@@ -9,7 +9,7 @@ import {
   analyticsPathParamsSchema,
   analyticsQuerySchema,
 } from "@/lib/zod/schemas/analytics";
-import { Link } from "@prisma/client";
+import { Link } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/analytics – get analytics

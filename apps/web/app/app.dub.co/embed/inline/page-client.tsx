@@ -3,6 +3,7 @@
 import { PartnerSaleResponse } from "@/lib/types";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
+import { Link, Program } from "@dub/prisma";
 import {
   Button,
   buttonVariants,
@@ -13,7 +14,6 @@ import {
   Wordmark,
 } from "@dub/ui";
 import { cn, fetcher, getPrettyUrl } from "@dub/utils";
-import { Link, Program } from "@prisma/client";
 import { CSSProperties } from "react";
 import useSWR from "swr";
 import { Activity } from "../activity";

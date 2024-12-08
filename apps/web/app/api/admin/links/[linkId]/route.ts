@@ -1,5 +1,5 @@
 import { withAdmin } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/admin/links/[linkId] – get a link as an admin

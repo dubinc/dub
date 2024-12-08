@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { sendEmail } from "emails";
 import ClicksExceeded from "emails/clicks-exceeded";
 import LinksLimitAlert from "emails/links-limit";

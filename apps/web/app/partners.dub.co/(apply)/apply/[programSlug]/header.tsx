@@ -1,8 +1,8 @@
 "use client";
 
+import { Program } from "@dub/prisma";
 import { Button, useScroll, Wordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { Program } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";

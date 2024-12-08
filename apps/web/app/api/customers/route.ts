@@ -2,11 +2,11 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
-import { prisma } from "@/lib/prisma";
 import {
   createCustomerBodySchema,
   CustomerSchema,
 } from "@/lib/zod/schemas/customers";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/customers – Get all customers

@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { DUB_WORKSPACE_ID } from "@dub/utils";
 import "dotenv-flow/config";
 

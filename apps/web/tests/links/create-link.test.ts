@@ -1,5 +1,5 @@
 import { LinkSchema } from "@/lib/zod/schemas/links";
-import { Link, Tag } from "@prisma/client";
+import { Link, Tag } from "@dub/prisma";
 import { IntegrationHarnessOld } from "tests/utils/integration-old";
 import { afterAll, describe, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";

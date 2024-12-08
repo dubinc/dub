@@ -1,8 +1,8 @@
 "use server";
 
 import { userIsInBeta } from "@/lib/edge-config";
-import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
+import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import z from "../../zod";
 import { authPartnerActionClient } from "../safe-action";

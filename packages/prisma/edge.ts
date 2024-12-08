@@ -9,3 +9,6 @@ const adapter = new PrismaPlanetScale(client);
 export const prismaEdge = new PrismaClient({
   adapter,
 });
+
+export * from "@prisma/client";
+export * from "./enum";

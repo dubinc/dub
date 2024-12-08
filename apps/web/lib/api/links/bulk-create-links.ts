@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
 import { ProcessedLinkProps } from "@/lib/types";
+import { prisma } from "@dub/prisma";
 import {
   getParamsFromURL,
   linkConstructor,

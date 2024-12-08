@@ -1,4 +1,4 @@
-import type { Webhook } from "@prisma/client";
+import type { Webhook } from "@dub/prisma";
 import { LINK_LEVEL_WEBHOOK_TRIGGERS } from "./constants";
 
 export const isLinkLevelWebhook = (webhook: Pick<Webhook, "triggers">) => {

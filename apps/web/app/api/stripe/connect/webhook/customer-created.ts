@@ -1,9 +1,9 @@
 import { createId } from "@/lib/api/utils";
-import { prisma } from "@/lib/prisma";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
+import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";

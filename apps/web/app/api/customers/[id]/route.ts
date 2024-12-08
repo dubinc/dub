@@ -2,11 +2,11 @@ import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import {
   CustomerSchema,
   updateCustomerBodySchema,
 } from "@/lib/zod/schemas/customers";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/customers/:id – Get a customer by ID

@@ -5,9 +5,8 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { calculateEarnings } from "@/lib/api/sales/commission";
 import { createId } from "@/lib/api/utils";
 import { createSalesPayout } from "@/lib/partners/create-sales-payout";
-import { prisma } from "@/lib/prisma";
 import { createManualPayoutSchema } from "@/lib/zod/schemas/payouts";
-import { Payout, Program } from "@prisma/client";
+import { Payout, prisma, Program } from "@dub/prisma";
 import { authActionClient } from "../safe-action";
 
 const schema = createManualPayoutSchema.refine(

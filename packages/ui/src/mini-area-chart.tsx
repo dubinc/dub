@@ -104,6 +104,7 @@ function MiniAreaChartInner({
         >
           {({ path }) => {
             return (
+              // @ts-ignore
               <motion.path
                 initial={{ d: path(zeroedData) || "", opacity: 0 }}
                 animate={{ d: path(data) || "", opacity: 1 }}
@@ -123,6 +124,7 @@ function MiniAreaChartInner({
         >
           {({ path }) => {
             return (
+              // @ts-ignore
               <motion.path
                 initial={{ d: path(zeroedData) || "", opacity: 0 }}
                 animate={{ d: path(data) || "", opacity: 1 }}

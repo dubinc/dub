@@ -1,8 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
+import { Link, Program, Project, prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
-import { Link, Program, Project } from "@prisma/client";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { cookies } from "next/headers";
 import { EMBED_PUBLIC_TOKEN_COOKIE_NAME } from "./constants";

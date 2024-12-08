@@ -1,4 +1,4 @@
-import { Link } from "@prisma/client";
+import { Link } from "@dub/prisma";
 import { expect, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";

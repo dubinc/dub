@@ -1,6 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import { ResetPasswordForm } from "@/ui/auth/reset-password-form";
 import EmptyState from "@/ui/shared/empty-state";
+import { prisma } from "@dub/prisma";
 import { InputPassword } from "@dub/ui";
 
 export const runtime = "nodejs";

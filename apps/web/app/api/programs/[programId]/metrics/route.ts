@@ -1,8 +1,8 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { getProgramMetricsQuerySchema } from "@/lib/zod/schemas/programs";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/programs/[programId]/stats - get stats for a program

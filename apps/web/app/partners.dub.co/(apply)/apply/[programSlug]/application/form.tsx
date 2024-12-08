@@ -1,9 +1,9 @@
 "use client";
 
 import { createProgramApplicationAction } from "@/lib/actions/partners/create-program-application";
+import { Program } from "@dub/prisma";
 import { Button, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { Program } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";

@@ -1,4 +1,4 @@
-import { Program, Sale } from "@prisma/client";
+import { Program, Sale } from "@dub/prisma";
 
 /* 
   Calculate the commission earned for a sale

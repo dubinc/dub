@@ -1,6 +1,6 @@
 import { storage } from "@/lib/storage";
+import { Prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
-import { Prisma } from "@prisma/client";
 
 export const deleteScreenshots = async (
   screenshots: Prisma.JsonValue | null,

@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { InstalledIntegration } from "@prisma/client";
+import { InstalledIntegration } from "@dub/prisma";
 import { getSlackEnv } from "./env";
 import { SlackCredential } from "./type";
 
