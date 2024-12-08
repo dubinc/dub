@@ -26,8 +26,11 @@ export const PartnerWithdrawalsActivity = () => {
   const { partner } = usePartnerProfile();
 
   const { data, error } = useSWR<DotsWithdrawals>(
-    `/api/partners/${partner?.id}/withdrawals`,
+    partner && `/api/partners/${partner?.id}/withdrawals`,
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   const table = useTable({

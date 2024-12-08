@@ -15,6 +15,9 @@ export default function useDotsUser() {
   } = useSWR<DotsUser>(
     partnerId ? `/api/partners/${partnerId}/dots-user` : null,
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   return {

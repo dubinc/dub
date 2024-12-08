@@ -80,13 +80,17 @@ function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
     );
   }, [dotsUser, selectedPayoutMethod]);
 
-  const { executeAsync, isExecuting } = useAction(withdrawFundsAction, {
+  const [submitting, setSubmitting] = useState(false);
+
+  const { executeAsync } = useAction(withdrawFundsAction, {
     onSuccess: async () => {
-      if (!partner) return;
-      await Promise.all([
-        mutate(`/api/partners/${partner.id}/dots-user`),
-        mutate(`/api/partners/${partner.id}/withdrawals`),
-      ]);
+      await mutate(
+        (key) =>
+          typeof key === "string" &&
+          (key.endsWith("/withdrawals") || key.endsWith("/dots-user")),
+        undefined,
+        { revalidate: true },
+      );
       setIsOpen(false);
       toast.success("Successfully initiated withdrawal!");
     },
@@ -180,13 +184,14 @@ function PayoutWithdrawSheetContent({ setIsOpen }: PayoutWithdrawSheetProps) {
             type="button"
             variant="primary"
             disabled={!dotsUser?.id || !selectedPayoutMethod}
-            onClick={() =>
+            onClick={() => {
+              setSubmitting(true);
               selectedPayoutMethod &&
-              executeAsync({
-                platform: selectedPayoutMethod,
-              })
-            }
-            loading={isExecuting}
+                executeAsync({
+                  platform: selectedPayoutMethod,
+                });
+            }}
+            loading={submitting}
             text="Confirm withdrawal"
             className="w-fit"
           />
