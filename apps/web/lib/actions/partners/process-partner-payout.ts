@@ -3,7 +3,7 @@
 import { limiter } from "@/lib/cron/limiter";
 import { createOrgTransfer } from "@/lib/dots/create-org-transfer";
 import { createTransfer } from "@/lib/dots/create-transfer";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { formatDate } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
