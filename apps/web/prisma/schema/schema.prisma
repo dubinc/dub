@@ -26,6 +26,7 @@ model User {
   subscribed            Boolean  @default(true) // email subscription
   source                String? // where the user came from
   defaultWorkspace      String? // slug of the user's default workspace
+  defaultPartnerId      String? // the user's default partner ID
   referralLinkId        String? // this user's referral link ID
 
   // relational data

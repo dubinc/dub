@@ -4,6 +4,7 @@ import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import { PayoutResponse } from "@/lib/types";
 import { PayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
+import { PayoutTypeBadge } from "@/ui/partners/payout-type-badge";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
@@ -91,11 +92,20 @@ export function PayoutTable() {
       {
         id: "periodStart",
         header: "Period",
-        accessorFn: (d) =>
-          `${formatDate(d.periodStart, { month: "short", year: new Date(d.periodStart).getFullYear() === new Date(d.periodEnd).getFullYear() ? undefined : "numeric" })}-${formatDate(
+        accessorFn: (d) => {
+          if (!d.periodStart || !d.periodEnd) {
+            return "-";
+          }
+
+          return `${formatDate(d.periodStart, { month: "short", year: new Date(d.periodStart).getFullYear() === new Date(d.periodEnd).getFullYear() ? undefined : "numeric" })}-${formatDate(
             d.periodEnd,
             { month: "short" },
-          )}`,
+          )}`;
+        },
+      },
+      {
+        header: "Type",
+        cell: ({ row }) => <PayoutTypeBadge type={row.original.type} />,
       },
       {
         header: "Status",
@@ -162,7 +172,8 @@ export function PayoutTable() {
         minSize: 43,
         size: 43,
         maxSize: 43,
-        cell: ({ row }) => <RowMenuButton row={row} />,
+        cell: ({ row }) =>
+          row.original.type === "sales" ? <RowMenuButton row={row} /> : "",
       },
     ],
     pagination,

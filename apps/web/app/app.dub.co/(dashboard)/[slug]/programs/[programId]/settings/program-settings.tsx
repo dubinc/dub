@@ -273,7 +273,7 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
             <div className="flex flex-col gap-6">
               <div>
                 <label
-                  htmlFor="duration"
+                  htmlFor="commissionType"
                   className="text-sm font-medium text-neutral-800"
                 >
                   Payout model
@@ -291,7 +291,7 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
 
               <div>
                 <label
-                  htmlFor="duration"
+                  htmlFor="amount"
                   className="text-sm font-medium text-neutral-800"
                 >
                   Amount
@@ -343,7 +343,16 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
 function Summary({ program }: { program: ProgramProps }) {
   const { control } = useFormContext<FormData>();
 
-  const data = useWatch({ control, defaultValue: program }) as FormData;
+  const data = useWatch({
+    control,
+    defaultValue: {
+      ...program,
+      commissionAmount:
+        program.commissionType === "flat"
+          ? program.commissionAmount / 100
+          : program.commissionAmount,
+    },
+  }) as FormData;
 
   return (
     <SettingsRow heading="Summary">

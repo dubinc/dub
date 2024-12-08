@@ -8,7 +8,6 @@ import { useDeleteTokenModal } from "@/ui/modals/delete-token-modal";
 import { useTokenCreatedModal } from "@/ui/modals/token-created-modal";
 import EmptyState from "@/ui/shared/empty-state";
 import { Delete } from "@/ui/shared/icons";
-import { WorkspacePublicKey } from "@/ui/workspaces/workspace-public-key";
 import {
   Avatar,
   Badge,
@@ -49,7 +48,6 @@ export default function TokensPageClient() {
     <>
       <TokenCreatedModal />
       <AddEditTokenModal />
-      {conversionEnabled && <WorkspacePublicKey />}
       <div className="rounded-lg border border-gray-200 bg-white">
         <div className="flex flex-col items-center justify-between gap-4 space-y-3 border-b border-gray-200 p-5 sm:flex-row sm:space-y-0 sm:p-10">
           <div className="flex max-w-screen-sm flex-col space-y-3">

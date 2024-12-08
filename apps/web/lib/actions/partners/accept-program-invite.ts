@@ -8,7 +8,6 @@ import { backfillLinkData } from "./backfill-link-data";
 import { enrollDotsUserApp } from "./enroll-dots-user-app";
 
 const acceptProgramInviteSchema = z.object({
-  partnerId: z.string(),
   programInviteId: z.string(),
 });
 

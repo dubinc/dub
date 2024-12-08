@@ -137,6 +137,8 @@ export interface UserProps {
   createdAt: Date;
   source: string | null;
   defaultWorkspace?: string;
+  defaultPartnerId?: string;
+  referralLinkId?: string;
   isMachine: boolean;
   hasPassword: boolean;
   provider: string | null;

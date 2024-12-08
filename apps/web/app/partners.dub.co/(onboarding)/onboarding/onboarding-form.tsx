@@ -12,6 +12,7 @@ import {
 } from "@dub/ui";
 import { COUNTRIES, COUNTRY_PHONE_CODES } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
+import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef } from "react";
@@ -24,6 +25,7 @@ type OnboardingFormData = z.infer<typeof onboardPartnerSchema>;
 
 export function OnboardingForm() {
   const router = useRouter();
+  const { data: session } = useSession();
   const { isMobile } = useMediaQuery();
 
   const {
@@ -36,12 +38,8 @@ export function OnboardingForm() {
   } = useForm<OnboardingFormData>();
 
   const { executeAsync, isExecuting } = useAction(onboardPartnerAction, {
-    onSuccess: ({ data }) => {
-      if (!data?.partnerId) {
-        toast.error("Failed to create partner profile. Please try again.");
-        return;
-      }
-      router.push(`/onboarding/verify?partner=${data.partnerId}`);
+    onSuccess: () => {
+      router.push("/onboarding/verify");
     },
     onError: ({ error, input }) => {
       toast.error(error.serverError);
@@ -169,6 +167,29 @@ export function OnboardingForm() {
         </div>
         <p className="mt-1 text-xs text-gray-400">
           We'll send you a verification code to this number.
+        </p>
+      </label>
+
+      <label>
+        <span className="text-sm font-medium text-gray-800">
+          Email
+          <span className="font-normal text-neutral-500"> (required)</span>
+        </span>
+        <input
+          type="text"
+          className={cn(
+            "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
+            errors.email
+              ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
+          )}
+          defaultValue={session?.user?.email ?? ""}
+          {...register("email", {
+            required: true,
+          })}
+        />
+        <p className="mt-1 text-xs text-gray-400">
+          Email will be used for companies to contact you.
         </p>
       </label>
 
