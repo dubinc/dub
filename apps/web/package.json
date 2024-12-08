@@ -4,7 +4,7 @@
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "dev": "concurrently --kill-others \"pnpm prisma:generate && next dev --turbo --port 8888\" \"pnpm prisma:generate && pnpm prisma:studio --browser none\" \"email dev --port 3333\"",
-    "build": "pnpm run prisma:generate && next build",
+    "build": "pnpm prisma:generate && next build",
     "lint": "next lint",
     "start": "next start",
     "script": "tsx ./scripts/run.ts",
@@ -119,7 +119,7 @@
     "zod": "^3.22.4",
     "zod-error": "^1.5.0",
     "zod-openapi": "^2.19.0",
-    "@prisma/client": "6.0.0",
+    "@prisma/client": "5.18.0",
     "@prisma/nextjs-monorepo-workaround-plugin": "^6.0.1"
   },
   "devDependencies": {
