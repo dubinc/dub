@@ -1,12 +1,19 @@
 import { fetcher } from "@dub/utils";
+import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { ProgramEnrollmentProps } from "../types";
 
 export default function useProgramEnrollment() {
-  const { partnerId, programSlug } = useParams();
+  const { data: session, status } = useSession();
+  const partnerId = session?.user?.["defaultPartnerId"];
+  const { programSlug } = useParams();
 
-  const { data: programEnrollment, error } = useSWR<ProgramEnrollmentProps>(
+  const {
+    data: programEnrollment,
+    error,
+    isLoading,
+  } = useSWR<ProgramEnrollmentProps>(
     partnerId && programSlug
       ? `/api/partners/${partnerId}/programs/${programSlug}`
       : undefined,
@@ -19,6 +26,6 @@ export default function useProgramEnrollment() {
   return {
     programEnrollment,
     error,
-    loading: partnerId && !programEnrollment && !error ? true : false,
+    loading: status === "loading" || isLoading,
   };
 }

@@ -11,6 +11,7 @@ export interface Session {
     image?: string;
     isMachine: boolean;
     defaultWorkspace?: string;
+    defaultPartnerId?: string;
     referralLinkId?: string;
   };
 }

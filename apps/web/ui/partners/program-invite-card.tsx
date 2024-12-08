@@ -4,20 +4,15 @@ import { ProgramCommissionDescription } from "@/ui/partners/program-commission-d
 import { BlurImage, Button, StatusBadge } from "@dub/ui";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
 export function ProgramInviteCard({ invite }: { invite: ProgramInviteProps }) {
-  const { partnerId } = useParams() as { partnerId: string };
-
   const { executeAsync, isExecuting } = useAction(acceptProgramInviteAction, {
     onSuccess: () => {
       toast.success("Program invite accepted!");
       mutate(
-        (key) =>
-          typeof key === "string" &&
-          key.startsWith(`/api/partners/${partnerId}/programs`),
+        (key) => typeof key === "string" && key.endsWith("/programs"),
         undefined,
         { revalidate: true },
       );
@@ -64,7 +59,6 @@ export function ProgramInviteCard({ invite }: { invite: ProgramInviteProps }) {
         loading={isExecuting}
         onClick={() =>
           executeAsync({
-            partnerId,
             programInviteId: invite.id,
           })
         }

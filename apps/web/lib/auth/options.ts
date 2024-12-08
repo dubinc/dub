@@ -482,7 +482,7 @@ export const authOptions: NextAuthOptions = {
       }
 
       // Complete any outstanding program applications
-      await completeProgramApplications(message.user.id);
+      waitUntil(completeProgramApplications(message.user.id));
     },
   },
 };
