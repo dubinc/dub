@@ -1,5 +1,6 @@
 "use client";
 
+import { enableOrDisableWebhook } from "@/lib/actions/enable-disable-webhook";
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WebhookProps } from "@/lib/types";
@@ -15,7 +16,8 @@ import {
   useCopyToClipboard,
 } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { ChevronLeft, Send, Trash } from "lucide-react";
+import { ChevronLeft, CircleX, Send, Trash } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { notFound, useRouter, useSelectedLayoutSegment } from "next/navigation";
 import { useState } from "react";
@@ -23,6 +25,7 @@ import { toast } from "sonner";
 import useSWR from "swr";
 import { useDeleteWebhookModal } from "../modals/delete-webhook-modal";
 import { useSendTestWebhookModal } from "../modals/send-test-webhook-modal";
+import { WebhookStatus } from "./webhook-status";
 
 export default function WebhookHeader({ webhookId }: { webhookId: string }) {
   const router = useRouter();
@@ -34,7 +37,11 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
 
   const [openPopover, setOpenPopover] = useState(false);
 
-  const { data: webhook, isLoading } = useSWR<WebhookProps>(
+  const {
+    data: webhook,
+    isLoading,
+    mutate,
+  } = useSWR<WebhookProps>(
     `/api/webhooks/${webhookId}?workspaceId=${workspaceId}`,
     fetcher,
   );
@@ -51,6 +58,19 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
   const { error: permissionsError } = clientAccessCheck({
     action: "webhooks.write",
     role,
+  });
+
+  const { execute, isExecuting } = useAction(enableOrDisableWebhook, {
+    onSuccess: async ({ data }) => {
+      toast.success(
+        data?.disabledAt ? "Webhook disabled." : "Webhook enabled.",
+      );
+
+      await mutate();
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
   });
 
   if (!isLoading && !webhook) {
@@ -93,7 +113,12 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
                 <TokenAvatar id={webhook.id} className="size-8" />
               </div>
               <div>
-                <p className="font-semibold text-gray-700">{webhook.name}</p>
+                <div className="flex items-center gap-1">
+                  <span className="font-semibold text-gray-700">
+                    {webhook.name}
+                  </span>
+                  <WebhookStatus webhook={webhook} />
+                </div>
                 <a
                   href={webhook.url}
                   target="_blank"
@@ -117,6 +142,32 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
                     setOpenPopover(false);
                     setShowSendTestWebhookModal(true);
                   }}
+                />
+
+                <Button
+                  text={
+                    webhook?.disabledAt ? "Enable webhook" : "Disable webhook"
+                  }
+                  variant="outline"
+                  icon={
+                    webhook?.disabledAt ? (
+                      <CircleX className="size-4" />
+                    ) : (
+                      <CircleCheck className="size-4" />
+                    )
+                  }
+                  className="h-9 justify-start px-2"
+                  onClick={async () => {
+                    execute({
+                      webhookId,
+                      workspaceId: workspaceId!,
+                    });
+
+                    setOpenPopover(false);
+                  }}
+                  disabled={!!permissionsError}
+                  disabledTooltip={permissionsError}
+                  loading={isExecuting}
                 />
 
                 <Button

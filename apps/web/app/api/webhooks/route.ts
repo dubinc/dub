@@ -1,12 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
-import { linkCache } from "@/lib/api/links/cache";
-import { createId, parseRequestBody } from "@/lib/api/utils";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { webhookCache } from "@/lib/webhook/cache";
-import { WEBHOOK_ID_PREFIX } from "@/lib/webhook/constants";
+import { addWebhook, updateWebhookStatusForWorkspace } from "@/lib/webhook/api";
 import { transformWebhook } from "@/lib/webhook/transform";
-import { isLinkLevelWebhook } from "@/lib/webhook/utils";
 import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
@@ -26,6 +23,7 @@ export const GET = withWorkspace(
         url: true,
         secret: true,
         triggers: true,
+        disabledAt: true,
         links: true,
       },
       orderBy: {
@@ -51,7 +49,7 @@ export const GET = withWorkspace(
 // POST /api/webhooks/ - create a new webhook
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
-    const { name, url, secret, triggers, linkIds } = createWebhookSchema.parse(
+    const { name, url, triggers, linkIds, secret } = createWebhookSchema.parse(
       await parseRequestBody(req),
     );
 
@@ -89,91 +87,34 @@ export const POST = withWorkspace(
       }
     }
 
-    const webhook = await prisma.webhook.create({
-      data: {
-        id: createId({ prefix: WEBHOOK_ID_PREFIX }),
-        name,
-        url,
-        secret,
-        triggers,
-        projectId: workspace.id,
-        receiver: "user",
-        links: {
-          ...(linkIds &&
-            linkIds.length > 0 && {
-              create: linkIds.map((linkId) => ({
-                linkId,
-              })),
-            }),
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        url: true,
-        secret: true,
-        triggers: true,
-        links: true,
-      },
+    const webhook = await addWebhook({
+      name,
+      url,
+      triggers,
+      linkIds,
+      secret,
+      workspace,
     });
 
-    if (webhook) {
-      await prisma.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          webhookEnabled: true,
-        },
-      });
-    }
-
     waitUntil(
-      (async () => {
-        const links = await prisma.link.findMany({
-          where: {
-            id: { in: linkIds },
-            projectId: workspace.id,
-          },
-          include: {
-            webhooks: {
-              select: {
-                webhookId: true,
-              },
-            },
-          },
-        });
+      Promise.allSettled([
+        updateWebhookStatusForWorkspace({ workspace }),
 
-        const formatedLinks = links.map((link) => {
-          return {
-            ...link,
-            webhookIds: link.webhooks.map((webhook) => webhook.webhookId),
-          };
-        });
-
-        Promise.all([
-          ...(links && links.length > 0
-            ? [linkCache.mset(formatedLinks), []]
-            : []),
-
-          ...(isLinkLevelWebhook(webhook) ? [webhookCache.set(webhook)] : []),
-
-          sendEmail({
+        sendEmail({
+          email: session.user.email,
+          subject: "New webhook added",
+          react: WebhookAdded({
             email: session.user.email,
-            subject: "New webhook added",
-            react: WebhookAdded({
-              email: session.user.email,
-              workspace: {
-                name: workspace.name,
-                slug: workspace.slug,
-              },
-              webhook: {
-                name,
-              },
-            }),
+            workspace: {
+              name: workspace.name,
+              slug: workspace.slug,
+            },
+            webhook: {
+              name,
+            },
           }),
-        ]);
-      })(),
+        }),
+      ]),
     );
 
     return NextResponse.json(transformWebhook(webhook), { status: 201 });
