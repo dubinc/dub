@@ -25,6 +25,7 @@
   },
   "exports": {
     ".": "./index.ts",
-    "./edge": "./edge.ts"
+    "./edge": "./edge.ts",
+    "./client": "./client.ts"
   }
 }

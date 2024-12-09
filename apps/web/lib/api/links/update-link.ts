@@ -2,7 +2,8 @@ import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { LinkProps, ProcessedLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
-import { Prisma, prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import {
   R2_URL,
   getParamsFromURL,

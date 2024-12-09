@@ -1,4 +1,4 @@
-import { Project } from "@dub/prisma";
+import { Project } from "@dub/prisma/client";
 import { DUB_WORDMARK } from "@dub/utils";
 import {
   Body,

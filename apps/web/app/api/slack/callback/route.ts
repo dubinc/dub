@@ -5,7 +5,8 @@ import { getSlackEnv } from "@/lib/integrations/slack/env";
 import { SlackCredential } from "@/lib/integrations/slack/type";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
-import { prisma, Project } from "@dub/prisma";
+import { prisma } from "@dub/prisma";
+import { Project } from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   getSearchParams,

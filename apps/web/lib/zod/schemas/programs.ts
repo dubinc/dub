@@ -4,7 +4,7 @@ import {
   CommissionType,
   ProgramEnrollmentStatus,
   ProgramType,
-} from "@dub/prisma";
+} from "@dub/prisma/client";
 import { z } from "zod";
 import { LinkSchema } from "./links";
 import { parseDateSchema } from "./utils";

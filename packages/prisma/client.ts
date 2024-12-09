@@ -1,5 +1,4 @@
-// For some reason, the enum types are not exported from the @prisma/client package
-// so we need to export them manually
+export * from "@prisma/client";
 
 export {
   CommissionInterval,

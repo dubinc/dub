@@ -3,7 +3,7 @@
 import { PartnerSaleResponse } from "@/lib/types";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
-import { Link, Program } from "@dub/prisma";
+import { Link, Program } from "@dub/prisma/client";
 import {
   Button,
   buttonVariants,

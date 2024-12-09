@@ -8,7 +8,7 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { createManualPayoutSchema } from "@/lib/zod/schemas/payouts";
 import { X } from "@/ui/shared/icons";
-import { PayoutType } from "@dub/prisma";
+import { PayoutType } from "@dub/prisma/client";
 import {
   Button,
   Combobox,

@@ -1,7 +1,7 @@
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
-import { Link } from "@dub/prisma";
+import { Link } from "@dub/prisma/client";
 import { R2_URL } from "@dub/utils";
 
 export async function bulkDeleteLinks({

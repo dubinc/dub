@@ -2,7 +2,7 @@ import {
   clickWebhookEventSchema,
   webhookPayloadSchema,
 } from "@/lib/webhook/schemas";
-import type { Webhook } from "@dub/prisma";
+import { Webhook } from "@dub/prisma/client";
 import { nanoid, toCamelCase } from "@dub/utils";
 import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
 import { WebhookTrigger } from "../types";

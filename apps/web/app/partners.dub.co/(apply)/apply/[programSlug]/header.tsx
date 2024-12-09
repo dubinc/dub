@@ -1,6 +1,6 @@
 "use client";
 
-import { Program } from "@dub/prisma";
+import { Program } from "@dub/prisma/client";
 import { Button, useScroll, Wordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";

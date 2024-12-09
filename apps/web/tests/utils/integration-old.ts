@@ -1,4 +1,4 @@
-import { Project, User } from "@dub/prisma";
+import { Project, User } from "@dub/prisma/client";
 import { type TaskContext } from "vitest";
 import { z } from "zod";
 import { env, integrationTestEnv } from "./env";

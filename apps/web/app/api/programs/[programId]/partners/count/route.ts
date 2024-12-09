@@ -1,6 +1,7 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
-import { prisma, ProgramEnrollmentStatus } from "@dub/prisma";
+import { prisma } from "@dub/prisma";
+import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/programs/[programId]/partners/count

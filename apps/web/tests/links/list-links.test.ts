@@ -1,4 +1,4 @@
-import { Link } from "@dub/prisma";
+import { Link } from "@dub/prisma/client";
 import { afterAll, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK } from "../utils/resource";

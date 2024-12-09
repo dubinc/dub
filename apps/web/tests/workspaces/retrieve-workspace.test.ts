@@ -1,6 +1,6 @@
 import z from "@/lib/zod";
 import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
-import { Project } from "@dub/prisma";
+import { Project } from "@dub/prisma/client";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 

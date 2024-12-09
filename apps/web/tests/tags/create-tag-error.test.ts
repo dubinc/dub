@@ -1,4 +1,4 @@
-import { Tag } from "@dub/prisma";
+import { Tag } from "@dub/prisma/client";
 import { expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 

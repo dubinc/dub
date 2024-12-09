@@ -1,6 +1,6 @@
 import { qstash } from "@/lib/cron";
 import { webhookPayloadSchema } from "@/lib/webhook/schemas";
-import { Webhook } from "@dub/prisma";
+import { Webhook } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { WebhookTrigger } from "../types";
 import z from "../zod";

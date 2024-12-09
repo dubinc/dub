@@ -1,6 +1,6 @@
 import z from "@/lib/zod";
 import { LinkSchema } from "@/lib/zod/schemas/links";
-import { Link } from "@dub/prisma";
+import { Link } from "@dub/prisma/client";
 import { expect, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";

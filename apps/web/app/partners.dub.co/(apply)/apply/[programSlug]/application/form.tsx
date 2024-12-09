@@ -1,7 +1,7 @@
 "use client";
 
 import { createProgramApplicationAction } from "@/lib/actions/partners/create-program-application";
-import { Program } from "@dub/prisma";
+import { Program } from "@dub/prisma/client";
 import { Button, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";

@@ -1,5 +1,6 @@
 import { tb } from "@/lib/tinybird";
-import { Link, prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma";
+import { Link } from "@dub/prisma/client";
 import { transformLink } from "../api/links";
 import { tbDemo } from "../tinybird/demo-client";
 import z from "../zod";

@@ -5,7 +5,7 @@ import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { Link } from "@dub/prisma";
+import { Link } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 export const GET = withWorkspace(

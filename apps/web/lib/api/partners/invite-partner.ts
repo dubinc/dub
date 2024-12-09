@@ -1,7 +1,8 @@
 import { updateConfig } from "@/lib/edge-config";
 import { recordLink } from "@/lib/tinybird";
 import { ProgramProps } from "@/lib/types";
-import { Link, prisma, Project } from "@dub/prisma";
+import { prisma } from "@dub/prisma";
+import { Link, Project } from "@dub/prisma/client";
 import { sendEmail } from "emails";
 import PartnerInvite from "emails/partner-invite";
 import { createId } from "../utils";

@@ -5,7 +5,7 @@ import {
   PayoutType,
   ProgramEnrollmentStatus,
   SaleStatus,
-} from "@dub/prisma";
+} from "@dub/prisma/client";
 import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
 import { CustomerSchema } from "./customers";

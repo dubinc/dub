@@ -1,7 +1,7 @@
 "use client";
 
 import { PartnerSaleResponse } from "@/lib/types";
-import { Link, Program } from "@dub/prisma";
+import { Link, Program } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
