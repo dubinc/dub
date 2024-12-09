@@ -7,11 +7,11 @@ export {
   PartnerStatus,
   PayoutStatus,
   PayoutType,
+  Prisma,
   ProgramEnrollmentStatus,
   ProgramResourceType,
   ProgramType,
   Role,
   SaleStatus,
   WebhookReceiver,
-  Prisma
 } from "@prisma/client";
