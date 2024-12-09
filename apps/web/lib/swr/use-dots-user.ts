@@ -1,14 +1,11 @@
 import { fetcher } from "@dub/utils";
-import { useParams, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import useSWR from "swr";
 import { DotsUser } from "../dots/types";
 
 export default function useDotsUser() {
-  let { partnerId } = useParams();
-  const searchParams = useSearchParams();
-  if (!partnerId) {
-    partnerId = searchParams.get("partner") ?? "";
-  }
+  const { data: session } = useSession();
+  const partnerId = session?.user?.["defaultPartnerId"];
 
   const {
     data: dotsUser,
@@ -16,8 +13,11 @@ export default function useDotsUser() {
     isLoading,
     mutate,
   } = useSWR<DotsUser>(
-    partnerId ? `/api/partners/${partnerId}/dots-user` : null,
+    partnerId && `/api/partners/${partnerId}/dots-user`,
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   return {
