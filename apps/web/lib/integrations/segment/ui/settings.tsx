@@ -4,7 +4,8 @@ import {
   InstalledIntegrationInfoProps,
   SegmentIntegrationCredentials,
 } from "@/lib/types";
-import { ConfigureWebhook } from "./configure-webhook";
+import { ConfigureWebhook } from "../../common/ui/configure-webhook";
+import { supportedEvents } from "../utils";
 import { SetWriteKey } from "./set-write-key";
 
 export const SegmentSettings = (props: InstalledIntegrationInfoProps) => {
@@ -16,7 +17,12 @@ export const SegmentSettings = (props: InstalledIntegrationInfoProps) => {
         installed={!!installed?.id}
         credentials={credentials as SegmentIntegrationCredentials}
       />
-      {installed && webhookId && <ConfigureWebhook webhookId={webhookId} />}
+      {installed && webhookId && (
+        <ConfigureWebhook
+          webhookId={webhookId}
+          supportedEvents={supportedEvents}
+        />
+      )}
     </>
   );
 };

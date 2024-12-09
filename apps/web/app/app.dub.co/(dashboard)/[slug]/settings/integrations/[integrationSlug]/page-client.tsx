@@ -1,8 +1,8 @@
 "use client";
 
 import { getIntegrationInstallUrl } from "@/lib/actions/get-integration-install-url";
-import { SegmentSettings } from "@/lib/integrations/segment/components/settings";
-import { SlackSettings } from "@/lib/integrations/slack/components/settings";
+import { SegmentSettings } from "@/lib/integrations/segment/ui/settings";
+import { SlackSettings } from "@/lib/integrations/slack/ui/settings";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
 import { useUninstallIntegrationModal } from "@/ui/modals/uninstall-integration-modal";

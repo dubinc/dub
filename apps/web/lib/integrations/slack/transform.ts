@@ -1,13 +1,13 @@
 import { APP_DOMAIN } from "@dub/utils";
 import { LinkWebhookEvent } from "dub/models/components";
 import { z } from "zod";
-import { WebhookTrigger } from "../types";
-import { webhookPayloadSchema } from "./schemas";
+import { WebhookTrigger } from "../../types";
+import { webhookPayloadSchema } from "../../webhook/schemas";
 import {
   ClickEventWebhookData,
   LeadEventWebhookData,
   SaleEventWebhookData,
-} from "./types";
+} from "../../webhook/types";
 
 const createLinkTemplate = ({
   data,
@@ -208,7 +208,7 @@ const slackTemplates: Record<WebhookTrigger, any> = {
   "link.clicked": clickLinkTemplate,
 };
 
-export const generateSlackMessage = (
+export const formatEventForSlack = (
   payload: z.infer<typeof webhookPayloadSchema>,
 ) => {
   const { event, data } = payload;

@@ -4,10 +4,10 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Webhook, WebhookReceiver } from "@prisma/client";
 import { formatEventForSegment } from "../integrations/segment/transform";
 import { createSegmentBasicAuthHeader } from "../integrations/segment/utils";
+import { formatEventForSlack } from "../integrations/slack/transform";
 import { WebhookTrigger } from "../types";
 import z from "../zod";
 import { createWebhookSignature } from "./signature";
-import { generateSlackMessage } from "./slack-templates";
 import { prepareWebhookPayload } from "./transform";
 import { EventDataProps } from "./types";
 import { identifyWebhookReceiver } from "./utils";
@@ -77,7 +77,7 @@ const publishWebhookEventToQStash = async ({
   return response;
 };
 
-// Transform the payload for the receiver
+// Transform the payload based on the integration
 const transformPayload = ({
   payload,
   receiver,
@@ -87,7 +87,7 @@ const transformPayload = ({
 }) => {
   switch (receiver) {
     case "slack":
-      return generateSlackMessage(payload);
+      return formatEventForSlack(payload);
     case "segment":
       return formatEventForSegment(payload);
     default:

@@ -2,7 +2,7 @@
 
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { WebhookProps } from "@/lib/types";
+import { WebhookProps, WebhookTrigger } from "@/lib/types";
 import {
   LINK_LEVEL_WEBHOOK_TRIGGERS,
   WEBHOOK_TRIGGER_DESCRIPTIONS,
@@ -16,9 +16,14 @@ import { cn } from "@dub/utils/src/functions";
 import { FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
-import { supportedEvents } from "../utils";
 
-export function ConfigureWebhook({ webhookId }: { webhookId: string }) {
+export function ConfigureWebhook({
+  webhookId,
+  supportedEvents,
+}: {
+  webhookId: string;
+  supportedEvents: WebhookTrigger[]; // Not all integrations support all events.
+}) {
   const [saving, setSaving] = useState(false);
   const { id: workspaceId, role } = useWorkspace();
 
