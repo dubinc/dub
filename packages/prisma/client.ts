@@ -13,4 +13,5 @@ export {
   Role,
   SaleStatus,
   WebhookReceiver,
+  Prisma
 } from "@prisma/client";
