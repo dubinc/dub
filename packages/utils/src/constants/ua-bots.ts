@@ -2745,6 +2745,28 @@ const UA_BOTS = [
       "[a-z0-9_-]*(?:(?<!cu|power[ _]|m[ _])bot(?![ _]TAB|[ _]?5[0-9]|[ _]Senior|[ _]Junior)|analyzer|appengine|archiver?|checker|collector|crawl|crawler|(?<!node-|uclient-|Mikrotik/\\d\\.[x\\d] |electron-)fetch(?:er)?|indexer|inspector|monitor|(?<!Microsoft |banshee-)project(?!or)|(?<!Google Wap |Blue |SpeedMode; )proxy|(?<!P)research|resolver|robots|(?<!Cam)scanner|scraper|script|searcher|(?<!-)security|spider(?! 8)|study|transcoder|uptime|user[ _]?agent|validator)(?:[^a-z]|$)",
     name: "Generic Bot",
   },
+
+  /////
+  {
+    regex: "WhatsApp",
+    name: "WhatsApp",
+  },
+  {
+    regex: "bluesky",
+    name: "BlueSky",
+  },
+  {
+    regex: "facebookexternalhit",
+    name: "Facebook External Hit",
+  },
+  {
+    regex: "Go-http-client",
+    name: "Go HTTP Client",
+  },
+  {
+    regex: "metatags",
+    name: "Dub.co Metatags API",
+  },
 ] as const;
 
 export const UA_BOTS_REGEX = new RegExp(
