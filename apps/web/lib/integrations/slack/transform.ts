@@ -182,7 +182,7 @@ const createSaleTemplate = ({ data }: { data: SaleEventWebhookData }) => {
           },
           {
             type: "mrkdwn",
-            text: `*Amount*\n${amountInDollars}`,
+            text: `*Amount*\n${amountInDollars} ${sale.currency.toUpperCase()}`,
           },
         ],
       },
