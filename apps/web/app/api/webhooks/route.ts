@@ -5,7 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { createWebhook } from "@/lib/webhook/create-webhook";
 import { transformWebhook } from "@/lib/webhook/transform";
 import { updateWebhookStatusForWorkspace } from "@/lib/webhook/update-webhook";
+import { identifyWebhookReceiver } from "@/lib/webhook/utils";
 import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
+import { WebhookReceiver } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
 import WebhookAdded from "emails/webhook-added";
@@ -96,9 +98,14 @@ export const POST = withWorkspace(
       }
     }
 
+    // Zapier use this endpoint to create webhooks from their app
+    const isZapierWebhook =
+      identifyWebhookReceiver(url) === WebhookReceiver.zapier;
+
     const webhook = await createWebhook({
       name,
       url,
+      receiver: isZapierWebhook ? WebhookReceiver.zapier : WebhookReceiver.user,
       triggers,
       linkIds,
       secret,

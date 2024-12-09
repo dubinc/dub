@@ -21,7 +21,7 @@ export async function createWebhook({
   installationId,
 }: z.infer<typeof createWebhookSchema> & {
   workspaceId: string;
-  receiver?: WebhookReceiver;
+  receiver: WebhookReceiver;
   installationId?: string;
 }) {
   const webhook = await prisma.webhook.create({

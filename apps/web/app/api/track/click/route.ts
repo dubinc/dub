@@ -62,7 +62,7 @@ export const POST = async (req: Request) => {
           linkId: link.id,
           url: link.url,
           skipRatelimit: true,
-          workspaceId: workspace.id,
+          workspaceId: link.projectId,
         }),
       );
     }
