@@ -12,9 +12,11 @@ import { Link } from "@/ui/shared/icons";
 import { LinksSelector } from "@/ui/webhooks/link-selector";
 import { Button, Checkbox } from "@dub/ui";
 import { fetcher } from "@dub/utils";
+import { cn } from "@dub/utils/src/functions";
 import { FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
+import { supportedEvents } from "../utils";
 
 export function ConfigureWebhook({ webhookId }: { webhookId: string }) {
   const [saving, setSaving] = useState(false);
@@ -100,13 +102,15 @@ export function ConfigureWebhook({ webhookId }: { webhookId: string }) {
               </span>
             </label>
             <div className="mt-3 flex flex-col gap-2">
-              {WORKSPACE_LEVEL_WEBHOOK_TRIGGERS.slice(-2).map((trigger) => (
+              {WORKSPACE_LEVEL_WEBHOOK_TRIGGERS.map((trigger) => (
                 <div key={trigger} className="group flex gap-2">
                   <Checkbox
                     value={trigger}
                     id={trigger}
                     checked={triggers.includes(trigger)}
-                    disabled={!canManageWebhook}
+                    disabled={
+                      !canManageWebhook || !supportedEvents.includes(trigger)
+                    }
                     onCheckedChange={(checked) => {
                       setData({
                         ...data,
@@ -115,10 +119,20 @@ export function ConfigureWebhook({ webhookId }: { webhookId: string }) {
                           : triggers.filter((t) => t !== trigger),
                       });
                     }}
+                    title={
+                      !supportedEvents.includes(trigger)
+                        ? "Not supported"
+                        : undefined
+                    }
                   />
                   <label
                     htmlFor={trigger}
-                    className="select-none text-sm text-gray-600 group-hover:text-gray-800"
+                    className={cn(
+                      "select-none text-sm text-gray-600",
+                      supportedEvents.includes(trigger)
+                        ? "group-hover:text-gray-800"
+                        : "opacity-50",
+                    )}
                   >
                     {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
                   </label>
