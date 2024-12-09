@@ -1,4 +1,4 @@
-import { Prisma, Program, SaleStatus } from "@dub/prisma";
+import { Prisma, Program, SaleStatus } from "@dub/prisma/edge";
 import { createId } from "../utils";
 import { calculateEarnings } from "./commission";
 
