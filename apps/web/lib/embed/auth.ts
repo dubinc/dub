@@ -1,6 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { ratelimit } from "@/lib/upstash";
-import { Link, Program, Project, prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma";
+import { Link, Program, Project } from "@dub/prisma/client";
 import { getSearchParams } from "@dub/utils";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { cookies } from "next/headers";
