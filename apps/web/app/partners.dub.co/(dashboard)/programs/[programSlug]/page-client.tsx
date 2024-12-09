@@ -142,7 +142,7 @@ export default function ProgramPageClient() {
               Recent sales
             </h2>
             <Link
-              href={`/${programSlug}/sales${getQueryString()}`}
+              href={`/programs/${programSlug}/sales${getQueryString()}`}
               className={cn(
                 buttonVariants({ variant: "secondary" }),
                 "flex h-8 items-center rounded-lg border px-2 text-sm",
