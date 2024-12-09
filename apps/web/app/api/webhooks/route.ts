@@ -7,6 +7,7 @@ import { transformWebhook } from "@/lib/webhook/transform";
 import { updateWebhookStatusForWorkspace } from "@/lib/webhook/update-webhook";
 import { identifyWebhookReceiver } from "@/lib/webhook/utils";
 import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
+import { ZAPIER_INTEGRATION_ID } from "@dub/utils/src/constants";
 import { WebhookReceiver } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
@@ -102,6 +103,18 @@ export const POST = withWorkspace(
     const isZapierWebhook =
       identifyWebhookReceiver(url) === WebhookReceiver.zapier;
 
+    const zapierInstallation = isZapierWebhook
+      ? await prisma.installedIntegration.findFirst({
+          where: {
+            projectId: workspace.id,
+            integrationId: ZAPIER_INTEGRATION_ID,
+          },
+          select: {
+            id: true,
+          },
+        })
+      : undefined;
+
     const webhook = await createWebhook({
       name,
       url,
@@ -110,6 +123,7 @@ export const POST = withWorkspace(
       linkIds,
       secret,
       workspaceId: workspace.id,
+      installationId: zapierInstallation ? zapierInstallation.id : undefined,
     });
 
     waitUntil(

@@ -5,7 +5,6 @@ import {
   SegmentIntegrationCredentials,
 } from "@/lib/types";
 import { ConfigureWebhook } from "../../common/ui/configure-webhook";
-import { supportedEvents } from "../utils";
 import { SetWriteKey } from "./set-write-key";
 
 export const SegmentSettings = (props: InstalledIntegrationInfoProps) => {
@@ -20,7 +19,7 @@ export const SegmentSettings = (props: InstalledIntegrationInfoProps) => {
       {installed && webhookId && (
         <ConfigureWebhook
           webhookId={webhookId}
-          supportedEvents={supportedEvents}
+          supportedEvents={["lead.created", "sale.created"]}
         />
       )}
     </>

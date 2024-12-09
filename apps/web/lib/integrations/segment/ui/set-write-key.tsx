@@ -51,7 +51,7 @@ export function SetWriteKey({
       <div className="w-full rounded-lg border border-gray-200 bg-white">
         <div className="flex items-center gap-x-2 border-b border-gray-200 px-6 py-4">
           <Lock className="size-4" />
-          <p className="text-sm font-medium text-gray-700">Segment write key</p>
+          <p className="text-sm font-medium text-gray-700">Write key</p>
         </div>
 
         <div className="p-4">
@@ -89,8 +89,8 @@ export function SetWriteKey({
             <Button
               type="submit"
               variant="primary"
-              text="Enable Segment"
-              className="w-fit"
+              text="Save changes"
+              className="h-8 w-fit"
               loading={isExecuting}
               disabled={installed || !writeKey}
             />

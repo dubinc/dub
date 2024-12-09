@@ -1,9 +1,10 @@
 "use client";
 
 import { InstalledIntegrationInfoProps } from "@/lib/types";
+import { WORKSPACE_LEVEL_WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
 import { ConfigureWebhook } from "../../common/ui/configure-webhook";
 
-export const SlackSettings = (props: InstalledIntegrationInfoProps) => {
+export const ZapierSettings = (props: InstalledIntegrationInfoProps) => {
   const { installed, webhookId } = props;
 
   return (
@@ -11,13 +12,7 @@ export const SlackSettings = (props: InstalledIntegrationInfoProps) => {
       {installed && webhookId && (
         <ConfigureWebhook
           webhookId={webhookId}
-          supportedEvents={[
-            "link.created",
-            "link.updated",
-            "link.deleted",
-            "lead.created",
-            "sale.created",
-          ]}
+          supportedEvents={Object.values(WORKSPACE_LEVEL_WEBHOOK_TRIGGERS)}
         />
       )}
     </>

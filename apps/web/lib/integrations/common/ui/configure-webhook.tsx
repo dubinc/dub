@@ -217,6 +217,7 @@ export function ConfigureWebhook({
                 disabledTooltip: permissionsError,
               })}
               disabled={!canManageWebhook || isLoading}
+              className="h-8"
             />
           </div>
         </div>

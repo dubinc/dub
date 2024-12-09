@@ -3,6 +3,7 @@
 import { getIntegrationInstallUrl } from "@/lib/actions/get-integration-install-url";
 import { SegmentSettings } from "@/lib/integrations/segment/ui/settings";
 import { SlackSettings } from "@/lib/integrations/slack/ui/settings";
+import { ZapierSettings } from "@/lib/integrations/zapier/ui/settings";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
 import { useUninstallIntegrationModal } from "@/ui/modals/uninstall-integration-modal";
@@ -36,6 +37,7 @@ import {
   SEGMENT_INTEGRATION_ID,
   SLACK_INTEGRATION_ID,
   STRIPE_INTEGRATION_ID,
+  ZAPIER_INTEGRATION_ID,
 } from "@dub/utils";
 import { BookOpenText, ChevronLeft, Trash, Webhook } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -43,6 +45,12 @@ import Link from "next/link";
 import { useState } from "react";
 import Markdown from "react-markdown";
 import { toast } from "sonner";
+
+const integrationSettings = {
+  [ZAPIER_INTEGRATION_ID]: ZapierSettings,
+  [SLACK_INTEGRATION_ID]: SlackSettings,
+  [SEGMENT_INTEGRATION_ID]: SegmentSettings,
+};
 
 export default function IntegrationPageClient({
   integration,
@@ -69,11 +77,6 @@ export default function IntegrationPageClient({
     useUninstallIntegrationModal({
       integration,
     });
-
-  const integrationSettings = {
-    [SLACK_INTEGRATION_ID]: SlackSettings,
-    [SEGMENT_INTEGRATION_ID]: SegmentSettings,
-  };
 
   const SettingsComponent = integrationSettings[integration.id] || null;
 
