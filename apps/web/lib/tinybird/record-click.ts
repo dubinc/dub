@@ -9,11 +9,11 @@ import { geolocation, ipAddress } from "@vercel/functions";
 import { userAgent } from "next/server";
 import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
 import {
-  detectBot,
   detectQr,
   getFinalUrlForRecordClick,
   getIdentityHash,
 } from "../middleware/utils";
+import { isBotRequest } from "../middleware/utils/is-bot-request";
 import { conn } from "../planetscale";
 import { redis } from "../upstash";
 import { webhookCache } from "../webhook/cache";
@@ -45,10 +45,8 @@ export async function recordClick({
     return null;
   }
 
-  const isBot = detectBot(req);
-
   // don't record clicks from bots
-  if (isBot) {
+  if (isBotRequest(req)) {
     return null;
   }
 
