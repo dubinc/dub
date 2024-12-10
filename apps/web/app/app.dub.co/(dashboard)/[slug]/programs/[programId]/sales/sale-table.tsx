@@ -66,7 +66,7 @@ const SaleTableBusinessInner = memo(
 
     const loading = !sales && !error;
 
-    const table = useTable({
+    const table = useTable<SaleResponse>({
       data: sales?.slice(0, limit) || [],
       columns: [
         {

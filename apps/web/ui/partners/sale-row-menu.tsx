@@ -1,6 +1,6 @@
 import { updateSaleStatusAction } from "@/lib/actions/update-sale-status";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { SaleProps } from "@/lib/types";
+import { SaleResponse } from "@/lib/types";
 import { Button, Icon, Popover } from "@dub/ui";
 import {
   CircleHalfDottedClock,
@@ -17,7 +17,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
-export function SaleRowMenu({ row }: { row: Row<SaleProps> }) {
+export function SaleRowMenu({ row }: { row: Row<SaleResponse> }) {
   const { id: workspaceId } = useWorkspace();
   const { programId } = useParams() as { programId: string };
   const [isOpen, setIsOpen] = useState(false);
