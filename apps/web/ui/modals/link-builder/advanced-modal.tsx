@@ -137,7 +137,8 @@ function AdvancedModal({
               <button
                 type="button"
                 className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   setValueParent("externalId", null, { shouldDirty: true });
                   setShowAdvancedModal(false);
                 }}
@@ -152,7 +153,10 @@ function AdvancedModal({
               variant="secondary"
               text="Cancel"
               className="h-9 w-fit"
-              onClick={() => setShowAdvancedModal(false)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowAdvancedModal(false);
+              }}
             />
             <Button
               type="submit"

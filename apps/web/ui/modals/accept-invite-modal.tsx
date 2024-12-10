@@ -89,7 +89,8 @@ function AcceptInviteModal({
           <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
             <Button
               text="Back to dashboard"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 router.push("/");
                 setShowAcceptInviteModal(false);
               }}

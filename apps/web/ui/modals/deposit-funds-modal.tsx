@@ -105,7 +105,10 @@ const DepositFundsForm = ({ closeModal }: { closeModal: () => void }) => {
           text="Cancel"
           className="h-9 w-fit"
           disabled={isSubmitting || isExecuting}
-          onClick={closeModal}
+          onClick={(e) => {
+            e.stopPropagation();
+            closeModal();
+          }}
         />
 
         <Button

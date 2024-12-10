@@ -231,7 +231,8 @@ function ExpirationModal({
               <button
                 type="button"
                 className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   setValueParent("expiresAt", null, { shouldDirty: true });
                   setValueParent("expiredUrl", null, { shouldDirty: true });
                   setShowExpirationModal(false);
@@ -247,7 +248,8 @@ function ExpirationModal({
               variant="secondary"
               text="Cancel"
               className="h-9 w-fit"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 reset();
                 setShowExpirationModal(false);
               }}
