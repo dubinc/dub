@@ -4,6 +4,7 @@ import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
   Link,
   PayoutStatus,
+  Prisma,
   ProgramEnrollmentStatus,
   Project,
   SaleStatus,
@@ -289,6 +290,8 @@ export type InstalledIntegrationInfoProps = Pick<
       image: string | null;
     };
   } | null;
+  credentials?: Prisma.JsonValue;
+  webhookId?: string; // Only if the webhook is managed by an integration
 };
 
 export type WebhookTrigger = keyof typeof WEBHOOK_TRIGGER_DESCRIPTIONS;
@@ -301,7 +304,7 @@ export type WebhookEventProps = z.infer<typeof webhookEventSchemaTB>;
 
 export type WebhookCacheProps = Pick<
   Webhook,
-  "id" | "url" | "secret" | "triggers"
+  "id" | "url" | "secret" | "triggers" | "disabledAt"
 >;
 
 export type TrackCustomerResponse = z.infer<typeof trackCustomerResponseSchema>;
@@ -347,3 +350,7 @@ export type PayoutProps = z.infer<typeof PayoutSchema>;
 export type PayoutResponse = z.infer<typeof PayoutResponseSchema>;
 
 export type PartnerPayoutResponse = z.infer<typeof PartnerPayoutResponseSchema>;
+
+export type SegmentIntegrationCredentials = {
+  writeKey?: string;
+};

@@ -1,6 +1,9 @@
 "use client";
 
 import { getIntegrationInstallUrl } from "@/lib/actions/get-integration-install-url";
+import { SegmentSettings } from "@/lib/integrations/segment/ui/settings";
+import { SlackSettings } from "@/lib/integrations/slack/ui/settings";
+import { ZapierSettings } from "@/lib/integrations/zapier/ui/settings";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
 import { useUninstallIntegrationModal } from "@/ui/modals/uninstall-integration-modal";
@@ -31,14 +34,23 @@ import {
   cn,
   formatDate,
   getPrettyUrl,
+  SEGMENT_INTEGRATION_ID,
+  SLACK_INTEGRATION_ID,
   STRIPE_INTEGRATION_ID,
+  ZAPIER_INTEGRATION_ID,
 } from "@dub/utils";
-import { BookOpenText, ChevronLeft, Trash } from "lucide-react";
+import { BookOpenText, ChevronLeft, Trash, Webhook } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useState } from "react";
 import Markdown from "react-markdown";
 import { toast } from "sonner";
+
+const integrationSettings = {
+  [ZAPIER_INTEGRATION_ID]: ZapierSettings,
+  [SLACK_INTEGRATION_ID]: SlackSettings,
+  [SEGMENT_INTEGRATION_ID]: SegmentSettings,
+};
 
 export default function IntegrationPageClient({
   integration,
@@ -63,8 +75,10 @@ export default function IntegrationPageClient({
 
   const { UninstallIntegrationModal, setShowUninstallIntegrationModal } =
     useUninstallIntegrationModal({
-      integration: integration,
+      integration,
     });
+
+  const SettingsComponent = integrationSettings[integration.id] || null;
 
   return (
     <MaxWidthWrapper className="grid max-w-screen-lg gap-8">
@@ -288,6 +302,36 @@ export default function IntegrationPageClient({
           </Markdown>
         )}
       </div>
+      {SettingsComponent && <SettingsComponent {...integration} />}
     </MaxWidthWrapper>
   );
 }
+
+const SlackWebhookSettings = ({ webhookId }: { webhookId: string }) => {
+  const { slug } = useWorkspace();
+
+  if (!webhookId) {
+    return null;
+  }
+
+  return (
+    <div className="w-full rounded-lg border border-gray-200 bg-white">
+      <div className="flex items-center gap-x-2 border-b border-gray-200 px-6 py-4">
+        <Webhook className="size-4" />
+        <p className="text-sm font-medium text-gray-700">Configure webhook</p>
+      </div>
+
+      <div className="flex items-center justify-between p-6">
+        <p className="text-sm leading-normal text-gray-600">
+          Customize your Slack notifications by configuring webhook settings.
+          You can choose which events to send to Slack and disable the
+          notifications.
+        </p>
+
+        <Link href={`/${slug}/settings/webhooks/${webhookId}/edit`}>
+          <Button className="w-fit" text="Update" variant="secondary" />
+        </Link>
+      </div>
+    </div>
+  );
+};

@@ -4,6 +4,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { webhookCache } from "@/lib/webhook/cache";
+import { deleteWebhook } from "@/lib/webhook/delete-webhook";
 import { transformWebhook } from "@/lib/webhook/transform";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";
 import { updateWebhookSchema } from "@/lib/zod/schemas/webhooks";
@@ -26,7 +27,9 @@ export const GET = withWorkspace(
         url: true,
         secret: true,
         triggers: true,
+        disabledAt: true,
         links: true,
+        installationId: true,
       },
     });
 
@@ -54,21 +57,39 @@ export const PATCH = withWorkspace(
       await parseRequestBody(req),
     );
 
-    const webhookUrlExists = await prisma.webhook.findFirst({
+    const existingWebhook = await prisma.webhook.findUniqueOrThrow({
       where: {
+        id: webhookId,
         projectId: workspace.id,
-        url,
-        id: {
-          not: webhookId,
-        },
       },
     });
 
-    if (webhookUrlExists) {
+    // If the webhook is managed by an integration, only the linkIds & triggers can be updated manually.
+    if (existingWebhook.installationId && (name || url)) {
       throw new DubApiError({
-        code: "conflict",
-        message: "A Webhook with this URL already exists.",
+        code: "bad_request",
+        message:
+          "This webhook is managed by an integration. Not all fields can be updated manually.",
       });
+    }
+
+    if (url) {
+      const webhookUrlExists = await prisma.webhook.findFirst({
+        where: {
+          projectId: workspace.id,
+          url,
+          id: {
+            not: webhookId,
+          },
+        },
+      });
+
+      if (webhookUrlExists) {
+        throw new DubApiError({
+          code: "conflict",
+          message: "A Webhook with this URL already exists.",
+        });
+      }
     }
 
     if (linkIds && linkIds.length > 0) {
@@ -124,6 +145,8 @@ export const PATCH = withWorkspace(
         url: true,
         secret: true,
         triggers: true,
+        disabledAt: true,
+        installationId: true,
         links: {
           select: {
             linkId: true,
@@ -134,13 +157,6 @@ export const PATCH = withWorkspace(
 
     waitUntil(
       (async () => {
-        const existingWebhook = await prisma.webhook.findUniqueOrThrow({
-          where: {
-            id: webhookId,
-            projectId: workspace.id,
-          },
-        });
-
         // If the webhook is being changed from link level to workspace level, delete the cache
         if (
           isLinkLevelWebhook(existingWebhook) &&
@@ -242,68 +258,10 @@ export const DELETE = withWorkspace(
   async ({ workspace, params }) => {
     const { webhookId } = params;
 
-    const linkWebhooks = await prisma.linkWebhook.findMany({
-      where: {
-        webhookId,
-      },
-      select: {
-        linkId: true,
-      },
+    await deleteWebhook({
+      webhookId,
+      workspaceId: workspace.id,
     });
-
-    await prisma.webhook.delete({
-      where: {
-        id: webhookId,
-        projectId: workspace.id,
-      },
-    });
-
-    const webhooksCount = await prisma.webhook.count({
-      where: {
-        projectId: workspace.id,
-      },
-    });
-
-    // Disable webhooks for the workspace if there are no more webhooks
-    if (webhooksCount === 0) {
-      await prisma.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          webhookEnabled: false,
-        },
-      });
-    }
-
-    waitUntil(
-      (async () => {
-        const links = await prisma.link.findMany({
-          where: {
-            id: { in: linkWebhooks.map(({ linkId }) => linkId) },
-          },
-          include: {
-            webhooks: {
-              select: {
-                webhookId: true,
-              },
-            },
-          },
-        });
-
-        const formatedLinks = links.map((link) => {
-          return {
-            ...link,
-            webhookIds: link.webhooks.map((webhook) => webhook.webhookId),
-          };
-        });
-
-        await Promise.all([
-          linkCache.mset(formatedLinks),
-          webhookCache.delete(webhookId),
-        ]);
-      })(),
-    );
 
     return NextResponse.json({
       id: webhookId,

@@ -5,13 +5,14 @@ import { getSlackEnv } from "@/lib/integrations/slack/env";
 import { SlackCredential } from "@/lib/integrations/slack/type";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
+import { createWebhook } from "@/lib/webhook/create-webhook";
 import z from "@/lib/zod";
 import {
   APP_DOMAIN_WITH_NGROK,
   getSearchParams,
   SLACK_INTEGRATION_ID,
 } from "@dub/utils";
-import { Project } from "@prisma/client";
+import { Project, WebhookReceiver } from "@prisma/client";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +25,7 @@ const oAuthCallbackSchema = z.object({
 export const GET = async (req: Request) => {
   const env = getSlackEnv();
 
-  let workspace: Pick<Project, "slug"> | null = null;
+  let workspace: Pick<Project, "id" | "slug"> | null = null;
 
   try {
     const session = await getSession();
@@ -53,6 +54,7 @@ export const GET = async (req: Request) => {
         id: workspaceId,
       },
       select: {
+        id: true,
         slug: true,
       },
     });
@@ -81,13 +83,26 @@ export const GET = async (req: Request) => {
       tokenType: data.token_type,
       authUser: data.authed_user,
       team: data.team,
+      incomingWebhook: {
+        channel: data.incoming_webhook.channel,
+        channelId: data.incoming_webhook.channel_id,
+      },
     };
 
-    await installIntegration({
+    const installation = await installIntegration({
       integrationId: SLACK_INTEGRATION_ID,
       userId: session.user.id,
       workspaceId,
       credentials,
+    });
+
+    await createWebhook({
+      name: "Slack",
+      url: data.incoming_webhook.url,
+      receiver: WebhookReceiver.slack,
+      triggers: [],
+      workspaceId,
+      installationId: installation.id,
     });
   } catch (e: any) {
     return handleAndReturnErrorResponse(e);

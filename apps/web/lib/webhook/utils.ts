@@ -1,5 +1,12 @@
-import type { Webhook } from "@prisma/client";
+import type { Webhook, WebhookReceiver } from "@prisma/client";
 import { LINK_LEVEL_WEBHOOK_TRIGGERS } from "./constants";
+
+const webhookReceivers: Record<string, WebhookReceiver> = {
+  "hooks.zapier.com": "zapier",
+  "make.com": "make",
+  "hooks.slack.com": "slack",
+  "api.segment.io": "segment",
+};
 
 export const isLinkLevelWebhook = (webhook: Pick<Webhook, "triggers">) => {
   if (!webhook.triggers) {
@@ -12,4 +19,11 @@ export const isLinkLevelWebhook = (webhook: Pick<Webhook, "triggers">) => {
   return triggers.some((trigger) =>
     LINK_LEVEL_WEBHOOK_TRIGGERS.includes(trigger),
   );
+};
+
+export const identifyWebhookReceiver = (url: string): WebhookReceiver => {
+  const urlObject = new URL(url);
+  const domain = urlObject.hostname;
+
+  return webhookReceivers[domain] || "user";
 };
