@@ -1,13 +1,16 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { MaxWidthWrapper } from "@dub/ui";
+import { use } from "react";
 import { InvitePartnerButton } from "../invite-partner-button";
 import { ProgramPartnersInvitesPageClient } from "./page-client";
 
 export default function ProgramPartners({
-  params: { slug, programId },
+  params,
 }: {
-  params: { slug: string; programId: string };
+  params: Promise<{ slug: string; programId: string }>;
 }) {
+  const { slug, programId } = use(params);
+
   return (
     <PageContent
       title="Invited partners"
