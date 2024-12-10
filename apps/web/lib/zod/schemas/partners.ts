@@ -34,6 +34,8 @@ export const partnersQuerySchema = z
   .merge(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
 
 export const partnersCountQuerySchema = z.object({
+  status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
+  country: z.string().optional(),
   groupBy: z.enum(["status", "country"]).optional(),
 });
 
