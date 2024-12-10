@@ -1,5 +1,5 @@
 import { getProgram } from "@/lib/fetchers/get-program";
-import { programLanderSchema } from "@/lib/zod/schemas/programs";
+import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander-blocks";
 import { cn } from "@dub/utils";
 import { notFound } from "next/navigation";

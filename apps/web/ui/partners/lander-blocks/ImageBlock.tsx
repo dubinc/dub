@@ -1,4 +1,4 @@
-import { programLanderImageBlockSchema } from "@/lib/zod/schemas/programs";
+import { programLanderImageBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { z } from "zod";
 
 export function ImageBlock({
