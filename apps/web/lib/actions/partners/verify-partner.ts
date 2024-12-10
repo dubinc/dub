@@ -6,7 +6,7 @@ import { authPartnerActionClient } from "../safe-action";
 
 // Verify partner phone number
 export const verifyPartnerAction = authPartnerActionClient
-  .schema(z.object({ partnerId: z.string(), code: z.string() }))
+  .schema(z.object({ code: z.string() }))
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
     const { code } = parsedInput;

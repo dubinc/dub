@@ -36,7 +36,7 @@ export default function RootProviders({ children }: { children: ReactNode }) {
           <Toaster closeButton className="pointer-events-auto" />
           <PosthogPageview />
           {children}
-          <DubAnalytics apiKey={process.env.NEXT_PUBLIC_DUB_PUBLISHABLE_KEY} />
+          <DubAnalytics />
         </KeyboardShortcutProvider>
       </TooltipProvider>
     </PostHogProvider>

@@ -36,6 +36,9 @@ export function EmbedInlinePageClient({
   const { data: sales, isLoading } = useSWR<PartnerSaleResponse[]>(
     "/api/embed/sales",
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   return (
@@ -46,12 +49,9 @@ export function EmbedInlinePageClient({
       }
     >
       <div className="p-5">
-        <div className="relative flex flex-col rounded-lg border border-neutral-300 bg-gradient-to-r from-neutral-50 p-4 md:p-6">
+        <div className="relative flex flex-col overflow-hidden rounded-lg border border-neutral-300 bg-gradient-to-r from-neutral-50 p-4 md:p-6">
           {program && (
-            <HeroBackground
-              logo={program?.logo}
-              color={program?.brandColor || "#647481"}
-            />
+            <HeroBackground logo={program?.logo} color={program?.brandColor} />
           )}
           <span className="flex items-center gap-2 text-sm text-neutral-500">
             <MoneyBill2 className="size-4" />
@@ -68,7 +68,7 @@ export function EmbedInlinePageClient({
               type="text"
               readOnly
               value={getPrettyUrl(link.shortLink)}
-              className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 lg:min-w-64 xl:min-w-72"
+              className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 lg:min-w-64 xl:min-w-72"
             />
             <Button
               icon={
@@ -96,6 +96,14 @@ export function EmbedInlinePageClient({
               onClick={() => copyToClipboard(link.shortLink)}
             />
           </div>
+          <a
+            href="https://d.to/conversions"
+            target="_blank"
+            className="mt-2 flex items-center justify-center gap-2 rounded-lg border-neutral-100 bg-white px-4 py-1.5 transition-colors hover:border-neutral-200 active:bg-neutral-50 md:absolute md:bottom-3 md:right-3 md:mt-0 md:translate-x-0 md:border md:drop-shadow-sm"
+          >
+            <p className="text-sm text-neutral-600">Powered by</p>
+            <Wordmark className="h-4" />
+          </a>
         </div>
         <div className="mt-5">
           <>
@@ -143,18 +151,6 @@ export function EmbedInlinePageClient({
             </div>
           </>
           <LinkToken />
-        </div>
-      </div>
-      <div className="flex grow flex-col justify-end">
-        <div className="flex items-center justify-center">
-          <a
-            href="https://d.to/conversions"
-            target="_blank"
-            className="flex items-center justify-center gap-1 rounded-lg bg-white p-2 pb-2.5 transition-colors"
-          >
-            <p className="text-sm text-neutral-500">Powered by</p>
-            <Wordmark className="h-4" />
-          </a>
         </div>
       </div>
     </div>

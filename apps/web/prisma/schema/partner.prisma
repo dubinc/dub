@@ -12,6 +12,7 @@ enum PartnerRole {
 model Partner {
   id        String        @id @default(cuid())
   name      String
+  email     String?       @unique
   image     String?
   bio       String?       @db.LongText
   country   String?

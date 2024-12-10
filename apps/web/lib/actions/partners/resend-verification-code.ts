@@ -1,13 +1,11 @@
 "use server";
 
 import { sendVerificationToken } from "@/lib/dots/send-verification-token";
-import z from "@/lib/zod";
 import { authPartnerActionClient } from "../safe-action";
 
 // Resend verification code
-export const resendVerificationCodeAction = authPartnerActionClient
-  .schema(z.object({ partnerId: z.string() }))
-  .action(async ({ ctx }) => {
+export const resendVerificationCodeAction = authPartnerActionClient.action(
+  async ({ ctx }) => {
     const { partner } = ctx;
 
     if (!partner.dotsUserId) {
@@ -21,4 +19,5 @@ export const resendVerificationCodeAction = authPartnerActionClient
     return {
       success: true,
     };
-  });
+  },
+);
