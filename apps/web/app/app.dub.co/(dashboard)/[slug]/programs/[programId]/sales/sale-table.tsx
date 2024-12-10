@@ -148,8 +148,6 @@ const SaleTableBusinessInner = memo(
           minSize: 43,
           size: 43,
           maxSize: 43,
-          // @ts-ignore
-          // No idea why this is causing TS error
           cell: ({ row }) => <SaleRowMenu row={row} />,
         },
       ],
