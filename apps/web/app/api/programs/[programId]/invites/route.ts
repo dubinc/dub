@@ -5,7 +5,7 @@ import { ProgramInviteSchema } from "@/lib/zod/schemas/programs";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-// GET /api/programs/[programId]/invites - get all  invites for a program
+// GET /api/programs/[programId]/invites - get all the invites for a program
 export const GET = withWorkspace(async ({ workspace, params }) => {
   const { programId } = params;
 
