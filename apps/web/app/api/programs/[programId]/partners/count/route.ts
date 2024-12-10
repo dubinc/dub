@@ -55,7 +55,7 @@ export const GET = withWorkspace(
 
       // Add missing statuses with count 0
       missingStatuses.forEach((status) => {
-        partners.push({ status, _count: 0 });
+        partners.push({ _count: 0, status });
       });
 
       return NextResponse.json(partners);
