@@ -1,5 +1,5 @@
 import { withPartner } from "@/lib/auth/partner";
-import { ProgramInviteSchema } from "@/lib/zod/schemas/programs";
+import { PartnerProgramInviteSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -15,5 +15,5 @@ export const GET = withPartner(async ({ session }) => {
     },
   });
 
-  return NextResponse.json(z.array(ProgramInviteSchema).parse(invites));
+  return NextResponse.json(z.array(PartnerProgramInviteSchema).parse(invites));
 });

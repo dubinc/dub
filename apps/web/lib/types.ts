@@ -31,6 +31,7 @@ import {
   SaleSchema,
 } from "./zod/schemas/partners";
 import {
+  PartnerProgramInviteSchema,
   ProgramEnrollmentSchema,
   ProgramInviteSchema,
   ProgramSchema,
@@ -332,6 +333,10 @@ export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
 export type ProgramProps = z.infer<typeof ProgramSchema>;
 
 export type ProgramInviteProps = z.infer<typeof ProgramInviteSchema>;
+
+export type PartnerProgramInviteProps = z.infer<
+  typeof PartnerProgramInviteSchema
+>;
 
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 
