@@ -16,6 +16,7 @@ export const transformLink = (link: ExpandedLink) => {
 
   return {
     ...rest,
+    identifier: null, // backwards compatibility
     tagId: tags?.[0]?.id ?? null, // backwards compatibility
     tags,
     webhookIds,
