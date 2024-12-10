@@ -2,6 +2,7 @@ import { Link, Project, Tag } from "@prisma/client";
 import { expect } from "vitest";
 
 export const expectedLink: Partial<Link> & {
+  identifier: null;
   tagId: string | null;
   tags: [];
   webhookIds: string[];
@@ -35,6 +36,7 @@ export const expectedLink: Partial<Link> & {
   leads: 0,
   sales: 0,
   saleAmount: 0,
+  identifier: null, // backwards compatibility
   tagId: null, // backwards compatibility
   comments: null,
   tags: [],
