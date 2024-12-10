@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { getProgramOrThrow } from "../../api/programs/get-program";
 import z from "../../zod";
 import { authActionClient } from "../safe-action";

@@ -1,10 +1,10 @@
 import { createLink, processLink } from "@/lib/api/links";
-import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import z from "@/lib/zod";
 import { createLinkBodySchema } from "@/lib/zod/schemas/links";
+import { prisma } from "@dub/prisma";
+import { User } from "@dub/prisma/client";
 import { APP_DOMAIN, SLACK_INTEGRATION_ID } from "@dub/utils";
-import { User } from "@prisma/client";
 import { SlackCredential } from "./type";
 import { verifySlackSignature } from "./verify-request";
 

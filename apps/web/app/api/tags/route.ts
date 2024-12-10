@@ -1,13 +1,13 @@
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { createId } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import {
   TagSchema,
   createTagBodySchema,
   getTagsQuerySchemaExtended,
 } from "@/lib/zod/schemas/tags";
 import { COLORS_LIST, randomBadgeColor } from "@/ui/links/tag-badge";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/tags - get all tags for a workspace

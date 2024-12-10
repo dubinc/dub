@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { getLinkOrThrow } from "../../api/links/get-link-or-throw";
 import { getProgramOrThrow } from "../../api/programs/get-program";
 import { recordLink } from "../../tinybird";

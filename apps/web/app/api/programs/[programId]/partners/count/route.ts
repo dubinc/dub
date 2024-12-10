@@ -1,7 +1,7 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { partnersCountQuerySchema } from "@/lib/zod/schemas/partners";
+import { prisma } from "@dub/prisma";
 import { ProgramEnrollmentStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 

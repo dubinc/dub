@@ -1,7 +1,7 @@
 import { createDotsUser } from "@/lib/dots/create-dots-user";
 import { retrieveDotsUser } from "@/lib/dots/retrieve-dots-user";
-import { prisma } from "@/lib/prisma";
 import { PartnerProps } from "@/lib/types";
+import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 
 export const enrollDotsUserApp = async ({
