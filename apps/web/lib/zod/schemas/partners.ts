@@ -14,6 +14,7 @@ import { ProgramEnrollmentSchema } from "./programs";
 import { parseDateSchema } from "./utils";
 
 export const PARTNERS_MAX_PAGE_SIZE = 100;
+export const PAYOUTS_MAX_PAGE_SIZE = 100;
 
 export const partnersQuerySchema = z
   .object({
@@ -31,6 +32,16 @@ export const partnersQuerySchema = z
       .describe("IDs of partners to filter by."),
   })
   .merge(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
+
+export const partnersCountQuerySchema = z.object({
+  status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
+  country: z.string().optional(),
+  groupBy: z.enum(["status", "country"]).optional(),
+});
+
+export const partnerInvitesQuerySchema = getPaginationQuerySchema({
+  pageSize: 100,
+});
 
 export const PartnerSchema = z.object({
   id: z.string(),
@@ -54,8 +65,6 @@ export const EnrolledPartnerSchema = PartnerSchema.omit({
   .extend({
     earnings: z.number(),
   });
-
-export const PAYOUTS_MAX_PAGE_SIZE = 100;
 
 export const payoutsQuerySchema = z
   .object({
