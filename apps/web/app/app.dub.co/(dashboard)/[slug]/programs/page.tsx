@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { PageContent } from "@/ui/layout/page-content";
 import { notFound, redirect } from "next/navigation";
-import { use } from "react";
 import { ProgramsPageClient } from "./page-client";
 
 export default async function Programs({
@@ -9,7 +8,7 @@ export default async function Programs({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = use(params);
+  const { slug } = await params;
 
   const program = await prisma.program.findFirst({
     where: {
