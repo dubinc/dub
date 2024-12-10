@@ -55,7 +55,9 @@ export function PartnerTable() {
     isFiltered,
   } = usePartnerFilters({ sortBy, order });
 
-  const { partnersCount, error: countError } = usePartnersCount();
+  const { partnersCount, error: countError } = usePartnersCount<number>({
+    ignoreParams: true,
+  });
 
   const { data: partners, error } = useSWR<EnrolledPartnerProps[]>(
     `/api/programs/${programId}/partners?${searchQuery}`,
@@ -213,7 +215,7 @@ export function PartnerTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `partner${p ? "s" : ""}`,
-    rowCount: partnersCount?.all || 0,
+    rowCount: partnersCount || 0,
     loading: !partners && !error && !countError,
     error: error || countError ? "Failed to load partners" : undefined,
   });

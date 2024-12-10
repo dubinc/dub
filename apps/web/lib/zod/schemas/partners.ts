@@ -32,6 +32,10 @@ export const partnersQuerySchema = z
   })
   .merge(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
 
+export const partnersCountQuerySchema = z.object({
+  groupBy: z.enum(["status", "country"]).optional(),
+});
+
 export const PartnerSchema = z.object({
   id: z.string(),
   name: z.string(),
