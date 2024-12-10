@@ -2,10 +2,12 @@ import { qstash } from "@/lib/cron";
 import { webhookPayloadSchema } from "@/lib/webhook/schemas";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Webhook, WebhookReceiver } from "@prisma/client";
+import { formatEventForSegment } from "../integrations/segment/transform";
+import { createSegmentBasicAuthHeader } from "../integrations/segment/utils";
+import { formatEventForSlack } from "../integrations/slack/transform";
 import { WebhookTrigger } from "../types";
 import z from "../zod";
 import { createWebhookSignature } from "./signature";
-import { generateSlackMessage } from "./slack-templates";
 import { prepareWebhookPayload } from "./transform";
 import { EventDataProps } from "./types";
 import { identifyWebhookReceiver } from "./utils";
@@ -56,6 +58,13 @@ const publishWebhookEventToQStash = async ({
     headers: {
       "Dub-Signature": signature,
       "Upstash-Hide-Headers": "true",
+
+      // Integration specific headers
+      ...(receiver === "segment" && {
+        "Upstash-Forward-Authorization": createSegmentBasicAuthHeader(
+          webhook.secret,
+        ),
+      }),
     },
     callback: callbackUrl.href,
     failureCallback: callbackUrl.href,
@@ -68,7 +77,7 @@ const publishWebhookEventToQStash = async ({
   return response;
 };
 
-// Transform the payload for the receiver
+// Transform the payload based on the integration
 const transformPayload = ({
   payload,
   receiver,
@@ -76,9 +85,12 @@ const transformPayload = ({
   payload: z.infer<typeof webhookPayloadSchema>;
   receiver: WebhookReceiver;
 }) => {
-  if (receiver === "slack") {
-    return generateSlackMessage(payload.event, payload.data);
+  switch (receiver) {
+    case "slack":
+      return formatEventForSlack(payload);
+    case "segment":
+      return formatEventForSegment(payload);
+    default:
+      return payload;
   }
-
-  return payload;
 };

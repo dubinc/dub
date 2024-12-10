@@ -5,14 +5,14 @@ import { getSlackEnv } from "@/lib/integrations/slack/env";
 import { SlackCredential } from "@/lib/integrations/slack/type";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
-import { addWebhook } from "@/lib/webhook/api";
+import { createWebhook } from "@/lib/webhook/create-webhook";
 import z from "@/lib/zod";
 import {
   APP_DOMAIN_WITH_NGROK,
   getSearchParams,
   SLACK_INTEGRATION_ID,
 } from "@dub/utils";
-import { Project } from "@prisma/client";
+import { Project, WebhookReceiver } from "@prisma/client";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -75,13 +75,6 @@ export const GET = async (req: Request) => {
 
     const data = await response.json();
 
-    const webhook = await addWebhook({
-      name: "Slack",
-      url: data.incoming_webhook.url,
-      triggers: ["link.created"],
-      workspace,
-    });
-
     const credentials: SlackCredential = {
       appId: data.app_id,
       botUserId: data.bot_user_id,
@@ -93,15 +86,23 @@ export const GET = async (req: Request) => {
       incomingWebhook: {
         channel: data.incoming_webhook.channel,
         channelId: data.incoming_webhook.channel_id,
-        webhookId: webhook.id,
       },
     };
 
-    await installIntegration({
+    const installation = await installIntegration({
       integrationId: SLACK_INTEGRATION_ID,
       userId: session.user.id,
       workspaceId,
       credentials,
+    });
+
+    await createWebhook({
+      name: "Slack",
+      url: data.incoming_webhook.url,
+      receiver: WebhookReceiver.slack,
+      triggers: [],
+      workspaceId,
+      installationId: installation.id,
     });
   } catch (e: any) {
     return handleAndReturnErrorResponse(e);

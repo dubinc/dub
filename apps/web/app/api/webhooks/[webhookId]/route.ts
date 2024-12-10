@@ -3,8 +3,8 @@ import { linkCache } from "@/lib/api/links/cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { updateWebhookStatusForWorkspace } from "@/lib/webhook/api";
 import { webhookCache } from "@/lib/webhook/cache";
+import { deleteWebhook } from "@/lib/webhook/delete-webhook";
 import { transformWebhook } from "@/lib/webhook/transform";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";
 import { updateWebhookSchema } from "@/lib/zod/schemas/webhooks";
@@ -29,6 +29,7 @@ export const GET = withWorkspace(
         triggers: true,
         disabledAt: true,
         links: true,
+        installationId: true,
       },
     });
 
@@ -55,6 +56,22 @@ export const PATCH = withWorkspace(
     const { name, url, triggers, linkIds } = updateWebhookSchema.parse(
       await parseRequestBody(req),
     );
+
+    const existingWebhook = await prisma.webhook.findUniqueOrThrow({
+      where: {
+        id: webhookId,
+        projectId: workspace.id,
+      },
+    });
+
+    // If the webhook is managed by an integration, only the linkIds & triggers can be updated manually.
+    if (existingWebhook.installationId && (name || url)) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "This webhook is managed by an integration. Not all fields can be updated manually.",
+      });
+    }
 
     if (url) {
       const webhookUrlExists = await prisma.webhook.findFirst({
@@ -104,13 +121,6 @@ export const PATCH = withWorkspace(
       },
     });
 
-    const existingWebhook = await prisma.webhook.findUniqueOrThrow({
-      where: {
-        id: webhookId,
-        projectId: workspace.id,
-      },
-    });
-
     const webhook = await prisma.webhook.update({
       where: {
         id: webhookId,
@@ -136,6 +146,7 @@ export const PATCH = withWorkspace(
         secret: true,
         triggers: true,
         disabledAt: true,
+        installationId: true,
         links: {
           select: {
             linkId: true,
@@ -247,51 +258,10 @@ export const DELETE = withWorkspace(
   async ({ workspace, params }) => {
     const { webhookId } = params;
 
-    const linkWebhooks = await prisma.linkWebhook.findMany({
-      where: {
-        webhookId,
-      },
-      select: {
-        linkId: true,
-      },
+    await deleteWebhook({
+      webhookId,
+      workspaceId: workspace.id,
     });
-
-    await prisma.webhook.delete({
-      where: {
-        id: webhookId,
-        projectId: workspace.id,
-      },
-    });
-
-    waitUntil(
-      (async () => {
-        const links = await prisma.link.findMany({
-          where: {
-            id: { in: linkWebhooks.map(({ linkId }) => linkId) },
-          },
-          include: {
-            webhooks: {
-              select: {
-                webhookId: true,
-              },
-            },
-          },
-        });
-
-        const formatedLinks = links.map((link) => {
-          return {
-            ...link,
-            webhookIds: link.webhooks.map((webhook) => webhook.webhookId),
-          };
-        });
-
-        await Promise.all([
-          updateWebhookStatusForWorkspace({ workspace }),
-          linkCache.mset(formatedLinks),
-          webhookCache.delete(webhookId),
-        ]);
-      })(),
-    );
 
     return NextResponse.json({
       id: webhookId,
