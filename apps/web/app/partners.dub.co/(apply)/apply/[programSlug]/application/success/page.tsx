@@ -70,7 +70,7 @@ export default async function SuccessPage({
       className="relative"
       style={
         {
-          "--brand": program.brandColor || "#3b82f6",
+          "--brand": program.brandColor || "#000000",
           "--brand-ring": "rgb(from var(--brand) r g b / 0.2)",
         } as CSSProperties
       }
