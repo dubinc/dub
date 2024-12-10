@@ -19,7 +19,11 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
       programId,
     },
     include: {
-      link: true,
+      link: {
+        select: {
+          shortLink: true,
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
