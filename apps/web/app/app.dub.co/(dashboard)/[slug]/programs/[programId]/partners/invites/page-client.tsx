@@ -4,7 +4,15 @@ import { resendProgramInviteAction } from "@/lib/actions/resend-program-invite";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramInviteProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { Button, Icon, Popover, Table, usePagination, useTable } from "@dub/ui";
+import {
+  Button,
+  Icon,
+  Popover,
+  Table,
+  usePagination,
+  useRouterStuff,
+  useTable,
+} from "@dub/ui";
 import {
   Dots,
   EnvelopeArrowRight,
@@ -29,17 +37,25 @@ import useSWR, { KeyedMutator } from "swr";
 export function ProgramPartnersInvitesPageClient() {
   const { id: workspaceId } = useWorkspace();
   const { programId } = useParams();
+  const { getQueryString } = useRouterStuff();
 
   const {
     data: programInvites,
     mutate,
     error,
   } = useSWR<ProgramInviteProps[]>(
-    `/api/programs/${programId}/invites?workspaceId=${workspaceId}`,
+    `/api/programs/${programId}/invites${getQueryString({
+      workspaceId,
+    })}`,
     fetcher,
     {
       keepPreviousData: true,
     },
+  );
+
+  const { data: invitesCount, error: invitesCountError } = useSWR<number>(
+    `/api/programs/${programId}/invites/count?workspaceId=${workspaceId}`,
+    fetcher,
   );
 
   const { pagination, setPagination } = usePagination();
@@ -89,8 +105,8 @@ export function ProgramPartnersInvitesPageClient() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `invite${p ? "s" : ""}`,
-    rowCount: programInvites?.length || 0,
-    loading: !programInvites && !error,
+    rowCount: invitesCount || 0,
+    loading: !programInvites && !error && !invitesCountError,
     error: error ? "Failed to load program invites" : undefined,
   });
 

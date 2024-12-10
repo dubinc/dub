@@ -9,7 +9,24 @@ import { useMemo } from "react";
 export function usePartnerFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
-  const { partnersCount } = usePartnersCount();
+
+  const { partnersCount: countriesCount } = usePartnersCount<
+    {
+      country: string;
+      _count: number;
+    }[]
+  >({
+    groupBy: "country",
+  });
+
+  const { partnersCount: statusCount } = usePartnersCount<
+    {
+      status: string;
+      _count: number;
+    }[]
+  >({
+    groupBy: "status",
+  });
 
   const filters = useMemo(
     () => [
@@ -25,10 +42,12 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
           />
         ),
         getOptionLabel: (value) => COUNTRIES[value],
-        options: Object.entries(COUNTRIES).map(([value, label]) => ({
-          value,
-          label,
-        })),
+        options:
+          countriesCount?.map(({ country, _count }) => ({
+            value: country,
+            label: COUNTRIES[country],
+            right: nFormatter(_count, { full: true }),
+          })) ?? [],
       },
       {
         key: "status",
@@ -37,6 +56,10 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
         options: Object.entries(PartnerStatusBadges).map(
           ([value, { label }]) => {
             const Icon = PartnerStatusBadges[value].icon;
+            const count = statusCount?.find(
+              ({ status }) => status === value,
+            )?._count;
+
             return {
               value,
               label,
@@ -48,13 +71,13 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
                   )}
                 />
               ),
-              right: nFormatter(partnersCount?.[value] || 0, { full: true }),
+              right: nFormatter(count || 0, { full: true }),
             };
           },
         ),
       },
     ],
-    [partnersCount],
+    [countriesCount, statusCount],
   );
 
   const activeFilters = useMemo(() => {
