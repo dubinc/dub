@@ -78,7 +78,7 @@
     "jszip": "^3.10.1",
     "lucide-react": "^0.462.0",
     "nanoid": "^5.0.1",
-    "next": "15.0.4-canary.42",
+    "next": "15.0.4-canary.49",
     "next-auth": "^4.24.9",
     "next-axiom": "^1.6.0",
     "next-plausible": "^3.12.0",
