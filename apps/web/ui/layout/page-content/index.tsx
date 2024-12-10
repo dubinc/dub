@@ -2,7 +2,7 @@ import { MaxWidthWrapper } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { PropsWithChildren, ReactNode } from "react";
 import { HelpButtonRSC } from "../sidebar/help-button-rsc";
-import { ReferButton } from "../sidebar/refer-button";
+import { ReferButtonRSC } from "../sidebar/refer-button-rsc";
 import UserDropdown from "../sidebar/user-dropdown";
 import { NavButton } from "./nav-button";
 
@@ -51,7 +51,7 @@ export function PageContent({
             <div className="hidden md:block">{titleControls}</div>
           )}
           <div className="flex items-center gap-4 md:hidden">
-            {!hideReferButton && <ReferButton />}
+            {!hideReferButton && <ReferButtonRSC />}
             <HelpButtonRSC />
             <UserDropdown />
           </div>
