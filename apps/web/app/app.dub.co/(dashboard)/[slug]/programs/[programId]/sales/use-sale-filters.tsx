@@ -142,9 +142,12 @@ export function useSaleFilters() {
 function usePartnerFilterOptions(search: string) {
   const { searchParamsObj } = useRouterStuff();
 
-  const { partnersCount } = usePartnersCount();
+  const { partnersCount } = usePartnersCount<number>({
+    ignoreParams: true,
+  });
+
   const partnersAsync = Boolean(
-    partnersCount && partnersCount["all"] > PARTNERS_MAX_PAGE_SIZE,
+    partnersCount && partnersCount > PARTNERS_MAX_PAGE_SIZE,
   );
 
   const { data: partners, loading: partnersLoading } = usePartners({

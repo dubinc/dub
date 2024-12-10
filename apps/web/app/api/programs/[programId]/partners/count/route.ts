@@ -1,26 +1,24 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
-import z from "@/lib/zod";
+import { partnersCountQuerySchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { ProgramEnrollmentStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
-
-const schema = z.object({
-  groupBy: z.enum(["status", "country"]).optional(),
-});
 
 // GET /api/programs/[programId]/partners/count
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
 
-    const { groupBy = "status" } = schema.parse(searchParams);
+    const { groupBy, status, country } =
+      partnersCountQuerySchema.parse(searchParams);
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
 
+    // Get partner count by country
     if (groupBy === "country") {
       const partners = await prisma.partner.groupBy({
         by: ["country"],
@@ -29,6 +27,11 @@ export const GET = withWorkspace(
             some: {
               programId,
             },
+            ...(status && {
+              every: {
+                status,
+              },
+            }),
           },
         },
         _count: true,
@@ -38,36 +41,45 @@ export const GET = withWorkspace(
           },
         },
       });
-      console.log({ partners });
 
       return NextResponse.json(partners);
-    } else {
-      const programEnrollments = await prisma.programEnrollment.groupBy({
+    }
+
+    // Get partner count by status
+    if (groupBy === "status") {
+      const partners = await prisma.programEnrollment.groupBy({
         by: ["status"],
         where: {
           programId,
+          ...(country && {
+            partner: {
+              country,
+            },
+          }),
         },
         _count: true,
       });
 
-      const counts = programEnrollments.reduce(
-        (acc, p) => {
-          acc[p.status] = p._count;
-          return acc;
-        },
-        {} as Record<ProgramEnrollmentStatus | "all", number>,
+      // Find missing statuses
+      const missingStatuses = Object.values(ProgramEnrollmentStatus).filter(
+        (status) => !partners.some((p) => p.status === status),
       );
 
-      // fill in missing statuses with 0
-      Object.values(ProgramEnrollmentStatus).forEach((status) => {
-        if (!(status in counts)) {
-          counts[status] = 0;
-        }
+      // Add missing statuses with count 0
+      missingStatuses.forEach((status) => {
+        partners.push({ _count: 0, status });
       });
 
-      counts.all = programEnrollments.reduce((acc, p) => acc + p._count, 0);
-
-      return NextResponse.json(counts);
+      return NextResponse.json(partners);
     }
+
+    // Get absolute count of partners
+    const count = await prisma.programEnrollment.count({
+      where: {
+        programId,
+      },
+    });
+
+    return NextResponse.json(count);
   },
 );
