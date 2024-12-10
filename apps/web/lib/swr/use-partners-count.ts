@@ -15,7 +15,11 @@ export default function usePartnersCount<T>(
   const { getQueryString } = useRouterStuff();
 
   const queryString = opts?.ignoreParams
-    ? `?workspaceId=${workspaceId}`
+    ? // @ts-ignore
+      `?${new URLSearchParams({
+        ...opts,
+        workspaceId,
+      }).toString()}`
     : getQueryString({
         ...opts,
         workspaceId,

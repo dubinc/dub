@@ -18,6 +18,7 @@ export function PartnerStats() {
 
   const { partnersCount, error } = usePartnersCount<PartnerCount[]>({
     groupBy: "status",
+    ignoreParams: true,
   });
 
   const approved = partnersCount?.find(

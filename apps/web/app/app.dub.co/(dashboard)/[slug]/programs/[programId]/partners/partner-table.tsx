@@ -1,6 +1,7 @@
 "use client";
 
 import usePartnersCount from "@/lib/swr/use-partners-count";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import EditColumnsButton from "@/ui/analytics/events/edit-columns-button";
 import { PartnerDetailsSheet } from "@/ui/partners/partner-details-sheet";
@@ -40,7 +41,8 @@ import { usePartnerFilters } from "./use-partner-filters";
 
 export function PartnerTable() {
   const { programId } = useParams();
-  const { queryParams, searchParams } = useRouterStuff();
+  const { id: workspaceId } = useWorkspace();
+  const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
   const sortBy = searchParams.get("sort") || "createdAt";
   const order = searchParams.get("order") === "asc" ? "asc" : "desc";
@@ -51,7 +53,6 @@ export function PartnerTable() {
     onSelect,
     onRemove,
     onRemoveAll,
-    searchQuery,
     isFiltered,
   } = usePartnerFilters({ sortBy, order });
 
@@ -60,7 +61,9 @@ export function PartnerTable() {
   });
 
   const { data: partners, error } = useSWR<EnrolledPartnerProps[]>(
-    `/api/programs/${programId}/partners?${searchQuery}`,
+    `/api/programs/${programId}/partners${getQueryString({
+      workspaceId,
+    })}`,
     fetcher,
   );
 
