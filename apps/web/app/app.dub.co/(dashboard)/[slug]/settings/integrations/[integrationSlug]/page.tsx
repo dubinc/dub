@@ -33,6 +33,11 @@ export default async function IntegrationPage({
               image: true,
             },
           },
+          webhook: {
+            select: {
+              id: true,
+            },
+          },
         },
       },
     },
@@ -42,24 +47,35 @@ export default async function IntegrationPage({
     notFound();
   }
 
+  const installed = integration.installations.length > 0;
+
+  const credentials = installed
+    ? integration.installations[0]?.credentials
+    : undefined;
+
+  const webhookId = installed
+    ? integration.installations[0]?.webhook?.id
+    : undefined;
+
   return (
     <IntegrationPageClient
       integration={{
         ...integration,
         screenshots: integration.screenshots as string[],
         installations: integration._count.installations,
-        installed:
-          integration.installations.length > 0
-            ? {
-                id: integration.installations[0].id,
-                by: {
-                  id: integration.installations[0].userId,
-                  name: integration.installations[0].user.name,
-                  image: integration.installations[0].user.image,
-                },
-                createdAt: integration.installations[0].createdAt,
-              }
-            : null,
+        installed: installed
+          ? {
+              id: integration.installations[0].id,
+              by: {
+                id: integration.installations[0].userId,
+                name: integration.installations[0].user.name,
+                image: integration.installations[0].user.image,
+              },
+              createdAt: integration.installations[0].createdAt,
+            }
+          : null,
+        credentials,
+        webhookId,
       }}
     />
   );
