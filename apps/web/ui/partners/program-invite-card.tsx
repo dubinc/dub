@@ -1,5 +1,5 @@
 import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program-invite";
-import { ProgramInviteProps } from "@/lib/types";
+import { PartnerProgramInviteProps } from "@/lib/types";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
 import { BlurImage, Button, StatusBadge } from "@dub/ui";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
@@ -7,7 +7,11 @@ import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
-export function ProgramInviteCard({ invite }: { invite: ProgramInviteProps }) {
+export function ProgramInviteCard({
+  invite,
+}: {
+  invite: PartnerProgramInviteProps;
+}) {
   const { executeAsync, isExecuting } = useAction(acceptProgramInviteAction, {
     onSuccess: () => {
       toast.success("Program invite accepted!");

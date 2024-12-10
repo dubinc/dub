@@ -14,6 +14,23 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
   const filters = useMemo(
     () => [
       {
+        key: "country",
+        icon: FlagWavy,
+        label: "Location",
+        getOptionIcon: (value) => (
+          <img
+            alt={value}
+            src={`https://flag.vercel.app/m/${value}.svg`}
+            className="h-2.5 w-4"
+          />
+        ),
+        getOptionLabel: (value) => COUNTRIES[value],
+        options: Object.entries(COUNTRIES).map(([value, label]) => ({
+          value,
+          label,
+        })),
+      },
+      {
         key: "status",
         icon: CircleDotted,
         label: "Status",
@@ -35,23 +52,6 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
             };
           },
         ),
-      },
-      {
-        key: "country",
-        icon: FlagWavy,
-        label: "Location",
-        getOptionIcon: (value) => (
-          <img
-            alt={value}
-            src={`https://flag.vercel.app/m/${value}.svg`}
-            className="h-2.5 w-4"
-          />
-        ),
-        getOptionLabel: (value) => COUNTRIES[value],
-        options: Object.entries(COUNTRIES).map(([value, label]) => ({
-          value,
-          label,
-        })),
       },
     ],
     [partnersCount],

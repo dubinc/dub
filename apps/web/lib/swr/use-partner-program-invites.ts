@@ -1,13 +1,13 @@
 import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import useSWR from "swr";
-import { ProgramInviteProps } from "../types";
+import { PartnerProgramInviteProps } from "../types";
 
 export default function usePartnerProgramInvites() {
   const { data: session } = useSession();
   const partnerId = session?.user?.["defaultPartnerId"];
 
-  const { data: programInvites } = useSWR<ProgramInviteProps[]>(
+  const { data: programInvites } = useSWR<PartnerProgramInviteProps[]>(
     partnerId && `/api/partners/${partnerId}/programs/invites`,
     fetcher,
     {
