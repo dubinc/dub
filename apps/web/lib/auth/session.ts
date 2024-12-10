@@ -25,9 +25,12 @@ export const withSession = (handler: WithSessionHandler) =>
   withAxiom(
     async (
       req: AxiomRequest,
-      { params = {} }: { params: Record<string, string> | undefined },
+      segmentData: {
+        params: Promise<Record<string, string>>;
+      },
     ) => {
       try {
+        const params = (await segmentData.params) || {};
         let session: Session | undefined;
         let headers = {};
 

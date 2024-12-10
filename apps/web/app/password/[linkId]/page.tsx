@@ -6,7 +6,6 @@ import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import PasswordForm from "./form";
 
-export const dynamic = "force-dynamic";
 export const runtime = "edge";
 
 const title = "Password Required";
@@ -17,11 +16,13 @@ const image = "https://assets.dub.co/misc/password-protected.png";
 export async function generateMetadata({
   params,
 }: {
-  params: { linkId: string };
+  params: Promise<{ linkId: string }>;
 }) {
+  const { linkId } = await params;
+
   const link = await prismaEdge.link.findUnique({
     where: {
-      id: params.linkId,
+      id: linkId,
     },
     select: {
       domain: true,
@@ -57,11 +58,14 @@ export async function generateMetadata({
 export default async function PasswordProtectedLinkPage({
   params,
 }: {
-  params: { linkId: string };
+  params: Promise<{ linkId: string }>;
 }) {
+  const { linkId } = await params;
+  const cookieStore = await cookies();
+
   const link = await prismaEdge.link.findUnique({
     where: {
-      id: params.linkId,
+      id: linkId,
     },
     select: {
       id: true,
@@ -85,7 +89,7 @@ export default async function PasswordProtectedLinkPage({
 
   if (
     !link.password ||
-    cookies().get(`dub_password_${link.id}`)?.value === link.password
+    cookieStore.get(`dub_password_${link.id}`)?.value === link.password
   ) {
     redirect(link.shortLink);
   }

@@ -1,6 +1,8 @@
 import { KeyboardEvent } from "react";
 
-export function useEnterSubmit(formRef: React.RefObject<HTMLFormElement>) {
+export function useEnterSubmit(
+  formRef: React.RefObject<HTMLFormElement | null>,
+) {
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     // Check if CMD/CTRL + Enter is pressed
     if (event.key === "Enter" && event.metaKey) {

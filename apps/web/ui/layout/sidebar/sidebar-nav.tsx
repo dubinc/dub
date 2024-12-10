@@ -1,4 +1,4 @@
-import { AnimatedSizeContainer, ClientOnly, Icon, NavWordmark } from "@dub/ui";
+import { AnimatedSizeContainer, Icon, NavWordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronDown, ChevronLeft } from "lucide-react";
 import Link from "next/link";
@@ -59,13 +59,14 @@ export function SidebarNav<T extends Record<any, any>>({
   bottom?: ReactNode;
 }) {
   return (
-    <ClientOnly className="scrollbar-hide relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden">
+    <>
       <nav className="relative flex grow flex-col p-3 text-gray-500">
         <div className="relative flex items-start justify-between gap-1 pb-3">
           {Object.entries(areas).map(([area, areaConfig]) => {
             const { title, backHref } = areaConfig(data);
 
             return (
+              // @ts-ignore
               <Link
                 key={area}
                 href={backHref ?? "/"}
@@ -77,7 +78,7 @@ export function SidebarNav<T extends Record<any, any>>({
                   (!title || !backHref) && "mb-1",
                 )}
                 aria-hidden={area !== currentArea ? true : undefined}
-                {...{ inert: area !== currentArea ? "" : undefined }}
+                {...{ inert: area !== currentArea ? true : undefined }}
               >
                 {title && backHref ? (
                   <div className="py group -my-1 -ml-1 flex items-center gap-2 py-2 pr-1 text-sm font-medium text-neutral-900">
@@ -134,7 +135,7 @@ export function SidebarNav<T extends Record<any, any>>({
       {bottom && (
         <div className="relative flex flex-col justify-end">{bottom}</div>
       )}
-    </ClientOnly>
+    </>
   );
 }
 
@@ -224,6 +225,7 @@ export function Area({
   children,
 }: PropsWithChildren<{ visible: boolean; direction: "left" | "right" }>) {
   return (
+    // @ts-ignore
     <div
       className={cn(
         "left-0 top-0 flex size-full flex-col md:transition-[opacity,transform] md:duration-300",
@@ -235,7 +237,7 @@ export function Area({
             ),
       )}
       aria-hidden={!visible ? "true" : undefined}
-      {...{ inert: !visible ? "" : undefined }}
+      {...{ inert: !visible ? true : undefined }}
     >
       {children}
     </div>

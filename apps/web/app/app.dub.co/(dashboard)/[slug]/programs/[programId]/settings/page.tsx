@@ -7,9 +7,9 @@ import { TrackingSettings } from "./tracking-settings";
 export default async function ProgramSettingsPage({
   params,
 }: {
-  params: { slug: string; programId: string };
+  params: Promise<{ programId: string }>;
 }) {
-  const { programId } = params;
+  const { programId } = await params;
 
   return (
     <PageContent title="Program Settings">

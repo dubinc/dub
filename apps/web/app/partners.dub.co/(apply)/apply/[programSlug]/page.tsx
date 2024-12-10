@@ -9,10 +9,12 @@ import { DetailsGrid } from "./details-grid";
 import { Header } from "./header";
 
 export default async function ApplyPage({
-  params: { programSlug },
+  params,
 }: {
-  params: { programSlug: string };
+  params: Promise<{ programSlug: string }>;
 }) {
+  const { programSlug } = await params;
+
   const program = await getProgram({ slug: programSlug });
 
   if (!program || !program.landerData) {

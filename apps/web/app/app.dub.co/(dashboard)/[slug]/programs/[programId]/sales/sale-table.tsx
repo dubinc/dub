@@ -148,6 +148,7 @@ const SaleTableBusinessInner = memo(
           minSize: 43,
           size: 43,
           maxSize: 43,
+          // @ts-ignore
           cell: ({ row }) => <SaleRowMenu row={row} />,
         },
       ],

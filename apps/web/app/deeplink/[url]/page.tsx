@@ -1,8 +1,16 @@
+import { use } from "react";
+
 export const runtime = "edge";
 
-export default function DeepLinkPage({ params }: { params: { url: string } }) {
+export default function DeepLinkPage({
+  params,
+}: {
+  params: Promise<{ url: string }>;
+}) {
+  let { url } = use(params);
+
   // First decode the full URL parameter from the route
-  const url = decodeURIComponent(params.url);
+  url = decodeURIComponent(url);
   // Split into base URL and query string
   const [baseUrl, queryString] = url.split("?");
 

@@ -6,7 +6,13 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import { ElementType, HTMLAttributes, forwardRef, useRef } from "react";
+import {
+  ElementType,
+  HTMLAttributes,
+  RefObject,
+  forwardRef,
+  useRef,
+} from "react";
 import {
   DayPicker,
   useDayPicker,
@@ -221,7 +227,11 @@ function Calendar({
         Day: ({ date, displayMonth }: DayProps) => {
           const buttonRef = useRef<HTMLButtonElement>(null);
           const { activeModifiers, buttonProps, divProps, isButton, isHidden } =
-            useDayRender(date, displayMonth, buttonRef);
+            useDayRender(
+              date,
+              displayMonth,
+              buttonRef as RefObject<HTMLButtonElement>,
+            );
 
           const { selected, today, disabled, range_middle } = activeModifiers;
 

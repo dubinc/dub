@@ -13,10 +13,11 @@ export const runtime = "edge";
 export async function generateMetadata({
   params,
 }: {
-  params: { domain: string; key: string };
+  params: Promise<{ domain: string; key: string }>;
 }) {
-  const domain = params.domain;
-  const key = decodeURIComponent(params.key); // key can potentially be encoded
+  let { domain, key } = await params;
+
+  key = decodeURIComponent(key); // key can potentially be encoded
 
   const data = await getLinkViaEdge(domain, key);
 
@@ -39,10 +40,11 @@ export async function generateMetadata({
 export default async function ProxyPage({
   params,
 }: {
-  params: { domain: string; key: string };
+  params: Promise<{ domain: string; key: string }>;
 }) {
-  const domain = params.domain;
-  const key = decodeURIComponent(params.key);
+  let { domain, key } = await params;
+
+  key = decodeURIComponent(key);
 
   const data = await getLinkViaEdge(domain, key);
 

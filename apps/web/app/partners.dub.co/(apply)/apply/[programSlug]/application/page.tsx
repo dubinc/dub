@@ -6,10 +6,12 @@ import { Header } from "../header";
 import { ProgramApplicationForm } from "./form";
 
 export default async function ApplicationPage({
-  params: { programSlug },
+  params,
 }: {
-  params: { programSlug: string };
+  params: Promise<{ programSlug: string }>;
 }) {
+  const { programSlug } = await params;
+
   const program = await getProgram({ slug: programSlug });
 
   if (!program) {

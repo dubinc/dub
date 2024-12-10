@@ -6,10 +6,12 @@ import { notFound } from "next/navigation";
 import { PropsWithChildren } from "react";
 
 export async function generateMetadata({
-  params: { programSlug },
+  params,
 }: {
-  params: { programSlug: string };
+  params: Promise<{ programSlug: string }>;
 }) {
+  const { programSlug } = await params;
+
   const program = await getProgram({ slug: programSlug });
 
   if (!program || !program.landerData) {
@@ -31,9 +33,11 @@ export async function generateMetadata({
 }
 
 export default async function ApplyLayout({
+  params,
   children,
-  params: { programSlug },
-}: PropsWithChildren<{ params: { programSlug: string } }>) {
+}: PropsWithChildren<{ params: Promise<{ programSlug: string }> }>) {
+  const { programSlug } = await params;
+
   const program = await getProgram({ slug: programSlug });
 
   if (!program || !program.landerData) {

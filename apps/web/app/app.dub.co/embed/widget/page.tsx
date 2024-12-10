@@ -4,9 +4,9 @@ import { EmbedWidgetPageClient } from "./page-client";
 export default async function EmbedWidgetPage({
   searchParams,
 }: {
-  searchParams: { token: string };
+  searchParams: Promise<{ token: string }>;
 }) {
-  const { token } = searchParams;
+  const { token } = await searchParams;
 
   const { link, program, hasPartnerProfile, earnings } =
     await getEmbedData(token);

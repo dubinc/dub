@@ -6,12 +6,14 @@ import { ProgramsPageClient } from "./page-client";
 export default async function Programs({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
+  const { slug } = await params;
+
   const program = await prisma.program.findFirst({
     where: {
       workspace: {
-        slug: params.slug,
+        slug,
       },
     },
   });
@@ -19,7 +21,7 @@ export default async function Programs({
     notFound();
   }
 
-  redirect(`/${params.slug}/programs/${program.id}`);
+  redirect(`/${slug}/programs/${program.id}`);
 
   return (
     <PageContent>

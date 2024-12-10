@@ -64,6 +64,6 @@
     "ts-node": "^10.9.2",
     "tsup": "^6.7.0",
     "type-fest": "^4.26.1",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.3"
   }
 }

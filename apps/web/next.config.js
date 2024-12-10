@@ -12,14 +12,10 @@ const { withAxiom } = require("next-axiom");
 /** @type {import('next').NextConfig} */
 module.exports = withAxiom({
   reactStrictMode: false,
-  transpilePackages: ["shiki"],
   experimental: {
-    serverComponentsExternalPackages: [
-      "@react-email/components",
-      "@react-email/render",
-      "@react-email/tailwind",
-    ],
+    ppr: "incremental",
   },
+  transpilePackages: ["shiki"],
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
       config.plugins.push(

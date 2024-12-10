@@ -11,9 +11,11 @@ export const fetchCache = "force-no-store";
 export async function generateMetadata({
   params,
 }: {
-  params: { url: string };
+  params: Promise<{ url: string }>;
 }) {
-  const url = decodeURIComponent(params.url); // key can potentially be encoded
+  let { url } = await params;
+
+  url = decodeURIComponent(url); // key can potentially be encoded
 
   const metatags = await getMetaTags(url);
 
@@ -28,8 +30,14 @@ export async function generateMetadata({
   });
 }
 
-export default function CloakedPage({ params }: { params: { url: string } }) {
-  const url = decodeURIComponent(params.url);
+export default async function CloakedPage({
+  params,
+}: {
+  params: Promise<{ url: string }>;
+}) {
+  let { url } = await params;
+
+  url = decodeURIComponent(url);
 
   return <iframe src={url} className="min-h-screen w-full border-none" />;
 }

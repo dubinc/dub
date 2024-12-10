@@ -17,7 +17,7 @@ const schema = signUpSchema.extend({
 // Sign up a new user using email and password
 export const createUserAccountAction = actionClient
   .schema(schema, {
-    handleValidationErrorsShape: (ve) =>
+    handleValidationErrorsShape: async (ve) =>
       flattenValidationErrors(ve).fieldErrors,
   })
   .use(throwIfAuthenticated)

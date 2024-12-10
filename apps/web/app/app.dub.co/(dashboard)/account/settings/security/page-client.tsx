@@ -4,8 +4,6 @@ import useUser from "@/lib/swr/use-user";
 import { RequestSetPassword } from "./request-set-password";
 import { UpdatePassword } from "./update-password";
 
-export const dynamic = "force-dynamic";
-
 export default function SecurityPageClient() {
   const { loading, user } = useUser();
 

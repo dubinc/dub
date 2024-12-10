@@ -3,9 +3,9 @@ import UpdateWebhookPageClient from "./page-client";
 export default async function UpdateWebhookPage({
   params,
 }: {
-  params: { webhookId: string };
+  params: Promise<{ webhookId: string }>;
 }) {
-  const { webhookId } = params;
+  const { webhookId } = await params;
 
   return <UpdateWebhookPageClient webhookId={webhookId} />;
 }

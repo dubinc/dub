@@ -16,12 +16,14 @@ export const metadata = constructMetadata({
 export default async function ExpiredLinkPage({
   params,
 }: {
-  params: { domain: string };
+  params: Promise<{ domain: string }>;
 }) {
-  const domain = await getDomainViaEdge(params.domain);
+  const { domain } = await params;
 
-  if (domain?.expiredUrl) {
-    redirect(domain.expiredUrl);
+  const domainRecord = await getDomainViaEdge(domain);
+
+  if (domainRecord?.expiredUrl) {
+    redirect(domainRecord.expiredUrl);
   }
 
   return (

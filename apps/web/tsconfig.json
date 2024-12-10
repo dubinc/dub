@@ -10,7 +10,8 @@
       "@/pages/*": ["pages/*"],
       "@/styles/*": ["styles/*"],
       "@/ui/*": ["ui/*"],
-      "@/lib/*": ["lib/*"]
+      "@/lib/*": ["lib/*"],
+      "react": [ "./node_modules/@types/react" ]
     },
     "downlevelIteration": true,
     "forceConsistentCasingInFileNames": true,

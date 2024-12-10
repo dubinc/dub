@@ -3,8 +3,10 @@ import { User } from "next-auth";
 import { cookies } from "next/headers";
 
 export const trackLead = async (user: User) => {
+  const cookieStore = await cookies();
+
   const clickId =
-    cookies().get("dub_id")?.value || cookies().get("dclid")?.value;
+    cookieStore.get("dub_id")?.value || cookieStore.get("dclid")?.value;
 
   if (!clickId) {
     console.log("No clickId cookie found, skipping lead tracking...");
@@ -22,6 +24,6 @@ export const trackLead = async (user: User) => {
   });
 
   // delete the clickId cookie
-  cookies().delete("dclid");
-  cookies().delete("dub_id");
+  cookieStore.delete("dclid");
+  cookieStore.delete("dub_id");
 };

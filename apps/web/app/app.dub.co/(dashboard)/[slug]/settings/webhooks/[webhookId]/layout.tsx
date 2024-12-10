@@ -1,16 +1,18 @@
 import WebhookHeader from "@/ui/webhooks/webhook-header";
-import { ReactNode } from "react";
+import { ReactNode, use } from "react";
 
 export default function WebhookLayout({
   params,
   children,
 }: {
-  params: { webhookId: string };
+  params: Promise<{ webhookId: string }>;
   children: ReactNode;
 }) {
+  const { webhookId } = use(params);
+
   return (
     <div className="max-w-screen grid gap-4">
-      <WebhookHeader webhookId={params.webhookId} />
+      <WebhookHeader webhookId={webhookId} />
       {children}
     </div>
   );
