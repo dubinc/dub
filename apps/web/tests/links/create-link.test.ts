@@ -1,11 +1,10 @@
-import { LinkSchema } from "@/lib/zod/schemas/links";
 import { Link, Tag } from "@dub/prisma/client";
 import { IntegrationHarnessOld } from "tests/utils/integration-old";
 import { afterAll, describe, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK, E2E_WEBHOOK_ID } from "../utils/resource";
-import { expectedLink } from "../utils/schema";
+import { LinkSchema, expectedLink } from "../utils/schema";
 
 const { domain, url } = E2E_LINK;
 
