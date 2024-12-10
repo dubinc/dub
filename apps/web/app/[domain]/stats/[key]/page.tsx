@@ -1,4 +1,4 @@
-import { prismaEdge } from "@/lib/prisma/edge";
+import { prismaEdge } from "@dub/prisma/edge";
 import { APP_DOMAIN } from "@dub/utils";
 import { notFound, redirect } from "next/navigation";
 

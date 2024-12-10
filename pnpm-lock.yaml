@@ -51,6 +51,9 @@ importers:
       '@dub/embed-react':
         specifier: workspace:*
         version: link:../../packages/embeds/react
+      '@dub/prisma':
+        specifier: workspace:*
+        version: link:../../packages/prisma
       '@dub/tailwind-config':
         specifier: workspace:*
         version: link:../../packages/tailwind-config
@@ -72,12 +75,12 @@ importers:
       '@planetscale/database':
         specifier: ^1.18.0
         version: 1.18.0
-      '@prisma/adapter-planetscale':
-        specifier: 5.18.0
-        version: 5.18.0(@planetscale/database@1.18.0)
       '@prisma/client':
         specifier: 5.18.0
         version: 5.18.0(prisma@5.18.0)
+      '@prisma/nextjs-monorepo-workaround-plugin':
+        specifier: ^6.0.1
+        version: 6.0.1
       '@radix-ui/react-hover-card':
         specifier: ^1.1.1
         version: 1.1.1(@types/react-dom@18.2.14)(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)
@@ -385,6 +388,9 @@ importers:
       dotenv-flow:
         specifier: ^4.1.0
         version: 4.1.0
+      dotenv-flow-cli:
+        specifier: ^1.1.1
+        version: 1.1.1
       papaparse:
         specifier: ^5.4.1
         version: 5.4.1
@@ -394,9 +400,6 @@ importers:
       postcss-import:
         specifier: ^15.1.0
         version: 15.1.0(postcss@8.4.31)
-      prisma:
-        specifier: 5.18.0
-        version: 5.18.0
       tailwindcss:
         specifier: ^3.4.4
         version: 3.4.4
@@ -550,6 +553,31 @@ importers:
       typescript:
         specifier: ^5.1.6
         version: 5.6.2
+
+  packages/prisma:
+    dependencies:
+      '@planetscale/database':
+        specifier: ^1.18.0
+        version: 1.18.0
+      '@prisma/adapter-planetscale':
+        specifier: ^5.18.0
+        version: 5.18.0(@planetscale/database@1.18.0)
+      '@prisma/client':
+        specifier: 5.18.0
+        version: 5.18.0(prisma@5.18.0)
+    devDependencies:
+      '@types/node':
+        specifier: 18.11.9
+        version: 18.11.9
+      prisma:
+        specifier: 5.18.0
+        version: 5.18.0
+      tsx:
+        specifier: ^4.11.0
+        version: 4.11.0
+      typescript:
+        specifier: 5.2.2
+        version: 5.2.2
 
   packages/stripe-app:
     dependencies:
@@ -5521,6 +5549,10 @@ packages:
     resolution: {integrity: sha512-Tk+m7+uhqcKDgnMnFN0lRiH7Ewea0OEsZZs9pqXa7i3+7svS3FSCqDBCaM9x5fmhhkufiG0BtunJVDka+46DlA==}
     dependencies:
       '@prisma/debug': 5.18.0
+
+  /@prisma/nextjs-monorepo-workaround-plugin@6.0.1:
+    resolution: {integrity: sha512-7GCiwVbIyF2mO0qL0e0BMHc1wQJEuXg61EcRXt6rWtFtxQEXQc2Hl839WQ89jrNmsEPYH9UCFyJ9hP5AhbA+9w==}
+    dev: false
 
   /@protobufjs/aspromise@1.1.2:
     resolution: {integrity: sha512-j+gKExEuLmKwvz3OgROXtrJ2UG2x8Ch2YZUxahh+s1F2HZ+wAceUNLkvy6zKCPVRkU++ZWQrdxsUeQXmcg4uoQ==}
@@ -12455,6 +12487,23 @@ packages:
       is-obj: 2.0.0
     dev: false
 
+  /dotenv-expand@12.0.1:
+    resolution: {integrity: sha512-LaKRbou8gt0RNID/9RoI+J2rvXsBRPMV7p+ElHlPhcSARbCPDYcYG2s1TIzAfWv4YSgyY5taidWzzs31lNV3yQ==}
+    engines: {node: '>=12'}
+    dependencies:
+      dotenv: 16.4.7
+    dev: true
+
+  /dotenv-flow-cli@1.1.1:
+    resolution: {integrity: sha512-r2Ij1fAqHSownUugXAmdqtgJ6pyXTuPIJFY+y4sWnwSoelBkdCEgttaremc5gdjwXjdUQqNOzonIYl/Wx69OOg==}
+    hasBin: true
+    dependencies:
+      cross-spawn: 7.0.3
+      dotenv-expand: 12.0.1
+      dotenv-flow: 4.1.0
+      minimist: 1.2.8
+    dev: true
+
   /dotenv-flow@4.1.0:
     resolution: {integrity: sha512-0cwP9jpQBQfyHwvE0cRhraZMkdV45TQedA8AAUZMsFzvmLcQyc1HPv+oX0OOYwLFjIlvgVepQ+WuQHbqDaHJZg==}
     engines: {node: '>= 12.0.0'}
@@ -12470,6 +12519,11 @@ packages:
   /dotenv@16.3.1:
     resolution: {integrity: sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==}
     engines: {node: '>=12'}
+
+  /dotenv@16.4.7:
+    resolution: {integrity: sha512-47qPchRCykZC03FhkYAhrvwU4xDBFIj1QPqaarj6mdM/hgUzfPHcpkHJOn3mJAufFeeAxAzeGsr5X0M4k6fLZQ==}
+    engines: {node: '>=12'}
+    dev: true
 
   /dub@0.43.0(zod@3.23.8):
     resolution: {integrity: sha512-PxS0165fQqeMNDYdSbAAxc69WphtonAyVWh3IVbM0isdGfOeTNIX9gqqZ8ZZORr5/L4CVnipnip3+PRIlVu5Rg==}
@@ -17171,7 +17225,6 @@ packages:
 
   /minimist@1.2.8:
     resolution: {integrity: sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==}
-    dev: false
 
   /minipass@7.0.4:
     resolution: {integrity: sha512-jYofLM5Dam9279rdkWzqHozUo4ybjdZmCsDHePy5V/PbBcVMiSZR97gmAy45aqi8CK1lG2ECd356FU86avfwUQ==}
@@ -21035,6 +21088,17 @@ packages:
       typescript: 4.9.5
     dev: true
 
+  /tsx@4.11.0:
+    resolution: {integrity: sha512-vzGGELOgAupsNVssAmZjbUDfdm/pWP4R+Kg8TVdsonxbXk0bEpE1qh0yV6/QxUVXaVlNemgcPajGdJJ82n3stg==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
+    dependencies:
+      esbuild: 0.20.2
+      get-tsconfig: 4.8.1
+    optionalDependencies:
+      fsevents: 2.3.3
+    dev: true
+
   /tsx@4.19.2:
     resolution: {integrity: sha512-pOUl6Vo2LUq/bSa8S5q7b91cgNSjctn9ugq/+Mvow99qW6x/UZYwzxy/3NmqoT66eHYfCVvFvACC58UBPFf28g==}
     engines: {node: '>=18.0.0'}
@@ -21375,6 +21439,12 @@ packages:
     resolution: {integrity: sha512-zaWCozRZ6DLEWAWFrVDz1H6FVXzUSfTy5FUMWsQlU8Ym5JP9eO4xkTIROFCQvhQf61z6O/G6ugw3SgAnvvm+HA==}
     engines: {node: '>=14.17'}
     hasBin: true
+
+  /typescript@5.2.2:
+    resolution: {integrity: sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+    dev: true
 
   /typescript@5.4.4:
     resolution: {integrity: sha512-dGE2Vv8cpVvw28v8HCPqyb08EzbBURxDpuhJvTrusShUfGnhHBafDsLdS1EhhxyL6BJQE+2cT3dDPAv+MQ6oLw==}

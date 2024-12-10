@@ -1,12 +1,12 @@
 import { intervals } from "@/lib/analytics/constants";
-import { COUNTRY_CODES } from "@dub/utils";
 import {
   PartnerStatus,
   PayoutStatus,
   PayoutType,
   ProgramEnrollmentStatus,
   SaleStatus,
-} from "@prisma/client";
+} from "@dub/prisma/client";
+import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
 import { CustomerSchema } from "./customers";
 import { getPaginationQuerySchema } from "./misc";

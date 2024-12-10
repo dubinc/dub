@@ -1,6 +1,6 @@
 "use server";
 
-import { prismaEdge } from "@/lib/prisma/edge";
+import { prismaEdge } from "@dub/prisma/edge";
 import { cookies } from "next/headers";
 
 export async function verifyPassword(_prevState: any, data: FormData) {

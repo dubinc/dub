@@ -1,6 +1,6 @@
 import { createDotsUser } from "@/lib/dots/create-dots-user";
 import { retrieveDotsUser } from "@/lib/dots/retrieve-dots-user";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 const partnerId = "pn_DlsZeePb38RVcnrfbD0SrKzB";

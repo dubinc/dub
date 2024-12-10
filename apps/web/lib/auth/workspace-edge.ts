@@ -5,6 +5,7 @@ import {
 } from "@/lib/api/errors";
 import { AddOns, BetaFeatures, PlanProps, WorkspaceProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
+import { prismaEdge } from "@dub/prisma/edge";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { StreamingTextResponse } from "ai";
@@ -18,7 +19,6 @@ import {
 import { throwIfNoAccess } from "../api/tokens/permissions";
 import { Scope, mapScopesToPermissions } from "../api/tokens/scopes";
 import { getFeatureFlags } from "../edge-config";
-import { prismaEdge } from "../prisma/edge";
 import { hashToken } from "./hash-token";
 import type { Session } from "./utils";
 

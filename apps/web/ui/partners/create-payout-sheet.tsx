@@ -8,6 +8,7 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { createManualPayoutSchema } from "@/lib/zod/schemas/payouts";
 import { X } from "@/ui/shared/icons";
+import { PayoutType } from "@dub/prisma/client";
 import {
   Button,
   Combobox,
@@ -26,7 +27,6 @@ import {
 } from "@dub/utils";
 import { nFormatter } from "@dub/utils/src/functions";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PayoutType } from "@prisma/client";
 import {
   endOfMonth,
   endOfQuarter,

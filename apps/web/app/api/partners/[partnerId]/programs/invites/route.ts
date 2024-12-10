@@ -1,6 +1,6 @@
 import { withPartner } from "@/lib/auth/partner";
-import { prisma } from "@/lib/prisma";
 import { PartnerProgramInviteSchema } from "@/lib/zod/schemas/programs";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

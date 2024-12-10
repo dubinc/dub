@@ -1,11 +1,11 @@
 import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { generateRandomName } from "@/lib/names";
-import { prismaEdge } from "@/lib/prisma/edge";
 import {
   trackCustomerRequestSchema,
   trackCustomerResponseSchema,
 } from "@/lib/zod/schemas/customers";
+import { prismaEdge } from "@dub/prisma/edge";
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";

@@ -1,10 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import {
   dashboardSchema,
   updateDashboardBodySchema,
 } from "@/lib/zod/schemas/dashboard";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 

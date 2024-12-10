@@ -1,5 +1,5 @@
-import { prismaEdge } from "@/lib/prisma/edge";
 import { NewBackground } from "@/ui/shared/new-background";
+import { prismaEdge } from "@dub/prisma/edge";
 import { BlurImage, Logo } from "@dub/ui";
 import { constructMetadata, isDubDomain } from "@dub/utils";
 import { cookies } from "next/headers";

@@ -1,10 +1,10 @@
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartner } from "@/lib/auth/partner";
-import { prisma } from "@/lib/prisma";
 import {
   PartnerPayoutResponseSchema,
   payoutsQuerySchema,
 } from "@/lib/zod/schemas/partners";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import z from "zod";
 

@@ -2,12 +2,12 @@ import { DubApiError } from "@/lib/api/errors";
 import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
-import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import {
   updateWorkspaceSchema,
   WorkspaceSchema,
 } from "@/lib/zod/schemas/workspaces";
+import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

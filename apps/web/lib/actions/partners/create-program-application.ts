@@ -3,9 +3,9 @@
 import { createId, getIP } from "@/lib/api/utils";
 import { getSession } from "@/lib/auth";
 import { updateConfig } from "@/lib/edge-config";
-import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
-import { Partner, Program, ProgramEnrollment } from "@prisma/client";
+import { prisma } from "@dub/prisma";
+import { Partner, Program, ProgramEnrollment } from "@dub/prisma/client";
 import { addDays } from "date-fns";
 import { cookies } from "next/headers";
 import z from "../../zod";

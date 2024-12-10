@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 async function main() {

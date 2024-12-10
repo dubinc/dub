@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { addAppAchAccount } from "../dots/add-app-ach-account";
 import { createDotsApp } from "../dots/create-dots-app";

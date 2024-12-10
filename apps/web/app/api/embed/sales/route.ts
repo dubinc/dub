@@ -1,7 +1,7 @@
 import { withEmbedToken } from "@/lib/embed/auth";
-import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { PartnerSaleResponseSchema } from "@/lib/zod/schemas/partners";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/embed/sales – get sales for a link from an embed token

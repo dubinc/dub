@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
 import { PageContent } from "@/ui/layout/page-content";
+import { prisma } from "@dub/prisma";
 import { notFound, redirect } from "next/navigation";
 import { ProgramsPageClient } from "./page-client";
 

@@ -1,8 +1,8 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartner } from "@/lib/auth/partner";
-import { prisma } from "@/lib/prisma";
 import { getPartnerSalesCountQuerySchema } from "@/lib/zod/schemas/partners";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/partners/[partnerId]/programs/[programId]/sales/count – get sales count for a partner in a program enrollment

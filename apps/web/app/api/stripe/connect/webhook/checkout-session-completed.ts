@@ -1,12 +1,12 @@
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { createSaleData } from "@/lib/api/sales/sale";
-import { prisma } from "@/lib/prisma";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
+import { prisma } from "@dub/prisma";
+import { Customer } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
-import { Customer } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 

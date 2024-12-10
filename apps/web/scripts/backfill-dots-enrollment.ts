@@ -1,5 +1,5 @@
 import { enrollDotsUserApp } from "@/lib/actions/partners/enroll-dots-user-app";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 const programId = "***";

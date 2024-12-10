@@ -1,8 +1,8 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { createSaleData } from "@/lib/api/sales/sale";
-import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 const linkId = "cm032y2660009ygp4l1y1vc89";
