@@ -75,6 +75,7 @@ export const trackCustomerResponseSchema = z.object({
 });
 
 // simple schema returned by /events API
+// TODO: Remove this schema if it is not used
 export const customerSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -95,3 +96,10 @@ export const customersQuerySchema = z
       .describe("IDs of customers to filter by."),
   })
   .merge(getPaginationQuerySchema({ pageSize: CUSTOMERS_MAX_PAGE_SIZE }));
+
+export const customerEventsSchemaTB = z.object({
+  timestamp: z.string(),
+  event: z.string(),
+  event_name: z.string(),
+  metadata: z.string().default(""),
+});
