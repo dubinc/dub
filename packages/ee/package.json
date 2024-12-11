@@ -1,0 +1,17 @@
+{
+  "name": "@dub/ee",
+  "version": "0.0.0",
+  "description": "Dub Enterprise Edition",
+  "license": "See license in LICENSE",
+  "private": true,
+  "main": "./index.ts",
+  "module": "./index.ts",
+  "types": "./index.ts",
+  "dependencies": {
+    "@dub/prisma": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "18.11.9",
+    "typescript": "5.2.2"
+  }
+}
