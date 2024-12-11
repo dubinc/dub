@@ -10,7 +10,7 @@ import { NextResponse } from "next/server";
 
 export const runtime = "edge";
 
-// POST /api/track/customer – Track a customer object
+// POST /api/track/customer – Track a customer object (Deprecated)
 export const POST = withWorkspaceEdge(
   async ({ req, workspace }) => {
     const {

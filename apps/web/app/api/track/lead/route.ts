@@ -68,9 +68,7 @@ export const POST = withWorkspaceEdge(
 
     waitUntil(
       (async () => {
-        const clickData = clickEventSchemaTB
-          .omit({ timestamp: true })
-          .parse(clickEvent.data[0]);
+        const clickData = clickEventSchemaTB.parse(clickEvent.data[0]);
 
         // Find customer or create if not exists
         const customer = await prismaEdge.customer.upsert({
@@ -88,6 +86,11 @@ export const POST = withWorkspaceEdge(
             externalId: customerExternalId,
             projectId: workspace.id,
             projectConnectId: workspace.stripeConnectId,
+            clickedAt: new Date(clickData.timestamp).toISOString(),
+            leadCreatedAt: new Date(), // TODO: Sync with lead timestamp
+            clickId: clickData.click_id,
+            linkId: clickData.link_id,
+            country: clickData.country,
           },
           update: {
             name: finalCustomerName,
@@ -95,6 +98,9 @@ export const POST = withWorkspaceEdge(
             avatar: customerAvatar,
           },
         });
+
+        // TODO:
+        // I think some of below requests should only be made if the customer is new (not on update)?
 
         const [_lead, link, _project] = await Promise.all([
           recordLead({

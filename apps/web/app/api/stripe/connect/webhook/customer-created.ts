@@ -26,8 +26,10 @@ export async function customerCreated(event: Stripe.Event) {
     return `Click event with ID ${clickId} not found, skipping...`;
   }
 
+  const clickData = clickEventSchemaTB.parse(clickEvent.data[0]);
+
   // Find link
-  const linkId = clickEvent.data[0].link_id;
+  const linkId = clickData.link_id;
   const link = await prisma.link.findUnique({
     where: {
       id: linkId,
@@ -60,6 +62,11 @@ export async function customerCreated(event: Stripe.Event) {
       stripeCustomerId: stripeCustomer.id,
       projectConnectId: stripeAccountId,
       externalId,
+      linkId: clickData.link_id,
+      clickId: clickData.click_id,
+      clickedAt: new Date(clickData.timestamp).toISOString(),
+      leadCreatedAt: new Date(), // TODO: Sync with lead timestamp
+      country: clickData.country,
       project: {
         connect: {
           stripeConnectId: stripeAccountId,
@@ -67,10 +74,6 @@ export async function customerCreated(event: Stripe.Event) {
       },
     },
   });
-
-  const clickData = clickEventSchemaTB
-    .omit({ timestamp: true })
-    .parse(clickEvent.data[0]);
 
   const leadData = {
     ...clickData,
@@ -81,7 +84,9 @@ export async function customerCreated(event: Stripe.Event) {
 
   const [_lead, _link, workspace] = await Promise.all([
     // Record lead
-    recordLead(leadData),
+    recordLead({
+      ...leadData,
+    }),
 
     // update link leads count
     prisma.link.update({
