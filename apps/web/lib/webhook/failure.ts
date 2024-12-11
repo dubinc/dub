@@ -4,7 +4,7 @@ import { sendEmail } from "emails";
 import WebhookDisabled from "emails/webhook-disabled";
 import { webhookCache } from "./cache";
 import { WEBHOOK_FAILURE_NOTIFY_THRESHOLD } from "./constants";
-import { updateWebhookStatusForWorkspace } from "./update-webhook";
+import { toggleWebhooksForWorkspace } from "./update-webhook";
 
 export const handleWebhookFailure = async (webhookId: string) => {
   const webhook = await prisma.webhook.update({
@@ -49,7 +49,7 @@ export const handleWebhookFailure = async (webhookId: string) => {
       webhookCache.set(updatedWebhook),
 
       // Update the project webhookEnabled flag
-      updateWebhookStatusForWorkspace({
+      toggleWebhooksForWorkspace({
         workspaceId: webhook.projectId,
       }),
     ]);

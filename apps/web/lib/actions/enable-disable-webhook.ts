@@ -3,7 +3,7 @@
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { webhookCache } from "../webhook/cache";
-import { updateWebhookStatusForWorkspace } from "../webhook/update-webhook";
+import { toggleWebhooksForWorkspace } from "../webhook/update-webhook";
 import z from "../zod";
 import { authActionClient } from "./safe-action";
 
@@ -50,7 +50,7 @@ export const enableOrDisableWebhook = authActionClient
     waitUntil(
       (async () => {
         await Promise.all([
-          updateWebhookStatusForWorkspace({
+          toggleWebhooksForWorkspace({
             workspaceId: workspace.id,
           }),
 

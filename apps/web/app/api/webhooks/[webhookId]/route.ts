@@ -4,7 +4,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { webhookCache } from "@/lib/webhook/cache";
 import { transformWebhook } from "@/lib/webhook/transform";
-import { updateWebhookStatusForWorkspace } from "@/lib/webhook/update-webhook";
+import { toggleWebhooksForWorkspace } from "@/lib/webhook/update-webhook";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";
 import { updateWebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { prisma } from "@dub/prisma";
@@ -314,7 +314,7 @@ export const DELETE = withWorkspace(
         });
 
         await Promise.all([
-          updateWebhookStatusForWorkspace({
+          toggleWebhooksForWorkspace({
             workspaceId: workspace.id,
           }),
 

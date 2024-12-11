@@ -3,7 +3,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { createWebhook } from "@/lib/webhook/create-webhook";
 import { transformWebhook } from "@/lib/webhook/transform";
-import { updateWebhookStatusForWorkspace } from "@/lib/webhook/update-webhook";
+import { toggleWebhooksForWorkspace } from "@/lib/webhook/update-webhook";
 import { identifyWebhookReceiver } from "@/lib/webhook/utils";
 import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { prisma } from "@dub/prisma";
@@ -128,7 +128,7 @@ export const POST = withWorkspace(
 
     waitUntil(
       Promise.allSettled([
-        updateWebhookStatusForWorkspace({
+        toggleWebhooksForWorkspace({
           workspaceId: workspace.id,
         }),
 

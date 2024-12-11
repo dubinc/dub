@@ -1,6 +1,7 @@
 import { prisma } from "@dub/prisma";
 
-export const updateWebhookStatusForWorkspace = async ({
+// Based on the webhook count, we toggle the webhook status for the workspace
+export const toggleWebhooksForWorkspace = async ({
   workspaceId,
 }: {
   workspaceId: string;
