@@ -74,16 +74,6 @@ export const trackCustomerResponseSchema = z.object({
   customerAvatar: z.string().nullable(),
 });
 
-// simple schema returned by /events API
-// TODO: Remove this schema if it is not used
-export const customerSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  email: z.string(),
-  avatar: z.string(),
-  externalId: z.string().optional(),
-});
-
 export const CUSTOMERS_MAX_PAGE_SIZE = 100;
 
 export const customersQuerySchema = z
@@ -102,4 +92,17 @@ export const customerEventsSchemaTB = z.object({
   event: z.string(),
   event_name: z.string(),
   metadata: z.string().default(""),
+});
+
+export const customerActivitySchema = z.object({
+  timestamp: z.date(),
+  event: z.enum(["click", "lead", "sale"]),
+  event_name: z.string(),
+  metadata: z.union([
+    z.null(),
+    z.object({
+      payment_processor: z.string(),
+      amount: z.number(),
+    }),
+  ]),
 });

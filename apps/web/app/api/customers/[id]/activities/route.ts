@@ -1,29 +1,23 @@
+import { getEvents } from "@/lib/analytics/get-events";
 import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { getCustomerEvents } from "@/lib/tinybird/get-customer-events";
-import { CustomerSchema } from "@/lib/zod/schemas/customers";
+import {
+  customerActivitySchema,
+  CustomerSchema,
+} from "@/lib/zod/schemas/customers";
+import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-const CustomerActivitySchema = z.object({
-  timestamp: z.date(),
-  event: z.enum(["click", "lead", "sale"]),
-  event_name: z.string(),
-  metadata: z.union([
-    z.null(),
-    z.object({
-      payment_processor: z.string(),
-      amount: z.string(),
-    }),
-  ]),
-});
+type CustomerActivity = z.infer<typeof customerActivitySchema>;
+type SaleEvent = z.infer<typeof saleEventResponseSchema>;
 
-const schema = z.object({
+const responseSchema = z.object({
   ltv: z.number(),
   timeToLead: z.number(),
   timeToSale: z.number(),
   customer: CustomerSchema,
-  activities: z.array(CustomerActivitySchema),
+  activities: z.array(customerActivitySchema),
 });
 
 // GET /api/customers/[id]/activities - get a customer's activity
@@ -35,21 +29,44 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     id: customerId,
   });
 
-  const events = await getCustomerEvents({
-    customerId,
+  // TODO:
+  // We need to add a new filter clickId/customerId to `getEvents` or add a new pipe to get sales by clickId/customerId
+  const events = await getEvents({
+    event: "sales",
+    order: "desc",
+    sortBy: "timestamp",
+    linkId: customer.linkId!, // FIX ME
+    workspaceId: workspace.id,
+    interval: "1y",
+    page: 1,
+    limit: 50,
   });
 
-  const activities = events.data.map((event) => ({
-    ...event,
-    metadata: event.metadata ? JSON.parse(event.metadata) : null,
-    timestamp: new Date(event.timestamp),
-  }));
+  const activities: CustomerActivity[] = events.map((event: SaleEvent) => {
+    return {
+      timestamp: new Date(event.timestamp),
+      event: "sale",
+      event_name: event.eventName,
+      metadata: {
+        amount: event.sale.amount,
+        payment_processor: event.sale.paymentProcessor,
+      },
+    };
+  });
+
+  // Add lead event to activities
+  activities.push({
+    timestamp: customer.leadCreatedAt!,
+    event: "lead",
+    event_name: "Account created",
+    metadata: null,
+  });
 
   // Add click event to activities
   activities.push({
     timestamp: customer.clickedAt!,
     event: "click",
-    event_name: "Link click",
+    event_name: "Link clicked",
     metadata: null,
   });
 
@@ -78,7 +95,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
       : 0;
 
   return NextResponse.json(
-    schema.parse({
+    responseSchema.parse({
       ltv,
       timeToLead,
       timeToSale,
