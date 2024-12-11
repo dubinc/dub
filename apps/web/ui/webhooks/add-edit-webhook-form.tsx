@@ -104,13 +104,14 @@ export default function AddEditWebhookForm({
   const buttonDisabled = !name || !url || !triggers.length || saving;
 
   const updateDisabled =
-    webhook?.installationId !== null || permissionsError !== false;
+    (webhook && webhook?.installationId !== null) || permissionsError !== false;
 
-  const disabledTooltip = webhook?.installationId
-    ? `This webhook is managed by an integration.`
-    : permissionsError
-      ? permissionsError
-      : undefined;
+  const disabledTooltip =
+    webhook && webhook?.installationId
+      ? `This webhook is managed by an integration.`
+      : permissionsError
+        ? permissionsError
+        : undefined;
 
   const enableLinkSelection = LINK_LEVEL_WEBHOOK_TRIGGERS.some((trigger) =>
     triggers.includes(trigger),

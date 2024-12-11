@@ -58,7 +58,6 @@ export async function createWebhook({
   await prisma.project.update({
     where: {
       id: workspaceId,
-      webhookEnabled: false,
     },
     data: {
       webhookEnabled: true,
