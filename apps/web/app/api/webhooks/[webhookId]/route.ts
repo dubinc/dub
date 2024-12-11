@@ -3,8 +3,8 @@ import { linkCache } from "@/lib/api/links/cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { webhookCache } from "@/lib/webhook/cache";
-import { deleteWebhook } from "@/lib/webhook/delete-webhook";
 import { transformWebhook } from "@/lib/webhook/transform";
+import { updateWebhookStatusForWorkspace } from "@/lib/webhook/update-webhook";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";
 import { updateWebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { prisma } from "@dub/prisma";
@@ -258,10 +258,72 @@ export const DELETE = withWorkspace(
   async ({ workspace, params }) => {
     const { webhookId } = params;
 
-    await deleteWebhook({
-      webhookId,
-      workspaceId: workspace.id,
+    const webhook = await prisma.webhook.findUniqueOrThrow({
+      where: {
+        id: webhookId,
+        projectId: workspace.id,
+      },
+      select: {
+        installationId: true,
+      },
     });
+
+    if (webhook.installationId) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "This webhook is managed by an integration, hence cannot be deleted manually.",
+      });
+    }
+
+    const linkWebhooks = await prisma.linkWebhook.findMany({
+      where: {
+        webhookId,
+      },
+      select: {
+        linkId: true,
+      },
+    });
+
+    await prisma.webhook.delete({
+      where: {
+        id: webhookId,
+      },
+    });
+
+    waitUntil(
+      (async () => {
+        const links = await prisma.link.findMany({
+          where: {
+            id: { in: linkWebhooks.map(({ linkId }) => linkId) },
+          },
+          include: {
+            webhooks: {
+              select: {
+                webhookId: true,
+              },
+            },
+          },
+        });
+
+        const formatedLinks = links.map((link) => {
+          return {
+            ...link,
+            webhookIds: link.webhooks.map((webhook) => webhook.webhookId),
+          };
+        });
+
+        await Promise.all([
+          updateWebhookStatusForWorkspace({
+            workspaceId: workspace.id,
+          }),
+
+          linkCache.mset(formatedLinks),
+
+          webhookCache.delete(webhookId),
+        ]);
+      })(),
+    );
 
     return NextResponse.json({
       id: webhookId,
