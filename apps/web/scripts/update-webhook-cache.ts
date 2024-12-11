@@ -17,6 +17,7 @@ async function main() {
       triggers: true,
       disabledAt: true,
     },
+    take: 100,
   });
 
   const result = await Promise.all(
