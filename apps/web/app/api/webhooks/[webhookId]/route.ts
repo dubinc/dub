@@ -69,7 +69,7 @@ export const PATCH = withWorkspace(
       throw new DubApiError({
         code: "bad_request",
         message:
-          "This webhook is managed by an integration. Not all fields can be updated manually.",
+          "This webhook is managed by an integration. Only the linkIds & triggers can be updated.",
       });
     }
 
