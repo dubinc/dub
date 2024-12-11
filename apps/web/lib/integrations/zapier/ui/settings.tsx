@@ -16,8 +16,6 @@ export const ZapierSettings = (props: InstalledIntegrationInfoProps) => {
             "link.updated",
             "link.deleted",
             "link.clicked",
-            "lead.created",
-            "sale.created",
           ]}
         />
       )}
