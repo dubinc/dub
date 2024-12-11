@@ -1,7 +1,7 @@
-import { Webhook } from "@prisma/client";
+import { prisma } from "@dub/prisma";
+import { Webhook } from "@dub/prisma/client";
 import { sendEmail } from "emails";
 import WebhookDisabled from "emails/webhook-disabled";
-import { prisma } from "../prisma";
 import { webhookCache } from "./cache";
 import { WEBHOOK_FAILURE_NOTIFY_THRESHOLD } from "./constants";
 import { updateWebhookStatusForWorkspace } from "./update-webhook";

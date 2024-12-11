@@ -1,9 +1,9 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { Wordmark } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
 import { constructMetadata } from "@dub/utils/src/functions";
-import { Prisma } from "@prisma/client";
 import { notFound } from "next/navigation";
 import { PropsWithChildren } from "react";
 

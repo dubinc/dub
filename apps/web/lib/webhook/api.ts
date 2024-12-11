@@ -7,7 +7,7 @@ import {
   isLinkLevelWebhook,
 } from "@/lib/webhook/utils";
 import { prisma } from "@dub/prisma";
-import { Project } from "@prisma/client";
+import { Project } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { WebhookTrigger } from "../types";
 import { createWebhookSecret } from "./secret";

@@ -4,7 +4,7 @@ import {
   LeadEventWebhookData,
   SaleEventWebhookData,
 } from "@/lib/webhook/types";
-import { Link } from "@prisma/client";
+import { Link } from "@dub/prisma/client";
 import { z } from "zod";
 
 export const formatEventForSegment = (
