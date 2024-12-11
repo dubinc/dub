@@ -10,7 +10,7 @@ import { LinkFormData } from ".";
 export function WebhookSelect() {
   const [isOpen, setIsOpen] = useState(false);
   const { watch, setValue } = useFormContext<LinkFormData>();
-  const { webhooks: availableWebhooks, isLoading } = useWebhooks();
+  const { webhooks: availableWebhooks } = useWebhooks();
   useKeyboardShortcut("w", () => setIsOpen(true), { modal: true });
 
   const webhookIds = watch("webhookIds") as string[];

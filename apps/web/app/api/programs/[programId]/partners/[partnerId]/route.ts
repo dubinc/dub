@@ -1,7 +1,7 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { PartnerSchema } from "@/lib/zod/schemas/partners";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/programs/[programId]/partners/[partnerId] - get a partner by id

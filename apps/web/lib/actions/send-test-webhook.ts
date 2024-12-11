@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { WEBHOOK_TRIGGERS } from "../webhook/constants";
 import { sendWebhooks } from "../webhook/qstash";
 import { samplePayload } from "../webhook/sample-events/payload";

@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { WebhookTrigger, WorkspaceProps } from "../types";
 import { sendWebhooks } from "./qstash";
 import {

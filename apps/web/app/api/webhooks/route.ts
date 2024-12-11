@@ -1,14 +1,14 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { createWebhook } from "@/lib/webhook/create-webhook";
 import { transformWebhook } from "@/lib/webhook/transform";
 import { updateWebhookStatusForWorkspace } from "@/lib/webhook/update-webhook";
 import { identifyWebhookReceiver } from "@/lib/webhook/utils";
 import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
+import { prisma } from "@dub/prisma";
+import { WebhookReceiver } from "@dub/prisma/client";
 import { ZAPIER_INTEGRATION_ID } from "@dub/utils/src/constants";
-import { WebhookReceiver } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
 import WebhookAdded from "emails/webhook-added";

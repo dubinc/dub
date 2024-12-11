@@ -1,4 +1,4 @@
-import { programLanderFilesBlockSchema } from "@/lib/zod/schemas/programs";
+import { programLanderFilesBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { ArrowUpRight, Download } from "@dub/ui/src/icons";
 import { z } from "zod";
 import { BlockTitle } from "./BlockTitle";
@@ -19,7 +19,7 @@ export function FilesBlock({
             key={idx}
             className="group flex items-center justify-between gap-4 rounded-lg border border-neutral-200 bg-white p-3 transition-colors duration-75 hover:bg-neutral-50 active:bg-neutral-100"
             href={file.url}
-            download
+            {...(file.external ? { target: "_blank" } : { download: true })}
           >
             <div className="flex min-w-0 items-center gap-4">
               <div className="rounded-full border border-gray-200">

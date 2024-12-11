@@ -1,6 +1,6 @@
+import { prisma } from "@dub/prisma";
 import { cookies } from "next/headers";
 import { createId } from "../api/utils";
-import { prisma } from "../prisma";
 import { ratelimit } from "../upstash";
 
 /**

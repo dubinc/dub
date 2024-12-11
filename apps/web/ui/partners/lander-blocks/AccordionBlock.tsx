@@ -1,4 +1,4 @@
-import { programLanderAccordionBlockSchema } from "@/lib/zod/schemas/programs";
+import { programLanderAccordionBlockSchema } from "@/lib/zod/schemas/program-lander";
 import {
   Accordion,
   AccordionContent,
@@ -18,7 +18,7 @@ export function AccordionBlock({
     <div>
       <BlockTitle title={block.data.title} />
       <div className="mt-5 border-y border-slate-200">
-        <Accordion type="single" collapsible>
+        <Accordion type="multiple">
           {block.data.items.map((item, idx) => (
             <AccordionItem key={idx} value={idx.toString()}>
               <AccordionTrigger className="py-2" variant="plus">

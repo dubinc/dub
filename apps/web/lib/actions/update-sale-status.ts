@@ -1,7 +1,7 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
-import { SaleStatus } from "@prisma/client";
+import { prisma } from "@dub/prisma";
+import { SaleStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { authActionClient } from "./safe-action";
 

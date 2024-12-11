@@ -1,5 +1,5 @@
 import { getProgram } from "@/lib/fetchers/get-program";
-import { programLanderSchema } from "@/lib/zod/schemas/programs";
+import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander-blocks";
 import { cn } from "@dub/utils";
 import { notFound } from "next/navigation";
@@ -26,7 +26,7 @@ export default async function ApplyPage({
       className="relative"
       style={
         {
-          "--brand": program.brandColor || "#3b82f6",
+          "--brand": program.brandColor || "#000000",
           "--brand-ring": "rgb(from var(--brand) r g b / 0.2)",
         } as CSSProperties
       }

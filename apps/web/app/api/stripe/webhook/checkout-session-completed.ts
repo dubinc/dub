@@ -1,13 +1,13 @@
 import { claimDotLinkDomain } from "@/lib/api/domains/claim-dot-link-domain";
 import { inviteUser } from "@/lib/api/users";
 import { limiter } from "@/lib/cron/limiter";
-import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { Invite } from "@/lib/zod/schemas/invites";
+import { prisma } from "@dub/prisma";
+import { User } from "@dub/prisma/client";
 import { getPlanFromPriceId, log } from "@dub/utils";
-import { User } from "@prisma/client";
 import { sendEmail } from "emails";
 import UpgradeEmail from "emails/upgrade-email";
 import Stripe from "stripe";

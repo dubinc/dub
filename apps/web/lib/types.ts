@@ -10,7 +10,7 @@ import {
   SaleStatus,
   UtmTemplate,
   Webhook,
-} from "@prisma/client";
+} from "@dub/prisma/client";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
   CustomerSchema,

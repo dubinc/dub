@@ -3,8 +3,8 @@ import { bulkCreateLinks } from "@/lib/api/links";
 import { createId } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 

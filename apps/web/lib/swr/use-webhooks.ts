@@ -4,15 +4,21 @@ import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
 export default function useWebhooks() {
-  const { id } = useWorkspace();
+  const { id, plan } = useWorkspace();
 
   const {
     data: webhooks,
     isValidating,
     isLoading,
-  } = useSWR<WebhookProps[]>(id && `/api/webhooks?workspaceId=${id}`, fetcher, {
-    dedupingInterval: 60000,
-  });
+  } = useSWR<WebhookProps[]>(
+    plan &&
+      !["free", "pro"].includes(plan) &&
+      `/api/webhooks?workspaceId=${id}`,
+    fetcher,
+    {
+      dedupingInterval: 60000,
+    },
+  );
 
   return {
     webhooks,

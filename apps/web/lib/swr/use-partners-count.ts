@@ -17,7 +17,7 @@ export default function usePartnersCount<T>(
   const queryString = opts?.ignoreParams
     ? // @ts-ignore
       `?${new URLSearchParams({
-        ...opts,
+        ...(opts.groupBy && { groupBy: opts.groupBy }),
         workspaceId,
       }).toString()}`
     : getQueryString({
