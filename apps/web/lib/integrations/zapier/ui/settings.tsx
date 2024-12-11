@@ -1,7 +1,6 @@
 "use client";
 
 import { InstalledIntegrationInfoProps } from "@/lib/types";
-import { WORKSPACE_LEVEL_WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
 import { ConfigureWebhook } from "../../common/ui/configure-webhook";
 
 export const ZapierSettings = (props: InstalledIntegrationInfoProps) => {
@@ -12,7 +11,14 @@ export const ZapierSettings = (props: InstalledIntegrationInfoProps) => {
       {installed && webhookId && (
         <ConfigureWebhook
           webhookId={webhookId}
-          supportedEvents={Object.values(WORKSPACE_LEVEL_WEBHOOK_TRIGGERS)}
+          supportedEvents={[
+            "link.created",
+            "link.updated",
+            "link.deleted",
+            "link.clicked",
+            "lead.created",
+            "sale.created",
+          ]}
         />
       )}
     </>
