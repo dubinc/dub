@@ -1,9 +1,9 @@
 import { linkCache } from "@/lib/api/links/cache";
 import { createId } from "@/lib/api/utils";
-import { prisma } from "@/lib/prisma";
 import { webhookCache } from "@/lib/webhook/cache";
 import { WEBHOOK_ID_PREFIX } from "@/lib/webhook/constants";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";
+import { prisma } from "@dub/prisma";
 import { WebhookReceiver } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";

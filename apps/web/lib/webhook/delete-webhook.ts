@@ -1,6 +1,6 @@
 import { linkCache } from "@/lib/api/links/cache";
-import { prisma } from "@/lib/prisma";
 import { webhookCache } from "@/lib/webhook/cache";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../api/errors";
 import { updateWebhookStatusForWorkspace } from "./update-webhook";

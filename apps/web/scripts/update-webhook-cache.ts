@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
 import { webhookCache } from "@/lib/webhook/cache";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 async function main() {

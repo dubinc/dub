@@ -1,5 +1,4 @@
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { prisma } from "@/lib/prisma";
 import { recordWebhookEvent } from "@/lib/tinybird/record-webhook-event";
 import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
 import {
@@ -7,6 +6,7 @@ import {
   resetWebhookFailureCount,
 } from "@/lib/webhook/failure";
 import { webhookCallbackSchema } from "@/lib/zod/schemas/webhooks";
+import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { z } from "zod";
 
