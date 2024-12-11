@@ -12,6 +12,7 @@ export const DELETE = withWorkspace(
     const installation = await prisma.installedIntegration.findUnique({
       where: {
         id: installationId,
+        projectId: workspace.id,
       },
     });
 
