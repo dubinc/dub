@@ -24,7 +24,7 @@ import PayoutMethodCard, {
   PayoutMethodCardSkeleton,
 } from "./payout-method-card";
 
-export function PayoutsSettingsPageClient() {
+export function WalletSettingsPageClient() {
   const { partner } = usePartnerProfile();
 
   const { dotsUser, isLoading, mutate } = useDotsUser();
@@ -244,7 +244,7 @@ export function PayoutsSettingsPageClient() {
         ) : !isLoading ? (
           <AnimatedEmptyState
             title="Verify your phone number"
-            description="Verify your phone number to set up payouts"
+            description="Verify your phone number to set up your wallet"
             cardContent={() => (
               <>
                 <MobilePhone className="size-4 text-neutral-700" />
