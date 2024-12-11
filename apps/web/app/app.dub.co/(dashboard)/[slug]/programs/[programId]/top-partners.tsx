@@ -31,7 +31,7 @@ export function TopPartners() {
         </h2>
 
         <Link
-          href={`/${slug}/programs/${programId}/partners?sort=earnings&sortBy=desc`}
+          href={`/${slug}/programs/${programId}/partners?sortBy=earnings&order=desc`}
           className={cn(
             buttonVariants({ variant: "secondary" }),
             "flex h-7 items-center rounded-lg border px-2 text-sm",

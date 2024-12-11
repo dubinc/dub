@@ -15,6 +15,7 @@ export default function PayoutMethodCard({
     icon: Icon,
     name,
     iconBgColor,
+    duration,
   } = DOTS_PAYOUT_PLATFORMS.find((p) => p.id === platform) ||
   DOTS_PAYOUT_PLATFORMS[0];
 
@@ -29,7 +30,12 @@ export default function PayoutMethodCard({
         >
           <Icon className="size-4 text-neutral-700" />
         </div>
-        <p className="font-medium text-neutral-900">{name}</p>
+        <div>
+          <p className="font-medium text-neutral-900">{name}</p>
+          <p className="text-sm text-neutral-500">
+            Typically arrives {duration}
+          </p>
+        </div>
       </div>
       {isDefault && (
         <StatusBadge variant="success" icon={null}>

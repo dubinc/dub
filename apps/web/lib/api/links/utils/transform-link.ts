@@ -1,4 +1,4 @@
-import { Dashboard, Link, Tag } from "@prisma/client";
+import { Dashboard, Link, Tag } from "@dub/prisma/client";
 
 export type ExpandedLink = Link & {
   tags?: { tag: Pick<Tag, "id" | "name" | "color"> }[];

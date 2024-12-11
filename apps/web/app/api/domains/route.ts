@@ -3,13 +3,13 @@ import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { createLink, transformLink } from "@/lib/api/links";
 import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import {
   createDomainBodySchema,
   DomainSchema,
   getDomainsQuerySchemaExtended,
 } from "@/lib/zod/schemas/domains";
+import { prisma } from "@dub/prisma";
 import { combineWords, DEFAULT_LINK_PROPS, nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 

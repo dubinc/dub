@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { getProgramOrThrow } from "../api/programs/get-program";
 import { createProgramSchema } from "../zod/schemas/programs";

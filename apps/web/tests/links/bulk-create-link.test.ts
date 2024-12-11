@@ -1,5 +1,5 @@
 import z from "@/lib/zod";
-import { Link } from "@prisma/client";
+import { Link } from "@dub/prisma/client";
 import { expect, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";

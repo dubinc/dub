@@ -1,4 +1,4 @@
-import { Link, Tag } from "@prisma/client";
+import { Link, Tag } from "@dub/prisma/client";
 import { IntegrationHarnessOld } from "tests/utils/integration-old";
 import { afterAll, describe, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";

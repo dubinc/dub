@@ -1,6 +1,7 @@
 "use client";
 
 import { PartnerSaleResponse } from "@/lib/types";
+import { Link, Program } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -19,7 +20,6 @@ import {
   Twitter,
 } from "@dub/ui/src/icons";
 import { cn, fetcher, getPrettyUrl } from "@dub/utils";
-import { Link, Program } from "@prisma/client";
 import { motion } from "framer-motion";
 import { CSSProperties, useState } from "react";
 import useSWR from "swr";

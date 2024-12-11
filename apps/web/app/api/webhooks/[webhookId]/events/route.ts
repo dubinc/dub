@@ -1,6 +1,6 @@
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { getWebhookEvents } from "@/lib/tinybird/get-webhook-events";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/webhooks/[webhookId]/events - get logs for a webhook

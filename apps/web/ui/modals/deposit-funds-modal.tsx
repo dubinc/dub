@@ -50,7 +50,7 @@ const DepositFundsForm = ({ closeModal }: { closeModal: () => void }) => {
     depositFundsAction,
     {
       async onSuccess() {
-        await mutate(`/api/dots/transfers?workspaceId=${workspaceId}`);
+        await mutate(`/api/workspaces/${workspaceId}/deposits`);
         closeModal();
         toast.success("Funds deposited successfully.");
       },

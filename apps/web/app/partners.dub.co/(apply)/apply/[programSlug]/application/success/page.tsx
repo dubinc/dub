@@ -1,5 +1,5 @@
 import { getProgram } from "@/lib/fetchers/get-program";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { Logo } from "@dub/ui";
 import { BoltFill, CursorRays, LinesY, MoneyBills2 } from "@dub/ui/src/icons";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
@@ -70,7 +70,7 @@ export default async function SuccessPage({
       className="relative"
       style={
         {
-          "--brand": program.brandColor || "#3b82f6",
+          "--brand": program.brandColor || "#000000",
           "--brand-ring": "rgb(from var(--brand) r g b / 0.2)",
         } as CSSProperties
       }
