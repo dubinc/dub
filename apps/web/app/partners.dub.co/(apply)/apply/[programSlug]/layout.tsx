@@ -1,7 +1,9 @@
 import { getProgram } from "@/lib/fetchers/get-program";
+import { prisma } from "@dub/prisma";
 import { Wordmark } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
 import { constructMetadata } from "@dub/utils/src/functions";
+import { Prisma } from "@prisma/client";
 import { notFound } from "next/navigation";
 import { PropsWithChildren } from "react";
 
@@ -28,6 +30,23 @@ export async function generateMetadata({
     } on any subscriptions generated through your referral.`,
     noIndex: true, // TODO: Remove this once we launch to GA
   });
+}
+
+export async function generateStaticParams() {
+  const programs = await prisma.program.findMany({
+    where: {
+      landerData: {
+        not: Prisma.JsonNull,
+      },
+    },
+    select: {
+      slug: true,
+    },
+  });
+
+  return programs.map((program) => ({
+    programSlug: program.slug,
+  }));
 }
 
 export default async function ApplyLayout({
