@@ -43,6 +43,16 @@ export function RowMenuButton({ row }: { row: Row<EventDatum> }) {
                 setIsOpen(false);
               }}
             />
+
+            {"customer" in row.original && (
+              <MenuItem
+                icon={Copy}
+                label="View customer"
+                onSelect={() => {
+                  setIsOpen(false);
+                }}
+              />
+            )}
           </Command.List>
         </Command>
       }
