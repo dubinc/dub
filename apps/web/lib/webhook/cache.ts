@@ -6,6 +6,7 @@ const WEBHOOK_CACHE_KEY_PREFIX = "webhook";
 
 class WebhookCache {
   async set(webhook: WebhookCacheProps) {
+    // We only cache the link level webhooks for now
     if (!isLinkLevelWebhook(webhook)) {
       return;
     }
