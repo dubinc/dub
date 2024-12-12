@@ -4,7 +4,7 @@ import {
 } from "@/lib/analytics/constants";
 import { DeviceTabs } from "@/lib/analytics/types";
 import { useRouterStuff } from "@dub/ui";
-import { Cube, CursorRays, MobilePhone, Window } from "@dub/ui/src/icons";
+import { Cube, CursorRays, MobilePhone, Window } from "@dub/ui/icons";
 import { useContext, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";

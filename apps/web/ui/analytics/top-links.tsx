@@ -1,5 +1,5 @@
 import { LinkLogo, useRouterStuff } from "@dub/ui";
-import { Globe, Hyperlink } from "@dub/ui/src/icons";
+import { Globe, Hyperlink } from "@dub/ui/icons";
 import { getApexDomain } from "@dub/utils";
 import { useContext, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";

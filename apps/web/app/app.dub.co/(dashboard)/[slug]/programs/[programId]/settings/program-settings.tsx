@@ -7,7 +7,7 @@ import { ProgramProps } from "@/lib/types";
 import { EmbedDocsSheet } from "@/ui/partners/embed-docs-sheet";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
 import { AnimatedSizeContainer, Button } from "@dub/ui";
-import { CircleCheckFill, Code, LoadingSpinner } from "@dub/ui/src/icons";
+import { CircleCheckFill, Code, LoadingSpinner } from "@dub/ui/icons";
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";

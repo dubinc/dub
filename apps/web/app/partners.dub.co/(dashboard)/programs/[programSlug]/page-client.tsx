@@ -3,11 +3,6 @@
 import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import Areas from "@/ui/charts/areas";
-import { ChartContext } from "@/ui/charts/chart-context";
-import TimeSeriesChart from "@/ui/charts/time-series-chart";
-import XAxis from "@/ui/charts/x-axis";
-import YAxis from "@/ui/charts/y-axis";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
@@ -19,7 +14,14 @@ import {
   useCopyToClipboard,
   useRouterStuff,
 } from "@dub/ui";
-import { Check, Copy, LoadingSpinner, MoneyBill2 } from "@dub/ui/src/icons";
+import {
+  Areas,
+  ChartContext,
+  TimeSeriesChart,
+  XAxis,
+  YAxis,
+} from "@dub/ui/charts";
+import { Check, Copy, LoadingSpinner, MoneyBill2 } from "@dub/ui/icons";
 import { cn, currencyFormatter, formatDate, getPrettyUrl } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";

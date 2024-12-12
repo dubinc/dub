@@ -27,7 +27,7 @@ export type XAxisProps = {
   tickFormat?: (date: Date) => string;
 };
 
-export default function XAxis({
+export function XAxis({
   maxTicks: maxTicksProp,
   showGridLines = false,
   highlightLast = true,

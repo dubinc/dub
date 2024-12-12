@@ -8,11 +8,8 @@ import { NextResponse } from "next/server";
 // GET /api/programs/[programId]/stats - get stats for a program
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
-    const {
-      interval = "30d",
-      start,
-      end,
-    } = getProgramMetricsQuerySchema.parse(searchParams);
+    const { interval, start, end } =
+      getProgramMetricsQuerySchema.parse(searchParams);
     const { startDate, endDate } = getStartEndDates({ interval, start, end });
 
     const program = await getProgramOrThrow({

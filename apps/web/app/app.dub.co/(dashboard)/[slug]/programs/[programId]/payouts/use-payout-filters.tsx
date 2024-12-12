@@ -6,7 +6,7 @@ import { EnrolledPartnerProps } from "@/lib/types";
 import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { useRouterStuff } from "@dub/ui";
-import { CircleDotted, Users } from "@dub/ui/src/icons";
+import { CircleDotted, Users } from "@dub/ui/icons";
 import { cn, DICEBEAR_AVATAR_URL, nFormatter } from "@dub/utils";
 import { useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";

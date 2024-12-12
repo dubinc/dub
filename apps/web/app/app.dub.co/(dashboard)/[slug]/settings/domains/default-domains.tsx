@@ -14,7 +14,7 @@ import {
   GitHubEnhanced,
   GoogleEnhanced,
   Spotify,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import { DUB_DOMAINS } from "@dub/utils";
 import Link from "next/link";
 import { useEffect, useState } from "react";
