@@ -15,7 +15,7 @@ export const getCustomerOrThrow = async ({
   if (!customer || customer.projectId !== workspaceId) {
     throw new DubApiError({
       code: "not_found",
-      message: "Customer not found",
+      message: "Customer not found.",
     });
   }
 
