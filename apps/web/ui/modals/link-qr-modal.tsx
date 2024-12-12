@@ -84,13 +84,12 @@ function LinkQRModal(
 function LinkQRModalInner({
   props,
   onSave,
-  showLinkQRModal,
   setShowLinkQRModal,
 }: {
   showLinkQRModal: boolean;
   setShowLinkQRModal: Dispatch<SetStateAction<boolean>>;
 } & LinkQRModalProps) {
-  const { plan, id: workspaceId, slug } = useWorkspace();
+  const { id: workspaceId, slug, plan, logo: workspaceLogo } = useWorkspace();
   const id = useId();
   const { isMobile } = useMediaQuery();
   const { logo: domainLogo } = useDomain(props.domain);
@@ -112,7 +111,8 @@ function LinkQRModalInner({
   const [data, setData] = useState(dataPersisted);
 
   const hideLogo = data.hideLogo && plan !== "free";
-  const logo = domainLogo || DUB_QR_LOGO;
+  const logo =
+    plan === "free" ? DUB_QR_LOGO : domainLogo || workspaceLogo || DUB_QR_LOGO;
 
   const qrData = useMemo(
     () =>
