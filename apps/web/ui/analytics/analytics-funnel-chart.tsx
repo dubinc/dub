@@ -34,7 +34,7 @@ export function AnalyticsFunnelChart() {
   return (
     <div className="h-[444px] w-full sm:h-[464px]">
       {totalEvents ? (
-        <FunnelChart steps={steps} />
+        <FunnelChart steps={steps} defaultTooltipStepId="clicks" />
       ) : (
         <div className="flex h-full w-full items-center justify-center">
           <AnalyticsLoadingSpinner />

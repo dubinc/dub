@@ -35,6 +35,7 @@ type FunnelChartProps = {
     colorClassName: string;
   }[];
   persistentPercentages?: boolean;
+  defaultTooltipStepId?: string;
 };
 
 export function FunnelChart(props: FunnelChartProps) {
@@ -56,13 +57,16 @@ function FunnelChartInner({
   height,
   steps,
   persistentPercentages = true,
+  defaultTooltipStepId,
 }: {
   width: number;
   height: number;
 } & FunnelChartProps) {
   const { isMobile } = useMediaQuery();
 
-  const [tooltip, setTooltip] = useState<string | null>(null);
+  const [tooltip, setTooltip] = useState<string | null>(
+    defaultTooltipStepId ?? null,
+  );
   const tooltipStep = steps.find(({ id }) => id === tooltip);
 
   const data = useMemo(() => {
@@ -111,8 +115,11 @@ function FunnelChartInner({
               className="fill-transparent transition-colors hover:fill-blue-600/5"
               onPointerEnter={() => setTooltip(id)}
               onPointerDown={() => setTooltip(id)}
-              onPointerLeave={() => !isMobile && setTooltip(null)}
+              onPointerLeave={() =>
+                !isMobile && setTooltip(defaultTooltipStepId ?? null)
+              }
             />
+
             {/* Divider line */}
             <line
               x1={xScale(idx)}
