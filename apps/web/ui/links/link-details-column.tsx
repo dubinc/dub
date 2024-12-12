@@ -11,7 +11,7 @@ import {
   UserCheck,
   useRouterStuff,
 } from "@dub/ui";
-import { ReferredVia } from "@dub/ui/src/icons";
+import { ReferredVia } from "@dub/ui/icons";
 import {
   APP_DOMAIN,
   cn,

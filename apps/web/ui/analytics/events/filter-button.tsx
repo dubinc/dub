@@ -1,5 +1,5 @@
 import { useRouterStuff } from "@dub/ui";
-import { FilterBars } from "@dub/ui/src/icons";
+import { FilterBars } from "@dub/ui/icons";
 import Link from "next/link";
 
 export default function FilterButton({ set }: { set: Record<string, any> }) {

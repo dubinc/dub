@@ -3,7 +3,7 @@ import {
   InvoiceDollar,
   MoneyBill2,
   UserCheck,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import { capitalize } from "@dub/utils/src/functions";
 
 export const PayoutTypeBadge = ({

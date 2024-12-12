@@ -1,4 +1,4 @@
-import { LoadingSpinner } from "@dub/ui/src/icons";
+import { LoadingSpinner } from "@dub/ui/icons";
 
 export default function EmbedLoading() {
   return (

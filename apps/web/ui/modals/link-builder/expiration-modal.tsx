@@ -8,7 +8,7 @@ import {
   useKeyboardShortcut,
   useMediaQuery,
 } from "@dub/ui";
-import { CircleHalfDottedClock } from "@dub/ui/src/icons";
+import { CircleHalfDottedClock } from "@dub/ui/icons";
 import {
   cn,
   formatDateTime,

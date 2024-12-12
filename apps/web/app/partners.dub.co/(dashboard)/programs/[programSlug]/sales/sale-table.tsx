@@ -12,7 +12,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CircleDollar } from "@dub/ui/src/icons";
+import { CircleDollar } from "@dub/ui/icons";
 import { currencyFormatter, fetcher, formatDate } from "@dub/utils";
 import useSWR from "swr";
 

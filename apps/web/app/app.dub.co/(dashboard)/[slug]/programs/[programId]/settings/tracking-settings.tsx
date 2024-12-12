@@ -6,7 +6,7 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
 import { Badge, Button } from "@dub/ui";
-import { CircleCheckFill, LoadingSpinner } from "@dub/ui/src/icons";
+import { CircleCheckFill, LoadingSpinner } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";

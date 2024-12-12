@@ -5,7 +5,7 @@ import { verifyPartnerAction } from "@/lib/actions/partners/verify-partner";
 import useDotsUser from "@/lib/swr/use-dots-user";
 import useRefreshSession from "@/lib/swr/use-refresh-session";
 import { Button, LoadingSpinner, useMediaQuery } from "@dub/ui";
-import { MobilePhone } from "@dub/ui/src/icons";
+import { MobilePhone } from "@dub/ui/icons";
 import { cn } from "@dub/utils/src/functions";
 import { OTPInput } from "input-otp";
 import { useAction } from "next-safe-action/hooks";

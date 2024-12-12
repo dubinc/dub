@@ -1,4 +1,4 @@
-import { LinkBroken } from "@dub/ui/src/icons";
+import { LinkBroken } from "@dub/ui/icons";
 import { StepPage } from "../step-page";
 import { Form } from "./form";
 
