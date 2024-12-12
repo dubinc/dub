@@ -40,6 +40,7 @@
   "devDependencies": {
     "@dub/tailwind-config": "workspace:*",
     "@dub/utils": "workspace:*",
+    "@types/d3-array": "^3.2.1",
     "@types/js-cookie": "^3.0.6",
     "@types/react": "^18.2.47",
     "@types/react-dom": "^18.2.14",

@@ -5,7 +5,7 @@ import {
   useTooltip as useVisxTooltip,
 } from "@visx/tooltip";
 import { bisector } from "d3-array";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import {
   ChartContext,
   ChartTooltipContext,
@@ -22,6 +22,7 @@ export type TooltipOptions<T extends Datum> = {
   renderInPortal?: boolean;
   snapToX?: boolean;
   snapToY?: boolean;
+  defaultIndex?: number;
 };
 
 export function useTooltip<T extends Datum>({
@@ -30,6 +31,7 @@ export function useTooltip<T extends Datum>({
   renderInPortal = false,
   snapToY = false,
   snapToX = true,
+  defaultIndex,
 }: TooltipOptions<T>): ChartTooltipContext {
   const { series, data, xScale, yScale, margin } = chartContext;
 
@@ -39,7 +41,30 @@ export function useTooltip<T extends Datum>({
     debounce: 200,
   });
 
-  const visxTooltip = useVisxTooltip<TimeSeriesDatum<T>>();
+  const defaultTooltipDatum =
+    defaultIndex !== undefined ? data[defaultIndex] : undefined;
+
+  const defaultTooltipData = useMemo(
+    () =>
+      defaultTooltipDatum !== undefined
+        ? {
+            tooltipData: defaultTooltipDatum,
+            tooltipLeft: snapToX ? xScale(defaultTooltipDatum.date) : 0,
+            tooltipTop: snapToY
+              ? yScale(
+                  series
+                    .find((s) => s.id === seriesId)!
+                    .valueAccessor(defaultTooltipDatum),
+                )
+              : 0,
+          }
+        : undefined,
+    [defaultTooltipDatum, snapToX, snapToY, xScale, yScale, series, seriesId],
+  );
+
+  const visxTooltip = useVisxTooltip<TimeSeriesDatum<T>>(
+    defaultTooltipData ?? undefined,
+  );
 
   const handleTooltip = useCallback(
     (
@@ -57,7 +82,9 @@ export function useTooltip<T extends Datum>({
             ] as Date | undefined);
 
       if (x0 === undefined) {
-        visxTooltip.hideTooltip();
+        console.log("x0 is undefined", { defaultTooltipData });
+        if (defaultTooltipData) visxTooltip.showTooltip(defaultTooltipData);
+        else visxTooltip.hideTooltip();
         return;
       }
       const index = bisectDate(data, x0, 1);
@@ -78,7 +105,15 @@ export function useTooltip<T extends Datum>({
           : 0,
       });
     },
-    [seriesId, data, xScale, yScale, series, visxTooltip.showTooltip],
+    [
+      seriesId,
+      data,
+      xScale,
+      yScale,
+      series,
+      defaultTooltipData,
+      visxTooltip.showTooltip,
+    ],
   );
 
   const TooltipWrapper = renderInPortal
@@ -90,5 +125,9 @@ export function useTooltip<T extends Datum>({
     TooltipWrapper,
     containerRef: visxTooltipInPortal.containerRef,
     ...visxTooltip,
+    hideTooltip: () =>
+      defaultTooltipData
+        ? visxTooltip.showTooltip(defaultTooltipData)
+        : visxTooltip.hideTooltip(),
   };
 }

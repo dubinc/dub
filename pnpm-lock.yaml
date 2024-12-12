@@ -742,6 +742,9 @@ importers:
       '@dub/utils':
         specifier: workspace:*
         version: link:../utils
+      '@types/d3-array':
+        specifier: ^3.2.1
+        version: 3.2.1
       '@types/js-cookie':
         specifier: ^3.0.6
         version: 3.0.6
@@ -9505,6 +9508,10 @@ packages:
   /@types/d3-array@3.0.3:
     resolution: {integrity: sha512-Reoy+pKnvsksN0lQUlcH6dOGjRZ/3WRwXR//m+/8lt1BXeI4xyaUZoqULNjyXXRuh0Mj4LNpkCvhUpQlY3X5xQ==}
     dev: false
+
+  /@types/d3-array@3.2.1:
+    resolution: {integrity: sha512-Y2Jn2idRrLzUfAKV2LyRImR+y4oa2AntrgID95SHJxuMUrkNXmanDSed71sRNZysveJVt1hLLemQZIady0FpEg==}
+    dev: true
 
   /@types/d3-color@1.4.3:
     resolution: {integrity: sha512-jcHMwBcuuQ1LPt43jdbOhdOFczfDfhzvAZ1+1L0KiXPv4VqGsWAltxfxUDvtSuIMsvTZ2eeua+tOtxI6qqxYUg==}
