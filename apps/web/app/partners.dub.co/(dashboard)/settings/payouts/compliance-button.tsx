@@ -1,27 +1,17 @@
-import { createDotsFlowAction } from "@/lib/actions/partners/create-dots-flow";
-import { dotsFlowConfigurations } from "@/lib/dots/styles";
-import useDotsUser from "@/lib/swr/use-dots-user";
+import { createAccountLinkAction } from "@/lib/actions/partners/create-account-link";
 import { Button } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 
-export const ComplianceButton = ({
-  setModalState,
-}: {
-  setModalState: (state: { show: boolean; iframeSrc: string }) => void;
-}) => {
-  const { dotsUser } = useDotsUser();
-
-  const { executeAsync, isExecuting } = useAction(createDotsFlowAction, {
-    async onSuccess({ data }) {
-      if (!data?.link) {
-        toast.error("No link found – contact support");
+export const ComplianceButton = () => {
+  const { executeAsync, isExecuting } = useAction(createAccountLinkAction, {
+    onSuccess({ data }) {
+      if (!data?.url) {
+        toast.error("Unable to create account link. Please contact support.");
         return;
       }
-      setModalState({
-        show: true,
-        iframeSrc: `${data.link}?styles=${dotsFlowConfigurations}`,
-      });
+
+      window.open(data.url, "_blank");
     },
     onError({ error }) {
       toast.error(error.serverError);
@@ -30,9 +20,9 @@ export const ComplianceButton = ({
 
   return (
     <Button
-      text={dotsUser?.compliance.submitted ? "Update" : "Submit"}
+      text="Submit"
       variant="secondary"
-      onClick={async () => await executeAsync({ flow: "compliance" })}
+      onClick={async () => await executeAsync()}
       loading={isExecuting}
       className="h-8 w-fit px-2"
     />

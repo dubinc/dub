@@ -34,7 +34,7 @@ async function main() {
   // await createLoginLink();
   // await createPayout();
 
-  const account = await stripe.accounts.retrieve(affiliate.connectedAccountId);
+  const account = await stripe.accounts.retrieve("acct_1QVHHo2Z0L3O7iWp");
 
   console.log("Account", account);
 }
