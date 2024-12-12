@@ -19,14 +19,7 @@ import {
   useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
-import {
-  Check,
-  Check2,
-  Copy,
-  Download,
-  Hyperlink,
-  Photo,
-} from "@dub/ui/src/icons";
+import { Check, Check2, Copy, Download, Hyperlink, Photo } from "@dub/ui/icons";
 import { API_DOMAIN, cn, DUB_QR_LOGO, linkConstructor } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import {

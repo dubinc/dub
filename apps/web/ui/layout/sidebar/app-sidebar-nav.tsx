@@ -19,7 +19,7 @@ import {
   ShieldCheck,
   Users6,
   Webhook,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";

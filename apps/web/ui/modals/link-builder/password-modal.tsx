@@ -8,7 +8,7 @@ import {
   useKeyboardShortcut,
   useMediaQuery,
 } from "@dub/ui";
-import { Eye, EyeSlash, InputPassword, Shuffle } from "@dub/ui/src/icons";
+import { Eye, EyeSlash, InputPassword, Shuffle } from "@dub/ui/icons";
 import { cn, nanoid } from "@dub/utils";
 import {
   Dispatch,

@@ -1,7 +1,7 @@
 "use client";
 
 import { OnboardingStep } from "@/lib/onboarding/types";
-import { LoadingSpinner } from "@dub/ui/src/icons";
+import { LoadingSpinner } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { PropsWithChildren } from "react";
 import { useOnboardingProgress } from "./use-onboarding-progress";

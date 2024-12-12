@@ -1,6 +1,6 @@
 import { AlertCircleFill, CheckCircleFill, X } from "@/ui/shared/icons";
 import { Tooltip, useMediaQuery } from "@dub/ui";
-import { LoadingSpinner } from "@dub/ui/src/icons";
+import { LoadingSpinner } from "@dub/ui/icons";
 import { cn, fetcher, isValidUrl as isValidUrlFn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ReactNode, useMemo } from "react";

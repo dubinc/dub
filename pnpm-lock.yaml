@@ -126,18 +126,9 @@ importers:
       '@vercel/og':
         specifier: ^0.6.3
         version: 0.6.3
-      '@visx/axis':
-        specifier: ^2.14.0
-        version: 2.14.0(react@18.2.0)
-      '@visx/clip-path':
-        specifier: ^3.3.0
-        version: 3.3.0(react@18.2.0)
       '@visx/curve':
         specifier: ^3.3.0
         version: 3.3.0
-      '@visx/event':
-        specifier: ^2.6.0
-        version: 2.6.0
       '@visx/geo':
         specifier: ^2.10.0
         version: 2.10.0(react@18.2.0)
@@ -162,9 +153,6 @@ importers:
       '@visx/text':
         specifier: ^3.3.0
         version: 3.3.0(react@18.2.0)
-      '@visx/tooltip':
-        specifier: ^2.16.0
-        version: 2.16.0(react-dom@18.2.0)(react@18.2.0)
       ai:
         specifier: ^3.4.8
         version: 3.4.8(react@18.2.0)(svelte@4.2.14)(vue@3.4.21)(zod@3.22.4)
@@ -189,9 +177,6 @@ importers:
       csv-parse:
         specifier: ^5.5.6
         version: 5.5.6
-      d3-array:
-        specifier: ^3.2.4
-        version: 3.2.4
       date-fns:
         specifier: ^3.6.0
         version: 3.6.0
@@ -663,9 +648,18 @@ importers:
       '@tanstack/react-table':
         specifier: ^8.17.3
         version: 8.17.3(react-dom@18.2.0)(react@18.2.0)
+      '@visx/axis':
+        specifier: ^2.14.0
+        version: 2.14.0(react@18.2.0)
+      '@visx/clip-path':
+        specifier: ^3.3.0
+        version: 3.3.0(react@18.2.0)
       '@visx/curve':
         specifier: ^3.3.0
         version: 3.3.0
+      '@visx/event':
+        specifier: ^2.6.0
+        version: 2.6.0
       '@visx/gradient':
         specifier: ^3.3.0
         version: 3.3.0(react@18.2.0)
@@ -681,12 +675,21 @@ importers:
       '@visx/shape':
         specifier: ^2.12.2
         version: 2.12.2(react@18.2.0)
+      '@visx/text':
+        specifier: ^3.3.0
+        version: 3.3.0(react@18.2.0)
+      '@visx/tooltip':
+        specifier: ^2.16.0
+        version: 2.16.0(react-dom@18.2.0)(react@18.2.0)
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
       cmdk:
         specifier: ^0.2.0
         version: 0.2.0(@types/react-dom@18.2.14)(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)
+      d3-array:
+        specifier: ^3.2.4
+        version: 3.2.4
       date-fns:
         specifier: ^3.6.0
         version: 3.6.0
@@ -739,6 +742,9 @@ importers:
       '@dub/utils':
         specifier: workspace:*
         version: link:../utils
+      '@types/d3-array':
+        specifier: ^3.2.1
+        version: 3.2.1
       '@types/js-cookie':
         specifier: ^3.0.6
         version: 3.0.6
@@ -9502,6 +9508,10 @@ packages:
   /@types/d3-array@3.0.3:
     resolution: {integrity: sha512-Reoy+pKnvsksN0lQUlcH6dOGjRZ/3WRwXR//m+/8lt1BXeI4xyaUZoqULNjyXXRuh0Mj4LNpkCvhUpQlY3X5xQ==}
     dev: false
+
+  /@types/d3-array@3.2.1:
+    resolution: {integrity: sha512-Y2Jn2idRrLzUfAKV2LyRImR+y4oa2AntrgID95SHJxuMUrkNXmanDSed71sRNZysveJVt1hLLemQZIady0FpEg==}
+    dev: true
 
   /@types/d3-color@1.4.3:
     resolution: {integrity: sha512-jcHMwBcuuQ1LPt43jdbOhdOFczfDfhzvAZ1+1L0KiXPv4VqGsWAltxfxUDvtSuIMsvTZ2eeua+tOtxI6qqxYUg==}

@@ -11,7 +11,7 @@ import {
   SimpleTooltipContent,
   Tooltip,
 } from "@dub/ui";
-import { LoadingCircle, Magic, Unsplash } from "@dub/ui/src/icons";
+import { LoadingCircle, Magic, Unsplash } from "@dub/ui/icons";
 import { resizeImage } from "@dub/utils";
 import { useCompletion } from "ai/react";
 import posthog from "posthog-js";

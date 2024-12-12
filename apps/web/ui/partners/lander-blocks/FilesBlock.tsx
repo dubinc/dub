@@ -1,5 +1,5 @@
 import { programLanderFilesBlockSchema } from "@/lib/zod/schemas/program-lander";
-import { ArrowUpRight, Download } from "@dub/ui/src/icons";
+import { ArrowUpRight, Download } from "@dub/ui/icons";
 import { z } from "zod";
 import { BlockTitle } from "./BlockTitle";
 

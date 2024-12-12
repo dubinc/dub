@@ -9,7 +9,7 @@ import {
   useCopyToClipboard,
   useMediaQuery,
 } from "@dub/ui";
-import { CircleCheck, CircleHalfDottedClock, Copy } from "@dub/ui/src/icons";
+import { CircleCheck, CircleHalfDottedClock, Copy } from "@dub/ui/icons";
 import { PropsWithChildren, useEffect, useState } from "react";
 import { Highlighter } from "shiki";
 import { toast } from "sonner";

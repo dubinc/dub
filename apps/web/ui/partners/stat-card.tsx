@@ -1,5 +1,5 @@
 import { MiniAreaChart } from "@dub/ui";
-import { LoadingSpinner } from "@dub/ui/src/icons";
+import { LoadingSpinner } from "@dub/ui/icons";
 import { currencyFormatter, nFormatter } from "@dub/utils";
 import Link from "next/link";
 
