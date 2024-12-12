@@ -5,7 +5,7 @@ import {
   LocationPin,
   MapPosition,
   OfficeBuilding,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import { CONTINENTS, COUNTRIES, REGIONS } from "@dub/utils";
 import { useContext, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";

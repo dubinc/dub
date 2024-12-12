@@ -19,7 +19,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, MoneyBill2, MoneyBills2 } from "@dub/ui/src/icons";
+import { Dots, MoneyBill2, MoneyBills2 } from "@dub/ui/icons";
 import {
   cn,
   currencyFormatter,

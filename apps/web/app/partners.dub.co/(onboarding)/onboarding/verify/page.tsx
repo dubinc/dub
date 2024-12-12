@@ -1,4 +1,4 @@
-import { ConnectedDots4 } from "@dub/ui/src/icons";
+import { ConnectedDots4 } from "@dub/ui/icons";
 import { VerificationForm } from "./verification-form";
 
 export default function OnboardingVerify() {

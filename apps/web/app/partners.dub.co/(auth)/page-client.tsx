@@ -1,7 +1,7 @@
 "use client";
 
 import { buttonVariants } from "@dub/ui";
-import { LinkedIn, Twitter } from "@dub/ui/src/icons";
+import { LinkedIn, Twitter } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 

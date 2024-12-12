@@ -4,7 +4,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { useAddBankAccountModal } from "@/ui/modals/add-bank-account-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Button } from "@dub/ui";
-import { BadgeCheck, GreekTemple } from "@dub/ui/src/icons";
+import { BadgeCheck, GreekTemple } from "@dub/ui/icons";
 import { truncate } from "@dub/utils";
 import { WorkspaceDepositActivity } from "./activity";
 import { BankAccount } from "./bank-account";

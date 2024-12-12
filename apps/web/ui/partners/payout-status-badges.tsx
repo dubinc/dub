@@ -2,7 +2,7 @@ import {
   CircleCheck,
   CircleHalfDottedClock,
   CircleWarning,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 
 export const PayoutStatusBadges = {
   pending: {

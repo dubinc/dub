@@ -14,7 +14,7 @@ import { useTooltip } from "./useTooltip";
 
 type TimeSeriesChartProps<T extends Datum> = PropsWithChildren<ChartProps<T>>;
 
-export default function TimeSeriesChart<T extends Datum>(
+export function TimeSeriesChart<T extends Datum>(
   props: TimeSeriesChartProps<T>,
 ) {
   return (
@@ -125,7 +125,7 @@ function TimeSeriesChartInner<T extends Datum>({
     series,
     startDate,
     endDate,
-    xScale,
+    xScale: xScale as any,
     yScale,
     minY,
     maxY,

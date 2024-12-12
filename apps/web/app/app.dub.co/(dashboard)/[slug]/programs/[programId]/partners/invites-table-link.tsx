@@ -1,7 +1,7 @@
 "use client";
 
 import { buttonVariants } from "@dub/ui";
-import { EnvelopeArrowRight } from "@dub/ui/src/icons";
+import { EnvelopeArrowRight } from "@dub/ui/icons";
 import { Tooltip } from "@dub/ui/src/tooltip";
 import { cn } from "@dub/utils";
 import Link from "next/link";

@@ -8,7 +8,7 @@ import {
   useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
-import { Pen2, QRCode as QRCodeIcon } from "@dub/ui/src/icons";
+import { Pen2, QRCode as QRCodeIcon } from "@dub/ui/icons";
 import { DUB_QR_LOGO, linkConstructor } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMemo } from "react";

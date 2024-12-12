@@ -12,7 +12,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { MoneyBill2 } from "@dub/ui/src/icons";
+import { MoneyBill2 } from "@dub/ui/icons";
 import { currencyFormatter, formatDate } from "@dub/utils";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { useEffect, useState } from "react";

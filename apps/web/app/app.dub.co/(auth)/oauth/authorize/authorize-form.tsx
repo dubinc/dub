@@ -5,7 +5,7 @@ import z from "@/lib/zod";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
 import { Button, InputSelect, InputSelectItemProps } from "@dub/ui";
-import { OfficeBuilding } from "@dub/ui/src/icons";
+import { OfficeBuilding } from "@dub/ui/icons";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";

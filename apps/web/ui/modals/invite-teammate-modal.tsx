@@ -1,7 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Invite } from "@/lib/zod/schemas/invites";
 import { BlurImage, Logo, Modal } from "@dub/ui";
-import { LoadingSpinner } from "@dub/ui/src/icons";
+import { LoadingSpinner } from "@dub/ui/icons";
 import { fetcher } from "@dub/utils";
 import {
   Dispatch,

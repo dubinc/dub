@@ -9,6 +9,23 @@
   "files": [
     "dist/**"
   ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./icons": {
+      "types": "./dist/icons/index.d.ts",
+      "import": "./dist/icons/index.mjs",
+      "require": "./dist/icons/index.js"
+    },
+    "./charts": {
+      "types": "./dist/charts/index.d.ts",
+      "import": "./dist/charts/index.mjs",
+      "require": "./dist/charts/index.js"
+    }
+  },
   "scripts": {
     "build": "tsup",
     "lint": "eslint src/",
@@ -52,14 +69,20 @@
     "@react-aria/datepicker": "^3.10.0",
     "@react-stately/datepicker": "^3.9.3",
     "@tanstack/react-table": "^8.17.3",
+    "@visx/axis": "^2.14.0",
+    "@visx/clip-path": "^3.3.0",
     "@visx/curve": "^3.3.0",
+    "@visx/event": "^2.6.0",
     "@visx/gradient": "^3.3.0",
     "@visx/group": "^3.3.0",
     "@visx/responsive": "^2.10.0",
     "@visx/scale": "^3.3.0",
     "@visx/shape": "^2.12.2",
+    "@visx/text": "^3.3.0",
+    "@visx/tooltip": "^2.16.0",
     "class-variance-authority": "^0.7.0",
     "cmdk": "^0.2.0",
+    "d3-array": "^3.2.4",
     "date-fns": "^3.6.0",
     "embla-carousel-autoplay": "^8.1.7",
     "embla-carousel-react": "^8.1.7",

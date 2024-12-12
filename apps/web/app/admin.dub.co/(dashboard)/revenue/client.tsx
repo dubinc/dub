@@ -1,9 +1,6 @@
 "use client";
 
-import Areas from "@/ui/charts/areas";
-import TimeSeriesChart from "@/ui/charts/time-series-chart";
-import XAxis from "@/ui/charts/x-axis";
-import YAxis from "@/ui/charts/y-axis";
+import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { currencyFormatter } from "@dub/utils";
 import { Fragment } from "react";
 
