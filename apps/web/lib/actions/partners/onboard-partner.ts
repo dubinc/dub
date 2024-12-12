@@ -1,11 +1,10 @@
 "use server";
 
 import { createId } from "@/lib/api/utils";
-import { createDotsUser } from "@/lib/dots/create-dots-user";
-import { sendVerificationToken } from "@/lib/dots/send-verification-token";
 import { userIsInBeta } from "@/lib/edge-config";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { storage } from "@/lib/storage";
+import { createConnectedAccount } from "@/lib/stripe/create-connected-account";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { COUNTRY_PHONE_CODES, nanoid } from "@dub/utils";
@@ -30,35 +29,30 @@ export const onboardPartnerAction = authUserActionClient
     const { name, email, image, country, phoneNumber, description } =
       parsedInput;
 
-    // Create the Dots user with DOTS_DEFAULT_APP_ID
-    const [firstName, lastName] = name.split(" ");
-    const countryCode = COUNTRY_PHONE_CODES[country] || null;
-
-    if (!countryCode) {
-      throw new Error("Invalid country code.");
+    if (!COUNTRY_PHONE_CODES[country]) {
+      throw new Error("Invalid country code or country not supported.");
     }
 
-    const dotsUserInfo = {
-      firstName,
-      lastName: lastName || firstName.slice(0, 1), // Dots requires a last name
+    // Create the Stripe connected account for the partner
+    const connectedAccount = await createConnectedAccount({
+      name,
       email,
-      countryCode: countryCode.toString(),
+      country,
       phoneNumber,
-    };
-
-    const dotsUser = await createDotsUser({
-      userInfo: dotsUserInfo,
     });
 
-    const partnerExists = await prisma.partner.findUnique({
-      where: {
-        dotsUserId: dotsUser.id,
-      },
-    });
+    // TODO:
+    // This needs testing. Not sure how Stripe handle this
 
-    if (partnerExists) {
-      throw new Error("This phone number is already in use.");
-    }
+    // const partnerExists = await prisma.partner.findUnique({
+    //   where: {
+    //     stripeConnectId: connectedAccount.id,
+    //   },
+    // });
+
+    // if (partnerExists) {
+    //   throw new Error("This phone number is already in use.");
+    // }
 
     const partnerId = createId({ prefix: "pn_" });
 
@@ -66,7 +60,7 @@ export const onboardPartnerAction = authUserActionClient
       .upload(`partners/${partnerId}/image_${nanoid(7)}`, image)
       .then(({ url }) => url);
 
-    const [partner, _] = await Promise.all([
+    await Promise.all([
       prisma.partner.create({
         data: {
           id: partnerId,
@@ -74,7 +68,7 @@ export const onboardPartnerAction = authUserActionClient
           email,
           country,
           bio: description,
-          dotsUserId: dotsUser.id,
+          stripeConnectId: connectedAccount.id,
           image: imageUrl,
           users: {
             create: {
@@ -84,6 +78,7 @@ export const onboardPartnerAction = authUserActionClient
           },
         },
       }),
+
       prisma.user.update({
         where: {
           id: user.id,
@@ -92,15 +87,8 @@ export const onboardPartnerAction = authUserActionClient
           defaultPartnerId: partnerId,
         },
       }),
-      sendVerificationToken({
-        dotsUserId: dotsUser.id,
-      }),
     ]);
 
     // Complete any outstanding program applications
     waitUntil(completeProgramApplications(user.id));
-
-    return {
-      partnerId: partner.id,
-    };
   });

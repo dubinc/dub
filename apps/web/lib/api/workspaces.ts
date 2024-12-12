@@ -1,6 +1,5 @@
 import { deleteDomainAndLinks } from "@/lib/api/domains";
 import { storage } from "@/lib/storage";
-import { cancelSubscription } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
 import { WorkspaceProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
@@ -12,6 +11,7 @@ import {
   R2_URL,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { cancelSubscription } from "../stripe/cancel-subscription";
 
 export async function deleteWorkspace(
   workspace: Pick<WorkspaceProps, "id" | "slug" | "logo" | "stripeId">,
