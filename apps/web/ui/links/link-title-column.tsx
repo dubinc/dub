@@ -24,7 +24,7 @@ import {
   InputPassword,
   Page2,
   Robot,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import {
   cn,
   fetcher,

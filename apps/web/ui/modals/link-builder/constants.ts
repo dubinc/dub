@@ -6,7 +6,7 @@ import {
   InputPassword,
   SquareChart,
   WindowSearch,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import { UseFormSetValue } from "react-hook-form";
 import { LinkFormData } from ".";
 import { getExpirationLabel } from "./expiration-modal";

@@ -17,7 +17,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CursorRays, Globe, Magnifier, QRCode } from "@dub/ui/src/icons";
+import { CursorRays, Globe, Magnifier, QRCode } from "@dub/ui/icons";
 import {
   CONTINENTS,
   COUNTRIES,

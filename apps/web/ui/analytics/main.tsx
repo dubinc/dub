@@ -1,6 +1,6 @@
 import { EventType } from "@/lib/analytics/types";
 import { Button, Tooltip, useRouterStuff } from "@dub/ui";
-import { ChartLine, Filter2 } from "@dub/ui/src/icons";
+import { ChartLine, Filter2 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { ChevronRight, Lock } from "lucide-react";

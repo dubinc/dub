@@ -1,5 +1,5 @@
 import { Button, Icon, Popover, useCopyToClipboard } from "@dub/ui";
-import { Copy, Dots } from "@dub/ui/src/icons";
+import { Copy, Dots } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";

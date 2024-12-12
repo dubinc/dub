@@ -21,7 +21,7 @@ import {
   TooltipContent,
   useMediaQuery,
 } from "@dub/ui";
-import { Download, Globe, TableIcon, Tag } from "@dub/ui/src/icons";
+import { Download, Globe, TableIcon, Tag } from "@dub/ui/icons";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";

@@ -37,7 +37,7 @@ export type YAxisProps = {
   tickAxisSpacing?: number;
 };
 
-export default function YAxis({
+export function YAxis({
   numTicks: numTicksProp,
   showGridLines = false,
   integerTicks = false,

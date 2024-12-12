@@ -70,7 +70,7 @@ export const ProgramInviteSchema = z.object({
 });
 
 export const getProgramMetricsQuerySchema = z.object({
-  interval: z.enum(intervals).default("30d"),
+  interval: z.enum(intervals).default("1y"),
   start: parseDateSchema.optional(),
   end: parseDateSchema.optional(),
 });

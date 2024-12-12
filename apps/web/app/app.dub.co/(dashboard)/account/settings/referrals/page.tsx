@@ -3,12 +3,7 @@ import { dub } from "@/lib/dub";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { DubWidget } from "@dub/embed-react";
-import {
-  CursorRays,
-  Hyperlink,
-  InvoiceDollar,
-  UserCheck,
-} from "@dub/ui/src/icons";
+import { CursorRays, Hyperlink, InvoiceDollar, UserCheck } from "@dub/ui/icons";
 import { Suspense } from "react";
 
 export const dynamic = "auto";

@@ -8,7 +8,7 @@ import {
   Popover,
   useMediaQuery,
 } from "@dub/ui";
-import { DiamondTurnRight, LoadingSpinner, Note } from "@dub/ui/src/icons";
+import { DiamondTurnRight, LoadingSpinner, Note } from "@dub/ui/icons";
 import { fetcher } from "@dub/utils";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";

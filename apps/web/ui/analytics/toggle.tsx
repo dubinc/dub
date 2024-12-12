@@ -45,7 +45,7 @@ import {
   ReferredVia,
   Tag,
   Window,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import {
   APP_DOMAIN,
   CONTINENTS,

@@ -1,4 +1,4 @@
-import { ArrowTurnRight2, Flag2, Globe } from "@dub/ui/src/icons";
+import { ArrowTurnRight2, Flag2, Globe } from "@dub/ui/icons";
 import { cn, getPrettyUrl, punycode } from "@dub/utils";
 import { Star } from "lucide-react";
 

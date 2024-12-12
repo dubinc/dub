@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useMemo } from "react";
 import { useChartContext, useChartTooltipContext } from "./chart-context";
 
-export default function Areas({
+export function Areas({
   seriesStyles,
 }: {
   seriesStyles?: {

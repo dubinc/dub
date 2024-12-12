@@ -1,7 +1,7 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { MaxWidthWrapper } from "@dub/ui";
-import { Folder, Globe } from "@dub/ui/src/icons";
+import { Folder, Globe } from "@dub/ui/icons";
 
 export default function MarketplacePage() {
   return (

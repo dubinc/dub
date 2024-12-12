@@ -6,7 +6,7 @@ import {
   useKeyboardShortcut,
   useMediaQuery,
 } from "@dub/ui";
-import { Dots } from "@dub/ui/src/icons";
+import { Dots } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Settings } from "lucide-react";
 import { useContext, useMemo, useState } from "react";

@@ -1,6 +1,6 @@
 import useProgramMetrics from "@/lib/swr/use-program-metrics";
 import { Icon } from "@dub/ui";
-import { Check2, CurrencyDollar, MoneyBills2, Users } from "@dub/ui/src/icons";
+import { Check2, CurrencyDollar, MoneyBills2, Users } from "@dub/ui/icons";
 import { currencyFormatter, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";

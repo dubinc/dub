@@ -13,12 +13,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import {
-  Dots,
-  EnvelopeArrowRight,
-  LoadingSpinner,
-  Users,
-} from "@dub/ui/src/icons";
+import { Dots, EnvelopeArrowRight, LoadingSpinner, Users } from "@dub/ui/icons";
 import {
   cn,
   DICEBEAR_AVATAR_URL,

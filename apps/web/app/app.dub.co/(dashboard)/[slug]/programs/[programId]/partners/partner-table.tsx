@@ -21,7 +21,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, Users } from "@dub/ui/src/icons";
+import { Dots, Users } from "@dub/ui/icons";
 import {
   cn,
   COUNTRIES,

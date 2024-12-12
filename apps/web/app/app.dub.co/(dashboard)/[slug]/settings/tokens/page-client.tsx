@@ -17,7 +17,7 @@ import {
   TokenAvatar,
   Tooltip,
 } from "@dub/ui";
-import { Key } from "@dub/ui/src/icons";
+import { Key } from "@dub/ui/icons";
 import { fetcher, timeAgo } from "@dub/utils";
 import { Edit3, MoreVertical } from "lucide-react";
 import { useState } from "react";

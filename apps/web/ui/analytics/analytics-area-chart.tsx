@@ -1,12 +1,9 @@
 import { EventType } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
+import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { cn, fetcher, getDaysDifference, nFormatter } from "@dub/utils";
 import { Fragment, useCallback, useContext, useMemo } from "react";
 import useSWR from "swr";
-import Areas from "../charts/areas";
-import TimeSeriesChart from "../charts/time-series-chart";
-import XAxis from "../charts/x-axis";
-import YAxis from "../charts/y-axis";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import { AnalyticsContext } from "./analytics-provider";
 

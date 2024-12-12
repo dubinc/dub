@@ -1,4 +1,4 @@
-import { Globe } from "@dub/ui/src/icons";
+import { Globe } from "@dub/ui/icons";
 import { StepPage } from "../step-page";
 import { DomainSelector } from "./domain-selector";
 
