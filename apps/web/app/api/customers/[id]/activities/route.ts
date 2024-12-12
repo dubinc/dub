@@ -29,14 +29,11 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     id: customerId,
   });
 
-  // TODO:
-  // We need to add a new filter clickId/customerId to `getEvents` or add a new pipe to get sales by clickId/customerId
   const events = await getEvents({
+    customerId: customer.id,
     event: "sales",
     order: "desc",
     sortBy: "timestamp",
-    linkId: customer.linkId!, // FIX ME
-    workspaceId: workspace.id,
     interval: "1y",
     page: 1,
     limit: 50,
