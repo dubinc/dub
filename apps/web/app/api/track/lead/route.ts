@@ -63,6 +63,22 @@ export const POST = withWorkspaceEdge(
       });
     }
 
+    const customer = await prismaEdge.customer.findUnique({
+      where: {
+        projectId_externalId: {
+          projectId: workspace.id,
+          externalId: customerExternalId,
+        },
+      },
+    });
+
+    if (customer) {
+      throw new DubApiError({
+        code: "conflict",
+        message: `A customer with externalId ${customerExternalId} already exists. Use PATCH /api/customers/${customer.id} to update it.`,
+      });
+    }
+
     const finalCustomerName =
       customerName || customerEmail || generateRandomName();
 
@@ -70,15 +86,8 @@ export const POST = withWorkspaceEdge(
       (async () => {
         const clickData = clickEventSchemaTB.parse(clickEvent.data[0]);
 
-        // Find customer or create if not exists
-        const customer = await prismaEdge.customer.upsert({
-          where: {
-            projectId_externalId: {
-              projectId: workspace.id,
-              externalId: customerExternalId,
-            },
-          },
-          create: {
+        const customer = await prismaEdge.customer.create({
+          data: {
             id: createId({ prefix: "cus_" }),
             name: finalCustomerName,
             email: customerEmail,
@@ -92,15 +101,7 @@ export const POST = withWorkspaceEdge(
             linkId: clickData.link_id,
             country: clickData.country,
           },
-          update: {
-            name: finalCustomerName,
-            email: customerEmail,
-            avatar: customerAvatar,
-          },
         });
-
-        // TODO:
-        // I think some of below requests should only be made if the customer is new (not on update)?
 
         const [_lead, link, _project] = await Promise.all([
           recordLead({
@@ -122,6 +123,8 @@ export const POST = withWorkspaceEdge(
               },
             },
           }),
+
+          // update project usage
           prismaEdge.project.update({
             where: {
               id: workspace.id,
