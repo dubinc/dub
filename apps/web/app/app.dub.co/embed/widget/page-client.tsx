@@ -18,7 +18,7 @@ import {
   LinkedIn,
   QRCode,
   Twitter,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import { cn, fetcher, getPrettyUrl } from "@dub/utils";
 import { motion } from "framer-motion";
 import { CSSProperties, useState } from "react";

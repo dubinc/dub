@@ -6,7 +6,7 @@ import { ProgramCard, ProgramCardSkeleton } from "@/ui/partners/program-card";
 import { ProgramInviteCard } from "@/ui/partners/program-invite-card";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { MaxWidthWrapper } from "@dub/ui";
-import { CircleDollar, GridIcon } from "@dub/ui/src/icons";
+import { CircleDollar, GridIcon } from "@dub/ui/icons";
 
 export function PartnersDashboardPageClient() {
   const { programEnrollments, isLoading } = useProgramEnrollments();

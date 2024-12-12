@@ -10,7 +10,7 @@ import {
   useCopyToClipboard,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { BoxArchive, CircleCheck, Copy, QRCode } from "@dub/ui/src/icons";
+import { BoxArchive, CircleCheck, Copy, QRCode } from "@dub/ui/icons";
 import { cn, isDubDomain, nanoid, punycode } from "@dub/utils";
 import { CopyPlus, Delete, FolderInput } from "lucide-react";
 import { useParams } from "next/navigation";

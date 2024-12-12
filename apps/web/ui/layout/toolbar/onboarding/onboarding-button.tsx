@@ -5,7 +5,7 @@ import useLinksCount from "@/lib/swr/use-links-count";
 import useUsers from "@/lib/swr/use-users";
 import { CheckCircleFill, ThreeDots } from "@/ui/shared/icons";
 import { Button, Popover, useLocalStorage, useMediaQuery } from "@dub/ui";
-import { CircleDotted, ExpandingArrow } from "@dub/ui/src/icons";
+import { CircleDotted, ExpandingArrow } from "@dub/ui/icons";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";

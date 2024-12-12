@@ -4,7 +4,7 @@ import {
   CircleXmark,
   Duplicate,
   ShieldAlert,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 
 export const SaleStatusBadges = {
   pending: {

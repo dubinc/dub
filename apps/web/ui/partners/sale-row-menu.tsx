@@ -7,7 +7,7 @@ import {
   Dots,
   Duplicate,
   ShieldAlert,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";

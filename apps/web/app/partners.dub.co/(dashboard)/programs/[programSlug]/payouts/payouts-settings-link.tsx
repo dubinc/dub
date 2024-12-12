@@ -1,6 +1,6 @@
 "use client";
 import { buttonVariants } from "@dub/ui";
-import { Gear } from "@dub/ui/src/icons";
+import { Gear } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 

@@ -8,7 +8,7 @@ import {
   LoadingSpinner,
   TableIcon,
   Xmark,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import {
   cn,
   formatDate,

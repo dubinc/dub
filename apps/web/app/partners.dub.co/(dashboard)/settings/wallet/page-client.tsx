@@ -9,7 +9,7 @@ import { usePayoutWithdrawSheet } from "@/ui/partners/payout-withdraw-sheet";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CheckCircleFill, X } from "@/ui/shared/icons";
 import { Button, Modal, Note, SimpleTooltipContent, Tooltip } from "@dub/ui";
-import { GiftFill, GreekTemple, MobilePhone } from "@dub/ui/src/icons";
+import { GiftFill, GreekTemple, MobilePhone } from "@dub/ui/icons";
 import {
   cn,
   currencyFormatter,

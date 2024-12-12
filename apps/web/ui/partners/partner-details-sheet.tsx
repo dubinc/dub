@@ -18,7 +18,7 @@ import {
   useTable,
   useTablePagination,
 } from "@dub/ui";
-import { GreekTemple, LinesY } from "@dub/ui/src/icons";
+import { GreekTemple, LinesY } from "@dub/ui/icons";
 import {
   cn,
   COUNTRIES,

@@ -4,7 +4,7 @@ import z from "@/lib/zod";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import EmptyState from "@/ui/shared/empty-state";
 import { BlurImage, Logo } from "@dub/ui";
-import { CircleWarning, CubeSettings } from "@dub/ui/src/icons";
+import { CircleWarning, CubeSettings } from "@dub/ui/icons";
 import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
 import { ArrowLeftRight } from "lucide-react";
 import { redirect } from "next/navigation";

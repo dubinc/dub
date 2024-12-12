@@ -9,7 +9,7 @@ import {
   Download,
   OfficeBuilding,
   ShieldCheck,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import { pluralize } from "@dub/utils";
 import Link from "next/link";
 

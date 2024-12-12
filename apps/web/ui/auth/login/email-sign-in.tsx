@@ -1,6 +1,6 @@
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { Button, Input, useMediaQuery } from "@dub/ui";
-import { InputPassword } from "@dub/ui/src/icons";
+import { InputPassword } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Mail } from "lucide-react";
 import { signIn } from "next-auth/react";

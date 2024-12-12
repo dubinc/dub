@@ -1,6 +1,6 @@
 import { EventType } from "@/lib/analytics/types";
 import { Button, Modal, Popover, TabSelect, useMediaQuery } from "@dub/ui";
-import { CursorRays, InvoiceDollar, UserCheck } from "@dub/ui/src/icons";
+import { CursorRays, InvoiceDollar, UserCheck } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
 import {

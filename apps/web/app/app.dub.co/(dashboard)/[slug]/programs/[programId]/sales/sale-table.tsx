@@ -17,7 +17,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { MoneyBill2 } from "@dub/ui/src/icons";
+import { MoneyBill2 } from "@dub/ui/icons";
 import {
   currencyFormatter,
   DICEBEAR_AVATAR_URL,

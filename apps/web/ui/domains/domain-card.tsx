@@ -28,7 +28,7 @@ import {
   Globe,
   Hyperlink,
   PenWriting,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import { cn, DEFAULT_LINK_PROPS, fetcher, nFormatter } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Archive, ChevronDown, FolderInput, QrCode } from "lucide-react";

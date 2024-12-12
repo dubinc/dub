@@ -1,6 +1,6 @@
 import { LinkProps } from "@/lib/types";
 import { CopyButton, LinkLogo } from "@dub/ui";
-import { ArrowTurnRight2 } from "@dub/ui/src/icons";
+import { ArrowTurnRight2 } from "@dub/ui/icons";
 import { getApexDomain, getPrettyUrl, linkConstructor } from "@dub/utils";
 
 export default function LinkPreviewTooltip({ data }: { data: LinkProps }) {

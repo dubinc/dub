@@ -9,7 +9,7 @@ import {
   Popover,
   useScrollProgress,
 } from "@dub/ui";
-import { Book2, Check2, Plus } from "@dub/ui/src/icons";
+import { Book2, Check2, Plus } from "@dub/ui/icons";
 import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { ChevronsUpDown, HelpCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
