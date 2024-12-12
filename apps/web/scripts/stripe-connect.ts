@@ -30,9 +30,13 @@ const payout = {
 };
 
 async function main() {
-  await createExpressAccount();
-  await createLoginLink();
-  await createPayout();
+  // await createExpressAccount();
+  // await createLoginLink();
+  // await createPayout();
+
+  const account = await stripe.accounts.retrieve(affiliate.connectedAccountId);
+
+  console.log("Account", account);
 }
 
 const createExpressAccount = async () => {
