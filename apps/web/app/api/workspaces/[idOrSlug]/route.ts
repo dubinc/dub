@@ -49,13 +49,12 @@ export const PATCH = withWorkspace(
       await req.json(),
     );
 
-    const logoUploaded =
-      logo && workspace.plan !== "free"
-        ? await storage.upload(
-            `workspaces/ws_${workspace.id}/logo_${nanoid(7)}`,
-            logo,
-          )
-        : null;
+    const logoUploaded = logo
+      ? await storage.upload(
+          `workspaces/ws_${workspace.id}/logo_${nanoid(7)}`,
+          logo,
+        )
+      : null;
 
     try {
       const response = await prisma.project.update({

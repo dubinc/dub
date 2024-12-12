@@ -14,6 +14,7 @@ import {
 } from "@dub/ui";
 import { CircleDollar, CursorRays, Hyperlink } from "@dub/ui/src/icons";
 import { cn, getFirstAndLastDay, nFormatter } from "@dub/utils";
+import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { CSSProperties, useMemo } from "react";
 import { UsageChart } from "./usage-chart";
@@ -239,10 +240,22 @@ function UsageTabCard({
       <div className="mt-1.5 text-sm text-neutral-600">{title}</div>
       <div className="mt-2">
         {!loading ? (
-          <div className="text-xl leading-none text-neutral-900">
-            {prefix}
-            {nFormatter(usage, { full: usage < 100000 })}
-          </div>
+          <NumberFlow
+            value={usage}
+            className="text-xl leading-none text-neutral-900"
+            format={
+              unit === "$"
+                ? {
+                    style: "currency",
+                    currency: "USD",
+                    // @ts-ignore – this is a valid option but TS is outdated
+                    trailingZeroDisplay: "stripIfInteger",
+                  }
+                : {
+                    notation: usage < 1000000000 ? "standard" : "compact",
+                  }
+            }
+          />
         ) : (
           <div className="h-5 w-16 animate-pulse rounded-md bg-gray-200" />
         )}
@@ -277,7 +290,7 @@ function UsageTabCard({
           <span className="text-xs leading-none text-neutral-600">
             {unlimited
               ? "Unlimited"
-              : `${prefix}${nFormatter(remaining, { full: true })} remaining of ${prefix}${nFormatter(limit, { full: limit < 1000000 })}`}
+              : `${prefix}${nFormatter(remaining, { full: true })} remaining of ${prefix}${nFormatter(limit, { full: limit < 1000000000 })}`}
           </span>
         ) : (
           <div className="h-4 w-20 animate-pulse rounded-md bg-gray-200" />
