@@ -117,9 +117,9 @@ const NAV_AREAS: SidebarNavAreas<{
             exact: true,
           },
           {
-            name: "Wallet",
+            name: "Payouts",
             icon: MoneyBills2,
-            href: "/settings/wallet",
+            href: "/settings/payouts",
           },
           {
             name: "People",
