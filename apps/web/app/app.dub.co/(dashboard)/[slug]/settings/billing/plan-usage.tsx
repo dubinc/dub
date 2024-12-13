@@ -20,7 +20,7 @@ import Link from "next/link";
 import { CSSProperties, useMemo } from "react";
 import { UsageChart } from "./usage-chart";
 
-export default function WorkspaceBillingClient() {
+export default function PlanUsage() {
   const {
     slug,
     plan,
@@ -60,16 +60,16 @@ export default function WorkspaceBillingClient() {
   }, [billingCycleStart]);
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white">
+    <div className="rounded-lg border border-neutral-200 bg-white">
       <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:p-8 xl:flex-row">
         <div>
           <h2 className="text-xl font-medium">Plan and Usage</h2>
-          <p className="mt-1 text-balance text-sm leading-normal text-gray-500">
+          <p className="mt-1 text-balance text-sm leading-normal text-neutral-500">
             You are currently on the{" "}
             {plan ? (
               <PlanBadge plan={plan} />
             ) : (
-              <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-200">
+              <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-xs text-neutral-200">
                 load
               </span>
             )}{" "}
@@ -99,7 +99,7 @@ export default function WorkspaceBillingClient() {
           {stripeId && <ManageSubscriptionButton />}
         </div>
       </div>
-      <div className="grid grid-cols-[minmax(0,1fr)] divide-y divide-gray-200 border-t border-gray-200">
+      <div className="grid grid-cols-[minmax(0,1fr)] divide-y divide-neutral-200 border-t border-neutral-200">
         <div>
           <div
             className={cn(
@@ -136,7 +136,7 @@ export default function WorkspaceBillingClient() {
             <UsageChart />
           </div>
         </div>
-        <div className="grid grid-cols-1 divide-y divide-gray-200 sm:divide-x sm:divide-y-0 md:grid-cols-3">
+        <div className="grid grid-cols-1 divide-y divide-neutral-200 sm:divide-x sm:divide-y-0 md:grid-cols-3">
           <UsageCategory
             title="Custom Domains"
             icon={Globe}
@@ -158,15 +158,15 @@ export default function WorkspaceBillingClient() {
         </div>
       </div>
       {plan !== "enterprise" && (
-        <div className="flex flex-col items-center justify-between space-y-3 border-t border-gray-200 px-6 py-4 text-center md:flex-row md:space-y-0 md:px-8 md:text-left">
+        <div className="flex flex-col items-center justify-between space-y-3 border-t border-neutral-200 px-6 py-4 text-center md:flex-row md:space-y-0 md:px-8 md:text-left">
           {plan ? (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-neutral-500">
               {plan === "business max"
                 ? "Need more clicks or links? Contact us for an Enterprise quote."
                 : `For higher limits, upgrade to the ${nextPlan.name} plan.`}
             </p>
           ) : (
-            <div className="h-3 w-28 animate-pulse rounded-full bg-gray-200" />
+            <div className="h-3 w-28 animate-pulse rounded-full bg-neutral-200" />
           )}
           <div>
             {plan ? (
@@ -180,7 +180,7 @@ export default function WorkspaceBillingClient() {
                 Upgrade to {nextPlan.name}
               </Link>
             ) : (
-              <div className="h-10 w-24 animate-pulse rounded-md bg-gray-200" />
+              <div className="h-10 w-24 animate-pulse rounded-md bg-neutral-200" />
             )}
           </div>
         </div>
@@ -253,7 +253,7 @@ function UsageTabCard({
             }
           />
         ) : (
-          <div className="h-5 w-16 animate-pulse rounded-md bg-gray-200" />
+          <div className="h-5 w-16 animate-pulse rounded-md bg-neutral-200" />
         )}
       </div>
       <div className="mt-5">
@@ -289,7 +289,7 @@ function UsageTabCard({
               : `${prefix}${nFormatter(remaining, { full: true })} remaining of ${prefix}${nFormatter(limit, { full: limit < 1000000000 })}`}
           </span>
         ) : (
-          <div className="h-4 w-20 animate-pulse rounded-md bg-gray-200" />
+          <div className="h-4 w-20 animate-pulse rounded-md bg-neutral-200" />
         )}
       </div>
     </button>
@@ -314,10 +314,10 @@ function UsageCategory(data: {
         {usage || usage === 0 ? (
           <p>{nFormatter(usage, { full: true })}</p>
         ) : (
-          <div className="size-6 animate-pulse rounded-md bg-gray-200" />
+          <div className="size-6 animate-pulse rounded-md bg-neutral-200" />
         )}
         <span>/</span>
-        <p className="text-gray-400">
+        <p className="text-neutral-400">
           {usageLimit && usageLimit >= 1000000000
             ? "∞"
             : nFormatter(usageLimit, { full: true })}

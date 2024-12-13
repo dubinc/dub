@@ -45,6 +45,7 @@ export * from "./connected-dots";
 export * from "./connected-dots-fill";
 export * from "./connected-dots4";
 export * from "./connections3";
+export * from "./credit-card";
 export * from "./crosshairs3";
 export * from "./cube";
 export * from "./cube-settings";
