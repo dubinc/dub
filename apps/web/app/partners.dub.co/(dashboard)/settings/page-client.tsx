@@ -258,7 +258,7 @@ function StripeConnectForm() {
         loading={isExecuting}
         className="h-9 w-fit px-3"
         variant={partner?.stripeConnectId ? "secondary" : "primary"}
-        onClick={async () => await executeAsync({ type: "account_update" })}
+        onClick={async () => await executeAsync({ type: "account_onboarding" })}
       />
     </div>
   );
