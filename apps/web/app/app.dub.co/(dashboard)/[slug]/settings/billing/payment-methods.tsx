@@ -1,18 +1,37 @@
 "use client";
 
+import useWorkspace from "@/lib/swr/use-workspace";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { Button, TooltipContent } from "@dub/ui";
 import { CreditCard, GreekTemple, StripeLink } from "@dub/ui/icons";
 import { cn, fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Stripe } from "stripe";
 import useSWR from "swr";
 
 export default function PaymentMethods() {
-  const { slug } = useParams();
+  const { slug, stripeId } = useWorkspace();
   const { data: paymentMethods } = useSWR<Stripe.PaymentMethod[]>(
-    `/api/workspaces/${slug}/billing/payment-methods`,
+    slug && `/api/workspaces/${slug}/billing/payment-methods`,
     fetcher,
   );
+
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const managePaymentMethods = async () => {
+    setIsLoading(true);
+    const { url } = await fetch(
+      `/api/workspaces/${slug}/billing/payment-methods`,
+      {
+        method: "POST",
+      },
+    ).then((res) => res.json());
+
+    router.push(url);
+    setIsLoading(false);
+  };
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
@@ -23,6 +42,22 @@ export default function PaymentMethods() {
             Manage your payment methods on Dub
           </p>
         </div>
+        <Button
+          variant="secondary"
+          text="Manage"
+          className="h-8 w-fit"
+          disabledTooltip={
+            !stripeId && (
+              <TooltipContent
+                title="You must upgrade to a paid plan to manage your payment methods."
+                cta="Upgrade"
+                href={`/${slug}/upgrade`}
+              />
+            )
+          }
+          onClick={managePaymentMethods}
+          loading={isLoading}
+        />
       </div>
       <div className="grid gap-4 border-t border-neutral-200 p-6">
         {paymentMethods ? (
@@ -70,7 +105,7 @@ const PaymentMethodsDetails = (paymentMethod: Stripe.PaymentMethod) =>
     },
     {
       type: "us_bank_account",
-      title: "ACH Debit",
+      title: "ACH",
       icon: GreekTemple,
       description: paymentMethod.us_bank_account
         ? `Connected ${paymentMethod.us_bank_account.account_holder_type} account ending in ${paymentMethod.us_bank_account.last4}`
