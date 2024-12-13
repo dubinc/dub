@@ -1,5 +1,6 @@
 "use client";
 
+import usePrograms from "@/lib/swr/use-programs";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BetaFeatures } from "@/lib/types";
 import { useRouterStuff } from "@dub/ui";
@@ -30,7 +31,6 @@ import { LinesY } from "./icons/lines-y";
 import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
 import { Usage } from "./usage";
 import { WorkspaceDropdown } from "./workspace-dropdown";
-import usePrograms from "@/lib/swr/use-programs";
 
 const NAV_AREAS: SidebarNavAreas<{
   slug: string;
