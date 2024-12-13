@@ -66,7 +66,7 @@ export const processInvoice = async ({ invoiceId }: { invoiceId: string }) => {
   }
 
   try {
-    const { latest_charge } = await stripe.paymentIntents.create({
+    const { status, latest_charge } = await stripe.paymentIntents.create({
       amount: invoice.total,
       customer: workspace.stripeId,
       payment_method: invoice.paymentMethodId,
@@ -77,6 +77,11 @@ export const processInvoice = async ({ invoiceId }: { invoiceId: string }) => {
       statement_descriptor: "Dub Partners",
       description: "Payout from Dub Partners",
     });
+
+    // TODO:
+    // Handle different statuses
+
+    console.log("Payment intent created", { status, latest_charge });
 
     // Create transfers for each partners
     // TODO (Kiran): Need to optimize this when we have large number of payouts for an invoice.
@@ -96,6 +101,8 @@ export const processInvoice = async ({ invoiceId }: { invoiceId: string }) => {
         transfer_group: invoiceId,
         description: "Stripe Payout",
       });
+
+      console.log("Transfer created", transfer);
 
       await prisma.payout.update({
         where: {
