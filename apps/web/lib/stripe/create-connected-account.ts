@@ -27,10 +27,10 @@ export const createConnectedAccount = async ({
         transfers: {
           requested: true,
         },
-        card_payments: {
-          requested: true,
-        },
       },
+      ...(country !== "US" && {
+        tos_acceptance: { service_agreement: "recipient" },
+      }),
     });
   } catch (error) {
     throw new Error(

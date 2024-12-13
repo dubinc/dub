@@ -26,9 +26,6 @@ const createExpressAccount = async () => {
       transfers: {
         requested: true,
       },
-      card_payments: {
-        requested: true,
-      },
     },
     individual: {
       first_name: "Kiran",
