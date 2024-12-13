@@ -17,6 +17,8 @@ model Payout {
   partnerId      String
   invoiceId      String?
   amount         Int          @default(0)
+  fee            Int          @default(0) // TODO: Remove this
+  total          Int          @default(0) // TODO: Remove this
   currency       String       @default("USD")
   status         PayoutStatus @default(pending)
   type           PayoutType   @default(sales)
