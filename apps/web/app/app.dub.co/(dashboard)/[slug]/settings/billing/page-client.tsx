@@ -5,14 +5,15 @@ import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
 import ManageSubscriptionButton from "@/ui/workspaces/manage-subscription-button";
 import PlanBadge from "@/ui/workspaces/plan-badge";
+import { buttonVariants, Icon, useRouterStuff } from "@dub/ui";
 import {
-  buttonVariants,
-  Icon,
-  InfoTooltip,
-  ProgressBar,
-  useRouterStuff,
-} from "@dub/ui";
-import { CircleDollar, CursorRays, Hyperlink } from "@dub/ui/icons";
+  CircleDollar,
+  CursorRays,
+  Globe,
+  Hyperlink,
+  Tag,
+  Users,
+} from "@dub/ui/icons";
 import { cn, getFirstAndLastDay, nFormatter } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
@@ -87,7 +88,7 @@ export default function WorkspaceBillingClient() {
         </div>
         {stripeId && <ManageSubscriptionButton className="w-fit" />}
       </div>
-      <div className="grid grid-cols-[minmax(0,1fr)] divide-y divide-gray-200 border-y border-gray-200">
+      <div className="grid grid-cols-[minmax(0,1fr)] divide-y divide-gray-200 border-t border-gray-200">
         <div>
           <div
             className={cn(
@@ -127,68 +128,52 @@ export default function WorkspaceBillingClient() {
         <div className="grid grid-cols-1 divide-y divide-gray-200 sm:divide-x sm:divide-y-0 md:grid-cols-3">
           <UsageCategory
             title="Custom Domains"
-            unit="domains"
-            tooltip="Number of custom domains added to your workspace."
+            icon={Globe}
             usage={domains?.length}
             usageLimit={domainsLimit}
-            numberOnly
           />
           <UsageCategory
             title="Tags"
-            unit="tags"
-            tooltip="Number of tags added to your workspace."
+            icon={Tag}
             usage={tags?.length}
             usageLimit={tagsLimit}
-            numberOnly
           />
           <UsageCategory
             title="Teammates"
-            unit="users"
-            tooltip="Number of users added to your workspace."
+            icon={Users}
             usage={users?.filter((user) => !user.isMachine).length}
             usageLimit={usersLimit}
-            numberOnly
           />
         </div>
       </div>
-      <div className="flex flex-col items-center justify-between space-y-3 px-6 py-4 text-center md:flex-row md:space-y-0 md:px-8 md:text-left">
-        {plan ? (
-          <p className="text-sm text-gray-500">
-            {plan === "enterprise"
-              ? "You're on the Enterprise plan."
-              : plan === "business max"
+      {plan !== "enterprise" && (
+        <div className="flex flex-col items-center justify-between space-y-3 border-t border-gray-200 px-6 py-4 text-center md:flex-row md:space-y-0 md:px-8 md:text-left">
+          {plan ? (
+            <p className="text-sm text-gray-500">
+              {plan === "business max"
                 ? "Need more clicks or links? Contact us for an Enterprise quote."
                 : `For higher limits, upgrade to the ${nextPlan.name} plan.`}
-          </p>
-        ) : (
-          <div className="h-3 w-28 animate-pulse rounded-full bg-gray-200" />
-        )}
-        <div>
-          {plan ? (
-            plan === "enterprise" || plan === "business max" ? (
-              <a
-                href="https://dub.co/enterprise"
-                target="_blank"
-                className="inline-flex items-center justify-center rounded-md border border-violet-600 bg-violet-600 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-white hover:text-violet-600 focus:outline-none"
-              >
-                Contact Sales
-              </a>
-            ) : (
+            </p>
+          ) : (
+            <div className="h-3 w-28 animate-pulse rounded-full bg-gray-200" />
+          )}
+          <div>
+            {plan ? (
               <Link
                 href={`/${slug}/upgrade`}
                 className={cn(
                   buttonVariants(),
-                  "flex h-9 w-full items-center justify-center rounded-md border px-4 text-sm",
+                  "flex h-8 w-full items-center justify-center rounded-md border px-4 text-sm",
                 )}
               >
                 Upgrade to {nextPlan.name}
               </Link>
-            )
-          ) : (
-            <div className="h-10 w-24 animate-pulse rounded-md bg-gray-200" />
-          )}
+            ) : (
+              <div className="h-10 w-24 animate-pulse rounded-md bg-gray-200" />
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -302,57 +287,31 @@ function UsageTabCard({
 
 function UsageCategory(data: {
   title: string;
-  unit: string;
-  tooltip: string;
+  icon: Icon;
   usage?: number;
   usageLimit?: number;
-  numberOnly?: boolean;
 }) {
-  let { title, unit, tooltip, usage, usageLimit, numberOnly } = data;
-
-  if (unit === "$" && usage !== undefined && usageLimit !== undefined) {
-    usage = usage / 100;
-    usageLimit = usageLimit / 100;
-  }
+  let { title, icon: Icon, usage, usageLimit } = data;
 
   return (
-    <div className="p-6 md:p-8">
-      <div className="flex items-center space-x-2">
+    <div className="flex items-center justify-between p-6 md:p-8">
+      <div className="flex cursor-default items-center space-x-2">
+        <Icon className="size-4 text-neutral-600" />
         <h3 className="text-sm font-medium">{title}</h3>
-        <InfoTooltip content={tooltip} />
       </div>
-      {numberOnly ? (
-        <div className="mt-4 flex items-center gap-1.5">
-          {usage || usage === 0 ? (
-            <p className="text-lg font-medium text-black">
-              {nFormatter(usage, { full: true })}
-            </p>
-          ) : (
-            <div className="size-7 animate-pulse rounded-md bg-gray-200" />
-          )}
-          <span className="text-lg font-medium text-black">/</span>
-          <p className="text-lg font-medium text-gray-400">
-            {usageLimit && usageLimit >= 1000000000
-              ? "∞"
-              : nFormatter(usageLimit, { full: true })}
-          </p>
-        </div>
-      ) : (
-        <div className="mt-2 flex flex-col space-y-2">
-          {usage !== undefined && usageLimit !== undefined ? (
-            <p className="text-sm text-gray-600">
-              {unit === "$" && unit}
-              {nFormatter(usage, { full: true })} / {unit === "$" && unit}
-              {nFormatter(usageLimit)} {unit !== "$" && unit} (
-              {((usage / usageLimit) * 100).toFixed(1)}
-              %)
-            </p>
-          ) : (
-            <div className="h-5 w-32 animate-pulse rounded-md bg-gray-200" />
-          )}
-          <ProgressBar value={usage} max={usageLimit} />
-        </div>
-      )}
+      <div className="flex items-center gap-1.5 font-medium text-black">
+        {usage || usage === 0 ? (
+          <p>{nFormatter(usage, { full: true })}</p>
+        ) : (
+          <div className="size-6 animate-pulse rounded-md bg-gray-200" />
+        )}
+        <span>/</span>
+        <p className="text-gray-400">
+          {usageLimit && usageLimit >= 1000000000
+            ? "∞"
+            : nFormatter(usageLimit, { full: true })}
+        </p>
+      </div>
     </div>
   );
 }

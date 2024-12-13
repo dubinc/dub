@@ -1,6 +1,5 @@
 "use client";
 
-import usePrograms from "@/lib/swr/use-programs";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BetaFeatures } from "@/lib/types";
 import { useRouterStuff } from "@dub/ui";
@@ -14,7 +13,6 @@ import {
   Gift,
   Globe,
   Key,
-  MoneyBills2,
   Receipt2,
   ShieldCheck,
   Users6,
@@ -120,7 +118,7 @@ const NAV_AREAS: SidebarNavAreas<{
   }),
 
   // Workspace settings
-  workspaceSettings: ({ slug, flags, programs }) => ({
+  workspaceSettings: ({ slug, flags }) => ({
     title: "Settings",
     backHref: `/${slug}`,
     content: [
@@ -132,6 +130,11 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: Gear2,
             href: `/${slug}/settings`,
             exact: true,
+          },
+          {
+            name: "Billing",
+            icon: Receipt2,
+            href: `/${slug}/settings/billing`,
           },
           {
             name: "Domains",
@@ -148,20 +151,6 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: Users6,
             href: `/${slug}/settings/people`,
           },
-          {
-            name: "Billing",
-            icon: Receipt2,
-            href: `/${slug}/settings/billing`,
-          },
-          ...(programs?.length
-            ? [
-                {
-                  name: "Payouts",
-                  icon: MoneyBills2,
-                  href: `/${slug}/settings/payouts`,
-                },
-              ]
-            : []),
           {
             name: "Integrations",
             icon: ConnectedDots,
@@ -255,7 +244,6 @@ export function AppSidebarNav({
   const { slug } = useParams() as { slug?: string };
   const pathname = usePathname();
   const { flags } = useWorkspace();
-  const { programs } = usePrograms();
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
 
@@ -275,7 +263,6 @@ export function AppSidebarNav({
         slug: slug || "",
         queryString: getQueryString(),
         flags,
-        programs,
         session: session || undefined,
       }}
       toolContent={toolContent}
