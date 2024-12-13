@@ -60,7 +60,7 @@ export const confirmPayoutsAction = authActionClient
         data: {
           id: createId({ prefix: "inv_" }),
           programId,
-          paymentMethodId: "xxx",
+          paymentMethodId: "pm_1QVOigAlJJEpqkPV6Y3Jc1hs", // TODO: Fix this
           amount,
           fee,
           total,
@@ -89,7 +89,7 @@ export const confirmPayoutsAction = authActionClient
     // Process the payouts in the background
     waitUntil(
       qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/process-payouts`,
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/invoices`,
         body: {
           invoiceId: result.id,
         },

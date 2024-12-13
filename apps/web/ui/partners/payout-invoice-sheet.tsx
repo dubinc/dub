@@ -23,7 +23,6 @@ interface PayoutInvoiceSheetProps {
 }
 
 // TODO:
-// Handle case when there are 2 payouts for the same partner
 // Fix the fee calculation
 // Fix the table menus + View all
 

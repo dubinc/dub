@@ -1,9 +1,27 @@
+import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
+
+// TODO:
+// Check current invoiceId is processing (Maybe store it in Redis)
+// Deduct the app fee from the invoice amount
+// Should we combine the multiple payouts for same partner?
+// Store the reason of failure in the payout table itself (internal purpose)?
+// We probably need to keep a status column
 
 export const processInvoice = async ({ invoiceId }: { invoiceId: string }) => {
   const invoice = await prisma.invoice.findUnique({
     where: {
       id: invoiceId,
+    },
+    select: {
+      id: true,
+      paymentMethodId: true,
+      total: true,
+      program: {
+        select: {
+          workspaceId: true,
+        },
+      },
     },
   });
 
@@ -16,23 +34,82 @@ export const processInvoice = async ({ invoiceId }: { invoiceId: string }) => {
       invoiceId,
       status: "pending",
     },
+    select: {
+      id: true,
+      amount: true,
+      partner: {
+        select: {
+          id: true,
+          email: true,
+          stripeConnectId: true,
+        },
+      },
+    },
   });
 
   if (payouts.length === 0) {
     throw new Error(`No payouts found for invoice ${invoiceId}.`);
   }
 
-  // const result = await stripe.paymentIntents.create({
-  //   amount: payout.amount,
-  //   currency: payout.currency,
-  //   description: "Payout for affiliate from Dub Partners",
-  //   customer: partner.stripeCustomerId, // Partner's Stripe Customer ID
-  //   payment_method: "pm_1QV6ZKFacAXKeDpJQJa2tLc8", // Partner's Stripe Payment Method ID
-  //   confirm: true,
-  //   confirmation_method: "automatic",
-  //   transfer_data: {
-  //     destination: affiliate.connectedAccountId, // To where the payout is sent
-  //   },
-  //   application_fee_amount: 100, // 1% fee from Dub
-  // });
+  const workspace = await prisma.project.findUniqueOrThrow({
+    where: {
+      id: invoice.program.workspaceId,
+    },
+    select: {
+      id: true,
+      stripeId: true,
+    },
+  });
+
+  if (!workspace.stripeId) {
+    throw new Error(`Workspace ${workspace.id} does not have a Stripe ID.`);
+  }
+
+  try {
+    const { latest_charge } = await stripe.paymentIntents.create({
+      amount: invoice.total,
+      customer: workspace.stripeId,
+      payment_method: invoice.paymentMethodId,
+      currency: "usd",
+      confirmation_method: "automatic",
+      confirm: true,
+      transfer_group: invoiceId,
+      statement_descriptor: "Dub Partners",
+      description: "Payout from Dub Partners",
+    });
+
+    // Create transfers for each partners
+    // TODO (Kiran): Need to optimize this when we have large number of payouts for an invoice.
+    for (const payout of payouts) {
+      if (!payout.partner.stripeConnectId) {
+        console.warn(
+          `Partner ${payout.partner.id} does not have a Stripe Connect ID. Skipping payout...`,
+        );
+        continue;
+      }
+
+      const transfer = await stripe.transfers.create({
+        amount: payout.amount,
+        currency: "usd",
+        destination: payout.partner.stripeConnectId,
+        source_transaction: latest_charge as string,
+        transfer_group: invoiceId,
+        description: "Stripe Payout",
+      });
+
+      await prisma.payout.update({
+        where: {
+          id: payout.id,
+        },
+        data: {
+          stripeTransferId: transfer.id,
+          status: "completed",
+        },
+      });
+    }
+  } catch (error) {
+    throw new Error(
+      `[Stripe Connect] Failed to create payment intent for invoice ${invoiceId}: ${error.message}`,
+    );
+  }
 };

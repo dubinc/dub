@@ -1,6 +1,7 @@
 enum PayoutStatus {
   pending
   completed
+  // processing
   failed
 }
 
@@ -12,23 +13,24 @@ enum PayoutType {
 }
 
 model Payout {
-  id             String       @id @default(cuid())
-  programId      String
-  partnerId      String
-  invoiceId      String?
-  amount         Int          @default(0)
-  fee            Int          @default(0) // TODO: Remove this
-  total          Int          @default(0) // TODO: Remove this
-  currency       String       @default("USD")
-  status         PayoutStatus @default(pending)
-  type           PayoutType   @default(sales)
-  description    String?
-  periodStart    DateTime?
-  periodEnd      DateTime?
-  quantity       Int? // Number of clicks/leads/sales in this payout
-  dotsTransferId String?      @unique
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id               String       @id @default(cuid())
+  programId        String
+  partnerId        String
+  invoiceId        String?
+  amount           Int          @default(0)
+  fee              Int          @default(0) // TODO: Remove this
+  total            Int          @default(0) // TODO: Remove this
+  currency         String       @default("USD")
+  status           PayoutStatus @default(pending)
+  type             PayoutType   @default(sales)
+  description      String?
+  periodStart      DateTime?
+  periodEnd        DateTime?
+  quantity         Int? // Number of clicks/leads/sales in this payout
+  dotsTransferId   String?      @unique
+  stripeTransferId String?      @unique
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
   program Program  @relation(fields: [programId], references: [id])
   partner Partner  @relation(fields: [partnerId], references: [id])
