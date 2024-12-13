@@ -145,7 +145,7 @@ const PaymentMethodCard = ({
       <div className="flex items-center gap-4">
         <div
           className={cn(
-            "flex size-12 items-center justify-center rounded-lg",
+            "flex size-12 items-center justify-center rounded-lg bg-neutral-100",
             iconBgColor,
           )}
         >
