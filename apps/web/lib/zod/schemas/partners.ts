@@ -39,6 +39,13 @@ export const partnersCountQuerySchema = z.object({
   groupBy: z.enum(["status", "country"]).optional(),
 });
 
+export const payoutCountQuerySchema = z.object({
+  status: z.nativeEnum(PayoutStatus).optional(),
+  search: z.string().optional(),
+  partnerId: z.string().optional(),
+  groupBy: z.enum(["status"]).optional(),
+});
+
 export const partnerInvitesQuerySchema = getPaginationQuerySchema({
   pageSize: 100,
 });

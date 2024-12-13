@@ -340,7 +340,11 @@ export type PartnerProgramInviteProps = z.infer<
 
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 
-export type PayoutsCount = Record<PayoutStatus | "all", number>;
+export type PayoutsCount = {
+  status: PayoutStatus;
+  count: number;
+  amount: number;
+};
 
 export type PayoutProps = z.infer<typeof PayoutSchema>;
 

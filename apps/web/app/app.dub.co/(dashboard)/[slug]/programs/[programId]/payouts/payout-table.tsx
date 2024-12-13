@@ -53,7 +53,7 @@ export function PayoutTable() {
     setSelectedFilter,
   } = usePayoutFilters({ sortBy, order });
 
-  const { payoutsCount, error: countError } = usePayoutsCount();
+  const { payoutsCount, error: countError } = usePayoutsCount<number>();
 
   const {
     data: payouts,
@@ -188,7 +188,7 @@ export function PayoutTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `payout${p ? "s" : ""}`,
-    rowCount: payoutsCount?.all || 0,
+    rowCount: payoutsCount || 0,
   });
 
   return (

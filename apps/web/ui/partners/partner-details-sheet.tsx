@@ -417,8 +417,8 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
   const { slug } = useWorkspace();
   const router = useRouter();
 
-  const { payoutsCount, error: payoutsCountError } = usePayoutsCount({
-    query: { partnerId: partner.id },
+  const { payoutsCount, error: payoutsCountError } = usePayoutsCount<number>({
+    partnerId: partner.id,
   });
 
   const { pagination, setPagination } = useTablePagination({
@@ -433,9 +433,7 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
   const countLoading = !payoutsCount && !payoutsCountError;
   const payoutsLoading = !payouts && !payoutsError;
   const isLoading = countLoading || payoutsLoading;
-
-  const showPagination =
-    payoutsCount?.all && payoutsCount.all > PAYOUTS_MAX_PAGE_SIZE;
+  const showPagination = payoutsCount && payoutsCount > PAYOUTS_MAX_PAGE_SIZE;
 
   const table = useTable({
     data: payouts || [],
@@ -479,7 +477,7 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
     ...(showPagination && {
       pagination,
       onPaginationChange: setPagination,
-      rowCount: payoutsCount?.all || 0,
+      rowCount: payoutsCount || 0,
     }),
     resourceName: (p) => `payout${p ? "s" : ""}`,
     thClassName: (id) =>
