@@ -31,6 +31,9 @@ export const createConnectedAccount = async ({
           requested: true,
         },
       },
+      ...(country !== "US" && {
+        tos_acceptance: { service_agreement: "recipient" },
+      }),
     });
   } catch (error) {
     throw new Error(
