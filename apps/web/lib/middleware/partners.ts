@@ -45,12 +45,11 @@ export default async function PartnersMiddleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/onboarding", req.url));
     } else if (path === "/" || path.startsWith("/pn_")) {
       return NextResponse.redirect(new URL("/programs", req.url));
-    } 
-    
+    }
+
     // else if (PARTNER_REDIRECTS[path]) {
     //   return NextResponse.redirect(new URL(PARTNER_REDIRECTS[path], req.url));
     // }
-    
     else if (["/login", "/register"].some((p) => path.startsWith(p))) {
       return NextResponse.redirect(new URL("/", req.url)); // Redirect authenticated users to dashboard
     }
