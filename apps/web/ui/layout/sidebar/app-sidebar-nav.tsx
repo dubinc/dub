@@ -30,6 +30,7 @@ import { LinesY } from "./icons/lines-y";
 import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
 import { Usage } from "./usage";
 import { WorkspaceDropdown } from "./workspace-dropdown";
+import usePrograms from "@/lib/swr/use-programs";
 
 const NAV_AREAS: SidebarNavAreas<{
   slug: string;
@@ -246,6 +247,7 @@ export function AppSidebarNav({
   const { flags } = useWorkspace();
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
+  const { programs } = usePrograms();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -263,6 +265,7 @@ export function AppSidebarNav({
         slug: slug || "",
         queryString: getQueryString(),
         flags,
+        programs,
         session: session || undefined,
       }}
       toolContent={toolContent}
