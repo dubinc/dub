@@ -11,7 +11,7 @@ import {
   GridLayoutRows,
   Sliders,
   TableRows2,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";

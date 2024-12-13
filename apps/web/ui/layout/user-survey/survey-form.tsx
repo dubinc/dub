@@ -11,7 +11,7 @@ import {
   useMediaQuery,
   Wordmark,
 } from "@dub/ui";
-import { Globe } from "@dub/ui/src/icons";
+import { Globe } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
 import { useContext, useState } from "react";

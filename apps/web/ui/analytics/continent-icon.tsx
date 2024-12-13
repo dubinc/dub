@@ -6,7 +6,7 @@ import {
   NorthAmerica,
   Oceania,
   SouthAmerica,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 
 export default function ContinentIcon({
   display,

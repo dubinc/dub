@@ -13,7 +13,7 @@ import {
   usePagination,
   useRouterStuff,
 } from "@dub/ui";
-import { Tag } from "@dub/ui/src/icons";
+import { Tag } from "@dub/ui/icons";
 import { createContext, Dispatch, SetStateAction, useState } from "react";
 import { TagCard } from "./tag-card";
 import { TagCardPlaceholder } from "./tag-card-placeholder";

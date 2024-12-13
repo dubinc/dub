@@ -1,13 +1,15 @@
 "use client";
 
 import { IntervalOptions } from "@/lib/analytics/types";
-import Areas from "@/ui/charts/areas";
-import { ChartContext } from "@/ui/charts/chart-context";
-import TimeSeriesChart from "@/ui/charts/time-series-chart";
-import XAxis from "@/ui/charts/x-axis";
-import YAxis from "@/ui/charts/y-axis";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { LoadingSpinner } from "@dub/ui/src/icons";
+import {
+  Areas,
+  ChartContext,
+  TimeSeriesChart,
+  XAxis,
+  YAxis,
+} from "@dub/ui/charts";
+import { LoadingSpinner } from "@dub/ui/icons";
 import { cn, currencyFormatter, formatDate } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
 import { createContext, useId, useMemo } from "react";

@@ -13,7 +13,7 @@ import {
   Tick,
   useCopyToClipboard,
 } from "@dub/ui";
-import { ArrowTurnRight2, Globe } from "@dub/ui/src/icons";
+import { ArrowTurnRight2, Globe } from "@dub/ui/icons";
 import {
   APP_DOMAIN,
   fetcher,

@@ -20,7 +20,7 @@ import {
   User,
   UserCheck,
   Users,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import { cn, currencyFormatter } from "@dub/utils";
 import { Store } from "lucide-react";
 import Link from "next/link";

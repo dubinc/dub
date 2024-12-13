@@ -12,7 +12,7 @@ import {
   ProgressBar,
   useRouterStuff,
 } from "@dub/ui";
-import { CircleDollar, CursorRays, Hyperlink } from "@dub/ui/src/icons";
+import { CircleDollar, CursorRays, Hyperlink } from "@dub/ui/icons";
 import { cn, getFirstAndLastDay, nFormatter } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";

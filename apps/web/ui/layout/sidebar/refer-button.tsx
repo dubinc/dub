@@ -1,7 +1,7 @@
 "use client";
 
 import { DubWidget } from "@dub/embed-react";
-import { Gift } from "@dub/ui/src/icons";
+import { Gift } from "@dub/ui/icons";
 import { cn, fetcher } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import useSWRImmutable from "swr/immutable";

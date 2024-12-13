@@ -1,4 +1,4 @@
-import { Users } from "@dub/ui/src/icons";
+import { Users } from "@dub/ui/icons";
 import { StepPage } from "../step-page";
 import { Form } from "./form";
 

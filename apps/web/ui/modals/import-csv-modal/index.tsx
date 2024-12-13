@@ -8,7 +8,7 @@ import {
   Modal,
   useRouterStuff,
 } from "@dub/ui";
-import { TableIcon } from "@dub/ui/src/icons";
+import { TableIcon } from "@dub/ui/icons";
 import { ArrowRight } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {

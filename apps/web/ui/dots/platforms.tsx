@@ -6,7 +6,7 @@ import {
   Payoneer,
   Paypal,
   Venmo,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 
 export const DOTS_PAYOUT_PLATFORMS = [
   {

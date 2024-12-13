@@ -122,7 +122,7 @@ export const getSalesQuerySchema = z
     status: z.nativeEnum(SaleStatus).optional(),
     order: z.enum(["asc", "desc"]).default("desc"),
     sortBy: z.enum(["createdAt", "amount"]).default("createdAt"),
-    interval: z.enum(intervals).default("30d"),
+    interval: z.enum(intervals).default("1y"),
     start: parseDateSchema.optional(),
     end: parseDateSchema.optional(),
     customerId: z.string().optional(),
