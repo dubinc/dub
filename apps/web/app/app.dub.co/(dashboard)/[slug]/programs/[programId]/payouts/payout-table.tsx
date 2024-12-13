@@ -111,6 +111,7 @@ export function PayoutTable() {
         header: "Status",
         cell: ({ row }) => {
           const badge = PayoutStatusBadges[row.original.status];
+
           return badge ? (
             <StatusBadge icon={badge.icon} variant={badge.variant}>
               {badge.label}

@@ -460,10 +460,10 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
         },
       },
       {
-        id: "total",
-        header: "Total",
+        id: "amount",
+        header: "Amount",
         accessorFn: (d) =>
-          currencyFormatter(d.total / 100, {
+          currencyFormatter(d.amount / 100, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           }),

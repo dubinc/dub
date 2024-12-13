@@ -9,7 +9,7 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
-    const { status, search, partnerId, groupBy } =
+    const { search, partnerId, groupBy } =
       payoutCountQuerySchema.parse(searchParams);
 
     await getProgramOrThrow({
@@ -23,7 +23,6 @@ export const GET = withWorkspace(
         by: ["status"],
         where: {
           programId,
-          ...(status && { status }),
           ...(search && { partner: { name: { contains: search } } }),
           ...(partnerId && { partnerId }),
         },
