@@ -16,6 +16,7 @@ export const onboardPartnerAction = authUserActionClient
   .schema(onboardPartnerSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { user } = ctx;
+    const { name, email, image, country, description } = parsedInput;
 
     const partnersPortalEnabled = await userIsInBeta(
       user.email,
@@ -26,11 +27,8 @@ export const onboardPartnerAction = authUserActionClient
       throw new Error("Partners portal feature flag disabled.");
     }
 
-    const { name, email, image, country, phoneNumber, description } =
-      parsedInput;
-
     if (!COUNTRY_PHONE_CODES[country]) {
-      throw new Error("Invalid country code or country not supported.");
+      throw new Error("Invalid country code.");
     }
 
     // Create the Stripe connected account for the partner
@@ -38,7 +36,6 @@ export const onboardPartnerAction = authUserActionClient
       name,
       email,
       country,
-      phoneNumber,
     });
 
     // TODO:

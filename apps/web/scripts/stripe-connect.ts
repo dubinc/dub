@@ -1,7 +1,6 @@
 // Stripe Connect MVP
 
 import "dotenv-flow/config";
-import { createConnectedAccount } from "@/lib/stripe/create-connected-account";
 
 import Stripe from "stripe";
 
@@ -37,12 +36,23 @@ async function main() {
   // await createCustomer();
 
   try {
-    const account = await createConnectedAccount({
-      name: "Kiran 1",
-      email: "kiran+1@dub.co",
-      country: "US",
-      phoneNumber: "1234567890",
+    const account = await stripe.accounts.update("acct_1QVUkdPJLmUm0iMu", {
+      email: "tim@apple.com",
     });
+
+    console.log("Updated account", account);
+
+    // const account = await createConnectedAccount({
+    //   name: "Kiran US",
+    //   email: "kiran+us@dub.co",
+    //   country: "US",
+    // });
+
+    // const account = await createConnectedAccount({
+    //   name: "Kiran IN",
+    //   email: "kiran+in@dub.co",
+    //   country: "IN",
+    // });
 
     console.log("Created connected account", account);
   } catch (error) {
