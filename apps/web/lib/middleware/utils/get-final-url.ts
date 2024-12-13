@@ -17,12 +17,16 @@ export const getFinalUrl = (
   // get the query params of the target url
   const urlObj = redirectionUrl ? new URL(redirectionUrl) : new URL(url);
 
+  console.log({ urlObj });
+
   // if there's a clickId and no dub-no-track search param, then add clickId to the final url
   // reasoning: if you're skipping tracking, there's no point in passing the clickId anyway
   if (clickId && !searchParams.has("dub-no-track")) {
     // add clickId to the final url if it exists
     urlObj.searchParams.set("dub_id", clickId);
   }
+
+  console.log({ urlToString: urlObj.toString() });
 
   // if there are no query params, then return the target url as is (no need to parse it)
   // @ts-ignore – until https://github.com/microsoft/TypeScript/issues/54466 is fixed
