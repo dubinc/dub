@@ -159,30 +159,20 @@ export default function PlanUsage() {
       </div>
       {plan !== "enterprise" && (
         <div className="flex flex-col items-center justify-between space-y-3 border-t border-neutral-200 px-6 py-4 text-center md:flex-row md:space-y-0 md:px-8 md:text-left">
-          {plan ? (
-            <p className="text-sm text-neutral-500">
-              {plan === "business max"
-                ? "Need more clicks or links? Contact us for an Enterprise quote."
-                : `For higher limits, upgrade to the ${nextPlan.name} plan.`}
-            </p>
-          ) : (
-            <div className="h-3 w-28 animate-pulse rounded-full bg-neutral-200" />
-          )}
-          <div>
-            {plan ? (
-              <Link
-                href={`/${slug}/upgrade`}
-                className={cn(
-                  buttonVariants(),
-                  "flex h-8 w-full items-center justify-center rounded-md border px-4 text-sm",
-                )}
-              >
-                Upgrade to {nextPlan.name}
-              </Link>
-            ) : (
-              <div className="h-10 w-24 animate-pulse rounded-md bg-neutral-200" />
+          <p className="text-sm text-neutral-500">
+            {plan === "business max"
+              ? "Need more clicks or links? Contact us for an Enterprise quote."
+              : `For higher limits, upgrade to the ${nextPlan.name} plan.`}
+          </p>
+          <Link
+            href={`/${slug}/upgrade`}
+            className={cn(
+              buttonVariants(),
+              "flex h-8 w-fit items-center justify-center rounded-md border px-3 text-sm",
             )}
-          </div>
+          >
+            Upgrade to {nextPlan.name}
+          </Link>
         </div>
       )}
     </div>
