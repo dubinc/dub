@@ -47,8 +47,8 @@ export const updateSaleStatusAction = authActionClient
         },
         data: {
           amount: revisedAmount,
-          fee: revisedFee,
-          total: revisedAmount + revisedFee,
+          // fee: revisedFee,
+          // total: revisedAmount + revisedFee,
         },
       });
     }
