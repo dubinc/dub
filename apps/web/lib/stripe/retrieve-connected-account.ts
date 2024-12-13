@@ -7,6 +7,8 @@ import { stripe } from ".";
 const connectedAccountSchema = z.object({
   id: z.string(),
   charges_enabled: z.boolean(),
+  // payouts_enabled: z.boolean(),
+  details_submitted: z.boolean(),
   capabilities: z.object({
     card_payments: z.enum(["inactive", "active"]),
     transfers: z.enum(["inactive", "active"]),

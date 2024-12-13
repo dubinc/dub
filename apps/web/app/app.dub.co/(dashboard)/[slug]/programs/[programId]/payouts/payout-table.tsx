@@ -139,28 +139,15 @@ export function PayoutTable() {
         },
       },
       {
+        id: "invoiceId",
+        header: "Invoice",
+        accessorFn: (d) => d.invoiceId || "-",
+      },
+      {
         id: "amount",
         header: "Amount",
         accessorFn: (d) =>
           currencyFormatter(d.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
-      },
-      {
-        id: "fee",
-        header: "Fee",
-        accessorFn: (d) =>
-          currencyFormatter(d.fee / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
-      },
-      {
-        id: "total",
-        header: "Total",
-        accessorFn: (d) =>
-          currencyFormatter(d.total / 100, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           }),

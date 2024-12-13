@@ -4,12 +4,6 @@ import { payoutsQuerySchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { PayoutStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
-import z from "zod";
-
-const responseSchema = z.object({
-  status: z.nativeEnum(PayoutStatus),
-  _count: z.number(),
-});
 
 // GET /api/programs/[programId]/payouts/count
 export const GET = withWorkspace(

@@ -33,10 +33,11 @@ async function main() {
   // await createExpressAccount();
   // await createLoginLink();
   // await createPayout();
+  await createCustomer();
 
-  const account = await stripe.accounts.retrieve("acct_1QVHHo2Z0L3O7iWp");
+  // const account = await stripe.accounts.retrieve("acct_1QVHHo2Z0L3O7iWp");
 
-  console.log("Account", account);
+  // console.log("Account", account);
 }
 
 const createExpressAccount = async () => {
@@ -87,6 +88,15 @@ const createPayout = async () => {
   });
 
   console.log("Created payout for affiliate", result);
+};
+
+const createCustomer = async () => {
+  const customer = await stripe.customers.create({
+    email: "kiran@dub.co",
+    name: "Kiran Krishnan",
+  });
+
+  console.log("Created customer for partner", customer);
 };
 
 main();
