@@ -3,7 +3,6 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import z from "../../zod";
 import { authActionClient } from "../safe-action";
-import { P } from "@upstash/redis/zmscore-b6b93f14";
 
 const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
