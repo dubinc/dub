@@ -61,7 +61,7 @@ export default function WorkspaceBillingClient() {
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white">
-      <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:p-8 lg:flex-row">
+      <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:p-8 xl:flex-row">
         <div>
           <h2 className="text-xl font-medium">Plan and Usage</h2>
           <p className="mt-1 text-balance text-sm leading-normal text-gray-500">
@@ -86,7 +86,18 @@ export default function WorkspaceBillingClient() {
             )}
           </p>
         </div>
-        {stripeId && <ManageSubscriptionButton className="w-fit" />}
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/${slug}/settings/billing/invoices`}
+            className={cn(
+              buttonVariants({ variant: "secondary" }),
+              "flex h-8 w-full items-center justify-center rounded-md border px-4 text-sm",
+            )}
+          >
+            View invoices
+          </Link>
+          {stripeId && <ManageSubscriptionButton />}
+        </div>
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)] divide-y divide-gray-200 border-t border-gray-200">
         <div>

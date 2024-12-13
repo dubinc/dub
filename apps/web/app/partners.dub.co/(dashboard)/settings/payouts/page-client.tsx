@@ -3,23 +3,16 @@
 import useDotsUser from "@/lib/swr/use-dots-user";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import usePayoutMethods from "@/lib/swr/use-payout-methods";
-import LayoutLoader from "@/ui/layout/layout-loader";
 import { usePayoutWithdrawSheet } from "@/ui/partners/payout-withdraw-sheet";
-import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { CheckCircleFill, X } from "@/ui/shared/icons";
-import { Button, Modal, Note, SimpleTooltipContent, Tooltip } from "@dub/ui";
-import { GiftFill, GreekTemple } from "@dub/ui/src/icons";
+import { Note, SimpleTooltipContent, Tooltip } from "@dub/ui";
+import { GiftFill } from "@dub/ui/icons";
 import {
   cn,
   currencyFormatter,
   FREE_WITHDRAWAL_MINIMUM_BALANCE,
 } from "@dub/utils";
 import { useState } from "react";
-import { PartnerWithdrawalsActivity } from "./activity";
 import { ComplianceButton } from "./compliance-button";
-import PayoutMethodCard, {
-  PayoutMethodCardSkeleton,
-} from "./payout-method-card";
 
 export function WalletSettingsPageClient() {
   const { partner } = usePartnerProfile();
@@ -263,7 +256,7 @@ export function WalletSettingsPageClient() {
   //       )}
   //     </div>
   //   </>
- // );
+  // );
 }
 
 function FreeWithdrawalProgress({ balance }: { balance: number }) {
