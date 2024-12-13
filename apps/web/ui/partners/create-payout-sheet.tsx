@@ -11,7 +11,6 @@ import { X } from "@/ui/shared/icons";
 import { PayoutType } from "@dub/prisma/client";
 import {
   Button,
-  Combobox,
   DateRangePicker,
   Sheet,
   useEnterSubmit,
@@ -54,11 +53,11 @@ import { z } from "zod";
 
 interface CreatePayoutSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
+  partnerId: string;
 }
 
 const schema = createManualPayoutSchema
   .pick({
-    partnerId: true,
     type: true,
     amount: true,
     description: true,
@@ -81,7 +80,10 @@ const schema = createManualPayoutSchema
 
 type FormData = z.infer<typeof schema>;
 
-function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
+function CreatePayoutSheetContent({
+  setIsOpen,
+  partnerId,
+}: CreatePayoutSheetProps) {
   const dateRangePickerId = useId();
   const { program } = useProgram();
   const { data: partners } = usePartners();
@@ -109,26 +111,10 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
     },
   });
 
-  const { partnerId, type: payoutType, start, end, amount } = watch();
+  const { type: payoutType, start, end, amount } = watch();
 
   const isPercentageBased =
     payoutType === "sales" && program?.commissionType === "percentage";
-
-  const partnerOptions = useMemo(() => {
-    return partners?.map((partner) => ({
-      value: partner.id,
-      label: partner.name,
-      icon: (
-        <img
-          src={
-            partner.image ||
-            `https://api.dicebear.com/9.x/micah/svg?seed=${partner.id}`
-          }
-          className="size-4 rounded-full"
-        />
-      ),
-    }));
-  }, [partners]);
 
   const { executeAsync, isExecuting } = useAction(createManualPayoutAction, {
     onSuccess: async (res) => {
@@ -169,6 +155,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
         start: startDate ? new Date(startDate).toISOString() : undefined,
         end: endDate ? new Date(endDate).toISOString() : undefined,
         amount: isPercentageBased ? amount : amount * 100,
+        partnerId,
       });
     }
   };
@@ -388,7 +375,7 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
       <div>
         <div className="flex items-start justify-between border-b border-neutral-200 p-6">
           <Sheet.Title className="text-xl font-semibold">
-            Create payout
+            Create manual payout
           </Sheet.Title>
           <Sheet.Close asChild>
             <Button
@@ -400,49 +387,15 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
         </div>
         <div className="flex flex-col gap-4 p-6">
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-gray-900">
-              Partner
-              <span className="font-normal text-neutral-500"> (required)</span>
-            </label>
-            <Combobox
-              selected={
-                partnerOptions?.find((o) => o.value === partnerId) ?? null
-              }
-              setSelected={(option) => {
-                if (option) {
-                  setValue("partnerId", option.value);
-                  clearErrors("partnerId");
-                }
-              }}
-              options={partnerOptions}
-              caret={true}
-              placeholder="Select partners"
-              searchPlaceholder="Search..."
-              matchTriggerWidth
-              buttonProps={{
-                className: cn(
-                  "w-full justify-start border-gray-300 px-3",
-                  "data-[state=open]:ring-1 data-[state=open]:ring-gray-500 data-[state=open]:border-gray-500",
-                  "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
-                  !partnerId && "text-gray-400",
-                  errors.partnerId && "border-red-500",
-                ),
-              }}
-            />
-            {errors.partnerId && (
-              <p className="text-xs text-red-600">{errors.partnerId.message}</p>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-2">
             <label
               htmlFor={dateRangePickerId}
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-gray-900"
             >
               Payout period {payoutType === "custom" ? "(optional)" : ""}
             </label>
             <DateRangePicker
               id={dateRangePickerId}
+              className="border-gray-300"
               value={
                 start && end
                   ? {
@@ -641,9 +594,11 @@ function CreatePayoutSheetContent({ setIsOpen }: CreatePayoutSheetProps) {
 
 export function CreatePayoutSheet({
   isOpen,
+  nested,
   ...rest
 }: CreatePayoutSheetProps & {
   isOpen: boolean;
+  nested?: boolean;
 }) {
   const { queryParams } = useRouterStuff();
 
@@ -652,18 +607,21 @@ export function CreatePayoutSheet({
       open={isOpen}
       onOpenChange={rest.setIsOpen}
       onClose={() => queryParams({ del: "partnerId" })}
+      nested={nested}
     >
       <CreatePayoutSheetContent {...rest} />
     </Sheet>
   );
 }
 
-export function useCreatePayoutSheet() {
+export function useCreatePayoutSheet(
+  props: { nested?: boolean } & Omit<CreatePayoutSheetProps, "setIsOpen">,
+) {
   const [isOpen, setIsOpen] = useState(false);
 
   return {
     createPayoutSheet: (
-      <CreatePayoutSheet setIsOpen={setIsOpen} isOpen={isOpen} />
+      <CreatePayoutSheet setIsOpen={setIsOpen} isOpen={isOpen} {...props} />
     ),
     setIsOpen,
   };

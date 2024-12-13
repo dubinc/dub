@@ -35,6 +35,7 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
+import { useCreatePayoutSheet } from "./create-payout-sheet";
 import { PartnerLinkSelector } from "./partner-link-selector";
 import { PartnerStatusBadges } from "./partner-status-badges";
 import { PayoutStatusBadges } from "./payout-status-badges";
@@ -53,11 +54,10 @@ function PartnerDetailsSheetContent({
   const badge = PartnerStatusBadges[partner.status];
 
   const saleAmount = (partner.link?.saleAmount ?? 0) / 100;
-  const earnings = (partner.earnings ?? 0) / 100;
+  // const earnings = (partner.earnings ?? 0) / 100;
 
-  const [selectedTab, setSelectedTab] = useState<"overview" | "payouts">(
-    "overview",
-  );
+  const { createPayoutSheet, setIsOpen: setCreatePayoutSheetOpen } =
+    useCreatePayoutSheet({ nested: true, partnerId: partner.id });
 
   return (
     <>
@@ -219,6 +219,21 @@ function PartnerDetailsSheetContent({
             <PartnerApproval partner={partner} setIsOpen={setIsOpen} />
           </div>
         </div>
+      )}
+
+      {partner.status === "approved" && (
+        <>
+          {createPayoutSheet}
+          <div className="flex grow flex-col justify-end">
+            <div className="border-t border-neutral-200 p-5">
+              <Button
+                variant="primary"
+                text="Create payout"
+                onClick={() => setCreatePayoutSheetOpen(true)}
+              />
+            </div>
+          </div>
+        </>
       )}
     </>
   );
