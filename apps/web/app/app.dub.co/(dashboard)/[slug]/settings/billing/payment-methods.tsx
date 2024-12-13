@@ -1,24 +1,21 @@
 "use client";
 
+import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Button, TooltipContent } from "@dub/ui";
-import { CreditCard, GreekTemple, StripeLink } from "@dub/ui/icons";
-import { cn, fetcher } from "@dub/utils";
+import { CreditCard } from "@dub/ui/icons";
+import { cn } from "@dub/utils";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Stripe } from "stripe";
-import useSWR from "swr";
+import { PaymentMethodTypesList } from "./payment-method-types";
 
 export default function PaymentMethods() {
-  const { slug, stripeId } = useWorkspace();
-  const { data: paymentMethods } = useSWR<Stripe.PaymentMethod[]>(
-    slug && `/api/workspaces/${slug}/billing/payment-methods`,
-    fetcher,
-  );
-
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const { slug, stripeId } = useWorkspace();
+  const { paymentMethods } = usePaymentMethods();
 
   const managePaymentMethods = async () => {
     setIsLoading(true);
@@ -92,39 +89,6 @@ export default function PaymentMethods() {
     </div>
   );
 }
-
-const PaymentMethodTypesList = (paymentMethod: Stripe.PaymentMethod) =>
-  [
-    {
-      type: "card",
-      title: "Card",
-      icon: CreditCard,
-      description: paymentMethod.card
-        ? `Connected ${paymentMethod.card.brand} ***${paymentMethod.card.last4}`
-        : "No card connected",
-    },
-    {
-      type: "us_bank_account",
-      title: "ACH",
-      icon: GreekTemple,
-      description: paymentMethod.us_bank_account
-        ? `Connected ${paymentMethod.us_bank_account.account_holder_type} account ending in ${paymentMethod.us_bank_account.last4}`
-        : "No ACH Debit connected",
-    },
-    {
-      type: "link",
-      title: "Link",
-      icon: StripeLink,
-      iconBgColor: "bg-green-100",
-      description: `Connected Link account ${paymentMethod.link?.email}`,
-    },
-  ] satisfies {
-    type: Stripe.PaymentMethod.Type;
-    title: string;
-    icon: React.ElementType;
-    description: string;
-    iconBgColor?: string;
-  }[];
 
 const PaymentMethodCard = ({
   paymentMethod,

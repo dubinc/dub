@@ -1,12 +1,15 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
+import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import usePayouts from "@/lib/swr/use-payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
   buttonVariants,
+  Gear,
   Sheet,
   Table,
+  Tooltip,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
@@ -14,7 +17,14 @@ import { cn, currencyFormatter, DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
+import {
+  Dispatch,
+  Fragment,
+  SetStateAction,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import { SaleRowMenu } from "./sale-row-menu";
 
@@ -25,10 +35,12 @@ interface PayoutInvoiceSheetProps {
 // TODO:
 // Fix the fee calculation
 // Fix the table menus + View all
+// Payment method dropdown UI need fixing
 
 function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   const { id: workspaceId, slug } = useWorkspace();
   const { programId } = useParams<{ programId: string }>();
+  const [paymentMethodId, setPaymentMethodId] = useState<string | null>(null);
 
   const {
     payouts,
@@ -39,6 +51,17 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
       status: "pending",
     },
   });
+
+  const { paymentMethods, loading: paymentMethodsLoading } =
+    usePaymentMethods();
+
+  useEffect(() => {
+    if (!paymentMethods.length) {
+      return;
+    }
+
+    setPaymentMethodId(paymentMethods[0].id);
+  }, [paymentMethods]);
 
   const { executeAsync, isExecuting } = useAction(confirmPayoutsAction, {
     onSuccess: async () => {
@@ -57,7 +80,38 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     const total = amount + fee;
 
     return {
-      Method: "-",
+      Method: (
+        <div className="flex items-center gap-2">
+          {paymentMethodsLoading ? (
+            <div className="h-7 w-full animate-pulse rounded-md border-neutral-300 bg-neutral-100"></div>
+          ) : (
+            <select
+              onChange={(e) => setPaymentMethodId(e.target.value)}
+              defaultValue={paymentMethodId || ""}
+              className="block h-8 w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+            >
+              {paymentMethods.map((method) => (
+                <option key={method.id} value={method.id}>
+                  {method.type}
+                </option>
+              ))}
+            </select>
+          )}
+
+          <Tooltip content="Manage payment methods">
+            <Link
+              href={`/${slug}/settings/billing`}
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "flex h-8 items-center rounded-md border px-2 text-sm",
+              )}
+              target="_blank"
+            >
+              <Gear className="size-4" />
+            </Link>
+          </Tooltip>
+        </div>
+      ),
 
       Amount: currencyFormatter(amount / 100, {
         minimumFractionDigits: 2,
@@ -74,7 +128,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         maximumFractionDigits: 2,
       }),
     };
-  }, [payouts]);
+  }, [payouts, paymentMethods, paymentMethodsLoading]);
 
   const table = useTable({
     data: payouts || [],
@@ -193,9 +247,15 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
                 return;
               }
 
+              if (!paymentMethodId) {
+                toast.error("Please select a payment method.");
+                return;
+              }
+
               await executeAsync({
                 workspaceId,
                 programId,
+                paymentMethodId,
               });
             }}
             text="Confirm payout"

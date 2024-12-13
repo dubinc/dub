@@ -3,19 +3,21 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { createId } from "@/lib/api/utils";
 import { qstash } from "@/lib/cron";
+import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import Stripe from "stripe";
 import z from "zod";
 import { authActionClient } from "../safe-action";
 
 // TODO:
-// Fix `paymentMethodId`
 // Fix `fee`
 
 const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
   programId: z.string(),
+  paymentMethodId: z.string().min(1, "Please select a payment method."),
 });
 
 // Confirm payouts
@@ -23,12 +25,24 @@ export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId } = parsedInput;
+    const { programId, paymentMethodId } = parsedInput;
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
+
+    // Doing some check to make sure the payment method is valid
+    const paymentMethod = await stripe.paymentMethods.retrieve(
+      paymentMethodId,
+      { expand: ["customer"] },
+    );
+
+    const stripeCustomer = paymentMethod.customer as Stripe.Customer;
+
+    if (stripeCustomer.id !== workspace.stripeId) {
+      throw new Error("The payment method is not valid for this workspace.");
+    }
 
     const result = await prisma.$transaction(async (tx) => {
       // Find the pending payouts for the program
@@ -60,7 +74,7 @@ export const confirmPayoutsAction = authActionClient
         data: {
           id: createId({ prefix: "inv_" }),
           programId,
-          paymentMethodId: "pm_1QVOigAlJJEpqkPV6Y3Jc1hs", // TODO: Fix this
+          paymentMethodId,
           amount,
           fee,
           total,

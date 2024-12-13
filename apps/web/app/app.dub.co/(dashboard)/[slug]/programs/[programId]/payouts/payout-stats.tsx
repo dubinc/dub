@@ -25,6 +25,8 @@ export function PayoutStats() {
     (p) => p.status === PayoutStatus.completed,
   );
 
+  const confirmButtonDisabled = pendingPayouts?.amount === 0;
+
   return (
     <>
       {payoutInvoiceSheet}
@@ -38,8 +40,12 @@ export function PayoutStats() {
               text="Confirm payouts"
               className="h-7 w-fit px-2"
               onClick={() => setIsOpen(true)}
-              disabled={pendingPayouts?.amount === 0}
-              disabledTooltip="You have no pending payouts."
+              disabled={confirmButtonDisabled}
+              disabledTooltip={
+                confirmButtonDisabled
+                  ? "You have no pending payouts."
+                  : undefined
+              }
             />
           </div>
           <div className="mt-2 text-2xl text-neutral-800">
