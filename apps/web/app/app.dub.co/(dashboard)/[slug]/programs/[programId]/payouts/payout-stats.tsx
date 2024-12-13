@@ -1,12 +1,16 @@
 "use client";
 
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutsCount } from "@/lib/types";
 import { PayoutStatus } from "@dub/prisma/client";
-import { Button } from "@dub/ui";
-import { currencyFormatter } from "@dub/utils";
+import { Button, buttonVariants } from "@dub/ui";
+import { cn, currencyFormatter } from "@dub/utils";
+import Link from "next/link";
 
 export function PayoutStats() {
+  const { slug } = useWorkspace();
+
   const { payoutsCount, loading } = usePayoutsCount<PayoutsCount[]>({
     groupBy: "status",
   });
@@ -48,11 +52,15 @@ export function PayoutStats() {
           <div className="p-1">
             <div className="text-sm text-neutral-500">Total paid</div>
           </div>
-          <Button
-            text="View invoices"
-            className="h-7 w-fit px-2"
-            variant="secondary"
-          />
+          <Link
+            href={`/${slug}/settings/billing/invoices`}
+            className={cn(
+              buttonVariants({ variant: "secondary" }),
+              "flex h-7 items-center rounded-md border px-2 text-sm",
+            )}
+          >
+            View invoices
+          </Link>
         </div>
         <div className="mt-2 text-2xl text-neutral-800">
           {loading ? (
