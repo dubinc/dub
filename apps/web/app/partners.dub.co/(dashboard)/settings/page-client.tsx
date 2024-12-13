@@ -8,9 +8,9 @@ import {
   Button,
   buttonVariants,
   FileUpload,
+  GreekTemple,
   LoadingSpinner,
   MaxWidthWrapper,
-  Note,
   useEnterSubmit,
 } from "@dub/ui";
 import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
@@ -222,6 +222,8 @@ function FormRow({ children }: PropsWithChildren) {
 }
 
 function StripeConnectForm() {
+  const { partner } = usePartnerProfile();
+
   const { executeAsync, isExecuting } = useAction(createAccountLinkAction, {
     onSuccess({ data }) {
       if (!data?.url) {
@@ -241,7 +243,7 @@ function StripeConnectForm() {
       <div className="grid grid-cols-1 items-center sm:grid-cols-2">
         <div className="flex items-center gap-3">
           <div className="flex size-12 items-center justify-center rounded-full border border-neutral-200">
-            <Note className="size-5 text-neutral-700" />
+            <GreekTemple className="size-5 text-neutral-700" />
           </div>
           <div>
             <p className="font-medium text-neutral-900">Stripe Connect</p>
@@ -252,11 +254,11 @@ function StripeConnectForm() {
         </div>
       </div>
       <Button
-        text="Connect"
+        text={partner?.stripeConnectId ? "Connected" : "Connect"}
         loading={isExecuting}
-        className="w-fit"
-        variant="secondary"
-        onClick={async () => await executeAsync()}
+        className="h-9 w-fit px-3"
+        variant={partner?.stripeConnectId ? "secondary" : "primary"}
+        onClick={async () => await executeAsync({ type: "account_update" })}
       />
     </div>
   );

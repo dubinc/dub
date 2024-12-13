@@ -47,14 +47,14 @@ const NAV_AREAS: SidebarNavAreas<{
             exact: true,
           },
           {
-            name: "Marketplace",
-            icon: Store,
-            href: "/marketplace",
-          },
-          {
             name: "Payouts",
             icon: MoneyBills2,
             href: "/payouts",
+          },
+          {
+            name: "Marketplace",
+            icon: Store,
+            href: "/marketplace",
           },
           {
             name: "Settings",
