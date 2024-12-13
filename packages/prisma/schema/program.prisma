@@ -53,6 +53,7 @@ model Program {
   partners      ProgramEnrollment[]
   payouts       Payout[]
   sales         Sale[]
+  invoices      Invoice[]
   resources     ProgramResource[]
   applications  ProgramApplication[]
   invites       ProgramInvite[]
@@ -83,19 +84,19 @@ model ProgramEnrollment {
 }
 
 model ProgramApplication {
-  id        String                   @id @default(cuid())
+  id        String   @id @default(cuid())
   programId String
   partnerId String?
   name      String
   email     String
-  proposal  String?                  @db.LongText
-  website   String?                  @db.Text
-  comments  String?                  @db.LongText
-  createdAt DateTime                 @default(now())
-  updatedAt DateTime                 @updatedAt
+  proposal  String?  @db.LongText
+  website   String?  @db.Text
+  comments  String?  @db.LongText
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  partner   Partner?                 @relation(fields: [partnerId], references: [id])
-  program   Program                  @relation(fields: [programId], references: [id])
+  partner    Partner?           @relation(fields: [partnerId], references: [id])
+  program    Program            @relation(fields: [programId], references: [id])
   enrollment ProgramEnrollment?
 
   @@index([programId])
