@@ -1,4 +1,3 @@
-import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 
 export const processInvoice = async ({ invoiceId }: { invoiceId: string }) => {
@@ -36,5 +35,4 @@ export const processInvoice = async ({ invoiceId }: { invoiceId: string }) => {
   //   },
   //   application_fee_amount: 100, // 1% fee from Dub
   // });
-
 };
