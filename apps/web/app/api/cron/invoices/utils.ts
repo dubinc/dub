@@ -113,6 +113,15 @@ export const processInvoice = async ({ invoiceId }: { invoiceId: string }) => {
           status: "completed",
         },
       });
+
+      await prisma.sale.updateMany({
+        where: {
+          payoutId: payout.id,
+        },
+        data: {
+          status: "paid",
+        },
+      });
     }
   } catch (error) {
     throw new Error(
