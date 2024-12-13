@@ -93,7 +93,7 @@ export default function PaymentMethods() {
   );
 }
 
-const PaymentMethodsDetails = (paymentMethod: Stripe.PaymentMethod) =>
+const PaymentMethodTypesList = (paymentMethod: Stripe.PaymentMethod) =>
   [
     {
       type: "card",
@@ -136,9 +136,9 @@ const PaymentMethodCard = ({
     icon: Icon,
     iconBgColor,
     description,
-  } = PaymentMethodsDetails(paymentMethod).find(
+  } = PaymentMethodTypesList(paymentMethod).find(
     (method) => method.type === paymentMethod.type,
-  ) || PaymentMethodsDetails(paymentMethod)[0];
+  ) || PaymentMethodTypesList(paymentMethod)[0];
 
   return (
     <div className="flex items-center justify-between rounded-lg border border-neutral-200 p-4">
