@@ -104,23 +104,25 @@ export const processInvoice = async ({ invoiceId }: { invoiceId: string }) => {
 
       console.log("Transfer created", transfer);
 
-      await prisma.payout.update({
-        where: {
-          id: payout.id,
-        },
-        data: {
-          stripeTransferId: transfer.id,
-          status: "completed",
-        },
-      });
+      await prisma.$transaction(async (tx) => {
+        await tx.payout.update({
+          where: {
+            id: payout.id,
+          },
+          data: {
+            stripeTransferId: transfer.id,
+            status: "completed",
+          },
+        });
 
-      await prisma.sale.updateMany({
-        where: {
-          payoutId: payout.id,
-        },
-        data: {
-          status: "paid",
-        },
+        await tx.sale.updateMany({
+          where: {
+            payoutId: payout.id,
+          },
+          data: {
+            status: "paid",
+          },
+        });
       });
     }
   } catch (error) {
