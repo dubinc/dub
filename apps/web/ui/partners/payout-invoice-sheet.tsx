@@ -1,3 +1,4 @@
+import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
 import usePayouts from "@/lib/swr/use-payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { X } from "@/ui/shared/icons";
@@ -10,9 +11,11 @@ import {
   useTable,
 } from "@dub/ui";
 import { cn, currencyFormatter, DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { SaleRowMenu } from "./sale-row-menu";
 
 interface PayoutInvoiceSheetProps {
@@ -21,6 +24,8 @@ interface PayoutInvoiceSheetProps {
 
 // TODO:
 // Handle case when there are 2 payouts for the same partner
+// Fix the fee calculation
+// Fix the table menus + View all
 
 function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   const { id: workspaceId, slug } = useWorkspace();
@@ -36,10 +41,20 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     },
   });
 
+  const { executeAsync, isExecuting } = useAction(confirmPayoutsAction, {
+    onSuccess: async () => {
+      toast.success("Payouts confirmed successfully! We'll process them soon.");
+      setIsOpen(false);
+    },
+    onError({ error }) {
+      toast.error(error.serverError);
+    },
+  });
+
   const invoiceData = useMemo(() => {
     const amount =
       payouts?.reduce((acc, payout) => acc + payout.amount, 0) || 0;
-    const fee = amount * 0.02; // TODO: Fix it
+    const fee = amount * 0.02;
     const total = amount + fee;
 
     return {
@@ -173,12 +188,16 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
           <Button
             type="button"
             variant="primary"
-            // loading={isExecuting}
+            loading={isExecuting}
             onClick={async () => {
-              // await executeAsync({
-              //   workspaceId: workspaceId!,
-              //   payoutId: payout.id,
-              // });
+              if (!workspaceId || !programId) {
+                return;
+              }
+
+              await executeAsync({
+                workspaceId,
+                programId,
+              });
             }}
             text="Confirm payout"
             className="w-fit"

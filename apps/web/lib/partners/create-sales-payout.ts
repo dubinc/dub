@@ -41,13 +41,7 @@ export const createSalesPayout = async ({
       return;
     }
 
-    const earningsTotal = sales.reduce(
-      (total, sale) => total + sale.earnings,
-      0,
-    );
-
-    const amount = earningsTotal;
-    const fee = amount * 0.02;
+    const amount = sales.reduce((total, sale) => total + sale.earnings, 0);
 
     // Create the payout
     const payout = await tx.payout.create({
@@ -56,8 +50,6 @@ export const createSalesPayout = async ({
         programId,
         partnerId,
         amount,
-        fee,
-        total: amount + fee,
         periodStart,
         periodEnd,
         quantity: sales.length,
