@@ -1,10 +1,11 @@
-import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerPayoutResponse, PartnerSaleResponse } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { PayoutTypeBadge } from "@/ui/partners/payout-type-badge";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
+  buttonVariants,
   Sheet,
   StatusBadge,
   Table,
@@ -20,6 +21,7 @@ import {
   formatDate,
   formatDateTime,
 } from "@dub/utils";
+import Link from "next/link";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
 import useSWR from "swr";
 
@@ -32,15 +34,15 @@ function PayoutDetailsSheetContent({
   payout,
   setIsOpen,
 }: PayoutDetailsSheetProps) {
-  const { programEnrollment } = useProgramEnrollment();
+  const { partner } = usePartnerProfile();
 
   const {
     data: sales,
     isLoading,
     error,
   } = useSWR<PartnerSaleResponse[]>(
-    programEnrollment
-      ? `/api/partners/${programEnrollment.partnerId}/programs/${programEnrollment.programId}/sales?payoutId=${payout.id}&start=${payout.periodStart}&end=${payout.periodEnd}`
+    partner
+      ? `/api/partners/${partner.id}/programs/${payout.program.id}/sales?payoutId=${payout.id}&interval=all&pageSize=6`
       : undefined,
     fetcher,
   );
@@ -49,6 +51,19 @@ function PayoutDetailsSheetContent({
     const statusBadge = PayoutStatusBadges[payout.status];
 
     return {
+      Program: (
+        <div className="flex items-center gap-2">
+          <img
+            src={
+              payout.program.logo ||
+              `${DICEBEAR_AVATAR_URL}${payout.program.name}`
+            }
+            alt={payout.program.name}
+            className="size-4 rounded-sm"
+          />
+          <span>{payout.program.name}</span>
+        </div>
+      ),
       Period:
         !payout.periodStart || !payout.periodEnd
           ? "-"
@@ -172,7 +187,24 @@ function PayoutDetailsSheetContent({
           </div>
         </div>
         <div className="p-6 pt-2">
-          {payout.type === "sales" && <Table {...table} />}
+          {payout.type === "sales" && (
+            <>
+              <Table {...table} />
+              {sales?.length === 6 && (
+                <div className="mt-2 flex justify-end">
+                  <Link
+                    href={`/programs/${payout.program.slug}/sales`}
+                    className={cn(
+                      buttonVariants({ variant: "secondary" }),
+                      "flex h-7 items-center rounded-lg border px-2 text-sm",
+                    )}
+                  >
+                    View all
+                  </Link>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 

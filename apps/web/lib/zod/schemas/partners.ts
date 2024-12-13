@@ -10,7 +10,7 @@ import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
 import { CustomerSchema } from "./customers";
 import { getPaginationQuerySchema } from "./misc";
-import { ProgramEnrollmentSchema } from "./programs";
+import { ProgramEnrollmentSchema, ProgramSchema } from "./programs";
 import { parseDateSchema } from "./utils";
 
 export const PARTNERS_MAX_PAGE_SIZE = 100;
@@ -108,9 +108,16 @@ export const PayoutResponseSchema = PayoutSchema.merge(
 
 export const PartnerPayoutResponseSchema = PayoutResponseSchema.omit({
   partner: true,
-  fee: true,
-  total: true,
-});
+}).merge(
+  z.object({
+    program: ProgramSchema.pick({
+      id: true,
+      name: true,
+      slug: true,
+      logo: true,
+    }),
+  }),
+);
 
 export const SaleSchema = z.object({
   id: z.string(),

@@ -1,6 +1,6 @@
 "use client";
 
-import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerPayoutResponse } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { PayoutTypeBadge } from "@/ui/partners/payout-type-badge";
@@ -13,14 +13,14 @@ import {
   useTable,
 } from "@dub/ui";
 import { MoneyBill2 } from "@dub/ui/icons";
-import { currencyFormatter, formatDate } from "@dub/utils";
+import { currencyFormatter, DICEBEAR_AVATAR_URL, formatDate } from "@dub/utils";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { PayoutDetailsSheet } from "./payout-details-sheet";
 
 export function PayoutTable() {
-  const { programEnrollment } = useProgramEnrollment();
+  const { partner } = usePartnerProfile();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
   const sortBy = searchParams.get("sort") || "periodStart";
@@ -31,8 +31,8 @@ export function PayoutTable() {
     error,
     isLoading,
   } = useSWR<PartnerPayoutResponse[]>(
-    programEnrollment
-      ? `/api/partners/${programEnrollment.partnerId}/programs/${programEnrollment.programId}/payouts?${getQueryString()}`
+    partner
+      ? `/api/partners/${partner.id}/payouts?${getQueryString()}`
       : undefined,
     fetcher,
     {
@@ -75,6 +75,22 @@ export function PayoutTable() {
             { month: "short" },
           )}`;
         },
+      },
+      {
+        header: "Program",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <img
+              src={
+                row.original.program.logo ||
+                `${DICEBEAR_AVATAR_URL}${row.original.program.name}`
+              }
+              alt={row.original.program.name}
+              className="size-4 rounded-sm"
+            />
+            <span>{row.original.program.name}</span>
+          </div>
+        ),
       },
       {
         header: "Type",

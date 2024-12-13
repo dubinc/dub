@@ -17,7 +17,6 @@ import {
   Hyperlink,
   MoneyBills2,
   ShieldCheck,
-  User,
   UserCheck,
   Users,
 } from "@dub/ui/icons";
@@ -53,6 +52,11 @@ const NAV_AREAS: SidebarNavAreas<{
             href: "/marketplace",
           },
           {
+            name: "Payouts",
+            icon: MoneyBills2,
+            href: "/payouts",
+          },
+          {
             name: "Settings",
             icon: Gear,
             href: "/settings",
@@ -84,11 +88,6 @@ const NAV_AREAS: SidebarNavAreas<{
             href: `/programs/${programSlug}/sales${queryString}`,
           },
           {
-            name: "Payouts",
-            icon: MoneyBills2,
-            href: `/programs/${programSlug}/payouts`,
-          },
-          {
             name: "Links",
             icon: Hyperlink,
             href: `/programs/${programSlug}/links`,
@@ -111,15 +110,10 @@ const NAV_AREAS: SidebarNavAreas<{
         name: "Partner",
         items: [
           {
-            name: "Profile",
-            icon: User,
+            name: "General",
+            icon: Gear,
             href: "/settings",
             exact: true,
-          },
-          {
-            name: "Payouts",
-            icon: MoneyBills2,
-            href: "/settings/payouts",
           },
           {
             name: "People",

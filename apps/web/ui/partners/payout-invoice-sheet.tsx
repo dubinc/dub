@@ -26,7 +26,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { SaleRowMenu } from "./sale-row-menu";
 
 interface PayoutInvoiceSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -160,17 +159,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
             maximumFractionDigits: 2,
           }),
       },
-      // Menu
-      {
-        id: "menu",
-        enableHiding: false,
-        minSize: 43,
-        size: 43,
-        maxSize: 43,
-        cell: ({ row }) => <SaleRowMenu row={row} />,
-      },
     ],
-    columnPinning: { right: ["menu"] },
     thClassName: (id) =>
       cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
     tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
