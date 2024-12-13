@@ -97,6 +97,7 @@ export * from "./key";
 export * from "./layout-sidebar";
 export * from "./lines-y";
 export * from "./link-broken";
+export * from "./link4";
 export * from "./location-pin";
 export * from "./magnifier";
 export * from "./map-position";
