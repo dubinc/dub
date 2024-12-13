@@ -40,6 +40,8 @@ export const getFinalUrl = (
     urlObj.searchParams.delete("qr");
   }
 
+  console.log({ finalUrl: urlObj.toString() });
+
   return urlObj.toString();
 };
 

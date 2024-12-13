@@ -116,6 +116,8 @@ export default async function LinkMiddleware(
     webhookIds,
   } = link;
 
+  console.log({ url });
+
   // by default, we only index default dub domain links (e.g. dub.sh)
   // everything else is not indexed by default, unless the user has explicitly set it to be indexed
   const shouldIndex = isDubDomain(domain) || doIndex === true;
