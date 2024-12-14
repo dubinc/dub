@@ -108,7 +108,7 @@ export async function bulkUpdateLinks(
   waitUntil(
     Promise.all([
       // propagate changes to redis and tinybird
-      propagateBulkLinkChanges(updatedLinks),
+      propagateBulkLinkChanges(updatedLinks, true),
       // if proxy is true and image is not stored in R2, upload image to R2
       proxy &&
         image &&
