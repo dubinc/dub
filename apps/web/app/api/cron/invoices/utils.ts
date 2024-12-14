@@ -38,6 +38,12 @@ export const processInvoice = async ({ invoiceId }: { invoiceId: string }) => {
     where: {
       invoiceId,
       status: "pending",
+      partner: {
+        payoutsEnabled: true,
+        stripeConnectId: {
+          not: null,
+        },
+      },
     },
     select: {
       id: true,
@@ -83,17 +89,10 @@ export const processInvoice = async ({ invoiceId }: { invoiceId: string }) => {
     // Create transfers for each partners
     // TODO (Kiran): Need to optimize this when we have large number of payouts for an invoice.
     for (const payout of payouts) {
-      if (!payout.partner.stripeConnectId) {
-        console.warn(
-          `Partner ${payout.partner.id} does not have a Stripe Connect ID. Skipping payout...`,
-        );
-        continue;
-      }
-
       const transfer = await stripe.transfers.create({
         amount: payout.amount,
         currency: "usd",
-        destination: payout.partner.stripeConnectId,
+        destination: payout.partner.stripeConnectId!,
         source_transaction: latest_charge as string,
         transfer_group: invoiceId,
         description: "Stripe Payout",

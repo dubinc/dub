@@ -33,7 +33,6 @@ interface PayoutInvoiceSheetProps {
 
 // TODO:
 // Fix the fee calculation
-// Fix the table menus + View all
 // Payment method dropdown UI need fixing
 
 function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
@@ -72,9 +71,15 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     },
   });
 
+  //  Filter out partners that don’t have `payoutsEnabled`
+  const pendingPayouts = useMemo(
+    () => payouts?.filter((payout) => payout.partner.payoutsEnabled),
+    [payouts],
+  );
+
   const invoiceData = useMemo(() => {
     const amount =
-      payouts?.reduce((acc, payout) => acc + payout.amount, 0) || 0;
+      pendingPayouts?.reduce((acc, payout) => acc + payout.amount, 0) || 0;
     const fee = amount * 0.02;
     const total = amount + fee;
 
@@ -127,10 +132,10 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         maximumFractionDigits: 2,
       }),
     };
-  }, [payouts, paymentMethods, paymentMethodsLoading]);
+  }, [pendingPayouts, paymentMethods, paymentMethodsLoading]);
 
   const table = useTable({
-    data: payouts || [],
+    data: pendingPayouts || [],
     columns: [
       {
         header: "Partner",
@@ -165,7 +170,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
-    resourceName: (p) => `partner${p ? "s" : ""}`,
+    resourceName: (p) => `pending payout${p ? "s" : ""}`,
     loading: payoutsLoading,
     error: payoutsError
       ? "Failed to load payouts for this invoice."
@@ -205,17 +210,6 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
 
         <div className="p-6 pt-2">
           <Table {...table} />
-          <div className="mt-2 flex justify-end">
-            <Link
-              href="/"
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "flex h-7 items-center rounded-lg border px-2 text-sm",
-              )}
-            >
-              View all
-            </Link>
-          </div>
         </div>
       </div>
       <div className="flex grow flex-col justify-end">
@@ -249,6 +243,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
             }}
             text="Confirm payout"
             className="w-fit"
+            disabled={pendingPayouts?.length === 0}
           />
         </div>
       </div>

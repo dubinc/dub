@@ -65,6 +65,9 @@ const payoutInvoices = async (workspaceId: string) => {
       total: true,
       createdAt: true,
     },
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 
   return invoices.map((invoice) => {

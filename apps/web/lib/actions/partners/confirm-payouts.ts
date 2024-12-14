@@ -51,6 +51,12 @@ export const confirmPayoutsAction = authActionClient
           programId,
           status: "pending",
           invoiceId: null, // just to be extra safe
+          partner: {
+            stripeConnectId: {
+              not: null,
+            },
+            payoutsEnabled: true,
+          },
         },
         select: {
           id: true,
