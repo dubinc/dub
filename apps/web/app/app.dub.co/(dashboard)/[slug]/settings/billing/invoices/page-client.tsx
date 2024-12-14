@@ -2,7 +2,7 @@
 
 import { InvoiceProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { Receipt2, useRouterStuff } from "@dub/ui";
+import { buttonVariants, Receipt2, useRouterStuff } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
@@ -96,12 +96,13 @@ const InvoiceCard = ({ invoice }: { invoice: InvoiceProps }) => {
           target="_blank"
           download
           className={cn(
-            "w-fit rounded-md border border-neutral-200 px-3 py-1.5 text-sm transition-colors hover:bg-neutral-100",
+            buttonVariants({ variant: "secondary" }),
+            "flex h-10 items-center rounded-md border px-4 text-sm",
             !invoice.pdfUrl && "pointer-events-none opacity-50",
           )}
           title={invoice.pdfUrl ? "View invoice" : "Not available"}
         >
-          View
+          View invoice
         </a>
       </div>
     </div>
