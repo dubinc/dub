@@ -1,18 +1,22 @@
 "use client";
 
+import { InvoiceProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { Receipt2 } from "@dub/ui";
-import { fetcher } from "@dub/utils";
+import { Receipt2, useRouterStuff } from "@dub/ui";
+import { cn, fetcher } from "@dub/utils";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Stripe } from "stripe";
 import useSWR from "swr";
 
 export default function WorkspaceInvoicesClient() {
   const { slug } = useParams();
-  const { data: invoices } = useSWR<Stripe.Invoice[]>(
-    `/api/workspaces/${slug}/billing/invoices`,
+  const { searchParams } = useRouterStuff();
+
+  const invoiceType = searchParams.get("type") || "subscription";
+
+  const { data: invoices } = useSWR<InvoiceProps[]>(
+    `/api/workspaces/${slug}/billing/invoices?type=${invoiceType}`,
     fetcher,
   );
 
@@ -65,33 +69,41 @@ export default function WorkspaceInvoicesClient() {
   );
 }
 
-const InvoiceCard = ({ invoice }: { invoice: Stripe.Invoice }) => {
+const InvoiceCard = ({ invoice }: { invoice: InvoiceProps }) => {
   return (
-    <div className="flex items-center justify-between p-4">
+    <div className="grid grid-cols-3 gap-4 p-4">
       <div className="text-sm">
         <div className="font-medium">Dub subscription</div>
         <div className="text-neutral-500">
-          {new Date(invoice.created * 1000).toLocaleDateString("en-US", {
+          {new Date(invoice.createdAt).toLocaleDateString("en-US", {
             month: "short",
             year: "numeric",
             day: "numeric",
           })}
         </div>
       </div>
-      <div className="text-sm">
+
+      <div className="text-left text-sm">
         <div className="font-medium">Total</div>
         <div className="text-neutral-500">
-          ${(invoice.amount_paid / 100).toFixed(2)}
+          ${(invoice.total / 100).toFixed(2)}
         </div>
       </div>
-      <a
-        href={invoice.invoice_pdf || "#"}
-        target="_blank"
-        download
-        className="rounded-md border border-neutral-200 px-3 py-1.5 text-sm transition-colors hover:bg-neutral-100"
-      >
-        View
-      </a>
+
+      <div className="flex justify-end">
+        <a
+          href={invoice.pdfUrl || "#"}
+          target="_blank"
+          download
+          className={cn(
+            "w-fit rounded-md border border-neutral-200 px-3 py-1.5 text-sm transition-colors hover:bg-neutral-100",
+            !invoice.pdfUrl && "pointer-events-none opacity-50",
+          )}
+          title={invoice.pdfUrl ? "View invoice" : "Not available"}
+        >
+          View
+        </a>
+      </div>
     </div>
   );
 };

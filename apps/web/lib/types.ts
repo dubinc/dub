@@ -17,6 +17,7 @@ import {
 } from "./zod/schemas/customers";
 import { dashboardSchema } from "./zod/schemas/dashboard";
 import { integrationSchema } from "./zod/schemas/integration";
+import { InvoiceSchema } from "./zod/schemas/invoices";
 import { trackLeadResponseSchema } from "./zod/schemas/leads";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
@@ -351,3 +352,5 @@ export type PayoutProps = z.infer<typeof PayoutSchema>;
 export type PayoutResponse = z.infer<typeof PayoutResponseSchema>;
 
 export type PartnerPayoutResponse = z.infer<typeof PartnerPayoutResponseSchema>;
+
+export type InvoiceProps = z.infer<typeof InvoiceSchema>;
