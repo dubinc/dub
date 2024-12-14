@@ -3,6 +3,7 @@
 import { PosthogPageview } from "@/ui/layout/posthog-pageview";
 import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import { KeyboardShortcutProvider, TooltipProvider } from "@dub/ui";
+import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google";
 import PlausibleProvider from "next-plausible";
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
@@ -31,6 +32,8 @@ export default function RootProviders({ children }: { children: ReactNode }) {
           "data-api": "/_proxy/plausible/event",
         }}
       />
+      <GoogleAnalytics gaId="G-QTBMHSTT3W" />
+      <GoogleTagManager gtmId="GTM-N47BG36P" />
       <TooltipProvider>
         <KeyboardShortcutProvider>
           <Toaster closeButton className="pointer-events-auto" />
