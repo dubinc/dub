@@ -603,12 +603,7 @@ export function CreatePayoutSheet({
   const { queryParams } = useRouterStuff();
 
   return (
-    <Sheet
-      open={isOpen}
-      onOpenChange={rest.setIsOpen}
-      onClose={() => queryParams({ del: "partnerId" })}
-      nested={nested}
-    >
+    <Sheet open={isOpen} onOpenChange={rest.setIsOpen} nested={nested}>
       <CreatePayoutSheetContent {...rest} />
     </Sheet>
   );
