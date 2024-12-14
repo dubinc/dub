@@ -36,6 +36,7 @@ import {
   subMonths,
 } from "date-fns";
 import { useAction } from "next-safe-action/hooks";
+import { useParams, useRouter } from "next/navigation";
 import {
   Dispatch,
   Fragment,
@@ -88,7 +89,8 @@ function CreatePayoutSheetContent({
   const { program } = useProgram();
   const { data: partners } = usePartners();
   const { id: workspaceId } = useWorkspace();
-  const { queryParams } = useRouterStuff();
+  const router = useRouter();
+  const { slug, programId } = useParams();
 
   const formRef = useRef<HTMLFormElement>(null);
   const { handleKeyDown } = useEnterSubmit(formRef);
@@ -131,7 +133,9 @@ function CreatePayoutSheetContent({
       const payoutId = res.data?.id;
 
       if (payoutId) {
-        queryParams({ set: { payoutId } });
+        router.push(
+          `/${slug}/programs/${programId}/payouts?payoutId=${payoutId}`,
+        );
       }
     },
     onError({ error }) {
@@ -323,24 +327,6 @@ function CreatePayoutSheetContent({
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })
-        ) : null,
-        Fee: isValidating ? (
-          <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
-        ) : payoutAmount ? (
-          currencyFormatter(payoutAmount * 0.02, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })
-        ) : null,
-        Total: isValidating ? (
-          <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
-        ) : payoutAmount ? (
-          <strong>
-            {currencyFormatter(payoutAmount * 1.02, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </strong>
         ) : null,
       }),
     };
