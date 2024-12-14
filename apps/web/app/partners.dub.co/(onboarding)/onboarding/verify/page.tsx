@@ -20,8 +20,8 @@ export default function OnboardingVerification() {
             />
           </div>
           <div className="p-4 text-sm text-neutral-600">
-            We use Stripe Connect to ensure you get paid on time and to keep
-            your personal bank details secure. Click{" "}
+            We use Stripe to ensure you get paid on time and to keep your
+            personal bank details secure. Click{" "}
             <strong>Save and continue</strong> to set up Stripe.
             <br />
             <br />

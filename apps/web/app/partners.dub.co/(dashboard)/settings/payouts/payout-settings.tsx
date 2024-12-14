@@ -8,7 +8,6 @@ import { PayoutStatus } from "@prisma/client";
 
 export function PayoutSettings() {
   const { partner } = usePartnerProfile();
-
   const { payoutsCount } = usePartnerPayoutsCount();
 
   return (

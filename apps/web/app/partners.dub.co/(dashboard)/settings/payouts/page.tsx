@@ -3,7 +3,7 @@ import { MaxWidthWrapper } from "@dub/ui";
 import { PayoutSettings } from "./payout-settings";
 import { PayoutTable } from "./payout-table";
 
-export default function ProgramPayoutsPage() {
+export default function PartnersPayoutsSettings() {
   return (
     <PageContent title="Payouts" hideReferButton>
       <MaxWidthWrapper className="grid gap-4">

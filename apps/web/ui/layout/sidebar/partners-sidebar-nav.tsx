@@ -27,6 +27,7 @@ import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 import { PartnerProgramDropdown } from "./partner-program-dropdown";
+import { PayoutStats } from "./payout-stats";
 import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
 
 const NAV_AREAS: SidebarNavAreas<{
@@ -185,7 +186,7 @@ export function PartnersSidebarNav({
       toolContent={toolContent}
       newsContent={newsContent}
       switcher={<PartnerProgramDropdown />}
-      bottom={<>{programSlug && <ProgramInfo />}</>}
+      bottom={programSlug ? <ProgramInfo /> : <PayoutStats />}
     />
   );
 }

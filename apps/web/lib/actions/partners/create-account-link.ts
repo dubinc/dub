@@ -12,9 +12,7 @@ export const createAccountLinkAction = authPartnerActionClient.action(
       throw new Error("Partner does not have a Stripe Connect account.");
     }
 
-    const stripeConnectVerified = false;
-
-    const { url } = stripeConnectVerified
+    const { url } = partner.payoutsEnabled
       ? await stripe.accounts.createLoginLink(partner.stripeConnectId)
       : await stripe.accountLinks.create({
           account: partner.stripeConnectId,
