@@ -4,7 +4,7 @@ export const validKeyRegex = new RegExp(
 );
 
 export const isUnsupportedKey = (key: string) => {
-  const excludedPrefix = [".well-known"];
+  const excludedPrefix = [".well-known", "_"];
   const excludedSuffix = [".php", ".php7"];
   return (
     excludedPrefix.some((prefix) => key.startsWith(prefix)) ||

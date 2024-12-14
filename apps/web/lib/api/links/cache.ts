@@ -85,7 +85,7 @@ class LinkCache {
   }
 
   _createKey({ domain, key }: Pick<LinkProps, "domain" | "key">) {
-    return `${domain}:${key}`.toLowerCase();
+    return `linkcache:${domain}:${key}`.toLowerCase();
   }
 }
 
