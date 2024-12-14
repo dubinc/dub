@@ -1,11 +1,10 @@
 import { approvePartnerAction } from "@/lib/actions/partners/approve-partner";
 import { rejectPartnerAction } from "@/lib/actions/partners/reject-partner";
+import { SHEET_MAX_ITEMS } from "@/lib/partners/constants";
 import usePayouts from "@/lib/swr/use-payouts";
-import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { PAYOUTS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -15,7 +14,6 @@ import {
   Table,
   useRouterStuff,
   useTable,
-  useTablePagination,
 } from "@dub/ui";
 import { CursorRays, GreekTemple, LinesY, Link4 } from "@dub/ui/icons";
 import {
@@ -30,11 +28,11 @@ import {
 import { ChevronLeft } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
+import { useCreatePayoutSheet } from "./create-payout-sheet";
 import { PartnerLinkSelector } from "./partner-link-selector";
 import { PartnerStatusBadges } from "./partner-status-badges";
 import { PayoutStatusBadges } from "./payout-status-badges";
@@ -53,11 +51,10 @@ function PartnerDetailsSheetContent({
   const badge = PartnerStatusBadges[partner.status];
 
   const saleAmount = (partner.link?.saleAmount ?? 0) / 100;
-  const earnings = (partner.earnings ?? 0) / 100;
+  // const earnings = (partner.earnings ?? 0) / 100;
 
-  const [selectedTab, setSelectedTab] = useState<"overview" | "payouts">(
-    "overview",
-  );
+  const { createPayoutSheet, setIsOpen: setCreatePayoutSheetOpen } =
+    useCreatePayoutSheet({ nested: true, partnerId: partner.id });
 
   return (
     <>
@@ -167,6 +164,7 @@ function PartnerDetailsSheetContent({
             <div className="xs:grid-cols-2 mt-4 grid grid-cols-1 gap-3">
               <Link
                 href={`/${slug}/analytics?domain=${partner.link.domain}&key=${partner.link.key}`}
+                target="_blank"
                 className={cn(
                   buttonVariants({ variant: "secondary" }),
                   "flex h-8 items-center justify-center gap-2 rounded-lg border px-2 text-sm",
@@ -177,6 +175,7 @@ function PartnerDetailsSheetContent({
               </Link>
               <Link
                 href={`/${slug}/events?domain=${partner.link.domain}&key=${partner.link.key}`}
+                target="_blank"
                 className={cn(
                   buttonVariants({ variant: "secondary" }),
                   "flex h-8 items-center justify-center gap-2 rounded-lg border px-2 text-sm",
@@ -219,6 +218,21 @@ function PartnerDetailsSheetContent({
             <PartnerApproval partner={partner} setIsOpen={setIsOpen} />
           </div>
         </div>
+      )}
+
+      {partner.status === "approved" && (
+        <>
+          {createPayoutSheet}
+          <div className="flex grow flex-col justify-end">
+            <div className="border-t border-neutral-200 p-5">
+              <Button
+                variant="primary"
+                text="Create payout"
+                onClick={() => setCreatePayoutSheetOpen(true)}
+              />
+            </div>
+          </div>
+        </>
       )}
     </>
   );
@@ -422,31 +436,18 @@ function PartnerRejectButton({
 
 function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
   const { slug } = useWorkspace();
-  const router = useRouter();
-
-  const { payoutsCount, error: payoutsCountError } = usePayoutsCount<number>({
-    partnerId: partner.id,
+  const {
+    payouts,
+    error: payoutsError,
+    loading,
+  } = usePayouts({
+    query: { partnerId: partner.id, pageSize: SHEET_MAX_ITEMS },
   });
-
-  const { pagination, setPagination } = useTablePagination({
-    page: 1,
-    pageSize: PAYOUTS_MAX_PAGE_SIZE,
-  });
-
-  const { payouts, error: payoutsError } = usePayouts({
-    query: { partnerId: partner.id },
-  });
-
-  const countLoading = !payoutsCount && !payoutsCountError;
-  const payoutsLoading = !payouts && !payoutsError;
-  const isLoading = countLoading || payoutsLoading;
-  const showPagination = payoutsCount && payoutsCount > PAYOUTS_MAX_PAGE_SIZE;
 
   const table = useTable({
     data: payouts || [],
-    loading: isLoading,
-    error:
-      payoutsError || payoutsCountError ? "Failed to load payouts" : undefined,
+    loading: loading,
+    error: payoutsError ? "Failed to load payouts" : undefined,
     columns: [
       {
         id: "periodEnd",
@@ -477,39 +478,35 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
       },
     ],
     onRowClick: (row) => {
-      router.push(
+      window.open(
         `/${slug}/programs/${partner.programId}/payouts?payoutId=${row.original.id}`,
+        "_blank",
       );
     },
-    ...(showPagination && {
-      pagination,
-      onPaginationChange: setPagination,
-      rowCount: payoutsCount || 0,
-    }),
     resourceName: (p) => `payout${p ? "s" : ""}`,
     thClassName: (id) =>
       cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
     tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
-    className: cn(
-      !showPagination && "[&_tr:last-child>td]:border-b-transparent", // Hide bottom row border
-    ),
+    className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
   } as any);
 
-  return payouts?.length || isLoading ? (
+  return (payouts && payouts.length > 0) || loading ? (
     <>
       <Table {...table} />
-      <div className="mt-2 flex justify-end">
-        <Link
-          href={`/${slug}/programs/${partner.programId}/payouts?partnerId=${partner.id}`}
-          className={cn(
-            buttonVariants({ variant: "secondary" }),
-            "flex h-7 items-center rounded-lg border px-2 text-sm",
-          )}
-        >
-          View all
-        </Link>
-      </div>
+      {payouts && payouts.length === SHEET_MAX_ITEMS && (
+        <div className="mt-2 flex justify-end">
+          <Link
+            href={`/${slug}/programs/${partner.programId}/payouts?partnerId=${partner.id}`}
+            className={cn(
+              buttonVariants({ variant: "secondary" }),
+              "flex h-7 items-center rounded-lg border px-2 text-sm",
+            )}
+          >
+            View all
+          </Link>
+        </div>
+      )}
     </>
   ) : (
     <AnimatedEmptyState
