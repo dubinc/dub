@@ -17,7 +17,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { MoneyBill2 } from "@dub/ui/src/icons";
+import { MoneyBill2 } from "@dub/ui/icons";
 import {
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
@@ -66,7 +66,7 @@ const SaleTableBusinessInner = memo(
 
     const loading = !sales && !error;
 
-    const table = useTable({
+    const table = useTable<SaleResponse>({
       data: sales?.slice(0, limit) || [],
       columns: [
         {
@@ -82,12 +82,16 @@ const SaleTableBusinessInner = memo(
                 <img
                   src={
                     row.original.customer.avatar ||
-                    `${DICEBEAR_AVATAR_URL}${row.original.customer.name}`
+                    `${DICEBEAR_AVATAR_URL}${row.original.customer.id}`
                   }
-                  alt={row.original.customer.name}
+                  alt={
+                    row.original.customer.email ?? row.original.customer.name
+                  }
                   className="size-5 rounded-full"
                 />
-                <div>{row.original.customer.name}</div>
+                <div>
+                  {row.original.customer.email ?? row.original.customer.name}
+                </div>
               </div>
             );
           },

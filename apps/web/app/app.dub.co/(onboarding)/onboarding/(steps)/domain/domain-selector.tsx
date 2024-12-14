@@ -4,7 +4,7 @@ import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CheckCircleFill } from "@/ui/shared/icons";
 import { Button } from "@dub/ui";
-import { Globe2, LoadingSpinner } from "@dub/ui/src/icons";
+import { Globe2, LoadingSpinner } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Crown } from "lucide-react";
 import { ReactNode, useEffect, useState } from "react";

@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { addAppAchAccount } from "../dots/add-app-ach-account";
 import { createDotsApp } from "../dots/create-dots-app";
@@ -20,16 +20,6 @@ export const addBankAccountAction = authActionClient
     // Create Dots app if it doesn't exist
     if (!dotsAppId) {
       const dotsApp = await createDotsApp({ workspace });
-
-      await prisma.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          dotsAppId: dotsApp.id,
-        },
-      });
-
       dotsAppId = dotsApp.id;
     }
 
@@ -46,10 +36,11 @@ export const addBankAccountAction = authActionClient
         id: workspace.id,
       },
       data: {
+        dotsAppId,
         bankAccountName: achAccount.name,
         partialAccountNumber: achAccount.mask,
         routingNumber,
-        bankAccountVerified: false, // re-verify the bank account
+        bankAccountVerified: false, // require manual verification
       },
     });
 

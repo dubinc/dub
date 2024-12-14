@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { Palette2, Photo, Post } from "@dub/ui/src/icons";
+import { Palette2, Photo, Post } from "@dub/ui/icons";
 
 const emptyStateIcons = [Post, Palette2, Photo];
 

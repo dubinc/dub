@@ -65,11 +65,6 @@ export const WorkspaceSchema = z
     aiUsage: z.number().describe("The AI usage of the workspace."),
     aiLimit: z.number().describe("The AI limit of the workspace."),
 
-    referralLinkId: z
-      .string()
-      .nullable()
-      .describe("The ID of the referral link of the workspace."),
-
     conversionEnabled: z
       .boolean()
       .describe(
@@ -106,10 +101,6 @@ export const WorkspaceSchema = z
       .describe(
         "The feature flags of the workspace, indicating which features are enabled.",
       ),
-    publishableKey: z
-      .string()
-      .nullable()
-      .describe("The publishable key of the workspace."),
     bankAccountName: z
       .string()
       .nullable()

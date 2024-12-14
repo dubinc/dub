@@ -1,6 +1,6 @@
+import { prisma } from "@dub/prisma";
 import { createSafeActionClient } from "next-safe-action";
 import { getSession } from "../auth";
-import { prisma } from "../prisma";
 
 export const actionClient = createSafeActionClient({
   handleServerError: (e) => {
@@ -74,43 +74,32 @@ export const authActionClient = actionClient.use(
   },
 );
 
-export const authPartnerActionClient = actionClient.use(
-  async ({ next, clientInput }) => {
-    const session = await getSession();
+export const authPartnerActionClient = actionClient.use(async ({ next }) => {
+  const session = await getSession();
 
-    if (!session?.user.id) {
-      throw new Error("Unauthorized: Login required.");
-    }
+  if (!session?.user.id) {
+    throw new Error("Unauthorized: Login required.");
+  }
 
-    // @ts-ignore
-    let partnerId = clientInput?.partnerId;
-
-    if (!partnerId) {
-      throw new Error("PartnerId is required.");
-    }
-
-    const partner = await prisma.partner.findUnique({
-      where: {
-        id: partnerId,
+  const partner = await prisma.partner.findFirst({
+    where: {
+      ...(session.user.defaultPartnerId && {
+        id: session.user.defaultPartnerId,
+      }),
+      users: {
+        some: { userId: session.user.id },
       },
-      include: {
-        users: {
-          where: {
-            userId: session.user.id,
-          },
-        },
-      },
-    });
+    },
+  });
 
-    if (!partner || !partner.users) {
-      throw new Error("Partner not found.");
-    }
+  if (!partner) {
+    throw new Error("Partner not found.");
+  }
 
-    return next({
-      ctx: {
-        user: session.user,
-        partner,
-      },
-    });
-  },
-);
+  return next({
+    ctx: {
+      user: session.user,
+      partner,
+    },
+  });
+});

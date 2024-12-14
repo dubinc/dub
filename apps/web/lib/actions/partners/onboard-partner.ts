@@ -5,10 +5,11 @@ import { createDotsUser } from "@/lib/dots/create-dots-user";
 import { sendVerificationToken } from "@/lib/dots/send-verification-token";
 import { userIsInBeta } from "@/lib/edge-config";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
-import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
+import { prisma } from "@dub/prisma";
 import { COUNTRY_PHONE_CODES, nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { authUserActionClient } from "../safe-action";
 
 // Onboard a new partner
@@ -26,7 +27,8 @@ export const onboardPartnerAction = authUserActionClient
       throw new Error("Partners portal feature flag disabled.");
     }
 
-    const { name, image, country, phoneNumber, description } = parsedInput;
+    const { name, email, image, country, phoneNumber, description } =
+      parsedInput;
 
     // Create the Dots user with DOTS_DEFAULT_APP_ID
     const [firstName, lastName] = name.split(" ");
@@ -39,7 +41,7 @@ export const onboardPartnerAction = authUserActionClient
     const dotsUserInfo = {
       firstName,
       lastName: lastName || firstName.slice(0, 1), // Dots requires a last name
-      email: user.email,
+      email,
       countryCode: countryCode.toString(),
       phoneNumber,
     };
@@ -69,6 +71,7 @@ export const onboardPartnerAction = authUserActionClient
         data: {
           id: partnerId,
           name,
+          email,
           country,
           bio: description,
           dotsUserId: dotsUser.id,
@@ -81,13 +84,21 @@ export const onboardPartnerAction = authUserActionClient
           },
         },
       }),
+      prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          defaultPartnerId: partnerId,
+        },
+      }),
       sendVerificationToken({
         dotsUserId: dotsUser.id,
       }),
     ]);
 
     // Complete any outstanding program applications
-    await completeProgramApplications(user.id);
+    waitUntil(completeProgramApplications(user.id));
 
     return {
       partnerId: partner.id,

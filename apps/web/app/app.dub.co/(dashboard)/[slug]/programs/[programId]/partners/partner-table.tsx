@@ -1,6 +1,7 @@
 "use client";
 
 import usePartnersCount from "@/lib/swr/use-partners-count";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import EditColumnsButton from "@/ui/analytics/events/edit-columns-button";
 import { PartnerDetailsSheet } from "@/ui/partners/partner-details-sheet";
@@ -20,7 +21,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, Users } from "@dub/ui/src/icons";
+import { Dots, Users } from "@dub/ui/icons";
 import {
   cn,
   COUNTRIES,
@@ -40,7 +41,8 @@ import { usePartnerFilters } from "./use-partner-filters";
 
 export function PartnerTable() {
   const { programId } = useParams();
-  const { queryParams, searchParams } = useRouterStuff();
+  const { id: workspaceId } = useWorkspace();
+  const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
   const sortBy = searchParams.get("sort") || "createdAt";
   const order = searchParams.get("order") === "asc" ? "asc" : "desc";
@@ -51,14 +53,20 @@ export function PartnerTable() {
     onSelect,
     onRemove,
     onRemoveAll,
-    searchQuery,
     isFiltered,
   } = usePartnerFilters({ sortBy, order });
 
-  const { partnersCount, error: countError } = usePartnersCount();
+  const { partnersCount, error: countError } = usePartnersCount<number>({
+    ignoreParams: true,
+  });
 
   const { data: partners, error } = useSWR<EnrolledPartnerProps[]>(
-    `/api/programs/${programId}/partners?${searchQuery}`,
+    `/api/programs/${programId}/partners${getQueryString(
+      {
+        workspaceId,
+      },
+      { ignore: ["partnerId"] },
+    )}`,
     fetcher,
   );
 
@@ -213,7 +221,7 @@ export function PartnerTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `partner${p ? "s" : ""}`,
-    rowCount: partnersCount?.all || 0,
+    rowCount: partnersCount || 0,
     loading: !partners && !error && !countError,
     error: error || countError ? "Failed to load partners" : undefined,
   });

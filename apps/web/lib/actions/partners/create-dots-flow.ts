@@ -7,7 +7,6 @@ import z from "../../zod";
 import { authPartnerActionClient } from "../safe-action";
 
 const createDotsFlowSchema = z.object({
-  partnerId: z.string(),
   flow: dotsFlowStepsSchema,
 });
 

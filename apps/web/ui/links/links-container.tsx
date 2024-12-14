@@ -9,7 +9,7 @@ import {
   PaginationControls,
   usePagination,
 } from "@dub/ui";
-import { CursorRays, Hyperlink, LoadingSpinner } from "@dub/ui/src/icons";
+import { CursorRays, Hyperlink, LoadingSpinner } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useSearchParams } from "next/navigation";
 import {

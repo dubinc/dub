@@ -1,13 +1,24 @@
 import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { PartnerProps } from "../types";
 
 export default function usePartnerProfile() {
-  const { partnerId } = useParams();
+  const { data: session, status } = useSession();
+  const partnerId = session?.user?.["defaultPartnerId"];
 
-  const { data: partner, error } = useSWR<PartnerProps>(
-    partnerId && `/api/partners/${partnerId}`,
+  const [isPartnerPage, setIsPartnerPage] = useState(false);
+  useEffect(() => {
+    setIsPartnerPage(window.location.hostname.startsWith("partners"));
+  }, []);
+
+  const {
+    data: partner,
+    error,
+    isLoading,
+  } = useSWR<PartnerProps>(
+    isPartnerPage && partnerId && `/api/partners/${partnerId}`,
     fetcher,
     {
       dedupingInterval: 60000,
@@ -17,6 +28,6 @@ export default function usePartnerProfile() {
   return {
     partner,
     error,
-    loading: partnerId && !partner && !error ? true : false,
+    loading: status === "loading" || isLoading,
   };
 }

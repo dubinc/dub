@@ -1,8 +1,7 @@
-import { dub } from "@/lib/dub";
-import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { cancelSubscription } from "@/lib/stripe";
 import { WorkspaceProps } from "@/lib/types";
+import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
   DUB_DOMAINS_ARRAY,
@@ -16,10 +15,7 @@ import { markDomainAsDeleted } from "./domains";
 import { linkCache } from "./links/cache";
 
 export async function deleteWorkspace(
-  workspace: Pick<
-    WorkspaceProps,
-    "id" | "slug" | "logo" | "stripeId" | "referralLinkId"
-  >,
+  workspace: Pick<WorkspaceProps, "id" | "slug" | "logo" | "stripeId">,
 ) {
   await Promise.all([
     // Remove the users
@@ -53,14 +49,6 @@ export async function deleteWorkspace(
     workspace.logo &&
       workspace.logo.startsWith(`${R2_URL}/logos/${workspace.id}`) &&
       storage.delete(workspace.logo.replace(`${R2_URL}/`, "")),
-
-    // Set the referral link to `/deleted/[slug]`
-    workspace.referralLinkId &&
-      dub.links.update(workspace.referralLinkId, {
-        key: `/deleted/${workspace.slug}-${workspace.id}`,
-        archived: true,
-        identifier: `/deleted/${workspace.slug}-${workspace.id}`,
-      }),
   ]);
 
   waitUntil(
@@ -71,10 +59,7 @@ export async function deleteWorkspace(
 }
 
 export async function deleteWorkspaceAdmin(
-  workspace: Pick<
-    WorkspaceProps,
-    "id" | "slug" | "logo" | "stripeId" | "referralLinkId"
-  >,
+  workspace: Pick<WorkspaceProps, "id" | "slug" | "logo" | "stripeId">,
 ) {
   const [customDomains, defaultDomainLinks] = await Promise.all([
     prisma.domain.findMany({
@@ -133,13 +118,6 @@ export async function deleteWorkspaceAdmin(
       storage.delete(workspace.logo.replace(`${R2_URL}/`, "")),
     // if they have a Stripe subscription, cancel it
     workspace.stripeId && cancelSubscription(workspace.stripeId),
-    // set the referral link to `/deleted/[slug]`
-    workspace.referralLinkId &&
-      dub.links.update(workspace.referralLinkId, {
-        key: `/deleted/${workspace.slug}-${workspace.id}`,
-        archived: true,
-        identifier: `/deleted/${workspace.slug}-${workspace.id}`,
-      }),
     // delete the workspace
     prisma.project.delete({
       where: {

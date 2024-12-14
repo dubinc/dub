@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { cache } from "react";
 import { getSession } from "../auth";
 
@@ -37,7 +37,6 @@ export const getWorkspace = cache(async ({ slug }: { slug: string }) => {
       logo: true,
       usage: true,
       usageLimit: true,
-      referralLinkId: true,
       plan: true,
       stripeId: true,
       billingCycleStart: true,

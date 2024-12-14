@@ -1,12 +1,13 @@
 import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 import useSWR from "swr";
 import { PayoutMethod } from "../dots/types";
 import useDotsUser from "./use-dots-user";
 
 export default function usePayoutMethods() {
-  const { partnerId } = useParams();
+  const { data: session } = useSession();
+  const partnerId = session?.user?.["defaultPartnerId"];
 
   const { dotsUser } = useDotsUser();
 
@@ -16,7 +17,7 @@ export default function usePayoutMethods() {
     isLoading,
     mutate,
   } = useSWR<PayoutMethod[]>(
-    partnerId ? `/api/partners/${partnerId}/payout-methods` : null,
+    partnerId && `/api/partners/${partnerId}/payout-methods`,
     fetcher,
   );
 

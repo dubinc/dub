@@ -1,4 +1,4 @@
-import { ConnectedDots4 } from "@dub/ui/src/icons";
+import { ConnectedDots4 } from "@dub/ui/icons";
 import { OnboardingForm } from "./onboarding-form";
 
 export default function Onboarding() {
@@ -8,7 +8,7 @@ export default function Onboarding() {
         <ConnectedDots4 className="size-5 text-neutral-900" />
       </div>
       <h1 className="animate-slide-up-fade mt-6 text-lg font-medium [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
-        Create a Dub Partner profile
+        Create your Dub Partner profile
       </h1>
       <div className="animate-slide-up-fade mt-8 w-full [--offset:10px] [animation-delay:500ms] [animation-duration:1s] [animation-fill-mode:both]">
         <OnboardingForm />

@@ -1,6 +1,6 @@
-import { Calendar6, MoneyBills2 } from "@dub/ui/src/icons";
+import { Program } from "@dub/prisma/client";
+import { Calendar6, MoneyBills2 } from "@dub/ui/icons";
 import { cn, currencyFormatter } from "@dub/utils";
-import { Program } from "@prisma/client";
 
 export function DetailsGrid({
   program,

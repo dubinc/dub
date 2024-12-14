@@ -26,7 +26,7 @@ import {
   Globe,
   OfficeBuilding,
   ShieldCheck,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import {
   cn,
   formatDate,

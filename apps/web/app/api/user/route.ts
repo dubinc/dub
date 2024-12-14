@@ -1,8 +1,8 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { unsubscribe } from "@/lib/resend";
 import { storage } from "@/lib/storage";
+import { prisma } from "@dub/prisma";
 import { R2_URL, nanoid, trim } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -29,10 +29,12 @@ export const GET = withSession(async ({ session }) => {
         email: true,
         image: true,
         subscribed: true,
-        createdAt: true,
-        defaultWorkspace: true,
         source: true,
+        defaultWorkspace: true,
+        defaultPartnerId: true,
+        referralLinkId: true,
         passwordHash: true,
+        createdAt: true,
       },
     }),
 

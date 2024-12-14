@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { storage } from "../../storage";
 import { recordLink } from "../../tinybird";

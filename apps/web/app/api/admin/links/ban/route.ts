@@ -1,9 +1,9 @@
 import { linkCache } from "@/lib/api/links/cache";
 import { withAdmin } from "@/lib/auth";
 import { updateConfig } from "@/lib/edge-config";
-import { prisma } from "@/lib/prisma";
 import { formatRedisLink } from "@/lib/upstash";
 import { domainKeySchema } from "@/lib/zod/schemas/links";
+import { prisma } from "@dub/prisma";
 import {
   LEGAL_USER_ID,
   LEGAL_WORKSPACE_ID,

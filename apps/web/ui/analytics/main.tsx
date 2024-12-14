@@ -1,6 +1,6 @@
 import { EventType } from "@/lib/analytics/types";
 import { Button, Tooltip, useRouterStuff } from "@dub/ui";
-import { ChartLine, Filter2 } from "@dub/ui/src/icons";
+import { ChartLine, Filter2 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { ChevronRight, Lock } from "lucide-react";
@@ -55,12 +55,6 @@ export default function Main() {
         <div className="scrollbar-hide flex shrink-0 grow divide-x overflow-y-hidden">
           <NumberFlowGroup>
             {tabs.map(({ id, label, colorClassName }, idx) => {
-              const total = {
-                clicks: totalEvents?.clicks,
-                leads: totalEvents?.leads,
-                sales: totalEvents ? totalEvents.saleAmount / 100 : undefined,
-              }[id];
-
               return (
                 <div key={id} className="relative z-0">
                   {idx > 0 && (
@@ -109,25 +103,32 @@ export default function Main() {
                       />
                       <span>{label}</span>
                     </div>
-                    <div className="mt-1 flex">
-                      {total || total === 0 ? (
-                        <NumberFlow
-                          value={total}
-                          className="text-2xl font-medium sm:text-3xl"
-                          format={
-                            id === "sales"
-                              ? {
-                                  style: "currency",
-                                  currency: "USD",
-                                  // @ts-ignore – this is a valid option but TS is outdated
-                                  trailingZeroDisplay: "stripIfInteger",
-                                }
-                              : {
-                                  notation:
-                                    total > 999999 ? "compact" : "standard",
-                                }
-                          }
-                        />
+                    <div className="mt-1 flex items-center gap-2">
+                      {totalEvents?.[id] || totalEvents?.[id] === 0 ? (
+                        <>
+                          <NumberFlow
+                            value={totalEvents[id]}
+                            className="text-2xl font-medium sm:text-3xl"
+                            format={{
+                              notation:
+                                totalEvents[id] > 999999
+                                  ? "compact"
+                                  : "standard",
+                            }}
+                          />
+                          {id === "sales" && (
+                            <NumberFlow
+                              className="text-lg font-medium text-gray-500 sm:text-xl"
+                              value={totalEvents.saleAmount / 100}
+                              format={{
+                                style: "currency",
+                                currency: "USD",
+                                // @ts-ignore – this is a valid option but TS is outdated
+                                trailingZeroDisplay: "stripIfInteger",
+                              }}
+                            />
+                          )}
+                        </>
                       ) : requiresUpgrade ? (
                         <div className="block rounded-full bg-gray-100 p-2.5">
                           <Lock className="h-4 w-4 text-gray-500" />

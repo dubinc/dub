@@ -9,7 +9,7 @@ import {
   SaleStatus,
   UtmTemplate,
   Webhook,
-} from "@prisma/client";
+} from "@dub/prisma/client";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
   CustomerSchema,
@@ -31,6 +31,7 @@ import {
   SaleSchema,
 } from "./zod/schemas/partners";
 import {
+  PartnerProgramInviteSchema,
   ProgramEnrollmentSchema,
   ProgramInviteSchema,
   ProgramSchema,
@@ -137,6 +138,8 @@ export interface UserProps {
   createdAt: Date;
   source: string | null;
   defaultWorkspace?: string;
+  defaultPartnerId?: string;
+  referralLinkId?: string;
   isMachine: boolean;
   hasPassword: boolean;
   provider: string | null;
@@ -330,6 +333,10 @@ export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
 export type ProgramProps = z.infer<typeof ProgramSchema>;
 
 export type ProgramInviteProps = z.infer<typeof ProgramInviteSchema>;
+
+export type PartnerProgramInviteProps = z.infer<
+  typeof PartnerProgramInviteSchema
+>;
 
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 

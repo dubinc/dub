@@ -12,6 +12,7 @@ import {
 } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PlanProps } from "@/lib/types";
 import { fetcher } from "@dub/utils";
@@ -93,13 +94,13 @@ export default function AnalyticsProvider({
   const { id: workspaceId, slug, conversionEnabled } = useWorkspace();
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
-  let { dashboardId, partnerId, programId } = useParams() as {
+  const { dashboardId, programSlug } = useParams() as {
     dashboardId?: string;
-    partnerId?: string;
-    programId?: string;
+    programSlug?: string;
   };
 
-  const partnerPage = partnerId && programId ? true : false;
+  const { partner } = usePartnerProfile();
+  const partnerPage = partner?.id && programSlug ? true : false;
 
   const domainSlug = searchParams?.get("domain");
   // key can be a query param (stats pages in app) or passed as a staticKey (shared analytics dashboards)
@@ -183,19 +184,25 @@ export default function AnalyticsProvider({
         eventsApiPath: `/api/events`,
         domain: domainSlug,
       };
-    } else if (partnerId && programId) {
+    } else if (partner?.id && programSlug) {
       return {
-        basePath: `/api/partners/${partnerId}/programs/${programId}/analytics`,
-        baseApiPath: `/api/partners/${partnerId}/programs/${programId}/analytics`,
-        eventsApiPath: `/api/partners/${partnerId}/programs/${programId}/events`,
+        basePath: `/api/partners/${partner.id}/programs/${programSlug}/analytics`,
+        baseApiPath: `/api/partners/${partner.id}/programs/${programSlug}/analytics`,
+        eventsApiPath: `/api/partners/${partner.id}/programs/${programSlug}/events`,
         domain: domainSlug,
       };
-    } else {
+    } else if (dashboardId) {
       // Public stats page, e.g. app.dub.co/share/dsh_123
       return {
         basePath: `/share/${dashboardId}`,
         baseApiPath: "/api/analytics/dashboard",
         domain: dashboardProps?.domain,
+      };
+    } else {
+      return {
+        basePath: "",
+        baseApiPath: "",
+        domain: "",
       };
     }
   }, [
@@ -205,8 +212,8 @@ export default function AnalyticsProvider({
     pathname,
     dashboardProps?.domain,
     dashboardId,
-    partnerId,
-    programId,
+    partner?.id,
+    programSlug,
     domainSlug,
     key,
     selectedTab,

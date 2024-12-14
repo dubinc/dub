@@ -1,5 +1,4 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { calculateEarnings } from "@/lib/api/sales/commission";
 import { withPartner } from "@/lib/auth/partner";
@@ -12,14 +11,6 @@ export const GET = withPartner(async ({ partner, params, searchParams }) => {
     partnerId: partner.id,
     programId: params.programId,
   });
-
-  if (!link) {
-    throw new DubApiError({
-      code: "not_found",
-      message:
-        "You don't have a link for this program yet. Contact your program admin to get one.",
-    });
-  }
 
   const parsedParams = analyticsQuerySchema
     .omit({

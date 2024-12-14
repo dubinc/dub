@@ -1,7 +1,7 @@
 import { getProgram } from "@/lib/fetchers/get-program";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { Logo } from "@dub/ui";
-import { BoltFill, CursorRays, LinesY, MoneyBills2 } from "@dub/ui/src/icons";
+import { BoltFill, CursorRays, LinesY, MoneyBills2 } from "@dub/ui/icons";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { subDays } from "date-fns";
 import { Store } from "lucide-react";
@@ -63,14 +63,14 @@ export default async function SuccessPage({
       })
     : null;
 
-  const isEnrolled = !!enrollmentId;
+  const hasPartnerProfile = !!enrollmentId;
 
   return (
     <div
       className="relative"
       style={
         {
-          "--brand": program.brandColor || "#3b82f6",
+          "--brand": program.brandColor || "#000000",
           "--brand-ring": "rgb(from var(--brand) r g b / 0.2)",
         } as CSSProperties
       }
@@ -87,10 +87,10 @@ export default async function SuccessPage({
       <div className="p-6">
         <div className="grid grid-cols-1 gap-5 sm:pt-20">
           <h1 className="text-4xl font-semibold">
-            Application {isEnrolled ? "submitted" : "saved"}
+            Application {hasPartnerProfile ? "submitted" : "saved"}
           </h1>
           <div className="flex flex-col gap-4 text-base text-neutral-700">
-            {isEnrolled && (
+            {hasPartnerProfile && (
               <p>
                 Your application has been submitted for review.
                 {application && (
@@ -105,7 +105,7 @@ export default async function SuccessPage({
                 )}
               </p>
             )}
-            {!isEnrolled && (
+            {!hasPartnerProfile && (
               <p>
                 Complete your account setup on{" "}
                 <strong className="font-semibold">Dub Partners</strong> to

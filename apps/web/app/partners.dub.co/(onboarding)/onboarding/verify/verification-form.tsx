@@ -3,20 +3,21 @@
 import { resendVerificationCodeAction } from "@/lib/actions/partners/resend-verification-code";
 import { verifyPartnerAction } from "@/lib/actions/partners/verify-partner";
 import useDotsUser from "@/lib/swr/use-dots-user";
+import useRefreshSession from "@/lib/swr/use-refresh-session";
 import { Button, LoadingSpinner, useMediaQuery } from "@dub/ui";
-import { MobilePhone } from "@dub/ui/src/icons";
+import { MobilePhone } from "@dub/ui/icons";
 import { cn } from "@dub/utils/src/functions";
 import { OTPInput } from "input-otp";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 export function VerificationForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const partnerId = searchParams.get("partner") ?? "";
   const { isMobile } = useMediaQuery();
+
+  useRefreshSession("defaultPartnerId");
 
   const {
     handleSubmit,
@@ -27,12 +28,8 @@ export function VerificationForm() {
   } = useForm<{ code: string }>();
 
   const { executeAsync, isExecuting } = useAction(verifyPartnerAction, {
-    onSuccess: ({ data }) => {
-      if (!data?.partnerId) {
-        toast.error("Failed to verify partner. Please try again.");
-        return;
-      }
-      router.push(`/${data.partnerId}`);
+    onSuccess: () => {
+      router.push("/programs");
     },
     onError: ({ error, input }) => {
       toast.error(error.serverError);
@@ -43,7 +40,7 @@ export function VerificationForm() {
   return (
     <div className="grid gap-2">
       <form
-        onSubmit={handleSubmit((data) => executeAsync({ partnerId, ...data }))}
+        onSubmit={handleSubmit((data) => executeAsync(data))}
         className="grid gap-4 text-left"
       >
         <label>
@@ -84,9 +81,7 @@ export function VerificationForm() {
                 ))}
               </div>
             )}
-            onComplete={handleSubmit((data) =>
-              executeAsync({ partnerId, ...data }),
-            )}
+            onComplete={handleSubmit((data) => executeAsync(data))}
           />
           {errors.code && (
             <p className="mt-2 text-center text-sm text-red-500">
@@ -107,8 +102,6 @@ export function VerificationForm() {
 }
 
 function ResendCode() {
-  const searchParams = useSearchParams();
-  const partnerId = searchParams.get("partner") ?? "";
   const { dotsUser } = useDotsUser();
   const { executeAsync, isExecuting } = useAction(
     resendVerificationCodeAction,
@@ -134,7 +127,7 @@ function ResendCode() {
           "flex w-fit items-center gap-2 text-sm text-gray-400 hover:text-gray-600",
           isExecuting && "cursor-not-allowed opacity-50",
         )}
-        onClick={() => executeAsync({ partnerId })}
+        onClick={() => executeAsync()}
         disabled={isExecuting}
       >
         <LoadingSpinner
