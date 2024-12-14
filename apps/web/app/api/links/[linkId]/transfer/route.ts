@@ -4,7 +4,6 @@ import { linkCache } from "@/lib/api/links/cache";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { recordLink } from "@/lib/tinybird";
-import { formatRedisLink } from "@/lib/upstash/format-redis-link";
 import z from "@/lib/zod";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
@@ -80,11 +79,7 @@ export const POST = withWorkspace(
 
     waitUntil(
       Promise.all([
-        linkCache.set({
-          link: await formatRedisLink({ ...link, projectId: newWorkspaceId }),
-          domain: link.domain,
-          key: link.key,
-        }),
+        linkCache.set({ ...link, projectId: newWorkspaceId }),
 
         recordLink({
           link_id: link.id,

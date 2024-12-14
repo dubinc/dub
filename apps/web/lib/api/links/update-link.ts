@@ -1,7 +1,6 @@
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { LinkProps, ProcessedLinkProps } from "@/lib/types";
-import { formatRedisLink } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import {
@@ -162,11 +161,7 @@ export async function updateLink({
   waitUntil(
     Promise.all([
       // record link in Redis
-      linkCache.set({
-        link: await formatRedisLink(response),
-        domain: response.domain,
-        key: response.key,
-      }),
+      linkCache.set(response),
 
       // record link in Tinybird
       recordLink({

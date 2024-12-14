@@ -2,8 +2,8 @@ import { queueDomainUpdate } from "@/lib/api/domains/queue";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
+import { prisma } from "@dub/prisma";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";

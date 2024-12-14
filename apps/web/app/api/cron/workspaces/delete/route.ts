@@ -3,7 +3,7 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { queueWorkspaceDeletion } from "@/lib/api/workspaces";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";

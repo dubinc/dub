@@ -1,7 +1,6 @@
 import { linkCache } from "@/lib/api/links/cache";
 import { withAdmin } from "@/lib/auth";
 import { updateConfig } from "@/lib/edge-config";
-import { formatRedisLink } from "@/lib/upstash";
 import { domainKeySchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import {
@@ -36,11 +35,7 @@ export const DELETE = withAdmin(async ({ searchParams }) => {
       },
     }),
 
-    linkCache.set({
-      link: await formatRedisLink({ ...link, projectId: LEGAL_WORKSPACE_ID }),
-      domain: domain!,
-      key,
-    }),
+    linkCache.set({ ...link, projectId: LEGAL_WORKSPACE_ID }),
 
     urlDomain &&
       updateConfig({

@@ -1,7 +1,7 @@
 import { LinkProps, RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
 
-const CACHE_EXPIRATION = 60 * 60 * 24 * 7;
+const CACHE_EXPIRATION = 60 * 60 * 24; // 24 hours
 
 class LinkCache {
   async mset(links: (LinkProps & { webhookIds?: string[] })[]) {
@@ -20,30 +20,19 @@ class LinkCache {
     );
 
     redisLinks.map(({ domain, key, ...redisLink }) =>
-      pipeline.set(
-        this._createKey({ domain, key }),
-        JSON.stringify(redisLink),
-        {
-          ex: CACHE_EXPIRATION,
-        },
-      ),
+      pipeline.set(this._createKey({ domain, key }), redisLink, {
+        ex: CACHE_EXPIRATION,
+      }),
     );
 
     return await pipeline.exec();
   }
 
-  async set({
-    link,
-    domain,
-    key,
-  }: {
-    link: RedisLinkProps;
-    domain: string;
-    key: string;
-  }) {
+  async set(link: LinkProps & { webhookIds?: string[] }) {
+    const redisLink = await formatRedisLink(link);
     return await redis.set(
-      this._createKey({ domain, key }),
-      JSON.stringify(link),
+      this._createKey({ domain: link.domain, key: link.key }),
+      redisLink,
       {
         ex: CACHE_EXPIRATION,
       },

@@ -1,7 +1,7 @@
 import { deleteDomainAndLinks } from "@/lib/api/domains/delete-domain-links";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
