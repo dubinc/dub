@@ -1,6 +1,6 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
-import { payoutCountQuerySchema } from "@/lib/zod/schemas/partners";
+import { payoutsCountQuerySchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { PayoutStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
@@ -9,8 +9,7 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
-    const { search, partnerId, groupBy } =
-      payoutCountQuerySchema.parse(searchParams);
+    const { partnerId, groupBy } = payoutsCountQuerySchema.parse(searchParams);
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -23,7 +22,6 @@ export const GET = withWorkspace(
         by: ["status"],
         where: {
           programId,
-          ...(search && { partner: { name: { contains: search } } }),
           ...(partnerId && { partnerId }),
         },
         _count: true,

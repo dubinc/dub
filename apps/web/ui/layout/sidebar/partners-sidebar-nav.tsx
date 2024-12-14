@@ -17,6 +17,7 @@ import {
   Hyperlink,
   MoneyBills2,
   ShieldCheck,
+  User,
   UserCheck,
   Users,
 } from "@dub/ui/icons";
@@ -45,11 +46,6 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: GridIcon,
             href: "/programs",
             exact: true,
-          },
-          {
-            name: "Payouts",
-            icon: MoneyBills2,
-            href: "/payouts",
           },
           {
             name: "Marketplace",
@@ -110,10 +106,15 @@ const NAV_AREAS: SidebarNavAreas<{
         name: "Partner",
         items: [
           {
-            name: "General",
-            icon: Gear,
+            name: "Profile",
+            icon: User,
             href: "/settings",
             exact: true,
+          },
+          {
+            name: "Payouts",
+            icon: MoneyBills2,
+            href: "/settings/payouts",
           },
           {
             name: "People",

@@ -8,15 +8,14 @@ import { NextResponse } from "next/server";
 import z from "zod";
 
 // GET /api/partners/[partnerId]/payouts - get all payouts for a partner
-export const GET = withPartner(async ({ partner, params, searchParams }) => {
-  const { status, search, sortBy, order, page, pageSize } =
+export const GET = withPartner(async ({ partner, searchParams }) => {
+  const { status, sortBy, order, page, pageSize } =
     payoutsQuerySchema.parse(searchParams);
 
   const payouts = await prisma.payout.findMany({
     where: {
       partnerId: partner.id,
       ...(status && { status }),
-      ...(search && { partner: { name: { contains: search } } }),
     },
     include: {
       program: true,

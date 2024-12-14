@@ -1,6 +1,5 @@
 "use client";
 
-import { createAccountLinkAction } from "@/lib/actions/partners/create-account-link";
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProps } from "@/lib/types";
@@ -8,7 +7,6 @@ import {
   Button,
   buttonVariants,
   FileUpload,
-  GreekTemple,
   LoadingSpinner,
   MaxWidthWrapper,
   useEnterSubmit,
@@ -31,25 +29,6 @@ export function ProfileSettingsPageClient() {
         </div>
         {partner ? (
           <ProfileForm partner={partner} />
-        ) : (
-          <div className="flex h-32 w-full items-center justify-center">
-            {error ? (
-              <span className="text-sm text-neutral-500">
-                Failed to load profile data
-              </span>
-            ) : (
-              <LoadingSpinner />
-            )}
-          </div>
-        )}
-      </div>
-
-      <div className="mt-10 max-w-screen-md rounded-lg border border-neutral-200 bg-white">
-        <div className="border-b border-neutral-200 p-6">
-          <h2 className="text-xl font-medium text-neutral-800">Payouts</h2>
-        </div>
-        {partner ? (
-          <StripeConnectForm />
         ) : (
           <div className="flex h-32 w-full items-center justify-center">
             {error ? (
@@ -217,47 +196,6 @@ function FormRow({ children }: PropsWithChildren) {
   return (
     <div className="contents [&:not(:last-child)>label>*:nth-child(even)]:border-b sm:[&:not(:last-child)>label>*]:border-b [&>label>*:first-child]:pt-5 [&>label>*:last-child]:pb-6 [&>label>*]:flex [&>label>*]:h-full [&>label>*]:items-center [&>label>*]:border-neutral-200 sm:[&>label>*]:py-5">
       {children}
-    </div>
-  );
-}
-
-function StripeConnectForm() {
-  const { executeAsync, isExecuting } = useAction(createAccountLinkAction, {
-    onSuccess({ data }) {
-      if (!data?.url) {
-        toast.error("Unable to create account link. Please contact support.");
-        return;
-      }
-
-      window.open(data.url, "_blank");
-    },
-    onError({ error }) {
-      toast.error(error.serverError);
-    },
-  });
-
-  return (
-    <div className="flex items-center justify-between rounded-lg bg-white p-4">
-      <div className="grid grid-cols-1 items-center sm:grid-cols-2">
-        <div className="flex items-center gap-3">
-          <div className="flex size-12 items-center justify-center rounded-full border border-neutral-200">
-            <GreekTemple className="size-5 text-neutral-700" />
-          </div>
-          <div>
-            <p className="font-medium text-neutral-900">Stripe Connect</p>
-            <p className="text-sm text-neutral-500">
-              Required to receive payouts.
-            </p>
-          </div>
-        </div>
-      </div>
-      <Button
-        text="Manage"
-        loading={isExecuting}
-        className="h-9 w-fit px-3"
-        variant="secondary"
-        onClick={async () => await executeAsync()}
-      />
     </div>
   );
 }
