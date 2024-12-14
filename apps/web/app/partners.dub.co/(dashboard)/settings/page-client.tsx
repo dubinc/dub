@@ -254,10 +254,10 @@ function StripeConnectForm() {
         </div>
       </div>
       <Button
-        text={partner?.stripeConnectId ? "Connected" : "Connect"}
+        text="Manage"
         loading={isExecuting}
         className="h-9 w-fit px-3"
-        variant={partner?.stripeConnectId ? "secondary" : "primary"}
+        variant="secondary"
         onClick={async () => await executeAsync()}
       />
     </div>
