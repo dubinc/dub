@@ -180,9 +180,9 @@ export async function deleteWorkspaceAdmin(
   console.log({ updateLinkRedisResponse, updateLinkPrismaResponse });
 
   // delete all domains, links, and uploaded images associated with the workspace
-  const deleteDomainsLinksResponse = await Promise.allSettled([
-    ...customDomains.map(({ slug }) => deleteDomainAndLinks(slug)),
-  ]);
+  const deleteDomainsLinksResponse = await Promise.allSettled(
+    customDomains.map(({ slug }) => deleteDomainAndLinks(slug)),
+  );
 
   const deleteWorkspaceResponse = await Promise.allSettled([
     // delete workspace logo if it's a custom logo stored in R2
