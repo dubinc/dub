@@ -1,10 +1,10 @@
 import { approvePartnerAction } from "@/lib/actions/partners/approve-partner";
 import { rejectPartnerAction } from "@/lib/actions/partners/reject-partner";
+import { SHEET_MAX_ITEMS } from "@/lib/partners/constants";
 import usePayouts from "@/lib/swr/use-payouts";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { PAYOUTS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -14,7 +14,6 @@ import {
   Table,
   useRouterStuff,
   useTable,
-  useTablePagination,
 } from "@dub/ui";
 import { CursorRays, GreekTemple, LinesY, Link4 } from "@dub/ui/icons";
 import {
@@ -29,7 +28,6 @@ import {
 import { ChevronLeft } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -438,22 +436,13 @@ function PartnerRejectButton({
 
 function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
   const { slug } = useWorkspace();
-  const router = useRouter();
-
-  const { pagination, setPagination } = useTablePagination({
-    page: 1,
-    pageSize: PAYOUTS_MAX_PAGE_SIZE,
-  });
-
   const {
     payouts,
     error: payoutsError,
     loading,
   } = usePayouts({
-    query: { partnerId: partner.id },
+    query: { partnerId: partner.id, pageSize: SHEET_MAX_ITEMS },
   });
-
-  const showPagination = payouts && payouts.length == PAYOUTS_MAX_PAGE_SIZE;
 
   const table = useTable({
     data: payouts || [],
@@ -494,35 +483,30 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
         "_blank",
       );
     },
-    ...(showPagination && {
-      pagination,
-      onPaginationChange: setPagination,
-      rowCount: payouts?.length || 0,
-    }),
     resourceName: (p) => `payout${p ? "s" : ""}`,
     thClassName: (id) =>
       cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
     tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
-    className: cn(
-      !showPagination && "[&_tr:last-child>td]:border-b-transparent", // Hide bottom row border
-    ),
+    className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
   } as any);
 
   return (payouts && payouts.length > 0) || loading ? (
     <>
       <Table {...table} />
-      <div className="mt-2 flex justify-end">
-        <Link
-          href={`/${slug}/programs/${partner.programId}/payouts?partnerId=${partner.id}`}
-          className={cn(
-            buttonVariants({ variant: "secondary" }),
-            "flex h-7 items-center rounded-lg border px-2 text-sm",
-          )}
-        >
-          View all
-        </Link>
-      </div>
+      {payouts && payouts.length === SHEET_MAX_ITEMS && (
+        <div className="mt-2 flex justify-end">
+          <Link
+            href={`/${slug}/programs/${partner.programId}/payouts?partnerId=${partner.id}`}
+            className={cn(
+              buttonVariants({ variant: "secondary" }),
+              "flex h-7 items-center rounded-lg border px-2 text-sm",
+            )}
+          >
+            View all
+          </Link>
+        </div>
+      )}
     </>
   ) : (
     <AnimatedEmptyState

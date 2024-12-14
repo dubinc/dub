@@ -1,3 +1,4 @@
+import { SHEET_MAX_ITEMS } from "@/lib/partners/constants";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerPayoutResponse, PartnerSaleResponse } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
@@ -42,7 +43,7 @@ function PayoutDetailsSheetContent({
     error,
   } = useSWR<PartnerSaleResponse[]>(
     partner
-      ? `/api/partners/${partner.id}/programs/${payout.program.id}/sales?payoutId=${payout.id}&interval=all&pageSize=6`
+      ? `/api/partners/${partner.id}/programs/${payout.program.id}/sales?payoutId=${payout.id}&interval=all&pageSize=${SHEET_MAX_ITEMS}`
       : undefined,
     fetcher,
   );
@@ -190,7 +191,7 @@ function PayoutDetailsSheetContent({
           {payout.type === "sales" && (
             <>
               <Table {...table} />
-              {sales?.length === 6 && (
+              {sales?.length === SHEET_MAX_ITEMS && (
                 <div className="mt-2 flex justify-end">
                   <Link
                     href={`/programs/${payout.program.slug}/sales`}
