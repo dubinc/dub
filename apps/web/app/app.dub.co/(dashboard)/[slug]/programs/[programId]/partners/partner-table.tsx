@@ -61,9 +61,12 @@ export function PartnerTable() {
   });
 
   const { data: partners, error } = useSWR<EnrolledPartnerProps[]>(
-    `/api/programs/${programId}/partners${getQueryString({
-      workspaceId,
-    })}`,
+    `/api/programs/${programId}/partners${getQueryString(
+      {
+        workspaceId,
+      },
+      { ignore: ["partnerId"] },
+    )}`,
     fetcher,
   );
 
