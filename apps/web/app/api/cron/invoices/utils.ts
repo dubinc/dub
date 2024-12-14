@@ -19,7 +19,12 @@ export const processInvoice = async ({ invoiceId }: { invoiceId: string }) => {
       total: true,
       program: {
         select: {
-          workspaceId: true,
+          workspace: {
+            select: {
+              id: true,
+              stripeId: true,
+            },
+          },
         },
       },
     },
@@ -51,15 +56,7 @@ export const processInvoice = async ({ invoiceId }: { invoiceId: string }) => {
     throw new Error(`No payouts found for invoice ${invoiceId}.`);
   }
 
-  const workspace = await prisma.project.findUniqueOrThrow({
-    where: {
-      id: invoice.program.workspaceId,
-    },
-    select: {
-      id: true,
-      stripeId: true,
-    },
-  });
+  const { workspace } = invoice.program;
 
   if (!workspace.stripeId) {
     throw new Error(`Workspace ${workspace.id} does not have a Stripe ID.`);

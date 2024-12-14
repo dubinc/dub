@@ -17,6 +17,7 @@ import {
   Hyperlink,
   MoneyBills2,
   ShieldCheck,
+  User,
   UserCheck,
   Users,
 } from "@dub/ui/icons";
@@ -26,6 +27,7 @@ import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 import { PartnerProgramDropdown } from "./partner-program-dropdown";
+import { PayoutStats } from "./payout-stats";
 import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
 
 const NAV_AREAS: SidebarNavAreas<{
@@ -50,11 +52,6 @@ const NAV_AREAS: SidebarNavAreas<{
             name: "Marketplace",
             icon: Store,
             href: "/marketplace",
-          },
-          {
-            name: "Payouts",
-            icon: MoneyBills2,
-            href: "/payouts",
           },
           {
             name: "Settings",
@@ -110,10 +107,15 @@ const NAV_AREAS: SidebarNavAreas<{
         name: "Partner",
         items: [
           {
-            name: "General",
-            icon: Gear,
+            name: "Profile",
+            icon: User,
             href: "/settings",
             exact: true,
+          },
+          {
+            name: "Payouts",
+            icon: MoneyBills2,
+            href: "/settings/payouts",
           },
           {
             name: "People",
@@ -184,7 +186,7 @@ export function PartnersSidebarNav({
       toolContent={toolContent}
       newsContent={newsContent}
       switcher={<PartnerProgramDropdown />}
-      bottom={<>{programSlug && <ProgramInfo />}</>}
+      bottom={programSlug ? <ProgramInfo /> : <PayoutStats />}
     />
   );
 }
