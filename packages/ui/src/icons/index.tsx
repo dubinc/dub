@@ -7,6 +7,7 @@ import { ComponentType, SVGProps } from "react";
 export { default as Copy } from "./copy";
 export { default as ExpandingArrow } from "./expanding-arrow";
 export { default as Magic } from "./magic";
+export * from "./matrix-lines";
 export { default as Photo } from "./photo";
 export { default as SortOrder } from "./sort-order";
 export { default as Success } from "./success";
