@@ -39,12 +39,6 @@ export const partnersCountQuerySchema = z.object({
   groupBy: z.enum(["status", "country"]).optional(),
 });
 
-export const payoutCountQuerySchema = z.object({
-  search: z.string().optional(),
-  partnerId: z.string().optional(),
-  groupBy: z.enum(["status"]).optional(),
-});
-
 export const partnerInvitesQuerySchema = getPaginationQuerySchema({
   pageSize: 100,
 });
@@ -56,6 +50,8 @@ export const PartnerSchema = z.object({
   bio: z.string().nullable(),
   country: z.string().nullable(),
   status: z.nativeEnum(PartnerStatus),
+  stripeConnectId: z.string().nullable(),
+  payoutsEnabled: z.boolean(),
   dotsUserId: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -75,7 +71,6 @@ export const EnrolledPartnerSchema = PartnerSchema.omit({
 export const payoutsQuerySchema = z
   .object({
     status: z.nativeEnum(PayoutStatus).optional(),
-    search: z.string().optional(),
     partnerId: z.string().optional(),
     invoiceId: z.string().optional(),
     order: z.enum(["asc", "desc"]).default("desc"),
@@ -83,6 +78,11 @@ export const payoutsQuerySchema = z
     type: z.nativeEnum(PayoutType).optional(),
   })
   .merge(getPaginationQuerySchema({ pageSize: PAYOUTS_MAX_PAGE_SIZE }));
+
+export const payoutsCountQuerySchema = z.object({
+  partnerId: z.string().optional(),
+  groupBy: z.enum(["status"]).optional(),
+});
 
 export const PayoutSchema = z.object({
   id: z.string(),

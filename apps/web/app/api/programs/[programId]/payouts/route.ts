@@ -14,7 +14,6 @@ export const GET = withWorkspace(
     const { programId } = params;
     const {
       status,
-      search,
       partnerId,
       invoiceId,
       sortBy,
@@ -33,7 +32,6 @@ export const GET = withWorkspace(
       where: {
         programId,
         ...(status && { status }),
-        ...(search && { partner: { name: { contains: search } } }),
         ...(partnerId && { partnerId }),
         ...(type && { type }),
         ...(invoiceId && { invoiceId }),

@@ -18,6 +18,7 @@ model Partner {
   country         String?
   status          PartnerStatus @default(default)
   stripeConnectId String?       @unique
+  payoutsEnabled  Boolean       @default(false)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   dotsUserId      String?       @unique // TODO: Remove this column
