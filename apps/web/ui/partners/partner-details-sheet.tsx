@@ -1,7 +1,6 @@
 import { approvePartnerAction } from "@/lib/actions/partners/approve-partner";
 import { rejectPartnerAction } from "@/lib/actions/partners/reject-partner";
 import usePayouts from "@/lib/swr/use-payouts";
-import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
@@ -441,29 +440,25 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
   const { slug } = useWorkspace();
   const router = useRouter();
 
-  const { payoutsCount, error: payoutsCountError } = usePayoutsCount<number>({
-    partnerId: partner.id,
-  });
-
   const { pagination, setPagination } = useTablePagination({
     page: 1,
     pageSize: PAYOUTS_MAX_PAGE_SIZE,
   });
 
-  const { payouts, error: payoutsError } = usePayouts({
+  const {
+    payouts,
+    error: payoutsError,
+    loading,
+  } = usePayouts({
     query: { partnerId: partner.id },
   });
 
-  const countLoading = !payoutsCount && !payoutsCountError;
-  const payoutsLoading = !payouts && !payoutsError;
-  const isLoading = countLoading || payoutsLoading;
-  const showPagination = payoutsCount && payoutsCount > PAYOUTS_MAX_PAGE_SIZE;
+  const showPagination = payouts && payouts.length == PAYOUTS_MAX_PAGE_SIZE;
 
   const table = useTable({
     data: payouts || [],
-    loading: isLoading,
-    error:
-      payoutsError || payoutsCountError ? "Failed to load payouts" : undefined,
+    loading: loading,
+    error: payoutsError ? "Failed to load payouts" : undefined,
     columns: [
       {
         id: "periodEnd",
@@ -494,14 +489,15 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
       },
     ],
     onRowClick: (row) => {
-      router.push(
+      window.open(
         `/${slug}/programs/${partner.programId}/payouts?payoutId=${row.original.id}`,
+        "_blank",
       );
     },
     ...(showPagination && {
       pagination,
       onPaginationChange: setPagination,
-      rowCount: payoutsCount || 0,
+      rowCount: payouts?.length || 0,
     }),
     resourceName: (p) => `payout${p ? "s" : ""}`,
     thClassName: (id) =>
@@ -513,7 +509,7 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
     scrollWrapperClassName: "min-h-[40px]",
   } as any);
 
-  return payouts?.length || isLoading ? (
+  return (payouts && payouts.length > 0) || loading ? (
     <>
       <Table {...table} />
       <div className="mt-2 flex justify-end">
