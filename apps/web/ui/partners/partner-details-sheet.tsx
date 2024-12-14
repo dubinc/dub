@@ -167,6 +167,7 @@ function PartnerDetailsSheetContent({
             <div className="xs:grid-cols-2 mt-4 grid grid-cols-1 gap-3">
               <Link
                 href={`/${slug}/analytics?domain=${partner.link.domain}&key=${partner.link.key}`}
+                target="_blank"
                 className={cn(
                   buttonVariants({ variant: "secondary" }),
                   "flex h-8 items-center justify-center gap-2 rounded-lg border px-2 text-sm",
@@ -177,6 +178,7 @@ function PartnerDetailsSheetContent({
               </Link>
               <Link
                 href={`/${slug}/events?domain=${partner.link.domain}&key=${partner.link.key}`}
+                target="_blank"
                 className={cn(
                   buttonVariants({ variant: "secondary" }),
                   "flex h-8 items-center justify-center gap-2 rounded-lg border px-2 text-sm",
