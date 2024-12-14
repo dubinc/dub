@@ -222,8 +222,6 @@ function FormRow({ children }: PropsWithChildren) {
 }
 
 function StripeConnectForm() {
-  const { partner } = usePartnerProfile();
-
   const { executeAsync, isExecuting } = useAction(createAccountLinkAction, {
     onSuccess({ data }) {
       if (!data?.url) {
