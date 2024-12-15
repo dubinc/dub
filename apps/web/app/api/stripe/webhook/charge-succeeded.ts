@@ -1,5 +1,9 @@
+import { limiter } from "@/lib/cron/limiter";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
+import { formatDate } from "@dub/utils";
+import { sendEmail } from "emails";
+import PartnerPayoutSent from "emails/partner-payout-sent";
 import Stripe from "stripe";
 
 export async function chargeSucceeded(event: Stripe.Event) {
@@ -24,8 +28,20 @@ export async function chargeSucceeded(event: Stripe.Event) {
     include: {
       payouts: {
         include: {
-          partner: true,
           program: true,
+          partner: {
+            include: {
+              users: {
+                select: {
+                  user: {
+                    select: {
+                      email: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -47,25 +63,56 @@ export async function chargeSucceeded(event: Stripe.Event) {
 
     console.log("Transfer created", transfer);
 
-    await prisma.$transaction(async (tx) => {
-      await tx.payout.update({
-        where: {
-          id: payout.id,
-        },
-        data: {
-          stripeTransferId: transfer.id,
-          status: "completed",
-        },
-      });
+    const partnerUsers = payout.partner.users.map(({ user }) => user);
 
-      await tx.sale.updateMany({
-        where: {
-          payoutId: payout.id,
-        },
-        data: {
-          status: "paid",
-        },
-      });
-    });
+    await Promise.all([
+      prisma.$transaction(async (tx) => {
+        await tx.payout.update({
+          where: {
+            id: payout.id,
+          },
+          data: {
+            stripeTransferId: transfer.id,
+            status: "completed",
+          },
+        });
+
+        await tx.sale.updateMany({
+          where: {
+            payoutId: payout.id,
+          },
+          data: {
+            status: "paid",
+          },
+        });
+      }),
+      partnerUsers.map((user) =>
+        limiter.schedule(() =>
+          sendEmail({
+            subject: "You've been paid!",
+            email: user.email!,
+            from: "Dub Partners <system@dub.co>",
+            react: PartnerPayoutSent({
+              email: user.email!,
+              program: payout.program,
+              payout: {
+                id: payout.id,
+                amount: payout.amount,
+                startDate: formatDate(payout.periodStart!, {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                }),
+                endDate: formatDate(payout.periodEnd!, {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                }),
+              },
+            }),
+          }),
+        ),
+      ),
+    ]);
   }
 }
