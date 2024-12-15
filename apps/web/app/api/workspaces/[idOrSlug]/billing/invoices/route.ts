@@ -64,6 +64,8 @@ const payoutInvoices = async (workspaceId: string) => {
       id: true,
       total: true,
       createdAt: true,
+      receiptUrl: true,
+      status: true,
     },
     orderBy: {
       createdAt: "desc",
@@ -73,7 +75,7 @@ const payoutInvoices = async (workspaceId: string) => {
   return invoices.map((invoice) => {
     return {
       ...invoice,
-      pdfUrl: null,
+      pdfUrl: invoice.receiptUrl,
     };
   });
 };
