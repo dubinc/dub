@@ -1,11 +1,9 @@
 import { constructMetadata } from "@dub/utils";
 import PlaceholderContent from "./placeholder";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { domain: string };
-}) {
+export const runtime = "edge";
+
+export function generateMetadata({ params }: { params: { domain: string } }) {
   const title = `${params.domain.toUpperCase()} - A ${
     process.env.NEXT_PUBLIC_APP_NAME
   } Custom Domain`;
