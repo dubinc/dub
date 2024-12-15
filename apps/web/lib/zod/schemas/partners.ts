@@ -191,6 +191,5 @@ export const onboardPartnerSchema = z.object({
   logo: z.string().optional(),
   image: z.string(),
   country: z.enum(COUNTRY_CODES),
-  phoneNumber: z.string().trim().min(1).max(24),
   description: z.string().max(5000).nullable(),
 });

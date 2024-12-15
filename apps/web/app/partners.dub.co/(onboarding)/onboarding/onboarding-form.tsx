@@ -10,7 +10,7 @@ import {
   useEnterSubmit,
   useMediaQuery,
 } from "@dub/ui";
-import { COUNTRIES, COUNTRY_PHONE_CODES } from "@dub/utils";
+import { COUNTRIES } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
@@ -47,8 +47,6 @@ export function OnboardingForm() {
     },
   });
 
-  const countryCode = COUNTRY_PHONE_CODES[watch("country")];
-
   const formRef = useRef<HTMLFormElement>(null);
   const { handleKeyDown } = useEnterSubmit(formRef);
 
@@ -72,7 +70,28 @@ export function OnboardingForm() {
               : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
           )}
           autoFocus={!isMobile}
+          defaultValue={session?.user?.name ?? ""}
           {...register("name", {
+            required: true,
+          })}
+        />
+      </label>
+
+      <label>
+        <span className="text-sm font-medium text-gray-800">
+          Email
+          <span className="font-normal text-neutral-500"> (required)</span>
+        </span>
+        <input
+          type="text"
+          className={cn(
+            "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
+            errors.email
+              ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
+          )}
+          defaultValue={session?.user?.email ?? ""}
+          {...register("email", {
             required: true,
           })}
         />
@@ -134,63 +153,6 @@ export function OnboardingForm() {
           rules={{ required: true }}
           render={({ field }) => <CountryCombobox {...field} />}
         />
-      </label>
-
-      <label>
-        <span className="text-sm font-medium text-gray-800">
-          Mobile number
-          <span className="font-normal text-neutral-500"> (required)</span>
-        </span>
-        <div
-          className={cn(
-            "relative mt-2 flex items-center rounded-md border border-neutral-300 bg-white shadow-sm focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
-            errors.phoneNumber &&
-              "border-red-600 focus-within:border-red-500 focus-within:ring-red-600",
-          )}
-        >
-          {countryCode && (
-            <span className="left-0 flex items-center pl-2.5 text-sm text-neutral-400">
-              +{countryCode}
-            </span>
-          )}
-          <input
-            className={cn(
-              "block w-full border-none bg-transparent text-neutral-900 placeholder-neutral-400 sm:text-sm",
-              "focus:border-none focus:outline-none focus:ring-0",
-              countryCode && "pl-1",
-            )}
-            type="tel"
-            {...register("phoneNumber", {
-              required: true,
-            })}
-          />
-        </div>
-        <p className="mt-1 text-xs text-gray-400">
-          We'll send you a verification code to this number.
-        </p>
-      </label>
-
-      <label>
-        <span className="text-sm font-medium text-gray-800">
-          Email
-          <span className="font-normal text-neutral-500"> (required)</span>
-        </span>
-        <input
-          type="text"
-          className={cn(
-            "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
-            errors.email
-              ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
-          )}
-          defaultValue={session?.user?.email ?? ""}
-          {...register("email", {
-            required: true,
-          })}
-        />
-        <p className="mt-1 text-xs text-gray-400">
-          Email will be used for companies to contact you.
-        </p>
       </label>
 
       <label>

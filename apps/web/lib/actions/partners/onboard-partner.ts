@@ -7,7 +7,7 @@ import { storage } from "@/lib/storage";
 import { createConnectedAccount } from "@/lib/stripe/create-connected-account";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { COUNTRY_PHONE_CODES, nanoid } from "@dub/utils";
+import { COUNTRIES, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authUserActionClient } from "../safe-action";
 
@@ -27,7 +27,7 @@ export const onboardPartnerAction = authUserActionClient
       throw new Error("Partners portal feature flag disabled.");
     }
 
-    if (!COUNTRY_PHONE_CODES[country]) {
+    if (!COUNTRIES[country]) {
       throw new Error("Invalid country code.");
     }
 
@@ -37,19 +37,6 @@ export const onboardPartnerAction = authUserActionClient
       email,
       country,
     });
-
-    // TODO:
-    // This needs testing. Not sure how Stripe handle this
-
-    // const partnerExists = await prisma.partner.findUnique({
-    //   where: {
-    //     stripeConnectId: connectedAccount.id,
-    //   },
-    // });
-
-    // if (partnerExists) {
-    //   throw new Error("This phone number is already in use.");
-    // }
 
     const partnerId = createId({ prefix: "pn_" });
 

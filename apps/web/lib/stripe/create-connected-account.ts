@@ -36,8 +36,6 @@ export const createConnectedAccount = async ({
       }),
     });
   } catch (error) {
-    throw new Error(
-      `[Stripe Connect] Failed to create connected account: ${error.message}.`,
-    );
+    throw new Error(error.message);
   }
 };
