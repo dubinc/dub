@@ -7,7 +7,7 @@ export function ProgramPayoutsPageClient() {
   return (
     <>
       <PayoutStats />
-      <div className="mt-6">
+      <div className="my-6">
         <PayoutTable />
       </div>
     </>

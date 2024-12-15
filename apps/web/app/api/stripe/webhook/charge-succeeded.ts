@@ -25,6 +25,7 @@ export async function chargeSucceeded(event: Stripe.Event) {
       payouts: {
         include: {
           partner: true,
+          program: true,
         },
       },
     },
@@ -35,15 +36,13 @@ export async function chargeSucceeded(event: Stripe.Event) {
     return;
   }
 
-  console.log("Invoice found", invoice);
-
   for (const payout of invoice.payouts) {
     const transfer = await stripe.transfers.create({
       amount: payout.amount,
       currency: "usd",
       destination: payout.partner.stripeConnectId!,
       transfer_group: invoice.id,
-      description: "Dub Partners Payout",
+      description: `Dub Partners payout (${payout.program.name})`,
     });
 
     console.log("Transfer created", transfer);

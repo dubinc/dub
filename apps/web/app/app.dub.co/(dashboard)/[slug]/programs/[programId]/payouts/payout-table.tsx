@@ -132,7 +132,12 @@ export function PayoutTable() {
       {
         id: "amount",
         header: "Amount",
-        cell: ({ row }) => <AmountRowItem amount={row.original.amount} />,
+        cell: ({ row }) => (
+          <AmountRowItem
+            amount={row.original.amount}
+            status={row.original.status}
+          />
+        ),
       },
       // Menu
       {

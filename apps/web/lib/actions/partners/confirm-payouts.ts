@@ -94,7 +94,7 @@ export const confirmPayoutsAction = authActionClient
       confirm: true,
       transfer_group: invoice.id,
       statement_descriptor: "Dub Partners",
-      description: "Dub Partners payout invoice",
+      description: `Dub Partners payout invoice (${invoice.id})`,
     });
 
     await Promise.all([

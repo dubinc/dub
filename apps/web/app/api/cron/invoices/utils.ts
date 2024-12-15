@@ -2,11 +2,7 @@ import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 
 // TODO:
-// Check current invoiceId is processing (Maybe store it in Redis)
-// Deduct the app fee from the invoice amount
-// Should we combine the multiple payouts for same partner?
 // Store the reason of failure in the payout table itself (internal purpose)?
-// We probably need to keep a status column
 
 export const processInvoice = async ({ invoiceId }: { invoiceId: string }) => {
   const invoice = await prisma.invoice.findUnique({
