@@ -2,7 +2,10 @@
 
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { createId } from "@/lib/api/utils";
-import { MIN_PAYOUT_AMOUNT } from "@/lib/partners/constants";
+import {
+  DUB_PARTNERS_PAYOUT_FEE,
+  MIN_PAYOUT_AMOUNT,
+} from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import z from "zod";
@@ -63,7 +66,7 @@ export const confirmPayoutsAction = authActionClient
 
     // Create the invoice for the payouts
     const amount = payouts.reduce((total, payout) => total + payout.amount, 0);
-    const fee = amount * 0.02;
+    const fee = amount * DUB_PARTNERS_PAYOUT_FEE;
     const total = amount + fee;
 
     const invoice = await prisma.invoice.create({

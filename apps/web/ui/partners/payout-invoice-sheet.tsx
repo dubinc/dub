@@ -1,5 +1,8 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
-import { MIN_PAYOUT_AMOUNT } from "@/lib/partners/constants";
+import {
+  DUB_PARTNERS_PAYOUT_FEE,
+  MIN_PAYOUT_AMOUNT,
+} from "@/lib/partners/constants";
 import usePayouts from "@/lib/swr/use-payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { X } from "@/ui/shared/icons";
@@ -75,7 +78,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
       (acc, payout) => acc + payout.amount,
       0,
     );
-    const fee = amount * 0.02;
+    const fee = amount * DUB_PARTNERS_PAYOUT_FEE;
     const total = amount + fee;
 
     return {

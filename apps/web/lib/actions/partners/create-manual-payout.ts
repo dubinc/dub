@@ -92,18 +92,15 @@ export const createManualPayoutAction = authActionClient
       }
 
       const amountInCents = (quantity || 1) * (amount || 0);
-      const fee = amountInCents * 0.02;
 
       payout = await prisma.payout.create({
         data: {
           id: createId({ prefix: "po_" }),
           programId,
           partnerId,
-          // fee,
           type,
           quantity,
           amount: amountInCents,
-          // total: amountInCents + fee,
           periodStart: start,
           periodEnd: end,
           description,
