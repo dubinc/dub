@@ -13,7 +13,7 @@ export const PayoutStatusBadges = {
   },
   processing: {
     label: "Processing",
-    variant: "processing",
+    variant: "new",
     icon: CircleHalfDottedClock,
     className: "text-blue-600 bg-blue-100",
   },
