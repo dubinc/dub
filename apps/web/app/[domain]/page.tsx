@@ -1,8 +1,6 @@
 import { constructMetadata } from "@dub/utils";
 import PlaceholderContent from "./placeholder";
 
-export const revalidate = 0;
-
 export async function generateMetadata({
   params,
 }: {
