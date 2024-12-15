@@ -75,6 +75,7 @@ const payoutInvoices = async (workspaceId: string) => {
   return invoices.map((invoice) => {
     return {
       ...invoice,
+      description: "Dub Partner payout",
       pdfUrl: invoice.receiptUrl,
     };
   });

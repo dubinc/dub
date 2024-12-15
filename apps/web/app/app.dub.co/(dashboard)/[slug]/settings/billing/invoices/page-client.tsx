@@ -12,7 +12,7 @@ import {
   TabSelect,
   useRouterStuff,
 } from "@dub/ui";
-import { cn, fetcher } from "@dub/utils";
+import { cn, currencyFormatter, fetcher } from "@dub/utils";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -53,7 +53,7 @@ export default function WorkspaceInvoicesClient() {
           className="px-4 sm:px-10"
           options={[
             { id: "subscription", label: "Subscription" },
-            { id: "payout", label: "Payout" },
+            { id: "payout", label: "Partner Payouts" },
           ]}
           selected={invoiceType}
           onSelect={(id) => {
@@ -113,7 +113,11 @@ const InvoiceCard = ({ invoice }: { invoice: InvoiceProps }) => {
       <div className="text-left text-sm">
         <div className="font-medium">Total</div>
         <div className="flex items-center gap-1.5 text-neutral-500">
-          <span className="text-sm">${(invoice.total / 100).toFixed(2)}</span>
+          <span className="text-sm">
+            {currencyFormatter(invoice.total / 100, {
+              maximumFractionDigits: 2,
+            })}
+          </span>
           {invoice.status &&
             (() => {
               const badge = PayoutStatusBadges[invoice.status];
