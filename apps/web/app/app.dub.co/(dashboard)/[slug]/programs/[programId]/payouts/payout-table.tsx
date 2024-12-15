@@ -2,6 +2,7 @@
 
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import { PayoutResponse } from "@/lib/types";
+import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { PayoutTypeBadge } from "@/ui/partners/payout-type-badge";
@@ -20,12 +21,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { Dots, MoneyBill2, MoneyBills2 } from "@dub/ui/icons";
-import {
-  cn,
-  currencyFormatter,
-  DICEBEAR_AVATAR_URL,
-  formatDate,
-} from "@dub/utils";
+import { cn, currencyFormatter, formatDate } from "@dub/utils";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
@@ -104,6 +100,12 @@ export function PayoutTable() {
         },
       },
       {
+        header: "Partner",
+        cell: ({ row }) => {
+          return <PartnerRowItem partner={row.original.partner} />;
+        },
+      },
+      {
         header: "Type",
         cell: ({ row }) => <PayoutTypeBadge type={row.original.type} />,
       },
@@ -118,24 +120,6 @@ export function PayoutTable() {
             </StatusBadge>
           ) : (
             "-"
-          );
-        },
-      },
-      {
-        header: "Partner",
-        cell: ({ row }) => {
-          return (
-            <div className="flex items-center gap-2">
-              <img
-                src={
-                  row.original.partner.image ||
-                  `${DICEBEAR_AVATAR_URL}${row.original.partner.name}`
-                }
-                alt={row.original.partner.name}
-                className="size-5 rounded-full"
-              />
-              <div>{row.original.partner.name}</div>
-            </div>
           );
         },
       },
