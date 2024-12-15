@@ -1,4 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { processInvoice } from "./utils";
@@ -13,7 +14,7 @@ const schema = z.object({
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    // await verifyQstashSignature(req, body);
+    await verifyQstashSignature(req, body);
 
     const { invoiceId } = schema.parse(body);
 

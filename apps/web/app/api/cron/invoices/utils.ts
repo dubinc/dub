@@ -38,12 +38,6 @@ export const processInvoice = async ({ invoiceId }: { invoiceId: string }) => {
     where: {
       invoiceId,
       status: "pending",
-      partner: {
-        payoutsEnabled: true,
-        stripeConnectId: {
-          not: null,
-        },
-      },
     },
     select: {
       id: true,

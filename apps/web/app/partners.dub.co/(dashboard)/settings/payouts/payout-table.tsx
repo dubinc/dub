@@ -2,6 +2,7 @@
 
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerPayoutResponse } from "@/lib/types";
+import { AmountRowItem } from "@/ui/partners/amount-row-item";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { PayoutTypeBadge } from "@/ui/partners/payout-type-badge";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -13,7 +14,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { MoneyBill2 } from "@dub/ui/icons";
-import { currencyFormatter, DICEBEAR_AVATAR_URL, formatDate } from "@dub/utils";
+import { DICEBEAR_AVATAR_URL, formatDate } from "@dub/utils";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
@@ -112,11 +113,7 @@ export function PayoutTable() {
       {
         id: "amount",
         header: "Amount",
-        accessorFn: (d) =>
-          currencyFormatter(d.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        cell: ({ row }) => <AmountRowItem amount={row.original.amount} />,
       },
     ],
     pagination,

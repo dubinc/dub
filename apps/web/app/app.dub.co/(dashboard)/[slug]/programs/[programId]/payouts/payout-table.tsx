@@ -1,8 +1,8 @@
 "use client";
 
-import { MIN_PAYOUT_AMOUNT } from "@/lib/partners/constants";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import { PayoutResponse } from "@/lib/types";
+import { AmountRowItem } from "@/ui/partners/amount-row-item";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
@@ -17,13 +17,12 @@ import {
   Popover,
   StatusBadge,
   Table,
-  Tooltip,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
 import { Dots, MoneyBill2, MoneyBills2 } from "@dub/ui/icons";
-import { cn, currencyFormatter, formatDate } from "@dub/utils";
+import { cn, formatDate } from "@dub/utils";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
@@ -133,27 +132,7 @@ export function PayoutTable() {
       {
         id: "amount",
         header: "Amount",
-        cell: ({ row }) => {
-          const display = currencyFormatter(row.original.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          });
-          if (row.original.amount < MIN_PAYOUT_AMOUNT) {
-            return (
-              <Tooltip
-                content={`Minimum payout amount is ${currencyFormatter(
-                  MIN_PAYOUT_AMOUNT / 100,
-                )}. This payout will be processed in the next payout period.`}
-              >
-                <span className="cursor-default truncate text-neutral-400 underline decoration-dotted underline-offset-2">
-                  {display}
-                </span>
-              </Tooltip>
-            );
-          }
-
-          return display;
-        },
+        cell: ({ row }) => <AmountRowItem amount={row.original.amount} />,
       },
       // Menu
       {
