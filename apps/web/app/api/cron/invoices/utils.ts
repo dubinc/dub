@@ -37,7 +37,6 @@ export const processInvoice = async ({ invoiceId }: { invoiceId: string }) => {
   const payouts = await prisma.payout.findMany({
     where: {
       invoiceId,
-      status: "processing",
     },
     select: {
       id: true,
@@ -67,6 +66,7 @@ export const processInvoice = async ({ invoiceId }: { invoiceId: string }) => {
       amount: invoice.total,
       customer: workspace.stripeId,
       payment_method: invoice.paymentMethodId,
+      payment_method_types: ["card", "us_bank_account"],
       currency: "usd",
       confirmation_method: "automatic",
       confirm: true,

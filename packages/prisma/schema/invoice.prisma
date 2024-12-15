@@ -1,7 +1,8 @@
 model Invoice {
   id              String   @id @default(cuid())
   programId       String
-  paymentMethodId String // Stripe payment method ID
+  paymentMethodId String  // Stripe payment method ID
+  paymentIntentId String?  @unique // Stripe payment intent ID
   amount          Int      @default(0)
   fee             Int      @default(0)
   total           Int      @default(0)

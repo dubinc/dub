@@ -2,12 +2,9 @@
 
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { createId } from "@/lib/api/utils";
-import { qstash } from "@/lib/cron";
 import { MIN_PAYOUT_AMOUNT } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
 import Stripe from "stripe";
 import z from "zod";
 import { authActionClient } from "../safe-action";
@@ -33,6 +30,10 @@ export const confirmPayoutsAction = authActionClient
       programId,
     });
 
+    if (!workspace.stripeId) {
+      throw new Error("Workspace does not have a valid Stripe ID.");
+    }
+
     // Doing some check to make sure the payment method is valid
     const paymentMethod = await stripe.paymentMethods.retrieve(
       paymentMethodId,
@@ -45,58 +46,68 @@ export const confirmPayoutsAction = authActionClient
       throw new Error("The payment method is not valid for this workspace.");
     }
 
-    const result = await prisma.$transaction(async (tx) => {
-      // Find the pending payouts for the program
-      const payouts = await tx.payout.findMany({
-        where: {
-          programId,
-          status: "pending",
-          invoiceId: null, // just to be extra safe
-          partner: {
-            stripeConnectId: {
-              not: null,
-            },
-            payoutsEnabled: true,
+    const payouts = await prisma.payout.findMany({
+      where: {
+        programId,
+        status: "pending",
+        invoiceId: null, // just to be extra safe
+        partner: {
+          stripeConnectId: {
+            not: null,
           },
-          amount: {
-            gte: MIN_PAYOUT_AMOUNT,
-          },
+          payoutsEnabled: true,
         },
-        select: {
-          id: true,
-          amount: true,
+        amount: {
+          gte: MIN_PAYOUT_AMOUNT,
         },
-      });
+      },
+      select: {
+        id: true,
+        amount: true,
+      },
+    });
 
-      if (!payouts.length) {
-        throw new Error("No pending payouts found.");
-      }
+    if (!payouts.length) {
+      throw new Error("No pending payouts found.");
+    }
 
-      // Create the invoice for the payouts
-      const amount = payouts.reduce(
-        (total, payout) => total + payout.amount,
-        0,
-      );
-      const fee = amount * 0.02;
-      const total = amount + fee;
+    // Create the invoice for the payouts
+    const amount = payouts.reduce((total, payout) => total + payout.amount, 0);
+    const fee = amount * 0.02;
+    const total = amount + fee;
 
-      const invoice = await tx.invoice.create({
-        data: {
-          id: createId({ prefix: "inv_" }),
-          programId,
-          paymentMethodId,
-          amount,
-          fee,
-          total,
-        },
-      });
+    const invoice = await prisma.invoice.create({
+      data: {
+        id: createId({ prefix: "inv_" }),
+        programId,
+        paymentMethodId,
+        amount,
+        fee,
+        total,
+      },
+    });
 
-      if (!invoice) {
-        throw new Error("Failed to create payout invoice.");
-      }
+    if (!invoice) {
+      throw new Error("Failed to create payout invoice.");
+    }
 
-      // Update the payouts with the invoice id
-      await tx.payout.updateMany({
+    const { id: paymentIntentId } = await stripe.paymentIntents.create({
+      amount: invoice.total,
+      customer: workspace.stripeId,
+      payment_method: invoice.paymentMethodId,
+      payment_method_types: ["card", "us_bank_account"],
+      currency: "usd",
+      confirmation_method: "automatic",
+      confirm: true,
+      transfer_group: invoice.id,
+      statement_descriptor: "Dub Partners",
+      description: "Dub Partners payout invoice",
+    });
+
+    console.log("Payment intent created", paymentIntentId);
+
+    await Promise.all([
+      prisma.payout.updateMany({
         where: {
           id: {
             in: payouts.map((p) => p.id),
@@ -106,22 +117,18 @@ export const confirmPayoutsAction = authActionClient
           invoiceId: invoice.id,
           status: "processing",
         },
-      });
-
-      return invoice;
-    });
-
-    // Process the payouts in the background
-    waitUntil(
-      qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/invoices`,
-        body: {
-          invoiceId: result.id,
+      }),
+      prisma.invoice.update({
+        where: {
+          id: invoice.id,
+        },
+        data: {
+          paymentIntentId,
         },
       }),
-    );
+    ]);
 
     return {
-      invoice: result,
+      invoice,
     };
   });
