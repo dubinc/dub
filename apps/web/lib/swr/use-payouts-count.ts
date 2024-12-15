@@ -1,4 +1,3 @@
-import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
@@ -8,25 +7,19 @@ import { payoutsCountQuerySchema } from "../zod/schemas/partners";
 import useWorkspace from "./use-workspace";
 
 export default function usePayoutsCount<T>(
-  opts?: z.infer<typeof payoutsCountQuerySchema> & { ignoreParams?: boolean },
+  opts?: z.infer<typeof payoutsCountQuerySchema>,
 ) {
   const { programId } = useParams();
   const { id: workspaceId } = useWorkspace();
-  const { getQueryString } = useRouterStuff();
-
-  const queryString = opts?.ignoreParams
-    ? // @ts-ignore
-      `?${new URLSearchParams({
-        ...(opts.groupBy && { groupBy: opts.groupBy }),
-        workspaceId,
-      }).toString()}`
-    : getQueryString({
-        ...opts,
-        workspaceId,
-      });
 
   const { data: payoutsCount, error } = useSWR<PayoutsCount[]>(
-    `/api/programs/${programId}/payouts/count${queryString}`,
+    workspaceId &&
+      `/api/programs/${programId}/payouts/count?${new URLSearchParams({
+        workspaceId,
+        ...(opts && {
+          ...opts,
+        }),
+      }).toString()}`,
     fetcher,
   );
 
