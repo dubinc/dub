@@ -3,6 +3,7 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { createId } from "@/lib/api/utils";
 import { qstash } from "@/lib/cron";
+import { MIN_PAYOUT_AMOUNT } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -56,6 +57,9 @@ export const confirmPayoutsAction = authActionClient
               not: null,
             },
             payoutsEnabled: true,
+          },
+          amount: {
+            gte: MIN_PAYOUT_AMOUNT,
           },
         },
         select: {

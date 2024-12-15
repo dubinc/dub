@@ -1,5 +1,6 @@
 "use client";
 
+import { MIN_PAYOUT_AMOUNT } from "@/lib/partners/constants";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import { PayoutResponse } from "@/lib/types";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -16,6 +17,7 @@ import {
   Popover,
   StatusBadge,
   Table,
+  Tooltip,
   usePagination,
   useRouterStuff,
   useTable,
@@ -131,11 +133,27 @@ export function PayoutTable() {
       {
         id: "amount",
         header: "Amount",
-        accessorFn: (d) =>
-          currencyFormatter(d.amount / 100, {
+        cell: ({ row }) => {
+          const display = currencyFormatter(row.original.amount / 100, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
-          }),
+          });
+          if (row.original.amount < MIN_PAYOUT_AMOUNT) {
+            return (
+              <Tooltip
+                content={`Minimum payout amount is ${currencyFormatter(
+                  MIN_PAYOUT_AMOUNT / 100,
+                )}. This payout will be processed in the next payout period.`}
+              >
+                <span className="cursor-default truncate text-neutral-400 underline decoration-dotted underline-offset-2">
+                  {display}
+                </span>
+              </Tooltip>
+            );
+          }
+
+          return display;
+        },
       },
       // Menu
       {

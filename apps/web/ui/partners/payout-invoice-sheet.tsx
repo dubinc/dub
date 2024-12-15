@@ -1,4 +1,5 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
+import { MIN_PAYOUT_AMOUNT } from "@/lib/partners/constants";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import usePayouts from "@/lib/swr/use-payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -71,9 +72,15 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     },
   });
 
-  //  Filter out partners that don’t have `payoutsEnabled`
+  //  Filter out payouts that:
+  //  - Belong to a partner that doesn’t have `payoutsEnabled`
+  //  - Payout amount is less than $10
   const pendingPayouts = useMemo(
-    () => payouts?.filter((payout) => payout.partner.payoutsEnabled),
+    () =>
+      payouts?.filter(
+        (payout) =>
+          payout.partner.payoutsEnabled && payout.amount >= MIN_PAYOUT_AMOUNT,
+      ),
     [payouts],
   );
 

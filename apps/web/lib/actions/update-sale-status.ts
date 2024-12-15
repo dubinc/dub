@@ -39,7 +39,6 @@ export const updateSaleStatusAction = authActionClient
     if (sale.payout) {
       const earnings = sale.earnings;
       const revisedAmount = sale.payout.amount - earnings;
-      const revisedFee = revisedAmount * 0.02;
 
       await prisma.payout.update({
         where: {
@@ -47,8 +46,6 @@ export const updateSaleStatusAction = authActionClient
         },
         data: {
           amount: revisedAmount,
-          // fee: revisedFee,
-          // total: revisedAmount + revisedFee,
         },
       });
     }
