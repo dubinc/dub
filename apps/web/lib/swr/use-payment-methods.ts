@@ -7,14 +7,18 @@ import useWorkspace from "./use-workspace";
 export default function usePaymentMethods() {
   const { slug } = useWorkspace();
 
-  const { data, isLoading, error } = useSWR<Stripe.PaymentMethod[]>(
+  const {
+    data: paymentMethods,
+    isLoading,
+    error,
+  } = useSWR<Stripe.PaymentMethod[]>(
     slug && `/api/workspaces/${slug}/billing/payment-methods`,
     fetcher,
   );
 
   return {
-    paymentMethods: data || [],
+    paymentMethods,
     error,
-    loading: isLoading && !error && !data,
+    loading: isLoading,
   };
 }
