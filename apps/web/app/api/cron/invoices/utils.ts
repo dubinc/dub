@@ -37,7 +37,7 @@ export const processInvoice = async ({ invoiceId }: { invoiceId: string }) => {
   const payouts = await prisma.payout.findMany({
     where: {
       invoiceId,
-      status: "pending",
+      status: "processing",
     },
     select: {
       id: true,
@@ -53,7 +53,7 @@ export const processInvoice = async ({ invoiceId }: { invoiceId: string }) => {
   });
 
   if (payouts.length === 0) {
-    throw new Error(`No payouts found for invoice ${invoiceId}.`);
+    throw new Error(`No payouts found for the invoice ${invoiceId}.`);
   }
 
   const { workspace } = invoice.program;
