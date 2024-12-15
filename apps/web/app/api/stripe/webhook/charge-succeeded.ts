@@ -9,14 +9,14 @@ import Stripe from "stripe";
 export async function chargeSucceeded(event: Stripe.Event) {
   const charge = event.data.object as Stripe.Charge;
 
-  const { id: chargeId, transfer_group } = charge;
+  const { id: chargeId, receipt_url, transfer_group } = charge;
 
   if (!transfer_group) {
     console.log("No transfer group found, skipping...");
     return;
   }
 
-  console.log({ chargeId, transfer_group });
+  console.log({ chargeId, receipt_url, transfer_group });
 
   const invoice = await prisma.invoice.update({
     where: {
@@ -24,6 +24,7 @@ export async function chargeSucceeded(event: Stripe.Event) {
     },
     data: {
       status: "completed",
+      receiptUrl: receipt_url,
     },
     include: {
       payouts: {

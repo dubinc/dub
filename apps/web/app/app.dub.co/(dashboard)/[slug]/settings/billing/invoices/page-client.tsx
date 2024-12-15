@@ -73,7 +73,7 @@ const InvoiceCard = ({ invoice }: { invoice: InvoiceProps }) => {
   return (
     <div className="grid grid-cols-3 gap-4 p-4">
       <div className="text-sm">
-        <div className="font-medium">Dub subscription</div>
+        <div className="font-medium">{invoice.description}</div>
         <div className="text-neutral-500">
           {new Date(invoice.createdAt).toLocaleDateString("en-US", {
             month: "short",
@@ -116,7 +116,7 @@ const InvoiceCardSkeleton = () => {
         <div className="h-4 w-32 animate-pulse rounded-md bg-neutral-200" />
         <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
       </div>
-      <div className="text-sm">
+      <div className="flex flex-col gap-1">
         <div className="h-4 w-16 animate-pulse rounded-md bg-neutral-200" />
         <div className="h-4 w-20 animate-pulse rounded-md bg-neutral-200" />
       </div>

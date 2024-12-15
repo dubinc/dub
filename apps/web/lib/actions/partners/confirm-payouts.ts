@@ -11,9 +11,6 @@ import { prisma } from "@dub/prisma";
 import z from "zod";
 import { authActionClient } from "../safe-action";
 
-// TODO:
-// Fix `fee`
-
 const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
   programId: z.string(),
@@ -73,7 +70,6 @@ export const confirmPayoutsAction = authActionClient
       data: {
         id: createId({ prefix: "inv_" }),
         programId,
-        paymentMethodId: workspace.payoutMethodId,
         amount,
         fee,
         total,
@@ -84,11 +80,11 @@ export const confirmPayoutsAction = authActionClient
       throw new Error("Failed to create payout invoice.");
     }
 
-    const { id: paymentIntentId } = await stripe.paymentIntents.create({
+    await stripe.paymentIntents.create({
       amount: invoice.total,
       customer: workspace.stripeId,
       payment_method_types: ["us_bank_account"],
-      payment_method: invoice.paymentMethodId,
+      payment_method: workspace.payoutMethodId,
       currency: "usd",
       confirmation_method: "automatic",
       confirm: true,
@@ -97,27 +93,17 @@ export const confirmPayoutsAction = authActionClient
       description: `Dub Partners payout invoice (${invoice.id})`,
     });
 
-    await Promise.all([
-      prisma.payout.updateMany({
-        where: {
-          id: {
-            in: payouts.map((p) => p.id),
-          },
+    await prisma.payout.updateMany({
+      where: {
+        id: {
+          in: payouts.map((p) => p.id),
         },
-        data: {
-          invoiceId: invoice.id,
-          status: "processing",
-        },
-      }),
-      prisma.invoice.update({
-        where: {
-          id: invoice.id,
-        },
-        data: {
-          paymentIntentId,
-        },
-      }),
-    ]);
+      },
+      data: {
+        invoiceId: invoice.id,
+        status: "processing",
+      },
+    });
 
     return {
       invoice,
