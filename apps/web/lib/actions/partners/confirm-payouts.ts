@@ -5,7 +5,6 @@ import { createId } from "@/lib/api/utils";
 import { MIN_PAYOUT_AMOUNT } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
-import Stripe from "stripe";
 import z from "zod";
 import { authActionClient } from "../safe-action";
 
@@ -15,7 +14,6 @@ import { authActionClient } from "../safe-action";
 const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
   programId: z.string(),
-  paymentMethodId: z.string().min(1, "Please select a payment method."),
 });
 
 // Confirm payouts
@@ -23,7 +21,7 @@ export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, paymentMethodId } = parsedInput;
+    const { programId } = parsedInput;
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -34,16 +32,8 @@ export const confirmPayoutsAction = authActionClient
       throw new Error("Workspace does not have a valid Stripe ID.");
     }
 
-    // Doing some check to make sure the payment method is valid
-    const paymentMethod = await stripe.paymentMethods.retrieve(
-      paymentMethodId,
-      { expand: ["customer"] },
-    );
-
-    const stripeCustomer = paymentMethod.customer as Stripe.Customer;
-
-    if (stripeCustomer.id !== workspace.stripeId) {
-      throw new Error("The payment method is not valid for this workspace.");
+    if (!workspace.payoutMethodId) {
+      throw new Error("Workspace does not have a valid payout method.");
     }
 
     const payouts = await prisma.payout.findMany({
@@ -80,7 +70,7 @@ export const confirmPayoutsAction = authActionClient
       data: {
         id: createId({ prefix: "inv_" }),
         programId,
-        paymentMethodId,
+        paymentMethodId: workspace.payoutMethodId,
         amount,
         fee,
         total,
@@ -94,8 +84,8 @@ export const confirmPayoutsAction = authActionClient
     const { id: paymentIntentId } = await stripe.paymentIntents.create({
       amount: invoice.total,
       customer: workspace.stripeId,
+      payment_method_types: ["us_bank_account"],
       payment_method: invoice.paymentMethodId,
-      payment_method_types: ["card", "us_bank_account"],
       currency: "usd",
       confirmation_method: "automatic",
       confirm: true,
@@ -103,8 +93,6 @@ export const confirmPayoutsAction = authActionClient
       statement_descriptor: "Dub Partners",
       description: "Dub Partners payout invoice",
     });
-
-    console.log("Payment intent created", paymentIntentId);
 
     await Promise.all([
       prisma.payout.updateMany({

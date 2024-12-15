@@ -1,8 +1,15 @@
+enum InvoiceStatus {
+  processing
+  completed
+  failed
+}
+
 model Invoice {
   id              String   @id @default(cuid())
   programId       String
   paymentMethodId String  // Stripe payment method ID
   paymentIntentId String?  @unique // Stripe payment intent ID
+  status          InvoiceStatus   @default(processing)
   amount          Int      @default(0)
   fee             Int      @default(0)
   total           Int      @default(0)

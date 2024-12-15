@@ -5,17 +5,21 @@ import Stripe from "stripe";
 export async function chargeSucceeded(event: Stripe.Event) {
   const charge = event.data.object as Stripe.Charge;
 
-  const { id: chargeId, payment_intent: paymentIntentId } = charge;
+  const { id: chargeId, transfer_group } = charge;
 
-  if (typeof paymentIntentId !== "string") {
-    throw new Error("Invalid payment intent ID.");
+  if (!transfer_group) {
+    console.log("No transfer group found, skipping...");
+    return;
   }
 
-  console.log({ chargeId, paymentIntentId });
+  console.log({ chargeId, transfer_group });
 
-  const invoice = await prisma.invoice.findUnique({
+  const invoice = await prisma.invoice.update({
     where: {
-      paymentIntentId,
+      id: transfer_group,
+    },
+    data: {
+      status: "completed",
     },
     include: {
       payouts: {
@@ -27,9 +31,8 @@ export async function chargeSucceeded(event: Stripe.Event) {
   });
 
   if (!invoice) {
-    throw new Error(
-      `Invoice with payment intent ${paymentIntentId} not found.`,
-    );
+    console.log(`Invoice with transfer group ${transfer_group} not found.`);
+    return;
   }
 
   console.log("Invoice found", invoice);
@@ -39,7 +42,6 @@ export async function chargeSucceeded(event: Stripe.Event) {
       amount: payout.amount,
       currency: "usd",
       destination: payout.partner.stripeConnectId!,
-      source_transaction: chargeId,
       transfer_group: invoice.id,
       description: "Dub Partners Payout",
     });
