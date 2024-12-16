@@ -8,7 +8,7 @@ export default function OnboardingVerification() {
         <ConnectedDots4 className="size-5 text-neutral-900" />
       </div>
       <h1 className="animate-slide-up-fade mt-6 text-lg font-medium [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
-        Payouts verification
+        Setup your payouts account
       </h1>
       <div className="animate-slide-up-fade mt-8 w-full [--offset:10px] [animation-delay:500ms] [animation-duration:1s] [animation-fill-mode:both]">
         <div className="divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">
@@ -22,7 +22,7 @@ export default function OnboardingVerification() {
           <div className="bg-white p-4 text-sm text-neutral-600">
             We use Stripe to ensure you get paid on time and to keep your
             personal bank details secure. Click{" "}
-            <strong>Continue to Stripe</strong> to setup payouts on Stripe.
+            <strong>Continue to Stripe</strong> to setup your payouts account.
             <br />
             <br />
             You can complete this at a later date, but won't be able to collect
