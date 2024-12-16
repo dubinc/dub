@@ -38,8 +38,8 @@ export function PayoutTable() {
   const { programId } = useParams();
   const { queryParams, searchParams } = useRouterStuff();
 
-  const sortBy = searchParams.get("sort") || "periodStart";
-  const order = searchParams.get("order") === "asc" ? "asc" : "desc";
+  const sortBy = searchParams.get("sortBy") || "periodStart";
+  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const {
     filters,
@@ -51,7 +51,7 @@ export function PayoutTable() {
     isFiltered,
     setSearch,
     setSelectedFilter,
-  } = usePayoutFilters({ sortBy, order });
+  } = usePayoutFilters({ sortBy, sortOrder });
 
   const { payoutsCount, error: countError } = usePayoutsCount();
 
@@ -180,12 +180,12 @@ export function PayoutTable() {
     onPaginationChange: setPagination,
     sortableColumns: ["periodStart"],
     sortBy,
-    sortOrder: order,
+    sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
       queryParams({
         set: {
-          ...(sortBy && { sort: sortBy }),
-          ...(sortOrder && { order: sortOrder }),
+          ...(sortBy && { sortBy }),
+          ...(sortOrder && { sortOrder }),
         },
         scroll: false,
       }),

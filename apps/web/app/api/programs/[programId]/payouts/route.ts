@@ -3,7 +3,7 @@ import { withWorkspace } from "@/lib/auth";
 import {
   PayoutResponseSchema,
   payoutsQuerySchema,
-} from "@/lib/zod/schemas/partners";
+} from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import z from "zod";
@@ -12,8 +12,16 @@ import z from "zod";
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
-    const { status, search, partnerId, sortBy, order, page, pageSize, type } =
-      payoutsQuerySchema.parse(searchParams);
+    const {
+      status,
+      search,
+      partnerId,
+      sortBy,
+      sortOrder,
+      page,
+      pageSize,
+      type,
+    } = payoutsQuerySchema.parse(searchParams);
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -39,7 +47,7 @@ export const GET = withWorkspace(
       skip: (page - 1) * pageSize,
       take: pageSize,
       orderBy: {
-        [sortBy]: order,
+        [sortBy]: sortOrder,
       },
     });
 
