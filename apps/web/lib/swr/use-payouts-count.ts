@@ -3,7 +3,7 @@ import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { z } from "zod";
 import { PayoutsCount } from "../types";
-import { payoutsQuerySchema } from "../zod/schemas/partners";
+import { payoutsQuerySchema } from "../zod/schemas/payouts";
 import useWorkspace from "./use-workspace";
 
 const partialQuerySchema = payoutsQuerySchema.partial();

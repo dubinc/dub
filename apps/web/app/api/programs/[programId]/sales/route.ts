@@ -18,8 +18,8 @@ export const GET = withWorkspace(
       page,
       pageSize,
       status,
-      order,
       sortBy,
+      sortOrder,
       customerId,
       payoutId,
       partnerId,
@@ -57,7 +57,7 @@ export const GET = withWorkspace(
       },
       skip: (page - 1) * pageSize,
       take: pageSize,
-      orderBy: { [sortBy]: order },
+      orderBy: { [sortBy]: sortOrder },
     });
 
     return NextResponse.json(z.array(SaleResponseSchema).parse(sales));
