@@ -1,8 +1,6 @@
 import { intervals } from "@/lib/analytics/constants";
 import {
   PartnerStatus,
-  PayoutStatus,
-  PayoutType,
   ProgramEnrollmentStatus,
   SaleStatus,
 } from "@dub/prisma/client";
@@ -21,10 +19,10 @@ export const partnersQuerySchema = z
     status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
     country: z.string().optional(),
     search: z.string().optional(),
-    order: z.enum(["asc", "desc"]).default("desc"),
     sortBy: z
       .enum(["createdAt", "clicks", "leads", "sales", "earnings"])
       .default("createdAt"),
+    sortOrder: z.enum(["asc", "desc"]).default("desc"),
     ids: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
@@ -66,47 +64,6 @@ export const EnrolledPartnerSchema = PartnerSchema.omit({
     earnings: z.number(),
   });
 
-export const payoutsQuerySchema = z
-  .object({
-    status: z.nativeEnum(PayoutStatus).optional(),
-    search: z.string().optional(),
-    partnerId: z.string().optional(),
-    order: z.enum(["asc", "desc"]).default("desc"),
-    sortBy: z.enum(["periodStart", "total"]).default("periodStart"),
-    type: z.nativeEnum(PayoutType).optional(),
-  })
-  .merge(getPaginationQuerySchema({ pageSize: PAYOUTS_MAX_PAGE_SIZE }));
-
-export const PayoutSchema = z.object({
-  id: z.string(),
-  amount: z.number(),
-  fee: z.number(),
-  total: z.number(),
-  currency: z.string(),
-  status: z.nativeEnum(PayoutStatus),
-  type: z.nativeEnum(PayoutType),
-  description: z.string().nullish(),
-  periodStart: z.date().nullable(),
-  periodEnd: z.date().nullable(),
-  dotsTransferId: z.string().nullable(),
-  quantity: z.number().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
-
-export const PayoutResponseSchema = PayoutSchema.merge(
-  z.object({
-    partner: PartnerSchema,
-    _count: z.object({ sales: z.number() }),
-  }),
-);
-
-export const PartnerPayoutResponseSchema = PayoutResponseSchema.omit({
-  partner: true,
-  fee: true,
-  total: true,
-});
-
 export const SaleSchema = z.object({
   id: z.string(),
   amount: z.number(),
@@ -120,8 +77,8 @@ export const SaleSchema = z.object({
 export const getSalesQuerySchema = z
   .object({
     status: z.nativeEnum(SaleStatus).optional(),
-    order: z.enum(["asc", "desc"]).default("desc"),
     sortBy: z.enum(["createdAt", "amount"]).default("createdAt"),
+    sortOrder: z.enum(["asc", "desc"]).default("desc"),
     interval: z.enum(intervals).default("1y"),
     start: parseDateSchema.optional(),
     end: parseDateSchema.optional(),
@@ -141,7 +98,7 @@ export const SaleResponseSchema = SaleSchema.merge(
 export const getSalesCountQuerySchema = getSalesQuerySchema.omit({
   page: true,
   pageSize: true,
-  order: true,
+  sortOrder: true,
   sortBy: true,
 });
 

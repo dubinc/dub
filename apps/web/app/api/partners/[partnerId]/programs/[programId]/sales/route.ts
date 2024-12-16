@@ -17,7 +17,7 @@ export const GET = withPartner(async ({ partner, params, searchParams }) => {
   });
 
   const parsed = getPartnerSalesQuerySchema.parse(searchParams);
-  const { page, pageSize, status, order, sortBy, customerId, payoutId } =
+  const { page, pageSize, status, sortBy, sortOrder, customerId, payoutId } =
     parsed;
 
   const { startDate, endDate } = getStartEndDates(parsed);
@@ -46,7 +46,7 @@ export const GET = withPartner(async ({ partner, params, searchParams }) => {
     },
     skip: (page - 1) * pageSize,
     take: pageSize,
-    orderBy: { [sortBy]: order },
+    orderBy: { [sortBy]: sortOrder },
   });
 
   return NextResponse.json(z.array(PartnerSaleResponseSchema).parse(sales));

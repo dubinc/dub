@@ -23,14 +23,16 @@ import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   EnrolledPartnerSchema,
-  PartnerPayoutResponseSchema,
   PartnerSaleResponseSchema,
   PartnerSchema,
-  PayoutResponseSchema,
-  PayoutSchema,
   SaleResponseSchema,
   SaleSchema,
 } from "./zod/schemas/partners";
+import {
+  PartnerPayoutResponseSchema,
+  PayoutResponseSchema,
+  PayoutSchema,
+} from "./zod/schemas/payouts";
 import {
   PartnerProgramInviteSchema,
   ProgramEnrollmentSchema,

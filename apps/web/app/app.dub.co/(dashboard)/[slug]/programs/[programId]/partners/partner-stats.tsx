@@ -47,7 +47,7 @@ export function PartnerStats() {
           queryParams({
             set: {
               sortBy: "earnings",
-              order: "desc",
+              sortOrder: "desc",
             },
             getNewPath: true,
           }) as string

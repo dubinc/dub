@@ -44,8 +44,8 @@ export function PartnerTable() {
   const { id: workspaceId } = useWorkspace();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
-  const sortBy = searchParams.get("sort") || "createdAt";
-  const order = searchParams.get("order") === "asc" ? "asc" : "desc";
+  const sortBy = searchParams.get("sortBy") || "createdAt";
+  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const {
     filters,
@@ -54,17 +54,21 @@ export function PartnerTable() {
     onRemove,
     onRemoveAll,
     isFiltered,
-  } = usePartnerFilters({ sortBy, order });
+  } = usePartnerFilters({ sortBy, sortOrder });
 
-  const { partnersCount, error: countError } = usePartnersCount<number>({
-    ignoreParams: true,
-  });
+  const { partnersCount, error: countError } = usePartnersCount<number>();
 
   const { data: partners, error } = useSWR<EnrolledPartnerProps[]>(
-    `/api/programs/${programId}/partners${getQueryString({
-      workspaceId,
-    })}`,
+    `/api/programs/${programId}/partners${getQueryString(
+      {
+        workspaceId,
+      },
+      { ignore: ["partnerId"] },
+    )}`,
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   const [detailsSheetState, setDetailsSheetState] = useState<
@@ -206,12 +210,12 @@ export function PartnerTable() {
     onColumnVisibilityChange: setColumnVisibility,
     sortableColumns: ["createdAt", "clicks", "leads", "sales", "earnings"],
     sortBy,
-    sortOrder: order,
+    sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
       queryParams({
         set: {
-          ...(sortBy && { sort: sortBy }),
-          ...(sortOrder && { order: sortOrder }),
+          ...(sortBy && { sortBy }),
+          ...(sortOrder && { sortOrder }),
         },
         scroll: false,
       }),

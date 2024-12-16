@@ -3,7 +3,7 @@ import { withPartner } from "@/lib/auth/partner";
 import {
   PartnerPayoutResponseSchema,
   payoutsQuerySchema,
-} from "@/lib/zod/schemas/partners";
+} from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import z from "zod";
@@ -15,7 +15,7 @@ export const GET = withPartner(async ({ partner, params, searchParams }) => {
     programId: params.programId,
   });
 
-  const { status, search, sortBy, order, page, pageSize } =
+  const { status, search, sortBy, sortOrder, page, pageSize } =
     payoutsQuerySchema.parse(searchParams);
 
   const payouts = await prisma.payout.findMany({
@@ -35,7 +35,7 @@ export const GET = withPartner(async ({ partner, params, searchParams }) => {
     skip: (page - 1) * pageSize,
     take: pageSize,
     orderBy: {
-      [sortBy]: order,
+      [sortBy]: sortOrder,
     },
   });
 

@@ -77,6 +77,14 @@ export const GET = withWorkspace(
     const count = await prisma.programEnrollment.count({
       where: {
         programId,
+        ...(status && {
+          status,
+        }),
+        ...(country && {
+          partner: {
+            country,
+          },
+        }),
       },
     });
 
