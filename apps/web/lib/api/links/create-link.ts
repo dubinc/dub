@@ -14,6 +14,7 @@ import { linkConstructorSimple } from "@dub/utils/src/functions/link-constructor
 import { waitUntil } from "@vercel/functions";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { createId } from "../utils";
+import { linkCache } from "./cache";
 import { updateLinksUsage } from "./update-links-usage";
 import { transformLink } from "./utils";
 
@@ -133,6 +134,8 @@ export async function createLink(link: ProcessedLinkProps) {
 
   waitUntil(
     Promise.all([
+      // cache link in Redis
+      linkCache.set(response),
       // record link in Tinybird
       recordLink({
         link_id: response.id,

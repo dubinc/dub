@@ -2,11 +2,10 @@ import { recordLink } from "@/lib/tinybird";
 import { linkCache } from "./cache";
 import { ExpandedLink } from "./utils";
 
-export async function propagateBulkLinkChanges(
-  links: ExpandedLink[],
-  updateCache?: boolean,
-) {
+export async function propagateBulkLinkChanges(links: ExpandedLink[]) {
   return await Promise.all([
+    // update Redis cache
+    linkCache.mset(links),
     // update Tinybird
     recordLink(
       links.map((link) => ({
@@ -20,7 +19,5 @@ export async function propagateBulkLinkChanges(
         created_at: link.createdAt,
       })),
     ),
-    // update Redis
-    updateCache && linkCache.mset(links),
   ]);
 }
