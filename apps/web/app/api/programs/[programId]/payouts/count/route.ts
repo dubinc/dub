@@ -1,6 +1,6 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
-import { payoutsCountQuerySchema } from "@/lib/zod/schemas/partners";
+import { payoutsCountQuerySchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
 import { PayoutStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";

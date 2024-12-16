@@ -3,7 +3,7 @@ import { withWorkspace } from "@/lib/auth";
 import {
   PayoutResponseSchema,
   payoutsQuerySchema,
-} from "@/lib/zod/schemas/partners";
+} from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import z from "zod";
@@ -17,7 +17,7 @@ export const GET = withWorkspace(
       partnerId,
       invoiceId,
       sortBy,
-      order,
+      sortOrder,
       page,
       pageSize,
       type,
@@ -47,7 +47,7 @@ export const GET = withWorkspace(
       skip: (page - 1) * pageSize,
       take: pageSize,
       orderBy: {
-        [sortBy]: order,
+        [sortBy]: sortOrder,
       },
     });
 

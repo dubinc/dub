@@ -2,14 +2,14 @@ import { withPartner } from "@/lib/auth/partner";
 import {
   PartnerPayoutResponseSchema,
   payoutsQuerySchema,
-} from "@/lib/zod/schemas/partners";
+} from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import z from "zod";
 
 // GET /api/partners/[partnerId]/payouts - get all payouts for a partner
 export const GET = withPartner(async ({ partner, searchParams }) => {
-  const { status, sortBy, order, page, pageSize } =
+  const { status, sortBy, sortOrder, page, pageSize } =
     payoutsQuerySchema.parse(searchParams);
 
   const payouts = await prisma.payout.findMany({
@@ -28,7 +28,7 @@ export const GET = withPartner(async ({ partner, searchParams }) => {
     skip: (page - 1) * pageSize,
     take: pageSize,
     orderBy: {
-      [sortBy]: order,
+      [sortBy]: sortOrder,
     },
   });
 

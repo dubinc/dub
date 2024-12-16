@@ -24,8 +24,8 @@ export function PayoutTable() {
   const { partner } = usePartnerProfile();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
-  const sortBy = searchParams.get("sort") || "periodStart";
-  const order = searchParams.get("order") === "asc" ? "asc" : "desc";
+  const sortBy = searchParams.get("sortBy") || "periodStart";
+  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const {
     data: payouts,
@@ -124,12 +124,12 @@ export function PayoutTable() {
     pagination,
     onPaginationChange: setPagination,
     sortBy,
-    sortOrder: order,
+    sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
       queryParams({
         set: {
-          ...(sortBy && { sort: sortBy }),
-          ...(sortOrder && { order: sortOrder }),
+          ...(sortBy && { sortBy }),
+          ...(sortOrder && { sortOrder }),
         },
       }),
     onRowClick: (row) => {

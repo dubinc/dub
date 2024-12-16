@@ -52,9 +52,9 @@ const SaleTableBusinessInner = memo(
     const { id: workspaceId } = useWorkspace();
     const { pagination, setPagination } = usePagination(limit);
     const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
-    const { sortBy, order } = searchParamsObj as {
+    const { sortBy, sortOrder } = searchParamsObj as {
       sortBy: string;
-      order: "asc" | "desc";
+      sortOrder: "asc" | "desc";
     };
 
     const { salesCount } = useSalesCount();
@@ -162,12 +162,12 @@ const SaleTableBusinessInner = memo(
         onPaginationChange: setPagination,
         sortableColumns: ["createdAt", "amount"],
         sortBy,
-        sortOrder: order,
+        sortOrder,
         onSortChange: ({ sortBy, sortOrder }) =>
           queryParams({
             set: {
-              ...(sortBy && { sortBy: sortBy }),
-              ...(sortOrder && { order: sortOrder }),
+              ...(sortBy && { sortBy }),
+              ...(sortOrder && { sortOrder }),
             },
           }),
       }),
