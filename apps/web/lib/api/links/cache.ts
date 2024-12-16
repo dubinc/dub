@@ -1,10 +1,11 @@
 import { LinkProps, RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
+import { ExpandedLink } from "./utils/transform-link";
 
 const CACHE_EXPIRATION = 60 * 60 * 24; // 24 hours
 
 class LinkCache {
-  async mset(links: (LinkProps & { webhookIds?: string[] })[]) {
+  async mset(links: ExpandedLink[]) {
     if (links.length === 0) {
       return;
     }
@@ -36,7 +37,7 @@ class LinkCache {
     return await pipeline.exec();
   }
 
-  async set(link: LinkProps & { webhookIds?: string[] }) {
+  async set(link: ExpandedLink) {
     const redisLink = await formatRedisLink(link);
     const hasWebhooks = redisLink.webhookIds && redisLink.webhookIds.length > 0;
 

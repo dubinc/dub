@@ -144,17 +144,8 @@ export const POST = withWorkspace(
           },
         });
 
-        const formatedLinks = links.map((link) => {
-          return {
-            ...link,
-            webhookIds: link.webhooks.map((webhook) => webhook.webhookId),
-          };
-        });
-
         Promise.all([
-          ...(links && links.length > 0
-            ? [linkCache.mset(formatedLinks), []]
-            : []),
+          ...(links && links.length > 0 ? [linkCache.mset(links), []] : []),
 
           ...(isLinkLevelWebhook(webhook) ? [webhookCache.set(webhook)] : []),
 
