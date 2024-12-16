@@ -17,10 +17,6 @@ interface PayoutInvoiceSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-// TODO:
-// Fix the fee calculation
-// Payment method dropdown UI need fixing
-
 function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   const { id: workspaceId, slug } = useWorkspace();
   const { programId } = useParams<{ programId: string }>();
