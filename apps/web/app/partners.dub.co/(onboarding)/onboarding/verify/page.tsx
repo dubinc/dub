@@ -22,7 +22,7 @@ export default function OnboardingVerification() {
           <div className="bg-white p-4 text-sm text-neutral-600">
             We use Stripe to ensure you get paid on time and to keep your
             personal bank details secure. Click{" "}
-            <strong>Save and continue</strong> to set up Stripe.
+            <strong>Continue to Stripe</strong> to setup payouts on Stripe.
             <br />
             <br />
             You can complete this at a later date, but won't be able to collect

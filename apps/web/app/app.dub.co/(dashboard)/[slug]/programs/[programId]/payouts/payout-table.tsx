@@ -125,11 +125,6 @@ export function PayoutTable() {
         },
       },
       {
-        id: "invoiceId",
-        header: "Invoice",
-        accessorFn: (d) => d.invoiceId || "-",
-      },
-      {
         id: "amount",
         header: "Amount",
         cell: ({ row }) => (
