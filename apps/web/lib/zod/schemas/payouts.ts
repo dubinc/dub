@@ -24,26 +24,29 @@ export const createManualPayoutSchema = z.object({
 export const payoutsQuerySchema = z
   .object({
     status: z.nativeEnum(PayoutStatus).optional(),
-    search: z.string().optional(),
     partnerId: z.string().optional(),
+    invoiceId: z.string().optional(),
     sortBy: z.enum(["periodStart", "total"]).default("periodStart"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     type: z.nativeEnum(PayoutType).optional(),
   })
   .merge(getPaginationQuerySchema({ pageSize: PAYOUTS_MAX_PAGE_SIZE }));
 
+export const payoutsCountQuerySchema = z.object({
+  partnerId: z.string().optional(),
+  groupBy: z.enum(["status"]).optional(),
+});
+
 export const PayoutSchema = z.object({
   id: z.string(),
+  invoiceId: z.string().nullable(),
   amount: z.number(),
-  fee: z.number(),
-  total: z.number(),
   currency: z.string(),
   status: z.nativeEnum(PayoutStatus),
   type: z.nativeEnum(PayoutType),
   description: z.string().nullish(),
   periodStart: z.date().nullable(),
   periodEnd: z.date().nullable(),
-  dotsTransferId: z.string().nullable(),
   quantity: z.number().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
