@@ -2,7 +2,7 @@ import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 import { stripe } from "./stripe-init";
 
-const partnerId = "pn_H4TB2V5hDIjpqB7PwrxESoY3";
+const partnerId = "pn_NNG3YjwhLhA7nCZSaXeLIsWu";
 
 async function main() {
   const partner = await prisma.partner.findUnique({
@@ -30,9 +30,11 @@ async function main() {
       transfers: {
         requested: true,
       },
-      card_payments: {
-        requested: true,
-      },
+      ...(partner.country === "US" && {
+        card_payments: {
+          requested: true,
+        },
+      }),
     },
     ...(partner.country !== "US" && {
       tos_acceptance: { service_agreement: "recipient" },
