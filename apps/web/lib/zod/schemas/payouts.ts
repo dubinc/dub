@@ -3,6 +3,7 @@ import { PayoutStatus, PayoutType } from "@dub/prisma/client";
 import { z } from "zod";
 import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema, PAYOUTS_MAX_PAGE_SIZE } from "./partners";
+import { ProgramSchema } from "./programs";
 
 export const createManualPayoutSchema = z.object({
   workspaceId: z.string(),
@@ -61,6 +62,13 @@ export const PayoutResponseSchema = PayoutSchema.merge(
 
 export const PartnerPayoutResponseSchema = PayoutResponseSchema.omit({
   partner: true,
-  fee: true,
-  total: true,
-});
+}).merge(
+  z.object({
+    program: ProgramSchema.pick({
+      id: true,
+      name: true,
+      slug: true,
+      logo: true,
+    }),
+  }),
+);
