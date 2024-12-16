@@ -1,22 +1,16 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
-import { payoutsQuerySchema } from "@/lib/zod/schemas/partners";
+import { payoutsQuerySchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
 import { PayoutStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
-import z from "zod";
-
-const responseSchema = z.object({
-  status: z.nativeEnum(PayoutStatus),
-  _count: z.number(),
-});
 
 // GET /api/programs/[programId]/payouts/count
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
     const { status, search, partnerId } = payoutsQuerySchema
-      .omit({ sortBy: true, order: true, page: true, pageSize: true })
+      .omit({ sortBy: true, sortOrder: true, page: true, pageSize: true })
       .parse(searchParams);
 
     await getProgramOrThrow({
