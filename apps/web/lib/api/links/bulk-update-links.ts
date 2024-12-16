@@ -28,6 +28,7 @@ export async function bulkUpdateLinks(
     tagId,
     tagIds,
     tagNames,
+    webhookIds,
     ...rest
   } = data;
 
@@ -83,6 +84,16 @@ export async function bulkUpdateLinks(
               })),
             },
           }),
+
+          // Associate webhooks
+          ...(webhookIds && {
+            webhooks: {
+              deleteMany: {},
+              create: webhookIds.map((webhookId) => ({
+                webhookId,
+              })),
+            },
+          }),
         },
         include: {
           tags: {
@@ -100,6 +111,7 @@ export async function bulkUpdateLinks(
               createdAt: "asc",
             },
           },
+          webhooks: webhookIds ? { select: { webhookId: true } } : false,
         },
       }),
     ),

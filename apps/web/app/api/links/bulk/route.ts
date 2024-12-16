@@ -162,7 +162,7 @@ export const POST = withWorkspace(
       const webhookIds = validLinks
         .map((link) => link.webhookIds)
         .flat()
-        .filter((id): id is string => id !== null);
+        .filter(Boolean) as string[];
 
       const webhooks = await prisma.webhook.findMany({
         where: { projectId: workspace.id, id: { in: webhookIds } },
