@@ -105,11 +105,7 @@ function CreatePayoutSheetContent({
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      type: "sales",
-      amount:
-        program?.commissionType === "flat"
-          ? Number(program?.commissionAmount) / 100
-          : program?.commissionAmount,
+      type: "custom",
     },
   });
 
@@ -463,12 +459,13 @@ function CreatePayoutSheetContent({
                   clearErrors(["start", "end"]);
                 }
 
-                if (
-                  type === "sales" &&
-                  program?.commissionAmount &&
-                  program.commissionType === "flat"
-                ) {
-                  setValue("amount", program.commissionAmount / 100);
+                if (type === "sales" && program?.commissionAmount) {
+                  setValue(
+                    "amount",
+                    program.commissionType === "percentage"
+                      ? program.commissionAmount
+                      : program.commissionAmount / 100,
+                  );
                 } else {
                   // @ts-ignore
                   setValue("amount", null);
@@ -486,9 +483,18 @@ function CreatePayoutSheetContent({
           <div>
             <label
               htmlFor="amount"
-              className="text-sm font-medium text-neutral-800"
+              className="flex justify-between text-sm font-medium text-neutral-800"
             >
               Reward amount
+              {payoutType === "sales" && (
+                <a
+                  href={`/${slug}/programs/${programId}/settings`}
+                  target="_blank"
+                  className="font-normal text-gray-400 underline-offset-2 transition-all hover:text-gray-600 hover:underline"
+                >
+                  Manage
+                </a>
+              )}
             </label>
             <div className="relative mt-2 rounded-md shadow-sm">
               {!isPercentageBased && (
@@ -500,6 +506,8 @@ function CreatePayoutSheetContent({
                 className={cn(
                   "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                   "pr-[6.5rem]",
+                  payoutType === "sales" &&
+                    "cursor-not-allowed bg-neutral-100 text-neutral-500",
                   payoutType === "custom" && "pr-12",
                   !isPercentageBased && "pl-6",
                   errors.amount &&
@@ -508,9 +516,10 @@ function CreatePayoutSheetContent({
                 {...register("amount", {
                   required: true,
                   valueAsNumber: true,
+                  disabled: payoutType === "sales",
                 })}
                 autoComplete="off"
-                placeholder="5"
+                placeholder="100"
               />
               <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
                 {isPercentageBased ? "%" : "USD"}
