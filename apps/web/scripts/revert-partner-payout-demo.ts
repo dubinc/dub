@@ -11,7 +11,6 @@ async function main() {
       },
       data: {
         status: "pending",
-        dotsTransferId: null,
       },
     }),
     prisma.sale.updateMany({

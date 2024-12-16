@@ -52,7 +52,6 @@ export const PartnerSchema = z.object({
   status: z.nativeEnum(PartnerStatus),
   stripeConnectId: z.string().nullable(),
   payoutsEnabled: z.boolean(),
-  dotsUserId: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

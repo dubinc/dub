@@ -41,7 +41,6 @@ export const createManualPayoutAction = authActionClient
           },
         },
         select: {
-          dotsUserId: true,
           linkId: true,
         },
       }),
