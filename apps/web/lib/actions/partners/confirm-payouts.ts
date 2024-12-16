@@ -62,50 +62,55 @@ export const confirmPayoutsAction = authActionClient
     }
 
     // Create the invoice for the payouts
-    const amount = payouts.reduce((total, payout) => total + payout.amount, 0);
-    const fee = amount * DUB_PARTNERS_PAYOUT_FEE;
-    const total = amount + fee;
+    return await prisma.$transaction(async (tx) => {
+      const amount = payouts.reduce(
+        (total, payout) => total + payout.amount,
+        0,
+      );
+      const fee = amount * DUB_PARTNERS_PAYOUT_FEE;
+      const total = amount + fee;
 
-    const invoice = await prisma.invoice.create({
-      data: {
-        id: createId({ prefix: "inv_" }),
-        programId,
-        amount,
-        fee,
-        total,
-      },
-    });
-
-    if (!invoice) {
-      throw new Error("Failed to create payout invoice.");
-    }
-
-    await stripe.paymentIntents.create({
-      amount: invoice.total,
-      customer: workspace.stripeId,
-      payment_method_types: ["us_bank_account"],
-      payment_method: workspace.payoutMethodId,
-      currency: "usd",
-      confirmation_method: "automatic",
-      confirm: true,
-      transfer_group: invoice.id,
-      statement_descriptor: "Dub Partners",
-      description: `Dub Partners payout invoice (${invoice.id})`,
-    });
-
-    await prisma.payout.updateMany({
-      where: {
-        id: {
-          in: payouts.map((p) => p.id),
+      const invoice = await tx.invoice.create({
+        data: {
+          id: createId({ prefix: "inv_" }),
+          programId,
+          amount,
+          fee,
+          total,
         },
-      },
-      data: {
-        invoiceId: invoice.id,
-        status: "processing",
-      },
-    });
+      });
 
-    return {
-      invoice,
-    };
+      if (!invoice) {
+        throw new Error("Failed to create payout invoice.");
+      }
+
+      await stripe.paymentIntents.create({
+        amount: invoice.total,
+        customer: workspace.stripeId!,
+        payment_method_types: ["us_bank_account"],
+        payment_method: workspace.payoutMethodId!,
+        currency: "usd",
+        confirmation_method: "automatic",
+        confirm: true,
+        transfer_group: invoice.id,
+        statement_descriptor: "Dub Partners",
+        description: `Dub Partners payout invoice (${invoice.id})`,
+      });
+
+      await tx.payout.updateMany({
+        where: {
+          id: {
+            in: payouts.map((p) => p.id),
+          },
+        },
+        data: {
+          invoiceId: invoice.id,
+          status: "processing",
+        },
+      });
+
+      return {
+        invoice,
+      };
+    });
   });
