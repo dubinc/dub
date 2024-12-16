@@ -19,22 +19,33 @@ class LinkCache {
       })),
     );
 
-    redisLinks.map(({ domain, key, ...redisLink }) =>
-      pipeline.set(this._createKey({ domain, key }), redisLink, {
-        ex: CACHE_EXPIRATION,
-      }),
-    );
+    redisLinks.map(({ domain, key, ...redisLink }) => {
+      const hasWebhooks =
+        redisLink.webhookIds && redisLink.webhookIds.length > 0;
+
+      pipeline.set(
+        this._createKey({ domain, key }),
+        redisLink,
+        // @ts-ignore
+        {
+          ...(!hasWebhooks && { ex: CACHE_EXPIRATION }),
+        },
+      );
+    });
 
     return await pipeline.exec();
   }
 
   async set(link: LinkProps & { webhookIds?: string[] }) {
     const redisLink = await formatRedisLink(link);
+    const hasWebhooks = redisLink.webhookIds && redisLink.webhookIds.length > 0;
+
     return await redis.set(
       this._createKey({ domain: link.domain, key: link.key }),
       redisLink,
+      // @ts-ignore
       {
-        ex: CACHE_EXPIRATION,
+        ...(!hasWebhooks && { ex: CACHE_EXPIRATION }),
       },
     );
   }
