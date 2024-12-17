@@ -8,9 +8,11 @@ import { X } from "@/ui/shared/icons";
 import {
   Button,
   CursorRays,
+  GreekTemple,
   InvoiceDollar,
-  LinesY,
+  Link4,
   Sheet,
+  Tooltip,
   useRouterStuff,
 } from "@dub/ui";
 import {
@@ -19,10 +21,12 @@ import {
   DICEBEAR_AVATAR_URL,
   fetcher,
   getPrettyUrl,
+  timeAgo,
 } from "@dub/utils";
 import { UserCheck } from "lucide-react";
 import { Dispatch, SetStateAction, useState } from "react";
 import useSWR from "swr";
+import { AnimatedEmptyState } from "../shared/animated-empty-state";
 
 // Fake link for now
 const link = {
@@ -48,12 +52,10 @@ function CustomerDetailsSheetContent({
       fetcher,
     );
 
-  console.log("activities", customerActivity);
-
   return (
     <>
-      <div>
-        <div className="flex items-start justify-between border-b border-neutral-200 p-6">
+      <div className="flex grow flex-col">
+        <div className="flex items-start justify-between p-6">
           <Sheet.Title className="text-xl font-semibold">
             Customer details
           </Sheet.Title>
@@ -65,7 +67,8 @@ function CustomerDetailsSheetContent({
             />
           </Sheet.Close>
         </div>
-        <div className="p-6">
+
+        <div className="border-y border-neutral-200 bg-neutral-50 p-6">
           <div className="flex items-start justify-between gap-6">
             <div className="flex flex-col">
               <img
@@ -85,39 +88,104 @@ function CustomerDetailsSheetContent({
               </div>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <div className="flex min-w-[40%] shrink grow basis-1/2 flex-wrap items-center justify-end gap-2">
-                {link && (
-                  <a
-                    href={`/${slug}/analytics?domain=${link.domain}&key=${link.key}`}
-                    target="_blank"
-                    className="group flex min-w-0 items-center gap-1.5 overflow-hidden rounded-full bg-neutral-100 px-2.5 py-1 text-xs text-neutral-700 transition-colors duration-100 hover:bg-neutral-200/70 active:bg-neutral-200"
-                  >
-                    <LinesY className="size-3.5" />
-                    <span className="truncate">
-                      {getPrettyUrl(link.shortLink)}
-                    </span>
-                  </a>
-                )}
-              </div>
-              <div>
-                {customer.country && (
-                  <div className="flex min-w-20 items-center gap-2 rounded-full bg-neutral-100 px-2.5 py-1 text-xs text-neutral-700">
-                    <img
-                      alt=""
-                      src={`https://flag.vercel.app/m/${customer.country}.svg`}
-                      className="h-3 w-4"
-                    />
-                    <span className="truncate">
-                      {COUNTRIES[customer.country]}
-                    </span>
-                  </div>
-                )}
-              </div>
+            <div className="flex min-w-[40%] shrink grow basis-1/2 flex-col items-end justify-end gap-2">
+              {link && (
+                <div className="group flex min-w-0 items-center gap-1 overflow-hidden rounded-full border border-neutral-200 bg-white px-1.5 py-0.5 text-xs text-neutral-700">
+                  <Link4 className="size-3.5" />
+                  <span className="truncate">
+                    {getPrettyUrl(link.shortLink)}
+                  </span>
+                </div>
+              )}
+              {customer.country && (
+                <div className="flex min-w-20 items-center gap-2 rounded-full border border-neutral-200 bg-white px-1.5 py-0.5 text-xs text-neutral-700">
+                  <img
+                    alt=""
+                    src={`https://flag.vercel.app/m/${customer.country}.svg`}
+                    className="h-3 w-4 rounded-sm"
+                  />
+                  <span className="truncate">
+                    {COUNTRIES[customer.country]}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="mt-6">
+          <div className="mt-6 grid grid-cols-2 gap-2">
+            <div className="xs:grid-cols-2 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200">
+              {[
+                {
+                  label: "Lead",
+                  value: customerActivity?.timeToLead
+                    ? timeAgo(
+                        new Date(Date.now() - customerActivity.timeToLead),
+                      )
+                    : "-",
+                  description:
+                    "The time it took for this customer to convert into a lead.",
+                },
+                {
+                  label: "Sale",
+                  value: customerActivity?.timeToSale
+                    ? timeAgo(
+                        new Date(Date.now() - customerActivity.timeToSale),
+                      )
+                    : "-",
+                  description:
+                    "The time it took for this customer to convert from a lead to a purchase.",
+                },
+              ].map(({ label, value, description }) => (
+                <div key={label} className="flex flex-col bg-neutral-50 p-3">
+                  <Tooltip content={description}>
+                    <span className="cursor-default truncate text-xs text-neutral-400 underline decoration-dotted underline-offset-2">
+                      {label}
+                    </span>
+                  </Tooltip>
+                  <span className="text-base text-neutral-900">{value}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200">
+              {[
+                {
+                  label: "Lifetime value",
+                  value: customerActivity?.ltv
+                    ? currencyFormatter(customerActivity.ltv / 100, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })
+                    : "-",
+                },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex flex-col bg-neutral-50 p-3">
+                  <span className="truncate text-xs text-neutral-400">
+                    {label}
+                  </span>
+                  <span className="text-base text-neutral-900">{value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex grow flex-col p-6">
+          {isLoading || !customerActivity ? (
+            <AnimatedEmptyState
+              className="md:min-h-80"
+              title="No activities"
+              description="This customer has no activities yet."
+              cardContent={() => (
+                <>
+                  <div className="flex size-7 items-center justify-center rounded-md border border-neutral-200 bg-neutral-50">
+                    <GreekTemple className="size-4 text-neutral-700" />
+                  </div>
+                  <div className="h-2.5 w-28 min-w-0 rounded-sm bg-neutral-200" />
+                </>
+              )}
+            />
+          ) : (
             <ul className="flex flex-col gap-4">
               {customerActivity?.activities.map((activity, index) => (
                 <Activity
@@ -127,7 +195,7 @@ function CustomerDetailsSheetContent({
                 />
               ))}
             </ul>
-          </div>
+          )}
         </div>
       </div>
     </>
