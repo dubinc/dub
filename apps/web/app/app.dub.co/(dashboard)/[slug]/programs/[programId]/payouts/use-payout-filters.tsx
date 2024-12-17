@@ -84,9 +84,6 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
     return [
       ...(status ? [{ key: "status", value: status }] : []),
       ...(partnerId ? [{ key: "partnerId", value: partnerId }] : []),
-      ...(interval ? [{ key: "interval", value: interval }] : []),
-      ...(start ? [{ key: "start", value: start }] : []),
-      ...(end ? [{ key: "end", value: end }] : []),
     ];
   }, [searchParamsObj]);
 
@@ -98,14 +95,14 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
       del: "page",
     });
 
-  const onRemove = (key: string, value: any) =>
+  const onRemove = (key: string) =>
     queryParams({
       del: [key, "page"],
     });
 
   const onRemoveAll = () =>
     queryParams({
-      del: ["status", "search", "partnerId", "interval", "start", "end"],
+      del: ["status", "search", "partnerId"],
     });
 
   const searchQuery = useMemo(

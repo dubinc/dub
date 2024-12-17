@@ -36,14 +36,25 @@ export const GET = withWorkspace(
     const payouts = await prisma.payout.findMany({
       where: {
         programId,
+        OR: [
+          {
+            paidAt: {
+              gte: startDate.toISOString(),
+              lte: endDate.toISOString(),
+            },
+          },
+          {
+            paidAt: null,
+            createdAt: {
+              gte: startDate.toISOString(),
+              lte: endDate.toISOString(),
+            },
+          },
+        ],
         ...(status && { status }),
         ...(partnerId && { partnerId }),
         ...(type && { type }),
         ...(invoiceId && { invoiceId }),
-        paidAt: {
-          gte: startDate.toISOString(),
-          lte: endDate.toISOString(),
-        },
       },
       include: {
         partner: true,

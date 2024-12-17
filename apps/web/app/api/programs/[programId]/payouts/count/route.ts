@@ -24,6 +24,21 @@ export const GET = withWorkspace(
 
     const where: Prisma.PayoutWhereInput = {
       programId,
+      OR: [
+        {
+          paidAt: {
+            gte: startDate.toISOString(),
+            lte: endDate.toISOString(),
+          },
+        },
+        {
+          paidAt: null,
+          createdAt: {
+            gte: startDate.toISOString(),
+            lte: endDate.toISOString(),
+          },
+        },
+      ],
       ...(partnerId && { partnerId }),
       ...(eligibility === "eligible" && {
         amount: {
@@ -33,10 +48,6 @@ export const GET = withWorkspace(
           payoutsEnabled: true,
         },
       }),
-      paidAt: {
-        gte: startDate.toISOString(),
-        lte: endDate.toISOString(),
-      },
     };
 
     // Get payout count by status

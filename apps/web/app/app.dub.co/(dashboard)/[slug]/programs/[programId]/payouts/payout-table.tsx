@@ -127,7 +127,7 @@ export function PayoutTable() {
       },
       {
         id: "paidAt",
-        header: "Paid at",
+        header: "Paid",
         cell: ({ row }) =>
           row.original.paidAt ? timeAgo(row.original.paidAt) : "-",
       },
@@ -155,7 +155,7 @@ export function PayoutTable() {
     ],
     pagination,
     onPaginationChange: setPagination,
-    sortableColumns: ["periodStart"],
+    sortableColumns: ["periodStart", "amount", "paidAt"],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>

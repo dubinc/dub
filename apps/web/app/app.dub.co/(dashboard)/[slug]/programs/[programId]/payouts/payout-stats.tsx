@@ -107,7 +107,7 @@ export function PayoutStats() {
                   </div>
                 }
               >
-                <span className="text-neutral-500 underline decoration-dotted underline-offset-2">
+                <span className="underline decoration-dotted underline-offset-2">
                   {currencyFormatter(
                     eligiblePendingPayouts?.amount
                       ? eligiblePendingPayouts.amount / 100

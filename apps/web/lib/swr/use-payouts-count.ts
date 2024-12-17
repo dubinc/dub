@@ -8,7 +8,7 @@ import { payoutsCountQuerySchema } from "../zod/schemas/payouts";
 import useWorkspace from "./use-workspace";
 
 export default function usePayoutsCount<T>(
-  opts?: z.infer<typeof payoutsCountQuerySchema>,
+  opts?: z.input<typeof payoutsCountQuerySchema>,
 ) {
   const { programId } = useParams();
   const { id: workspaceId } = useWorkspace();
