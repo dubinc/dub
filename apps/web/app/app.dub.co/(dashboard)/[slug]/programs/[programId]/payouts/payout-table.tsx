@@ -58,7 +58,7 @@ export function PayoutTable() {
     error,
     isLoading,
   } = useSWR<PayoutResponse[]>(
-    `/api/programs/${programId}/payouts?${getQueryString({ workspaceId })}`,
+    `/api/programs/${programId}/payouts${getQueryString({ workspaceId })}`,
     fetcher,
     {
       keepPreviousData: true,

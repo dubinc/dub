@@ -31,10 +31,7 @@ export const GET = withWorkspace(
       pageSize,
     } = parsed;
 
-    console.log(parsed);
-
     const { startDate, endDate } = getStartEndDates(parsed);
-    console.log({ startDate, endDate });
 
     const payouts = await prisma.payout.findMany({
       where: {

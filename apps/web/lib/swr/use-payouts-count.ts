@@ -16,7 +16,7 @@ export default function usePayoutsCount<T>(
 
   const { data: payoutsCount, error } = useSWR<PayoutsCount[]>(
     workspaceId &&
-      `/api/programs/${programId}/payouts/count?${getQueryString({
+      `/api/programs/${programId}/payouts/count${getQueryString({
         ...opts,
         workspaceId,
       })}`,

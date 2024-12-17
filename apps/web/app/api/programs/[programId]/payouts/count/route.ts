@@ -18,9 +18,9 @@ export const GET = withWorkspace(
       programId,
     });
 
-    const { startDate, endDate } = getStartEndDates(parsed);
-
     const { partnerId, groupBy, eligibility, status } = parsed;
+
+    const { startDate, endDate } = getStartEndDates(parsed);
 
     const where: Prisma.PayoutWhereInput = {
       programId,
@@ -67,15 +67,15 @@ export const GET = withWorkspace(
       });
 
       return NextResponse.json(counts);
-    } else {
-      const count = await prisma.payout.count({
-        where: {
-          ...where,
-          status,
-        },
-      });
-
-      return NextResponse.json(count);
     }
+
+    const count = await prisma.payout.count({
+      where: {
+        ...where,
+        status,
+      },
+    });
+
+    return NextResponse.json(count);
   },
 );
