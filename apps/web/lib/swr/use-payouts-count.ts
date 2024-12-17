@@ -1,3 +1,4 @@
+import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
@@ -11,13 +12,14 @@ export default function usePayoutsCount<T>(
 ) {
   const { programId } = useParams();
   const { id: workspaceId } = useWorkspace();
+  const { getQueryString } = useRouterStuff();
 
   const { data: payoutsCount, error } = useSWR<PayoutsCount[]>(
     workspaceId &&
-      `/api/programs/${programId}/payouts/count?${new URLSearchParams({
+      `/api/programs/${programId}/payouts/count${getQueryString({
         ...opts,
         workspaceId,
-      }).toString()}`,
+      })}`,
     fetcher,
   );
 

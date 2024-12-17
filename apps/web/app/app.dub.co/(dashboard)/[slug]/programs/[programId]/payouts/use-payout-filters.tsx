@@ -14,6 +14,8 @@ import { useDebounce } from "use-debounce";
 export function usePayoutFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
+  const { interval, start, end } = searchParamsObj;
+
   const { payoutsCount } = usePayoutsCount<PayoutsCount[]>({
     groupBy: "status",
   });
@@ -82,6 +84,9 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
     return [
       ...(status ? [{ key: "status", value: status }] : []),
       ...(partnerId ? [{ key: "partnerId", value: partnerId }] : []),
+      ...(interval ? [{ key: "interval", value: interval }] : []),
+      ...(start ? [{ key: "start", value: start }] : []),
+      ...(end ? [{ key: "end", value: end }] : []),
     ];
   }, [searchParamsObj]);
 
@@ -100,7 +105,7 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
 
   const onRemoveAll = () =>
     queryParams({
-      del: ["status", "search", "partnerId"],
+      del: ["status", "search", "partnerId", "interval", "start", "end"],
     });
 
   const searchQuery = useMemo(
@@ -109,14 +114,13 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
         ...Object.fromEntries(
           activeFilters.map(({ key, value }) => [key, value]),
         ),
-        ...(searchParamsObj.search && { search: searchParamsObj.search }),
         workspaceId: workspaceId || "",
         ...extraSearchParams,
       }).toString(),
     [activeFilters, workspaceId, extraSearchParams],
   );
 
-  const isFiltered = activeFilters.length > 0 || searchParamsObj.search;
+  const isFiltered = activeFilters.length > 0;
 
   return {
     filters,
