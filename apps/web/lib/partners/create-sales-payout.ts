@@ -12,8 +12,8 @@ export const createSalesPayout = async ({
 }: {
   programId: string;
   partnerId: string;
-  periodStart?: Date;
-  periodEnd?: Date;
+  periodStart?: Date | null;
+  periodEnd?: Date | null;
   description?: string;
 }) => {
   return await prisma.$transaction(async (tx) => {
