@@ -4,6 +4,7 @@ import { X } from "@/ui/shared/icons";
 import {
   Button,
   buttonVariants,
+  ExpandingArrow,
   Sheet,
   StatusBadge,
   Table,
@@ -54,9 +55,10 @@ function PayoutDetailsSheetContent({
 
     return {
       Partner: (
-        <Link
+        <a
           href={`/${slug}/programs/${programId}/partners?partnerId=${payout.partner.id}`}
-          className="flex items-center gap-2"
+          target="_blank"
+          className="group flex items-center gap-0.5"
         >
           <img
             src={
@@ -64,10 +66,11 @@ function PayoutDetailsSheetContent({
               `${DICEBEAR_AVATAR_URL}${payout.partner.name}`
             }
             alt={payout.partner.name}
-            className="size-5 rounded-full"
+            className="mr-1.5 size-5 rounded-full"
           />
           <div>{payout.partner.name}</div>
-        </Link>
+          <ExpandingArrow className="size-3" />
+        </a>
       ),
 
       Period:

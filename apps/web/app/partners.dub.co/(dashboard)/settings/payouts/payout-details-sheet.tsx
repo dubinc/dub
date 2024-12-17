@@ -7,6 +7,7 @@ import { X } from "@/ui/shared/icons";
 import {
   Button,
   buttonVariants,
+  ExpandingArrow,
   Sheet,
   StatusBadge,
   Table,
@@ -53,17 +54,22 @@ function PayoutDetailsSheetContent({
 
     return {
       Program: (
-        <div className="flex items-center gap-2">
+        <a
+          href={`/programs/${payout.program.slug}`}
+          target="_blank"
+          className="group flex items-center gap-0.5"
+        >
           <img
             src={
               payout.program.logo ||
               `${DICEBEAR_AVATAR_URL}${payout.program.name}`
             }
             alt={payout.program.name}
-            className="size-4 rounded-sm"
+            className="mr-1.5 size-4 rounded-sm"
           />
           <span>{payout.program.name}</span>
-        </div>
+          <ExpandingArrow className="size-3" />
+        </a>
       ),
       Period:
         !payout.periodStart || !payout.periodEnd
