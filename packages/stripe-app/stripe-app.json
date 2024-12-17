@@ -45,8 +45,6 @@
     }
   },
   "allowed_redirect_uris": [
-    "https://app.dub.co/api/stripe/connect/callback",
-    "https://preview.dub.co/api/stripe/connect/callback",
     "https://app.dub.co/api/stripe/integration/callback",
     "https://preview.dub.co/api/stripe/integration/callback"
   ],
