@@ -8,10 +8,12 @@ import { X } from "@/ui/shared/icons";
 import {
   Button,
   CursorRays,
+  FilterBars,
   GreekTemple,
   InvoiceDollar,
   Link4,
   Sheet,
+  TabSelect,
   Tooltip,
   useRouterStuff,
 } from "@dub/ui";
@@ -45,6 +47,7 @@ function CustomerDetailsSheetContent({
   setIsOpen,
 }: CustomerDetailsSheetProps) {
   const { id: workspaceId, slug } = useWorkspace();
+  const { queryParams } = useRouterStuff();
 
   const { data: customerActivity, isLoading } =
     useSWR<CustomerActivityResponse>(
@@ -68,7 +71,7 @@ function CustomerDetailsSheetContent({
           </Sheet.Close>
         </div>
 
-        <div className="border-y border-neutral-200 bg-neutral-50 p-6">
+        <div className="border-y border-neutral-200 bg-neutral-50 p-6 pb-0">
           <div className="flex items-start justify-between gap-6">
             <div className="flex flex-col">
               <img
@@ -95,6 +98,8 @@ function CustomerDetailsSheetContent({
                   <span className="truncate">
                     {getPrettyUrl(link.shortLink)}
                   </span>
+                  <span className="sr-only">Filter</span>
+                  <FilterBars className="h-3.5 w-3.5" />
                 </div>
               )}
               {customer.country && (
@@ -168,6 +173,11 @@ function CustomerDetailsSheetContent({
               ))}
             </div>
           </div>
+
+          <TabSelect
+            options={[{ id: "activity", label: "Activity" }]}
+            selected={"activity"}
+          />
         </div>
 
         <div className="flex grow flex-col p-6">
@@ -186,7 +196,7 @@ function CustomerDetailsSheetContent({
               )}
             />
           ) : (
-            <ul className="flex flex-col gap-4">
+            <ul className="flex flex-col gap-6">
               {customerActivity?.activities.map((activity, index) => (
                 <Activity
                   activity={activity}
