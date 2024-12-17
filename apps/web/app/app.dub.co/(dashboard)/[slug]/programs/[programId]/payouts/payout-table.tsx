@@ -23,7 +23,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { Dots, MoneyBill2, MoneyBills2 } from "@dub/ui/icons";
-import { cn, formatDate, timeAgo } from "@dub/utils";
+import { cn, formatDate } from "@dub/utils";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
@@ -129,7 +129,13 @@ export function PayoutTable() {
         id: "paidAt",
         header: "Paid",
         cell: ({ row }) =>
-          row.original.paidAt ? timeAgo(row.original.paidAt) : "-",
+          row.original.paidAt
+            ? formatDate(row.original.paidAt, {
+                month: "short",
+                day: "numeric",
+                year: undefined,
+              })
+            : "-",
       },
       {
         id: "amount",
