@@ -109,7 +109,7 @@ export const createSalesPayout = async ({
             periodStart,
             periodEnd,
             quantity,
-            description,
+            description: description ?? "Dub Partners payout",
           },
         });
 

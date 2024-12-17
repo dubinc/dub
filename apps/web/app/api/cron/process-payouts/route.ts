@@ -14,28 +14,30 @@ export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
 
-    const partners = await prisma.programEnrollment.findMany({
+    const pendingSales = await prisma.sale.groupBy({
+      by: ["programId", "partnerId"],
       where: {
-        status: "approved",
+        status: "pending",
+      },
+      _count: {
+        id: true,
       },
     });
 
-    if (!partners.length) {
+    if (!pendingSales.length) {
       return;
     }
 
     // TODO:
     // We need a batter way to handle this recursively
-    for (const { programId, partnerId } of partners) {
+    for (const { programId, partnerId } of pendingSales) {
       await createSalesPayout({
         programId,
         partnerId,
       });
     }
 
-    return NextResponse.json({
-      message: `Calculated payouts for ${partners.length} partners`,
-    });
+    return NextResponse.json(pendingSales);
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
