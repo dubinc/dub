@@ -35,6 +35,9 @@ model Project {
   updatedAt        DateTime @updatedAt
   usageLastChecked DateTime @default(now())
 
+  payoutMethodId  String?
+
+  // TODO: Remove these
   dotsAppId            String? @unique
   bankAccountName      String?
   partialAccountNumber String?

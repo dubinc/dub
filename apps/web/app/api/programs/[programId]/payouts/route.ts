@@ -1,3 +1,4 @@
+import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
 import {
@@ -12,29 +13,48 @@ import z from "zod";
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
-    const {
-      status,
-      search,
-      partnerId,
-      sortBy,
-      sortOrder,
-      page,
-      pageSize,
-      type,
-    } = payoutsQuerySchema.parse(searchParams);
+    const parsed = payoutsQuerySchema.parse(searchParams);
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
 
+    const {
+      status,
+      partnerId,
+      invoiceId,
+      type,
+      sortBy,
+      sortOrder,
+      page,
+      pageSize,
+    } = parsed;
+
+    const { startDate, endDate } = getStartEndDates(parsed);
+
     const payouts = await prisma.payout.findMany({
       where: {
         programId,
+        OR: [
+          {
+            paidAt: {
+              gte: startDate.toISOString(),
+              lte: endDate.toISOString(),
+            },
+          },
+          {
+            paidAt: null,
+            createdAt: {
+              gte: startDate.toISOString(),
+              lte: endDate.toISOString(),
+            },
+          },
+        ],
         ...(status && { status }),
-        ...(search && { partner: { name: { contains: search } } }),
         ...(partnerId && { partnerId }),
         ...(type && { type }),
+        ...(invoiceId && { invoiceId }),
       },
       include: {
         partner: true,

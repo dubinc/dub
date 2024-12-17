@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/utils";
 import { prisma } from "@dub/prisma";
+import { Payout } from "@dub/prisma/client";
 
 // Calculate the commission earned for the partner for the given program
 export const createSalesPayout = async ({
@@ -41,37 +42,69 @@ export const createSalesPayout = async ({
       return;
     }
 
-    const earningsTotal = sales.reduce(
-      (total, sale) => total + sale.earnings,
-      0,
-    );
+    const amount = sales.reduce((total, sale) => total + sale.earnings, 0);
+    const quantity = sales.length;
+    let payout: Payout | null = null;
 
-    const amount = earningsTotal;
-    const fee = amount * 0.02;
-
-    // Create the payout
-    const payout = await tx.payout.create({
-      data: {
-        id: createId({ prefix: "po_" }),
+    // Check if the partner has another pending payout
+    payout = await tx.payout.findFirst({
+      where: {
         programId,
         partnerId,
-        amount,
-        fee,
-        total: amount + fee,
-        periodStart,
-        periodEnd,
-        quantity: sales.length,
-        description,
+        status: "pending",
+        type: "sales",
       },
     });
+
+    // Update the existing payout
+    if (payout) {
+      await tx.payout.update({
+        where: {
+          id: payout.id,
+        },
+        data: {
+          amount: {
+            increment: amount,
+          },
+          quantity: {
+            increment: quantity,
+          },
+          periodEnd,
+        },
+      });
+
+      console.info("Payout updated", payout);
+    }
+
+    // Create the payout
+    else {
+      payout = await tx.payout.create({
+        data: {
+          id: createId({ prefix: "po_" }),
+          programId,
+          partnerId,
+          amount,
+          periodStart,
+          periodEnd,
+          quantity,
+          description,
+        },
+      });
+
+      console.info("Payout created", payout);
+    }
+
+    if (!payout) {
+      throw new Error(
+        `Failed to create payout for ${partnerId} in ${programId}.`,
+      );
+    }
 
     // Update the sales records
     await tx.sale.updateMany({
       where: { id: { in: sales.map((sale) => sale.id) } },
       data: { payoutId: payout.id, status: "processed" },
     });
-
-    console.info("Payout created", payout);
 
     return payout;
   });

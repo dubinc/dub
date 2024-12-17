@@ -48,7 +48,8 @@ export const PartnerSchema = z.object({
   bio: z.string().nullable(),
   country: z.string().nullable(),
   status: z.nativeEnum(PartnerStatus),
-  dotsUserId: z.string().nullable(),
+  stripeConnectId: z.string().nullable(),
+  payoutsEnabled: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -136,6 +137,5 @@ export const onboardPartnerSchema = z.object({
   logo: z.string().optional(),
   image: z.string(),
   country: z.enum(COUNTRY_CODES),
-  phoneNumber: z.string().trim().min(1).max(24),
   description: z.string().max(5000).nullable(),
 });
