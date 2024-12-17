@@ -15,7 +15,7 @@ import { cn } from "@dub/utils/src/functions";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
@@ -32,14 +32,26 @@ export function OnboardingForm() {
     register,
     control,
     handleSubmit,
-    watch,
     reset,
+    setValue,
+    watch,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<OnboardingFormData>();
 
+  useEffect(() => {
+    if (session?.user) {
+      setValue("name", session.user.name ?? "");
+      setValue("email", session.user.email ?? "");
+    }
+  }, [session?.user]);
+
   const { executeAsync, isExecuting } = useAction(onboardPartnerAction, {
     onSuccess: () => {
-      router.push("/onboarding/verify");
+      if (watch("country") === "US") {
+        router.push("/onboarding/verify");
+      } else {
+        router.push("/programs");
+      }
     },
     onError: ({ error, input }) => {
       toast.error(error.serverError);
@@ -70,7 +82,6 @@ export function OnboardingForm() {
               : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
           )}
           autoFocus={!isMobile}
-          defaultValue={session?.user?.name ?? ""}
           {...register("name", {
             required: true,
           })}
@@ -90,7 +101,6 @@ export function OnboardingForm() {
               ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
               : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
           )}
-          defaultValue={session?.user?.email ?? ""}
           {...register("email", {
             required: true,
           })}
@@ -194,8 +204,8 @@ function CountryCombobox({
         icon: (
           <img
             alt={value}
-            src={`https://flag.vercel.app/m/${key}.svg`}
-            className="mr-1 h-2.5 w-4"
+            src={`https://hatscripts.github.io/circle-flags/flags/${key.toLowerCase()}.svg`}
+            className="mr-1.5 size-4"
           />
         ),
         value: key,
@@ -216,8 +226,8 @@ function CountryCombobox({
         value ? (
           <img
             alt={COUNTRIES[value]}
-            src={`https://flag.vercel.app/m/${value}.svg`}
-            className="h-2.5 w-4"
+            src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
+            className="mr-0.5 size-4"
           />
         ) : undefined
       }

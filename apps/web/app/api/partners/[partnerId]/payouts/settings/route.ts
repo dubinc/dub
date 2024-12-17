@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 // GET /api/partners/[partnerId]/payouts/settings
 export const GET = withPartner(async ({ partner }) => {
   if (!partner.stripeConnectId) {
-    return NextResponse.json({});
+    return NextResponse.json(null);
   }
 
   const externalAccounts = await stripe.accounts.listExternalAccounts(

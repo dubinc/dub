@@ -32,7 +32,7 @@ export function PayoutStats() {
             <div className="flex items-center gap-2">
               {partner && !partner.payoutsEnabled && (
                 <Tooltip
-                  content="You need to set up Stripe to be able to receive payouts. Set up Stripe to continue."
+                  content="You need to set up Stripe to be able to receive payouts."
                   side="right"
                 >
                   <div>
@@ -74,12 +74,15 @@ export function PayoutStats() {
             )}
           </div>
         </div>
-        {partner && !partner.payoutsEnabled && (
-          <StripeConnectButton
-            className="mt-4 h-9 w-full"
-            text="Connect payouts"
-          />
-        )}
+        {partner &&
+          !partner.payoutsEnabled &&
+          // TODO: Stripe Connect – remove this once we can onboard partners from other countries
+          partner.country === "US" && (
+            <StripeConnectButton
+              className="mt-4 h-9 w-full"
+              text="Connect payouts"
+            />
+          )}
       </div>
     </AnimatedSizeContainer>
   );

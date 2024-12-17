@@ -7,8 +7,9 @@ import { storage } from "@/lib/storage";
 import { createConnectedAccount } from "@/lib/stripe/create-connected-account";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { COUNTRIES, nanoid } from "@dub/utils";
+import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import Stripe from "stripe";
 import { authUserActionClient } from "../safe-action";
 
 // Onboard a new partner
@@ -27,16 +28,28 @@ export const onboardPartnerAction = authUserActionClient
       throw new Error("Partners portal feature flag disabled.");
     }
 
-    if (!COUNTRIES[country]) {
-      throw new Error("Invalid country code.");
+    const emailInUse = await prisma.partner.count({
+      where: {
+        email,
+      },
+    });
+
+    if (emailInUse) {
+      throw new Error(
+        `"${email}" is already in use by another partner. Please use a different email.`,
+      );
     }
 
-    // Create the Stripe connected account for the partner
-    const connectedAccount = await createConnectedAccount({
-      name,
-      email,
-      country,
-    });
+    let connectedAccount: Stripe.Account | null = null;
+    // TODO: Stripe Connect – remove this once we can onboard partners from other countries
+    if (country === "US") {
+      // Create the Stripe connected account for the partner
+      connectedAccount = await createConnectedAccount({
+        name,
+        email,
+        country,
+      });
+    }
 
     const partnerId = createId({ prefix: "pn_" });
 
@@ -52,8 +65,8 @@ export const onboardPartnerAction = authUserActionClient
           email,
           country,
           bio: description,
-          stripeConnectId: connectedAccount.id,
           image: imageUrl,
+          ...(connectedAccount && { stripeConnectId: connectedAccount.id }),
           users: {
             create: {
               userId: user.id,
@@ -63,14 +76,16 @@ export const onboardPartnerAction = authUserActionClient
         },
       }),
 
-      prisma.user.update({
-        where: {
-          id: user.id,
-        },
-        data: {
-          defaultPartnerId: partnerId,
-        },
-      }),
+      // only set the default partner ID if the user doesn't already have one
+      !user.defaultPartnerId &&
+        prisma.user.update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            defaultPartnerId: partnerId,
+          },
+        }),
     ]);
 
     // Complete any outstanding program applications

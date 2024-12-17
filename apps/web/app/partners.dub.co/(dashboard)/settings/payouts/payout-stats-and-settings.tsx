@@ -14,7 +14,7 @@ export function PayoutStatsAndSettings() {
   const { partner } = usePartnerProfile();
   const { payoutsCount } = usePartnerPayoutsCount();
 
-  const { data: bankAccount } = useSWR<Stripe.BankAccount>(
+  const { data: bankAccount } = useSWR<Stripe.BankAccount | null>(
     partner?.id && `/api/partners/${partner.id}/payouts/settings`,
     fetcher,
   );
@@ -32,6 +32,12 @@ export function PayoutStatsAndSettings() {
             }
             className="h-8 w-fit px-3"
             variant={partner?.payoutsEnabled ? "secondary" : "primary"}
+            // TODO: Stripe Connect – remove this once we can onboard partners from other countries
+            disabledTooltip={
+              partner?.country !== "US"
+                ? "We currently only support setting up payouts for US partners, but we will be adding more countries very soon."
+                : undefined
+            }
           />
         </div>
         <div className="flex items-end justify-between gap-5">
