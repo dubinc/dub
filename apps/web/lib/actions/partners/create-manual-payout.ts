@@ -57,8 +57,8 @@ export const createManualPayoutAction = authActionClient
       payout = await createSalesPayout({
         programId,
         partnerId,
-        periodStart: start!,
-        periodEnd: end!,
+        periodStart: start,
+        periodEnd: end,
         description: description ?? undefined,
       });
     }

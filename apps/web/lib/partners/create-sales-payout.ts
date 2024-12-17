@@ -12,8 +12,8 @@ export const createSalesPayout = async ({
 }: {
   programId: string;
   partnerId: string;
-  periodStart: Date;
-  periodEnd: Date;
+  periodStart?: Date;
+  periodEnd?: Date;
   description?: string;
 }) => {
   return await prisma.$transaction(async (tx) => {
@@ -31,6 +31,7 @@ export const createSalesPayout = async ({
       select: {
         id: true,
         earnings: true,
+        createdAt: true,
       },
     });
 
@@ -51,6 +52,20 @@ export const createSalesPayout = async ({
         type: "sales",
       },
     });
+
+    if (!periodEnd) {
+      // get the end of the month of the latest sale
+      // e.g. if the latest sale is 2024-12-16, the periodEnd should be 2024-12-31
+      const latestSale = sales.reduce(
+        (max, sale) => (sale.createdAt > max ? sale.createdAt : max),
+        sales[0].createdAt,
+      );
+      periodEnd = new Date(
+        latestSale.getFullYear(),
+        latestSale.getMonth() + 1,
+        0,
+      );
+    }
 
     // Update the existing payout
     if (payout) {
@@ -74,6 +89,14 @@ export const createSalesPayout = async ({
 
     // Create the payout
     else {
+      if (!periodStart) {
+        // get the earliest sale date
+        periodStart = sales.reduce(
+          (min, sale) => (sale.createdAt < min ? sale.createdAt : min),
+          sales[0].createdAt,
+        );
+      }
+
       payout = await tx.payout.create({
         data: {
           id: createId({ prefix: "po_" }),
