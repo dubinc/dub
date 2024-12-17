@@ -118,16 +118,71 @@ function CustomerDetailsSheetContent({
           </div>
 
           <div className="mt-6">
-            {/* <div className="absolute ml-2 flex h-full flex-grow flex-col border-l border-neutral-200" /> */}
-            <div className="flex flex-col gap-4">
+            <ul className="flex flex-col gap-4">
               {customerActivity?.activities.map((activity, index) => (
-                <Activity activity={activity} key={index} />
+                <Activity
+                  activity={activity}
+                  key={index}
+                  isLast={index === customerActivity?.activities.length - 1}
+                />
               ))}
-            </div>
+            </ul>
           </div>
         </div>
       </div>
     </>
+  );
+}
+
+const activityIcons = {
+  click: CursorRays,
+  lead: UserCheck,
+  sale: InvoiceDollar,
+};
+
+function Activity({
+  activity,
+  isLast,
+}: {
+  activity: CustomerActivity;
+  isLast: boolean;
+}) {
+  const timestamp = new Date(activity.timestamp);
+
+  const month = timestamp.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+
+  const time = timestamp.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "numeric",
+    hour12: true,
+  });
+
+  const Icon = activityIcons[activity.event as keyof typeof activityIcons];
+
+  return (
+    <li className="flex items-center">
+      <div className="mr-3 flex-shrink-0">
+        <Icon className="size-4" />
+      </div>
+      <span className="flex-grow text-sm text-neutral-700">
+        <span className="font-medium text-neutral-700">
+          {activity.metadata?.amount
+            ? `${currencyFormatter(activity.metadata.amount / 100, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })} `
+            : null}
+        </span>
+
+        {activity.event_name}
+      </span>
+      <div className="text-sm text-neutral-500">
+        {month} at {time}
+      </div>
+    </li>
   );
 }
 
@@ -164,50 +219,4 @@ export function useCustomerDetailsSheet({
     ),
     setIsOpen,
   };
-}
-
-const activityIcons = {
-  click: CursorRays,
-  lead: UserCheck,
-  sale: InvoiceDollar,
-};
-
-function Activity({ activity }: { activity: CustomerActivity }) {
-  const timestamp = new Date(activity.timestamp);
-
-  const month = timestamp.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-
-  const time = timestamp.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "numeric",
-    hour12: true,
-  });
-
-  const Icon = activityIcons[activity.event as keyof typeof activityIcons];
-
-  return (
-    <div className="flex items-center">
-      <div className="mr-3 flex-shrink-0">
-        <Icon className="size-4" />
-      </div>
-      <span className="flex-grow text-neutral-700">
-        <span className="font-medium">
-          {activity.metadata?.amount
-            ? `${currencyFormatter(activity.metadata.amount / 100, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })} `
-            : null}
-        </span>
-
-        {activity.event_name}
-      </span>
-      <div className="text-sm text-neutral-500">
-        {month} at {time}
-      </div>
-    </div>
-  );
 }
