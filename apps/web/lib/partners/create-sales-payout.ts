@@ -39,8 +39,13 @@ export const createSalesPayout = async ({
       return;
     }
 
-    const amount = sales.reduce((total, sale) => total + sale.earnings, 0);
     const quantity = sales.length;
+    const amount = sales.reduce((total, sale) => total + sale.earnings, 0);
+
+    if (amount === 0) {
+      return; // No payout if sale amount is 0
+    }
+
     let payout: Payout | null = null;
 
     // Check if the partner has another pending payout
