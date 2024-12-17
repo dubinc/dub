@@ -5,6 +5,10 @@ import { prisma } from "@dub/prisma";
 
 export const dynamic = "force-dynamic";
 
+/*
+    This route is used to delete demo links that are not claimed
+    It is called by QStash 30 minutes after a demo link is created
+*/
 export async function POST(req: Request) {
   try {
     const body = await req.json();
