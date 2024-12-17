@@ -26,26 +26,20 @@ export const createCustomerBodySchema = z.object({
 export const updateCustomerBodySchema = createCustomerBodySchema.partial();
 
 // customer object schema
-export const CustomerSchema = z
-  .object({
-    id: z.string().describe("The unique identifier of the customer in Dub."),
-    externalId: z
-      .string()
-      .describe("Unique identifier for the customer in the client's app."),
-    name: z.string().describe("Name of the customer."),
-    email: z.string().nullish().describe("Email of the customer."),
-    avatar: z.string().nullish().describe("Avatar URL of the customer."),
-    country: z
-      .string()
-      .nullish()
-      .describe("The 2-letter ISO 3166-1 country code of the customer."),
-    createdAt: z.date().describe("The date the customer was created."),
-  })
-  .superRefine((data) => {
-    if (!data.avatar) {
-      data.avatar = `https://api.dicebear.com/9.x/notionists/png?seed=${data.id}`;
-    }
-  });
+export const CustomerSchema = z.object({
+  id: z.string().describe("The unique identifier of the customer in Dub."),
+  externalId: z
+    .string()
+    .describe("Unique identifier for the customer in the client's app."),
+  name: z.string().describe("Name of the customer."),
+  email: z.string().nullish().describe("Email of the customer."),
+  avatar: z.string().nullish().describe("Avatar URL of the customer."),
+  country: z
+    .string()
+    .nullish()
+    .describe("The 2-letter ISO 3166-1 country code of the customer."),
+  createdAt: z.date().describe("The date the customer was created."),
+});
 
 export const trackCustomerRequestSchema = z.object({
   // Required
