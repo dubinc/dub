@@ -22,8 +22,8 @@ export const createAccountLinkAction = authPartnerActionClient.action(
       ? await stripe.accounts.createLoginLink(partner.stripeConnectId)
       : await stripe.accountLinks.create({
           account: partner.stripeConnectId,
-          refresh_url: `${PARTNERS_DOMAIN}/settings`,
-          return_url: `${PARTNERS_DOMAIN}/settings`,
+          refresh_url: `${PARTNERS_DOMAIN}/settings/payouts`,
+          return_url: `${PARTNERS_DOMAIN}/settings/payouts`,
           type: "account_onboarding",
           collect: "eventually_due",
         });
