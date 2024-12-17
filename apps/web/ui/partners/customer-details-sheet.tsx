@@ -8,7 +8,6 @@ import { X } from "@/ui/shared/icons";
 import {
   Button,
   CursorRays,
-  FilterBars,
   GreekTemple,
   InvoiceDollar,
   Link4,
@@ -33,8 +32,8 @@ import { AnimatedEmptyState } from "../shared/animated-empty-state";
 // Fake link for now
 const link = {
   domain: "dub.co",
-  key: "123456",
-  shortLink: "https://dub.co/123456",
+  key: "kiran",
+  shortLink: "https://dub.co/kiran",
 };
 
 interface CustomerDetailsSheetProps {
@@ -51,7 +50,7 @@ function CustomerDetailsSheetContent({
 
   const { data: customerActivity, isLoading } =
     useSWR<CustomerActivityResponse>(
-      `/api/customers/${customer.id}/activities?workspaceId=${workspaceId}`,
+      `/api/customers/${customer.id}/activity?workspaceId=${workspaceId}`,
       fetcher,
     );
 
@@ -72,8 +71,8 @@ function CustomerDetailsSheetContent({
         </div>
 
         <div className="border-y border-neutral-200 bg-neutral-50 p-6 pb-0">
-          <div className="flex items-start justify-between gap-6">
-            <div className="flex flex-col">
+          <div className="flex w-full justify-between">
+            <div>
               <img
                 src={
                   customer.avatar || `${DICEBEAR_AVATAR_URL}${customer.name}`
@@ -81,14 +80,6 @@ function CustomerDetailsSheetContent({
                 alt={customer.name}
                 className="size-12 rounded-full"
               />
-              <div className="mt-4 flex flex-col gap-1.5">
-                <span className="text-lg font-semibold leading-tight text-neutral-900">
-                  {customer.name}
-                </span>
-                <span className="text-sm text-neutral-500">
-                  {customer.email}
-                </span>
-              </div>
             </div>
 
             <div className="flex min-w-[40%] shrink grow basis-1/2 flex-col items-end justify-end gap-2">
@@ -98,8 +89,6 @@ function CustomerDetailsSheetContent({
                   <span className="truncate">
                     {getPrettyUrl(link.shortLink)}
                   </span>
-                  <span className="sr-only">Filter</span>
-                  <FilterBars className="h-3.5 w-3.5" />
                 </div>
               )}
               {customer.country && (
@@ -115,6 +104,22 @@ function CustomerDetailsSheetContent({
                 </div>
               )}
             </div>
+          </div>
+
+          <div className="mt-4 flex flex-col gap-1.5">
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-semibold leading-tight text-neutral-900">
+                {customer.name}
+              </span>
+              <span className="rounded-full border border-neutral-200 bg-gray-200 px-1 text-xs text-neutral-900">
+                {new Date(customer.createdAt).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </span>
+            </div>
+            <span className="text-sm text-neutral-500">{customer.email}</span>
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-2">
@@ -175,6 +180,7 @@ function CustomerDetailsSheetContent({
           </div>
 
           <TabSelect
+            className="mt-6"
             options={[{ id: "activity", label: "Activity" }]}
             selected={"activity"}
           />
