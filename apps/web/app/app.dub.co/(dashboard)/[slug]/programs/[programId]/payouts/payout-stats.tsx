@@ -91,8 +91,8 @@ export function PayoutStats() {
                           display: "Ineligible payouts",
                           amount: pendingIneligiblePayouts || 0,
                         },
-                      ].map(({ display, amount }) => (
-                        <div className="flex justify-between">
+                      ].map(({ display, amount }, index) => (
+                        <div className="flex justify-between" key={index}>
                           <div className="text-sm text-neutral-500">
                             {display}
                           </div>

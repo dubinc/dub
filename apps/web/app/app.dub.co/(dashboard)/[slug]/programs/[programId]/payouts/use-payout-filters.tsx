@@ -105,7 +105,7 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
 
   const onRemoveAll = () =>
     queryParams({
-      del: ["status", "search", "partnerId"],
+      del: ["status", "search", "partnerId", "interval", "start", "end"],
     });
 
   const searchQuery = useMemo(
