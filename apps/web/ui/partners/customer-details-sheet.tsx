@@ -6,6 +6,7 @@ import {
 } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
+  ArrowRight,
   Button,
   CursorRays,
   GreekTemple,
@@ -17,6 +18,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import {
+  cn,
   COUNTRIES,
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
@@ -144,15 +146,27 @@ function CustomerDetailsSheetContent({
                     : "-",
                   description:
                     "The time it took for this customer to convert from a lead to a purchase.",
+                  className: "pl-6",
                 },
-              ].map(({ label, value, description }) => (
-                <div key={label} className="flex flex-col bg-neutral-50 p-3">
+              ].map(({ label, value, description, className }, index) => (
+                <div
+                  key={label}
+                  className={cn(
+                    "relative flex flex-col bg-neutral-50 p-3",
+                    className,
+                  )}
+                >
                   <Tooltip content={description}>
                     <span className="cursor-default truncate text-xs text-neutral-400 underline decoration-dotted underline-offset-2">
                       {label}
                     </span>
                   </Tooltip>
                   <span className="text-base text-neutral-900">{value}</span>
+                  {index === 0 && (
+                    <div className="absolute inset-0 right-0 z-10 m-auto -mr-2.5 flex size-5 items-center justify-center rounded-full border border-neutral-200 bg-neutral-50 text-neutral-900">
+                      <ArrowRight className="size-3" />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
