@@ -75,60 +75,49 @@ export function PayoutStats() {
             {loading || eligiblePayoutsLoading ? (
               <div className="h-8 w-32 animate-pulse rounded bg-neutral-200" />
             ) : (
-              (() => {
-                const displayAmount =
-                  currencyFormatter(
+              <Tooltip
+                content={
+                  <div className="w-64">
+                    <div className="border-b border-neutral-200 p-3 text-sm font-medium text-neutral-700">
+                      Pending payouts
+                    </div>
+                    <div className="grid gap-1 p-3">
+                      {[
+                        {
+                          display: "Eligible payouts",
+                          amount: eligiblePendingPayouts?.amount || 0,
+                        },
+                        {
+                          display: "Ineligible payouts",
+                          amount: pendingIneligiblePayouts || 0,
+                        },
+                      ].map(({ display, amount }) => (
+                        <div className="flex justify-between">
+                          <div className="text-sm text-neutral-500">
+                            {display}
+                          </div>
+                          <div className="text-sm text-neutral-500">
+                            {currencyFormatter(amount / 100, {
+                              maximumFractionDigits: 2,
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                }
+              >
+                <span className="text-neutral-500 underline decoration-dotted underline-offset-2">
+                  {currencyFormatter(
                     eligiblePendingPayouts?.amount
                       ? eligiblePendingPayouts.amount / 100
                       : 0,
                     {
                       maximumFractionDigits: 2,
                     },
-                  ) + " USD";
-
-                if (pendingIneligiblePayouts) {
-                  return (
-                    <Tooltip
-                      content={
-                        <div className="w-64">
-                          <div className="border-b border-neutral-200 p-3 text-sm font-medium text-neutral-700">
-                            Pending payouts
-                          </div>
-                          <div className="grid gap-1 p-3">
-                            {[
-                              {
-                                display: "Eligible payouts",
-                                amount: eligiblePendingPayouts?.amount,
-                              },
-                              {
-                                display: "Ineligible payouts",
-                                amount: pendingIneligiblePayouts,
-                              },
-                            ].map(({ display, amount }) => (
-                              <div className="flex justify-between">
-                                <div className="text-sm text-neutral-500">
-                                  {display}
-                                </div>
-                                <div className="text-sm text-neutral-500">
-                                  {currencyFormatter(amount / 100, {
-                                    maximumFractionDigits: 2,
-                                  })}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      }
-                    >
-                      <span className="text-neutral-500 underline decoration-dotted underline-offset-2">
-                        {displayAmount}
-                      </span>
-                    </Tooltip>
-                  );
-                }
-
-                return displayAmount;
-              })()
+                  ) + " USD"}
+                </span>
+              </Tooltip>
             )}
           </div>
         </div>
