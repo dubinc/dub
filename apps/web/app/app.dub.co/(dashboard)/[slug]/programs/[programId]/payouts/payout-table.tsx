@@ -1,6 +1,7 @@
 "use client";
 
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse } from "@/lib/types";
 import { AmountRowItem } from "@/ui/partners/amount-row-item";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -22,7 +23,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { Dots, MoneyBill2, MoneyBills2 } from "@dub/ui/icons";
-import { cn, formatDate } from "@dub/utils";
+import { cn, formatDate, timeAgo } from "@dub/utils";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
@@ -33,7 +34,8 @@ import { usePayoutFilters } from "./use-payout-filters";
 
 export function PayoutTable() {
   const { programId } = useParams();
-  const { queryParams, searchParams } = useRouterStuff();
+  const { id: workspaceId } = useWorkspace();
+  const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
   const sortBy = searchParams.get("sortBy") || "periodStart";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
@@ -44,7 +46,6 @@ export function PayoutTable() {
     onSelect,
     onRemove,
     onRemoveAll,
-    searchQuery,
     isFiltered,
     setSearch,
     setSelectedFilter,
@@ -57,7 +58,7 @@ export function PayoutTable() {
     error,
     isLoading,
   } = useSWR<PayoutResponse[]>(
-    `/api/programs/${programId}/payouts?${searchQuery}`,
+    `/api/programs/${programId}/payouts?${getQueryString({ workspaceId })}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -128,7 +129,7 @@ export function PayoutTable() {
         id: "paidAt",
         header: "Paid at",
         cell: ({ row }) =>
-          row.original.paidAt ? formatDate(row.original.paidAt) : "-",
+          row.original.paidAt ? timeAgo(row.original.paidAt) : "-",
       },
       {
         id: "amount",

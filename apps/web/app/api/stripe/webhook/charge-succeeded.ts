@@ -75,6 +75,7 @@ export async function chargeSucceeded(event: Stripe.Event) {
           data: {
             stripeTransferId: transfer.id,
             status: "completed",
+            paidAt: new Date(),
           },
         });
 
