@@ -14,7 +14,6 @@ import {
   Gift,
   Globe,
   Key,
-  MoneyBills2,
   Receipt2,
   ShieldCheck,
   Users6,
@@ -120,7 +119,7 @@ const NAV_AREAS: SidebarNavAreas<{
   }),
 
   // Workspace settings
-  workspaceSettings: ({ slug, flags, programs }) => ({
+  workspaceSettings: ({ slug, flags }) => ({
     title: "Settings",
     backHref: `/${slug}`,
     content: [
@@ -132,6 +131,11 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: Gear2,
             href: `/${slug}/settings`,
             exact: true,
+          },
+          {
+            name: "Billing",
+            icon: Receipt2,
+            href: `/${slug}/settings/billing`,
           },
           {
             name: "Domains",
@@ -148,20 +152,6 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: Users6,
             href: `/${slug}/settings/people`,
           },
-          {
-            name: "Billing",
-            icon: Receipt2,
-            href: `/${slug}/settings/billing`,
-          },
-          ...(programs?.length
-            ? [
-                {
-                  name: "Payouts",
-                  icon: MoneyBills2,
-                  href: `/${slug}/settings/payouts`,
-                },
-              ]
-            : []),
           {
             name: "Integrations",
             icon: ConnectedDots,
@@ -255,9 +245,9 @@ export function AppSidebarNav({
   const { slug } = useParams() as { slug?: string };
   const pathname = usePathname();
   const { flags } = useWorkspace();
-  const { programs } = usePrograms();
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
+  const { programs } = usePrograms();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")

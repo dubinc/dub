@@ -27,5 +27,6 @@ export default function usePayouts({
   return {
     payouts,
     error,
+    loading: !payouts && !error,
   };
 }

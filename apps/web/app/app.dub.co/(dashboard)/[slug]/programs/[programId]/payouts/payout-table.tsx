@@ -2,11 +2,13 @@
 
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import { PayoutResponse } from "@/lib/types";
+import { AmountRowItem } from "@/ui/partners/amount-row-item";
+import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { PayoutTypeBadge } from "@/ui/partners/payout-type-badge";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { SearchBoxPersisted } from "@/ui/shared/search-box";
+import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
   Button,
@@ -20,12 +22,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { Dots, MoneyBill2, MoneyBills2 } from "@dub/ui/icons";
-import {
-  cn,
-  currencyFormatter,
-  DICEBEAR_AVATAR_URL,
-  formatDate,
-} from "@dub/utils";
+import { cn, formatDate } from "@dub/utils";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
@@ -53,7 +50,7 @@ export function PayoutTable() {
     setSelectedFilter,
   } = usePayoutFilters({ sortBy, sortOrder });
 
-  const { payoutsCount, error: countError } = usePayoutsCount();
+  const { payoutsCount, error: countError } = usePayoutsCount<number>();
 
   const {
     data: payouts,
@@ -104,6 +101,12 @@ export function PayoutTable() {
         },
       },
       {
+        header: "Partner",
+        cell: ({ row }) => {
+          return <PartnerRowItem partner={row.original.partner} />;
+        },
+      },
+      {
         header: "Type",
         cell: ({ row }) => <PayoutTypeBadge type={row.original.type} />,
       },
@@ -111,6 +114,7 @@ export function PayoutTable() {
         header: "Status",
         cell: ({ row }) => {
           const badge = PayoutStatusBadges[row.original.status];
+
           return badge ? (
             <StatusBadge icon={badge.icon} variant={badge.variant}>
               {badge.label}
@@ -121,49 +125,21 @@ export function PayoutTable() {
         },
       },
       {
-        header: "Partner",
-        cell: ({ row }) => {
-          return (
-            <div className="flex items-center gap-2">
-              <img
-                src={
-                  row.original.partner.image ||
-                  `${DICEBEAR_AVATAR_URL}${row.original.partner.name}`
-                }
-                alt={row.original.partner.name}
-                className="size-5 rounded-full"
-              />
-              <div>{row.original.partner.name}</div>
-            </div>
-          );
-        },
+        id: "paidAt",
+        header: "Paid at",
+        cell: ({ row }) =>
+          row.original.paidAt ? formatDate(row.original.paidAt) : "-",
       },
       {
         id: "amount",
         header: "Amount",
-        accessorFn: (d) =>
-          currencyFormatter(d.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
-      },
-      {
-        id: "fee",
-        header: "Fee",
-        accessorFn: (d) =>
-          currencyFormatter(d.fee / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
-      },
-      {
-        id: "total",
-        header: "Total",
-        accessorFn: (d) =>
-          currencyFormatter(d.total / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        cell: ({ row }) => (
+          <AmountRowItem
+            amount={row.original.amount}
+            status={row.original.status}
+            payoutsEnabled={row.original.partner.payoutsEnabled}
+          />
+        ),
       },
       // Menu
       {
@@ -201,7 +177,7 @@ export function PayoutTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `payout${p ? "s" : ""}`,
-    rowCount: payoutsCount?.all || 0,
+    rowCount: payoutsCount || 0,
   });
 
   return (
@@ -217,7 +193,7 @@ export function PayoutTable() {
       )}
       <div className="flex flex-col gap-3">
         <div>
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
             <Filter.Select
               className="w-full md:w-fit"
               filters={filters}
@@ -227,7 +203,7 @@ export function PayoutTable() {
               onSearchChange={setSearch}
               onSelectedFilterChange={setSelectedFilter}
             />
-            <SearchBoxPersisted />
+            <SimpleDateRangePicker className="w-fit" />
           </div>
           <AnimatedSizeContainer height>
             <div>

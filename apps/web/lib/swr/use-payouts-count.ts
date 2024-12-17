@@ -3,29 +3,27 @@ import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { z } from "zod";
 import { PayoutsCount } from "../types";
-import { payoutsQuerySchema } from "../zod/schemas/payouts";
+import { payoutsCountQuerySchema } from "../zod/schemas/payouts";
 import useWorkspace from "./use-workspace";
 
-const partialQuerySchema = payoutsQuerySchema.partial();
-
-export default function usePayoutsCount({
-  query,
-}: {
-  query?: z.infer<typeof partialQuerySchema>;
-} = {}) {
+export default function usePayoutsCount<T>(
+  opts?: z.infer<typeof payoutsCountQuerySchema>,
+) {
   const { programId } = useParams();
   const { id: workspaceId } = useWorkspace();
 
-  const { data: payoutsCount, error } = useSWR<PayoutsCount>(
-    `/api/programs/${programId}/payouts/count?${new URLSearchParams({
-      workspaceId: workspaceId,
-      ...query,
-    } as Record<string, any>).toString()}`,
+  const { data: payoutsCount, error } = useSWR<PayoutsCount[]>(
+    workspaceId &&
+      `/api/programs/${programId}/payouts/count?${new URLSearchParams({
+        ...opts,
+        workspaceId,
+      }).toString()}`,
     fetcher,
   );
 
   return {
-    payoutsCount,
+    payoutsCount: payoutsCount as T,
     error,
+    loading: !payoutsCount && !error,
   };
 }

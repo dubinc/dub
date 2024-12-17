@@ -2,7 +2,7 @@ import usePartners from "@/lib/swr/use-partners";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps } from "@/lib/types";
+import { EnrolledPartnerProps, PayoutsCount } from "@/lib/types";
 import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { useRouterStuff } from "@dub/ui";
@@ -14,7 +14,9 @@ import { useDebounce } from "use-debounce";
 export function usePayoutFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
-  const { payoutsCount } = usePayoutsCount();
+  const { payoutsCount } = usePayoutsCount<PayoutsCount[]>({
+    groupBy: "status",
+  });
 
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -53,6 +55,8 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
         options: Object.entries(PayoutStatusBadges).map(
           ([value, { label }]) => {
             const Icon = PayoutStatusBadges[value].icon;
+            const count = payoutsCount?.find((p) => p.status === value)?.count;
+
             return {
               value,
               label,
@@ -64,7 +68,7 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
                   )}
                 />
               ),
-              right: nFormatter(payoutsCount?.[value] || 0, { full: true }),
+              right: nFormatter(count || 0, { full: true }),
             };
           },
         ),
