@@ -42,92 +42,88 @@ export const createSalesPayout = async ({
     const quantity = sales.length;
     const amount = sales.reduce((total, sale) => total + sale.earnings, 0);
 
-    if (amount === 0) {
-      return; // No payout if sale amount is 0
-    }
-
     let payout: Payout | null = null;
 
-    // Check if the partner has another pending payout
-    payout = await tx.payout.findFirst({
-      where: {
-        programId,
-        partnerId,
-        status: "pending",
-        type: "sales",
-      },
-    });
-
-    if (!periodEnd) {
-      // get the end of the month of the latest sale
-      // e.g. if the latest sale is 2024-12-16, the periodEnd should be 2024-12-31
-      const latestSale = sales.reduce(
-        (max, sale) => (sale.createdAt > max ? sale.createdAt : max),
-        sales[0].createdAt,
-      );
-      periodEnd = new Date(
-        latestSale.getFullYear(),
-        latestSale.getMonth() + 1,
-        0,
-      );
-    }
-
-    // Update the existing payout
-    if (payout) {
-      await tx.payout.update({
+    // only create a payout if the total sale amount is greater than 0
+    if (amount > 0) {
+      // Check if the partner has another pending payout
+      payout = await tx.payout.findFirst({
         where: {
-          id: payout.id,
-        },
-        data: {
-          amount: {
-            increment: amount,
-          },
-          quantity: {
-            increment: quantity,
-          },
-          periodEnd,
+          programId,
+          partnerId,
+          status: "pending",
+          type: "sales",
         },
       });
 
-      console.info("Payout updated", payout);
-    }
-
-    // Create the payout
-    else {
-      if (!periodStart) {
-        // get the earliest sale date
-        periodStart = sales.reduce(
-          (min, sale) => (sale.createdAt < min ? sale.createdAt : min),
+      if (!periodEnd) {
+        // get the end of the month of the latest sale
+        // e.g. if the latest sale is 2024-12-16, the periodEnd should be 2024-12-31
+        const latestSale = sales.reduce(
+          (max, sale) => (sale.createdAt > max ? sale.createdAt : max),
           sales[0].createdAt,
+        );
+        periodEnd = new Date(
+          latestSale.getFullYear(),
+          latestSale.getMonth() + 1,
+          0,
         );
       }
 
-      payout = await tx.payout.create({
-        data: {
-          id: createId({ prefix: "po_" }),
-          programId,
-          partnerId,
-          amount,
-          periodStart,
-          periodEnd,
-          quantity,
-          description,
-        },
-      });
+      // Update the existing payout
+      if (payout) {
+        await tx.payout.update({
+          where: {
+            id: payout.id,
+          },
+          data: {
+            amount: {
+              increment: amount,
+            },
+            quantity: {
+              increment: quantity,
+            },
+            periodEnd,
+          },
+        });
 
-      console.info("Payout created", payout);
-    }
+        console.info("Payout updated", payout);
+      }
 
-    if (!payout) {
-      throw new Error(
-        `Failed to create payout for ${partnerId} in ${programId}.`,
-      );
+      // Create the payout
+      else {
+        if (!periodStart) {
+          // get the earliest sale date
+          periodStart = sales.reduce(
+            (min, sale) => (sale.createdAt < min ? sale.createdAt : min),
+            sales[0].createdAt,
+          );
+        }
+
+        payout = await tx.payout.create({
+          data: {
+            id: createId({ prefix: "po_" }),
+            programId,
+            partnerId,
+            amount,
+            periodStart,
+            periodEnd,
+            quantity,
+            description,
+          },
+        });
+
+        console.info("Payout created", payout);
+      }
     }
 
     // Update the sales records
     await tx.sale.updateMany({
       where: { id: { in: sales.map((sale) => sale.id) } },
-      data: { payoutId: payout.id, status: "processed" },
+      data: {
+        status: "processed",
+        ...(payout ? { payoutId: payout.id } : {}),
+      },
     });
 
     return payout;
