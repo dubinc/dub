@@ -50,8 +50,6 @@ export function PayoutStatsAndSettings() {
             format={{
               style: "currency",
               currency: "USD",
-              // @ts-ignore – this is a valid option but TS is outdated
-              trailingZeroDisplay: "stripIfInteger",
             }}
           />
           {bankAccount && (
@@ -83,8 +81,6 @@ export function PayoutStatsAndSettings() {
           format={{
             style: "currency",
             currency: "USD",
-            // @ts-ignore – this is a valid option but TS is outdated
-            trailingZeroDisplay: "stripIfInteger",
           }}
         />
       </div>
