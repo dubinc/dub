@@ -12,6 +12,8 @@ import {
 } from "@dub/prisma/client";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
+  customerActivityResponseSchema,
+  customerActivitySchema,
   CustomerSchema,
   trackCustomerResponseSchema,
 } from "./zod/schemas/customers";
@@ -349,3 +351,9 @@ export type PayoutProps = z.infer<typeof PayoutSchema>;
 export type PayoutResponse = z.infer<typeof PayoutResponseSchema>;
 
 export type PartnerPayoutResponse = z.infer<typeof PartnerPayoutResponseSchema>;
+
+export type CustomerActivity = z.infer<typeof customerActivitySchema>;
+
+export type CustomerActivityResponse = z.infer<
+  typeof customerActivityResponseSchema
+>;

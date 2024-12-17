@@ -1,24 +1,13 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import {
-  customerActivitySchema,
-  CustomerSchema,
-} from "@/lib/zod/schemas/customers";
+import { CustomerActivity } from "@/lib/types";
+import { customerActivityResponseSchema } from "@/lib/zod/schemas/customers";
 import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-type CustomerActivity = z.infer<typeof customerActivitySchema>;
 type SaleEvent = z.infer<typeof saleEventResponseSchema>;
-
-const responseSchema = z.object({
-  ltv: z.number(),
-  timeToLead: z.number(),
-  timeToSale: z.number(),
-  customer: CustomerSchema,
-  activities: z.array(customerActivitySchema),
-});
 
 // GET /api/customers/[id]/activities - get a customer's activity
 export const GET = withWorkspace(async ({ workspace, params }) => {
@@ -43,7 +32,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     return {
       timestamp: new Date(event.timestamp),
       event: "sale",
-      event_name: event.eventName,
+      event_name: "payment made", // event.eventName
       metadata: {
         amount: event.sale.amount,
         payment_processor: event.sale.paymentProcessor,
@@ -92,7 +81,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
       : 0;
 
   return NextResponse.json(
-    responseSchema.parse({
+    customerActivityResponseSchema.parse({
       ltv,
       timeToLead,
       timeToSale,
