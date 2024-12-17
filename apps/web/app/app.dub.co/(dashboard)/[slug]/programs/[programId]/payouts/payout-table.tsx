@@ -8,7 +8,7 @@ import { PayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { PayoutTypeBadge } from "@/ui/partners/payout-type-badge";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { SearchBoxPersisted } from "@/ui/shared/search-box";
+import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
   Button,
@@ -125,12 +125,19 @@ export function PayoutTable() {
         },
       },
       {
+        id: "paidAt",
+        header: "Paid at",
+        cell: ({ row }) =>
+          row.original.paidAt ? formatDate(row.original.paidAt) : "-",
+      },
+      {
         id: "amount",
         header: "Amount",
         cell: ({ row }) => (
           <AmountRowItem
             amount={row.original.amount}
             status={row.original.status}
+            payoutsEnabled={row.original.partner.payoutsEnabled}
           />
         ),
       },
@@ -186,7 +193,7 @@ export function PayoutTable() {
       )}
       <div className="flex flex-col gap-3">
         <div>
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
             <Filter.Select
               className="w-full md:w-fit"
               filters={filters}
@@ -196,7 +203,7 @@ export function PayoutTable() {
               onSearchChange={setSearch}
               onSelectedFilterChange={setSelectedFilter}
             />
-            <SearchBoxPersisted />
+            <SimpleDateRangePicker className="w-fit" />
           </div>
           <AnimatedSizeContainer height>
             <div>

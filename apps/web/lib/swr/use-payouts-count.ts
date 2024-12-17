@@ -15,10 +15,8 @@ export default function usePayoutsCount<T>(
   const { data: payoutsCount, error } = useSWR<PayoutsCount[]>(
     workspaceId &&
       `/api/programs/${programId}/payouts/count?${new URLSearchParams({
+        ...opts,
         workspaceId,
-        ...(opts && {
-          ...opts,
-        }),
       }).toString()}`,
     fetcher,
   );

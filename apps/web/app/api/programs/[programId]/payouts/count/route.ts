@@ -1,29 +1,41 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
+import { MIN_PAYOUT_AMOUNT } from "@/lib/partners/constants";
 import { payoutsCountQuerySchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
-import { PayoutStatus } from "@dub/prisma/client";
+import { PayoutStatus, Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/programs/[programId]/payouts/count
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
-    const { partnerId, groupBy } = payoutsCountQuerySchema.parse(searchParams);
+    const { partnerId, groupBy, eligibility } =
+      payoutsCountQuerySchema.parse(searchParams);
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
 
+    const where: Prisma.PayoutWhereInput = {
+      programId,
+      ...(partnerId && { partnerId }),
+      ...(eligibility === "eligible" && {
+        amount: {
+          gte: MIN_PAYOUT_AMOUNT,
+        },
+        partner: {
+          payoutsEnabled: true,
+        },
+      }),
+    };
+
     // Get payout count by status
     if (groupBy === "status") {
       const payouts = await prisma.payout.groupBy({
         by: ["status"],
-        where: {
-          programId,
-          ...(partnerId && { partnerId }),
-        },
+        where,
         _count: true,
         _sum: {
           amount: true,
@@ -47,15 +59,12 @@ export const GET = withWorkspace(
       });
 
       return NextResponse.json(counts);
+    } else {
+      const count = await prisma.payout.count({
+        where,
+      });
+
+      return NextResponse.json(count);
     }
-
-    const count = await prisma.payout.count({
-      where: {
-        programId,
-        ...(partnerId && { partnerId }),
-      },
-    });
-
-    return NextResponse.json(count);
   },
 );

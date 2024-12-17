@@ -36,6 +36,7 @@ export const payoutsQuerySchema = z
 export const payoutsCountQuerySchema = z.object({
   partnerId: z.string().optional(),
   groupBy: z.enum(["status"]).optional(),
+  eligibility: z.enum(["eligible"]).optional(),
 });
 
 export const PayoutSchema = z.object({
@@ -50,7 +51,7 @@ export const PayoutSchema = z.object({
   periodEnd: z.date().nullable(),
   quantity: z.number().nullable(),
   createdAt: z.date(),
-  updatedAt: z.date(),
+  paidAt: z.date().nullable(),
 });
 
 export const PayoutResponseSchema = PayoutSchema.merge(
