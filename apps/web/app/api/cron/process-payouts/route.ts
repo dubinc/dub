@@ -24,12 +24,28 @@ export async function GET(req: Request) {
       return;
     }
 
+    const currentDate = new Date();
+
+    const periodStart = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      1,
+    );
+
+    const periodEnd = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() + 1,
+      0,
+    );
+
     // TODO:
     // We need a batter way to handle this recursively
     for (const { programId, partnerId } of partners) {
       await createSalesPayout({
         programId,
         partnerId,
+        periodStart,
+        periodEnd,
       });
     }
 
