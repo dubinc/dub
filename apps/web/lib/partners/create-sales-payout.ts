@@ -42,12 +42,34 @@ export const createSalesPayout = async ({
     const quantity = sales.length;
     const amount = sales.reduce((total, sale) => total + sale.earnings, 0);
 
+    if (!periodStart) {
+      // get the earliest sale date
+      periodStart = sales.reduce(
+        (min, sale) => (sale.createdAt < min ? sale.createdAt : min),
+        sales[0].createdAt,
+      );
+    }
+
+    if (!periodEnd) {
+      // get the end of the month of the latest sale
+      // e.g. if the latest sale is 2024-12-16, the periodEnd should be 2024-12-31
+      const latestSale = sales.reduce(
+        (max, sale) => (sale.createdAt > max ? sale.createdAt : max),
+        sales[0].createdAt,
+      );
+      periodEnd = new Date(
+        latestSale.getFullYear(),
+        latestSale.getMonth() + 1,
+        0,
+      );
+    }
+
     let payout: Payout | null = null;
 
     // only create a payout if the total sale amount is greater than 0
     if (amount > 0) {
       // Check if the partner has another pending payout
-      payout = await tx.payout.findFirst({
+      const existingPayout = await tx.payout.findFirst({
         where: {
           programId,
           partnerId,
@@ -56,25 +78,11 @@ export const createSalesPayout = async ({
         },
       });
 
-      if (!periodEnd) {
-        // get the end of the month of the latest sale
-        // e.g. if the latest sale is 2024-12-16, the periodEnd should be 2024-12-31
-        const latestSale = sales.reduce(
-          (max, sale) => (sale.createdAt > max ? sale.createdAt : max),
-          sales[0].createdAt,
-        );
-        periodEnd = new Date(
-          latestSale.getFullYear(),
-          latestSale.getMonth() + 1,
-          0,
-        );
-      }
-
       // Update the existing payout
-      if (payout) {
-        await tx.payout.update({
+      if (existingPayout) {
+        payout = await tx.payout.update({
           where: {
-            id: payout.id,
+            id: existingPayout.id,
           },
           data: {
             amount: {
@@ -84,6 +92,7 @@ export const createSalesPayout = async ({
               increment: quantity,
             },
             periodEnd,
+            description: existingPayout.description ?? "Dub Partners payout",
           },
         });
 
@@ -92,14 +101,6 @@ export const createSalesPayout = async ({
 
       // Create the payout
       else {
-        if (!periodStart) {
-          // get the earliest sale date
-          periodStart = sales.reduce(
-            (min, sale) => (sale.createdAt < min ? sale.createdAt : min),
-            sales[0].createdAt,
-          );
-        }
-
         payout = await tx.payout.create({
           data: {
             id: createId({ prefix: "po_" }),
