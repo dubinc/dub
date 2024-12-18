@@ -241,7 +241,7 @@ function CustomerDetailsSheetContent({
               )}
             />
           ) : (
-            <ul className="flex flex-col gap-6">
+            <ul className="flex flex-col gap-4">
               {(events || []).map((activity, index) => (
                 <Activity
                   activity={activity}
@@ -286,8 +286,14 @@ function Activity({
   const Icon = activityIcons[activity.event as keyof typeof activityIcons];
 
   return (
-    <li className="flex items-center">
-      <div className="mr-3 flex-shrink-0">
+    <li className="relative flex items-center">
+      <div className="relative mr-3 flex-shrink-0">
+        {/* {!isLast && (
+          <span
+            aria-hidden="true"
+            className="absolute left-2 top-4 -ml-px h-full border-l bg-gray-200 py-1.5"
+          />
+        )} */}
         <Icon className="size-4" />
       </div>
       <span className="flex-grow text-sm text-neutral-700">
