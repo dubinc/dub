@@ -1,12 +1,9 @@
 "use client";
 
 import { editQueryString } from "@/lib/analytics/utils";
-import { generateRandomName } from "@/lib/names";
 import { ClickEvent, LeadEvent, SaleEvent } from "@/lib/types";
 import EmptyState from "@/ui/shared/empty-state";
 import {
-  Avatar,
-  CopyButton,
   CopyText,
   LinkLogo,
   Table,
@@ -33,6 +30,7 @@ import useSWR from "swr";
 import { AnalyticsContext } from "../analytics-provider";
 import ContinentIcon from "../continent-icon";
 import DeviceIcon from "../device-icon";
+import { CustomerRowItem } from "./customer-row-item";
 import EditColumnsButton from "./edit-columns-button";
 import { EventsContext } from "./events-provider";
 import { exampleData } from "./example-data";
@@ -63,6 +61,7 @@ export default function EventsTable({
     eventsApiPath,
     totalEvents,
   } = useContext(AnalyticsContext);
+
   const { columnVisibility, setColumnVisibility } = useColumnVisibility();
 
   const sortBy = searchParams.get("sort") || "timestamp";
@@ -113,7 +112,7 @@ export default function EventsTable({
               <span className="truncate" title={getValue()}>
                 {getValue()}
               </span>
-            ) || <span className="text-gray-400">-</span>,
+            ) || <span className="text-neutral-400">-</span>,
         },
         {
           id: "link",
@@ -148,50 +147,7 @@ export default function EventsTable({
           id: "customer",
           header: "Customer",
           accessorKey: "customer",
-          cell: ({ getValue }) => {
-            const customer = getValue();
-            const display =
-              customer.name || customer.email || generateRandomName();
-            return (
-              <Tooltip
-                content={
-                  <div className="w-full p-3">
-                    <Avatar
-                      user={{
-                        name: customer.name,
-                        email: customer.email || customer.externalId,
-                        image: customer.avatar,
-                      }}
-                      className="h-8 w-8"
-                    />
-                    <p className="mt-2 text-sm font-semibold text-gray-700">
-                      {display}
-                    </p>
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <p className="max-w-[12rem] truncate">
-                        {customer.email || customer.externalId}
-                      </p>
-                      <CopyButton
-                        value={customer.email || customer.externalId}
-                        variant="neutral"
-                        className="p-1 [&>*]:h-3 [&>*]:w-3"
-                        successMessage="Copied email to clipboard!"
-                      />
-                    </div>
-                  </div>
-                }
-              >
-                <div className="flex items-center gap-3" title={display}>
-                  <img
-                    alt={display}
-                    src={customer.avatar}
-                    className="size-4 shrink-0 rounded-full border border-gray-200"
-                  />
-                  <span className="truncate">{display}</span>
-                </div>
-              </Tooltip>
-            );
-          },
+          cell: ({ getValue }) => <CustomerRowItem customer={getValue()} />,
         },
         {
           id: "country",
@@ -410,7 +366,7 @@ export default function EventsTable({
           cell: ({ getValue }) => (
             <div className="flex items-center gap-2">
               <span>${nFormatter(getValue() / 100)}</span>
-              <span className="text-gray-400">USD</span>
+              <span className="text-neutral-400">USD</span>
             </div>
           ),
         },
@@ -425,7 +381,7 @@ export default function EventsTable({
               <span className="truncate" title={getValue()}>
                 {getValue()}
               </span>
-            ) || <span className="text-gray-400">-</span>,
+            ) || <span className="text-neutral-400">-</span>,
         },
         // Date
         {
