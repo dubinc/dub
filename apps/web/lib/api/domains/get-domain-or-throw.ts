@@ -18,8 +18,6 @@ export const getDomainOrThrow = async ({
       registeredDomain: true,
     },
   });
-  
-  return domainRecord;
 
   if (!domainRecord) {
     throw new DubApiError({
