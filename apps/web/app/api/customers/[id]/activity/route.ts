@@ -1,13 +1,9 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { CustomerActivity } from "@/lib/types";
+import { CustomerActivity, SaleEvent } from "@/lib/types";
 import { customerActivityResponseSchema } from "@/lib/zod/schemas/customers";
-import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
 import { NextResponse } from "next/server";
-import { z } from "zod";
-
-type SaleEvent = z.infer<typeof saleEventResponseSchema>;
 
 // GET /api/customers/[id]/activities - get a customer's activity
 export const GET = withWorkspace(async ({ workspace, params }) => {

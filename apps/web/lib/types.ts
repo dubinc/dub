@@ -11,6 +11,7 @@ import {
   Webhook,
 } from "@dub/prisma/client";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
+import { clickEventResponseSchema } from "./zod/schemas/clicks";
 import {
   customerActivityResponseSchema,
   customerActivitySchema,
@@ -20,7 +21,10 @@ import {
 import { dashboardSchema } from "./zod/schemas/dashboard";
 import { integrationSchema } from "./zod/schemas/integration";
 import { InvoiceSchema } from "./zod/schemas/invoices";
-import { trackLeadResponseSchema } from "./zod/schemas/leads";
+import {
+  leadEventResponseSchema,
+  trackLeadResponseSchema,
+} from "./zod/schemas/leads";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
@@ -41,7 +45,10 @@ import {
   ProgramInviteSchema,
   ProgramSchema,
 } from "./zod/schemas/programs";
-import { trackSaleResponseSchema } from "./zod/schemas/sales";
+import {
+  saleEventResponseSchema,
+  trackSaleResponseSchema,
+} from "./zod/schemas/sales";
 import { tokenSchema } from "./zod/schemas/token";
 import { usageResponse } from "./zod/schemas/usage";
 import {
@@ -364,3 +371,9 @@ export type CustomerActivity = z.infer<typeof customerActivitySchema>;
 export type CustomerActivityResponse = z.infer<
   typeof customerActivityResponseSchema
 >;
+
+export type ClickEvent = z.infer<typeof clickEventResponseSchema>;
+
+export type SaleEvent = z.infer<typeof saleEventResponseSchema>;
+
+export type LeadEvent = z.infer<typeof leadEventResponseSchema>;

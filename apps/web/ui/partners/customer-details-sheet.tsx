@@ -8,6 +8,7 @@ import { X } from "@/ui/shared/icons";
 import {
   ArrowRight,
   Button,
+  CopyButton,
   CursorRays,
   FilterBars,
   GreekTemple,
@@ -50,13 +51,14 @@ function CustomerDetailsSheetContent({
   setIsOpen,
 }: CustomerDetailsSheetProps) {
   const { id: workspaceId, slug } = useWorkspace();
-  const { queryParams } = useRouterStuff();
 
   const { data: customerActivity, isLoading } =
     useSWR<CustomerActivityResponse>(
       `/api/customers/${customer.id}/activity?workspaceId=${workspaceId}`,
       fetcher,
     );
+
+  console.log(customerActivity);
 
   return (
     <>
@@ -89,7 +91,7 @@ function CustomerDetailsSheetContent({
             <div className="flex min-w-[40%] shrink grow basis-1/2 flex-col items-end justify-end gap-2">
               {link && (
                 <Link
-                  href={`/events?domain=${link.domain}&key=${link.key}`}
+                  href={`/${slug}/events?domain=${link.domain}&key=${link.key}`}
                   target="_blank"
                   className="group flex min-w-0 items-center gap-1 overflow-hidden rounded-full border border-neutral-200 bg-white px-1.5 py-0.5 text-xs text-neutral-700 group-hover:translate-x-0 group-hover:opacity-100"
                 >
@@ -103,7 +105,7 @@ function CustomerDetailsSheetContent({
 
               {customer.country && (
                 <Link
-                  href={`/events?country=${customer.country}`}
+                  href={`/${slug}/events?country=${customer.country}`}
                   target="_blank"
                   className="group flex min-w-20 items-center gap-2 rounded-full border border-neutral-200 bg-white px-1.5 py-0.5 text-xs text-neutral-700 group-hover:translate-x-0 group-hover:opacity-100"
                 >
@@ -126,7 +128,7 @@ function CustomerDetailsSheetContent({
               <span className="text-lg font-semibold leading-tight text-neutral-900">
                 {customer.name}
               </span>
-              <span className="rounded-full border border-neutral-200 bg-gray-200 px-1 text-xs text-neutral-900">
+              <span className="rounded-full border border-neutral-200 bg-gray-200 px-1.5 py-0.5 text-xs text-neutral-900">
                 {new Date(customer.createdAt).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
@@ -134,7 +136,20 @@ function CustomerDetailsSheetContent({
                 })}
               </span>
             </div>
-            <span className="text-sm text-neutral-500">{customer.email}</span>
+
+            {customer.email && (
+              <div className="flex items-center gap-1">
+                <span className="text-sm text-neutral-500">
+                  {customer.email}
+                </span>
+                <CopyButton
+                  value={customer.email}
+                  variant="neutral"
+                  className="p-1 [&>*]:h-3 [&>*]:w-3"
+                  successMessage="Copied email to clipboard!"
+                />
+              </div>
+            )}
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-2">

@@ -2,9 +2,7 @@
 
 import { editQueryString } from "@/lib/analytics/utils";
 import { generateRandomName } from "@/lib/names";
-import { clickEventResponseSchema } from "@/lib/zod/schemas/clicks";
-import { leadEventResponseSchema } from "@/lib/zod/schemas/leads";
-import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
+import { ClickEvent, LeadEvent, SaleEvent } from "@/lib/types";
 import EmptyState from "@/ui/shared/empty-state";
 import {
   Avatar,
@@ -32,7 +30,6 @@ import { Cell, ColumnDef } from "@tanstack/react-table";
 import { Link2 } from "lucide-react";
 import { ReactNode, useContext, useEffect, useMemo } from "react";
 import useSWR from "swr";
-import z from "zod";
 import { AnalyticsContext } from "../analytics-provider";
 import ContinentIcon from "../continent-icon";
 import DeviceIcon from "../device-icon";
@@ -43,10 +40,7 @@ import FilterButton from "./filter-button";
 import { RowMenuButton } from "./row-menu-button";
 import { eventColumns, useColumnVisibility } from "./use-column-visibility";
 
-export type EventDatum =
-  | z.infer<typeof clickEventResponseSchema>
-  | z.infer<typeof leadEventResponseSchema>
-  | z.infer<typeof saleEventResponseSchema>;
+export type EventDatum = ClickEvent | LeadEvent | SaleEvent;
 
 type ColumnMeta = {
   filterParams?: (
