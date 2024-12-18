@@ -9,6 +9,7 @@ import {
   ArrowRight,
   Button,
   CursorRays,
+  FilterBars,
   GreekTemple,
   InvoiceDollar,
   Link4,
@@ -27,6 +28,7 @@ import {
   timeAgo,
 } from "@dub/utils";
 import { UserCheck } from "lucide-react";
+import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
 import useSWR from "swr";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
@@ -86,12 +88,17 @@ function CustomerDetailsSheetContent({
 
             <div className="flex min-w-[40%] shrink grow basis-1/2 flex-col items-end justify-end gap-2">
               {link && (
-                <div className="group flex min-w-0 items-center gap-1 overflow-hidden rounded-full border border-neutral-200 bg-white px-1.5 py-0.5 text-xs text-neutral-700">
+                <Link
+                  href="/"
+                  target="_blank"
+                  className="group flex min-w-0 items-center gap-1 overflow-hidden rounded-full border border-neutral-200 bg-white px-1.5 py-0.5 text-xs text-neutral-700 group-hover:translate-x-0 group-hover:opacity-100"
+                >
                   <Link4 className="size-3.5" />
                   <span className="truncate">
                     {getPrettyUrl(link.shortLink)}
                   </span>
-                </div>
+                  <FilterBars className="hidden size-3 transition-transform group-hover:block" />
+                </Link>
               )}
               {customer.country && (
                 <div className="flex min-w-20 items-center gap-2 rounded-full border border-neutral-200 bg-white px-1.5 py-0.5 text-xs text-neutral-700">
