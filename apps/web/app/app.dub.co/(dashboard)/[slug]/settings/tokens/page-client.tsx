@@ -10,6 +10,7 @@ import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Delete } from "@/ui/shared/icons";
 import {
   Button,
+  buttonVariants,
   Dots,
   Icon,
   Key,
@@ -83,8 +84,10 @@ export default function TokensPageClient() {
               <Tooltip content={row.original.user.name}>
                 <img
                   src={
-                    row.original.user.image ||
-                    `${DICEBEAR_AVATAR_URL}${row.original.user.id}`
+                    row.original.user.isMachine
+                      ? "https://api.dicebear.com/7.x/bottts/svg?seed=Sara"
+                      : row.original.user.image ||
+                        `${DICEBEAR_AVATAR_URL}${row.original.user.id}`
                   }
                   alt={row.original.user.name!}
                   className="size-5 rounded-full"
@@ -231,6 +234,7 @@ function RowMenuButton({ token }: { token: TokenProps }) {
               <MenuItem
                 icon={Delete}
                 label="Delete"
+                danger={true}
                 onSelect={() => {
                   setIsOpen(false);
                   setShowDeleteTokenModal(true);
@@ -256,22 +260,29 @@ function MenuItem({
   icon: IconComp,
   label,
   onSelect,
-  variant,
+  danger,
 }: {
   icon: Icon;
   label: string;
   onSelect: () => void;
-  variant?: string;
+  danger?: boolean;
 }) {
   return (
     <Command.Item
       className={cn(
         "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-600",
-        "data-[selected=true]:bg-gray-100",
+        danger
+          ? buttonVariants({ variant: "danger-outline" })
+          : "text-neutral-500 data-[selected=true]:bg-gray-100",
       )}
       onSelect={onSelect}
     >
-      <IconComp className="size-4 shrink-0 text-neutral-500" />
+      <IconComp
+        className={cn(
+          "size-4 shrink-0",
+          danger ? "hover:bg-red-600 hover:text-white" : "text-neutral-500",
+        )}
+      />
       {label}
     </Command.Item>
   );

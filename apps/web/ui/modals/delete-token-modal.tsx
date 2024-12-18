@@ -76,7 +76,10 @@ function DeleteTokenModal({
             <Tooltip content={token.user.name}>
               <img
                 src={
-                  token.user.image || `${DICEBEAR_AVATAR_URL}${token.user.id}`
+                  token.user.isMachine
+                    ? "https://api.dicebear.com/7.x/bottts/svg?seed=Sara"
+                    : token.user.image ||
+                      `${DICEBEAR_AVATAR_URL}${token.user.id}`
                 }
                 alt={token.user.name!}
                 className="size-5 rounded-full"
