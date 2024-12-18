@@ -1,4 +1,4 @@
-import { Button, CopyButton, Logo, Modal } from "@dub/ui";
+import { Button, CopyButton, Modal } from "@dub/ui";
 import {
   Dispatch,
   SetStateAction,
@@ -20,26 +20,25 @@ function TokenCreatedModal({
     <Modal
       showModal={showTokenCreatedModal}
       setShowModal={setShowTokenCreatedModal}
+      className="max-w-md"
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
-        <Logo />
+      <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
         <h3 className="text-lg font-medium">API Key Created</h3>
-        <p className="text-center text-sm text-gray-500">
+        <p className="text-sm text-gray-500">
           For security reasons, we will only show you the key once. Please copy
           and store it somewhere safe.
         </p>
       </div>
 
-      <div className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:px-16">
-        <div className="flex items-center justify-between rounded-md border border-gray-300 bg-white p-3">
-          <p className="font-mono text-sm text-gray-500">{token}</p>
-          <CopyButton value={token} className="rounded-md" />
+      <div className="flex flex-col space-y-4 bg-neutral-50 px-4 py-8 sm:px-6">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-sm font-medium text-neutral-800">API key</h2>
+          <div className="flex items-center justify-between rounded-md border border-gray-300 bg-white p-3">
+            <p className="font-mono text-sm text-gray-500">{token}</p>
+            <CopyButton value={token} className="rounded-md" />
+          </div>
         </div>
-        <Button
-          text="Done"
-          variant="secondary"
-          onClick={() => setShowTokenCreatedModal(false)}
-        />
+        <Button text="Done" onClick={() => setShowTokenCreatedModal(false)} />
       </div>
     </Modal>
   );

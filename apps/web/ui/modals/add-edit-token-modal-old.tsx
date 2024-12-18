@@ -7,15 +7,19 @@ import {
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   AnimatedSizeContainer,
+  BlurImage,
   Button,
   ButtonProps,
   InfoTooltip,
+  Label,
+  Logo,
   Modal,
   RadioGroup,
   RadioGroupItem,
   SimpleTooltipContent,
   ToggleGroup,
 } from "@dub/ui";
+import { cn } from "@dub/utils";
 import {
   Dispatch,
   FormEvent,
@@ -55,14 +59,19 @@ function AddEditTokenModal({
   onTokenCreated?: (token: string) => void;
 }) {
   const [saving, setSaving] = useState(false);
-  const { id: workspaceId, role, isOwner, conversionEnabled } = useWorkspace();
+  const {
+    id: workspaceId,
+    logo,
+    slug,
+    role,
+    isOwner,
+    conversionEnabled,
+  } = useWorkspace();
   const [data, setData] = useState<APIKeyProps>(token || newToken);
   const [preset, setPreset] = useState<ScopePreset>("all_access");
 
   useEffect(() => {
-    if (!token) {
-      return;
-    }
+    if (!token) return;
 
     const scopes = Object.values(token.scopes);
 
@@ -132,78 +141,103 @@ function AddEditTokenModal({
     [role, conversionEnabled],
   );
 
-  const helpTexts = {
-    user: {
-      title:
-        "This API key will be tied to your user account – if you are removed from the workspace, it will be deleted.",
-      cta: "Learn more",
-      href: "https://dub.co/docs/api-reference/tokens",
-    },
-    machine: {
-      title: isOwner
-        ? "A new bot member will be added to your workspace, and the key will be associated with it. Since the key is not tied to your account, it will not be deleted even if you leave the workspace."
-        : "Only the workspace owner can create machine users.",
-      cta: "Learn more",
-      href: "https://dub.co/docs/api-reference/tokens#machine-users",
-    },
-  };
-
-  const helpText = helpTexts[data.isMachine ? "machine" : "user"];
-
   return (
     <>
       <Modal
         showModal={showAddEditTokenModal}
         setShowModal={setShowAddEditTokenModal}
-        className="max-w-lg"
+        className="max-h-[95dvh]"
       >
-        <h3 className="border-b border-neutral-200 px-4 py-4 text-lg font-medium sm:px-6">
-          {token ? "Edit" : "Create New"} API Key
-        </h3>
+        <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
+          {logo ? (
+            <BlurImage
+              src={logo}
+              alt={`Logo for ${slug}`}
+              className="h-10 w-10 rounded-full border border-gray-200"
+              width={20}
+              height={20}
+            />
+          ) : (
+            <Logo />
+          )}
+          <h1 className="text-lg font-medium">
+            {token ? "Edit" : "Add New"} API Key
+          </h1>
+        </div>
 
         <form
           onSubmit={onSubmit}
-          className="flex flex-col space-y-4 bg-neutral-50 px-4 py-8 text-left sm:px-10"
+          className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:px-10"
         >
           {/* Can't change the type of the token */}
           {!token && (
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <label htmlFor="domain" className="flex items-center gap-x-2">
-                  <h2 className="text-sm font-medium text-neutral-700">
-                    Member
-                  </h2>
-                  <InfoTooltip
-                    content={
-                      <SimpleTooltipContent
-                        title={helpText.title}
-                        cta={helpText.cta}
-                        href={helpText.href}
-                      />
-                    }
-                  />
-                </label>
-              </div>
-
-              <ToggleGroup
-                options={[
-                  {
-                    value: "user",
-                    label: "You",
-                  },
-                  {
-                    value: "machine",
-                    label: "Machine",
-                  },
-                ]}
-                selected={data.isMachine ? "machine" : "user"}
-                selectAction={(id: "machine" | "user") =>
-                  setData({ ...data, isMachine: id === "machine" })
+            <div>
+              <RadioGroup
+                className="flex"
+                defaultValue="user"
+                required
+                onValueChange={(value) =>
+                  setData({ ...data, isMachine: value === "machine" })
                 }
-                className="grid grid-cols-2 rounded-md border border-neutral-300 bg-neutral-100"
-                optionClassName="w-full h-8 flex items-center justify-center font-medium"
-                indicatorClassName="rounded-md bg-white border border-neutral-300 shadow-sm"
-              />
+              >
+                <div className="flex w-1/2 items-center space-x-2 rounded-md border border-gray-300 bg-white transition-all hover:bg-gray-50 active:bg-gray-100">
+                  <RadioGroupItem value="user" id="user" className="ml-3" />
+                  <Label
+                    htmlFor="user"
+                    className="flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0"
+                  >
+                    <p className="text-gray-600">You</p>
+                    <InfoTooltip
+                      content={
+                        <SimpleTooltipContent
+                          title="This API key will be tied to your user account – if you are removed from the workspace, it will be deleted."
+                          cta="Learn more"
+                          href="https://dub.co/docs/api-reference/tokens"
+                        />
+                      }
+                    />
+                  </Label>
+                </div>
+                <div
+                  className={cn(
+                    "flex w-1/2 items-center space-x-2 rounded-md border border-gray-300 bg-white transition-all hover:bg-gray-50 active:bg-gray-100",
+                    {
+                      "cursor-not-allowed opacity-75": !isOwner,
+                    },
+                  )}
+                >
+                  <RadioGroupItem
+                    value="machine"
+                    id="machine"
+                    className="ml-3"
+                    disabled={!isOwner}
+                  />
+                  <Label
+                    htmlFor="machine"
+                    className={cn(
+                      "flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0",
+                      {
+                        "cursor-not-allowed": !isOwner,
+                      },
+                    )}
+                  >
+                    <p className="text-gray-600">Machine</p>
+                    <InfoTooltip
+                      content={
+                        <SimpleTooltipContent
+                          title={
+                            isOwner
+                              ? "A new bot member will be added to your workspace, and the key will be associated with it. Since the key is not tied to your account, it will not be deleted even if you leave the workspace."
+                              : "Only the workspace owner can create machine users."
+                          }
+                          cta="Learn more"
+                          href="https://dub.co/docs/api-reference/tokens#machine-users"
+                        />
+                      }
+                    />
+                  </Label>
+                </div>
+              </RadioGroup>
             </div>
           )}
 
@@ -224,28 +258,24 @@ function AddEditTokenModal({
           </div>
 
           <div className="flex flex-col gap-2">
-            <label htmlFor="domain" className="flex items-center gap-x-2">
-              <h2 className="text-sm font-medium text-gray-900">Permissions</h2>
-            </label>
+            <h2 className="text-sm font-medium text-gray-900">Permissions</h2>
+            <div className="flex">
+              <ToggleGroup
+                options={scopePresets}
+                selected={preset}
+                selectAction={(value: ScopePreset) => {
+                  setPreset(value);
 
-            <ToggleGroup
-              options={scopePresets}
-              selected={preset}
-              selectAction={(value: ScopePreset) => {
-                setPreset(value);
-
-                if (value === "all_access") {
-                  setData({ ...data, scopes: { api: "apis.all" } });
-                } else if (value === "read_only") {
-                  setData({ ...data, scopes: { api: "apis.read" } });
-                } else {
-                  setData({ ...data, scopes: {} });
-                }
-              }}
-              className="grid grid-cols-3 rounded-md border border-neutral-300 bg-neutral-100"
-              optionClassName="w-full h-8 flex items-center justify-center font-medium"
-              indicatorClassName="rounded-md bg-white border border-neutral-300 shadow-sm"
-            />
+                  if (value === "all_access") {
+                    setData({ ...data, scopes: { api: "apis.all" } });
+                  } else if (value === "read_only") {
+                    setData({ ...data, scopes: { api: "apis.read" } });
+                  } else {
+                    setData({ ...data, scopes: {} });
+                  }
+                }}
+              />
+            </div>
           </div>
 
           <AnimatedSizeContainer height>
@@ -260,10 +290,8 @@ function AddEditTokenModal({
                     className="flex items-center justify-between py-4"
                     key={resource.key}
                   >
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-medium text-neutral-800">
-                        {resource.name}
-                      </span>
+                    <div className="flex items-center gap-1.5 text-gray-500">
+                      <p>{resource.name}</p>
                       <InfoTooltip content={resource.description} />
                     </div>
                     <div>

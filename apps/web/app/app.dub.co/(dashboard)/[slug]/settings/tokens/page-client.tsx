@@ -6,31 +6,38 @@ import { TokenProps } from "@/lib/types";
 import { useAddEditTokenModal } from "@/ui/modals/add-edit-token-modal";
 import { useDeleteTokenModal } from "@/ui/modals/delete-token-modal";
 import { useTokenCreatedModal } from "@/ui/modals/token-created-modal";
-import EmptyState from "@/ui/shared/empty-state";
+import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Delete } from "@/ui/shared/icons";
 import {
-  Avatar,
-  Badge,
   Button,
-  LoadingSpinner,
+  Dots,
+  Icon,
+  Key,
+  PenWriting,
   Popover,
-  TokenAvatar,
+  Table,
   Tooltip,
+  usePagination,
+  useTable,
 } from "@dub/ui";
-import { Key } from "@dub/ui/icons";
-import { fetcher, timeAgo } from "@dub/utils";
-import { Edit3, MoreVertical } from "lucide-react";
+import { cn, DICEBEAR_AVATAR_URL, fetcher, timeAgo } from "@dub/utils";
+import { Command } from "cmdk";
 import { useState } from "react";
 import useSWR from "swr";
 
 export default function TokensPageClient() {
   const { id: workspaceId } = useWorkspace();
-  const { data: tokens, isLoading } = useSWR<TokenProps[]>(
-    `/api/tokens?workspaceId=${workspaceId}`,
-    fetcher,
-  );
+  const {
+    data: tokens,
+    isLoading,
+    error,
+  } = useSWR<TokenProps[]>(`/api/tokens?workspaceId=${workspaceId}`, fetcher);
+
+  const limit = tokens?.length || 0;
+  const { pagination, setPagination } = usePagination(limit);
 
   const [createdToken, setCreatedToken] = useState<string | null>(null);
+
   const { TokenCreatedModal, setShowTokenCreatedModal } = useTokenCreatedModal({
     token: createdToken || "",
   });
@@ -44,63 +51,156 @@ export default function TokensPageClient() {
     onTokenCreated,
   });
 
+  const { table, ...tableProps } = useTable({
+    data: tokens || [],
+    loading: isLoading,
+    error: error ? "Failed to fetch tokens." : undefined,
+    columns: [
+      {
+        id: "name",
+        header: "Name",
+        accessorKey: "name",
+        cell: ({ row }) => {
+          return (
+            <span className="flex items-center gap-2">
+              <Key className="size-4 text-gray-500" />
+              {row.original.name}
+            </span>
+          );
+        },
+      },
+      {
+        id: "permissions",
+        header: "Permissions",
+        accessorKey: "scopes",
+        cell: ({ row }) => scopesToName(row.original.scopes).name,
+      },
+      {
+        id: "user",
+        header: "Created",
+        accessorKey: "user",
+        cell: ({ row }) => {
+          return (
+            <div className="flex items-center gap-2">
+              <Tooltip content={row.original.user.name}>
+                <img
+                  src={
+                    row.original.user.image ||
+                    `${DICEBEAR_AVATAR_URL}${row.original.user.id}`
+                  }
+                  alt={row.original.user.name!}
+                  className="size-5 rounded-full"
+                />
+              </Tooltip>
+              <p>
+                {new Date(row.original.createdAt).toLocaleDateString("en-us", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </p>
+            </div>
+          );
+        },
+      },
+      {
+        id: "partialKey",
+        header: "Key",
+        accessorKey: "partialKey",
+        cell: ({ row }) => row.original.partialKey,
+      },
+      {
+        id: "lastUsed",
+        header: "Last used",
+        accessorKey: "lastUsed",
+        cell: ({ row }) => timeAgo(row.original.lastUsed),
+      },
+
+      // Menu
+      {
+        id: "menu",
+        enableHiding: false,
+        minSize: 43,
+        size: 43,
+        maxSize: 43,
+        cell: ({ row }) => <RowMenuButton token={row.original} />,
+      },
+    ],
+    ...(!limit && {
+      pagination,
+      onPaginationChange: setPagination,
+    }),
+    rowCount: tokens?.length || 0,
+    thClassName: "border-l-0",
+    tdClassName: "border-l-0",
+    emptyState: (
+      <AnimatedEmptyState
+        title="No tokens found"
+        description="No tokens have been created for this workspace yet."
+        cardContent={() => (
+          <>
+            <Key className="size-4 text-neutral-700" />
+            <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+          </>
+        )}
+      />
+    ),
+    resourceName: (plural) => `token${plural ? "s" : ""}`,
+  });
+
   return (
     <>
       <TokenCreatedModal />
       <AddEditTokenModal />
-      <div className="rounded-lg border border-gray-200 bg-white">
-        <div className="flex flex-col items-center justify-between gap-4 space-y-3 border-b border-gray-200 p-5 sm:flex-row sm:space-y-0 sm:p-10">
-          <div className="flex max-w-screen-sm flex-col space-y-3">
-            <h2 className="text-xl font-medium">Secret keys</h2>
-            <p className="text-sm text-gray-500">
-              These API keys allow other apps to access your workspace. Use it
-              with caution – do not share your API key with others, or expose it
-              in the browser or other client-side code.{" "}
-              <a
-                href="https://dub.co/docs/api-reference/tokens"
-                target="_blank"
-                className="font-medium underline underline-offset-4 hover:text-black"
-              >
-                Learn more
-              </a>
-            </p>
-          </div>
+
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight text-black">
+          Secret keys
+        </h1>
+        <p className="mb-2 mt-2 text-base text-neutral-600">
+          These API keys allow other apps to access your workspace. Use it with
+          caution – do not share your API key with others, or expose it in the
+          browser or other client-side code.{" "}
+          <a
+            href="https://dub.co/docs/api-reference/tokens"
+            target="_blank"
+            className="font-medium underline underline-offset-4 hover:text-black"
+          >
+            Learn more
+          </a>
+        </p>
+      </div>
+
+      <div className="grid gap-4 pb-10">
+        <div className="flex w-full items-center justify-end">
           <AddTokenButton />
         </div>
-        {isLoading || !tokens ? (
-          <div className="flex flex-col items-center justify-center space-y-4 py-20">
-            <LoadingSpinner className="h-6 w-6 text-gray-500" />
-            <p className="text-sm text-gray-500">Fetching API keys...</p>
-          </div>
-        ) : tokens.length > 0 ? (
-          <div>
-            <div className="hidden grid-cols-5 border-b border-gray-200 px-5 py-2 text-sm font-medium text-gray-500 sm:grid sm:px-10">
-              <div className="col-span-3">Name</div>
-              <div>Key</div>
-              <div className="text-center">Last used</div>
-            </div>
-            <div className="divide-y divide-gray-200">
-              {tokens.map((token) => (
-                <TokenRow key={token.id} {...token} />
-              ))}
-            </div>
-          </div>
+
+        {isLoading || tokens?.length ? (
+          <Table
+            {...tableProps}
+            table={table}
+            containerClassName="border-neutral-300"
+          />
         ) : (
-          <div className="flex flex-col items-center justify-center gap-y-4 py-20">
-            <EmptyState
-              icon={Key}
-              title="No API keys found for this workspace"
-            />
-            <AddTokenButton />
-          </div>
+          <AnimatedEmptyState
+            title="No tokens found"
+            description="No tokens have been created for this workspace yet."
+            cardContent={() => (
+              <>
+                <Key className="size-4 text-neutral-700" />
+                <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+              </>
+            )}
+          />
         )}
       </div>
     </>
   );
 }
 
-const TokenRow = (token: TokenProps) => {
-  const [openPopover, setOpenPopover] = useState(false);
+function RowMenuButton({ token }: { token: TokenProps }) {
+  const [isOpen, setIsOpen] = useState(false);
 
   const { setShowAddEditTokenModal, AddEditTokenModal } = useAddEditTokenModal({
     token: {
@@ -119,97 +219,69 @@ const TokenRow = (token: TokenProps) => {
     <>
       <AddEditTokenModal />
       <DeleteTokenModal />
-      <div className="relative flex flex-col gap-2 px-5 py-3 sm:grid sm:grid-cols-5 sm:items-center sm:px-10">
-        <div className="col-span-3 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <TokenAvatar id={token.id} />
-          <div className="flex flex-col gap-y-px">
-            <div className="flex items-center gap-x-2">
-              <p className="font-semibold text-gray-700">{token.name}</p>
-              <Badge variant="neutral">{scopesToName(token.scopes).name}</Badge>
-            </div>
-            <div className="flex items-center gap-x-1">
-              <Tooltip
-                content={
-                  <div className="w-full max-w-xs p-4">
-                    <Avatar user={token.user} className="h-10 w-10" />
-                    <div className="mt-2 flex items-center gap-x-1.5">
-                      <p className="text-sm font-semibold text-gray-700">
-                        {token.user.name || "Anonymous User"}
-                      </p>
-                    </div>
-                    <p className="mt-1 text-xs text-gray-500">
-                      Created{" "}
-                      {new Date(token.createdAt).toLocaleDateString("en-us", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </p>
-                  </div>
-                }
-              >
-                <div>
-                  <Avatar user={token.user} className="h-4 w-4" />
-                </div>
-              </Tooltip>
-              <p>•</p>
-              <p className="text-sm text-gray-500" suppressHydrationWarning>
-                Created {timeAgo(token.createdAt)}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="font-mono text-sm">{token.partialKey}</div>
-        <div
-          className="text-sm text-gray-500 sm:text-center"
-          suppressHydrationWarning
-        >
-          {timeAgo(token.lastUsed)}
-        </div>
-        <Popover
-          content={
-            <div className="w-full sm:w-48">
-              <div className="grid gap-px p-2">
-                <Button
-                  text="Edit API Key"
-                  variant="outline"
-                  icon={<Edit3 className="h-4 w-4" />}
-                  className="h-9 justify-start px-2 font-medium"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowAddEditTokenModal(true);
-                  }}
-                />
-                <Button
-                  text="Delete API Key"
-                  variant="danger-outline"
-                  icon={<Delete className="h-4 w-4" />}
-                  className="h-9 justify-start px-2 font-medium"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowDeleteTokenModal(true);
-                  }}
-                />
-              </div>
-            </div>
-          }
-          align="end"
-          openPopover={openPopover}
-          setOpenPopover={setOpenPopover}
-        >
-          <button
-            onClick={() => {
-              setOpenPopover(!openPopover);
-            }}
-            className="absolute right-4 rounded-md px-1 py-2 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
-          >
-            <MoreVertical className="h-5 w-5 text-gray-500" />
-          </button>
-        </Popover>
-      </div>
+      <Popover
+        openPopover={isOpen}
+        setOpenPopover={setIsOpen}
+        content={
+          <Command tabIndex={0} loop className="focus:outline-none">
+            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
+              <MenuItem
+                icon={PenWriting}
+                label="Edit"
+                onSelect={() => {
+                  setIsOpen(false);
+                  setShowAddEditTokenModal(true);
+                }}
+              />
+
+              <MenuItem
+                icon={Delete}
+                label="Delete"
+                onSelect={() => {
+                  setIsOpen(false);
+                  setShowDeleteTokenModal(true);
+                }}
+              />
+            </Command.List>
+          </Command>
+        }
+        align="end"
+      >
+        <Button
+          type="button"
+          className="h-8 whitespace-nowrap px-2"
+          variant="outline"
+          icon={<Dots className="h-4 w-4 shrink-0" />}
+        />
+      </Popover>
     </>
   );
-};
+}
+
+function MenuItem({
+  icon: IconComp,
+  label,
+  onSelect,
+  variant,
+}: {
+  icon: Icon;
+  label: string;
+  onSelect: () => void;
+  variant?: string;
+}) {
+  return (
+    <Command.Item
+      className={cn(
+        "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-600",
+        "data-[selected=true]:bg-gray-100",
+      )}
+      onSelect={onSelect}
+    >
+      <IconComp className="size-4 shrink-0 text-neutral-500" />
+      {label}
+    </Command.Item>
+  );
+}
 
 const mapScopesToResource = (scopes: string[]) => {
   const result = scopes.map((scope) => {

@@ -1,13 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TokenProps } from "@/lib/types";
-import {
-  Badge,
-  Button,
-  Logo,
-  Modal,
-  TokenAvatar,
-  useMediaQuery,
-} from "@dub/ui";
+import { Badge, Button, Modal, TokenAvatar, useMediaQuery } from "@dub/ui";
 import { timeAgo } from "@dub/utils";
 import {
   Dispatch,
@@ -53,17 +46,17 @@ function DeleteTokenModal({
     <Modal
       showModal={showDeleteTokenModal}
       setShowModal={setShowDeleteTokenModal}
+      className="max-w-md"
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
-        <Logo />
+      <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
         <h3 className="text-lg font-medium">Delete API Key</h3>
-        <p className="text-center text-sm text-gray-500">
+        <p className="text-sm text-gray-500">
           This will permanently delete the API key for and revoke all access to
           your account. Are you sure you want to continue?
         </p>
       </div>
 
-      <div className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:px-16">
+      <div className="flex flex-col space-y-4 bg-neutral-50 px-4 py-4 sm:px-6">
         <div className="relative flex items-center space-x-3 rounded-md border border-gray-300 bg-white px-1 py-3">
           <Badge variant="neutral" className="absolute right-2 top-2">
             {token.partialKey}
@@ -79,7 +72,7 @@ function DeleteTokenModal({
           </div>
         </div>
         <Button
-          text="Confirm"
+          text="Delete"
           variant="danger"
           autoFocus={!isMobile}
           loading={removing}
