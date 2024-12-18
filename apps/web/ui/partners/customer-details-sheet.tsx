@@ -12,8 +12,8 @@ import {
   CursorRays,
   FilterBars,
   GreekTemple,
-  InvoiceDollar,
   Link4,
+  MoneyBill2,
   Sheet,
   TabSelect,
   Tooltip,
@@ -28,7 +28,7 @@ import {
   getPrettyUrl,
   timeAgo,
 } from "@dub/utils";
-import { UserCheck } from "lucide-react";
+import { UserPlus2 } from "lucide-react";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
 import useSWR from "swr";
@@ -241,7 +241,7 @@ function CustomerDetailsSheetContent({
               )}
             />
           ) : (
-            <ul className="flex flex-col gap-4">
+            <ul className="flex flex-col gap-5">
               {(events || []).map((activity, index) => (
                 <Activity
                   activity={activity}
@@ -259,8 +259,8 @@ function CustomerDetailsSheetContent({
 
 const activityIcons = {
   click: CursorRays,
-  lead: UserCheck,
-  sale: InvoiceDollar,
+  lead: UserPlus2,
+  sale: MoneyBill2,
 };
 
 function Activity({
@@ -286,15 +286,12 @@ function Activity({
   const Icon = activityIcons[activity.event as keyof typeof activityIcons];
 
   return (
-    <li className="relative flex items-center">
+    <li className="flex items-center">
       <div className="relative mr-3 flex-shrink-0">
-        {/* {!isLast && (
-          <span
-            aria-hidden="true"
-            className="absolute left-2 top-4 -ml-px h-full border-l bg-gray-200 py-1.5"
-          />
-        )} */}
         <Icon className="size-4" />
+        {!isLast && (
+          <div className="absolute left-1/2 mt-1 h-4 border-l border-neutral-300" />
+        )}
       </div>
       <span className="flex-grow text-sm text-neutral-700">
         {activity.event_name}
