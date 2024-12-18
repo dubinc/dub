@@ -4,7 +4,6 @@ import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Stripe } from "stripe";
 import { PaymentMethodTypesList } from "./payment-method-types";
@@ -55,7 +54,6 @@ const PaymentMethodCard = ({
   type: Stripe.PaymentMethod.Type;
   paymentMethod?: Stripe.PaymentMethod;
 }) => {
-  const router = useRouter();
   const { slug } = useWorkspace();
   const [isLoading, setIsLoading] = useState(false);
 
