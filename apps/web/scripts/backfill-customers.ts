@@ -1,6 +1,6 @@
-import "dotenv-flow/config";
 import { getClickEvent, getLeadEvent } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
+import "dotenv-flow/config";
 
 // Backfill new customer columns such as linkId, clickId, country
 
