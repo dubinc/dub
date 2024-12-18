@@ -50,6 +50,7 @@ function CustomerDetailsSheetContent({
 
   const link = customerActivity?.link;
   const events = customerActivity?.activity;
+  const country = customerActivity?.customer?.country;
 
   return (
     <>
@@ -96,20 +97,18 @@ function CustomerDetailsSheetContent({
                 <div className="h-5 w-20 animate-pulse rounded-full bg-neutral-200" />
               )}
 
-              {customer.country && (
+              {country && (
                 <Link
-                  href={`/${slug}/events?country=${customer.country}`}
+                  href={`/${slug}/events?country=${country}`}
                   target="_blank"
                   className="group flex min-w-20 items-center gap-2 rounded-full border border-neutral-200 bg-white px-1.5 py-0.5 text-xs text-neutral-700 group-hover:translate-x-0 group-hover:opacity-100"
                 >
                   <img
                     alt=""
-                    src={`https://flag.vercel.app/m/${customer.country}.svg`}
+                    src={`https://flag.vercel.app/m/${country}.svg`}
                     className="h-3 w-4 rounded-sm"
                   />
-                  <span className="truncate">
-                    {COUNTRIES[customer.country]}
-                  </span>
+                  <span className="truncate">{COUNTRIES[country]}</span>
                   <FilterBars className="hidden size-3 transition-transform group-hover:block" />
                 </Link>
               )}
