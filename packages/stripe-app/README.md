@@ -1,6 +1,6 @@
 # Stripe App
 
-This is the Stripe app for Dub Conversion.
+This is the [Stripe app](https://marketplace.stripe.com/apps/dub-conversions) for Dub Conversions.
 
 ## Publish new version
 
