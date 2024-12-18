@@ -30,7 +30,7 @@ async function main() {
       id: true,
       createdAt: true,
     },
-    take: 100,
+    take: 200,
     orderBy: {
       createdAt: "desc",
     },
@@ -99,14 +99,15 @@ async function main() {
     }),
   );
 
-  // const remaining = await prisma.customer.count({
-  //   where: {
-  //     linkId: null,
-  //   },
-  // });
+  const remaining = await prisma.customer.count({
+    where: {
+      linkId: null,
+      projectId: "cl7pj5kq4006835rbjlt2ofka",
+    },
+  });
 
   console.table(result);
-  // console.log(`${remaining} remaining`);
+  console.log(`${remaining} remaining`);
 }
 
 main();

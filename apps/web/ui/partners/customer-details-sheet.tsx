@@ -199,21 +199,15 @@ function CustomerDetailsSheetContent({
                       : "-",
                   description: !customerActivity?.ltv
                     ? "This customer hasn't made any purchases yet."
-                    : "",
+                    : "The total amount of money this customer has spent on your products.",
                 },
               ].map(({ label, value, description }) => (
                 <div key={label} className="flex flex-col bg-neutral-50 p-3">
-                  {customerActivity?.ltv ? (
-                    <span className="truncate text-xs text-neutral-400">
+                  <Tooltip content={description} align="end">
+                    <span className="cursor-default truncate text-xs text-neutral-400 underline decoration-dotted underline-offset-2">
                       {label}
                     </span>
-                  ) : (
-                    <Tooltip content={description}>
-                      <span className="cursor-default truncate text-xs text-neutral-400 underline decoration-dotted underline-offset-2">
-                        {label}
-                      </span>
-                    </Tooltip>
-                  )}
+                  </Tooltip>
                   <span className="text-base text-neutral-900">{value}</span>
                 </div>
               ))}
