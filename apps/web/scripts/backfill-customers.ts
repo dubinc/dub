@@ -1,18 +1,38 @@
-import { getClickEvent, getLeadEvent } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
+import { tb } from "../lib/tinybird/client";
+import z from "../lib/zod";
+
+export const getLeadEvents = tb.buildPipe({
+  pipe: "get_lead_events",
+  parameters: z.object({
+    customerIds: z.array(z.string()),
+  }),
+  data: z.any(),
+});
+
+export const getClickEvents = tb.buildPipe({
+  pipe: "get_click_events",
+  parameters: z.object({
+    clickIds: z.array(z.string()),
+  }),
+  data: z.any(),
+});
 
 // Backfill new customer columns such as linkId, clickId, country
-
 async function main() {
   const customers = await prisma.customer.findMany({
     where: {
       linkId: null,
+      projectId: "cl7pj5kq4006835rbjlt2ofka",
     },
     select: {
       id: true,
     },
-    take: 10,
+    take: 2,
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 
   if (customers.length === 0) {
@@ -21,23 +41,23 @@ async function main() {
   }
 
   // Find leads
-  const leadResponse = await Promise.all(
-    customers.map((customer) => getLeadEvent({ customerId: customer.id })),
-  );
+  const customerIds = customers.map((customer) => customer.id);
 
-  const leadEvents = leadResponse.map((event) =>
-    event.data.length > 0 ? event.data[0] : undefined,
+  const leadEvents = await getLeadEvents({ customerIds }).then(
+    (res) => res.data,
   );
 
   // Find clicks
   // We're fetching clicks, because leads doesn't have information about when click happened
-  const clickResponse = await Promise.all(
-    leadEvents.map((event) => getClickEvent({ clickId: event?.click_id! })),
+  const clickIds = leadEvents
+    .map((event) => event.click_id)
+    .filter(Boolean) as string[];
+
+  const clickEvents = await getClickEvents({ clickIds }).then(
+    (res) => res.data,
   );
 
-  const clickEvents = clickResponse.map((event) =>
-    event.data.length > 0 ? event.data[0] : undefined,
-  );
+  console.log({ leadEvents, clickEvents });
 
   // Update customers
   const result = await Promise.all(

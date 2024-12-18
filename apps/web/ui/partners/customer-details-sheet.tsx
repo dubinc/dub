@@ -6,18 +6,20 @@ import {
 } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
-  ArrowRight,
   Button,
   CopyButton,
-  CursorRays,
-  FilterBars,
-  Link4,
-  MoneyBill2,
   Sheet,
   TabSelect,
   Tooltip,
   useRouterStuff,
 } from "@dub/ui";
+import {
+  ArrowRight,
+  CursorRays,
+  Link4,
+  MoneyBill2,
+  UserCheck,
+} from "@dub/ui/icons";
 import {
   cn,
   COUNTRIES,
@@ -25,9 +27,8 @@ import {
   DICEBEAR_AVATAR_URL,
   fetcher,
   getPrettyUrl,
-  timeAgo,
 } from "@dub/utils";
-import { UserPlus2 } from "lucide-react";
+import { formatDistanceStrict } from "date-fns";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
 import useSWR from "swr";
@@ -83,15 +84,14 @@ function CustomerDetailsSheetContent({
             <div className="flex min-w-[40%] shrink grow basis-1/2 flex-col items-end justify-end gap-2">
               {link ? (
                 <Link
-                  href={`/${slug}/events?domain=${link.domain}&key=${link.key}`}
+                  href={`/${slug}/events?domain=${link.domain}&key=${link.key}&interval=all`}
                   target="_blank"
-                  className="group flex min-w-0 items-center gap-1 overflow-hidden rounded-full border border-neutral-200 bg-white px-1.5 py-0.5 text-xs text-neutral-700 group-hover:translate-x-0 group-hover:opacity-100"
+                  className="flex min-w-0 items-center gap-1 overflow-hidden rounded-full border border-neutral-200 bg-white px-1.5 py-0.5 text-xs text-neutral-700 group-hover:translate-x-0 group-hover:opacity-100"
                 >
                   <Link4 className="size-3.5" />
                   <span className="truncate">
                     {getPrettyUrl(link.shortLink)}
                   </span>
-                  <FilterBars className="hidden size-3 transition-transform group-hover:block" />
                 </Link>
               ) : (
                 <div className="h-5 w-20 animate-pulse rounded-full bg-neutral-200" />
@@ -101,7 +101,7 @@ function CustomerDetailsSheetContent({
                 <Link
                   href={`/${slug}/events?country=${country}`}
                   target="_blank"
-                  className="group flex min-w-20 items-center gap-2 rounded-full border border-neutral-200 bg-white px-1.5 py-0.5 text-xs text-neutral-700 group-hover:translate-x-0 group-hover:opacity-100"
+                  className="flex min-w-20 items-center gap-2 rounded-full border border-neutral-200 bg-white px-1.5 py-0.5 text-xs text-neutral-700 group-hover:translate-x-0 group-hover:opacity-100"
                 >
                   <img
                     alt=""
@@ -109,7 +109,6 @@ function CustomerDetailsSheetContent({
                     className="h-3 w-4 rounded-sm"
                   />
                   <span className="truncate">{COUNTRIES[country]}</span>
-                  <FilterBars className="hidden size-3 transition-transform group-hover:block" />
                 </Link>
               )}
             </div>
@@ -149,23 +148,19 @@ function CustomerDetailsSheetContent({
               {[
                 {
                   label: "Lead",
-                  value: customerActivity?.timeToLead
-                    ? timeAgo(
-                        new Date(Date.now() - customerActivity.timeToLead),
-                      )
+                  value: customerActivity?.timeToLead // in milliseconds
+                    ? formatDistanceStrict(0, customerActivity.timeToLead)
                     : "-",
                   description:
-                    "The time it took for this customer to convert into a lead.",
+                    "The time it took for this customer to convert from last click to a signup.",
                 },
                 {
                   label: "Sale",
                   value: customerActivity?.timeToSale
-                    ? timeAgo(
-                        new Date(Date.now() - customerActivity.timeToSale),
-                      )
+                    ? formatDistanceStrict(0, customerActivity.timeToSale)
                     : "-",
                   description:
-                    "The time it took for this customer to convert from a lead to a purchase.",
+                    "The time it took for this customer to convert from signup to a purchase.",
                   className: "pl-6",
                 },
               ].map(({ label, value, description, className }, index) => (
@@ -226,7 +221,7 @@ function CustomerDetailsSheetContent({
           </div>
 
           <TabSelect
-            className="mt-6"
+            className="mt-2"
             options={[{ id: "activity", label: "Activity" }]}
             selected={"activity"}
           />
@@ -258,7 +253,7 @@ function CustomerDetailsSheetContent({
 
 const activityIcons = {
   click: CursorRays,
-  lead: UserPlus2,
+  lead: UserCheck,
   sale: MoneyBill2,
 };
 
@@ -293,16 +288,11 @@ function Activity({
         )}
       </div>
       <span className="flex-grow text-sm text-neutral-700">
-        {activity.event_name}
+        {activity.eventName}
 
-        {activity.metadata?.amount && (
+        {activity.eventDetails && (
           <span className="ml-1 font-medium text-neutral-700">
-            (
-            {currencyFormatter(activity.metadata.amount / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-            )
+            ({activity.eventDetails})
           </span>
         )}
       </span>

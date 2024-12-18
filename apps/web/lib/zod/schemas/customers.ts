@@ -98,11 +98,12 @@ export const customerEventsSchemaTB = z.object({
 export const customerActivitySchema = z.object({
   timestamp: z.date(),
   event: z.enum(["click", "lead", "sale"]),
-  event_name: z.string(),
+  eventName: z.string(),
+  eventDetails: z.string().nullish(),
   metadata: z.union([
     z.null(),
     z.object({
-      payment_processor: z.string(),
+      paymentProcessor: z.string(),
       amount: z.number(),
     }),
   ]),

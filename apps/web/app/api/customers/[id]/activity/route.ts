@@ -4,6 +4,7 @@ import { withWorkspace } from "@/lib/auth";
 import { CustomerActivity, SaleEvent } from "@/lib/types";
 import { customerActivityResponseSchema } from "@/lib/zod/schemas/customers";
 import { prisma } from "@dub/prisma";
+import { currencyFormatter, getPrettyUrl } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/customers/[id]/activity - get a customer's activity
@@ -43,10 +44,13 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     return {
       timestamp: new Date(event.timestamp),
       event: "sale",
-      event_name: event.eventName,
+      eventName: event.eventName,
+      eventDetails: currencyFormatter(event.sale.amount / 100, {
+        maximumFractionDigits: 2,
+      }),
       metadata: {
         amount: event.sale.amount,
-        payment_processor: event.sale.paymentProcessor,
+        paymentProcessor: event.sale.paymentProcessor,
       },
     };
   });
@@ -55,7 +59,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   activity.push({
     timestamp: customer.createdAt,
     event: "lead",
-    event_name: "Account created",
+    eventName: "Account created",
     metadata: null,
   });
 
@@ -63,7 +67,8 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   activity.push({
     timestamp: customer.clickedAt!,
     event: "click",
-    event_name: "Link click",
+    eventName: "Link click",
+    eventDetails: link?.shortLink ? getPrettyUrl(link.shortLink) : null,
     metadata: null,
   });
 
@@ -89,6 +94,15 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     firstSale && customer.createdAt
       ? new Date(firstSale.timestamp).getTime() - customer.createdAt.getTime()
       : null;
+
+  console.log({
+    ltv,
+    timeToLead,
+    timeToSale,
+    customer,
+    activity,
+    link,
+  });
 
   return NextResponse.json(
     customerActivityResponseSchema.parse({
