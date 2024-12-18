@@ -33,8 +33,7 @@ export default function TokensPageClient() {
     error,
   } = useSWR<TokenProps[]>(`/api/tokens?workspaceId=${workspaceId}`, fetcher);
 
-  const limit = tokens?.length || 0;
-  const { pagination, setPagination } = usePagination(limit);
+  const { pagination, setPagination } = usePagination();
 
   const [createdToken, setCreatedToken] = useState<string | null>(null);
 
@@ -126,10 +125,8 @@ export default function TokensPageClient() {
         cell: ({ row }) => <RowMenuButton token={row.original} />,
       },
     ],
-    ...(!limit && {
-      pagination,
-      onPaginationChange: setPagination,
-    }),
+    pagination,
+    onPaginationChange: setPagination,
     rowCount: tokens?.length || 0,
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
@@ -179,11 +176,7 @@ export default function TokensPageClient() {
         </div>
 
         {tokens?.length !== 0 ? (
-          <Table
-            {...tableProps}
-            table={table}
-            containerClassName="border-neutral-300"
-          />
+          <Table {...tableProps} table={table} />
         ) : (
           <AnimatedEmptyState
             title="No tokens found"
