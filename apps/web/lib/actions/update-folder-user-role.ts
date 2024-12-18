@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { checkFolderPermission } from "../folder/permissions";
 import { folderUserRoleSchema } from "../zod/schemas/folders";

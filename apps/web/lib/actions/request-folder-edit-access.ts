@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
 import FolderEditAccessRequested from "emails/folder-edit-access-requested";

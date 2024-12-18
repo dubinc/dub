@@ -2,9 +2,9 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { checkFolderPermission } from "@/lib/folder/permissions";
-import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { folderSchema, updateFolderSchema } from "@/lib/zod/schemas/folders";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 

@@ -2,12 +2,12 @@ import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getFolders } from "@/lib/folder/get-folders";
-import { prisma } from "@/lib/prisma";
 import {
   createFolderSchema,
   folderSchema,
   listFoldersQuerySchema,
 } from "@/lib/zod/schemas/folders";
+import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { NextResponse } from "next/server";
 

@@ -1,5 +1,5 @@
 import { hashPassword } from "@/lib/auth/password";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 const workspaceId = "cl7pj5kq4006835rbjlt2ofka";

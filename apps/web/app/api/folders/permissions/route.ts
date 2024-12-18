@@ -4,7 +4,7 @@ import {
   determineFolderUserRole,
   getFolderPermissions,
 } from "@/lib/folder/permissions";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/folders/permissions - get folders and their permissions for authenticated user
