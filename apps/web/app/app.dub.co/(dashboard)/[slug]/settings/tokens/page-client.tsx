@@ -53,7 +53,7 @@ export default function TokensPageClient() {
 
   const { table, ...tableProps } = useTable({
     data: tokens || [],
-    loading: isLoading,
+    loading: isLoading && !error && !tokens,
     error: error ? "Failed to fetch tokens." : undefined,
     columns: [
       {
@@ -143,6 +143,8 @@ export default function TokensPageClient() {
             <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
           </>
         )}
+        addButton={<AddTokenButton />}
+        learnMoreHref="https://dub.co/docs/api-reference/tokens"
       />
     ),
     resourceName: (plural) => `token${plural ? "s" : ""}`,
@@ -176,7 +178,7 @@ export default function TokensPageClient() {
           <AddTokenButton />
         </div>
 
-        {isLoading || tokens?.length ? (
+        {tokens?.length !== 0 ? (
           <Table
             {...tableProps}
             table={table}

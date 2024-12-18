@@ -1,7 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TokenProps } from "@/lib/types";
-import { Badge, Button, Modal, TokenAvatar, useMediaQuery } from "@dub/ui";
-import { timeAgo } from "@dub/utils";
+import { Button, Key, Modal, Tooltip, useMediaQuery } from "@dub/ui";
+import { DICEBEAR_AVATAR_URL } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -57,20 +57,40 @@ function DeleteTokenModal({
       </div>
 
       <div className="flex flex-col space-y-4 bg-neutral-50 px-4 py-4 sm:px-6">
-        <div className="relative flex items-center space-x-3 rounded-md border border-gray-300 bg-white px-1 py-3">
-          <Badge variant="neutral" className="absolute right-2 top-2">
-            {token.partialKey}
-          </Badge>
-          <TokenAvatar id={token.id} />
-          <div className="flex flex-col">
-            <h3 className="line-clamp-1 w-48 font-semibold text-gray-700">
+        <div className="relative flex items-center gap-2 space-x-3 rounded-md border border-gray-300 bg-white px-4 py-2">
+          <Key className="size-5 text-gray-500" />
+
+          <div className="flex flex-1 flex-col gap-0.5">
+            <h3 className="line-clamp-1 font-medium text-neutral-600">
               {token.name}
             </h3>
-            <p className="text-xs text-gray-500" suppressHydrationWarning>
-              Last used {timeAgo(token.lastUsed, { withAgo: true })}
+            <p
+              className="text-xs font-medium text-neutral-500"
+              suppressHydrationWarning
+            >
+              {token.partialKey}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Tooltip content={token.user.name}>
+              <img
+                src={
+                  token.user.image || `${DICEBEAR_AVATAR_URL}${token.user.id}`
+                }
+                alt={token.user.name!}
+                className="size-5 rounded-full"
+              />
+            </Tooltip>
+            <p>
+              {new Date(token.createdAt).toLocaleDateString("en-us", {
+                month: "short",
+                day: "numeric",
+              })}
             </p>
           </div>
         </div>
+
         <Button
           text="Delete"
           variant="danger"
