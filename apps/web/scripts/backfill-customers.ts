@@ -7,7 +7,7 @@ import "dotenv-flow/config";
 async function main() {
   const customers = await prisma.customer.findMany({
     where: {
-      // linkId: null,
+      linkId: null,
     },
     select: {
       id: true,
@@ -50,8 +50,6 @@ async function main() {
         (click) => click?.click_id === leadEvent?.click_id,
       );
 
-      console.log(leadEvent, clickEvent);
-
       if (!leadEvent || !clickEvent) {
         return;
       }
@@ -59,9 +57,9 @@ async function main() {
       return prisma.customer.update({
         where: { id: customer.id },
         data: {
-          linkId: leadEvent.link_id,
-          clickId: leadEvent.click_id,
-          country: leadEvent.country,
+          linkId: clickEvent.link_id,
+          clickId: clickEvent.click_id,
+          country: clickEvent.country,
           clickedAt: clickEvent.timestamp,
         },
         select: {
