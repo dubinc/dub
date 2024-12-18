@@ -27,15 +27,14 @@ import useSWR from "swr";
 
 export default function TokensPageClient() {
   const { id: workspaceId } = useWorkspace();
+  const { pagination, setPagination } = usePagination();
+  const [createdToken, setCreatedToken] = useState<string | null>(null);
+
   const {
     data: tokens,
     isLoading,
     error,
   } = useSWR<TokenProps[]>(`/api/tokens?workspaceId=${workspaceId}`, fetcher);
-
-  const { pagination, setPagination } = usePagination();
-
-  const [createdToken, setCreatedToken] = useState<string | null>(null);
 
   const { TokenCreatedModal, setShowTokenCreatedModal } = useTokenCreatedModal({
     token: createdToken || "",
