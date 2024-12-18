@@ -13,6 +13,7 @@ const relevantEvents = new Set([
   "account.application.deauthorized",
 ]);
 
+// POST /api/stripe/integration/webhook – listen to Stripe webhooks (for Stripe Integration)
 export const POST = withAxiom(
   async (req: Request) => {
     const buf = await req.text();
