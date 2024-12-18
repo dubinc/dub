@@ -11,7 +11,6 @@ import {
   CopyButton,
   CursorRays,
   FilterBars,
-  GreekTemple,
   Link4,
   MoneyBill2,
   Sheet,
@@ -32,7 +31,6 @@ import { UserPlus2 } from "lucide-react";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
 import useSWR from "swr";
-import { AnimatedEmptyState } from "../shared/animated-empty-state";
 
 interface CustomerDetailsSheetProps {
   customer: Customer;
@@ -45,11 +43,10 @@ function CustomerDetailsSheetContent({
 }: CustomerDetailsSheetProps) {
   const { id: workspaceId, slug } = useWorkspace();
 
-  const { data: customerActivity, isLoading } =
-    useSWR<CustomerActivityResponse>(
-      `/api/customers/${customer.id}/activity?workspaceId=${workspaceId}`,
-      fetcher,
-    );
+  let { data: customerActivity, isLoading } = useSWR<CustomerActivityResponse>(
+    `/api/customers/${customer.id}/activity?workspaceId=${workspaceId}`,
+    fetcher,
+  );
 
   const link = customerActivity?.link;
   const events = customerActivity?.activity;
@@ -96,7 +93,7 @@ function CustomerDetailsSheetContent({
                   <FilterBars className="hidden size-3 transition-transform group-hover:block" />
                 </Link>
               ) : (
-                <div className="h-4 w-20 animate-pulse rounded-full bg-neutral-200 px-1.5 py-0.5" />
+                <div className="h-5 w-20 animate-pulse rounded-full bg-neutral-200" />
               )}
 
               {customer.country && (
@@ -237,20 +234,12 @@ function CustomerDetailsSheetContent({
         </div>
 
         <div className="flex grow flex-col p-6">
-          {isLoading || !customerActivity ? (
-            <AnimatedEmptyState
-              className="md:min-h-80"
-              title="No activities"
-              description="This customer has no activities yet."
-              cardContent={() => (
-                <>
-                  <div className="flex size-7 items-center justify-center rounded-md border border-neutral-200 bg-neutral-50">
-                    <GreekTemple className="size-4 text-neutral-700" />
-                  </div>
-                  <div className="h-2.5 w-28 min-w-0 rounded-sm bg-neutral-200" />
-                </>
-              )}
-            />
+          {isLoading && !events ? (
+            <div className="flex flex-col gap-5">
+              <ActivitySkeleton />
+              <ActivitySkeleton />
+              <ActivitySkeleton />
+            </div>
           ) : (
             <ul className="flex flex-col gap-5">
               {(events || []).map((activity, index) => (
@@ -322,6 +311,21 @@ function Activity({
         {month}, {time}
       </div>
     </li>
+  );
+}
+
+function ActivitySkeleton() {
+  return (
+    <div className="flex items-center">
+      <div className="relative mr-3 flex-shrink-0">
+        <div className="size-4 animate-pulse rounded-md bg-neutral-200" />
+        <div className="absolute left-1/2 mt-1 h-4 border-l border-neutral-300" />
+      </div>
+      <div className="flex-grow">
+        <div className="h-4 w-1/2 animate-pulse rounded bg-neutral-200" />
+      </div>
+      <div className="ml-2 h-4 w-16 animate-pulse rounded bg-neutral-200" />
+    </div>
   );
 }
 

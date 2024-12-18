@@ -1,6 +1,6 @@
+import "dotenv-flow/config";
 import { getClickEvent, getLeadEvent } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
-import "dotenv-flow/config";
 
 // Backfill new customer columns such as linkId, clickId, country
 
@@ -12,7 +12,7 @@ async function main() {
     select: {
       id: true,
     },
-    take: 1,
+    take: 10,
   });
 
   if (customers.length === 0) {
@@ -60,7 +60,7 @@ async function main() {
           linkId: clickEvent.link_id,
           clickId: clickEvent.click_id,
           country: clickEvent.country,
-          clickedAt: clickEvent.timestamp,
+          clickedAt: new Date(clickEvent.timestamp),
         },
         select: {
           id: true,
