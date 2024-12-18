@@ -2,9 +2,7 @@
 
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { Button, TooltipContent } from "@dub/ui";
-import { CreditCard } from "@dub/ui/icons";
+import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -12,23 +10,7 @@ import { Stripe } from "stripe";
 import { PaymentMethodTypesList } from "./payment-method-types";
 
 export default function PaymentMethods() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const { slug, stripeId } = useWorkspace();
-  const { paymentMethods } = usePaymentMethods();
-
-  const managePaymentMethods = async () => {
-    setIsLoading(true);
-    const { url } = await fetch(
-      `/api/workspaces/${slug}/billing/payment-methods`,
-      {
-        method: "POST",
-      },
-    ).then((res) => res.json());
-
-    router.push(url);
-    setIsLoading(false);
-  };
+  const { paymentMethods, loading } = usePaymentMethods();
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
@@ -39,48 +21,24 @@ export default function PaymentMethods() {
             Manage your payment methods on Dub
           </p>
         </div>
-        <Button
-          variant="secondary"
-          text="Manage"
-          className="h-8 w-fit"
-          disabledTooltip={
-            !stripeId && (
-              <TooltipContent
-                title="You must upgrade to a paid plan to manage your payment methods."
-                cta="Upgrade"
-                href={`/${slug}/upgrade`}
-              />
-            )
-          }
-          onClick={managePaymentMethods}
-          loading={isLoading}
-        />
       </div>
       <div className="grid gap-4 border-t border-neutral-200 p-6">
-        {paymentMethods ? (
-          paymentMethods.length > 0 ? (
-            paymentMethods.map((paymentMethod) => (
+        {!loading ? (
+          ["card", "us_bank_account"].map((methodType) => {
+            const paymentMethod = paymentMethods?.find(
+              (pm) => pm.type === methodType,
+            );
+
+            return (
               <PaymentMethodCard
-                key={paymentMethod.id}
+                key={methodType}
+                type={methodType as Stripe.PaymentMethod.Type}
                 paymentMethod={paymentMethod}
               />
-            ))
-          ) : (
-            <AnimatedEmptyState
-              title="No payment methods found"
-              description="You haven't added any payment methods yet"
-              cardContent={() => (
-                <>
-                  <CreditCard className="size-4 text-neutral-700" />
-                  <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-                </>
-              )}
-              className="border-none md:min-h-[250px]"
-            />
-          )
+            );
+          })
         ) : (
           <>
-            <PaymentMethodCardSkeleton />
             <PaymentMethodCardSkeleton />
             <PaymentMethodCardSkeleton />
           </>
@@ -91,18 +49,38 @@ export default function PaymentMethods() {
 }
 
 const PaymentMethodCard = ({
+  type,
   paymentMethod,
 }: {
-  paymentMethod: Stripe.PaymentMethod;
+  type: Stripe.PaymentMethod.Type;
+  paymentMethod?: Stripe.PaymentMethod;
 }) => {
+  const router = useRouter();
+  const { slug } = useWorkspace();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const result = PaymentMethodTypesList(paymentMethod);
+
   const {
     title,
     icon: Icon,
     iconBgColor,
     description,
-  } = PaymentMethodTypesList(paymentMethod).find(
-    (method) => method.type === paymentMethod.type,
-  ) || PaymentMethodTypesList(paymentMethod)[0];
+  } = result.find((method) => method.type === type) || result[0];
+
+  const managePaymentMethods = async (method: string) => {
+    setIsLoading(true);
+    const { url } = await fetch(
+      `/api/workspaces/${slug}/billing/payment-methods`,
+      {
+        method: "POST",
+        body: JSON.stringify({ method }),
+      },
+    ).then((res) => res.json());
+
+    window.open(url, "_blank");
+    setIsLoading(false);
+  };
 
   return (
     <div className="flex items-center justify-between rounded-lg border border-neutral-200 p-4">
@@ -120,6 +98,13 @@ const PaymentMethodCard = ({
           <p className="text-sm text-neutral-500">{description}</p>
         </div>
       </div>
+      <Button
+        variant={paymentMethod ? "secondary" : "primary"}
+        className="h-8 w-fit"
+        text={paymentMethod ? "Manage" : "Connect"}
+        onClick={() => managePaymentMethods(type)}
+        loading={isLoading}
+      />
     </div>
   );
 };

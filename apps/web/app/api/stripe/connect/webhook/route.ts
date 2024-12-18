@@ -4,17 +4,9 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { accountUpdated } from "./account-updated";
 
-const relevantEvents = new Set([
-  "account.updated",
-  "charge.succeeded",
-  "payment_method.attached",
-  "checkout.session.completed",
-  "customer.subscription.updated",
-  "customer.subscription.deleted",
-  "invoice.payment_failed",
-]);
+const relevantEvents = new Set(["account.updated"]);
 
-// POST /api/stripe/webhook – listen to Stripe webhooks
+// POST /api/stripe/connect/webhook – listen to Stripe webhooks
 export const POST = async (req: Request) => {
   const buf = await req.text();
   const sig = req.headers.get("Stripe-Signature") as string;
