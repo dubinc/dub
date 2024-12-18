@@ -1,6 +1,6 @@
 import { useCustomerDetailsSheet } from "@/ui/partners/customer-details-sheet";
 import { Button, Icon, Popover, useCopyToClipboard } from "@dub/ui";
-import { Copy, Dots } from "@dub/ui/icons";
+import { ChartActivity2, Copy, Dots } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
@@ -55,7 +55,7 @@ export function RowMenuButton({ row }: { row: Row<EventDatum> }) {
 
               {"customer" in row.original && (
                 <MenuItem
-                  icon={Copy}
+                  icon={ChartActivity2}
                   label="View activity"
                   onSelect={() => {
                     setShowCustomerDetailsSheet(true);
