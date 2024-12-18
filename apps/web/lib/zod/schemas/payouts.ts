@@ -1,3 +1,4 @@
+import { intervals } from "@/lib/analytics/constants";
 import { parseDateSchema } from "@/lib/zod/schemas/utils";
 import { PayoutStatus, PayoutType } from "@dub/prisma/client";
 import { z } from "zod";
@@ -27,17 +28,29 @@ export const payoutsQuerySchema = z
     status: z.nativeEnum(PayoutStatus).optional(),
     partnerId: z.string().optional(),
     invoiceId: z.string().optional(),
-    sortBy: z.enum(["periodStart", "total"]).default("periodStart"),
+    sortBy: z.enum(["periodStart", "amount", "paidAt"]).default("periodStart"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     type: z.nativeEnum(PayoutType).optional(),
+    interval: z.enum(intervals).default("1y"),
+    start: parseDateSchema.optional(),
+    end: parseDateSchema.optional(),
   })
   .merge(getPaginationQuerySchema({ pageSize: PAYOUTS_MAX_PAGE_SIZE }));
 
-export const payoutsCountQuerySchema = z.object({
-  partnerId: z.string().optional(),
-  groupBy: z.enum(["status"]).optional(),
-  eligibility: z.enum(["eligible"]).optional(),
-});
+export const payoutsCountQuerySchema = payoutsQuerySchema
+  .pick({
+    status: true,
+    partnerId: true,
+    interval: true,
+    start: true,
+    end: true,
+  })
+  .merge(
+    z.object({
+      groupBy: z.enum(["status"]).optional(),
+      eligibility: z.enum(["eligible"]).optional(),
+    }),
+  );
 
 export const PayoutSchema = z.object({
   id: z.string(),

@@ -1,6 +1,7 @@
 "use client";
 
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse } from "@/lib/types";
 import { AmountRowItem } from "@/ui/partners/amount-row-item";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -33,7 +34,8 @@ import { usePayoutFilters } from "./use-payout-filters";
 
 export function PayoutTable() {
   const { programId } = useParams();
-  const { queryParams, searchParams } = useRouterStuff();
+  const { id: workspaceId } = useWorkspace();
+  const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
   const sortBy = searchParams.get("sortBy") || "periodStart";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
@@ -44,7 +46,6 @@ export function PayoutTable() {
     onSelect,
     onRemove,
     onRemoveAll,
-    searchQuery,
     isFiltered,
     setSearch,
     setSelectedFilter,
@@ -57,7 +58,7 @@ export function PayoutTable() {
     error,
     isLoading,
   } = useSWR<PayoutResponse[]>(
-    `/api/programs/${programId}/payouts?${searchQuery}`,
+    `/api/programs/${programId}/payouts${getQueryString({ workspaceId })}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -126,9 +127,15 @@ export function PayoutTable() {
       },
       {
         id: "paidAt",
-        header: "Paid at",
+        header: "Paid",
         cell: ({ row }) =>
-          row.original.paidAt ? formatDate(row.original.paidAt) : "-",
+          row.original.paidAt
+            ? formatDate(row.original.paidAt, {
+                month: "short",
+                day: "numeric",
+                year: undefined,
+              })
+            : "-",
       },
       {
         id: "amount",
@@ -154,7 +161,7 @@ export function PayoutTable() {
     ],
     pagination,
     onPaginationChange: setPagination,
-    sortableColumns: ["periodStart"],
+    sortableColumns: ["periodStart", "amount", "paidAt"],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>

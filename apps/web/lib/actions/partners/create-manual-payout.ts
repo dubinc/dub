@@ -49,18 +49,24 @@ export const createManualPayoutAction = authActionClient
       throw new Error("No short link found for this partner in this program.");
     }
 
-    let payout: Payout | undefined = undefined;
+    let payout: Payout | null = null;
 
     // Create a payout for sales
     if (type === "sales") {
-      // create the payout
-      payout = await createSalesPayout({
-        programId,
-        partnerId,
-        periodStart: start!,
-        periodEnd: end!,
-        description: description ?? undefined,
-      });
+      payout =
+        (await createSalesPayout({
+          programId,
+          partnerId,
+          periodStart: start,
+          periodEnd: end,
+          description: description ?? undefined,
+        })) ?? null;
+
+      if (!payout) {
+        throw new Error(
+          "No valid sales found for this period. Payout was not created.",
+        );
+      }
     }
 
     // Create a payout for clicks, leads, and custom events

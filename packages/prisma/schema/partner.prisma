@@ -21,7 +21,6 @@ model Partner {
   payoutsEnabled  Boolean       @default(false)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
-  dotsUserId      String?       @unique // TODO: Remove this column
 
   programs     ProgramEnrollment[]
   applications ProgramApplication[]

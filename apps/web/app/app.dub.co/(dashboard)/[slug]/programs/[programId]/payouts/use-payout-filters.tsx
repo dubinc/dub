@@ -14,6 +14,8 @@ import { useDebounce } from "use-debounce";
 export function usePayoutFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
+  const { interval, start, end } = searchParamsObj;
+
   const { payoutsCount } = usePayoutsCount<PayoutsCount[]>({
     groupBy: "status",
   });
@@ -93,7 +95,7 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
       del: "page",
     });
 
-  const onRemove = (key: string, value: any) =>
+  const onRemove = (key: string) =>
     queryParams({
       del: [key, "page"],
     });
@@ -109,14 +111,13 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
         ...Object.fromEntries(
           activeFilters.map(({ key, value }) => [key, value]),
         ),
-        ...(searchParamsObj.search && { search: searchParamsObj.search }),
         workspaceId: workspaceId || "",
         ...extraSearchParams,
       }).toString(),
     [activeFilters, workspaceId, extraSearchParams],
   );
 
-  const isFiltered = activeFilters.length > 0 || searchParamsObj.search;
+  const isFiltered = activeFilters.length > 0;
 
   return {
     filters,

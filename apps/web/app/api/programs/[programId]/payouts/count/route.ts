@@ -1,3 +1,4 @@
+import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
 import { MIN_PAYOUT_AMOUNT } from "@/lib/partners/constants";
@@ -10,16 +11,34 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
-    const { partnerId, groupBy, eligibility } =
-      payoutsCountQuerySchema.parse(searchParams);
+    const parsed = payoutsCountQuerySchema.parse(searchParams);
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
 
+    const { partnerId, groupBy, eligibility, status } = parsed;
+
+    const { startDate, endDate } = getStartEndDates(parsed);
+
     const where: Prisma.PayoutWhereInput = {
       programId,
+      OR: [
+        {
+          paidAt: {
+            gte: startDate.toISOString(),
+            lte: endDate.toISOString(),
+          },
+        },
+        {
+          paidAt: null,
+          createdAt: {
+            gte: startDate.toISOString(),
+            lte: endDate.toISOString(),
+          },
+        },
+      ],
       ...(partnerId && { partnerId }),
       ...(eligibility === "eligible" && {
         amount: {
@@ -59,12 +78,15 @@ export const GET = withWorkspace(
       });
 
       return NextResponse.json(counts);
-    } else {
-      const count = await prisma.payout.count({
-        where,
-      });
-
-      return NextResponse.json(count);
     }
+
+    const count = await prisma.payout.count({
+      where: {
+        ...where,
+        status,
+      },
+    });
+
+    return NextResponse.json(count);
   },
 );

@@ -12,8 +12,8 @@ export const createSalesPayout = async ({
 }: {
   programId: string;
   partnerId: string;
-  periodStart: Date;
-  periodEnd: Date;
+  periodStart?: Date | null;
+  periodEnd?: Date | null;
   description?: string;
 }) => {
   return await prisma.$transaction(async (tx) => {
@@ -23,10 +23,6 @@ export const createSalesPayout = async ({
         partnerId,
         payoutId: null,
         status: "pending", // We only want to pay out sales that are pending (not refunded / fraud / duplicate)
-        createdAt: {
-          gte: periodStart,
-          lte: periodEnd,
-        },
         // Referral commissions are held for 30 days before becoming available.
         // createdAt: {
         //   lte: subDays(new Date(), 30),
@@ -35,6 +31,7 @@ export const createSalesPayout = async ({
       select: {
         id: true,
         earnings: true,
+        createdAt: true,
       },
     });
 
@@ -42,68 +39,92 @@ export const createSalesPayout = async ({
       return;
     }
 
-    const amount = sales.reduce((total, sale) => total + sale.earnings, 0);
     const quantity = sales.length;
+    const amount = sales.reduce((total, sale) => total + sale.earnings, 0);
+
+    if (!periodStart) {
+      // get the earliest sale date
+      periodStart = sales.reduce(
+        (min, sale) => (sale.createdAt < min ? sale.createdAt : min),
+        sales[0].createdAt,
+      );
+    }
+
+    if (!periodEnd) {
+      // get the end of the month of the latest sale
+      // e.g. if the latest sale is 2024-12-16, the periodEnd should be 2024-12-31
+      const latestSale = sales.reduce(
+        (max, sale) => (sale.createdAt > max ? sale.createdAt : max),
+        sales[0].createdAt,
+      );
+      periodEnd = new Date(
+        latestSale.getFullYear(),
+        latestSale.getMonth() + 1,
+        0,
+      );
+    }
+
     let payout: Payout | null = null;
 
-    // Check if the partner has another pending payout
-    payout = await tx.payout.findFirst({
-      where: {
-        programId,
-        partnerId,
-        status: "pending",
-        type: "sales",
-      },
-    });
-
-    // Update the existing payout
-    if (payout) {
-      await tx.payout.update({
+    // only create a payout if the total sale amount is greater than 0
+    if (amount > 0) {
+      // Check if the partner has another pending payout
+      const existingPayout = await tx.payout.findFirst({
         where: {
-          id: payout.id,
-        },
-        data: {
-          amount: {
-            increment: amount,
-          },
-          quantity: {
-            increment: quantity,
-          },
-          periodEnd,
-        },
-      });
-
-      console.info("Payout updated", payout);
-    }
-
-    // Create the payout
-    else {
-      payout = await tx.payout.create({
-        data: {
-          id: createId({ prefix: "po_" }),
           programId,
           partnerId,
-          amount,
-          periodStart,
-          periodEnd,
-          quantity,
-          description,
+          status: "pending",
+          type: "sales",
         },
       });
 
-      console.info("Payout created", payout);
-    }
+      // Update the existing payout
+      if (existingPayout) {
+        payout = await tx.payout.update({
+          where: {
+            id: existingPayout.id,
+          },
+          data: {
+            amount: {
+              increment: amount,
+            },
+            quantity: {
+              increment: quantity,
+            },
+            periodEnd,
+            description: existingPayout.description ?? "Dub Partners payout",
+          },
+        });
 
-    if (!payout) {
-      throw new Error(
-        `Failed to create payout for ${partnerId} in ${programId}.`,
-      );
+        console.info("Payout updated", payout);
+      }
+
+      // Create the payout
+      else {
+        payout = await tx.payout.create({
+          data: {
+            id: createId({ prefix: "po_" }),
+            programId,
+            partnerId,
+            amount,
+            periodStart,
+            periodEnd,
+            quantity,
+            description: description ?? "Dub Partners payout",
+          },
+        });
+
+        console.info("Payout created", payout);
+      }
     }
 
     // Update the sales records
     await tx.sale.updateMany({
       where: { id: { in: sales.map((sale) => sale.id) } },
-      data: { payoutId: payout.id, status: "processed" },
+      data: {
+        status: "processed",
+        ...(payout ? { payoutId: payout.id } : {}),
+      },
     });
 
     return payout;

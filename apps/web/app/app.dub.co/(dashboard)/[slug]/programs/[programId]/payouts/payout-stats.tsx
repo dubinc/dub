@@ -91,8 +91,8 @@ export function PayoutStats() {
                           display: "Ineligible payouts",
                           amount: pendingIneligiblePayouts || 0,
                         },
-                      ].map(({ display, amount }) => (
-                        <div className="flex justify-between">
+                      ].map(({ display, amount }, index) => (
+                        <div className="flex justify-between" key={index}>
                           <div className="text-sm text-neutral-500">
                             {display}
                           </div>
@@ -107,7 +107,7 @@ export function PayoutStats() {
                   </div>
                 }
               >
-                <span className="text-neutral-500 underline decoration-dotted underline-offset-2">
+                <span className="underline decoration-dotted underline-offset-2">
                   {currencyFormatter(
                     eligiblePendingPayouts?.amount
                       ? eligiblePendingPayouts.amount / 100
