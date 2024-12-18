@@ -1,4 +1,5 @@
 import z from "@/lib/zod";
+import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 
 export const createCustomerBodySchema = z.object({
@@ -115,6 +116,12 @@ export const customerActivityResponseSchema = z.object({
   ltv: z.number(),
   timeToLead: z.number(),
   timeToSale: z.number(),
+  activity: z.array(customerActivitySchema),
   customer: CustomerSchema,
-  activities: z.array(customerActivitySchema),
+  link: LinkSchema.pick({
+    id: true,
+    domain: true,
+    key: true,
+    shortLink: true,
+  }),
 });

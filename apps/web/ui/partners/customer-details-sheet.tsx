@@ -34,13 +34,6 @@ import { Dispatch, SetStateAction, useState } from "react";
 import useSWR from "swr";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
 
-// Fake link for now
-const link = {
-  domain: "dub.sh",
-  key: "with-webhook",
-  shortLink: "https://dub.co/kiran",
-};
-
 interface CustomerDetailsSheetProps {
   customer: Customer;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -58,7 +51,8 @@ function CustomerDetailsSheetContent({
       fetcher,
     );
 
-  console.log(customerActivity);
+  const link = customerActivity?.link;
+  const events = customerActivity?.activity;
 
   return (
     <>
@@ -89,7 +83,7 @@ function CustomerDetailsSheetContent({
             </div>
 
             <div className="flex min-w-[40%] shrink grow basis-1/2 flex-col items-end justify-end gap-2">
-              {link && (
+              {link ? (
                 <Link
                   href={`/${slug}/events?domain=${link.domain}&key=${link.key}`}
                   target="_blank"
@@ -101,6 +95,8 @@ function CustomerDetailsSheetContent({
                   </span>
                   <FilterBars className="hidden size-3 transition-transform group-hover:block" />
                 </Link>
+              ) : (
+                <div className="h-4 w-20 animate-pulse rounded-full bg-neutral-200 px-1.5 py-0.5" />
               )}
 
               {customer.country && (
@@ -246,11 +242,11 @@ function CustomerDetailsSheetContent({
             />
           ) : (
             <ul className="flex flex-col gap-6">
-              {customerActivity?.activities.map((activity, index) => (
+              {(events || []).map((activity, index) => (
                 <Activity
                   activity={activity}
                   key={index}
-                  isLast={index === customerActivity?.activities.length - 1}
+                  isLast={index === (events || []).length - 1}
                 />
               ))}
             </ul>
@@ -295,16 +291,18 @@ function Activity({
         <Icon className="size-4" />
       </div>
       <span className="flex-grow text-sm text-neutral-700">
-        <span className="font-medium text-neutral-700">
-          {activity.metadata?.amount
-            ? `${currencyFormatter(activity.metadata.amount / 100, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })} `
-            : null}
-        </span>
-
         {activity.event_name}
+
+        {activity.metadata?.amount && (
+          <span className="ml-1 font-medium text-neutral-700">
+            (
+            {currencyFormatter(activity.metadata.amount / 100, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+            )
+          </span>
+        )}
       </span>
       <div className="text-sm text-neutral-500">
         {month} at {time}

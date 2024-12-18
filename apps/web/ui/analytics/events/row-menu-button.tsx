@@ -56,7 +56,7 @@ export function RowMenuButton({ row }: { row: Row<EventDatum> }) {
               {"customer" in row.original && (
                 <MenuItem
                   icon={Copy}
-                  label="View activities"
+                  label="View activity"
                   onSelect={() => {
                     setShowCustomerDetailsSheet(true);
                     setIsOpen(false);
