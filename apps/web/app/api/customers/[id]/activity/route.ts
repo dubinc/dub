@@ -16,6 +16,19 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     id: customerId,
   });
 
+  if (!customer.linkId) {
+    return NextResponse.json(
+      customerActivityResponseSchema.parse({
+        customer,
+        activity: [],
+        ltv: 0,
+        timeToLead: null,
+        timeToSale: null,
+        link: null,
+      }),
+    );
+  }
+
   const [events, link] = await Promise.all([
     getEvents({
       customerId: customer.id,
@@ -94,15 +107,6 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     firstSale && customer.createdAt
       ? new Date(firstSale.timestamp).getTime() - customer.createdAt.getTime()
       : null;
-
-  console.log({
-    ltv,
-    timeToLead,
-    timeToSale,
-    customer,
-    activity,
-    link,
-  });
 
   return NextResponse.json(
     customerActivityResponseSchema.parse({

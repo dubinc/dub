@@ -98,7 +98,7 @@ export const POST = withWorkspaceEdge(
             clickId: clickData.click_id,
             linkId: clickData.link_id,
             country: clickData.country,
-            clickedAt: new Date(clickData.timestamp),
+            clickedAt: new Date(clickData.timestamp + "Z"),
           },
         });
 

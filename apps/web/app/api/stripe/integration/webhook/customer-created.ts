@@ -64,7 +64,7 @@ export async function customerCreated(event: Stripe.Event) {
       externalId,
       linkId,
       clickId,
-      clickedAt: new Date(clickData.timestamp),
+      clickedAt: new Date(clickData.timestamp + "Z"),
       country: clickData.country,
       project: {
         connect: {

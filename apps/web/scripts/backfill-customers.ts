@@ -28,8 +28,9 @@ async function main() {
     },
     select: {
       id: true,
+      createdAt: true,
     },
-    take: 2,
+    take: 100,
     orderBy: {
       createdAt: "desc",
     },
@@ -57,8 +58,6 @@ async function main() {
     (res) => res.data,
   );
 
-  console.log({ leadEvents, clickEvents });
-
   // Update customers
   const result = await Promise.all(
     customers.map(async (customer) => {
@@ -80,7 +79,7 @@ async function main() {
           linkId: clickEvent.link_id,
           clickId: clickEvent.click_id,
           country: clickEvent.country,
-          clickedAt: new Date(clickEvent.timestamp),
+          clickedAt: new Date(clickEvent.timestamp + "Z"),
         },
         select: {
           id: true,
@@ -90,17 +89,24 @@ async function main() {
           clickedAt: true,
         },
       });
+      // return {
+      //   linkId: clickEvent.link_id,
+      //   clickId: clickEvent.click_id,
+      //   country: clickEvent.country,
+      //   clickedAt: new Date(clickEvent.timestamp + "Z"),
+      //   createdAt: customer.createdAt,
+      // };
     }),
   );
 
-  const remaining = await prisma.customer.count({
-    where: {
-      linkId: null,
-    },
-  });
+  // const remaining = await prisma.customer.count({
+  //   where: {
+  //     linkId: null,
+  //   },
+  // });
 
   console.table(result);
-  console.log(`${remaining} remaining`);
+  // console.log(`${remaining} remaining`);
 }
 
 main();
