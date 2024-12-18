@@ -63,7 +63,6 @@ async function main() {
           clickId: leadEvent.click_id,
           country: leadEvent.country,
           clickedAt: clickEvent.timestamp,
-          leadCreatedAt: null,
         },
         select: {
           id: true,
@@ -71,7 +70,6 @@ async function main() {
           clickId: true,
           country: true,
           clickedAt: true,
-          leadCreatedAt: true,
         },
       });
     }),

@@ -7,7 +7,6 @@ model Customer {
   linkId           String?
   clickId          String?
   clickedAt        DateTime?
-  leadCreatedAt    DateTime?
   country          String?
   project          Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId        String

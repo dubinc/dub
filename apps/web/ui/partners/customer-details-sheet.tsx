@@ -206,12 +206,23 @@ function CustomerDetailsSheetContent({
                           maximumFractionDigits: 2,
                         })
                       : "-",
+                  description: !customerActivity?.ltv
+                    ? "This customer hasn't made any purchases yet."
+                    : "",
                 },
-              ].map(({ label, value }) => (
+              ].map(({ label, value, description }) => (
                 <div key={label} className="flex flex-col bg-neutral-50 p-3">
-                  <span className="truncate text-xs text-neutral-400">
-                    {label}
-                  </span>
+                  {customerActivity?.ltv ? (
+                    <span className="truncate text-xs text-neutral-400">
+                      {label}
+                    </span>
+                  ) : (
+                    <Tooltip content={description}>
+                      <span className="cursor-default truncate text-xs text-neutral-400 underline decoration-dotted underline-offset-2">
+                        {label}
+                      </span>
+                    </Tooltip>
+                  )}
                   <span className="text-base text-neutral-900">{value}</span>
                 </div>
               ))}
@@ -308,7 +319,7 @@ function Activity({
         )}
       </span>
       <div className="text-sm text-neutral-500">
-        {month} at {time}
+        {month}, {time}
       </div>
     </li>
   );

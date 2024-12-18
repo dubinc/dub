@@ -53,7 +53,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
 
   // Add lead event to activities
   activity.push({
-    timestamp: customer.leadCreatedAt!,
+    timestamp: customer.createdAt,
     event: "lead",
     event_name: "Account created",
     metadata: null,
@@ -63,7 +63,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   activity.push({
     timestamp: customer.clickedAt!,
     event: "click",
-    event_name: "Link clicked",
+    event_name: "Link click",
     metadata: null,
   });
 
@@ -78,18 +78,17 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
 
   // Find the time to lead of the customer
   const timeToLead =
-    customer.clickedAt && customer.leadCreatedAt
-      ? customer.leadCreatedAt.getTime() - customer.clickedAt.getTime()
-      : 0;
+    customer.clickedAt && customer.createdAt
+      ? customer.createdAt.getTime() - customer.clickedAt.getTime()
+      : null;
 
   // Find the time to first sale of the customer
   const firstSale = activity.filter(({ event }) => event === "sale").pop();
 
   const timeToSale =
-    firstSale && customer.leadCreatedAt
-      ? new Date(firstSale.timestamp).getTime() -
-        customer.leadCreatedAt.getTime()
-      : 0;
+    firstSale && customer.createdAt
+      ? new Date(firstSale.timestamp).getTime() - customer.createdAt.getTime()
+      : null;
 
   return NextResponse.json(
     customerActivityResponseSchema.parse({

@@ -115,7 +115,7 @@ export const customerActivitySchema = z.object({
 export const customerActivityResponseSchema = z.object({
   ltv: z.number(),
   timeToLead: z.number(),
-  timeToSale: z.number(),
+  timeToSale: z.number().nullable(),
   activity: z.array(customerActivitySchema),
   customer: CustomerSchema,
   link: LinkSchema.pick({
