@@ -1,4 +1,4 @@
-import { Project, User } from "@prisma/client";
+import { Project, User } from "@dub/prisma/client";
 import { type TaskContext } from "vitest";
 import { z } from "zod";
 import { HttpClient } from "../utils/http";
@@ -71,6 +71,13 @@ export class IntegrationHarness {
   public async deleteDomain(slug: string) {
     await this.http.delete({
       path: `/domains/${slug}`,
+    });
+  }
+
+  // Delete customer
+  public async deleteCustomer(id: string) {
+    await this.http.delete({
+      path: `/customers/${id}`,
     });
   }
 

@@ -3,7 +3,7 @@
 import { updateNotificationPreference } from "@/lib/actions/update-notification-preference";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Switch, useOptimisticUpdate } from "@dub/ui";
-import { Globe, Hyperlink } from "@dub/ui/src/icons";
+import { Globe, Hyperlink } from "@dub/ui/icons";
 import { useAction } from "next-safe-action/hooks";
 
 type PreferenceType = "linkUsageSummary" | "domainConfigurationUpdates";

@@ -36,6 +36,7 @@ import {
   Globe2,
   Hyperlink,
   LinkBroken,
+  LocationPin,
   Magic,
   MapPosition,
   MobilePhone,
@@ -44,7 +45,7 @@ import {
   ReferredVia,
   Tag,
   Window,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import {
   APP_DOMAIN,
   CONTINENTS,
@@ -52,6 +53,7 @@ import {
   DUB_DEMO_LINKS,
   DUB_LOGO,
   GOOGLE_FAVICON_URL,
+  REGIONS,
   capitalize,
   cn,
   fetcher,
@@ -97,7 +99,9 @@ export default function Toggle({
     url,
     adminPage,
     demoPage,
+    partnerPage,
     dashboardProps,
+    showConversions,
     start,
     end,
     interval,
@@ -147,6 +151,7 @@ export default function Toggle({
       key,
       continent,
       country,
+      region,
       city,
       device,
       browser,
@@ -172,6 +177,7 @@ export default function Toggle({
         : []),
       ...(continent ? [{ key: "continent", value: continent }] : []),
       ...(country ? [{ key: "country", value: country }] : []),
+      ...(region ? [{ key: "region", value: region }] : []),
       ...(city ? [{ key: "city", value: city }] : []),
       ...(device ? [{ key: "device", value: device }] : []),
       ...(browser ? [{ key: "browser", value: browser }] : []),
@@ -196,6 +202,9 @@ export default function Toggle({
   });
   const countries = useAnalyticsFilterOption("countries", {
     cacheOnly: !isRequested("country"),
+  });
+  const regions = useAnalyticsFilterOption("regions", {
+    cacheOnly: !isRequested("region"),
   });
   const cities = useAnalyticsFilterOption("cities", {
     cacheOnly: !isRequested("city"),
@@ -425,6 +434,24 @@ export default function Toggle({
           })) ?? null,
       },
       {
+        key: "region",
+        icon: LocationPin,
+        label: "Region",
+        options:
+          regions?.map(({ region, country, count }) => ({
+            value: region,
+            label: REGIONS[region] || region.split("-")[1],
+            icon: (
+              <img
+                alt={country}
+                src={`https://flag.vercel.app/m/${country}.svg`}
+                className="h-2.5 w-4"
+              />
+            ),
+            right: nFormatter(count, { full: true }),
+          })) ?? null,
+      },
+      {
         key: "continent",
         icon: MapPosition,
         label: "Continent",
@@ -629,7 +656,7 @@ export default function Toggle({
   const dateRangePicker = (
     <DateRangePicker
       className="w-full sm:min-w-[200px] md:w-fit"
-      align={dashboardProps ? "end" : "start"}
+      align={dashboardProps ? "end" : "center"}
       value={
         start && end
           ? {
@@ -668,16 +695,16 @@ export default function Toggle({
         const start = INTERVAL_DATA[value].startDate;
         const end = new Date();
 
-        const requiresUpgrade =
-          adminPage ||
-          demoPage ||
-          DUB_DEMO_LINKS.find((l) => l.domain === domain && l.key === key)
-            ? false
-            : !validDateRangeForPlan({
-                plan: plan || dashboardProps?.workspacePlan,
-                start,
-                end,
-              });
+        const requiresUpgrade = DUB_DEMO_LINKS.find(
+          (l) => l.domain === domain && l.key === key,
+        )
+          ? false
+          : !validDateRangeForPlan({
+              plan: plan || dashboardProps?.workspacePlan,
+              conversionEnabled: showConversions,
+              start,
+              end,
+            });
 
         return {
           id: value,
@@ -765,7 +792,7 @@ export default function Toggle({
                 {isMobile ? filterSelect : dateRangePicker}
                 {!dashboardProps && (
                   <div className="flex grow justify-end gap-2">
-                    {page === "analytics" && (
+                    {page === "analytics" && !partnerPage && (
                       <>
                         {domain && key && <ShareButton />}
                         <Button
@@ -788,7 +815,7 @@ export default function Toggle({
                         <AnalyticsOptions />
                       </>
                     )}
-                    {page === "events" && (
+                    {page === "events" && !partnerPage && (
                       <>
                         <Button
                           variant="secondary"

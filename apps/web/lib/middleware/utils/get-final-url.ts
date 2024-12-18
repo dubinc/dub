@@ -1,3 +1,5 @@
+import { REDIRECTION_QUERY_PARAM } from "@dub/utils/src/constants";
+import { getUrlFromStringIfValid } from "@dub/utils/src/functions";
 import { NextRequest } from "next/server";
 
 export const getFinalUrl = (
@@ -7,12 +9,17 @@ export const getFinalUrl = (
   // query is the query string (e.g. d.to/github?utm_source=twitter -> ?utm_source=twitter)
   const searchParams = req.nextUrl.searchParams;
 
-  // get the query params of the target url
-  const urlObj = new URL(url);
+  // if there is a redirection url set, then use it instead of the target url
+  const redirectionUrl = getUrlFromStringIfValid(
+    searchParams.get(REDIRECTION_QUERY_PARAM) ?? "",
+  );
 
-  // if there's no dub-no-track search param, then add clickId to the final url if it exists
+  // get the query params of the target url
+  const urlObj = redirectionUrl ? new URL(redirectionUrl) : new URL(url);
+
+  // if there's a clickId and no dub-no-track search param, then add clickId to the final url
   // reasoning: if you're skipping tracking, there's no point in passing the clickId anyway
-  if (!searchParams.has("dub-no-track") && clickId) {
+  if (clickId && !searchParams.has("dub-no-track")) {
     // add clickId to the final url if it exists
     urlObj.searchParams.set("dub_id", clickId);
   }
@@ -23,10 +30,9 @@ export const getFinalUrl = (
 
   // if searchParams (type: `URLSearchParams`) has the same key as target url, then overwrite it
   for (const [key, value] of searchParams) {
-    // we will pass everything except dub-no-track (used for skipping tracking)
-    if (key !== "dub-no-track") {
-      urlObj.searchParams.set(key, value);
-    }
+    // we will pass everything except internal query params (dub-no-track and redir_url)
+    if (["dub-no-track", REDIRECTION_QUERY_PARAM].includes(key)) continue;
+    urlObj.searchParams.set(key, value);
   }
 
   // remove qr param from the final url if the value is "1" (only used for detectQr function)
@@ -56,7 +62,14 @@ export const getFinalUrlForRecordClick = ({
   url: string;
 }) => {
   const searchParams = new URL(req.url).searchParams;
-  const urlObj = new URL(url);
+
+  // if there is a redirection url set, then use it instead of the target url
+  const redirectionUrl = getUrlFromStringIfValid(
+    searchParams.get(REDIRECTION_QUERY_PARAM) ?? "",
+  );
+
+  // get the query params of the target url
+  const urlObj = redirectionUrl ? new URL(redirectionUrl) : new URL(url);
 
   // Filter out query params that are not in the allowed list
   if (searchParams.size > 0) {

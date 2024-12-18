@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { storage } from "../../storage";
@@ -16,6 +16,7 @@ export async function deleteDomainAndLinks(domain: string) {
       select: {
         id: true,
         projectId: true,
+        logo: true,
         createdAt: true,
       },
     }),
@@ -29,6 +30,7 @@ export async function deleteDomainAndLinks(domain: string) {
         key: true,
         url: true,
         image: true,
+        programId: true,
         projectId: true,
         tags: true,
         folderId: true,
@@ -60,6 +62,7 @@ export async function deleteDomainAndLinks(domain: string) {
             key: link.key,
             url: link.url,
             tag_ids: link.tags.map((tag) => tag.tagId),
+            program_id: link.programId ?? "",
             workspace_id: link.projectId,
             folder_id: link.folderId,
             created_at: link.createdAt,
@@ -76,6 +79,9 @@ export async function deleteDomainAndLinks(domain: string) {
         }),
         // remove the domain from Vercel
         removeDomainFromVercel(domain),
+        // if domain has logo, delete it from R2
+        domainData.logo &&
+          storage.delete(domainData.logo.replace(`${R2_URL}/`, "")),
       ]);
     })(),
   );

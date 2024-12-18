@@ -2,7 +2,7 @@ import { deleteDomainAndLinks } from "@/lib/api/domains";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -11,8 +11,10 @@ export const dynamic = "force-dynamic";
 const E2E_USER_ID = "clxz1q7c7000hbqx5ckv4r82h";
 const E2E_WORKSPACE_ID = "clrei1gld0002vs9mzn93p8ik";
 
-// Cron to remove links and domains created during the E2E test.
-// Run every 6 hours (0 */6 * * *)
+/***
+    This route is used to remove links and domains created during the E2E test.
+    Runs every 6 hours (0 * / 6 * * *)
+*/
 export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);

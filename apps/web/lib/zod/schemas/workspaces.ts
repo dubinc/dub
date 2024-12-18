@@ -1,10 +1,6 @@
 import { isReservedKey } from "@/lib/edge-config";
 import z from "@/lib/zod";
-import {
-  DEFAULT_REDIRECTS,
-  validDomainRegex,
-  validSlugRegex,
-} from "@dub/utils";
+import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { DomainSchema } from "./domains";
 import { planSchema, roleSchema } from "./misc";
@@ -45,7 +41,15 @@ export const WorkspaceSchema = z
     stripeConnectId: z
       .string()
       .nullable()
-      .describe("[BETA]: The Stripe Connect ID of the workspace."),
+      .describe(
+        "[BETA – Dub Conversions]: The Stripe Connect ID of the workspace.",
+      ),
+    payoutMethodId: z
+      .string()
+      .nullable()
+      .describe(
+        "[BETA – Dub Partners]: The ID of the payment method for partner payouts.",
+      ),
 
     usage: z.number().describe("The usage of the workspace."),
     usageLimit: z.number().describe("The usage limit of the workspace."),
@@ -67,11 +71,6 @@ export const WorkspaceSchema = z
     aiUsage: z.number().describe("The AI usage of the workspace."),
     aiLimit: z.number().describe("The AI limit of the workspace."),
 
-    referralLinkId: z
-      .string()
-      .nullable()
-      .describe("The ID of the referral link of the workspace."),
-
     conversionEnabled: z
       .boolean()
       .describe(
@@ -82,6 +81,9 @@ export const WorkspaceSchema = z
       .describe(
         "Whether the workspace has claimed a free .link domain. (dub.link/free)",
       ),
+    partnersEnabled: z
+      .boolean()
+      .describe("Whether the workspace has Dub Partners enabled."),
 
     createdAt: z
       .date()
@@ -108,10 +110,6 @@ export const WorkspaceSchema = z
       .describe(
         "The feature flags of the workspace, indicating which features are enabled.",
       ),
-    publishableKey: z
-      .string()
-      .nullable()
-      .describe("The publishable key of the workspace."),
   })
   .openapi({
     title: "Workspace",
@@ -128,17 +126,7 @@ export const createWorkspaceSchema = z.object({
     .refine(async (v) => !((await isReservedKey(v)) || DEFAULT_REDIRECTS[v]), {
       message: "Cannot use reserved slugs",
     }),
-  domain: z
-    .string()
-    .refine((v) => validDomainRegex.test(v), {
-      message: "Invalid domain format",
-    })
-    .optional(),
+  logo: z.string().optional(),
 });
 
-export const updateWorkspaceSchema = createWorkspaceSchema
-  .pick({
-    name: true,
-    slug: true,
-  })
-  .partial();
+export const updateWorkspaceSchema = createWorkspaceSchema.partial();

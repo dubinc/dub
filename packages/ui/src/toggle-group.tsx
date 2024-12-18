@@ -15,12 +15,16 @@ export function ToggleGroup({
   selected,
   selectAction,
   className,
+  optionClassName,
+  indicatorClassName,
   style,
 }: {
   options: ToggleOption[];
   selected: string | null;
   selectAction: (option: string) => void;
   className?: string;
+  optionClassName?: string;
+  indicatorClassName?: string;
   style?: React.CSSProperties;
 }) {
   const layoutGroupId = useId();
@@ -42,8 +46,10 @@ export function ToggleGroup({
             className={cn(
               "relative z-10 flex items-center gap-2 px-3 py-1 text-sm font-medium capitalize",
               {
-                "transition-all hover:text-gray-500": option.value !== selected,
+                "z-[11] transition-colors hover:text-gray-500":
+                  option.value !== selected,
               },
+              optionClassName,
             )}
             onClick={() => selectAction(option.value)}
           >
@@ -52,7 +58,10 @@ export function ToggleGroup({
             {option.value === selected && (
               <motion.div
                 layoutId={layoutGroupId}
-                className="absolute left-0 top-0 -z-[1] h-full w-full rounded-lg border border-gray-200 bg-gray-50"
+                className={cn(
+                  "absolute left-0 top-0 -z-[1] h-full w-full rounded-lg border border-gray-200 bg-gray-50",
+                  indicatorClassName,
+                )}
                 transition={{ duration: 0.25 }}
               />
             )}

@@ -3,9 +3,9 @@ import { getFolder } from "@/lib/folder/get-folder";
 import { canPerformActionOnFolder } from "@/lib/folder/permissions";
 import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
-import { prisma } from "@/lib/prisma";
 import { isStored } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
+import { prisma } from "@dub/prisma";
 import {
   DUB_DOMAINS,
   UTMTags,
@@ -29,7 +29,6 @@ export async function processLink<T extends Record<string, any>>({
   userId,
   bulk = false,
   skipKeyChecks = false, // only skip when key doesn't change (e.g. when editing a link)
-  skipIdentifierChecks = false, // only skip when identifier doesn't change (e.g. when editing a link)
   skipExternalIdChecks = false, // only skip when externalId doesn't change (e.g. when editing a link)
 }: {
   payload: NewLinkProps & T;
@@ -40,7 +39,6 @@ export async function processLink<T extends Record<string, any>>({
   userId?: string;
   bulk?: boolean;
   skipKeyChecks?: boolean;
-  skipIdentifierChecks?: boolean;
   skipExternalIdChecks?: boolean;
 }): Promise<
   | {
@@ -73,7 +71,7 @@ export async function processLink<T extends Record<string, any>>({
     tagNames,
     folderId,
     externalId,
-    identifier,
+    programId,
     webhookIds,
   } = payload;
 
@@ -310,25 +308,6 @@ export async function processLink<T extends Record<string, any>>({
     }
   }
 
-  if (identifier && workspace && !skipIdentifierChecks) {
-    const link = await prisma.link.findUnique({
-      where: {
-        projectId_identifier: {
-          projectId: workspace.id,
-          identifier,
-        },
-      },
-    });
-
-    if (link) {
-      return {
-        link: payload,
-        error: "A link with this identifier already exists in this workspace.",
-        code: "conflict",
-      };
-    }
-  }
-
   if (bulk) {
     if (proxy && image && !isStored(image)) {
       return {
@@ -394,6 +373,28 @@ export async function processLink<T extends Record<string, any>>({
               )
               .join(", "),
           code: "unprocessable_entity",
+        };
+      }
+    }
+
+    // Program validity checks
+    if (programId) {
+      if (!workspace?.conversionEnabled) {
+        return {
+          link: payload,
+          error: "Conversion tracking is not enabled for this workspace.",
+          code: "forbidden",
+        };
+      }
+      const program = await prisma.program.findUnique({
+        where: { id: programId },
+      });
+
+      if (!program || program.workspaceId !== workspace?.id) {
+        return {
+          link: payload,
+          error: "Program not found.",
+          code: "not_found",
         };
       }
     }

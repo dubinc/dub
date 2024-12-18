@@ -2,45 +2,71 @@
 
 import { createId } from "@/lib/api/utils";
 import { userIsInBeta } from "@/lib/edge-config";
-import { prisma } from "@/lib/prisma";
+import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { storage } from "@/lib/storage";
-import { nanoid } from "nanoid";
-import z from "../../zod";
+import { createConnectedAccount } from "@/lib/stripe/create-connected-account";
+import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
+import { prisma } from "@dub/prisma";
+import { nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
+import Stripe from "stripe";
 import { authUserActionClient } from "../safe-action";
 
-const onboardPartnerSchema = z.object({
-  name: z.string(),
-  logo: z.string().nullable(),
-  country: z.string().nullable(),
-  description: z.string().nullable(),
-});
-
 // Onboard a new partner
-export const onboardPartner = authUserActionClient
+export const onboardPartnerAction = authUserActionClient
   .schema(onboardPartnerSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { user } = ctx;
+    const { name, email, image, country, description } = parsedInput;
 
     const partnersPortalEnabled = await userIsInBeta(
       user.email,
       "partnersPortal",
     );
+
     if (!partnersPortalEnabled) {
-      return {
-        ok: false,
-        error: "Partners portal feature flag disabled.",
-      };
+      throw new Error("Partners portal feature flag disabled.");
     }
 
-    const { name, logo, country, description } = parsedInput;
+    const emailInUse = await prisma.partner.count({
+      where: {
+        email,
+      },
+    });
 
-    try {
-      let partner = await prisma.partner.create({
+    if (emailInUse) {
+      throw new Error(
+        `"${email}" is already in use by another partner. Please use a different email.`,
+      );
+    }
+
+    let connectedAccount: Stripe.Account | null = null;
+    // TODO: Stripe Connect – remove this once we can onboard partners from other countries
+    if (country === "US") {
+      // Create the Stripe connected account for the partner
+      connectedAccount = await createConnectedAccount({
+        name,
+        email,
+        country,
+      });
+    }
+
+    const partnerId = createId({ prefix: "pn_" });
+
+    const imageUrl = await storage
+      .upload(`partners/${partnerId}/image_${nanoid(7)}`, image)
+      .then(({ url }) => url);
+
+    await Promise.all([
+      prisma.partner.create({
         data: {
+          id: partnerId,
           name,
+          email,
           country,
           bio: description,
-          id: createId({ prefix: "pn_" }),
+          image: imageUrl,
+          ...(connectedAccount && { stripeConnectId: connectedAccount.id }),
           users: {
             create: {
               userId: user.id,
@@ -48,25 +74,20 @@ export const onboardPartner = authUserActionClient
             },
           },
         },
-      });
+      }),
 
-      if (logo) {
-        const { url } = await storage.upload(
-          `logos/partners/${partner.id}_${nanoid(7)}`,
-          logo,
-        );
+      // only set the default partner ID if the user doesn't already have one
+      !user.defaultPartnerId &&
+        prisma.user.update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            defaultPartnerId: partnerId,
+          },
+        }),
+    ]);
 
-        partner = await prisma.partner.update({
-          where: { id: partner.id },
-          data: { logo: url },
-        });
-      }
-
-      return { ok: true, partnerId: partner.id };
-    } catch (e) {
-      console.error(e);
-      return {
-        ok: false,
-      };
-    }
+    // Complete any outstanding program applications
+    waitUntil(completeProgramApplications(user.id));
   });

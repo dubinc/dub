@@ -11,13 +11,9 @@ import {
   Popover,
   Tooltip,
   useKeyboardShortcut,
+  UTM_PARAMETERS,
 } from "@dub/ui";
-import {
-  DiamondTurnRight,
-  LoadingSpinner,
-  PenWriting,
-} from "@dub/ui/src/icons";
-import { UTM_PARAMETERS } from "@dub/ui/src/utm-builder";
+import { DiamondTurnRight, LoadingSpinner, PenWriting } from "@dub/ui/icons";
 import { cn, formatDate } from "@dub/utils";
 import { Fragment, useContext, useState } from "react";
 import { toast } from "sonner";

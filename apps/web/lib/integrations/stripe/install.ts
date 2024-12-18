@@ -1,5 +1,4 @@
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { nanoid } from "nanoid";
+import { APP_DOMAIN_WITH_NGROK, nanoid } from "@dub/utils";
 import { redis } from "../../upstash";
 import z from "../../zod";
 
@@ -26,7 +25,7 @@ export const getStripeInstallationUrl = async (workspaceId: string) => {
   const url = new URL(STRIPE_APP_INSTALL_URL);
   url.searchParams.set(
     "redirect_uri",
-    `${APP_DOMAIN_WITH_NGROK}/api/stripe/connect/callback`,
+    `${APP_DOMAIN_WITH_NGROK}/api/stripe/integration/callback`,
   );
   url.searchParams.set("state", state);
 

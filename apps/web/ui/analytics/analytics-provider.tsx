@@ -12,6 +12,7 @@ import {
 } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PlanProps } from "@/lib/types";
 import { fetcher } from "@dub/utils";
@@ -29,7 +30,7 @@ import useSWR from "swr";
 import { defaultConfig } from "swr/_internal";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 
-export interface dashboardProps {
+export interface AnalyticsDashboardProps {
   domain: string;
   key: string;
   url: string;
@@ -56,10 +57,10 @@ export const AnalyticsContext = createContext<{
   };
   adminPage?: boolean;
   demoPage?: boolean;
-  partnerId?: string;
-  programId?: string;
+  partnerPage?: boolean;
+  showConversions?: boolean;
   requiresUpgrade?: boolean;
-  dashboardProps?: dashboardProps;
+  dashboardProps?: AnalyticsDashboardProps;
 }>({
   basePath: "",
   baseApiPath: "",
@@ -72,8 +73,8 @@ export const AnalyticsContext = createContext<{
   end: new Date(),
   adminPage: false,
   demoPage: false,
-  partnerId: undefined,
-  programId: undefined,
+  partnerPage: false,
+  showConversions: false,
   requiresUpgrade: false,
   dashboardProps: undefined,
 });
@@ -81,33 +82,39 @@ export const AnalyticsContext = createContext<{
 export default function AnalyticsProvider({
   adminPage,
   demoPage,
-  partnerId,
-  programId,
   dashboardProps,
-  defaultInterval = "24h",
   children,
 }: PropsWithChildren<{
   adminPage?: boolean;
   demoPage?: boolean;
-  partnerId?: string;
-  programId?: string;
-  defaultInterval?: string;
-  dashboardProps?: dashboardProps;
+  dashboardProps?: AnalyticsDashboardProps;
 }>) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { id: workspaceId, slug, conversionEnabled } = useWorkspace();
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
-  let { dashboardId } = useParams() as {
+  const { dashboardId, programSlug } = useParams() as {
     dashboardId?: string;
+    programSlug?: string;
   };
+
+  const { partner } = usePartnerProfile();
+  const partnerPage = partner?.id && programSlug ? true : false;
+
   const domainSlug = searchParams?.get("domain");
   // key can be a query param (stats pages in app) or passed as a staticKey (shared analytics dashboards)
   const key = searchParams?.get("key") || dashboardProps?.key;
 
   // Whether to show conversions in shared analytics dashboards
-  const showConversions = dashboardProps?.showConversions;
+  const showConversions =
+    adminPage ||
+    demoPage ||
+    partnerPage ||
+    conversionEnabled ||
+    dashboardProps?.showConversions
+      ? true
+      : false;
 
   const tagIds = combineTagIds({
     tagId: searchParams?.get("tagId"),
@@ -133,13 +140,14 @@ export default function AnalyticsProvider({
     };
   }, [searchParams?.get("start"), searchParams?.get("end")]);
 
+  const defaultInterval = partnerPage ? "30d" : "24h";
+
   // Only set interval if start and end are not provided
   const interval =
     start || end ? undefined : searchParams?.get("interval") ?? defaultInterval;
 
   const selectedTab: EventType = useMemo(() => {
-    if (!!adminPage && !!demoPage && !conversionEnabled && !showConversions)
-      return "clicks";
+    if (!showConversions) return "clicks";
 
     const event = searchParams.get("event");
 
@@ -147,8 +155,7 @@ export default function AnalyticsProvider({
   }, [searchParams.get("event")]);
 
   const view: AnalyticsView = useMemo(() => {
-    if (!adminPage && !demoPage && !conversionEnabled && !showConversions)
-      return "default";
+    if (!showConversions) return "default";
 
     const view = searchParams.get("view");
 
@@ -179,19 +186,25 @@ export default function AnalyticsProvider({
         eventsApiPath: `/api/events`,
         domain: domainSlug,
       };
-    } else if (partnerId && programId) {
+    } else if (partner?.id && programSlug) {
       return {
-        basePath: `/api/partners/${partnerId}/programs/${programId}/analytics`,
-        baseApiPath: `/api/partners/${partnerId}/programs/${programId}/analytics`,
-        eventsApiPath: `/api/partners/${partnerId}/programs/${programId}/events`,
+        basePath: `/api/partners/${partner.id}/programs/${programSlug}/analytics`,
+        baseApiPath: `/api/partners/${partner.id}/programs/${programSlug}/analytics`,
+        eventsApiPath: `/api/partners/${partner.id}/programs/${programSlug}/events`,
         domain: domainSlug,
       };
-    } else {
+    } else if (dashboardId) {
       // Public stats page, e.g. app.dub.co/share/dsh_123
       return {
         basePath: `/share/${dashboardId}`,
         baseApiPath: "/api/analytics/dashboard",
         domain: dashboardProps?.domain,
+      };
+    } else {
+      return {
+        basePath: "",
+        baseApiPath: "",
+        domain: "",
       };
     }
   }, [
@@ -200,10 +213,11 @@ export default function AnalyticsProvider({
     slug,
     pathname,
     dashboardProps?.domain,
+    dashboardId,
+    partner?.id,
+    programSlug,
     domainSlug,
     key,
-    partnerId,
-    programId,
     selectedTab,
   ]);
 
@@ -249,13 +263,11 @@ export default function AnalyticsProvider({
     [key in AnalyticsResponseOptions]: number;
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
-      event:
-        adminPage || demoPage || conversionEnabled || showConversions
-          ? "composite"
-          : "clicks",
+      event: showConversions ? "composite" : "clicks",
     })}`,
     fetcher,
     {
+      keepPreviousData: true,
       onSuccess: () => setRequiresUpgrade(false),
       onError: (error) => {
         const errorMessage = JSON.parse(error.message)?.error.message;
@@ -300,6 +312,8 @@ export default function AnalyticsProvider({
         totalEvents, // totalEvents (clicks, leads, sales)
         adminPage, // whether the user is an admin
         demoPage, // whether the user is viewing demo analytics
+        partnerPage, // whether the user is viewing partner analytics
+        showConversions, // whether conversions are enabled
         dashboardProps,
         requiresUpgrade, // whether an upgrade is required to perform the query
       }}

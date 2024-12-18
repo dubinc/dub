@@ -7,6 +7,7 @@ SCHEMA >
     `url` String `json:$.url`,
     `tag_ids` Array(String) `json:$.tag_ids[:]`,
     `folder_id` String `json:$.folder_id`,
+    `program_id` String `json:$.program_id`,
     `workspace_id` String `json:$.workspace_id`,
     `created_at` DateTime64(3) `json:$.created_at`,
     `deleted` UInt8 `json:$.deleted`

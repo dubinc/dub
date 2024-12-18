@@ -1,11 +1,7 @@
 import useUsage from "@/lib/swr/use-usage";
-import { Bars } from "@/ui/charts/bars";
-import TimeSeriesChart from "@/ui/charts/time-series-chart";
-import XAxis from "@/ui/charts/x-axis";
-import YAxis from "@/ui/charts/y-axis";
-import { EmptyState } from "@dub/blocks/src/empty-state";
-import { LoadingSpinner } from "@dub/ui";
-import { CircleDollar, CursorRays, Hyperlink } from "@dub/ui/src/icons";
+import { EmptyState, LoadingSpinner } from "@dub/ui";
+import { Bars, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
+import { CircleDollar, CursorRays, Hyperlink } from "@dub/ui/icons";
 import { formatDate, nFormatter } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
 import { useSearchParams } from "next/navigation";

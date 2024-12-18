@@ -63,7 +63,9 @@ export const GET = withWorkspace(
     }
 
     const link =
-      domain && key ? await getLinkOrThrow({ workspace, domain, key }) : null;
+      domain && key
+        ? await getLinkOrThrow({ workspaceId: workspace.id, domain, key })
+        : null;
 
     if (link && link.folderId) {
       await checkFolderPermission({
@@ -90,6 +92,7 @@ export const GET = withWorkspace(
 
     validDateRangeForPlan({
       plan: workspace.plan,
+      conversionEnabled: workspace.conversionEnabled,
       interval,
       start,
       end,

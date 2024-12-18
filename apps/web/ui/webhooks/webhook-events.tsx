@@ -1,9 +1,15 @@
 "use client";
 
 import { WebhookEventProps } from "@/lib/types";
-import { Button, Sheet, useCopyToClipboard, useMediaQuery } from "@dub/ui";
-import { CircleCheck, CircleHalfDottedClock, Copy } from "@dub/ui/src/icons";
-import { ButtonTooltip, Tooltip } from "@dub/ui/src/tooltip";
+import {
+  Button,
+  ButtonTooltip,
+  Sheet,
+  Tooltip,
+  useCopyToClipboard,
+  useMediaQuery,
+} from "@dub/ui";
+import { CircleCheck, CircleHalfDottedClock, Copy } from "@dub/ui/icons";
 import { PropsWithChildren, useEffect, useState } from "react";
 import { Highlighter } from "shiki";
 import { toast } from "sonner";
@@ -100,7 +106,6 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
         open={isOpen}
         onOpenChange={setIsOpen}
         contentProps={{ className: "md:w-[650px]" }}
-        handleOnly
       >
         <div className="p-6">
           <div className="flex items-start justify-between">

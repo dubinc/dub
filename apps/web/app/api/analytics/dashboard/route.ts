@@ -5,10 +5,10 @@ import {
   exceededLimitError,
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
-import { prisma } from "@/lib/prisma";
 import { PlanProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
+import { prisma } from "@dub/prisma";
 import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { ipAddress } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -53,6 +53,7 @@ export const GET = async (req: Request) => {
               plan: true,
               usage: true,
               usageLimit: true,
+              conversionEnabled: true,
             },
           },
         },
@@ -70,6 +71,7 @@ export const GET = async (req: Request) => {
 
       validDateRangeForPlan({
         plan: workspace?.plan || "free",
+        conversionEnabled: workspace?.conversionEnabled,
         interval,
         start,
         end,

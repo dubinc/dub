@@ -1,8 +1,8 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { TagSchema, updateTagBodySchema } from "@/lib/zod/schemas/tags";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // PATCH /api/tags/[id] – update a tag for a workspace
@@ -75,6 +75,7 @@ export const DELETE = withWorkspace(
                   key: true,
                   url: true,
                   folderId: true,
+                  programId: true,
                   createdAt: true,
                 },
               },
@@ -99,6 +100,7 @@ export const DELETE = withWorkspace(
           url: link.url,
           tag_ids: [],
           folder_id: link.folderId,
+          program_id: link.programId ?? "",
           workspace_id: workspace.id,
           created_at: link.createdAt,
         })),

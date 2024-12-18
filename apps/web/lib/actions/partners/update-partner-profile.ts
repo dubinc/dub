@@ -1,68 +1,49 @@
 "use server";
 
-import { getPartnerOrThrow } from "@/lib/api/partners/get-partner-or-throw";
 import { userIsInBeta } from "@/lib/edge-config";
-import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
-import { nanoid } from "nanoid";
+import { prisma } from "@dub/prisma";
+import { nanoid } from "@dub/utils";
 import z from "../../zod";
-import { authUserActionClient } from "../safe-action";
+import { authPartnerActionClient } from "../safe-action";
 
-const onboardPartnerSchema = z.object({
-  partnerId: z.string(),
+const updatePartnerProfileSchema = z.object({
   name: z.string(),
-  logo: z.string().nullable(),
+  image: z.string().nullable(),
   description: z.string().nullable(),
 });
 
 // Update a partner profile
-export const updatePartnerProfile = authUserActionClient
-  .schema(onboardPartnerSchema)
+export const updatePartnerProfileAction = authPartnerActionClient
+  .schema(updatePartnerProfileSchema)
   .action(async ({ ctx, parsedInput }) => {
-    const { user } = ctx;
-
-    const { partner } = await getPartnerOrThrow({
-      partnerId: parsedInput.partnerId,
-      userId: user.id,
-    });
+    const { user, partner } = ctx;
+    const { name, image, description } = parsedInput;
 
     const partnersPortalEnabled = await userIsInBeta(
       user.email,
       "partnersPortal",
     );
+
     if (!partnersPortalEnabled) {
-      return {
-        ok: false,
-        error: "Partners portal feature flag disabled.",
-      };
+      throw new Error("Partners portal feature flag disabled.");
     }
 
-    const { name, logo, description } = parsedInput;
-
-    try {
-      let logoUrl: string | null = null;
-      if (logo)
-        logoUrl = (
+    const imageUrl = image
+      ? (
           await storage.upload(
-            `logos/partners/${partner.id}_${nanoid(7)}`,
-            logo,
+            `partners/${partner.id}/image_${nanoid(7)}`,
+            image,
           )
-        ).url;
+        ).url
+      : null;
 
-      await prisma.partner.update({
-        where: { id: partner.id },
-        data: {
-          name,
-          bio: description,
-          logo: logoUrl,
-        },
-      });
-
-      return { ok: true };
-    } catch (e) {
-      console.error(e);
-      return {
-        ok: false,
-      };
-    }
+    await prisma.partner.update({
+      where: { id: partner.id },
+      data: {
+        name,
+        bio: description,
+        image: imageUrl,
+      },
+    });
   });

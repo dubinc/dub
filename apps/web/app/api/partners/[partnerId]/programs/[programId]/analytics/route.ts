@@ -1,6 +1,6 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { calculateEarnings } from "@/lib/api/sales/commission";
 import { withPartner } from "@/lib/auth/partner";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
@@ -12,22 +12,12 @@ export const GET = withPartner(async ({ partner, params, searchParams }) => {
     programId: params.programId,
   });
 
-  if (!link) {
-    throw new DubApiError({
-      code: "not_found",
-      message:
-        "You don't have a link for this program yet. Contact your program admin to get one.",
-    });
-  }
-
   const parsedParams = analyticsQuerySchema
-    .pick({
-      event: true,
-      start: true,
-      end: true,
-      interval: true,
-      groupBy: true,
-      timezone: true,
+    .omit({
+      domain: true,
+      key: true,
+      linkId: true,
+      externalId: true,
     })
     .parse(searchParams);
 
@@ -36,26 +26,27 @@ export const GET = withPartner(async ({ partner, params, searchParams }) => {
     linkId: link.id,
   });
 
-  const getEarnings = (item: any) => {
-    return (
-      (program.commissionType === "percentage" ? item.saleAmount : item.sales) *
-      (program.commissionAmount / 100) // commission amount is either a percentage of amount in cents
-    );
-  };
-
   let data;
 
   if (response instanceof Array) {
     data = response.map((item) => {
       return {
         ...item,
-        earnings: getEarnings(item),
+        earnings: calculateEarnings({
+          program,
+          sales: item.sales ?? 0,
+          saleAmount: item.saleAmount ?? 0,
+        }),
       };
     });
   } else {
     data = {
       ...response,
-      earnings: getEarnings(response),
+      earnings: calculateEarnings({
+        program,
+        sales: response.sales,
+        saleAmount: response.saleAmount,
+      }),
     };
   }
 

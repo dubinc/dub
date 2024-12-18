@@ -1,7 +1,7 @@
-import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 
@@ -28,6 +28,7 @@ export async function deleteLink(linkId: string) {
         url: link.url,
         tag_ids: link.tags.map((tag) => tag.tagId),
         folder_id: link.folderId,
+        program_id: link.programId ?? "",
         workspace_id: link.projectId,
         created_at: link.createdAt,
         deleted: true,

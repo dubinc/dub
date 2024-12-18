@@ -11,6 +11,7 @@ export const dubLinksMetadataSchema = z.object({
     .string()
     .nullable()
     .transform((v) => (v === null ? "" : v)),
+  program_id: z.string().default(""),
   workspace_id: z
     .string()
     .nullish()

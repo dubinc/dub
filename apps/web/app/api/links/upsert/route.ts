@@ -8,9 +8,9 @@ import {
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { checkFolderPermission } from "@/lib/folder/permissions";
-import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
 import { createLinkBodySchema } from "@/lib/zod/schemas/links";
+import { prisma } from "@dub/prisma";
 import { deepEqual } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -95,11 +95,6 @@ export const PUT = withWorkspace(
         link.externalId?.toLowerCase() ===
         updatedLink.externalId?.toLowerCase();
 
-      // if identifier is the same, we don't need to check if it exists
-      const skipIdentifierChecks =
-        link.identifier?.toLowerCase() ===
-        updatedLink.identifier?.toLowerCase();
-
       const {
         link: processedLink,
         error,
@@ -109,7 +104,6 @@ export const PUT = withWorkspace(
         workspace,
         skipKeyChecks,
         skipExternalIdChecks,
-        skipIdentifierChecks,
       });
 
       if (error) {

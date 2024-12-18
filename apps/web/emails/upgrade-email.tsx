@@ -44,7 +44,7 @@ export default function UpgradeEmail({
             </Heading>
             <Section className="my-8">
               <Img
-                src="https://public.blob.vercel-storage.com/kmKY9FhOzDRAX28c/thank-you-PCJDehD1yOJdagchd7TuDCI0JnXVo7.png"
+                src="https://assets.dub.co/misc/thank-you-thumbnail.jpg"
                 alt="Thank you"
                 className="max-w-[500px]"
               />

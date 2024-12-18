@@ -3,8 +3,8 @@ import { transformLink } from "@/lib/api/links";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { checkFolderPermission } from "@/lib/folder/permissions";
-import { prisma } from "@/lib/prisma";
 import { getLinkInfoQuerySchema } from "@/lib/zod/schemas/links";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/links/info – get the info for a link
@@ -23,7 +23,7 @@ export const GET = withWorkspace(
     }
 
     const link = await getLinkOrThrow({
-      workspace,
+      workspaceId: workspace.id,
       linkId,
       externalId,
       domain,

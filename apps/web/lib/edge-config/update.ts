@@ -13,9 +13,14 @@ export const updateConfig = async ({
     | "whitelist"
     | "emails"
     | "reserved"
-    | "reservedUsernames";
+    | "reservedUsernames"
+    | "partnersPortal";
   value: string;
 }) => {
+  if (!process.env.EDGE_CONFIG_ID) {
+    return;
+  }
+
   const existingData = (await get(key)) as string[];
   const newData = Array.from(new Set([...existingData, value]));
 

@@ -1,6 +1,9 @@
 import { TrackSaleResponse } from "@/lib/types";
 import { randomId } from "tests/utils/helpers";
-import { E2E_CUSTOMER_ID } from "tests/utils/resource";
+import {
+  E2E_CUSTOMER_EXTERNAL_ID,
+  E2E_CUSTOMER_ID,
+} from "tests/utils/resource";
 import { expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
@@ -20,14 +23,20 @@ test("POST /track/sale", async () => {
     path: "/track/sale",
     body: {
       ...sale,
-      customerId: E2E_CUSTOMER_ID,
+      externalId: E2E_CUSTOMER_EXTERNAL_ID,
     },
   });
 
   expect(response.status).toEqual(200);
   expect(response.data).toStrictEqual({
     eventName: "Subscription",
-    customer: expect.any(Object),
+    customer: {
+      id: E2E_CUSTOMER_ID,
+      name: expect.any(String),
+      email: expect.any(String),
+      avatar: expect.any(String),
+      externalId: E2E_CUSTOMER_EXTERNAL_ID,
+    },
     sale: {
       amount: 100,
       currency: sale.currency,
@@ -35,7 +44,6 @@ test("POST /track/sale", async () => {
       invoiceId: sale.invoiceId,
       metadata: null,
     },
-    customerId: E2E_CUSTOMER_ID,
     amount: sale.amount,
     currency: sale.currency,
     paymentProcessor: sale.paymentProcessor,

@@ -1,6 +1,6 @@
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { Button, Input, useMediaQuery } from "@dub/ui";
-import { InputPassword } from "@dub/ui/src/icons";
+import { InputPassword } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
@@ -10,7 +10,7 @@ import { useContext, useState } from "react";
 import { toast } from "sonner";
 import { errorCodes, LoginFormContext } from "./login-form";
 
-export const EmailSignIn = () => {
+export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams?.get("next");
@@ -77,38 +77,48 @@ export const EmailSignIn = () => {
             }
 
             const { accountExists, hasPassword } = await res.json();
-            if (accountExists) {
-              const provider =
-                hasPassword && password ? "credentials" : "email";
 
-              signIn(provider, {
-                email,
-                redirect: false,
-                ...(password && { password }),
-                ...(next ? { callbackUrl: next } : {}),
-              }).then((res) => {
-                if (!res) return;
-
-                // Handle errors
-                if (!res.ok && res.error) {
-                  if (errorCodes[res.error]) toast.error(errorCodes[res.error]);
-                  else toast.error(res.error);
-
-                  setClickedMethod(undefined);
-                  return;
-                }
-
-                // Handle success
-                setLastUsedAuthMethod("email");
-                if (provider === "email") {
-                  toast.success("Email sent - check your inbox!");
-                  setEmail("");
-                  setClickedMethod(undefined);
-                } else if (provider === "credentials") router.push(next ?? "/");
-              });
-            } else {
+            if (!accountExists) {
               setClickedMethod(undefined);
               toast.error("No account found with that email address.");
+              return;
+            }
+
+            const provider = hasPassword && password ? "credentials" : "email";
+
+            const response = await signIn(provider, {
+              email,
+              redirect: false,
+              callbackUrl: next || redirectTo || "/workspaces",
+              ...(password && { password }),
+            });
+
+            if (!response) {
+              return;
+            }
+
+            if (!response.ok && response.error) {
+              if (errorCodes[response.error]) {
+                toast.error(errorCodes[response.error]);
+              } else {
+                toast.error(response.error);
+              }
+
+              setClickedMethod(undefined);
+              return;
+            }
+
+            setLastUsedAuthMethod("email");
+
+            if (provider === "email") {
+              toast.success("Email sent - check your inbox!");
+              setEmail("");
+              setClickedMethod(undefined);
+              return;
+            }
+
+            if (provider === "credentials") {
+              router.push(response?.url || redirectTo || "/workspaces");
             }
           });
         }}

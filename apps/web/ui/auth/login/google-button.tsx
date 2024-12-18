@@ -1,5 +1,5 @@
 import { Button } from "@dub/ui";
-import { Google } from "@dub/ui/src/icons";
+import { Google } from "@dub/ui/icons";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useContext } from "react";

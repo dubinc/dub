@@ -1,0 +1,21 @@
+enum InvoiceStatus {
+  processing
+  completed
+  failed
+}
+
+model Invoice {
+  id              String   @id @default(cuid())
+  programId       String
+  status          InvoiceStatus   @default(processing)
+  amount          Int      @default(0)
+  fee             Int      @default(0)
+  total           Int      @default(0)
+  receiptUrl      String?  @db.LongText
+  createdAt       DateTime @default(now())
+
+  program Program  @relation(fields: [programId], references: [id])
+  payouts Payout[]
+
+  @@index([programId])
+}

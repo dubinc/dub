@@ -12,12 +12,7 @@ import {
   useCopyToClipboard,
   useKeyboardShortcut,
 } from "@dub/ui";
-import {
-  CircleCheck,
-  Copy,
-  LoadingSpinner,
-  PenWriting,
-} from "@dub/ui/src/icons";
+import { CircleCheck, Copy, LoadingSpinner, PenWriting } from "@dub/ui/icons";
 import { cn, nFormatter, pluralize } from "@dub/utils";
 import Link from "next/link";
 import { useContext, useState } from "react";

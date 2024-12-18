@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { notFound } from "next/navigation";
 import IntegrationPageClient from "./page-client";
 

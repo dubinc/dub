@@ -1,9 +1,9 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import z from "@/lib/zod";
+import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { sendDomainTransferredEmail, updateLinksInRedis } from "./utils";
@@ -75,6 +75,7 @@ export async function POST(req: Request) {
             url: link.url,
             tag_ids: [],
             folder_id: null,
+            program_id: link.programId ?? "",
             workspace_id: newWorkspaceId,
             created_at: link.createdAt,
           })),

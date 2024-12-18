@@ -6,7 +6,7 @@ import {
   useKeyboardShortcut,
   useMediaQuery,
 } from "@dub/ui";
-import { Dots } from "@dub/ui/src/icons";
+import { Dots } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Settings } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
@@ -133,7 +133,7 @@ export function MoreDropdown() {
                     <Settings
                       className={cn(
                         "mr-1 size-4 text-gray-950",
-                        (data.externalId || data.identifier) && "text-blue-500",
+                        data.externalId && "text-blue-500",
                       )}
                     />
                     Advanced Settings

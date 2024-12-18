@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 const domain = "song.fyi";
@@ -15,6 +15,7 @@ async function main() {
       key: true,
       url: true,
       projectId: true,
+      programId: true,
       tags: true,
       createdAt: true,
     },
@@ -38,6 +39,7 @@ async function main() {
         url: link.url,
         tag_ids: link.tags.map((tag) => tag.tagId),
         folder_id: null,
+        program_id: link.programId ?? "",
         workspace_id: link.projectId,
         created_at: link.createdAt,
         deleted: true,

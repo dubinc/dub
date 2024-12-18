@@ -5,8 +5,8 @@ import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
 import { getFolders } from "@/lib/folder/get-folders";
 import { checkFolderPermission } from "@/lib/folder/permissions";
-import { prisma } from "@/lib/prisma";
 import { linksExportQuerySchema } from "@/lib/zod/schemas/links";
+import { prisma } from "@dub/prisma";
 import { linkConstructor } from "@dub/utils";
 
 // GET /api/links/export – export links to CSV

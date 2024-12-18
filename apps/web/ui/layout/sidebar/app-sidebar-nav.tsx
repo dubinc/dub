@@ -1,5 +1,6 @@
 "use client";
 
+import usePrograms from "@/lib/swr/use-programs";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BetaFeatures } from "@/lib/types";
 import { useRouterStuff } from "@dub/ui";
@@ -7,6 +8,7 @@ import {
   Books2,
   CircleInfo,
   ConnectedDots,
+  ConnectedDots4,
   CubeSettings,
   Gear2,
   Gift,
@@ -16,7 +18,9 @@ import {
   ShieldCheck,
   Users6,
   Webhook,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
+import { Session } from "next-auth";
+import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 import UserSurveyButton from "../user-survey";
@@ -32,9 +36,11 @@ const NAV_AREAS: SidebarNavAreas<{
   slug: string;
   queryString: string;
   flags?: Record<BetaFeatures, boolean>;
+  programs?: { id: string }[];
+  session?: Session | null;
 }> = {
   // Top-level
-  default: ({ slug, queryString }) => ({
+  default: ({ slug, queryString, programs }) => ({
     showSwitcher: true,
     showNews: true,
     direction: "left",
@@ -64,6 +70,51 @@ const NAV_AREAS: SidebarNavAreas<{
           },
         ],
       },
+      ...(programs?.length
+        ? [
+            {
+              name: "Programs",
+              items: [
+                {
+                  name: "Affiliate",
+                  icon: ConnectedDots4,
+                  href: `/${slug}/programs/${programs[0].id}`,
+                  items: [
+                    {
+                      name: "Overview",
+                      href: `/${slug}/programs/${programs[0].id}`,
+                      exact: true,
+                    },
+                    {
+                      name: "Partners",
+                      href: `/${slug}/programs/${programs[0].id}/partners`,
+                    },
+                    {
+                      name: "Sales",
+                      href: `/${slug}/programs/${programs[0].id}/sales`,
+                    },
+                    {
+                      name: "Payouts",
+                      href: `/${slug}/programs/${programs[0].id}/payouts`,
+                    },
+                    {
+                      name: "Branding",
+                      href: `/${slug}/programs/${programs[0].id}/branding`,
+                    },
+                    {
+                      name: "Resources",
+                      href: `/${slug}/programs/${programs[0].id}/resources`,
+                    },
+                    {
+                      name: "Settings",
+                      href: `/${slug}/programs/${programs[0].id}/settings`,
+                    },
+                  ],
+                },
+              ],
+            },
+          ]
+        : []),
     ],
   }),
 
@@ -82,6 +133,11 @@ const NAV_AREAS: SidebarNavAreas<{
             exact: true,
           },
           {
+            name: "Billing",
+            icon: Receipt2,
+            href: `/${slug}/settings/billing`,
+          },
+          {
             name: "Domains",
             icon: Globe,
             href: `/${slug}/settings/domains`,
@@ -90,11 +146,6 @@ const NAV_AREAS: SidebarNavAreas<{
             name: "Library",
             icon: Books2,
             href: `/${slug}/settings/library`,
-          },
-          {
-            name: "Billing",
-            icon: Receipt2,
-            href: `/${slug}/settings/billing`,
           },
           {
             name: "People",
@@ -111,15 +162,6 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: ShieldCheck,
             href: `/${slug}/settings/security`,
           },
-          ...(flags?.referrals
-            ? [
-                {
-                  name: "Referrals",
-                  icon: Gift,
-                  href: `/${slug}/settings/referrals`,
-                },
-              ]
-            : []),
         ],
       },
       {
@@ -160,7 +202,7 @@ const NAV_AREAS: SidebarNavAreas<{
   }),
 
   // User settings
-  userSettings: ({ slug }) => ({
+  userSettings: ({ session, slug }) => ({
     title: "Settings",
     backHref: `/${slug}`,
     content: [
@@ -178,6 +220,15 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: ShieldCheck,
             href: "/account/settings/security",
           },
+          ...(session?.user?.["referralLinkId"]
+            ? [
+                {
+                  name: "Referrals",
+                  icon: Gift,
+                  href: "/account/settings/referrals",
+                },
+              ]
+            : []),
         ],
       },
     ],
@@ -195,6 +246,8 @@ export function AppSidebarNav({
   const pathname = usePathname();
   const { flags } = useWorkspace();
   const { getQueryString } = useRouterStuff();
+  const { data: session } = useSession();
+  const { programs } = usePrograms();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -208,7 +261,13 @@ export function AppSidebarNav({
     <SidebarNav
       areas={NAV_AREAS}
       currentArea={currentArea}
-      data={{ slug: slug || "", queryString: getQueryString(), flags }}
+      data={{
+        slug: slug || "",
+        queryString: getQueryString(),
+        flags,
+        programs,
+        session: session || undefined,
+      }}
       toolContent={toolContent}
       newsContent={newsContent}
       switcher={<WorkspaceDropdown />}

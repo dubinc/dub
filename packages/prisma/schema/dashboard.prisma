@@ -1,0 +1,25 @@
+model Dashboard {
+  id String @id @default(cuid())
+
+  link   Link?   @relation(fields: [linkId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  linkId String? @unique
+
+  // Project that the share link belongs to
+  project   Project? @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  projectId String?
+
+  // User who created the shared dashboard
+  user   User?   @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  userId String?
+
+  // additional link configurations
+  doIndex         Boolean @default(false) // whether to index the share link on Google or not
+  password        String? // password to access the share link
+  showConversions Boolean @default(false) // ideally this should just be synced to trackConversion on the link
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index(projectId)
+  @@index(userId)
+}

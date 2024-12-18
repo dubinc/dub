@@ -6,7 +6,7 @@ import { ShortLinkInput } from "@/ui/links/short-link-input";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import { Button } from "@dub/ui";
-import { LoadingCircle, Photo } from "@dub/ui/src/icons";
+import { LoadingCircle, Photo } from "@dub/ui/icons";
 import { getUrlWithoutUTMParams } from "@dub/utils";
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";

@@ -9,7 +9,7 @@ import {
   Popover,
   useScrollProgress,
 } from "@dub/ui";
-import { Book2, Check2, Plus } from "@dub/ui/src/icons";
+import { Book2, Check2, Plus } from "@dub/ui/icons";
 import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { ChevronsUpDown, HelpCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -170,9 +170,10 @@ function WorkspaceList({
   setOpenPopover: (open: boolean) => void;
 }) {
   const { setShowAddWorkspaceModal } = useContext(ModalContext);
-  const { domain, key } = useParams() as {
+  const { domain, key, programId } = useParams() as {
     domain?: string;
     key?: string;
+    programId?: string;
   };
   const pathname = usePathname();
 
@@ -181,15 +182,15 @@ function WorkspaceList({
 
   const href = useCallback(
     (slug: string) => {
-      if (domain || key || selected.slug === "/") {
-        // if we're on a link page, navigate back to the workspace root
+      if (domain || key || programId || selected.slug === "/") {
+        // if we're on a link or program page, navigate back to the workspace root
         return `/${slug}`;
       } else {
         // else, we keep the path but remove all query params
         return pathname?.replace(selected.slug, slug).split("?")[0] || "/";
       }
     },
-    [domain, key, pathname, selected.slug],
+    [domain, key, programId, pathname, selected.slug],
   );
 
   return (

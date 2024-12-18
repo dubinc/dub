@@ -7,7 +7,7 @@ import { withWorkspace } from "@/lib/auth";
 import { getFolders } from "@/lib/folder/get-folders";
 import { checkFolderPermission } from "@/lib/folder/permissions";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { Link } from "@prisma/client";
+import { Link } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 export const GET = withWorkspace(
@@ -36,7 +36,7 @@ export const GET = withWorkspace(
 
     if (linkId || externalId || (domain && key)) {
       link = await getLinkOrThrow({
-        workspace: workspace,
+        workspaceId: workspace.id,
         linkId,
         externalId,
         domain,
@@ -69,6 +69,7 @@ export const GET = withWorkspace(
 
     validDateRangeForPlan({
       plan: workspace.plan,
+      conversionEnabled: workspace.conversionEnabled,
       interval,
       start,
       end,

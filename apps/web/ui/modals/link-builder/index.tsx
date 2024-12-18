@@ -158,7 +158,7 @@ function LinkBuilderInner({
 
   const { generatingMetatags } = useMetatags({
     initial: Boolean(props),
-    enabled: showLinkBuilder && !proxy && debouncedUrl.length > 0,
+    enabled: showLinkBuilder && debouncedUrl.length > 0,
   });
 
   const saveDisabled = useMemo(() => {

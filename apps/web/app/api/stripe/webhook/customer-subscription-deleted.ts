@@ -1,6 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
 import { FREE_PLAN, log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
@@ -112,6 +112,16 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       },
     }),
 
+    // remove logo from all domains for the workspace
+    prisma.domain.updateMany({
+      where: {
+        projectId: workspace.id,
+      },
+      data: {
+        logo: null,
+      },
+    }),
+
     // remove root domain link for all domains from MySQL
     prisma.link.updateMany({
       where: {
@@ -135,6 +145,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         url: link.url,
         tag_ids: link.tags.map((tag) => tag.tagId),
         folder_id: link.folderId,
+        program_id: link.programId ?? "",
         workspace_id: link.projectId,
         created_at: link.createdAt,
       })),

@@ -1,13 +1,13 @@
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
+import { Link } from "@dub/prisma/client";
 import { R2_URL } from "@dub/utils";
-import { Link, Tag } from "@prisma/client";
 
 export async function bulkDeleteLinks({
   links,
 }: {
-  links: (Link & { tags: Pick<Tag, "id">[] })[];
+  links: (Link & { tags: { tagId: string }[] })[];
 }) {
   if (links.length === 0) {
     return;
@@ -30,6 +30,8 @@ export async function bulkDeleteLinks({
         domain: link.domain,
         key: link.key,
         url: link.url,
+        tag_ids: link.tags.map(({ tagId }) => tagId),
+        program_id: link.programId ?? "",
         workspace_id: link.projectId,
         created_at: link.createdAt,
         tag_ids: link.tags.map(({ id }) => id),

@@ -1,6 +1,6 @@
 {
   "id": "dub.co",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "name": "Dub Conversions",
   "icon": "./logo.png",
   "permissions": [
@@ -45,8 +45,8 @@
     }
   },
   "allowed_redirect_uris": [
-    "https://app.dub.co/api/stripe/connect/callback",
-    "https://preview.dub.co/api/stripe/connect/callback"
+    "https://app.dub.co/api/stripe/integration/callback",
+    "https://preview.dub.co/api/stripe/integration/callback"
   ],
   "stripe_api_access_type": "oauth",
   "distribution_type": "public"

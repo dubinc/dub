@@ -1,0 +1,26 @@
+model Tag {
+  id        String    @id @default(cuid())
+  name      String
+  color     String    @default("blue")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  project   Project   @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  projectId String
+  links     LinkTag[]
+
+  @@unique([name, projectId])
+  @@index(projectId)
+}
+
+model LinkTag {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  link      Link     @relation(fields: [linkId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  linkId    String
+  tag       Tag      @relation(fields: [tagId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  tagId     String
+
+  @@unique([linkId, tagId])
+  @@index(tagId)
+}
