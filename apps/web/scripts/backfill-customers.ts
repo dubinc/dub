@@ -1,15 +1,8 @@
-import "dotenv-flow/config";
 import { getClickEvent, getLeadEvent } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
-
+import "dotenv-flow/config";
 
 // Backfill new customer columns such as linkId, clickId, country
-
-// linkId           String?
-//   clickId          String?
-//   clickedAt        DateTime?
-//   leadCreatedAt    DateTime?
-//   country          String?
 
 async function main() {
   const customers = await prisma.customer.findMany({
@@ -95,7 +88,6 @@ async function main() {
 }
 
 main();
-
 
 // '2024-12-17 13:48:52.533'
 // new Date('2024-12-17 13:48:52.533')
