@@ -2,40 +2,62 @@
 
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Button } from "@dub/ui";
+import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import ManageSubscriptionButton from "@/ui/workspaces/manage-subscription-button";
+import { Badge, Button, CreditCard } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useState } from "react";
 import { Stripe } from "stripe";
 import { PaymentMethodTypesList } from "./payment-method-types";
 
 export default function PaymentMethods() {
-  const { paymentMethods, loading } = usePaymentMethods();
+  const { stripeId, partnersEnabled } = useWorkspace();
+  const { paymentMethods } = usePaymentMethods();
+
+  const regularPaymentMethods = paymentMethods?.filter(
+    (pm) => pm.type !== "us_bank_account",
+  );
+
+  const achPaymentMethods = paymentMethods?.filter(
+    (pm) => pm.type === "us_bank_account",
+  );
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
-      <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:p-8 xl:flex-row">
+      <div className="flex flex-col items-center justify-between gap-y-4 p-6 md:p-8 xl:flex-row">
         <div>
           <h2 className="text-xl font-medium">Payment methods</h2>
           <p className="text-balance text-sm leading-normal text-neutral-500">
             Manage your payment methods on Dub
           </p>
         </div>
+        {stripeId && (
+          <ManageSubscriptionButton text="Manage" className="w-fit" />
+        )}
       </div>
       <div className="grid gap-4 border-t border-neutral-200 p-6">
-        {!loading ? (
-          ["card", "us_bank_account"].map((methodType) => {
-            const paymentMethod = paymentMethods?.find(
-              (pm) => pm.type === methodType,
-            );
-
-            return (
+        {regularPaymentMethods ? (
+          regularPaymentMethods.length > 0 ? (
+            regularPaymentMethods.map((paymentMethod) => (
               <PaymentMethodCard
-                key={methodType}
-                type={methodType as Stripe.PaymentMethod.Type}
+                key={paymentMethod.id}
+                type={paymentMethod.type}
                 paymentMethod={paymentMethod}
               />
-            );
-          })
+            ))
+          ) : (
+            <AnimatedEmptyState
+              title="No payment methods found"
+              description="You haven't added any payment methods yet"
+              cardContent={() => (
+                <>
+                  <CreditCard className="size-4 text-neutral-700" />
+                  <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+                </>
+              )}
+              className="border-none md:min-h-[250px]"
+            />
+          )
         ) : (
           <>
             <PaymentMethodCardSkeleton />
@@ -43,6 +65,21 @@ export default function PaymentMethods() {
           </>
         )}
       </div>
+      {partnersEnabled && achPaymentMethods && (
+        <div className="grid gap-4 border-t border-neutral-200 p-6">
+          {achPaymentMethods.length > 0 ? (
+            achPaymentMethods.map((paymentMethod) => (
+              <PaymentMethodCard
+                key={paymentMethod.id}
+                type={paymentMethod.type}
+                paymentMethod={paymentMethod}
+              />
+            ))
+          ) : (
+            <PaymentMethodCard type="us_bank_account" />
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -92,17 +129,26 @@ const PaymentMethodCard = ({
           <Icon className="size-6 text-neutral-700" />
         </div>
         <div>
-          <p className="font-medium text-neutral-900">{title}</p>
+          <div className="flex items-center gap-2">
+            <p className="font-medium text-neutral-900">{title}</p>
+            {type === "us_bank_account" && (
+              <Badge variant="neutral">
+                Recommended for Dub Partners payouts
+              </Badge>
+            )}
+          </div>
           <p className="text-sm text-neutral-500">{description}</p>
         </div>
       </div>
-      <Button
-        variant={paymentMethod ? "secondary" : "primary"}
-        className="h-8 w-fit"
-        text={paymentMethod ? "Manage" : "Connect"}
-        onClick={() => managePaymentMethods(type)}
-        loading={isLoading}
-      />
+      {!paymentMethod && (
+        <Button
+          variant="primary"
+          className="h-8 w-fit"
+          text="Connect"
+          onClick={() => managePaymentMethods(type)}
+          loading={isLoading}
+        />
+      )}
     </div>
   );
 };

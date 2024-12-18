@@ -5,10 +5,6 @@ import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-const addPaymentMethodSchema = z.object({
-  method: z.enum(["card", "us_bank_account"]),
-});
-
 export const GET = withWorkspace(async ({ workspace }) => {
   if (!workspace.stripeId) {
     return NextResponse.json([]);
@@ -26,12 +22,28 @@ export const GET = withWorkspace(async ({ workspace }) => {
   }
 });
 
+const addPaymentMethodSchema = z.object({
+  method: z.enum(["card", "us_bank_account"]).optional(),
+});
+
 export const POST = withWorkspace(async ({ workspace, req }) => {
   if (!workspace.stripeId) {
     return NextResponse.json({ error: "Workspace does not have a Stripe ID" });
   }
 
   const { method } = addPaymentMethodSchema.parse(await parseRequestBody(req));
+
+  if (!method) {
+    const { url } = await stripe.billingPortal.sessions.create({
+      customer: workspace.stripeId,
+      return_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing`,
+      flow_data: {
+        type: "payment_method_update",
+      },
+    });
+
+    return NextResponse.json({ url });
+  }
 
   const { url } = await stripe.checkout.sessions.create({
     mode: "setup",
