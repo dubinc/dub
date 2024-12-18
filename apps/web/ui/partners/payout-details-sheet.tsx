@@ -1,10 +1,10 @@
-import { processPartnerPayoutAction } from "@/lib/actions/partners/process-partner-payout";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse, SaleResponse } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
   buttonVariants,
+  ExpandingArrow,
   Sheet,
   StatusBadge,
   Table,
@@ -20,12 +20,10 @@ import {
   formatDate,
   formatDateTime,
 } from "@dub/utils";
-import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
-import { toast } from "sonner";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import { PayoutStatusBadges } from "./payout-status-badges";
 import { PayoutTypeBadge } from "./payout-type-badge";
 import { SaleRowMenu } from "./sale-row-menu";
@@ -52,16 +50,15 @@ function PayoutDetailsSheetContent({
     fetcher,
   );
 
-  const canConfirmPayout = payout.status === "pending";
-
   const invoiceData = useMemo(() => {
     const statusBadge = PayoutStatusBadges[payout.status];
 
     return {
       Partner: (
-        <Link
+        <a
           href={`/${slug}/programs/${programId}/partners?partnerId=${payout.partner.id}`}
-          className="flex items-center gap-2"
+          target="_blank"
+          className="group flex items-center gap-0.5"
         >
           <img
             src={
@@ -69,10 +66,11 @@ function PayoutDetailsSheetContent({
               `${DICEBEAR_AVATAR_URL}${payout.partner.name}`
             }
             alt={payout.partner.name}
-            className="size-5 rounded-full"
+            className="mr-1.5 size-5 rounded-full"
           />
           <div>{payout.partner.name}</div>
-        </Link>
+          <ExpandingArrow className="size-3" />
+        </a>
       ),
 
       Period:
@@ -109,18 +107,11 @@ function PayoutDetailsSheetContent({
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }),
-      Fee: currencyFormatter(payout.fee / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
+
+      ...(payout.invoiceId && {
+        Invoice: payout.invoiceId,
       }),
-      Total: (
-        <strong>
-          {currencyFormatter(payout.total / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}
-        </strong>
-      ),
+
       Description: payout.description || "-",
     };
   }, [payout]);
@@ -183,26 +174,6 @@ function PayoutDetailsSheetContent({
     error: error ? "Failed to load sales" : undefined,
   } as any);
 
-  const { queryParams } = useRouterStuff();
-
-  const { executeAsync, isExecuting } = useAction(processPartnerPayoutAction, {
-    onSuccess: async () => {
-      await mutate(
-        (key) =>
-          typeof key === "string" &&
-          key.startsWith(`/api/programs/${programId}/payouts`),
-        undefined,
-        { revalidate: true },
-      );
-      toast.success("Successfully confirmed payout!");
-      setIsOpen(false);
-      queryParams({ del: "payoutId", scroll: false });
-    },
-    onError({ error }) {
-      toast.error(error.serverError);
-    },
-  });
-
   return (
     <>
       <div>
@@ -257,28 +228,9 @@ function PayoutDetailsSheetContent({
             type="button"
             variant="secondary"
             onClick={() => setIsOpen(false)}
-            text={canConfirmPayout ? "Cancel" : "Close"}
+            text="Close"
             className="w-fit"
           />
-          {canConfirmPayout && (
-            <Button
-              type="button"
-              variant="primary"
-              loading={isExecuting}
-              onClick={async () => {
-                if (!payout.partner.dotsUserId) {
-                  toast.error("Partner has no Dots user ID");
-                  return;
-                }
-                await executeAsync({
-                  workspaceId: workspaceId!,
-                  payoutId: payout.id,
-                });
-              }}
-              text="Confirm payout"
-              className="w-fit"
-            />
-          )}
         </div>
       </div>
     </>

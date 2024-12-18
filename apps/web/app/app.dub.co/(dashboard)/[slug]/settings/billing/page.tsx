@@ -1,10 +1,11 @@
-import { Suspense } from "react";
-import WorkspaceBillingClient from "./page-client";
+import PaymentMethods from "./payment-methods";
+import PlanUsage from "./plan-usage";
 
 export default function WorkspaceBilling() {
   return (
-    <Suspense>
-      <WorkspaceBillingClient />
-    </Suspense>
+    <div className="grid gap-8">
+      <PlanUsage />
+      <PaymentMethods />
+    </div>
   );
 }

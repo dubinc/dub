@@ -4,6 +4,7 @@ import useSalesCount from "@/lib/swr/use-sales-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { SaleResponse } from "@/lib/types";
 import FilterButton from "@/ui/analytics/events/filter-button";
+import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { SaleRowMenu } from "@/ui/partners/sale-row-menu";
 import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -104,19 +105,7 @@ const SaleTableBusinessInner = memo(
         {
           header: "Partner",
           cell: ({ row }) => {
-            return (
-              <div className="flex items-center gap-2">
-                <img
-                  src={
-                    row.original.partner.image ||
-                    `${DICEBEAR_AVATAR_URL}${row.original.partner.name}`
-                  }
-                  alt={row.original.partner.name}
-                  className="size-5 rounded-full"
-                />
-                <div>{row.original.partner.name}</div>
-              </div>
-            );
+            return <PartnerRowItem partner={row.original.partner} />;
           },
           meta: {
             filterParams: ({ row }) => ({

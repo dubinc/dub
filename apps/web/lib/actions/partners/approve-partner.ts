@@ -6,7 +6,6 @@ import { getProgramOrThrow } from "../../api/programs/get-program";
 import { recordLink } from "../../tinybird";
 import z from "../../zod";
 import { authActionClient } from "../safe-action";
-import { enrollDotsUserApp } from "./enroll-dots-user-app";
 
 const approvePartnerSchema = z.object({
   workspaceId: z.string(),
@@ -101,14 +100,6 @@ export const approvePartnerAction = authActionClient
         workspace_id: workspace.id,
         deleted: false,
       }),
-
-      // enroll partner in Dots app if it exists
-      workspace.dotsAppId &&
-        enrollDotsUserApp({
-          partner: programEnrollment.partner,
-          dotsAppId: workspace.dotsAppId,
-          programEnrollmentId: programEnrollment.id,
-        }),
     ]);
 
     // TODO: [partners] Notify partner of approval?

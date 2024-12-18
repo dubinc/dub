@@ -118,7 +118,7 @@ function PayoutRow({ payout }: { payout: PayoutResponse }) {
           </div>
         </div>
         <span className="text-sm text-neutral-500">
-          {currencyFormatter(payout.total / 100, {
+          {currencyFormatter(payout.amount / 100, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}

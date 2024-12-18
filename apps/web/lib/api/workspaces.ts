@@ -1,5 +1,4 @@
 import { storage } from "@/lib/storage";
-import { cancelSubscription } from "@/lib/stripe";
 import { WorkspaceProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import {
@@ -11,6 +10,7 @@ import {
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { qstash } from "../cron";
+import { cancelSubscription } from "../stripe/cancel-subscription";
 import { markDomainAsDeleted } from "./domains";
 import { linkCache } from "./links/cache";
 
@@ -102,14 +102,14 @@ export async function deleteWorkspaceAdmin(
   });
 
   // delete all domains, links, and uploaded images associated with the workspace
-  const deleteDomainsLinksResponse = await Promise.allSettled([
-    ...customDomains.map(({ slug }) =>
+  const deleteDomainsLinksResponse = await Promise.allSettled(
+    customDomains.map(({ slug }) =>
       markDomainAsDeleted({
         domain: slug,
         workspaceId: workspace.id,
       }),
     ),
-  ]);
+  );
 
   const deleteWorkspaceResponse = await Promise.allSettled([
     // delete workspace logo if it's a custom logo stored in R2

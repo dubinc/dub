@@ -27,6 +27,7 @@ import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 import { PartnerProgramDropdown } from "./partner-program-dropdown";
+import { PayoutStats } from "./payout-stats";
 import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
 
 const NAV_AREAS: SidebarNavAreas<{
@@ -84,11 +85,6 @@ const NAV_AREAS: SidebarNavAreas<{
             href: `/programs/${programSlug}/sales${queryString}`,
           },
           {
-            name: "Payouts",
-            icon: MoneyBills2,
-            href: `/programs/${programSlug}/payouts`,
-          },
-          {
             name: "Links",
             icon: Hyperlink,
             href: `/programs/${programSlug}/links`,
@@ -117,9 +113,9 @@ const NAV_AREAS: SidebarNavAreas<{
             exact: true,
           },
           {
-            name: "Wallet",
+            name: "Payouts",
             icon: MoneyBills2,
-            href: "/settings/wallet",
+            href: "/settings/payouts",
           },
           {
             name: "People",
@@ -190,7 +186,7 @@ export function PartnersSidebarNav({
       toolContent={toolContent}
       newsContent={newsContent}
       switcher={<PartnerProgramDropdown />}
-      bottom={<>{programSlug && <ProgramInfo />}</>}
+      bottom={programSlug ? <ProgramInfo /> : <PayoutStats />}
     />
   );
 }

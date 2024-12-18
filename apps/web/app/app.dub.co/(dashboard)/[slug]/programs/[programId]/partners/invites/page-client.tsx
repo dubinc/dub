@@ -4,15 +4,7 @@ import { resendProgramInviteAction } from "@/lib/actions/resend-program-invite";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramInviteProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import {
-  Button,
-  Icon,
-  Popover,
-  Table,
-  usePagination,
-  useRouterStuff,
-  useTable,
-} from "@dub/ui";
+import { Button, Icon, Popover, Table, usePagination, useTable } from "@dub/ui";
 import { Dots, EnvelopeArrowRight, LoadingSpinner, Users } from "@dub/ui/icons";
 import {
   cn,
@@ -32,16 +24,14 @@ import useSWR, { KeyedMutator } from "swr";
 export function ProgramPartnersInvitesPageClient() {
   const { id: workspaceId } = useWorkspace();
   const { programId } = useParams();
-  const { getQueryString } = useRouterStuff();
 
   const {
     data: programInvites,
     mutate,
     error,
   } = useSWR<ProgramInviteProps[]>(
-    `/api/programs/${programId}/invites${getQueryString({
-      workspaceId,
-    })}`,
+    workspaceId &&
+      `/api/programs/${programId}/invites?workspaceId=${workspaceId}`,
     fetcher,
     {
       keepPreviousData: true,
