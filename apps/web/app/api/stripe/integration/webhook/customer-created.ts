@@ -62,10 +62,9 @@ export async function customerCreated(event: Stripe.Event) {
       stripeCustomerId: stripeCustomer.id,
       projectConnectId: stripeAccountId,
       externalId,
-      linkId: clickData.link_id,
-      clickId: clickData.click_id,
-      clickedAt: new Date(clickData.timestamp).toISOString(),
-      leadCreatedAt: new Date(), // TODO: Sync with lead timestamp
+      linkId,
+      clickId,
+      clickedAt: new Date(clickData.timestamp),
       country: clickData.country,
       project: {
         connect: {

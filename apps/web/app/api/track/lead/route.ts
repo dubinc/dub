@@ -95,11 +95,10 @@ export const POST = withWorkspaceEdge(
             externalId: customerExternalId,
             projectId: workspace.id,
             projectConnectId: workspace.stripeConnectId,
-            clickedAt: new Date(clickData.timestamp).toISOString(),
-            leadCreatedAt: new Date(), // TODO: Sync with lead timestamp
             clickId: clickData.click_id,
             linkId: clickData.link_id,
             country: clickData.country,
+            clickedAt: new Date(clickData.timestamp),
           },
         });
 
