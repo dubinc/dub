@@ -3,65 +3,45 @@
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { Button, TooltipContent } from "@dub/ui";
-import { CreditCard } from "@dub/ui/icons";
+import ManageSubscriptionButton from "@/ui/workspaces/manage-subscription-button";
+import { Badge, Button, CreditCard } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Stripe } from "stripe";
 import { PaymentMethodTypesList } from "./payment-method-types";
 
 export default function PaymentMethods() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const { slug, stripeId } = useWorkspace();
+  const { stripeId, partnersEnabled } = useWorkspace();
   const { paymentMethods } = usePaymentMethods();
 
-  const managePaymentMethods = async () => {
-    setIsLoading(true);
-    const { url } = await fetch(
-      `/api/workspaces/${slug}/billing/payment-methods`,
-      {
-        method: "POST",
-      },
-    ).then((res) => res.json());
+  const regularPaymentMethods = paymentMethods?.filter(
+    (pm) => pm.type !== "us_bank_account",
+  );
 
-    router.push(url);
-    setIsLoading(false);
-  };
+  const achPaymentMethods = paymentMethods?.filter(
+    (pm) => pm.type === "us_bank_account",
+  );
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
-      <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:p-8 xl:flex-row">
+      <div className="flex flex-col items-center justify-between gap-y-4 p-6 md:p-8 xl:flex-row">
         <div>
           <h2 className="text-xl font-medium">Payment methods</h2>
           <p className="text-balance text-sm leading-normal text-neutral-500">
             Manage your payment methods on Dub
           </p>
         </div>
-        <Button
-          variant="secondary"
-          text="Manage"
-          className="h-8 w-fit"
-          disabledTooltip={
-            !stripeId && (
-              <TooltipContent
-                title="You must upgrade to a paid plan to manage your payment methods."
-                cta="Upgrade"
-                href={`/${slug}/upgrade`}
-              />
-            )
-          }
-          onClick={managePaymentMethods}
-          loading={isLoading}
-        />
+        {stripeId && (
+          <ManageSubscriptionButton text="Manage" className="w-fit" />
+        )}
       </div>
       <div className="grid gap-4 border-t border-neutral-200 p-6">
-        {paymentMethods ? (
-          paymentMethods.length > 0 ? (
-            paymentMethods.map((paymentMethod) => (
+        {regularPaymentMethods ? (
+          regularPaymentMethods.length > 0 ? (
+            regularPaymentMethods.map((paymentMethod) => (
               <PaymentMethodCard
                 key={paymentMethod.id}
+                type={paymentMethod.type}
                 paymentMethod={paymentMethod}
               />
             ))
@@ -82,27 +62,60 @@ export default function PaymentMethods() {
           <>
             <PaymentMethodCardSkeleton />
             <PaymentMethodCardSkeleton />
-            <PaymentMethodCardSkeleton />
           </>
         )}
       </div>
+      {partnersEnabled && achPaymentMethods && (
+        <div className="grid gap-4 border-t border-neutral-200 p-6">
+          {achPaymentMethods.length > 0 ? (
+            achPaymentMethods.map((paymentMethod) => (
+              <PaymentMethodCard
+                key={paymentMethod.id}
+                type={paymentMethod.type}
+                paymentMethod={paymentMethod}
+              />
+            ))
+          ) : (
+            <PaymentMethodCard type="us_bank_account" />
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
 const PaymentMethodCard = ({
+  type,
   paymentMethod,
 }: {
-  paymentMethod: Stripe.PaymentMethod;
+  type: Stripe.PaymentMethod.Type;
+  paymentMethod?: Stripe.PaymentMethod;
 }) => {
+  const { slug } = useWorkspace();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const result = PaymentMethodTypesList(paymentMethod);
+
   const {
     title,
     icon: Icon,
     iconBgColor,
     description,
-  } = PaymentMethodTypesList(paymentMethod).find(
-    (method) => method.type === paymentMethod.type,
-  ) || PaymentMethodTypesList(paymentMethod)[0];
+  } = result.find((method) => method.type === type) || result[0];
+
+  const managePaymentMethods = async (method: string) => {
+    setIsLoading(true);
+    const { url } = await fetch(
+      `/api/workspaces/${slug}/billing/payment-methods`,
+      {
+        method: "POST",
+        body: JSON.stringify({ method }),
+      },
+    ).then((res) => res.json());
+
+    window.open(url, "_blank");
+    setIsLoading(false);
+  };
 
   return (
     <div className="flex items-center justify-between rounded-lg border border-neutral-200 p-4">
@@ -116,10 +129,26 @@ const PaymentMethodCard = ({
           <Icon className="size-6 text-neutral-700" />
         </div>
         <div>
-          <p className="font-medium text-neutral-900">{title}</p>
+          <div className="flex items-center gap-2">
+            <p className="font-medium text-neutral-900">{title}</p>
+            {type === "us_bank_account" && (
+              <Badge variant="neutral">
+                Recommended for Dub Partners payouts
+              </Badge>
+            )}
+          </div>
           <p className="text-sm text-neutral-500">{description}</p>
         </div>
       </div>
+      {!paymentMethod && (
+        <Button
+          variant="primary"
+          className="h-8 w-fit"
+          text="Connect"
+          onClick={() => managePaymentMethods(type)}
+          loading={isLoading}
+        />
+      )}
     </div>
   );
 };

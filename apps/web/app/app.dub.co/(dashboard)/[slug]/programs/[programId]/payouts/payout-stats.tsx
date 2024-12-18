@@ -5,12 +5,12 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutsCount } from "@/lib/types";
 import { usePayoutInvoiceSheet } from "@/ui/partners/payout-invoice-sheet";
 import { PayoutStatus } from "@dub/prisma/client";
-import { Button, buttonVariants, Tooltip } from "@dub/ui";
+import { Button, buttonVariants, Tooltip, TooltipContent } from "@dub/ui";
 import { cn, currencyFormatter } from "@dub/utils";
 import Link from "next/link";
 
 export function PayoutStats() {
-  const { slug } = useWorkspace();
+  const { slug, payoutMethodId } = useWorkspace();
   const { payoutInvoiceSheet, setIsOpen } = usePayoutInvoiceSheet();
 
   const { payoutsCount, loading } = usePayoutsCount<PayoutsCount[]>({
@@ -59,9 +59,15 @@ export function PayoutStats() {
               onClick={() => setIsOpen(true)}
               disabled={confirmButtonDisabled}
               disabledTooltip={
-                confirmButtonDisabled
-                  ? "You have no pending payouts that match the minimum payout requirement for partners that have payouts enabled."
-                  : undefined
+                confirmButtonDisabled ? (
+                  "You have no pending payouts that match the minimum payout requirement for partners that have payouts enabled."
+                ) : !payoutMethodId ? (
+                  <TooltipContent
+                    title="You must have a valid ACH bank account payment method to send payouts."
+                    cta="Add payment method"
+                    href={`/${slug}/settings/billing`}
+                  />
+                ) : undefined
               }
             />
           </div>
