@@ -28,8 +28,7 @@ export async function GET(req: Request) {
       return;
     }
 
-    // TODO:
-    // We need a batter way to handle this recursively
+    // TODO: Find a batter way to handle this recursively (e.g. /api/cron/usage)
     for (const { programId, partnerId } of pendingSales) {
       await createSalesPayout({
         programId,

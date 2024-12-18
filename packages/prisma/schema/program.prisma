@@ -69,7 +69,6 @@ model ProgramEnrollment {
   programId     String
   applicationId String?                 @unique
   linkId        String?                 @unique
-  dotsUserId    String?                 @unique
   status        ProgramEnrollmentStatus @default(pending)
   createdAt     DateTime                @default(now())
   updatedAt     DateTime                @updatedAt
