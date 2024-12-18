@@ -24,7 +24,7 @@ import { useState } from "react";
 import useSWR from "swr";
 
 export default function TokensPageClient() {
-  const { id: workspaceId, conversionEnabled } = useWorkspace();
+  const { id: workspaceId } = useWorkspace();
   const { data: tokens, isLoading } = useSWR<TokenProps[]>(
     `/api/tokens?workspaceId=${workspaceId}`,
     fetcher,

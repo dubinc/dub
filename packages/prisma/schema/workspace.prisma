@@ -28,7 +28,7 @@ model Project {
   referredSignups Int     @default(0)
 
   webhookEnabled    Boolean @default(false)
-  conversionEnabled Boolean @default(false)
+  conversionEnabled Boolean @default(false) // TODO: remove this once Conversions goes GA
   partnersEnabled   Boolean @default(false)
   ssoEnabled        Boolean @default(false)
   dotLinkClaimed    Boolean @default(false)
