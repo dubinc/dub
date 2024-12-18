@@ -243,15 +243,17 @@ function AddEditTokenModal({
                 }
               }}
               className="grid grid-cols-3 rounded-md border border-neutral-300 bg-neutral-100"
-              optionClassName="w-full h-8 flex items-center justify-center font-medium"
+              optionClassName="w-full h-8 flex items-center justify-center text-sm text-neutral-800"
               indicatorClassName="rounded-md bg-white border border-neutral-300 shadow-sm"
             />
           </div>
 
           <AnimatedSizeContainer height>
-            <div className="p-1 pt-0 text-sm text-gray-500">
+            <div className="p-1 pt-0 text-sm text-neutral-500">
               This API key will have{" "}
-              {scopePresets.find((p) => p.value === preset)?.description}
+              <span className="font-medium text-neutral-700">
+                {scopePresets.find((p) => p.value === preset)?.description}
+              </span>
             </div>
             {preset === "restricted" && (
               <div className="flex flex-col divide-y text-sm">
@@ -290,7 +292,9 @@ function AddEditTokenModal({
                             key={scope.scope}
                           >
                             <RadioGroupItem value={scope.scope} />
-                            <div className="capitalize">{scope.type}</div>
+                            <div className="text-sm font-normal capitalize text-neutral-800">
+                              {scope.type}
+                            </div>
                           </div>
                         ))}
                       </RadioGroup>
