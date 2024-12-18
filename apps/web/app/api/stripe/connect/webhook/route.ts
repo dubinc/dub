@@ -6,7 +6,7 @@ import { accountUpdated } from "./account-updated";
 
 const relevantEvents = new Set(["account.updated"]);
 
-// POST /api/stripe/connect/webhook – listen to Stripe webhooks
+// POST /api/stripe/connect/webhook – listen to Stripe Connect webhooks (for connected accounts)
 export const POST = async (req: Request) => {
   const buf = await req.text();
   const sig = req.headers.get("Stripe-Signature") as string;

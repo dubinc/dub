@@ -27,7 +27,6 @@ model Payout {
   periodStart      DateTime?
   periodEnd        DateTime?
   quantity         Int? // Number of clicks/leads/sales in this payout
-  dotsTransferId   String?      @unique
   stripeTransferId String?      @unique
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
