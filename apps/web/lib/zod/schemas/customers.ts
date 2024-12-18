@@ -35,10 +35,6 @@ export const CustomerSchema = z.object({
   name: z.string().describe("Name of the customer."),
   email: z.string().nullish().describe("Email of the customer."),
   avatar: z.string().nullish().describe("Avatar URL of the customer."),
-  country: z
-    .string()
-    .nullish()
-    .describe("The 2-letter ISO 3166-1 country code of the customer."),
   createdAt: z.date().describe("The date the customer was created."),
 });
 
@@ -117,7 +113,11 @@ export const customerActivityResponseSchema = z.object({
   timeToLead: z.number(),
   timeToSale: z.number().nullable(),
   activity: z.array(customerActivitySchema),
-  customer: CustomerSchema,
+  customer: CustomerSchema.merge(
+    z.object({
+      country: z.string().nullish(),
+    }),
+  ),
   link: LinkSchema.pick({
     id: true,
     domain: true,
