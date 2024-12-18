@@ -35,8 +35,8 @@ import { AnimatedEmptyState } from "../shared/animated-empty-state";
 
 // Fake link for now
 const link = {
-  domain: "dub.co",
-  key: "kiran",
+  domain: "dub.sh",
+  key: "with-webhook",
   shortLink: "https://dub.co/kiran",
 };
 
@@ -89,7 +89,7 @@ function CustomerDetailsSheetContent({
             <div className="flex min-w-[40%] shrink grow basis-1/2 flex-col items-end justify-end gap-2">
               {link && (
                 <Link
-                  href="/"
+                  href={`/events?domain=${link.domain}&key=${link.key}`}
                   target="_blank"
                   className="group flex min-w-0 items-center gap-1 overflow-hidden rounded-full border border-neutral-200 bg-white px-1.5 py-0.5 text-xs text-neutral-700 group-hover:translate-x-0 group-hover:opacity-100"
                 >
@@ -100,8 +100,13 @@ function CustomerDetailsSheetContent({
                   <FilterBars className="hidden size-3 transition-transform group-hover:block" />
                 </Link>
               )}
+
               {customer.country && (
-                <div className="flex min-w-20 items-center gap-2 rounded-full border border-neutral-200 bg-white px-1.5 py-0.5 text-xs text-neutral-700">
+                <Link
+                  href={`/events?country=${customer.country}`}
+                  target="_blank"
+                  className="group flex min-w-20 items-center gap-2 rounded-full border border-neutral-200 bg-white px-1.5 py-0.5 text-xs text-neutral-700 group-hover:translate-x-0 group-hover:opacity-100"
+                >
                   <img
                     alt=""
                     src={`https://flag.vercel.app/m/${customer.country}.svg`}
@@ -110,7 +115,8 @@ function CustomerDetailsSheetContent({
                   <span className="truncate">
                     {COUNTRIES[customer.country]}
                   </span>
-                </div>
+                  <FilterBars className="hidden size-3 transition-transform group-hover:block" />
+                </Link>
               )}
             </div>
           </div>
@@ -182,12 +188,13 @@ function CustomerDetailsSheetContent({
               {[
                 {
                   label: "Lifetime value",
-                  value: customerActivity?.ltv
-                    ? currencyFormatter(customerActivity.ltv / 100, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })
-                    : "-",
+                  value:
+                    customerActivity?.ltv !== undefined
+                      ? currencyFormatter(customerActivity.ltv / 100, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })
+                      : "-",
                 },
               ].map(({ label, value }) => (
                 <div key={label} className="flex flex-col bg-neutral-50 p-3">
