@@ -15,14 +15,14 @@ export function CustomerRowItem({ customer }: { customer: Customer }) {
     <>
       {customerDetailsSheet}
       <button
-        className="flex w-full items-center justify-between transition-colors hover:bg-stone-100"
+        className="flex w-full items-center justify-between px-4 py-2.5 transition-colors hover:bg-stone-100"
         onClick={() => setShowCustomerDetailsSheet(true)}
       >
         <div className="flex items-center gap-3" title={display}>
           <img
             alt={display}
             src={customer.avatar || ""}
-            className="size-4 shrink-0 rounded-full border border-neutral-200"
+            className="size-4 shrink-0 rounded-full border border-gray-200"
           />
           <span className="truncate">{display}</span>
         </div>

@@ -6,7 +6,7 @@ import { customerActivityResponseSchema } from "@/lib/zod/schemas/customers";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
-// GET /api/customers/[id]/activities - get a customer's activity
+// GET /api/customers/[id]/activity - get a customer's activity
 export const GET = withWorkspace(async ({ workspace, params }) => {
   const { id: customerId } = params;
 

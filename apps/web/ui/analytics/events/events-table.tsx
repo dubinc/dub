@@ -495,6 +495,7 @@ export default function EventsTable({
         meta?.filterParams && <FilterButton set={meta.filterParams(cell)} />
       );
     },
+    tdClassName: (columnId) => (columnId === "customer" ? "p-0" : ""),
     emptyState: (
       <EmptyState
         icon={Magnifier}
