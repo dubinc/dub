@@ -2,7 +2,6 @@
 
 import useTags from "@/lib/swr/use-tags";
 import useTagsCount from "@/lib/swr/use-tags-count";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -28,7 +27,6 @@ export const TagsListContext = createContext<{
 
 export default function WorkspaceTagsClient() {
   const { searchParams, queryParams } = useRouterStuff();
-  const { id: workspaceId } = useWorkspace();
 
   const { AddEditTagModal, AddTagButton } = useAddEditTagModal();
 

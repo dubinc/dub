@@ -38,6 +38,7 @@ export const GET = withWorkspace(
         },
       },
       orderBy: [{ lastUsed: "desc" }, { createdAt: "desc" }],
+      take: 100,
     });
 
     return NextResponse.json(tokenSchema.array().parse(tokens));
