@@ -200,9 +200,9 @@ const FolderPermissionsPanel = ({
               </div>
 
               {/* Users */}
-              <div className="mt-10">
+              <div className="mt-4">
                 <span className="text-sm font-medium text-neutral-900">
-                  Users
+                  Folder Users
                 </span>
                 <div className="grid grid-cols-[minmax(0,1fr)]">
                   {isUsersValidating || isUsersLoading || false
