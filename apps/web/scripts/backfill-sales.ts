@@ -1,7 +1,6 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { createSaleData } from "@/lib/api/sales/sale";
-import z from "@/lib/zod";
-import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
+import { SaleEvent } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
@@ -46,7 +45,7 @@ async function main() {
     sortBy: "timestamp",
   });
 
-  const data = saleEvents.map((e: z.infer<typeof saleEventResponseSchema>) => ({
+  const data = saleEvents.map((e: SaleEvent) => ({
     ...createSaleData({
       customerId: e.customer.id,
       linkId: e.link.id,
