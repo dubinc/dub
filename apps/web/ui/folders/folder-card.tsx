@@ -10,13 +10,15 @@ import {
   Button,
   PenWriting,
   Popover,
+  useCopyToClipboard,
   useKeyboardShortcut,
   Users,
 } from "@dub/ui";
-import { Globe } from "@dub/ui/icons";
+import { CircleCheck, Copy, Globe } from "@dub/ui/icons";
 import { cn, nFormatter } from "@dub/utils";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { useDeleteFolderModal } from "../modals/delete-folder-modal";
 import { useRenameFolderModal } from "../modals/rename-folder-modal";
 import { Chart, Delete, ThreeDots } from "../shared/icons";
@@ -49,7 +51,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
   const isAllLinksFolder = folder.id === "unsorted";
 
   useKeyboardShortcut(
-    ["r", "m", "x", "a"],
+    ["r", "m", "x", "a", "i"],
     (e) => {
       setOpenPopover(false);
       switch (e.key) {
@@ -69,12 +71,23 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
             setShowDeleteFolderModal(true);
           }
           break;
+        case "i":
+          copyFolderId();
+          break;
       }
     },
     {
       enabled: openPopover || (isHovering && !isAllLinksFolder),
     },
   );
+
+  const [copiedFolderId, copyToClipboard] = useCopyToClipboard();
+
+  const copyFolderId = () => {
+    toast.promise(copyToClipboard(folder.id), {
+      success: "Folder ID copied!",
+    });
+  };
 
   return (
     <>
@@ -128,6 +141,21 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
                         className="h-9 px-2 font-medium"
                       />
                     )}
+
+                    <Button
+                      text="Copy Folder ID"
+                      variant="outline"
+                      onClick={() => copyFolderId()}
+                      icon={
+                        copiedFolderId ? (
+                          <CircleCheck className="h-4 w-4" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )
+                      }
+                      shortcut="I"
+                      className="h-9 px-2 font-medium"
+                    />
 
                     <Button
                       text="Members"
