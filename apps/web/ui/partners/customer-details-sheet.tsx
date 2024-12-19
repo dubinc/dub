@@ -140,8 +140,8 @@ function CustomerDetailsSheetContent({ customer }: CustomerDetailsSheetProps) {
             )}
           </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-2">
-            <div className="xs:grid-cols-2 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200">
+          <div className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200">
               {[
                 {
                   label: "Lead",
