@@ -7,6 +7,7 @@ import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 import { toast } from "sonner";
+import { mutate } from "swr";
 
 export const FolderEditAccessRequestButton = ({
   folderId,
@@ -23,9 +24,12 @@ export const FolderEditAccessRequestButton = ({
   const { executeAsync, isExecuting } = useAction(
     requestFolderEditAccessAction,
     {
-      onSuccess: () => {
+      onSuccess: async () => {
         toast.success("Request sent to folder owner.");
         setRequestSent(true);
+        await mutate(
+          (key) => typeof key === "string" && key.startsWith(`/api/folders`),
+        );
       },
       onError: ({ error }) => {
         toast.error(error.serverError);
@@ -57,11 +61,16 @@ export const FolderEditAccessRequestButton = ({
       )}
       disabled={isRequested || requestSent}
       loading={isExecuting}
-      onClick={() =>
-        executeAsync({
+      onClick={async () =>
+        await executeAsync({
           workspaceId,
           folderId,
         })
+      }
+      disabledTooltip={
+        isRequested
+          ? "You already have a pending request to this folder."
+          : undefined
       }
     />
   );

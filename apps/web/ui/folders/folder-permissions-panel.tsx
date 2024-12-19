@@ -45,6 +45,10 @@ const FolderPermissionsPanel = ({
 
   const { isLoading: isLoadingPermissions } = useFolderPermissions();
   const canUpdateFolder = useCheckFolderPermission(folder.id, "folders.write");
+  const canCreateLinks = useCheckFolderPermission(
+    folder.id,
+    "folders.links.write",
+  );
 
   const {
     data: users,
@@ -121,7 +125,7 @@ const FolderPermissionsPanel = ({
               <div className="flex flex-col justify-between rounded-xl border border-gray-200 bg-white px-5 py-4 sm:h-36">
                 <div className="flex items-start justify-between">
                   <FolderAccessIcon folder={folder} />
-                  {!isLoadingPermissions && !canUpdateFolder && (
+                  {!isLoadingPermissions && !canCreateLinks && (
                     <FolderEditAccessRequestButton
                       folderId={folder.id}
                       workspaceId={workspace.id!}
@@ -131,7 +135,7 @@ const FolderPermissionsPanel = ({
                 <div>
                   <span className="flex items-center justify-start gap-1.5 text-sm font-medium text-gray-900">
                     <span className="truncate">{folder.name}</span>
-                    {(folder.id === "unsorted" || true) && (
+                    {folder.id === "unsorted" && (
                       <div className="rounded bg-gray-100 p-1">
                         <div className="text-xs font-normal text-black">
                           Unsorted
