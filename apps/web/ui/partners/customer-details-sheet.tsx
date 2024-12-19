@@ -67,7 +67,7 @@ function CustomerDetailsSheetContent({ customer }: CustomerDetailsSheetProps) {
         </div>
 
         <div className="border-y border-neutral-200 bg-neutral-50 p-6 pb-0">
-          <div className="flex w-full justify-between">
+          <div className="flex h-12 w-full justify-between">
             <div>
               <img
                 src={
@@ -91,10 +91,10 @@ function CustomerDetailsSheetContent({ customer }: CustomerDetailsSheetProps) {
                   </span>
                 </Link>
               ) : (
-                <div className="h-5 w-20 animate-pulse rounded-full bg-neutral-200" />
+                <div className="h-4 w-24 animate-pulse rounded-full bg-neutral-200" />
               )}
 
-              {country && (
+              {country ? (
                 <Link
                   href={`/${slug}/events?country=${country}`}
                   target="_blank"
@@ -107,6 +107,8 @@ function CustomerDetailsSheetContent({ customer }: CustomerDetailsSheetProps) {
                   />
                   <span className="truncate">{COUNTRIES[country]}</span>
                 </Link>
+              ) : (
+                <div className="h-4 w-20 animate-pulse rounded-full bg-neutral-200" />
               )}
             </div>
           </div>
