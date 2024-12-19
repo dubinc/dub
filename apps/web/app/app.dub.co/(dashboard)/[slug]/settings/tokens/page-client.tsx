@@ -14,6 +14,7 @@ import {
   Dots,
   Icon,
   Key,
+  PenWriting,
   Popover,
   Table,
   Tooltip,
@@ -134,7 +135,15 @@ export default function TokensPageClient() {
         minSize: 43,
         size: 43,
         maxSize: 43,
-        cell: ({ row }) => <RowMenuButton token={row.original} />,
+        cell: ({ row }) => (
+          <RowMenuButton
+            token={row.original}
+            onEdit={() => {
+              setSelectedToken(row.original);
+              setShowAddEditTokenModal(true);
+            }}
+          />
+        ),
       },
     ],
     pagination,
@@ -206,7 +215,13 @@ export default function TokensPageClient() {
   );
 }
 
-function RowMenuButton({ token }: { token: TokenProps }) {
+function RowMenuButton({
+  token,
+  onEdit,
+}: {
+  token: TokenProps;
+  onEdit: () => void;
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
   const { DeleteTokenModal, setShowDeleteTokenModal } = useDeleteTokenModal({
@@ -222,6 +237,8 @@ function RowMenuButton({ token }: { token: TokenProps }) {
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
+              <MenuItem icon={PenWriting} label="Edit" onSelect={onEdit} />
+
               <MenuItem
                 icon={Delete}
                 label="Delete"
