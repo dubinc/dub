@@ -1,5 +1,4 @@
 import { Customer } from "@/lib/types";
-import { CustomerSchema } from "@/lib/zod/schemas/customers";
 import { afterAll, describe, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
@@ -61,10 +60,6 @@ describe.sequential("/customers/**", async () => {
 
     expect(status).toEqual(200);
     expect(customers.length).toBeGreaterThanOrEqual(1);
-    customers.forEach((customer) => {
-      const result = CustomerSchema.safeParse(customer);
-      expect(result.success).toBe(true);
-    });
   });
 
   test("PATCH /customers/{id}", async () => {

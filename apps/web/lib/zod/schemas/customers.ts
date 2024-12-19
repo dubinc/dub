@@ -35,8 +35,8 @@ export const CustomerSchema = z.object({
   name: z.string().describe("Name of the customer."),
   email: z.string().nullish().describe("Email of the customer."),
   avatar: z.string().nullish().describe("Avatar URL of the customer."),
-  createdAt: z.date().describe("The date the customer was created."),
   country: z.string().nullish().describe("Country of the customer."),
+  createdAt: z.date().describe("The date the customer was created."),
 });
 
 export const CUSTOMERS_MAX_PAGE_SIZE = 100;
