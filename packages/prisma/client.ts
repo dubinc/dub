@@ -3,6 +3,7 @@ export * from "@prisma/client";
 export {
   CommissionInterval,
   CommissionType,
+  InvoiceStatus,
   PartnerRole,
   PartnerStatus,
   PayoutStatus,
