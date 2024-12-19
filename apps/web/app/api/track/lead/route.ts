@@ -85,12 +85,9 @@ export const POST = withWorkspaceEdge(
           },
         });
 
-        // remove timestamp from lead data because tinybird will generate its own at ingestion time
-        const { timestamp, ...rest } = clickData;
-
         const [_lead, link, _project] = await Promise.all([
           recordLead({
-            ...rest,
+            ...clickData,
             event_id: nanoid(16),
             event_name: eventName,
             customer_id: customer.id,
