@@ -8,7 +8,7 @@ import {
   FOLDER_USER_ROLE_TO_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE,
 } from "./constants";
-import { getFolder } from "./get-folder";
+import { getFolderOrThrow } from "./get-folder-or-throw";
 import { Folder, FolderPermission } from "./types";
 
 type FolderWithUser = Pick<Folder, "accessLevel"> & {
@@ -78,18 +78,11 @@ export const checkFolderPermission = async ({
   folderId: string;
   requiredPermission: FolderPermission;
 }) => {
-  const folder = await getFolder({
+  const folder = await getFolderOrThrow({
     folderId,
     workspaceId,
     userId,
   });
-
-  if (!folder) {
-    throw new DubApiError({
-      code: "not_found",
-      message: "Folder not found.",
-    });
-  }
 
   const hasPermission = canPerformActionOnFolder({
     folder,

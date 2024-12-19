@@ -1,6 +1,7 @@
 import { prisma } from "@dub/prisma";
+import { DubApiError } from "../api/errors";
 
-export const getFolder = async ({
+export const getFolderOrThrow = async ({
   workspaceId,
   userId,
   folderId,
@@ -34,7 +35,10 @@ export const getFolder = async ({
   });
 
   if (!folder) {
-    return null;
+    throw new DubApiError({
+      code: "not_found",
+      message: "Folder not found.",
+    });
   }
 
   if (folder.projectId !== workspaceId) {

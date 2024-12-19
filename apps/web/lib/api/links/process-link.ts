@@ -1,5 +1,5 @@
 import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
-import { getFolder } from "@/lib/folder/get-folder";
+import { getFolderOrThrow } from "@/lib/folder/get-folder-or-throw";
 import { canPerformActionOnFolder } from "@/lib/folder/permissions";
 import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
@@ -436,7 +436,7 @@ export async function processLink<T extends Record<string, any>>({
 
   // Folder checks
   if (folderId && workspace && userId) {
-    const folder = await getFolder({
+    const folder = await getFolderOrThrow({
       workspaceId: workspace.id,
       folderId,
       userId,
