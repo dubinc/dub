@@ -10,6 +10,7 @@ const customerRecord = {
   name: "John Doe",
   email: `${externalId}@example.com`,
   avatar: `https://www.gravatar.com/avatar/${externalId}`,
+  country: "US",
 };
 
 const expectedCustomer = {
@@ -18,8 +19,7 @@ const expectedCustomer = {
   name: customerRecord.name,
   email: customerRecord.email,
   avatar: customerRecord.avatar,
-  // either a string or null
-  country: expect.any(String),
+  country: customerRecord.country,
   createdAt: expect.any(String),
 };
 
