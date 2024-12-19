@@ -9,7 +9,6 @@ import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import Stripe from "stripe";
 import { authUserActionClient } from "../safe-action";
 
 // Onboard a new partner
@@ -40,16 +39,11 @@ export const onboardPartnerAction = authUserActionClient
       );
     }
 
-    let connectedAccount: Stripe.Account | null = null;
-    // TODO: Stripe Connect – remove this once we can onboard partners from other countries
-    if (country === "US") {
-      // Create the Stripe connected account for the partner
-      connectedAccount = await createConnectedAccount({
-        name,
-        email,
-        country,
-      });
-    }
+    const connectedAccount = await createConnectedAccount({
+      name,
+      email,
+      country,
+    });
 
     const partnerId = createId({ prefix: "pn_" });
 

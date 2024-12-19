@@ -74,15 +74,12 @@ export function PayoutStats() {
             )}
           </div>
         </div>
-        {partner &&
-          !partner.payoutsEnabled &&
-          // TODO: Stripe Connect – remove this once we can onboard partners from other countries
-          partner.country === "US" && (
-            <StripeConnectButton
-              className="mt-4 h-9 w-full"
-              text="Connect payouts"
-            />
-          )}
+        {partner && !partner.payoutsEnabled && partner?.stripeConnectId && (
+          <StripeConnectButton
+            className="mt-4 h-9 w-full"
+            text="Connect payouts"
+          />
+        )}
       </div>
     </AnimatedSizeContainer>
   );
