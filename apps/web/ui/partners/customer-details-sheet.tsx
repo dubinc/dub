@@ -30,7 +30,7 @@ import {
 } from "@dub/utils";
 import { formatDistanceStrict } from "date-fns";
 import Link from "next/link";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 import useSWR from "swr";
 
 interface CustomerDetailsSheetProps {
@@ -38,10 +38,7 @@ interface CustomerDetailsSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-function CustomerDetailsSheetContent({
-  customer,
-  setIsOpen,
-}: CustomerDetailsSheetProps) {
+function CustomerDetailsSheetContent({ customer }: CustomerDetailsSheetProps) {
   const { id: workspaceId, slug } = useWorkspace();
 
   let { data: customerActivity, isLoading } = useSWR<CustomerActivityResponse>(
@@ -312,7 +309,7 @@ function ActivitySkeleton() {
   );
 }
 
-function CustomerDetailsSheet({
+export function CustomerDetailsSheet({
   isOpen,
   ...rest
 }: CustomerDetailsSheetProps & {
@@ -329,20 +326,4 @@ function CustomerDetailsSheet({
       <CustomerDetailsSheetContent {...rest} />
     </Sheet>
   );
-}
-export function useCustomerDetailsSheet({
-  customer,
-}: Omit<CustomerDetailsSheetProps, "setIsOpen">) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return {
-    customerDetailsSheet: (
-      <CustomerDetailsSheet
-        customer={customer}
-        setIsOpen={setIsOpen}
-        isOpen={isOpen}
-      />
-    ),
-    setIsOpen,
-  };
 }

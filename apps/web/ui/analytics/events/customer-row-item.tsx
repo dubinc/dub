@@ -1,22 +1,24 @@
 import { generateRandomName } from "@/lib/names";
 import { Customer } from "@/lib/types";
-import { useCustomerDetailsSheet } from "@/ui/partners/customer-details-sheet";
-import { ChartActivity2 } from "@dub/ui";
+import { ChartActivity2, useRouterStuff } from "@dub/ui";
+import Link from "next/link";
 
 export function CustomerRowItem({ customer }: { customer: Customer }) {
-  const { customerDetailsSheet, setIsOpen: setShowCustomerDetailsSheet } =
-    useCustomerDetailsSheet({
-      customer,
-    });
-
   const display = customer.name || customer.email || generateRandomName();
+  const { queryParams } = useRouterStuff();
 
   return (
     <>
-      {customerDetailsSheet}
-      <button
+      <Link
+        href={
+          queryParams({
+            set: {
+              customerId: customer.id,
+            },
+            getNewPath: true,
+          }) as string
+        }
         className="flex w-full items-center justify-between px-4 py-2.5 transition-colors hover:bg-stone-100"
-        onClick={() => setShowCustomerDetailsSheet(true)}
       >
         <div className="flex items-center gap-3" title={display}>
           <img
@@ -27,7 +29,7 @@ export function CustomerRowItem({ customer }: { customer: Customer }) {
           <span className="truncate">{display}</span>
         </div>
         <ChartActivity2 className="size-3.5" />
-      </button>
+      </Link>
     </>
   );
 }

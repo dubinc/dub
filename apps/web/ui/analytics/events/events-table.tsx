@@ -1,7 +1,8 @@
 "use client";
 
 import { editQueryString } from "@/lib/analytics/utils";
-import { ClickEvent, LeadEvent, SaleEvent } from "@/lib/types";
+import { ClickEvent, Customer, LeadEvent, SaleEvent } from "@/lib/types";
+import { CustomerDetailsSheet } from "@/ui/partners/customer-details-sheet";
 import EmptyState from "@/ui/shared/empty-state";
 import {
   CopyText,
@@ -25,7 +26,7 @@ import {
 } from "@dub/utils";
 import { Cell, ColumnDef } from "@tanstack/react-table";
 import { Link2 } from "lucide-react";
-import { ReactNode, useContext, useEffect, useMemo } from "react";
+import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from "../analytics-provider";
 import ContinentIcon from "../continent-icon";
@@ -506,20 +507,54 @@ export default function EventsTable({
     resourceName: (plural) => `event${plural ? "s" : ""}`,
   });
 
+  const [customerDetailsSheet, setCustomerDetailsSheet] = useState<
+    | { open: false; customer: Customer | null }
+    | { open: true; customer: Customer }
+  >({ open: false, customer: null });
+
+  useEffect(() => {
+    const customerId = searchParams.get("customerId");
+    if (!data || data.every((d) => !("customer" in d))) return;
+    if (customerId) {
+      const customerEvent = data.find(
+        (d) => "customer" in d && d.customer?.id === customerId,
+      );
+      if (customerEvent && "customer" in customerEvent) {
+        setCustomerDetailsSheet({
+          open: true,
+          customer: customerEvent.customer,
+        });
+      }
+    }
+  }, [searchParams, data]);
+
   return (
-    <Table
-      {...tableProps}
-      table={table}
-      scrollWrapperClassName={requiresUpgrade ? "overflow-x-hidden" : undefined}
-    >
-      {requiresUpgrade && (
-        <>
-          <div className="absolute inset-0 flex touch-pan-y items-center justify-center bg-gradient-to-t from-[#fff_70%] to-[#fff6]">
-            {upgradeOverlay}
-          </div>
-          <div className="h-[400px]" />
-        </>
+    <>
+      {customerDetailsSheet.customer && (
+        <CustomerDetailsSheet
+          isOpen={customerDetailsSheet.open}
+          setIsOpen={(open) =>
+            setCustomerDetailsSheet((s) => ({ ...s, open }) as any)
+          }
+          customer={customerDetailsSheet.customer}
+        />
       )}
-    </Table>
+      <Table
+        {...tableProps}
+        table={table}
+        scrollWrapperClassName={
+          requiresUpgrade ? "overflow-x-hidden" : undefined
+        }
+      >
+        {requiresUpgrade && (
+          <>
+            <div className="absolute inset-0 flex touch-pan-y items-center justify-center bg-gradient-to-t from-[#fff_70%] to-[#fff6]">
+              {upgradeOverlay}
+            </div>
+            <div className="h-[400px]" />
+          </>
+        )}
+      </Table>
+    </>
   );
 }

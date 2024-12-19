@@ -75,7 +75,7 @@ async function main() {
       );
 
       if (!leadEvent || !clickEvent) {
-        return;
+        return customer;
       }
 
       return prisma.customer.update({
@@ -94,13 +94,6 @@ async function main() {
           clickedAt: true,
         },
       });
-      // return {
-      //   linkId: clickEvent.link_id,
-      //   clickId: clickEvent.click_id,
-      //   country: clickEvent.country,
-      //   clickedAt: new Date(clickEvent.timestamp + "Z"),
-      //   createdAt: customer.createdAt,
-      // };
     }),
   );
 
