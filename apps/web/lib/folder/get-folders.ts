@@ -37,9 +37,6 @@ export const getFolders = async ({
         },
       }),
     },
-    orderBy: {
-      createdAt: "desc",
-    },
     select: {
       id: true,
       name: true,
@@ -54,6 +51,12 @@ export const getFolders = async ({
         },
       }),
     },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 100,
+
+    // TODO: Add pagination
   });
 
   return folders.map((folder) => ({
