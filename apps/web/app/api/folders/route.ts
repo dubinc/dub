@@ -1,5 +1,5 @@
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
-import { parseRequestBody } from "@/lib/api/utils";
+import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getFolders } from "@/lib/folder/get-folders";
 import {
@@ -59,6 +59,7 @@ export const POST = withWorkspace(
     try {
       const newFolder = await prisma.folder.create({
         data: {
+          id: createId({ prefix: "fd_" }),
           projectId: workspace.id,
           name,
           accessLevel,
