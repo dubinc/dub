@@ -18,6 +18,8 @@ const expectedCustomer = {
   name: customerRecord.name,
   email: customerRecord.email,
   avatar: customerRecord.avatar,
+  // either a string or null
+  country: expect.any(String),
   createdAt: expect.any(String),
 };
 
