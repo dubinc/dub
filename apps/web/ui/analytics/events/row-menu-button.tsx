@@ -10,7 +10,6 @@ import { EventDatum } from "./events-table";
 export function RowMenuButton({ row }: { row: Row<EventDatum> }) {
   const [isOpen, setIsOpen] = useState(false);
   const [, copyToClipboard] = useCopyToClipboard();
-
   return (
     <Popover
       openPopover={isOpen}
