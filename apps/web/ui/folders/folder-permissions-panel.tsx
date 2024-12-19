@@ -23,6 +23,9 @@ import { X } from "../shared/icons";
 import { FolderAccessIcon } from "./folder-access-icon";
 import { FolderEditAccessRequestButton } from "./request-edit-button";
 
+// TODO
+// Use the new `<Sheet />` component
+
 interface FolderPermissionsPanelProps {
   showPanel: boolean;
   setShowPanel: (showPanel: boolean) => void;
@@ -83,8 +86,7 @@ const FolderPermissionsPanel = ({
 
     toast.success("Workspace access updated!");
     await mutate(
-      (key) =>
-        typeof key === "string" && key.startsWith(`/api/folders/${folder.id}`),
+      (key) => typeof key === "string" && key.startsWith(`/api/folders`),
     );
   };
 
