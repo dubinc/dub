@@ -1,4 +1,5 @@
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import "dotenv-flow/config";
 import { tb } from "../lib/tinybird/client";
 import z from "../lib/zod";
@@ -21,11 +22,15 @@ export const getClickEvents = tb.buildPipe({
 
 // Backfill new customer columns such as linkId, clickId, country
 async function main() {
-  const customers = await prisma.customer.findMany({
-    where: {
-      linkId: null,
-      projectId: "cl7pj5kq4006835rbjlt2ofka",
+  const where: Prisma.CustomerWhereInput = {
+    linkId: null,
+    projectId: {
+      not: "clrei1gld0002vs9mzn93p8ik",
     },
+  };
+
+  const customers = await prisma.customer.findMany({
+    where,
     select: {
       id: true,
       createdAt: true,
@@ -100,10 +105,7 @@ async function main() {
   );
 
   const remaining = await prisma.customer.count({
-    where: {
-      linkId: null,
-      projectId: "cl7pj5kq4006835rbjlt2ofka",
-    },
+    where,
   });
 
   console.table(result);
