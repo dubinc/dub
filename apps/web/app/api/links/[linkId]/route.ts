@@ -8,10 +8,10 @@ import {
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema, updateLinkBodySchema } from "@/lib/zod/schemas/links";
+import { prisma } from "@dub/prisma";
 import { deepEqual, UTMTags } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -20,7 +20,7 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ headers, workspace, params }) => {
     const link = await getLinkOrThrow({
-      workspace,
+      workspaceId: workspace.id,
       linkId: params.linkId,
     });
 
@@ -57,7 +57,7 @@ export const GET = withWorkspace(
 export const PATCH = withWorkspace(
   async ({ req, headers, workspace, params }) => {
     const link = await getLinkOrThrow({
-      workspace,
+      workspaceId: workspace.id,
       linkId: params.linkId,
     });
 
@@ -110,10 +110,6 @@ export const PATCH = withWorkspace(
     const skipExternalIdChecks =
       link.externalId?.toLowerCase() === updatedLink.externalId?.toLowerCase();
 
-    // if identifier is the same, we don't need to check if it exists
-    const skipIdentifierChecks =
-      link.identifier?.toLowerCase() === updatedLink.identifier?.toLowerCase();
-
     const {
       link: processedLink,
       error,
@@ -123,7 +119,6 @@ export const PATCH = withWorkspace(
       workspace,
       skipKeyChecks,
       skipExternalIdChecks,
-      skipIdentifierChecks,
     });
 
     if (error) {
@@ -173,9 +168,16 @@ export const PUT = PATCH;
 export const DELETE = withWorkspace(
   async ({ headers, params, workspace }) => {
     const link = await getLinkOrThrow({
-      workspace,
+      workspaceId: workspace.id,
       linkId: params.linkId,
     });
+
+    if (link.programId) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You can't delete a link that's part of a program.",
+      });
+    }
 
     await deleteLink(link.id);
 

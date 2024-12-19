@@ -10,11 +10,12 @@ import {
   useEnterSubmit,
   useMediaQuery,
 } from "@dub/ui";
-import { COUNTRIES, COUNTRY_PHONE_CODES } from "@dub/utils";
+import { COUNTRIES } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
+import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
@@ -24,32 +25,39 @@ type OnboardingFormData = z.infer<typeof onboardPartnerSchema>;
 
 export function OnboardingForm() {
   const router = useRouter();
+  const { data: session } = useSession();
   const { isMobile } = useMediaQuery();
 
   const {
     register,
     control,
     handleSubmit,
-    watch,
     reset,
+    setValue,
+    watch,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<OnboardingFormData>();
 
+  useEffect(() => {
+    if (session?.user) {
+      setValue("name", session.user.name ?? "");
+      setValue("email", session.user.email ?? "");
+    }
+  }, [session?.user]);
+
   const { executeAsync, isExecuting } = useAction(onboardPartnerAction, {
-    onSuccess: ({ data }) => {
-      if (!data?.partnerId) {
-        toast.error("Failed to create partner profile. Please try again.");
-        return;
+    onSuccess: () => {
+      if (watch("country") === "US") {
+        router.push("/onboarding/verify");
+      } else {
+        router.push("/programs");
       }
-      router.push(`/onboarding/verify?partner=${data.partnerId}`);
     },
     onError: ({ error, input }) => {
-      toast.error(error.serverError?.serverError);
+      toast.error(error.serverError);
       reset(input);
     },
   });
-
-  const countryCode = COUNTRY_PHONE_CODES[watch("country")];
 
   const formRef = useRef<HTMLFormElement>(null);
   const { handleKeyDown } = useEnterSubmit(formRef);
@@ -75,6 +83,25 @@ export function OnboardingForm() {
           )}
           autoFocus={!isMobile}
           {...register("name", {
+            required: true,
+          })}
+        />
+      </label>
+
+      <label>
+        <span className="text-sm font-medium text-gray-800">
+          Email
+          <span className="font-normal text-neutral-500"> (required)</span>
+        </span>
+        <input
+          type="text"
+          className={cn(
+            "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
+            errors.email
+              ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
+          )}
+          {...register("email", {
             required: true,
           })}
         />
@@ -139,40 +166,6 @@ export function OnboardingForm() {
       </label>
 
       <label>
-        <span className="text-sm font-medium text-gray-800">
-          Mobile number
-          <span className="font-normal text-neutral-500"> (required)</span>
-        </span>
-        <div
-          className={cn(
-            "relative mt-2 flex items-center rounded-md border border-neutral-300 bg-white shadow-sm focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
-            errors.phoneNumber &&
-              "border-red-600 focus-within:border-red-500 focus-within:ring-red-600",
-          )}
-        >
-          {countryCode && (
-            <span className="left-0 flex items-center pl-2.5 text-sm text-neutral-400">
-              +{countryCode}
-            </span>
-          )}
-          <input
-            className={cn(
-              "block w-full border-none bg-transparent text-neutral-900 placeholder-neutral-400 sm:text-sm",
-              "focus:border-none focus:outline-none focus:ring-0",
-              countryCode && "pl-1",
-            )}
-            type="tel"
-            {...register("phoneNumber", {
-              required: true,
-            })}
-          />
-        </div>
-        <p className="mt-1 text-xs text-gray-400">
-          We'll send you a verification code to this number.
-        </p>
-      </label>
-
-      <label>
         <span className="text-sm font-medium text-gray-800">Description</span>
         <ReactTextareaAutosize
           className={cn(
@@ -211,8 +204,8 @@ function CountryCombobox({
         icon: (
           <img
             alt={value}
-            src={`https://flag.vercel.app/m/${key}.svg`}
-            className="mr-1 h-2.5 w-4"
+            src={`https://hatscripts.github.io/circle-flags/flags/${key.toLowerCase()}.svg`}
+            className="mr-1.5 size-4"
           />
         ),
         value: key,
@@ -233,8 +226,8 @@ function CountryCombobox({
         value ? (
           <img
             alt={COUNTRIES[value]}
-            src={`https://flag.vercel.app/m/${value}.svg`}
-            className="h-2.5 w-4"
+            src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
+            className="mr-0.5 size-4"
           />
         ) : undefined
       }

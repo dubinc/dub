@@ -1,8 +1,7 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { createSaleData } from "@/lib/api/sales/sale";
-import { prisma } from "@/lib/prisma";
-import z from "@/lib/zod";
-import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
+import { SaleEvent } from "@/lib/types";
+import { prisma } from "@dub/prisma";
 
 export const backfillLinkData = async (programEnrollmentId: string) => {
   const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
@@ -51,7 +50,7 @@ export const backfillLinkData = async (programEnrollmentId: string) => {
     sortBy: "timestamp",
   });
 
-  const data = saleEvents.map((e: z.infer<typeof saleEventResponseSchema>) => ({
+  const data = saleEvents.map((e: SaleEvent) => ({
     ...createSaleData({
       customerId: e.customer.id,
       linkId: e.link.id,

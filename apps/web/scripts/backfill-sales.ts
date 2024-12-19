@@ -1,16 +1,15 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { createSaleData } from "@/lib/api/sales/sale";
-import { prisma } from "@/lib/prisma";
-import z from "@/lib/zod";
-import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
+import { SaleEvent } from "@/lib/types";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
-const enrollmentId = "cm3goiy8q0000rcpha96y0vhj";
+const linkId = "cm032y2660009ygp4l1y1vc89";
 
 async function main() {
   const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
-      id: enrollmentId,
+      linkId,
     },
     select: {
       partnerId: true,
@@ -46,7 +45,7 @@ async function main() {
     sortBy: "timestamp",
   });
 
-  const data = saleEvents.map((e: z.infer<typeof saleEventResponseSchema>) => ({
+  const data = saleEvents.map((e: SaleEvent) => ({
     ...createSaleData({
       customerId: e.customer.id,
       linkId: e.link.id,

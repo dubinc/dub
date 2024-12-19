@@ -174,12 +174,6 @@ export const createLinkBodySchema = z.object({
     .optional()
     .default(false)
     .describe("Whether to track conversions for the short link."),
-  identifier: z
-    .string()
-    .nullish()
-    .describe(
-      "The identifier of the short link that is unique across your workspace. If set, it can be used to identify your short link for client-side click tracking.",
-    ),
   archived: z
     .boolean()
     .optional()
@@ -362,7 +356,6 @@ export const bulkUpdateLinksBodySchema = z.object({
       domain: true,
       key: true,
       externalId: true,
-      identifier: true,
       prefix: true,
     })
     .merge(
@@ -400,12 +393,6 @@ export const LinkSchema = z
       .nullable()
       .describe(
         "This is the ID of the link in your database that is unique across your workspace. If set, it can be used to identify the link in future API requests. Must be prefixed with 'ext_' when passed as a query parameter.",
-      ),
-    identifier: z
-      .string()
-      .nullable()
-      .describe(
-        "The identifier of the short link that is unique across your workspace. If set, it can be used to identify your short link for client-side click tracking.",
       ),
     archived: z
       .boolean()
@@ -575,6 +562,10 @@ export const LinkSchema = z
         "The project ID of the short link. This field is deprecated – use `workspaceId` instead.",
       )
       .openapi({ deprecated: true }),
+    programId: z
+      .string()
+      .nullable()
+      .describe("The ID of the program the short link is associated with."),
   })
   .openapi({ title: "Link" });
 
@@ -604,13 +595,13 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional()
       .describe("Link IDs to filter by."),
-    excludePartnerLinks: booleanQuerySchema.default("false"),
   }),
 );
 
 export const linkEventSchema = LinkSchema.extend({
   // here we use string because url can be empty
   url: z.string(),
+  expiredUrl: z.string().nullable(),
   // coerce boolean fields
   archived: z.coerce.boolean(),
   doIndex: z.coerce.boolean(),

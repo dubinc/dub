@@ -2,26 +2,23 @@
 
 import useSalesCount from "@/lib/swr/use-sales-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CustomerSchema } from "@/lib/zod/schemas/customers";
-import { PartnerSchema, SaleSchema } from "@/lib/zod/schemas/partners";
+import { SaleResponse } from "@/lib/types";
 import FilterButton from "@/ui/analytics/events/filter-button";
+import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { SaleRowMenu } from "@/ui/partners/sale-row-menu";
+import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
-  CircleCheck,
-  CircleHalfDottedClock,
-  Duplicate,
   Filter,
-  ShieldAlert,
   StatusBadge,
   Table,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CircleXmark, MoneyBill2 } from "@dub/ui/src/icons";
+import { MoneyBill2 } from "@dub/ui/icons";
 import {
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
@@ -31,54 +28,7 @@ import {
 import { useParams } from "next/navigation";
 import { memo } from "react";
 import useSWR from "swr";
-import { z } from "zod";
 import { useSaleFilters } from "./use-sale-filters";
-
-const salesSchema = SaleSchema.and(
-  z.object({
-    customer: CustomerSchema,
-    partner: PartnerSchema,
-  }),
-);
-
-export const SaleStatusBadges = {
-  pending: {
-    label: "Pending",
-    variant: "pending",
-    className: "text-orange-600 bg-orange-100",
-    icon: CircleHalfDottedClock,
-  },
-  processed: {
-    label: "Processed",
-    variant: "new",
-    className: "text-blue-600 bg-blue-100",
-    icon: CircleHalfDottedClock,
-  },
-  paid: {
-    label: "Paid",
-    variant: "success",
-    className: "text-green-600 bg-green-100",
-    icon: CircleCheck,
-  },
-  fraud: {
-    label: "Fraud",
-    variant: "error",
-    className: "text-red-600 bg-red-100",
-    icon: ShieldAlert,
-  },
-  duplicate: {
-    label: "Duplicate",
-    variant: "error",
-    className: "text-red-600 bg-red-100",
-    icon: Duplicate,
-  },
-  refunded: {
-    label: "Refunded",
-    variant: "error",
-    className: "text-red-600 bg-red-100",
-    icon: CircleXmark,
-  },
-};
 
 export function SaleTableBusiness({ limit }: { limit?: number }) {
   const filters = useSaleFilters();
@@ -102,13 +52,13 @@ const SaleTableBusinessInner = memo(
     const { id: workspaceId } = useWorkspace();
     const { pagination, setPagination } = usePagination(limit);
     const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
-    const { sortBy, order } = searchParamsObj as {
+    const { sortBy, sortOrder } = searchParamsObj as {
       sortBy: string;
-      order: "asc" | "desc";
+      sortOrder: "asc" | "desc";
     };
 
     const { salesCount } = useSalesCount();
-    const { data: sales, error } = useSWR<z.infer<typeof salesSchema>[]>(
+    const { data: sales, error } = useSWR<SaleResponse[]>(
       `/api/programs/${programId}/sales${getQueryString({
         workspaceId,
       })}`,
@@ -117,7 +67,7 @@ const SaleTableBusinessInner = memo(
 
     const loading = !sales && !error;
 
-    const table = useTable({
+    const table = useTable<SaleResponse>({
       data: sales?.slice(0, limit) || [],
       columns: [
         {
@@ -133,12 +83,16 @@ const SaleTableBusinessInner = memo(
                 <img
                   src={
                     row.original.customer.avatar ||
-                    `${DICEBEAR_AVATAR_URL}${row.original.customer.name}`
+                    `${DICEBEAR_AVATAR_URL}${row.original.customer.id}`
                   }
-                  alt={row.original.customer.name}
+                  alt={
+                    row.original.customer.email ?? row.original.customer.name
+                  }
                   className="size-5 rounded-full"
                 />
-                <div>{row.original.customer.name}</div>
+                <div>
+                  {row.original.customer.email ?? row.original.customer.name}
+                </div>
               </div>
             );
           },
@@ -151,19 +105,7 @@ const SaleTableBusinessInner = memo(
         {
           header: "Partner",
           cell: ({ row }) => {
-            return (
-              <div className="flex items-center gap-2">
-                <img
-                  src={
-                    row.original.partner.image ||
-                    `${DICEBEAR_AVATAR_URL}${row.original.partner.name}`
-                  }
-                  alt={row.original.partner.name}
-                  className="size-5 rounded-full"
-                />
-                <div>{row.original.partner.name}</div>
-              </div>
-            );
+            return <PartnerRowItem partner={row.original.partner} />;
           },
           meta: {
             filterParams: ({ row }) => ({
@@ -220,12 +162,12 @@ const SaleTableBusinessInner = memo(
         onPaginationChange: setPagination,
         sortableColumns: ["createdAt", "amount"],
         sortBy,
-        sortOrder: order,
+        sortOrder,
         onSortChange: ({ sortBy, sortOrder }) =>
           queryParams({
             set: {
-              ...(sortBy && { sortBy: sortBy }),
-              ...(sortOrder && { order: sortOrder }),
+              ...(sortBy && { sortBy }),
+              ...(sortOrder && { sortOrder }),
             },
           }),
       }),

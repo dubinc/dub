@@ -2,7 +2,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { Role, roles } from "@/lib/types";
 import { Invite } from "@/lib/zod/schemas/invites";
 import { Button, useMediaQuery } from "@dub/ui";
-import { Trash } from "@dub/ui/src/icons";
+import { Trash } from "@dub/ui/icons";
 import { capitalize, cn, pluralize } from "@dub/utils";
 import { Plus } from "lucide-react";
 import posthog from "posthog-js";

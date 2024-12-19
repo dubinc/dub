@@ -1,6 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { buttonVariants, Tooltip } from "@dub/ui";
+import { buttonVariants } from "@dub/ui";
 import {
   cn,
   COUNTRIES,
@@ -17,7 +17,7 @@ export function TopPartners() {
   const { id: workspaceId } = useWorkspace();
 
   const { data: partners, error } = useSWR<EnrolledPartnerProps[]>(
-    `/api/programs/${programId}/partners?workspaceId=${workspaceId}&sortBy=earnings&order=desc`,
+    `/api/programs/${programId}/partners?workspaceId=${workspaceId}&sortBy=earnings&sortOrder=desc`,
     fetcher,
   );
 
@@ -31,7 +31,7 @@ export function TopPartners() {
         </h2>
 
         <Link
-          href={`/${slug}/programs/${programId}/partners?sort=earnings&sortBy=desc`}
+          href={`/${slug}/programs/${programId}/partners?sortBy=earnings&sortOrder=desc`}
           className={cn(
             buttonVariants({ variant: "secondary" }),
             "flex h-7 items-center rounded-lg border px-2 text-sm",
@@ -82,14 +82,12 @@ export function TopPartners() {
                       </span>
                     </div>
                   </div>
-                  <Tooltip content="Total earnings">
-                    <span className="text-sm text-neutral-500">
-                      {currencyFormatter(partner.earnings / 100, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </span>
-                  </Tooltip>
+                  <span className="text-sm text-neutral-500">
+                    {currencyFormatter(partner.earnings / 100, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
                 </div>
               ))}
             </div>

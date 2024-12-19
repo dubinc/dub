@@ -6,8 +6,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import EmptyState from "@/ui/shared/empty-state";
 import WebhookCard from "@/ui/webhooks/webhook-card";
 import WebhookPlaceholder from "@/ui/webhooks/webhook-placeholder";
-import { Button, TooltipContent } from "@dub/ui";
-import { InfoTooltip } from "@dub/ui/src/tooltip";
+import { Button, InfoTooltip, TooltipContent } from "@dub/ui";
 import { Webhook } from "lucide-react";
 import { redirect, useRouter } from "next/navigation";
 

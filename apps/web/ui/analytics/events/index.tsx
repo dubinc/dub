@@ -2,7 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import EmptyState from "@/ui/shared/empty-state";
-import { Menu3 } from "@dub/ui/src/icons";
+import { Menu3 } from "@dub/ui/icons";
 import { useContext } from "react";
 import AnalyticsProvider, { AnalyticsContext } from "../analytics-provider";
 import Toggle from "../toggle";

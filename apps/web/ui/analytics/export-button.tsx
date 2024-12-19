@@ -1,5 +1,5 @@
-import { Button } from "@dub/ui/src/button";
-import { Download } from "@dub/ui/src/icons";
+import { Button } from "@dub/ui";
+import { Download } from "@dub/ui/icons";
 import { Dispatch, SetStateAction, useContext, useState } from "react";
 import { toast } from "sonner";
 import { AnalyticsContext } from "./analytics-provider";

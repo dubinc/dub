@@ -2,7 +2,7 @@ import z from "@/lib/zod";
 import { clickEventSchema, clickEventSchemaTB } from "./clicks";
 import { CustomerSchema } from "./customers";
 import { commonDeprecatedEventFields } from "./deprecated";
-import { linkEventSchema, LinkSchema } from "./links";
+import { linkEventSchema } from "./links";
 
 export const trackLeadRequestSchema = z.object({
   clickId: z
@@ -52,7 +52,6 @@ export const trackLeadRequestSchema = z.object({
     .describe("Email of the customer in the client's app."),
   customerAvatar: z
     .string()
-    .max(100)
     .nullish()
     .default(null)
     .describe("Avatar of the customer in the client's app."),
@@ -76,7 +75,7 @@ export const trackLeadResponseSchema = z.object({
 });
 
 export const leadEventSchemaTB = clickEventSchemaTB
-  .omit({ timestamp: true })
+  .omit({ timestamp: true }) // remove timestamp from lead data because tinybird will generate its own at ingestion time
   .and(
     z.object({
       event_id: z.string(),
@@ -99,6 +98,8 @@ export const leadEventSchemaTBEndpoint = z.object({
   continent: z.string().nullable(),
   country: z.string().nullable(),
   city: z.string().nullable(),
+  region: z.string().nullable(),
+  region_processed: z.string().nullable(),
   device: z.string().nullable(),
   browser: z.string().nullable(),
   os: z.string().nullable(),
@@ -123,24 +124,3 @@ export const leadEventResponseSchema = z
   })
   .merge(commonDeprecatedEventFields)
   .openapi({ ref: "LeadEvent" });
-
-export const leadEventResponseObfuscatedSchema = leadEventResponseSchema
-  .pick({
-    click: true,
-    timestamp: true,
-    eventName: true,
-  })
-  .extend({
-    link: LinkSchema.pick({
-      url: true,
-      shortLink: true,
-      clicks: true,
-      leads: true,
-    }),
-    customer: z.object({
-      email: z
-        .string()
-        .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
-      avatar: z.string().nullable(),
-    }),
-  });

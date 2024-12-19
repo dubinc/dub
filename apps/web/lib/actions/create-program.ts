@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import slugify from "@sindresorhus/slugify";
 import { z } from "zod";
 import { createProgramSchema } from "../zod/schemas/programs";

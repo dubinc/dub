@@ -1,38 +1,60 @@
+import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import {
-  PartnerSchema,
-  PayoutSchema,
+  PayoutResponseSchema,
   payoutsQuerySchema,
-} from "@/lib/zod/schemas/partners";
+} from "@/lib/zod/schemas/payouts";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import z from "zod";
-
-const responseSchema = PayoutSchema.and(
-  z.object({
-    partner: PartnerSchema,
-    _count: z.object({ sales: z.number() }),
-  }),
-);
 
 // GET /api/programs/[programId]/payouts - get all payouts for a program
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
-    const { status, search, sortBy, order, page, pageSize } =
-      payoutsQuerySchema.parse(searchParams);
+    const parsed = payoutsQuerySchema.parse(searchParams);
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
 
+    const {
+      status,
+      partnerId,
+      invoiceId,
+      type,
+      sortBy,
+      sortOrder,
+      page,
+      pageSize,
+    } = parsed;
+
+    const { startDate, endDate } = getStartEndDates(parsed);
+
     const payouts = await prisma.payout.findMany({
       where: {
         programId,
+        OR: [
+          {
+            paidAt: {
+              gte: startDate.toISOString(),
+              lte: endDate.toISOString(),
+            },
+          },
+          {
+            paidAt: null,
+            createdAt: {
+              gte: startDate.toISOString(),
+              lte: endDate.toISOString(),
+            },
+          },
+        ],
         ...(status && { status }),
-        ...(search && { partner: { name: { contains: search } } }),
+        ...(partnerId && { partnerId }),
+        ...(type && { type }),
+        ...(invoiceId && { invoiceId }),
       },
       include: {
         partner: true,
@@ -45,10 +67,10 @@ export const GET = withWorkspace(
       skip: (page - 1) * pageSize,
       take: pageSize,
       orderBy: {
-        [sortBy]: order,
+        [sortBy]: sortOrder,
       },
     });
 
-    return NextResponse.json(z.array(responseSchema).parse(payouts));
+    return NextResponse.json(z.array(PayoutResponseSchema).parse(payouts));
   },
 );

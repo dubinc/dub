@@ -1,6 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import { tb } from "@/lib/tinybird";
-import { Link } from "@prisma/client";
+import { prisma } from "@dub/prisma";
+import { Link } from "@dub/prisma/client";
 import { transformLink } from "../api/links";
 import { tbDemo } from "../tinybird/demo-client";
 import z from "../zod";
@@ -12,12 +12,10 @@ import {
 } from "../zod/schemas/clicks";
 import { CustomerSchema } from "../zod/schemas/customers";
 import {
-  leadEventResponseObfuscatedSchema,
   leadEventResponseSchema,
   leadEventSchemaTBEndpoint,
 } from "../zod/schemas/leads";
 import {
-  saleEventResponseObfuscatedSchema,
   saleEventResponseSchema,
   saleEventSchemaTBEndpoint,
 } from "../zod/schemas/sales";
@@ -34,8 +32,9 @@ export const getEvents = async (params: EventsFilters) => {
     end,
     qr,
     trigger,
+    region,
+    country,
     isDemo,
-    obfuscateData,
   } = params;
 
   const { startDate, endDate } = getStartEndDates({
@@ -50,6 +49,12 @@ export const getEvents = async (params: EventsFilters) => {
     } else if (trigger === "link") {
       qr = false;
     }
+  }
+
+  if (region) {
+    const split = region.split("-");
+    country = split[0];
+    region = split[1];
   }
 
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
@@ -68,6 +73,8 @@ export const getEvents = async (params: EventsFilters) => {
     eventType,
     workspaceId,
     qr,
+    country,
+    region,
     offset: (params.page - 1) * params.limit,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
@@ -104,7 +111,8 @@ export const getEvents = async (params: EventsFilters) => {
         click: clickEventSchema.parse({
           ...evt,
           id: evt.click_id,
-          // normalize referer_url_processed to camelCase
+          // normalize processed values
+          region: evt.region_processed ?? "",
           refererUrl: evt.referer_url_processed ?? "",
         }),
         // transformLink -> add shortLink, qrCode, workspaceId, etc.
@@ -135,17 +143,9 @@ export const getEvents = async (params: EventsFilters) => {
       if (evt.event === "click") {
         return clickEventResponseSchema.parse(eventData);
       } else if (evt.event === "lead") {
-        return (
-          obfuscateData
-            ? leadEventResponseObfuscatedSchema
-            : leadEventResponseSchema
-        ).parse(eventData);
+        return leadEventResponseSchema.parse(eventData);
       } else if (evt.event === "sale") {
-        return (
-          obfuscateData
-            ? saleEventResponseObfuscatedSchema
-            : saleEventResponseSchema
-        ).parse(eventData);
+        return saleEventResponseSchema.parse(eventData);
       }
 
       return eventData;
@@ -188,6 +188,8 @@ const getCustomersMap = async (customerIds: string[]) => {
 
   return customers.reduce(
     (acc, customer) => {
+      // TODO:
+      // Can we do CustomerSchema.parse(customer) instead?
       acc[customer.id] = CustomerSchema.parse({
         id: customer.id,
         externalId: customer.externalId,
@@ -196,6 +198,7 @@ const getCustomersMap = async (customerIds: string[]) => {
         avatar:
           customer.avatar ||
           `https://api.dicebear.com/9.x/notionists/png?seed=${customer.id}`,
+        country: customer.country || "",
         createdAt: customer.createdAt,
       });
       return acc;

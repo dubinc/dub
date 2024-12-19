@@ -15,6 +15,14 @@
     {
       "path": "/api/cron/disposable-emails",
       "schedule": "0 12 * * 1"
+    },
+    {
+      "path": "/api/cron/process-payouts",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/trigger-withdrawal",
+      "schedule": "0 0,12 * * *"
     }
   ],
   "functions": {

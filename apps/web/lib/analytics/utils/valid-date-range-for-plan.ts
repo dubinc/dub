@@ -16,6 +16,11 @@ export const validDateRangeForPlan = ({
   end?: Date | null;
   throwError?: boolean;
 }) => {
+  // special case for conversion enabled – no restrictions on date range
+  if (conversionEnabled) {
+    return true;
+  }
+
   // Free plan users can only get analytics for 30 days
   if (
     (!plan || plan === "free") &&
@@ -41,7 +46,6 @@ export const validDateRangeForPlan = ({
   // Pro plan users can only get analytics for 1 year
   if (
     plan === "pro" &&
-    !conversionEnabled &&
     (interval === "all" ||
       (start &&
         (getDaysDifference(start, new Date(Date.now())) > 366 ||

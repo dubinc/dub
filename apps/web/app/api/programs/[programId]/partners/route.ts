@@ -1,10 +1,10 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import {
   EnrolledPartnerSchema,
   partnersQuerySchema,
 } from "@/lib/zod/schemas/partners";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -12,7 +12,7 @@ import { z } from "zod";
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
-    const { status, country, search, ids, page, pageSize, order, sortBy } =
+    const { status, country, search, ids, page, pageSize, sortBy, sortOrder } =
       partnersQuerySchema.parse(searchParams);
 
     const program = await getProgramOrThrow({
@@ -39,13 +39,13 @@ export const GET = withWorkspace(
       skip: (page - 1) * pageSize,
       take: pageSize,
       orderBy:
-        sortBy === "earnings"
-          ? {
+        sortBy === "createdAt"
+          ? { [sortBy]: sortOrder }
+          : {
               link: {
-                saleAmount: order,
+                [sortBy === "earnings" ? "saleAmount" : sortBy]: sortOrder,
               },
-            }
-          : { [sortBy]: order },
+            },
     });
 
     const partners = programEnrollments.map((enrollment) => ({

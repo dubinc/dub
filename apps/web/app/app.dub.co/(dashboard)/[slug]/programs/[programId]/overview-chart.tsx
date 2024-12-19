@@ -1,15 +1,18 @@
 import { IntervalOptions } from "@/lib/analytics/types";
 import useProgramAnalytics from "@/lib/swr/use-program-analytics";
 import useProgramMetrics from "@/lib/swr/use-program-metrics";
-import Areas from "@/ui/charts/areas";
-import { ChartContext } from "@/ui/charts/chart-context";
-import TimeSeriesChart from "@/ui/charts/time-series-chart";
-import XAxis from "@/ui/charts/x-axis";
-import YAxis from "@/ui/charts/y-axis";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { useRouterStuff } from "@dub/ui";
-import { LoadingSpinner } from "@dub/ui/src/icons";
+import {
+  Areas,
+  ChartContext,
+  TimeSeriesChart,
+  XAxis,
+  YAxis,
+} from "@dub/ui/charts";
+import { LoadingSpinner } from "@dub/ui/icons";
 import { currencyFormatter, formatDate } from "@dub/utils";
+import NumberFlow from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
 import { useId, useMemo } from "react";
 
@@ -20,14 +23,14 @@ export function OverviewChart() {
   const {
     start,
     end,
-    interval = "30d",
+    interval = "1y",
   } = searchParamsObj as {
     start?: string;
     end?: string;
     interval?: IntervalOptions;
   };
 
-  const { metrics, loading: metricsLoading } = useProgramMetrics();
+  const { metrics } = useProgramMetrics();
 
   const { data: timeseries, error } = useProgramAnalytics({
     event: "sales",
@@ -53,15 +56,17 @@ export function OverviewChart() {
       <div className="flex justify-between">
         <div className="flex flex-col gap-1 p-2">
           <span className="text-sm text-neutral-500">Revenue</span>
-          {metricsLoading || !metrics ? (
+          {!metrics ? (
             <div className="h-9 w-24 animate-pulse rounded-md bg-neutral-200" />
           ) : (
-            <span className="text-3xl text-neutral-800">
-              {currencyFormatter(metrics.revenue / 100, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
+            <NumberFlow
+              value={metrics.revenue / 100}
+              className="text-3xl text-neutral-800"
+              format={{
+                style: "currency",
+                currency: "USD",
+              }}
+            />
           )}
         </div>
         <SimpleDateRangePicker className="h-9 w-full px-2 md:w-fit" />

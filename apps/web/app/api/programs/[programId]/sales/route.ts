@@ -1,22 +1,13 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { CustomerSchema } from "@/lib/zod/schemas/customers";
 import {
   getSalesQuerySchema,
-  PartnerSchema,
-  SaleSchema,
+  SaleResponseSchema,
 } from "@/lib/zod/schemas/partners";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-const responseSchema = SaleSchema.and(
-  z.object({
-    customer: CustomerSchema,
-    partner: PartnerSchema,
-  }),
-);
 
 // GET /api/programs/[programId]/sales - get all sales for a program
 export const GET = withWorkspace(
@@ -27,8 +18,8 @@ export const GET = withWorkspace(
       page,
       pageSize,
       status,
-      order,
       sortBy,
+      sortOrder,
       customerId,
       payoutId,
       partnerId,
@@ -66,9 +57,9 @@ export const GET = withWorkspace(
       },
       skip: (page - 1) * pageSize,
       take: pageSize,
-      orderBy: { [sortBy]: order },
+      orderBy: { [sortBy]: sortOrder },
     });
 
-    return NextResponse.json(z.array(responseSchema).parse(sales));
+    return NextResponse.json(z.array(SaleResponseSchema).parse(sales));
   },
 );

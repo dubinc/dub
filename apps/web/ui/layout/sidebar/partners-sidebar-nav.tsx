@@ -1,9 +1,8 @@
 "use client";
 
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
-import usePartnerProgramInvites from "@/lib/swr/use-partner-program-invites";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { Button, useRouterStuff } from "@dub/ui";
+import { Button, useCopyToClipboard, useRouterStuff } from "@dub/ui";
 import {
   ArrowRight,
   ChartActivity2,
@@ -21,24 +20,22 @@ import {
   User,
   UserCheck,
   Users,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import { cn, currencyFormatter } from "@dub/utils";
 import { Store } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { ReactNode, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
+import { ReactNode, useMemo } from "react";
 import { PartnerProgramDropdown } from "./partner-program-dropdown";
+import { PayoutStats } from "./payout-stats";
 import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
 
 const NAV_AREAS: SidebarNavAreas<{
-  partnerId: string;
-  programId?: string;
+  programSlug?: string;
   queryString?: string;
-  hasInvites?: boolean;
 }> = {
   // Top-level
-  default: ({ partnerId, hasInvites }) => ({
+  default: () => ({
     showSwitcher: true,
     showNews: true,
     direction: "left",
@@ -48,26 +45,25 @@ const NAV_AREAS: SidebarNavAreas<{
           {
             name: "Programs",
             icon: GridIcon,
-            href: `/${partnerId}`,
+            href: "/programs",
             exact: true,
-            hasIndicator: hasInvites,
           },
           {
             name: "Marketplace",
             icon: Store,
-            href: `/${partnerId}/marketplace`,
+            href: "/marketplace",
           },
           {
             name: "Settings",
             icon: Gear,
-            href: `/${partnerId}/settings`,
+            href: "/settings",
           },
         ],
       },
     ],
   }),
 
-  program: ({ partnerId, programId, queryString }) => ({
+  program: ({ programSlug, queryString }) => ({
     showSwitcher: true,
     content: [
       {
@@ -75,42 +71,37 @@ const NAV_AREAS: SidebarNavAreas<{
           {
             name: "Overview",
             icon: Gauge6,
-            href: `/${partnerId}/${programId}`,
+            href: `/programs/${programSlug}`,
             exact: true,
           },
           {
             name: "Analytics",
             icon: ChartActivity2,
-            href: `/${partnerId}/${programId}/analytics${queryString}`,
+            href: `/programs/${programSlug}/analytics${queryString}`,
           },
           {
             name: "Sales",
             icon: CircleDollar,
-            href: `/${partnerId}/${programId}/sales${queryString}`,
-          },
-          {
-            name: "Payouts",
-            icon: MoneyBills2,
-            href: `/${partnerId}/${programId}/payouts`,
+            href: `/programs/${programSlug}/sales${queryString}`,
           },
           {
             name: "Links",
             icon: Hyperlink,
-            href: `/${partnerId}/${programId}/links`,
+            href: `/programs/${programSlug}/links`,
           },
           {
             name: "Resources",
             icon: ColorPalette2,
-            href: `/${partnerId}/${programId}/resources`,
+            href: `/programs/${programSlug}/resources`,
           },
         ],
       },
     ],
   }),
 
-  partnerSettings: ({ partnerId }) => ({
+  partnerSettings: () => ({
     title: "Settings",
-    backHref: `/${partnerId}`,
+    backHref: "/programs",
     content: [
       {
         name: "Partner",
@@ -118,18 +109,18 @@ const NAV_AREAS: SidebarNavAreas<{
           {
             name: "Profile",
             icon: User,
-            href: `/${partnerId}/settings`,
+            href: "/settings",
             exact: true,
           },
           {
             name: "Payouts",
             icon: MoneyBills2,
-            href: `/${partnerId}/settings/payouts`,
+            href: "/settings/payouts",
           },
           {
             name: "People",
             icon: Users,
-            href: `/${partnerId}/settings/people`,
+            href: "/settings/people",
           },
         ],
       },
@@ -137,9 +128,9 @@ const NAV_AREAS: SidebarNavAreas<{
   }),
 
   // User settings
-  userSettings: ({ partnerId }) => ({
+  userSettings: () => ({
     title: "Settings",
-    backHref: `/${partnerId}`,
+    backHref: "/programs",
     content: [
       {
         name: "Account",
@@ -168,9 +159,8 @@ export function PartnersSidebarNav({
   toolContent?: ReactNode;
   newsContent?: ReactNode;
 }) {
-  const { partnerId, programId } = useParams() as {
-    partnerId?: string;
-    programId?: string;
+  const { programSlug } = useParams() as {
+    programSlug?: string;
   };
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
@@ -178,55 +168,50 @@ export function PartnersSidebarNav({
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
       ? "userSettings"
-      : pathname.startsWith(`/${partnerId}/settings`)
+      : pathname.startsWith("/settings")
         ? "partnerSettings"
-        : pathname.startsWith(`/${partnerId}/${programId}`)
+        : pathname.startsWith(`/programs/${programSlug}`)
           ? "program"
           : "default";
-  }, [partnerId, pathname, programId]);
-
-  const { programInvites } = usePartnerProgramInvites();
+  }, [pathname, programSlug]);
 
   return (
     <SidebarNav
       areas={NAV_AREAS}
       currentArea={currentArea}
       data={{
-        partnerId: partnerId || "",
-        programId: programId || "",
+        programSlug: programSlug || "",
         queryString: getQueryString(),
-        hasInvites: programInvites && programInvites.length > 0,
       }}
       toolContent={toolContent}
       newsContent={newsContent}
       switcher={<PartnerProgramDropdown />}
-      bottom={<>{programId && <ProgramInfo />}</>}
+      bottom={programSlug ? <ProgramInfo /> : <PayoutStats />}
     />
   );
 }
 
 function ProgramInfo() {
-  const { partnerId, programId } = useParams() as {
-    partnerId?: string;
-    programId?: string;
+  const { programSlug } = useParams() as {
+    programSlug?: string;
   };
+
   const { programEnrollment } = useProgramEnrollment();
 
-  const [isCopied, setIsCopied] = useState(false);
-  const copyTimeout = useRef<NodeJS.Timeout | null>(null);
+  const [copied, copyToClipboard] = useCopyToClipboard();
 
   const { data: analytics, loading } = usePartnerAnalytics();
 
   const items = [
     {
       icon: UserCheck,
-      href: `/${partnerId}/${programId}/analytics?event=leads&interval=all`,
+      href: `/programs/${programSlug}/analytics?event=leads&interval=all`,
       label: "Signups",
       value: analytics?.leads,
     },
     {
       icon: MoneyBills2,
-      href: `/${partnerId}/${programId}/sales?interval=all`,
+      href: `/programs/${programSlug}/sales?interval=all`,
       label: "Earnings",
       value: `${currencyFormatter((analytics?.earnings || 0) / 100)}`,
     },
@@ -247,7 +232,7 @@ function ProgramInfo() {
                 <div
                   className={cn(
                     "absolute inset-0 transition-[transform,opacity]",
-                    isCopied && "translate-y-1 opacity-0",
+                    copied && "translate-y-1 opacity-0",
                   )}
                 >
                   <Copy className="size-4" />
@@ -255,30 +240,27 @@ function ProgramInfo() {
                 <div
                   className={cn(
                     "absolute inset-0 transition-[transform,opacity]",
-                    !isCopied && "translate-y-1 opacity-0",
+                    !copied && "translate-y-1 opacity-0",
                   )}
                 >
                   <Check className="size-4" />
                 </div>
               </div>
             }
-            onClick={() => {
-              navigator.clipboard.writeText(
-                programEnrollment.link?.shortLink || "",
-              );
-              toast.success("Copied to clipboard");
-              setIsCopied(true);
-              if (copyTimeout.current) clearTimeout(copyTimeout.current);
-              copyTimeout.current = setTimeout(() => setIsCopied(false), 1000);
-            }}
+            disabled={!programEnrollment.link?.shortLink}
+            onClick={() =>
+              programEnrollment.link?.shortLink &&
+              copyToClipboard(programEnrollment.link?.shortLink)
+            }
           />
         </div>
       </div>
       <div>
         <div className="text-neutral-500">Performance</div>
         <div className="mt-2 grid grid-cols-2 gap-2">
-          {items.map(({ href, icon: Icon, label, value }) => (
+          {items.map(({ href, icon: Icon, label, value }, index) => (
             <Link
+              key={index}
               href={href}
               className="group relative flex flex-col justify-between gap-3 rounded-lg bg-black/5 p-2 transition-colors hover:bg-black/10"
             >

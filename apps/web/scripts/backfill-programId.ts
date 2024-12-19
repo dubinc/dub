@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
 import { dubLinksMetadataSchema } from "@/lib/tinybird";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 const enrollmentIds = [
@@ -11,7 +11,8 @@ const enrollmentIds = [
   // "cm3ghlajq00002tvj5b72vvgj",
   // "cm3ghqh1300012tvjbeyeo5ec",
   // "cm3gofygs000011simcw9kcqd",
-  "cm3goiy8q0000rcpha96y0vhj",
+  // "cm3goiy8q0000rcpha96y0vhj",
+  "cm2v7e3780000d1efwh8b63y5",
 ];
 
 async function main() {
@@ -49,7 +50,7 @@ async function main() {
       domain: link.domain,
       key: link.key,
       url: link.url,
-      tag_ids: link.tags.map((t) => t.id) || [],
+      tag_ids: link.tags.map((t) => t.tagId) || [],
       program_id: programEnrollment.programId,
       workspace_id: link.projectId,
       created_at: link.createdAt,

@@ -9,47 +9,51 @@ const UNAUTHENTICATED_PATHS = [
   "/register",
   "/forgot-password",
   "/auth/reset-password",
+  "/apply",
 ];
 
-const TOP_LEVEL_REDIRECTS = ["/marketplace", "/settings"];
+// const PARTNER_REDIRECTS = {
+//   "/settings/payouts": "/settings/wallet",
+// };
 
 export default async function PartnersMiddleware(req: NextRequest) {
-  const { path, searchParamsString } = parse(req);
+  const { path, fullPath } = parse(req);
+
+  const user = await getUserViaToken(req);
 
   const isUnauthenticatedPath = UNAUTHENTICATED_PATHS.some((p) =>
     path.startsWith(p),
   );
 
-  const user = await getUserViaToken(req);
-
-  if (!user && !isUnauthenticatedPath)
-    return NextResponse.redirect(new URL("/login", req.url)); // Redirect unauthenticated users to login
-  else if (user && path === "/login")
-    return NextResponse.redirect(new URL("/", req.url)); // Redirect authenticated users to dashboard
-
-  const partnersEnabled = user
-    ? await userIsInBeta(user.email, "partnersPortal")
-    : false;
-
-  if (
-    user &&
-    partnersEnabled &&
-    (path === "/" || TOP_LEVEL_REDIRECTS.some((p) => path.startsWith(p)))
-  ) {
-    const defaultPartner = await getDefaultPartner(user);
-    if (!defaultPartner) {
-      return NextResponse.redirect(new URL("/onboarding", req.url));
-    }
+  if (!user && !isUnauthenticatedPath) {
     return NextResponse.redirect(
-      new URL(`/${defaultPartner}${path}${searchParamsString}`, req.url),
+      new URL(
+        `/login${path === "/" ? "" : `?next=${encodeURIComponent(fullPath)}`}`,
+        req.url,
+      ),
     );
+  } else if (user) {
+    const partnersEnabled = await userIsInBeta(user.email, "partnersPortal");
+
+    if (!partnersEnabled) {
+      return NextResponse.rewrite(new URL("/partners.dub.co", req.url));
+    }
+
+    const defaultPartner = await getDefaultPartner(user);
+
+    if (!defaultPartner && !path.startsWith("/onboarding")) {
+      return NextResponse.redirect(new URL("/onboarding", req.url));
+    } else if (path === "/" || path.startsWith("/pn_")) {
+      return NextResponse.redirect(new URL("/programs", req.url));
+    }
+
+    // else if (PARTNER_REDIRECTS[path]) {
+    //   return NextResponse.redirect(new URL(PARTNER_REDIRECTS[path], req.url));
+    // }
+    else if (["/login", "/register"].some((p) => path.startsWith(p))) {
+      return NextResponse.redirect(new URL("/", req.url)); // Redirect authenticated users to dashboard
+    }
   }
 
-  // Redirect to home if partner flag is off
-  if (user && !partnersEnabled && !isUnauthenticatedPath && path !== "/")
-    return NextResponse.redirect(new URL("/", req.url));
-
-  return NextResponse.rewrite(
-    new URL(`/partners.dub.co${path === "/" ? "" : path}`, req.url),
-  );
+  return NextResponse.rewrite(new URL(`/partners.dub.co${fullPath}`, req.url));
 }

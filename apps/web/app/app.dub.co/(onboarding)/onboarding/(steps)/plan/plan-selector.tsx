@@ -3,9 +3,9 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PlanFeatures } from "@/ui/workspaces/plan-features";
 import { UpgradePlanButton } from "@/ui/workspaces/upgrade-plan-button";
-import { Badge, CountingNumbers } from "@dub/ui";
-import { ToggleGroup } from "@dub/ui/src/toggle-group";
+import { Badge, ToggleGroup } from "@dub/ui";
 import { PRO_PLAN, SELF_SERVE_PAID_PLANS } from "@dub/utils";
+import NumberFlow from "@number-flow/react";
 import { useEffect, useState } from "react";
 
 export function PlanSelector() {
@@ -72,15 +72,23 @@ function PlanCard({
         <h2 className="text-lg font-medium text-gray-900">{name}</h2>
         {name === "Pro" && <Badge variant="blue">Most popular</Badge>}
       </div>
-      <p className="mt-2 text-3xl font-medium text-gray-900">
-        <CountingNumbers className="tabular-nums" prefix="$">
-          {selectedPlan.price[period]}
-        </CountingNumbers>{" "}
-        <span className="text-sm font-medium">
+      <div className="mt-2 text-3xl font-medium text-gray-900">
+        <NumberFlow
+          value={selectedPlan.price[period]!}
+          className="tabular-nums"
+          format={{
+            style: "currency",
+            currency: "USD",
+            // @ts-ignore – this is a valid option but TS is outdated
+            trailingZeroDisplay: "stripIfInteger",
+          }}
+          continuous
+        />
+        <span className="ml-1 text-sm font-medium">
           per month
           {period === "yearly" && ", billed yearly"}
         </span>
-      </p>
+      </div>
       {plans.length > 1 && (
         <div className="mt-4">
           <ToggleGroup

@@ -1,8 +1,9 @@
-import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { LinkProps, ProcessedLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import {
   R2_URL,
   getParamsFromURL,
@@ -10,7 +11,6 @@ import {
   nanoid,
   truncate,
 } from "@dub/utils";
-import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { createId } from "../utils";
@@ -97,9 +97,9 @@ export async function updateLink({
                     name: tagName,
                     projectId: updatedLink.projectId as string,
                   },
-                  createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
                 },
               },
+              createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
             })),
           },
         }),
@@ -171,6 +171,7 @@ export async function updateLink({
         key: response.key,
         url: response.url,
         tag_ids: response.tags.map(({ tag }) => tag.id),
+        program_id: response.programId ?? "",
         workspace_id: response.projectId,
         created_at: response.createdAt,
       }),

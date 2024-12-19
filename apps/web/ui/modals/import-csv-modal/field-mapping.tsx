@@ -1,15 +1,14 @@
 "use client";
 
 import { generateCsvMapping } from "@/lib/ai/generate-csv-mapping";
-import { Button, IconMenu, InfoTooltip, Popover } from "@dub/ui";
+import { Button, IconMenu, InfoTooltip, Popover, Tooltip } from "@dub/ui";
 import {
   ArrowRight,
   Check,
   LoadingSpinner,
   TableIcon,
   Xmark,
-} from "@dub/ui/src/icons";
-import { Tooltip } from "@dub/ui/src/tooltip";
+} from "@dub/ui/icons";
 import {
   cn,
   formatDate,

@@ -1,4 +1,4 @@
-import { Dashboard, Link, Tag } from "@prisma/client";
+import { Dashboard, Link, Tag } from "@dub/prisma/client";
 
 export type ExpandedLink = Link & {
   tags?: { tag: Pick<Tag, "id" | "name" | "color"> }[];
@@ -16,6 +16,7 @@ export const transformLink = (link: ExpandedLink) => {
 
   return {
     ...rest,
+    identifier: null, // backwards compatibility
     tagId: tags?.[0]?.id ?? null, // backwards compatibility
     tags,
     webhookIds,

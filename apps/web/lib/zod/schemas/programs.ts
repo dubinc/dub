@@ -4,7 +4,7 @@ import {
   CommissionType,
   ProgramEnrollmentStatus,
   ProgramType,
-} from "@prisma/client";
+} from "@dub/prisma/client";
 import { z } from "zod";
 import { LinkSchema } from "./links";
 import { parseDateSchema } from "./utils";
@@ -14,6 +14,9 @@ export const ProgramSchema = z.object({
   name: z.string(),
   slug: z.string(),
   logo: z.string().nullable(),
+  brandColor: z.string().nullable(),
+  domain: z.string().nullable(),
+  url: z.string().nullable(),
   type: z.nativeEnum(ProgramType),
   cookieLength: z.number(),
   commissionAmount: z.number(),
@@ -22,8 +25,7 @@ export const ProgramSchema = z.object({
   recurringDuration: z.number().nullable(),
   recurringInterval: z.nativeEnum(CommissionInterval).nullable(),
   isLifetimeRecurring: z.boolean().nullable(),
-  domain: z.string().nullable(),
-  url: z.string().nullable(),
+  wordmark: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -41,18 +43,6 @@ export const createProgramSchema = z.object({
   url: z.string().nullable(),
 });
 
-export const getProgramMetricsQuerySchema = z.object({
-  interval: z.enum(intervals).default("30d"),
-  start: parseDateSchema.optional(),
-  end: parseDateSchema.optional(),
-});
-
-export const ProgramInviteSchema = z.object({
-  id: z.string(),
-  email: z.string(),
-  program: ProgramSchema,
-});
-
 export const ProgramEnrollmentSchema = z.object({
   partnerId: z.string(),
   programId: z.string(),
@@ -61,6 +51,8 @@ export const ProgramEnrollmentSchema = z.object({
   link: LinkSchema.pick({
     id: true,
     shortLink: true,
+    domain: true,
+    key: true,
     url: true,
     clicks: true,
     leads: true,
@@ -68,4 +60,23 @@ export const ProgramEnrollmentSchema = z.object({
     saleAmount: true,
   }).nullable(),
   createdAt: z.date(),
+});
+
+export const ProgramInviteSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  shortLink: z.string(),
+  createdAt: z.date(),
+});
+
+export const getProgramMetricsQuerySchema = z.object({
+  interval: z.enum(intervals).default("1y"),
+  start: parseDateSchema.optional(),
+  end: parseDateSchema.optional(),
+});
+
+export const PartnerProgramInviteSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  program: ProgramSchema,
 });

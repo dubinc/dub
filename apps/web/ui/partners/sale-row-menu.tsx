@@ -1,13 +1,13 @@
 import { updateSaleStatusAction } from "@/lib/actions/update-sale-status";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { SaleProps } from "@/lib/types";
+import { SaleResponse } from "@/lib/types";
 import { Button, Icon, Popover } from "@dub/ui";
 import {
   CircleHalfDottedClock,
   Dots,
   Duplicate,
   ShieldAlert,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
@@ -17,7 +17,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
-export function SaleRowMenu({ row }: { row: Row<SaleProps> }) {
+export function SaleRowMenu({ row }: { row: Row<SaleResponse> }) {
   const { id: workspaceId } = useWorkspace();
   const { programId } = useParams() as { programId: string };
   const [isOpen, setIsOpen] = useState(false);
@@ -48,6 +48,8 @@ export function SaleRowMenu({ row }: { row: Row<SaleProps> }) {
     );
   };
 
+  const isPaid = row.original.status === "paid";
+
   return (
     <Popover
       openPopover={isOpen}
@@ -58,7 +60,7 @@ export function SaleRowMenu({ row }: { row: Row<SaleProps> }) {
           loop
           className="pointer-events-auto focus:outline-none"
         >
-          <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
+          <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[180px]">
             {["duplicate", "fraud"].includes(row.original.status) ? (
               <MenuItem
                 icon={CircleHalfDottedClock}
@@ -77,6 +79,7 @@ export function SaleRowMenu({ row }: { row: Row<SaleProps> }) {
                     updateStatus("duplicate");
                     setIsOpen(false);
                   }}
+                  disabled={isPaid}
                 />
                 <MenuItem
                   icon={ShieldAlert}
@@ -85,6 +88,7 @@ export function SaleRowMenu({ row }: { row: Row<SaleProps> }) {
                     updateStatus("fraud");
                     setIsOpen(false);
                   }}
+                  disabled={isPaid}
                 />
               </>
             )}
@@ -107,18 +111,22 @@ function MenuItem({
   icon: IconComp,
   label,
   onSelect,
+  disabled,
 }: {
   icon: Icon;
   label: string;
   onSelect: () => void;
+  disabled?: boolean;
 }) {
   return (
     <Command.Item
       className={cn(
         "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-600",
         "data-[selected=true]:bg-gray-100",
+        disabled && "cursor-not-allowed opacity-50",
       )}
       onSelect={onSelect}
+      disabled={disabled}
     >
       <IconComp className="size-4 shrink-0 text-neutral-500" />
       {label}

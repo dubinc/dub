@@ -5,9 +5,10 @@ import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { updateUsage } from "./utils";
 
-// Cron to update the usage stats of each workspace.
-// Runs once every day at noon UTC (0 12 * * *)
-
+/*
+    This route is used to update the usage stats of each workspace.
+    Runs once every day at noon UTC (0 12 * * *)
+*/
 export const dynamic = "force-dynamic";
 
 async function handler(req: Request) {

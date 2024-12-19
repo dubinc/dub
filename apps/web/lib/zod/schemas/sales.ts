@@ -2,7 +2,7 @@ import z from "@/lib/zod";
 import { clickEventSchema, clickEventSchemaTB } from "./clicks";
 import { CustomerSchema } from "./customers";
 import { commonDeprecatedEventFields } from "./deprecated";
-import { linkEventSchema, LinkSchema } from "./links";
+import { linkEventSchema } from "./links";
 
 export const trackSaleRequestSchema = z.object({
   externalId: z
@@ -106,6 +106,8 @@ export const saleEventSchemaTBEndpoint = z.object({
   continent: z.string().nullable(),
   country: z.string().nullable(),
   city: z.string().nullable(),
+  region: z.string().nullable(),
+  region_processed: z.string().nullable(),
   device: z.string().nullable(),
   browser: z.string().nullable(),
   os: z.string().nullable(),
@@ -146,29 +148,3 @@ export const saleEventResponseSchema = z
   })
   .merge(commonDeprecatedEventFields)
   .openapi({ ref: "SaleEvent" });
-
-export const saleEventResponseObfuscatedSchema = saleEventResponseSchema
-  .pick({
-    click: true,
-    timestamp: true,
-    eventName: true,
-  })
-  .extend({
-    link: LinkSchema.pick({
-      url: true,
-      shortLink: true,
-      clicks: true,
-      leads: true,
-      sales: true,
-      saleAmount: true,
-    }),
-    sale: z.object({
-      amount: z.number(),
-    }),
-    customer: z.object({
-      email: z
-        .string()
-        .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
-      avatar: z.string().nullable(),
-    }),
-  });

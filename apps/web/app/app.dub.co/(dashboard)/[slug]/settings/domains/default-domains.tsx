@@ -5,7 +5,7 @@ import useDefaultDomains from "@/lib/swr/use-default-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainCardTitleColumn } from "@/ui/domains/domain-card-title-column";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
-import { Logo, Switch } from "@dub/ui";
+import { Logo, Switch, TooltipContent } from "@dub/ui";
 import {
   Amazon,
   CalendarDays,
@@ -14,8 +14,7 @@ import {
   GitHubEnhanced,
   GoogleEnhanced,
   Spotify,
-} from "@dub/ui/src/icons";
-import { TooltipContent } from "@dub/ui/src/tooltip";
+} from "@dub/ui/icons";
 import { DUB_DOMAINS } from "@dub/utils";
 import Link from "next/link";
 import { useEffect, useState } from "react";

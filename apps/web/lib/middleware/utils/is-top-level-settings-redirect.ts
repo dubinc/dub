@@ -1,9 +1,4 @@
-const topLevelSettingRedirects = [
-  "/domains",
-  "/integrations",
-  "/referrals",
-  "/webhooks",
-];
+const topLevelSettingRedirects = ["/domains", "/integrations", "/webhooks"];
 
 export const isTopLevelSettingsRedirect = (path: string) => {
   return (

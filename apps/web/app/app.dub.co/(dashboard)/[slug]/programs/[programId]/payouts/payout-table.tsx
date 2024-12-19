@@ -1,11 +1,15 @@
 "use client";
 
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
-import { PayoutWithPartnerProps } from "@/lib/types";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { PayoutResponse } from "@/lib/types";
+import { AmountRowItem } from "@/ui/partners/amount-row-item";
+import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
+import { PayoutTypeBadge } from "@/ui/partners/payout-type-badge";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { SearchBoxPersisted } from "@/ui/shared/search-box";
+import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
   Button,
@@ -18,27 +22,23 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, MoneyBill2, MoneyBills2 } from "@dub/ui/src/icons";
-import {
-  cn,
-  currencyFormatter,
-  DICEBEAR_AVATAR_URL,
-  formatDate,
-} from "@dub/utils";
+import { Dots, MoneyBill2, MoneyBills2 } from "@dub/ui/icons";
+import { cn, formatDate } from "@dub/utils";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { usePayoutFilters } from "./use-payout-filters";
 
 export function PayoutTable() {
   const { programId } = useParams();
-  const { queryParams, searchParams } = useRouterStuff();
+  const { id: workspaceId } = useWorkspace();
+  const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
-  const sortBy = searchParams.get("sort") || "periodStart";
-  const order = searchParams.get("order") === "asc" ? "asc" : "desc";
+  const sortBy = searchParams.get("sortBy") || "periodStart";
+  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const {
     filters,
@@ -46,18 +46,24 @@ export function PayoutTable() {
     onSelect,
     onRemove,
     onRemoveAll,
-    searchQuery,
     isFiltered,
-  } = usePayoutFilters({ sortBy, order });
+    setSearch,
+    setSelectedFilter,
+  } = usePayoutFilters({ sortBy, sortOrder });
 
-  const { payoutsCount, error: countError } = usePayoutsCount();
+  const { payoutsCount, error: countError } = usePayoutsCount<number>();
 
   const {
     data: payouts,
     error,
     isLoading,
-  } = useSWR<PayoutWithPartnerProps[]>(
-    `/api/programs/${programId}/payouts?${searchQuery}`,
+  } = useSWR<PayoutResponse[]>(
+    `/api/programs/${programId}/payouts${getQueryString(
+      { workspaceId },
+      {
+        ignore: ["payoutId"],
+      },
+    )}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -65,9 +71,19 @@ export function PayoutTable() {
   );
 
   const [detailsSheetState, setDetailsSheetState] = useState<
-    | { open: false; payout: PayoutWithPartnerProps | null }
-    | { open: true; payout: PayoutWithPartnerProps }
+    | { open: false; payout: PayoutResponse | null }
+    | { open: true; payout: PayoutResponse }
   >({ open: false, payout: null });
+
+  useEffect(() => {
+    const payoutId = searchParams.get("payoutId");
+    if (payoutId) {
+      const payout = payouts?.find((p) => p.id === payoutId);
+      if (payout) {
+        setDetailsSheetState({ open: true, payout });
+      }
+    }
+  }, [searchParams, payouts]);
 
   const { pagination, setPagination } = usePagination();
 
@@ -79,16 +95,32 @@ export function PayoutTable() {
       {
         id: "periodStart",
         header: "Period",
-        accessorFn: (d) =>
-          `${formatDate(d.periodStart, { month: "short", year: new Date(d.periodStart).getFullYear() === new Date(d.periodEnd).getFullYear() ? undefined : "numeric" })}-${formatDate(
+        accessorFn: (d) => {
+          if (!d.periodStart || !d.periodEnd) {
+            return "-";
+          }
+
+          return `${formatDate(d.periodStart, { month: "short", year: new Date(d.periodStart).getFullYear() === new Date(d.periodEnd).getFullYear() ? undefined : "numeric" })}-${formatDate(
             d.periodEnd,
             { month: "short" },
-          )}`,
+          )}`;
+        },
+      },
+      {
+        header: "Partner",
+        cell: ({ row }) => {
+          return <PartnerRowItem partner={row.original.partner} />;
+        },
+      },
+      {
+        header: "Type",
+        cell: ({ row }) => <PayoutTypeBadge type={row.original.type} />,
       },
       {
         header: "Status",
         cell: ({ row }) => {
           const badge = PayoutStatusBadges[row.original.status];
+
           return badge ? (
             <StatusBadge icon={badge.icon} variant={badge.variant}>
               {badge.label}
@@ -99,49 +131,27 @@ export function PayoutTable() {
         },
       },
       {
-        header: "Partner",
-        cell: ({ row }) => {
-          return (
-            <div className="flex items-center gap-2">
-              <img
-                src={
-                  row.original.partner.image ||
-                  `${DICEBEAR_AVATAR_URL}${row.original.partner.name}`
-                }
-                alt={row.original.partner.name}
-                className="size-5 rounded-full"
-              />
-              <div>{row.original.partner.name}</div>
-            </div>
-          );
-        },
+        id: "paidAt",
+        header: "Paid",
+        cell: ({ row }) =>
+          row.original.paidAt
+            ? formatDate(row.original.paidAt, {
+                month: "short",
+                day: "numeric",
+                year: undefined,
+              })
+            : "-",
       },
       {
         id: "amount",
         header: "Amount",
-        accessorFn: (d) =>
-          currencyFormatter(d.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
-      },
-      {
-        id: "fee",
-        header: "Fee",
-        accessorFn: (d) =>
-          currencyFormatter(d.fee / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
-      },
-      {
-        id: "total",
-        header: "Total",
-        accessorFn: (d) =>
-          currencyFormatter(d.total / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        cell: ({ row }) => (
+          <AmountRowItem
+            amount={row.original.amount}
+            status={row.original.status}
+            payoutsEnabled={row.original.partner.payoutsEnabled}
+          />
+        ),
       },
       // Menu
       {
@@ -150,28 +160,36 @@ export function PayoutTable() {
         minSize: 43,
         size: 43,
         maxSize: 43,
-        cell: ({ row }) => <RowMenuButton row={row} />,
+        cell: ({ row }) =>
+          row.original.type === "sales" ? <RowMenuButton row={row} /> : "",
       },
     ],
     pagination,
     onPaginationChange: setPagination,
-    sortableColumns: ["periodStart"],
+    sortableColumns: ["periodStart", "amount", "paidAt"],
     sortBy,
-    sortOrder: order,
+    sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
       queryParams({
         set: {
-          ...(sortBy && { sort: sortBy }),
-          ...(sortOrder && { order: sortOrder }),
+          ...(sortBy && { sortBy }),
+          ...(sortOrder && { sortOrder }),
         },
+        scroll: false,
       }),
-    onRowClick: (row) =>
-      setDetailsSheetState({ open: true, payout: row.original }),
+    onRowClick: (row) => {
+      queryParams({
+        set: {
+          payoutId: row.original.id,
+        },
+        scroll: false,
+      });
+    },
     columnPinning: { right: ["menu"] },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `payout${p ? "s" : ""}`,
-    rowCount: payoutsCount?.all || 0,
+    rowCount: payoutsCount || 0,
   });
 
   return (
@@ -187,15 +205,17 @@ export function PayoutTable() {
       )}
       <div className="flex flex-col gap-3">
         <div>
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
             <Filter.Select
               className="w-full md:w-fit"
               filters={filters}
               activeFilters={activeFilters}
               onSelect={onSelect}
               onRemove={onRemove}
+              onSearchChange={setSearch}
+              onSelectedFilterChange={setSelectedFilter}
             />
-            <SearchBoxPersisted />
+            <SimpleDateRangePicker className="w-fit" />
           </div>
           <AnimatedSizeContainer height>
             <div>
@@ -235,7 +255,7 @@ export function PayoutTable() {
   );
 }
 
-function RowMenuButton({ row }: { row: Row<PayoutWithPartnerProps> }) {
+function RowMenuButton({ row }: { row: Row<PayoutResponse> }) {
   const router = useRouter();
   const { slug, programId } = useParams();
   const [isOpen, setIsOpen] = useState(false);
@@ -252,7 +272,7 @@ function RowMenuButton({ row }: { row: Row<PayoutWithPartnerProps> }) {
               label="View sales"
               onSelect={() => {
                 router.push(
-                  `/${slug}/programs/${programId}/sales?payoutId=${row.original.id}`,
+                  `/${slug}/programs/${programId}/sales?payoutId=${row.original.id}&start=${row.original.periodStart}&end=${row.original.periodEnd}`,
                 );
                 setIsOpen(false);
               }}

@@ -1,41 +1,35 @@
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useRouterStuff } from "@dub/ui";
-import { CircleDotted, FlagWavy } from "@dub/ui/src/icons";
+import { CircleDotted, FlagWavy } from "@dub/ui/icons";
 import { cn, COUNTRIES, nFormatter } from "@dub/utils";
 import { useMemo } from "react";
-import { PartnerStatusBadges } from "./partner-table";
 
 export function usePartnerFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
-  const { partnersCount } = usePartnersCount();
+
+  const { partnersCount: countriesCount } = usePartnersCount<
+    {
+      country: string;
+      _count: number;
+    }[]
+  >({
+    groupBy: "country",
+  });
+
+  const { partnersCount: statusCount } = usePartnersCount<
+    {
+      status: string;
+      _count: number;
+    }[]
+  >({
+    groupBy: "status",
+  });
 
   const filters = useMemo(
     () => [
-      {
-        key: "status",
-        icon: CircleDotted,
-        label: "Status",
-        options: Object.entries(PartnerStatusBadges).map(
-          ([value, { label }]) => {
-            const Icon = PartnerStatusBadges[value].icon;
-            return {
-              value,
-              label,
-              icon: (
-                <Icon
-                  className={cn(
-                    PartnerStatusBadges[value].className,
-                    "size-4 bg-transparent",
-                  )}
-                />
-              ),
-              right: nFormatter(partnersCount?.[value] || 0, { full: true }),
-            };
-          },
-        ),
-      },
       {
         key: "country",
         icon: FlagWavy,
@@ -48,13 +42,42 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
           />
         ),
         getOptionLabel: (value) => COUNTRIES[value],
-        options: Object.entries(COUNTRIES).map(([value, label]) => ({
-          value,
-          label,
-        })),
+        options:
+          countriesCount?.map(({ country, _count }) => ({
+            value: country,
+            label: COUNTRIES[country],
+            right: nFormatter(_count, { full: true }),
+          })) ?? [],
+      },
+      {
+        key: "status",
+        icon: CircleDotted,
+        label: "Status",
+        options: Object.entries(PartnerStatusBadges).map(
+          ([value, { label }]) => {
+            const Icon = PartnerStatusBadges[value].icon;
+            const count = statusCount?.find(
+              ({ status }) => status === value,
+            )?._count;
+
+            return {
+              value,
+              label,
+              icon: (
+                <Icon
+                  className={cn(
+                    PartnerStatusBadges[value].className,
+                    "size-4 bg-transparent",
+                  )}
+                />
+              ),
+              right: nFormatter(count || 0, { full: true }),
+            };
+          },
+        ),
       },
     ],
-    [partnersCount],
+    [countriesCount, statusCount],
   );
 
   const activeFilters = useMemo(() => {

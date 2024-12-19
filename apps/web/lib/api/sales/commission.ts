@@ -1,4 +1,4 @@
-import { Program, Sale } from "@prisma/client";
+import { Program, Sale } from "@dub/prisma/client";
 
 /* 
   Calculate the commission earned for a sale
@@ -16,10 +16,15 @@ export const calculateEarnings = ({
     return 0;
   }
 
-  return (
-    (program.commissionType === "percentage" ? saleAmount : sales) *
-    (program.commissionAmount / 100) // commission amount is either a percentage of amount in cents
-  );
+  if (program.commissionType === "percentage") {
+    return saleAmount * (program.commissionAmount / 100);
+  }
+
+  if (program.commissionType === "flat") {
+    return sales * program.commissionAmount;
+  }
+
+  throw new Error("Invalid commissionType");
 };
 
 // Calculate the recurring commission earned for a sale

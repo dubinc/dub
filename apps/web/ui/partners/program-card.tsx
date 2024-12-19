@@ -1,7 +1,6 @@
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import { ProgramEnrollmentProps, ProgramProps } from "@/lib/types";
-import { MiniAreaChart } from "@dub/blocks";
-import { BlurImage, StatusBadge } from "@dub/ui";
+import { BlurImage, MiniAreaChart, StatusBadge } from "@dub/ui";
 import {
   cn,
   currencyFormatter,
@@ -10,7 +9,6 @@ import {
 } from "@dub/utils";
 import { addDays } from "date-fns";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { useMemo } from "react";
 
 export const ProgramEnrollmentStatusBadges = {
@@ -34,9 +32,6 @@ export function ProgramCard({
 }: {
   programEnrollment: ProgramEnrollmentProps;
 }) {
-  const { partnerId } = useParams() as {
-    partnerId?: string;
-  };
   const { program, status, createdAt } = programEnrollment;
 
   const card = (
@@ -86,7 +81,7 @@ export function ProgramCard({
   );
 
   return status === "approved" ? (
-    <Link href={`/${partnerId}/${program.id}`}>{card}</Link>
+    <Link href={`/programs/${program.slug}`}>{card}</Link>
   ) : (
     card
   );

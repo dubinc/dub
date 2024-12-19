@@ -1,7 +1,7 @@
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { dashboardSchema } from "@/lib/zod/schemas/dashboard";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /links/[linkId]/dashboard – get dashboard for a given link
@@ -11,7 +11,7 @@ export const GET = withWorkspace(
 
     const link = await getLinkOrThrow({
       linkId,
-      workspace,
+      workspaceId: workspace.id,
     });
 
     const dashboard = await prisma.dashboard.findUnique({

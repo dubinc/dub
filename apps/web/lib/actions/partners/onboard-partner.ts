@@ -1,13 +1,15 @@
 "use server";
 
 import { createId } from "@/lib/api/utils";
-import { createDotsUser } from "@/lib/dots/create-dots-user";
-import { sendVerificationToken } from "@/lib/dots/send-verification-token";
 import { userIsInBeta } from "@/lib/edge-config";
-import { prisma } from "@/lib/prisma";
+import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { storage } from "@/lib/storage";
+import { createConnectedAccount } from "@/lib/stripe/create-connected-account";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
-import { COUNTRY_PHONE_CODES, nanoid } from "@dub/utils";
+import { prisma } from "@dub/prisma";
+import { nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
+import Stripe from "stripe";
 import { authUserActionClient } from "../safe-action";
 
 // Onboard a new partner
@@ -15,6 +17,7 @@ export const onboardPartnerAction = authUserActionClient
   .schema(onboardPartnerSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { user } = ctx;
+    const { name, email, image, country, description } = parsedInput;
 
     const partnersPortalEnabled = await userIsInBeta(
       user.email,
@@ -25,27 +28,28 @@ export const onboardPartnerAction = authUserActionClient
       throw new Error("Partners portal feature flag disabled.");
     }
 
-    const { name, image, country, phoneNumber, description } = parsedInput;
+    const emailInUse = await prisma.partner.count({
+      where: {
+        email,
+      },
+    });
 
-    // Create the Dots user with DOTS_DEFAULT_APP_ID
-    const [firstName, lastName] = name.split(" ");
-    const countryCode = COUNTRY_PHONE_CODES[country] || null;
-
-    if (!countryCode) {
-      throw new Error("Invalid country code.");
+    if (emailInUse) {
+      throw new Error(
+        `"${email}" is already in use by another partner. Please use a different email.`,
+      );
     }
 
-    const dotsUserInfo = {
-      firstName,
-      lastName: lastName || firstName.slice(0, 1), // Dots requires a last name
-      email: user.email,
-      countryCode: countryCode.toString(),
-      phoneNumber,
-    };
-
-    const dotsUser = await createDotsUser({
-      userInfo: dotsUserInfo,
-    });
+    let connectedAccount: Stripe.Account | null = null;
+    // TODO: Stripe Connect – remove this once we can onboard partners from other countries
+    if (country === "US") {
+      // Create the Stripe connected account for the partner
+      connectedAccount = await createConnectedAccount({
+        name,
+        email,
+        country,
+      });
+    }
 
     const partnerId = createId({ prefix: "pn_" });
 
@@ -53,15 +57,16 @@ export const onboardPartnerAction = authUserActionClient
       .upload(`partners/${partnerId}/image_${nanoid(7)}`, image)
       .then(({ url }) => url);
 
-    const [partner, _] = await Promise.all([
+    await Promise.all([
       prisma.partner.create({
         data: {
           id: partnerId,
           name,
+          email,
           country,
           bio: description,
-          dotsUserId: dotsUser.id,
           image: imageUrl,
+          ...(connectedAccount && { stripeConnectId: connectedAccount.id }),
           users: {
             create: {
               userId: user.id,
@@ -70,12 +75,19 @@ export const onboardPartnerAction = authUserActionClient
           },
         },
       }),
-      sendVerificationToken({
-        dotsUserId: dotsUser.id,
-      }),
+
+      // only set the default partner ID if the user doesn't already have one
+      !user.defaultPartnerId &&
+        prisma.user.update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            defaultPartnerId: partnerId,
+          },
+        }),
     ]);
 
-    return {
-      partnerId: partner.id,
-    };
+    // Complete any outstanding program applications
+    waitUntil(completeProgramApplications(user.id));
   });

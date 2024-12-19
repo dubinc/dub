@@ -1,9 +1,9 @@
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { createId } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { dashboardSchema } from "@/lib/zod/schemas/dashboard";
 import { domainKeySchema } from "@/lib/zod/schemas/links";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -28,7 +28,7 @@ export const POST = withWorkspace(
     const { domain, key } = domainKeySchema.parse(searchParams);
 
     const link = await getLinkOrThrow({
-      workspace,
+      workspaceId: workspace.id,
       domain,
       key,
     });

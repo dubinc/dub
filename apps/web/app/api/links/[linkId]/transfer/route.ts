@@ -2,10 +2,10 @@ import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { DubApiError } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import z from "@/lib/zod";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -21,7 +21,7 @@ const transferLinkBodySchema = z.object({
 export const POST = withWorkspace(
   async ({ req, headers, session, params, workspace }) => {
     const link = await getLinkOrThrow({
-      workspace,
+      workspaceId: workspace.id,
       linkId: params.linkId,
     });
 
@@ -91,6 +91,7 @@ export const POST = withWorkspace(
           key: link.key,
           url: link.url,
           tag_ids: [],
+          program_id: link.programId ?? "",
           workspace_id: newWorkspaceId,
           created_at: link.createdAt,
         }),
