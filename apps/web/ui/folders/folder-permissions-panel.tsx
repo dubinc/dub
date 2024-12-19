@@ -151,7 +151,7 @@ const FolderPermissionsPanel = ({
               {/* Workspace-level access */}
               <div className="mt-10">
                 <span className="text-sm font-medium text-neutral-900">
-                  Workspace-level
+                  Workspace
                 </span>
                 <div className="relative mt-3 flex items-center justify-between gap-4">
                   <div className="flex min-w-12 items-center gap-2">

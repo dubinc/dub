@@ -9,10 +9,9 @@ export const getFolder = async ({
   userId: string;
   folderId: string;
 }) => {
-  const folder = await prisma.folder.findFirst({
+  const folder = await prisma.folder.findUnique({
     where: {
       id: folderId,
-      projectId: workspaceId,
     },
     select: {
       id: true,
@@ -20,6 +19,7 @@ export const getFolder = async ({
       accessLevel: true,
       createdAt: true,
       updatedAt: true,
+      projectId: true,
       _count: {
         select: {
           links: true,
@@ -35,6 +35,10 @@ export const getFolder = async ({
 
   if (!folder) {
     return null;
+  }
+
+  if (folder.projectId !== workspaceId) {
+    throw new Error("Folder does not belong to the workspace.");
   }
 
   return {
