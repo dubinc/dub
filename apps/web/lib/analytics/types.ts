@@ -40,6 +40,7 @@ export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
   isDemo?: boolean;
   obfuscateData?: boolean;
   allowedFolderIds?: string[];
+  customerId?: string;
 };
 
 const partnerAnalyticsSchema = analyticsQuerySchema

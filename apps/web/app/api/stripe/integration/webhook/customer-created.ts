@@ -2,7 +2,6 @@ import { createId } from "@/lib/api/utils";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
-import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -26,8 +25,10 @@ export async function customerCreated(event: Stripe.Event) {
     return `Click event with ID ${clickId} not found, skipping...`;
   }
 
+  const clickData = clickEvent.data[0];
+
   // Find link
-  const linkId = clickEvent.data[0].link_id;
+  const linkId = clickData.link_id;
   const link = await prisma.link.findUnique({
     where: {
       id: linkId,
@@ -60,6 +61,10 @@ export async function customerCreated(event: Stripe.Event) {
       stripeCustomerId: stripeCustomer.id,
       projectConnectId: stripeAccountId,
       externalId,
+      linkId,
+      clickId,
+      clickedAt: new Date(clickData.timestamp + "Z"),
+      country: clickData.country,
       project: {
         connect: {
           stripeConnectId: stripeAccountId,
@@ -67,10 +72,6 @@ export async function customerCreated(event: Stripe.Event) {
       },
     },
   });
-
-  const clickData = clickEventSchemaTB
-    .omit({ timestamp: true })
-    .parse(clickEvent.data[0]);
 
   const leadData = {
     ...clickData,

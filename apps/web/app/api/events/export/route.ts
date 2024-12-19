@@ -6,16 +6,10 @@ import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
 import { getFolders } from "@/lib/folder/get-folders";
 import { checkFolderPermission } from "@/lib/folder/permissions";
+import { ClickEvent, LeadEvent, SaleEvent } from "@/lib/types";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { clickEventResponseSchema } from "@/lib/zod/schemas/clicks";
-import { leadEventResponseSchema } from "@/lib/zod/schemas/leads";
-import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
 import { COUNTRIES, capitalize } from "@dub/utils";
 import { z } from "zod";
-
-type ClickEvent = z.infer<typeof clickEventResponseSchema>;
-type LeadEvent = z.infer<typeof leadEventResponseSchema>;
-type SaleEvent = z.infer<typeof saleEventResponseSchema>;
 
 type Row = ClickEvent | LeadEvent | SaleEvent;
 
