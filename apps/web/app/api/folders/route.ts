@@ -8,7 +8,6 @@ import {
   listFoldersQuerySchema,
 } from "@/lib/zod/schemas/folders";
 import { prisma } from "@dub/prisma";
-import { getSearchParams } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/folders - get all folders for a workspace
