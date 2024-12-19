@@ -35,8 +35,16 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
 
   useEffect(() => {
     if (highlighter) {
+      let responseBodyDecoded = event.response_body;
+
+      try {
+        responseBodyDecoded = JSON.parse(event.response_body);
+      } catch {
+        // If it's not JSON, just use the original response body
+      }
+
       const responseBodyHtml = highlighter.codeToHtml(
-        JSON.stringify(event.response_body, null, 2),
+        JSON.stringify(responseBodyDecoded, null, 2),
         {
           theme: "min-light",
           lang: "json",

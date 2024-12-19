@@ -2,21 +2,28 @@ enum WebhookReceiver {
   user
   zapier
   make
+  slack
+  segment
 }
 
 model Webhook {
-  id        String          @id @default(cuid())
-  receiver  WebhookReceiver
-  projectId String
-  name      String
-  url       String
-  secret    String
-  triggers  Json
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  id                  String          @id @default(cuid())
+  projectId           String
+  installationId      String?         @unique // indicates which integration installation added the webhook
+  receiver            WebhookReceiver @default(user)
+  name                String
+  url                 String
+  secret              String
+  triggers            Json
+  consecutiveFailures Int             @default(0)
+  lastFailedAt        DateTime?
+  disabledAt          DateTime?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
 
-  project Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  links   LinkWebhook[]
+  project              Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  installedIntegration InstalledIntegration? @relation(fields: [installationId], references: [id], onDelete: Cascade)
+  links                LinkWebhook[]
 
   @@index([projectId])
 }

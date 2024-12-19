@@ -6,12 +6,13 @@ import { NextResponse } from "next/server";
 
 // DELETE /api/integrations/uninstall - uninstall an installation by id
 export const DELETE = withWorkspace(
-  async ({ searchParams, session }) => {
+  async ({ searchParams, session, workspace }) => {
     const { installationId } = searchParams;
 
     const installation = await prisma.installedIntegration.findUnique({
       where: {
         id: installationId,
+        projectId: workspace.id,
       },
     });
 
@@ -30,15 +31,16 @@ export const DELETE = withWorkspace(
       });
     }
 
-    await prisma.installedIntegration.delete({
+    const { integration } = await prisma.installedIntegration.delete({
       where: {
         id: installationId,
       },
-    });
-
-    const integration = await prisma.integration.findUniqueOrThrow({
-      where: {
-        id: installation.integrationId,
+      select: {
+        integration: {
+          select: {
+            slug: true,
+          },
+        },
       },
     });
 
