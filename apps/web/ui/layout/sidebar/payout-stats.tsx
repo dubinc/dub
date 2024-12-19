@@ -5,7 +5,7 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import StripeConnectButton from "@/ui/partners/stripe-connect-button";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { AnimatedSizeContainer, MoneyBills2, Tooltip } from "@dub/ui";
-import { currencyFormatter } from "@dub/utils";
+import { CONNECT_SUPPORTED_COUNTRIES, currencyFormatter } from "@dub/utils";
 import { PayoutStatus } from "@prisma/client";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -33,6 +33,7 @@ export function PayoutStats() {
               {partner && !partner.payoutsEnabled && (
                 <Tooltip
                   content="You need to set up Stripe to be able to receive payouts."
+                  contentClassName="max-w-40"
                   side="right"
                 >
                   <div>
@@ -74,12 +75,14 @@ export function PayoutStats() {
             )}
           </div>
         </div>
-        {partner && !partner.payoutsEnabled && (
-          <StripeConnectButton
-            className="mt-4 h-9 w-full"
-            text="Connect payouts"
-          />
-        )}
+        {partner &&
+          !partner.payoutsEnabled &&
+          CONNECT_SUPPORTED_COUNTRIES.includes(partner.country) && (
+            <StripeConnectButton
+              className="mt-4 h-9 w-full"
+              text="Connect payouts"
+            />
+          )}
       </div>
     </AnimatedSizeContainer>
   );
