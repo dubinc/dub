@@ -1,8 +1,11 @@
-import { LinkProps } from "@/lib/types";
+import { LinkProps, RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
+import { ExpandedLink } from "./utils/transform-link";
+
+const CACHE_EXPIRATION = 60 * 60 * 24; // 24 hours
 
 class LinkCache {
-  async mset(links: (LinkProps & { webhookIds?: string[] })[]) {
+  async mset(links: ExpandedLink[]) {
     if (links.length === 0) {
       return;
     }
@@ -17,13 +20,84 @@ class LinkCache {
       })),
     );
 
-    redisLinks.map(({ key, domain, ...redisLink }) => {
-      pipeline.hset(domain, {
-        [key]: redisLink,
-      });
+    redisLinks.map(({ domain, key, ...redisLink }) => {
+      const hasWebhooks =
+        redisLink.webhookIds && redisLink.webhookIds.length > 0;
+
+      pipeline.set(
+        this._createKey({ domain, key }),
+        redisLink,
+        // @ts-ignore
+        {
+          ...(!hasWebhooks && { ex: CACHE_EXPIRATION }),
+        },
+      );
     });
 
-    await pipeline.exec();
+    return await pipeline.exec();
+  }
+
+  async set(link: ExpandedLink) {
+    const redisLink = await formatRedisLink(link);
+    const hasWebhooks = redisLink.webhookIds && redisLink.webhookIds.length > 0;
+
+    return await redis.set(
+      this._createKey({ domain: link.domain, key: link.key }),
+      redisLink,
+      // @ts-ignore
+      {
+        ...(!hasWebhooks && { ex: CACHE_EXPIRATION }),
+      },
+    );
+  }
+
+  async get({ domain, key }: Pick<LinkProps, "domain" | "key">) {
+    return await redis.get<RedisLinkProps>(this._createKey({ domain, key }));
+  }
+
+  async delete({ domain, key }: Pick<LinkProps, "domain" | "key">) {
+    return await redis.del(this._createKey({ domain, key }));
+  }
+
+  async deleteMany(links: Pick<LinkProps, "domain" | "key">[]) {
+    if (links.length === 0) {
+      return;
+    }
+
+    const pipeline = redis.pipeline();
+
+    links.forEach(({ domain, key }) => {
+      pipeline.del(this._createKey({ domain, key }));
+    });
+
+    return await pipeline.exec();
+  }
+
+  async rename({
+    links,
+    oldDomain,
+  }: {
+    links: Pick<LinkProps, "domain" | "key">[];
+    oldDomain: string;
+  }) {
+    if (links.length === 0) {
+      return;
+    }
+
+    const pipeline = redis.pipeline();
+
+    links.forEach(({ domain, key }) => {
+      const oldCacheKey = this._createKey({ domain: oldDomain, key });
+      const newCacheKey = this._createKey({ domain, key });
+
+      pipeline.renamenx(oldCacheKey, newCacheKey);
+    });
+
+    return await pipeline.exec();
+  }
+
+  _createKey({ domain, key }: Pick<LinkProps, "domain" | "key">) {
+    return `linkcache:${domain}:${key}`.toLowerCase();
   }
 }
 
