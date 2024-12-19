@@ -1,6 +1,6 @@
 "use client";
 
-import { requestFolderEditAccessAction } from "@/lib/actions/request-folder-edit-access";
+import { requestFolderEditAccessAction } from "@/lib/actions/folders/request-folder-edit-access";
 import { useFolderAccessRequests } from "@/lib/swr/use-folder-access-requests";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";

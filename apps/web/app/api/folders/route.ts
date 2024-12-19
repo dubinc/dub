@@ -56,38 +56,35 @@ export const POST = withWorkspace(
       await parseRequestBody(req),
     );
 
-    const existingFolder = await prisma.folder.findFirst({
-      where: {
-        projectId: workspace.id,
-        name,
-      },
-    });
-
-    if (existingFolder) {
-      throw new DubApiError({
-        code: "conflict",
-        message: `A folder with the name ${name} already exists.`,
-      });
-    }
-
-    const newFolder = await prisma.folder.create({
-      data: {
-        projectId: workspace.id,
-        name,
-        accessLevel,
-        users: {
-          create: {
-            userId: session.user.id,
-            role: "owner",
+    try {
+      const newFolder = await prisma.folder.create({
+        data: {
+          projectId: workspace.id,
+          name,
+          accessLevel,
+          users: {
+            create: {
+              userId: session.user.id,
+              role: "owner",
+            },
           },
         },
-      },
-    });
+      });
 
-    return NextResponse.json(FolderSchema.parse(newFolder), {
-      headers,
-      status: 201,
-    });
+      return NextResponse.json(FolderSchema.parse(newFolder), {
+        headers,
+        status: 201,
+      });
+    } catch (error) {
+      if (error.code === "P2002") {
+        throw new DubApiError({
+          code: "conflict",
+          message: `A folder with the name ${name} already exists.`,
+        });
+      }
+
+      throw error;
+    }
   },
   {
     requiredPermissions: ["folders.write"],

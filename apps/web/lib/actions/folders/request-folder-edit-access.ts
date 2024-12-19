@@ -5,8 +5,8 @@ import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
 import FolderEditAccessRequested from "emails/folder-edit-access-requested";
 import { z } from "zod";
-import { checkFolderPermission } from "../folder/permissions";
-import { authActionClient } from "./safe-action";
+import { checkFolderPermission } from "../../folder/permissions";
+import { authActionClient } from "../safe-action";
 
 const schema = z.object({
   workspaceId: z.string(),
@@ -86,6 +86,4 @@ export const requestFolderEditAccessAction = authActionClient
         });
       })(),
     );
-
-    return { ok: true };
   });

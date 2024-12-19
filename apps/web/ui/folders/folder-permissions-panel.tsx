@@ -1,4 +1,4 @@
-import { updateFolderUserRoleAction } from "@/lib/actions/update-folder-user-role";
+import { updateFolderUserRoleAction } from "@/lib/actions/folders/update-folder-user-role";
 import {
   FOLDER_USER_ROLE,
   FOLDER_WORKSPACE_ACCESS,

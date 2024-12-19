@@ -2,9 +2,9 @@
 
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
-import { checkFolderPermission } from "../folder/permissions";
-import { folderUserRoleSchema } from "../zod/schemas/folders";
-import { authActionClient } from "./safe-action";
+import { checkFolderPermission } from "../../folder/permissions";
+import { folderUserRoleSchema } from "../../zod/schemas/folders";
+import { authActionClient } from "../safe-action";
 
 const schema = z.object({
   workspaceId: z.string(),
@@ -47,6 +47,4 @@ export const updateFolderUserRoleAction = authActionClient
         role,
       },
     });
-
-    return { ok: true };
   });
