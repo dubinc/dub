@@ -16,7 +16,6 @@ import {
   customerActivityResponseSchema,
   customerActivitySchema,
   CustomerSchema,
-  trackCustomerResponseSchema,
 } from "./zod/schemas/customers";
 import { dashboardSchema } from "./zod/schemas/dashboard";
 import { integrationSchema } from "./zod/schemas/integration";
@@ -315,8 +314,6 @@ export type WebhookCacheProps = Pick<
   Webhook,
   "id" | "url" | "secret" | "triggers"
 >;
-
-export type TrackCustomerResponse = z.infer<typeof trackCustomerResponseSchema>;
 
 export type TrackLeadResponse = z.infer<typeof trackLeadResponseSchema>;
 
