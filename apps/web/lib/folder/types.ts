@@ -1,9 +1,9 @@
 import { FolderUserRole, User } from "@dub/prisma/client";
 import z from "../zod";
-import { folderSchema } from "../zod/schemas/folders";
+import { FolderSchema } from "../zod/schemas/folders";
 import { FOLDER_PERMISSIONS, FOLDER_WORKSPACE_ACCESS } from "./constants";
 
-export type Folder = z.infer<typeof folderSchema>;
+export type Folder = z.infer<typeof FolderSchema>;
 
 export type FolderAccessLevel = keyof typeof FOLDER_WORKSPACE_ACCESS;
 

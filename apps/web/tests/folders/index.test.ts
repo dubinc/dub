@@ -1,10 +1,10 @@
 import z from "@/lib/zod";
-import { folderSchema } from "@/lib/zod/schemas/folders";
+import { FolderSchema } from "@/lib/zod/schemas/folders";
 import { Folder } from "@dub/prisma/client";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
-type FolderRecord = z.infer<typeof folderSchema>;
+type FolderRecord = z.infer<typeof FolderSchema>;
 
 describe.sequential("/folders/**", async () => {
   const h = new IntegrationHarness();

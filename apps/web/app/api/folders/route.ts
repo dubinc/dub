@@ -4,7 +4,7 @@ import { withWorkspace } from "@/lib/auth";
 import { getFolders } from "@/lib/folder/get-folders";
 import {
   createFolderSchema,
-  folderSchema,
+  FolderSchema,
   listFoldersQuerySchema,
 } from "@/lib/zod/schemas/folders";
 import { prisma } from "@dub/prisma";
@@ -23,7 +23,7 @@ export const GET = withWorkspace(
       search,
     });
 
-    return NextResponse.json(folderSchema.array().parse(folders), {
+    return NextResponse.json(FolderSchema.array().parse(folders), {
       headers,
     });
   },
@@ -84,7 +84,7 @@ export const POST = withWorkspace(
       },
     });
 
-    return NextResponse.json(folderSchema.parse(newFolder), {
+    return NextResponse.json(FolderSchema.parse(newFolder), {
       headers,
       status: 201,
     });

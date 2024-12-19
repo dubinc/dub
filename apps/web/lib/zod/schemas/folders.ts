@@ -6,7 +6,7 @@ import { FolderAccessLevel } from "@/lib/folder/types";
 import z from "@/lib/zod";
 import { FolderUserRole } from "@dub/prisma/client";
 
-export const workspaceAccessLevelSchema = z
+const workspaceFolderAccess = z
   .enum(
     Object.keys(FOLDER_WORKSPACE_ACCESS) as [
       FolderAccessLevel,
@@ -21,10 +21,10 @@ export const folderUserRoleSchema = z
   .enum(Object.keys(FOLDER_USER_ROLE) as [FolderUserRole, ...FolderUserRole[]])
   .describe("The role of the user in the folder.");
 
-export const folderSchema = z.object({
+export const FolderSchema = z.object({
   id: z.string().describe("The unique ID of the folder."),
   name: z.string().describe("The name of the folder."),
-  accessLevel: workspaceAccessLevelSchema,
+  accessLevel: workspaceFolderAccess,
   linkCount: z
     .number()
     .describe("The number of links in the folder.")
@@ -34,8 +34,8 @@ export const folderSchema = z.object({
 });
 
 export const createFolderSchema = z.object({
-  name: z.string().describe("The name of the folder."),
-  accessLevel: workspaceAccessLevelSchema,
+  name: z.string().describe("The name of the folder.").max(190),
+  accessLevel: workspaceFolderAccess,
 });
 
 export const listFoldersQuerySchema = z.object({

@@ -3,7 +3,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { checkFolderPermission } from "@/lib/folder/permissions";
 import { recordLink } from "@/lib/tinybird";
-import { folderSchema, updateFolderSchema } from "@/lib/zod/schemas/folders";
+import { FolderSchema, updateFolderSchema } from "@/lib/zod/schemas/folders";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -20,7 +20,7 @@ export const GET = withWorkspace(
       requiredPermission: "folders.read",
     });
 
-    return NextResponse.json(folderSchema.parse(folder));
+    return NextResponse.json(FolderSchema.parse(folder));
   },
   {
     requiredPermissions: ["folders.read"],
@@ -55,7 +55,7 @@ export const PATCH = withWorkspace(
         },
       });
 
-      return NextResponse.json(folderSchema.parse(updatedFolder));
+      return NextResponse.json(FolderSchema.parse(updatedFolder));
     } catch (error) {
       if (error.code === "P2002") {
         throw new DubApiError({

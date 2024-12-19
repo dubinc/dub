@@ -1,7 +1,7 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
 import {
-  folderSchema,
+  FolderSchema,
   listFoldersQuerySchema,
 } from "@/lib/zod/schemas/folders";
 import { ZodOpenApiOperationObject } from "zod-openapi";
@@ -19,7 +19,7 @@ export const listFolders: ZodOpenApiOperationObject = {
       description: "A list of folders",
       content: {
         "application/json": {
-          schema: z.array(folderSchema),
+          schema: z.array(FolderSchema),
         },
       },
     },

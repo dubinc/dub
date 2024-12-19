@@ -1,5 +1,5 @@
 import z from "@/lib/zod";
-import { folderSchema } from "@/lib/zod/schemas/folders";
+import { FolderSchema } from "@/lib/zod/schemas/folders";
 import { Link, Tag } from "@dub/prisma/client";
 import { IntegrationHarnessOld } from "tests/utils/integration-old";
 import { afterAll, describe, expect, test } from "vitest";
@@ -8,7 +8,7 @@ import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK, E2E_WEBHOOK_ID } from "../utils/resource";
 import { LinkSchema, expectedLink } from "../utils/schema";
 
-type FolderRecord = z.infer<typeof folderSchema>;
+type FolderRecord = z.infer<typeof FolderSchema>;
 
 const { domain, url } = E2E_LINK;
 

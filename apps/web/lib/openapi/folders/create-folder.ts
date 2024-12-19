@@ -1,5 +1,5 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import { createFolderSchema, folderSchema } from "@/lib/zod/schemas/folders";
+import { createFolderSchema, FolderSchema } from "@/lib/zod/schemas/folders";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const createFolder: ZodOpenApiOperationObject = {
@@ -19,7 +19,7 @@ export const createFolder: ZodOpenApiOperationObject = {
       description: "The created folder",
       content: {
         "application/json": {
-          schema: folderSchema,
+          schema: FolderSchema,
         },
       },
     },
