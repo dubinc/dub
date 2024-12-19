@@ -36,6 +36,7 @@ export const CustomerSchema = z.object({
   email: z.string().nullish().describe("Email of the customer."),
   avatar: z.string().nullish().describe("Avatar URL of the customer."),
   createdAt: z.date().describe("The date the customer was created."),
+  country: z.string().nullish().describe("Country of the customer."),
 });
 
 export const trackCustomerRequestSchema = z.object({
