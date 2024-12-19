@@ -62,22 +62,6 @@ export const POST = withWorkspaceEdge(
       });
     }
 
-    const customer = await prismaEdge.customer.findUnique({
-      where: {
-        projectId_externalId: {
-          projectId: workspace.id,
-          externalId: customerExternalId,
-        },
-      },
-    });
-
-    if (customer) {
-      throw new DubApiError({
-        code: "conflict",
-        message: `A customer with externalId ${customerExternalId} already exists. Use PATCH /api/customers/${customer.id} to update it.`,
-      });
-    }
-
     const finalCustomerName =
       customerName || customerEmail || generateRandomName();
 
