@@ -150,49 +150,45 @@ export default function TokensPageClient() {
   });
 
   return (
-    <>
+    <div className="grid grid-cols-1">
       <TokenCreatedModal />
       <AddEditTokenModal />
 
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-black">
-          Secret keys
-        </h1>
-        <p className="mb-2 mt-2 text-base text-neutral-600">
-          These API keys allow other apps to access your workspace. Use it with
-          caution – do not share your API key with others, or expose it in the
-          browser or other client-side code.{" "}
-          <a
-            href="https://dub.co/docs/api-reference/tokens"
-            target="_blank"
-            className="font-medium underline underline-offset-4 hover:text-black"
-          >
-            Learn more
-          </a>
-        </p>
+      <h1 className="text-2xl font-semibold tracking-tight text-black">
+        Secret keys
+      </h1>
+      <p className="mb-2 mt-2 text-base text-neutral-600">
+        These API keys allow other apps to access your workspace. Use it with
+        caution – do not share your API key with others, or expose it in the
+        browser or other client-side code.{" "}
+        <a
+          href="https://dub.co/docs/api-reference/tokens"
+          target="_blank"
+          className="font-medium underline underline-offset-4 hover:text-black"
+        >
+          Learn more
+        </a>
+      </p>
+
+      <div className="flex w-full items-center justify-end pb-4">
+        <AddTokenButton />
       </div>
 
-      <div className="grid gap-4 pb-10">
-        <div className="flex w-full items-center justify-end">
-          <AddTokenButton />
-        </div>
-
-        {tokens?.length !== 0 ? (
-          <Table {...tableProps} table={table} />
-        ) : (
-          <AnimatedEmptyState
-            title="No tokens found"
-            description="No tokens have been created for this workspace yet."
-            cardContent={() => (
-              <>
-                <Key className="size-4 text-neutral-700" />
-                <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-              </>
-            )}
-          />
-        )}
-      </div>
-    </>
+      {tokens?.length !== 0 ? (
+        <Table {...tableProps} table={table} />
+      ) : (
+        <AnimatedEmptyState
+          title="No tokens found"
+          description="No tokens have been created for this workspace yet."
+          cardContent={() => (
+            <>
+              <Key className="size-4 text-neutral-700" />
+              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+            </>
+          )}
+        />
+      )}
+    </div>
   );
 }
 
