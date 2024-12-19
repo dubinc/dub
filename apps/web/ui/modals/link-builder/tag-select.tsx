@@ -61,26 +61,34 @@ export function TagSelect() {
   const [isOpen, setIsOpen] = useState(false);
 
   const createTag = async (tag: string) => {
-    const res = await fetch(`/api/tags?workspaceId=${workspaceId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ tag }),
-    });
 
-    if (res.ok) {
-      const newTag = await res.json();
-      setValue("tags", [...tags, newTag]);
-      toast.success(`Successfully created tag!`);
-      setIsOpen(false);
-      await mutate(`/api/tags?workspaceId=${workspaceId}`);
-      return true;
-    } else {
-      const { error } = await res.json();
-      toast.error(error.message);
+    const previousTags = [...tags];
+
+    try{
+      const res = await fetch(`/api/tags?workspaceId=${workspaceId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ tag }),
+      });
+  
+      if (res.ok) {
+        const newTag = await res.json();
+        setValue("tags", [...tags, newTag], {shouldDirty: true});
+        toast.success(`Successfully created tag!`);
+        setIsOpen(false);
+        await mutate(`/api/tags?workspaceId=${workspaceId}`);
+        return true;
+      } else {
+        const { error } = await res.json();
+        toast.error(error?.message || "Failed to create tag.");
+      }
+    }catch(err){
+      toast.error("An unexpected error occurred.");
     }
 
+    setValue("tags", previousTags, {shouldDirty:true});
     return false;
   };
 
