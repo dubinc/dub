@@ -91,6 +91,7 @@ export const invitePartner = async ({
       url: link.url,
       tag_ids: tags.map((t) => t.id) || [],
       program_id: program.id,
+      folder_id: link.folderId,
       workspace_id: workspace.id,
       deleted: false,
     }),

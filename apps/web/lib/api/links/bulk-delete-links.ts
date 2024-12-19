@@ -34,7 +34,6 @@ export async function bulkDeleteLinks({
         program_id: link.programId ?? "",
         workspace_id: link.projectId,
         created_at: link.createdAt,
-        tag_ids: link.tags.map(({ id }) => id),
         folder_id: link.folderId,
         deleted: true,
       })),

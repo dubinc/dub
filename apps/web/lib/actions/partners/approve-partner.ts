@@ -98,6 +98,7 @@ export const approvePartnerAction = authActionClient
         tag_ids: tags.map((t) => t.id) || [],
         program_id: program.id,
         workspace_id: workspace.id,
+        folder_id: link.folderId,
         deleted: false,
       }),
     ]);
