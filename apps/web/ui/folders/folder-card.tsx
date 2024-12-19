@@ -13,7 +13,7 @@ import {
   useKeyboardShortcut,
   Users,
 } from "@dub/ui";
-import { Globe } from "@dub/ui/src/icons";
+import { Globe } from "@dub/ui/icons";
 import { cn, nFormatter } from "@dub/utils";
 import { useRouter } from "next/navigation";
 import { useState } from "react";

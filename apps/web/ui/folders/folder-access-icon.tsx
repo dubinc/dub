@@ -4,7 +4,7 @@ import {
   FolderBookmark,
   FolderLock,
   FolderShield,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 
 const iconMap = {
   unsorted: {
@@ -13,7 +13,7 @@ const iconMap = {
     IconComponent: FolderBookmark,
   },
   private: {
-    borderColor: "border-orange-200",
+    brderColor: "border-orange-200",
     bgColor: "bg-orange-100",
     IconComponent: FolderLock,
   },

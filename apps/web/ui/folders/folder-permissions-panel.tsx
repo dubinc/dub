@@ -10,7 +10,7 @@ import {
 } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Avatar, BlurImage, Button } from "@dub/ui";
-import { Globe } from "@dub/ui/src/icons";
+import { Globe } from "@dub/ui/icons";
 import { cn, DICEBEAR_AVATAR_URL, fetcher, nFormatter } from "@dub/utils";
 import { FolderUserRole } from "@prisma/client";
 import { useSession } from "next-auth/react";

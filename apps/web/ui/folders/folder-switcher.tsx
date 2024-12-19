@@ -11,7 +11,7 @@ import {
   useRouterStuff,
   Users,
 } from "@dub/ui";
-import { FolderPlus } from "@dub/ui/src/icons";
+import { FolderPlus } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { ChevronLeft, ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
