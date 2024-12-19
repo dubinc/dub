@@ -74,7 +74,7 @@ export function PayoutStats() {
             )}
           </div>
         </div>
-        {partner && !partner.payoutsEnabled && partner?.stripeConnectId && (
+        {partner && !partner.payoutsEnabled && (
           <StripeConnectButton
             className="mt-4 h-9 w-full"
             text="Connect payouts"

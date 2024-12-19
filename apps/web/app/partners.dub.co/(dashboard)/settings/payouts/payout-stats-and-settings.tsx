@@ -19,6 +19,8 @@ export function PayoutStatsAndSettings() {
     fetcher,
   );
 
+  console.log({ partner });
+
   return (
     <div className="grid grid-cols-1 divide-neutral-200 rounded-lg border border-neutral-200 bg-neutral-50 max-sm:divide-y sm:grid-cols-2 sm:divide-x">
       <div className="flex flex-col gap-1.5 p-4">
@@ -32,11 +34,7 @@ export function PayoutStatsAndSettings() {
             }
             className="h-8 w-fit px-3"
             variant={partner?.payoutsEnabled ? "secondary" : "primary"}
-            disabledTooltip={
-              partner?.stripeConnectId
-                ? "We currently only support setting up payouts for US partners, but we will be adding more countries very soon."
-                : undefined
-            }
+            disabled={!partner?.stripeConnectId}
           />
         </div>
         <div className="flex items-end justify-between gap-5">
