@@ -18,6 +18,7 @@ import {
 } from "./zod/schemas/customers";
 import { dashboardSchema } from "./zod/schemas/dashboard";
 import { integrationSchema } from "./zod/schemas/integration";
+import { InvoiceSchema } from "./zod/schemas/invoices";
 import { trackLeadResponseSchema } from "./zod/schemas/leads";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
@@ -345,7 +346,11 @@ export type PartnerProgramInviteProps = z.infer<
 
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 
-export type PayoutsCount = Record<PayoutStatus | "all", number>;
+export type PayoutsCount = {
+  status: PayoutStatus;
+  count: number;
+  amount: number;
+};
 
 export type PayoutProps = z.infer<typeof PayoutSchema>;
 
@@ -356,3 +361,4 @@ export type PartnerPayoutResponse = z.infer<typeof PartnerPayoutResponseSchema>;
 export type SegmentIntegrationCredentials = {
   writeKey?: string;
 };
+export type InvoiceProps = z.infer<typeof InvoiceSchema>;

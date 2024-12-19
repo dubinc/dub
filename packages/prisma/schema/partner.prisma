@@ -10,17 +10,17 @@ enum PartnerRole {
 }
 
 model Partner {
-  id        String        @id @default(cuid())
-  name      String
-  email     String?       @unique
-  image     String?
-  bio       String?       @db.LongText
-  country   String?
-  status    PartnerStatus @default(default)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-
-  dotsUserId String? @unique
+  id              String        @id @default(cuid())
+  name            String
+  email           String?       @unique
+  image           String?
+  bio             String?       @db.LongText
+  country         String?
+  status          PartnerStatus @default(default)
+  stripeConnectId String?       @unique
+  payoutsEnabled  Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   programs     ProgramEnrollment[]
   applications ProgramApplication[]

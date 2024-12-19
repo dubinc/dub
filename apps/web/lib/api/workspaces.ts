@@ -1,6 +1,5 @@
 import { deleteDomainAndLinks } from "@/lib/api/domains";
 import { storage } from "@/lib/storage";
-import { cancelSubscription } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
 import { WorkspaceProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
@@ -12,6 +11,7 @@ import {
   R2_URL,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { cancelSubscription } from "../stripe/cancel-subscription";
 
 export async function deleteWorkspace(
   workspace: Pick<WorkspaceProps, "id" | "slug" | "logo" | "stripeId">,
@@ -180,9 +180,9 @@ export async function deleteWorkspaceAdmin(
   console.log({ updateLinkRedisResponse, updateLinkPrismaResponse });
 
   // delete all domains, links, and uploaded images associated with the workspace
-  const deleteDomainsLinksResponse = await Promise.allSettled([
-    ...customDomains.map(({ slug }) => deleteDomainAndLinks(slug)),
-  ]);
+  const deleteDomainsLinksResponse = await Promise.allSettled(
+    customDomains.map(({ slug }) => deleteDomainAndLinks(slug)),
+  );
 
   const deleteWorkspaceResponse = await Promise.allSettled([
     // delete workspace logo if it's a custom logo stored in R2

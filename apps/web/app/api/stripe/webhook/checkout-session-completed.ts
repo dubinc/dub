@@ -15,6 +15,10 @@ import Stripe from "stripe";
 export async function checkoutSessionCompleted(event: Stripe.Event) {
   const checkoutSession = event.data.object as Stripe.Checkout.Session;
 
+  if (checkoutSession.mode === "setup") {
+    return;
+  }
+
   if (
     checkoutSession.client_reference_id === null ||
     checkoutSession.customer === null

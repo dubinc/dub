@@ -9,7 +9,8 @@ model Project {
   stripeId          String?   @unique // Stripe subscription ID
   billingCycleStart Int // day of the month when the billing cycle starts
   paymentFailedAt   DateTime?
-  stripeConnectId   String?   @unique // for Stripe Connect
+  stripeConnectId   String?   @unique // for Stripe Integration
+  payoutMethodId    String? // for Stripe Connect payouts
 
   usage        Int @default(0)
   usageLimit   Int @default(1000)
@@ -27,19 +28,14 @@ model Project {
   referredSignups Int     @default(0)
 
   webhookEnabled    Boolean @default(false)
-  conversionEnabled Boolean @default(false)
+  conversionEnabled Boolean @default(false) // TODO: remove this once Conversions goes GA
+  partnersEnabled   Boolean @default(false)
   ssoEnabled        Boolean @default(false)
   dotLinkClaimed    Boolean @default(false)
 
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   usageLastChecked DateTime @default(now())
-
-  dotsAppId            String? @unique
-  bankAccountName      String?
-  partialAccountNumber String?
-  routingNumber        String?
-  bankAccountVerified  Boolean @default(false)
 
   users                 ProjectUsers[]
   invites               ProjectInvite[]

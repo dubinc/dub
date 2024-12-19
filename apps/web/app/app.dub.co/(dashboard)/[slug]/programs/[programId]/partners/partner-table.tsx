@@ -5,6 +5,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import EditColumnsButton from "@/ui/analytics/events/edit-columns-button";
 import { PartnerDetailsSheet } from "@/ui/partners/partner-details-sheet";
+import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
@@ -26,7 +27,6 @@ import {
   cn,
   COUNTRIES,
   currencyFormatter,
-  DICEBEAR_AVATAR_URL,
   fetcher,
   formatDate,
 } from "@dub/utils";
@@ -97,19 +97,7 @@ export function PartnerTable() {
         header: "Partner",
         enableHiding: false,
         cell: ({ row }) => {
-          return (
-            <div className="flex items-center gap-2">
-              <img
-                src={
-                  row.original.image ||
-                  `${DICEBEAR_AVATAR_URL}${row.original.name}`
-                }
-                alt={row.original.name}
-                className="size-5 rounded-full"
-              />
-              <div>{row.original.name}</div>
-            </div>
-          );
+          return <PartnerRowItem partner={row.original} />;
         },
       },
       {
