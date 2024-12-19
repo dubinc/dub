@@ -4,7 +4,7 @@ import {
 } from "@/lib/folder/constants";
 import { FolderAccessLevel } from "@/lib/folder/types";
 import z from "@/lib/zod";
-import { FolderUserRole } from "@prisma/client";
+import { FolderUserRole } from "@dub/prisma/client";
 
 export const workspaceAccessLevelSchema = z
   .enum(

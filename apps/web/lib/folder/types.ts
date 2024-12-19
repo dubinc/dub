@@ -1,4 +1,4 @@
-import { FolderUserRole, User } from "@prisma/client";
+import { FolderUserRole, User } from "@dub/prisma/client";
 import z from "../zod";
 import { folderSchema } from "../zod/schemas/folders";
 import { FOLDER_PERMISSIONS, FOLDER_WORKSPACE_ACCESS } from "./constants";

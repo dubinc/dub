@@ -1,4 +1,4 @@
-import { FolderAccessLevel, FolderUserRole } from "@prisma/client";
+import { FolderAccessLevel, FolderUserRole } from "@dub/prisma/client";
 import { FolderPermission } from "./types";
 
 export const FOLDER_WORKSPACE_ACCESS = {

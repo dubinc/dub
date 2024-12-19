@@ -13,9 +13,9 @@ import {
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderAccessIcon } from "@/ui/folders/folder-access-icon";
 import { FolderEditAccessRequestButton } from "@/ui/folders/request-edit-button";
+import { FolderUserRole } from "@dub/prisma/client";
 import { Avatar, BlurImage, Globe } from "@dub/ui";
 import { cn, DICEBEAR_AVATAR_URL, fetcher, nFormatter } from "@dub/utils";
-import { FolderUserRole } from "@prisma/client";
 import { ChevronLeft } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";

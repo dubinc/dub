@@ -1,6 +1,6 @@
 "server-only";
 
-import { FolderUser } from "@prisma/client";
+import { FolderUser } from "@dub/prisma/client";
 import { DubApiError } from "../api/errors";
 import {
   FOLDER_PERMISSIONS,

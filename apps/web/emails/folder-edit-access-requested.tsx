@@ -1,6 +1,6 @@
 import { Folder } from "@/lib/folder/types";
+import { User } from "@dub/prisma/client";
 import { DUB_WORDMARK } from "@dub/utils";
-import { User } from "@prisma/client";
 import {
   Body,
   Container,

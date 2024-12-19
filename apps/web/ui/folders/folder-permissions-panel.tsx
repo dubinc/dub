@@ -9,10 +9,10 @@ import {
   useFolderPermissions,
 } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { FolderUserRole } from "@dub/prisma/client";
 import { Avatar, BlurImage, Button } from "@dub/ui";
 import { Globe } from "@dub/ui/icons";
 import { cn, DICEBEAR_AVATAR_URL, fetcher, nFormatter } from "@dub/utils";
-import { FolderUserRole } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";

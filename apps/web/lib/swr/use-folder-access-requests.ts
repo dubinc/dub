@@ -1,5 +1,5 @@
+import { FolderAccessRequest } from "@dub/prisma/client";
 import { fetcher } from "@dub/utils";
-import { FolderAccessRequest } from "@prisma/client";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 

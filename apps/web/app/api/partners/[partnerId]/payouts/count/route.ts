@@ -1,6 +1,6 @@
 import { withPartner } from "@/lib/auth/partner";
 import { prisma } from "@dub/prisma";
-import { PayoutStatus } from "@prisma/client";
+import { PayoutStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/partners/[partnerId]/payouts/count – get payouts count for a partner

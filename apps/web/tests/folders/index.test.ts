@@ -1,6 +1,6 @@
 import z from "@/lib/zod";
 import { folderSchema } from "@/lib/zod/schemas/folders";
-import { Folder } from "@prisma/client";
+import { Folder } from "@dub/prisma/client";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
