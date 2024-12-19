@@ -194,9 +194,8 @@ function CustomerDetailsSheetContent({ customer }: CustomerDetailsSheetProps) {
                           maximumFractionDigits: 2,
                         })
                       : "-",
-                  description: !customerActivity?.ltv
-                    ? "This customer hasn't made any purchases yet."
-                    : "The total amount of money this customer has spent on your products.",
+                  description:
+                    "The total amount of money this customer has spent on your products.",
                 },
               ].map(({ label, value, description }) => (
                 <div key={label} className="flex flex-col bg-neutral-50 p-3">
