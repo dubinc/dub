@@ -14,7 +14,6 @@ import {
   Dots,
   Icon,
   Key,
-  PenWriting,
   Popover,
   Table,
   Tooltip,
@@ -30,6 +29,7 @@ export default function TokensPageClient() {
   const { id: workspaceId } = useWorkspace();
   const { pagination, setPagination } = usePagination();
   const [createdToken, setCreatedToken] = useState<string | null>(null);
+  const [selectedToken, setSelectedToken] = useState<TokenProps | null>(null);
 
   const {
     data: tokens,
@@ -46,9 +46,19 @@ export default function TokensPageClient() {
     setShowTokenCreatedModal(true);
   };
 
-  const { AddEditTokenModal, AddTokenButton } = useAddEditTokenModal({
-    onTokenCreated,
-  });
+  const { AddEditTokenModal, AddTokenButton, setShowAddEditTokenModal } =
+    useAddEditTokenModal({
+      ...(selectedToken && {
+        token: {
+          id: selectedToken.id,
+          name: selectedToken.name,
+          isMachine: selectedToken.user.isMachine,
+          scopes: mapScopesToResource(selectedToken.scopes),
+        },
+      }),
+      ...(!selectedToken && { onTokenCreated }),
+      setSelectedToken,
+    });
 
   const { table, ...tableProps } = useTable({
     data: tokens || [],
@@ -132,6 +142,10 @@ export default function TokensPageClient() {
     rowCount: tokens?.length || 0,
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
+    onRowClick: (row) => {
+      setSelectedToken(row.original);
+      setShowAddEditTokenModal(true);
+    },
     emptyState: (
       <AnimatedEmptyState
         title="No tokens found"
@@ -195,22 +209,12 @@ export default function TokensPageClient() {
 function RowMenuButton({ token }: { token: TokenProps }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { setShowAddEditTokenModal, AddEditTokenModal } = useAddEditTokenModal({
-    token: {
-      id: token.id,
-      name: token.name,
-      isMachine: token.user.isMachine,
-      scopes: mapScopesToResource(token.scopes),
-    },
-  });
-
   const { DeleteTokenModal, setShowDeleteTokenModal } = useDeleteTokenModal({
     token,
   });
 
   return (
     <>
-      <AddEditTokenModal />
       <DeleteTokenModal />
       <Popover
         openPopover={isOpen}
@@ -218,15 +222,6 @@ function RowMenuButton({ token }: { token: TokenProps }) {
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
-              <MenuItem
-                icon={PenWriting}
-                label="Edit"
-                onSelect={() => {
-                  setIsOpen(false);
-                  setShowAddEditTokenModal(true);
-                }}
-              />
-
               <MenuItem
                 icon={Delete}
                 label="Delete"

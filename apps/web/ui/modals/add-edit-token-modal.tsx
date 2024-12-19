@@ -48,11 +48,13 @@ function AddEditTokenModal({
   setShowAddEditTokenModal,
   token,
   onTokenCreated,
+  setSelectedToken,
 }: {
   showAddEditTokenModal: boolean;
   setShowAddEditTokenModal: Dispatch<SetStateAction<boolean>>;
   token?: APIKeyProps;
   onTokenCreated?: (token: string) => void;
+  setSelectedToken: Dispatch<SetStateAction<null>>;
 }) {
   const [saving, setSaving] = useState(false);
   const { id: workspaceId, role, isOwner, conversionEnabled } = useWorkspace();
@@ -113,8 +115,12 @@ function AddEditTokenModal({
     if (response.ok) {
       mutate(`/api/tokens?workspaceId=${workspaceId}`);
       toast.success(endpoint.successMessage);
-      onTokenCreated?.(result.token);
       setShowAddEditTokenModal(false);
+      setSelectedToken(null);
+
+      if (!token) {
+        onTokenCreated?.(result.token);
+      }
     } else {
       toast.error(result.error.message);
     }
@@ -156,6 +162,7 @@ function AddEditTokenModal({
         showModal={showAddEditTokenModal}
         setShowModal={setShowAddEditTokenModal}
         className="max-w-lg"
+        onClose={() => setSelectedToken(null)}
       >
         <h3 className="border-b border-neutral-200 px-4 py-4 text-lg font-medium sm:px-6">
           {token ? "Edit" : "Create New"} API Key
@@ -334,15 +341,15 @@ function AddTokenButton({
   );
 }
 
-export function useAddEditTokenModal(
-  {
-    token,
-    onTokenCreated,
-  }: {
-    token?: APIKeyProps;
-    onTokenCreated?: (token: string) => void;
-  } = { onTokenCreated: () => {} },
-) {
+export function useAddEditTokenModal({
+  token,
+  onTokenCreated,
+  setSelectedToken,
+}: {
+  token?: APIKeyProps;
+  onTokenCreated?: (token: string) => void;
+  setSelectedToken: Dispatch<SetStateAction<null>>;
+}) {
   const [showAddEditTokenModal, setShowAddEditTokenModal] = useState(false);
 
   const AddEditTokenModalCallback = useCallback(() => {
@@ -352,6 +359,7 @@ export function useAddEditTokenModal(
         setShowAddEditTokenModal={setShowAddEditTokenModal}
         token={token}
         onTokenCreated={onTokenCreated}
+        setSelectedToken={setSelectedToken}
       />
     );
   }, [showAddEditTokenModal, setShowAddEditTokenModal]);
