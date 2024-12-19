@@ -74,8 +74,10 @@ export async function customerCreated(event: Stripe.Event) {
     },
   });
 
+  const { timestamp, ...rest } = clickData;
+
   const leadData = {
-    ...clickData,
+    ...rest, // remove timestamp from lead data because tinybird will generate its own at ingestion time
     event_id: nanoid(16),
     event_name: "New customer",
     customer_id: customer.id,
@@ -83,9 +85,7 @@ export async function customerCreated(event: Stripe.Event) {
 
   const [_lead, _link, workspace] = await Promise.all([
     // Record lead
-    recordLead({
-      ...leadData,
-    }),
+    recordLead(leadData),
 
     // update link leads count
     prisma.link.update({
