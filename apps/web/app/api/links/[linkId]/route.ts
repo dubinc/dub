@@ -8,6 +8,7 @@ import {
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { checkFolderPermission } from "@/lib/folder/permissions";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema, updateLinkBodySchema } from "@/lib/zod/schemas/links";
@@ -18,11 +19,20 @@ import { NextResponse } from "next/server";
 
 // GET /api/links/[linkId] – get a link
 export const GET = withWorkspace(
-  async ({ headers, workspace, params }) => {
+  async ({ headers, workspace, params, session }) => {
     const link = await getLinkOrThrow({
       workspaceId: workspace.id,
       linkId: params.linkId,
     });
+
+    if (link.folderId) {
+      await checkFolderPermission({
+        folderId: link.folderId,
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        requiredPermission: "folders.read",
+      });
+    }
 
     const tags = await prisma.tag.findMany({
       where: {
@@ -55,13 +65,31 @@ export const GET = withWorkspace(
 
 // PATCH /api/links/[linkId] – update a link
 export const PATCH = withWorkspace(
-  async ({ req, headers, workspace, params }) => {
+  async ({ req, headers, workspace, params, session }) => {
     const link = await getLinkOrThrow({
       workspaceId: workspace.id,
       linkId: params.linkId,
     });
 
     const body = updateLinkBodySchema.parse(await parseRequestBody(req)) || {};
+
+    if (link.folderId) {
+      await checkFolderPermission({
+        folderId: link.folderId,
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        requiredPermission: "folders.links.write",
+      });
+    }
+
+    if (body.folderId) {
+      await checkFolderPermission({
+        folderId: body.folderId,
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        requiredPermission: "folders.links.write",
+      });
+    }
 
     // Add body onto existing link but maintain NewLinkProps form for processLink
     const updatedLink = {
@@ -166,11 +194,20 @@ export const PUT = PATCH;
 
 // DELETE /api/links/[linkId] – delete a link
 export const DELETE = withWorkspace(
-  async ({ headers, params, workspace }) => {
+  async ({ headers, params, workspace, session }) => {
     const link = await getLinkOrThrow({
       workspaceId: workspace.id,
       linkId: params.linkId,
     });
+
+    if (link.folderId) {
+      await checkFolderPermission({
+        folderId: link.folderId,
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        requiredPermission: "folders.links.write",
+      });
+    }
 
     if (link.programId) {
       throw new DubApiError({

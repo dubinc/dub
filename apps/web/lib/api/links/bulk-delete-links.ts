@@ -34,6 +34,7 @@ export async function bulkDeleteLinks({
         program_id: link.programId ?? "",
         workspace_id: link.projectId,
         created_at: link.createdAt,
+        folder_id: link.folderId,
         deleted: true,
       })),
     ),

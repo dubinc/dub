@@ -31,12 +31,15 @@ export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
   workspaceId?: string;
   isDemo?: boolean;
   isDeprecatedClicksEndpoint?: boolean;
+  allowedFolderIds?: string[];
   programId?: string;
 };
 
 export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
   workspaceId?: string;
   isDemo?: boolean;
+  obfuscateData?: boolean;
+  allowedFolderIds?: string[];
   customerId?: string;
 };
 

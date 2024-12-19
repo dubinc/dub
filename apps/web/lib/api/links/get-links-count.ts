@@ -6,10 +6,11 @@ import { prisma } from "@dub/prisma";
 export async function getLinksCount({
   searchParams,
   workspaceId,
+  allowedFolderIds,
 }: {
   searchParams: z.infer<typeof getLinksCountQuerySchema>;
   workspaceId: string;
-  userId?: string | null;
+  allowedFolderIds: string[];
 }) {
   const {
     groupBy,
@@ -21,6 +22,7 @@ export async function getLinksCount({
     userId,
     showArchived,
     withTags,
+    folderId,
   } = searchParams;
 
   const combinedTagIds = combineTagIds({ tagId, tagIds });
@@ -48,6 +50,15 @@ export async function getLinksCount({
       groupBy !== "userId" && {
         userId,
       }),
+
+    ...(folderId &&
+      groupBy !== "folderId" && {
+        folderId,
+      }),
+
+    AND: {
+      OR: [{ folderId: { in: allowedFolderIds } }, { folderId: null }],
+    },
   };
 
   if (groupBy === "tagId") {
@@ -88,9 +99,17 @@ export async function getLinksCount({
               },
             }
           : {}),
+
+      AND: {
+        OR: [{ folderId: { in: allowedFolderIds } }, { folderId: null }],
+      },
     };
 
-    if (groupBy === "domain" || groupBy === "userId") {
+    if (
+      groupBy === "domain" ||
+      groupBy === "userId" ||
+      groupBy === "folderId"
+    ) {
       return await prisma.link.groupBy({
         by: [groupBy],
         where,

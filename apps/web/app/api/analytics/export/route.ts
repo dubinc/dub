@@ -5,18 +5,20 @@ import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
+import { getFolders } from "@/lib/folder/get-folders";
+import { checkFolderPermission } from "@/lib/folder/permissions";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { Link } from "@dub/prisma/client";
 import JSZip from "jszip";
 
 // GET /api/analytics/export – get export data for analytics
 export const GET = withWorkspace(
-  async ({ searchParams, workspace }) => {
+  async ({ searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
 
     const parsedParams = analyticsQuerySchema.parse(searchParams);
 
-    const { interval, start, end, linkId, externalId, domain, key } =
+    const { interval, start, end, linkId, externalId, domain, key, folderId } =
       parsedParams;
 
     let link: Link | null = null;
@@ -34,6 +36,29 @@ export const GET = withWorkspace(
         key,
       });
     }
+
+    if (link && link.folderId) {
+      await checkFolderPermission({
+        folderId: link.folderId,
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        requiredPermission: "folders.read",
+      });
+    }
+
+    if (folderId) {
+      await checkFolderPermission({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        folderId,
+        requiredPermission: "folders.read",
+      });
+    }
+
+    const folders = await getFolders({
+      workspaceId: workspace.id,
+      userId: session.user.id,
+    });
 
     validDateRangeForPlan({
       plan: workspace.plan,
@@ -60,7 +85,9 @@ export const GET = withWorkspace(
           ...(link && { linkId: link.id }),
           event: "clicks",
           groupBy: endpoint,
+          allowedFolderIds: folders.map((folder) => folder.id),
         });
+
         if (!response || response.length === 0) return;
 
         const csvData = convertToCSV(response);

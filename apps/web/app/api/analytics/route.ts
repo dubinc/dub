@@ -5,6 +5,8 @@ import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
+import { getFolders } from "@/lib/folder/get-folders";
+import { checkFolderPermission } from "@/lib/folder/permissions";
 import {
   analyticsPathParamsSchema,
   analyticsQuerySchema,
@@ -14,7 +16,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/analytics – get analytics
 export const GET = withWorkspace(
-  async ({ params, searchParams, workspace }) => {
+  async ({ params, searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
 
     let { eventType: oldEvent, endpoint: oldType } =
@@ -38,8 +40,13 @@ export const GET = withWorkspace(
       externalId,
       domain,
       key,
+      folderId,
     } = parsedParams;
+
     let link: Link | null = null;
+
+    event = oldEvent || event;
+    groupBy = oldType || groupBy;
 
     if (domain) {
       await getDomainOrThrow({ workspace, domain });
@@ -55,8 +62,28 @@ export const GET = withWorkspace(
       });
     }
 
-    event = oldEvent || event;
-    groupBy = oldType || groupBy;
+    if (link && link.folderId) {
+      await checkFolderPermission({
+        folderId: link.folderId,
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        requiredPermission: "folders.read",
+      });
+    }
+
+    if (folderId) {
+      await checkFolderPermission({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        folderId,
+        requiredPermission: "folders.read",
+      });
+    }
+
+    const folders = await getFolders({
+      workspaceId: workspace.id,
+      userId: session.user.id,
+    });
 
     validDateRangeForPlan({
       plan: workspace.plan,
@@ -82,6 +109,7 @@ export const GET = withWorkspace(
       ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
       isDeprecatedClicksEndpoint,
+      allowedFolderIds: folders.map((folder) => folder.id),
     });
 
     return NextResponse.json(response);

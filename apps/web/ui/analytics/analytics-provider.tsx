@@ -121,6 +121,8 @@ export default function AnalyticsProvider({
     tagIds: searchParams?.get("tagIds")?.split(","),
   })?.join(",");
 
+  const folderId = searchParams?.get("folderId") ?? undefined;
+
   // Default to last 24 hours
   const { start, end } = useMemo(() => {
     const hasRange = searchParams?.has("start") && searchParams?.has("end");
@@ -240,8 +242,19 @@ export default function AnalyticsProvider({
       ...(tagIds && { tagIds }),
       ...(root && { root: root.toString() }),
       event: selectedTab,
+      ...(folderId && { folderId }),
     }).toString();
-  }, [workspaceId, domain, key, searchParams, start, end, tagIds, selectedTab]);
+  }, [
+    workspaceId,
+    domain,
+    key,
+    searchParams,
+    start,
+    end,
+    tagIds,
+    selectedTab,
+    folderId,
+  ]);
 
   // Reset requiresUpgrade when query changes
   useEffect(() => setRequiresUpgrade(false), [queryString]);
