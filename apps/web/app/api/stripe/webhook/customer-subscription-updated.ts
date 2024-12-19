@@ -59,6 +59,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
   }
 
   const newPlan = plan.name.toLowerCase();
+  const shouldDisableWebhooks = newPlan === "free" || newPlan === "pro";
 
   // If a workspace upgrades/downgrades their subscription, update their usage limit in the database.
   if (workspace.plan !== newPlan) {
@@ -78,6 +79,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
           paymentFailedAt: null,
         },
       }),
+
       prisma.restrictedToken.updateMany({
         where: {
           projectId: workspace.id,
@@ -86,6 +88,25 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
           rateLimit: plan.limits.api,
         },
       }),
+
+      // Disable the webhooks if the new plan does not support webhooks
+      ...(shouldDisableWebhooks
+        ? [
+            prisma.webhook.updateMany({
+              where: { projectId: workspace.id },
+              data: { disabledAt: new Date() },
+            }),
+
+            prisma.project.update({
+              where: {
+                id: workspace.id,
+              },
+              data: {
+                webhookEnabled: false,
+              },
+            }),
+          ]
+        : []),
     ]);
   } else if (workspace.paymentFailedAt) {
     await prisma.project.update({
