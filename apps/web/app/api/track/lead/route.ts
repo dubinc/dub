@@ -6,7 +6,6 @@ import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
 import { transformLeadEventData } from "@/lib/webhook/transform";
-import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import {
   trackLeadRequestSchema,
   trackLeadResponseSchema,
@@ -84,7 +83,7 @@ export const POST = withWorkspaceEdge(
 
     waitUntil(
       (async () => {
-        const clickData = clickEventSchemaTB.parse(clickEvent.data[0]);
+        const clickData = clickEvent.data[0];
 
         const customer = await prismaEdge.customer.create({
           data: {
@@ -102,11 +101,12 @@ export const POST = withWorkspaceEdge(
           },
         });
 
+        // remove timestamp from lead data because tinybird will generate its own at ingestion time
         const { timestamp, ...rest } = clickData;
 
         const [_lead, link, _project] = await Promise.all([
           recordLead({
-            ...rest, // remove timestamp from lead data because tinybird will generate its own at ingestion time
+            ...rest,
             event_id: nanoid(16),
             event_name: eventName,
             customer_id: customer.id,
