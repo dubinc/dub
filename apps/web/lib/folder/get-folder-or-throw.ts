@@ -21,15 +21,11 @@ export const getFolderOrThrow = async ({
       createdAt: true,
       updatedAt: true,
       projectId: true,
-      _count: {
-        select: {
-          links: true,
-        },
-      },
       users: {
         where: {
           userId,
         },
+        take: 1,
       },
     },
   });
@@ -52,6 +48,5 @@ export const getFolderOrThrow = async ({
     createdAt: folder.createdAt,
     updatedAt: folder.updatedAt,
     user: folder.users.length > 0 ? folder.users[0] : null,
-    linkCount: folder._count.links,
   };
 };
