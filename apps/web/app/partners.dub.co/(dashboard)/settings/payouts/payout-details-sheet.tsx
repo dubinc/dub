@@ -24,7 +24,7 @@ import {
   formatDateTime,
 } from "@dub/utils";
 import Link from "next/link";
-import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
+import { Dispatch, Fragment, SetStateAction, useMemo } from "react";
 import useSWR from "swr";
 
 type PayoutDetailsSheetProps = {
@@ -248,21 +248,4 @@ export function PayoutDetailsSheet({
       <PayoutDetailsSheetContent {...rest} />
     </Sheet>
   );
-}
-
-export function usePayoutDetailsSheet({
-  payout,
-}: Omit<PayoutDetailsSheetProps, "setIsOpen">) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return {
-    payoutDetailsSheet: (
-      <PayoutDetailsSheet
-        payout={payout}
-        isOpen={isOpen}
-        setIsOpen={setIsOpen}
-      />
-    ),
-    setIsOpen,
-  };
 }
