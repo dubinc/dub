@@ -13,7 +13,7 @@ const iconMap = {
     IconComponent: FolderBookmark,
   },
   private: {
-    brderColor: "border-orange-200",
+    borderColor: "border-orange-200",
     bgColor: "bg-orange-100",
     IconComponent: FolderLock,
   },
@@ -27,7 +27,7 @@ const iconMap = {
     bgColor: "bg-blue-100",
     IconComponent: Folder,
   },
-};
+} as const;
 
 export const FolderAccessIcon = ({
   folder,
