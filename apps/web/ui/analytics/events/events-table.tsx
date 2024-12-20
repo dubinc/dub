@@ -136,6 +136,7 @@ export default function EventsTable({
               <CopyText
                 value={getValue().shortLink}
                 successMessage="Copied link to clipboard!"
+                className="truncate"
               >
                 <span className="truncate" title={getValue().shortLink}>
                   {getPrettyUrl(getValue().shortLink)}
