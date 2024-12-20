@@ -20,9 +20,9 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
   const { programEnrollment } = useProgramEnrollment();
   const { queryParams, searchParamsObj, getQueryString } = useRouterStuff();
 
-  const { sortBy = "timestamp", order = "desc" } = searchParamsObj as {
-    sortBy?: "timestamp";
-    order?: "asc" | "desc";
+  const { sortBy = "createdAt", sortOrder = "desc" } = searchParamsObj as {
+    sortBy?: "createdAt";
+    sortOrder?: "asc" | "desc";
   };
 
   const { data: salesCount } = useSWR<{ count: number }>(
@@ -49,7 +49,7 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
     error: error ? "Failed to fetch sales events." : undefined,
     columns: [
       {
-        id: "timestamp",
+        id: "createdAt",
         header: "Date",
         accessorKey: "timestamp",
         cell: ({ row }) => {
@@ -102,14 +102,14 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
     ...(!limit && {
       pagination,
       onPaginationChange: setPagination,
-      sortableColumns: ["timestamp"],
+      sortableColumns: ["createdAt"],
       sortBy,
-      sortOrder: order,
+      sortOrder,
       onSortChange: ({ sortBy, sortOrder }) =>
         queryParams({
           set: {
-            ...(sortBy && { sort: sortBy }),
-            ...(sortOrder && { order: sortOrder }),
+            ...(sortBy && { sortBy }),
+            ...(sortOrder && { sortOrder }),
           },
         }),
     }),

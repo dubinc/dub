@@ -205,6 +205,7 @@ export const analyticsFilterTB = z
         }
       }),
     programId: z.string().optional(),
+    customerId: z.string().optional(),
     root: z.boolean().optional(),
     qr: z.boolean().optional(),
     start: z.string(),

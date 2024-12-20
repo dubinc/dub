@@ -23,12 +23,14 @@ export interface TooltipProps
     | ReactNode
     | string
     | ((props: { setOpen: (open: boolean) => void }) => ReactNode);
+  contentClassName?: string;
   disableHoverableContent?: TooltipPrimitive.TooltipProps["disableHoverableContent"];
 }
 
 export function Tooltip({
   children,
   content,
+  contentClassName,
   side = "top",
   disableHoverableContent,
   ...rest
@@ -62,7 +64,12 @@ export function Tooltip({
           {...rest}
         >
           {typeof content === "string" ? (
-            <span className="block max-w-xs text-pretty px-4 py-2 text-center text-sm text-gray-700">
+            <span
+              className={cn(
+                "block max-w-xs text-pretty px-4 py-2 text-center text-sm text-gray-700",
+                contentClassName,
+              )}
+            >
               {content}
             </span>
           ) : typeof content === "function" ? (

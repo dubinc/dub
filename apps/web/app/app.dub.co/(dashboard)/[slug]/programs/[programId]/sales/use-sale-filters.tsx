@@ -37,14 +37,14 @@ export function useSaleFilters() {
         label: "Customer",
         shouldFilter: !customersAsync,
         options:
-          customers?.map(({ id, name, avatar }) => {
+          customers?.map(({ id, email, name, avatar }) => {
             return {
               value: id,
-              label: name,
+              label: email ?? name,
               icon: (
                 <img
-                  src={avatar || `${DICEBEAR_AVATAR_URL}${name}`}
-                  alt={`${name} avatar`}
+                  src={avatar || `${DICEBEAR_AVATAR_URL}${id}`}
+                  alt={`${email} avatar`}
                   className="size-4 rounded-full"
                 />
               ),

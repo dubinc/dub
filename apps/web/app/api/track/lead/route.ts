@@ -6,7 +6,6 @@ import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
 import { transformLeadEventData } from "@/lib/webhook/transform";
-import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import {
   trackLeadRequestSchema,
   trackLeadResponseSchema,
@@ -68,19 +67,10 @@ export const POST = withWorkspaceEdge(
 
     waitUntil(
       (async () => {
-        const clickData = clickEventSchemaTB
-          .omit({ timestamp: true })
-          .parse(clickEvent.data[0]);
+        const clickData = clickEvent.data[0];
 
-        // Find customer or create if not exists
-        const customer = await prismaEdge.customer.upsert({
-          where: {
-            projectId_externalId: {
-              projectId: workspace.id,
-              externalId: customerExternalId,
-            },
-          },
-          create: {
+        const customer = await prismaEdge.customer.create({
+          data: {
             id: createId({ prefix: "cus_" }),
             name: finalCustomerName,
             email: customerEmail,
@@ -88,11 +78,10 @@ export const POST = withWorkspaceEdge(
             externalId: customerExternalId,
             projectId: workspace.id,
             projectConnectId: workspace.stripeConnectId,
-          },
-          update: {
-            name: finalCustomerName,
-            email: customerEmail,
-            avatar: customerAvatar,
+            clickId: clickData.click_id,
+            linkId: clickData.link_id,
+            country: clickData.country,
+            clickedAt: new Date(clickData.timestamp + "Z"),
           },
         });
 
@@ -116,6 +105,8 @@ export const POST = withWorkspaceEdge(
               },
             },
           }),
+
+          // update workspace usage
           prismaEdge.project.update({
             where: {
               id: workspace.id,

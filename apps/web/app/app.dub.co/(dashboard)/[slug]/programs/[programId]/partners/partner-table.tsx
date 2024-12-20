@@ -5,6 +5,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import EditColumnsButton from "@/ui/analytics/events/edit-columns-button";
 import { PartnerDetailsSheet } from "@/ui/partners/partner-details-sheet";
+import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
@@ -26,7 +27,6 @@ import {
   cn,
   COUNTRIES,
   currencyFormatter,
-  DICEBEAR_AVATAR_URL,
   fetcher,
   formatDate,
 } from "@dub/utils";
@@ -44,8 +44,8 @@ export function PartnerTable() {
   const { id: workspaceId } = useWorkspace();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
-  const sortBy = searchParams.get("sort") || "createdAt";
-  const order = searchParams.get("order") === "asc" ? "asc" : "desc";
+  const sortBy = searchParams.get("sortBy") || "createdAt";
+  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const {
     filters,
@@ -54,17 +54,21 @@ export function PartnerTable() {
     onRemove,
     onRemoveAll,
     isFiltered,
-  } = usePartnerFilters({ sortBy, order });
+  } = usePartnerFilters({ sortBy, sortOrder });
 
-  const { partnersCount, error: countError } = usePartnersCount<number>({
-    ignoreParams: true,
-  });
+  const { partnersCount, error: countError } = usePartnersCount<number>();
 
   const { data: partners, error } = useSWR<EnrolledPartnerProps[]>(
-    `/api/programs/${programId}/partners${getQueryString({
-      workspaceId,
-    })}`,
+    `/api/programs/${programId}/partners${getQueryString(
+      {
+        workspaceId,
+      },
+      { ignore: ["partnerId"] },
+    )}`,
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   const [detailsSheetState, setDetailsSheetState] = useState<
@@ -93,19 +97,7 @@ export function PartnerTable() {
         header: "Partner",
         enableHiding: false,
         cell: ({ row }) => {
-          return (
-            <div className="flex items-center gap-2">
-              <img
-                src={
-                  row.original.image ||
-                  `${DICEBEAR_AVATAR_URL}${row.original.name}`
-                }
-                alt={row.original.name}
-                className="size-5 rounded-full"
-              />
-              <div>{row.original.name}</div>
-            </div>
-          );
+          return <PartnerRowItem partner={row.original} />;
         },
       },
       {
@@ -206,12 +198,12 @@ export function PartnerTable() {
     onColumnVisibilityChange: setColumnVisibility,
     sortableColumns: ["createdAt", "clicks", "leads", "sales", "earnings"],
     sortBy,
-    sortOrder: order,
+    sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
       queryParams({
         set: {
-          ...(sortBy && { sort: sortBy }),
-          ...(sortOrder && { order: sortOrder }),
+          ...(sortBy && { sortBy }),
+          ...(sortOrder && { sortOrder }),
         },
         scroll: false,
       }),
