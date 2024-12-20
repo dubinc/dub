@@ -109,7 +109,7 @@ export function SidebarNav<T extends Record<any, any>>({
                   <div className="pt-2">{switcher}</div>
                 )}
 
-                <div className="flex flex-col gap-4 pt-4">
+                <div className="flex flex-col gap-4 pt-4" style={{maxHeight:'55vh' , overflowY:'scroll' }} >
                   {content.map(({ name, items }, idx) => (
                     <div key={idx} className="flex flex-col gap-0.5">
                       {name && (
