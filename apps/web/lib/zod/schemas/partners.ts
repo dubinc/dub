@@ -44,9 +44,10 @@ export const partnerInvitesQuerySchema = getPaginationQuerySchema({
 export const PartnerSchema = z.object({
   id: z.string(),
   name: z.string(),
+  email: z.string(),
   image: z.string().nullable(),
+  country: z.string(),
   bio: z.string().nullable(),
-  country: z.string().nullable(),
   status: z.nativeEnum(PartnerStatus),
   stripeConnectId: z.string().nullable(),
   payoutsEnabled: z.boolean(),

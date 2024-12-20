@@ -73,10 +73,8 @@ export async function customerCreated(event: Stripe.Event) {
     },
   });
 
-  const { timestamp, ...rest } = clickData;
-
   const leadData = {
-    ...rest, // remove timestamp from lead data because tinybird will generate its own at ingestion time
+    ...clickData,
     event_id: nanoid(16),
     event_name: "New customer",
     customer_id: customer.id,
