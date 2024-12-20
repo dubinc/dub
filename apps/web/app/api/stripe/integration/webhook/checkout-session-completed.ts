@@ -22,6 +22,10 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     return "Customer ID not found in Stripe checkout session metadata, skipping...";
   }
 
+  if (charge.amount_total === 0) {
+    return `Checkout session completed for customer with external ID ${dubCustomerId} and invoice ID ${invoiceId} but amount is 0, skipping...`;
+  }
+
   let customer: Customer;
   try {
     // Update customer with stripe customerId if exists
