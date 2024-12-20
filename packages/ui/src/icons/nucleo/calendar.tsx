@@ -1,6 +1,6 @@
 import { SVGProps } from "react";
 
-export function Calendar(props: SVGProps<SVGSVGElement>) {
+export function CalendarIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       height="18"
