@@ -7,7 +7,6 @@ import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
 import { AnimatedSizeContainer, MoneyBills2, Tooltip } from "@dub/ui";
 import { CONNECT_SUPPORTED_COUNTRIES, currencyFormatter } from "@dub/utils";
-import { PayoutStatus } from "@prisma/client";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
