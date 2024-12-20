@@ -19,14 +19,7 @@ import {
   useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
-import {
-  Check,
-  Check2,
-  Copy,
-  Download,
-  Hyperlink,
-  Photo,
-} from "@dub/ui/src/icons";
+import { Check, Check2, Copy, Download, Hyperlink, Photo } from "@dub/ui/icons";
 import { API_DOMAIN, cn, DUB_QR_LOGO, linkConstructor } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -90,10 +83,13 @@ function LinkQRModalInner({
   showLinkQRModal: boolean;
   setShowLinkQRModal: Dispatch<SetStateAction<boolean>>;
 } & LinkQRModalProps) {
-  const { plan, id: workspaceId, slug } = useWorkspace();
+  const { id: workspaceId, slug, plan, logo: workspaceLogo } = useWorkspace();
   const id = useId();
   const { isMobile } = useMediaQuery();
-  const { logo: domainLogo } = useDomain(props.domain);
+  const { logo: domainLogo } = useDomain({
+    slug: props.domain,
+    enabled: showLinkQRModal,
+  });
 
   const url = useMemo(() => {
     return props.key && props.domain
@@ -112,7 +108,8 @@ function LinkQRModalInner({
   const [data, setData] = useState(dataPersisted);
 
   const hideLogo = data.hideLogo && plan !== "free";
-  const logo = domainLogo || DUB_QR_LOGO;
+  const logo =
+    plan === "free" ? DUB_QR_LOGO : domainLogo || workspaceLogo || DUB_QR_LOGO;
 
   const qrData = useMemo(
     () =>

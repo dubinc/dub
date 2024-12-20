@@ -1,14 +1,25 @@
-import { fetcher } from "@dub/utils";
+import { fetcher, isDubDomain } from "@dub/utils";
 import useSWR from "swr";
 import { DomainProps } from "../types";
 import useWorkspace from "./use-workspace";
 
-export default function useDomain(slug: string) {
+export default function useDomain({
+  slug,
+  enabled,
+}: {
+  slug: string;
+  enabled?: boolean;
+}) {
   const { id: workspaceId } = useWorkspace();
 
   const { data: domain, error } = useSWR<DomainProps>(
-    workspaceId && slug && `/api/domains/${slug}?workspaceId=${workspaceId}`,
+    enabled &&
+      workspaceId &&
+      slug &&
+      !isDubDomain(slug) &&
+      `/api/domains/${slug}?workspaceId=${workspaceId}`,
     fetcher,
+    { refreshInterval: 60000 },
   );
 
   return {

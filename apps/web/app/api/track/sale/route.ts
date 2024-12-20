@@ -3,7 +3,6 @@ import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { createSaleData } from "@/lib/api/sales/sale";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
-import { prismaEdge } from "@/lib/prisma/edge";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
 import { transformSaleEventData } from "@/lib/webhook/transform";
@@ -12,6 +11,7 @@ import {
   trackSaleRequestSchema,
   trackSaleResponseSchema,
 } from "@/lib/zod/schemas/sales";
+import { prismaEdge } from "@dub/prisma/edge";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

@@ -11,7 +11,7 @@ import {
   UserCheck,
   useRouterStuff,
 } from "@dub/ui";
-import { ReferredVia } from "@dub/ui/src/icons";
+import { ReferredVia } from "@dub/ui/icons";
 import {
   APP_DOMAIN,
   cn,
@@ -151,7 +151,8 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
           ? undefined
           : (value) => pluralize("click", value),
       },
-      ...(trackConversion
+      // TODO: Remove this once Dub Conversions goes GA
+      ...(trackConversion || link.leads > 0 || link.saleAmount > 0
         ? [
             {
               id: "leads",

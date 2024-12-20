@@ -3,10 +3,10 @@ import { scopesToName, validateScopesForRole } from "@/lib/api/tokens/scopes";
 import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
-import { prisma } from "@/lib/prisma";
 import { createTokenSchema, tokenSchema } from "@/lib/zod/schemas/token";
+import { prisma } from "@dub/prisma";
+import { User } from "@dub/prisma/client";
 import { getCurrentPlan, nanoid } from "@dub/utils";
-import { User } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
 import APIKeyCreated from "emails/api-key-created";
@@ -38,6 +38,7 @@ export const GET = withWorkspace(
         },
       },
       orderBy: [{ lastUsed: "desc" }, { createdAt: "desc" }],
+      take: 100,
     });
 
     return NextResponse.json(tokenSchema.array().parse(tokens));

@@ -1,10 +1,10 @@
-import { createPartnerPayoutAction } from "@/lib/actions/partners/create-partner-payout";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse, SaleResponse } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
   buttonVariants,
+  ExpandingArrow,
   Sheet,
   StatusBadge,
   Table,
@@ -20,13 +20,12 @@ import {
   formatDate,
   formatDateTime,
 } from "@dub/utils";
-import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
-import { toast } from "sonner";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import { PayoutStatusBadges } from "./payout-status-badges";
+import { PayoutTypeBadge } from "./payout-type-badge";
 import { SaleRowMenu } from "./sale-row-menu";
 
 type PayoutDetailsSheetProps = {
@@ -46,20 +45,20 @@ function PayoutDetailsSheetContent({
     isLoading,
     error,
   } = useSWR<SaleResponse[]>(
-    `/api/programs/${programId}/sales?workspaceId=${workspaceId}&payoutId=${payout.id}&interval=all&pageSize=10`,
+    payout.type === "sales" &&
+      `/api/programs/${programId}/sales?workspaceId=${workspaceId}&payoutId=${payout.id}&interval=all&pageSize=10`,
     fetcher,
   );
-
-  const canConfirmPayout = payout.status === "pending";
 
   const invoiceData = useMemo(() => {
     const statusBadge = PayoutStatusBadges[payout.status];
 
     return {
       Partner: (
-        <Link
+        <a
           href={`/${slug}/programs/${programId}/partners?partnerId=${payout.partner.id}`}
-          className="flex items-center gap-2"
+          target="_blank"
+          className="group flex items-center gap-0.5"
         >
           <img
             src={
@@ -67,37 +66,53 @@ function PayoutDetailsSheetContent({
               `${DICEBEAR_AVATAR_URL}${payout.partner.name}`
             }
             alt={payout.partner.name}
-            className="size-5 rounded-full"
+            className="mr-1.5 size-5 rounded-full"
           />
           <div>{payout.partner.name}</div>
-        </Link>
+          <ExpandingArrow className="size-3" />
+        </a>
       ),
-      Period: `${formatDate(payout.periodStart, {
-        month: "short",
-        year:
-          new Date(payout.periodStart).getFullYear() ===
-          new Date(payout.periodEnd).getFullYear()
-            ? undefined
-            : "numeric",
-      })}-${formatDate(payout.periodEnd, { month: "short" })}`,
-      Sales: payout._count.sales,
-      Amount: currencyFormatter(payout.amount / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
-      Fee: currencyFormatter(payout.fee / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
-      Total: currencyFormatter(payout.total / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
+
+      Period:
+        !payout.periodStart || !payout.periodEnd
+          ? "-"
+          : `${formatDate(payout.periodStart, {
+              month: "short",
+              year:
+                new Date(payout.periodStart).getFullYear() ===
+                new Date(payout.periodEnd).getFullYear()
+                  ? undefined
+                  : "numeric",
+            })}-${formatDate(payout.periodEnd, { month: "short" })}`,
+
+      Type: <PayoutTypeBadge type={payout.type} />,
+
       Status: (
         <StatusBadge variant={statusBadge.variant} icon={statusBadge.icon}>
           {statusBadge.label}
         </StatusBadge>
       ),
+
+      ...(payout.quantity && {
+        [capitalize(payout.type) as string]: payout.quantity,
+        [`Reward per ${payout.type.replace(/s$/, "")}`]: currencyFormatter(
+          payout.amount / payout.quantity / 100,
+          {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          },
+        ),
+      }),
+      Amount: currencyFormatter(payout.amount / 100, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
+
+      ...(payout.invoiceId && {
+        Invoice: payout.invoiceId,
+      }),
+
+      Description: payout.description || "-",
     };
   }, [payout]);
 
@@ -159,26 +174,6 @@ function PayoutDetailsSheetContent({
     error: error ? "Failed to load sales" : undefined,
   } as any);
 
-  const { queryParams } = useRouterStuff();
-
-  const { executeAsync, isExecuting } = useAction(createPartnerPayoutAction, {
-    onSuccess: async () => {
-      await mutate(
-        (key) =>
-          typeof key === "string" &&
-          key.startsWith(`/api/programs/${programId}/payouts`),
-        undefined,
-        { revalidate: true },
-      );
-      toast.success("Successfully confirmed payout!");
-      setIsOpen(false);
-      queryParams({ del: "payoutId", scroll: false });
-    },
-    onError({ error }) {
-      toast.error(error.serverError);
-    },
-  });
-
   return (
     <>
       <div>
@@ -201,26 +196,31 @@ function PayoutDetailsSheetContent({
           <div className="grid grid-cols-2 gap-3 text-sm">
             {Object.entries(invoiceData).map(([key, value]) => (
               <Fragment key={key}>
-                <div className="font-medium text-neutral-500">{key}</div>
+                <div className="flex items-center font-medium text-neutral-500">
+                  {key}
+                </div>
                 <div className="text-neutral-800">{value}</div>
               </Fragment>
             ))}
           </div>
         </div>
-        <div className="p-6 pt-2">
-          <Table {...table} />
-          <div className="mt-2 flex justify-end">
-            <Link
-              href={`/${slug}/programs/${programId}/sales?payoutId=${payout.id}&interval=all`}
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "flex h-7 items-center rounded-lg border px-2 text-sm",
-              )}
-            >
-              View all
-            </Link>
+
+        {payout.type === "sales" && (
+          <div className="p-6 pt-2">
+            <Table {...table} />
+            <div className="mt-2 flex justify-end">
+              <Link
+                href={`/${slug}/programs/${programId}/sales?payoutId=${payout.id}&interval=all`}
+                className={cn(
+                  buttonVariants({ variant: "secondary" }),
+                  "flex h-7 items-center rounded-lg border px-2 text-sm",
+                )}
+              >
+                View all
+              </Link>
+            </div>
           </div>
-        </div>
+        )}
       </div>
       <div className="flex grow flex-col justify-end">
         <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
@@ -228,28 +228,9 @@ function PayoutDetailsSheetContent({
             type="button"
             variant="secondary"
             onClick={() => setIsOpen(false)}
-            text={canConfirmPayout ? "Cancel" : "Close"}
+            text="Close"
             className="w-fit"
           />
-          {canConfirmPayout && (
-            <Button
-              type="button"
-              variant="primary"
-              loading={isExecuting}
-              onClick={async () => {
-                if (!payout.partner.dotsUserId) {
-                  toast.error("Partner has no Dots user ID");
-                  return;
-                }
-                await executeAsync({
-                  workspaceId: workspaceId!,
-                  payoutId: payout.id,
-                });
-              }}
-              text="Confirm payout"
-              className="w-fit"
-            />
-          )}
         </div>
       </div>
     </>

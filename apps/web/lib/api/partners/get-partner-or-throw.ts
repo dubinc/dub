@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { DubApiError } from "../errors";
 
 export async function getPartnerOrThrow({

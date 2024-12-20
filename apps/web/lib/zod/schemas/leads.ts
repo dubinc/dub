@@ -75,7 +75,7 @@ export const trackLeadResponseSchema = z.object({
 });
 
 export const leadEventSchemaTB = clickEventSchemaTB
-  .omit({ timestamp: true })
+  .omit({ timestamp: true }) // remove timestamp from lead data because tinybird will generate its own at ingestion time
   .and(
     z.object({
       event_id: z.string(),

@@ -1,31 +1,43 @@
 import useDomain from "@/lib/swr/use-domain";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { QRCode } from "@/ui/shared/qr-code";
 import {
   Button,
   ShimmerDots,
+  useInViewport,
   useKeyboardShortcut,
   useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
-import { Pen2, QRCode as QRCodeIcon } from "@dub/ui/src/icons";
+import { Pen2, QRCode as QRCodeIcon } from "@dub/ui/icons";
 import { DUB_QR_LOGO, linkConstructor } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { useContext, useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 import { useDebounce } from "use-debounce";
-import { LinkFormData, LinkModalContext } from ".";
+import { LinkFormData } from ".";
 import { QRCodeDesign, useLinkQRModal } from "../link-qr-modal";
 
 export function QRCodePreview() {
   const { isMobile } = useMediaQuery();
-  const { workspacePlan, workspaceId } = useContext(LinkModalContext);
+  const {
+    id: workspaceId,
+    logo: workspaceLogo,
+    plan: workspacePlan,
+  } = useWorkspace();
 
   const { watch } = useFormContext<LinkFormData>();
   const { key: rawKey, domain: rawDomain } = watch();
   const [key] = useDebounce(rawKey, 500);
   const [domain] = useDebounce(rawDomain, 500);
 
-  const { logo: domainLogo } = useDomain(rawDomain);
+  const ref = useRef<HTMLDivElement>(null);
+  const isVisible = useInViewport(ref);
+
+  const { logo: domainLogo } = useDomain({
+    slug: rawDomain,
+    enabled: isVisible,
+  });
 
   const [data, setData] = useLocalStorage<QRCodeDesign>(
     `qr-code-design-${workspaceId}`,
@@ -40,7 +52,10 @@ export function QRCodePreview() {
   }, [key, domain]);
 
   const hideLogo = data.hideLogo && workspacePlan !== "free";
-  const logo = domainLogo || DUB_QR_LOGO;
+  const logo =
+    workspacePlan === "free"
+      ? DUB_QR_LOGO
+      : domainLogo || workspaceLogo || DUB_QR_LOGO;
 
   const { LinkQRModal, setShowLinkQRModal } = useLinkQRModal({
     props: {
@@ -56,7 +71,7 @@ export function QRCodePreview() {
   });
 
   return (
-    <div>
+    <div ref={ref}>
       <LinkQRModal />
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-medium text-gray-700">QR Code</h2>

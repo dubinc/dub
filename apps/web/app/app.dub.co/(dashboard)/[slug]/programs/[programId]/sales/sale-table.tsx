@@ -4,6 +4,7 @@ import useSalesCount from "@/lib/swr/use-sales-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { SaleResponse } from "@/lib/types";
 import FilterButton from "@/ui/analytics/events/filter-button";
+import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { SaleRowMenu } from "@/ui/partners/sale-row-menu";
 import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -17,7 +18,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { MoneyBill2 } from "@dub/ui/src/icons";
+import { MoneyBill2 } from "@dub/ui/icons";
 import {
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
@@ -51,9 +52,9 @@ const SaleTableBusinessInner = memo(
     const { id: workspaceId } = useWorkspace();
     const { pagination, setPagination } = usePagination(limit);
     const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
-    const { sortBy, order } = searchParamsObj as {
+    const { sortBy, sortOrder } = searchParamsObj as {
       sortBy: string;
-      order: "asc" | "desc";
+      sortOrder: "asc" | "desc";
     };
 
     const { salesCount } = useSalesCount();
@@ -66,7 +67,7 @@ const SaleTableBusinessInner = memo(
 
     const loading = !sales && !error;
 
-    const table = useTable({
+    const table = useTable<SaleResponse>({
       data: sales?.slice(0, limit) || [],
       columns: [
         {
@@ -82,12 +83,16 @@ const SaleTableBusinessInner = memo(
                 <img
                   src={
                     row.original.customer.avatar ||
-                    `${DICEBEAR_AVATAR_URL}${row.original.customer.name}`
+                    `${DICEBEAR_AVATAR_URL}${row.original.customer.id}`
                   }
-                  alt={row.original.customer.name}
+                  alt={
+                    row.original.customer.email ?? row.original.customer.name
+                  }
                   className="size-5 rounded-full"
                 />
-                <div>{row.original.customer.name}</div>
+                <div>
+                  {row.original.customer.email ?? row.original.customer.name}
+                </div>
               </div>
             );
           },
@@ -100,19 +105,7 @@ const SaleTableBusinessInner = memo(
         {
           header: "Partner",
           cell: ({ row }) => {
-            return (
-              <div className="flex items-center gap-2">
-                <img
-                  src={
-                    row.original.partner.image ||
-                    `${DICEBEAR_AVATAR_URL}${row.original.partner.name}`
-                  }
-                  alt={row.original.partner.name}
-                  className="size-5 rounded-full"
-                />
-                <div>{row.original.partner.name}</div>
-              </div>
-            );
+            return <PartnerRowItem partner={row.original.partner} />;
           },
           meta: {
             filterParams: ({ row }) => ({
@@ -169,12 +162,12 @@ const SaleTableBusinessInner = memo(
         onPaginationChange: setPagination,
         sortableColumns: ["createdAt", "amount"],
         sortBy,
-        sortOrder: order,
+        sortOrder,
         onSortChange: ({ sortBy, sortOrder }) =>
           queryParams({
             set: {
-              ...(sortBy && { sortBy: sortBy }),
-              ...(sortOrder && { order: sortOrder }),
+              ...(sortBy && { sortBy }),
+              ...(sortOrder && { sortOrder }),
             },
           }),
       }),

@@ -41,7 +41,7 @@ export default function PartnerPayoutSent({
     endDate: string;
   };
 }) {
-  const linkToPayout = `https://partners.dub.co/${program.id}/payouts?payoutId=${payout.id}`;
+  const linkToPayout = `https://partners.dub.co/settings/payouts?payoutId=${payout.id}`;
 
   const saleAmountInDollars = currencyFormatter(payout.amount / 100, {
     minimumFractionDigits: 2,
@@ -75,7 +75,7 @@ export default function PartnerPayoutSent({
               <strong className="text-black">{payout.endDate}</strong>.
             </Text>
             <Text className="text-sm leading-6 text-gray-600">
-              Your wallet has been updated to reflect this payout.
+              The funds are on their way to your account.
             </Text>
 
             <Section className="mb-12 mt-8">

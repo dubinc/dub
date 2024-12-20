@@ -1,11 +1,11 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import {
   getSalesQuerySchema,
   SaleResponseSchema,
 } from "@/lib/zod/schemas/partners";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -18,8 +18,8 @@ export const GET = withWorkspace(
       page,
       pageSize,
       status,
-      order,
       sortBy,
+      sortOrder,
       customerId,
       payoutId,
       partnerId,
@@ -57,7 +57,7 @@ export const GET = withWorkspace(
       },
       skip: (page - 1) * pageSize,
       take: pageSize,
-      orderBy: { [sortBy]: order },
+      orderBy: { [sortBy]: sortOrder },
     });
 
     return NextResponse.json(z.array(SaleResponseSchema).parse(sales));

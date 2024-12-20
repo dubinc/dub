@@ -11,13 +11,13 @@ import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
 import {
   bulkCreateLinksBodySchema,
   bulkUpdateLinksBodySchema,
 } from "@/lib/zod/schemas/links";
+import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -75,7 +75,6 @@ export const POST = withWorkspace(
           userId: session.user.id,
           bulk: true,
           skipExternalIdChecks: true,
-          skipIdentifierChecks: true,
         }),
       ),
     );
@@ -291,7 +290,6 @@ export const PATCH = withWorkspace(
           bulk: true,
           skipKeyChecks: true,
           skipExternalIdChecks: true,
-          skipIdentifierChecks: true,
         }),
       ),
     );

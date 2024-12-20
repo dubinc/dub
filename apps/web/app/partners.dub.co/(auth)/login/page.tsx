@@ -1,5 +1,6 @@
 import LoginForm from "@/ui/auth/login/login-form";
 import { ClientOnly } from "@dub/ui";
+import { PARTNERS_DOMAIN } from "@dub/utils";
 import Link from "next/link";
 
 export default function LoginPage() {
@@ -11,7 +12,11 @@ export default function LoginPage() {
         </h1>
         <div className="mt-8">
           <ClientOnly>
-            <LoginForm methods={["email", "password", "google"]} />
+            <LoginForm
+              methods={["email", "password", "google"]}
+              // TODO: This is a temp fix, we should either redirect to "/" or "?next="
+              redirectTo={PARTNERS_DOMAIN}
+            />
           </ClientOnly>
         </div>
       </div>

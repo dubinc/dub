@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { DubApiError } from "../errors";
 
 export const getCustomerOrThrow = async ({
@@ -15,8 +15,12 @@ export const getCustomerOrThrow = async ({
   if (!customer || customer.projectId !== workspaceId) {
     throw new DubApiError({
       code: "not_found",
-      message: "Customer not found",
+      message: "Customer not found.",
     });
+  }
+
+  if (!customer.avatar) {
+    customer.avatar = `https://api.dicebear.com/9.x/notionists/png?seed=${customer.id}`;
   }
 
   return customer;

@@ -2,12 +2,12 @@ import { DubApiError } from "@/lib/api/errors";
 import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
-import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import {
   updateWorkspaceSchema,
   WorkspaceSchema,
 } from "@/lib/zod/schemas/workspaces";
+import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -49,13 +49,12 @@ export const PATCH = withWorkspace(
       await req.json(),
     );
 
-    const logoUploaded =
-      logo && workspace.plan !== "free"
-        ? await storage.upload(
-            `workspaces/ws_${workspace.id}/logo_${nanoid(7)}`,
-            logo,
-          )
-        : null;
+    const logoUploaded = logo
+      ? await storage.upload(
+          `workspaces/ws_${workspace.id}/logo_${nanoid(7)}`,
+          logo,
+        )
+      : null;
 
     try {
       const response = await prisma.project.update({

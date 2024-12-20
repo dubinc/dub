@@ -8,10 +8,10 @@ import {
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema, updateLinkBodySchema } from "@/lib/zod/schemas/links";
+import { prisma } from "@dub/prisma";
 import { deepEqual, UTMTags } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -110,10 +110,6 @@ export const PATCH = withWorkspace(
     const skipExternalIdChecks =
       link.externalId?.toLowerCase() === updatedLink.externalId?.toLowerCase();
 
-    // if identifier is the same, we don't need to check if it exists
-    const skipIdentifierChecks =
-      link.identifier?.toLowerCase() === updatedLink.identifier?.toLowerCase();
-
     const {
       link: processedLink,
       error,
@@ -123,7 +119,6 @@ export const PATCH = withWorkspace(
       workspace,
       skipKeyChecks,
       skipExternalIdChecks,
-      skipIdentifierChecks,
     });
 
     if (error) {

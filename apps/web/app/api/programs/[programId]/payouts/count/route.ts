@@ -1,57 +1,92 @@
+import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { payoutsQuerySchema } from "@/lib/zod/schemas/partners";
-import { PayoutStatus } from "@prisma/client";
+import { MIN_PAYOUT_AMOUNT } from "@/lib/partners/constants";
+import { payoutsCountQuerySchema } from "@/lib/zod/schemas/payouts";
+import { prisma } from "@dub/prisma";
+import { PayoutStatus, Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
-import z from "zod";
-
-const responseSchema = z.object({
-  status: z.nativeEnum(PayoutStatus),
-  _count: z.number(),
-});
 
 // GET /api/programs/[programId]/payouts/count
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
-    const { status, search, partnerId } = payoutsQuerySchema
-      .omit({ sortBy: true, order: true, page: true, pageSize: true })
-      .parse(searchParams);
+    const parsed = payoutsCountQuerySchema.parse(searchParams);
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
 
-    const payouts = await prisma.payout.groupBy({
-      by: ["status"],
+    const { partnerId, groupBy, eligibility, status } = parsed;
+
+    const { startDate, endDate } = getStartEndDates(parsed);
+
+    const where: Prisma.PayoutWhereInput = {
+      programId,
+      OR: [
+        {
+          paidAt: {
+            gte: startDate.toISOString(),
+            lte: endDate.toISOString(),
+          },
+        },
+        {
+          paidAt: null,
+          createdAt: {
+            gte: startDate.toISOString(),
+            lte: endDate.toISOString(),
+          },
+        },
+      ],
+      ...(partnerId && { partnerId }),
+      ...(eligibility === "eligible" && {
+        amount: {
+          gte: MIN_PAYOUT_AMOUNT,
+        },
+        partner: {
+          payoutsEnabled: true,
+        },
+      }),
+    };
+
+    // Get payout count by status
+    if (groupBy === "status") {
+      const payouts = await prisma.payout.groupBy({
+        by: ["status"],
+        where,
+        _count: true,
+        _sum: {
+          amount: true,
+        },
+      });
+
+      const counts = payouts.map((p) => ({
+        status: p.status,
+        count: p._count,
+        amount: p._sum.amount,
+      }));
+
+      Object.values(PayoutStatus).forEach((status) => {
+        if (!counts.find((p) => p.status === status)) {
+          counts.push({
+            status,
+            count: 0,
+            amount: 0,
+          });
+        }
+      });
+
+      return NextResponse.json(counts);
+    }
+
+    const count = await prisma.payout.count({
       where: {
-        programId,
-        ...(status && { status }),
-        ...(search && { partner: { name: { contains: search } } }),
-        ...(partnerId && { partnerId }),
+        ...where,
+        status,
       },
-      _count: true,
     });
 
-    const counts = payouts.reduce(
-      (acc, p) => {
-        acc[p.status] = p._count;
-        return acc;
-      },
-      {} as Record<PayoutStatus | "all", number>,
-    );
-
-    // fill in missing statuses with 0
-    Object.values(PayoutStatus).forEach((status) => {
-      if (!(status in counts)) {
-        counts[status] = 0;
-      }
-    });
-
-    counts.all = payouts.reduce((acc, p) => acc + p._count, 0);
-
-    return NextResponse.json(counts);
+    return NextResponse.json(count);
   },
 );

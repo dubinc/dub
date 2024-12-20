@@ -1,7 +1,7 @@
 "use client";
 
+import useDomain from "@/lib/swr/use-domain";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DomainProps } from "@/lib/types";
 import {
   ArrowTurnRight2,
   Avatar,
@@ -24,10 +24,9 @@ import {
   InputPassword,
   Page2,
   Robot,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import {
   cn,
-  fetcher,
   formatDateTime,
   getApexDomain,
   getPrettyUrl,
@@ -38,7 +37,6 @@ import {
 import * as HoverCard from "@radix-ui/react-hover-card";
 import { Mail } from "lucide-react";
 import { memo, PropsWithChildren, useContext, useRef, useState } from "react";
-import useSWR from "swr";
 import { useLinkBuilder } from "../modals/link-builder";
 import { ResponseLink } from "./links-container";
 import { LinksDisplayContext } from "./links-display-provider";
@@ -151,19 +149,12 @@ function UnverifiedTooltip({
   _key,
   children,
 }: PropsWithChildren<{ domain: string; _key: string }>) {
-  const { id: workspaceId, slug } = useWorkspace();
+  const { slug } = useWorkspace();
 
   const ref = useRef<HTMLDivElement>(null);
   const isVisible = useInViewport(ref);
 
-  const { data: { verified } = {} } = useSWR<DomainProps>(
-    workspaceId &&
-      isVisible &&
-      !isDubDomain(domain) &&
-      `/api/domains/${domain}?workspaceId=${workspaceId}`,
-    fetcher,
-    { refreshInterval: 60000 },
-  );
+  const { verified } = useDomain({ slug: domain, enabled: isVisible });
 
   return (
     <div ref={ref}>

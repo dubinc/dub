@@ -1,11 +1,10 @@
 import { approvePartnerAction } from "@/lib/actions/partners/approve-partner";
 import { rejectPartnerAction } from "@/lib/actions/partners/reject-partner";
+import { SHEET_MAX_ITEMS } from "@/lib/partners/constants";
 import usePayouts from "@/lib/swr/use-payouts";
-import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { PAYOUTS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -13,12 +12,10 @@ import {
   Sheet,
   StatusBadge,
   Table,
-  ToggleGroup,
   useRouterStuff,
   useTable,
-  useTablePagination,
 } from "@dub/ui";
-import { GreekTemple, LinesY } from "@dub/ui/src/icons";
+import { CursorRays, GreekTemple, LinesY, Link4 } from "@dub/ui/icons";
 import {
   cn,
   COUNTRIES,
@@ -31,11 +28,11 @@ import {
 import { ChevronLeft } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
+import { useCreatePayoutSheet } from "./create-payout-sheet";
 import { PartnerLinkSelector } from "./partner-link-selector";
 import { PartnerStatusBadges } from "./partner-status-badges";
 import { PayoutStatusBadges } from "./payout-status-badges";
@@ -54,16 +51,15 @@ function PartnerDetailsSheetContent({
   const badge = PartnerStatusBadges[partner.status];
 
   const saleAmount = (partner.link?.saleAmount ?? 0) / 100;
-  const earnings = (partner.earnings ?? 0) / 100;
+  // const earnings = (partner.earnings ?? 0) / 100;
 
-  const [selectedTab, setSelectedTab] = useState<"overview" | "payouts">(
-    "overview",
-  );
+  const { createPayoutSheet, setIsOpen: setCreatePayoutSheetOpen } =
+    useCreatePayoutSheet({ nested: true, partnerId: partner.id });
 
   return (
     <>
-      <div>
-        <div className="flex items-start justify-between border-b border-neutral-200 p-6">
+      <div className="flex grow flex-col">
+        <div className="flex items-start justify-between p-6">
           <Sheet.Title className="text-xl font-semibold">
             Partner details
           </Sheet.Title>
@@ -75,7 +71,7 @@ function PartnerDetailsSheetContent({
             />
           </Sheet.Close>
         </div>
-        <div className="p-6">
+        <div className="border-y border-neutral-200 bg-neutral-50 p-6">
           {/* Basic info */}
           <div className="flex items-start justify-between gap-6">
             <div className="flex flex-col">
@@ -95,25 +91,21 @@ function PartnerDetailsSheetContent({
                 )}
               </div>
             </div>
-            <div className="flex min-w-[40%] shrink grow basis-1/2 flex-wrap items-center justify-end gap-2">
+            <div className="flex min-w-[40%] shrink grow basis-1/2 flex-col items-end justify-end gap-2">
               {partner.link && (
-                <a
-                  href={`/${slug}/analytics?domain=${partner.link.domain}&key=${partner.link.key}`}
-                  target="_blank"
-                  className="group flex min-w-0 items-center gap-1.5 overflow-hidden rounded-full bg-neutral-100 px-2.5 py-1 text-xs text-neutral-700 transition-colors duration-100 hover:bg-neutral-200/70 active:bg-neutral-200"
-                >
-                  <LinesY className="size-3.5" />
+                <div className="group flex min-w-0 items-center gap-1 overflow-hidden rounded-full border border-neutral-200 bg-white px-1.5 py-0.5 text-xs text-neutral-700">
+                  <Link4 className="size-3.5" />
                   <span className="truncate">
                     {getPrettyUrl(partner.link.shortLink)}
                   </span>
-                </a>
+                </div>
               )}
               {partner.country && (
-                <div className="flex min-w-20 items-center gap-2 rounded-full bg-neutral-100 px-2.5 py-1 text-xs text-neutral-700">
+                <div className="flex min-w-20 items-center gap-2 rounded-full border border-neutral-200 bg-white px-1.5 py-0.5 text-xs text-neutral-700">
                   <img
                     alt=""
                     src={`https://flag.vercel.app/m/${partner.country}.svg`}
-                    className="h-3 w-4"
+                    className="h-3 w-4 rounded-sm"
                   />
                   <span className="truncate">{COUNTRIES[partner.country]}</span>
                 </div>
@@ -122,87 +114,101 @@ function PartnerDetailsSheetContent({
           </div>
 
           {/* Stats */}
-          <div className="mt-6 flex divide-x divide-neutral-200">
-            {[
-              [
-                "Clicks",
-                !partner.link
-                  ? "-"
-                  : nFormatter(partner.link?.clicks, { full: true }),
-              ],
-              [
-                "Leads",
-                !partner.link
-                  ? "-"
-                  : nFormatter(partner.link?.leads, { full: true }),
-              ],
-              [
-                "Sales",
-                !partner.link
-                  ? "-"
-                  : nFormatter(partner.link?.sales, { full: true }),
-              ],
-              [
-                "Revenue",
-                !partner.link
-                  ? "-"
-                  : currencyFormatter(saleAmount, {
-                      minimumFractionDigits: saleAmount % 1 === 0 ? 0 : 2,
-                      maximumFractionDigits: 2,
-                    }),
-              ],
-              [
-                "Earnings",
-                currencyFormatter(earnings, {
-                  minimumFractionDigits: earnings % 1 === 0 ? 0 : 2,
-                  maximumFractionDigits: 2,
-                }),
-              ],
-            ].map(([label, value]) => (
-              <div key={label} className="flex flex-col px-5 first:pl-0">
-                <span className="text-xs text-neutral-500">{label}</span>
-                <span className="text-base text-neutral-900">{value}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-6">
-            <ToggleGroup
-              className="grid w-full grid-cols-2 rounded-lg border-transparent bg-neutral-100 p-0.5"
-              optionClassName="justify-center text-neutral-600 hover:text-neutral-700"
-              indicatorClassName="rounded-md bg-white"
-              options={[
-                { value: "overview", label: "Overview" },
-                { value: "payouts", label: "Payouts" },
-              ]}
-              selected={selectedTab}
-              selectAction={(value) => setSelectedTab(value as any)}
-            />
-          </div>
-          <div className="mt-6">
-            {selectedTab === "overview" && (
-              <div className="flex flex-col gap-6 text-sm text-neutral-500">
-                <h3 className="text-base font-semibold text-neutral-900">
-                  About this partner
-                </h3>
-
-                <div>
-                  <h4 className="font-semibold text-neutral-900">
-                    Description
-                  </h4>
-                  <p className="mt-1.5">
-                    {partner.bio || (
-                      <span className="italic text-neutral-400">
-                        No description provided
-                      </span>
-                    )}
-                  </p>
+          {partner.status === "approved" && (
+            <div className="xs:grid-cols-4 mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200">
+              {[
+                [
+                  "Clicks",
+                  !partner.link
+                    ? "-"
+                    : nFormatter(partner.link?.clicks, { full: true }),
+                ],
+                [
+                  "Leads",
+                  !partner.link
+                    ? "-"
+                    : nFormatter(partner.link?.leads, { full: true }),
+                ],
+                [
+                  "Sales",
+                  !partner.link
+                    ? "-"
+                    : nFormatter(partner.link?.sales, { full: true }),
+                ],
+                [
+                  "Revenue",
+                  !partner.link
+                    ? "-"
+                    : currencyFormatter(saleAmount, {
+                        minimumFractionDigits: saleAmount % 1 === 0 ? 0 : 2,
+                        maximumFractionDigits: 2,
+                      }),
+                ],
+                // [
+                //   "Earnings",
+                //   currencyFormatter(earnings, {
+                //     minimumFractionDigits: earnings % 1 === 0 ? 0 : 2,
+                //     maximumFractionDigits: 2,
+                //   }),
+                // ],
+              ].map(([label, value]) => (
+                <div key={label} className="flex flex-col bg-neutral-50 p-3">
+                  <span className="text-xs text-neutral-500">{label}</span>
+                  <span className="text-base text-neutral-900">{value}</span>
                 </div>
-              </div>
-            )}
+              ))}
+            </div>
+          )}
 
-            {selectedTab === "payouts" && <PartnerPayouts partner={partner} />}
-          </div>
+          {partner.link && (
+            <div className="xs:grid-cols-2 mt-4 grid grid-cols-1 gap-3">
+              <Link
+                href={`/${slug}/analytics?domain=${partner.link.domain}&key=${partner.link.key}`}
+                target="_blank"
+                className={cn(
+                  buttonVariants({ variant: "secondary" }),
+                  "flex h-8 items-center justify-center gap-2 rounded-lg border px-2 text-sm",
+                )}
+              >
+                <LinesY className="size-4 text-neutral-900" />
+                Analytics
+              </Link>
+              <Link
+                href={`/${slug}/events?domain=${partner.link.domain}&key=${partner.link.key}`}
+                target="_blank"
+                className={cn(
+                  buttonVariants({ variant: "secondary" }),
+                  "flex h-8 items-center justify-center gap-2 rounded-lg border px-2 text-sm",
+                )}
+              >
+                <CursorRays className="size-4 text-neutral-900" />
+                Events
+              </Link>
+            </div>
+          )}
+        </div>
+
+        <div className="grow p-6">
+          {partner.status === "approved" ? (
+            <PartnerPayouts partner={partner} />
+          ) : (
+            <div className="flex flex-col gap-6 text-sm text-neutral-500">
+              <h3 className="text-base font-semibold text-neutral-900">
+                About this partner
+              </h3>
+
+              <div>
+                <h4 className="font-semibold text-neutral-900">Description</h4>
+                <p className="mt-1.5">
+                  {partner.bio || (
+                    <span className="italic text-neutral-400">
+                      No description provided
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -212,6 +218,21 @@ function PartnerDetailsSheetContent({
             <PartnerApproval partner={partner} setIsOpen={setIsOpen} />
           </div>
         </div>
+      )}
+
+      {partner.status === "approved" && (
+        <>
+          {createPayoutSheet}
+          <div className="flex grow flex-col justify-end">
+            <div className="border-t border-neutral-200 p-5">
+              <Button
+                variant="primary"
+                text="Create payout"
+                onClick={() => setCreatePayoutSheetOpen(true)}
+              />
+            </div>
+          </div>
+        </>
       )}
     </>
   );
@@ -415,33 +436,18 @@ function PartnerRejectButton({
 
 function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
   const { slug } = useWorkspace();
-  const router = useRouter();
-
-  const { payoutsCount, error: payoutsCountError } = usePayoutsCount({
-    query: { partnerId: partner.id },
+  const {
+    payouts,
+    error: payoutsError,
+    loading,
+  } = usePayouts({
+    query: { partnerId: partner.id, pageSize: SHEET_MAX_ITEMS },
   });
-
-  const { pagination, setPagination } = useTablePagination({
-    page: 1,
-    pageSize: PAYOUTS_MAX_PAGE_SIZE,
-  });
-
-  const { payouts, error: payoutsError } = usePayouts({
-    query: { partnerId: partner.id },
-  });
-
-  const countLoading = !payoutsCount && !payoutsCountError;
-  const payoutsLoading = !payouts && !payoutsError;
-  const isLoading = countLoading || payoutsLoading;
-
-  const showPagination =
-    payoutsCount?.all && payoutsCount.all > PAYOUTS_MAX_PAGE_SIZE;
 
   const table = useTable({
     data: payouts || [],
-    loading: isLoading,
-    error:
-      payoutsError || payoutsCountError ? "Failed to load payouts" : undefined,
+    loading: loading,
+    error: payoutsError ? "Failed to load payouts" : undefined,
     columns: [
       {
         id: "periodEnd",
@@ -462,49 +468,45 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
         },
       },
       {
-        id: "total",
-        header: "Total",
+        id: "amount",
+        header: "Amount",
         accessorFn: (d) =>
-          currencyFormatter(d.total / 100, {
+          currencyFormatter(d.amount / 100, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           }),
       },
     ],
     onRowClick: (row) => {
-      router.push(
+      window.open(
         `/${slug}/programs/${partner.programId}/payouts?payoutId=${row.original.id}`,
+        "_blank",
       );
     },
-    ...(showPagination && {
-      pagination,
-      onPaginationChange: setPagination,
-      rowCount: payoutsCount?.all || 0,
-    }),
     resourceName: (p) => `payout${p ? "s" : ""}`,
     thClassName: (id) =>
       cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
     tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
-    className: cn(
-      !showPagination && "[&_tr:last-child>td]:border-b-transparent", // Hide bottom row border
-    ),
+    className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
   } as any);
 
-  return payouts?.length || isLoading ? (
+  return (payouts && payouts.length > 0) || loading ? (
     <>
       <Table {...table} />
-      <div className="mt-2 flex justify-end">
-        <Link
-          href={`/${slug}/programs/${partner.programId}/payouts?partnerId=${partner.id}`}
-          className={cn(
-            buttonVariants({ variant: "secondary" }),
-            "flex h-7 items-center rounded-lg border px-2 text-sm",
-          )}
-        >
-          View all
-        </Link>
-      </div>
+      {payouts && payouts.length === SHEET_MAX_ITEMS && (
+        <div className="mt-2 flex justify-end">
+          <Link
+            href={`/${slug}/programs/${partner.programId}/payouts?partnerId=${partner.id}`}
+            className={cn(
+              buttonVariants({ variant: "secondary" }),
+              "flex h-7 items-center rounded-lg border px-2 text-sm",
+            )}
+          >
+            View all
+          </Link>
+        </div>
+      )}
     </>
   ) : (
     <AnimatedEmptyState

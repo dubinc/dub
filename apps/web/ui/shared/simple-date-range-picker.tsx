@@ -27,7 +27,7 @@ export default function SimpleDateRangePicker({
             }
           : undefined
       }
-      presetId={!start || !end ? interval ?? "30d" : undefined}
+      presetId={!start || !end ? interval ?? "1y" : undefined}
       onChange={(range, preset) => {
         if (preset) {
           queryParams({

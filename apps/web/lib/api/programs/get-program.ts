@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
 import { ProgramSchema } from "@/lib/zod/schemas/programs";
+import { prisma } from "@dub/prisma";
 import { DubApiError } from "../errors";
 
 export const getProgramOrThrow = async ({

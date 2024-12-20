@@ -1,14 +1,10 @@
 "use client";
 
 import { editQueryString } from "@/lib/analytics/utils";
-import { generateRandomName } from "@/lib/names";
-import { clickEventResponseSchema } from "@/lib/zod/schemas/clicks";
-import { leadEventResponseSchema } from "@/lib/zod/schemas/leads";
-import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
+import { ClickEvent, Customer, LeadEvent, SaleEvent } from "@/lib/types";
+import { CustomerDetailsSheet } from "@/ui/partners/customer-details-sheet";
 import EmptyState from "@/ui/shared/empty-state";
 import {
-  Avatar,
-  CopyButton,
   CopyText,
   LinkLogo,
   Table,
@@ -17,7 +13,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CursorRays, Globe, Magnifier, QRCode } from "@dub/ui/src/icons";
+import { CursorRays, Globe, Magnifier, QRCode } from "@dub/ui/icons";
 import {
   CONTINENTS,
   COUNTRIES,
@@ -30,12 +26,12 @@ import {
 } from "@dub/utils";
 import { Cell, ColumnDef } from "@tanstack/react-table";
 import { Link2 } from "lucide-react";
-import { ReactNode, useContext, useEffect, useMemo } from "react";
+import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
-import z from "zod";
 import { AnalyticsContext } from "../analytics-provider";
 import ContinentIcon from "../continent-icon";
 import DeviceIcon from "../device-icon";
+import { CustomerRowItem } from "./customer-row-item";
 import EditColumnsButton from "./edit-columns-button";
 import { EventsContext } from "./events-provider";
 import { exampleData } from "./example-data";
@@ -43,10 +39,7 @@ import FilterButton from "./filter-button";
 import { RowMenuButton } from "./row-menu-button";
 import { eventColumns, useColumnVisibility } from "./use-column-visibility";
 
-export type EventDatum =
-  | z.infer<typeof clickEventResponseSchema>
-  | z.infer<typeof leadEventResponseSchema>
-  | z.infer<typeof saleEventResponseSchema>;
+export type EventDatum = ClickEvent | LeadEvent | SaleEvent;
 
 type ColumnMeta = {
   filterParams?: (
@@ -69,6 +62,7 @@ export default function EventsTable({
     eventsApiPath,
     totalEvents,
   } = useContext(AnalyticsContext);
+
   const { columnVisibility, setColumnVisibility } = useColumnVisibility();
 
   const sortBy = searchParams.get("sort") || "timestamp";
@@ -119,14 +113,14 @@ export default function EventsTable({
               <span className="truncate" title={getValue()}>
                 {getValue()}
               </span>
-            ) || <span className="text-gray-400">-</span>,
+            ) || <span className="text-neutral-400">-</span>,
         },
         {
           id: "link",
           header: "Link",
           accessorKey: "link",
-          minSize: 250,
-          maxSize: 200,
+          minSize: 200,
+          maxSize: 150,
           meta: {
             filterParams: ({ getValue }) => ({
               domain: getValue().domain,
@@ -142,6 +136,7 @@ export default function EventsTable({
               <CopyText
                 value={getValue().shortLink}
                 successMessage="Copied link to clipboard!"
+                className="truncate"
               >
                 <span className="truncate" title={getValue().shortLink}>
                   {getPrettyUrl(getValue().shortLink)}
@@ -154,48 +149,9 @@ export default function EventsTable({
           id: "customer",
           header: "Customer",
           accessorKey: "customer",
-          cell: ({ getValue }) => {
-            const customer = getValue();
-            const display =
-              customer.name || customer.email || generateRandomName();
-            return (
-              <Tooltip
-                content={
-                  <div className="w-full p-3">
-                    <Avatar
-                      user={{
-                        name: customer.name,
-                        email: customer.email,
-                        image: customer.avatar,
-                      }}
-                      className="h-8 w-8"
-                    />
-                    <p className="mt-2 text-sm font-semibold text-gray-700">
-                      {display}
-                    </p>
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <p>{customer.email}</p>
-                      <CopyButton
-                        value={customer.email}
-                        variant="neutral"
-                        className="p-1 [&>*]:h-3 [&>*]:w-3"
-                        successMessage="Copied email to clipboard!"
-                      />
-                    </div>
-                  </div>
-                }
-              >
-                <div className="flex items-center gap-3" title={display}>
-                  <img
-                    alt={display}
-                    src={customer.avatar}
-                    className="size-4 shrink-0 rounded-full border border-gray-200"
-                  />
-                  <span className="truncate">{display}</span>
-                </div>
-              </Tooltip>
-            );
-          },
+          minSize: 230,
+          maxSize: 200,
+          cell: ({ getValue }) => <CustomerRowItem customer={getValue()} />,
         },
         {
           id: "country",
@@ -414,7 +370,7 @@ export default function EventsTable({
           cell: ({ getValue }) => (
             <div className="flex items-center gap-2">
               <span>${nFormatter(getValue() / 100)}</span>
-              <span className="text-gray-400">USD</span>
+              <span className="text-neutral-400">USD</span>
             </div>
           ),
         },
@@ -429,7 +385,7 @@ export default function EventsTable({
               <span className="truncate" title={getValue()}>
                 {getValue()}
               </span>
-            ) || <span className="text-gray-400">-</span>,
+            ) || <span className="text-neutral-400">-</span>,
         },
         // Date
         {
@@ -543,6 +499,7 @@ export default function EventsTable({
         meta?.filterParams && <FilterButton set={meta.filterParams(cell)} />
       );
     },
+    tdClassName: (columnId) => (columnId === "customer" ? "p-0" : ""),
     emptyState: (
       <EmptyState
         icon={Magnifier}
@@ -553,20 +510,54 @@ export default function EventsTable({
     resourceName: (plural) => `event${plural ? "s" : ""}`,
   });
 
+  const [customerDetailsSheet, setCustomerDetailsSheet] = useState<
+    | { open: false; customer: Customer | null }
+    | { open: true; customer: Customer }
+  >({ open: false, customer: null });
+
+  useEffect(() => {
+    const customerId = searchParams.get("customerId");
+    if (!data || data.every((d) => !("customer" in d))) return;
+    if (customerId) {
+      const customerEvent = data.find(
+        (d) => "customer" in d && d.customer?.id === customerId,
+      );
+      if (customerEvent && "customer" in customerEvent) {
+        setCustomerDetailsSheet({
+          open: true,
+          customer: customerEvent.customer,
+        });
+      }
+    }
+  }, [searchParams, data]);
+
   return (
-    <Table
-      {...tableProps}
-      table={table}
-      scrollWrapperClassName={requiresUpgrade ? "overflow-x-hidden" : undefined}
-    >
-      {requiresUpgrade && (
-        <>
-          <div className="absolute inset-0 flex touch-pan-y items-center justify-center bg-gradient-to-t from-[#fff_70%] to-[#fff6]">
-            {upgradeOverlay}
-          </div>
-          <div className="h-[400px]" />
-        </>
+    <>
+      {customerDetailsSheet.customer && (
+        <CustomerDetailsSheet
+          isOpen={customerDetailsSheet.open}
+          setIsOpen={(open) =>
+            setCustomerDetailsSheet((s) => ({ ...s, open }) as any)
+          }
+          customer={customerDetailsSheet.customer}
+        />
       )}
-    </Table>
+      <Table
+        {...tableProps}
+        table={table}
+        scrollWrapperClassName={
+          requiresUpgrade ? "overflow-x-hidden" : undefined
+        }
+      >
+        {requiresUpgrade && (
+          <>
+            <div className="absolute inset-0 flex touch-pan-y items-center justify-center bg-gradient-to-t from-[#fff_70%] to-[#fff6]">
+              {upgradeOverlay}
+            </div>
+            <div className="h-[400px]" />
+          </>
+        )}
+      </Table>
+    </>
   );
 }

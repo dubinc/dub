@@ -2,11 +2,11 @@ import usePartners from "@/lib/swr/use-partners";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps } from "@/lib/types";
+import { EnrolledPartnerProps, PayoutsCount } from "@/lib/types";
 import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { useRouterStuff } from "@dub/ui";
-import { CircleDotted, Users } from "@dub/ui/src/icons";
+import { CircleDotted, Users } from "@dub/ui/icons";
 import { cn, DICEBEAR_AVATAR_URL, nFormatter } from "@dub/utils";
 import { useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
@@ -14,7 +14,11 @@ import { useDebounce } from "use-debounce";
 export function usePayoutFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
-  const { payoutsCount } = usePayoutsCount();
+  const { interval, start, end } = searchParamsObj;
+
+  const { payoutsCount } = usePayoutsCount<PayoutsCount[]>({
+    groupBy: "status",
+  });
 
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -53,6 +57,8 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
         options: Object.entries(PayoutStatusBadges).map(
           ([value, { label }]) => {
             const Icon = PayoutStatusBadges[value].icon;
+            const count = payoutsCount?.find((p) => p.status === value)?.count;
+
             return {
               value,
               label,
@@ -64,7 +70,7 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
                   )}
                 />
               ),
-              right: nFormatter(payoutsCount?.[value] || 0, { full: true }),
+              right: nFormatter(count || 0, { full: true }),
             };
           },
         ),
@@ -89,7 +95,7 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
       del: "page",
     });
 
-  const onRemove = (key: string, value: any) =>
+  const onRemove = (key: string) =>
     queryParams({
       del: [key, "page"],
     });
@@ -105,14 +111,13 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
         ...Object.fromEntries(
           activeFilters.map(({ key, value }) => [key, value]),
         ),
-        ...(searchParamsObj.search && { search: searchParamsObj.search }),
         workspaceId: workspaceId || "",
         ...extraSearchParams,
       }).toString(),
     [activeFilters, workspaceId, extraSearchParams],
   );
 
-  const isFiltered = activeFilters.length > 0 || searchParamsObj.search;
+  const isFiltered = activeFilters.length > 0;
 
   return {
     filters,
@@ -130,9 +135,12 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
 function usePartnerFilterOptions(search: string) {
   const { searchParamsObj } = useRouterStuff();
 
-  const { partnersCount } = usePartnersCount();
+  const { partnersCount } = usePartnersCount<number>({
+    ignoreParams: true,
+  });
+
   const partnersAsync = Boolean(
-    partnersCount && partnersCount["all"] > PARTNERS_MAX_PAGE_SIZE,
+    partnersCount && partnersCount > PARTNERS_MAX_PAGE_SIZE,
   );
 
   const { data: partners, loading: partnersLoading } = usePartners({

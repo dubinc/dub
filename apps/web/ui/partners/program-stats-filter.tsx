@@ -1,5 +1,6 @@
 import { Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { nFormatter } from "@dub/utils/src/functions";
 import Link from "next/link";
 
 export function ProgramStatsFilter({
@@ -34,7 +35,7 @@ export function ProgramStatsFilter({
         <div className="text-xs text-neutral-500">{label}</div>
         {count !== undefined || error ? (
           <div className="text-base font-medium leading-tight text-neutral-800">
-            {error ? "-" : count}
+            {error ? "-" : nFormatter(count, { full: true })}
           </div>
         ) : (
           <div className="h-5 w-10 min-w-0 animate-pulse rounded-md bg-neutral-200" />

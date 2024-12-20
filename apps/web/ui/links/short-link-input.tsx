@@ -15,7 +15,7 @@ import {
   Twitter,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { ArrowTurnRight2 } from "@dub/ui/src/icons";
+import { ArrowTurnRight2 } from "@dub/ui/icons";
 import {
   cn,
   DUB_DOMAINS,

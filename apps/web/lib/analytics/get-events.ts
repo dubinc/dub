@@ -1,6 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import { tb } from "@/lib/tinybird";
-import { Link } from "@prisma/client";
+import { prisma } from "@dub/prisma";
+import { Link } from "@dub/prisma/client";
 import { transformLink } from "../api/links";
 import { tbDemo } from "../tinybird/demo-client";
 import z from "../zod";
@@ -188,6 +188,8 @@ const getCustomersMap = async (customerIds: string[]) => {
 
   return customers.reduce(
     (acc, customer) => {
+      // TODO:
+      // Can we do CustomerSchema.parse(customer) instead?
       acc[customer.id] = CustomerSchema.parse({
         id: customer.id,
         externalId: customer.externalId,
@@ -196,6 +198,7 @@ const getCustomersMap = async (customerIds: string[]) => {
         avatar:
           customer.avatar ||
           `https://api.dicebear.com/9.x/notionists/png?seed=${customer.id}`,
+        country: customer.country || "",
         createdAt: customer.createdAt,
       });
       return acc;

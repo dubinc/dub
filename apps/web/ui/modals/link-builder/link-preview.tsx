@@ -16,7 +16,7 @@ import {
   NucleoPhoto,
   Pen2,
   Twitter,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import { cn, getDomainWithoutWWW, resizeImage } from "@dub/utils";
 import {
   ChangeEvent,

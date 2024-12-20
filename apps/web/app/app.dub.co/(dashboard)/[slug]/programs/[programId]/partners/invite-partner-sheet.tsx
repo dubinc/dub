@@ -50,6 +50,8 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     onSuccess: async () => {
       toast.success("Successfully invited partner!");
       setIsOpen(false);
+
+      // TODO: refresh the invites list
     },
     onError({ error }) {
       toast.error(error.serverError);

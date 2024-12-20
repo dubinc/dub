@@ -1,6 +1,6 @@
 import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { BlurImage, useRouterStuff } from "@dub/ui";
-import { ReferredVia } from "@dub/ui/src/icons";
+import { ReferredVia } from "@dub/ui/icons";
 import { getApexDomain, GOOGLE_FAVICON_URL } from "@dub/utils";
 import { Link2 } from "lucide-react";
 import { useContext, useState } from "react";

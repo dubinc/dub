@@ -1,8 +1,4 @@
-import {
-  CircleCheck,
-  CircleHalfDottedClock,
-  CircleXmark,
-} from "@dub/ui/src/icons";
+import { CircleCheck, CircleHalfDottedClock, CircleXmark } from "@dub/ui/icons";
 
 export const PartnerStatusBadges = {
   approved: {

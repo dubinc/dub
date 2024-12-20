@@ -1,6 +1,6 @@
 import { getDomainViaEdge } from "@/lib/planetscale/get-domain-via-edge";
 import { Background, Footer, Nav, NavMobile } from "@dub/ui";
-import { CircleHalfDottedClock } from "@dub/ui/src/icons";
+import { CircleHalfDottedClock } from "@dub/ui/icons";
 import { constructMetadata } from "@dub/utils";
 import { redirect } from "next/navigation";
 

@@ -7,7 +7,7 @@ import {
   TooltipContent,
   useMediaQuery,
 } from "@dub/ui";
-import { LoadingSpinner } from "@dub/ui/src/icons";
+import { LoadingSpinner } from "@dub/ui/icons";
 import { cn, truncate } from "@dub/utils";
 import { CircleCheck, Star } from "lucide-react";
 import Link from "next/link";

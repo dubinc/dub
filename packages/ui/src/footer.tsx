@@ -7,7 +7,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { COMPARE_PAGES, FEATURES_LIST, LEGAL_PAGES } from "./content";
-import { Github, LinkedIn, Twitter, YouTube } from "./icons";
+import { Github, LinkedIn, ReferredVia, Twitter, YouTube } from "./icons";
 import { MaxWidthWrapper } from "./max-width-wrapper";
 import { NavWordmark } from "./nav-wordmark";
 
@@ -45,7 +45,7 @@ const navigation = {
     { name: "Customers", href: "/customers" },
     { name: "Enterprise", href: "/enterprise" },
     { name: "Pricing", href: "/pricing" },
-    { name: "Docs", href: "/docs" },
+    { name: "Docs", href: "/docs/introduction" },
     { name: "Help Center", href: "/help" },
     { name: "Brand", href: "/brand" },
   ],
@@ -204,6 +204,19 @@ export function Footer({
                         </Link>
                       </li>
                     ))}
+                    <li>
+                      <a
+                        href="https://security.dub.co"
+                        target="_blank"
+                        rel="noreferrer"
+                        className={cn(
+                          linkListItemClassName,
+                          "flex items-center gap-1",
+                        )}
+                      >
+                        Trust Center <ReferredVia className="size-3.5" />
+                      </a>
+                    </li>
                   </ul>
                 </div>
               </div>

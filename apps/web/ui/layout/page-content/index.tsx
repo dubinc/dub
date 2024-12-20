@@ -1,5 +1,7 @@
 import { MaxWidthWrapper } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { ChevronLeft } from "lucide-react";
+import Link from "next/link";
 import { PropsWithChildren, ReactNode } from "react";
 import { HelpButtonRSC } from "../sidebar/help-button-rsc";
 import { ReferButton } from "../sidebar/refer-button";
@@ -8,13 +10,17 @@ import { NavButton } from "./nav-button";
 
 export function PageContent({
   title,
+  titleBackButtonLink,
   titleControls,
   description,
+  hideReferButton,
   children,
 }: PropsWithChildren<{
   title?: ReactNode;
+  titleBackButtonLink?: string;
   titleControls?: ReactNode;
   description?: ReactNode;
+  hideReferButton?: boolean;
 }>) {
   const hasTitle = title !== undefined;
   const hasDescription = description !== undefined;
@@ -33,9 +39,19 @@ export function PageContent({
             {(hasTitle || hasDescription) && (
               <div>
                 {hasTitle && (
-                  <h1 className="text-xl font-semibold leading-7 text-neutral-900 md:text-2xl">
-                    {title}
-                  </h1>
+                  <div className="flex items-center gap-2">
+                    {titleBackButtonLink && (
+                      <Link
+                        href={titleBackButtonLink}
+                        className="rounded-lg p-1.5 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+                      >
+                        <ChevronLeft className="size-5" />
+                      </Link>
+                    )}
+                    <h1 className="text-xl font-semibold leading-7 text-neutral-900 md:text-2xl">
+                      {title}
+                    </h1>
+                  </div>
                 )}
                 {hasDescription && (
                   <p className="mt-1 hidden text-base text-neutral-500 md:block">
@@ -49,7 +65,7 @@ export function PageContent({
             <div className="hidden md:block">{titleControls}</div>
           )}
           <div className="flex items-center gap-4 md:hidden">
-            <ReferButton />
+            {!hideReferButton && <ReferButton />}
             <HelpButtonRSC />
             <UserDropdown />
           </div>

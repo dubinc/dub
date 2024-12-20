@@ -1,9 +1,10 @@
 import { qstash } from "@/lib/cron";
-import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   R2_URL,
@@ -11,7 +12,6 @@ import {
   truncate,
 } from "@dub/utils";
 import { linkConstructorSimple } from "@dub/utils/src/functions/link-constructor";
-import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { createId } from "../utils";
@@ -67,9 +67,9 @@ export async function createLink(link: ProcessedLinkProps) {
                     name: tagName,
                     projectId: link.projectId as string,
                   },
-                  createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
                 },
               },
+              createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
             })),
           },
         }),

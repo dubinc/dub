@@ -8,7 +8,7 @@ import { CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/customers";
 import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
-import { User, Users } from "@dub/ui/src/icons";
+import { User, Users } from "@dub/ui/icons";
 import { cn, DICEBEAR_AVATAR_URL, nFormatter } from "@dub/utils";
 import { useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
@@ -37,14 +37,14 @@ export function useSaleFilters() {
         label: "Customer",
         shouldFilter: !customersAsync,
         options:
-          customers?.map(({ id, name, avatar }) => {
+          customers?.map(({ id, email, name, avatar }) => {
             return {
               value: id,
-              label: name,
+              label: email ?? name,
               icon: (
                 <img
-                  src={avatar || `${DICEBEAR_AVATAR_URL}${name}`}
-                  alt={`${name} avatar`}
+                  src={avatar || `${DICEBEAR_AVATAR_URL}${id}`}
+                  alt={`${email} avatar`}
                   className="size-4 rounded-full"
                 />
               ),
@@ -142,9 +142,12 @@ export function useSaleFilters() {
 function usePartnerFilterOptions(search: string) {
   const { searchParamsObj } = useRouterStuff();
 
-  const { partnersCount } = usePartnersCount();
+  const { partnersCount } = usePartnersCount<number>({
+    ignoreParams: true,
+  });
+
   const partnersAsync = Boolean(
-    partnersCount && partnersCount["all"] > PARTNERS_MAX_PAGE_SIZE,
+    partnersCount && partnersCount > PARTNERS_MAX_PAGE_SIZE,
   );
 
   const { data: partners, loading: partnersLoading } = usePartners({
