@@ -77,6 +77,7 @@ function LinkQRModal(
 function LinkQRModalInner({
   props,
   onSave,
+  showLinkQRModal,
   setShowLinkQRModal,
 }: {
   showLinkQRModal: boolean;
@@ -85,7 +86,10 @@ function LinkQRModalInner({
   const { id: workspaceId, slug, plan, logo: workspaceLogo } = useWorkspace();
   const id = useId();
   const { isMobile } = useMediaQuery();
-  const { logo: domainLogo } = useDomain(props.domain);
+  const { logo: domainLogo } = useDomain({
+    slug: props.domain,
+    enabled: showLinkQRModal,
+  });
 
   const url = useMemo(() => {
     return props.key && props.domain
