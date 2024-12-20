@@ -7,9 +7,9 @@ import { storage } from "@/lib/storage";
 import { createConnectedAccount } from "@/lib/stripe/create-connected-account";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { nanoid } from "@dub/utils";
+import { CONNECT_SUPPORTED_COUNTRIES, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import Stripe from "stripe";
+import { Stripe } from "stripe";
 import { authUserActionClient } from "../safe-action";
 
 // Onboard a new partner
@@ -41,9 +41,8 @@ export const onboardPartnerAction = authUserActionClient
     }
 
     let connectedAccount: Stripe.Account | null = null;
-    // TODO: Stripe Connect – remove this once we can onboard partners from other countries
-    if (country === "US") {
-      // Create the Stripe connected account for the partner
+
+    if (CONNECT_SUPPORTED_COUNTRIES.includes(country)) {
       connectedAccount = await createConnectedAccount({
         name,
         email,

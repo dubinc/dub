@@ -18,7 +18,7 @@ export default function FilterButton({ set }: { set: Record<string, any> }) {
         className="block rounded-md border border-transparent bg-white p-0.5 text-gray-600 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-gray-950"
       >
         <span className="sr-only">Filter</span>
-        <FilterBars className="h-3.5 w-3.5" />
+        <FilterBars className="size-3.5" />
       </Link>
     </div>
   );

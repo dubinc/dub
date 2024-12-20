@@ -5,7 +5,6 @@ import { stripe } from "./stripe-init";
 async function main() {
   const partners = await prisma.partner.findMany({
     where: {
-      country: "US",
       stripeConnectId: null,
     },
     take: 5,
@@ -14,9 +13,7 @@ async function main() {
     },
   });
 
-  console.log(partners);
-
-  await Promise.all(
+  await Promise.allSettled(
     partners.map(async (partner) => {
       const [firstName, lastName] = partner.name.split(" ");
       const res = await stripe.accounts.create({
@@ -44,7 +41,9 @@ async function main() {
         }),
       });
 
-      console.log("new stripe connect account created, ", res.id);
+      console.log(
+        `New Stripe Connect account created for ${partner.name}: ${res.id}`,
+      );
 
       await prisma.partner.update({
         where: {
