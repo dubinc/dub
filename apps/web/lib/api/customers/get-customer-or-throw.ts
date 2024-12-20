@@ -9,7 +9,16 @@ export const getCustomerOrThrow = async ({
   workspaceId: string;
 }) => {
   const customer = await prisma.customer.findUnique({
-    where: { id },
+    where: {
+      ...(id.startsWith("ext_")
+        ? {
+            projectId_externalId: {
+              projectId: workspaceId,
+              externalId: id.replace("ext_", ""),
+            },
+          }
+        : { id }),
+    },
   });
 
   if (!customer || customer.projectId !== workspaceId) {
