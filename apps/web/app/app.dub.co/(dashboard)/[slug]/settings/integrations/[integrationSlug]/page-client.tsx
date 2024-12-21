@@ -1,6 +1,9 @@
 "use client";
 
 import { getIntegrationInstallUrl } from "@/lib/actions/get-integration-install-url";
+import { SegmentSettings } from "@/lib/integrations/segment/ui/settings";
+import { SlackSettings } from "@/lib/integrations/slack/ui/settings";
+import { ZapierSettings } from "@/lib/integrations/zapier/ui/settings";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
 import { useUninstallIntegrationModal } from "@/ui/modals/uninstall-integration-modal";
@@ -31,7 +34,10 @@ import {
   cn,
   formatDate,
   getPrettyUrl,
+  SEGMENT_INTEGRATION_ID,
+  SLACK_INTEGRATION_ID,
   STRIPE_INTEGRATION_ID,
+  ZAPIER_INTEGRATION_ID,
 } from "@dub/utils";
 import { BookOpenText, ChevronLeft, Trash } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -39,6 +45,12 @@ import Link from "next/link";
 import { useState } from "react";
 import Markdown from "react-markdown";
 import { toast } from "sonner";
+
+const integrationSettings = {
+  [ZAPIER_INTEGRATION_ID]: ZapierSettings,
+  [SLACK_INTEGRATION_ID]: SlackSettings,
+  [SEGMENT_INTEGRATION_ID]: SegmentSettings,
+};
 
 export default function IntegrationPageClient({
   integration,
@@ -63,8 +75,10 @@ export default function IntegrationPageClient({
 
   const { UninstallIntegrationModal, setShowUninstallIntegrationModal } =
     useUninstallIntegrationModal({
-      integration: integration,
+      integration,
     });
+
+  const SettingsComponent = integrationSettings[integration.id] || null;
 
   return (
     <MaxWidthWrapper className="grid max-w-screen-lg gap-8">
@@ -288,6 +302,8 @@ export default function IntegrationPageClient({
           </Markdown>
         )}
       </div>
+
+      {SettingsComponent && <SettingsComponent {...integration} />}
     </MaxWidthWrapper>
   );
 }
