@@ -35,8 +35,8 @@ export async function customerCreated(event: Stripe.Event) {
     },
   });
 
-  if (!link) {
-    return `Link with ID ${linkId} not found, skipping...`;
+  if (!link || !link.projectId) {
+    return `Link with ID ${linkId} not found or does not have a project, skipping...`;
   }
 
   // Check the customer is not already created
@@ -61,15 +61,11 @@ export async function customerCreated(event: Stripe.Event) {
       stripeCustomerId: stripeCustomer.id,
       projectConnectId: stripeAccountId,
       externalId,
+      projectId: link.projectId,
       linkId,
       clickId,
       clickedAt: new Date(clickData.timestamp + "Z"),
       country: clickData.country,
-      project: {
-        connect: {
-          stripeConnectId: stripeAccountId,
-        },
-      },
     },
   });
 

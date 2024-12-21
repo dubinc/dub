@@ -19,6 +19,7 @@ const expectedCustomer = {
   email: customerRecord.email,
   avatar: customerRecord.avatar,
   country: null,
+  link: null,
   createdAt: expect.any(String),
 };
 
