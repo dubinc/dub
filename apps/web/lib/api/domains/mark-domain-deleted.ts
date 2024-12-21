@@ -13,7 +13,7 @@ export async function markDomainAsDeleted({
   workspaceId: string;
   delay?: number; // delay the cron job to avoid hitting rate limits
 }) {
-  const links = await prisma.link.updateMany({
+  await prisma.link.updateMany({
     where: {
       domain,
     },
