@@ -2,7 +2,6 @@ import { qstash } from "@/lib/cron";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
-import { formatRedisLink, redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import {
@@ -15,6 +14,7 @@ import { linkConstructorSimple } from "@dub/utils/src/functions/link-constructor
 import { waitUntil } from "@vercel/functions";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { createId } from "../utils";
+import { linkCache } from "./cache";
 import { updateLinksUsage } from "./update-links-usage";
 import { transformLink } from "./utils";
 
@@ -134,11 +134,8 @@ export async function createLink(link: ProcessedLinkProps) {
 
   waitUntil(
     Promise.all([
-      // record link in Redis
-      redis.hset(link.domain.toLowerCase(), {
-        [link.key.toLowerCase()]: await formatRedisLink(response),
-      }),
-
+      // cache link in Redis
+      linkCache.set(response),
       // record link in Tinybird
       recordLink({
         link_id: response.id,
