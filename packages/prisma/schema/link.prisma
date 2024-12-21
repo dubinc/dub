@@ -68,6 +68,7 @@ model Link {
 
   programId String?
   program   Program? @relation(fields: [programId], references: [id])
+  customers Customer[]
 
   @@unique([domain, key])
   @@unique([projectId, externalId])
