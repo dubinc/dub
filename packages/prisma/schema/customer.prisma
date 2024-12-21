@@ -4,17 +4,20 @@ model Customer {
   email            String?
   avatar           String?   @db.LongText
   externalId       String?
+  stripeCustomerId String?   @unique
+  
   linkId           String?
   clickId          String?
   clickedAt        DateTime?
   country          String?
-  project          Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
   projectId        String
   projectConnectId String?
-  stripeCustomerId String?   @unique
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
+
+  project          Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   link             Link?     @relation(fields: [linkId], references: [id])
   sales Sale[]
 
