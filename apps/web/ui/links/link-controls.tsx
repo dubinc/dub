@@ -1,3 +1,4 @@
+import useFolders from "@/lib/swr/use-folders";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
 import {
@@ -19,13 +20,14 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { useLinkBuilder } from "../modals/link-builder";
 import { useLinkQRModal } from "../modals/link-qr-modal";
+import { useMoveLinkToFolderModal } from "../modals/move-link-to-folder-modal";
 import { useTransferLinkModal } from "../modals/transfer-link-modal";
 import { ThreeDots } from "../shared/icons";
 import { LinksListContext, ResponseLink } from "./links-container";
 
 export function LinkControls({ link }: { link: ResponseLink }) {
   const { slug } = useParams() as { slug?: string };
-
+  const { folders } = useFolders();
   const { hovered } = useContext(CardList.Card.Context);
 
   const { openMenuLinkId, setOpenMenuLinkId } = useContext(LinksListContext);
@@ -57,6 +59,8 @@ export function LinkControls({ link }: { link: ResponseLink }) {
   const { setShowLinkBuilder, LinkBuilder } = useLinkBuilder({
     props: link,
   });
+  const { setShowMoveLinkToFolderModal, MoveLinkToFolderModal } =
+    useMoveLinkToFolderModal({ link });
 
   const isRootLink = link.key === "_root";
   const isProgramLink = link.programId !== null;
@@ -106,7 +110,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
   };
 
   useKeyboardShortcut(
-    ["e", "d", "q", "a", "t", "i", "x", "b"],
+    ["e", "d", "q", "m", "a", "t", "i", "x", "b"],
     (e) => {
       setOpenPopover(false);
       switch (e.key) {
@@ -118,6 +122,9 @@ export function LinkControls({ link }: { link: ResponseLink }) {
           break;
         case "q":
           setShowLinkQRModal(true);
+          break;
+        case "m":
+          setShowMoveLinkToFolderModal(true);
           break;
         case "a":
           setShowArchiveLinkModal(true);
@@ -149,6 +156,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
       <ArchiveLinkModal />
       <TransferLinkModal />
       <DeleteLinkModal />
+      <MoveLinkToFolderModal />
       <Popover
         content={
           <div className="w-full sm:w-48">
@@ -203,6 +211,20 @@ export function LinkControls({ link }: { link: ResponseLink }) {
             </div>
             <div className="border-t border-gray-200" />
             <div className="grid gap-px p-2">
+              {folders && folders.length > 0 && (
+                <Button
+                  text="Move"
+                  variant="outline"
+                  shortcut="M"
+                  className="h-9 px-2 font-medium"
+                  icon={<BoxArchive className="h-4 w-4" />}
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowMoveLinkToFolderModal(true);
+                  }}
+                />
+              )}
+
               <Button
                 text={link.archived ? "Unarchive" : "Archive"}
                 variant="outline"
