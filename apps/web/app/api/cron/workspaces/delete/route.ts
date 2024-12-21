@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     });
 
     if (links.length > 0) {
-      await Promise.all([
+      const res = await Promise.all([
         prisma.link.deleteMany({
           where: {
             id: {
@@ -57,6 +57,8 @@ export async function POST(req: Request) {
           links,
         }),
       ]);
+
+      console.log(res);
     }
 
     const remainingLinks = await prisma.link.count({
@@ -71,7 +73,9 @@ export async function POST(req: Request) {
         delay: 2,
       });
 
-      return new Response("Workspace links deletion queued.");
+      return new Response(
+        `Deleted ${links.length} links, ${remainingLinks} remaining. Starting next batch...`,
+      );
     }
 
     // Delete the custom domains
@@ -98,7 +102,9 @@ export async function POST(req: Request) {
       where: { id: workspace.id },
     });
 
-    return new Response("Workspace deleted.");
+    return new Response(
+      `Deleted ${links.length} links, no more links remaining. Workspace deleted.`,
+    );
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }

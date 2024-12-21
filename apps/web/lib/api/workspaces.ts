@@ -12,7 +12,6 @@ import { waitUntil } from "@vercel/functions";
 import { qstash } from "../cron";
 import { cancelSubscription } from "../stripe/cancel-subscription";
 import { markDomainAsDeleted } from "./domains";
-import { linkCache } from "./links/cache";
 
 export async function deleteWorkspace(
   workspace: Pick<WorkspaceProps, "id" | "slug" | "logo" | "stripeId">,
@@ -34,59 +33,36 @@ export async function deleteWorkspace(
         defaultWorkspace: null,
       },
     }),
-
-    // Remove the API keys
-    prisma.restrictedToken.deleteMany({
-      where: {
-        projectId: workspace.id,
-      },
-    }),
-
-    // Cancel the workspace's Stripe subscription
-    workspace.stripeId && cancelSubscription(workspace.stripeId),
-
-    // Delete workspace logo if it's a custom logo stored in R2
-    workspace.logo &&
-      workspace.logo.startsWith(`${R2_URL}/logos/${workspace.id}`) &&
-      storage.delete(workspace.logo.replace(`${R2_URL}/`, "")),
   ]);
 
   waitUntil(
-    queueWorkspaceDeletion({
-      workspaceId: workspace.id,
-    }),
+    Promise.all([
+      // Remove the API keys
+      prisma.restrictedToken.deleteMany({
+        where: {
+          projectId: workspace.id,
+        },
+      }),
+
+      // Cancel the workspace's Stripe subscription
+      workspace.stripeId && cancelSubscription(workspace.stripeId),
+
+      // Delete workspace logo if it's a custom logo stored in R2
+      workspace.logo &&
+        workspace.logo.startsWith(`${R2_URL}/logos/${workspace.id}`) &&
+        storage.delete(workspace.logo.replace(`${R2_URL}/`, "")),
+
+      // queue the workspace for deletion
+      queueWorkspaceDeletion({
+        workspaceId: workspace.id,
+      }),
+    ]),
   );
 }
 
 export async function deleteWorkspaceAdmin(
   workspace: Pick<WorkspaceProps, "id" | "slug" | "logo" | "stripeId">,
 ) {
-  const [customDomains, defaultDomainLinks] = await Promise.all([
-    prisma.domain.findMany({
-      where: {
-        projectId: workspace.id,
-      },
-      select: {
-        slug: true,
-      },
-    }),
-    prisma.link.findMany({
-      where: {
-        projectId: workspace.id,
-        domain: {
-          in: DUB_DOMAINS_ARRAY,
-        },
-      },
-    }),
-  ]);
-
-  const updateLinkRedisResponse = await linkCache.mset(
-    defaultDomainLinks.map((link) => ({
-      ...link,
-      projectId: LEGAL_WORKSPACE_ID,
-    })),
-  );
-
   // update all default domain links to the legal workspace
   const updateLinkPrismaResponse = await prisma.link.updateMany({
     where: {
@@ -98,6 +74,15 @@ export async function deleteWorkspaceAdmin(
     data: {
       userId: LEGAL_USER_ID,
       projectId: LEGAL_WORKSPACE_ID,
+    },
+  });
+
+  const customDomains = await prisma.domain.findMany({
+    where: {
+      projectId: workspace.id,
+    },
+    select: {
+      slug: true,
     },
   });
 
@@ -127,7 +112,6 @@ export async function deleteWorkspaceAdmin(
   ]);
 
   return {
-    updateLinkRedisResponse,
     updateLinkPrismaResponse,
     deleteDomainsLinksResponse,
     deleteWorkspaceResponse,
