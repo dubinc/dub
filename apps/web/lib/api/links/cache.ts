@@ -2,7 +2,12 @@ import { LinkProps, RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import { ExpandedLink } from "./utils/transform-link";
 
-const CACHE_EXPIRATION = 60 * 60 * 24; // 24 hours
+/*
+ * Link cache expiration is set to 24 hours by default for all links.
+ * Caveat: we don't set expiration for links with webhooks since it's expensive
+ * to fetch and set on-demand inside link middleware.
+ */
+const CACHE_EXPIRATION = 60 * 60 * 24;
 
 class LinkCache {
   async mset(links: ExpandedLink[]) {
@@ -27,10 +32,7 @@ class LinkCache {
       pipeline.set(
         this._createKey({ domain, key }),
         redisLink,
-        // @ts-ignore
-        {
-          ...(!hasWebhooks && { ex: CACHE_EXPIRATION }),
-        },
+        hasWebhooks ? undefined : { ex: CACHE_EXPIRATION },
       );
     });
 
@@ -44,10 +46,7 @@ class LinkCache {
     return await redis.set(
       this._createKey({ domain: link.domain, key: link.key }),
       redisLink,
-      // @ts-ignore
-      {
-        ...(!hasWebhooks && { ex: CACHE_EXPIRATION }),
-      },
+      hasWebhooks ? undefined : { ex: CACHE_EXPIRATION },
     );
   }
 
