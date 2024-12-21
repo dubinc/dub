@@ -40,15 +40,15 @@ export const PATCH = withWorkspace(
       await parseRequestBody(req),
     );
 
-    await getCustomerOrThrow({
+    const customer = await getCustomerOrThrow({
       id,
       workspaceId: workspace.id,
     });
 
     try {
-      const customer = await prisma.customer.update({
+      const updatedCustomer = await prisma.customer.update({
         where: {
-          id,
+          id: customer.id,
         },
         data: { name, email, avatar, externalId },
         include: {
@@ -56,7 +56,7 @@ export const PATCH = withWorkspace(
         },
       });
 
-      return NextResponse.json(CustomerSchema.parse(customer));
+      return NextResponse.json(CustomerSchema.parse(updatedCustomer));
     } catch (error) {
       if (error.code === "P2002") {
         throw new DubApiError({
@@ -81,19 +81,19 @@ export const DELETE = withWorkspace(
   async ({ workspace, params }) => {
     const { id } = params;
 
-    await getCustomerOrThrow({
+    const customer = await getCustomerOrThrow({
       id,
       workspaceId: workspace.id,
     });
 
     await prisma.customer.delete({
       where: {
-        id,
+        id: customer.id,
       },
     });
 
     return NextResponse.json({
-      id,
+      id: customer.id,
     });
   },
   {
