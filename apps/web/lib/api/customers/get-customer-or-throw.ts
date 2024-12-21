@@ -19,6 +19,9 @@ export const getCustomerOrThrow = async ({
           }
         : { id }),
     },
+    include: {
+      link: true,
+    },
   });
 
   if (!customer || customer.projectId !== workspaceId) {

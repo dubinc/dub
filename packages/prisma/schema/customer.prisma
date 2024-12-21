@@ -15,11 +15,13 @@ model Customer {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
+  link             Link?     @relation(fields: [linkId], references: [id])
   sales Sale[]
 
   @@unique([projectId, externalId])
   @@unique([projectConnectId, externalId])
-  @@index(projectId)
-  @@index(projectConnectId)
-  @@index(externalId)
+  @@index([projectId])
+  @@index([projectConnectId])
+  @@index([externalId])
+  @@index([linkId])
 }
