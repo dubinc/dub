@@ -127,17 +127,6 @@ export async function markDomainAsDeleted({
         projectId: null,
       },
     }),
-
-    prisma.project.update({
-      where: {
-        id: workspaceId,
-      },
-      data: {
-        linksUsage: {
-          decrement: links.count,
-        },
-      },
-    }),
   ]);
 
   await queueDomainDeletion({

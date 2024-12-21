@@ -1,6 +1,5 @@
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { Link } from "@prisma/client";
 import { linkCache } from "./cache";
@@ -39,17 +38,5 @@ export async function bulkDeleteLinks({
     links
       .filter((link) => link.image?.startsWith(`${R2_URL}/images/${link.id}`))
       .map((link) => storage.delete(link.image!.replace(`${R2_URL}/`, ""))),
-
-    // Decrement the links count for the workspace
-    prisma.project.update({
-      where: {
-        id: workspaceId,
-      },
-      data: {
-        linksUsage: {
-          decrement: links.length,
-        },
-      },
-    }),
   ]);
 }
