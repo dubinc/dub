@@ -13,7 +13,7 @@ import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
 import DomainClaimed from "emails/domain-claimed";
 import { addDomainToVercel } from "./add-domain-vercel";
-import { markDomainAsDeleted } from "./delete-domain-links";
+import { markDomainAsDeleted } from "./mark-domain-deleted";
 
 export async function claimDotLinkDomain({
   domain,
