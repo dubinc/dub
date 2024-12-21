@@ -5,7 +5,6 @@ import {
   SPECIAL_APEX_DOMAINS,
   ccTLDs,
 } from "../constants";
-import { isValidUrl } from "./urls";
 
 export const generateDomainFromName = (name: string) => {
   const normalizedName = slugify(name, { separator: "" });
@@ -70,7 +69,7 @@ export const getApexDomain = (url: string) => {
 };
 
 export const getDomainWithoutWWW = (url: string) => {
-  if (isValidUrl(url)) {
+  if (URL.canParse(url)) {
     return new URL(url).hostname.replace(/^www\./, "");
   }
   try {

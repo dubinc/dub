@@ -1,10 +1,10 @@
 import z from "@/lib/zod";
-import { getUrlFromString, isValidUrl, parseDateTime } from "@dub/utils";
+import { getUrlFromString, parseDateTime } from "@dub/utils";
 
 export const parseUrlSchema = z
   .string()
   .transform((v) => getUrlFromString(v))
-  .refine((v) => isValidUrl(v), { message: "Invalid URL" });
+  .refine((v) => URL.canParse(v), { message: "Invalid URL" });
 
 export const parseUrlSchemaAllowEmpty = ({
   maxLength,

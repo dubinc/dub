@@ -3,7 +3,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { getLinkViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
 import { ratelimit, redis } from "@/lib/upstash";
-import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
+import { LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -48,7 +48,7 @@ export const POST = async (req: Request) => {
       });
     }
 
-    const finalUrl = isValidUrl(url) ? url : link.url;
+    const finalUrl = URL.canParse(url) ? url : link.url;
 
     const cacheKey = `recordClick:${link.id}:${ip}`;
 

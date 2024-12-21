@@ -13,7 +13,6 @@ import {
   getDomainWithoutWWW,
   getUrlFromString,
   isDubDomain,
-  isValidUrl,
   log,
   parseDateTime,
   pluralize,
@@ -78,7 +77,7 @@ export async function processLink<T extends Record<string, any>>({
   // if URL is defined, perform URL checks
   if (url) {
     url = getUrlFromString(url);
-    if (!isValidUrl(url)) {
+    if (!URL.canParse(url)) {
       return {
         link: payload,
         error: "Invalid destination URL",
@@ -453,7 +452,7 @@ export async function processLink<T extends Record<string, any>>({
     expiresAt = datetime;
     if (expiredUrl) {
       expiredUrl = getUrlFromString(expiredUrl);
-      if (!isValidUrl(expiredUrl)) {
+      if (!URL.canParse(expiredUrl)) {
         return {
           link: payload,
           error: "Invalid expired URL.",

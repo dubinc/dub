@@ -14,7 +14,6 @@ import {
   constructURLFromUTMParams,
   COUNTRIES,
   getParamsFromURL,
-  isValidUrl,
   pluralize,
 } from "@dub/utils";
 import {
@@ -74,7 +73,7 @@ function TargetingModal({
   // Get UTM parameters from the parent URL that need to be added on blur
   const getNewParams = useCallback(
     (targetURL: string) => {
-      if (!targetURL?.trim() || !isValidUrl(targetURL)) return;
+      if (!targetURL?.trim() || !URL.canParse(targetURL)) return;
 
       const parentUrl = getValuesParent("url");
       const parentParams = getParamsFromURL(parentUrl);

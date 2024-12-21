@@ -1,5 +1,5 @@
 import { recordMetatags } from "@/lib/upstash";
-import { fetchWithTimeout, isValidUrl } from "@dub/utils";
+import { fetchWithTimeout } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import he from "he";
 import { parse } from "node-html-parser";
@@ -39,7 +39,7 @@ export const getRelativeUrl = (url: string, imageUrl: string) => {
   if (!imageUrl) {
     return null;
   }
-  if (isValidUrl(imageUrl)) {
+  if (URL.canParse(imageUrl)) {
     return imageUrl;
   }
   const { protocol, host } = new URL(url);

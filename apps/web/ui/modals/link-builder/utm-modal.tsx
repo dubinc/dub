@@ -9,12 +9,7 @@ import {
   UTM_PARAMETERS,
   UTMBuilder,
 } from "@dub/ui";
-import {
-  cn,
-  constructURLFromUTMParams,
-  getParamsFromURL,
-  isValidUrl,
-} from "@dub/utils";
+import { cn, constructURLFromUTMParams, getParamsFromURL } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -213,7 +208,7 @@ function UTMModalInner({ setShowUTMModal }: UTMModalProps) {
             );
           }}
           disabledTooltip={
-            isValidUrl(url)
+            URL.canParse(url)
               ? undefined
               : "Enter a destination URL to add UTM parameters"
           }
@@ -221,7 +216,7 @@ function UTMModalInner({ setShowUTMModal }: UTMModalProps) {
         />
       </div>
 
-      {isValidUrl(url) && (
+      {URL.canParse(url) && (
         <div className="mt-4 grid gap-y-1">
           <span className="block text-sm font-medium text-gray-700">
             URL Preview
@@ -242,7 +237,7 @@ function UTMModalInner({ setShowUTMModal }: UTMModalProps) {
                 });
               }}
               disabledTooltip={
-                isValidUrl(url)
+                URL.canParse(url)
                   ? undefined
                   : "Enter a destination URL to use UTM templates"
               }

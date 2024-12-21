@@ -12,7 +12,6 @@ import {
   API_HOSTNAMES,
   APP_HOSTNAMES,
   DEFAULT_REDIRECTS,
-  isValidUrl,
 } from "@dub/utils";
 import { PARTNERS_HOSTNAMES } from "@dub/utils/src/constants";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
@@ -65,7 +64,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     return PartnersMiddleware(req);
   }
 
-  if (isValidUrl(fullKey)) {
+  if (URL.canParse(fullKey)) {
     return CreateLinkMiddleware(req);
   }
 

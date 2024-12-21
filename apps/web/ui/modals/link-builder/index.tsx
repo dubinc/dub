@@ -26,7 +26,6 @@ import {
   DEFAULT_LINK_PROPS,
   getApexDomain,
   getUrlWithoutUTMParams,
-  isValidUrl,
   linkConstructor,
 } from "@dub/utils";
 import { useParams, useSearchParams } from "next/navigation";
@@ -401,7 +400,7 @@ function LinkBuilderInner({
                         error={errors.url?.message || undefined}
                         right={
                           <div className="-mb-1 h-6">
-                            {isValidUrl(url) && (
+                            {URL.canParse(url) && (
                               <UTMTemplatesButton
                                 onLoad={(params) => {
                                   setValue(
@@ -556,7 +555,7 @@ export function CreateLinkButton({
     // - workspace has not exceeded links limit
     if (
       pastedContent &&
-      isValidUrl(pastedContent) &&
+      URL.canParse(pastedContent) &&
       target.tagName !== "INPUT" &&
       target.tagName !== "TEXTAREA" &&
       !existingModalBackdrop &&

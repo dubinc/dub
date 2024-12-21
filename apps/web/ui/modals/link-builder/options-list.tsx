@@ -1,7 +1,7 @@
 import { AlertCircleFill, CheckCircleFill, X } from "@/ui/shared/icons";
 import { Tooltip, useMediaQuery } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/icons";
-import { cn, fetcher, isValidUrl as isValidUrlFn } from "@dub/utils";
+import { cn, fetcher } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ReactNode, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
@@ -102,7 +102,7 @@ function LinkCloakingToggleBadge({
   const [url, domain] = watch(["url", "domain"]);
   const [debouncedUrl] = useDebounce(url, 500);
   const isValidUrl = useMemo(
-    () => debouncedUrl && isValidUrlFn(debouncedUrl),
+    () => debouncedUrl && URL.canParse(debouncedUrl),
     [debouncedUrl],
   );
 
