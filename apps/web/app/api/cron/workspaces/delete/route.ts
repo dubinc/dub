@@ -53,7 +53,6 @@ export async function POST(req: Request) {
         }),
 
         bulkDeleteLinks({
-          workspaceId: workspace.id,
           links,
         }),
       ]);

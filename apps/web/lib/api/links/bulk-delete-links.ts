@@ -6,10 +6,8 @@ import { linkCache } from "./cache";
 
 export async function bulkDeleteLinks({
   links,
-  workspaceId,
 }: {
   links: (Link & { tags: { tagId: string }[] })[];
-  workspaceId: string;
 }) {
   if (links.length === 0) {
     return;
