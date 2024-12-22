@@ -11,10 +11,14 @@ export const WebhookStatus = ({
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center rounded-full p-1.5 text-xs font-medium",
-        disabledAt ? "bg-red-500 text-white" : "bg-green-500 text-black",
+        "inline-flex rounded-full px-2 py-0.5 text-xs font-medium",
+        {
+          "bg-red-100 text-red-500": disabledAt,
+          "bg-green-100 text-green-500": !disabledAt,
+        },
       )}
-      title={disabledAt ? "Disabled" : "Enabled"}
-    />
+    >
+      {disabledAt ? "Disabled" : "Enabled"}
+    </span>
   );
 };
