@@ -1,5 +1,7 @@
 import { Dashboard, Link, Tag } from "@dub/prisma/client";
 
+// used in API (e.g. transformLink)
+// TODO: standardize this with ExpandedLinkProps
 export type ExpandedLink = Link & {
   tags?: { tag: Pick<Tag, "id" | "name" | "color"> }[];
   webhooks?: { webhookId: string }[];
