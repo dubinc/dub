@@ -1,4 +1,5 @@
 import { ResourceKey, RESOURCES } from "@/lib/api/rbac/resources";
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import {
   getScopesByResourceForRole,
   Scope,
@@ -124,6 +125,7 @@ function AddEditTokenModal({
         onTokenCreated?.(result.token);
       }
     } else {
+      setSaving(false);
       toast.error(result.error.message);
     }
   };
@@ -362,11 +364,20 @@ function AddTokenButton({
   setShowAddEditTokenModal: Dispatch<SetStateAction<boolean>>;
   buttonProps?: Partial<ButtonProps>;
 }) {
+  const { role } = useWorkspace();
+
   return (
     <div>
       <Button
         text="Create API key"
         onClick={() => setShowAddEditTokenModal(true)}
+        disabledTooltip={
+          clientAccessCheck({
+            action: "tokens.write",
+            role,
+            customPermissionDescription: "create new API keys",
+          }).error || undefined
+        }
         {...buttonProps}
       />
     </div>

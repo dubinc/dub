@@ -3,8 +3,6 @@ import { PermissionAction } from "../rbac/permissions";
 import { ResourceKey } from "../rbac/resources";
 
 export const SCOPES = [
-  "workspaces.read",
-  "workspaces.write",
   "links.read",
   "links.write",
   "tags.read",
@@ -12,6 +10,10 @@ export const SCOPES = [
   "analytics.read",
   "domains.read",
   "domains.write",
+  "workspaces.read",
+  "workspaces.write",
+  "tokens.read",
+  "tokens.write",
   "conversions.write",
   "apis.all", // All API scopes
   "apis.read", // All read scopes
@@ -84,6 +86,20 @@ export const RESOURCE_SCOPES: {
     resource: "workspaces",
   },
   {
+    scope: "tokens.read",
+    roles: ["owner", "member"],
+    permissions: ["tokens.read"],
+    type: "read",
+    resource: "tokens",
+  },
+  {
+    scope: "tokens.write",
+    roles: ["owner"],
+    permissions: ["tokens.write", "tokens.read"],
+    type: "write",
+    resource: "tokens",
+  },
+  {
     scope: "analytics.read",
     roles: ["owner", "member"],
     permissions: ["analytics.read"],
@@ -106,6 +122,7 @@ export const RESOURCE_SCOPES: {
       "domains.read",
       "workspaces.read",
       "analytics.read",
+      "tokens.read",
     ],
   },
   {
@@ -118,6 +135,8 @@ export const RESOURCE_SCOPES: {
       "tags.write",
       "domains.read",
       "domains.write",
+      "tokens.read",
+      "tokens.write",
       "workspaces.read",
       "workspaces.write",
       "analytics.read",
