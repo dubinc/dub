@@ -25,6 +25,12 @@ export function useMetatags({
   const [generatingMetatags, setGeneratingMetatags] = useState(initial);
 
   useEffect(() => {
+    // if proxy is enabled, no need to generate metatags
+    if (proxy) {
+      setGeneratingMetatags(false);
+      return;
+    }
+
     // if there's a password, no need to generate metatags
     if (password) {
       setGeneratingMetatags(false);
