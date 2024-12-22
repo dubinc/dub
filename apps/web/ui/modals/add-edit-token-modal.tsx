@@ -10,12 +10,14 @@ import {
   Button,
   ButtonProps,
   InfoTooltip,
+  Label,
   Modal,
   RadioGroup,
   RadioGroupItem,
   SimpleTooltipContent,
   ToggleGroup,
 } from "@dub/ui";
+import { cn } from "@dub/utils";
 import {
   Dispatch,
   FormEvent,
@@ -172,54 +174,13 @@ function AddEditTokenModal({
           onSubmit={onSubmit}
           className="flex flex-col space-y-4 bg-neutral-50 px-4 py-8 text-left sm:px-10"
         >
-          {/* Can't change the type of the token */}
-          {!token && (
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <label htmlFor="domain" className="flex items-center gap-x-2">
-                  <h2 className="text-sm font-medium text-neutral-700">
-                    Member
-                  </h2>
-                  <InfoTooltip
-                    content={
-                      <SimpleTooltipContent
-                        title={helpText.title}
-                        cta={helpText.cta}
-                        href={helpText.href}
-                      />
-                    }
-                  />
-                </label>
-              </div>
-
-              <ToggleGroup
-                options={[
-                  {
-                    value: "user",
-                    label: "You",
-                  },
-                  {
-                    value: "machine",
-                    label: "Machine",
-                  },
-                ]}
-                selected={data.isMachine ? "machine" : "user"}
-                selectAction={(id: "machine" | "user") =>
-                  setData({ ...data, isMachine: id === "machine" })
-                }
-                className="grid grid-cols-2 rounded-md border border-neutral-300 bg-neutral-100"
-                optionClassName="w-full h-8 flex items-center justify-center font-medium"
-                indicatorClassName="rounded-md bg-white border border-neutral-300 shadow-sm"
-              />
-            </div>
-          )}
-
           <div>
-            <label htmlFor="name" className="flex items-center space-x-2">
+            <label htmlFor="name">
               <h2 className="text-sm font-medium text-gray-900">Name</h2>
             </label>
             <div className="relative mt-2 rounded-md shadow-sm">
               <input
+                id="name"
                 className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                 required
                 value={name}
@@ -230,10 +191,81 @@ function AddEditTokenModal({
             </div>
           </div>
 
+          {/* Can't change the type of the token */}
+          {!token && (
+            <div>
+              <h2 className="text-sm font-medium text-gray-900">Type</h2>
+              <RadioGroup
+                className="mt-2 flex"
+                defaultValue="user"
+                required
+                onValueChange={(value) =>
+                  setData({ ...data, isMachine: value === "machine" })
+                }
+              >
+                <div className="flex w-1/2 items-center space-x-2 rounded-md border border-gray-300 bg-white transition-all hover:bg-gray-50 active:bg-gray-100">
+                  <RadioGroupItem value="user" id="user" className="ml-3" />
+                  <Label
+                    htmlFor="user"
+                    className="flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0"
+                  >
+                    <p className="text-gray-600">You</p>
+                    <InfoTooltip
+                      content={
+                        <SimpleTooltipContent
+                          title="This API key will be tied to your user account – if you are removed from the workspace, it will be deleted."
+                          cta="Learn more"
+                          href="https://dub.co/docs/api-reference/tokens"
+                        />
+                      }
+                    />
+                  </Label>
+                </div>
+                <div
+                  className={cn(
+                    "flex w-1/2 items-center space-x-2 rounded-md border border-gray-300 bg-white transition-all hover:bg-gray-50 active:bg-gray-100",
+                    {
+                      "cursor-not-allowed opacity-75": !isOwner,
+                    },
+                  )}
+                >
+                  <RadioGroupItem
+                    value="machine"
+                    id="machine"
+                    className="ml-3"
+                    disabled={!isOwner}
+                  />
+                  <Label
+                    htmlFor="machine"
+                    className={cn(
+                      "flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0",
+                      {
+                        "cursor-not-allowed": !isOwner,
+                      },
+                    )}
+                  >
+                    <p className="text-gray-600">Machine</p>
+                    <InfoTooltip
+                      content={
+                        <SimpleTooltipContent
+                          title={
+                            isOwner
+                              ? "A new bot member will be added to your workspace, and the key will be associated with it. Since the key is not tied to your account, it will not be deleted even if you leave the workspace."
+                              : "Only the workspace owner can create machine users."
+                          }
+                          cta="Learn more"
+                          href="https://dub.co/docs/api-reference/tokens#machine-users"
+                        />
+                      }
+                    />
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+          )}
+
           <div className="flex flex-col gap-2">
-            <label htmlFor="domain" className="flex items-center gap-x-2">
-              <h2 className="text-sm font-medium text-gray-900">Permissions</h2>
-            </label>
+            <h2 className="text-sm font-medium text-gray-900">Permissions</h2>
 
             <ToggleGroup
               options={scopePresets}

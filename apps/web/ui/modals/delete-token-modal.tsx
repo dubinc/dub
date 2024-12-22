@@ -61,7 +61,7 @@ function DeleteTokenModal({
           <Key className="size-5 text-gray-500" />
 
           <div className="flex flex-1 flex-col gap-0.5">
-            <h3 className="line-clamp-1 font-medium text-neutral-600">
+            <h3 className="line-clamp-1 text-sm font-medium text-neutral-600">
               {token.name}
             </h3>
             <p
@@ -85,7 +85,7 @@ function DeleteTokenModal({
                 className="size-5 rounded-full"
               />
             </Tooltip>
-            <p>
+            <p className="text-xs text-neutral-500">
               {new Date(token.createdAt).toLocaleDateString("en-us", {
                 month: "short",
                 day: "numeric",

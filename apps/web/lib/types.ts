@@ -59,6 +59,8 @@ import {
 
 export type LinkProps = Link;
 
+// used on client side (e.g. Link builder)
+// TODO: standardize this with ExpandedLink
 export interface ExpandedLinkProps extends LinkProps {
   tags: TagProps[];
   webhookIds: string[];

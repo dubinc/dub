@@ -177,14 +177,7 @@ export const PATCH = withWorkspace(
             },
           });
 
-          const formatedLinks = links.map((link) => {
-            return {
-              ...link,
-              webhookIds: link.webhooks.map(({ webhookId }) => webhookId),
-            };
-          });
-
-          await linkCache.mset(formatedLinks);
+          await linkCache.mset(links);
         }
 
         // If the webhook is being changed from workspace level to link level, set the cache
@@ -225,16 +218,7 @@ export const PATCH = withWorkspace(
           },
         });
 
-        const formatedLinks = links.map((link) => {
-          return {
-            ...link,
-            ...(link.webhooks.length > 0 && {
-              webhookIds: link.webhooks.map(({ webhookId }) => webhookId),
-            }),
-          };
-        });
-
-        await linkCache.mset(formatedLinks);
+        await linkCache.mset(links);
       })(),
     );
 
@@ -306,20 +290,11 @@ export const DELETE = withWorkspace(
           },
         });
 
-        const formatedLinks = links.map((link) => {
-          return {
-            ...link,
-            webhookIds: link.webhooks.map((webhook) => webhook.webhookId),
-          };
-        });
-
         await Promise.all([
           toggleWebhooksForWorkspace({
             workspaceId: workspace.id,
           }),
-
-          linkCache.mset(formatedLinks),
-
+          linkCache.mset(links),
           webhookCache.delete(webhookId),
         ]);
       })(),
