@@ -54,6 +54,8 @@ export const SearchBox = forwardRef(
       ) {
         e.preventDefault();
         inputRef.current?.focus();
+      } else if (e.key === "Escape") {
+        inputRef.current?.blur();
       }
     }, []);
 
