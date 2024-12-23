@@ -1,7 +1,7 @@
-import "dotenv-flow/config";
 import { recordSale } from "@/lib/tinybird";
 import { getSaleEvent } from "@/lib/tinybird/get-sale-event";
 import { prisma } from "@dub/prisma";
+import "dotenv-flow/config";
 
 async function main() {
   const sales = await prisma.sale.findMany({
