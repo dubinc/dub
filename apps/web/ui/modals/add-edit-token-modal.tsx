@@ -142,23 +142,7 @@ function AddEditTokenModal({
     [role, conversionEnabled],
   );
 
-  const helpTexts = {
-    user: {
-      title:
-        "This API key will be tied to your user account – if you are removed from the workspace, it will be deleted.",
-      cta: "Learn more",
-      href: "https://dub.co/docs/api-reference/tokens",
-    },
-    machine: {
-      title: isOwner
-        ? "A new bot member will be added to your workspace, and the key will be associated with it. Since the key is not tied to your account, it will not be deleted even if you leave the workspace."
-        : "Only the workspace owner can create machine users.",
-      cta: "Learn more",
-      href: "https://dub.co/docs/api-reference/tokens#machine-users",
-    },
-  };
-
-  const helpText = helpTexts[data.isMachine ? "machine" : "user"];
+  console.log(scopesByResources)
 
   return (
     <>
