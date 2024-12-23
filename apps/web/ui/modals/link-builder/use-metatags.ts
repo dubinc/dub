@@ -25,6 +25,12 @@ export function useMetatags({
   const [generatingMetatags, setGeneratingMetatags] = useState(initial);
 
   useEffect(() => {
+    // if proxy is enabled, no need to generate metatags
+    if (proxy) {
+      setGeneratingMetatags(false);
+      return;
+    }
+
     // if there's a password, no need to generate metatags
     if (password) {
       setGeneratingMetatags(false);
@@ -46,10 +52,14 @@ export function useMetatags({
         fetch(`/api/metatags?url=${debouncedUrl}`).then(async (res) => {
           if (res.status === 200) {
             const results = await res.json();
-            if (!title) setValue("title", truncate(results.title, 120));
-            if (!description)
-              setValue("description", truncate(results.description, 240));
-            if (!image) setValue("image", results.image);
+            const truncatedTitle = truncate(results.title, 120);
+            const truncatedDescription = truncate(results.description, 240);
+            if (title !== truncatedTitle) {
+              setValue("title", truncatedTitle);
+            }
+            if (description !== truncatedDescription)
+              setValue("description", truncatedDescription);
+            if (image !== results.image) setValue("image", results.image);
           }
           // set timeout to prevent flickering
           setTimeout(() => setGeneratingMetatags(false), 200);

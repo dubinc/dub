@@ -6,7 +6,7 @@ import StripeConnectButton from "@/ui/partners/stripe-connect-button";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
 import { AnimatedSizeContainer, MoneyBills2, Tooltip } from "@dub/ui";
-import { currencyFormatter } from "@dub/utils";
+import { CONNECT_SUPPORTED_COUNTRIES, currencyFormatter } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
@@ -33,6 +33,7 @@ export function PayoutStats() {
               {partner && !partner.payoutsEnabled && (
                 <Tooltip
                   content="You need to set up Stripe to be able to receive payouts."
+                  contentClassName="max-w-40"
                   side="right"
                 >
                   <div>
@@ -76,8 +77,7 @@ export function PayoutStats() {
         </div>
         {partner &&
           !partner.payoutsEnabled &&
-          // TODO: Stripe Connect – remove this once we can onboard partners from other countries
-          partner.country === "US" && (
+          CONNECT_SUPPORTED_COUNTRIES.includes(partner.country) && (
             <StripeConnectButton
               className="mt-4 h-9 w-full"
               text="Connect payouts"

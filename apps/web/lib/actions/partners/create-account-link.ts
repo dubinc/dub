@@ -9,12 +9,6 @@ export const createAccountLinkAction = authPartnerActionClient.action(
     let { partner } = ctx;
 
     if (!partner.stripeConnectId) {
-      // TODO: Stripe Connect – remove this once we can onboard partners from other countries
-      if (partner.country !== "US") {
-        throw new Error(
-          "We currently only support US partners, but we will be adding more countries very soon.",
-        );
-      }
       throw new Error("Partner does not have a Stripe Connect account.");
     }
 

@@ -5,7 +5,7 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import StripeConnectButton from "@/ui/partners/stripe-connect-button";
 import { PayoutStatus } from "@dub/prisma/client";
 import { MatrixLines } from "@dub/ui";
-import { fetcher } from "@dub/utils";
+import { CONNECT_SUPPORTED_COUNTRIES, COUNTRIES, fetcher } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { Stripe } from "stripe";
 import useSWR from "swr";
@@ -18,6 +18,8 @@ export function PayoutStatsAndSettings() {
     partner?.id && `/api/partners/${partner.id}/payouts/settings`,
     fetcher,
   );
+
+  console.log({ partner });
 
   return (
     <div className="grid grid-cols-1 divide-neutral-200 rounded-lg border border-neutral-200 bg-neutral-50 max-sm:divide-y sm:grid-cols-2 sm:divide-x">
@@ -32,11 +34,10 @@ export function PayoutStatsAndSettings() {
             }
             className="h-8 w-fit px-3"
             variant={partner?.payoutsEnabled ? "secondary" : "primary"}
-            // TODO: Stripe Connect – remove this once we can onboard partners from other countries
             disabledTooltip={
-              partner?.country !== "US"
-                ? "We currently only support setting up payouts for US partners, but we will be adding more countries very soon."
-                : undefined
+              partner?.country &&
+              !CONNECT_SUPPORTED_COUNTRIES.includes(partner.country) &&
+              `We currently do not support payouts for ${COUNTRIES[partner.country]} yet, but we are working on adding support for more countries soon.`
             }
           />
         </div>

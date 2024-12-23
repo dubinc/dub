@@ -3,7 +3,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { getLinkViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
 import { ratelimit, redis } from "@/lib/upstash";
-import { LOCALHOST_IP, nanoid } from "@dub/utils";
+import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -18,7 +18,7 @@ const CORS_HEADERS = {
 // POST /api/track/click – Track a click event from client side
 export const POST = async (req: Request) => {
   try {
-    const { domain, key } = await parseRequestBody(req);
+    const { domain, key, url } = await parseRequestBody(req);
 
     if (!domain || !key) {
       throw new DubApiError({
@@ -48,6 +48,8 @@ export const POST = async (req: Request) => {
       });
     }
 
+    const finalUrl = isValidUrl(url) ? url : link.url;
+
     const cacheKey = `recordClick:${link.id}:${ip}`;
 
     let clickId = await redis.get<string>(cacheKey);
@@ -60,7 +62,7 @@ export const POST = async (req: Request) => {
           req,
           clickId,
           linkId: link.id,
-          url: link.url,
+          url: finalUrl,
           skipRatelimit: true,
         }),
       );

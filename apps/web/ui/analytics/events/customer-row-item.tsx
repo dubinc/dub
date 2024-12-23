@@ -18,9 +18,10 @@ export function CustomerRowItem({ customer }: { customer: Customer }) {
             getNewPath: true,
           }) as string
         }
-        className="flex w-full items-center justify-between px-4 py-2.5 transition-colors hover:bg-stone-100"
+        scroll={false}
+        className="flex w-full items-center justify-between gap-2 px-4 py-2.5 transition-colors hover:bg-stone-100"
       >
-        <div className="flex items-center gap-3" title={display}>
+        <div className="flex items-center gap-3 truncate" title={display}>
           <img
             alt={display}
             src={customer.avatar || ""}
@@ -28,7 +29,7 @@ export function CustomerRowItem({ customer }: { customer: Customer }) {
           />
           <span className="truncate">{display}</span>
         </div>
-        <ChartActivity2 className="size-3.5" />
+        <ChartActivity2 className="size-3.5 shrink-0" />
       </Link>
     </>
   );
