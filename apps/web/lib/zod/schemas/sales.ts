@@ -1,5 +1,4 @@
 import z from "@/lib/zod";
-import { SaleStatus } from "@dub/prisma/client";
 import { clickEventSchema, clickEventSchemaTB } from "./clicks";
 import { CustomerSchema } from "./customers";
 import { commonDeprecatedEventFields } from "./deprecated";
@@ -85,7 +84,6 @@ export const saleEventSchemaTB = clickEventSchemaTB
       customer_id: z.string(),
       payment_processor: z.string(),
       amount: z.number(),
-      // status: z.nativeEnum(SaleStatus),
       status: z.string().default(""),
       invoice_id: z.string().default(""),
       currency: z.string().default("usd"),
