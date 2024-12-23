@@ -84,6 +84,7 @@ export const saleEventSchemaTB = clickEventSchemaTB
       customer_id: z.string(),
       payment_processor: z.string(),
       amount: z.number(),
+      earnings: z.number().default(0),
       status: z.string().default(""),
       invoice_id: z.string().default(""),
       currency: z.string().default("usd"),

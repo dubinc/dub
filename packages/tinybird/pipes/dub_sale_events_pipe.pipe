@@ -11,6 +11,7 @@ SQL >
         payment_processor,
         invoice_id,
         amount,
+        earnings,
         status,
         url,
         continent,

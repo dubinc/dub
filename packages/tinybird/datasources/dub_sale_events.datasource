@@ -7,6 +7,7 @@ SCHEMA >
     `payment_processor` LowCardinality(String) `json:$.payment_processor`,
     `invoice_id` String `json:$.invoice_id`,
     `amount` UInt32 `json:$.amount`,
+    `earnings` UInt32 `json:$.earnings`,
     `currency` LowCardinality(String) `json:$.currency`,
     `click_id` String `json:$.click_id`,
     `link_id` String `json:$.link_id`,
