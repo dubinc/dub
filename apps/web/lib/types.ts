@@ -54,7 +54,7 @@ import { usageResponse } from "./zod/schemas/usage";
 import {
   createWebhookSchema,
   webhookEventSchemaTB,
-  webhookSchema,
+  WebhookSchema,
 } from "./zod/schemas/webhooks";
 
 export type LinkProps = Link;
@@ -309,7 +309,7 @@ export type InstalledIntegrationInfoProps = Pick<
 
 export type WebhookTrigger = keyof typeof WEBHOOK_TRIGGER_DESCRIPTIONS;
 
-export type WebhookProps = z.infer<typeof webhookSchema>;
+export type WebhookProps = z.infer<typeof WebhookSchema>;
 
 export type NewWebhook = z.infer<typeof createWebhookSchema>;
 

@@ -1,7 +1,7 @@
 import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
 import { z } from "zod";
 
-export const webhookSchema = z.object({
+export const WebhookSchema = z.object({
   id: z.string(),
   name: z.string(),
   url: z.string(),
