@@ -2,9 +2,11 @@
 
 import { prisma } from "@dub/prisma";
 import { SaleStatus } from "@dub/prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
-import { authActionClient } from "./safe-action";
 import { recordSale } from "../tinybird";
+import { getSaleEvent } from "../tinybird/get-sale-event";
+import { authActionClient } from "./safe-action";
 
 const updateSaleStatusSchema = z.object({
   workspaceId: z.string(),
@@ -61,7 +63,19 @@ export const updateSaleStatusAction = authActionClient
       },
     });
 
-    await recordSale({})
+    // Update the sale status in Tinybird
+    waitUntil(
+      (async () => {
+        const saleEvent = await getSaleEvent({
+          eventId: sale.eventId,
+        });
+
+        await recordSale({
+          ...saleEvent["data"][0],
+          status,
+        });
+      })(),
+    );
 
     // TODO: We might want to store the history of the sale status changes
     // TODO: Send email to the partner informing them about the sale status change
