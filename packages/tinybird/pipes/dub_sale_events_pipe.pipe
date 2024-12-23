@@ -26,5 +26,3 @@ SQL >
 
 TYPE materialized
 DATASOURCE dub_sale_events_mv
-
-

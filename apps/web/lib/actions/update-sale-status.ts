@@ -70,6 +70,8 @@ export const updateSaleStatusAction = authActionClient
           eventId: sale.eventId,
         });
 
+        console.log("saleEvent", saleEvent);
+
         await recordSale({
           ...saleEvent["data"][0],
           status,

@@ -28,6 +28,6 @@ SCHEMA >
     `qr` UInt8,
     `ip` String
 
-ENGINE "MergeTree"
+ENGINE "ReplacingMergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
-ENGINE_SORTING_KEY "link_id, timestamp"
+ENGINE_SORTING_KEY "timestamp, link_id, event_id"

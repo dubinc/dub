@@ -10,7 +10,7 @@ SCHEMA >
     `currency` LowCardinality(String) `json:$.currency`,
     `click_id` String `json:$.click_id`,
     `link_id` String `json:$.link_id`,
-    `status` LowCardinality(String) `json:$.status`,
+    `status` LowCardinality(String) `json:$.status` DEFAULT '',
     `url` String `json:$.url`,
     `continent` LowCardinality(String) `json:$.continent`,
     `country` LowCardinality(String) `json:$.country`,
