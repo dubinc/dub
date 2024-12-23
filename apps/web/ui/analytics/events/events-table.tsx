@@ -119,8 +119,8 @@ export default function EventsTable({
           id: "link",
           header: "Link",
           accessorKey: "link",
-          minSize: 250,
-          maxSize: 200,
+          minSize: 200,
+          maxSize: 150,
           meta: {
             filterParams: ({ getValue }) => ({
               domain: getValue().domain,
@@ -136,6 +136,7 @@ export default function EventsTable({
               <CopyText
                 value={getValue().shortLink}
                 successMessage="Copied link to clipboard!"
+                className="truncate"
               >
                 <span className="truncate" title={getValue().shortLink}>
                   {getPrettyUrl(getValue().shortLink)}
@@ -148,6 +149,8 @@ export default function EventsTable({
           id: "customer",
           header: "Customer",
           accessorKey: "customer",
+          minSize: 230,
+          maxSize: 200,
           cell: ({ getValue }) => <CustomerRowItem customer={getValue()} />,
         },
         {

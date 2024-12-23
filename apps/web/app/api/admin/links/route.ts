@@ -19,9 +19,16 @@ export const GET = withAdmin(async ({ searchParams }) => {
 
   const response = await prisma.link.findMany({
     where: {
-      userId: {
-        not: LEGAL_USER_ID,
-      },
+      OR: [
+        {
+          userId: {
+            not: LEGAL_USER_ID,
+          },
+        },
+        {
+          userId: null,
+        },
+      ],
       ...(domain
         ? { domain }
         : {

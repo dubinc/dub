@@ -14,10 +14,15 @@ export const GET = withWorkspace(
   async ({ workspace, params }) => {
     const { id } = params;
 
-    const customer = await getCustomerOrThrow({
-      id,
-      workspaceId: workspace.id,
-    });
+    const customer = await getCustomerOrThrow(
+      {
+        id,
+        workspaceId: workspace.id,
+      },
+      {
+        expand: ["link"],
+      },
+    );
 
     return NextResponse.json(CustomerSchema.parse(customer));
   },
@@ -35,31 +40,28 @@ export const PATCH = withWorkspace(
       await parseRequestBody(req),
     );
 
-    await getCustomerOrThrow({
+    const customer = await getCustomerOrThrow({
       id,
       workspaceId: workspace.id,
     });
 
     try {
-      const customer = await prisma.customer.update({
+      const updatedCustomer = await prisma.customer.update({
         where: {
-          id,
+          id: customer.id,
         },
         data: { name, email, avatar, externalId },
+        include: {
+          link: true,
+        },
       });
 
-      return NextResponse.json(CustomerSchema.parse(customer));
+      return NextResponse.json(CustomerSchema.parse(updatedCustomer));
     } catch (error) {
       if (error.code === "P2002") {
         throw new DubApiError({
           code: "conflict",
           message: "A customer with this external ID already exists.",
-        });
-      } else if (error.code === "P2025") {
-        throw new DubApiError({
-          code: "not_found",
-          message:
-            "Customer not found. Make sure you're using the correct external ID.",
         });
       }
 
@@ -79,34 +81,20 @@ export const DELETE = withWorkspace(
   async ({ workspace, params }) => {
     const { id } = params;
 
-    await getCustomerOrThrow({
+    const customer = await getCustomerOrThrow({
       id,
       workspaceId: workspace.id,
     });
 
-    try {
-      await prisma.customer.delete({
-        where: {
-          id,
-        },
-      });
+    await prisma.customer.delete({
+      where: {
+        id: customer.id,
+      },
+    });
 
-      return NextResponse.json({
-        id,
-      });
-    } catch (error) {
-      if (error.code === "P2025") {
-        throw new DubApiError({
-          code: "not_found",
-          message: "Customer not found",
-        });
-      }
-
-      throw new DubApiError({
-        code: "unprocessable_entity",
-        message: error.message,
-      });
-    }
+    return NextResponse.json({
+      id: customer.id,
+    });
   },
   {
     requiredAddOn: "conversion",
