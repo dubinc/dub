@@ -30,4 +30,4 @@ SCHEMA >
 
 ENGINE "ReplacingMergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
-ENGINE_SORTING_KEY "timestamp, link_id, event_id"
+ENGINE_SORTING_KEY "link_id, timestamp, event_id"
