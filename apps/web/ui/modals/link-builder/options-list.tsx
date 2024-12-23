@@ -124,7 +124,7 @@ function LinkCloakingToggleBadge({
           ) : !data ? null : data?.iframeable ? (
             <CheckCircleFill className="size-3.5 text-green-500" />
           ) : (
-            <AlertCircleFill className="size-3.5 text-yellow-500" />
+            <AlertCircleFill className="size-3.5 text-red-500" />
           )
         }
       />
@@ -158,22 +158,8 @@ function LinkCloakingToggleBadge({
             </div>
           ) : (
             <span>
-              We will try to cloak it with{" "}
-              <a
-                href="https://nextjs.org/docs/pages/api-reference/functions/next-response#rewrite"
-                target="_blank"
-                className="text-gray-500 underline underline-offset-2 hover:text-gray-700"
-              >
-                Next.js Rewrites
-              </a>
-              , but it might not work as expected.{" "}
-              <a
-                href="https://dub.co/help/article/link-cloaking"
-                target="_blank"
-                className="text-gray-500 underline underline-offset-2 hover:text-gray-700"
-              >
-                Learn more.
-              </a>
+              There are some issues with the link you provided. Please try
+              again.
             </span>
           )}
         </div>
