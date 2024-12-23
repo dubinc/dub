@@ -77,7 +77,10 @@ export async function invoicePaid(event: Stripe.Event) {
   }
 
   const [_sale, _link, workspace] = await Promise.all([
-    recordSale(saleData),
+    recordSale({
+      ...saleData,
+      ...(link.programId ? { status: "pending" } : {}),
+    }),
 
     // update link sales count
     prisma.link.update({

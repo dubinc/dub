@@ -76,19 +76,7 @@ export const POST = withWorkspaceEdge(
       (async () => {
         const eventId = nanoid(16);
 
-        const [_sale, link, _project] = await Promise.all([
-          recordSale({
-            ...clickData,
-            event_id: eventId,
-            event_name: eventName,
-            customer_id: customer.id,
-            payment_processor: paymentProcessor,
-            amount,
-            currency,
-            invoice_id: invoiceId || "",
-            metadata: metadata ? JSON.stringify(metadata) : "",
-          }),
-
+        const [link, _project] = await Promise.all([
           // update link sales count
           prismaEdge.link.update({
             where: {
@@ -118,6 +106,19 @@ export const POST = withWorkspaceEdge(
             },
           }),
         ]);
+
+        await recordSale({
+          ...clickData,
+          event_id: eventId,
+          event_name: eventName,
+          customer_id: customer.id,
+          payment_processor: paymentProcessor,
+          amount,
+          currency,
+          invoice_id: invoiceId || "",
+          metadata: metadata ? JSON.stringify(metadata) : "",
+          ...(link.programId ? { status: "pending" } : {}),
+        });
 
         // for program links
         if (link.programId) {
