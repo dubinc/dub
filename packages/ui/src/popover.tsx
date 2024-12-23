@@ -47,6 +47,15 @@ export function Popover({
           <Drawer.Content
             className="fixed bottom-0 left-0 right-0 z-50 mt-24 rounded-t-[10px] border-t border-gray-200 bg-white"
             onEscapeKeyDown={onEscapeKeyDown}
+            onPointerDownOutside={(e) => {
+              // Prevent dismissal when clicking inside a toast
+              if (
+                e.target instanceof Element &&
+                e.target.closest("[data-sonner-toast]")
+              ) {
+                e.preventDefault();
+              }
+            }}
           >
             <div className="sticky top-0 z-20 flex w-full items-center justify-center rounded-t-[10px] bg-inherit">
               <div className="my-3 h-1 w-12 rounded-full bg-gray-300" />
