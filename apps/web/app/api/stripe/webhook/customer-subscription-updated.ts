@@ -1,3 +1,4 @@
+import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
 import { getPlanFromPriceId, log } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -88,26 +89,46 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
           rateLimit: plan.limits.api,
         },
       }),
-
-      // Disable the webhooks if the new plan does not support webhooks
-      ...(shouldDisableWebhooks
-        ? [
-            prisma.webhook.updateMany({
-              where: { projectId: workspace.id },
-              data: { disabledAt: new Date() },
-            }),
-
-            prisma.project.update({
-              where: {
-                id: workspace.id,
-              },
-              data: {
-                webhookEnabled: false,
-              },
-            }),
-          ]
-        : []),
     ]);
+
+    // Disable the webhooks if the new plan does not support webhooks
+    if (shouldDisableWebhooks) {
+      await Promise.all([
+        prisma.project.update({
+          where: {
+            id: workspace.id,
+          },
+          data: {
+            webhookEnabled: false,
+          },
+        }),
+
+        prisma.webhook.updateMany({
+          where: {
+            projectId: workspace.id,
+          },
+          data: {
+            disabledAt: new Date(),
+          },
+        }),
+      ]);
+
+      // Update the webhooks cache
+      const webhooks = await prisma.webhook.findMany({
+        where: {
+          projectId: workspace.id,
+        },
+        select: {
+          id: true,
+          url: true,
+          secret: true,
+          triggers: true,
+          disabledAt: true,
+        },
+      });
+
+      await webhookCache.mset(webhooks);
+    }
   } else if (workspace.paymentFailedAt) {
     await prisma.project.update({
       where: {

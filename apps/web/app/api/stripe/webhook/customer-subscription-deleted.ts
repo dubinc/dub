@@ -1,5 +1,6 @@
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
+import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
 import { FREE_PLAN, log } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -177,4 +178,20 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       },
     }),
   ]);
+
+  // Update the webhooks cache
+  const webhooks = await prisma.webhook.findMany({
+    where: {
+      projectId: workspace.id,
+    },
+    select: {
+      id: true,
+      url: true,
+      secret: true,
+      triggers: true,
+      disabledAt: true,
+    },
+  });
+
+  await webhookCache.mset(webhooks);
 }

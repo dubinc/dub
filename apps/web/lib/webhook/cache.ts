@@ -5,16 +5,27 @@ import { isLinkLevelWebhook } from "./utils";
 const WEBHOOK_CACHE_KEY_PREFIX = "webhook";
 
 class WebhookCache {
+  async mset(webhooks: WebhookCacheProps[]) {
+    if (webhooks.length === 0) {
+      return;
+    }
+
+    const pipeline = redis.pipeline();
+
+    webhooks.map((webhook) => {
+      pipeline.set(this._createKey(webhook.id), this._format(webhook));
+    });
+
+    return await pipeline.exec();
+  }
+
   async set(webhook: WebhookCacheProps) {
     // We only cache the link level webhooks for now
     if (!isLinkLevelWebhook(webhook)) {
       return;
     }
 
-    return await redis.set(
-      this._createKey(webhook.id),
-      JSON.stringify(this._format(webhook)),
-    );
+    return await redis.set(this._createKey(webhook.id), this._format(webhook));
   }
 
   async mget(webhookIds: string[]) {
@@ -28,6 +39,20 @@ class WebhookCache {
   async delete(webhookId: string) {
     return await redis.del(this._createKey(webhookId));
   }
+
+  // async deleteMany(webhookIds: string[]) {
+  //   if (webhookIds.length === 0) {
+  //     return;
+  //   }
+
+  //   const pipeline = redis.pipeline();
+
+  //   webhookIds.forEach((webhookId) => {
+  //     pipeline.del(this._createKey(webhookId));
+  //   });
+
+  //   return await pipeline.exec();
+  // }
 
   _format(webhook: WebhookCacheProps) {
     return {
