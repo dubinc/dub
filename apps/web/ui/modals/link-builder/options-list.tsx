@@ -1,7 +1,7 @@
 import { AlertCircleFill, CheckCircleFill, X } from "@/ui/shared/icons";
-import { Tooltip, useMediaQuery } from "@dub/ui";
+import { SimpleTooltipContent, Tooltip, useMediaQuery } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/icons";
-import { cn, fetcher, isValidUrl as isValidUrlFn } from "@dub/utils";
+import { fetcher, isValidUrl as isValidUrlFn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ReactNode, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
@@ -121,10 +121,10 @@ function LinkCloakingToggleBadge({
         icon={
           isLoading ? (
             <LoadingSpinner className="size-3.5" />
-          ) : !data ? null : data?.iframeable ? (
+          ) : !data ? null : data.iframeable ? (
             <CheckCircleFill className="size-3.5 text-green-500" />
           ) : (
-            <AlertCircleFill className="size-3.5 text-red-500" />
+            <AlertCircleFill className="size-3.5 text-amber-500" />
           )
         }
       />
@@ -135,34 +135,26 @@ function LinkCloakingToggleBadge({
   return data ? (
     <Tooltip
       content={
-        <div
-          className={cn(
-            "block max-w-lg text-pretty p-4 text-center text-sm text-gray-700",
-            {
-              "max-w-sm": !data.iframeable,
-            },
-          )}
-        >
-          {data.iframeable ? (
-            <div className="grid gap-2">
-              <div className="h-[250px] w-[444px] overflow-hidden rounded-lg border border-gray-200">
-                <iframe
-                  src={url}
-                  style={{
-                    zoom: 0.5,
-                  }}
-                  className="h-[500px] w-[888px]"
-                />
-              </div>
-              <p>Your link will be successfully cloaked.</p>
+        data.iframeable ? (
+          <div className="grid max-w-lg gap-2 text-pretty p-4 text-center text-sm text-gray-700">
+            <div className="h-[250px] w-[444px] overflow-hidden rounded-lg border border-gray-200">
+              <iframe
+                src={url}
+                style={{
+                  zoom: 0.5,
+                }}
+                className="h-[500px] w-[888px]"
+              />
             </div>
-          ) : (
-            <span>
-              There are some issues with the link you provided. Please try
-              again.
-            </span>
-          )}
-        </div>
+            <p>Your link will be successfully cloaked.</p>
+          </div>
+        ) : (
+          <SimpleTooltipContent
+            title="Your link is not cloakable – make sure you have the right security headers set on your target URL."
+            cta="Learn more"
+            href="https://dub.co/help/article/link-cloaking#link-cloaking-with-security-headers"
+          />
+        )
       }
     >
       <div>{badge}</div>
