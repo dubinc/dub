@@ -31,11 +31,6 @@ export const RESOURCES: {
     description: "Read, update, and delete workspaces",
   },
   {
-    name: "Tokens",
-    key: "tokens",
-    description: "Create, read, update, and delete tokens",
-  },
-  {
     name: "Domains",
     key: "domains",
     description: "Create, read, update, and delete domains",
