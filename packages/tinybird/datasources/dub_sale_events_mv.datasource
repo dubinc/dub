@@ -10,6 +10,7 @@ SCHEMA >
     `payment_processor` LowCardinality(String),
     `invoice_id` String,
     `amount` UInt32,
+    `status` LowCardinality(String),
     `url` String,
     `continent` LowCardinality(String),
     `country` LowCardinality(String),

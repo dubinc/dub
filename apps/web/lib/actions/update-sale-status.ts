@@ -4,6 +4,7 @@ import { prisma } from "@dub/prisma";
 import { SaleStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { authActionClient } from "./safe-action";
+import { recordSale } from "../tinybird";
 
 const updateSaleStatusSchema = z.object({
   workspaceId: z.string(),
@@ -59,6 +60,8 @@ export const updateSaleStatusAction = authActionClient
         payoutId: null,
       },
     });
+
+    await recordSale({})
 
     // TODO: We might want to store the history of the sale status changes
     // TODO: Send email to the partner informing them about the sale status change
