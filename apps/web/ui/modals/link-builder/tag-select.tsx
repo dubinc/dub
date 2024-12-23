@@ -71,7 +71,7 @@ export function TagSelect() {
 
     if (res.ok) {
       const newTag = await res.json();
-      setValue("tags", [...tags, newTag]);
+      setValue("tags", [...tags, newTag], { shouldDirty: true });
       toast.success(`Successfully created tag!`);
       setIsOpen(false);
       await mutate(`/api/tags?workspaceId=${workspaceId}`);

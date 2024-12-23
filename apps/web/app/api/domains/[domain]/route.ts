@@ -1,16 +1,15 @@
 import {
   addDomainToVercel,
-  deleteDomainAndLinks,
+  markDomainAsDeleted,
   removeDomainFromVercel,
   validateDomain,
 } from "@/lib/api/domains";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
+import { queueDomainUpdate } from "@/lib/api/domains/queue";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { storage } from "@/lib/storage";
-import { recordLink } from "@/lib/tinybird";
-import { redis } from "@/lib/upstash";
 import {
   DomainSchema,
   updateDomainBodySchema,
@@ -137,32 +136,15 @@ export const PATCH = withWorkspace(
           await Promise.all([
             // remove old domain from Vercel
             removeDomainFromVercel(domain),
-            // rename redis key
-            redis.rename(domain.toLowerCase(), newDomain.toLowerCase()),
+
+            // trigger the queue to rename the redis keys and update the links in Tinybird
+            queueDomainUpdate({
+              workspaceId: workspace.id,
+              oldDomain: domain,
+              newDomain: newDomain,
+              page: 1,
+            }),
           ]);
-
-          const allLinks = await prisma.link.findMany({
-            where: {
-              domain: newDomain,
-            },
-            include: {
-              tags: true,
-            },
-          });
-
-          // update all links in Tinybird
-          recordLink(
-            allLinks.map((link) => ({
-              link_id: link.id,
-              domain: link.domain,
-              key: link.key,
-              url: link.url,
-              tag_ids: link.tags.map((tag) => tag.tagId),
-              program_id: link.programId ?? "",
-              workspace_id: link.projectId,
-              created_at: link.createdAt,
-            })),
-          );
         }
       })(),
     );
@@ -190,7 +172,10 @@ export const DELETE = withWorkspace(
       });
     }
 
-    await deleteDomainAndLinks(domain);
+    await markDomainAsDeleted({
+      domain,
+      workspaceId: workspace.id,
+    });
 
     return NextResponse.json({ slug: domain });
   },
