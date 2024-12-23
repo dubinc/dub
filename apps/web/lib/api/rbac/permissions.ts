@@ -86,7 +86,7 @@ export const ROLE_PERMISSIONS: {
   {
     action: "tokens.write",
     description: "create, update, or delete API keys",
-    roles: ["owner", "member"],
+    roles: ["owner"],
   },
   {
     action: "oauth_apps.read",

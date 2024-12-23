@@ -3,8 +3,6 @@ import { PermissionAction } from "../rbac/permissions";
 import { ResourceKey } from "../rbac/resources";
 
 export const SCOPES = [
-  "workspaces.read",
-  "workspaces.write",
   "links.read",
   "links.write",
   "tags.read",
@@ -12,6 +10,8 @@ export const SCOPES = [
   "analytics.read",
   "domains.read",
   "domains.write",
+  "workspaces.read",
+  "workspaces.write",
   "conversions.write",
   "webhooks.read",
   "webhooks.write",
