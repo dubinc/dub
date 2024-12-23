@@ -142,8 +142,6 @@ function AddEditTokenModal({
     [role, conversionEnabled],
   );
 
-  console.log(scopesByResources)
-
   return (
     <>
       <Modal
