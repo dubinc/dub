@@ -33,16 +33,6 @@ export const createSaleData = ({
     saleAmount: amount,
   });
 
-  const {
-    id: programId,
-    commissionAmount,
-    commissionType,
-    recurringCommission,
-    recurringDuration,
-    recurringInterval,
-    isLifetimeRecurring,
-  } = program;
-
   return {
     id: createId({ prefix: "sale_" }),
     customerId,
@@ -52,17 +42,11 @@ export const createSaleData = ({
     eventId,
     paymentProcessor,
     amount,
+    earnings,
     currency,
     partnerId,
-    programId,
-    commissionAmount,
-    commissionType,
-    recurringCommission,
-    recurringDuration,
-    recurringInterval,
-    isLifetimeRecurring,
-    status: SaleStatus.pending,
-    earnings,
+    programId: program.id,
     metadata: metadata || Prisma.JsonNull,
+    status: SaleStatus.pending,
   };
 };
