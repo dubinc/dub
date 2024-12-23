@@ -85,7 +85,6 @@ export interface RedisLinkProps {
   password?: boolean;
   proxy?: boolean;
   rewrite?: boolean;
-  iframeable?: boolean;
   expiresAt?: Date;
   expiredUrl?: string;
   ios?: string;

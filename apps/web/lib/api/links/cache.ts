@@ -19,7 +19,7 @@ class LinkCache {
 
     const redisLinks = await Promise.all(
       links.map(async (link) => ({
-        ...(await formatRedisLink(link)),
+        ...formatRedisLink(link),
         key: link.key.toLowerCase(),
         domain: link.domain.toLowerCase(),
       })),
@@ -40,7 +40,7 @@ class LinkCache {
   }
 
   async set(link: ExpandedLink) {
-    const redisLink = await formatRedisLink(link);
+    const redisLink = formatRedisLink(link);
     const hasWebhooks = redisLink.webhookIds && redisLink.webhookIds.length > 0;
 
     return await redis.set(

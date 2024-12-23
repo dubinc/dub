@@ -29,5 +29,5 @@ export const isIframeable = async ({
     return false;
   }
 
-  return false;
+  return true;
 };
