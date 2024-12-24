@@ -76,7 +76,7 @@ export function EmbedWidgetSales({ salesCount }: { salesCount: number }) {
       {...tableProps}
       table={table}
       containerClassName="rounded-md border border-neutral-200 my-4"
-      scrollWrapperClassName="min-h-fit"
+      scrollWrapperClassName="min-h-[14.05rem]"
     />
   );
 }

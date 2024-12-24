@@ -11,7 +11,7 @@ export function EmbedWidgetActivity({
   sales: number;
 }) {
   return (
-    <div className="col-span-2 grid h-full grid-cols-3 divide-x divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
+    <div className="grid h-full grid-cols-3 divide-x divide-neutral-200 rounded-lg border border-neutral-200 bg-white sm:col-span-2">
       {[
         {
           label: "Clicks",
@@ -29,7 +29,10 @@ export function EmbedWidgetActivity({
           description: "Total number of leads that converted to a paid account",
         },
       ].map(({ label, value, description }) => (
-        <div key={label} className="relative flex flex-col justify-between p-4">
+        <div
+          key={label}
+          className="relative flex flex-col justify-between gap-4 p-4"
+        >
           <span className="flex items-center gap-1 text-sm text-neutral-500">
             {label}
             <InfoTooltip content={description} />

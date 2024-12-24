@@ -82,7 +82,7 @@ export function EmbedInlinePageClient({
             />
           </div>
         </div>
-        <div className="mt-4 grid h-32 grid-cols-3 gap-2">
+        <div className="mt-4 grid gap-2 sm:h-32 sm:grid-cols-3">
           <EmbedWidgetActivity
             clicks={link.clicks}
             leads={link.leads}
