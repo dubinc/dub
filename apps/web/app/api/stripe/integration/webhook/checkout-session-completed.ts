@@ -129,12 +129,13 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   // for program links
   if (link.programId) {
-    const { program, partner } =
+    const { program, partner, commissionAmount } =
       await prisma.programEnrollment.findUniqueOrThrow({
         where: {
           linkId: link.id,
         },
         select: {
+          commissionAmount: true,
           program: true,
           partner: {
             select: {
@@ -145,16 +146,23 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       });
 
     const saleRecord = createSaleData({
-      customerId: saleData.customer_id,
-      linkId: saleData.link_id,
-      clickId: saleData.click_id,
-      invoiceId: saleData.invoice_id,
-      eventId: saleData.event_id,
-      paymentProcessor: saleData.payment_processor,
-      amount: saleData.amount,
-      currency: saleData.currency,
-      partnerId: partner.id,
       program,
+      partner: {
+        id: partner.id,
+        commissionAmount,
+      },
+      customer: {
+        id: saleData.customer_id,
+        linkId: saleData.link_id,
+        clickId: saleData.click_id,
+      },
+      sale: {
+        amount: saleData.amount,
+        currency: saleData.currency,
+        invoiceId: saleData.invoice_id,
+        eventId: saleData.event_id,
+        paymentProcessor: saleData.payment_processor,
+      },
       metadata: {
         ...leadEvent.data[0],
         stripeMetadata: charge,

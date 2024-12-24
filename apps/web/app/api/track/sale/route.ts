@@ -121,12 +121,13 @@ export const POST = withWorkspaceEdge(
 
         // for program links
         if (link.programId) {
-          const { program, partner } =
+          const { program, partner, commissionAmount } =
             await prismaEdge.programEnrollment.findUniqueOrThrow({
               where: {
                 linkId: link.id,
               },
               select: {
+                commissionAmount: true,
                 program: true,
                 partner: {
                   select: {
@@ -137,16 +138,23 @@ export const POST = withWorkspaceEdge(
             });
 
           const saleRecord = createSaleData({
-            customerId: customer.id,
-            linkId: link.id,
-            clickId: clickData.click_id,
-            invoiceId,
-            eventId,
-            paymentProcessor,
-            amount,
-            currency,
-            partnerId: partner.id,
             program,
+            partner: {
+              id: partner.id,
+              commissionAmount,
+            },
+            customer: {
+              id: customer.id,
+              linkId: link.id,
+              clickId: clickData.click_id,
+            },
+            sale: {
+              amount,
+              currency,
+              invoiceId,
+              eventId,
+              paymentProcessor,
+            },
             metadata: clickData,
           });
 

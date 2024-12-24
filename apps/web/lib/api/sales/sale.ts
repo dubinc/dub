@@ -3,64 +3,60 @@ import { createId } from "../utils";
 import { calculateEarnings } from "./commission";
 
 export const createSaleData = ({
-  customerId,
-  linkId,
-  clickId,
-  invoiceId,
-  eventId,
-  paymentProcessor,
-  amount,
-  currency,
-  partnerId,
   program,
+  partner,
+  customer,
+  sale,
   metadata,
 }: {
-  customerId: string;
-  linkId: string;
-  clickId: string;
-  invoiceId: string | null;
-  eventId: string;
-  paymentProcessor: string;
-  amount: number;
-  currency: string;
-  partnerId: string;
   program: Program;
+  partner: {
+    id: string;
+    commissionAmount: number | null;
+  };
+  customer: {
+    id: string;
+    linkId: string;
+    clickId: string;
+  };
+  sale: {
+    amount: number;
+    currency: string;
+    invoiceId: string | null;
+    eventId: string;
+    paymentProcessor: string;
+  };
   metadata: Record<string, any>;
 }) => {
   const earnings = calculateEarnings({
     program,
     sales: 1,
-    saleAmount: amount,
+    saleAmount: sale.amount,
   });
 
-  const {
-    id: programId,
-    commissionAmount,
-    commissionType,
-    recurringCommission,
-    recurringDuration,
-    recurringInterval,
-    isLifetimeRecurring,
-  } = program;
+  const commissionAmount =
+    partner.commissionAmount !== null
+      ? partner.commissionAmount
+      : program.commissionAmount;
 
   return {
     id: createId({ prefix: "sale_" }),
-    customerId,
-    linkId,
-    clickId,
-    invoiceId,
-    eventId,
-    paymentProcessor,
-    amount,
-    currency,
-    partnerId,
-    programId,
+    customerId: customer.id,
+    linkId: customer.linkId,
+    clickId: customer.clickId,
+    invoiceId: sale.invoiceId,
+    eventId: sale.eventId,
+    paymentProcessor: sale.paymentProcessor,
+    amount: sale.amount,
+    currency: sale.currency,
+    partnerId: partner.id,
+    programId: program.id,
     commissionAmount,
-    commissionType,
-    recurringCommission,
-    recurringDuration,
-    recurringInterval,
-    isLifetimeRecurring,
+    commissionType: program.commissionType,
+    recurringCommission: program.recurringCommission,
+    recurringDuration: program.recurringDuration,
+    recurringInterval: program.recurringInterval,
+    isLifetimeRecurring: program.isLifetimeRecurring,
     status: SaleStatus.pending,
     earnings,
     metadata: metadata || Prisma.JsonNull,
