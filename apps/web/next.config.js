@@ -14,9 +14,6 @@ const REDIRECT_SEGMENTS = [
 module.exports = withAxiom({
   reactStrictMode: false,
   transpilePackages: ["shiki", "@dub/prisma", "@dub/email"],
-  experimental: {
-    serverComponentsExternalPackages: ["@react-email/tailwind"],
-  },
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
       config.plugins.push(
