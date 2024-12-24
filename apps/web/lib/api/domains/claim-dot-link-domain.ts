@@ -11,7 +11,7 @@ import {
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
-import DomainClaimed from "emails/domain-claimed";
+import {DomainClaimed} from "@dub/email/templates/domain-claimed";
 import { addDomainToVercel } from "./add-domain-vercel";
 import { markDomainAsDeleted } from "./mark-domain-deleted";
 

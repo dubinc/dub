@@ -10,7 +10,7 @@ import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
-import WebhookAdded from "emails/webhook-added";
+import {WebhookAdded} from "@dub/email/templates/webhook-added";
 import { NextResponse } from "next/server";
 
 // GET /api/webhooks - get all webhooks for the given workspace

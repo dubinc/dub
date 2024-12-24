@@ -2,7 +2,7 @@
 
 import { prisma } from "@dub/prisma";
 import { sendEmail } from "emails";
-import PartnerInvite from "emails/partner-invite";
+import {PartnerInvite} from "@dub/email/templates/partner-invite";
 import z from "../zod";
 import { authActionClient } from "./safe-action";
 

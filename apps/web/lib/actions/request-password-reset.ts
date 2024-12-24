@@ -4,7 +4,7 @@ import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { randomBytes } from "crypto";
 import { sendEmail } from "emails";
-import ResetPasswordLink from "emails/reset-password-link";
+import {ResetPasswordLink} from "@dub/email/templates/reset-password-link";
 import { flattenValidationErrors } from "next-safe-action";
 import { PASSWORD_RESET_TOKEN_EXPIRY } from "../auth/constants";
 import { requestPasswordResetSchema } from "../zod/schemas/auth";

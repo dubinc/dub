@@ -1,7 +1,7 @@
 "use server";
 
 import { resend } from "@/lib/resend";
-import FeedbackEmail from "emails/feedback-email";
+import {FeedbackEmail} from "@dub/email/templates/feedback-email";
 
 export async function submitFeedback(data: FormData) {
   const email = data.get("email") as string;

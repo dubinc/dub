@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { sendEmail } from "emails";
-import DomainTransferred from "emails/domain-transferred";
+import {DomainTransferred} from "@dub/email/templates/domain-transferred";
 
 // Send email to the owner after the domain transfer is completed
 export const sendDomainTransferredEmail = async ({

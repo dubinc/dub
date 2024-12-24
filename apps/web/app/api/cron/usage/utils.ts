@@ -12,7 +12,7 @@ import {
   log,
 } from "@dub/utils";
 import { sendEmail } from "emails";
-import ClicksSummary from "emails/clicks-summary";
+import {ClicksSummary} from "@dub/email/templates/clicks-summary";
 
 const limit = 100;
 

@@ -4,7 +4,7 @@ import { ProgramProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Link, Project } from "@dub/prisma/client";
 import { sendEmail } from "emails";
-import PartnerInvite from "emails/partner-invite";
+import {PartnerInvite} from "@dub/email/templates/partner-invite";
 import { createId } from "../utils";
 
 export const invitePartner = async ({

@@ -1,7 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { sendEmail } from "emails";
-import ClicksExceeded from "emails/clicks-exceeded";
-import LinksLimitAlert from "emails/links-limit";
+import {ClicksExceeded} from "@dub/email/templates/clicks-exceeded";
+import {LinksLimitAlert} from "@dub/email/templates/links-limit";
 import { WorkspaceProps } from "../types";
 import { limiter } from "./limiter";
 

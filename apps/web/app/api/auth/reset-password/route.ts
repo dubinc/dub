@@ -5,7 +5,7 @@ import { resetPasswordSchema } from "@/lib/zod/schemas/auth";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
-import PasswordUpdated from "emails/password-updated";
+import {PasswordUpdated} from "@dub/email/templates/password-updated";
 import { NextRequest, NextResponse } from "next/server";
 
 // POST /api/auth/reset-password - reset password using the reset token

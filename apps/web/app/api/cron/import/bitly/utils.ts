@@ -4,7 +4,7 @@ import { redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { sendEmail } from "emails";
-import LinksImported from "emails/links-imported";
+import {LinksImported} from "@dub/email/templates/links-imported";
 
 // Note: rate limit for /groups/{group_guid}/bitlinks is 1500 per hour or 150 per minute
 export const importLinksFromBitly = async ({
