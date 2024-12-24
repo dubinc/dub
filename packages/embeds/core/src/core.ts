@@ -14,7 +14,7 @@ import { DubInitResult, DubOptions, IframeMessage } from "./types";
 const INLINE_CONTAINER_STYLES = {
   position: "relative",
   maxWidth: "1024px",
-  height: "760px",
+  height: "960px",
   margin: "0 auto",
 };
 

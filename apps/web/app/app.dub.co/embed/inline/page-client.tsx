@@ -20,11 +20,9 @@ import { LinkToken } from "../token";
 export function EmbedInlinePageClient({
   program,
   link,
-  hasPartnerProfile,
 }: {
   program: Program;
   link: Link;
-  hasPartnerProfile: boolean;
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
 
@@ -104,7 +102,7 @@ export function EmbedInlinePageClient({
             }}
             className="w-full rounded-lg"
           />
-          <EmbedWidgetSales hasPartnerProfile={hasPartnerProfile} />
+          <EmbedWidgetSales salesCount={link.sales} />
         </div>
         <LinkToken />
       </div>
