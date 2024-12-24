@@ -29,12 +29,12 @@ export function EmbedWidgetActivity({
           description: "Total number of leads that converted to a paid account",
         },
       ].map(({ label, value, description }) => (
-        <div className="flex flex-col justify-between p-4">
+        <div key={label} className="relative flex flex-col justify-between p-4">
           <span className="flex items-center gap-1 text-sm text-neutral-500">
             {label}
             <InfoTooltip content={description} />
           </span>
-          <span className="font-semibold text-neutral-600">
+          <span className="text-lg font-semibold text-neutral-700">
             {nFormatter(value, { full: true })}
           </span>
         </div>

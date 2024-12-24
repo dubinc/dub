@@ -20,8 +20,8 @@ export function EmbedWidgetPayouts() {
           },
         ].map(({ label, value }) => (
           <div className="flex justify-between text-sm">
-            <span className="font-medium text-neutral-600">{label}</span>
-            <span className="font-semibold text-neutral-600">
+            <span className="font-medium text-neutral-500">{label}</span>
+            <span className="font-semibold text-neutral-700">
               {currencyFormatter(value / 100, {
                 style: "currency",
                 currency: "USD",
