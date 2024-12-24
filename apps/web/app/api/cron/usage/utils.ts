@@ -3,6 +3,7 @@ import { qstash } from "@/lib/cron";
 import { limiter } from "@/lib/cron/limiter";
 import { sendLimitEmail } from "@/lib/cron/send-limit-email";
 import { WorkspaceProps } from "@/lib/types";
+import { sendEmail } from "@dub/email";
 import { ClicksSummary } from "@dub/email/templates/clicks-summary";
 import { prisma } from "@dub/prisma";
 import {
@@ -12,7 +13,6 @@ import {
   linkConstructor,
   log,
 } from "@dub/utils";
-import { sendEmail } from "@dub/email";
 
 const limit = 100;
 

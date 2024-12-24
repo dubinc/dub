@@ -1,6 +1,6 @@
+import { sendEmail } from "@dub/email";
 import { FailedPayment } from "@dub/email/templates/failed-payment";
 import "dotenv-flow/config";
-import { sendEmail } from "@dub/email";
 
 const attemptCount = 2;
 const amountDue = 2400;

@@ -4,12 +4,12 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { createTokenSchema, tokenSchema } from "@/lib/zod/schemas/token";
+import { sendEmail } from "@dub/email";
 import { APIKeyCreated } from "@dub/email/templates/api-key-created";
 import { prisma } from "@dub/prisma";
 import { User } from "@dub/prisma/client";
 import { getCurrentPlan, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { sendEmail } from "@dub/email";
 import { NextResponse } from "next/server";
 
 // GET /api/tokens - get all tokens for a workspace
