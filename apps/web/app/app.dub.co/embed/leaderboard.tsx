@@ -22,7 +22,7 @@ export function EmbedLeaderboard() {
         header: "Position",
         cell: ({ row }) => {
           return (
-            <div className="flex items-center justify-start gap-2">
+            <div className="flex items-center justify-start gap-2 tabular-nums">
               {row.index + 1}
               {row.index <= 2 && (
                 <Crown
