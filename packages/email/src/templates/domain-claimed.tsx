@@ -77,3 +77,5 @@ export function DomainClaimed({
     </Html>
   );
 }
+
+export default DomainClaimed;

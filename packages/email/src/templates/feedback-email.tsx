@@ -47,3 +47,5 @@ export function FeedbackEmail({
     </Html>
   );
 }
+
+export default FeedbackEmail;

@@ -68,3 +68,5 @@ export function PartnerInvite({
     </Html>
   );
 }
+
+export default PartnerInvite;

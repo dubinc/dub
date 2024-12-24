@@ -123,3 +123,5 @@ export function LinksLimitAlert({
     </Html>
   );
 }
+
+export default LinksLimitAlert;

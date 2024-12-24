@@ -56,3 +56,5 @@ export function VerifyEmail({
     </Html>
   );
 }
+
+export default VerifyEmail;

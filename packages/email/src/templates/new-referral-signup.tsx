@@ -85,3 +85,5 @@ export function NewReferralSignup({
     </Html>
   );
 }
+
+export default NewReferralSignup;

@@ -80,3 +80,5 @@ export function WebhookAdded({
     </Html>
   );
 }
+
+export default WebhookAdded;

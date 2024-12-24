@@ -5,7 +5,7 @@
   "main": "./src/index.ts",
   "scripts": {
     "clean": "rm -rf .turbo node_modules",
-    "dev": "email dev -p 3003 --dir ./src/templates"
+    "dev": "email dev --dir ./src/templates -p 3333"
   },
   "dependencies": {
     "@dub/utils": "workspace:*",

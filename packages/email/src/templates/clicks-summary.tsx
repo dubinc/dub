@@ -196,3 +196,5 @@ export function ClicksSummary({
     </Html>
   );
 }
+
+export default ClicksSummary;

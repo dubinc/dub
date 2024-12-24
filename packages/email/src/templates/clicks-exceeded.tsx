@@ -106,3 +106,5 @@ export function ClicksExceeded({
     </Html>
   );
 }
+
+export default ClicksExceeded;

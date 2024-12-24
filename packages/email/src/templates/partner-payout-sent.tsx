@@ -93,3 +93,5 @@ export function PartnerPayoutSent({
     </Html>
   );
 }
+
+export default PartnerPayoutSent;

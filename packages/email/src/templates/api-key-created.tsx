@@ -90,3 +90,5 @@ export function APIKeyCreated({
     </Html>
   );
 }
+
+export default APIKeyCreated;

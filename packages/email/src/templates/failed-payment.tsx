@@ -85,3 +85,5 @@ export function FailedPayment({
     </Html>
   );
 }
+
+export default FailedPayment;

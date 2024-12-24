@@ -72,3 +72,5 @@ export function IntegrationInstalled({
     </Html>
   );
 }
+
+export default IntegrationInstalled;

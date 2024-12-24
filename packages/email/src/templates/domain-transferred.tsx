@@ -64,3 +64,5 @@ export function DomainTransferred({
     </Html>
   );
 }
+
+export default DomainTransferred;

@@ -114,3 +114,5 @@ export function NewSaleCreated({
     </Html>
   );
 }
+
+export default NewSaleCreated;

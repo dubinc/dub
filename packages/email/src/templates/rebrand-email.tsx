@@ -145,3 +145,5 @@ export function RebrandEmail({
     </Html>
   );
 }
+
+export default RebrandEmail;

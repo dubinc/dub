@@ -76,3 +76,5 @@ export function DomainDeleted({
     </Html>
   );
 }
+
+export default DomainDeleted;

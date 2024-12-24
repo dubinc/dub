@@ -82,3 +82,5 @@ export function ReferralInvite({
     </Html>
   );
 }
+
+export default ReferralInvite;

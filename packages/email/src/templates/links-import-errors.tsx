@@ -118,3 +118,5 @@ export function LinksImportErrors({
     </Html>
   );
 }
+
+export default LinksImportErrors;

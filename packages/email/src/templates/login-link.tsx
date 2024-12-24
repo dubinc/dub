@@ -66,3 +66,5 @@ export function LoginLink({
     </Html>
   );
 }
+
+export default LoginLink;

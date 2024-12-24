@@ -88,3 +88,5 @@ export function WorkspaceInvite({
     </Html>
   );
 }
+
+export default WorkspaceInvite;

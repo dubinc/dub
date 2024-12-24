@@ -53,3 +53,5 @@ export function PasswordUpdated({
     </Html>
   );
 }
+
+export default PasswordUpdated;

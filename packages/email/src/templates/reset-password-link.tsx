@@ -67,3 +67,5 @@ export function ResetPasswordLink({
     </Html>
   );
 }
+
+export default ResetPasswordLink;

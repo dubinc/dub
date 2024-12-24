@@ -155,3 +155,5 @@ export function LinksImported({
     </Html>
   );
 }
+
+export default LinksImported;

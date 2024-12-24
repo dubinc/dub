@@ -96,3 +96,5 @@ export function InvalidDomain({
     </Html>
   );
 }
+
+export default InvalidDomain;

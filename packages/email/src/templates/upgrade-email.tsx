@@ -101,3 +101,5 @@ export function UpgradeEmail({
     </Html>
   );
 }
+
+export default UpgradeEmail;
