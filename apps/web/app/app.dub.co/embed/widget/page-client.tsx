@@ -33,12 +33,10 @@ const heroAnimationDuration = 0.2;
 export function EmbedWidgetPageClient({
   program,
   link,
-  earnings,
   hasPartnerProfile,
 }: {
   program: Program;
   link: Link;
-  earnings: number;
   hasPartnerProfile: boolean;
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
@@ -217,7 +215,7 @@ export function EmbedWidgetPageClient({
                   <h2 className="text-sm font-semibold text-neutral-900">
                     Recent sales
                   </h2>
-                  <EmbedWidgetSales hasPartnerProfile={hasPartnerProfile} />
+                  <EmbedWidgetSales salesCount={link.sales} />
                   {hasPartnerProfile ? (
                     <a
                       href="https://partners.dub.co/settings/payouts"
