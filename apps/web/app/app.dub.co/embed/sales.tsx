@@ -1,16 +1,20 @@
 import { PartnerSaleResponse } from "@/lib/types";
 import { Gift, LoadingSpinner } from "@dub/ui";
-import { cn, currencyFormatter } from "@dub/utils";
+import { cn, currencyFormatter, fetcher } from "@dub/utils";
+import useSWR from "swr";
 
-export function SalesList({
-  sales,
-  isLoading,
+export function EmbedWidgetSales({
   hasPartnerProfile,
 }: {
-  sales: PartnerSaleResponse[] | undefined;
-  isLoading: boolean;
   hasPartnerProfile: boolean;
 }) {
+  const { data: sales, isLoading } = useSWR<PartnerSaleResponse[]>(
+    "/api/embed/sales",
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
   return sales ? (
     sales.length ? (
       <div className="mt-2.5 rounded-md border border-neutral-200">

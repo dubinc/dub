@@ -1,30 +1,41 @@
-import { currencyFormatter, nFormatter } from "@dub/utils";
+import { InfoTooltip } from "@dub/ui";
+import { nFormatter } from "@dub/utils";
 
-export function Activity({
+export function EmbedWidgetActivity({
   clicks,
   leads,
-  earnings,
+  sales,
 }: {
   clicks: number;
   leads: number;
-  earnings: number;
+  sales: number;
 }) {
   return (
-    <div className="mt-3 grid grid-cols-3 gap-2">
+    <div className="col-span-2 grid h-full grid-cols-3 divide-x divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
       {[
-        { label: "Clicks", value: clicks },
-        { label: "Signups", value: leads },
-        { label: "Total earned", value: earnings },
-      ].map(({ label, value }) => (
-        <div className="flex flex-col gap-1.5 rounded-lg bg-neutral-100 p-2">
-          <span className="text-xs text-neutral-500">{label}</span>
-          <span className="text-sm font-semibold text-neutral-600">
-            {label === "Total earned"
-              ? currencyFormatter(value / 100, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })
-              : nFormatter(value)}
+        {
+          label: "Clicks",
+          value: clicks,
+          description: "Total number of unique clicks your link has received",
+        },
+        {
+          label: "Leads",
+          value: leads,
+          description: "Total number of signups that came from your link",
+        },
+        {
+          label: "Sales",
+          value: sales,
+          description: "Total number of leads that converted to a paid account",
+        },
+      ].map(({ label, value, description }) => (
+        <div className="flex flex-col justify-between p-4">
+          <span className="flex items-center gap-1 text-sm text-neutral-500">
+            {label}
+            <InfoTooltip content={description} />
+          </span>
+          <span className="font-semibold text-neutral-600">
+            {nFormatter(value, { full: true })}
           </span>
         </div>
       ))}

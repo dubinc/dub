@@ -1,6 +1,5 @@
 "use client";
 
-import { PartnerSaleResponse } from "@/lib/types";
 import { Link, Program } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
@@ -19,12 +18,11 @@ import {
   QRCode,
   Twitter,
 } from "@dub/ui/icons";
-import { cn, fetcher, getPrettyUrl } from "@dub/utils";
+import { cn, getPrettyUrl } from "@dub/utils";
 import { motion } from "framer-motion";
 import { CSSProperties, useState } from "react";
-import useSWR from "swr";
-import { Activity } from "../activity";
-import { SalesList } from "../sales-list";
+import { EmbedWidgetActivity } from "../activity";
+import { EmbedWidgetSales } from "../sales";
 import { LinkToken } from "../token";
 import { useIframeVisibility } from "../use-iframe-visibility";
 
@@ -47,14 +45,6 @@ export function EmbedWidgetPageClient({
   const [selectedTab, setSelectedTab] = useState<Tab>("invite");
 
   const isIframeVisible = useIframeVisibility();
-
-  const { data: sales, isLoading } = useSWR<PartnerSaleResponse[]>(
-    isIframeVisible && "/api/embed/sales",
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
 
   return (
     <div
@@ -207,7 +197,7 @@ export function EmbedWidgetPageClient({
           {selectedTab === "rewards" && (
             <>
               <h2 className="text-sm font-semibold text-neutral-900">
-                Activity
+                EmbedWidgetActivity
               </h2>
               <motion.div
                 initial={{ height: 150, opacity: 0 }}
@@ -218,46 +208,39 @@ export function EmbedWidgetPageClient({
                 }}
                 className="overflow-clip"
               >
-                <Activity
+                <EmbedWidgetActivity
                   clicks={link.clicks}
                   leads={link.leads}
-                  earnings={earnings}
+                  sales={link.sales}
                 />
                 <div className="mt-4">
                   <h2 className="text-sm font-semibold text-neutral-900">
                     Recent sales
                   </h2>
-                  <SalesList
-                    sales={sales}
-                    isLoading={isLoading}
-                    hasPartnerProfile={hasPartnerProfile}
-                  />
-                  {!isLoading &&
-                    sales &&
-                    sales.length > 0 &&
-                    (hasPartnerProfile ? (
-                      <a
-                        href="https://partners.dub.co/settings/payouts"
-                        target="_blank"
-                        className={cn(
-                          buttonVariants({ variant: "primary" }),
-                          "mt-3 flex h-10 items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm",
-                        )}
-                      >
-                        Withdraw earnings
-                      </a>
-                    ) : (
-                      <a
-                        href="https://partners.dub.co/register"
-                        target="_blank"
-                        className={cn(
-                          buttonVariants({ variant: "primary" }),
-                          "mt-3 flex h-10 items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm",
-                        )}
-                      >
-                        Create partner account
-                      </a>
-                    ))}
+                  <EmbedWidgetSales hasPartnerProfile={hasPartnerProfile} />
+                  {hasPartnerProfile ? (
+                    <a
+                      href="https://partners.dub.co/settings/payouts"
+                      target="_blank"
+                      className={cn(
+                        buttonVariants({ variant: "primary" }),
+                        "mt-3 flex h-10 items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm",
+                      )}
+                    >
+                      Withdraw earnings
+                    </a>
+                  ) : (
+                    <a
+                      href="https://partners.dub.co/register"
+                      target="_blank"
+                      className={cn(
+                        buttonVariants({ variant: "primary" }),
+                        "mt-3 flex h-10 items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm",
+                      )}
+                    >
+                      Create partner account
+                    </a>
+                  )}
                 </div>
               </motion.div>
             </>

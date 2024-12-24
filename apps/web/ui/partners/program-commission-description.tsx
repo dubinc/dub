@@ -49,7 +49,12 @@ export function ProgramCommissionDescription({
         </>
       ) : (
         "."
-      )}
+      )}{" "}
+      Referred users get{" "}
+      <strong className={cn("font-semibold", amountClassName)}>
+        20% off for 3 months
+      </strong>
+      .
     </>
   );
 }

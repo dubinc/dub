@@ -15,7 +15,6 @@ export default async function EmbedInlinePage({
     <EmbedInlinePageClient
       program={program}
       link={link}
-      earnings={earnings}
       hasPartnerProfile={hasPartnerProfile}
     />
   );
