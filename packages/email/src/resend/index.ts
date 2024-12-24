@@ -21,10 +21,6 @@ export const sendEmailViaResend = async ({
   replyToFromEmail?: boolean;
   marketing?: boolean;
 }) => {
-  console.log("Sending email via Resend");
-  console.log("RESEND_API_KEY", process.env.RESEND_API_KEY);
-  return;
-
   if (!resend) {
     console.info(
       "RESEND_API_KEY is not set in the .env. Skipping sending email.",
