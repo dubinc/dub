@@ -3,10 +3,10 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withSession } from "@/lib/auth";
 import { hashPassword, validatePassword } from "@/lib/auth/password";
 import { updatePasswordSchema } from "@/lib/zod/schemas/auth";
+import { PasswordUpdated } from "@dub/email/templates/password-updated";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
-import {PasswordUpdated} from "@dub/email/templates/password-updated";
 import { NextResponse } from "next/server";
 
 // PATCH /api/user/password - updates the user's password

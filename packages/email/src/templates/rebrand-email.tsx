@@ -15,7 +15,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export  function RebrandEmail({
+export function RebrandEmail({
   name = "Brendon Urie",
   email = "panic@thedis.co",
 }: {

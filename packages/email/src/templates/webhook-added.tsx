@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export  function WebhookAdded({
+export function WebhookAdded({
   email = "panic@thedis.co",
   workspace = {
     name: "Acme, Inc",

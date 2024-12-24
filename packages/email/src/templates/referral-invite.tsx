@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export  function ReferralInvite({
+export function ReferralInvite({
   email = "panic@thedis.co",
   appName = "Dub.co",
   url = "https://dub.co",

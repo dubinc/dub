@@ -13,7 +13,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export  function PasswordUpdated({
+export function PasswordUpdated({
   email = "panic@thedis.co",
   verb = "updated",
 }: {

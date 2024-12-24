@@ -1,7 +1,7 @@
+import { IntegrationInstalled } from "@dub/email/templates/integration-installed";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
-import {IntegrationInstalled} from "@dub/email/templates/integration-installed";
 
 interface InstallIntegration {
   userId: string;

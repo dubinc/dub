@@ -1,10 +1,10 @@
 import { updateConfig } from "@/lib/edge-config";
 import { recordLink } from "@/lib/tinybird";
 import { ProgramProps } from "@/lib/types";
+import { PartnerInvite } from "@dub/email/templates/partner-invite";
 import { prisma } from "@dub/prisma";
 import { Link, Project } from "@dub/prisma/client";
 import { sendEmail } from "emails";
-import {PartnerInvite} from "@dub/email/templates/partner-invite";
 import { createId } from "../utils";
 
 export const invitePartner = async ({

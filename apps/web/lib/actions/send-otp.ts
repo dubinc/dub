@@ -1,10 +1,10 @@
 "use server";
 
 import { ratelimit, redis } from "@/lib/upstash";
+import { VerifyEmail } from "@dub/email/templates/verify-email";
 import { prisma } from "@dub/prisma";
 import { get } from "@vercel/edge-config";
 import { sendEmail } from "emails";
-import {VerifyEmail} from "@dub/email/templates/verify-email";
 import { flattenValidationErrors } from "next-safe-action";
 import { getIP } from "../api/utils";
 import { generateOTP } from "../auth";

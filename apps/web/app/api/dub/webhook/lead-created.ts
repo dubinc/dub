@@ -1,7 +1,7 @@
 import { REFERRAL_SIGNUPS_MAX } from "@/lib/embed/constants";
+import { NewReferralSignup } from "@dub/email/templates/new-referral-signup";
 import { prisma } from "@dub/prisma";
 import { LeadCreatedEvent } from "dub/models/components";
-import {NewReferralSignup} from "@dub/email/templates/new-referral-signup";
 import { sendEmailViaResend } from "emails/send-via-resend";
 
 export async function leadCreated(data: LeadCreatedEvent["data"]) {

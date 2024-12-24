@@ -1,8 +1,8 @@
 "use server";
 
+import { PartnerInvite } from "@dub/email/templates/partner-invite";
 import { prisma } from "@dub/prisma";
 import { sendEmail } from "emails";
-import {PartnerInvite} from "@dub/email/templates/partner-invite";
 import z from "../zod";
 import { authActionClient } from "./safe-action";
 

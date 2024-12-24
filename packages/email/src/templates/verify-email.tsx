@@ -13,7 +13,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export  function VerifyEmail({
+export function VerifyEmail({
   email = "panic@thedis.co",
   code = "123456",
 }: {

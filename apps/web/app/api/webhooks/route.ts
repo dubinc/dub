@@ -7,10 +7,10 @@ import { WEBHOOK_ID_PREFIX } from "@/lib/webhook/constants";
 import { transformWebhook } from "@/lib/webhook/transform";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";
 import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
+import { WebhookAdded } from "@dub/email/templates/webhook-added";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
-import {WebhookAdded} from "@dub/email/templates/webhook-added";
 import { NextResponse } from "next/server";
 
 // GET /api/webhooks - get all webhooks for the given workspace

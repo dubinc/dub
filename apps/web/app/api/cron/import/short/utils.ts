@@ -3,10 +3,10 @@ import { createId } from "@/lib/api/utils";
 import { qstash } from "@/lib/cron";
 import { redis } from "@/lib/upstash";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
+import { LinksImported } from "@dub/email/templates/links-imported";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { sendEmail } from "emails";
-import {LinksImported} from "@dub/email/templates/links-imported";
 
 export const importLinksFromShort = async ({
   workspaceId,

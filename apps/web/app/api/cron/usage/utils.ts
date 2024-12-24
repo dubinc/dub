@@ -3,6 +3,7 @@ import { qstash } from "@/lib/cron";
 import { limiter } from "@/lib/cron/limiter";
 import { sendLimitEmail } from "@/lib/cron/send-limit-email";
 import { WorkspaceProps } from "@/lib/types";
+import { ClicksSummary } from "@dub/email/templates/clicks-summary";
 import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
@@ -12,7 +13,6 @@ import {
   log,
 } from "@dub/utils";
 import { sendEmail } from "emails";
-import {ClicksSummary} from "@dub/email/templates/clicks-summary";
 
 const limit = 100;
 

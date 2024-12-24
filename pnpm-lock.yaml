@@ -497,6 +497,9 @@ importers:
       lucide-react:
         specifier: ^0.462.0
         version: 0.462.0(react@18.2.0)
+      nodemailer:
+        specifier: ^6.9.3
+        version: 6.9.3
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -510,6 +513,9 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0(react-dom@18.2.0)(react@18.2.0)
     devDependencies:
+      '@types/nodemailer':
+        specifier: ~6.4.17
+        version: 6.4.17
       '@types/react':
         specifier: ^18.2.48
         version: 18.2.48
@@ -9601,6 +9607,12 @@ packages:
 
   /@types/node@18.11.9:
     resolution: {integrity: sha512-CRpX21/kGdzjOpFsZSkcrXMGIBWMGNIHXXBVFSH+ggkftxg+XYP20TESbh+zFvFj3EQOl5byk0HTRn1IL6hbqg==}
+
+  /@types/nodemailer@6.4.17:
+    resolution: {integrity: sha512-I9CCaIp6DTldEg7vyUTZi8+9Vo0hi1/T8gv3C89yk1rSAAzoKQ8H8ki/jBYJSFoH/BisgLP8tkZMlQ91CIquww==}
+    dependencies:
+      '@types/node': 18.11.9
+    dev: true
 
   /@types/prettier@2.7.3:
     resolution: {integrity: sha512-+68kP9yzs4LMp7VNh8gdzMSPZFL44MLGqiHWvttYJe+6qnuVr4Ek9wSBQoveqY/r+LwjCcU29kNVkidwim+kYA==}

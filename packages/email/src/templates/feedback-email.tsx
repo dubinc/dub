@@ -12,7 +12,7 @@ import {
   Text,
 } from "@react-email/components";
 
-export  function FeedbackEmail({
+export function FeedbackEmail({
   email = "panic@thedis.co",
   feedback = "I love Dub!",
 }: {
