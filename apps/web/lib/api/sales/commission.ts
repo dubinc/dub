@@ -1,4 +1,4 @@
-import { Program, Sale } from "@dub/prisma/client";
+import { Program } from "@dub/prisma/client";
 
 /* 
   Calculate the commission earned for a sale
@@ -25,15 +25,4 @@ export const calculateEarnings = ({
   }
 
   throw new Error("Invalid commissionType");
-};
-
-// Calculate the recurring commission earned for a sale
-export const calculateRecurringCommissionEarned = ({
-  program,
-  sale,
-}: {
-  program: Pick<Program, "commissionAmount" | "commissionType">;
-  sale: Pick<Sale, "amount">;
-}) => {
-  //
 };
