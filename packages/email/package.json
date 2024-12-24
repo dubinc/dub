@@ -32,8 +32,17 @@
     "./templates/*": {
       "import": "./src/templates/*.tsx"
     },
+    "./resend": {
+      "import": "./src/resend/index.ts"
+    },
     "./resend/*": {
       "import": "./src/resend/*.ts"
+    },
+    "./send-via-nodemailer": {
+      "import": "./src/send-via-nodemailer.ts"
+    },
+    "./send-via-resend": {
+      "import": "./src/send-via-resend.ts"
     }
   }
 }

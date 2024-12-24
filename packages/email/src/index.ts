@@ -1,7 +1,7 @@
 import { CreateEmailOptions } from "resend";
 import { resend } from "./resend";
 import { sendViaNodeMailer } from "./send-via-nodemailer";
-import { sendViaResend } from "./send-via-resend";
+import { sendEmailViaResend } from "./send-via-resend";
 
 export const sendEmail = async ({
   email,
@@ -20,7 +20,7 @@ export const sendEmail = async ({
   marketing?: boolean;
 }) => {
   if (resend) {
-    return await sendViaResend({
+    return await sendEmailViaResend({
       email,
       subject,
       from,

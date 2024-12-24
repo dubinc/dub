@@ -1,6 +1,6 @@
 "use server";
 
-import { resend } from "@/lib/resend";
+import { resend } from "@dub/email/resend";
 import { FeedbackEmail } from "@dub/email/templates/feedback-email";
 
 export async function submitFeedback(data: FormData) {

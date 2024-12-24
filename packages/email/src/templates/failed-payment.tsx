@@ -1,4 +1,3 @@
-import { Project } from "@dub/prisma/client";
 import { DUB_WORDMARK } from "@dub/utils";
 import {
   Body,
@@ -14,6 +13,7 @@ import {
   Text,
 } from "@react-email/components";
 import { Footer } from "../components/footer";
+import { WorkspaceProps } from "../types";
 
 export function FailedPayment({
   user = { name: "Brendon Urie", email: "panic@thedis.co" },
@@ -22,7 +22,7 @@ export function FailedPayment({
   attemptCount = 2,
 }: {
   user: { name?: string | null; email: string };
-  workspace: Pick<Project, "name" | "slug">;
+  workspace: Pick<WorkspaceProps, "name" | "slug">;
   amountDue: number;
   attemptCount: number;
 }) {

@@ -15,11 +15,7 @@ module.exports = withAxiom({
   reactStrictMode: false,
   transpilePackages: ["shiki", "@dub/prisma", "@dub/email"],
   experimental: {
-    serverComponentsExternalPackages: [
-      "@react-email/components",
-      "@react-email/render",
-      "@react-email/tailwind",
-    ],
+    serverComponentsExternalPackages: ["@react-email/tailwind"],
   },
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {

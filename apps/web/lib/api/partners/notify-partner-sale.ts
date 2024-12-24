@@ -1,7 +1,7 @@
 import { limiter } from "@/lib/cron/limiter";
+import { sendEmailViaResend } from "@dub/email/send-via-resend";
 import { NewSaleCreated } from "@dub/email/templates/new-sale-created";
 import { prismaEdge } from "@dub/prisma/edge";
-import { sendEmailViaResend } from "emails/send-via-resend";
 
 export async function notifyPartnerSale({
   partner,
