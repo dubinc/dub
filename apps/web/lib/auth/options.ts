@@ -1,9 +1,9 @@
 import { isBlacklistedEmail } from "@/lib/edge-config";
 import jackson from "@/lib/jackson";
-import { subscribe } from "@/lib/resend";
 import { isStored, storage } from "@/lib/storage";
 import { UserProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
+import { subscribe } from "@dub/email/resend/subscribe";
 import { LoginLink } from "@dub/email/templates/login-link";
 import { WelcomeEmail } from "@dub/email/templates/welcome-email";
 import { prisma } from "@dub/prisma";

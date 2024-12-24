@@ -31,6 +31,9 @@
     },
     "./templates/*": {
       "import": "./src/templates/*.tsx"
+    },
+    "./resend/*": {
+      "import": "./src/resend/*.ts"
     }
   }
 }
