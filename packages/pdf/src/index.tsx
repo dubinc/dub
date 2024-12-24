@@ -5,7 +5,6 @@ import { InvoiceTemplate } from "./templates/invoice";
 
 // const ReactPDF = dynamic(() => import('@react-pdf/renderer'), { ssr: false });
 
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
