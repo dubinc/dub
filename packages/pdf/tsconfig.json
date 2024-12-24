@@ -8,10 +8,12 @@
   ],
   "compilerOptions": {
     "baseUrl": ".",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
     "jsx": "react-jsx",
     "jsxImportSource": "react",
-    "strict": true
+    "strict": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   }
 }
