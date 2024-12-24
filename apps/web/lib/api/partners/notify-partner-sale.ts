@@ -1,5 +1,5 @@
 import { limiter } from "@/lib/cron/limiter";
-import { sendEmailViaResend } from "@dub/email/send-via-resend";
+import { sendEmailViaResend } from "@dub/email/resend";
 import { NewSaleCreated } from "@dub/email/templates/new-sale-created";
 import { prismaEdge } from "@dub/prisma/edge";
 

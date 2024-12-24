@@ -294,9 +294,6 @@ importers:
       remark-gfm:
         specifier: ^3.0.1
         version: 3.0.1
-      resend:
-        specifier: ^4.0.0
-        version: 4.0.0(react-dom@18.2.0)(react@18.2.0)
       shiki:
         specifier: ^1.14.1
         version: 1.14.1

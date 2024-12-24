@@ -101,7 +101,6 @@
     "rehype-pretty-code": "^0.9.5",
     "rehype-slug": "^5.1.0",
     "remark-gfm": "^3.0.1",
-    "resend": "^4.0.0",
     "shiki": "^1.14.1",
     "sonner": "^1.4.41",
     "stripe": "^12.12.0",

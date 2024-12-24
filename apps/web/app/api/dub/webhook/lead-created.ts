@@ -1,5 +1,5 @@
 import { REFERRAL_SIGNUPS_MAX } from "@/lib/embed/constants";
-import { sendEmailViaResend } from "@dub/email/send-via-resend";
+import { sendEmailViaResend } from "@dub/email/resend";
 import { NewReferralSignup } from "@dub/email/templates/new-referral-signup";
 import { prisma } from "@dub/prisma";
 import { LeadCreatedEvent } from "dub/models/components";
