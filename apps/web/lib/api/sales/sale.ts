@@ -32,6 +32,7 @@ export const createSaleData = ({
     program,
     sales: 1,
     saleAmount: sale.amount,
+    partner,
   });
 
   const commissionAmount =
