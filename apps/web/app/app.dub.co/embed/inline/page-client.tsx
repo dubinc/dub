@@ -1,5 +1,6 @@
 "use client";
 
+import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
 import { Link, Program } from "@dub/prisma/client";
 import {
@@ -9,6 +10,7 @@ import {
   MoneyBill2,
   ToggleGroup,
   useCopyToClipboard,
+  Wordmark,
 } from "@dub/ui";
 import { cn, getPrettyUrl } from "@dub/utils";
 import { CSSProperties, useState } from "react";
@@ -37,12 +39,13 @@ export function EmbedInlinePageClient({
       }
     >
       <div className="p-5">
-        <div className="relative flex flex-col overflow-hidden rounded-lg border border-neutral-200 bg-gradient-to-r from-neutral-50 p-4 md:p-6">
+        <div className="relative flex flex-col overflow-hidden rounded-lg border border-neutral-300 bg-gradient-to-r from-neutral-50 p-4 md:p-6">
+          <HeroBackground logo={program.logo} color={program.brandColor} />
           <span className="flex items-center gap-2 text-sm text-neutral-500">
             <MoneyBill2 className="size-4" />
             Refer and earn
           </span>
-          <div className="relative mt-6 text-lg text-neutral-900 sm:max-w-[50%]">
+          <div className="relative mt-16 text-lg text-neutral-900 sm:max-w-[50%]">
             <ProgramCommissionDescription program={program} />
           </div>
           <span className="mb-1.5 mt-6 block text-sm text-neutral-800">
@@ -53,7 +56,7 @@ export function EmbedInlinePageClient({
               type="text"
               readOnly
               value={getPrettyUrl(link.shortLink)}
-              className="xs:w-auto h-10 w-full rounded-md border border-neutral-200 px-3 text-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 lg:min-w-64 xl:min-w-72"
+              className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 lg:min-w-64 xl:min-w-72"
             />
             <Button
               icon={
@@ -81,6 +84,14 @@ export function EmbedInlinePageClient({
               onClick={() => copyToClipboard(link.shortLink)}
             />
           </div>
+          <a
+            href="https://d.to/conversions"
+            target="_blank"
+            className="mt-2 flex items-center justify-center gap-2 rounded-lg border-neutral-100 bg-white px-3 py-1 transition-colors hover:border-neutral-200 active:bg-neutral-50 md:absolute md:bottom-3 md:right-3 md:mt-0 md:translate-x-0 md:border md:drop-shadow-sm"
+          >
+            <p className="text-sm text-neutral-600">Powered by</p>
+            <Wordmark className="h-4" />
+          </a>
         </div>
         <div className="mt-4 grid gap-2 sm:h-32 sm:grid-cols-3">
           <EmbedActivity
