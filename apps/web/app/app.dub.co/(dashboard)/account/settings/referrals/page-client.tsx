@@ -12,11 +12,7 @@ export function ReferralsPageClient() {
   const { data: session, status } = useSession();
   const referralLinkId = session?.user?.["referralLinkId"];
 
-  const {
-    data: { publicToken } = {},
-    isLoading,
-    mutate,
-  } = useSWRImmutable<{
+  const { data: { publicToken } = {}, isLoading } = useSWRImmutable<{
     publicToken: string;
   }>(referralLinkId && "/api/user/embed-tokens", fetcher, {
     keepPreviousData: true,
@@ -47,11 +43,5 @@ export function ReferralsPageClient() {
     );
   }
 
-  return (
-    <DubWidget
-      token={publicToken}
-      variant="inline"
-      options={{ onTokenExpired: () => mutate() }}
-    />
-  );
+  return <DubWidget token={publicToken} variant="inline" />;
 }
