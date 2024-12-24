@@ -1,4 +1,4 @@
-import { resend } from "../resend";
+import { resend } from ".";
 
 export async function unsubscribe({ email }: { email: string }) {
   const audienceId = process.env.RESEND_AUDIENCE_ID;

@@ -6,7 +6,7 @@ import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { LinksImported } from "@dub/email/templates/links-imported";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { sendEmail } from "emails";
+import { sendEmail } from "@dub/email";
 
 export const importTagsFromRebrandly = async ({
   workspaceId,

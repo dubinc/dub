@@ -4,7 +4,7 @@ import { PASSWORD_RESET_TOKEN_EXPIRY } from "@/lib/auth/constants";
 import { ResetPasswordLink } from "@dub/email/templates/reset-password-link";
 import { prisma } from "@dub/prisma";
 import { randomBytes } from "crypto";
-import { sendEmail } from "emails";
+import { sendEmail } from "@dub/email";
 import { NextResponse } from "next/server";
 
 // POST /api/user/set-password - set account password (for users who signed up with a OAuth provider)

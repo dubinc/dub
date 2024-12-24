@@ -1,42 +1,7 @@
-import { resend } from "@/lib/resend";
-import { render } from "@react-email/components";
-import nodemailer from "nodemailer";
-import { ReactElement } from "react";
 import { CreateEmailOptions } from "resend";
-import { sendEmailViaResend } from "./templates/send-via-resend";
-
-// Send email using SMTP (Recommended for local development)
-const sendEmailViaSMTP = async ({
-  email,
-  subject,
-  text,
-  react,
-}: Pick<CreateEmailOptions, "subject" | "text" | "react"> & {
-  email: string;
-}) => {
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: process.env.SMTP_PORT,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASSWORD,
-    },
-    secure: false,
-    tls: {
-      rejectUnauthorized: false,
-    },
-  });
-
-  const info = await transporter.sendMail({
-    from: "noreply@example.com",
-    to: email,
-    subject,
-    text,
-    html: render(react as ReactElement),
-  });
-
-  console.info("Email sent: %s", info.messageId);
-};
+import { resend } from "./resend";
+import { sendViaNodeMailer } from "./send-via-nodemailer";
+import { sendViaResend } from "./send-via-resend";
 
 export const sendEmail = async ({
   email,
@@ -55,7 +20,7 @@ export const sendEmail = async ({
   marketing?: boolean;
 }) => {
   if (resend) {
-    return await sendEmailViaResend({
+    return await sendViaResend({
       email,
       subject,
       from,
@@ -74,7 +39,7 @@ export const sendEmail = async ({
   );
 
   if (smtpConfigured) {
-    return await sendEmailViaSMTP({
+    return await sendViaNodeMailer({
       email,
       subject,
       text,

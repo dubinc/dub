@@ -3,7 +3,7 @@ import { stripe } from "@/lib/stripe";
 import { PartnerPayoutSent } from "@dub/email/templates/partner-payout-sent";
 import { prisma } from "@dub/prisma";
 import { formatDate } from "@dub/utils";
-import { sendEmail } from "emails";
+import { sendEmail } from "@dub/email";
 import Stripe from "stripe";
 
 export async function chargeSucceeded(event: Stripe.Event) {

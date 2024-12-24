@@ -6,7 +6,7 @@ import { updatePasswordSchema } from "@/lib/zod/schemas/auth";
 import { PasswordUpdated } from "@dub/email/templates/password-updated";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { sendEmail } from "emails";
+import { sendEmail } from "@dub/email";
 import { NextResponse } from "next/server";
 
 // PATCH /api/user/password - updates the user's password

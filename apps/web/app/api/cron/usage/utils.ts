@@ -12,7 +12,7 @@ import {
   linkConstructor,
   log,
 } from "@dub/utils";
-import { sendEmail } from "emails";
+import { sendEmail } from "@dub/email";
 
 const limit = 100;
 

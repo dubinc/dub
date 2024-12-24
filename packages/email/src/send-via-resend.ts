@@ -1,7 +1,8 @@
-import { resend } from "@/lib/resend";
 import { CreateEmailOptions } from "resend";
+import { resend } from "./resend";
 
-export const sendEmailViaResend = async ({
+// Send email using Resend (Recommended for production)
+export const sendViaResend = async ({
   email,
   subject,
   from,

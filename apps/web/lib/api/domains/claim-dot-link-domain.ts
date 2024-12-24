@@ -11,7 +11,7 @@ import {
   DEFAULT_LINK_PROPS,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { sendEmail } from "emails";
+import { sendEmail } from "@dub/email";
 import { addDomainToVercel } from "./add-domain-vercel";
 import { markDomainAsDeleted } from "./mark-domain-deleted";
 

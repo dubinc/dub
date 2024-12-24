@@ -9,7 +9,7 @@ import { WelcomeEmail } from "@dub/email/templates/welcome-email";
 import { prisma } from "@dub/prisma";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { waitUntil } from "@vercel/functions";
-import { sendEmail } from "emails";
+import { sendEmail } from "@dub/email";
 import { User, type NextAuthOptions } from "next-auth";
 import { AdapterUser } from "next-auth/adapters";
 import { JWT } from "next-auth/jwt";

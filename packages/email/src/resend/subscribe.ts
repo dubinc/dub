@@ -1,4 +1,4 @@
-import { resend } from "../resend";
+import { resend } from ".";
 
 export async function subscribe({
   email,

@@ -9,7 +9,7 @@ import { UpgradeEmail } from "@dub/email/templates/upgrade-email";
 import { prisma } from "@dub/prisma";
 import { User } from "@dub/prisma/client";
 import { getPlanFromPriceId, log } from "@dub/utils";
-import { sendEmail } from "emails";
+import { sendEmail } from "@dub/email";
 import Stripe from "stripe";
 
 export async function checkoutSessionCompleted(event: Stripe.Event) {

@@ -9,7 +9,7 @@ import { prisma } from "@dub/prisma";
 import { User } from "@dub/prisma/client";
 import { getCurrentPlan, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { sendEmail } from "emails";
+import { sendEmail } from "@dub/email";
 import { NextResponse } from "next/server";
 
 // GET /api/tokens - get all tokens for a workspace
