@@ -15,6 +15,7 @@ import {
 import { cn, getPrettyUrl } from "@dub/utils";
 import { CSSProperties, useState } from "react";
 import { EmbedActivity } from "../activity";
+import { EmbedLeaderboard } from "../leaderboard";
 import { EmbedPayouts } from "../payouts";
 import { EmbedSales } from "../sales";
 import { LinkToken } from "../token";
@@ -113,7 +114,11 @@ export function EmbedInlinePageClient({
             }}
             className="w-full rounded-lg"
           />
-          <EmbedSales salesCount={link.sales} />
+          {selectedTab === "Leaderboard" ? (
+            <EmbedLeaderboard />
+          ) : (
+            <EmbedSales salesCount={link.sales} />
+          )}
         </div>
         <LinkToken />
       </div>
