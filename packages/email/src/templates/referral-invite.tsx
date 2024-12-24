@@ -12,9 +12,9 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import Footer from "./components/footer";
+import { Footer } from "../components/footer";
 
-export default function ReferralInvite({
+export  function ReferralInvite({
   email = "panic@thedis.co",
   appName = "Dub.co",
   url = "https://dub.co",

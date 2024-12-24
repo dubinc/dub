@@ -1,4 +1,3 @@
-import { REFERRAL_CLICKS_QUOTA_BONUS } from "@/lib/embed/constants";
 import { DUB_WORDMARK, getPrettyUrl } from "@dub/utils";
 import {
   Body,
@@ -13,9 +12,11 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import Footer from "./components/footer";
+import { Footer } from "../components/footer";
 
-export default function NewReferralSignup({
+export const REFERRAL_CLICKS_QUOTA_BONUS = 500;
+
+export function NewReferralSignup({
   email = "panic@thedis.co",
   workspace = {
     name: "Acme, Inc",

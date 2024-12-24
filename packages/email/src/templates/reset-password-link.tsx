@@ -12,9 +12,9 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import Footer from "./components/footer";
+import { Footer } from "../components/footer";
 
-export default function ResetPasswordLink({
+export  function ResetPasswordLink({
   email = "panic@thedis.co",
   url = "http://localhost:8888/auth/reset-password/adaf8468f590e70bb60fe40983321c2719c7bdc694063bd2437c1f8a53f7c90a",
 }: {

@@ -15,7 +15,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import Footer from "./components/footer";
+import { Footer } from "../components/footer";
 
 const MAX_ERROR_LINKS = 20;
 

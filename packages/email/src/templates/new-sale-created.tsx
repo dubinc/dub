@@ -12,9 +12,9 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import Footer from "./components/footer";
+import { Footer } from "../components/footer";
 
-export default function NewSaleCreated({
+export  function NewSaleCreated({
   email = "panic@thedis.co",
   partner = {
     id: "pn_OfewI1Faaf5pV8QH3mha8L7S",

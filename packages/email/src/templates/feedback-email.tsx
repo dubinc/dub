@@ -11,19 +11,18 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import Footer from "./components/footer";
 
-export default function VerifyEmail({
+export  function FeedbackEmail({
   email = "panic@thedis.co",
-  code = "123456",
+  feedback = "I love Dub!",
 }: {
   email: string;
-  code: string;
+  feedback: string;
 }) {
   return (
     <Html>
       <Head />
-      <Preview>Your Dub.co Verification Code</Preview>
+      <Preview>New Feedback Received</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
@@ -36,20 +35,12 @@ export default function VerifyEmail({
               />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
-              Please confirm your email address
+              New Feedback Received
             </Heading>
-            <Text className="mx-auto text-sm leading-6">
-              Enter this code on the Dub verify page to complete your sign up:
-            </Text>
-            <Section className="my-8">
-              <div className="mx-auto w-fit rounded-xl px-6 py-3 text-center font-mono text-2xl font-semibold tracking-[0.25em]">
-                {code}
-              </div>
-            </Section>
             <Text className="text-sm leading-6 text-black">
-              This code expires in 10 minutes.
+              New feedback from <span className="font-semibold">{email}</span>
             </Text>
-            <Footer email={email} />
+            <Text className="text-sm leading-6 text-black">{feedback}</Text>
           </Container>
         </Body>
       </Tailwind>

@@ -15,9 +15,9 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import Footer from "./components/footer";
+import { Footer } from "../components/footer";
 
-export default function LinksImported({
+export  function LinksImported({
   email = "panic@thedis.co",
   provider = "Bitly",
   count = 1020,

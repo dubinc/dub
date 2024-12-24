@@ -16,9 +16,9 @@ import {
   Text,
 } from "@react-email/components";
 import { Link2, MousePointerClick } from "lucide-react";
-import Footer from "./components/footer";
+import { Footer } from "../components/footer";
 
-export default function ClicksSummary({
+export function ClicksSummary({
   email = "panic@thedis.co",
   appName = "Dub.co",
   appDomain = "dub.co",

@@ -12,9 +12,9 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import Footer from "./components/footer";
+import { Footer } from "../components/footer";
 
-export default function WelcomeEmail({
+export  function WelcomeEmail({
   name = "Brendon Urie",
   email = "panic@thedis.co",
 }: {

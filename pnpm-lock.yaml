@@ -494,6 +494,9 @@ importers:
       '@react-email/components':
         specifier: ^0.0.22
         version: 0.0.22(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)
+      lucide-react:
+        specifier: ^0.462.0
+        version: 0.462.0(react@18.2.0)
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -503,6 +506,9 @@ importers:
       react-email:
         specifier: ^2.1.6
         version: 2.1.6(@opentelemetry/api@1.8.0)(eslint@8.48.0)
+      resend:
+        specifier: ^4.0.0
+        version: 4.0.0(react-dom@18.2.0)(react@18.2.0)
     devDependencies:
       '@types/react':
         specifier: ^18.2.48

@@ -13,9 +13,9 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import Footer from "./components/footer";
+import { Footer } from "../components/footer";
 
-export default function FailedPayment({
+export function FailedPayment({
   user = { name: "Brendon Urie", email: "panic@thedis.co" },
   workspace = { name: "Dub", slug: "dub" },
   amountDue = 2400,

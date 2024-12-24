@@ -12,9 +12,9 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import Footer from "./components/footer";
+import { Footer } from "../components/footer";
 
-export default function InvalidDomain({
+export  function InvalidDomain({
   email = "panic@thedis.co",
   domain = "dub.sh",
   workspaceSlug = "dub",

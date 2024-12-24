@@ -12,10 +12,10 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { WorkspaceProps } from "../lib/types";
-import Footer from "./components/footer";
+import { Footer } from "../components/footer";
+import { WorkspaceProps } from "../types";
 
-export default function ClicksExceeded({
+export function ClicksExceeded({
   email = "panic@thedis.co",
   workspace = {
     id: "ckqf1q3xw0000gk5u2q1q2q1q",

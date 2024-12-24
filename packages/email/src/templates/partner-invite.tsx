@@ -12,9 +12,9 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import Footer from "./components/footer";
+import { Footer } from "../components/footer";
 
-export default function PartnerInvite({
+export  function PartnerInvite({
   email = "panic@thedis.co",
   appName = "Dub.co",
   program = {

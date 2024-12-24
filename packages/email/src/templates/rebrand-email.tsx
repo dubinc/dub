@@ -13,9 +13,9 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import Footer from "./components/footer";
+import { Footer } from "../components/footer";
 
-export default function RebrandEmail({
+export  function RebrandEmail({
   name = "Brendon Urie",
   email = "panic@thedis.co",
 }: {
