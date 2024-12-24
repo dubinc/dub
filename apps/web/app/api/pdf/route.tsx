@@ -1,18 +1,22 @@
-"use client";
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  renderToBuffer,
+} from "@react-pdf/renderer";
 
-import { Document, Page, Text, View } from "@react-pdf/renderer";
+export const dynamic = "force-dynamic";
 
-export function InvoiceTemplate({
-  invoice,
-}: {
-  invoice: {
-    id: string;
-    date: string;
-    amount: number;
-    items: { description: string; quantity: number; price: number }[];
+export async function GET() {
+  const invoice = {
+    id: "123",
+    date: "2021-01-01",
+    amount: 100,
+    items: [{ description: "Item 1", quantity: 1, price: 50 }],
   };
-}) {
-  return (
+
+  const pdf = await renderToBuffer(
     <Document>
       <Page size="A4">
         <View>
@@ -32,6 +36,13 @@ export function InvoiceTemplate({
           <Text>Total: {invoice.amount}</Text>
         </View>
       </Page>
-    </Document>
+    </Document>,
   );
+
+  return new Response(pdf, {
+    headers: {
+      "Content-Type": "application/pdf",
+      "Content-disposition": "inline",
+    },
+  });
 }

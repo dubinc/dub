@@ -13,7 +13,7 @@ const REDIRECT_SEGMENTS = [
 /** @type {import('next').NextConfig} */
 module.exports = withAxiom({
   reactStrictMode: false,
-  transpilePackages: ["shiki", "@dub/prisma", "@dub/pdf"],
+  transpilePackages: ["shiki", "@dub/prisma"],
   experimental: {
     serverComponentsExternalPackages: [
       "@react-email/components",
