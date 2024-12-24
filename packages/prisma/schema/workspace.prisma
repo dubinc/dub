@@ -44,6 +44,7 @@ model Project {
   domains               Domain[]
   tags                  Tag[]
   programs              Program[]
+  invoices              Invoice[]
   customers             Customer[]
   defaultDomains        DefaultDomains[]
   restrictedTokens      RestrictedToken[]
