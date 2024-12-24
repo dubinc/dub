@@ -21,8 +21,8 @@ import {
 import { cn, getPrettyUrl } from "@dub/utils";
 import { motion } from "framer-motion";
 import { CSSProperties, useState } from "react";
-import { EmbedWidgetActivity } from "../activity";
-import { EmbedWidgetSales } from "../sales";
+import { EmbedActivity } from "../activity";
+import { EmbedSales } from "../sales";
 import { LinkToken } from "../token";
 import { useIframeVisibility } from "../use-iframe-visibility";
 
@@ -195,7 +195,7 @@ export function EmbedWidgetPageClient({
           {selectedTab === "rewards" && (
             <>
               <h2 className="text-sm font-semibold text-neutral-900">
-                EmbedWidgetActivity
+                EmbedActivity
               </h2>
               <motion.div
                 initial={{ height: 150, opacity: 0 }}
@@ -206,7 +206,7 @@ export function EmbedWidgetPageClient({
                 }}
                 className="overflow-clip"
               >
-                <EmbedWidgetActivity
+                <EmbedActivity
                   clicks={link.clicks}
                   leads={link.leads}
                   sales={link.sales}
@@ -215,7 +215,7 @@ export function EmbedWidgetPageClient({
                   <h2 className="text-sm font-semibold text-neutral-900">
                     Recent sales
                   </h2>
-                  <EmbedWidgetSales salesCount={link.sales} />
+                  <EmbedSales salesCount={link.sales} />
                   {hasPartnerProfile ? (
                     <a
                       href="https://partners.dub.co/settings/payouts"

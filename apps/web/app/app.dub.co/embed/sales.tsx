@@ -4,7 +4,7 @@ import { Gift, Table, usePagination, useTable } from "@dub/ui";
 import { currencyFormatter, fetcher, formatDate } from "@dub/utils";
 import useSWR from "swr";
 
-export function EmbedWidgetSales({ salesCount }: { salesCount: number }) {
+export function EmbedSales({ salesCount }: { salesCount: number }) {
   const { pagination, setPagination } = usePagination(SALES_PAGE_SIZE);
   const { data: sales, isLoading } = useSWR<PartnerSaleResponse[]>(
     `/api/embed/sales?page=${pagination.pageIndex}`,

@@ -12,9 +12,9 @@ import {
 } from "@dub/ui";
 import { cn, getPrettyUrl } from "@dub/utils";
 import { CSSProperties, useState } from "react";
-import { EmbedWidgetActivity } from "../activity";
-import { EmbedWidgetPayouts } from "../payouts";
-import { EmbedWidgetSales } from "../sales";
+import { EmbedActivity } from "../activity";
+import { EmbedPayouts } from "../payouts";
+import { EmbedSales } from "../sales";
 import { LinkToken } from "../token";
 
 export function EmbedInlinePageClient({
@@ -83,12 +83,12 @@ export function EmbedInlinePageClient({
           </div>
         </div>
         <div className="mt-4 grid gap-2 sm:h-32 sm:grid-cols-3">
-          <EmbedWidgetActivity
+          <EmbedActivity
             clicks={link.clicks}
             leads={link.leads}
             sales={link.sales}
           />
-          <EmbedWidgetPayouts />
+          <EmbedPayouts />
         </div>
         <div className="mt-4">
           <ToggleGroup
@@ -102,7 +102,7 @@ export function EmbedInlinePageClient({
             }}
             className="w-full rounded-lg"
           />
-          <EmbedWidgetSales salesCount={link.sales} />
+          <EmbedSales salesCount={link.sales} />
         </div>
         <LinkToken />
       </div>

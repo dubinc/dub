@@ -1,7 +1,7 @@
 import { InfoTooltip } from "@dub/ui";
 import { nFormatter } from "@dub/utils";
 
-export function EmbedWidgetActivity({
+export function EmbedActivity({
   clicks,
   leads,
   sales,

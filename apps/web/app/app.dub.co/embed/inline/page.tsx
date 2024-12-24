@@ -8,7 +8,7 @@ export default async function EmbedInlinePage({
 }) {
   const { token } = searchParams;
 
-  const { link, program, hasPartnerProfile } = await getEmbedData(token);
+  const { link, program } = await getEmbedData(token);
 
   return <EmbedInlinePageClient program={program} link={link} />;
 }
