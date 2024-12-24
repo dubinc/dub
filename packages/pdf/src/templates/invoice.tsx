@@ -1,3 +1,5 @@
+"use client";
+
 import { Document, Page, Text, View } from "@react-pdf/renderer";
 
 export function InvoiceTemplate({

@@ -8,7 +8,7 @@
   ],
   "compilerOptions": {
     "baseUrl": ".",
-    "module": "ESNext",
+    "module": "es6",
     "moduleResolution": "Node",
     "jsx": "react-jsx",
     "jsxImportSource": "react",

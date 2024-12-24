@@ -23,6 +23,11 @@ module.exports = withAxiom({
   },
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
+      // Handle external dependency for @react-pdf/renderer
+      config.externals = config.externals.filter(
+        (external) => external !== "@react-pdf/renderer",
+      );
+
       config.plugins.push(
         // mute errors for unused typeorm deps
         new webpack.IgnorePlugin({

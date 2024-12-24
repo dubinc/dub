@@ -3,6 +3,9 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { InvoiceTemplate } from "./templates/invoice";
 
+// const ReactPDF = dynamic(() => import('@react-pdf/renderer'), { ssr: false });
+
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -17,7 +20,7 @@ const invoice = {
 };
 
 export function generatePDF() {
-  return ReactPDF.render(
+  return ReactPDF.renderToFile(
     <InvoiceTemplate invoice={invoice} />,
     `${__dirname}/invoice.pdf`,
   );
