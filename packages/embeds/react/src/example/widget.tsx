@@ -15,7 +15,7 @@ const Widget = () => {
     createToken();
   }, []);
 
-  return <DubWidget token={token} options={{ onTokenExpired: createToken }} />;
+  return <DubWidget token={token} />;
 };
 
 ReactDom.render(<Widget />, document.getElementById("root"));

@@ -97,8 +97,7 @@ const App = () => {
   }, []);
 
   return <DubWidget 
-    token={token} 
-    onTokenExpired={createToken} 
+    token={token}
   />`;
 
 const htmlSnippet = `<script type="module" src="https://www.dubcdn.com/embed/script.js"></script>

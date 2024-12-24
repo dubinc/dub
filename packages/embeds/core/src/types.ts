@@ -35,9 +35,6 @@ export type DubOptions = {
   // An error occurred in the APIs
   onError?: (error: Error) => void;
 
-  // The token expired
-  onTokenExpired?: () => void;
-
   // The placement of the floating button
   buttonPlacement?: DubFloatingButtonPlacement;
 
