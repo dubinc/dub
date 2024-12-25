@@ -13,7 +13,12 @@ import {
   useTable,
 } from "@dub/ui";
 import { CircleDollar } from "@dub/ui/icons";
-import { currencyFormatter, fetcher, formatDate } from "@dub/utils";
+import {
+  currencyFormatter,
+  fetcher,
+  formatDate,
+  formatDateTime,
+} from "@dub/utils";
 import useSWR from "swr";
 
 export function SaleTablePartner({ limit }: { limit?: number }) {
@@ -52,9 +57,11 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
         id: "createdAt",
         header: "Date",
         accessorKey: "timestamp",
-        cell: ({ row }) => {
-          return formatDate(row.original.createdAt, { month: "short" });
-        },
+        cell: ({ row }) => (
+          <p title={formatDateTime(row.original.createdAt)}>
+            {formatDate(row.original.createdAt, { month: "short" })}
+          </p>
+        ),
       },
       {
         id: "customer",

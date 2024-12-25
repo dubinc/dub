@@ -1,7 +1,12 @@
 import { SALES_PAGE_SIZE } from "@/lib/partners/constants";
 import { PartnerSaleResponse } from "@/lib/types";
 import { Gift, Table, usePagination, useTable } from "@dub/ui";
-import { currencyFormatter, fetcher, formatDate } from "@dub/utils";
+import {
+  currencyFormatter,
+  fetcher,
+  formatDate,
+  formatDateTime,
+} from "@dub/utils";
 import useSWR from "swr";
 
 export function EmbedSales({ salesCount }: { salesCount: number }) {
@@ -28,9 +33,11 @@ export function EmbedSales({ salesCount }: { salesCount: number }) {
       {
         id: "createdAt",
         header: "Date",
-        cell: ({ row }) => {
-          return formatDate(row.original.createdAt, { month: "short" });
-        },
+        cell: ({ row }) => (
+          <p title={formatDateTime(row.original.createdAt)}>
+            {formatDate(row.original.createdAt, { month: "short" })}
+          </p>
+        ),
       },
       {
         id: "saleAmount",
