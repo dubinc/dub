@@ -5,6 +5,7 @@ import {
   currencyFormatter,
   fetcher,
   formatDate,
+  formatDateTime,
   TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/utils";
 
@@ -34,9 +35,11 @@ export function EmbedSales({ salesCount }: { salesCount: number }) {
       {
         id: "createdAt",
         header: "Date",
-        cell: ({ row }) => {
-          return formatDate(row.original.createdAt, { month: "short" });
-        },
+        cell: ({ row }) => (
+          <p title={formatDateTime(row.original.createdAt)}>
+            {formatDate(row.original.createdAt, { month: "short" })}
+          </p>
+        ),
       },
       {
         id: "saleAmount",

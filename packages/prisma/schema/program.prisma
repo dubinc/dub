@@ -64,14 +64,16 @@ model Program {
 }
 
 model ProgramEnrollment {
-  id            String                  @id @default(cuid())
-  partnerId     String
-  programId     String
-  applicationId String?                 @unique
-  linkId        String?                 @unique
-  status        ProgramEnrollmentStatus @default(pending)
-  createdAt     DateTime                @default(now())
-  updatedAt     DateTime                @updatedAt
+  id               String                  @id @default(cuid())
+  partnerId        String
+  programId        String
+  applicationId    String?                 @unique
+  linkId           String?                 @unique
+  couponId         String? // Stripe coupon ID
+  commissionAmount Int? // override the program's commission amount
+  status           ProgramEnrollmentStatus @default(pending)
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
 
   partner     Partner             @relation(fields: [partnerId], references: [id])
   program     Program             @relation(fields: [programId], references: [id])
