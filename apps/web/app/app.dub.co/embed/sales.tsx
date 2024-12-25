@@ -86,7 +86,7 @@ export function EmbedSales({ salesCount }: { salesCount: number }) {
         {...tableProps}
         table={table}
         containerClassName="rounded-md border border-neutral-200"
-        scrollWrapperClassName="min-h-[14.05rem]"
+        scrollWrapperClassName="min-h-[22rem]"
       />
     </motion.div>
   );

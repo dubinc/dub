@@ -86,7 +86,7 @@ export function EmbedLeaderboard() {
       <Table
         {...tableProps}
         table={table}
-        containerClassName="border-none max-h-[16.5rem] overflow-auto"
+        containerClassName="border-none max-h-[26rem] overflow-auto"
       />
       <div className="pointer-events-none absolute -bottom-px left-0 h-16 w-full rounded-b-lg bg-gradient-to-t from-white sm:bottom-0" />
     </motion.div>

@@ -31,7 +31,7 @@ export const GET = withEmbedToken(async ({ program, searchParams }) => {
       partner: true,
       link: true,
     },
-    take: 10,
+    take: 20,
   });
 
   return NextResponse.json(
