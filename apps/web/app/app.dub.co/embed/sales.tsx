@@ -1,9 +1,15 @@
 import { SALES_PAGE_SIZE } from "@/lib/partners/constants";
 import { PartnerSaleResponse } from "@/lib/types";
 import { Gift, Table, usePagination, useTable } from "@dub/ui";
-import { currencyFormatter, fetcher, formatDate } from "@dub/utils";
-import useSWR from "swr";
+import {
+  currencyFormatter,
+  fetcher,
+  formatDate,
+  TAB_ITEM_ANIMATION_SETTINGS,
+} from "@dub/utils";
 
+import { motion } from "framer-motion";
+import useSWR from "swr";
 export function EmbedSales({ salesCount }: { salesCount: number }) {
   const { pagination, setPagination } = usePagination(SALES_PAGE_SIZE);
   const { data: sales, isLoading } = useSWR<PartnerSaleResponse[]>(
@@ -72,11 +78,13 @@ export function EmbedSales({ salesCount }: { salesCount: number }) {
   });
 
   return (
-    <Table
-      {...tableProps}
-      table={table}
-      containerClassName="rounded-md border border-neutral-200 my-4"
-      scrollWrapperClassName="min-h-[14.05rem]"
-    />
+    <motion.div {...TAB_ITEM_ANIMATION_SETTINGS}>
+      <Table
+        {...tableProps}
+        table={table}
+        containerClassName="rounded-md border border-neutral-200 my-4"
+        scrollWrapperClassName="min-h-[14.05rem]"
+      />
+    </motion.div>
   );
 }
