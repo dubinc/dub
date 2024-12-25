@@ -4,8 +4,8 @@ import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Crown, Table, Users, useTable } from "@dub/ui";
 import {
   currencyFormatter,
-  TAB_ITEM_ANIMATION_SETTINGS,
   fetcher,
+  TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
 import { motion } from "framer-motion";
@@ -80,7 +80,7 @@ export function EmbedLeaderboard() {
 
   return (
     <motion.div
-      className="relative my-4 rounded-md border border-neutral-200"
+      className="relative rounded-md border border-neutral-200"
       {...TAB_ITEM_ANIMATION_SETTINGS}
     >
       <Table

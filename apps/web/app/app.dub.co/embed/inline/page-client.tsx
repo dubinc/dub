@@ -118,15 +118,17 @@ export function EmbedInlinePageClient({
             optionClassName="w-full flex justify-center py-1.5"
             indicatorClassName="bg-white"
           />
-          <AnimatePresence mode="wait">
-            {selectedTab === "Quickstart" ? (
-              <EmbedQuickstart program={program} link={link.shortLink} />
-            ) : selectedTab === "Leaderboard" ? (
-              <EmbedLeaderboard />
-            ) : (
-              <EmbedSales salesCount={link.sales} />
-            )}
-          </AnimatePresence>
+          <div className="my-4">
+            <AnimatePresence mode="wait">
+              {selectedTab === "Quickstart" ? (
+                <EmbedQuickstart program={program} link={link.shortLink} />
+              ) : selectedTab === "Leaderboard" ? (
+                <EmbedLeaderboard />
+              ) : (
+                <EmbedSales salesCount={link.sales} />
+              )}
+            </AnimatePresence>
+          </div>
         </div>
         <LinkToken />
       </div>
