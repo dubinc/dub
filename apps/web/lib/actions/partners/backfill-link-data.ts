@@ -1,5 +1,5 @@
 import { getEvents } from "@/lib/analytics/get-events";
-import { createSaleData } from "@/lib/api/sales/sale";
+import { createSaleData } from "@/lib/api/sales/create-sale-data";
 import { SaleEvent } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 

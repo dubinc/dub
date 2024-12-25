@@ -1,6 +1,6 @@
 import { Prisma, Program, SaleStatus } from "@dub/prisma/client";
 import { createId } from "../utils";
-import { calculateEarnings } from "./commission";
+import { calculateEarnings } from "./calculate-earnings";
 
 export const createSaleData = ({
   program,

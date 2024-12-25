@@ -15,9 +15,7 @@ export const calculateEarnings = ({
   saleAmount: number;
 }) => {
   const commissionAmount =
-    partner?.commissionAmount !== null
-      ? partner?.commissionAmount
-      : program.commissionAmount;
+    partner?.commissionAmount ?? program.commissionAmount;
 
   if (!commissionAmount) {
     return 0;
