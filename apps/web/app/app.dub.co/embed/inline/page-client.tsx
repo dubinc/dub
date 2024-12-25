@@ -18,6 +18,7 @@ import { CSSProperties, useState } from "react";
 import { EmbedActivity } from "../activity";
 import { EmbedLeaderboard } from "../leaderboard";
 import { EmbedPayouts } from "../payouts";
+import { EmbedQuickstart } from "../quickstart";
 import { EmbedSales } from "../sales";
 import { LinkToken } from "../token";
 
@@ -118,7 +119,9 @@ export function EmbedInlinePageClient({
             indicatorClassName="bg-white"
           />
           <AnimatePresence mode="wait">
-            {selectedTab === "Leaderboard" ? (
+            {selectedTab === "Quickstart" ? (
+              <EmbedQuickstart program={program} link={link.shortLink} />
+            ) : selectedTab === "Leaderboard" ? (
               <EmbedLeaderboard />
             ) : (
               <EmbedSales salesCount={link.sales} />
