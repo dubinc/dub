@@ -13,6 +13,7 @@ import {
   Wordmark,
 } from "@dub/ui";
 import { cn, getPrettyUrl } from "@dub/utils";
+import { AnimatePresence } from "framer-motion";
 import { CSSProperties, useState } from "react";
 import { EmbedActivity } from "../activity";
 import { EmbedLeaderboard } from "../leaderboard";
@@ -112,13 +113,17 @@ export function EmbedInlinePageClient({
             selectAction={(option) => {
               setSelectedTab(option);
             }}
-            className="w-full rounded-lg"
+            className="w-full rounded-lg bg-neutral-50"
+            optionClassName="w-full flex justify-center py-1.5"
+            indicatorClassName="bg-white"
           />
-          {selectedTab === "Leaderboard" ? (
-            <EmbedLeaderboard />
-          ) : (
-            <EmbedSales salesCount={link.sales} />
-          )}
+          <AnimatePresence mode="wait">
+            {selectedTab === "Leaderboard" ? (
+              <EmbedLeaderboard />
+            ) : (
+              <EmbedSales salesCount={link.sales} />
+            )}
+          </AnimatePresence>
         </div>
         <LinkToken />
       </div>

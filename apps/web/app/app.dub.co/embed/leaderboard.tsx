@@ -2,8 +2,13 @@ import z from "@/lib/zod";
 import { LeaderboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Crown, Table, Users, useTable } from "@dub/ui";
-import { currencyFormatter, fetcher } from "@dub/utils";
+import {
+  currencyFormatter,
+  TAB_ITEM_ANIMATION_SETTINGS,
+  fetcher,
+} from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
+import { motion } from "framer-motion";
 import useSWR from "swr";
 
 export function EmbedLeaderboard() {
@@ -74,13 +79,16 @@ export function EmbedLeaderboard() {
   });
 
   return (
-    <div className="relative my-4 rounded-md border border-neutral-200">
+    <motion.div
+      className="relative my-4 rounded-md border border-neutral-200"
+      {...TAB_ITEM_ANIMATION_SETTINGS}
+    >
       <Table
         {...tableProps}
         table={table}
         containerClassName="border-none max-h-[16.5rem] overflow-auto"
       />
       <div className="pointer-events-none absolute -bottom-px left-0 h-16 w-full rounded-b-lg bg-gradient-to-t from-white sm:bottom-0" />
-    </div>
+    </motion.div>
   );
 }
