@@ -1,8 +1,9 @@
+import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { EventType } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
-import { cn, fetcher, getDaysDifference, nFormatter } from "@dub/utils";
-import { Fragment, useCallback, useContext, useMemo } from "react";
+import { cn, fetcher, nFormatter } from "@dub/utils";
+import { Fragment, useContext, useMemo } from "react";
 import useSWR from "swr";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import { AnalyticsContext } from "./analytics-provider";
@@ -48,49 +49,6 @@ export default function AnalyticsAreaChart({
     [data],
   );
 
-  const formatDate = useCallback(
-    (date: Date) => {
-      if (start && end) {
-        const daysDifference = getDaysDifference(start, end);
-
-        if (daysDifference <= 2)
-          return date.toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "numeric",
-          });
-        else if (daysDifference > 180)
-          return date.toLocaleDateString("en-US", {
-            month: "short",
-            year: "numeric",
-          });
-      } else if (interval) {
-        switch (interval) {
-          case "24h":
-            return date.toLocaleTimeString("en-US", {
-              hour: "numeric",
-              minute: "numeric",
-            });
-          case "ytd":
-          case "1y":
-          case "all":
-            return date.toLocaleDateString("en-US", {
-              month: "short",
-              year: "numeric",
-            });
-          default:
-            break;
-        }
-      }
-
-      return date.toLocaleDateString("en-US", {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-      });
-    },
-    [start, end, interval],
-  );
-
   const series = [
     {
       id: "clicks",
@@ -126,7 +84,11 @@ export default function AnalyticsAreaChart({
             return (
               <>
                 <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
-                  {formatDate(d.date)}
+                  {formatDateTooltip(d.date, {
+                    interval,
+                    start,
+                    end,
+                  })}
                 </p>
                 <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
                   <Fragment key={resource}>
@@ -163,7 +125,15 @@ export default function AnalyticsAreaChart({
           }}
         >
           <Areas />
-          <XAxis tickFormat={formatDate} />
+          <XAxis
+            tickFormat={(d) =>
+              formatDateTooltip(d, {
+                interval,
+                start,
+                end,
+              })
+            }
+          />
           <YAxis
             showGridLines
             tickFormat={
