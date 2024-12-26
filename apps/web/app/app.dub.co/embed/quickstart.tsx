@@ -8,6 +8,7 @@ import {
   Check,
   Copy,
   useCopyToClipboard,
+  useMediaQuery,
 } from "@dub/ui";
 import { cn, DUB_LOGO, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
@@ -22,6 +23,7 @@ export function EmbedQuickstart({
   link: string;
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
+  const { isMobile } = useMediaQuery();
 
   const items = [
     {
@@ -77,10 +79,29 @@ export function EmbedQuickstart({
       className="rounded-lg border border-neutral-100 bg-white p-2"
       {...TAB_ITEM_ANIMATION_SETTINGS}
     >
-      <Carousel className="lg:hidden">
-        <CarouselContent>
+      {isMobile ? (
+        <Carousel>
+          <CarouselContent>
+            {items.map((item) => (
+              <CarouselItem
+                key={item.title}
+                className="flex flex-col items-center justify-between gap-4 rounded-lg bg-neutral-50 p-8 text-center"
+              >
+                {item.illustration}
+                <h3 className="text-lg font-medium">{item.title}</h3>
+                <p className="text-pretty text-sm text-neutral-500">
+                  {item.description}
+                </p>
+                {item.cta}
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselNavBar variant="simple" />
+        </Carousel>
+      ) : (
+        <div className="grid-cols-3 gap-4 lg:grid">
           {items.map((item) => (
-            <CarouselItem
+            <div
               key={item.title}
               className="flex flex-col items-center justify-between gap-4 rounded-lg bg-neutral-50 p-8 text-center"
             >
@@ -90,26 +111,10 @@ export function EmbedQuickstart({
                 {item.description}
               </p>
               {item.cta}
-            </CarouselItem>
+            </div>
           ))}
-        </CarouselContent>
-        <CarouselNavBar variant="simple" />
-      </Carousel>
-      <div className="hidden grid-cols-3 gap-4 lg:grid">
-        {items.map((item) => (
-          <div
-            key={item.title}
-            className="flex flex-col items-center justify-between gap-4 rounded-lg bg-neutral-50 p-8 text-center"
-          >
-            {item.illustration}
-            <h3 className="text-lg font-medium">{item.title}</h3>
-            <p className="text-pretty text-sm text-neutral-500">
-              {item.description}
-            </p>
-            {item.cta}
-          </div>
-        ))}
-      </div>
+        </div>
+      )}
     </motion.div>
   );
 }
