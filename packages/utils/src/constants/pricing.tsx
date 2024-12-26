@@ -4,6 +4,7 @@ const BUSINESS_PLAN_MODIFIER = ({
   yearly = 49,
   links = 5000,
   clicks = 150000,
+  conversions = 500,
   domains = 40,
   users = 15,
   ids = [],
@@ -13,9 +14,9 @@ const BUSINESS_PLAN_MODIFIER = ({
   yearly: number;
   links: number;
   clicks: number;
+  conversions: number;
   domains: number;
   users: number;
-  tags: number;
   ids: string[];
 }) => ({
   name,
@@ -47,14 +48,24 @@ const BUSINESS_PLAN_MODIFIER = ({
   },
   featureTitle: "Everything in Pro, plus:",
   features: [
-    { text: `${Intl.NumberFormat("en-US").format(links)} new links/mo` },
     {
+      id: "clicks",
       text: `${Intl.NumberFormat("en-US").format(clicks)} tracked clicks/mo`,
     },
-    { text: "3-year analytics retention" },
-    { text: `${domains} custom domains` },
-    { text: `${users} users` },
     {
+      id: "links",
+      text: `${Intl.NumberFormat("en-US").format(links)} new links/mo`,
+    },
+    {
+      id: "conversions",
+      text: `${Intl.NumberFormat("en-US").format(conversions)} conversions/mo`,
+    },
+    {
+      id: "retention",
+      text: "3-year analytics retention",
+    },
+    {
+      id: "tags",
       text: "Unlimited tags",
       footnote: {
         title:
@@ -64,6 +75,15 @@ const BUSINESS_PLAN_MODIFIER = ({
       },
     },
     {
+      id: "domains",
+      text: `${domains} domains`,
+    },
+    {
+      id: "users",
+      text: `${users} users`,
+    },
+    {
+      id: "events",
       text: "Real-time events stream",
       footnote: {
         title:
@@ -73,6 +93,7 @@ const BUSINESS_PLAN_MODIFIER = ({
       },
     },
     {
+      id: "webhooks",
       text: "Event webhooks (beta)",
       footnote: {
         title:
@@ -112,14 +133,16 @@ export const PLANS = [
     },
     featureTitle: "What's included:",
     features: [
-      { text: "25 new links/mo" },
       {
+        id: "clicks",
         text: "1K tracked clicks/mo",
       },
-      { text: "30-day analytics retention" },
-      { text: "3 custom domains" },
-      { text: "1 user" },
+      { id: "links", text: "25 new links/mo" },
+      { id: "retention", text: "30-day analytics retention" },
+      { id: "domains", text: "3 domains" },
+      { id: "user", text: "1 user" },
       {
+        id: "analytics",
         text: "Advanced analytics",
         footnote: {
           title:
@@ -128,11 +151,10 @@ export const PLANS = [
           href: "https://dub.co/help/article/dub-analytics",
         },
       },
-      { text: "10 AI credits/mo" },
+      { id: "ai", text: "10 AI credits/mo" },
+      { id: "basic-support", text: "Basic support" },
       {
-        text: "Basic support",
-      },
-      {
+        id: "api",
         text: "API Access",
         footnote: {
           title: "Programatically manage your links using our REST API.",
@@ -179,19 +201,19 @@ export const PLANS = [
     },
     featureTitle: "Everything in Free, plus:",
     features: [
-      { text: "1,000 new links/mo" },
+      { id: "clicks", text: "50K tracked clicks/mo" },
+      { id: "links", text: "1,000 new links/mo" },
+      { id: "retention", text: "1-year analytics retention" },
+      { id: "domains", text: "10 domains" },
+      { id: "users", text: "5 users" },
       {
-        text: "50K tracked clicks/mo",
-      },
-      { text: "1-year analytics retention" },
-      { text: "10 custom domains" },
-      { text: "5 users" },
-      {
+        id: "link-features",
         text: "Advanced link features",
         footnote:
           "Custom social media cards, password-protected links, link expiration, link cloaking, device targeting, geo targeting etc.",
       },
       {
+        id: "ai",
         text: "Unlimited AI credits",
         footnote: {
           title:
@@ -200,10 +222,9 @@ export const PLANS = [
           href: "https://dub.co/blog/introducing-dub-ai",
         },
       },
+      { id: "priority-support", text: "Priority support" },
       {
-        text: "Priority support",
-      },
-      {
+        id: "dublink",
         text: "Premium dub.link domain",
         footnote: {
           title: "Stand out from the crowd with a premium dub.link domain.",
@@ -212,7 +233,8 @@ export const PLANS = [
         },
       },
       {
-        text: "Complimentary custom domain",
+        id: "dotlink",
+        text: "Free custom domain",
         footnote: {
           title:
             "All our paid plans come with a free .link custom domain, which helps improve click-through rates.",
@@ -228,8 +250,8 @@ export const PLANS = [
     yearly: 49,
     links: 5000,
     clicks: 150000,
+    conversions: 500,
     domains: 40,
-    tags: 150,
     users: 15,
     ids: [
       "price_1LodLoAlJJEpqkPV9rD0rlNL", // old monthly
@@ -247,8 +269,8 @@ export const PLANS = [
     yearly: 99,
     links: 15000,
     clicks: 400000,
+    conversions: 1500,
     domains: 100,
-    tags: 300,
     users: 30,
     ids: [
       "price_1OnWu0AlJJEpqkPVWk4144ZG", // monthly (test)
@@ -263,8 +285,8 @@ export const PLANS = [
     yearly: 199,
     links: 40000,
     clicks: 1000000,
+    conversions: 5000,
     domains: 250,
-    tags: 500,
     users: 50,
     ids: [
       "price_1OnWvCAlJJEpqkPVLzLHx5QD", // monthly (test)
@@ -279,8 +301,8 @@ export const PLANS = [
     yearly: 399,
     links: 100000,
     clicks: 2500000,
+    conversions: 15000,
     domains: 500,
-    tags: 1000,
     users: 100,
     ids: [
       "price_1OnWwLAlJJEpqkPVXtJyPqLk", // monthly (test)
@@ -319,15 +341,11 @@ export const PLANS = [
     },
     featureTitle: "Everything in Business, plus:",
     features: [
-      { text: "Custom usage limits" },
-      { text: "Volume discounts" },
-      { text: "SSO/SAML" },
-      { text: "Role-based access controls" },
-      { text: "Custom contract & SLA" },
-      { text: "Whiteglove onboarding" },
-      { text: "Dedicated success manager" },
-      { text: "Priority support" },
-      { text: "Dedicated Slack channel" },
+      { id: "sso", text: "SSO/SAML" },
+      { id: "roles", text: "Role-based controls" },
+      { id: "sla", text: "Custom SLA" },
+      { id: "logs", text: "Audit logs" },
+      { id: "success", text: "Dedicated success manager" },
     ],
   },
 ];
