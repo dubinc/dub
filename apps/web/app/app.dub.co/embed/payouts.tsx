@@ -19,7 +19,7 @@ export function EmbedPayouts() {
             value: 18112,
           },
         ].map(({ label, value }) => (
-          <div className="flex justify-between text-sm">
+          <div key={label} className="flex justify-between text-sm">
             <span className="font-medium text-neutral-500">{label}</span>
             <span className="font-semibold text-neutral-700">
               {currencyFormatter(value / 100, {
