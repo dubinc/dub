@@ -97,7 +97,10 @@ export function EmbedQuickstart({
       </Carousel>
       <div className="hidden grid-cols-3 gap-4 lg:grid">
         {items.map((item) => (
-          <div className="flex flex-col items-center justify-between gap-4 rounded-lg bg-neutral-50 p-8 text-center">
+          <div
+            key={item.title}
+            className="flex flex-col items-center justify-between gap-4 rounded-lg bg-neutral-50 p-8 text-center"
+          >
             {item.illustration}
             <h3 className="text-lg font-medium">{item.title}</h3>
             <p className="text-pretty text-sm text-neutral-500">
