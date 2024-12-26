@@ -39,7 +39,7 @@ export const registerDomain = async ({ domain }: { domain: string }) => {
 
   const data = schema.parse(await response.json());
 
-  if (data.RegisterResponse.Status !== "success" || data.RegisterResponse.Error)
+  if (data.RegisterResponse.Error)
     throw new DubApiError({
       code: "bad_request",
       message: `Failed to register domain: ${data.RegisterResponse.Error}`,
