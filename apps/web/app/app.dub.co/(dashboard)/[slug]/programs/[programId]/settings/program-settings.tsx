@@ -133,7 +133,7 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
           <h2 className="text-xl font-medium text-neutral-900">Program</h2>
           <Button
             type="button"
-            text="Embed widget"
+            text="Embed"
             onClick={() => setIsEmbedDocsOpen(true)}
             icon={<Code className="size-4" />}
             className="h-8 w-fit"

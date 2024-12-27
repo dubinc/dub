@@ -14,14 +14,14 @@ import {
 import { cn, getPrettyUrl } from "@dub/utils";
 import { AnimatePresence } from "framer-motion";
 import { CSSProperties, useState } from "react";
-import { EmbedActivity } from "../activity";
-import { EmbedFAQ } from "../faq";
-import { EmbedLeaderboard } from "../leaderboard";
-import { EmbedPayouts } from "../payouts";
-import { EmbedQuickstart } from "../quickstart";
-import { EmbedSales } from "../sales";
 import { LinkToken } from "../token";
+import { EmbedActivity } from "./activity";
+import { EmbedFAQ } from "./faq";
 import { HeroBackground } from "./hero-background";
+import { EmbedLeaderboard } from "./leaderboard";
+import { EmbedPayouts } from "./payouts";
+import { EmbedQuickstart } from "./quickstart";
+import { EmbedSales } from "./sales";
 
 export function EmbedInlinePageClient({
   program,

@@ -1,5 +1,4 @@
-export const WIDGET_URL = "https://app.dub.co/embed/widget";
-export const INLINE_URL = "https://app.dub.co/embed/inline";
+export const EMBED_URL = "https://app.dub.co/embed/inline";
 
 export const DUB_CONTAINER_ID = "dub-embed-container";
 export const DUB_POPUP_ID = "dub-embed-popup";

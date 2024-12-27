@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import ReactDom from "react-dom";
-import { DubWidget } from "../widget";
+import { DubEmbed } from "../embed";
 
-const Widget = () => {
+const Embed = () => {
   const [token, setToken] = useState("");
 
   const createToken = useCallback(async () => {
@@ -15,7 +15,7 @@ const Widget = () => {
     createToken();
   }, []);
 
-  return <DubWidget token={token} />;
+  return <DubEmbed token={token} />;
 };
 
-ReactDom.render(<Widget />, document.getElementById("root"));
+ReactDom.render(<Embed />, document.getElementById("root"));

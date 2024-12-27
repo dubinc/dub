@@ -1,6 +1,6 @@
 # `@dub/embed-core`
 
-`@dub/embed-core` is a library that contains the core logic for embedding Dub's widget and dashboard on third-party websites.
+`@dub/embed-core` is a library that contains the core logic for embedding Dub's referral dashboard on third-party websites.
 
 ## Installation
 
