@@ -15,6 +15,7 @@ import { cn, getPrettyUrl } from "@dub/utils";
 import { AnimatePresence } from "framer-motion";
 import { CSSProperties, useState } from "react";
 import { EmbedActivity } from "../activity";
+import { EmbedFAQ } from "../faq";
 import { EmbedLeaderboard } from "../leaderboard";
 import { EmbedPayouts } from "../payouts";
 import { EmbedQuickstart } from "../quickstart";
@@ -122,11 +123,13 @@ export function EmbedInlinePageClient({
             <AnimatePresence mode="wait">
               {selectedTab === "Quickstart" ? (
                 <EmbedQuickstart program={program} link={link.shortLink} />
+              ) : selectedTab === "Sales" ? (
+                <EmbedSales salesCount={link.sales} />
               ) : selectedTab === "Leaderboard" ? (
                 <EmbedLeaderboard />
-              ) : (
-                <EmbedSales salesCount={link.sales} />
-              )}
+              ) : selectedTab === "FAQ" ? (
+                <EmbedFAQ program={program} />
+              ) : null}
             </AnimatePresence>
           </div>
         </div>

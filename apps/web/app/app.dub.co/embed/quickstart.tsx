@@ -63,7 +63,7 @@ export function EmbedQuickstart({
       description:
         "Make sure you get setup for success with the official brand files and supportive content and documents.",
       illustration: <SuccessKit logo={program.logo ?? DUB_LOGO} />,
-      cta: <Button className={BUTTON_CLASSNAME} text="Download success kit" />,
+      cta: <Button className="h-9 rounded-lg" text="Coming soon" disabled />,
     },
     {
       title: "Receive earnings",
