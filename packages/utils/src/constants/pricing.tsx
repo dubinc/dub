@@ -1,3 +1,13 @@
+type Feature = {
+  id?: string;
+  text: string;
+  footnote?: {
+    title: string;
+    cta: string;
+    href: string;
+  };
+};
+
 const BUSINESS_PLAN_MODIFIER = ({
   name = "Business",
   monthly = 59,
@@ -102,7 +112,7 @@ const BUSINESS_PLAN_MODIFIER = ({
         href: "https://d.to/webhooks",
       },
     },
-  ],
+  ] as Feature[],
 });
 
 export const PLANS = [
@@ -162,7 +172,7 @@ export const PLANS = [
           href: "https://dub.co/docs/api-reference/introduction",
         },
       },
-    ],
+    ] as Feature[],
   },
   {
     name: "Pro",
@@ -242,7 +252,7 @@ export const PLANS = [
           href: "https://dub.co/help/article/free-dot-link-domain",
         },
       },
-    ],
+    ] as Feature[],
   },
   BUSINESS_PLAN_MODIFIER({
     name: "Business",
@@ -346,7 +356,7 @@ export const PLANS = [
       { id: "sla", text: "Custom SLA" },
       { id: "logs", text: "Audit logs" },
       { id: "success", text: "Dedicated success manager" },
-    ],
+    ] as Feature[],
   },
 ];
 
