@@ -5,7 +5,7 @@ import { useId } from "react";
 
 export function HeroBackground({
   logo,
-  color,
+  color = "#737373",
 }: {
   logo?: string | null;
   color?: string | null;

@@ -70,7 +70,15 @@ export function EmbedQuickstart({
       description:
         "After you payouts are connected, you'll get paid out automatically for all your sales.",
       illustration: <ConnectPayouts logo={program.logo ?? DUB_LOGO} />,
-      cta: <Button className={BUTTON_CLASSNAME} text="Connect payouts" />,
+      cta: (
+        <Button
+          className={BUTTON_CLASSNAME}
+          onClick={() =>
+            window.open("https://partners.dub.co/settings/payouts", "_blank")
+          }
+          text="Connect payouts"
+        />
+      ),
     },
   ];
 
