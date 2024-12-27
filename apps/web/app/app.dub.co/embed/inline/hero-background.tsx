@@ -12,8 +12,6 @@ export function HeroBackground({
 }) {
   const id = useId();
 
-  color = "#8b5cf6"; // wispr
-
   return (
     <div
       className="absolute inset-0 -z-[1] bg-neutral-50"
