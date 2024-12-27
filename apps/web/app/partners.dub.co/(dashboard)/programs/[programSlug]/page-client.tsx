@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -22,7 +23,7 @@ import {
   YAxis,
 } from "@dub/ui/charts";
 import { Check, Copy, LoadingSpinner, MoneyBill2 } from "@dub/ui/icons";
-import { cn, currencyFormatter, formatDate, getPrettyUrl } from "@dub/utils";
+import { cn, currencyFormatter, getPrettyUrl } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
 import Link from "next/link";
@@ -47,7 +48,7 @@ export default function ProgramPageClient() {
   const {
     start,
     end,
-    interval = "30d",
+    interval = "1y",
   } = searchParamsObj as {
     start?: string;
     end?: string;
@@ -234,7 +235,11 @@ function EarningsChart() {
               return (
                 <>
                   <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
-                    {formatDate(d.date)}
+                    {formatDateTooltip(d.date, {
+                      interval,
+                      start,
+                      end,
+                    })}
                   </p>
                   <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
                     <div className="flex items-center gap-2">
