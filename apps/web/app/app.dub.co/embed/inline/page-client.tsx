@@ -122,7 +122,7 @@ export function EmbedInlinePageClient({
           <div className="my-4">
             <AnimatePresence mode="wait">
               {selectedTab === "Quickstart" ? (
-                <EmbedQuickstart program={program} link={link.shortLink} />
+                <EmbedQuickstart program={program} link={link} />
               ) : selectedTab === "Sales" ? (
                 <EmbedSales salesCount={link.sales} />
               ) : selectedTab === "Leaderboard" ? (
