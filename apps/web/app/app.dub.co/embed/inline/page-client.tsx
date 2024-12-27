@@ -1,6 +1,5 @@
 "use client";
 
-import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
 import { Link, Program } from "@dub/prisma/client";
 import {
@@ -21,6 +20,7 @@ import { EmbedPayouts } from "../payouts";
 import { EmbedQuickstart } from "../quickstart";
 import { EmbedSales } from "../sales";
 import { LinkToken } from "../token";
+import { HeroBackground } from "./hero-background";
 
 export function EmbedInlinePageClient({
   program,
@@ -38,11 +38,11 @@ export function EmbedInlinePageClient({
     <div
       className="flex min-h-screen flex-col"
       style={
-        { "--accent-color": program.brandColor || "#171717" } as CSSProperties
+        { "--accent-color": program.brandColor || "#a8a8a8" } as CSSProperties
       }
     >
       <div className="p-5">
-        <div className="relative flex flex-col overflow-hidden rounded-lg border border-neutral-300 bg-gradient-to-r from-neutral-50 p-4 md:p-6">
+        <div className="relative flex flex-col overflow-hidden rounded-lg border border-neutral-300 p-4 md:p-6">
           <HeroBackground logo={program.logo} color={program.brandColor} />
           <span className="flex items-center gap-2 text-sm text-neutral-500">
             <MoneyBill2 className="size-4" />
@@ -90,10 +90,10 @@ export function EmbedInlinePageClient({
           <a
             href="https://d.to/conversions"
             target="_blank"
-            className="mt-2 flex items-center justify-center gap-2 rounded-lg border-neutral-100 bg-white px-3 py-1 transition-colors hover:border-neutral-200 active:bg-neutral-50 md:absolute md:bottom-3 md:right-3 md:mt-0 md:translate-x-0 md:border md:drop-shadow-sm"
+            className="mt-4 flex items-center justify-center gap-1.5 text-neutral-500 transition-colors duration-75 hover:text-neutral-700 md:absolute md:bottom-3 md:right-3 md:mt-0 md:translate-x-0"
           >
-            <p className="text-sm text-neutral-600">Powered by</p>
-            <Wordmark className="h-4" />
+            <p className="text-xs font-medium">Powered by</p>
+            <Wordmark className="h-3.5 text-neutral-900" />
           </a>
         </div>
         <div className="mt-4 grid gap-2 sm:h-32 sm:grid-cols-3">
