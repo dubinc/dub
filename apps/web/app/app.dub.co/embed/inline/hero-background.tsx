@@ -5,14 +5,12 @@ import { useId } from "react";
 
 export function HeroBackground({
   logo,
-  color,
+  color = "#737373",
 }: {
   logo?: string | null;
   color?: string | null;
 }) {
   const id = useId();
-
-  color = "#8b5cf6"; // wispr
 
   return (
     <div
