@@ -2,7 +2,7 @@
 
 import { createManualPayoutAction } from "@/lib/actions/partners/create-manual-payout";
 import { AnalyticsResponseOptions } from "@/lib/analytics/types";
-import { calculateEarnings } from "@/lib/api/sales/commission";
+import { calculateEarnings } from "@/lib/api/sales/calculate-earnings";
 import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -230,6 +230,7 @@ function CreatePayoutSheetContent({
             commissionAmount: amount,
             commissionType: "percentage",
           },
+          partner: selectedPartner,
           sales: 1,
           saleAmount: salesAmount.amount,
         }) / 100

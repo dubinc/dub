@@ -1,5 +1,5 @@
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { createSaleData } from "@/lib/api/sales/sale";
+import { createSaleData } from "@/lib/api/sales/create-sale-data";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -114,12 +114,13 @@ export async function invoicePaid(event: Stripe.Event) {
 
   // for program links
   if (link.programId) {
-    const { program, partner } =
+    const { program, partner, commissionAmount } =
       await prisma.programEnrollment.findUniqueOrThrow({
         where: {
           linkId: link.id,
         },
         select: {
+          commissionAmount: true,
           program: true,
           partner: {
             select: {
@@ -130,16 +131,23 @@ export async function invoicePaid(event: Stripe.Event) {
       });
 
     const saleRecord = createSaleData({
-      customerId: saleDataTB.customer_id,
-      linkId: saleDataTB.link_id,
-      clickId: saleDataTB.click_id,
-      invoiceId: saleDataTB.invoice_id,
-      eventId: saleDataTB.event_id,
-      paymentProcessor: saleDataTB.payment_processor,
-      amount: saleDataTB.amount,
-      currency: saleDataTB.currency,
-      partnerId: partner.id,
       program,
+      partner: {
+        id: partner.id,
+        commissionAmount,
+      },
+      customer: {
+        id: saleDataTB.customer_id,
+        linkId: saleDataTB.link_id,
+        clickId: saleDataTB.click_id,
+      },
+      sale: {
+        invoiceId: saleDataTB.invoice_id,
+        eventId: saleDataTB.event_id,
+        paymentProcessor: saleDataTB.payment_processor,
+        amount: saleDataTB.amount,
+        currency: saleDataTB.currency,
+      },
       metadata: {
         ...leadEvent.data[0],
         stripeMetadata: invoice,

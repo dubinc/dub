@@ -14,7 +14,7 @@ import { DubInitResult, DubOptions, IframeMessage } from "./types";
 const INLINE_CONTAINER_STYLES = {
   position: "relative",
   maxWidth: "1024px",
-  height: "760px",
+  height: "1000px",
   margin: "0 auto",
 };
 
@@ -86,15 +86,8 @@ class DubWidget {
   renderWidget() {
     console.debug("[Dub] Rendering widget.");
 
-    const {
-      token,
-      variant,
-      root,
-      containerStyles,
-      popupStyles,
-      onError,
-      onTokenExpired,
-    } = this.options;
+    const { token, variant, root, containerStyles, popupStyles, onError } =
+      this.options;
 
     const existingContainer = document.getElementById(
       `${this.prefix}${DUB_CONTAINER_ID}`,
@@ -161,10 +154,6 @@ class DubWidget {
             message: data?.message ?? "",
           }),
         );
-      }
-
-      if (data?.code === "unauthorized") {
-        onTokenExpired?.();
       }
     });
 

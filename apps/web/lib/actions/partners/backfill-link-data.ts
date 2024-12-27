@@ -1,5 +1,5 @@
 import { getEvents } from "@/lib/analytics/get-events";
-import { createSaleData } from "@/lib/api/sales/sale";
+import { createSaleData } from "@/lib/api/sales/create-sale-data";
 import { SaleEvent } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 
@@ -8,7 +8,7 @@ export const backfillLinkData = async (programEnrollmentId: string) => {
     where: {
       id: programEnrollmentId,
     },
-    include: {
+    select: {
       program: {
         include: {
           workspace: true,
@@ -16,10 +16,12 @@ export const backfillLinkData = async (programEnrollmentId: string) => {
       },
       link: true,
       partner: true,
+      id: true,
+      commissionAmount: true,
     },
   });
 
-  const { program, link, partner } = programEnrollment;
+  const { program, link, partner, commissionAmount } = programEnrollment;
   const workspace = program.workspace;
 
   if (!link) {
@@ -52,16 +54,23 @@ export const backfillLinkData = async (programEnrollmentId: string) => {
 
   const data = saleEvents.map((e: SaleEvent) => ({
     ...createSaleData({
-      customerId: e.customer.id,
-      linkId: e.link.id,
-      clickId: e.click.id,
-      invoiceId: e.invoice_id,
-      eventId: e.eventId,
-      paymentProcessor: e.payment_processor,
-      amount: e.sale.amount,
-      currency: "usd",
-      partnerId: partner.id,
       program,
+      partner: {
+        id: partner.id,
+        commissionAmount,
+      },
+      customer: {
+        id: e.customer.id,
+        clickId: e.click.id,
+        linkId: e.link.id,
+      },
+      sale: {
+        invoiceId: e.invoice_id,
+        eventId: e.eventId,
+        paymentProcessor: e.payment_processor,
+        amount: e.sale.amount,
+        currency: "usd",
+      },
       metadata: e.click,
     }),
     createdAt: new Date(e.timestamp),

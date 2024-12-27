@@ -1,5 +1,5 @@
 import { getEvents } from "@/lib/analytics/get-events";
-import { calculateEarnings } from "@/lib/api/sales/commission";
+import { calculateEarnings } from "@/lib/api/sales/calculate-earnings";
 import { withEmbedToken } from "@/lib/embed/auth";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
