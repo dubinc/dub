@@ -69,8 +69,8 @@ model ProgramEnrollment {
   programId        String
   applicationId    String?                 @unique
   linkId           String?                 @unique
-  couponId         String? // Stripe coupon ID
-  commissionAmount Int? // override the program's commission amount
+  couponId         String?  // Stripe coupon ID
+  commissionAmount Int?     // override the program's commission amount
   status           ProgramEnrollmentStatus @default(pending)
   createdAt        DateTime                @default(now())
   updatedAt        DateTime                @updatedAt

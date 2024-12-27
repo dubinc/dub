@@ -1,6 +1,9 @@
 import { InfoTooltip, MiniAreaChart } from "@dub/ui";
 import { nFormatter } from "@dub/utils";
+import { fetcher } from "@dub/utils/src/functions";
 import { subDays } from "date-fns";
+import { AnalyticsTimeseries } from "dub/models/components";
+import useSWR from "swr";
 
 const TMP_CHART_DATA = [...Array(30)]
   .map((_, i) => ({
@@ -18,6 +21,15 @@ export function EmbedActivity({
   leads: number;
   sales: number;
 }) {
+  const { data: analytics } = useSWR<AnalyticsTimeseries[]>(
+    `/api/embed/analytics`,
+    fetcher,
+    {
+      keepPreviousData: true,
+      dedupingInterval: 60000,
+    },
+  );
+
   return (
     <div className="grid h-full grid-cols-3 divide-x divide-neutral-200 rounded-lg border border-neutral-200 bg-white sm:col-span-2">
       {[
@@ -48,7 +60,14 @@ export function EmbedActivity({
             </span>
           </div>
           <div className="xs:block hidden h-12">
-            <MiniAreaChart data={TMP_CHART_DATA} />
+            <MiniAreaChart
+              data={
+                analytics?.map((a) => ({
+                  date: new Date(a.start),
+                  value: a[label.toLowerCase()],
+                })) ?? TMP_CHART_DATA
+              }
+            />
           </div>
         </div>
       ))}
