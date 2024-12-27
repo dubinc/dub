@@ -55,7 +55,7 @@ export const registerDomain = async ({ domain }: { domain: string }) => {
   const errorCodes = {
     error: Error,
     not_available: "Domain not available.",
-    system_busy: "System is busy. Please try again later.",
+    system_busy: "System is busy. Please try again.",
   };
 
   if (Status !== "success") {
