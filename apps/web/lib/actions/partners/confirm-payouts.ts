@@ -74,6 +74,7 @@ export const confirmPayoutsAction = authActionClient
         data: {
           id: createId({ prefix: "inv_" }),
           programId,
+          workspaceId: workspace.id,
           amount,
           fee,
           total,
