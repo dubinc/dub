@@ -35,11 +35,6 @@ export const createSaleData = ({
     partner,
   });
 
-  const commissionAmount =
-    partner.commissionAmount !== null
-      ? partner.commissionAmount
-      : program.commissionAmount;
-
   return {
     id: createId({ prefix: "sale_" }),
     customerId: customer.id,
@@ -49,17 +44,11 @@ export const createSaleData = ({
     eventId: sale.eventId,
     paymentProcessor: sale.paymentProcessor,
     amount: sale.amount,
+    earnings,
     currency: sale.currency,
     partnerId: partner.id,
     programId: program.id,
-    commissionAmount,
-    commissionType: program.commissionType,
-    recurringCommission: program.recurringCommission,
-    recurringDuration: program.recurringDuration,
-    recurringInterval: program.recurringInterval,
-    isLifetimeRecurring: program.isLifetimeRecurring,
     status: SaleStatus.pending,
-    earnings,
     metadata: metadata || Prisma.JsonNull,
   };
 };
