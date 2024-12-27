@@ -1,3 +1,5 @@
+import { nFormatter } from "../functions";
+
 type Feature = {
   id?: string;
   text: string;
@@ -52,7 +54,7 @@ const BUSINESS_PLAN_MODIFIER = ({
   },
   cta: {
     text: "Get started with Business",
-    shortText: "Get started",
+    shortText: "Get Business",
     href: "https://app.dub.co/register",
     color: "bg-black hover:bg-gray-800 hover:ring-gray-200",
   },
@@ -60,7 +62,7 @@ const BUSINESS_PLAN_MODIFIER = ({
   features: [
     {
       id: "clicks",
-      text: `${Intl.NumberFormat("en-US").format(clicks)} tracked clicks/mo`,
+      text: `${nFormatter(clicks)} tracked clicks/mo`,
     },
     {
       id: "links",
@@ -205,7 +207,7 @@ export const PLANS = [
     },
     cta: {
       text: "Get started with Pro",
-      shortText: "Get started",
+      shortText: "Get Pro",
       href: "https://app.dub.co/register",
       color: "bg-blue-600 hover:bg-blue-700 hover:ring-blue-100",
     },
