@@ -1,6 +1,6 @@
 import { DUB_CONTAINER_ID, EMBED_URL } from "./constants";
 import { EmbedError } from "./error";
-import { DubInitResult, DubOptions, IframeMessage } from "./types";
+import { DubEmbedOptions, DubInitResult, IframeMessage } from "./types";
 
 const CONTAINER_STYLES = {
   position: "relative",
@@ -10,13 +10,11 @@ const CONTAINER_STYLES = {
 };
 
 class DubEmbed {
-  options: DubOptions;
-  prefix: string;
+  options: DubEmbedOptions;
   container: HTMLElement | null;
 
-  constructor(options: DubOptions) {
+  constructor(options: DubEmbedOptions) {
     this.options = options;
-    this.prefix = options.id ? `${options.id}-` : "";
 
     console.debug("[Dub] Initializing.", options);
 
@@ -31,9 +29,7 @@ class DubEmbed {
 
     const { token, root, containerStyles, onError } = this.options;
 
-    const existingContainer = document.getElementById(
-      `${this.prefix}${DUB_CONTAINER_ID}`,
-    );
+    const existingContainer = document.getElementById(DUB_CONTAINER_ID);
 
     if (existingContainer) return existingContainer;
 
@@ -43,7 +39,7 @@ class DubEmbed {
     }
 
     const container = document.createElement("div");
-    container.id = `${this.prefix}${DUB_CONTAINER_ID}`;
+    container.id = DUB_CONTAINER_ID;
     Object.assign(container.style, {
       ...CONTAINER_STYLES,
       ...containerStyles,
@@ -77,7 +73,7 @@ class DubEmbed {
    * Destroys the embed, removing any remaining DOM elements.
    */
   destroy() {
-    document.getElementById(`${this.prefix}${DUB_CONTAINER_ID}`)?.remove();
+    document.getElementById(DUB_CONTAINER_ID)?.remove();
   }
 }
 
@@ -97,7 +93,7 @@ const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
 /**
  * Initializes the Dub embed.
  */
-export const init = (options: DubOptions): DubInitResult => {
+export const init = (options: DubEmbedOptions): DubInitResult => {
   const embed = new DubEmbed(options);
 
   return {

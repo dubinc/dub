@@ -1,12 +1,12 @@
 "use client";
 
-import { DubOptions, init } from "@dub/embed-core";
+import { DubEmbedOptions, init } from "@dub/embed-core";
 import { HTMLProps, memo, useEffect, useId, useRef } from "react";
 
-type Options = Omit<DubOptions, "token">;
+type Options = Omit<DubEmbedOptions, "token">;
 
 type DubEmbedProps = {
-  token: DubOptions["token"];
+  token: DubEmbedOptions["token"];
   options?: Options;
 } & HTMLProps<HTMLDivElement>;
 
@@ -17,7 +17,7 @@ export const DubEmbed = memo(({ token, options, ...rest }: DubEmbedProps) => (
 function DubInline({
   options,
   ...rest
-}: { options: DubOptions } & HTMLProps<HTMLDivElement>) {
+}: { options: DubEmbedOptions } & HTMLProps<HTMLDivElement>) {
   const id = useId();
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -26,7 +26,6 @@ function DubInline({
 
     const { destroy } =
       init({
-        id,
         root: rootRef.current,
         ...options,
       }) || {};

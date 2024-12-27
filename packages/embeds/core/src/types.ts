@@ -3,10 +3,10 @@ export type DubInitResult = {
 } | null;
 
 export interface DubEmbed {
-  init: (options: DubOptions) => void;
+  init: (options: DubEmbedOptions) => void;
 }
 
-export type DubOptions = {
+export type DubEmbedOptions = {
   // The link token
   token: string;
 
