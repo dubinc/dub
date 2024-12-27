@@ -42,6 +42,7 @@ const BUSINESS_PLAN_MODIFIER = ({
   limits: {
     links,
     clicks,
+    conversions,
     domains,
     tags: 1000000000,
     users,
