@@ -89,7 +89,7 @@ export function EmbedInlinePageClient({
             />
           </div>
           <a
-            href="https://d.to/conversions"
+            href="https://dub.partners"
             target="_blank"
             className="mt-4 flex items-center justify-center gap-1.5 text-neutral-500 transition-colors duration-75 hover:text-neutral-700 md:absolute md:bottom-3 md:right-3 md:mt-0 md:translate-x-0"
           >
