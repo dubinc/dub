@@ -1,6 +1,6 @@
 import { nFormatter } from "../functions";
 
-type Feature = {
+export type PlanFeature = {
   id?: string;
   text: string;
   footnote?: {
@@ -114,7 +114,7 @@ const BUSINESS_PLAN_MODIFIER = ({
         href: "https://d.to/webhooks",
       },
     },
-  ] as Feature[],
+  ] as PlanFeature[],
 });
 
 export const PLANS = [
@@ -174,7 +174,7 @@ export const PLANS = [
           href: "https://dub.co/docs/api-reference/introduction",
         },
       },
-    ] as Feature[],
+    ] as PlanFeature[],
   },
   {
     name: "Pro",
@@ -254,7 +254,7 @@ export const PLANS = [
           href: "https://dub.co/help/article/free-dot-link-domain",
         },
       },
-    ] as Feature[],
+    ] as PlanFeature[],
   },
   BUSINESS_PLAN_MODIFIER({
     name: "Business",
@@ -358,7 +358,7 @@ export const PLANS = [
       { id: "sla", text: "Custom SLA" },
       { id: "logs", text: "Audit logs" },
       { id: "success", text: "Dedicated success manager" },
-    ] as Feature[],
+    ] as PlanFeature[],
   },
 ];
 
