@@ -1,25 +1,20 @@
-import { parseRequestBody } from "@/lib/api/utils";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { customerCreated } from "./customer-created";
 import { orderPaid } from "./order-paid";
+import { verifyShopifySignature } from "./utils";
 
-// TODO:
-// Verify the webhook signature
-
-const relevantTopics = new Set([
-  "customers/create",
-  "customers/update",
-  "orders/paid",
-]);
+const relevantTopics = new Set(["orders/paid"]);
 
 // POST /api/shopify/webhook – Listen to Shopify webhook events
 export const POST = async (req: Request) => {
-  const body = await parseRequestBody(req);
+  const body = await req.json();
 
   // Find the topic from the headers
   const headers = req.headers;
   const topic = headers.get("x-shopify-topic") || "";
+  const signature = headers.get("x-shopify-hmac-sha256") || "";
+
+  await verifyShopifySignature({ body, signature });
 
   if (!relevantTopics.has(topic)) {
     return new Response("Unsupported topic, skipping...", {
@@ -29,9 +24,6 @@ export const POST = async (req: Request) => {
 
   try {
     switch (topic) {
-      case "customers/create":
-        await customerCreated(body);
-        break;
       case "orders/paid":
         await orderPaid(body);
         break;

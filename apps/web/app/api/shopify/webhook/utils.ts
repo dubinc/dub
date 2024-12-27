@@ -1,22 +1,25 @@
 import crypto from "crypto";
-import { NextRequest } from "next/server";
 
-export async function verifyWebhookSignature(req: NextRequest) {
-  const signature = req.headers["x-shopify-hmac-sha256"];
-
-  const genSig = crypto
+export const verifyShopifySignature = async ({
+  body,
+  signature,
+}: {
+  body: Record<string, unknown>;
+  signature: string;
+}) => {
+  const generatedSignature = crypto
     .createHmac("sha256", `${process.env.SHOPIFY_WEBHOOK_SECRET}`)
-    .update(JSON.stringify(req))
+    .update(JSON.stringify(body))
     .digest("base64");
 
   console.log({
-    genSig,
+    generatedSignature,
     signature,
   });
 
-  if (genSig !== signature) {
+  if (generatedSignature !== signature) {
     throw new Error("Invalid webhook signature.");
   }
 
   return true;
-}
+};

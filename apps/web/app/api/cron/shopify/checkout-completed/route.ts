@@ -127,12 +127,12 @@ export async function POST(req: Request) {
       ]);
     }
 
-    const amount = Number(parsedOrder.total_price);
+    const eventId = nanoid(16);
+    const amount = Number(parsedOrder.total_price) * 100;
     const currency = parsedOrder.currency;
     const invoiceId = parsedOrder.confirmation_number;
-
-    const eventId = nanoid(16);
     const paymentProcessor = "shopify";
+
 
     const [_sale, link, _project] = await Promise.all([
       // record sale
@@ -145,9 +145,8 @@ export async function POST(req: Request) {
         amount,
         currency,
         invoice_id: invoiceId,
-        metadata: JSON.stringify({
-          parsedOrder,
-        }),
+        metadata: JSON.stringify(parsedOrder),
+        
       }),
 
       // update link sales count
