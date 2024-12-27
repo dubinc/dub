@@ -1,4 +1,3 @@
-import { ProgramProps } from "@/lib/types";
 import {
   Button,
   Carousel,
@@ -11,6 +10,7 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import { cn, DUB_LOGO, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
+import { Link, Program } from "@prisma/client";
 import { motion } from "framer-motion";
 
 const BUTTON_CLASSNAME = "h-9 rounded-lg bg-neutral-900 hover:bg-neutral-800";
@@ -19,11 +19,12 @@ export function EmbedQuickstart({
   program,
   link,
 }: {
-  program: ProgramProps;
-  link: string;
+  program: Program;
+  link: Link;
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
   const { isMobile } = useMediaQuery();
+  const payoutsDisabled = link.saleAmount === 0;
 
   const items = [
     {
@@ -33,7 +34,7 @@ export function EmbedQuickstart({
       cta: (
         <Button
           className={BUTTON_CLASSNAME}
-          onClick={() => copyToClipboard(link)}
+          onClick={() => copyToClipboard(link.shortLink)}
           text={copied ? "Copied link" : "Copy link"}
           icon={
             <div className="relative size-4">
@@ -72,7 +73,12 @@ export function EmbedQuickstart({
       illustration: <ConnectPayouts logo={program.logo ?? DUB_LOGO} />,
       cta: (
         <Button
-          className={BUTTON_CLASSNAME}
+          className={payoutsDisabled ? "h-9 rounded-lg" : BUTTON_CLASSNAME}
+          disabledTooltip={
+            payoutsDisabled
+              ? "You will be able to withdraw your earnings once you have made at least one sale."
+              : undefined
+          }
           onClick={() =>
             window.open("https://partners.dub.co/settings/payouts", "_blank")
           }
