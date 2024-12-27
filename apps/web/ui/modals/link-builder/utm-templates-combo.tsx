@@ -142,7 +142,7 @@ const NoUTMTemplatesFound = () => {
       <div>
         <Button
           className="mt-1 h-8"
-          onClick={() => router.push(`/${slug}/settings/library/utm`)}
+          onClick={() => window.open(`/${slug}/settings/library/utm`, "_blank")}
           text="Add UTM template"
         />
       </div>
