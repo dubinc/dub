@@ -25,7 +25,6 @@ export const formatDate = (
     day: "numeric",
     month: "long",
     year: "numeric",
-    timeZone: "UTC",
     ...options,
   });
 };

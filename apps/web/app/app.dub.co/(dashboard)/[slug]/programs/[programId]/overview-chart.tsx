@@ -1,3 +1,4 @@
+import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
 import useProgramAnalytics from "@/lib/swr/use-program-analytics";
 import useProgramMetrics from "@/lib/swr/use-program-metrics";
@@ -11,7 +12,7 @@ import {
   YAxis,
 } from "@dub/ui/charts";
 import { LoadingSpinner } from "@dub/ui/icons";
-import { currencyFormatter, formatDate } from "@dub/utils";
+import { currencyFormatter } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
 import { useId, useMemo } from "react";
@@ -97,7 +98,7 @@ export function OverviewChart() {
               return (
                 <>
                   <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
-                    {formatDate(d.date)}
+                    {formatDateTooltip(d.date, { interval, start, end })}
                   </p>
                   <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
                     <div className="flex items-center gap-2">

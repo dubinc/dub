@@ -8,12 +8,15 @@ export const formatDateTooltip = (
     end,
   }: {
     interval?: string;
-    start?: Date | null;
-    end?: Date | null;
+    start?: string | Date | null;
+    end?: string | Date | null;
   },
 ) => {
   if (start && end) {
-    const daysDifference = getDaysDifference(start, end);
+    const daysDifference = getDaysDifference(
+      typeof start === "string" ? new Date(start) : start,
+      typeof end === "string" ? new Date(end) : end,
+    );
 
     if (daysDifference <= 2)
       return date.toLocaleTimeString("en-US", {

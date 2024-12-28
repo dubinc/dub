@@ -76,7 +76,9 @@ const SaleTableBusinessInner = memo(
           header: "Date",
           cell: ({ row }) => (
             <p title={formatDateTime(row.original.createdAt)}>
-              {formatDate(row.original.createdAt, { month: "short" })}
+              {formatDate(row.original.createdAt, {
+                month: "short",
+              })}
             </p>
           ),
         },
