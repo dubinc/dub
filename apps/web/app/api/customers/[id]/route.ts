@@ -4,6 +4,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
   CustomerSchema,
+  ExpandedCustomerSchema,
   updateCustomerBodySchema,
 } from "@/lib/zod/schemas/customers";
 import { prisma } from "@dub/prisma";
@@ -24,7 +25,14 @@ export const GET = withWorkspace(
       },
     );
 
-    return NextResponse.json(CustomerSchema.parse(customer));
+    return NextResponse.json(
+      ExpandedCustomerSchema.parse({
+        ...customer,
+        partner: {
+          couponId: customer.link?.programEnrollment?.couponId ?? null,
+        },
+      }),
+    );
   },
   {
     requiredAddOn: "conversion",
