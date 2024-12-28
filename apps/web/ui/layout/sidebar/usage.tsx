@@ -2,9 +2,15 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import ManageSubscriptionButton from "@/ui/workspaces/manage-subscription-button";
-import { AnimatedSizeContainer, Icon, buttonVariants } from "@dub/ui";
+import { AnimatedSizeContainer, buttonVariants, Icon } from "@dub/ui";
 import { CursorRays, Hyperlink } from "@dub/ui/icons";
-import { cn, getFirstAndLastDay, getNextPlan, nFormatter } from "@dub/utils";
+import {
+  cn,
+  getFirstAndLastDay,
+  getNextPlan,
+  INFINITY_NUMBER,
+  nFormatter,
+} from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -165,7 +171,7 @@ function UsageRow({
   warning: boolean;
 }) {
   const loading = usage === undefined || limit === undefined;
-  const unlimited = limit !== undefined && limit >= 1000000000;
+  const unlimited = limit !== undefined && limit >= INFINITY_NUMBER;
 
   return (
     <div>
@@ -255,7 +261,7 @@ function UsageRow({
 }
 
 const formatNumber = (value: number) =>
-  value >= 1000000000
+  value >= INFINITY_NUMBER
     ? "∞"
     : nFormatter(value, {
         full: value !== undefined && value < 999999,

@@ -14,7 +14,12 @@ import {
   Tag,
   Users,
 } from "@dub/ui/icons";
-import { cn, getFirstAndLastDay, nFormatter } from "@dub/utils";
+import {
+  cn,
+  getFirstAndLastDay,
+  INFINITY_NUMBER,
+  nFormatter,
+} from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { CSSProperties, useMemo } from "react";
@@ -206,7 +211,7 @@ function UsageTabCard({
       : [usageProp, limitProp];
 
   const loading = usage === undefined || limit === undefined;
-  const unlimited = limit !== undefined && limit >= 1000000000;
+  const unlimited = limit !== undefined && limit >= INFINITY_NUMBER;
   const warning = !loading && !unlimited && usage >= limit * 0.9;
   const remaining = !loading && !unlimited ? Math.max(0, limit - usage) : 0;
 
@@ -238,7 +243,7 @@ function UsageTabCard({
                     trailingZeroDisplay: "stripIfInteger",
                   }
                 : {
-                    notation: usage < 1000000000 ? "standard" : "compact",
+                    notation: usage < INFINITY_NUMBER ? "standard" : "compact",
                   }
             }
           />
@@ -276,7 +281,7 @@ function UsageTabCard({
           <span className="text-xs leading-none text-neutral-600">
             {unlimited
               ? "Unlimited"
-              : `${prefix}${nFormatter(remaining, { full: true })} remaining of ${prefix}${nFormatter(limit, { full: limit < 1000000000 })}`}
+              : `${prefix}${nFormatter(remaining, { full: true })} remaining of ${prefix}${nFormatter(limit, { full: limit < INFINITY_NUMBER })}`}
           </span>
         ) : (
           <div className="h-4 w-20 animate-pulse rounded-md bg-neutral-200" />
@@ -308,7 +313,7 @@ function UsageCategory(data: {
         )}
         <span>/</span>
         <p className="text-neutral-400">
-          {usageLimit && usageLimit >= 1000000000
+          {usageLimit && usageLimit >= INFINITY_NUMBER
             ? "∞"
             : nFormatter(usageLimit, { full: true })}
         </p>
