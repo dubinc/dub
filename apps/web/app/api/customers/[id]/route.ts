@@ -1,10 +1,10 @@
 import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
+import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
   CustomerSchema,
-  ExpandedCustomerSchema,
   updateCustomerBodySchema,
 } from "@/lib/zod/schemas/customers";
 import { prisma } from "@dub/prisma";
@@ -25,14 +25,7 @@ export const GET = withWorkspace(
       },
     );
 
-    return NextResponse.json(
-      ExpandedCustomerSchema.parse({
-        ...customer,
-        partner: {
-          couponId: customer.link?.programEnrollment?.couponId ?? null,
-        },
-      }),
-    );
+    return NextResponse.json(CustomerSchema.parse(transformCustomer(customer)));
   },
   {
     requiredAddOn: "conversion",
@@ -60,11 +53,17 @@ export const PATCH = withWorkspace(
         },
         data: { name, email, avatar, externalId },
         include: {
-          link: true,
+          link: {
+            include: {
+              programEnrollment: true,
+            },
+          },
         },
       });
 
-      return NextResponse.json(CustomerSchema.parse(updatedCustomer));
+      return NextResponse.json(
+        CustomerSchema.parse(transformCustomer(updatedCustomer)),
+      );
     } catch (error) {
       if (error.code === "P2002") {
         throw new DubApiError({

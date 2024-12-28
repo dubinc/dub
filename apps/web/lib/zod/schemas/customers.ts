@@ -37,22 +37,14 @@ export const CustomerSchema = z.object({
   avatar: z.string().nullish().describe("Avatar URL of the customer."),
   country: z.string().nullish().describe("Country of the customer."),
   createdAt: z.date().describe("The date the customer was created."),
-});
-
-export const ExpandedCustomerSchema = CustomerSchema.merge(
-  z.object({
-    link: LinkSchema.pick({
-      id: true,
-      domain: true,
-      key: true,
-      shortLink: true,
-      programId: true,
-    }).nullish(),
-    partner: z.object({
+  partner: z
+    .object({
+      id: z.string().nullish(),
+      shortLink: z.string().nullish(),
       couponId: z.string().nullish(),
-    }),
-  }),
-);
+    })
+    .nullish(),
+});
 
 export const CUSTOMERS_MAX_PAGE_SIZE = 100;
 
