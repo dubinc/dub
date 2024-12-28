@@ -36,8 +36,21 @@ model Program {
   url                 String?
   type                ProgramType         @default(affiliate)
   cookieLength        Int                 @default(90)
+
+  // Commission details
   commissionAmount    Int                 @default(0)
   commissionType      CommissionType      @default(percentage)
+  commissionDuration  Int?
+  commissionInterval  CommissionInterval?
+
+  // Discounts (for dual-sided incentives)
+  discountAmount      Int?
+  discountType        CommissionType?
+  discountDuration    Int?
+  discountInterval    CommissionInterval?
+  discountCouponId    String?
+
+  // TODO REMOVE
   recurringCommission Boolean             @default(false)
   recurringInterval   CommissionInterval?
   recurringDuration   Int?
