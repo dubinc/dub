@@ -1,3 +1,4 @@
+import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -22,7 +23,9 @@ export const GET = withWorkspace(
       },
     });
 
-    return NextResponse.json(CustomerSchema.array().parse(customers));
+    return NextResponse.json(
+      CustomerSchema.array().parse(customers.map(transformCustomer)),
+    );
   },
   {
     requiredAddOn: "conversion",
@@ -49,13 +52,20 @@ export const POST = withWorkspace(
           projectConnectId: workspace.stripeConnectId,
         },
         include: {
-          link: true,
+          link: {
+            include: {
+              programEnrollment: true,
+            },
+          },
         },
       });
 
-      return NextResponse.json(CustomerSchema.parse(customer), {
-        status: 201,
-      });
+      return NextResponse.json(
+        CustomerSchema.parse(transformCustomer(customer)),
+        {
+          status: 201,
+        },
+      );
     } catch (error) {
       if (error.code === "P2002") {
         throw new DubApiError({
