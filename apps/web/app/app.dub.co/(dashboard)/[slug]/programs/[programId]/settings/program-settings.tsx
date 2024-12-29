@@ -52,8 +52,8 @@ export function ProgramSettings() {
 
 type FormData = Pick<
   ProgramProps,
-  | "commissionType"
   | "commissionAmount"
+  | "commissionType"
   | "commissionDuration"
   | "commissionInterval"
 >;
@@ -64,7 +64,13 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
 
   const form = useForm<FormData>({
     mode: "onBlur",
-    defaultValues: program,
+    defaultValues: {
+      ...program,
+      commissionAmount:
+        program.commissionType === "flat"
+          ? program.commissionAmount / 100
+          : program.commissionAmount,
+    },
   });
 
   const {
@@ -76,7 +82,13 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
     formState: { isDirty, isValid, isSubmitting, errors },
   } = form;
 
-  const [commissionType, commissionDuration, commissionInterval] = watch([
+  const [
+    commissionAmount,
+    commissionType,
+    commissionDuration,
+    commissionInterval,
+  ] = watch([
+    "commissionAmount",
     "commissionType",
     "commissionDuration",
     "commissionInterval",
@@ -322,7 +334,7 @@ function Summary({ program }: { program: ProgramProps }) {
       ...program,
       commissionAmount:
         program.commissionType === "flat"
-          ? program.commissionAmount / 100
+          ? program.commissionAmount * 100
           : program.commissionAmount,
     },
   }) as FormData;
@@ -338,7 +350,6 @@ function Summary({ program }: { program: ProgramProps }) {
             <ProgramCommissionDescription
               program={{
                 ...data,
-                commissionInterval: data.commissionInterval,
                 commissionAmount:
                   (data.commissionType === "flat"
                     ? data.commissionAmount * 100
