@@ -25,11 +25,7 @@ export const getEmbedData = async (token: string) => {
     },
   });
 
-  if (
-    !referralLink ||
-    !referralLink.program ||
-    !referralLink.programEnrollment
-  ) {
+  if (!referralLink?.program || !referralLink?.programEnrollment) {
     notFound();
   }
 
