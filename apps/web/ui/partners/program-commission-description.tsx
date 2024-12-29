@@ -64,9 +64,11 @@ export function ProgramCommissionDescription({
             })}
           </strong>{" "}
           off for{" "}
-          {discount.duration
-            ? `${discount.duration} ${pluralize(discount.interval || "cycle", discount.duration)}.`
-            : "their first purchase."}
+          <strong className={cn("font-semibold", periodClassName)}>
+            {discount.duration
+              ? `${discount.duration} ${pluralize(discount.interval || "cycle", discount.duration)}.`
+              : "their first purchase."}
+          </strong>
         </>
       ) : null}
     </>

@@ -71,7 +71,7 @@ export default function ProgramPageClient() {
           {program ? (
             <ProgramCommissionDescription
               program={program}
-              discount={programEnrollment?.discount || program.discounts?.[0]}
+              discount={programEnrollment?.discount}
             />
           ) : (
             <div className="h-7 w-5/6 animate-pulse rounded-md bg-neutral-200" />

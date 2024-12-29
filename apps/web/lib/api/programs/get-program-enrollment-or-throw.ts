@@ -19,6 +19,7 @@ export async function getProgramEnrollmentOrThrow({
         include: {
           program: true,
           link: true,
+          discount: true,
         },
       })
     : await prisma.programEnrollment.findFirst({
@@ -31,6 +32,7 @@ export async function getProgramEnrollmentOrThrow({
         include: {
           program: true,
           link: true,
+          discount: true,
         },
       });
 
