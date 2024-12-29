@@ -111,26 +111,22 @@ export async function invoicePaid(event: Stripe.Event) {
 
   // for program links
   if (link.programId) {
-    const { program, partner, commissionAmount } =
+    const { program, partnerId, commissionAmount } =
       await prisma.programEnrollment.findUniqueOrThrow({
         where: {
           linkId: link.id,
         },
         select: {
-          commissionAmount: true,
           program: true,
-          partner: {
-            select: {
-              id: true,
-            },
-          },
+          partnerId: true,
+          commissionAmount: true,
         },
       });
 
     const saleRecord = createSaleData({
       program,
       partner: {
-        id: partner.id,
+        id: partnerId,
         commissionAmount,
       },
       customer: {
@@ -158,7 +154,7 @@ export async function invoicePaid(event: Stripe.Event) {
     waitUntil(
       notifyPartnerSale({
         partner: {
-          id: partner.id,
+          id: partnerId,
           referralLink: link.shortLink,
         },
         program,
