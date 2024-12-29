@@ -3,37 +3,16 @@ import { createSaleData } from "@/lib/api/sales/create-sale-data";
 import { SaleEvent } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 
-export const backfillLinkData = async (programEnrollmentId: string) => {
-  const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
-    where: {
-      id: programEnrollmentId,
-    },
-    select: {
-      program: {
-        include: {
-          workspace: true,
-        },
-      },
-      link: true,
-      partner: true,
-      id: true,
-      commissionAmount: true,
-    },
-  });
-
-  const { program, link, partner, commissionAmount } = programEnrollment;
-  const workspace = program.workspace;
-
-  if (!link) {
-    console.warn(
-      `No link found for program enrollment ${programEnrollment.id}`,
-    );
-    return;
-  }
-
+export const backfillLinkData = async ({
+  programEnrollmentId,
+  linkId,
+}: {
+  programEnrollmentId: string;
+  linkId: string;
+}) => {
   const alreadyBackfilled = await prisma.sale.count({
     where: {
-      linkId: link.id,
+      linkId,
     },
   });
 
@@ -41,9 +20,26 @@ export const backfillLinkData = async (programEnrollmentId: string) => {
     return;
   }
 
+  const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
+    where: {
+      id: programEnrollmentId,
+    },
+    include: {
+      program: {
+        include: {
+          workspace: true,
+        },
+      },
+      partner: true,
+    },
+  });
+
+  const { program, partner, commissionAmount } = programEnrollment;
+  const workspace = program.workspace;
+
   const saleEvents = await getEvents({
     workspaceId: workspace.id,
-    linkId: link.id,
+    linkId,
     event: "sales",
     interval: "all",
     page: 1,

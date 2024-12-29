@@ -2,6 +2,7 @@
 
 import { createId } from "@/lib/api/utils";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 import { backfillLinkData } from "./backfill-link-data";
@@ -44,7 +45,12 @@ export const acceptProgramInviteAction = authPartnerActionClient
       }),
     ]);
 
-    await backfillLinkData(programEnrollment.id);
+    waitUntil(
+      backfillLinkData({
+        programEnrollmentId: programEnrollment.id,
+        linkId: programInvite.linkId,
+      }),
+    );
 
     return {
       id: programEnrollment.id,
