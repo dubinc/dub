@@ -23,7 +23,8 @@ export const transformCustomer = (customer: CustomerWithLink) => {
   const programEnrollment = customer.link?.programEnrollment;
   return {
     ...customer,
-    partner: programEnrollment ? programEnrollment.partner : null,
-    discount: programEnrollment?.discount,
+    link: customer.link || null,
+    partner: programEnrollment?.partner || null,
+    discount: programEnrollment?.discount || null,
   };
 };
