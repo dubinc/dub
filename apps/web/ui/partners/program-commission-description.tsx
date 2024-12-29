@@ -1,5 +1,6 @@
+import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { DiscountProps, ProgramProps } from "@/lib/types";
-import { cn, currencyFormatter, INFINITY_NUMBER, pluralize } from "@dub/utils";
+import { cn, INFINITY_NUMBER, pluralize } from "@dub/utils";
 
 export function ProgramCommissionDescription({
   program,
@@ -18,18 +19,11 @@ export function ProgramCommissionDescription({
   amountClassName?: string;
   periodClassName?: string;
 }) {
-  const constructAmount = ({ amount, type }) => {
-    return type === "percentage"
-      ? `${amount}%`
-      : currencyFormatter(amount / 100, {
-          maximumFractionDigits: 2,
-        });
-  };
   return (
     <>
       Earn{" "}
       <strong className={cn("font-semibold", amountClassName)}>
-        {constructAmount({
+        {constructRewardAmount({
           amount: program.commissionAmount,
           type: program.commissionType,
         })}{" "}
@@ -45,9 +39,11 @@ export function ProgramCommissionDescription({
           , and again{" "}
           <strong className={cn("font-semibold", periodClassName)}>
             every {program.commissionInterval || "cycle"} for{" "}
-            {program.commissionDuration
-              ? `${program.commissionDuration} ${pluralize(program.commissionInterval || "cycle", program.commissionDuration)}.`
-              : null}
+            {program.commissionDuration}{" "}
+            {pluralize(
+              program.commissionInterval || "cycle",
+              program.commissionDuration,
+            )}
           </strong>
         </>
       ) : (
@@ -58,7 +54,7 @@ export function ProgramCommissionDescription({
           {" "}
           Referred users get{" "}
           <strong className={cn("font-semibold", amountClassName)}>
-            {constructAmount({
+            {constructRewardAmount({
               amount: discount.amount,
               type: discount.type,
             })}
