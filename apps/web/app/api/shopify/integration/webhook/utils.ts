@@ -12,14 +12,7 @@ export const verifyShopifySignature = async ({
     .update(JSON.stringify(body))
     .digest("base64");
 
-  console.log({
-    generatedSignature,
-    signature,
-  });
-
   if (generatedSignature !== signature) {
     throw new Error("Invalid webhook signature.");
   }
-
-  return true;
 };

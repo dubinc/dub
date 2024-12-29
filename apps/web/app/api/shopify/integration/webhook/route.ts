@@ -5,7 +5,7 @@ import { verifyShopifySignature } from "./utils";
 
 const relevantTopics = new Set(["orders/paid"]);
 
-// POST /api/shopify/webhook – Listen to Shopify webhook events
+// POST /api/shopify/integration/webhook – Listen to Shopify webhook events
 export const POST = async (req: Request) => {
   const body = await req.json();
 
