@@ -19,12 +19,14 @@ export function HeroBackground({
       <div className="absolute inset-0 -z-[1] bg-current opacity-10" />
 
       <div className="absolute right-4 top-4 block size-6 min-[300px]:size-10 md:hidden">
-        <BlurImage
-          src={logo || ""}
-          alt="Program Logo"
-          fill
-          className="absolute object-cover object-center"
-        />
+        {logo && (
+          <BlurImage
+            src={logo}
+            alt="Program Logo"
+            fill
+            className="absolute object-cover object-center"
+          />
+        )}
       </div>
 
       <svg
