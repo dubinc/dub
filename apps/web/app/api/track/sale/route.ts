@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { createSaleData } from "@/lib/api/sales/sale";
+import { createSaleData } from "@/lib/api/sales/create-sale-data";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
@@ -121,32 +121,36 @@ export const POST = withWorkspaceEdge(
 
         // for program links
         if (link.programId) {
-          const { program, partner } =
+          const { program, partnerId, commissionAmount } =
             await prismaEdge.programEnrollment.findUniqueOrThrow({
               where: {
                 linkId: link.id,
               },
               select: {
                 program: true,
-                partner: {
-                  select: {
-                    id: true,
-                  },
-                },
+                partnerId: true,
+                commissionAmount: true,
               },
             });
 
           const saleRecord = createSaleData({
-            customerId: customer.id,
-            linkId: link.id,
-            clickId: clickData.click_id,
-            invoiceId,
-            eventId,
-            paymentProcessor,
-            amount,
-            currency,
-            partnerId: partner.id,
             program,
+            partner: {
+              id: partnerId,
+              commissionAmount,
+            },
+            customer: {
+              id: customer.id,
+              linkId: link.id,
+              clickId: clickData.click_id,
+            },
+            sale: {
+              amount,
+              currency,
+              invoiceId,
+              eventId,
+              paymentProcessor,
+            },
             metadata: clickData,
           });
 
@@ -156,7 +160,7 @@ export const POST = withWorkspaceEdge(
             }),
             notifyPartnerSale({
               partner: {
-                id: partner.id,
+                id: partnerId,
                 referralLink: link.shortLink,
               },
               program,

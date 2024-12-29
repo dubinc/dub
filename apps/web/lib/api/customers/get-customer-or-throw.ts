@@ -1,5 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { DubApiError } from "../errors";
+import { CustomerWithLink } from "./transform-customer";
 
 export const getCustomerOrThrow = async (
   {
@@ -9,8 +10,8 @@ export const getCustomerOrThrow = async (
     id: string;
     workspaceId: string;
   },
-  { expand }: { expand?: ("link" | "project")[] } = {},
-) => {
+  { expand }: { expand?: "link"[] } = {},
+): Promise<CustomerWithLink> => {
   const customer = await prisma.customer.findUnique({
     where: {
       ...(id.startsWith("ext_")
@@ -22,9 +23,22 @@ export const getCustomerOrThrow = async (
           }
         : { id }),
     },
-    include: {
-      link: expand?.includes("link"),
-    },
+    ...(expand?.includes("link")
+      ? {
+          include: {
+            link: {
+              include: {
+                programEnrollment: {
+                  include: {
+                    partner: true,
+                    discount: true,
+                  },
+                },
+              },
+            },
+          },
+        }
+      : {}),
   });
 
   if (!customer || customer.projectId !== workspaceId) {
