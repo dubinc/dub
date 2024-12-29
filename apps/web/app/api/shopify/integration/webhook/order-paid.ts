@@ -1,20 +1,30 @@
+import { qstash } from "@/lib/cron";
 import { redis } from "@/lib/upstash";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 
 // TODO:
 // Instead of checkout_token, maybe use order_number or checkout_id
-// Add an expiry to the redis key
 
 export async function orderPaid({
-  event,
+  order,
   workspaceId,
 }: {
-  event: any;
+  order: any;
   workspaceId: string;
 }) {
-  const checkoutToken = event.checkout_token;
+  const checkoutToken = order.checkout_token;
 
-  await redis.set(`shopify:checkout:${checkoutToken}`, {
-    ...event,
-    workspaceId,
+  await redis.hset(`shopify:checkout:${checkoutToken}`, {
+    order,
+  });
+
+  await qstash.publishJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/shopify/order-paid`,
+    body: {
+      checkoutToken,
+      workspaceId,
+    },
+    retries: 3,
+    delay: 3,
   });
 }

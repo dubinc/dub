@@ -1,7 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
-import { qstash } from "@/lib/cron";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { getClickEvent } from "@/lib/tinybird";
+import { redis } from "@/lib/upstash";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -15,7 +15,7 @@ const CORS_HEADERS = {
 
 // TODO:
 // Add rate limiting
-// Finalize the endpoint (Maybe move to /api/shopify/track)
+// Finalize the endpoint (Maybe move to /api/shopify/pixel)
 
 // POST /api/track/shopify – Handle the Shopify Pixel events
 export const POST = async (req: Request) => {
@@ -29,14 +29,17 @@ export const POST = async (req: Request) => {
       });
     }
 
+    const clickEvent = await getClickEvent({ clickId });
+
+    if (!clickEvent || clickEvent.data.length === 0) {
+      return new Response(
+        `[Shopify] Click event not found for clickId: ${clickId}`,
+      );
+    }
+
     waitUntil(
-      qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/shopify/checkout-completed`,
-        body: {
-          clickId,
-          checkoutToken,
-        },
-        retries: 5,
+      redis.hset(`shopify:checkout:${checkoutToken}`, {
+        clickId,
       }),
     );
 

@@ -39,7 +39,7 @@ export const POST = async (req: Request) => {
     switch (topic) {
       case "orders/paid":
         await orderPaid({
-          event: body,
+          order: body,
           workspaceId: workspace.id,
         });
         break;
