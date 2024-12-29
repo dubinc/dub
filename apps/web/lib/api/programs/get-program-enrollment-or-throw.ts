@@ -1,4 +1,5 @@
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { DubApiError } from "../errors";
 
 export async function getProgramEnrollmentOrThrow({
@@ -8,6 +9,16 @@ export async function getProgramEnrollmentOrThrow({
   partnerId: string;
   programId: string;
 }) {
+  const include: Prisma.ProgramEnrollmentInclude = {
+    program: {
+      include: {
+        discounts: true,
+      },
+    },
+    link: true,
+    discount: true,
+  };
+
   const programEnrollment = programId.startsWith("prog_")
     ? await prisma.programEnrollment.findUnique({
         where: {
@@ -16,11 +27,7 @@ export async function getProgramEnrollmentOrThrow({
             programId,
           },
         },
-        include: {
-          program: true,
-          link: true,
-          discount: true,
-        },
+        include,
       })
     : await prisma.programEnrollment.findFirst({
         where: {
@@ -29,11 +36,7 @@ export async function getProgramEnrollmentOrThrow({
             slug: programId,
           },
         },
-        include: {
-          program: true,
-          link: true,
-          discount: true,
-        },
+        include,
       });
 
   if (!programEnrollment || !programEnrollment.program) {

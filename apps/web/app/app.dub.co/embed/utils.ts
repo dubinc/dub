@@ -15,7 +15,11 @@ export const getEmbedData = async (token: string) => {
       id: linkId,
     },
     include: {
-      program: true,
+      program: {
+        include: {
+          discounts: true,
+        },
+      },
       programEnrollment: {
         select: {
           discount: true,
@@ -37,7 +41,9 @@ export const getEmbedData = async (token: string) => {
   return {
     program,
     link,
-    discount: DiscountSchema.parse(programEnrollment?.discount),
+    discount: DiscountSchema.parse(
+      programEnrollment?.discount || program.discounts?.[0],
+    ),
     earnings:
       (program.commissionType === "percentage" ? link.saleAmount : link.sales) *
       (program.commissionAmount / 100),
