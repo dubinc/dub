@@ -1,16 +1,8 @@
 import { InfoTooltip, MiniAreaChart } from "@dub/ui";
 import { nFormatter } from "@dub/utils";
 import { fetcher } from "@dub/utils/src/functions";
-import { subDays } from "date-fns";
 import { AnalyticsTimeseries } from "dub/models/components";
 import useSWR from "swr";
-
-const TMP_CHART_DATA = [...Array(30)]
-  .map((_, i) => ({
-    date: subDays(new Date(), i),
-    value: Math.floor(Math.random() * 100 * (30 - i)),
-  }))
-  .reverse();
 
 export function EmbedActivity({
   clicks,
@@ -65,7 +57,7 @@ export function EmbedActivity({
                 analytics?.map((a) => ({
                   date: new Date(a.start),
                   value: a[label.toLowerCase()],
-                })) ?? TMP_CHART_DATA
+                })) ?? []
               }
             />
           </div>
