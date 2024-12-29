@@ -4,7 +4,12 @@ import { createSaleData } from "@/lib/api/sales/sale";
 import { createId } from "@/lib/api/utils";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { generateRandomName } from "@/lib/names";
-import { getClickEvent, recordLead, recordSale } from "@/lib/tinybird";
+import {
+  getClickEvent,
+  getLeadEvent,
+  recordLead,
+  recordSale,
+} from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
 import { prisma } from "@dub/prisma";
@@ -19,17 +24,14 @@ const schema = z.object({
 });
 
 const checkoutSchema = z.object({
-  customer: z.object({
-    id: z.number(),
-  }), // TODO: Test this with guest checkout
   total_price: z.string(),
   currency: z.string(),
   confirmation_number: z.string(),
+  workspaceId: z.string(),
+  customer: z.object({
+    id: z.number(),
+  }),
 });
-
-const workspace = {
-  id: "cl7pj5kq4006835rbjlt2ofka",
-};
 
 // POST /api/cron/shopify/checkout-completed
 export async function POST(req: Request) {
@@ -39,17 +41,13 @@ export async function POST(req: Request) {
 
     const { clickId, checkoutToken } = schema.parse(body);
 
-    // upstash-retried header
-    // console.log("Request headers", req.headers);
-
     // Find click event
     const clickEvent = await getClickEvent({ clickId });
 
     if (!clickEvent || clickEvent.data.length === 0) {
-      throw new DubApiError({
-        code: "not_found",
-        message: `Click event not found for clickId: ${clickId}`,
-      });
+      return new Response(
+        `[Shopify] Click event not found for clickId: ${clickId}`,
+      );
     }
 
     // Find Shopify order
@@ -58,18 +56,21 @@ export async function POST(req: Request) {
     if (!order) {
       throw new DubApiError({
         code: "bad_request",
-        message: "Shopify order not found. Waiting for order...",
+        message: "Shopify order not found. Waiting for order...", // This will be retried by Qstash
       });
     }
 
     const parsedOrder = checkoutSchema.parse(order);
+    const workspaceId = parsedOrder.workspaceId;
     const customerExternalId = parsedOrder.customer.id.toString();
 
-    // Fetch or create customer
+    console.log("parsedOrder", parsedOrder);
+
+    // Fetch customer
     let customer: Customer | null = await prisma.customer.findUnique({
       where: {
         projectId_externalId: {
-          projectId: workspace.id,
+          projectId: workspaceId,
           externalId: customerExternalId,
         },
       },
@@ -78,13 +79,17 @@ export async function POST(req: Request) {
     const clickData = clickEvent.data[0];
     const { link_id: linkId, country, timestamp } = clickData;
 
+    // Handle the lead
     if (!customer) {
+      // TODO:
+      // Fetch customer from Shopify and use their email & name
+
       customer = await prisma.customer.create({
         data: {
           id: createId({ prefix: "cus_" }),
           name: generateRandomName(),
           externalId: customerExternalId,
-          projectId: workspace.id,
+          projectId: workspaceId,
           clickedAt: new Date(timestamp + "Z"),
           clickId,
           linkId,
@@ -116,7 +121,7 @@ export async function POST(req: Request) {
         // update workspace usage
         prisma.project.update({
           where: {
-            id: workspace.id,
+            id: workspaceId,
           },
           data: {
             usage: {
@@ -127,27 +132,33 @@ export async function POST(req: Request) {
       ]);
     }
 
+    // Find lead
+    const leadEvent = await getLeadEvent({ customerId: customer.id });
+    if (!leadEvent || leadEvent.data.length === 0) {
+      return `[Shopify] Lead event with customer ID ${customer.id} not found, skipping...`;
+    }
+
+    // Handle the sale
     const eventId = nanoid(16);
     const amount = Number(parsedOrder.total_price) * 100;
     const currency = parsedOrder.currency;
     const invoiceId = parsedOrder.confirmation_number;
     const paymentProcessor = "shopify";
 
+    const saleData = {
+      ...leadEvent.data[0],
+      event_id: nanoid(16),
+      event_name: "Purchase",
+      payment_processor: "shopify",
+      amount,
+      currency,
+      invoice_id: invoiceId,
+      metadata: JSON.stringify(parsedOrder),
+    };
 
     const [_sale, link, _project] = await Promise.all([
       // record sale
-      recordSale({
-        ...clickData,
-        event_id: eventId,
-        event_name: "Purchase",
-        customer_id: customer.id,
-        payment_processor: paymentProcessor,
-        amount,
-        currency,
-        invoice_id: invoiceId,
-        metadata: JSON.stringify(parsedOrder),
-        
-      }),
+      recordSale(saleData),
 
       // update link sales count
       prisma.link.update({
@@ -167,7 +178,7 @@ export async function POST(req: Request) {
       // update workspace sales usage
       prisma.project.update({
         where: {
-          id: workspace.id,
+          id: workspaceId,
         },
         data: {
           usage: {
@@ -185,7 +196,7 @@ export async function POST(req: Request) {
       const { program, partner } =
         await prisma.programEnrollment.findUniqueOrThrow({
           where: {
-            linkId: link.id,
+            linkId,
           },
           select: {
             program: true,
@@ -199,8 +210,8 @@ export async function POST(req: Request) {
 
       const saleRecord = createSaleData({
         customerId: customer.id,
-        linkId: link.id,
-        clickId: clickData.click_id,
+        linkId,
+        clickId,
         invoiceId,
         eventId,
         paymentProcessor,
@@ -235,7 +246,7 @@ export async function POST(req: Request) {
 
     await redis.del(`shopify:checkout:${checkoutToken}`);
 
-    return new Response("Shopify order tracked.", { status: 200 });
+    return new Response("[Shopify] Order event processed successfully.");
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }

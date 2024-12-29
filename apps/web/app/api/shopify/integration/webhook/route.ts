@@ -1,3 +1,4 @@
+import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { orderPaid } from "./order-paid";
@@ -8,24 +9,39 @@ const relevantTopics = new Set(["orders/paid"]);
 // POST /api/shopify/integration/webhook – Listen to Shopify webhook events
 export const POST = async (req: Request) => {
   const body = await req.json();
-
-  // Find the topic from the headers
   const headers = req.headers;
   const topic = headers.get("x-shopify-topic") || "";
   const signature = headers.get("x-shopify-hmac-sha256") || "";
+  const shop = headers.get("x-shopify-shop-domain") || "";
 
   await verifyShopifySignature({ body, signature });
 
   if (!relevantTopics.has(topic)) {
-    return new Response("Unsupported topic, skipping...", {
-      status: 200,
-    });
+    return new Response(`[Shopify] Unsupported topic: ${topic}. Skipping...`);
+  }
+
+  const workspace = await prisma.project.findUnique({
+    where: {
+      shopifyStoreId: shop,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!workspace) {
+    return new Response(
+      `[Shopify] Workspace not found for shop: ${shop}. Skipping...`,
+    );
   }
 
   try {
     switch (topic) {
       case "orders/paid":
-        await orderPaid(body);
+        await orderPaid({
+          event: body,
+          workspaceId: workspace.id,
+        });
         break;
     }
   } catch (error) {
@@ -34,9 +50,9 @@ export const POST = async (req: Request) => {
       type: "errors",
     });
 
-    return new Response('Webhook error: "Webhook handler failed. View logs."', {
-      status: 400,
-    });
+    return new Response(
+      `[Shopify] Webhook error: "Webhook handler failed. View logs."`,
+    );
   }
 
   return NextResponse.json("OK");

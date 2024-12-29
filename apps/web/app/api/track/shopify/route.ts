@@ -15,8 +15,9 @@ const CORS_HEADERS = {
 
 // TODO:
 // Add rate limiting
+// Finalize the endpoint (Maybe move to /api/shopify/track)
 
-// POST /api/track/shopify – Track a Shopify event
+// POST /api/track/shopify – Handle the Shopify Pixel events
 export const POST = async (req: Request) => {
   try {
     const { clickId, checkoutToken } = await parseRequestBody(req);
