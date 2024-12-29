@@ -69,13 +69,6 @@ export const customersQuerySchema = z
   })
   .merge(getPaginationQuerySchema({ pageSize: CUSTOMERS_MAX_PAGE_SIZE }));
 
-export const customerEventsSchemaTB = z.object({
-  timestamp: z.string(),
-  event: z.string(),
-  event_name: z.string(),
-  metadata: z.string().default(""),
-});
-
 export const customerActivitySchema = z.object({
   timestamp: z.date(),
   event: z.enum(["click", "lead", "sale"]),
