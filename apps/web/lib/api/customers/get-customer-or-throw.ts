@@ -24,7 +24,20 @@ export const getCustomerOrThrow = async (
         : { id }),
     },
     ...(expand?.includes("link")
-      ? { include: { link: { include: { programEnrollment: true } } } }
+      ? {
+          include: {
+            link: {
+              include: {
+                programEnrollment: {
+                  include: {
+                    partner: true,
+                    discount: true,
+                  },
+                },
+              },
+            },
+          },
+        }
       : {}),
   });
 

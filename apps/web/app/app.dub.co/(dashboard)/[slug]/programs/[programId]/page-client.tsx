@@ -48,6 +48,7 @@ export default function ProgramOverviewPageClient() {
                 <p className="relative text-xl text-white">
                   <ProgramCommissionDescription
                     program={program}
+                    discount={program.discounts[0]}
                     amountClassName="text-blue-400 font-medium"
                     periodClassName="text-white font-medium"
                   />

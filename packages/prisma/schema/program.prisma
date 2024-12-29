@@ -44,11 +44,7 @@ model Program {
   commissionInterval  CommissionInterval?
 
   // Discounts (for dual-sided incentives)
-  discountAmount      Int?
-  discountType        CommissionType?
-  discountDuration    Int?
-  discountInterval    CommissionInterval?
-  discountCouponId    String?
+  discounts Discount[]
 
   // TODO REMOVE
   recurringCommission Boolean             @default(false)
@@ -80,10 +76,10 @@ model ProgramEnrollment {
   id               String                  @id @default(cuid())
   partnerId        String
   programId        String
-  applicationId    String?                 @unique
   linkId           String?                 @unique
-  couponId         String?  // Stripe coupon ID
-  commissionAmount Int?     // override the program's commission amount
+  commissionAmount Int?    // custom commission amount for this partner
+  discountId       String? // custom discount for this partner
+  applicationId    String?                 @unique
   status           ProgramEnrollmentStatus @default(pending)
   createdAt        DateTime                @default(now())
   updatedAt        DateTime                @updatedAt
@@ -91,10 +87,12 @@ model ProgramEnrollment {
   partner     Partner             @relation(fields: [partnerId], references: [id])
   program     Program             @relation(fields: [programId], references: [id])
   link        Link?               @relation(fields: [linkId], references: [id])
+  discount    Discount?           @relation(fields: [discountId], references: [id])
   application ProgramApplication? @relation(fields: [applicationId], references: [id])
-
+  
   @@unique([partnerId, programId])
   @@index([programId])
+  @@index([discountId])
 }
 
 model ProgramApplication {

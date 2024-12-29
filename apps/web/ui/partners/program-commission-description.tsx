@@ -1,8 +1,9 @@
-import { ProgramProps } from "@/lib/types";
+import { DiscountProps, ProgramProps } from "@/lib/types";
 import { cn, currencyFormatter, INFINITY_NUMBER, pluralize } from "@dub/utils";
 
 export function ProgramCommissionDescription({
   program,
+  discount,
   amountClassName,
   periodClassName,
 }: {
@@ -12,19 +13,15 @@ export function ProgramCommissionDescription({
     | "commissionType"
     | "commissionDuration"
     | "commissionInterval"
-    | "discountAmount"
-    | "discountType"
-    | "discountDuration"
-    | "discountInterval"
   >;
+  discount?: DiscountProps | null;
   amountClassName?: string;
   periodClassName?: string;
 }) {
-  const constructDiscount = ({ amount, type }) => {
+  const constructAmount = ({ amount, type }) => {
     return type === "percentage"
       ? `${amount}%`
       : currencyFormatter(amount / 100, {
-          minimumFractionDigits: 2,
           maximumFractionDigits: 2,
         });
   };
@@ -32,7 +29,7 @@ export function ProgramCommissionDescription({
     <>
       Earn{" "}
       <strong className={cn("font-semibold", amountClassName)}>
-        {constructDiscount({
+        {constructAmount({
           amount: program.commissionAmount,
           type: program.commissionType,
         })}{" "}
@@ -56,18 +53,19 @@ export function ProgramCommissionDescription({
       ) : (
         "."
       )}
-      {program.discountAmount ? (
+      {discount ? (
         <>
+          {" "}
           Referred users get{" "}
           <strong className={cn("font-semibold", amountClassName)}>
-            {constructDiscount({
-              amount: program.discountAmount,
-              type: program.discountType,
+            {constructAmount({
+              amount: discount.amount,
+              type: discount.type,
             })}
           </strong>{" "}
           off for{" "}
-          {program.discountDuration
-            ? `${program.discountDuration} ${pluralize(program.discountInterval || "cycle", program.discountDuration)}.`
+          {discount.duration
+            ? `${discount.duration} ${pluralize(discount.interval || "cycle", discount.duration)}.`
             : "their first purchase."}
         </>
       ) : null}

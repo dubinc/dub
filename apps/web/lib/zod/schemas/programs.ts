@@ -6,6 +6,7 @@ import {
   ProgramType,
 } from "@dub/prisma/client";
 import { z } from "zod";
+import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
 import { parseDateSchema } from "./utils";
 
@@ -25,11 +26,7 @@ export const ProgramSchema = z.object({
   commissionDuration: z.number().nullable(),
   commissionInterval: z.nativeEnum(CommissionInterval).nullable(),
   // Discounts (for dual-sided incentives)
-  discountAmount: z.number().nullable(),
-  discountType: z.nativeEnum(CommissionType).nullable(),
-  discountDuration: z.number().nullable(),
-  discountInterval: z.nativeEnum(CommissionInterval).nullable(),
-  discountCouponId: z.string().nullable(),
+  discounts: z.array(DiscountSchema).nullish(),
   wordmark: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -39,10 +36,8 @@ export const createProgramSchema = z.object({
   name: z.string(),
   commissionType: z.nativeEnum(CommissionType),
   commissionAmount: z.number(),
-  recurringCommission: z.boolean(),
-  recurringInterval: z.nativeEnum(CommissionInterval).nullable(),
-  recurringDuration: z.number().nullable(),
-  isLifetimeRecurring: z.boolean().nullable(),
+  commissionDuration: z.number().nullable(),
+  commissionInterval: z.nativeEnum(CommissionInterval).nullable(),
   cookieLength: z.number().min(1).max(180),
   domain: z.string().nullable(),
   url: z.string().nullable(),

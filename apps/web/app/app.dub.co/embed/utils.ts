@@ -1,4 +1,5 @@
 import { embedToken } from "@/lib/embed/embed-token";
+import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
 import { notFound } from "next/navigation";
 
@@ -17,11 +18,7 @@ export const getEmbedData = async (token: string) => {
       program: true,
       programEnrollment: {
         select: {
-          partner: {
-            select: {
-              users: true,
-            },
-          },
+          discount: true,
         },
       },
     },
@@ -39,12 +36,8 @@ export const getEmbedData = async (token: string) => {
 
   return {
     program,
-    // check if the user has an active profile on Dub Partners
-    hasPartnerProfile:
-      programEnrollment && programEnrollment.partner.users.length > 0
-        ? true
-        : false,
     link,
+    discount: DiscountSchema.parse(programEnrollment?.discount),
     earnings:
       (program.commissionType === "percentage" ? link.saleAmount : link.sales) *
       (program.commissionAmount / 100),

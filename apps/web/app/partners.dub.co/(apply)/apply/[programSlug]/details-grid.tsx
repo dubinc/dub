@@ -1,6 +1,6 @@
 import { Program } from "@dub/prisma/client";
 import { Calendar6, MoneyBills2 } from "@dub/ui/icons";
-import { cn, currencyFormatter } from "@dub/utils";
+import { cn, currencyFormatter, INFINITY_NUMBER } from "@dub/utils";
 
 export function DetailsGrid({
   program,
@@ -26,9 +26,10 @@ export function DetailsGrid({
         {
           icon: Calendar6,
           title: "Duration",
-          value: program.isLifetimeRecurring
-            ? "Lifetime"
-            : `${program.recurringDuration} ${program.recurringInterval}s`,
+          value:
+            program.commissionDuration === INFINITY_NUMBER
+              ? "Lifetime"
+              : `${program.commissionDuration} ${program.commissionInterval}s`,
         },
       ].map(({ icon: Icon, title, value }) => (
         <div className="rounded-xl bg-neutral-100 p-4">
