@@ -20,6 +20,8 @@ const expectedCustomer = {
   avatar: customerRecord.avatar,
   country: null,
   partner: null,
+  link: null,
+  discount: null,
   createdAt: expect.any(String),
 };
 
