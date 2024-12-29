@@ -1,60 +1,76 @@
-import { ProgramProps } from "@/lib/types";
-import { cn, currencyFormatter, pluralize } from "@dub/utils";
+import { DiscountProps, ProgramProps } from "@/lib/types";
+import { cn, currencyFormatter, INFINITY_NUMBER, pluralize } from "@dub/utils";
 
 export function ProgramCommissionDescription({
   program,
+  discount,
   amountClassName,
   periodClassName,
 }: {
   program: Pick<
     ProgramProps,
-    | "commissionType"
     | "commissionAmount"
-    | "recurringCommission"
-    | "recurringDuration"
-    | "recurringInterval"
-    | "isLifetimeRecurring"
+    | "commissionType"
+    | "commissionDuration"
+    | "commissionInterval"
   >;
+  discount?: DiscountProps | null;
   amountClassName?: string;
   periodClassName?: string;
 }) {
+  const constructAmount = ({ amount, type }) => {
+    return type === "percentage"
+      ? `${amount}%`
+      : currencyFormatter(amount / 100, {
+          maximumFractionDigits: 2,
+        });
+  };
   return (
     <>
       Earn{" "}
       <strong className={cn("font-semibold", amountClassName)}>
-        {program.commissionType === "percentage"
-          ? program.commissionAmount + "%"
-          : currencyFormatter(program.commissionAmount / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}{" "}
+        {constructAmount({
+          amount: program.commissionAmount,
+          type: program.commissionType,
+        })}{" "}
       </strong>
       for each sale
-      {program.isLifetimeRecurring ? (
+      {program.commissionDuration === INFINITY_NUMBER ? (
         <strong className={cn("font-semibold", periodClassName)}>
           {" "}
           for the customer's lifetime.
         </strong>
-      ) : program.recurringCommission &&
-        program.recurringDuration &&
-        program.recurringDuration > 0 ? (
+      ) : program.commissionDuration && program.commissionDuration > 1 ? (
         <>
           , and again{" "}
           <strong className={cn("font-semibold", periodClassName)}>
-            every {program.recurringInterval || "cycle"} for{" "}
-            {program.recurringDuration
-              ? `${program.recurringDuration} ${pluralize(program.recurringInterval || "cycle", program.recurringDuration)}.`
+            every {program.commissionInterval || "cycle"} for{" "}
+            {program.commissionDuration
+              ? `${program.commissionDuration} ${pluralize(program.commissionInterval || "cycle", program.commissionDuration)}.`
               : null}
           </strong>
         </>
       ) : (
         "."
-      )}{" "}
-      Referred users get{" "}
-      <strong className={cn("font-semibold", amountClassName)}>
-        20% off for 3 months
-      </strong>
-      .
+      )}
+      {discount ? (
+        <>
+          {" "}
+          Referred users get{" "}
+          <strong className={cn("font-semibold", amountClassName)}>
+            {constructAmount({
+              amount: discount.amount,
+              type: discount.type,
+            })}
+          </strong>{" "}
+          off for{" "}
+          <strong className={cn("font-semibold", periodClassName)}>
+            {discount.duration
+              ? `${discount.duration} ${pluralize(discount.interval || "cycle", discount.duration)}.`
+              : "their first purchase."}
+          </strong>
+        </>
+      ) : null}
     </>
   );
 }
