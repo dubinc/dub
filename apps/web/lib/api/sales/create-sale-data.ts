@@ -30,9 +30,9 @@ export const createSaleData = ({
 }) => {
   const earnings = calculateEarnings({
     program,
+    partner,
     sales: 1,
     saleAmount: sale.amount,
-    partner,
   });
 
   const commissionAmount =
