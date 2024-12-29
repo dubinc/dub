@@ -95,6 +95,21 @@ class LinkCache {
     return await pipeline.exec();
   }
 
+  async expireMany(links: Pick<LinkProps, "domain" | "key">[]) {
+    if (links.length === 0) {
+      return;
+    }
+
+    const pipeline = redis.pipeline();
+
+    links.forEach(({ domain, key }) => {
+      // expire the link cache key immediately
+      pipeline.expire(this._createKey({ domain, key }), 1);
+    });
+
+    return await pipeline.exec();
+  }
+
   _createKey({ domain, key }: Pick<LinkProps, "domain" | "key">) {
     return `linkcache:${domain}:${key}`.toLowerCase();
   }
