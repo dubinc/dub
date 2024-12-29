@@ -2,7 +2,7 @@
 
 import { DiscountProps } from "@/lib/types";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
-import { Link, Program } from "@dub/prisma/client";
+import { Link, PayoutStatus, Program } from "@dub/prisma/client";
 import {
   Button,
   Check,
@@ -28,10 +28,15 @@ export function EmbedInlinePageClient({
   program,
   link,
   discount,
+  payouts,
 }: {
   program: Program;
   link: Link;
   discount?: DiscountProps | null;
+  payouts: {
+    status: PayoutStatus;
+    amount: number;
+  }[];
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
 
@@ -109,7 +114,7 @@ export function EmbedInlinePageClient({
             leads={link.leads}
             sales={link.sales}
           />
-          <EmbedPayouts />
+          <EmbedPayouts payouts={payouts} />
         </div>
         <div className="mt-4">
           <ToggleGroup

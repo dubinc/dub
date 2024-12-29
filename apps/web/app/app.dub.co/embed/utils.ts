@@ -18,30 +18,43 @@ export const getEmbedData = async (token: string) => {
       program: true,
       programEnrollment: {
         select: {
+          partnerId: true,
           discount: true,
         },
       },
     },
   });
 
-  if (!referralLink) {
+  if (
+    !referralLink ||
+    !referralLink.program ||
+    !referralLink.programEnrollment
+  ) {
     notFound();
   }
 
   const { program, programEnrollment, ...link } = referralLink;
 
-  if (!program) {
-    notFound();
-  }
+  const payouts = await prisma.payout.groupBy({
+    by: ["status"],
+    _sum: {
+      amount: true,
+    },
+    where: {
+      programId: program.id,
+      partnerId: programEnrollment?.partnerId,
+    },
+  });
 
   return {
     program,
     link,
-    discount: programEnrollment?.discount
-      ? DiscountSchema.parse(programEnrollment?.discount)
+    discount: programEnrollment.discount
+      ? DiscountSchema.parse(programEnrollment.discount)
       : null,
-    earnings:
-      (program.commissionType === "percentage" ? link.saleAmount : link.sales) *
-      (program.commissionAmount / 100),
+    payouts: payouts.map((payout) => ({
+      status: payout.status,
+      amount: payout._sum.amount ?? 0,
+    })),
   };
 };
