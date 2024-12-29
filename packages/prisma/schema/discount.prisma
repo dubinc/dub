@@ -1,8 +1,8 @@
 model Discount {
   id String     @id @default(cuid())
 
-  amount        Int?
-  type          CommissionType?
+  amount        Int             @default(0)
+  type          CommissionType  @default(percentage)
   duration      Int?
   interval      CommissionInterval?
   couponId      String?
