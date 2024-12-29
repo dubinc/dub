@@ -69,7 +69,10 @@ export default function ProgramPageClient() {
         </span>
         <div className="relative mt-24 text-lg text-neutral-900 sm:max-w-[50%]">
           {program ? (
-            <ProgramCommissionDescription program={program} />
+            <ProgramCommissionDescription
+              program={program}
+              discount={programEnrollment?.discount}
+            />
           ) : (
             <div className="h-7 w-5/6 animate-pulse rounded-md bg-neutral-200" />
           )}

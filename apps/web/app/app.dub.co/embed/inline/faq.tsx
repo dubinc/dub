@@ -13,7 +13,7 @@ export function EmbedFAQ({ program }: { program: Program }) {
   const items = [
     {
       title: `What is the ${program.name} Affiliate Program`,
-      content: `The ${program.name} Affiliate Program is a way for you to earn money by referring new customers to ${program.name}. For each new customer you refer, you'll earn a ${program.commissionAmount}% commission on their subscription for up to ${program.recurringDuration} ${program.recurringInterval}s. There are no limits to how much you can earn.`,
+      content: `The ${program.name} Affiliate Program is a way for you to earn money by referring new customers to ${program.name}. For each new customer you refer, you'll earn a ${program.commissionAmount}% commission on their subscription for up to ${program.commissionDuration} ${program.commissionInterval}s. There are no limits to how much you can earn.`,
     },
     {
       title: "What counts as a successful conversion?",

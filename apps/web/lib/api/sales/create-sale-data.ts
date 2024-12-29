@@ -1,4 +1,5 @@
 import { Prisma, Program, SaleStatus } from "@dub/prisma/client";
+import { INFINITY_NUMBER } from "@dub/utils";
 import { createId } from "../utils";
 import { calculateEarnings } from "./calculate-earnings";
 
@@ -52,14 +53,18 @@ export const createSaleData = ({
     currency: sale.currency,
     partnerId: partner.id,
     programId: program.id,
-    commissionAmount,
-    commissionType: program.commissionType,
-    recurringCommission: program.recurringCommission,
-    recurringDuration: program.recurringDuration,
-    recurringInterval: program.recurringInterval,
-    isLifetimeRecurring: program.isLifetimeRecurring,
     status: SaleStatus.pending,
     earnings,
     metadata: metadata || Prisma.JsonNull,
+    // TODO: remove these
+    commissionAmount,
+    commissionType: program.commissionType,
+    recurringCommission:
+      program.commissionDuration && program.commissionDuration > 1
+        ? true
+        : false,
+    recurringDuration: program.commissionDuration,
+    recurringInterval: program.commissionInterval,
+    isLifetimeRecurring: program.commissionDuration === INFINITY_NUMBER,
   };
 };

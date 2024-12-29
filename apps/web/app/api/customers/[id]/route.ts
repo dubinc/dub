@@ -55,7 +55,12 @@ export const PATCH = withWorkspace(
         include: {
           link: {
             include: {
-              programEnrollment: true,
+              programEnrollment: {
+                include: {
+                  partner: true,
+                  discount: true,
+                },
+              },
             },
           },
         },

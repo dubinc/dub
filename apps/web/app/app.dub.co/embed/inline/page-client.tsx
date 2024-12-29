@@ -1,5 +1,6 @@
 "use client";
 
+import { DiscountProps } from "@/lib/types";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
 import { Link, Program } from "@dub/prisma/client";
 import {
@@ -26,9 +27,11 @@ import { EmbedSales } from "./sales";
 export function EmbedInlinePageClient({
   program,
   link,
+  discount,
 }: {
   program: Program;
   link: Link;
+  discount?: DiscountProps | null;
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
 
@@ -50,7 +53,10 @@ export function EmbedInlinePageClient({
             Refer and earn
           </span>
           <div className="relative mt-16 text-lg text-neutral-900 sm:max-w-[50%]">
-            <ProgramCommissionDescription program={program} />
+            <ProgramCommissionDescription
+              program={program}
+              discount={discount}
+            />
           </div>
           <span className="mb-1.5 mt-6 block text-sm text-neutral-800">
             Referral link

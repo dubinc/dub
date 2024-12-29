@@ -10,7 +10,7 @@ interface GetLinkParams {
   key?: string;
 }
 
-// Find link
+// Get link or throw error if not found or doesn't belong to workspace
 export const getLinkOrThrow = async (params: GetLinkParams) => {
   let { workspaceId, domain, key, externalId } = params;
   let link: Link | null = null;

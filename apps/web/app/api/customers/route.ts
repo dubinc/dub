@@ -51,13 +51,6 @@ export const POST = withWorkspace(
           projectId: workspace.id,
           projectConnectId: workspace.stripeConnectId,
         },
-        include: {
-          link: {
-            include: {
-              programEnrollment: true,
-            },
-          },
-        },
       });
 
       return NextResponse.json(

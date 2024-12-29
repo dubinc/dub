@@ -1,22 +1,30 @@
-import { Customer, Link, ProgramEnrollment } from "@dub/prisma/client";
+import {
+  Customer,
+  Discount,
+  Link,
+  Partner,
+  ProgramEnrollment,
+} from "@dub/prisma/client";
 
 export interface CustomerWithLink extends Customer {
   link?:
     | (Link & {
-        programEnrollment?: ProgramEnrollment | null;
+        programEnrollment?:
+          | (ProgramEnrollment & {
+              partner: Partner;
+              discount: Discount | null;
+            })
+          | null;
       })
     | null;
 }
 
 export const transformCustomer = (customer: CustomerWithLink) => {
+  const programEnrollment = customer.link?.programEnrollment;
   return {
     ...customer,
-    partner: customer.link?.programEnrollment
-      ? {
-          id: customer.link.programEnrollment.partnerId,
-          shortLink: customer.link.shortLink,
-          couponId: customer.link.programEnrollment.couponId,
-        }
-      : null,
+    link: customer.link || null,
+    partner: programEnrollment?.partner || null,
+    discount: programEnrollment?.discount || null,
   };
 };
