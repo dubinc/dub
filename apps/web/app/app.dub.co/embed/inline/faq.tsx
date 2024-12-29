@@ -12,7 +12,7 @@ import { motion } from "framer-motion";
 export function EmbedFAQ({ program }: { program: Program }) {
   const items = [
     {
-      title: `What is the ${program.name} Affiliate Program`,
+      title: `What is the ${program.name} Affiliate Program?`,
       content: `The ${program.name} Affiliate Program is a way for you to earn money by referring new customers to ${program.name}. For each new customer you refer, you'll earn a ${program.commissionAmount}% commission on their subscription for up to ${program.commissionDuration} ${program.commissionInterval}s. There are no limits to how much you can earn.`,
     },
     {
@@ -32,17 +32,17 @@ export function EmbedFAQ({ program }: { program: Program }) {
   ];
   return (
     <motion.div
-      className="rounded-lg border border-neutral-100 bg-white px-8 py-4"
+      className="rounded-lg border border-neutral-100 bg-white px-4 py-2 sm:px-8 sm:py-4"
       {...TAB_ITEM_ANIMATION_SETTINGS}
     >
       <Accordion type="multiple">
         {items.map((item, idx) => (
           <AccordionItem key={idx} value={idx.toString()}>
             <AccordionTrigger className="py-2 text-neutral-700" variant="plus">
-              <h3 className="text-base">{item.title}</h3>
+              <h3 className="text-left text-sm sm:text-base">{item.title}</h3>
             </AccordionTrigger>
             <AccordionContent>
-              <BlockMarkdown className="py-2 text-neutral-500">
+              <BlockMarkdown className="py-2 text-left text-sm text-neutral-500 sm:text-base">
                 {item.content}
               </BlockMarkdown>
             </AccordionContent>

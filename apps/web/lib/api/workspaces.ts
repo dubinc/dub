@@ -12,6 +12,7 @@ import { waitUntil } from "@vercel/functions";
 import { qstash } from "../cron";
 import { cancelSubscription } from "../stripe/cancel-subscription";
 import { markDomainAsDeleted } from "./domains";
+import { linkCache } from "./links/cache";
 
 export async function deleteWorkspace(
   workspace: Pick<WorkspaceProps, "id" | "slug" | "logo" | "stripeId">,
@@ -63,28 +64,44 @@ export async function deleteWorkspace(
 export async function deleteWorkspaceAdmin(
   workspace: Pick<WorkspaceProps, "id" | "slug" | "logo" | "stripeId">,
 ) {
-  // update all default domain links to the legal workspace
-  const updateLinkPrismaResponse = await prisma.link.updateMany({
-    where: {
-      projectId: workspace.id,
-      domain: {
-        in: DUB_DOMAINS_ARRAY,
+  const [defaultDomainLinks, customDomains] = await Promise.all([
+    prisma.link.findMany({
+      where: {
+        domain: {
+          in: DUB_DOMAINS_ARRAY,
+        },
+        projectId: workspace.id,
       },
-    },
-    data: {
-      userId: LEGAL_USER_ID,
-      projectId: LEGAL_WORKSPACE_ID,
-    },
-  });
+      select: {
+        id: true,
+        domain: true,
+        key: true,
+      },
+    }),
+    prisma.domain.findMany({
+      where: {
+        projectId: workspace.id,
+      },
+      select: {
+        slug: true,
+      },
+    }),
+  ]);
 
-  const customDomains = await prisma.domain.findMany({
-    where: {
-      projectId: workspace.id,
-    },
-    select: {
-      slug: true,
-    },
-  });
+  const [redisRes, prismaRes] = await Promise.allSettled([
+    linkCache.expireMany(defaultDomainLinks),
+    prisma.link.updateMany({
+      where: {
+        id: {
+          in: defaultDomainLinks.map((link) => link.id),
+        },
+      },
+      data: {
+        projectId: LEGAL_WORKSPACE_ID,
+        userId: LEGAL_USER_ID,
+      },
+    }),
+  ]);
 
   // delete all domains, links, and uploaded images associated with the workspace
   const deleteDomainsLinksResponse = await Promise.allSettled(
@@ -112,7 +129,8 @@ export async function deleteWorkspaceAdmin(
   ]);
 
   return {
-    updateLinkPrismaResponse,
+    redisRes,
+    prismaRes,
     deleteDomainsLinksResponse,
     deleteWorkspaceResponse,
   };

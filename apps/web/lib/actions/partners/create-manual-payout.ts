@@ -1,7 +1,7 @@
 "use server";
 
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program";
+import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { createId } from "@/lib/api/utils";
 import { createSalesPayout } from "@/lib/partners/create-sales-payout";
 import { createManualPayoutSchema } from "@/lib/zod/schemas/payouts";

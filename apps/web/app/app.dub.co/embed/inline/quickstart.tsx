@@ -113,7 +113,7 @@ export function EmbedQuickstart({
           <CarouselNavBar variant="simple" />
         </Carousel>
       ) : (
-        <div className="grid-cols-3 gap-4 lg:grid">
+        <div className="grid grid-cols-3 gap-4">
           {items.map((item) => (
             <div
               key={item.title}

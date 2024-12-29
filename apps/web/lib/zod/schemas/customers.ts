@@ -43,6 +43,7 @@ export const CustomerSchema = z.object({
     domain: true,
     key: true,
     shortLink: true,
+    programId: true,
   }).nullish(),
   partner: z
     .object({
@@ -67,13 +68,6 @@ export const customersQuerySchema = z
       .describe("IDs of customers to filter by."),
   })
   .merge(getPaginationQuerySchema({ pageSize: CUSTOMERS_MAX_PAGE_SIZE }));
-
-export const customerEventsSchemaTB = z.object({
-  timestamp: z.string(),
-  event: z.string(),
-  event_name: z.string(),
-  metadata: z.string().default(""),
-});
 
 export const customerActivitySchema = z.object({
   timestamp: z.date(),

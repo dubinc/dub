@@ -3,7 +3,7 @@
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { getLinkOrThrow } from "../../api/links/get-link-or-throw";
-import { getProgramOrThrow } from "../../api/programs/get-program";
+import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { recordLink } from "../../tinybird";
 import z from "../../zod";
 import { authActionClient } from "../safe-action";
