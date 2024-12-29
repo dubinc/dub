@@ -45,6 +45,7 @@ export function ProgramCommissionDescription({
               program.commissionDuration,
             )}
           </strong>
+          .
         </>
       ) : (
         "."

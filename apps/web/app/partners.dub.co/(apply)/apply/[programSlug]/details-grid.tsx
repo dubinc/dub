@@ -1,6 +1,7 @@
+import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { Program } from "@dub/prisma/client";
 import { Calendar6, MoneyBills2 } from "@dub/ui/icons";
-import { cn, currencyFormatter, INFINITY_NUMBER } from "@dub/utils";
+import { cn, INFINITY_NUMBER, pluralize } from "@dub/utils";
 
 export function DetailsGrid({
   program,
@@ -15,13 +16,10 @@ export function DetailsGrid({
         {
           icon: MoneyBills2,
           title: "Commission",
-          value:
-            program.commissionType === "percentage"
-              ? `${program.commissionAmount}%`
-              : currencyFormatter(program.commissionAmount / 100, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                }),
+          value: constructRewardAmount({
+            amount: program.commissionAmount,
+            type: program.commissionType,
+          }),
         },
         {
           icon: Calendar6,
@@ -29,7 +27,10 @@ export function DetailsGrid({
           value:
             program.commissionDuration === INFINITY_NUMBER
               ? "Lifetime"
-              : `${program.commissionDuration} ${program.commissionInterval}s`,
+              : `${program.commissionDuration} ${pluralize(
+                  program.commissionInterval || "cycle",
+                  program.commissionDuration || 0,
+                )}`,
         },
       ].map(({ icon: Icon, title, value }) => (
         <div className="rounded-xl bg-neutral-100 p-4">
