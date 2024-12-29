@@ -3,7 +3,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import ManageSubscriptionButton from "@/ui/workspaces/manage-subscription-button";
 import { AnimatedSizeContainer, buttonVariants, Icon } from "@dub/ui";
-import { CursorRays, Hyperlink } from "@dub/ui/icons";
+import { CircleDollar, CursorRays, Hyperlink } from "@dub/ui/icons";
 import {
   cn,
   getFirstAndLastDay,
@@ -29,6 +29,8 @@ function UsageInner() {
     usageLimit,
     linksUsage,
     linksLimit,
+    salesUsage,
+    salesLimit,
     billingCycleStart,
     plan,
     slug,
@@ -59,13 +61,14 @@ function UsageInner() {
       [
         [usage, usageLimit],
         [linksUsage, linksLimit],
+        [salesUsage, salesLimit],
       ].map(
         ([usage, limit]) =>
           usage !== undefined &&
           limit !== undefined &&
           usage / Math.max(0, usage, limit) >= 0.9,
       ),
-    [usage, usageLimit, linksUsage, linksLimit],
+    [usage, usageLimit, linksUsage, linksLimit, salesUsage, salesLimit],
   );
 
   const warning = warnings.some((w) => w);
@@ -100,6 +103,19 @@ function UsageInner() {
             nextPlanLimit={nextPlan?.limits.links}
             warning={warnings[1]}
           />
+          {salesLimit && salesLimit > 0 && (
+            <UsageRow
+              icon={CircleDollar}
+              label="Revenue"
+              usage={salesUsage}
+              limit={salesLimit}
+              showNextPlan={hovered}
+              // nextPlanLimit={nextPlan?.limits.sales}
+              // TODO: Update this once we update the plan limits
+              nextPlanLimit={50000}
+              warning={warnings[2]}
+            />
+          )}
         </div>
 
         <div className="mt-3">
@@ -183,7 +199,8 @@ function UsageRow({
         {!loading ? (
           <div className="flex items-center">
             <span className="text-xs font-medium text-neutral-600">
-              {formatNumber(usage)} of{" "}
+              {label === "Revenue" ? "$" : ""}
+              {formatNumber(label === "Revenue" ? usage / 100 : usage)} of{" "}
               <motion.span
                 className={cn(
                   "relative transition-colors duration-150",
@@ -192,7 +209,8 @@ function UsageRow({
                     : "text-neutral-600",
                 )}
               >
-                {formatNumber(limit)}
+                {label === "Revenue" ? "$" : ""}
+                {formatNumber(label === "Revenue" ? limit / 100 : limit)}
                 {showNextPlan && nextPlanLimit && (
                   <motion.span
                     className="absolute bottom-[45%] left-0 h-[1px] bg-neutral-400"
@@ -264,6 +282,6 @@ const formatNumber = (value: number) =>
   value >= INFINITY_NUMBER
     ? "∞"
     : nFormatter(value, {
-        full: value !== undefined && value < 999999,
+        full: value !== undefined && value < 99999,
         digits: 1,
       });
