@@ -59,6 +59,7 @@ export const ProgramEnrollmentSchema = z.object({
     sales: true,
     saleAmount: true,
   }).nullable(),
+  discount: DiscountSchema.nullish(),
   commissionAmount: z.number().nullable(),
   createdAt: z.date(),
 });
