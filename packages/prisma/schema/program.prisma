@@ -46,12 +46,6 @@ model Program {
   // Discounts (for dual-sided incentives)
   discounts Discount[]
 
-  // TODO REMOVE
-  recurringCommission Boolean             @default(false)
-  recurringInterval   CommissionInterval?
-  recurringDuration   Int?
-  isLifetimeRecurring Boolean? // TODO: Maybe use just lifetimeRecurring?
-
   landerData Json? @db.Json
 
   createdAt DateTime @default(now())
