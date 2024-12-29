@@ -1,5 +1,6 @@
 "use client";
 
+import { DiscountProps } from "@/lib/types";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
 import { Link, Program } from "@dub/prisma/client";
 import {
@@ -14,20 +15,23 @@ import {
 import { cn, getPrettyUrl } from "@dub/utils";
 import { AnimatePresence } from "framer-motion";
 import { CSSProperties, useState } from "react";
-import { EmbedActivity } from "../activity";
-import { EmbedLeaderboard } from "../leaderboard";
-import { EmbedPayouts } from "../payouts";
-import { EmbedQuickstart } from "../quickstart";
-import { EmbedSales } from "../sales";
 import { LinkToken } from "../token";
+import { EmbedActivity } from "./activity";
+import { EmbedFAQ } from "./faq";
 import { HeroBackground } from "./hero-background";
+import { EmbedLeaderboard } from "./leaderboard";
+import { EmbedPayouts } from "./payouts";
+import { EmbedQuickstart } from "./quickstart";
+import { EmbedSales } from "./sales";
 
 export function EmbedInlinePageClient({
   program,
   link,
+  discount,
 }: {
   program: Program;
   link: Link;
+  discount?: DiscountProps | null;
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
 
@@ -49,7 +53,10 @@ export function EmbedInlinePageClient({
             Refer and earn
           </span>
           <div className="relative mt-16 text-lg text-neutral-900 sm:max-w-[50%]">
-            <ProgramCommissionDescription program={program} />
+            <ProgramCommissionDescription
+              program={program}
+              discount={discount}
+            />
           </div>
           <span className="mb-1.5 mt-6 block text-sm text-neutral-800">
             Referral link
@@ -88,7 +95,7 @@ export function EmbedInlinePageClient({
             />
           </div>
           <a
-            href="https://d.to/conversions"
+            href="https://dub.partners"
             target="_blank"
             className="mt-4 flex items-center justify-center gap-1.5 text-neutral-500 transition-colors duration-75 hover:text-neutral-700 md:absolute md:bottom-3 md:right-3 md:mt-0 md:translate-x-0"
           >
@@ -121,12 +128,14 @@ export function EmbedInlinePageClient({
           <div className="my-4">
             <AnimatePresence mode="wait">
               {selectedTab === "Quickstart" ? (
-                <EmbedQuickstart program={program} link={link.shortLink} />
+                <EmbedQuickstart program={program} link={link} />
+              ) : selectedTab === "Sales" ? (
+                <EmbedSales salesCount={link.sales} />
               ) : selectedTab === "Leaderboard" ? (
                 <EmbedLeaderboard />
-              ) : (
-                <EmbedSales salesCount={link.sales} />
-              )}
+              ) : selectedTab === "FAQ" ? (
+                <EmbedFAQ program={program} />
+              ) : null}
             </AnimatePresence>
           </div>
         </div>

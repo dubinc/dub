@@ -5,18 +5,17 @@ import { useId } from "react";
 
 export function HeroBackground({
   logo,
-  color = "#737373",
+  color,
 }: {
   logo?: string | null;
   color?: string | null;
 }) {
   const id = useId();
 
+  const backgroundColor = color || "#737373";
+
   return (
-    <div
-      className="absolute inset-0 -z-[1] bg-neutral-50"
-      style={{ color: color || "#a8a8a8" }}
-    >
+    <div className="absolute inset-0 -z-[1]" style={{ color: backgroundColor }}>
       <div className="absolute inset-0 -z-[1] bg-current opacity-10" />
 
       <div className="absolute right-4 top-4 block size-6 min-[300px]:size-10 md:hidden">

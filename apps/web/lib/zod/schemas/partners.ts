@@ -51,6 +51,7 @@ export const PartnerSchema = z.object({
   bio: z.string().nullable(),
   status: z.nativeEnum(PartnerStatus),
   stripeConnectId: z.string().nullable(),
+  couponId: z.string().nullish(),
   payoutsEnabled: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),

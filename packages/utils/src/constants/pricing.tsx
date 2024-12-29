@@ -1,3 +1,5 @@
+import { INFINITY_NUMBER } from "./misc";
+
 const BUSINESS_PLAN_MODIFIER = ({
   name = "Business",
   monthly = 59,
@@ -30,7 +32,7 @@ const BUSINESS_PLAN_MODIFIER = ({
     links,
     clicks,
     domains,
-    tags: 1000000000,
+    tags: INFINITY_NUMBER,
     users,
     ai: 1000,
     api: 3000,

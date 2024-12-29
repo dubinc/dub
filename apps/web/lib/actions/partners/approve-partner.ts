@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { getLinkOrThrow } from "../../api/links/get-link-or-throw";
 import { getProgramOrThrow } from "../../api/programs/get-program";
 import { recordLink } from "../../tinybird";
@@ -21,60 +22,33 @@ export const approvePartnerAction = authActionClient
     const { workspace } = ctx;
     const { programId, partnerId, linkId } = parsedInput;
 
-    const [program, link, tags, programEnrollment] = await Promise.all([
+    const [program, link] = await Promise.all([
       getProgramOrThrow({
         workspaceId: workspace.id,
         programId,
       }),
-
       getLinkOrThrow({
         workspaceId: workspace.id,
         linkId,
       }),
+    ]);
 
-      prisma.tag.findMany({
-        where: {
-          links: {
-            some: {
-              linkId,
-            },
-          },
-        },
-      }),
+    if (link.programId) {
+      throw new Error("Link is already associated with another partner.");
+    }
 
-      prisma.programEnrollment.findUnique({
+    const [_, updatedLink] = await Promise.all([
+      prisma.programEnrollment.update({
         where: {
           partnerId_programId: {
             partnerId,
             programId,
           },
         },
-        include: {
-          partner: true,
-        },
-      }),
-    ]);
-
-    if (!programEnrollment) {
-      throw new Error("Program enrollment not found.");
-    }
-
-    if (programEnrollment.status !== "pending") {
-      throw new Error("Program enrollment is not pending.");
-    }
-
-    if (link.programId) {
-      throw new Error("Link is already associated with another partner.");
-    }
-
-    await Promise.allSettled([
-      prisma.programEnrollment.update({
-        where: {
-          id: programEnrollment.id,
-        },
         data: {
           status: "approved",
           linkId: link.id,
+          discountId: program?.discounts?.[0]?.id || null,
         },
       }),
 
@@ -86,21 +60,25 @@ export const approvePartnerAction = authActionClient
         data: {
           programId,
         },
+        include: {
+          tags: true,
+        },
       }),
+    ]);
 
-      // record link update in tinybird
+    waitUntil(
       recordLink({
-        domain: link.domain,
-        key: link.key,
-        link_id: link.id,
-        created_at: link.createdAt,
-        url: link.url,
-        tag_ids: tags.map((t) => t.id) || [],
+        domain: updatedLink.domain,
+        key: updatedLink.key,
+        link_id: updatedLink.id,
+        created_at: updatedLink.createdAt,
+        url: updatedLink.url,
+        tag_ids: updatedLink.tags.map((t) => t.tagId),
         program_id: program.id,
         workspace_id: workspace.id,
         deleted: false,
       }),
-    ]);
+    );
 
     // TODO: [partners] Notify partner of approval?
 

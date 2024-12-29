@@ -1,4 +1,5 @@
 import z from "@/lib/zod";
+import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 
@@ -42,8 +43,16 @@ export const CustomerSchema = z.object({
     domain: true,
     key: true,
     shortLink: true,
-    programId: true,
   }).nullish(),
+  partner: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      email: z.string(),
+      image: z.string().nullish(),
+    })
+    .nullish(),
+  discount: DiscountSchema.nullish(),
 });
 
 export const CUSTOMERS_MAX_PAGE_SIZE = 100;

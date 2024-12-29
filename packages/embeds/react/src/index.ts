@@ -1,1 +1,1 @@
-export * from "./widget";
+export * from "./embed";
