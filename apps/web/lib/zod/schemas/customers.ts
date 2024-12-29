@@ -43,6 +43,7 @@ export const CustomerSchema = z.object({
     domain: true,
     key: true,
     shortLink: true,
+    programId: true,
   }).nullish(),
   partner: z
     .object({
