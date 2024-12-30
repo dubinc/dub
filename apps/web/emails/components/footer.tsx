@@ -15,7 +15,6 @@ export default function Footer({
         <Hr className="mx-0 my-6 w-full border border-gray-200" />
         <Text className="text-[12px] leading-6 text-gray-500">
           We send out product update emails once a month – no spam, no nonsense.
-          <br />
           Don't want to get these emails?{" "}
           <Link
             className="text-gray-700 underline"
@@ -23,6 +22,13 @@ export default function Footer({
           >
             Unsubscribe here.
           </Link>
+        </Text>
+        <Text className="text-[12px] text-gray-500">
+          Dub Technologies, Inc.
+          <br />
+          2261 Market Street STE 5906
+          <br />
+          San Francisco, CA 941114
         </Text>
       </Tailwind>
     );
@@ -49,6 +55,13 @@ export default function Footer({
           </Link>
         </Text>
       )}
+      <Text className="text-[12px] text-gray-500">
+        Dub Technologies, Inc.
+        <br />
+        2261 Market Street STE 5906
+        <br />
+        San Francisco, CA 941114
+      </Text>
     </Tailwind>
   );
 }
