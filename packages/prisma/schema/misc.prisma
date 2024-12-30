@@ -1,0 +1,18 @@
+model YearInReview {
+  id String @id @default(cuid())
+  year Int
+
+  totalLinks Int
+  totalClicks Int
+  topLinks   Json
+  topCountries Json
+
+  workspaceId String
+  workspace   Project @relation(fields: [workspaceId], references: [id])
+
+  createdAt DateTime @default(now())
+  sentAt    DateTime?
+
+  @@unique([year])
+  @@index([workspaceId])
+}
