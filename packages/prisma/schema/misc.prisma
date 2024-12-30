@@ -13,6 +13,5 @@ model YearInReview {
   createdAt DateTime @default(now())
   sentAt    DateTime?
 
-  @@unique([year])
   @@index([workspaceId])
 }
