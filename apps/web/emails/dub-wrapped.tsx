@@ -171,6 +171,7 @@ export default function DubWrapped({
                       src={workspace.logo}
                       height="36"
                       alt={workspace.name}
+                      className="rounded-lg"
                     />
                   )}
                   <Text className="mt-1 text-xl font-semibold">
