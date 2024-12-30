@@ -103,7 +103,7 @@ function UsageInner() {
             nextPlanLimit={nextPlan?.limits.links}
             warning={warnings[1]}
           />
-          {salesLimit && salesLimit > 0 && (
+          {salesLimit && salesLimit > 0 ? (
             <UsageRow
               icon={CircleDollar}
               label="Revenue"
@@ -115,7 +115,7 @@ function UsageInner() {
               nextPlanLimit={50000}
               warning={warnings[2]}
             />
-          )}
+          ) : null}
         </div>
 
         <div className="mt-3">
