@@ -1,5 +1,5 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program";
+import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { MIN_PAYOUT_AMOUNT } from "@/lib/partners/constants";
 import { payoutsCountQuerySchema } from "@/lib/zod/schemas/payouts";

@@ -2,7 +2,7 @@
 
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { DubWidget } from "@dub/embed-react";
+import { DubEmbed } from "@dub/embed-react";
 import { CursorRays, Hyperlink, InvoiceDollar, UserCheck } from "@dub/ui/icons";
 import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
@@ -43,5 +43,5 @@ export function ReferralsPageClient() {
     );
   }
 
-  return <DubWidget token={publicToken} variant="inline" />;
+  return <DubEmbed token={publicToken} />;
 }

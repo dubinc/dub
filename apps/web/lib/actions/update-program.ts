@@ -2,7 +2,7 @@
 
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
-import { getProgramOrThrow } from "../api/programs/get-program";
+import { getProgramOrThrow } from "../api/programs/get-program-or-throw";
 import { createProgramSchema } from "../zod/schemas/programs";
 import { authActionClient } from "./safe-action";
 
@@ -20,10 +20,8 @@ export const updateProgramAction = authActionClient
       name,
       commissionType,
       commissionAmount,
-      recurringCommission,
-      recurringDuration,
-      recurringInterval,
-      isLifetimeRecurring,
+      commissionDuration,
+      commissionInterval,
       cookieLength,
       domain,
       url,
@@ -42,10 +40,8 @@ export const updateProgramAction = authActionClient
         name,
         commissionType,
         commissionAmount,
-        recurringCommission,
-        recurringDuration,
-        recurringInterval,
-        isLifetimeRecurring,
+        commissionDuration,
+        commissionInterval,
         cookieLength,
         domain,
         url,

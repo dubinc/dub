@@ -1,4 +1,5 @@
 import { embedToken } from "@/lib/embed/embed-token";
+import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
 import { notFound } from "next/navigation";
 
@@ -17,36 +18,39 @@ export const getEmbedData = async (token: string) => {
       program: true,
       programEnrollment: {
         select: {
-          partner: {
-            select: {
-              users: true,
-            },
-          },
+          partnerId: true,
+          discount: true,
         },
       },
     },
   });
 
-  if (!referralLink) {
+  if (!referralLink?.program || !referralLink?.programEnrollment) {
     notFound();
   }
 
   const { program, programEnrollment, ...link } = referralLink;
 
-  if (!program) {
-    notFound();
-  }
+  const payouts = await prisma.payout.groupBy({
+    by: ["status"],
+    _sum: {
+      amount: true,
+    },
+    where: {
+      programId: program.id,
+      partnerId: programEnrollment?.partnerId,
+    },
+  });
 
   return {
     program,
-    // check if the user has an active profile on Dub Partners
-    hasPartnerProfile:
-      programEnrollment && programEnrollment.partner.users.length > 0
-        ? true
-        : false,
     link,
-    earnings:
-      (program.commissionType === "percentage" ? link.saleAmount : link.sales) *
-      (program.commissionAmount / 100),
+    discount: programEnrollment.discount
+      ? DiscountSchema.parse(programEnrollment.discount)
+      : null,
+    payouts: payouts.map((payout) => ({
+      status: payout.status,
+      amount: payout._sum.amount ?? 0,
+    })),
   };
 };

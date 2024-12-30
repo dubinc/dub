@@ -16,6 +16,7 @@ import {
   APP_DOMAIN,
   cn,
   currencyFormatter,
+  INFINITY_NUMBER,
   nFormatter,
   pluralize,
   timeAgo,
@@ -199,7 +200,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                 <span className="font-medium text-gray-950">
                   {tab === "sales"
                     ? currencyFormatter(value / 100)
-                    : nFormatter(value, { full: value < 1000000000 })}
+                    : nFormatter(value, { full: value < INFINITY_NUMBER })}
                 </span>{" "}
                 {pluralize(tab.slice(0, -1), value)}
               </div>
