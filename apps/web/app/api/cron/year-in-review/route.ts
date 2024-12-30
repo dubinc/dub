@@ -141,7 +141,9 @@ export async function POST(req: Request) {
       body: {},
     });
 
-    return new Response("Jobs sent.");
+    return new Response(
+      `Sent ${emailData.length} emails to ${yearInReviews.length} workspaces!`,
+    );
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
