@@ -7,7 +7,8 @@ import useSWR from "swr";
 export const LinkToken = () => {
   const { error } = useSWR<{ token: number }>("/api/embed/token", fetcher, {
     revalidateOnFocus: true,
-    refreshInterval: 50000,
+    dedupingInterval: 30000,
+    keepPreviousData: true,
   });
 
   // Inform the parent if there's an error (Eg: token is expired)

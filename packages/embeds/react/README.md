@@ -1,6 +1,6 @@
 # `@dub/embed-react`
 
-`@dub/embed-react` is a library of React components that are used embed Dub's widget on third-party websites.
+`@dub/embed-react` is a library of React components that are used embed Dub's referral dashboard on third-party websites.
 
 ## Installation
 

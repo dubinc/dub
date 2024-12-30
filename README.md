@@ -22,7 +22,7 @@
     <img src="https://img.shields.io/twitter/follow/dubdotco?style=flat&label=%40dubdotco&logo=twitter&color=0bf&logoColor=fff" alt="Twitter" />
   </a>
   <a href="https://news.ycombinator.com/item?id=32939407"><img src="https://img.shields.io/badge/Hacker%20News-255-%23FF6600" alt="Hacker News"></a>
-  <a href="https://github.com/dubinc/dub/blob/main/LICENSE">
+  <a href="https://github.com/dubinc/dub/blob/main/LICENSE.md">
     <img src="https://img.shields.io/github/license/dubinc/dub?label=license&logo=github&color=f80&logoColor=fff" alt="License" />
   </a>
 </p>

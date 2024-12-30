@@ -19,6 +19,7 @@ import {
   CustomerSchema,
 } from "./zod/schemas/customers";
 import { dashboardSchema } from "./zod/schemas/dashboard";
+import { DiscountSchema } from "./zod/schemas/discount";
 import { integrationSchema } from "./zod/schemas/integration";
 import { InvoiceSchema } from "./zod/schemas/invoices";
 import {
@@ -342,6 +343,8 @@ export type CustomerProps = z.infer<typeof CustomerSchema>;
 export type PartnerProps = z.infer<typeof PartnerSchema>;
 
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
+
+export type DiscountProps = z.infer<typeof DiscountSchema>;
 
 export type ProgramProps = z.infer<typeof ProgramSchema>;
 

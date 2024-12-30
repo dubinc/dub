@@ -1,6 +1,6 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { calculateEarnings } from "@/lib/api/sales/commission";
+import { calculateEarnings } from "@/lib/api/sales/calculate-earnings";
 import { withPartner } from "@/lib/auth/partner";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
