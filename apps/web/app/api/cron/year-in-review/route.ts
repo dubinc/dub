@@ -12,8 +12,9 @@ const BATCH_SIZE = 100;
 // POST /api/cron/year-in-review
 export async function POST(req: Request) {
   try {
-    // const body = await req.json();
-    // await verifyQstashSignature(req, body);
+    if (process.env.VERCEL === "1") {
+      return new Response("Not available in production.");
+    }
 
     if (!resend) {
       return new Response("Resend not initialized. Skipping...");
@@ -49,7 +50,7 @@ export async function POST(req: Request) {
           },
         },
       },
-      take: 5,
+      take: 100,
     });
 
     if (yearInReviews.length === 0) {
@@ -58,34 +59,40 @@ export async function POST(req: Request) {
 
     const emailData = yearInReviews.flatMap(
       ({ workspace, totalClicks, totalLinks, topCountries, topLinks }) =>
-        workspace.users.map(({ user }) => {
-          return {
-            workspaceId: workspace.id,
-            email: {
-              from: "Steven from Dub.co <steven@ship.dub.co>",
-              to: user.email!,
-              replyToFromEmail: true,
-              subject: "Dub Year in Review 🎊",
-              text: "Thank you for your support and here's to another year of your activity on Dub! Here's a look back at your activity in 2024.",
-              react: DubWrapped({
-                email: user.email!,
-                workspace: {
-                  logo: workspace.logo,
-                  name: workspace.name,
-                  slug: workspace.slug,
-                },
-                stats: {
-                  "Total Links": totalLinks,
-                  "Total Clicks": totalClicks,
-                },
-                // @ts-ignore
-                topLinks,
-                // @ts-ignore
-                topCountries,
-              }),
-            },
-          };
-        }),
+        workspace.users
+          .map(({ user }) => {
+            if (!user.email) {
+              return null;
+            }
+
+            return {
+              workspaceId: workspace.id,
+              email: {
+                from: "Steven from Dub.co <steven@ship.dub.co>",
+                to: user.email,
+                reply_to: "support@dub.co",
+                subject: "Dub Year in Review 🎊",
+                text: "Thank you for your support and here's to another year of your activity on Dub! Here's a look back at your activity in 2024.",
+                react: DubWrapped({
+                  email: user.email,
+                  workspace: {
+                    logo: workspace.logo,
+                    name: workspace.name,
+                    slug: workspace.slug,
+                  },
+                  stats: {
+                    "Total Links": totalLinks,
+                    "Total Clicks": totalClicks,
+                  },
+                  // @ts-ignore
+                  topLinks,
+                  // @ts-ignore
+                  topCountries,
+                }),
+              },
+            };
+          })
+          .filter((data) => data !== null),
     );
 
     if (emailData.length === 0) {
@@ -101,7 +108,7 @@ export async function POST(req: Request) {
 
       console.log(
         `📨 Recipients:`,
-        batch.map((b) => b?.email),
+        batch.map(({ email }) => email.to),
       );
 
       if (batch.length === 0) {
@@ -112,20 +119,16 @@ export async function POST(req: Request) {
         batch.map(({ email }) => email),
       );
 
-      console.log("🚀 ~ error:", error);
       console.log("🚀 ~ data:", data);
-
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      if (error) {
+        console.log("🚀 ~ error:", error);
+      }
     }
-
-    // TODO:
-    // Error handling
 
     await prisma.yearInReview.updateMany({
       where: {
-        year: 2024,
-        workspaceId: {
-          in: yearInReviews.map(({ workspaceId }) => workspaceId),
+        id: {
+          in: yearInReviews.map(({ id }) => id),
         },
       },
       data: {
@@ -133,9 +136,13 @@ export async function POST(req: Request) {
       },
     });
 
+    console.log(
+      `Sent ${emailData.length} emails to ${yearInReviews.length} workspaces!`,
+    );
+
     await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/year-in-review`,
-      delay: 5,
+      delay: 3,
       method: "POST",
       body: {},
     });

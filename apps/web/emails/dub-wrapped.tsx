@@ -120,7 +120,7 @@ export default function DubWrapped({
       image: "https://assets.dub.co/blog/free-dot-link.jpg",
       cta: {
         text: "Read the announcement",
-        href: "https://dub.co/blog/introducing-free-domains",
+        href: "https://ship.dub.co/free-domains",
       },
     },
     {
@@ -130,13 +130,13 @@ export default function DubWrapped({
       image: "https://assets.dub.co/changelog/new-dashboard.jpg",
       cta: {
         text: "Read the announcement",
-        href: "https://dub.co/blog/new-link-builder",
+        href: "https://ship.dub.co/builder",
       },
     },
     {
       title: "Dub API General Availability",
       description:
-        "Our Dub API went GA, allowing you to build your powerful integrations with Dub. We also launched native SDKs in 5 different languages: TypeScript, Python, Ruby, PHP, and Go.",
+        "Our Dub API went GA, allowing you to build your powerful integrations with Dub. We also launched <b>native SDKs in 5 different languages</b>: TypeScript, Python, Ruby, PHP, and Go.",
       image: "https://assets.dub.co/blog/dub-api.jpg",
       cta: {
         text: "Read the announcement",
@@ -148,7 +148,11 @@ export default function DubWrapped({
   return (
     <Html>
       <Head />
-      <Preview>Dub Wrapped</Preview>
+      <Preview>
+        In 2024, you created {nFormatter(stats["Total Links"], { full: true })}{" "}
+        links on Dub and got {nFormatter(stats["Total Clicks"], { full: true })}{" "}
+        clicks.
+      </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
@@ -164,27 +168,31 @@ export default function DubWrapped({
             </Text>
 
             <Section className="my-8 rounded-lg border border-solid border-gray-200 p-2">
-              <div className="relative">
-                <div className="absolute inset-0 flex flex-col items-center justify-center pt-4">
+              <div>
+                <Img
+                  src="https://assets.dub.co/misc/year-in-review-header.jpg"
+                  alt="header"
+                  className="max-w-[500px] rounded-lg"
+                />
+                <div className="-mt-[90px] mb-[30px] text-center">
                   {workspace.logo && (
                     <Img
                       src={workspace.logo}
                       height="36"
                       alt={workspace.name}
-                      className="rounded-lg"
+                      className="mx-auto rounded-lg"
                     />
                   )}
                   <Text className="mt-1 text-xl font-semibold">
                     {workspace.name}
                   </Text>
                 </div>
-                <SectionHeaderBackground />
               </div>
-              <div className="grid grid-cols-2 gap-2 px-4 py-2">
+              <Row className="w-full px-4 py-2">
                 {Object.entries(stats).map(([key, value]) => (
                   <StatCard key={key} title={key} value={value} />
                 ))}
-              </div>
+              </Row>
               <div className="grid gap-2 px-4">
                 <StatTable
                   title="Top Links"
@@ -258,6 +266,23 @@ export default function DubWrapped({
             <Hr className="mx-0 my-6 w-full border border-gray-200" />
 
             <Text className="text-sm leading-6 text-black">
+              You can also check out more updates on our{" "}
+              <Link
+                href="https://ship.dub.co/blog"
+                className="text-black underline underline-offset-2"
+              >
+                blog
+              </Link>{" "}
+              and{" "}
+              <Link
+                href="https://ship.dub.co/changelog"
+                className="text-black underline underline-offset-2"
+              >
+                changelog
+              </Link>
+              .
+              <br />
+              <br />
               Thank you again, and happy holidays!
             </Text>
             <Img
@@ -285,12 +310,12 @@ const StatCard = ({
   value: number | string;
 }) => {
   return (
-    <div className="text-center">
+    <Column className="text-center">
       <Text className="font-medium text-gray-400">{title}</Text>
       <Text className="-mt-3 text-lg font-medium text-black">
         {typeof value === "number" ? nFormatter(value, { full: true }) : value}
       </Text>
-    </div>
+    </Column>
   );
 };
 
@@ -312,6 +337,15 @@ const StatTable = ({
         return (
           <div key={index} className="text-sm">
             <Row>
+              {title === "Top Countries" && (
+                <Column width={24}>
+                  <Img
+                    src={`https://wsrv.nl/?url=https://hatscripts.github.io/circle-flags/flags/${item.toLowerCase()}.svg`}
+                    alt={COUNTRIES[item]}
+                    height="16"
+                  />
+                </Column>
+              )}
               <Column align="left">
                 {title === "Top Links" ? (
                   <div className="py-2">
@@ -323,14 +357,7 @@ const StatTable = ({
                     </Link>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2">
-                    <img
-                      src={`https://hatscripts.github.io/circle-flags/flags/${item.toLowerCase()}.svg`}
-                      alt={COUNTRIES[item]}
-                      height="16"
-                    />
-                    <p>{COUNTRIES[item]}</p>
-                  </div>
+                  <p>{COUNTRIES[item]}</p>
                 )}
               </Column>
               <Column align="right" className="text-gray-600">
@@ -344,125 +371,5 @@ const StatTable = ({
         );
       })}
     </Section>
-  );
-};
-
-const SectionHeaderBackground = () => {
-  return (
-    <svg
-      width="484"
-      height="111"
-      viewBox="0 0 484 111"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <g clipPath="url(#clip0_470_90)">
-        <rect width="484" height="111" rx="8" fill="#FAFAFA" />
-        <rect x="-10" y="-7" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="32" y="-7" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="74" y="-7" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="116" y="-7" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="158" y="-7" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="200" y="-7" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="242" y="-7" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="284" y="-7" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="326" y="-7" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="368" y="-7" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="410" y="-7" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="452" y="-7" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="-10" y="35" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="32" y="35" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="74" y="35" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="116" y="35" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="158" y="35" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="200" y="35" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="242" y="35" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="284" y="35" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="326" y="35" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="368" y="35" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="410" y="35" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="452" y="35" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="-10" y="77" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="32" y="77" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="74" y="77" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="116" y="77" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="158" y="77" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="200" y="77" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="242" y="77" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="284" y="77" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="326" y="77" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="368" y="77" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="410" y="77" width="42" height="42" stroke="#E5E5E5" />
-        <rect x="452" y="77" width="42" height="42" stroke="#E5E5E5" />
-        <rect
-          y="29"
-          width="484"
-          height="82"
-          fill="url(#paint0_linear_470_90)"
-        />
-        <g opacity="0.2" filter="url(#filter0_f_470_90)">
-          <ellipse
-            cx="241.5"
-            cy="64.5"
-            rx="181.5"
-            ry="42.5"
-            transform="rotate(180 241.5 64.5)"
-            fill="url(#paint1_angular_470_90)"
-          />
-        </g>
-      </g>
-      <defs>
-        <filter
-          id="filter0_f_470_90"
-          x="-40"
-          y="-78"
-          width="563"
-          height="285"
-          filterUnits="userSpaceOnUse"
-          colorInterpolationFilters="sRGB"
-        >
-          <feFlood floodOpacity="0" result="BackgroundImageFix" />
-          <feBlend
-            mode="normal"
-            in="SourceGraphic"
-            in2="BackgroundImageFix"
-            result="shape"
-          />
-          <feGaussianBlur
-            stdDeviation="50"
-            result="effect1_foregroundBlur_470_90"
-          />
-        </filter>
-        <linearGradient
-          id="paint0_linear_470_90"
-          x1="242"
-          y1="29"
-          x2="242"
-          y2="111"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#FAFAFA" stopOpacity="0" />
-          <stop offset="1" stopColor="#FAFAFA" />
-        </linearGradient>
-        <radialGradient
-          id="paint1_angular_470_90"
-          cx="0"
-          cy="0"
-          r="1"
-          gradientUnits="userSpaceOnUse"
-          gradientTransform="translate(241.5 64.5) rotate(-159.856) scale(84.7412 60.41)"
-        >
-          <stop stopColor="#FF0000" />
-          <stop offset="0.275102" stopColor="#EAB308" />
-          <stop offset="0.450298" stopColor="#5CFF80" />
-          <stop offset="0.6" stopColor="#00FFF9" />
-          <stop offset="0.8" stopColor="#3A8BFD" />
-          <stop offset="1" stopColor="#855AFC" />
-        </radialGradient>
-        <clipPath id="clip0_470_90">
-          <rect width="484" height="111" rx="8" fill="white" />
-        </clipPath>
-      </defs>
-    </svg>
   );
 };
