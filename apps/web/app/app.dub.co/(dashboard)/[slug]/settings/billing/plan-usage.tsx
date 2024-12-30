@@ -213,6 +213,7 @@ function UsageTabCard({
   const loading = usage === undefined || limit === undefined;
   const unlimited = limit !== undefined && limit >= INFINITY_NUMBER;
   const warning = !loading && !unlimited && usage >= limit * 0.9;
+  console.log({ warning, usage, limit });
   const remaining = !loading && !unlimited ? Math.max(0, limit - usage) : 0;
 
   const prefix = unit || "";
@@ -258,7 +259,7 @@ function UsageTabCard({
             loading && "bg-neutral-900/5",
           )}
         >
-          {!loading && !unlimited && limit > usage && (
+          {!loading && !unlimited && (
             <div
               className="animate-slide-right-fade size-full"
               style={{ "--offset": "-100%" } as CSSProperties}
@@ -266,7 +267,7 @@ function UsageTabCard({
               <div
                 className={cn(
                   "size-full rounded-full bg-gradient-to-r from-blue-500/80 to-blue-600",
-                  warning && "to-rose-500",
+                  warning && "from-neutral-900/10 via-red-500 to-red-600",
                 )}
                 style={{
                   transform: `translateX(-${100 - Math.floor((usage / Math.max(0, usage, limit)) * 100)}%)`,
