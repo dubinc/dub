@@ -82,7 +82,7 @@ function EmbedDocsSheetContent({ setIsOpen }: EmbedDocsSheetProps) {
   );
 }
 
-const reactSnippet = `import { DubWidget } from "@dub/embed-react";
+const reactSnippet = `import { DubEmbed } from "@dub/embed-react";
 
 const App = () => {
   const [token, setToken] = useState("");
@@ -96,9 +96,8 @@ const App = () => {
     createToken();
   }, []);
 
-  return <DubWidget 
-    token={token} 
-    onTokenExpired={createToken} 
+  return <DubEmbed 
+    token={token}
   />`;
 
 const htmlSnippet = `<script type="module" src="https://www.dubcdn.com/embed/script.js"></script>

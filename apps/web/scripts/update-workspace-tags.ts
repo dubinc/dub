@@ -1,4 +1,5 @@
 import { prisma } from "@dub/prisma";
+import { INFINITY_NUMBER } from "@dub/utils";
 import "dotenv-flow/config";
 
 async function main() {
@@ -9,7 +10,7 @@ async function main() {
       },
     },
     data: {
-      tagsLimit: 1000000000,
+      tagsLimit: INFINITY_NUMBER,
     },
   });
 

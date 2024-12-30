@@ -2,13 +2,11 @@ import { withWorkspace } from "@/lib/auth";
 import { tb } from "@/lib/tinybird";
 import z from "@/lib/zod";
 import { usageQuerySchema, usageResponse } from "@/lib/zod/schemas/usage";
-import { getFirstAndLastDay } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 export const GET = withWorkspace(async ({ searchParams, workspace }) => {
-  const { resource, timezone } = usageQuerySchema.parse(searchParams);
-  const { billingCycleStart } = workspace;
-  const { firstDay, lastDay } = getFirstAndLastDay(billingCycleStart);
+  const { resource, start, end, timezone } =
+    usageQuerySchema.parse(searchParams);
 
   const pipe = tb.buildPipe({
     pipe: "v2_usage",
@@ -34,12 +32,8 @@ export const GET = withWorkspace(async ({ searchParams, workspace }) => {
   const response = await pipe({
     resource,
     workspaceId: workspace.id,
-    start: firstDay.toISOString().replace("T", " ").replace("Z", ""),
-    // get end of the day (11:59:59 PM)
-    end: new Date(lastDay.getTime() + 86399999)
-      .toISOString()
-      .replace("T", " ")
-      .replace("Z", ""),
+    start,
+    end,
     timezone,
   });
 

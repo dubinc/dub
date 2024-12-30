@@ -14,6 +14,9 @@ export const getProgramOrThrow = async ({
       id: programId,
       workspaceId,
     },
+    include: {
+      discounts: true,
+    },
   });
 
   if (!program) {

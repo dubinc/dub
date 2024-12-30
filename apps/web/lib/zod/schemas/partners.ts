@@ -7,6 +7,7 @@ import {
 import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
 import { CustomerSchema } from "./customers";
+import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { ProgramEnrollmentSchema } from "./programs";
 import { parseDateSchema } from "./utils";
@@ -50,6 +51,7 @@ export const PartnerSchema = z.object({
   bio: z.string().nullable(),
   status: z.nativeEnum(PartnerStatus),
   stripeConnectId: z.string().nullable(),
+  couponId: z.string().nullish(),
   payoutsEnabled: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -65,6 +67,26 @@ export const EnrolledPartnerSchema = PartnerSchema.omit({
   .extend({
     earnings: z.number(),
   });
+
+export const LeaderboardPartnerSchema = z.object({
+  partner: z.object({
+    id: z.string(),
+    name: z.string().transform((name) => {
+      const parts = name.trim().split(/\s+/);
+      if (parts.length < 2) return name; // Return original if single word
+      const firstName = parts[0];
+      const lastInitial = parts[parts.length - 1][0];
+      return `${firstName} ${lastInitial}.`;
+    }),
+  }),
+  link: LinkSchema.pick({
+    shortLink: true,
+    clicks: true,
+    leads: true,
+    sales: true,
+    saleAmount: true,
+  }),
+});
 
 export const SaleSchema = z.object({
   id: z.string(),

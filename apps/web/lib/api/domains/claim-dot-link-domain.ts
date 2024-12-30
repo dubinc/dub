@@ -58,14 +58,6 @@ export async function claimDotLinkDomain({
     }),
   ]);
 
-  // if for some reason the domain is already registered, we should fail
-  if (response.RegisterResponse.Error) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: response.RegisterResponse.Error,
-    });
-  }
-
   // if the domain was added to a different workspace but is not verified
   // we should remove it to free up the domain for the current workspace
   if (matchingUnverifiedDomain) {
