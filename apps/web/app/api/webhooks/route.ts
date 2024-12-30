@@ -1,13 +1,19 @@
 import { DubApiError } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
-import { createId, parseRequestBody } from "@/lib/api/utils";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { webhookCache } from "@/lib/webhook/cache";
-import { WEBHOOK_ID_PREFIX } from "@/lib/webhook/constants";
+import { createWebhook } from "@/lib/webhook/create-webhook";
 import { transformWebhook } from "@/lib/webhook/transform";
-import { isLinkLevelWebhook } from "@/lib/webhook/utils";
+import { toggleWebhooksForWorkspace } from "@/lib/webhook/update-webhook";
+import {
+  identifyWebhookReceiver,
+  isLinkLevelWebhook,
+} from "@/lib/webhook/utils";
 import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { prisma } from "@dub/prisma";
+import { WebhookReceiver } from "@dub/prisma/client";
+import { ZAPIER_INTEGRATION_ID } from "@dub/utils/src/constants";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
 import WebhookAdded from "emails/webhook-added";
@@ -26,14 +32,23 @@ export const GET = withWorkspace(
         url: true,
         secret: true,
         triggers: true,
+        disabledAt: true,
         links: true,
+        receiver: true,
+        installationId: true,
       },
       orderBy: {
         updatedAt: "desc",
       },
     });
 
-    return NextResponse.json(webhooks.map(transformWebhook));
+    // Make sure the user webhook is always at the top
+    const sortedWebhooks = webhooks.sort(
+      (a, b) =>
+        (b.receiver === "user" ? 1 : 0) - (a.receiver === "user" ? 1 : 0),
+    );
+
+    return NextResponse.json(sortedWebhooks.map(transformWebhook));
   },
   {
     requiredPermissions: ["webhooks.read"],
@@ -51,7 +66,7 @@ export const GET = withWorkspace(
 // POST /api/webhooks/ - create a new webhook
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
-    const { name, url, secret, triggers, linkIds } = createWebhookSchema.parse(
+    const { name, url, triggers, linkIds, secret } = createWebhookSchema.parse(
       await parseRequestBody(req),
     );
 
@@ -89,44 +104,32 @@ export const POST = withWorkspace(
       }
     }
 
-    const webhook = await prisma.webhook.create({
-      data: {
-        id: createId({ prefix: WEBHOOK_ID_PREFIX }),
-        name,
-        url,
-        secret,
-        triggers,
-        projectId: workspace.id,
-        receiver: "user",
-        links: {
-          ...(linkIds &&
-            linkIds.length > 0 && {
-              create: linkIds.map((linkId) => ({
-                linkId,
-              })),
-            }),
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        url: true,
-        secret: true,
-        triggers: true,
-        links: true,
-      },
-    });
+    // Zapier use this endpoint to create webhooks from their app
+    const isZapierWebhook =
+      identifyWebhookReceiver(url) === WebhookReceiver.zapier;
 
-    if (webhook) {
-      await prisma.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          webhookEnabled: true,
-        },
-      });
-    }
+    const zapierInstallation = isZapierWebhook
+      ? await prisma.installedIntegration.findFirst({
+          where: {
+            projectId: workspace.id,
+            integrationId: ZAPIER_INTEGRATION_ID,
+          },
+          select: {
+            id: true,
+          },
+        })
+      : undefined;
+
+    const webhook = await createWebhook({
+      name,
+      url,
+      receiver: isZapierWebhook ? WebhookReceiver.zapier : WebhookReceiver.user,
+      triggers,
+      linkIds,
+      secret,
+      workspaceId: workspace.id,
+      installationId: zapierInstallation ? zapierInstallation.id : undefined,
+    });
 
     waitUntil(
       (async () => {
@@ -144,11 +147,10 @@ export const POST = withWorkspace(
           },
         });
 
-        Promise.all([
-          ...(links && links.length > 0 ? [linkCache.mset(links), []] : []),
-
-          ...(isLinkLevelWebhook(webhook) ? [webhookCache.set(webhook)] : []),
-
+        Promise.allSettled([
+          toggleWebhooksForWorkspace({
+            workspaceId: workspace.id,
+          }),
           sendEmail({
             email: session.user.email,
             subject: "New webhook added",
@@ -163,6 +165,9 @@ export const POST = withWorkspace(
               },
             }),
           }),
+          ...(links && links.length > 0 ? [linkCache.mset(links), []] : []),
+
+          ...(isLinkLevelWebhook(webhook) ? [webhookCache.set(webhook)] : []),
         ]);
       })(),
     );
