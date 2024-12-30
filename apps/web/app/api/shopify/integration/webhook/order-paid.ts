@@ -2,20 +2,17 @@ import { qstash } from "@/lib/cron";
 import { redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 
-// TODO:
-// Instead of checkout_token, maybe use order_number or checkout_id
-
 export async function orderPaid({
-  order,
+  body,
   workspaceId,
 }: {
-  order: any;
+  body: any;
   workspaceId: string;
 }) {
-  const checkoutToken = order.checkout_token;
+  const checkoutToken = body.checkout_token;
 
   await redis.hset(`shopify:checkout:${checkoutToken}`, {
-    order,
+    order: body,
   });
 
   await qstash.publishJSON({
