@@ -1,6 +1,6 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { createSaleData } from "@/lib/api/sales/sale";
+import { createSaleData } from "@/lib/api/sales/create-sale-data";
 import { createId } from "@/lib/api/utils";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { generateRandomName } from "@/lib/names";
@@ -270,33 +270,39 @@ const createSale = async ({
 
   // for program links
   if (link.programId) {
-    const { program, partner } =
+    const { program, partnerId, commissionAmount } =
       await prisma.programEnrollment.findUniqueOrThrow({
         where: {
           linkId,
         },
         select: {
           program: true,
-          partner: {
-            select: {
-              id: true,
-            },
-          },
+          partnerId: true,
+          commissionAmount: true,
         },
       });
 
     const saleRecord = createSaleData({
-      customerId,
-      linkId,
-      clickId,
-      invoiceId,
-      eventId,
-      paymentProcessor,
-      amount,
-      currency,
-      partnerId: partner.id,
       program,
-      metadata: order,
+      partner: {
+        id: partnerId,
+        commissionAmount,
+      },
+      customer: {
+        id: customerId,
+        linkId,
+        clickId,
+      },
+      sale: {
+        amount,
+        currency,
+        invoiceId,
+        eventId,
+        paymentProcessor,
+      },
+      metadata: {
+        ...order,
+      },
     });
 
     await Promise.allSettled([
@@ -306,7 +312,7 @@ const createSale = async ({
 
       notifyPartnerSale({
         partner: {
-          id: partner.id,
+          id: partnerId,
           referralLink: link.shortLink,
         },
         program,

@@ -2,6 +2,7 @@ import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import crypto from "crypto";
 import { NextResponse } from "next/server";
+import { appUninstalled } from "./app-uninstalled";
 import { customersDataRequest } from "./customers-data-request";
 import { customersRedact } from "./customers-redact";
 import { orderPaid } from "./order-paid";
@@ -11,6 +12,7 @@ const relevantTopics = new Set([
   "orders/paid",
 
   // Mandatory compliance webhooks
+  "app/uninstalled",
   "customers/data_request",
   "customers/redact",
   "shop/redact",
@@ -18,16 +20,15 @@ const relevantTopics = new Set([
 
 // POST /api/shopify/integration/webhook – Listen to Shopify webhook events
 export const POST = async (req: Request) => {
-  const body = await req.json();
+  const data = await req.text();
   const headers = req.headers;
   const topic = headers.get("x-shopify-topic") || "";
   const signature = headers.get("x-shopify-hmac-sha256") || "";
-  const shopDomain = headers.get("x-shopify-shop-domain") || "";
 
   // Verify signature
   const generatedSignature = crypto
     .createHmac("sha256", `${process.env.SHOPIFY_WEBHOOK_SECRET}`)
-    .update(JSON.stringify(body))
+    .update(data, "utf8")
     .digest("base64");
 
   if (generatedSignature !== signature) {
@@ -40,6 +41,9 @@ export const POST = async (req: Request) => {
   if (!relevantTopics.has(topic)) {
     return new Response(`[Shopify] Unsupported topic: ${topic}. Skipping...`);
   }
+
+  const body = JSON.parse(data);
+  const shopDomain = headers.get("x-shopify-shop-domain") || "";
 
   // Find workspace
   const workspace = await prisma.project.findUnique({
@@ -78,6 +82,11 @@ export const POST = async (req: Request) => {
       case "shop/redact":
         await shopRedact({
           body,
+        });
+        break;
+      case "app/uninstalled":
+        await appUninstalled({
+          shopDomain,
         });
         break;
     }
