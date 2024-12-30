@@ -57,45 +57,43 @@ export async function POST(req: Request) {
       return new Response("No jobs found. Skipping...");
     }
 
-    const emailData = yearInReviews
-      .flatMap(
-        ({ workspace, totalClicks, totalLinks, topCountries, topLinks }) =>
-          workspace.users
-            .map(({ user }) => {
-              if (!user.email) {
-                return null;
-              }
+    const emailData = yearInReviews.flatMap(
+      ({ workspace, totalClicks, totalLinks, topCountries, topLinks }) =>
+        workspace.users
+          .map(({ user }) => {
+            if (!user.email) {
+              return null;
+            }
 
-              return {
-                workspaceId: workspace.id,
-                email: {
-                  from: "Steven from Dub.co <steven@ship.dub.co>",
-                  to: user.email,
-                  reply_to: "support@dub.co",
-                  subject: "Dub Year in Review 🎊",
-                  text: "Thank you for your support and here's to another year of your activity on Dub! Here's a look back at your activity in 2024.",
-                  react: DubWrapped({
-                    email: user.email,
-                    workspace: {
-                      logo: workspace.logo,
-                      name: workspace.name,
-                      slug: workspace.slug,
-                    },
-                    stats: {
-                      "Total Links": totalLinks,
-                      "Total Clicks": totalClicks,
-                    },
-                    // @ts-ignore
-                    topLinks,
-                    // @ts-ignore
-                    topCountries,
-                  }),
-                },
-              };
-            })
-            .filter((data) => data !== null),
-      )
-      .filter((data) => data !== null);
+            return {
+              workspaceId: workspace.id,
+              email: {
+                from: "Steven from Dub.co <steven@ship.dub.co>",
+                to: user.email,
+                reply_to: "support@dub.co",
+                subject: "Dub Year in Review 🎊",
+                text: "Thank you for your support and here's to another year of your activity on Dub! Here's a look back at your activity in 2024.",
+                react: DubWrapped({
+                  email: user.email,
+                  workspace: {
+                    logo: workspace.logo,
+                    name: workspace.name,
+                    slug: workspace.slug,
+                  },
+                  stats: {
+                    "Total Links": totalLinks,
+                    "Total Clicks": totalClicks,
+                  },
+                  // @ts-ignore
+                  topLinks,
+                  // @ts-ignore
+                  topCountries,
+                }),
+              },
+            };
+          })
+          .filter((data) => data !== null),
+    );
 
     if (emailData.length === 0) {
       return new Response("No email data found. Skipping...");
@@ -110,6 +108,7 @@ export async function POST(req: Request) {
 
       console.log(
         `📨 Recipients:`,
+        // @ts-ignore
         batch.map((b) => b.email.to),
       );
 
@@ -118,6 +117,7 @@ export async function POST(req: Request) {
       }
 
       const { data, error } = await resend.batch.send(
+        // @ts-ignore
         batch.map((b) => b.email),
       );
 
