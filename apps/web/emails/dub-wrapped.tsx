@@ -78,7 +78,7 @@ export default function DubWrapped({
   workspace: {
     name: string;
     slug: string;
-    logo: string;
+    logo?: string | null;
   };
   stats: {
     "Total Links": number;
@@ -166,7 +166,13 @@ export default function DubWrapped({
             <Section className="my-8 rounded-lg border border-solid border-gray-200 p-2">
               <div className="relative">
                 <div className="absolute inset-0 flex flex-col items-center justify-center pt-4">
-                  <Img src={workspace.logo} height="36" alt={workspace.name} />
+                  {workspace.logo && (
+                    <Img
+                      src={workspace.logo}
+                      height="36"
+                      alt={workspace.name}
+                    />
+                  )}
                   <Text className="mt-1 text-xl font-semibold">
                     {workspace.name}
                   </Text>
@@ -349,7 +355,7 @@ const SectionHeaderBackground = () => {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <g clip-path="url(#clip0_470_90)">
+      <g clipPath="url(#clip0_470_90)">
         <rect width="484" height="111" rx="8" fill="#FAFAFA" />
         <rect x="-10" y="-7" width="42" height="42" stroke="#E5E5E5" />
         <rect x="32" y="-7" width="42" height="42" stroke="#E5E5E5" />
@@ -412,7 +418,7 @@ const SectionHeaderBackground = () => {
           width="563"
           height="285"
           filterUnits="userSpaceOnUse"
-          color-interpolation-filters="sRGB"
+          colorInterpolationFilters="sRGB"
         >
           <feFlood flood-opacity="0" result="BackgroundImageFix" />
           <feBlend
@@ -434,8 +440,8 @@ const SectionHeaderBackground = () => {
           y2="111"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#FAFAFA" stop-opacity="0" />
-          <stop offset="1" stop-color="#FAFAFA" />
+          <stop stopColor="#FAFAFA" stopOpacity="0" />
+          <stop offset="1" stopColor="#FAFAFA" />
         </linearGradient>
         <radialGradient
           id="paint1_angular_470_90"
@@ -445,12 +451,12 @@ const SectionHeaderBackground = () => {
           gradientUnits="userSpaceOnUse"
           gradientTransform="translate(241.5 64.5) rotate(-159.856) scale(84.7412 60.41)"
         >
-          <stop stop-color="#FF0000" />
-          <stop offset="0.275102" stop-color="#EAB308" />
-          <stop offset="0.450298" stop-color="#5CFF80" />
-          <stop offset="0.6" stop-color="#00FFF9" />
-          <stop offset="0.8" stop-color="#3A8BFD" />
-          <stop offset="1" stop-color="#855AFC" />
+          <stop stopColor="#FF0000" />
+          <stop offset="0.275102" stopColor="#EAB308" />
+          <stop offset="0.450298" stopColor="#5CFF80" />
+          <stop offset="0.6" stopColor="#00FFF9" />
+          <stop offset="0.8" stopColor="#3A8BFD" />
+          <stop offset="1" stopColor="#855AFC" />
         </radialGradient>
         <clipPath id="clip0_470_90">
           <rect width="484" height="111" rx="8" fill="white" />

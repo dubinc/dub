@@ -1,6 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
-import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { resend } from "@/lib/resend";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -8,13 +7,17 @@ import DubWrapped from "emails/dub-wrapped";
 
 export const dynamic = "force-dynamic";
 
-const BATCH_SIZE = 1;
+const BATCH_SIZE = 100;
 
 // POST /api/cron/year-in-review
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    await verifyQstashSignature(req, body);
+    // const body = await req.json();
+    // await verifyQstashSignature(req, body);
+
+    if (!resend) {
+      return new Response("Resend not initialized. Skipping...");
+    }
 
     const yearInReviews = await prisma.yearInReview.findMany({
       where: {
@@ -30,87 +33,64 @@ export async function POST(req: Request) {
         totalLinks: true,
         workspace: {
           select: {
+            id: true,
             name: true,
             slug: true,
             logo: true,
+            users: {
+              select: {
+                user: {
+                  select: {
+                    email: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
-      take: BATCH_SIZE,
+      take: 5,
     });
 
     if (yearInReviews.length === 0) {
       return new Response("No jobs found. Skipping...");
     }
 
-    const workspaceUsers = await prisma.projectUsers.findMany({
-      where: {
-        projectId: {
-          in: yearInReviews.map(({ workspaceId }) => workspaceId),
-        },
-        user: {
-          email: {
-            not: null,
-          },
-        },
-      },
-      select: {
-        projectId: true,
-        user: {
-          select: {
-            email: true,
-          },
-        },
-      },
-    });
-
-    const emailData = workspaceUsers
-      .map(({ projectId, user }) => {
-        const yearInReview = yearInReviews.find(
-          ({ workspaceId }) => workspaceId === projectId,
-        );
-
-        const workspace = yearInReview?.workspace;
-
-        if (!workspace || !user.email) {
-          return null;
-        }
-
-        return {
-          workspaceId: projectId,
-          email: {
-            from: "Steven Tey <steven@dub.co>",
-            to: user.email,
-            replyToFromEmail: true,
-            subject: "Dub Year in Review 🎊",
-            text: "Thank you for your support and here's to another year of your activity on Dub! Here's a look back at your activity in 2024.",
-            react: DubWrapped({
-              email: user.email!,
-              workspace: {
-                logo: workspace.logo!,
-                name: workspace.name,
-                slug: workspace.slug,
-              },
-              stats: {
-                "Total Links": yearInReview.totalLinks,
-                "Total Clicks": yearInReview.totalClicks,
-              },
-              // @ts-ignore
-              topLinks: yearInReview.topLinks,
-              // @ts-ignore
-              topCountries: yearInReview.topCountries,
-            }),
-          },
-        };
-      })
-      .filter((data) => data !== null);
+    const emailData = yearInReviews.flatMap(
+      ({ workspace, totalClicks, totalLinks, topCountries, topLinks }) =>
+        workspace.users.map(({ user }) => {
+          return {
+            workspaceId: workspace.id,
+            email: {
+              from: "Steven from Dub.co <steven@ship.dub.co>",
+              // to: user.email!,
+              to: "delivered@resend.dev",
+              replyToFromEmail: true,
+              subject: "Dub Year in Review 🎊",
+              text: "Thank you for your support and here's to another year of your activity on Dub! Here's a look back at your activity in 2024.",
+              react: DubWrapped({
+                email: user.email!,
+                workspace: {
+                  logo: workspace.logo,
+                  name: workspace.name,
+                  slug: workspace.slug,
+                },
+                stats: {
+                  "Total Links": totalLinks,
+                  "Total Clicks": totalClicks,
+                },
+                // @ts-ignore
+                topLinks,
+                // @ts-ignore
+                topCountries,
+              }),
+            },
+          };
+        }),
+    );
 
     if (emailData.length === 0) {
       return new Response("No email data found. Skipping...");
-    }
-
-    if (!resend) {
-      return new Response("Resend not initialized. Skipping...");
     }
 
     for (let i = 0; i < emailData.length; i += BATCH_SIZE) {
@@ -130,7 +110,7 @@ export async function POST(req: Request) {
       }
 
       const { data, error } = await resend.batch.send(
-        batch.map((b) => b?.email),
+        batch.map(({ email }) => email),
       );
 
       console.log("🚀 ~ error:", error);
@@ -144,6 +124,7 @@ export async function POST(req: Request) {
 
     await prisma.yearInReview.updateMany({
       where: {
+        year: 2024,
         workspaceId: {
           in: yearInReviews.map(({ workspaceId }) => workspaceId),
         },
