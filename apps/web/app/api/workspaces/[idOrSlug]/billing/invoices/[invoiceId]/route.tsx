@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
 import {
@@ -23,7 +24,17 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   });
 
   if (invoice.workspaceId !== workspace.id) {
-    return new Response("Unauthorized", { status: 403 });
+    throw new DubApiError({
+      code: "unauthorized",
+      message: "You are not authorized to view this invoice",
+    });
+  }
+
+  if (invoice.status !== "completed") {
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message: "You can download the invoice once it is completed.",
+    });
   }
 
   const pdf = await renderToBuffer(
