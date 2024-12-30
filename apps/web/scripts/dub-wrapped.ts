@@ -48,7 +48,7 @@ async function main() {
           id: "desc",
         },
       },
-      take: 10,
+      take: 20,
     })
     // only get projects with more than 5 links created in 2024
     .then((data) => data.filter(({ _count }) => _count.id > 5));
