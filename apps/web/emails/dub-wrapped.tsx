@@ -95,20 +95,20 @@ export default function DubWrapped({
 }) {
   const dubStats = [
     {
-      item: "125M clicks tracked",
+      item: "126M clicks tracked",
       increase: "+900%",
     },
     {
-      item: "715K links created",
+      item: "700K links created",
       increase: "+400%",
     },
     {
-      item: "65K new users",
-      increase: "+250%",
+      item: "56K new users",
+      increase: "+360%",
     },
     {
-      item: "4.4K domains added",
-      increase: "+400%",
+      item: "5.5K custom domains",
+      increase: "+500%",
     },
   ];
 
@@ -116,7 +116,7 @@ export default function DubWrapped({
     {
       title: "Free .LINK domains on all paid plans",
       description:
-        "We partnered with Nova Registry to offer a <b>1-year free .link domain</b> to all paying Dub customers. By using a custom domain, you get <b>30% higher click-through rates</b>.",
+        "We partnered with Nova Registry to offer a <b>1-year free .link custom domain</b> to all paying Dub customers. By using a custom domain, you get <b>30% higher click-through rates</b> and better brand recognition.",
       image: "https://assets.dub.co/blog/free-dot-link.jpg",
       cta: {
         text: "Read the announcement",
@@ -134,13 +134,13 @@ export default function DubWrapped({
       },
     },
     {
-      title: "Dub Integrations",
+      title: "Dub API General Availability",
       description:
-        "We added integrations with <b>Slack</b>, <b>Notion</b>, <b>Google Sheets</b> and <b>Google Docs</b>. Our API also went GA",
-      image: "https://assets.dub.co/blog/integrations.jpg",
+        "Our Dub API went GA, allowing you to build your powerful integrations with Dub. We also launched native SDKs in 5 different languages: TypeScript, Python, Ruby, PHP, and Go.",
+      image: "https://assets.dub.co/blog/dub-api.jpg",
       cta: {
         text: "Read the announcement",
-        href: "https://dub.co/blog/introducing-dub-integrations",
+        href: "https://dub.co/blog/announcing-dub-api",
       },
     },
   ];
@@ -159,8 +159,8 @@ export default function DubWrapped({
               Dub Year in Review 🎊
             </Heading>
             <Text className="text-sm leading-6 text-black">
-              Thank you for your support and here's to another year of your
-              activity on Dub! Here's a look back at your activity in 2024.
+              As we put a wrap on 2024, we wanted to say thank you for your
+              support! Here's a look back at your activity in 2024:
             </Text>
 
             <Section className="my-8 rounded-lg border border-solid border-gray-200 p-2">
@@ -204,7 +204,7 @@ export default function DubWrapped({
             </Heading>
             <Text className="text-sm leading-6 text-black">
               Thanks to customers like you, we had an incredible year as well,
-              seeing record activity and link clicks.
+              seeing record activity and link clicks:
             </Text>
             {dubStats.map((stat) => (
               <Text
@@ -218,7 +218,7 @@ export default function DubWrapped({
               </Text>
             ))}
             <Img
-              src="https://assets.dub.co/misc/thank-you-thumbnail.jpg"
+              src="https://assets.dub.co/misc/year-in-review-2024.jpg"
               alt="Thank you"
               className="max-w-[500px] rounded-lg"
             />
@@ -229,7 +229,7 @@ export default function DubWrapped({
               What we shipped 🚢
             </Heading>
             <Text className="text-sm leading-6 text-black">
-              Here's a look back at what we shipped in 2024.
+              Here's a rundown of what we shipped in 2024:
             </Text>
 
             {shippedItems.map((item) => (
@@ -266,7 +266,7 @@ export default function DubWrapped({
               className="max-w-[200px]"
             />
             <Text className="text-sm leading-6 text-black">
-              and everyone at the Dub team 🎄
+              and the Dub team 🎄
             </Text>
 
             <Footer email={email} marketing />
@@ -285,7 +285,7 @@ const StatCard = ({
   value: number | string;
 }) => {
   return (
-    <div>
+    <div className="text-center">
       <Text className="font-medium text-gray-400">{title}</Text>
       <Text className="-mt-3 text-lg font-medium text-black">
         {typeof value === "number" ? nFormatter(value, { full: true }) : value}
