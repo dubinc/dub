@@ -50,8 +50,8 @@ async function main() {
       },
       take: 20,
     })
-    // only get projects with more than 5 links created in 2024
-    .then((data) => data.filter(({ _count }) => _count.id > 5));
+    // only get projects with at least 5 links created in 2024
+    .then((data) => data.filter(({ _count }) => _count.id >= 5));
 
   const payloads = await Promise.all(
     data.map(async ({ projectId, _count, _sum }) => {
@@ -95,4 +95,5 @@ async function main() {
   });
 }
 
+// watch -n 10 npm run script dub-wrapped
 main();

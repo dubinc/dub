@@ -108,8 +108,7 @@ export async function POST(req: Request) {
 
       console.log(
         `📨 Recipients:`,
-        // @ts-ignore
-        batch.map(({ email }) => email.to),
+        batch.map((b) => b.email.to),
       );
 
       if (batch.length === 0) {
@@ -117,7 +116,7 @@ export async function POST(req: Request) {
       }
 
       const { data, error } = await resend.batch.send(
-        batch.map(({ email }) => email),
+        batch.map((b) => b.email),
       );
 
       console.log("🚀 ~ data:", data);
