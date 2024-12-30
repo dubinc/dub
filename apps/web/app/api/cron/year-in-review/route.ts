@@ -108,6 +108,7 @@ export async function POST(req: Request) {
 
       console.log(
         `📨 Recipients:`,
+        // @ts-ignore
         batch.map(({ email }) => email.to),
       );
 
