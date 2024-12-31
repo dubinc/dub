@@ -37,7 +37,26 @@ export async function orderPaid({
     return;
   }
 
-  // if no customer is found, wait for the Pixel event to come in so that we can decide if the order is from a Dub link or not
+  // Check the cache to see the pixel event for this checkout token exist before publishing the event to the queue
+  const clickId = await redis.hget<string>(
+    `shopify:checkout:${checkoutToken}`,
+    "clickId",
+  );
+
+  // clickId is found, process the order for the new customer
+  if (clickId) {
+    await processOrder({
+      event,
+      workspaceId,
+      clickId,
+    });
+
+    await redis.del(`shopify:checkout:${checkoutToken}`);
+
+    return;
+  }
+
+  // Wait for the pixel event to come in so that we can decide if the order is from a Dub link or not
   await redis.hset(`shopify:checkout:${checkoutToken}`, {
     order: event,
   });
