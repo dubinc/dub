@@ -98,7 +98,7 @@ async function createSale({
   const eventId = nanoid(16);
   const paymentProcessor = "shopify";
 
-  const amount = Number(orderData.total_price) * 100;
+  const amount = Number(orderData.subtotal_price) * 100;
   const currency = orderData.currency;
   const invoiceId = orderData.confirmation_number;
 
