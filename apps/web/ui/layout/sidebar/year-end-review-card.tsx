@@ -25,7 +25,7 @@ export function YearEndReviewCard() {
           Dub 2024 Year in Review 🎊
         </span>
         <p className="line-clamp-2 h-10 leading-5 text-neutral-500">
-          As we put a bow on 2024, we want to say thank you for your support!
+          As we put a wrap on 2024, we want to say thank you for your support!
         </p>
       </div>
       <div className="relative mt-3 aspect-[16/9] w-full shrink-0 overflow-hidden rounded border border-neutral-200 bg-neutral-100">

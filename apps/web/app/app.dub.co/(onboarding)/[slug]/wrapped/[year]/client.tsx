@@ -37,9 +37,9 @@ export default function WrappedPageClient() {
   return (
     <div className="relative mx-auto my-10 max-w-lg px-4 sm:px-8">
       <h1 className="animate-slide-up-fade font-display mx-0 mb-4 mt-8 p-0 text-center text-xl font-semibold text-black [animation-delay:150ms] [animation-duration:1s] [animation-fill-mode:both]">
-        Dub {year} Year in Review 🎊
+        {year} Year in Review 🎊
       </h1>
-      <p className="animate-slide-up-fade text-center text-sm leading-6 text-black [animation-delay:300ms] [animation-duration:1s] [animation-fill-mode:both]">
+      <p className="animate-slide-up-fade text-balance text-center text-sm leading-6 text-black [animation-delay:300ms] [animation-duration:1s] [animation-fill-mode:both]">
         As we put a wrap on {year}, we wanted to say thank you for your support!
         Here's a look back at your activity in {year}:
       </p>
