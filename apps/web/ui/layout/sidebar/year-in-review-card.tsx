@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export function YearEndReviewCard() {
+export function YearInReviewCard() {
   const pathname = usePathname();
   const { slug, yearInReview } = useWorkspace();
 
@@ -36,7 +36,7 @@ export function YearEndReviewCard() {
           )}
         />
         <Image
-          src="https://assets.dub.co/misc/dub-confetti.jpg"
+          src="https://assets.dub.co/blog/2024.jpg"
           alt="Dub logo with confetti"
           fill
           sizes="10vw"

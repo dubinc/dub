@@ -2,7 +2,7 @@ import { MainNav } from "@/ui/layout/main-nav";
 import { AppSidebarNav } from "@/ui/layout/sidebar/app-sidebar-nav";
 import { HelpButtonRSC } from "@/ui/layout/sidebar/help-button-rsc";
 import { ReferButton } from "@/ui/layout/sidebar/refer-button";
-import { YearEndReviewCard } from "@/ui/layout/sidebar/year-end-review-card";
+import { YearInReviewCard } from "@/ui/layout/sidebar/year-in-review-card";
 import Toolbar from "@/ui/layout/toolbar/toolbar";
 import { constructMetadata } from "@dub/utils";
 import { ReactNode } from "react";
@@ -22,7 +22,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
               <HelpButtonRSC />
             </>
           }
-          newsContent={<YearEndReviewCard />}
+          newsContent={<YearInReviewCard />}
         >
           {children}
         </MainNav>
