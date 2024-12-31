@@ -42,7 +42,7 @@ export const POST = async (req: Request) => {
     return new Response(`[Shopify] Unsupported topic: ${topic}. Skipping...`);
   }
 
-  const body = JSON.parse(data);
+  const event = JSON.parse(data);
   const shopDomain = headers.get("x-shopify-shop-domain") || "";
 
   // Find workspace
@@ -65,23 +65,23 @@ export const POST = async (req: Request) => {
     switch (topic) {
       case "orders/paid":
         await orderPaid({
-          body,
+          event,
           workspaceId: workspace.id,
         });
         break;
       case "customers/data_request":
         await customersDataRequest({
-          body,
+          event,
         });
         break;
       case "customers/redact":
         await customersRedact({
-          body,
+          event,
         });
         break;
       case "shop/redact":
         await shopRedact({
-          body,
+          event,
         });
         break;
       case "app/uninstalled":

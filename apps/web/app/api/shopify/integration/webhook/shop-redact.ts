@@ -6,8 +6,8 @@ const schema = z.object({
   shop_domain: z.string(),
 });
 
-export async function shopRedact({ body }: { body: any }) {
-  const { shop_domain: shopDomain } = schema.parse(body);
+export async function shopRedact({ event }: { event: any }) {
+  const { shop_domain: shopDomain } = schema.parse(event);
 
   waitUntil(
     sendEmail({

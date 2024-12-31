@@ -12,12 +12,12 @@ const schema = z.object({
   }),
 });
 
-export async function customersRedact({ body }: { body: any }) {
+export async function customersRedact({ event }: { event: any }) {
   const {
     customer,
     shop_domain: shopDomain,
     orders_to_redact: ordersToRedact,
-  } = schema.parse(body);
+  } = schema.parse(event);
 
   waitUntil(
     sendEmail({

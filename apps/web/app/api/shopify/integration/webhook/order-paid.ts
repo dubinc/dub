@@ -1,23 +1,45 @@
 import { qstash } from "@/lib/cron";
+import { processOrder } from "@/lib/integrations/shopify/process-order";
+import { orderSchema } from "@/lib/integrations/shopify/schema";
 import { redis } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { z } from "zod";
-
-const schema = z.object({
-  checkout_token: z.string(),
-});
 
 export async function orderPaid({
-  body,
+  event,
   workspaceId,
 }: {
-  body: any;
+  event: any;
   workspaceId: string;
 }) {
-  const { checkout_token: checkoutToken } = schema.parse(body);
+  const {
+    customer: { id: externalId },
+    checkout_token: checkoutToken,
+  } = orderSchema.parse(event);
 
+  const customer = await prisma.customer.findUnique({
+    where: {
+      projectId_externalId: {
+        projectId: workspaceId,
+        externalId: externalId.toString(),
+      },
+    },
+  });
+
+  // customer is found, process the order right away
+  if (customer) {
+    await processOrder({
+      event,
+      workspaceId,
+      customerId: customer.id,
+    });
+
+    return;
+  }
+
+  // if no customer is found, wait for the Pixel event to come in so that we can decide if the order is from a Dub link or not
   await redis.hset(`shopify:checkout:${checkoutToken}`, {
-    order: body,
+    order: event,
   });
 
   await qstash.publishJSON({
@@ -26,7 +48,7 @@ export async function orderPaid({
       checkoutToken,
       workspaceId,
     },
-    retries: 3,
+    retries: 5,
     delay: 3,
   });
 }
