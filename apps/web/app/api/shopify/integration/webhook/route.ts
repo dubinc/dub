@@ -32,7 +32,7 @@ export const POST = async (req: Request) => {
     .digest("base64");
 
   if (generatedSignature !== signature) {
-    return new Response(`[Shopify] Invalid signature. Skipping...`, {
+    return new Response(`[Shopify] Invalid webhook signature. Skipping...`, {
       status: 401,
     });
   }
@@ -97,7 +97,7 @@ export const POST = async (req: Request) => {
     });
 
     return new Response(
-      `[Shopify] Webhook error: "Webhook handler failed. View logs."`,
+      `[Shopify] Webhook handler failed. View logs`,
     );
   }
 
