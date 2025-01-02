@@ -6,8 +6,10 @@ import {
 import usePayouts from "@/lib/swr/use-payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { X } from "@/ui/shared/icons";
+import { Payout } from "@dub/prisma/client";
 import { Button, Sheet, Table, useRouterStuff, useTable } from "@dub/ui";
 import { cn, currencyFormatter, DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { Row } from "@tanstack/react-table";
 import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
@@ -20,6 +22,7 @@ interface PayoutInvoiceSheetProps {
 function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   const { id: workspaceId, slug } = useWorkspace();
   const { programId } = useParams<{ programId: string }>();
+  const [selectedPayouts, setSelectedPayouts] = useState<Payout[]>([]);
 
   const {
     payouts,
@@ -52,7 +55,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         (payout) =>
           payout.partner.payoutsEnabled && payout.amount >= MIN_PAYOUT_AMOUNT,
       ),
-    [payouts],
+    [ payouts],
   );
 
   const invoiceData = useMemo(() => {
@@ -99,6 +102,27 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     data: pendingPayouts || [],
     columns: [
       {
+        id: "selection",
+        header: ({ table }) => (
+          <input
+            type="checkbox"
+            className="h-4 w-4 cursor-pointer rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
+            checked={table.getIsAllRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type="checkbox"
+            className="h-4 w-4 cursor-pointer rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
+            checked={row.getIsSelected()}
+            onChange={row.getToggleSelectedHandler()}
+          />
+        ),
+        minSize: 10,
+        size: 30,
+      },
+      {
         header: "Partner",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
@@ -136,6 +160,9 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     error: payoutsError
       ? "Failed to load payouts for this invoice."
       : undefined,
+    onRowSelectionChange: (rows) => {
+      setSelectedPayouts(rows.map((row) => row.original));
+    },
   } as any);
 
   return (
