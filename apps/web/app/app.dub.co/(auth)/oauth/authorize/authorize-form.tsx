@@ -179,7 +179,7 @@ export const AuthorizeForm = ({
                 ? "Please select a workspace to continue"
                 : missingScopes.length > 0
                   ? "You don't have the permission to install this integration"
-                  : ""
+                  : undefined
             }
           />
         </div>
