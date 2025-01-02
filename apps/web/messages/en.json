@@ -1,0 +1,32 @@
+{
+  "AppSidebarNav": {
+    "links": "Links",
+    "analytics": "Analytics",
+    "events": "Events",
+    "settings": "Settings",
+    "workspace": "Workspace",
+    "general": "General",
+    "billing": "Billing",
+    "domains": "Domains",
+    "library": "Library",
+    "people": "People",
+    "integrations": "Integrations",
+    "security": "Security",
+    "developer": "Developer",
+    "apiKeys": "API Keys",
+    "oauthApps": "OAuth Apps",
+    "webhooks": "Webhooks",
+    "notifications": "Notifications",
+    "programs": "Programs",
+    "affiliate": "Affiliate",
+    "overview": "Overview",
+    "partners": "Partners",
+    "sales": "Sales",
+    "payouts": "Payouts",
+    "branding": "Branding",
+    "resources": "Resources",
+    "configuration": "Configuration",
+    "account": "Account",
+    "referrals": "Referrals"
+  }
+}
