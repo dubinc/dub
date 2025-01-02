@@ -11,6 +11,7 @@ model Project {
   paymentFailedAt   DateTime?
   stripeConnectId   String?   @unique // for Stripe Integration
   payoutMethodId    String? // for Stripe Connect payouts
+  shopifyStoreId    String?   @unique // for Shopify Integration
 
   usage        Int @default(0)
   usageLimit   Int @default(1000)

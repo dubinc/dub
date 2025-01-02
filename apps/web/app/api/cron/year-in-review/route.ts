@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 const BATCH_SIZE = 100;
 
 // POST /api/cron/year-in-review
-export async function POST(req: Request) {
+export async function POST() {
   try {
     if (process.env.VERCEL === "1") {
       return new Response("Not available in production.");
