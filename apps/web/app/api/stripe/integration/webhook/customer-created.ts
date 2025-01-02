@@ -41,10 +41,12 @@ export async function customerCreated(event: Stripe.Event) {
 
   // Check the customer is not already created
   // Find customer using projectConnectId and externalId (the customer's ID in the client app)
-  const customerFound = await prisma.customer.findFirst({
+  const customerFound = await prisma.customer.findUnique({
     where: {
-      projectConnectId: stripeAccountId,
-      externalId,
+      projectConnectId_externalId: {
+        projectConnectId: stripeAccountId,
+        externalId,
+      },
     },
   });
 
