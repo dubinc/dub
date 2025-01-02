@@ -1,4 +1,5 @@
 import { nFormatter } from "../functions";
+import { INFINITY_NUMBER } from "./misc";
 
 export type PlanFeature = {
   id?: string;
@@ -44,7 +45,7 @@ const BUSINESS_PLAN_MODIFIER = ({
     clicks,
     conversions,
     domains,
-    tags: 1000000000,
+    tags: INFINITY_NUMBER,
     users,
     ai: 1000,
     api: 3000,

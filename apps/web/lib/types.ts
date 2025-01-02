@@ -9,6 +9,7 @@ import {
   SaleStatus,
   UtmTemplate,
   Webhook,
+  YearInReview,
 } from "@dub/prisma/client";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import { clickEventResponseSchema } from "./zod/schemas/clicks";
@@ -18,6 +19,7 @@ import {
   CustomerSchema,
 } from "./zod/schemas/customers";
 import { dashboardSchema } from "./zod/schemas/dashboard";
+import { DiscountSchema } from "./zod/schemas/discount";
 import { integrationSchema } from "./zod/schemas/integration";
 import { InvoiceSchema } from "./zod/schemas/invoices";
 import {
@@ -138,6 +140,7 @@ export type ExpandedWorkspaceProps = WorkspaceProps & {
     id: string;
     name: string;
   }[];
+  yearInReview: YearInReview | null;
 };
 
 export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;
@@ -339,6 +342,8 @@ export type CustomerProps = z.infer<typeof CustomerSchema>;
 export type PartnerProps = z.infer<typeof PartnerSchema>;
 
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
+
+export type DiscountProps = z.infer<typeof DiscountSchema>;
 
 export type ProgramProps = z.infer<typeof ProgramSchema>;
 

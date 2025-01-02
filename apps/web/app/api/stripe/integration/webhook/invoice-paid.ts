@@ -1,5 +1,5 @@
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { createSaleData } from "@/lib/api/sales/sale";
+import { createSaleData } from "@/lib/api/sales/create-sale-data";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -111,32 +111,36 @@ export async function invoicePaid(event: Stripe.Event) {
 
   // for program links
   if (link.programId) {
-    const { program, partner } =
+    const { program, partnerId, commissionAmount } =
       await prisma.programEnrollment.findUniqueOrThrow({
         where: {
           linkId: link.id,
         },
         select: {
           program: true,
-          partner: {
-            select: {
-              id: true,
-            },
-          },
+          partnerId: true,
+          commissionAmount: true,
         },
       });
 
     const saleRecord = createSaleData({
-      customerId: saleData.customer_id,
-      linkId: saleData.link_id,
-      clickId: saleData.click_id,
-      invoiceId: saleData.invoice_id,
-      eventId: saleData.event_id,
-      paymentProcessor: saleData.payment_processor,
-      amount: saleData.amount,
-      currency: saleData.currency,
-      partnerId: partner.id,
       program,
+      partner: {
+        id: partnerId,
+        commissionAmount,
+      },
+      customer: {
+        id: saleData.customer_id,
+        linkId: saleData.link_id,
+        clickId: saleData.click_id,
+      },
+      sale: {
+        invoiceId: saleData.invoice_id,
+        eventId: saleData.event_id,
+        paymentProcessor: saleData.payment_processor,
+        amount: saleData.amount,
+        currency: saleData.currency,
+      },
       metadata: {
         ...leadEvent.data[0],
         stripeMetadata: invoice,
@@ -150,7 +154,7 @@ export async function invoicePaid(event: Stripe.Event) {
     waitUntil(
       notifyPartnerSale({
         partner: {
-          id: partner.id,
+          id: partnerId,
           referralLink: link.shortLink,
         },
         program,

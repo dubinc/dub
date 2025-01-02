@@ -1,4 +1,5 @@
 import z from "@/lib/zod";
+import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 
@@ -44,6 +45,15 @@ export const CustomerSchema = z.object({
     shortLink: true,
     programId: true,
   }).nullish(),
+  partner: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      email: z.string(),
+      image: z.string().nullish(),
+    })
+    .nullish(),
+  discount: DiscountSchema.nullish(),
 });
 
 export const CUSTOMERS_MAX_PAGE_SIZE = 100;
@@ -58,13 +68,6 @@ export const customersQuerySchema = z
       .describe("IDs of customers to filter by."),
   })
   .merge(getPaginationQuerySchema({ pageSize: CUSTOMERS_MAX_PAGE_SIZE }));
-
-export const customerEventsSchemaTB = z.object({
-  timestamp: z.string(),
-  event: z.string(),
-  event_name: z.string(),
-  metadata: z.string().default(""),
-});
 
 export const customerActivitySchema = z.object({
   timestamp: z.date(),

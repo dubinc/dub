@@ -1,6 +1,6 @@
 "use server";
 
-import { getProgramOrThrow } from "@/lib/api/programs/get-program";
+import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { createId } from "@/lib/api/utils";
 import {
   DUB_PARTNERS_PAYOUT_FEE,

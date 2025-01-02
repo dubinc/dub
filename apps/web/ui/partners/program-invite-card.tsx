@@ -52,6 +52,7 @@ export function ProgramInviteCard({
         <p className="text-balance text-xs text-neutral-600">
           <ProgramCommissionDescription
             program={invite.program}
+            discount={invite.program.discounts?.[0]}
             amountClassName="font-light"
             periodClassName="font-light"
           />

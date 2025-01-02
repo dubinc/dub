@@ -94,7 +94,7 @@ function ProgramCardEarnings({ program }: { program: ProgramProps }) {
   const { data: timeseries } = usePartnerAnalytics({
     programId: program.id,
     groupBy: "timeseries",
-    interval: "30d",
+    interval: "1y",
   });
 
   const chartData = useMemo(

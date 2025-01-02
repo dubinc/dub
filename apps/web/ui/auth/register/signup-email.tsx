@@ -4,7 +4,6 @@ import { sendOtpAction } from "@/lib/actions/send-otp";
 import z from "@/lib/zod";
 import { signUpSchema } from "@/lib/zod/schemas/auth";
 import { Button, Input } from "@dub/ui";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -20,9 +19,7 @@ export const SignUpEmail = () => {
     handleSubmit,
     formState: { errors },
     getValues,
-  } = useForm<SignUpProps>({
-    resolver: zodResolver(signUpSchema),
-  });
+  } = useForm<SignUpProps>();
 
   const { executeAsync, isExecuting } = useAction(sendOtpAction, {
     onSuccess: () => {
