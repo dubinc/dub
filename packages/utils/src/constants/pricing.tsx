@@ -32,7 +32,7 @@ const BUSINESS_PLAN_MODIFIER = ({
   ids: string[];
 }) => ({
   name,
-  tagline: "For larger teams with increased usage",
+  tagline: "For growing teams and groups who need advanced features ",
   link: "https://dub.co/help/article/business-plan",
   price: {
     monthly,
@@ -57,7 +57,7 @@ const BUSINESS_PLAN_MODIFIER = ({
     text: "Get started with Business",
     shortText: "Get Business",
     href: "https://app.dub.co/register",
-    color: "bg-black hover:bg-gray-800 hover:ring-gray-200",
+    color: "bg-sky-900 hover:bg-sky-800 hover:ring-sky-100",
   },
   featureTitle: "Everything in Pro, plus:",
   features: [
@@ -76,16 +76,6 @@ const BUSINESS_PLAN_MODIFIER = ({
     {
       id: "retention",
       text: "3-year analytics retention",
-    },
-    {
-      id: "tags",
-      text: "Unlimited tags",
-      footnote: {
-        title:
-          "Use tags to organize your links and filter by them in your analytics dashboard.",
-        cta: "Learn more.",
-        href: "https://d.to/tags",
-      },
     },
     {
       id: "domains",
@@ -121,7 +111,7 @@ const BUSINESS_PLAN_MODIFIER = ({
 export const PLANS = [
   {
     name: "Free",
-    tagline: "For hobby & side projects",
+    tagline: "For individuals or teams of one getting started with Dub",
     price: {
       monthly: 0,
       yearly: 0,
@@ -142,7 +132,8 @@ export const PLANS = [
     cta: {
       text: "Start for free",
       href: "https://app.dub.co/register",
-      color: "bg-black hover:bg-gray-800 hover:ring-gray-200",
+      color:
+        "bg-white hover:bg-gray-50 border border-gray-200 hover:ring-gray-100 text-neutral-800",
     },
     featureTitle: "What's included:",
     features: [
@@ -179,7 +170,7 @@ export const PLANS = [
   },
   {
     name: "Pro",
-    tagline: "For startups & small businesses",
+    tagline: "For content creators or smaller teams looking for more tracking",
     link: "https://dub.co/help/article/pro-plan",
     price: {
       monthly: 24,
@@ -210,7 +201,7 @@ export const PLANS = [
       text: "Get started with Pro",
       shortText: "Get Pro",
       href: "https://app.dub.co/register",
-      color: "bg-blue-600 hover:bg-blue-700 hover:ring-blue-100",
+      color: "bg-black hover:bg-neutral-800 hover:ring-gray-200",
     },
     featureTitle: "Everything in Free, plus:",
     features: [
@@ -326,8 +317,7 @@ export const PLANS = [
   }),
   {
     name: "Enterprise",
-    tagline:
-      "Custom tailored plans for large enterprises. Whether you're running a SMS campaign with millions of short links or a large marketing campaign with billions of clicks, we've got you covered.",
+    tagline: "For organizations that require governance and scale",
     link: "https://dub.co/enterprise",
     price: {
       monthly: null,
@@ -350,7 +340,7 @@ export const PLANS = [
       text: "Contact us",
       href: "/enterprise",
       color:
-        "bg-gradient-to-r from-violet-600 to-pink-600 hover:ring-violet-100",
+        "bg-white hover:bg-gray-50 border border-gray-200 hover:ring-gray-100 text-neutral-800",
     },
     featureTitle: "Everything in Business, plus:",
     features: [
