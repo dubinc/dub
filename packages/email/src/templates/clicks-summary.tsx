@@ -142,7 +142,7 @@ export function ClicksSummary({
                             align="right"
                             className="text-sm text-gray-600"
                           >
-                            {nFormatter(clicks)}
+                            {nFormatter(clicks, { full: clicks < 99999 })}
                           </Column>
                         </Row>
                         {index !== topLinks.length - 1 && (

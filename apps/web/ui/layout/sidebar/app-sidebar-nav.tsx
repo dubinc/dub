@@ -106,7 +106,7 @@ const NAV_AREAS: SidebarNavAreas<{
                       href: `/${slug}/programs/${programs[0].id}/resources`,
                     },
                     {
-                      name: "Settings",
+                      name: "Configuration",
                       href: `/${slug}/programs/${programs[0].id}/settings`,
                     },
                   ],
