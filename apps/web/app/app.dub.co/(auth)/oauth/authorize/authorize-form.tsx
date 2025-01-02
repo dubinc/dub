@@ -1,5 +1,6 @@
 "use client";
 
+import { consolidateScopes, getScopesForRole } from "@/lib/api/tokens/scopes";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import z from "@/lib/zod";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
@@ -32,6 +33,9 @@ export const AuthorizeForm = ({
   const [selectedWorkspace, setSelectedWorkspace] =
     useState<InputSelectItemProps | null>(null);
 
+  // missing scopes for the user's role on the workspace selected
+  const [missingScopes, setMissingScopes] = useState<string[]>([]);
+
   const selectOptions = useMemo(() => {
     return workspaces
       ? workspaces.map((workspace) => ({
@@ -49,6 +53,29 @@ export const AuthorizeForm = ({
       ) || null,
     );
   }, [selectOptions, session]);
+
+  // Check if the user has the required scopes for the workspace selected
+  useEffect(() => {
+    if (!selectedWorkspace) {
+      return;
+    }
+
+    const workspace = workspaces?.find(
+      (workspace) => workspace.slug === selectedWorkspace.id,
+    );
+
+    if (!workspace) {
+      return;
+    }
+
+    const userRole = workspace.users[0].role;
+    const scopesForRole = getScopesForRole(userRole);
+    const scopesMissing = consolidateScopes(scope).filter(
+      (scope) => !scopesForRole.includes(scope) && scope !== "user.read",
+    );
+
+    setMissingScopes(scopesMissing);
+  }, [selectedWorkspace]);
 
   // Decline the request
   const onDecline = () => {
@@ -148,7 +175,11 @@ export const AuthorizeForm = ({
             loading={submitting}
             disabled={!selectedWorkspace}
             disabledTooltip={
-              !selectedWorkspace ? "Please select a workspace to continue" : ""
+              !selectedWorkspace
+                ? "Please select a workspace to continue"
+                : missingScopes.length > 0
+                  ? "You don't have the permission to install this integration"
+                  : ""
             }
           />
         </div>
