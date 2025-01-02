@@ -33,6 +33,7 @@
     "@prisma/nextjs-monorepo-workaround-plugin": "^6.0.1",
     "@radix-ui/react-hover-card": "^1.1.1",
     "@react-email/components": "^0.0.22",
+    "@react-pdf/renderer": "^4.1.5",
     "@sindresorhus/slugify": "^2.2.1",
     "@splinetool/react-spline": "^2.2.6",
     "@splinetool/runtime": "^1.2.8",
