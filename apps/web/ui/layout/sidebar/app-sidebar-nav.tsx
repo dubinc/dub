@@ -42,7 +42,7 @@ const NAV_AREAS: SidebarNavAreas<{
 }> = {
   // Top-level
   default: ({ slug, queryString, programs }) => {
-    const t = useTranslations("AppSidebarNav");
+    const t = useTranslations();
 
     return {
       showSwitcher: true,
@@ -125,7 +125,7 @@ const NAV_AREAS: SidebarNavAreas<{
 
   // Workspace settings
   workspaceSettings: ({ slug, flags }) => {
-    const t = useTranslations("AppSidebarNav");
+    const t = useTranslations();
 
     return {
       title: t("settings"),
@@ -212,7 +212,7 @@ const NAV_AREAS: SidebarNavAreas<{
 
   // User settings
   userSettings: ({ session, slug }) => {
-    const t = useTranslations("AppSidebarNav");
+    const t = useTranslations();
 
     return {
       title: t("settings"),
