@@ -106,7 +106,7 @@ function UsageInner() {
           {salesLimit && salesLimit > 0 ? (
             <UsageRow
               icon={CircleDollar}
-              label="Revenue"
+              label="Sales"
               usage={salesUsage}
               limit={salesLimit}
               showNextPlan={hovered}
