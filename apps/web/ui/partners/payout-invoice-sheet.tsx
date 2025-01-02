@@ -5,14 +5,20 @@ import {
 } from "@/lib/partners/constants";
 import usePayouts from "@/lib/swr/use-payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { PayoutResponse } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
-import { Payout } from "@dub/prisma/client";
 import { Button, Sheet, Table, useRouterStuff, useTable } from "@dub/ui";
 import { cn, currencyFormatter, DICEBEAR_AVATAR_URL } from "@dub/utils";
-import { Row } from "@tanstack/react-table";
 import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
-import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
+import {
+  Dispatch,
+  Fragment,
+  SetStateAction,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 interface PayoutInvoiceSheetProps {
@@ -22,7 +28,7 @@ interface PayoutInvoiceSheetProps {
 function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   const { id: workspaceId, slug } = useWorkspace();
   const { programId } = useParams<{ programId: string }>();
-  const [selectedPayouts, setSelectedPayouts] = useState<Payout[]>([]);
+  const [selectedPayouts, setSelectedPayouts] = useState<PayoutResponse[]>([]);
 
   const {
     payouts,
@@ -55,11 +61,18 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         (payout) =>
           payout.partner.payoutsEnabled && payout.amount >= MIN_PAYOUT_AMOUNT,
       ),
-    [ payouts],
+    [payouts],
   );
 
+  // Select all pending payouts by default
+  useEffect(() => {
+    if (pendingPayouts) {
+      setSelectedPayouts(pendingPayouts);
+    }
+  }, [pendingPayouts]);
+
   const invoiceData = useMemo(() => {
-    if (!pendingPayouts) {
+    if (!selectedPayouts) {
       return {
         Amount: (
           <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
@@ -73,7 +86,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
       };
     }
 
-    const amount = pendingPayouts.reduce(
+    const amount = selectedPayouts.reduce(
       (acc, payout) => acc + payout.amount,
       0,
     );
@@ -96,7 +109,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         maximumFractionDigits: 2,
       }),
     };
-  }, [pendingPayouts]);
+  }, [selectedPayouts]);
 
   const table = useTable({
     data: pendingPayouts || [],
@@ -214,18 +227,24 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
             variant="primary"
             loading={isExecuting}
             onClick={async () => {
-              if (!workspaceId || !programId) {
+              if (!workspaceId || !programId || !selectedPayouts.length) {
                 return;
               }
 
               await executeAsync({
                 workspaceId,
                 programId,
+                payoutIds: selectedPayouts.map((p) => p.id),
               });
             }}
             text="Confirm payout"
             className="w-fit"
-            disabled={pendingPayouts?.length === 0}
+            disabled={selectedPayouts?.length === 0}
+            disabledTooltip={
+              selectedPayouts?.length === 0
+                ? "At least one payout must be selected."
+                : ""
+            }
           />
         </div>
       </div>
