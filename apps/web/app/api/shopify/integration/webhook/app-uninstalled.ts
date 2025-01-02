@@ -13,4 +13,6 @@ export async function appUninstalled({ shopDomain }: { shopDomain: string }) {
     }),
     redis.del(`shopify:shop:${shopDomain}`),
   ]);
+
+  return "[Shopify] App Uninstalled received.";
 }

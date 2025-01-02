@@ -1,8 +1,9 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getClickEvent } from "@/lib/tinybird";
-import { redis } from "@/lib/upstash";
-import { waitUntil } from "@vercel/functions";
+import { ratelimit, redis } from "@/lib/upstash";
+import { LOCALHOST_IP } from "@dub/utils";
+import { ipAddress, waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";
@@ -13,33 +14,41 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-// TODO:
-// Add rate limiting
-// Finalize the endpoint (Maybe move to /api/shopify/pixel)
-
-// POST /api/track/shopify – Handle the Shopify Pixel events
+// POST /api/shopify/pixel – Handle the Shopify Pixel events
 export const POST = async (req: Request) => {
   try {
     const { clickId, checkoutToken } = await parseRequestBody(req);
 
-    if (!clickId || !checkoutToken) {
+    if (!checkoutToken) {
       throw new DubApiError({
         code: "bad_request",
-        message: "Missing clickId or checkoutToken",
+        message: "checkoutToken is required.",
       });
     }
 
-    const clickEvent = await getClickEvent({ clickId });
+    // Rate limit the request
+    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+    const { success } = await ratelimit().limit(`shopify-track-pixel:${ip}`);
 
-    if (!clickEvent || clickEvent.data.length === 0) {
-      return new Response(
-        `[Shopify] Click event not found for clickId: ${clickId}`,
-      );
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message: "Don't DDoS me pls 🥺",
+      });
+    }
+
+    // Validate the clickId if provided
+    if (clickId) {
+      const clickEvent = await getClickEvent({ clickId });
+
+      if (!clickEvent || clickEvent.data.length === 0) {
+        return new Response(`Click event not found for clickId: ${clickId}`);
+      }
     }
 
     waitUntil(
       redis.hset(`shopify:checkout:${checkoutToken}`, {
-        clickId,
+        clickId: clickId || "",
       }),
     );
 
