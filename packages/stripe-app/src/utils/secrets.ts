@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 
-type SecretName = "token" | "workspace";
+type SecretName = "dub_token" | "dub_workspace";
 
 // Secrets are stored on account level
 const scope: Stripe.Apps.SecretCreateParams.Scope = {
@@ -32,11 +32,29 @@ export async function getSecret<T>({
   stripe: Stripe;
   name: SecretName;
 }) {
-  const secret = await stripe.apps.secrets.find({
+  try {
+    const secret = await stripe.apps.secrets.find({
+      name,
+      scope,
+      expand: ["payload"],
+    });
+
+    return secret.payload;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Delete a secret for the account
+export async function deleteSecret({
+  stripe,
+  name,
+}: {
+  stripe: Stripe;
+  name: SecretName;
+}) {
+  return await stripe.apps.secrets.deleteWhere({
     name,
     scope,
-    expand: ["payload"],
   });
-
-  return secret as T;
 }

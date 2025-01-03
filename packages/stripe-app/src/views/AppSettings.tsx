@@ -3,12 +3,19 @@ import {
   createHttpClient,
   STRIPE_API_KEY,
 } from "@stripe/ui-extension-sdk/http_client";
-import { Link, SignInView } from "@stripe/ui-extension-sdk/ui";
-import { useEffect } from "react";
+import { createOAuthState } from "@stripe/ui-extension-sdk/oauth";
+import { Banner, Button, Link, SignInView } from "@stripe/ui-extension-sdk/ui";
+import { useEffect, useRef, useState } from "react";
 import Stripe from "stripe";
 import appIcon from "../icon.svg";
-import { getSecret } from "../utils/secrets";
-import { Token } from "../utils/types";
+import {
+  connectWorkspace,
+  disconnectWorkspace,
+  fetchWorkspace,
+} from "../utils/dub";
+import { getOAuthUrl, getToken, getUserInfo } from "../utils/oauth";
+import { setSecret } from "../utils/secrets";
+import { Workspace } from "../utils/types";
 
 // You don't need an API Key here, because the app uses the
 // dashboard credentials to make requests.
@@ -23,38 +30,119 @@ const AppSettings = ({
   appContext,
   oauthContext,
 }: ExtensionContextValue) => {
-  console.log({
-    userContext,
-    environment,
-    appContext,
-    oauthContext,
-  });
+  const credentialsUsed = useRef(false);
+  const [oauthState, setOAuthState] = useState("");
+  const [challenge, setChallenge] = useState("");
+  const [workspace, setWorkspace] = useState<Workspace | null>(null);
 
-  useEffect(() => {
-    // setSecret({
-    //   stripe,
-    //   name: "token",
-    //   payload: JSON.stringify({
-    //     access_token: "123",
-    //     refresh_token: "456",
-    //     token_type: "Bearer",
-    //     expires_in: 3600,
-    //     scope: "read_write",
-    //   }),
-    // });
+  const code = oauthContext?.code;
+  const verifier = oauthContext?.verifier;
+  const error = oauthContext?.error;
 
-    getSecret<Token>({
+  // Verify token and connect workspace
+  const verifyTokenAndConnectWorkspace = async () => {
+    if (!code || !verifier) {
+      return;
+    }
+
+    const token = await getToken({ code, verifier });
+
+    if (!token) {
+      return;
+    }
+
+    await setSecret({
       stripe,
-      name: "token",
+      name: "dub_token",
+      payload: JSON.stringify(token),
+    });
+
+    const workspace = await getUserInfo({ token });
+
+    if (!workspace) {
+      return;
+    }
+
+    await connectWorkspace({
+      stripe,
+      workspaceId: workspace.id,
+      accountId: userContext.account.id,
+    });
+
+    await setSecret({
+      stripe,
+      name: "dub_workspace",
+      payload: JSON.stringify(workspace),
+    });
+
+    credentialsUsed.current = true;
+    setWorkspace(workspace);
+  };
+
+  // Fetch the workspace for the current account
+  useEffect(() => {
+    fetchWorkspace({ stripe }).then((workspace) => {
+      if (workspace) {
+        setWorkspace(workspace);
+      }
     });
   }, []);
+
+  useEffect(() => {
+    // if there is a workspace, we're done here
+    if (workspace) {
+      return;
+    }
+
+    // there is an ongoing oauth flow
+    if (code && verifier && !workspace && !credentialsUsed.current) {
+      verifyTokenAndConnectWorkspace();
+      return;
+    }
+
+    // no oauth flow, no token, we need to start one
+    if (!oauthState && !workspace) {
+      createOAuthState().then(({ state, challenge }) => {
+        setOAuthState(state);
+        setChallenge(challenge);
+      });
+    }
+  }, [workspace, oauthState, code, verifier]);
+
+  if (workspace) {
+    return (
+      <Banner
+        type="default"
+        title="Dub account"
+        description={`Connected to Acme Inc.`}
+        actions={
+          <Button
+            onPress={() => {
+              if (!workspace) {
+                return;
+              }
+
+              disconnectWorkspace({
+                stripe,
+                workspaceId: workspace.id,
+              });
+
+              setWorkspace(null);
+            }}
+          >
+            Disconnect
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <SignInView
       description="Connect your Dub workspace with Stripe to start tracking the conversions."
       primaryAction={{
         label: "Connect workspace",
-        href: "https://example.com",
+        href: getOAuthUrl({ state: oauthState, challenge }),
       }}
       footerContent={
         <>
@@ -66,37 +154,6 @@ const AppSettings = ({
       brandIcon={appIcon}
     />
   );
-
-  // return (
-  //   <SettingsView onSave={() => {}}>
-  //     <Box
-  //       css={{
-  //         background: "container",
-  //         borderRadius: "medium",
-  //         padding: "large",
-  //       }}
-  //     >
-  //       <Box css={{ marginBottom: "small" }}>
-  //         <Icon name="settings" size="medium" />
-  //       </Box>
-  //       Hello there
-  //       <Inline css={{ fontFamily: "monospace" }}>
-  //         src/views/AppSettings.tsx
-  //       </Inline>{" "}
-  //       and save to reload this view.
-  //       <Link
-  //         target="_blank"
-  //         href={
-  //           "https://stripe.com/docs/stripe-apps/build-test-views#add-application-settings"
-  //         }
-  //       >
-  //         <Box css={{ marginTop: "medium" }}>
-  //           Adding application settings <Icon name="arrowRight" size="xsmall" />
-  //         </Box>
-  //       </Link>
-  //     </Box>
-  //   </SettingsView>
-  // );
 };
 
 export default AppSettings;

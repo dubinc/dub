@@ -4,6 +4,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { exchangeAuthCodeForToken } from "./exchange-code-for-token";
 import { refreshAccessToken } from "./refresh-access-token";
 
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
 // POST /api/oauth/token - Exchange authorization code for access token and refresh access token
 export async function POST(req: NextRequest) {
   try {
@@ -13,11 +19,23 @@ export async function POST(req: NextRequest) {
     if (validatedData.grant_type === "authorization_code") {
       return NextResponse.json(
         await exchangeAuthCodeForToken(req, validatedData),
+        {
+          headers: CORS_HEADERS,
+        },
       );
     } else if (validatedData.grant_type === "refresh_token") {
-      return NextResponse.json(await refreshAccessToken(req, validatedData));
+      return NextResponse.json(await refreshAccessToken(req, validatedData), {
+        headers: CORS_HEADERS,
+      });
     }
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
 }
+
+export const OPTIONS = () => {
+  return new Response(null, {
+    status: 204,
+    headers: CORS_HEADERS,
+  });
+};
