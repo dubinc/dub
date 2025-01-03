@@ -4,18 +4,20 @@ import {
   STRIPE_API_KEY,
 } from "@stripe/ui-extension-sdk/http_client";
 import { createOAuthState } from "@stripe/ui-extension-sdk/oauth";
-import { Banner, Button, Link, SignInView } from "@stripe/ui-extension-sdk/ui";
+import {
+  Banner,
+  Button,
+  Link,
+  SignInView,
+  Spinner,
+} from "@stripe/ui-extension-sdk/ui";
 import { useEffect, useRef, useState } from "react";
 import Stripe from "stripe";
+import { useWorkspace } from "../hooks/use-workspace";
 import appIcon from "../icon.svg";
-import {
-  connectWorkspace,
-  disconnectWorkspace,
-  fetchWorkspace,
-} from "../utils/dub";
+import { connectWorkspace, disconnectWorkspace } from "../utils/dub";
 import { getOAuthUrl, getToken, getUserInfo } from "../utils/oauth";
 import { setSecret } from "../utils/secrets";
-import { Workspace } from "../utils/types";
 
 // TODO:
 // Handle errors and display them to the user
@@ -32,9 +34,10 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
   const credentialsUsed = useRef(false);
   const [oauthState, setOAuthState] = useState("");
   const [challenge, setChallenge] = useState("");
-  const [workspace, setWorkspace] = useState<Workspace | null>(null);
+  // const [workspaces, setWorkspace] = useState<Workspace | null>(null);
   const [disconnecting, setDisconnecting] = useState(false);
   const [connecting, setConnecting] = useState(false);
+  const { workspace, isLoading, mutate } = useWorkspace(stripe);
 
   const code = oauthContext?.code;
   const verifier = oauthContext?.verifier;
@@ -54,6 +57,12 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
       return;
     }
 
+    await setSecret({
+      stripe,
+      name: "dub_token",
+      payload: JSON.stringify(token),
+    });
+
     const workspace = await getUserInfo({ token });
 
     if (!workspace) {
@@ -66,37 +75,20 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
       accountId: userContext.account.id,
     });
 
-    await Promise.all([
-      setSecret({
-        stripe,
-        name: "dub_workspace",
-        payload: JSON.stringify(workspace),
-      }),
+    await setSecret({
+      stripe,
+      name: "dub_workspace",
+      payload: JSON.stringify(workspace),
+    });
 
-      setSecret({
-        stripe,
-        name: "dub_token",
-        payload: JSON.stringify(token),
-      }),
-    ]);
-
+    mutate();
     credentialsUsed.current = true;
-    setWorkspace(workspace);
     setConnecting(false);
   };
 
-  // Fetch the workspace for the current account
-  useEffect(() => {
-    fetchWorkspace({ stripe }).then((workspace) => {
-      if (workspace) {
-        setWorkspace(workspace);
-      }
-    });
-  }, []);
-
   useEffect(() => {
     // if there is a workspace, we're done here
-    if (workspace) {
+    if (workspace || !isLoading) {
       return;
     }
 
@@ -114,6 +106,10 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
       });
     }
   }, [workspace, oauthState, code, verifier]);
+
+  if (isLoading) {
+    return <Spinner size="large" />;
+  }
 
   if (workspace) {
     return (
@@ -133,7 +129,7 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
                 workspaceId: workspace.id,
               });
 
-              setWorkspace(null);
+              mutate();
               setDisconnecting(false);
             }}
           >
