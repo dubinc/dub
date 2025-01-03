@@ -44,10 +44,12 @@
       "purpose": ""
     }
   },
-  "allowed_redirect_uris": [
-    "https://app.dub.co/api/stripe/integration/callback",
-    "https://preview.dub.co/api/stripe/integration/callback"
-  ],
-  "stripe_api_access_type": "oauth",
-  "distribution_type": "public"
+  "stripe_api_access_type": "platform",
+  "distribution_type": "public",
+  "constants": {
+    "DUB_API_BASE": "https://api.dub.co"
+  },
+  "post_install_action": {
+    "type": "settings"
+  }
 }
