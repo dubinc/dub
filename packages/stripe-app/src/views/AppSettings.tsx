@@ -17,6 +17,10 @@ import { getOAuthUrl, getToken, getUserInfo } from "../utils/oauth";
 import { setSecret } from "../utils/secrets";
 import { Workspace } from "../utils/types";
 
+// TODO:
+// Handle errors and display them to the user
+// Proper loading state
+
 // You don't need an API Key here, because the app uses the
 // dashboard credentials to make requests.
 const stripe: Stripe = new Stripe(STRIPE_API_KEY, {
@@ -24,16 +28,13 @@ const stripe: Stripe = new Stripe(STRIPE_API_KEY, {
   apiVersion: "2023-08-16",
 });
 
-const AppSettings = ({
-  userContext,
-  environment,
-  appContext,
-  oauthContext,
-}: ExtensionContextValue) => {
+const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
   const credentialsUsed = useRef(false);
   const [oauthState, setOAuthState] = useState("");
   const [challenge, setChallenge] = useState("");
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
+  const [disconnecting, setDisconnecting] = useState(false);
+  const [connecting, setConnecting] = useState(false);
 
   const code = oauthContext?.code;
   const verifier = oauthContext?.verifier;
@@ -41,6 +42,8 @@ const AppSettings = ({
 
   // Verify token and connect workspace
   const verifyTokenAndConnectWorkspace = async () => {
+    setConnecting(true);
+
     if (!code || !verifier) {
       return;
     }
@@ -50,12 +53,6 @@ const AppSettings = ({
     if (!token) {
       return;
     }
-
-    await setSecret({
-      stripe,
-      name: "dub_token",
-      payload: JSON.stringify(token),
-    });
 
     const workspace = await getUserInfo({ token });
 
@@ -69,14 +66,23 @@ const AppSettings = ({
       accountId: userContext.account.id,
     });
 
-    await setSecret({
-      stripe,
-      name: "dub_workspace",
-      payload: JSON.stringify(workspace),
-    });
+    await Promise.all([
+      setSecret({
+        stripe,
+        name: "dub_workspace",
+        payload: JSON.stringify(workspace),
+      }),
+
+      setSecret({
+        stripe,
+        name: "dub_token",
+        payload: JSON.stringify(token),
+      }),
+    ]);
 
     credentialsUsed.current = true;
     setWorkspace(workspace);
+    setConnecting(false);
   };
 
   // Fetch the workspace for the current account
@@ -112,25 +118,26 @@ const AppSettings = ({
   if (workspace) {
     return (
       <Banner
-        type="default"
-        title="Dub account"
-        description={`Connected to Acme Inc.`}
+        title="Dub workspace"
+        description={`Connected to ${workspace.name}`}
         actions={
           <Button
-            onPress={() => {
-              if (!workspace) {
-                return;
-              }
+            type="destructive"
+            size="small"
+            disabled={disconnecting}
+            onPress={async () => {
+              setDisconnecting(true);
 
-              disconnectWorkspace({
+              await disconnectWorkspace({
                 stripe,
                 workspaceId: workspace.id,
               });
 
               setWorkspace(null);
+              setDisconnecting(false);
             }}
           >
-            Disconnect
+            {disconnecting ? "Disconnecting..." : "Disconnect"}
           </Button>
         }
       />
@@ -141,13 +148,15 @@ const AppSettings = ({
     <SignInView
       description="Connect your Dub workspace with Stripe to start tracking the conversions."
       primaryAction={{
-        label: "Connect workspace",
-        href: getOAuthUrl({ state: oauthState, challenge }),
+        label: connecting ? "Connecting please wait..." : "Connect workspace",
+        href: connecting ? "#" : getOAuthUrl({ state: oauthState, challenge }),
       }}
       footerContent={
         <>
           Don't have an Dub account?{" "}
-          <Link href="https://app.dub.co/register">Sign up</Link>
+          <Link href="https://app.dub.co/register" target="_blank" external>
+            Sign up
+          </Link>
         </>
       }
       brandColor="#000000"
