@@ -31,4 +31,6 @@ export async function customersDataRequest({ event }: { event: any }) {
       Orders Requested: ${ordersRequested.join(", ")}`,
     }),
   );
+
+  return "[Shopify] Customer Data Request received.";
 }

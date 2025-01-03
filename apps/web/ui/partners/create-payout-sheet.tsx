@@ -25,7 +25,6 @@ import {
   formatDate,
 } from "@dub/utils";
 import { nFormatter } from "@dub/utils/src/functions";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
   endOfMonth,
   endOfQuarter,
@@ -103,7 +102,6 @@ function CreatePayoutSheetContent({
     clearErrors,
     formState: { errors },
   } = useForm<FormData>({
-    resolver: zodResolver(schema),
     defaultValues: {
       type: "custom",
     },
