@@ -14,6 +14,7 @@ import { authActionClient } from "../safe-action";
 const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
   programId: z.string(),
+  payoutIds: z.array(z.string()).min(1),
 });
 
 // Confirm payouts
@@ -21,7 +22,7 @@ export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId } = parsedInput;
+    const { programId, payoutIds } = parsedInput;
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -41,6 +42,9 @@ export const confirmPayoutsAction = authActionClient
         programId,
         status: "pending",
         invoiceId: null, // just to be extra safe
+        id: {
+          in: payoutIds,
+        },
         partner: {
           stripeConnectId: {
             not: null,

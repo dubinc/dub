@@ -5,12 +5,20 @@ import {
 } from "@/lib/partners/constants";
 import usePayouts from "@/lib/swr/use-payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { PayoutResponse } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet, Table, useRouterStuff, useTable } from "@dub/ui";
 import { cn, currencyFormatter, DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
-import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
+import {
+  Dispatch,
+  Fragment,
+  SetStateAction,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 interface PayoutInvoiceSheetProps {
@@ -20,6 +28,7 @@ interface PayoutInvoiceSheetProps {
 function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   const { id: workspaceId, slug } = useWorkspace();
   const { programId } = useParams<{ programId: string }>();
+  const [selectedPayouts, setSelectedPayouts] = useState<PayoutResponse[]>([]);
 
   const {
     payouts,
@@ -55,8 +64,15 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     [payouts],
   );
 
+  // Select all pending payouts by default
+  useEffect(() => {
+    if (pendingPayouts) {
+      setSelectedPayouts(pendingPayouts);
+    }
+  }, [pendingPayouts]);
+
   const invoiceData = useMemo(() => {
-    if (!pendingPayouts) {
+    if (!selectedPayouts) {
       return {
         Amount: (
           <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
@@ -70,7 +86,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
       };
     }
 
-    const amount = pendingPayouts.reduce(
+    const amount = selectedPayouts.reduce(
       (acc, payout) => acc + payout.amount,
       0,
     );
@@ -93,11 +109,32 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         maximumFractionDigits: 2,
       }),
     };
-  }, [pendingPayouts]);
+  }, [selectedPayouts]);
 
   const table = useTable({
     data: pendingPayouts || [],
     columns: [
+      {
+        id: "selection",
+        header: ({ table }) => (
+          <input
+            type="checkbox"
+            className="h-4 w-4 cursor-pointer rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
+            checked={table.getIsAllRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type="checkbox"
+            className="h-4 w-4 cursor-pointer rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
+            checked={row.getIsSelected()}
+            onChange={row.getToggleSelectedHandler()}
+          />
+        ),
+        minSize: 10,
+        size: 30,
+      },
       {
         header: "Partner",
         cell: ({ row }) => (
@@ -136,6 +173,9 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     error: payoutsError
       ? "Failed to load payouts for this invoice."
       : undefined,
+    onRowSelectionChange: (rows) => {
+      setSelectedPayouts(rows.map((row) => row.original));
+    },
   } as any);
 
   return (
@@ -187,18 +227,24 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
             variant="primary"
             loading={isExecuting}
             onClick={async () => {
-              if (!workspaceId || !programId) {
+              if (!workspaceId || !programId || !selectedPayouts.length) {
                 return;
               }
 
               await executeAsync({
                 workspaceId,
                 programId,
+                payoutIds: selectedPayouts.map((p) => p.id),
               });
             }}
             text="Confirm payout"
             className="w-fit"
-            disabled={pendingPayouts?.length === 0}
+            disabled={selectedPayouts?.length === 0}
+            disabledTooltip={
+              selectedPayouts?.length === 0
+                ? "At least one payout must be selected."
+                : ""
+            }
           />
         </div>
       </div>
