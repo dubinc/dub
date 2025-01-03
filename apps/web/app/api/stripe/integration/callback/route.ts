@@ -4,11 +4,9 @@ import { withWorkspace } from "@/lib/auth";
 import { installIntegration } from "@/lib/integrations/install";
 import z from "@/lib/zod";
 import { prisma } from "@dub/prisma";
-// import { STRIPE_INTEGRATION_ID } from "@dub/utils";
+import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-
-const STRIPE_INTEGRATION_ID = "int_JpQs8mHb8Umci4waZeRSAkYE";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -66,7 +64,7 @@ export const PATCH = withWorkspace(
             });
           }
 
-          // Uninstall the integration if the shopify store id is null
+          // Uninstall the integration if the stripe account id is null
           if (installation && stripeAccountId === null) {
             await prisma.installedIntegration.delete({
               where: {
