@@ -31,4 +31,6 @@ export async function customersRedact({ event }: { event: any }) {
       Orders to Redact: ${ordersToRedact.join(", ")}`,
     }),
   );
+
+  return "[Shopify] Customer Redacted request received.";
 }

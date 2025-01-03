@@ -246,3 +246,25 @@ export const validateScopesForRole = (scopes: Scope[], role: Role) => {
 
   return !(invalidScopes.length > 0);
 };
+
+// Get the scopes for a role
+export const getScopesForRole = (role: Role) => {
+  return ROLE_SCOPES_MAP[role];
+};
+
+// Consolidate scopes to avoid duplication and show only the most permissive scope
+export const consolidateScopes = (scopes: string[]) => {
+  const consolidated = new Set();
+
+  scopes.forEach((scope) => {
+    const [resource, action] = scope.split(".");
+
+    if (action === "write") {
+      consolidated.add(`${resource}.write`);
+    } else if (action === "read" && !consolidated.has(`${resource}.write`)) {
+      consolidated.add(`${resource}.read`);
+    }
+  });
+
+  return Array.from(consolidated) as string[];
+};
