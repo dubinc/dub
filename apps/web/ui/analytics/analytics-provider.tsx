@@ -218,12 +218,15 @@ export default function AnalyticsProvider({
   /*
     If explicitly set, use the value
     If not set:
-      - If it's filtered by a link, or if the workspace has more than 50 domains, show root domain lnks
+      - Show root domain links if:
+        - it's filtered by a link, or
+        - the workspace has more than 50 domains
+        - is admin page
       - Otherwise, hide root domain links
   */
   const root = searchParams.get("root")
     ? searchParams.get("root") === "true"
-    : (domain && key) || (domains && domains?.length > 50)
+    : (domain && key) || (domains && domains?.length > 50) || adminPage
       ? undefined
       : "false";
 
