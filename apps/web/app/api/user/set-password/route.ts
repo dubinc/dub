@@ -1,10 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import { PASSWORD_RESET_TOKEN_EXPIRY } from "@/lib/auth/constants";
+import { sendEmail } from "@dub/email";
+import { ResetPasswordLink } from "@dub/email/templates/reset-password-link";
 import { prisma } from "@dub/prisma";
 import { randomBytes } from "crypto";
-import { sendEmail } from "emails";
-import ResetPasswordLink from "emails/reset-password-link";
 import { NextResponse } from "next/server";
 
 // POST /api/user/set-password - set account password (for users who signed up with a OAuth provider)

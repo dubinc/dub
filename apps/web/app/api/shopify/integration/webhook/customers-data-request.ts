@@ -1,5 +1,5 @@
+import { sendEmail } from "@dub/email";
 import { waitUntil } from "@vercel/functions";
-import { sendEmail } from "emails";
 import { z } from "zod";
 
 const schema = z.object({

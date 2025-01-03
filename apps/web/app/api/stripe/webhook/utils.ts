@@ -1,4 +1,4 @@
-import { sendEmail } from "emails";
+import { sendEmail } from "@dub/email";
 import Stripe from "stripe";
 
 const cancellationReasonMap = {
