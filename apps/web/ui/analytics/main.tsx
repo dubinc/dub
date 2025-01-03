@@ -1,6 +1,5 @@
 import { EventType } from "@/lib/analytics/types";
-import { Button, Tooltip, useRouterStuff } from "@dub/ui";
-import { ChartLine, Filter2 } from "@dub/ui/icons";
+import { ChartLine, Filter2, ToggleGroup, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { ChevronRight, Lock } from "lucide-react";
@@ -143,11 +142,6 @@ export default function Main() {
             })}
           </NumberFlowGroup>
         </div>
-        {showConversions && (
-          <div className="hidden sm:block">
-            <ViewButtons />
-          </div>
-        )}
       </div>
       <div className="relative">
         {view === "default" && (
@@ -156,11 +150,7 @@ export default function Main() {
           </div>
         )}
         {view === "funnel" && <AnalyticsFunnelChart />}
-        {showConversions && (
-          <div className="absolute right-2 top-2 w-fit sm:hidden">
-            <ViewButtons />
-          </div>
-        )}
+        {showConversions && <ViewButtons />}
       </div>
     </div>
   );
@@ -171,39 +161,32 @@ function ViewButtons() {
   const { queryParams } = useRouterStuff();
 
   return (
-    <div className="flex shrink-0 items-center gap-1 border-gray-100 pr-2 pt-2 sm:pr-6 sm:pt-6">
-      <Tooltip content="Line Chart">
-        <Button
-          variant="secondary"
-          className={cn(
-            "h-9 border-transparent px-2 hover:border-gray-200",
-            view === "default" && "border border-gray-200 bg-gray-100",
-          )}
-          icon={<ChartLine className="h-4 w-4 text-gray-600" />}
-          onClick={() => {
-            queryParams({
-              del: "view",
-            });
-          }}
-        />
-      </Tooltip>
-      <Tooltip content="Funnel Chart">
-        <Button
-          variant="secondary"
-          className={cn(
-            "h-9 border-transparent px-2 hover:border-gray-200",
-            view === "funnel" && "border border-gray-200 bg-gray-100",
-          )}
-          icon={<Filter2 className="h-4 w-4 -rotate-90 text-gray-600" />}
-          onClick={() => {
-            queryParams({
-              set: {
-                view: "funnel",
-              },
-            });
-          }}
-        />
-      </Tooltip>
-    </div>
+    <ToggleGroup
+      className="absolute right-4 top-4 flex w-fit shrink-0 items-center gap-1 border-neutral-100 bg-neutral-100"
+      optionClassName="size-8 sm:size-9 p-0 flex items-center justify-center"
+      indicatorClassName="border border-neutral-200 bg-white"
+      options={[
+        {
+          label: <ChartLine className="size-4 text-neutral-600" />,
+          value: "default",
+        },
+        {
+          label: <Filter2 className="size-4 -rotate-90 text-neutral-600" />,
+          value: "funnel",
+        },
+      ]}
+      selected={view}
+      selectAction={(option) => {
+        if (option === "default") {
+          queryParams({
+            del: "view",
+          });
+        } else {
+          queryParams({
+            set: { view: option },
+          });
+        }
+      }}
+    />
   );
 }
