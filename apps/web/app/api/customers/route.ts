@@ -26,6 +26,18 @@ export const GET = withWorkspace(
       orderBy: {
         createdAt: "desc",
       },
+      include: {
+        link: {
+          include: {
+            programEnrollment: {
+              include: {
+                partner: true,
+                discount: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     return NextResponse.json(
