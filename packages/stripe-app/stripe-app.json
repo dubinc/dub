@@ -35,6 +35,10 @@
     {
       "permission": "event_read",
       "purpose": "Allows Dub to read event information."
+    },
+    {
+      "permission": "secret_write",
+      "purpose": "Allows storing Dub access tokens in Stripe for an account."
     }
   ],
   "ui_extension": {
