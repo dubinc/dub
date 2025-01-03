@@ -10,7 +10,7 @@ export function Calendar6(props: SVGProps<SVGSVGElement>) {
       fill="none"
       {...props}
     >
-      <g clip-path="url(#clip0_5_25259)">
+      <g clipPath="url(#clip0_5_25259)">
         <path
           d="M5.75 3.25V1.25"
           stroke="currentColor"

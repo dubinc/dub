@@ -36,24 +36,34 @@ export async function POST(req: Request) {
       "clickId",
     );
 
+    // clickId is empty, order is not from a Dub link
+    if (clickId === "") {
+      await redis.del(`shopify:checkout:${checkoutToken}`);
+
+      return new Response(
+        `[Shopify] Order is not from a Dub link. Skipping...`,
+      );
+    }
+
+    // clickId is found, process the order for the new customer
+    else if (clickId) {
+      await processOrder({
+        event,
+        workspaceId,
+        clickId,
+      });
+
+      return new Response("[Shopify] Order event processed successfully.");
+    }
+
     // Wait for the click event to come from Shopify pixel
-    if (!clickId) {
+    else {
       throw new DubApiError({
         code: "bad_request",
         message:
           "[Shopify] Click event not found. Waiting for Shopify pixel event...",
       });
     }
-
-    await processOrder({
-      event,
-      workspaceId,
-      clickId,
-    });
-
-    await redis.del(`shopify:checkout:${checkoutToken}`);
-
-    return new Response("[Shopify] Order event processed successfully.");
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }

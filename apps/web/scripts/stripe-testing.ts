@@ -1,7 +1,7 @@
 // Just for testing
 
 import "dotenv-flow/config";
-import { stripe } from "./stripe-init";
+import { stripe } from "../lib/stripe";
 
 async function main() {
   const session = await stripe.checkout.sessions.create({

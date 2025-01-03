@@ -17,4 +17,6 @@ export async function shopRedact({ event }: { event: any }) {
       text: `Shop Redacted request received for shop: ${shopDomain}`,
     }),
   );
+
+  return "[Shopify] Shop Redacted request received.";
 }

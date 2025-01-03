@@ -9,6 +9,7 @@ import {
   recordLead,
   recordSale,
 } from "@/lib/tinybird";
+import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
@@ -101,6 +102,7 @@ async function createSale({
   const amount = Number(orderData.current_subtotal_price) * 100;
   const currency = orderData.currency;
   const invoiceId = orderData.confirmation_number;
+  const checkoutToken = orderData.checkout_token;
 
   const { link_id: linkId, click_id: clickId } = leadData;
 
@@ -161,6 +163,8 @@ async function createSale({
         },
       },
     }),
+
+    redis.del(`shopify:checkout:${checkoutToken}`),
   ]);
 
   // for program links
@@ -277,9 +281,9 @@ export async function processOrder({
         workspaceId,
         customerId,
       });
-    }
 
-    return new Response("[Shopify] Order event processed successfully.");
+      return;
+    }
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }

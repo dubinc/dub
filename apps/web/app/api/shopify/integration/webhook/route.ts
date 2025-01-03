@@ -1,7 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import crypto from "crypto";
-import { NextResponse } from "next/server";
 import { appUninstalled } from "./app-uninstalled";
 import { customersDataRequest } from "./customers-data-request";
 import { customersRedact } from "./customers-redact";
@@ -32,7 +31,7 @@ export const POST = async (req: Request) => {
     .digest("base64");
 
   if (generatedSignature !== signature) {
-    return new Response(`[Shopify] Invalid signature. Skipping...`, {
+    return new Response(`[Shopify] Invalid webhook signature. Skipping...`, {
       status: 401,
     });
   }
@@ -61,31 +60,33 @@ export const POST = async (req: Request) => {
     );
   }
 
+  let response = "OK";
+
   try {
     switch (topic) {
       case "orders/paid":
-        await orderPaid({
+        response = await orderPaid({
           event,
           workspaceId: workspace.id,
         });
         break;
       case "customers/data_request":
-        await customersDataRequest({
+        response = await customersDataRequest({
           event,
         });
         break;
       case "customers/redact":
-        await customersRedact({
+        response = await customersRedact({
           event,
         });
         break;
       case "shop/redact":
-        await shopRedact({
+        response = await shopRedact({
           event,
         });
         break;
       case "app/uninstalled":
-        await appUninstalled({
+        response = await appUninstalled({
           shopDomain,
         });
         break;
@@ -96,10 +97,8 @@ export const POST = async (req: Request) => {
       type: "errors",
     });
 
-    return new Response(
-      `[Shopify] Webhook error: "Webhook handler failed. View logs."`,
-    );
+    return new Response(`[Shopify] Webhook handler failed. View logs`);
   }
 
-  return NextResponse.json("OK");
+  return new Response(response);
 };
