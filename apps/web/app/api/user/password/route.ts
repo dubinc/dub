@@ -43,14 +43,22 @@ export const PATCH = withSession(async ({ req, session }) => {
     });
   }
 
-  await prisma.user.update({
-    where: {
-      id: session.user.id,
-    },
-    data: {
-      passwordHash: await hashPassword(newPassword),
-    },
-  });
+  await Promise.all([
+    prisma.user.update({
+      where: {
+        id: session.user.id,
+      },
+      data: {
+        passwordHash: await hashPassword(newPassword),
+      },
+    }),
+
+    prisma.passwordResetToken.deleteMany({
+      where: {
+        identifier: session.user.email,
+      },
+    }),
+  ]);
 
   // Send the email to inform the user that their password has been updated
   waitUntil(

@@ -9,7 +9,7 @@ export function Figma({ className }: { className?: string }) {
       xmlns="http://www.w3.org/2000/svg"
     >
       <circle cx="111" cy="111" r="111" fill="url(#paint0_radial_8328_50)" />
-      <g clip-path="url(#clip0_8328_50)">
+      <g clipPath="url(#clip0_8328_50)">
         <path
           d="M85.0053 196C99.3544 196 111 184.352 111 170V144H85.0053C70.6562 144 59.0105 155.648 59.0105 170C59.0105 184.352 70.6562 196 85.0053 196Z"
           fill="#0ACF83"

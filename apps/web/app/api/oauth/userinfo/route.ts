@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
         },
         project: {
           select: {
+            id: true,
             name: true,
             slug: true,
             logo: true,
@@ -52,6 +53,7 @@ export async function GET(req: NextRequest) {
       name: user.name,
       image: user.image,
       workspace: {
+        id: `ws_${tokenRecord.project.id}`,
         slug: tokenRecord.project.slug,
         name: tokenRecord.project.name,
         logo: tokenRecord.project.logo,

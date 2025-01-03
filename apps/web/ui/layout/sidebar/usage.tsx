@@ -106,7 +106,7 @@ function UsageInner() {
           {salesLimit && salesLimit > 0 ? (
             <UsageRow
               icon={CircleDollar}
-              label="Revenue"
+              label="Sales"
               usage={salesUsage}
               limit={salesLimit}
               showNextPlan={hovered}
@@ -199,8 +199,8 @@ function UsageRow({
         {!loading ? (
           <div className="flex items-center">
             <span className="text-xs font-medium text-neutral-600">
-              {label === "Revenue" ? "$" : ""}
-              {formatNumber(label === "Revenue" ? usage / 100 : usage)} of{" "}
+              {label === "Sales" ? "$" : ""}
+              {formatNumber(label === "Sales" ? usage / 100 : usage)} of{" "}
               <motion.span
                 className={cn(
                   "relative transition-colors duration-150",
@@ -209,8 +209,8 @@ function UsageRow({
                     : "text-neutral-600",
                 )}
               >
-                {label === "Revenue" ? "$" : ""}
-                {formatNumber(label === "Revenue" ? limit / 100 : limit)}
+                {label === "Sales" ? "$" : ""}
+                {formatNumber(label === "Sales" ? limit / 100 : limit)}
                 {showNextPlan && nextPlanLimit && (
                   <motion.span
                     className="absolute bottom-[45%] left-0 h-[1px] bg-neutral-400"

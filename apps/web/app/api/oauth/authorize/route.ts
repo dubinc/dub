@@ -1,6 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { OAUTH_CONFIG } from "@/lib/api/oauth/constants";
 import { createToken } from "@/lib/api/oauth/utils";
+import { consolidateScopes, getScopesForRole } from "@/lib/api/tokens/scopes";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
@@ -17,6 +18,20 @@ export const POST = withWorkspace(async ({ session, req, workspace }) => {
     code_challenge: codeChallenge,
     code_challenge_method: codeChallengeMethod,
   } = authorizeRequestSchema.parse(await parseRequestBody(req));
+
+  // Check if the user has the required scopes for the workspace selected
+  const userRole = workspace.users[0].role;
+  const scopesForRole = getScopesForRole(userRole);
+  const scopesMissing = consolidateScopes(scope).filter(
+    (scope) => !scopesForRole.includes(scope) && scope !== "user.read",
+  );
+
+  if (scopesMissing.length > 0) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "You don't have the permission to install this integration.",
+    });
+  }
 
   const app = await prisma.oAuthApp.findUniqueOrThrow({
     where: {

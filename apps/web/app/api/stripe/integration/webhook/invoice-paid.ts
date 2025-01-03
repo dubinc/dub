@@ -12,18 +12,12 @@ import type Stripe from "stripe";
 // Handle event "invoice.paid"
 export async function invoicePaid(event: Stripe.Event) {
   const invoice = event.data.object as Stripe.Invoice;
-  const stripeAccountId = event.account as string;
   const stripeCustomerId = invoice.customer as string;
   const invoiceId = invoice.id;
 
-  if (invoice.amount_paid === 0) {
-    return `Invoice with ID ${invoiceId} has an amount of 0, skipping...`;
-  }
-
   // Find customer using projectConnectId and stripeCustomerId
-  const customer = await prisma.customer.findFirst({
+  const customer = await prisma.customer.findUnique({
     where: {
-      projectConnectId: stripeAccountId,
       stripeCustomerId,
     },
   });
@@ -44,6 +38,10 @@ export async function invoicePaid(event: Stripe.Event) {
       invoiceId,
     );
     return `Invoice with ID ${invoiceId} already processed, skipping...`;
+  }
+
+  if (invoice.amount_paid === 0) {
+    return `Invoice with ID ${invoiceId} has an amount of 0, skipping...`;
   }
 
   // Find lead

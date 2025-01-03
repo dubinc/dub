@@ -3,7 +3,6 @@
 import z from "@/lib/zod";
 import { updatePasswordSchema } from "@/lib/zod/schemas/auth";
 import { Button, Input, Label, Tooltip } from "@dub/ui";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -15,9 +14,7 @@ export const UpdatePassword = () => {
     setError,
     formState: { isSubmitting, isDirty, errors },
     reset,
-  } = useForm<z.infer<typeof updatePasswordSchema>>({
-    resolver: zodResolver(updatePasswordSchema),
-  });
+  } = useForm<z.infer<typeof updatePasswordSchema>>();
 
   const onSubmit = handleSubmit(async (data) => {
     try {
