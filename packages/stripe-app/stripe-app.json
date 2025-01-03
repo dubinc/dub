@@ -38,18 +38,25 @@
     }
   ],
   "ui_extension": {
+    "views": [
+      {
+        "viewport": "settings",
+        "component": "AppSettings"
+      }
+    ],
     "content_security_policy": {
       "connect-src": null,
       "image-src": null,
       "purpose": ""
     }
   },
-  "stripe_api_access_type": "platform",
-  "distribution_type": "public",
+  "post_install_action": {
+    "type": "settings",
+    "url": ""
+  },
   "constants": {
     "DUB_API_BASE": "https://api.dub.co"
   },
-  "post_install_action": {
-    "type": "settings"
-  }
+  "stripe_api_access_type": "platform",
+  "distribution_type": "public"
 }
