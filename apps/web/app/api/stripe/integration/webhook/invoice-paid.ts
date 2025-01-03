@@ -4,10 +4,12 @@ import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
+import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
+import { z } from "zod";
 
 // Handle event "invoice.paid"
 export async function invoicePaid(event: Stripe.Event) {
@@ -50,19 +52,6 @@ export async function invoicePaid(event: Stripe.Event) {
     return `Lead event with customer ID ${customer.id} not found, skipping...`;
   }
 
-  const saleData = {
-    ...leadEvent.data[0],
-    event_id: nanoid(16),
-    event_name: "Subscription update",
-    payment_processor: "stripe",
-    amount: invoice.amount_paid,
-    currency: invoice.currency,
-    invoice_id: invoiceId,
-    metadata: JSON.stringify({
-      invoice,
-    }),
-  };
-
   const linkId = leadEvent.data[0].link_id;
   const link = await prisma.link.findUnique({
     where: {
@@ -74,9 +63,22 @@ export async function invoicePaid(event: Stripe.Event) {
     return `Link with ID ${linkId} not found, skipping...`;
   }
 
-  const [_sale, _link, workspace] = await Promise.all([
-    recordSale(saleData),
+  const saleDataTB: z.infer<typeof saleEventSchemaTB> = {
+    ...leadEvent.data[0],
+    event_id: nanoid(16),
+    event_name: "Subscription update",
+    payment_processor: "stripe",
+    amount: invoice.amount_paid,
+    currency: invoice.currency,
+    invoice_id: invoiceId,
+    metadata: JSON.stringify({
+      invoice,
+    }),
+    earnings: 0,
+    status: "",
+  };
 
+  const [_link, workspace] = await Promise.all([
     // update link sales count
     prisma.link.update({
       where: {
@@ -91,6 +93,7 @@ export async function invoicePaid(event: Stripe.Event) {
         },
       },
     }),
+
     // update workspace sales usage
     prisma.project.update({
       where: {
@@ -128,22 +131,25 @@ export async function invoicePaid(event: Stripe.Event) {
         commissionAmount,
       },
       customer: {
-        id: saleData.customer_id,
-        linkId: saleData.link_id,
-        clickId: saleData.click_id,
+        id: saleDataTB.customer_id,
+        linkId: saleDataTB.link_id,
+        clickId: saleDataTB.click_id,
       },
       sale: {
-        invoiceId: saleData.invoice_id,
-        eventId: saleData.event_id,
-        paymentProcessor: saleData.payment_processor,
-        amount: saleData.amount,
-        currency: saleData.currency,
+        invoiceId: saleDataTB.invoice_id,
+        eventId: saleDataTB.event_id,
+        paymentProcessor: saleDataTB.payment_processor,
+        amount: saleDataTB.amount,
+        currency: saleDataTB.currency,
       },
       metadata: {
         ...leadEvent.data[0],
         stripeMetadata: invoice,
       },
     });
+
+    saleDataTB["earnings"] = saleRecord.earnings;
+    saleDataTB["status"] = saleRecord.status;
 
     await prisma.sale.create({
       data: saleRecord,
@@ -164,13 +170,15 @@ export async function invoicePaid(event: Stripe.Event) {
     );
   }
 
+  await recordSale(saleDataTB);
+
   // send workspace webhook
   waitUntil(
     sendWorkspaceWebhook({
       trigger: "sale.created",
       workspace,
       data: transformSaleEventData({
-        ...saleData,
+        ...saleDataTB,
         link,
         customerId: customer.id,
         customerExternalId: customer.externalId,

@@ -26,16 +26,9 @@ model Sale {
   paymentProcessor String
   earnings         Int        @default(0)
   status           SaleStatus @default(pending)
-  // additional attributes from Tinybird
-  metadata         Json?
 
-  // program commission attributes
-  commissionAmount    Int
-  commissionType      CommissionType
-  recurringCommission Boolean
-  recurringInterval   CommissionInterval?
-  recurringDuration   Int?
-  isLifetimeRecurring Boolean?
+  // additional attributes from Tinybird
+  metadata Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

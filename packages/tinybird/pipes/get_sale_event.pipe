@@ -1,0 +1,22 @@
+DESCRIPTION >
+	Get sale event by sale ID
+
+NODE endpoint
+
+SQL >
+
+    %
+    SELECT *
+    FROM dub_sale_events
+    WHERE
+        event_id
+        = {{
+            String(
+                eventId,
+                "VxvUMegxZP3cHB9d",
+                description="The unique ID for a given sale event.",
+                required=True,
+            )
+        }}
+
+
