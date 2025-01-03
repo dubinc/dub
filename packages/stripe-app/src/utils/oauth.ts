@@ -1,15 +1,14 @@
-// Handle the Dub OAuth flow
-
 import Stripe from "stripe";
 import { DUB_CLIENT_ID, DUB_HOST } from "./constants";
 import { getSecret } from "./secrets";
 import { Token, Workspace } from "./types";
 
-const getRedirectURL = (mode: "live" | "test") => {
+// Get the redirect URL for the OAuth flow based on the mode
+function getRedirectURL(mode: "live" | "test") {
   return `https://dashboard.stripe.com/${
     mode === "test" ? "test/" : ""
   }apps-oauth/dub.co`;
-};
+}
 
 // Returns the authorization URL
 export function getOAuthUrl({

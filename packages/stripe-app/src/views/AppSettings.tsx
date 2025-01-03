@@ -21,7 +21,6 @@ import { setSecret } from "../utils/secrets";
 
 // TODO:
 // Handle errors and display them to the user
-// Proper loading state
 
 // You don't need an API Key here, because the app uses the
 // dashboard credentials to make requests.
@@ -34,7 +33,6 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
   const credentialsUsed = useRef(false);
   const [oauthState, setOAuthState] = useState("");
   const [challenge, setChallenge] = useState("");
-  // const [workspaces, setWorkspace] = useState<Workspace | null>(null);
   const [disconnecting, setDisconnecting] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const { workspace, isLoading, mutate } = useWorkspace(stripe);
@@ -88,7 +86,7 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
 
   useEffect(() => {
     // if there is a workspace, we're done here
-    if (workspace || !isLoading) {
+    if (workspace) {
       return;
     }
 
@@ -107,7 +105,7 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
     }
   }, [workspace, oauthState, code, verifier]);
 
-  if (isLoading) {
+  if (isLoading || connecting) {
     return <Spinner size="large" />;
   }
 
