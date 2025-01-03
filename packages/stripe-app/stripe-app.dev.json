@@ -1,6 +1,3 @@
 {
-  "extends": "stripe-app.json",
-  "constants": {
-    "DUB_API_BASE": "http://localhost:8888/api"
-  }
+  "extends": "stripe-app.json"
 }

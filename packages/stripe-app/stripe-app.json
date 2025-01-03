@@ -58,9 +58,6 @@
     "type": "settings",
     "url": ""
   },
-  "constants": {
-    "DUB_API_BASE": "https://api.dub.co"
-  },
   "stripe_api_access_type": "platform",
   "distribution_type": "public"
 }

@@ -1,12 +1,12 @@
 import Stripe from "stripe";
-import { DUB_CLIENT_ID, DUB_HOST } from "./constants";
+import { DUB_CLIENT_ID, DUB_HOST, STRIPE_MODE } from "./constants";
 import { getSecret } from "./secrets";
 import { Token, Workspace } from "./types";
 
 // Get the redirect URL for the OAuth flow based on the mode
-function getRedirectURL(mode: "live" | "test") {
+function getRedirectURL() {
   return `https://dashboard.stripe.com/${
-    mode === "test" ? "test/" : ""
+    STRIPE_MODE === "test" ? "test/" : ""
   }apps-oauth/dub.co`;
 }
 
@@ -18,7 +18,7 @@ export function getOAuthUrl({
   state: string;
   challenge: string;
 }) {
-  return `${DUB_HOST}/oauth/authorize?client_id=${DUB_CLIENT_ID}&redirect_uri=${getRedirectURL("test")}&response_type=code&scope=workspaces.write&state=${state}&code_challenge=${challenge}&code_challenge_method=S256`;
+  return `${DUB_HOST}/oauth/authorize?client_id=${DUB_CLIENT_ID}&redirect_uri=${getRedirectURL()}&response_type=code&scope=workspaces.write&state=${state}&code_challenge=${challenge}&code_challenge_method=S256`;
 }
 
 // Exchanges the authorization code for an access token
@@ -39,7 +39,7 @@ export async function getToken({
       },
       body: new URLSearchParams({
         client_id: DUB_CLIENT_ID,
-        redirect_uri: getRedirectURL("test"),
+        redirect_uri: getRedirectURL(),
         grant_type: "authorization_code",
         code_verifier: verifier,
         code,

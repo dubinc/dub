@@ -11,3 +11,5 @@ export interface Workspace {
   name: string;
   logo: string;
 }
+
+export type StripeMode = "test" | "live";
