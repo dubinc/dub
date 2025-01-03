@@ -12,7 +12,7 @@ export async function updateWorkspace({
   accountId: string | null;
 }) {
   const response = await fetch(
-    `${DUB_HOST}/api/stripe/integration/callback?workspaceId=${workspaceId}`,
+    `${DUB_HOST}/api/stripe/integration?workspaceId=${workspaceId}`,
     {
       method: "PATCH",
       headers: {
