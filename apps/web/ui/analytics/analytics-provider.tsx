@@ -91,7 +91,7 @@ export default function AnalyticsProvider({
 }>) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { id: workspaceId, slug, conversionEnabled } = useWorkspace();
+  const { id: workspaceId, slug, conversionEnabled, domains } = useWorkspace();
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
   const { dashboardId, programSlug } = useParams() as {
@@ -160,10 +160,6 @@ export default function AnalyticsProvider({
     return ANALYTICS_VIEWS.find((v) => v === view) ?? "default";
   }, [searchParams.get("view")]);
 
-  const root = searchParams.get("root")
-    ? searchParams.get("root") === "true"
-    : undefined;
-
   const { basePath, domain, baseApiPath, eventsApiPath } = useMemo(() => {
     if (adminPage) {
       return {
@@ -218,6 +214,18 @@ export default function AnalyticsProvider({
     key,
     selectedTab,
   ]);
+
+  /*
+    If explicitly set, use the value
+    If not set:
+      - If it's filtered by a link, or if the workspace has more than 50 domains, show root domain lnks
+      - Otherwise, hide root domain links
+  */
+  const root = searchParams.get("root")
+    ? searchParams.get("root") === "true"
+    : (domain && key) || (domains && domains?.length > 50)
+      ? undefined
+      : "false";
 
   const queryString = useMemo(() => {
     const availableFilterParams = VALID_ANALYTICS_FILTERS.reduce(
