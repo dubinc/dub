@@ -6,21 +6,43 @@ import { generateRandomName } from "@/lib/names";
 import {
   createCustomerBodySchema,
   CustomerSchema,
+  getCustomersQuerySchema,
 } from "@/lib/zod/schemas/customers";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/customers – Get all customers
 export const GET = withWorkspace(
-  async ({ workspace }) => {
+  async ({ workspace, searchParams }) => {
+    const { email, externalId, includeExpandedFields } =
+      getCustomersQuerySchema.parse(searchParams);
+
     const customers = await prisma.customer.findMany({
       where: {
         projectId: workspace.id,
+        ...(email ? { email } : {}),
+        ...(externalId ? { externalId } : {}),
       },
       take: 100,
       orderBy: {
         createdAt: "desc",
       },
+      ...(includeExpandedFields
+        ? {
+            include: {
+              link: {
+                include: {
+                  programEnrollment: {
+                    include: {
+                      partner: true,
+                      discount: true,
+                    },
+                  },
+                },
+              },
+            },
+          }
+        : {}),
     });
 
     return NextResponse.json(
