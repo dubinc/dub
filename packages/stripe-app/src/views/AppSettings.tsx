@@ -144,7 +144,7 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
         setChallenge(challenge);
       });
     }
-  }, [workspace, oauthState, code, verifier]);
+  }, [workspace, oauthState, code, verifier, connectWorkspace]);
 
   if (isLoading || connecting) {
     return <Spinner size="large" />;
@@ -187,7 +187,7 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
       }}
       footerContent={
         <>
-          Don't have an Dub account?{" "}
+          Don&apos;t have an Dub account?{" "}
           <Link href="https://app.dub.co/register" target="_blank" external>
             Sign up
           </Link>
