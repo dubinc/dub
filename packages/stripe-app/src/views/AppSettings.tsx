@@ -15,9 +15,15 @@ import { useEffect, useRef, useState } from "react";
 import Stripe from "stripe";
 import { useWorkspace } from "../hooks/use-workspace";
 import appIcon from "../icon.svg";
-import { connectWorkspace, disconnectWorkspace } from "../utils/dub";
-import { getOAuthUrl, getToken, getUserInfo } from "../utils/oauth";
-import { setSecret } from "../utils/secrets";
+import { updateWorkspace } from "../utils/dub";
+import {
+  getOAuthUrl,
+  getToken,
+  getUserInfo,
+  getValidToken,
+} from "../utils/oauth";
+import { deleteSecret, setSecret } from "../utils/secrets";
+import { Workspace } from "../utils/types";
 
 // TODO:
 // Handle errors and display them to the user
@@ -41,8 +47,43 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
   const verifier = oauthContext?.verifier;
   const error = oauthContext?.error;
 
-  // Verify token and connect workspace
-  const verifyTokenAndConnectWorkspace = async () => {
+  // Disconnect workspace
+  const disconnectWorkspace = async ({
+    workspace,
+  }: {
+    workspace: Workspace;
+  }) => {
+    setDisconnecting(true);
+
+    const token = await getValidToken({ stripe });
+
+    await updateWorkspace({
+      token,
+      workspaceId: workspace.id,
+      accountId: null,
+    });
+
+    await Promise.all([
+      deleteSecret({
+        stripe,
+        name: "dub_workspace",
+      }),
+
+      await deleteSecret({
+        stripe,
+        name: "dub_token",
+      }),
+    ]);
+
+    mutate();
+    setDisconnecting(false);
+  };
+
+  // Exchange code for token
+  // Fetch the workspace info for the current user
+  // Connect the workspace to the stripe account
+  // Store the token and workspace info in the secrets
+  const connectWorkspace = async () => {
     setConnecting(true);
 
     if (!code || !verifier) {
@@ -67,8 +108,8 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
       return;
     }
 
-    await connectWorkspace({
-      stripe,
+    await updateWorkspace({
+      token,
       workspaceId: workspace.id,
       accountId: userContext.account.id,
     });
@@ -92,7 +133,7 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
 
     // there is an ongoing oauth flow
     if (code && verifier && !workspace && !credentialsUsed.current) {
-      verifyTokenAndConnectWorkspace();
+      connectWorkspace();
       return;
     }
 
@@ -123,8 +164,7 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
               setDisconnecting(true);
 
               await disconnectWorkspace({
-                stripe,
-                workspaceId: workspace.id,
+                workspace,
               });
 
               mutate();

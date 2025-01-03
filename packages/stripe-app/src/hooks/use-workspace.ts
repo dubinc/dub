@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import Stripe from "stripe";
-import { fetchWorkspace } from "../utils/dub";
+import { getSecret } from "../utils/secrets";
 import { Workspace } from "../utils/types";
 
+// Retrieve the workspace from the secrets
 export const useWorkspace = (stripe: Stripe) => {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -24,3 +25,16 @@ export const useWorkspace = (stripe: Stripe) => {
     mutate: loadWorkspace,
   };
 };
+
+async function fetchWorkspace({ stripe }: { stripe: Stripe }) {
+  const workspace = await getSecret({
+    stripe,
+    name: "dub_workspace",
+  });
+
+  if (!workspace) {
+    return null;
+  }
+
+  return JSON.parse(workspace) as Workspace;
+}

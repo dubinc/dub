@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
       headers: CORS_HEADERS,
     });
   } catch (e) {
-    return handleAndReturnErrorResponse(e);
+    return handleAndReturnErrorResponse(e, CORS_HEADERS);
   }
 }
 

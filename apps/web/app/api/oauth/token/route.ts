@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       });
     }
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse(error, CORS_HEADERS);
   }
 }
 
