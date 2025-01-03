@@ -1,7 +1,7 @@
 import z from "@/lib/zod";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
-import { getPaginationQuerySchema } from "./misc";
+import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 
 export const getCustomersQuerySchema = z.object({
   email: z
@@ -15,6 +15,11 @@ export const getCustomersQuerySchema = z.object({
     .optional()
     .describe(
       "A case-sensitive filter on the list based on the customer's `externalId` field. The value must be a string.",
+    ),
+  includeExpandedFields: booleanQuerySchema
+    .optional()
+    .describe(
+      "Whether to include expanded fields on the customer (`link`, `partner`, `discount`).",
     ),
 });
 

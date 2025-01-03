@@ -14,7 +14,8 @@ import { NextResponse } from "next/server";
 // GET /api/customers – Get all customers
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const { email, externalId } = getCustomersQuerySchema.parse(searchParams);
+    const { email, externalId, includeExpandedFields } =
+      getCustomersQuerySchema.parse(searchParams);
 
     const customers = await prisma.customer.findMany({
       where: {
@@ -26,18 +27,22 @@ export const GET = withWorkspace(
       orderBy: {
         createdAt: "desc",
       },
-      include: {
-        link: {
-          include: {
-            programEnrollment: {
-              include: {
-                partner: true,
-                discount: true,
+      ...(includeExpandedFields
+        ? {
+            include: {
+              link: {
+                include: {
+                  programEnrollment: {
+                    include: {
+                      partner: true,
+                      discount: true,
+                    },
+                  },
+                },
               },
             },
-          },
-        },
-      },
+          }
+        : {}),
     });
 
     return NextResponse.json(
