@@ -1,6 +1,9 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import { ZodOpenApiOperationObject } from "zod-openapi";
-import { CustomerSchema } from "../../zod/schemas/customers";
+import {
+  CustomerSchema,
+  getCustomersQuerySchema,
+} from "../../zod/schemas/customers";
 
 export const getCustomer: ZodOpenApiOperationObject = {
   operationId: "getCustomer",
@@ -9,6 +12,7 @@ export const getCustomer: ZodOpenApiOperationObject = {
   description: "Retrieve a customer by ID for the authenticated workspace.",
   requestParams: {
     path: CustomerSchema.pick({ id: true }),
+    query: getCustomersQuerySchema.pick({ includeExpandedFields: true }),
   },
   responses: {
     "200": {
