@@ -1,106 +1,81 @@
-import { DubApiError } from "@/lib/api/errors";
-import { parseRequestBody } from "@/lib/api/utils";
-import { withWorkspace } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import { installIntegration } from "@/lib/integrations/install";
+import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
 import { prisma } from "@dub/prisma";
-import { STRIPE_INTEGRATION_ID } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
-import { NextResponse } from "next/server";
+import { APP_DOMAIN, getSearchParams, STRIPE_INTEGRATION_ID } from "@dub/utils";
+import { redirect } from "next/navigation";
+import { NextRequest } from "next/server";
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "PATCH, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-};
-
-const updateWorkspaceSchema = z.object({
-  stripeAccountId: z.string().nullable(),
+const schema = z.object({
+  state: z.string(),
+  stripe_user_id: z.string().optional(),
+  error: z.string().optional(),
+  error_description: z.string().optional(),
 });
 
-// PATCH /api/stripe/integration/callback - update a workspace with a stripe connect account id
-export const PATCH = withWorkspace(
-  async ({ req, workspace, session }) => {
-    const body = await parseRequestBody(req);
-    const { stripeAccountId } = updateWorkspaceSchema.parse(body);
+export const GET = async (req: NextRequest) => {
+  const session = await getSession();
 
-    try {
-      const response = await prisma.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          stripeConnectId: stripeAccountId,
-        },
-        select: {
-          stripeConnectId: true,
-        },
-      });
+  if (!session?.user.id) {
+    return new Response("Unauthorized", { status: 401 });
+  }
 
-      waitUntil(
-        (async () => {
-          const installation = await prisma.installedIntegration.findUnique({
-            where: {
-              userId_integrationId_projectId: {
-                userId: session.user.id,
-                projectId: workspace.id,
-                integrationId: STRIPE_INTEGRATION_ID,
-              },
-            },
-            select: {
-              id: true,
-            },
-          });
+  const parsed = schema.safeParse(getSearchParams(req.url));
 
-          // Install the integration if it doesn't exist
-          if (!installation) {
-            await installIntegration({
-              userId: session.user.id,
-              workspaceId: workspace.id,
-              integrationId: STRIPE_INTEGRATION_ID,
-              credentials: {
-                stripeConnectId: stripeAccountId,
-              },
-            });
-          }
+  if (!parsed.success) {
+    console.error("[Stripe OAuth callback] Error", parsed.error);
+    return new Response("Invalid request", { status: 400 });
+  }
 
-          // Uninstall the integration if the stripe account id is null
-          if (installation && stripeAccountId === null) {
-            await prisma.installedIntegration.delete({
-              where: {
-                id: installation.id,
-              },
-            });
-          }
-        })(),
-      );
+  const {
+    state,
+    stripe_user_id: stripeAccountId,
+    error,
+    error_description,
+  } = parsed.data;
 
-      return NextResponse.json(response, {
-        headers: CORS_HEADERS,
-      });
-    } catch (error) {
-      if (error.code === "P2002") {
-        throw new DubApiError({
-          code: "conflict",
-          message: `The stripe connect account "${stripeAccountId}" is already in use.`,
-        });
-      }
+  // Find workspace that initiated the Stripe app install
+  const workspaceId = await redis.get<string>(`stripe:install:state:${state}`);
 
-      throw new DubApiError({
-        code: "internal_server_error",
-        message: error.message,
-      });
+  if (!workspaceId) {
+    redirect(APP_DOMAIN);
+  }
+
+  // Delete the state key from Redis
+  await redis.del(`stripe:install:state:${state}`);
+
+  if (error) {
+    const workspace = await prisma.project.findUnique({
+      where: {
+        id: workspaceId,
+      },
+    });
+    if (!workspace) {
+      redirect(APP_DOMAIN);
     }
-  },
-  {
-    requiredPermissions: ["workspaces.write"],
-    requiredAddOn: "conversion",
-  },
-);
+    redirect(
+      `${APP_DOMAIN}/${workspace.slug}/settings/integrations/stripe?stripeConnectError=${error_description}`,
+    );
+  } else if (stripeAccountId) {
+    // Update the workspace with the Stripe Connect ID
+    const workspace = await prisma.project.update({
+      where: {
+        id: workspaceId,
+      },
+      data: {
+        stripeConnectId: stripeAccountId,
+      },
+    });
 
-export const OPTIONS = () => {
-  return new Response(null, {
-    status: 204,
-    headers: CORS_HEADERS,
-  });
+    await installIntegration({
+      integrationId: STRIPE_INTEGRATION_ID,
+      userId: session.user.id,
+      workspaceId: workspace.id,
+    });
+
+    redirect(`${APP_DOMAIN}/${workspace.slug}/settings/integrations/stripe`);
+  }
+
+  return new Response("Invalid request", { status: 400 });
 };
