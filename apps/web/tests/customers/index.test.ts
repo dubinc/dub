@@ -58,11 +58,12 @@ describe.sequential("/customers/**", async () => {
 
   test("GET /customers", async () => {
     const { status, data: customers } = await http.get<Customer[]>({
-      path: "/customers",
+      path: `/customers?email=${customerRecord.email}`,
     });
 
     expect(status).toEqual(200);
     expect(customers.length).toBeGreaterThanOrEqual(1);
+    expect(customers[0]).toStrictEqual(expectedCustomer);
   });
 
   test("PATCH /customers/{id}", async () => {
