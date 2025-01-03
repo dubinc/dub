@@ -144,7 +144,8 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
         setChallenge(challenge);
       });
     }
-  }, [workspace, oauthState, code, verifier, connectWorkspace]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workspace, oauthState, code, verifier]);
 
   if (isLoading || connecting) {
     return <Spinner size="large" />;
