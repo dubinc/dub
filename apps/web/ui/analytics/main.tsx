@@ -71,7 +71,7 @@ export default function Main() {
                 )}
                 {id === "sales" && (
                   <ToggleGroup
-                    className="absolute right-3 top-3 flex w-fit shrink-0 items-center gap-1 border-neutral-100 bg-neutral-100"
+                    className="absolute right-3 top-3 hidden w-fit shrink-0 items-center gap-1 border-neutral-100 bg-neutral-100 sm:flex"
                     optionClassName="size-8 p-0 flex items-center justify-center"
                     indicatorClassName="border border-neutral-200 bg-white"
                     options={[
