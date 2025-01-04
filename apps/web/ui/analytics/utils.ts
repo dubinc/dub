@@ -5,9 +5,10 @@ import { useContext } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { AnalyticsContext } from "./analytics-provider";
 
-type AnalyticsFilterResult =
-  | ({ count?: number } & Record<string, any>)[]
-  | null;
+type AnalyticsFilterResult = {
+  data: ({ count?: number } & Record<string, any>)[] | null;
+  loading: boolean;
+};
 
 /**
  * Fetches event counts grouped by the specified filter
@@ -36,7 +37,7 @@ export function useAnalyticsFilterOption(
       })}`,
     );
 
-  const { data } = useSWR<Record<string, any>[]>(
+  const { data, isLoading } = useSWR<Record<string, any>[]>(
     enabled
       ? `${baseApiPath}?${editQueryString(queryString, {
           ...(typeof groupByOrParams === "string"
@@ -50,11 +51,13 @@ export function useAnalyticsFilterOption(
     },
   );
 
-  return (
-    data?.map((d) => ({
-      ...d,
-      count: d[selectedTab] as number | undefined,
-      saleAmount: d.saleAmount as number | undefined,
-    })) ?? null
-  );
+  return {
+    data:
+      data?.map((d) => ({
+        ...d,
+        count: d[selectedTab] as number | undefined,
+        saleAmount: d.saleAmount as number | undefined,
+      })) ?? null,
+    loading: !data || isLoading,
+  };
 }
