@@ -501,7 +501,7 @@ async function maliciousLinkCheck(url: string) {
     return false;
   }
 
-  const domainBlacklisted = await isBlacklistedDomain({ domain, apexDomain });
+  const domainBlacklisted = await isBlacklistedDomain(domain);
   if (domainBlacklisted === true) {
     return true;
   } else if (domainBlacklisted === "whitelisted") {
@@ -517,10 +517,6 @@ async function maliciousLinkCheck(url: string) {
       console.log("Pangea verdict for domain", apexDomain, verdict);
 
       if (verdict === "benign") {
-        await updateConfig({
-          key: "whitelistedDomains",
-          value: domain,
-        });
         return false;
       } else if (verdict === "malicious" || verdict === "suspicious") {
         await Promise.all([

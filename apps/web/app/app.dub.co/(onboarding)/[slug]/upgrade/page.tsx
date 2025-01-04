@@ -4,11 +4,11 @@ import { PlanSelector } from "../../onboarding/(steps)/plan/plan-selector";
 import { StepPage } from "../../onboarding/(steps)/step-page";
 import ExitButton from "./exit-button";
 
-export default function Plan() {
+export default function UpgradePage({ params }: { params: { slug: string } }) {
   return (
     <div className="relative flex flex-col items-center">
       <ExitButton />
-      <Link href="/">
+      <Link href={`/${params.slug}`}>
         <Wordmark className="mt-6 h-8" />
       </Link>
       <div className="mt-8 flex w-full flex-col items-center px-3 pb-16 md:mt-20 lg:px-8">

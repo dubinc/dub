@@ -4,9 +4,9 @@ import { prisma } from "@dub/prisma";
 import { SaleStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
-import { recordSale } from "../tinybird";
-import { getSaleEvent } from "../tinybird/get-sale-event";
-import { authActionClient } from "./safe-action";
+import { recordSale } from "../../tinybird";
+import { getSaleEvent } from "../../tinybird/get-sale-event";
+import { authActionClient } from "../safe-action";
 
 const updateSaleStatusSchema = z.object({
   workspaceId: z.string(),

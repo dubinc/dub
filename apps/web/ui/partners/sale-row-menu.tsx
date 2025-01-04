@@ -1,4 +1,4 @@
-import { updateSaleStatusAction } from "@/lib/actions/update-sale-status";
+import { updateSaleStatusAction } from "@/lib/actions/partners/update-sale-status";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { SaleResponse } from "@/lib/types";
 import { Button, Icon, Popover } from "@dub/ui";

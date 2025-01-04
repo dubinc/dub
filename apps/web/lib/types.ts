@@ -9,6 +9,7 @@ import {
   SaleStatus,
   UtmTemplate,
   Webhook,
+  YearInReview,
 } from "@dub/prisma/client";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import { clickEventResponseSchema } from "./zod/schemas/clicks";
@@ -139,6 +140,7 @@ export type ExpandedWorkspaceProps = WorkspaceProps & {
     id: string;
     name: string;
   }[];
+  yearInReview: YearInReview | null;
 };
 
 export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;

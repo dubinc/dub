@@ -197,40 +197,40 @@ export default function Toggle({
     [requestedFilters, activeFilters],
   );
 
-  const links = useAnalyticsFilterOption("top_links", {
+  const { data: links } = useAnalyticsFilterOption("top_links", {
     cacheOnly: !isRequested("link"),
   });
-  const countries = useAnalyticsFilterOption("countries", {
+  const { data: countries } = useAnalyticsFilterOption("countries", {
     cacheOnly: !isRequested("country"),
   });
-  const regions = useAnalyticsFilterOption("regions", {
+  const { data: regions } = useAnalyticsFilterOption("regions", {
     cacheOnly: !isRequested("region"),
   });
-  const cities = useAnalyticsFilterOption("cities", {
+  const { data: cities } = useAnalyticsFilterOption("cities", {
     cacheOnly: !isRequested("city"),
   });
-  const continents = useAnalyticsFilterOption("continents", {
+  const { data: continents } = useAnalyticsFilterOption("continents", {
     cacheOnly: !isRequested("continent"),
   });
-  const devices = useAnalyticsFilterOption("devices", {
+  const { data: devices } = useAnalyticsFilterOption("devices", {
     cacheOnly: !isRequested("device"),
   });
-  const browsers = useAnalyticsFilterOption("browsers", {
+  const { data: browsers } = useAnalyticsFilterOption("browsers", {
     cacheOnly: !isRequested("browser"),
   });
-  const os = useAnalyticsFilterOption("os", {
+  const { data: os } = useAnalyticsFilterOption("os", {
     cacheOnly: !isRequested("os"),
   });
-  const triggers = useAnalyticsFilterOption("triggers", {
+  const { data: triggers } = useAnalyticsFilterOption("triggers", {
     cacheOnly: !isRequested("trigger"),
   });
-  const referers = useAnalyticsFilterOption("referers", {
+  const { data: referers } = useAnalyticsFilterOption("referers", {
     cacheOnly: !isRequested("referer"),
   });
-  const refererUrls = useAnalyticsFilterOption("referer_urls", {
+  const { data: refererUrls } = useAnalyticsFilterOption("referer_urls", {
     cacheOnly: !isRequested("refererUrl"),
   });
-  const urls = useAnalyticsFilterOption("top_urls", {
+  const { data: urls } = useAnalyticsFilterOption("top_urls", {
     cacheOnly: !isRequested("url"),
   });
 
