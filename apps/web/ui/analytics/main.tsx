@@ -1,4 +1,4 @@
-import { EventType } from "@/lib/analytics/types";
+import { AnalyticsSaleUnit, EventType } from "@/lib/analytics/types";
 import { ChartLine, Filter2, ToggleGroup, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
@@ -16,8 +16,15 @@ type Tab = {
 };
 
 export default function Main() {
-  const { totalEvents, requiresUpgrade, showConversions, selectedTab, view } =
-    useContext(AnalyticsContext);
+  const {
+    totalEvents,
+    requiresUpgrade,
+    showConversions,
+    selectedTab,
+    saleUnit,
+    setSaleUnit,
+    view,
+  } = useContext(AnalyticsContext);
   const { queryParams } = useRouterStuff();
 
   const tabs = useMemo(
@@ -63,6 +70,27 @@ export default function Main() {
                     />
                   </div>
                 )}
+                {id === "sales" && (
+                  <ToggleGroup
+                    className="absolute right-3 top-3 flex w-fit shrink-0 items-center gap-1 border-neutral-100 bg-neutral-100"
+                    optionClassName="size-8 p-0 flex items-center justify-center"
+                    indicatorClassName="border border-neutral-200 bg-white"
+                    options={[
+                      {
+                        label: <div className="text-base">$</div>,
+                        value: "saleAmount",
+                      },
+                      {
+                        label: <div className="text-[11px]">123</div>,
+                        value: "sales",
+                      },
+                    ]}
+                    selected={saleUnit}
+                    selectAction={(option: AnalyticsSaleUnit) => {
+                      setSaleUnit(option);
+                    }}
+                  />
+                )}
                 <Link
                   className={cn(
                     "border-box relative block h-full min-w-[110px] flex-none px-4 py-3 sm:min-w-[240px] sm:px-8 sm:py-6",
@@ -70,17 +98,12 @@ export default function Main() {
                     "ring-inset ring-gray-500 focus-visible:ring-1 sm:first:rounded-tl-xl",
                   )}
                   href={
-                    (tab.id === id
-                      ? queryParams({
-                          del: "event",
-                          getNewPath: true,
-                        })
-                      : queryParams({
-                          set: {
-                            event: id,
-                          },
-                          getNewPath: true,
-                        })) as string
+                    queryParams({
+                      set: {
+                        event: id,
+                      },
+                      getNewPath: true,
+                    }) as string
                   }
                   aria-current
                 >
@@ -101,36 +124,37 @@ export default function Main() {
                     />
                     <span>{label}</span>
                   </div>
-                  <div className="mt-1 flex items-center gap-2">
+                  <div className="mt-1 flex h-12 items-center">
                     {totalEvents?.[id] || totalEvents?.[id] === 0 ? (
-                      <>
-                        <NumberFlow
-                          value={totalEvents[id]}
-                          className="text-2xl font-medium sm:text-3xl"
-                          format={{
-                            notation:
-                              totalEvents[id] > 999999 ? "compact" : "standard",
-                          }}
-                        />
-                        {id === "sales" && (
-                          <NumberFlow
-                            className="text-lg font-medium text-gray-500 sm:text-xl"
-                            value={totalEvents.saleAmount / 100}
-                            format={{
-                              style: "currency",
-                              currency: "USD",
-                              // @ts-ignore – this is a valid option but TS is outdated
-                              trailingZeroDisplay: "stripIfInteger",
-                            }}
-                          />
-                        )}
-                      </>
+                      <NumberFlow
+                        value={
+                          id === "sales" && saleUnit === "saleAmount"
+                            ? totalEvents.saleAmount / 100
+                            : totalEvents[id]
+                        }
+                        className="text-2xl font-medium sm:text-3xl"
+                        format={
+                          id === "sales" && saleUnit === "saleAmount"
+                            ? {
+                                style: "currency",
+                                currency: "USD",
+                                // @ts-ignore – this is a valid option but TS is outdated
+                                trailingZeroDisplay: "stripIfInteger",
+                              }
+                            : {
+                                notation:
+                                  totalEvents[id] > 999999
+                                    ? "compact"
+                                    : "standard",
+                              }
+                        }
+                      />
                     ) : requiresUpgrade ? (
                       <div className="block rounded-full bg-gray-100 p-2.5">
                         <Lock className="h-4 w-4 text-gray-500" />
                       </div>
                     ) : (
-                      <div className="my-1 h-8 w-12 animate-pulse rounded-md bg-gray-200 sm:h-9" />
+                      <div className="h-9 w-16 animate-pulse rounded-md bg-gray-200" />
                     )}
                   </div>
                 </Link>

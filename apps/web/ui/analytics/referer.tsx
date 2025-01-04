@@ -13,11 +13,11 @@ import { useAnalyticsFilterOption } from "./utils";
 export default function Referer() {
   const { queryParams, searchParams } = useRouterStuff();
 
-  const { selectedTab } = useContext(AnalyticsContext);
-  const dataKey = selectedTab === "sales" ? "saleAmount" : "count";
+  const { selectedTab, saleUnit } = useContext(AnalyticsContext);
+  const dataKey = selectedTab === "sales" ? saleUnit : "count";
 
   const [tab, setTab] = useState<"referers" | "referer_urls">("referers");
-  const data = useAnalyticsFilterOption(tab);
+  const { data, loading } = useAnalyticsFilterOption(tab);
   const singularTabName = SINGULAR_ANALYTICS_ENDPOINTS[tab];
 
   return (
@@ -83,7 +83,7 @@ export default function Referer() {
             </div>
           )
         ) : (
-          <div className="flex h-[300px] items-center justify-center">
+          <div className="absolute inset-0 flex h-[300px] w-full items-center justify-center bg-white/50">
             <AnalyticsLoadingSpinner />
           </div>
         )

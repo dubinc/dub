@@ -7,6 +7,7 @@ import {
 } from "@/lib/analytics/constants";
 import {
   AnalyticsResponseOptions,
+  AnalyticsSaleUnit,
   AnalyticsView,
   EventType,
 } from "@/lib/analytics/types";
@@ -15,6 +16,7 @@ import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PlanProps } from "@/lib/types";
+import { useLocalStorage } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { endOfDay, startOfDay, subDays } from "date-fns";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
@@ -43,6 +45,8 @@ export const AnalyticsContext = createContext<{
   baseApiPath: string;
   eventsApiPath?: string;
   selectedTab: EventType;
+  saleUnit: AnalyticsSaleUnit;
+  setSaleUnit: (saleUnit: AnalyticsSaleUnit) => void;
   view: AnalyticsView;
   domain?: string;
   key?: string;
@@ -66,6 +70,8 @@ export const AnalyticsContext = createContext<{
   baseApiPath: "",
   eventsApiPath: "",
   selectedTab: "clicks",
+  saleUnit: "saleAmount",
+  setSaleUnit: () => {},
   view: "default",
   domain: "",
   queryString: "",
@@ -151,6 +157,11 @@ export default function AnalyticsProvider({
 
     return EVENT_TYPES.find((t) => t === event) ?? "clicks";
   }, [searchParams.get("event")]);
+
+  const [saleUnit, setSaleUnit] = useLocalStorage<AnalyticsSaleUnit>(
+    `analytics-sale-unit`,
+    "saleAmount",
+  );
 
   const view: AnalyticsView = useMemo(() => {
     if (!showConversions) return "default";
@@ -268,20 +279,24 @@ export default function AnalyticsProvider({
       keepPreviousData: true,
       onSuccess: () => setRequiresUpgrade(false),
       onError: (error) => {
-        const errorMessage = JSON.parse(error.message)?.error.message;
-        if (
-          error.status === 403 &&
-          errorMessage.toLowerCase().includes("upgrade")
-        ) {
-          toast.custom(() => (
-            <UpgradeRequiredToast
-              title="Upgrade for more analytics"
-              message={errorMessage}
-            />
-          ));
-          setRequiresUpgrade(true);
-        } else {
-          toast.error(errorMessage);
+        try {
+          const errorMessage = JSON.parse(error.message)?.error.message;
+          if (
+            error.status === 403 &&
+            errorMessage.toLowerCase().includes("upgrade")
+          ) {
+            toast.custom(() => (
+              <UpgradeRequiredToast
+                title="Upgrade for more analytics"
+                message={errorMessage}
+              />
+            ));
+            setRequiresUpgrade(true);
+          } else {
+            toast.error(errorMessage);
+          }
+        } catch (error) {
+          toast.error(error);
         }
       },
       onErrorRetry: (error, ...args) => {
@@ -298,6 +313,8 @@ export default function AnalyticsProvider({
         baseApiPath, // baseApiPath for analytics API endpoints (e.g. /api/analytics)
         selectedTab, // selected event tab (clicks, leads, sales)
         eventsApiPath, // eventsApiPath for events API endpoints (e.g. /api/events)
+        saleUnit,
+        setSaleUnit,
         view,
         queryString,
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)
