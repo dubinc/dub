@@ -2,21 +2,26 @@ import { ProgramSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { DubApiError } from "../errors";
 
-export const getProgramOrThrow = async ({
-  workspaceId,
-  programId,
-}: {
-  workspaceId: string;
-  programId: string;
-}) => {
+export const getProgramOrThrow = async (
+  {
+    workspaceId,
+    programId,
+  }: {
+    workspaceId: string;
+    programId: string;
+  },
+  {
+    includeDiscounts = false,
+  }: {
+    includeDiscounts?: boolean;
+  } = {},
+) => {
   const program = await prisma.program.findUnique({
     where: {
       id: programId,
       workspaceId,
     },
-    include: {
-      discounts: true,
-    },
+    ...(includeDiscounts ? { include: { discounts: true } } : {}),
   });
 
   if (!program) {
