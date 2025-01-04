@@ -1,3 +1,6 @@
 {
-  "extends": "@stripe/ui-extension-tools/tsconfig.ui-extension"
+  "extends": "@stripe/ui-extension-tools/tsconfig.ui-extension",
+  "compilerOptions": {
+    "jsx": "react-jsx"
+  }
 }
