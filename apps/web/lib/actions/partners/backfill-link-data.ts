@@ -10,13 +10,14 @@ export const backfillLinkData = async ({
   programEnrollmentId: string;
   linkId: string;
 }) => {
-  const alreadyBackfilled = await prisma.sale.count({
+  const link = await prisma.link.findUniqueOrThrow({
     where: {
-      linkId,
+      id: linkId,
     },
   });
 
-  if (alreadyBackfilled > 0) {
+  if (link.sales === 0) {
+    console.log(`Link ${linkId} has no sales, skipping backfill`);
     return;
   }
 

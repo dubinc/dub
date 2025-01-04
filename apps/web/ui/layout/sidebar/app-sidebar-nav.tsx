@@ -35,11 +35,12 @@ const NAV_AREAS: SidebarNavAreas<{
   queryString: string;
   programs?: { id: string }[];
   session?: Session | null;
+  showNews?: boolean;
 }> = {
   // Top-level
-  default: ({ slug, queryString, programs }) => ({
+  default: ({ slug, queryString, programs, showNews }) => ({
     showSwitcher: true,
-    showNews: true,
+    showNews,
     direction: "left",
     content: [
       {
@@ -103,7 +104,7 @@ const NAV_AREAS: SidebarNavAreas<{
                       href: `/${slug}/programs/${programs[0].id}/resources`,
                     },
                     {
-                      name: "Settings",
+                      name: "Configuration",
                       href: `/${slug}/programs/${programs[0].id}/settings`,
                     },
                   ],
@@ -258,6 +259,7 @@ export function AppSidebarNav({
         queryString: getQueryString(),
         programs,
         session: session || undefined,
+        showNews: pathname.startsWith(`/${slug}/programs/`) ? false : true,
       }}
       toolContent={toolContent}
       newsContent={newsContent}
