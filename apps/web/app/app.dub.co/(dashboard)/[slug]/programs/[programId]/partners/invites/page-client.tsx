@@ -1,6 +1,6 @@
 "use client";
 
-import { resendProgramInviteAction } from "@/lib/actions/resend-program-invite";
+import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramInviteProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";

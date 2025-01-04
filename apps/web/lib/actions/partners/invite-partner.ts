@@ -1,10 +1,10 @@
 "use server";
 
 import { z } from "zod";
-import { getLinkOrThrow } from "../api/links/get-link-or-throw";
-import { invitePartner } from "../api/partners/invite-partner";
-import { getProgramOrThrow } from "../api/programs/get-program-or-throw";
-import { authActionClient } from "./safe-action";
+import { getLinkOrThrow } from "../../api/links/get-link-or-throw";
+import { invitePartner } from "../../api/partners/invite-partner";
+import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
+import { authActionClient } from "../safe-action";
 
 const invitePartnerSchema = z.object({
   workspaceId: z.string(),

@@ -1,7 +1,7 @@
 import useProgramMetrics from "@/lib/swr/use-program-metrics";
 import { Icon } from "@dub/ui";
 import { Check2, CurrencyDollar, MoneyBills2, Users } from "@dub/ui/icons";
-import { currencyFormatter, nFormatter } from "@dub/utils";
+import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
@@ -79,14 +79,19 @@ function Stat({
             {error ? (
               "-"
             ) : (
-              <>
-                {isCurrency
-                  ? currencyFormatter(value! / 100, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })
-                  : nFormatter(value)}
-              </>
+              <NumberFlow
+                value={isCurrency ? value! / 100 : value || 0}
+                {...(isCurrency
+                  ? {
+                      format: {
+                        style: "currency",
+                        currency: "USD",
+                        // @ts-ignore – this is a valid option but TS is outdated
+                        trailingZeroDisplay: "stripIfInteger",
+                      },
+                    }
+                  : {})}
+              />
             )}
           </div>
         )}
