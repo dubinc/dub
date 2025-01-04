@@ -159,7 +159,7 @@ export const TRIGGER_TYPES = ["qr", "link"] as const;
 
 export const EVENT_TYPES = ["clicks", "leads", "sales"] as const;
 
-export const ANALYTICS_VIEWS = ["default", "funnel"] as const;
+export const ANALYTICS_VIEWS = ["timeseries", "funnel"] as const;
 export const ANALYTICS_SALE_UNIT = ["sales", "saleAmount"] as const;
 
 export const OLD_ANALYTICS_ENDPOINTS = [

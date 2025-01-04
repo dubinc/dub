@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ANALYTICS_SALE_UNIT,
   ANALYTICS_VIEWS,
   EVENT_TYPES,
   VALID_ANALYTICS_FILTERS,
@@ -46,7 +47,6 @@ export const AnalyticsContext = createContext<{
   eventsApiPath?: string;
   selectedTab: EventType;
   saleUnit: AnalyticsSaleUnit;
-  setSaleUnit: (saleUnit: AnalyticsSaleUnit) => void;
   view: AnalyticsView;
   domain?: string;
   key?: string;
@@ -71,8 +71,7 @@ export const AnalyticsContext = createContext<{
   eventsApiPath: "",
   selectedTab: "clicks",
   saleUnit: "saleAmount",
-  setSaleUnit: () => {},
-  view: "default",
+  view: "timeseries",
   domain: "",
   queryString: "",
   start: new Date(),
@@ -158,17 +157,36 @@ export default function AnalyticsProvider({
     return EVENT_TYPES.find((t) => t === event) ?? "clicks";
   }, [searchParams.get("event")]);
 
-  const [saleUnit, setSaleUnit] = useLocalStorage<AnalyticsSaleUnit>(
-    `analytics-sale-unit`,
-    "saleAmount",
+  const [persistedSaleUnit, setPersistedSaleUnit] =
+    useLocalStorage<AnalyticsSaleUnit>(`analytics-sale-unit`, "saleAmount");
+
+  const saleUnit: AnalyticsSaleUnit = useMemo(() => {
+    const searchParamsSaleUnit = searchParams.get(
+      "saleUnit",
+    ) as AnalyticsSaleUnit;
+    if (ANALYTICS_SALE_UNIT.includes(searchParamsSaleUnit)) {
+      setPersistedSaleUnit(searchParamsSaleUnit);
+      return searchParamsSaleUnit;
+    }
+    return persistedSaleUnit;
+  }, [searchParams.get("saleUnit")]);
+
+  const [persistedView, setPersistedView] = useLocalStorage<AnalyticsView>(
+    `analytics-view`,
+    "timeseries",
   );
-
   const view: AnalyticsView = useMemo(() => {
-    if (!showConversions) return "default";
+    if (!showConversions) return "timeseries";
 
-    const view = searchParams.get("view");
+    const searchParamsView = searchParams.get("view") as AnalyticsView;
+    if (ANALYTICS_VIEWS.includes(searchParamsView)) {
+      setPersistedView(searchParamsView);
+      return searchParamsView;
+    }
 
-    return ANALYTICS_VIEWS.find((v) => v === view) ?? "default";
+    return ANALYTICS_VIEWS.includes(persistedView)
+      ? persistedView
+      : "timeseries";
   }, [searchParams.get("view")]);
 
   const { basePath, domain, baseApiPath, eventsApiPath } = useMemo(() => {
@@ -314,7 +332,6 @@ export default function AnalyticsProvider({
         selectedTab, // selected event tab (clicks, leads, sales)
         eventsApiPath, // eventsApiPath for events API endpoints (e.g. /api/events)
         saleUnit,
-        setSaleUnit,
         view,
         queryString,
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)

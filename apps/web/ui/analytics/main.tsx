@@ -22,7 +22,6 @@ export default function Main() {
     showConversions,
     selectedTab,
     saleUnit,
-    setSaleUnit,
     view,
   } = useContext(AnalyticsContext);
   const { queryParams } = useRouterStuff();
@@ -87,7 +86,9 @@ export default function Main() {
                     ]}
                     selected={saleUnit}
                     selectAction={(option: AnalyticsSaleUnit) => {
-                      setSaleUnit(option);
+                      queryParams({
+                        set: { saleUnit: option },
+                      });
                     }}
                   />
                 )}
@@ -164,7 +165,7 @@ export default function Main() {
         </NumberFlowGroup>
       </div>
       <div className="relative">
-        {view === "default" && (
+        {view === "timeseries" && (
           <div className="p-5 pt-10 sm:p-10">
             <AnalyticsAreaChart resource={tab.id} />
           </div>
@@ -178,7 +179,7 @@ export default function Main() {
             options={[
               {
                 label: <ChartLine className="size-4 text-neutral-600" />,
-                value: "default",
+                value: "timeseries",
               },
               {
                 label: (
@@ -189,15 +190,9 @@ export default function Main() {
             ]}
             selected={view}
             selectAction={(option) => {
-              if (option === "default") {
-                queryParams({
-                  del: "view",
-                });
-              } else {
-                queryParams({
-                  set: { view: option },
-                });
-              }
+              queryParams({
+                set: { view: option },
+              });
             }}
           />
         )}
