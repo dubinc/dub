@@ -6,7 +6,7 @@ import { useId } from "react";
 
 interface ToggleOption {
   value: string;
-  label: string;
+  label: string | React.ReactNode;
   badge?: React.ReactNode;
 }
 
@@ -53,7 +53,11 @@ export function ToggleGroup({
             )}
             onClick={() => selectAction(option.value)}
           >
-            <p>{option.label}</p>
+            {typeof option.label === "string" ? (
+              <p>{option.label}</p>
+            ) : (
+              option.label
+            )}
             {option.badge}
             {option.value === selected && (
               <motion.div

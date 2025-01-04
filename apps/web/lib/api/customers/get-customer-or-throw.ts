@@ -10,7 +10,11 @@ export const getCustomerOrThrow = async (
     id: string;
     workspaceId: string;
   },
-  { expand }: { expand?: "link"[] } = {},
+  {
+    includeExpandedFields = false,
+  }: {
+    includeExpandedFields?: boolean;
+  } = {},
 ): Promise<CustomerWithLink> => {
   const customer = await prisma.customer.findUnique({
     where: {
@@ -23,7 +27,7 @@ export const getCustomerOrThrow = async (
           }
         : { id }),
     },
-    ...(expand?.includes("link")
+    ...(includeExpandedFields
       ? {
           include: {
             link: {

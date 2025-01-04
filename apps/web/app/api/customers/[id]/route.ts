@@ -5,6 +5,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
   CustomerSchema,
+  getCustomersQuerySchema,
   updateCustomerBodySchema,
 } from "@/lib/zod/schemas/customers";
 import { prisma } from "@dub/prisma";
@@ -12,17 +13,17 @@ import { NextResponse } from "next/server";
 
 // GET /api/customers/:id – Get a customer by ID
 export const GET = withWorkspace(
-  async ({ workspace, params }) => {
+  async ({ workspace, params, searchParams }) => {
     const { id } = params;
+    const { includeExpandedFields } =
+      getCustomersQuerySchema.parse(searchParams);
 
     const customer = await getCustomerOrThrow(
       {
         id,
         workspaceId: workspace.id,
       },
-      {
-        expand: ["link"],
-      },
+      { includeExpandedFields },
     );
 
     return NextResponse.json(CustomerSchema.parse(transformCustomer(customer)));
@@ -34,8 +35,10 @@ export const GET = withWorkspace(
 
 // PATCH /api/customers/:id – Update a customer by ID
 export const PATCH = withWorkspace(
-  async ({ workspace, params, req }) => {
+  async ({ workspace, params, req, searchParams }) => {
     const { id } = params;
+    const { includeExpandedFields } =
+      getCustomersQuerySchema.parse(searchParams);
 
     const { name, email, avatar, externalId } = updateCustomerBodySchema.parse(
       await parseRequestBody(req),
@@ -52,18 +55,22 @@ export const PATCH = withWorkspace(
           id: customer.id,
         },
         data: { name, email, avatar, externalId },
-        include: {
-          link: {
-            include: {
-              programEnrollment: {
-                include: {
-                  partner: true,
-                  discount: true,
+        ...(includeExpandedFields
+          ? {
+              include: {
+                link: {
+                  include: {
+                    programEnrollment: {
+                      include: {
+                        partner: true,
+                        discount: true,
+                      },
+                    },
+                  },
                 },
               },
-            },
-          },
-        },
+            }
+          : {}),
       });
 
       return NextResponse.json(

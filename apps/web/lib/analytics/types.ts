@@ -4,6 +4,7 @@ import {
   eventsQuerySchema,
 } from "../zod/schemas/analytics";
 import {
+  ANALYTICS_SALE_UNIT,
   ANALYTICS_VIEWS,
   EVENT_TYPES,
   VALID_ANALYTICS_ENDPOINTS,
@@ -24,6 +25,7 @@ export type AnalyticsResponseOptions =
 export type EventType = (typeof EVENT_TYPES)[number];
 
 export type AnalyticsView = (typeof ANALYTICS_VIEWS)[number];
+export type AnalyticsSaleUnit = (typeof ANALYTICS_SALE_UNIT)[number];
 
 export type DeviceTabs = "devices" | "browsers" | "os" | "triggers";
 
