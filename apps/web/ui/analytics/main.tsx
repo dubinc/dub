@@ -139,7 +139,7 @@ export default function Main() {
                             ? {
                                 style: "currency",
                                 currency: "USD",
-                                // @ts-ignore – this is a valid option but TS is outdated
+                                // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
                                 trailingZeroDisplay: "stripIfInteger",
                               }
                             : {
