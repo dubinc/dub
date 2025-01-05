@@ -19,6 +19,13 @@ export const acceptProgramInviteAction = authPartnerActionClient
 
     const programInvite = await prisma.programInvite.findUniqueOrThrow({
       where: { id: programInviteId },
+      include: {
+        program: {
+          select: {
+            discounts: true,
+          },
+        },
+      },
     });
 
     // enroll partner in program and delete the invite
@@ -30,6 +37,10 @@ export const acceptProgramInviteAction = authPartnerActionClient
           linkId: programInvite.linkId,
           partnerId: partner.id,
           status: "approved",
+          discountId:
+            programInvite.program.discounts.length > 0
+              ? programInvite.program.discounts[0].id
+              : null,
         },
       }),
       prisma.programInvite.delete({
