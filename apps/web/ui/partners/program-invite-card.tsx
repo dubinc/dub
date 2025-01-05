@@ -1,5 +1,6 @@
 import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program-invite";
-import { mutateSuffix } from "@/lib/swr/mutate";
+import { mutatePrefix } from "@/lib/swr/mutate";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProgramInviteProps } from "@/lib/types";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
 import { BlurImage, Button, StatusBadge } from "@dub/ui";
@@ -12,10 +13,11 @@ export function ProgramInviteCard({
 }: {
   invite: PartnerProgramInviteProps;
 }) {
+  const { partner } = usePartnerProfile();
   const { executeAsync, isExecuting } = useAction(acceptProgramInviteAction, {
     onSuccess: () => {
       toast.success("Program invite accepted!");
-      mutateSuffix("/programs");
+      partner && mutatePrefix(`/api/partners/${partner.id}/programs`);
     },
     onError: ({ error }) => {
       toast.error(error.serverError);
