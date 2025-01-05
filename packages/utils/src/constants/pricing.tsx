@@ -17,7 +17,7 @@ const BUSINESS_PLAN_MODIFIER = ({
   yearly = 49,
   links = 5000,
   clicks = 150000,
-  sales = 10000_00,
+  sales = 5000_00,
   domains = 40,
   users = 15,
   ids = [],
@@ -255,7 +255,7 @@ export const PLANS = [
     yearly: 49,
     links: 5000,
     clicks: 150000,
-    sales: 10000_00,
+    sales: 5000_00,
     domains: 40,
     users: 15,
     ids: [
@@ -274,7 +274,7 @@ export const PLANS = [
     yearly: 99,
     links: 15000,
     clicks: 400000,
-    sales: 50000_00,
+    sales: 15000_00,
     domains: 100,
     users: 30,
     ids: [
@@ -290,7 +290,7 @@ export const PLANS = [
     yearly: 199,
     links: 40000,
     clicks: 1000000,
-    sales: 150000_00,
+    sales: 40000_00,
     domains: 250,
     users: 50,
     ids: [
@@ -306,7 +306,7 @@ export const PLANS = [
     yearly: 399,
     links: 100000,
     clicks: 2500000,
-    sales: 500000_00,
+    sales: 100000_00,
     domains: 500,
     users: 100,
     ids: [
