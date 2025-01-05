@@ -1,3 +1,4 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { Button, LinkLogo, Modal, useMediaQuery } from "@dub/ui";
@@ -10,7 +11,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 
 type DeleteLinkModalProps = {
   showDeleteLinkModal: boolean;
@@ -68,12 +68,7 @@ function DeleteLinkModalInner({
             method: "DELETE",
           }).then(async (res) => {
             if (res.status === 200) {
-              await mutate(
-                (key) =>
-                  typeof key === "string" && key.startsWith("/api/links"),
-                undefined,
-                { revalidate: true },
-              );
+              await mutatePrefix("/api/links");
               setShowDeleteLinkModal(false);
               toast.success("Successfully deleted shortlink!");
             } else {
