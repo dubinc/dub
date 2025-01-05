@@ -1,5 +1,6 @@
 "use client";
 
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { SimpleLinkProps } from "@/lib/types";
@@ -23,7 +24,6 @@ import {
   useMemo,
 } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 import { useAddEditTagModal } from "./add-edit-tag-modal";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
 import { useLinkBuilder } from "./link-builder";
@@ -121,11 +121,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
           body: JSON.stringify(hashes),
         }).then(async (res) => {
           if (res.status === 200) {
-            await mutate(
-              (key) => typeof key === "string" && key.startsWith("/api/links"),
-              undefined,
-              { revalidate: true },
-            );
+            await mutatePrefix("/api/links");
             setHashes([]);
           }
         }),

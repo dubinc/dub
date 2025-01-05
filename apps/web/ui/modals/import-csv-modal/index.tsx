@@ -1,5 +1,6 @@
 "use client";
 
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   AnimatedSizeContainer,
@@ -228,12 +229,10 @@ function ImportCsvModal({
                     if (!res.ok) throw new Error();
 
                     router.push(`/${slug}`);
-                    mutate(
-                      (key) =>
-                        typeof key === "string" &&
-                        (key.startsWith("/api/links") ||
-                          key.startsWith("/api/domains")),
-                    );
+                    await Promise.all([
+                      mutatePrefix("/api/links"),
+                      mutate(`/api/workspaces/${slug}`),
+                    ]);
 
                     toast.success(
                       "Successfully added links to import queue! You can now safely navigate from this tab – we will send you an email when your links have been fully imported.",

@@ -36,7 +36,7 @@ function UsageInner() {
     slug,
     paymentFailedAt,
     loading,
-  } = useWorkspace();
+  } = useWorkspace({ swrOpts: { keepPreviousData: true } });
 
   const [billingEnd] = useMemo(() => {
     if (billingCycleStart) {
