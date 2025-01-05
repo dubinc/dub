@@ -1,4 +1,5 @@
 import { invitePartnerAction } from "@/lib/actions/partners/invite-partner";
+import { mutatePrefix } from "@/lib/swr/mutate-prefix";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerLinkSelector } from "@/ui/partners/partner-link-selector";
@@ -7,9 +8,11 @@ import {
   AnimatedSizeContainer,
   BlurImage,
   Button,
+  CircleCheckFill,
   Sheet,
   useMediaQuery,
 } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -20,14 +23,32 @@ interface InvitePartnerSheetProps {
 }
 
 interface InvitePartnerFormData {
-  email: string;
+  name?: string;
+  email?: string;
   linkId: string;
 }
+
+const inviteTypes = [
+  {
+    id: "affiliate",
+    label: "Affiliate Partner",
+    description:
+      "Partner will receive an email invitation to join your program",
+  },
+  {
+    id: "referral",
+    label: "Referral Partner",
+    description: "Partner will not receive an email invitation.",
+  },
+];
 
 function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const { program } = useProgram();
   const { id: workspaceId, slug } = useWorkspace();
   const { isMobile } = useMediaQuery();
+  const [selectedInviteType, setSelectedInviteType] = useState<
+    "affiliate" | "referral"
+  >("affiliate");
 
   const {
     register,
@@ -37,12 +58,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     setError,
     clearErrors,
     formState: { errors },
-  } = useForm<InvitePartnerFormData>({
-    defaultValues: {
-      email: "",
-      linkId: "",
-    },
-  });
+  } = useForm<InvitePartnerFormData>();
 
   const selectedLinkId = watch("linkId");
 
@@ -50,8 +66,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     onSuccess: async () => {
       toast.success("Successfully invited partner!");
       setIsOpen(false);
-
-      // TODO: refresh the invites list
+      program && mutatePrefix(`/api/programs/${program.id}/partners`);
     },
     onError({ error }) {
       toast.error(error.serverError);
@@ -92,26 +107,19 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     return result.id;
   };
 
-  const onSubmit = async (data: InvitePartnerFormData) => {
-    let { linkId } = data;
-
-    try {
-      if (!linkId)
-        setError("linkId", { message: "Please select a referral link" });
-
-      await executeAsync({
-        workspaceId: workspaceId!,
-        programId: program?.id!,
-        email: data.email,
-        linkId,
-      });
-    } catch (error) {
-      toast.error(error.message);
-    }
-  };
-
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
+    <form
+      onSubmit={handleSubmit(async (data) => {
+        await executeAsync({
+          workspaceId: workspaceId!,
+          programId: program?.id!,
+          name: data.name || undefined,
+          email: data.email || undefined,
+          linkId: data.linkId,
+        });
+      })}
+      className="flex h-full flex-col"
+    >
       <div>
         <div className="flex items-start justify-between border-b border-neutral-200 p-6">
           <Sheet.Title className="text-xl font-semibold">
@@ -126,7 +134,68 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
           </Sheet.Close>
         </div>
         <div className="p-6">
-          <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+            {inviteTypes.map((inviteType) => {
+              const isSelected = inviteType.id === selectedInviteType;
+
+              return (
+                <label
+                  key={inviteType.label}
+                  className={cn(
+                    "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                    "transition-all duration-150",
+                    isSelected &&
+                      "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                  )}
+                >
+                  <input
+                    type="radio"
+                    value={inviteType.label}
+                    className="hidden"
+                    checked={isSelected}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedInviteType(
+                          inviteType.id as "affiliate" | "referral",
+                        );
+                      }
+                    }}
+                  />
+                  <div className="flex flex-col gap-1.5 text-sm">
+                    <span className="font-medium">{inviteType.label}</span>
+                    <span className="text-xs text-gray-500">
+                      {inviteType.description}
+                    </span>
+                  </div>
+                  <CircleCheckFill
+                    className={cn(
+                      "-mr-px -mt-px flex size-4 shrink-0 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                      isSelected && "scale-100 opacity-100",
+                    )}
+                  />
+                </label>
+              );
+            })}
+          </div>
+          <div className="mt-4 grid gap-4">
+            {selectedInviteType === "referral" && (
+              <div>
+                <label htmlFor="name" className="flex items-center space-x-2">
+                  <h2 className="text-sm font-medium text-gray-900">Name</h2>
+                </label>
+                <div className="relative mt-2 rounded-md shadow-sm">
+                  <input
+                    {...register("name")}
+                    className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                    placeholder="John Doe"
+                    type="text"
+                    autoComplete="off"
+                    autoFocus={!isMobile}
+                  />
+                </div>
+              </div>
+            )}
+
             <div>
               <label htmlFor="email" className="flex items-center space-x-2">
                 <h2 className="text-sm font-medium text-gray-900">Email</h2>
@@ -136,10 +205,9 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                   {...register("email")}
                   className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                   placeholder="panic@thedis.co"
-                  required
                   type="email"
                   autoComplete="off"
-                  autoFocus={!isMobile}
+                  autoFocus={!isMobile && selectedInviteType !== "affiliate"}
                 />
               </div>
             </div>
@@ -191,7 +259,9 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                 </div>
               </AnimatedSizeContainer>
             </div>
+          </div>
 
+          {selectedInviteType === "affiliate" && (
             <div className="mt-8">
               <h2 className="text-sm font-medium text-gray-900">Preview</h2>
               <div className="mt-2 overflow-hidden rounded-md border border-neutral-200">
@@ -233,7 +303,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
       <div className="flex grow flex-col justify-end">
