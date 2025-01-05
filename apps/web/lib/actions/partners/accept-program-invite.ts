@@ -37,7 +37,10 @@ export const acceptProgramInviteAction = authPartnerActionClient
           linkId: programInvite.linkId,
           partnerId: partner.id,
           status: "approved",
-          discountId: programInvite.program.discounts[0].id,
+          discountId:
+            programInvite.program.discounts.length > 0
+              ? programInvite.program.discounts[0].id
+              : null,
         },
       }),
       prisma.programInvite.delete({

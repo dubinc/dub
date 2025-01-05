@@ -1,3 +1,4 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
 import { Button, LinkLogo, Modal, useToastWithUndo } from "@dub/ui";
@@ -10,7 +11,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 
 const sendArchiveRequest = ({
   domain,
@@ -29,14 +29,6 @@ const sendArchiveRequest = ({
     },
     body: JSON.stringify({ archived: archive }),
   });
-};
-
-const revalidateDomains = () => {
-  return mutate(
-    (key) => typeof key === "string" && key.startsWith("/api/domains"),
-    undefined,
-    { revalidate: true },
-  );
 };
 
 function ArchiveDomainModal({
@@ -71,7 +63,7 @@ function ArchiveDomainModal({
       return;
     }
 
-    revalidateDomains();
+    mutatePrefix("/api/domains");
     setShowArchiveDomainModal(false);
     toastWithUndo({
       id: "domain-archive-undo-toast",
@@ -92,7 +84,7 @@ function ArchiveDomainModal({
         loading: "Undo in progress...",
         error: "Failed to roll back changes. An error occurred.",
         success: () => {
-          revalidateDomains();
+          mutatePrefix("/api/domains");
           return "Undo successful! Changes reverted.";
         },
       },
