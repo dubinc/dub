@@ -268,14 +268,10 @@ function LinkBuilderInner({
                 });
 
                 if (res.status === 200) {
-                  await Promise.all([
-                    mutatePrefix([
-                      "/api/links",
-                      // if updating root domain link, mutate domains as well
-                      ...(key === "_root" ? ["/api/domains"] : []),
-                    ]),
-                    // Mutate workspace to update usage stats
-                    mutate(`/api/workspaces/${slug}`),
+                  await mutatePrefix([
+                    "/api/links",
+                    // if updating root domain link, mutate domains as well
+                    ...(key === "_root" ? ["/api/domains"] : []),
                   ]);
                   const data = await res.json();
                   posthog.capture(
@@ -295,6 +291,9 @@ function LinkBuilderInner({
 
                   draftControlsRef.current?.onSubmitSuccessful();
                   setShowLinkBuilder(false);
+
+                  // Mutate workspace to update usage stats
+                  mutate(`/api/workspaces/${slug}`);
                 } else {
                   const { error } = await res.json();
 
