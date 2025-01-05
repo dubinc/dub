@@ -1,7 +1,7 @@
 import { mutate } from "swr";
 
-export const mutatePrefix = async (prefix: string | string[]) => {
-  await mutate(
+export const mutatePrefix = (prefix: string | string[]) =>
+  mutate(
     (key) =>
       typeof key === "string" &&
       (Array.isArray(prefix)
@@ -10,10 +10,9 @@ export const mutatePrefix = async (prefix: string | string[]) => {
     undefined,
     { revalidate: true },
   );
-};
 
-export const mutateSuffix = async (suffix: string | string[]) => {
-  await mutate(
+export const mutateSuffix = (suffix: string | string[]) =>
+  mutate(
     (key) =>
       typeof key === "string" &&
       (Array.isArray(suffix)
@@ -24,4 +23,3 @@ export const mutateSuffix = async (suffix: string | string[]) => {
       revalidate: true,
     },
   );
-};
