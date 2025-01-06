@@ -69,10 +69,33 @@ export const confirmPayoutsAction = authActionClient
       );
       const fee = amount * DUB_PARTNERS_PAYOUT_FEE;
       const total = amount + fee;
+      let number: string | null = null;
+
+      // Generate the next invoice number
+      const lastInvoice = await tx.invoice.findFirst({
+        where: {
+          workspaceId: workspace.id,
+        },
+        select: {
+          number: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      if (lastInvoice) {
+        const [_, lastNumber] = lastInvoice.number?.split("-") ?? [];
+        const newNumber = parseInt(lastNumber) + 1;
+        number = `${workspace.invoicePrefix}-${newNumber}`;
+      } else {
+        number = `${workspace.invoicePrefix}-1`;
+      }
 
       const invoice = await tx.invoice.create({
         data: {
           id: createId({ prefix: "inv_" }),
+          number,
           programId,
           workspaceId: workspace.id,
           amount,
@@ -115,3 +138,34 @@ export const confirmPayoutsAction = authActionClient
       };
     });
   });
+
+// Get the next invoice number for the given workspace
+const nextInvoiceNumber = async ({
+  workspaceId,
+  invoicePrefix,
+}: {
+  workspaceId: string;
+  invoicePrefix: string;
+}) => {
+  const lastInvoice = await prisma.invoice.findFirst({
+    where: {
+      workspaceId,
+    },
+    select: {
+      number: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  if (!lastInvoice) {
+    return `${invoicePrefix}-1`;
+  }
+
+  const [_, number] = lastInvoice.number?.split("-") ?? [];
+
+  const newNumber = parseInt(number) + 1;
+
+  return `${invoicePrefix}-${newNumber}`;
+};

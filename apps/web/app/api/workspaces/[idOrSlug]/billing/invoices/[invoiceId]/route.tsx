@@ -77,8 +77,6 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
 
   const customerAddress = customer.shipping?.address;
 
-  console.log("Customer address", customer);
-
   const invoiceMetadata = [
     {
       label: "Date",
