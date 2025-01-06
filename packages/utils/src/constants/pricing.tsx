@@ -33,7 +33,7 @@ const BUSINESS_PLAN_MODIFIER = ({
   ids: string[];
 }) => ({
   name,
-  tagline: "For growing teams and groups who need advanced features ",
+  tagline: "For fast-growing startups and businesses looking to scale",
   link: "https://dub.co/help/article/business-plan",
   price: {
     monthly,
@@ -118,7 +118,7 @@ const BUSINESS_PLAN_MODIFIER = ({
 export const PLANS = [
   {
     name: "Free",
-    tagline: "For individuals or teams of one getting started with Dub",
+    tagline: "For hobbyists and individuals looking to manage their links",
     price: {
       monthly: 0,
       yearly: 0,
@@ -177,7 +177,7 @@ export const PLANS = [
   },
   {
     name: "Pro",
-    tagline: "For content creators or smaller teams looking for more tracking",
+    tagline: "For content creators or small teams needing advanced features",
     link: "https://dub.co/help/article/pro-plan",
     price: {
       monthly: 24,
@@ -324,7 +324,7 @@ export const PLANS = [
   }),
   {
     name: "Enterprise",
-    tagline: "For organizations that require governance and scale",
+    tagline: "For large organizations and governments with custom needs",
     link: "https://dub.co/enterprise",
     price: {
       monthly: null,
@@ -353,6 +353,7 @@ export const PLANS = [
     features: [
       { id: "sso", text: "SSO/SAML" },
       { id: "roles", text: "Role-based controls" },
+      { id: "volume", text: "Volume discounts" },
       { id: "sla", text: "Custom SLA" },
       { id: "logs", text: "Audit logs" },
       { id: "success", text: "Dedicated success manager" },
