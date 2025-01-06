@@ -4,7 +4,7 @@ import crypto from "crypto";
 import { appUninstalled } from "./app-uninstalled";
 import { customersDataRequest } from "./customers-data-request";
 import { customersRedact } from "./customers-redact";
-import { orderPaid } from "./order-paid";
+import { ordersPaid } from "./orders-paid";
 import { shopRedact } from "./shop-redact";
 
 const relevantTopics = new Set([
@@ -65,7 +65,7 @@ export const POST = async (req: Request) => {
   try {
     switch (topic) {
       case "orders/paid":
-        response = await orderPaid({
+        response = await ordersPaid({
           event,
           workspaceId: workspace.id,
         });
