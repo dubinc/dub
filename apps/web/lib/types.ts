@@ -116,8 +116,6 @@ export type RoleProps = (typeof roles)[number];
 
 export type BetaFeatures = "webhooks" | "noDubLink";
 
-export type AddOns = "conversion" | "sso";
-
 export interface WorkspaceProps extends Project {
   logo: string | null;
   plan: PlanProps;

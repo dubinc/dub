@@ -161,7 +161,13 @@ export const POST = withWorkspaceEdge(
     });
   },
   {
-    requiredAddOn: "conversion",
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "enterprise",
+    ],
     requiredPermissions: ["conversions.write"],
   },
 );
