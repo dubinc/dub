@@ -89,6 +89,7 @@ export function LinkBuilder(props: LinkBuilderProps) {
 }
 
 function LinkBuilderOuter(props: LinkBuilderProps) {
+  // TODO: should we use a different value for this? or just keep it as is?
   const { conversionEnabled } = useWorkspace();
   const form = useForm<LinkFormData>({
     defaultValues: props.props ||
