@@ -55,8 +55,8 @@ const BUSINESS_PLAN_MODIFIER = ({
     text: "text-sky-900",
   },
   cta: {
-    text: "Get started with Business",
-    shortText: "Get Business",
+    text: `Get started with ${name}`,
+    shortText: `Get ${name}`,
     href: "https://app.dub.co/register",
     color: "bg-sky-900 hover:bg-sky-800 hover:ring-sky-100",
   },
