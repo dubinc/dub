@@ -1,11 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import { satoshi } from "@/styles/fonts";
 import { prisma } from "@dub/prisma";
-import { capitalize, currencyFormatter } from "@dub/utils";
+import { capitalize, currencyFormatter, formatDate } from "@dub/utils";
 import {
   Document,
-  Font,
   Image,
   Link,
   Page,
@@ -15,20 +13,13 @@ import {
 } from "@react-pdf/renderer";
 import { createTw } from "react-pdf-tailwind";
 
-Font.register({
-  family: "Satoshi",
-  src: satoshi.variable,
-});
-
 export const dynamic = "force-dynamic";
 
 const tw = createTw(
   {
     theme: {
-      extend: {
-        colors: {
-          primary: "#000",
-        },
+      fontFamily: {
+        sans: ["Inter"],
       },
     },
   },
@@ -82,7 +73,26 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   //   });
   // }
 
-  const footerRows = [
+  const invoiceMetadata = [
+    {
+      label: "Date",
+      value: invoice.createdAt.toLocaleString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      }),
+    },
+    {
+      label: "Receipt #",
+      value: "3149-0001",
+    },
+    {
+      label: "Invoice #",
+      value: "1354-2341-123",
+    },
+  ];
+
+  const invoiceSummaryDetails = [
     {
       label: "Method",
       value: "Card",
@@ -113,7 +123,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   const pdf = await renderToBuffer(
     <Document>
       <Page size="A4" style={tw("p-20")}>
-        <View style={tw("flex-row justify-between items-center")}>
+        <View style={tw("flex-row justify-between items-center mb-10")}>
           <Image
             src="https://dubassets.com/logos/clrei1gld0002vs9mzn93p8ik_384uSfo"
             style={tw("w-12 h-12")}
@@ -126,36 +136,18 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
           </View>
         </View>
 
-        <View style={tw("flex-col gap-2 text-sm mt-10 font-medium")}>
-          <View style={tw("flex-row")}>
-            <Text style={tw("text-neutral-500 w-1/5")}>Date</Text>
-            <Text style={tw("text-neutral-800 w-4/5")}>
-              {invoice.createdAt.toLocaleString("en-US", {
-                month: "short",
-                day: "2-digit",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-                hour12: true,
-              })}
-            </Text>
-          </View>
-
-          <View style={tw("flex-row")}>
-            <Text style={tw("text-neutral-500 w-1/5")}>Receipt #</Text>
-            <Text style={tw("text-neutral-800 w-4/5")}>3149-0001</Text>
-          </View>
-
-          <View style={tw("flex-row")}>
-            <Text style={tw("text-neutral-500 w-1/5")}>Invoice #</Text>
-            <Text style={tw("text-neutral-800 w-4/5")}>1354-2341-123</Text>
-          </View>
+        <View style={tw("flex-col gap-2 text-sm font-medium mb-10")}>
+          {invoiceMetadata.map((row) => (
+            <View style={tw("flex-row")} key={row.label}>
+              <Text style={tw("text-neutral-500 w-1/5")}>{row.label}</Text>
+              <Text style={tw("text-neutral-800 w-4/5")}>{row.value}</Text>
+            </View>
+          ))}
         </View>
 
         <View
           style={tw(
-            "flex-row justify-between mt-10 border border-neutral-200 rounded-xl",
+            "flex-row justify-between border border-neutral-200 rounded-xl mb-6",
           )}
         >
           <View style={tw("flex-col gap-2 w-1/2 p-4")}>
@@ -184,7 +176,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
           </View>
         </View>
 
-        <View style={tw("mt-10 border border-neutral-200 rounded-xl")}>
+        <View style={tw("mb-6 border border-neutral-200 rounded-xl")}>
           <View style={tw("flex-row border-neutral-200 border-b")}>
             <Text
               style={tw("w-2/6 p-3.5 text-sm font-medium text-neutral-700")}
@@ -207,26 +199,31 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
               Amount
             </Text>
           </View>
+
           {invoice.payouts.map((payout, index) => (
             <View
               key={index}
               style={tw(
-                "flex-row text-sm font-medium text-neutral-700 border-b border-neutral-200",
+                `flex-row text-sm font-medium text-neutral-700 border-neutral-200 ${index + 1 === invoice.payouts.length ? "" : "border-b"}`,
               )}
             >
-              <Text style={tw("w-2/6 p-3.5")}>{payout.partner.name}</Text>
+              <View style={tw("flex-row items-center gap-2 w-2/6 p-3.5")}>
+                <Image
+                  src={payout.partner.image!}
+                  style={tw("w-5 h-5 rounded-full")}
+                />
+                <Text>{payout.partner.name}</Text>
+              </View>
               <Text style={tw("w-2/6 p-3.5")}>
-                {payout.periodEnd?.toLocaleString("en-US", {
+                {formatDate(payout.periodStart!, {
                   month: "short",
-                  day: "2-digit",
-                  year: "numeric",
+                  year:
+                    new Date(payout.periodStart!).getFullYear() ===
+                    new Date(payout.periodEnd!).getFullYear()
+                      ? undefined
+                      : "numeric",
                 })}
-                -{" "}
-                {payout.periodStart?.toLocaleString("en-US", {
-                  month: "short",
-                  day: "2-digit",
-                  year: "numeric",
-                })}
+                -{formatDate(payout.periodEnd!, { month: "short" })}
               </Text>
               <Text style={tw("w-1/6 p-3.5")}>{capitalize(payout.type)}</Text>
               <Text style={tw("w-1/6 p-3.5")}>
@@ -239,57 +236,24 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
           ))}
         </View>
 
-        {/* <View style={tw("flex-col gap-2 text-sm mt-10 font-medium")}>
-          <View style={tw("flex-row")}>
-            <Text style={tw("text-neutral-500 w-1/5")}>Method</Text>
-            <Text style={tw("text-neutral-800 w-4/5")}>Card</Text>
-          </View>
-
-          <View style={tw("flex-row")}>
-            <Text style={tw("text-neutral-500 w-1/5")}>Amount</Text>
-            <Text style={tw("text-neutral-800 w-4/5")}>
-              {currencyFormatter(invoice.amount / 100, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </Text>
-          </View>
-
-          <View style={tw("flex-row")}>
-            <Text style={tw("text-neutral-500 w-1/5")}>Fees</Text>
-            <Text style={tw("text-neutral-800 w-4/5")}>
-              {currencyFormatter(invoice.fee / 100, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </Text>
-          </View>
-
-          <View style={tw("flex-row")}>
-            <Text style={tw("text-neutral-500 w-1/5")}>Total</Text>
-            <Text style={tw("text-neutral-800 w-4/5")}>
-              {currencyFormatter(invoice.total / 100, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </Text>
-          </View>
-        </View> */}
-
         <View
           style={tw(
-            "flex-col gap-2 text-sm mt-10 font-medium p-4 border border-neutral-100 rounded-xl bg-neutral-50",
+            "flex-col gap-2 mb-10 p-4 border border-neutral-100 rounded-xl bg-neutral-50",
           )}
         >
-          {footerRows.map((row) => (
-            <View style={tw("flex-row")}>
-              <Text style={tw("text-neutral-500")}>{row.label}</Text>
-              <Text style={tw("text-neutral-800")}>{row.value}</Text>
+          {invoiceSummaryDetails.map((row) => (
+            <View style={tw("flex-row")} key={row.label}>
+              <Text style={tw("text-neutral-500 text-sm font-medium w-2/5")}>
+                {row.label}
+              </Text>
+              <Text style={tw("text-neutral-800 text-sm font-medium w-3/5")}>
+                {row.value}
+              </Text>
             </View>
           ))}
         </View>
 
-        <Text style={tw("text-sm text-neutral-600 mt-10")}>
+        <Text style={tw("text-sm text-neutral-600 mt-6")}>
           If you have any questions, visit our support site at{" "}
           <Link href="https://dub.co/help" style={tw("text-neutral-900")}>
             https://dub.co/help
