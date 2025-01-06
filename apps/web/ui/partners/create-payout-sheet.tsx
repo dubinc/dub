@@ -3,6 +3,7 @@
 import { createManualPayoutAction } from "@/lib/actions/partners/create-manual-payout";
 import { AnalyticsResponseOptions } from "@/lib/analytics/types";
 import { calculateEarnings } from "@/lib/api/sales/calculate-earnings";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -48,7 +49,7 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import { z } from "zod";
 
 interface CreatePayoutSheetProps {
@@ -116,13 +117,7 @@ function CreatePayoutSheetContent({
     onSuccess: async (res) => {
       toast.success("Successfully created payout!");
       setIsOpen(false);
-      await mutate(
-        (key) =>
-          typeof key === "string" &&
-          key.startsWith(`/api/programs/${program?.id}/payouts`),
-        undefined,
-        { revalidate: true },
-      );
+      await mutatePrefix(`/api/programs/${program?.id}/payouts`);
 
       const payoutId = res.data?.id;
 

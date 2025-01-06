@@ -1,6 +1,7 @@
 import { approvePartnerAction } from "@/lib/actions/partners/approve-partner";
 import { rejectPartnerAction } from "@/lib/actions/partners/reject-partner";
 import { SHEET_MAX_ITEMS } from "@/lib/partners/constants";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import usePayouts from "@/lib/swr/use-payouts";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -30,7 +31,6 @@ import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
 import { useCreatePayoutSheet } from "./create-payout-sheet";
 import { PartnerLinkSelector } from "./partner-link-selector";
@@ -258,13 +258,7 @@ function PartnerApproval({
 
   const { executeAsync, isExecuting } = useAction(approvePartnerAction, {
     onSuccess() {
-      mutate(
-        (key) =>
-          typeof key === "string" &&
-          key.startsWith(`/api/programs/${partner.programId}/partners`),
-        undefined,
-        { revalidate: true },
-      );
+      mutatePrefix(`/api/programs/${partner.programId}/partners`);
 
       toast.success("Approved the partner successfully.");
       setIsOpen(false);
@@ -400,14 +394,8 @@ function PartnerRejectButton({
   const { id: workspaceId } = useWorkspace();
 
   const { executeAsync, isExecuting } = useAction(rejectPartnerAction, {
-    onSuccess() {
-      mutate(
-        (key) =>
-          typeof key === "string" &&
-          key.startsWith(`/api/programs/${partner.programId}/partners`),
-        undefined,
-        { revalidate: true },
-      );
+    onSuccess: async () => {
+      await mutatePrefix(`/api/programs/${partner.programId}/partners`);
 
       toast.success("Partner rejected successfully.");
       setIsOpen(false);
