@@ -27,13 +27,10 @@ export const upsertPlainCustomer = async (user: PlainUser) => {
 
 export const createPlainThread = async ({
   user,
-  title,
-  components,
+  ...rest
 }: {
   user: PlainUser;
-  title: string;
-  components: CreateThreadInput["components"];
-}) => {
+} & Omit<CreateThreadInput, "customerIdentifier">) => {
   let plainCustomerId: string | undefined;
   const plainCustomer = await plain.getCustomerByEmail({
     email: user.email ?? "",
@@ -56,8 +53,7 @@ export const createPlainThread = async ({
     customerIdentifier: {
       customerId: plainCustomerId,
     },
-    title,
-    components,
+    ...rest,
   });
 
   if (error) {
