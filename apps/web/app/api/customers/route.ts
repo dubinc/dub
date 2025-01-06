@@ -50,7 +50,13 @@ export const GET = withWorkspace(
     );
   },
   {
-    requiredAddOn: "conversion",
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "enterprise",
+    ],
   },
 );
 
@@ -96,6 +102,12 @@ export const POST = withWorkspace(
     }
   },
   {
-    requiredAddOn: "conversion",
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "enterprise",
+    ],
   },
 );

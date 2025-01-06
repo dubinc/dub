@@ -89,8 +89,13 @@ export function LinkBuilder(props: LinkBuilderProps) {
 }
 
 function LinkBuilderOuter(props: LinkBuilderProps) {
+  const { conversionEnabled } = useWorkspace();
   const form = useForm<LinkFormData>({
-    defaultValues: props.props || props.duplicateProps || DEFAULT_LINK_PROPS,
+    defaultValues: props.props ||
+      props.duplicateProps || {
+        ...DEFAULT_LINK_PROPS,
+        trackConversion: conversionEnabled || false,
+      },
   });
 
   return (
