@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
+import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import { capitalize, currencyFormatter, formatDate } from "@dub/utils";
 import {
@@ -12,6 +13,7 @@ import {
   renderToBuffer,
 } from "@react-pdf/renderer";
 import { createTw } from "react-pdf-tailwind";
+import Stripe from "stripe";
 
 export const dynamic = "force-dynamic";
 
@@ -69,6 +71,14 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     });
   }
 
+  const customer = (await stripe.customers.retrieve(
+    workspace.stripeId!,
+  )) as Stripe.Customer;
+
+  const customerAddress = customer.shipping?.address;
+
+  console.log("Customer address", customer);
+
   const invoiceMetadata = [
     {
       label: "Date",
@@ -89,10 +99,6 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   ];
 
   const invoiceSummaryDetails = [
-    {
-      label: "Method",
-      value: "Card",
-    },
     {
       label: "Amount",
       value: currencyFormatter(invoice.amount / 100, {
@@ -139,6 +145,28 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
               <Text style={tw("text-neutral-800 w-4/5")}>{row.value}</Text>
             </View>
           ))}
+        </View>
+
+        <View style={tw("flex-row justify-between mb-10 ")}>
+          <Address
+            title="From"
+            name="Dub Technologies, Inc."
+            line1="2261 Market Street STE 5906"
+            city="San Francisco"
+            state="CA"
+            postalCode="94114"
+            email="support@dub.co"
+          />
+
+          <Address
+            title="Bill to"
+            name={customer.shipping?.name}
+            line1={customerAddress?.line1}
+            line2={customerAddress?.line2}
+            city={customerAddress?.city}
+            state={customerAddress?.state}
+            postalCode={customerAddress?.postal_code}
+          />
         </View>
 
         <View
@@ -270,3 +298,47 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     },
   });
 });
+
+// Address component
+const Address = ({
+  name,
+  line1,
+  line2,
+  city,
+  state,
+  postalCode,
+  title,
+  email,
+}: {
+  name?: string | null;
+  line1?: string | null;
+  line2?: string | null;
+  city?: string | null;
+  state?: string | null;
+  postalCode?: string | null;
+  title: string;
+  email?: string | null;
+}) => {
+  return (
+    <View style={tw("w-1/2")}>
+      <Text style={tw("text-sm font-medium text-neutral-800 leading-6 mb-2")}>
+        {title}
+      </Text>
+      <Text style={tw("font-normal text-sm text-neutral-500 leading-6")}>
+        {name}
+      </Text>
+      <Text style={tw("font-normal text-sm text-neutral-500 leading-6")}>
+        {line1}
+      </Text>
+      <Text style={tw("font-normal text-sm text-neutral-500 leading-6")}>
+        {line2}
+      </Text>
+      <Text style={tw("font-normal text-sm text-neutral-500 leading-6")}>
+        {city}, {state} {postalCode}
+      </Text>
+      <Text style={tw("font-normal text-sm text-neutral-500 leading-6")}>
+        {email}
+      </Text>
+    </View>
+  );
+};
