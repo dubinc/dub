@@ -45,13 +45,19 @@ export async function customersRedact({
     return `[Shopify] Failed to redact customer data. Reason: ${error.message}`;
   }
 
-  const { userId } = await prisma.projectUsers.findFirstOrThrow({
+  const { user } = await prisma.projectUsers.findFirstOrThrow({
     where: {
       projectId: workspaceId,
       role: "owner",
     },
     select: {
-      userId: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
     },
   });
 
@@ -65,7 +71,11 @@ export async function customersRedact({
 
   waitUntil(
     createPlainThread({
-      userId,
+      user: {
+        id: user.id,
+        name: user.name ?? "",
+        email: user.email ?? "",
+      },
       title: `Shopify - Customer Redacted request received for ${shopDomain}`,
       components: rows.map((row) => ({
         componentRow: {

@@ -16,13 +16,19 @@ export async function shopRedact({
 }) {
   const { shop_domain: shopDomain } = schema.parse(event);
 
-  const { userId } = await prisma.projectUsers.findFirstOrThrow({
+  const { user } = await prisma.projectUsers.findFirstOrThrow({
     where: {
       projectId: workspaceId,
       role: "owner",
     },
     select: {
-      userId: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
     },
   });
 
@@ -30,7 +36,11 @@ export async function shopRedact({
 
   waitUntil(
     createPlainThread({
-      userId,
+      user: {
+        id: user.id,
+        name: user.name ?? "",
+        email: user.email ?? "",
+      },
       title: `Shopify - Shop Redacted request received for ${shopDomain}`,
       components: rows.map((row) => ({
         componentRow: {

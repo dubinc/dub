@@ -24,14 +24,20 @@ export async function customersDataRequest({
     orders_requested: ordersRequested,
   } = schema.parse(event);
 
-  const [user, customer] = await Promise.all([
+  const [{ user }, customer] = await Promise.all([
     prisma.projectUsers.findFirstOrThrow({
       where: {
         projectId: workspaceId,
         role: "owner",
       },
       select: {
-        userId: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
     }),
     prisma.customer.findUnique({
@@ -68,7 +74,11 @@ export async function customersDataRequest({
 
   waitUntil(
     createPlainThread({
-      userId: user.userId,
+      user: {
+        id: user.id,
+        name: user.name ?? "",
+        email: user.email ?? "",
+      },
       title: `Shopify - Customer data request received for ${shopDomain}`,
       components: rows.map((row) => ({
         componentRow: {
