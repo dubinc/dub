@@ -1,11 +1,13 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
+import { satoshi } from "@/styles/fonts";
 import { prisma } from "@dub/prisma";
-import { currencyFormatter } from "@dub/utils";
+import { capitalize, currencyFormatter } from "@dub/utils";
 import {
   Document,
   Font,
   Image,
+  Link,
   Page,
   Text,
   View,
@@ -14,8 +16,8 @@ import {
 import { createTw } from "react-pdf-tailwind";
 
 Font.register({
-  family: "Open Sans",
-  src: "https://fonts.gstatic.com/s/opensans/v18/mem8YaGs126MiZpBA-U1Ug.ttf", // URL to the font file
+  family: "Satoshi",
+  src: satoshi.variable,
 });
 
 export const dynamic = "force-dynamic";
@@ -27,9 +29,6 @@ const tw = createTw(
         colors: {
           primary: "#000",
         },
-        // fontFamily: {
-        //   sans: "Open Sans",
-        // },
       },
     },
   },
@@ -45,8 +44,27 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     where: {
       id: invoiceId,
     },
-    include: {
-      payouts: true,
+    select: {
+      id: true,
+      workspaceId: true,
+      amount: true,
+      fee: true,
+      total: true,
+      createdAt: true,
+      payouts: {
+        select: {
+          periodStart: true,
+          periodEnd: true,
+          type: true,
+          amount: true,
+          partner: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -63,6 +81,34 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   //     message: "You can download the invoice once it is completed.",
   //   });
   // }
+
+  const footerRows = [
+    {
+      label: "Method",
+      value: "Card",
+    },
+    {
+      label: "Amount",
+      value: currencyFormatter(invoice.amount / 100, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
+    },
+    {
+      label: "Fees",
+      value: currencyFormatter(invoice.fee / 100, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
+    },
+    {
+      label: "Total",
+      value: currencyFormatter(invoice.total / 100, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
+    },
+  ];
 
   const pdf = await renderToBuffer(
     <Document>
@@ -138,21 +184,121 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
           </View>
         </View>
 
-        <View>
+        <View style={tw("mt-10 border border-neutral-200 rounded-xl")}>
+          <View style={tw("flex-row border-neutral-200 border-b")}>
+            <Text
+              style={tw("w-2/6 p-3.5 text-sm font-medium text-neutral-700")}
+            >
+              Partner
+            </Text>
+            <Text
+              style={tw("w-2/6 p-3.5 text-sm font-medium text-neutral-700")}
+            >
+              Period
+            </Text>
+            <Text
+              style={tw("w-1/6 p-3.5 text-sm font-medium text-neutral-700")}
+            >
+              Type
+            </Text>
+            <Text
+              style={tw("w-1/6 p-3.5 text-sm font-medium text-neutral-700")}
+            >
+              Amount
+            </Text>
+          </View>
           {invoice.payouts.map((payout, index) => (
             <View
               key={index}
-              style={{ marginTop: 20, borderTop: "1px solid #000" }}
+              style={tw(
+                "flex-row text-sm font-medium text-neutral-700 border-b border-neutral-200",
+              )}
             >
-              <Text>Description: {payout.description}</Text>
-              <Text>Quantity: {payout.quantity}</Text>
-              <Text>Price: {payout.amount}</Text>
+              <Text style={tw("w-2/6 p-3.5")}>{payout.partner.name}</Text>
+              <Text style={tw("w-2/6 p-3.5")}>
+                {payout.periodEnd?.toLocaleString("en-US", {
+                  month: "short",
+                  day: "2-digit",
+                  year: "numeric",
+                })}
+                -{" "}
+                {payout.periodStart?.toLocaleString("en-US", {
+                  month: "short",
+                  day: "2-digit",
+                  year: "numeric",
+                })}
+              </Text>
+              <Text style={tw("w-1/6 p-3.5")}>{capitalize(payout.type)}</Text>
+              <Text style={tw("w-1/6 p-3.5")}>
+                {currencyFormatter(payout.amount / 100, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </Text>
             </View>
           ))}
         </View>
-        <View>
-          <Text>Total: {invoice.amount}</Text>
+
+        {/* <View style={tw("flex-col gap-2 text-sm mt-10 font-medium")}>
+          <View style={tw("flex-row")}>
+            <Text style={tw("text-neutral-500 w-1/5")}>Method</Text>
+            <Text style={tw("text-neutral-800 w-4/5")}>Card</Text>
+          </View>
+
+          <View style={tw("flex-row")}>
+            <Text style={tw("text-neutral-500 w-1/5")}>Amount</Text>
+            <Text style={tw("text-neutral-800 w-4/5")}>
+              {currencyFormatter(invoice.amount / 100, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </Text>
+          </View>
+
+          <View style={tw("flex-row")}>
+            <Text style={tw("text-neutral-500 w-1/5")}>Fees</Text>
+            <Text style={tw("text-neutral-800 w-4/5")}>
+              {currencyFormatter(invoice.fee / 100, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </Text>
+          </View>
+
+          <View style={tw("flex-row")}>
+            <Text style={tw("text-neutral-500 w-1/5")}>Total</Text>
+            <Text style={tw("text-neutral-800 w-4/5")}>
+              {currencyFormatter(invoice.total / 100, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </Text>
+          </View>
+        </View> */}
+
+        <View
+          style={tw(
+            "flex-col gap-2 text-sm mt-10 font-medium p-4 border border-neutral-100 rounded-xl bg-neutral-50",
+          )}
+        >
+          {footerRows.map((row) => (
+            <View style={tw("flex-row")}>
+              <Text style={tw("text-neutral-500")}>{row.label}</Text>
+              <Text style={tw("text-neutral-800")}>{row.value}</Text>
+            </View>
+          ))}
         </View>
+
+        <Text style={tw("text-sm text-neutral-600 mt-10")}>
+          If you have any questions, visit our support site at{" "}
+          <Link href="https://dub.co/help" style={tw("text-neutral-900")}>
+            https://dub.co/help
+          </Link>{" "}
+          or contact us at{" "}
+          <Link href="mailto:support@dub.co" style={tw("text-neutral-900")}>
+            support@dub.co
+          </Link>
+        </Text>
       </Page>
     </Document>,
   );
