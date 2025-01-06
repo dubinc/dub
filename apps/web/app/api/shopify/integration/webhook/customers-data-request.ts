@@ -19,22 +19,30 @@ export async function customersDataRequest({
   workspaceId: string;
 }) {
   const {
-    customer,
+    customer: { id: customerExternalId },
     shop_domain: shopDomain,
     orders_requested: ordersRequested,
   } = schema.parse(event);
 
-  const customerExternalId = customer.id.toString();
-
-  const { userId } = await prisma.projectUsers.findFirstOrThrow({
-    where: {
-      projectId: workspaceId,
-      role: "owner",
-    },
-    select: {
-      userId: true,
-    },
-  });
+  const [user, customer] = await Promise.all([
+    prisma.projectUsers.findFirstOrThrow({
+      where: {
+        projectId: workspaceId,
+        role: "owner",
+      },
+      select: {
+        userId: true,
+      },
+    }),
+    prisma.customer.findUnique({
+      where: {
+        projectId_externalId: {
+          projectId: workspaceId,
+          externalId: customerExternalId.toString(),
+        },
+      },
+    }),
+  ]);
 
   const rows = [
     {
@@ -43,7 +51,15 @@ export async function customersDataRequest({
     },
     {
       text: "Customer ID",
-      value: customerExternalId,
+      value: customerExternalId.toString(),
+    },
+    {
+      text: "Customer name",
+      value: customer?.name ?? "N/A",
+    },
+    {
+      text: "Customer email",
+      value: customer?.email ?? "N/A",
     },
     ...(ordersRequested.length > 0
       ? [{ text: "Orders requested", value: ordersRequested.join(", ") }]
@@ -52,7 +68,7 @@ export async function customersDataRequest({
 
   waitUntil(
     createPlainThread({
-      userId,
+      userId: user.userId,
       title: `Shopify - Customer data request received for ${shopDomain}`,
       components: rows.map((row) => ({
         componentRow: {
