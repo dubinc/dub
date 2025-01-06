@@ -3,7 +3,7 @@
   "private": true,
   "license": "AGPL-3.0-or-later",
   "scripts": {
-    "dev": "concurrently --kill-others \"pnpm prisma:generate && next dev --turbo --port 8888\" \"pnpm prisma:generate && pnpm prisma:studio --browser none\" \"email dev --port 3333\"",
+    "dev": "concurrently --kill-others \"pnpm prisma:generate && next dev --port 8888\" \"pnpm prisma:generate && pnpm prisma:studio --browser none\" \"email dev --port 3333\"",
     "build": "pnpm prisma:generate && next build",
     "lint": "next lint",
     "start": "next start",
@@ -97,6 +97,7 @@
     "react-hook-form": "^7.52.1",
     "react-markdown": "^9.0.1",
     "react-parallax-tilt": "^1.7.70",
+    "react-pdf-tailwind": "^2.3.0",
     "react-spring": "^9.5.5",
     "react-textarea-autosize": "^8.4.0",
     "react-tweet": "^3.1.1",
