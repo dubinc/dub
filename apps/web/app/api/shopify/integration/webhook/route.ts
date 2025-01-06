@@ -73,16 +73,19 @@ export const POST = async (req: Request) => {
       case "customers/data_request":
         response = await customersDataRequest({
           event,
+          workspaceId: workspace.id,
         });
         break;
       case "customers/redact":
         response = await customersRedact({
           event,
+          workspaceId: workspace.id,
         });
         break;
       case "shop/redact":
         response = await shopRedact({
           event,
+          workspaceId: workspace.id,
         });
         break;
       case "app/uninstalled":
