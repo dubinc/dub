@@ -15,18 +15,13 @@ import { createTw } from "react-pdf-tailwind";
 
 export const dynamic = "force-dynamic";
 
-const tw = createTw(
-  {
-    theme: {
-      fontFamily: {
-        sans: ["Inter"],
-      },
+const tw = createTw({
+  theme: {
+    fontFamily: {
+      sans: ["Inter"],
     },
   },
-  {
-    ptPerRem: 12,
-  },
-);
+});
 
 export const GET = withWorkspace(async ({ workspace, params }) => {
   const { invoiceId } = params;
@@ -42,6 +37,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
       fee: true,
       total: true,
       createdAt: true,
+      status: true,
       payouts: {
         select: {
           periodStart: true,
@@ -66,12 +62,12 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     });
   }
 
-  // if (invoice.status !== "completed") {
-  //   throw new DubApiError({
-  //     code: "unprocessable_entity",
-  //     message: "You can download the invoice once it is completed.",
-  //   });
-  // }
+  if (invoice.status !== "completed") {
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message: "You can download the invoice once it is completed.",
+    });
+  }
 
   const invoiceMetadata = [
     {
