@@ -1,4 +1,4 @@
-import { invitePartnerAction } from "@/lib/actions/invite-partner";
+import { invitePartnerAction } from "@/lib/actions/partners/invite-partner";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerLinkSelector } from "@/ui/partners/partner-link-selector";

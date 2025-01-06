@@ -1,3 +1,4 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Logo, Modal } from "@dub/ui";
 import { useSession } from "next-auth/react";
@@ -11,7 +12,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 
 function AcceptInviteModal({
   showAcceptInviteModal,
@@ -61,10 +61,7 @@ function AcceptInviteModal({
                   posthog.capture("accepted_workspace_invite", {
                     workspace: slug,
                   });
-                  await Promise.all([
-                    mutate("/api/workspaces"),
-                    mutate(`/api/workspaces/${slug}`),
-                  ]);
+                  await mutatePrefix("/api/workspaces");
                   router.replace(`/${slug}`);
                   setShowAcceptInviteModal(false);
                   toast.success("You now are a part of this workspace!");

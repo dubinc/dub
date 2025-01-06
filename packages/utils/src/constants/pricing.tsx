@@ -1,4 +1,4 @@
-import { nFormatter } from "../functions";
+import { currencyFormatter, nFormatter } from "../functions";
 import { INFINITY_NUMBER } from "./misc";
 
 export type PlanFeature = {
@@ -17,7 +17,7 @@ const BUSINESS_PLAN_MODIFIER = ({
   yearly = 49,
   links = 5000,
   clicks = 150000,
-  conversions = 500,
+  sales = 5000_00,
   domains = 40,
   users = 15,
   ids = [],
@@ -27,7 +27,7 @@ const BUSINESS_PLAN_MODIFIER = ({
   yearly: number;
   links: number;
   clicks: number;
-  conversions: number;
+  sales: number;
   domains: number;
   users: number;
   ids: string[];
@@ -43,7 +43,7 @@ const BUSINESS_PLAN_MODIFIER = ({
   limits: {
     links,
     clicks,
-    conversions,
+    sales,
     domains,
     tags: INFINITY_NUMBER,
     users,
@@ -55,8 +55,8 @@ const BUSINESS_PLAN_MODIFIER = ({
     text: "text-sky-900",
   },
   cta: {
-    text: "Get started with Business",
-    shortText: "Get Business",
+    text: `Get started with ${name}`,
+    shortText: `Get ${name}`,
     href: "https://app.dub.co/register",
     color: "bg-sky-900 hover:bg-sky-800 hover:ring-sky-100",
   },
@@ -71,8 +71,14 @@ const BUSINESS_PLAN_MODIFIER = ({
       text: `${Intl.NumberFormat("en-US").format(links)} new links/mo`,
     },
     {
-      id: "conversions",
-      text: `${Intl.NumberFormat("en-US").format(conversions)} conversions/mo`,
+      id: "sales",
+      text: `${currencyFormatter(sales / 100)} tracked sales/mo`,
+      footnote: {
+        title:
+          "Use Dub Conversions to track how your link clicks are converting to signups and sales. Limits are based on the total sale amount tracked within a given month.",
+        cta: "Learn more.",
+        href: "https://dub.co/help/article/dub-conversions",
+      },
     },
     {
       id: "retention",
@@ -255,7 +261,7 @@ export const PLANS = [
     yearly: 49,
     links: 5000,
     clicks: 150000,
-    conversions: 500,
+    sales: 5000_00,
     domains: 40,
     users: 15,
     ids: [
@@ -274,7 +280,7 @@ export const PLANS = [
     yearly: 99,
     links: 15000,
     clicks: 400000,
-    conversions: 1500,
+    sales: 15000_00,
     domains: 100,
     users: 30,
     ids: [
@@ -290,7 +296,7 @@ export const PLANS = [
     yearly: 199,
     links: 40000,
     clicks: 1000000,
-    conversions: 5000,
+    sales: 40000_00,
     domains: 250,
     users: 50,
     ids: [
@@ -306,7 +312,7 @@ export const PLANS = [
     yearly: 399,
     links: 100000,
     clicks: 2500000,
-    conversions: 15000,
+    sales: 100000_00,
     domains: 500,
     users: 100,
     ids: [

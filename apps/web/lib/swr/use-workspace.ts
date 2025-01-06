@@ -1,9 +1,13 @@
 import { ExpandedWorkspaceProps } from "@/lib/types";
 import { PRO_PLAN, fetcher, getNextPlan } from "@dub/utils";
 import { useParams, useSearchParams } from "next/navigation";
-import useSWR from "swr";
+import useSWR, { SWRConfiguration } from "swr";
 
-export default function useWorkspace() {
+export default function useWorkspace({
+  swrOpts,
+}: {
+  swrOpts?: SWRConfiguration;
+} = {}) {
   let { slug } = useParams() as { slug: string | null };
   const searchParams = useSearchParams();
   if (!slug) {
@@ -19,6 +23,7 @@ export default function useWorkspace() {
     fetcher,
     {
       dedupingInterval: 60000,
+      ...swrOpts,
     },
   );
 

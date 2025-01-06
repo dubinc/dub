@@ -57,7 +57,7 @@ export function PayoutStats() {
               text="Confirm payouts"
               className="h-7 w-fit px-2"
               onClick={() => setIsOpen(true)}
-              disabled={confirmButtonDisabled}
+              disabled={eligiblePayoutsLoading || confirmButtonDisabled}
               disabledTooltip={
                 confirmButtonDisabled ? (
                   "You have no pending payouts that match the minimum payout requirement for partners that have payouts enabled."

@@ -1,6 +1,6 @@
 "use client";
 
-import { updateProgramAction } from "@/lib/actions/update-program";
+import { updateProgramAction } from "@/lib/actions/partners/update-program";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
