@@ -89,7 +89,7 @@ export const confirmPayoutsAction = authActionClient
         const newNumber = parseInt(lastNumber) + 1;
         number = `${workspace.invoicePrefix}-${newNumber}`;
       } else {
-        number = `${workspace.invoicePrefix}-1`;
+        number = `${workspace.invoicePrefix}-1000`;
       }
 
       const invoice = await tx.invoice.create({

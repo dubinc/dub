@@ -67,7 +67,10 @@ const payoutInvoices = async (workspaceId: string) => {
     return {
       ...invoice,
       description: "Dub Partner payout",
-      pdfUrl: `${APP_DOMAIN}/api/workspaces/ws_${workspaceId}/billing/invoices/${invoice.id}`,
+      pdfUrl:
+        invoice.status === "completed"
+          ? `${APP_DOMAIN}/api/workspaces/ws_${workspaceId}/billing/invoices/${invoice.id}`
+          : null,
     };
   });
 };

@@ -80,7 +80,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
 
   const invoiceMetadata = [
     {
-      label: "Invoice #",
+      label: "Invoice number",
       value: invoice.number,
     },
     {
@@ -117,6 +117,32 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     },
   ];
 
+  const addresses = [
+    {
+      title: "From",
+      address: {
+        name: "Dub Technologies, Inc.",
+        line1: "2261 Market Street STE 5906",
+        city: "San Francisco",
+        state: "CA",
+        postalCode: "94114",
+        email: "support@dub.co",
+      },
+    },
+    {
+      title: "Bill to",
+      address: {
+        name: customer.shipping?.name,
+        line1: customerAddress?.line1,
+        line2: customerAddress?.line2,
+        city: customerAddress?.city,
+        state: customerAddress?.state,
+        postalCode: customerAddress?.postal_code,
+        email: customer.email,
+      },
+    },
+  ];
+
   const pdf = await renderToBuffer(
     <Document>
       <Page size="A4" style={tw("p-20")}>
@@ -143,30 +169,9 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
         </View>
 
         <View style={tw("flex-row justify-between mb-10 ")}>
-          <Address
-            title="From"
-            address={{
-              name: "Dub Technologies, Inc.",
-              line1: "2261 Market Street STE 5906",
-              city: "San Francisco",
-              state: "CA",
-              postalCode: "94114",
-              email: "support@dub.co",
-            }}
-          />
-
-          <Address
-            title="Bill to"
-            address={{
-              name: customer.shipping?.name,
-              line1: customerAddress?.line1,
-              line2: customerAddress?.line2,
-              city: customerAddress?.city,
-              state: customerAddress?.state,
-              postalCode: customerAddress?.postal_code,
-              email: customer.email,
-            }}
-          />
+          {addresses.map(({ title, address }, index) => (
+            <Address title={title} address={address} key={index} />
+          ))}
         </View>
 
         <View
