@@ -1,4 +1,4 @@
-import { invitePartnerAction } from "@/lib/actions/partners/invite-partner";
+import { addPartnerAction } from "@/lib/actions/partners/add-partner";
 import { mutatePrefix } from "@/lib/swr/mutate-prefix";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -18,37 +18,36 @@ import { Dispatch, SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-interface InvitePartnerSheetProps {
+interface AddPartnerSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-interface InvitePartnerFormData {
+interface AddPartnerFormData {
   name?: string;
   email?: string;
   linkId: string;
 }
 
-const inviteTypes = [
+const actionTypes = [
   {
-    id: "affiliate",
-    label: "Affiliate Partner",
-    description:
-      "Partner will receive an email invitation to join your program",
+    id: "invite",
+    label: "Invite Partner",
+    description: "Partner will be invited via email to join your program",
   },
   {
-    id: "referral",
-    label: "Referral Partner",
-    description: "Partner will not receive an email invitation.",
+    id: "enroll",
+    label: "Enroll Partner",
+    description: "Partner is automatically enrolled to your program",
   },
 ];
 
-function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
+function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
   const { program } = useProgram();
   const { id: workspaceId, slug } = useWorkspace();
   const { isMobile } = useMediaQuery();
-  const [selectedInviteType, setSelectedInviteType] = useState<
-    "affiliate" | "referral"
-  >("affiliate");
+  const [selectedActionType, setSelectedActionType] = useState<
+    "invite" | "enroll"
+  >("invite");
 
   const {
     register,
@@ -58,11 +57,11 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     setError,
     clearErrors,
     formState: { errors },
-  } = useForm<InvitePartnerFormData>();
+  } = useForm<AddPartnerFormData>();
 
   const selectedLinkId = watch("linkId");
 
-  const { executeAsync, isExecuting } = useAction(invitePartnerAction, {
+  const { executeAsync, isExecuting } = useAction(addPartnerAction, {
     onSuccess: async () => {
       toast.success("Successfully invited partner!");
       setIsOpen(false);
@@ -113,8 +112,9 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
         await executeAsync({
           workspaceId: workspaceId!,
           programId: program?.id!,
-          name: data.name || undefined,
-          email: data.email || undefined,
+          action: selectedActionType,
+          name: data.name,
+          email: data.email,
           linkId: data.linkId,
         });
       })}
@@ -135,12 +135,12 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
         </div>
         <div className="p-6">
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-            {inviteTypes.map((inviteType) => {
-              const isSelected = inviteType.id === selectedInviteType;
+            {actionTypes.map((actionType) => {
+              const isSelected = actionType.id === selectedActionType;
 
               return (
                 <label
-                  key={inviteType.label}
+                  key={actionType.label}
                   className={cn(
                     "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
                     "transition-all duration-150",
@@ -150,21 +150,21 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                 >
                   <input
                     type="radio"
-                    value={inviteType.label}
+                    value={actionType.label}
                     className="hidden"
                     checked={isSelected}
                     onChange={(e) => {
                       if (e.target.checked) {
-                        setSelectedInviteType(
-                          inviteType.id as "affiliate" | "referral",
+                        setSelectedActionType(
+                          actionType.id as "invite" | "enroll",
                         );
                       }
                     }}
                   />
                   <div className="flex flex-col gap-1.5 text-sm">
-                    <span className="font-medium">{inviteType.label}</span>
+                    <span className="font-medium">{actionType.label}</span>
                     <span className="text-xs text-gray-500">
-                      {inviteType.description}
+                      {actionType.description}
                     </span>
                   </div>
                   <CircleCheckFill
@@ -178,7 +178,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             })}
           </div>
           <div className="mt-4 grid gap-4">
-            {selectedInviteType === "referral" && (
+            {selectedActionType === "enroll" && (
               <div>
                 <label htmlFor="name" className="flex items-center space-x-2">
                   <h2 className="text-sm font-medium text-gray-900">Name</h2>
@@ -207,7 +207,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                   placeholder="panic@thedis.co"
                   type="email"
                   autoComplete="off"
-                  autoFocus={!isMobile && selectedInviteType !== "affiliate"}
+                  autoFocus={!isMobile && selectedActionType !== "invite"}
                 />
               </div>
             </div>
@@ -261,7 +261,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             </div>
           </div>
 
-          {selectedInviteType === "affiliate" && (
+          {selectedActionType === "invite" && (
             <div className="mt-8">
               <h2 className="text-sm font-medium text-gray-900">Preview</h2>
               <div className="mt-2 overflow-hidden rounded-md border border-neutral-200">
@@ -329,26 +329,24 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   );
 }
 
-export function InvitePartnerSheet({
+export function AddPartnerSheet({
   isOpen,
   ...rest
-}: InvitePartnerSheetProps & {
+}: AddPartnerSheetProps & {
   isOpen: boolean;
 }) {
   return (
     <Sheet open={isOpen} onOpenChange={rest.setIsOpen}>
-      <InvitePartnerSheetContent {...rest} />
+      <AddPartnerSheetContent {...rest} />
     </Sheet>
   );
 }
 
-export function useInvitePartnerSheet() {
+export function useAddPartnerSheet() {
   const [isOpen, setIsOpen] = useState(false);
 
   return {
-    invitePartnerSheet: (
-      <InvitePartnerSheet setIsOpen={setIsOpen} isOpen={isOpen} />
-    ),
+    addPartnerSheet: <AddPartnerSheet setIsOpen={setIsOpen} isOpen={isOpen} />,
     setIsOpen,
   };
 }
