@@ -5,7 +5,7 @@ import { redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 
-export async function orderPaid({
+export async function ordersPaid({
   event,
   workspaceId,
 }: {
