@@ -66,7 +66,8 @@ export default function Main() {
 
   const tab = tabs.find(({ id }) => id === selectedTab) ?? tabs[0];
 
-  const showPaywall = tab.conversions && !conversionsEnabled;
+  const showPaywall =
+    (tab.conversions || view === "funnel") && !conversionsEnabled;
 
   return (
     <div className="w-full overflow-hidden bg-white">
@@ -186,15 +187,15 @@ export default function Main() {
           className={cn(
             "relative overflow-hidden border-x border-b border-neutral-200 sm:rounded-b-xl",
             showPaywall &&
-              "[mask-image:linear-gradient(#000a,#000a_30%,transparent_50%)]",
+              "pointer-events-none [mask-image:linear-gradient(#0006,#0006_25%,transparent_40%)]",
           )}
         >
           {view === "timeseries" && (
             <div className="p-5 pt-10 sm:p-10">
-              <AnalyticsAreaChart resource={tab.id} />
+              <AnalyticsAreaChart resource={tab.id} demo={showPaywall} />
             </div>
           )}
-          {view === "funnel" && <AnalyticsFunnelChart />}
+          {view === "funnel" && <AnalyticsFunnelChart demo={showPaywall} />}
         </div>
         <ToggleGroup
           className="absolute right-3 top-3 flex w-fit shrink-0 items-center gap-1 border-neutral-100 bg-neutral-100"
@@ -227,7 +228,7 @@ function ConversionTrackingPaywall() {
   const { slug } = useWorkspace();
 
   return (
-    <div className="animate-slide-up-fade pointer-events-none absolute inset-0 flex items-center justify-center pt-20">
+    <div className="animate-slide-up-fade pointer-events-none absolute inset-0 flex items-center justify-center pt-24">
       <div className="pointer-events-auto flex flex-col items-center">
         <Link
           href="https://dub.co/help/article/dub-conversions"
