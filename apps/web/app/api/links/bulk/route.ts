@@ -395,7 +395,11 @@ export const DELETE = withWorkspace(
         ],
       },
       include: {
-        tags: true,
+        tags: {
+          select: {
+            tag: true,
+          },
+        },
       },
     });
 
@@ -406,11 +410,7 @@ export const DELETE = withWorkspace(
       },
     });
 
-    waitUntil(
-      bulkDeleteLinks({
-        links,
-      }),
-    );
+    waitUntil(bulkDeleteLinks(links));
 
     return NextResponse.json(
       {

@@ -27,7 +27,11 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
           key: "_root",
         },
         include: {
-          tags: true,
+          tags: {
+            select: {
+              tag: true,
+            },
+          },
         },
       },
       users: {
@@ -139,14 +143,8 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     // record root domain link for all domains from Tinybird
     recordLink(
       workspaceLinks.map((link) => ({
-        link_id: link.id,
-        domain: link.domain,
-        key: link.key,
-        url: link.url,
-        tag_ids: link.tags.map((tag) => tag.tagId),
-        program_id: link.programId ?? "",
-        workspace_id: link.projectId,
-        created_at: link.createdAt,
+        ...link,
+        url: "",
       })),
     ),
     log({

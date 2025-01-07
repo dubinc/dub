@@ -8,7 +8,11 @@ const limit = 20000;
 async function main() {
   const links = await prisma.link.findMany({
     include: {
-      tags: true,
+      tags: {
+        select: {
+          tag: true,
+        },
+      },
     },
     orderBy: [
       {
@@ -46,18 +50,7 @@ async function main() {
   //       }));
   //     });
 
-  const res = await recordLink(
-    links.map((link) => ({
-      link_id: link.id,
-      domain: link.domain,
-      key: link.key,
-      url: link.url,
-      tag_ids: link.tags.map((tag) => tag.tagId),
-      program_id: link.programId ?? "",
-      workspace_id: link.projectId,
-      created_at: link.createdAt,
-    })),
-  );
+  const res = await recordLink(links);
 
   console.log(res);
 }

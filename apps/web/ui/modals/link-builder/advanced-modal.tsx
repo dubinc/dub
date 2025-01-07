@@ -1,4 +1,3 @@
-import useWorkspace from "@/lib/swr/use-workspace";
 import {
   Button,
   InfoTooltip,
@@ -37,21 +36,23 @@ function AdvancedModal({
     register,
     handleSubmit,
     formState: { isDirty },
-  } = useForm<Pick<LinkFormData, "externalId">>({
+  } = useForm<Pick<LinkFormData, "externalId" | "tenantId">>({
     values: {
       externalId: getValuesParent("externalId"),
+      tenantId: getValuesParent("tenantId"),
     },
   });
 
-  const [externalIdParent] = watchParent(["externalId"]);
+  const [externalIdParent, tenantIdParent] = watchParent([
+    "externalId",
+    "tenantId",
+  ]);
 
   useKeyboardShortcut("a", () => setShowAdvancedModal(true), {
     modal: true,
   });
 
-  const parentEnabled = Boolean(externalIdParent);
-
-  const { conversionEnabled } = useWorkspace();
+  const parentEnabled = Boolean(externalIdParent || tenantIdParent);
 
   return (
     <Modal
@@ -65,6 +66,9 @@ function AdvancedModal({
           e.stopPropagation();
           handleSubmit((data) => {
             setValueParent("externalId", data.externalId, {
+              shouldDirty: true,
+            });
+            setValueParent("tenantId", data.tenantId, {
               shouldDirty: true,
             });
             setShowAdvancedModal(false);
@@ -126,6 +130,29 @@ function AdvancedModal({
                 placeholder="Eg: 123456"
                 className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                 {...register("externalId")}
+              />
+            </div>
+          </div>
+
+          {/* Tenant ID */}
+          <div>
+            <div className="flex items-center gap-2">
+              <label
+                htmlFor={`${id}-tenant-id`}
+                className="flex items-center gap-2 text-sm font-medium text-gray-700"
+              >
+                Tenant ID{" "}
+                <InfoTooltip content="The ID of the tenant that created the link inside your system. If set, it can be used to fetch all links for a tenant." />
+              </label>
+              <Tooltip content="The ID of the tenant that created the link inside your system. If set, it can be used to fetch all links for a tenant." />
+            </div>
+            <div className="mt-2 rounded-md shadow-sm">
+              <input
+                id={`${id}-tenant-id`}
+                type="text"
+                placeholder="Eg: user_123"
+                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                {...register("tenantId")}
               />
             </div>
           </div>
