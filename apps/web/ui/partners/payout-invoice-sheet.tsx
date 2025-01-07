@@ -1,8 +1,5 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
-import {
-  DUB_PARTNERS_PAYOUT_FEE,
-  MIN_PAYOUT_AMOUNT,
-} from "@/lib/partners/constants";
+import { MIN_PAYOUT_AMOUNT } from "@/lib/partners/constants";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import usePayouts from "@/lib/swr/use-payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -16,11 +13,16 @@ import {
   GreekTemple,
   Sheet,
   Table,
+  Tooltip,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { cn, currencyFormatter, DICEBEAR_AVATAR_URL } from "@dub/utils";
-import { capitalize } from "@dub/utils/src/functions";
+import {
+  capitalize,
+  cn,
+  currencyFormatter,
+  DICEBEAR_AVATAR_URL,
+} from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
@@ -38,6 +40,23 @@ import Stripe from "stripe";
 interface PayoutInvoiceSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
+
+const payoutMethodsTypes = [
+  {
+    type: "card",
+    title: "Card",
+    icon: CreditCard,
+    fee: 6,
+    time: "instantly",
+  },
+  {
+    type: "us_bank_account",
+    title: "ACH",
+    icon: GreekTemple,
+    fee: 3,
+    time: "4 business days",
+  },
+] as const;
 
 function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   const { id: workspaceId, slug } = useWorkspace();
@@ -89,18 +108,19 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
 
   const invoiceData = useMemo(() => {
     const paymentMethodOption = (paymentMethod: Stripe.PaymentMethod) => {
-      const paymentMethods = {
-        card: {
-          title: `${capitalize(paymentMethod.card?.brand)} **** ${paymentMethod.card?.last4}`,
-          icon: CreditCard,
-        },
-        us_bank_account: {
-          title: `ACH **** ${paymentMethod.us_bank_account?.last4}`,
-          icon: GreekTemple,
-        },
-      };
+      const payoutMethod = payoutMethodsTypes.find(
+        (pm) => pm.type === paymentMethod.type,
+      );
 
-      const { title, icon: Icon } = paymentMethods[paymentMethod.type];
+      if (!payoutMethod) {
+        return;
+      }
+
+      const { icon: Icon } = payoutMethod;
+
+      const title = paymentMethod.card
+        ? `${capitalize(paymentMethod.card?.brand)} **** ${paymentMethod.card?.last4}`
+        : `ACH **** ${paymentMethod.us_bank_account?.last4}`;
 
       return (
         <div className="flex items-center gap-2">
@@ -129,11 +149,19 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
       };
     }
 
+    const selectedPayoutMethod = paymentMethods?.find(
+      (pm) => pm.id === payoutMethodId,
+    );
+
+    const selectedPayoutMethodType = payoutMethodsTypes.find(
+      (pm) => pm.type === selectedPayoutMethod?.type,
+    );
+
     const amount = selectedPayouts.reduce(
       (acc, payout) => acc + payout.amount,
       0,
     );
-    const fee = amount * DUB_PARTNERS_PAYOUT_FEE;
+    const fee = (amount * (selectedPayoutMethodType?.fee ?? 0)) / 100;
     const total = amount + fee;
 
     return {
@@ -172,10 +200,24 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         maximumFractionDigits: 2,
       }),
 
-      Fee: currencyFormatter(fee / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
+      Fee: (
+        <Tooltip
+          content={
+            <div className="w-28 p-1.5 text-center text-[12px] font-medium text-neutral-600">
+              {selectedPayoutMethodType
+                ? `${selectedPayoutMethodType.fee}% ${selectedPayoutMethodType.title} fees`
+                : "Loading..."}
+            </div>
+          }
+        >
+          <span className="underline decoration-dotted underline-offset-2">
+            {currencyFormatter(fee / 100, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </span>
+        </Tooltip>
+      ),
 
       Total: currencyFormatter(total / 100, {
         minimumFractionDigits: 2,
