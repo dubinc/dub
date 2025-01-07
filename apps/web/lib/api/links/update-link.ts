@@ -159,7 +159,7 @@ export async function updateLink({
   });
 
   waitUntil(
-    Promise.all([
+    Promise.allSettled([
       // record link in Redis
       linkCache.set(response),
 

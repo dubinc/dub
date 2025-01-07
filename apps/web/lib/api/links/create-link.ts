@@ -133,7 +133,7 @@ export async function createLink(link: ProcessedLinkProps) {
   const uploadedImageUrl = `${R2_URL}/images/${response.id}`;
 
   waitUntil(
-    Promise.all([
+    Promise.allSettled([
       // cache link in Redis
       linkCache.set(response),
       // record link in Tinybird
