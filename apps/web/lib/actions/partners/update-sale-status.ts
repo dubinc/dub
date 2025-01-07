@@ -3,7 +3,7 @@
 import { prisma } from "@dub/prisma";
 import { SaleStatus } from "@dub/prisma/client";
 import { z } from "zod";
-import { authActionClient } from "./safe-action";
+import { authActionClient } from "../safe-action";
 
 const updateSaleStatusSchema = z.object({
   workspaceId: z.string(),

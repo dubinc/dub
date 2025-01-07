@@ -1,4 +1,5 @@
 import { isValidDomain } from "@/lib/api/domains";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
 import { createDomainBodySchema } from "@/lib/zod/schemas/domains";
@@ -29,7 +30,6 @@ import posthog from "posthog-js";
 import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { mutate } from "swr";
 import { useDebouncedCallback } from "use-debounce";
 import { z } from "zod";
 import { QRCode } from "../shared/qr-code";
@@ -165,14 +165,8 @@ export function AddEditDomainForm({
 
       if (res.ok) {
         await Promise.all([
-          mutate(
-            (key) => typeof key === "string" && key.startsWith("/api/domains"),
-          ),
-          mutate(
-            (key) => typeof key === "string" && key.startsWith("/api/links"),
-            undefined,
-            { revalidate: true },
-          ),
+          mutatePrefix("/api/domains"),
+          mutatePrefix("/api/links"),
         ]);
         const data = await res.json();
         posthog.capture(props ? "domain_updated" : "domain_created", data);

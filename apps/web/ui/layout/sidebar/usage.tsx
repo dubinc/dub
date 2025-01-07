@@ -11,6 +11,7 @@ import {
   INFINITY_NUMBER,
   nFormatter,
 } from "@dub/utils";
+import NumberFlow from "@number-flow/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -36,7 +37,7 @@ function UsageInner() {
     slug,
     paymentFailedAt,
     loading,
-  } = useWorkspace();
+  } = useWorkspace({ swrOpts: { keepPreviousData: true } });
 
   const [billingEnd] = useMemo(() => {
     if (billingCycleStart) {
@@ -199,8 +200,19 @@ function UsageRow({
         {!loading ? (
           <div className="flex items-center">
             <span className="text-xs font-medium text-neutral-600">
-              {label === "Revenue" ? "$" : ""}
-              {formatNumber(label === "Revenue" ? usage / 100 : usage)} of{" "}
+              <NumberFlow
+                value={label === "Sales" ? usage / 100 : usage}
+                format={
+                  label === "Sales"
+                    ? {
+                        style: "currency",
+                        currency: "USD",
+                        maximumFractionDigits: 0,
+                      }
+                    : undefined
+                }
+              />{" "}
+              of{" "}
               <motion.span
                 className={cn(
                   "relative transition-colors duration-150",
@@ -209,8 +221,8 @@ function UsageRow({
                     : "text-neutral-600",
                 )}
               >
-                {label === "Revenue" ? "$" : ""}
-                {formatNumber(label === "Revenue" ? limit / 100 : limit)}
+                {label === "Sales" ? "$" : ""}
+                {formatNumber(label === "Sales" ? limit / 100 : limit)}
                 {showNextPlan && nextPlanLimit && (
                   <motion.span
                     className="absolute bottom-[45%] left-0 h-[1px] bg-neutral-400"
@@ -267,6 +279,7 @@ function UsageRow({
                   )}
                   style={{
                     transform: `translateX(-${100 - Math.floor((usage / Math.max(0, usage, limit)) * 100)}%)`,
+                    transition: "transform 0.25s ease-in-out",
                   }}
                 />
               </div>

@@ -1,3 +1,4 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
 import {
@@ -16,7 +17,6 @@ import { CopyPlus, Delete, FolderInput } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useContext } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 import { useLinkBuilder } from "../modals/link-builder";
 import { useLinkQRModal } from "../modals/link-qr-modal";
 import { useTransferLinkModal } from "../modals/transfer-link-modal";
@@ -90,12 +90,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
         fetch(`/api/admin/links/ban?domain=${link.domain}&key=${link.key}`, {
           method: "DELETE",
         }).then(async () => {
-          await mutate(
-            (key) =>
-              typeof key === "string" && key.startsWith("/api/admin/links"),
-            undefined,
-            { revalidate: true },
-          );
+          await mutatePrefix("/api/admin/links");
         }),
         {
           loading: "Banning link...",

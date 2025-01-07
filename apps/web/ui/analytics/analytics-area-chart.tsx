@@ -2,7 +2,7 @@ import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { EventType } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
-import { cn, fetcher, nFormatter } from "@dub/utils";
+import { cn, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
 import { Fragment, useContext, useMemo } from "react";
 import useSWR from "swr";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
@@ -13,8 +13,15 @@ export default function AnalyticsAreaChart({
 }: {
   resource: EventType;
 }) {
-  const { baseApiPath, queryString, start, end, interval, requiresUpgrade } =
-    useContext(AnalyticsContext);
+  const {
+    baseApiPath,
+    queryString,
+    start,
+    end,
+    interval,
+    saleUnit,
+    requiresUpgrade,
+  } = useContext(AnalyticsContext);
 
   const { data } = useSWR<
     {
@@ -64,7 +71,7 @@ export default function AnalyticsAreaChart({
     },
     {
       id: "sales",
-      valueAccessor: (d) => d.values.saleAmount,
+      valueAccessor: (d) => d.values[saleUnit],
       isActive: resource === "sales",
       colorClassName: "text-teal-400",
     },
@@ -104,19 +111,9 @@ export default function AnalyticsAreaChart({
                       <p className="capitalize text-gray-600">{resource}</p>
                     </div>
                     <p className="text-right font-medium text-gray-900">
-                      {nFormatter(d.values[resource], { full: true })}
-                      {resource === "sales" && (
-                        <span className="ml-1 text-gray-500">
-                          (
-                          {Intl.NumberFormat("en-US", {
-                            style: "currency",
-                            currency: "USD",
-                            // @ts-ignore – this is a valid option but TS is outdated
-                            trailingZeroDisplay: "stripIfInteger",
-                          }).format(d.values.saleAmount)}
-                          )
-                        </span>
-                      )}
+                      {resource === "sales" && saleUnit === "saleAmount"
+                        ? currencyFormatter(d.values.saleAmount)
+                        : nFormatter(d.values[resource], { full: true })}
                     </p>
                   </Fragment>
                 </div>
@@ -137,7 +134,9 @@ export default function AnalyticsAreaChart({
           <YAxis
             showGridLines
             tickFormat={
-              resource === "sales" ? (v) => `$${nFormatter(v)}` : nFormatter
+              resource === "sales" && saleUnit === "saleAmount"
+                ? (v) => `$${nFormatter(v)}`
+                : nFormatter
             }
           />
         </TimeSeriesChart>

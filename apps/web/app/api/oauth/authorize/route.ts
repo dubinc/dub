@@ -6,6 +6,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import { prisma } from "@dub/prisma";
+import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // POST /api/oauth/authorize - approve OAuth authorization request
@@ -40,8 +41,21 @@ export const POST = withWorkspace(async ({ session, req, workspace }) => {
     select: {
       redirectUris: true,
       pkce: true,
+      integrationId: true,
     },
   });
+
+  // Special case for Stripe app: check if the workspace has conversionEnabled
+  if (
+    app.integrationId === STRIPE_INTEGRATION_ID &&
+    !workspace.conversionEnabled
+  ) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "Stripe app can only be connected to a workspace with conversion enabled. Please contact us to get access.",
+    });
+  }
 
   const redirectUris = (app.redirectUris || []) as string[];
 

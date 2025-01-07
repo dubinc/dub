@@ -38,11 +38,12 @@ const NAV_AREAS: SidebarNavAreas<{
   flags?: Record<BetaFeatures, boolean>;
   programs?: { id: string }[];
   session?: Session | null;
+  showNews?: boolean;
 }> = {
   // Top-level
-  default: ({ slug, queryString, programs }) => ({
+  default: ({ slug, queryString, programs, showNews }) => ({
     showSwitcher: true,
-    showNews: true,
+    showNews,
     direction: "left",
     content: [
       {
@@ -267,6 +268,7 @@ export function AppSidebarNav({
         flags,
         programs,
         session: session || undefined,
+        showNews: pathname.startsWith(`/${slug}/programs/`) ? false : true,
       }}
       toolContent={toolContent}
       newsContent={newsContent}

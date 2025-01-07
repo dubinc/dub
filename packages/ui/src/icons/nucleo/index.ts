@@ -121,6 +121,7 @@ export * from "./paintbrush";
 export * from "./palette-2";
 export * from "./pen-writing";
 export * from "./pen2";
+export * from "./percentage-arrow-down";
 export * from "./photo";
 export * from "./plug2";
 export * from "./plus";
