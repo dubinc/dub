@@ -47,9 +47,11 @@ export default function Analytics({
 }
 
 function StatsGrid() {
-  const { dashboardProps, partnerPage, conversionsEnabled, selectedTab } =
+  const { dashboardProps, partnerPage, conversionsEnabled, selectedTab, view } =
     useContext(AnalyticsContext);
-  const show = conversionsEnabled || selectedTab === "clicks";
+
+  const show =
+    conversionsEnabled || (selectedTab === "clicks" && view !== "funnel");
 
   return show ? (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
