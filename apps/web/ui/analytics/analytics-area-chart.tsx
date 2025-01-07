@@ -51,7 +51,7 @@ export default function AnalyticsAreaChart({
       saleAmount: number;
     }[]
   >(
-    demo &&
+    !demo &&
       `${baseApiPath}?${editQueryString(queryString, {
         groupBy: "timeseries",
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
