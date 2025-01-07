@@ -1,36 +1,61 @@
-import { AnalyticsSaleUnit } from "@/lib/analytics/types";
+import { AnalyticsSaleUnit, EventType } from "@/lib/analytics/types";
 import { ChartLine, Filter2, ToggleGroup, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { ChevronRight, Lock } from "lucide-react";
 import Link from "next/link";
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
 import AnalyticsAreaChart from "./analytics-area-chart";
 import { AnalyticsFunnelChart } from "./analytics-funnel-chart";
 import { AnalyticsContext } from "./analytics-provider";
 
+type Tab = {
+  id: EventType;
+  label: string;
+  colorClassName: string;
+  conversions: boolean;
+};
+
 export default function Main() {
-  const { totalEvents, requiresUpgrade, selectedTab, saleUnit, view } =
-    useContext(AnalyticsContext);
+  const {
+    totalEvents,
+    requiresUpgrade,
+    conversionsEnabled,
+    showConversions,
+    selectedTab,
+    saleUnit,
+    view,
+  } = useContext(AnalyticsContext);
   const { queryParams } = useRouterStuff();
 
-  const tabs = [
-    {
-      id: "clicks",
-      label: "Clicks",
-      colorClassName: "text-blue-500/50",
-    },
-    {
-      id: "leads",
-      label: "Leads",
-      colorClassName: "text-violet-600/50",
-    },
-    {
-      id: "sales",
-      label: "Sales",
-      colorClassName: "text-teal-400/50",
-    },
-  ] as const;
+  const tabs = useMemo(
+    () =>
+      [
+        {
+          id: "clicks",
+          label: "Clicks",
+          colorClassName: "text-blue-500/50",
+          conversions: false,
+        },
+        ...(showConversions
+          ? [
+              {
+                id: "leads",
+                label: "Leads",
+                colorClassName: "text-violet-600/50",
+                conversions: true,
+              },
+              {
+                id: "sales",
+                label: "Sales",
+                colorClassName: "text-teal-400/50",
+                conversions: true,
+              },
+            ]
+          : []),
+      ] as Tab[],
+    [showConversions],
+  );
 
   const tab = tabs.find(({ id }) => id === selectedTab) ?? tabs[0];
 
@@ -38,7 +63,7 @@ export default function Main() {
     <div className="w-full overflow-hidden border border-gray-200 bg-white sm:rounded-xl">
       <div className="scrollbar-hide grid w-full grid-cols-3 divide-x overflow-y-hidden border-b border-gray-200">
         <NumberFlowGroup>
-          {tabs.map(({ id, label, colorClassName }, idx) => {
+          {tabs.map(({ id, label, colorClassName, conversions }, idx) => {
             return (
               <div key={id} className="relative z-0">
                 {idx > 0 && (
@@ -113,7 +138,10 @@ export default function Main() {
                             ? totalEvents.saleAmount / 100
                             : totalEvents[id]
                         }
-                        className="text-2xl font-medium sm:text-3xl"
+                        className={cn(
+                          "text-2xl font-medium sm:text-3xl",
+                          conversions && !conversionsEnabled && "opacity-30",
+                        )}
                         format={
                           id === "sales" && saleUnit === "saleAmount"
                             ? {

@@ -6,6 +6,7 @@ import { cn } from "@dub/utils";
   2. Public stats page, e.g. dub.sh/stats/github, stey.me/stats/weathergpt
 */
 
+import { useContext } from "react";
 import AnalyticsProvider, {
   AnalyticsContext,
   AnalyticsDashboardProps,
@@ -29,19 +30,13 @@ export default function Analytics({
   return (
     <AnalyticsProvider {...{ adminPage, demoPage, dashboardProps }}>
       <AnalyticsContext.Consumer>
-        {({ dashboardProps, partnerPage }) => {
+        {({ dashboardProps }) => {
           return (
             <div className={cn("pb-10", dashboardProps && "bg-gray-50 pt-10")}>
               <Toggle />
               <div className="mx-auto grid max-w-screen-xl gap-5 px-3 lg:px-10">
                 <Main />
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                  {!dashboardProps && !partnerPage && <TopLinks />}
-                  <Locations />
-                  <Devices />
-                  <Referer />
-                  {/* <Feedback /> */}
-                </div>
+                <StatsGrid />
               </div>
             </div>
           );
@@ -49,4 +44,20 @@ export default function Analytics({
       </AnalyticsContext.Consumer>
     </AnalyticsProvider>
   );
+}
+
+function StatsGrid() {
+  const { dashboardProps, partnerPage, conversionsEnabled, selectedTab } =
+    useContext(AnalyticsContext);
+  const show = conversionsEnabled || selectedTab === "clicks";
+
+  return show ? (
+    <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+      {!dashboardProps && !partnerPage && <TopLinks />}
+      <Locations />
+      <Devices />
+      <Referer />
+      {/* <Feedback /> */}
+    </div>
+  ) : null;
 }

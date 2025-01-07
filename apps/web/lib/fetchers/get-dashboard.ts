@@ -15,6 +15,7 @@ export const getDashboard = cache(async ({ id }: { id: string }) => {
           domain: true,
           key: true,
           url: true,
+          trackConversion: true,
         },
       },
       project: {

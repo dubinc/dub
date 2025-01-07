@@ -37,6 +37,7 @@ export interface AnalyticsDashboardProps {
   domain: string;
   key: string;
   url: string;
+  showConversions?: boolean;
   workspacePlan?: PlanProps;
 }
 
@@ -61,6 +62,8 @@ export const AnalyticsContext = createContext<{
   adminPage?: boolean;
   demoPage?: boolean;
   partnerPage?: boolean;
+  showConversions?: boolean;
+  conversionsEnabled?: boolean;
   requiresUpgrade?: boolean;
   dashboardProps?: AnalyticsDashboardProps;
 }>({
@@ -77,6 +80,8 @@ export const AnalyticsContext = createContext<{
   adminPage: false,
   demoPage: false,
   partnerPage: false,
+  showConversions: false,
+  conversionsEnabled: false,
   requiresUpgrade: false,
   dashboardProps: undefined,
 });
@@ -93,7 +98,12 @@ export default function AnalyticsProvider({
 }>) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { id: workspaceId, slug, domains } = useWorkspace();
+  const {
+    id: workspaceId,
+    slug,
+    domains,
+    conversionEnabled: conversionsEnabledWorkspace,
+  } = useWorkspace();
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
   const { dashboardId, programSlug } = useParams() as {
@@ -107,6 +117,14 @@ export default function AnalyticsProvider({
   const domainSlug = searchParams?.get("domain");
   // key can be a query param (stats pages in app) or passed as a staticKey (shared analytics dashboards)
   const key = searchParams?.get("key") || dashboardProps?.key;
+
+  // Show conversion tabs/data for all dashboards except shared (unless explicitly set)
+  const showConversions =
+    !dashboardProps || dashboardProps?.showConversions ? true : false;
+
+  // Conversions must be enabled for dashboards showing them, otherwise defer to the workspace
+  const conversionsEnabled =
+    dashboardProps?.showConversions || conversionsEnabledWorkspace;
 
   const tagIds = combineTagIds({
     tagId: searchParams?.get("tagId"),
@@ -329,6 +347,8 @@ export default function AnalyticsProvider({
         demoPage, // whether the user is viewing demo analytics
         partnerPage, // whether the user is viewing partner analytics
         dashboardProps,
+        showConversions, // Whether to show conversions tabs/data
+        conversionsEnabled, // Whether conversions are fully enabled
         requiresUpgrade, // whether an upgrade is required to perform the query
       }}
     >
