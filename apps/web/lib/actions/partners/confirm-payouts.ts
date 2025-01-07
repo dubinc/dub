@@ -14,6 +14,7 @@ import { authActionClient } from "../safe-action";
 const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
   programId: z.string(),
+  payoutMethodId: z.string(),
   payoutIds: z.array(z.string()).min(1),
 });
 
@@ -22,7 +23,7 @@ export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, payoutIds } = parsedInput;
+    const { programId, payoutMethodId, payoutIds } = parsedInput;
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -33,8 +34,11 @@ export const confirmPayoutsAction = authActionClient
       throw new Error("Workspace does not have a valid Stripe ID.");
     }
 
-    if (!workspace.payoutMethodId) {
-      throw new Error("Workspace does not have a valid payout method.");
+    // Check the payout method is valid
+    const payoutMethod = await stripe.paymentMethods.retrieve(payoutMethodId);
+
+    if (payoutMethod.customer !== workspace.stripeId) {
+      throw new Error("Invalid payout method.");
     }
 
     const payouts = await prisma.payout.findMany({

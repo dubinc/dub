@@ -3,17 +3,37 @@ import {
   DUB_PARTNERS_PAYOUT_FEE,
   MIN_PAYOUT_AMOUNT,
 } from "@/lib/partners/constants";
+import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import usePayouts from "@/lib/swr/use-payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet, Table, useRouterStuff, useTable } from "@dub/ui";
+import {
+  Button,
+  buttonVariants,
+  CreditCard,
+  Gear,
+  GreekTemple,
+  Sheet,
+  Table,
+  useRouterStuff,
+  useTable,
+} from "@dub/ui";
 import { cn, currencyFormatter, DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { capitalize } from "@dub/utils/src/functions";
 import { Row } from "@tanstack/react-table";
 import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
-import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
+import {
+  Dispatch,
+  Fragment,
+  SetStateAction,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { toast } from "sonner";
+import Stripe from "stripe";
 
 interface PayoutInvoiceSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -22,7 +42,10 @@ interface PayoutInvoiceSheetProps {
 function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   const { id: workspaceId, slug } = useWorkspace();
   const { programId } = useParams<{ programId: string }>();
+  const { paymentMethods, loading: paymentMethodsLoading } =
+    usePaymentMethods();
   const [selectedPayouts, setSelectedPayouts] = useState<PayoutResponse[]>([]);
+  const [payoutMethodId, setPayoutMethodId] = useState<string | null>(null);
 
   const {
     payouts,
@@ -33,6 +56,12 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
       status: "pending",
     },
   });
+
+  useEffect(() => {
+    if (paymentMethods && paymentMethods.length > 0 && !payoutMethodId) {
+      setPayoutMethodId(paymentMethods[0].id);
+    }
+  }, [paymentMethods, payoutMethodId]);
 
   const { executeAsync, isExecuting } = useAction(confirmPayoutsAction, {
     onSuccess: async () => {
@@ -59,8 +88,35 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   );
 
   const invoiceData = useMemo(() => {
+    const paymentMethodOption = (paymentMethod: Stripe.PaymentMethod) => {
+      const paymentMethods = {
+        card: {
+          title: `${capitalize(paymentMethod.card?.brand)} **** ${paymentMethod.card?.last4}`,
+          icon: CreditCard,
+        },
+        us_bank_account: {
+          title: `ACH **** ${paymentMethod.us_bank_account?.last4}`,
+          icon: GreekTemple,
+        },
+      };
+
+      const { title, icon: Icon } = paymentMethods[paymentMethod.type];
+
+      return (
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-neutral-500">
+            <Icon className="size-4" />
+          </span>
+          <span>{title}</span>
+        </div>
+      );
+    };
+
     if (!selectedPayouts) {
       return {
+        Method: (
+          <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
+        ),
         Amount: (
           <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
         ),
@@ -81,6 +137,36 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     const total = amount + fee;
 
     return {
+      Method: (
+        <div className="flex items-center gap-2 pr-6">
+          {paymentMethodsLoading ? (
+            <div className="h-[30px] w-full animate-pulse rounded-md bg-neutral-200" />
+          ) : (
+            <select
+              className="h-auto flex-1 rounded-md border border-neutral-200 py-1.5 text-xs focus:border-neutral-600 focus:ring-neutral-600"
+              value={payoutMethodId || ""}
+              onChange={(e) => setPayoutMethodId(e.target.value)}
+            >
+              {paymentMethods?.map((pm) => (
+                <option key={pm.id} value={pm.id}>
+                  {paymentMethodOption(pm)}
+                </option>
+              ))}
+            </select>
+          )}
+          <a
+            href={`/${slug}/settings/billing`}
+            className={cn(
+              buttonVariants({ variant: "secondary" }),
+              "flex items-center rounded-md border border-neutral-200 px-2 py-1.5 text-sm",
+            )}
+            target="_blank"
+          >
+            <Gear className="size-4" />
+          </a>
+        </div>
+      ),
+
       Amount: currencyFormatter(amount / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -96,7 +182,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         maximumFractionDigits: 2,
       }),
     };
-  }, [selectedPayouts]);
+  }, [selectedPayouts, paymentMethods]);
 
   const table = useTable({
     data: pendingPayouts || [],
@@ -160,14 +246,9 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     error: payoutsError
       ? "Failed to load payouts for this invoice."
       : undefined,
-
     getRowId: (originalRow: PayoutResponse) => originalRow.id,
     onRowSelectionChange: (rows: Row<PayoutResponse>[]) =>
       setSelectedPayouts(rows.map((row) => row.original)),
-    selectedRows: selectedPayouts?.reduce((acc, payout) => {
-      acc[payout.id] = true;
-      return acc;
-    }, {}),
   } as any);
 
   return (
@@ -219,13 +300,19 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
             variant="primary"
             loading={isExecuting}
             onClick={async () => {
-              if (!workspaceId || !programId || !selectedPayouts.length) {
+              if (
+                !workspaceId ||
+                !programId ||
+                !selectedPayouts.length ||
+                !payoutMethodId
+              ) {
                 return;
               }
 
               await executeAsync({
                 workspaceId,
                 programId,
+                payoutMethodId,
                 payoutIds: selectedPayouts.map((p) => p.id),
               });
             }}
