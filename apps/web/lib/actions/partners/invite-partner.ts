@@ -39,6 +39,5 @@ export const invitePartnerAction = authActionClient
       email,
       program,
       link,
-      workspace,
     });
   });

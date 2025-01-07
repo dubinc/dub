@@ -164,16 +164,7 @@ export async function updateLink({
       linkCache.set(response),
 
       // record link in Tinybird
-      recordLink({
-        link_id: response.id,
-        domain: response.domain,
-        key: response.key,
-        url: response.url,
-        tag_ids: response.tags.map(({ tag }) => tag.id),
-        program_id: response.programId ?? "",
-        workspace_id: response.projectId,
-        created_at: response.createdAt,
-      }),
+      recordLink(response),
 
       // if key is changed: delete the old key in Redis
       (changedDomain || changedKey) && linkCache.delete(oldLink),

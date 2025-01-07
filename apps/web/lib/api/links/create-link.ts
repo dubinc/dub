@@ -137,16 +137,7 @@ export async function createLink(link: ProcessedLinkProps) {
       // cache link in Redis
       linkCache.set(response),
       // record link in Tinybird
-      recordLink({
-        link_id: response.id,
-        domain: response.domain,
-        key: response.key,
-        url: response.url,
-        tag_ids: response.tags.map(({ tag }) => tag.id),
-        program_id: link.programId ?? "",
-        workspace_id: response.projectId,
-        created_at: response.createdAt,
-      }),
+      recordLink(response),
       // Upload image to R2 and update the link with the uploaded image URL when
       // proxy is enabled and image is set and not stored in R2
       ...(proxy && image && !isStored(image)

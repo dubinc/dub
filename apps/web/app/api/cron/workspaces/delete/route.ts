@@ -37,7 +37,11 @@ export async function POST(req: Request) {
         projectId: workspace.id,
       },
       include: {
-        tags: true,
+        tags: {
+          select: {
+            tag: true,
+          },
+        },
       },
       take: 100, // TODO: We can adjust this number based on the performance
     });
@@ -52,9 +56,7 @@ export async function POST(req: Request) {
           },
         }),
 
-        bulkDeleteLinks({
-          links,
-        }),
+        bulkDeleteLinks(links),
       ]);
 
       console.log(res);

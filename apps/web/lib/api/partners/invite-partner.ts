@@ -2,7 +2,7 @@ import { updateConfig } from "@/lib/edge-config";
 import { recordLink } from "@/lib/tinybird";
 import { ProgramProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { Link, Project } from "@dub/prisma/client";
+import { Link } from "@dub/prisma/client";
 import { sendEmail } from "emails";
 import PartnerInvite from "emails/partner-invite";
 import { createId } from "../utils";
@@ -10,12 +10,10 @@ import { createId } from "../utils";
 export const invitePartner = async ({
   email,
   program,
-  workspace,
   link,
 }: {
   email: string;
   program: ProgramProps;
-  workspace: Project;
   link: Link;
 }) => {
   const [programEnrollment, programInvite] = await Promise.all([
@@ -84,15 +82,9 @@ export const invitePartner = async ({
 
     // record link update in tinybird
     recordLink({
-      domain: link.domain,
-      key: link.key,
-      link_id: link.id,
-      created_at: link.createdAt,
-      url: link.url,
-      tag_ids: tags.map((t) => t.id) || [],
-      program_id: program.id,
-      workspace_id: workspace.id,
-      deleted: false,
+      ...link,
+      tags: tags.map((t) => ({ tag: t })),
+      programId: program.id,
     }),
 
     // TODO: Remove this once we open up partners.dub.co to everyone
