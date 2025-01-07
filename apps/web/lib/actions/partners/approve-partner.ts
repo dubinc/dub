@@ -61,24 +61,16 @@ export const approvePartnerAction = authActionClient
           programId,
         },
         include: {
-          tags: true,
+          tags: {
+            select: {
+              tag: true,
+            },
+          },
         },
       }),
     ]);
 
-    waitUntil(
-      recordLink({
-        domain: updatedLink.domain,
-        key: updatedLink.key,
-        link_id: updatedLink.id,
-        created_at: updatedLink.createdAt,
-        url: updatedLink.url,
-        tag_ids: updatedLink.tags.map((t) => t.tagId),
-        program_id: program.id,
-        workspace_id: workspace.id,
-        deleted: false,
-      }),
-    );
+    waitUntil(recordLink(updatedLink));
 
     // TODO: [partners] Notify partner of approval?
 
