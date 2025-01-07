@@ -273,7 +273,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
           <div className="grid grid-cols-2 gap-3 text-sm">
             {Object.entries(invoiceData).map(([key, value]) => (
               <Fragment key={key}>
-                <div className="flex items-center font-medium text-neutral-500">
+                <div className="flex items-end font-medium text-neutral-500">
                   {key}
                 </div>
                 <div className="text-neutral-800">{value}</div>
