@@ -1,4 +1,3 @@
-import useWorkspace from "@/lib/swr/use-workspace";
 import {
   Button,
   InfoTooltip,
@@ -50,8 +49,6 @@ function AdvancedModal({
   });
 
   const parentEnabled = Boolean(externalIdParent);
-
-  const { conversionEnabled } = useWorkspace();
 
   return (
     <Modal

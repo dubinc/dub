@@ -8,11 +8,11 @@ export const SCOPES = [
   "tags.read",
   "tags.write",
   "analytics.read",
+  "analytics.write",
   "domains.read",
   "domains.write",
   "workspaces.read",
   "workspaces.write",
-  "conversions.write",
   "apis.all", // All API scopes
   "apis.read", // All read scopes
 ] as const;
@@ -91,9 +91,9 @@ export const RESOURCE_SCOPES: {
     resource: "analytics",
   },
   {
-    scope: "conversions.write",
+    scope: "analytics.write",
     roles: ["owner", "member"],
-    permissions: ["conversions.write"],
+    permissions: ["analytics.write"],
     type: "write",
     resource: "conversions",
   },
@@ -121,7 +121,7 @@ export const RESOURCE_SCOPES: {
       "workspaces.read",
       "workspaces.write",
       "analytics.read",
-      "conversions.write",
+      "analytics.write",
     ],
   },
 ];

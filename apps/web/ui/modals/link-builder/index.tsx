@@ -70,7 +70,6 @@ export const LinkModalContext = createContext<{
   workspaceId?: string;
   workspacePlan?: string;
   workspaceLogo?: string;
-  conversionEnabled?: boolean;
   generatingMetatags: boolean;
 }>({ generatingMetatags: false });
 
@@ -117,14 +116,7 @@ function LinkBuilderInner({
   const { slug } = params;
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
-  const {
-    id: workspaceId,
-    plan,
-    nextPlan,
-    logo,
-    flags,
-    conversionEnabled,
-  } = useWorkspace();
+  const { id: workspaceId, plan, nextPlan, logo, flags } = useWorkspace();
 
   const {
     control,
@@ -244,7 +236,6 @@ function LinkBuilderInner({
             workspaceId,
             workspacePlan: plan,
             workspaceLogo: logo ?? undefined,
-            conversionEnabled: conversionEnabled,
             generatingMetatags,
           }}
         >

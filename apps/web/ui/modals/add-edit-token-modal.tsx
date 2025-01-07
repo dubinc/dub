@@ -60,7 +60,7 @@ function AddEditTokenModal({
   setSelectedToken: Dispatch<SetStateAction<null>>;
 }) {
   const [saving, setSaving] = useState(false);
-  const { id: workspaceId, role, isOwner, conversionEnabled } = useWorkspace();
+  const { id: workspaceId, role, isOwner } = useWorkspace();
   const [data, setData] = useState<APIKeyProps>(token || newToken);
   const [preset, setPreset] = useState<ScopePreset>("all_access");
 
@@ -135,11 +135,8 @@ function AddEditTokenModal({
     (!name || token?.name === name) && token?.scopes === scopes;
 
   const scopesByResources = useMemo(
-    () =>
-      transformScopesForUI(getScopesByResourceForRole(role)).filter(
-        ({ key }) => key !== "conversions" || conversionEnabled,
-      ),
-    [role, conversionEnabled],
+    () => transformScopesForUI(getScopesByResourceForRole(role)),
+    [role],
   );
 
   return (

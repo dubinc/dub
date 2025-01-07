@@ -53,7 +53,6 @@ export const GET = async (req: Request) => {
               plan: true,
               usage: true,
               usageLimit: true,
-              conversionEnabled: true,
             },
           },
         },

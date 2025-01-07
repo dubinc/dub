@@ -16,11 +16,7 @@ type TimeseriesData = {
   saleAmount: number;
 }[];
 
-export default function EventsTabs({
-  conversionEnabled,
-}: {
-  conversionEnabled?: boolean;
-}) {
+export default function EventsTabs() {
   const { searchParams, queryParams } = useRouterStuff();
   const { isMobile } = useMediaQuery();
 
@@ -87,7 +83,7 @@ export default function EventsTabs({
           key={event}
           className={cn(
             "flex justify-between gap-4 rounded-xl border bg-white px-5 py-4 text-left transition-[box-shadow] focus:outline-none",
-            tab === event && conversionEnabled
+            tab === event
               ? "border-black shadow-[0_0_0_1px_black_inset]"
               : "border-gray-200 focus-visible:border-black",
           )}

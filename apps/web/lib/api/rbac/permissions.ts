@@ -12,7 +12,7 @@ export const PERMISSION_ACTIONS = [
   "domains.write",
   "tokens.read",
   "tokens.write",
-  "conversions.write",
+  "analytics.write",
   "oauth_apps.read",
   "oauth_apps.write",
   "integrations.read",
@@ -74,8 +74,8 @@ export const ROLE_PERMISSIONS: {
     roles: ["owner", "member"],
   },
   {
-    action: "conversions.write",
-    description: "track conversions",
+    action: "analytics.write",
+    description: "create analytics events",
     roles: ["owner", "member"],
   },
   {

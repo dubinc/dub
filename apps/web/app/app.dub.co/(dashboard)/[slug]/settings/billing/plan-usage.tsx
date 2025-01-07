@@ -42,7 +42,6 @@ export default function PlanUsage() {
     tagsLimit,
     usersLimit,
     billingCycleStart,
-    conversionEnabled,
   } = useWorkspace();
 
   const { tags } = useTags();
@@ -106,12 +105,7 @@ export default function PlanUsage() {
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)] divide-y divide-neutral-200 border-t border-neutral-200">
         <div>
-          <div
-            className={cn(
-              "grid gap-4 p-6 sm:grid-cols-2 md:p-8 lg:gap-6",
-              conversionEnabled && "sm:grid-cols-3",
-            )}
-          >
+          <div className="grid gap-4 p-6 sm:grid-cols-3 md:p-8 lg:gap-6">
             <UsageTabCard
               id="events"
               icon={CursorRays}
@@ -126,16 +120,14 @@ export default function PlanUsage() {
               usage={linksUsage}
               limit={linksLimit}
             />
-            {conversionEnabled && (
-              <UsageTabCard
-                id="revenue"
-                icon={CircleDollar}
-                title="Revenue tracked"
-                usage={salesUsage}
-                limit={salesLimit}
-                unit="$"
-              />
-            )}
+            <UsageTabCard
+              id="revenue"
+              icon={CircleDollar}
+              title="Revenue tracked"
+              usage={salesUsage}
+              limit={salesLimit}
+              unit="$"
+            />
           </div>
           <div className="w-full px-2 pb-8 md:px-8">
             <UsageChart />
