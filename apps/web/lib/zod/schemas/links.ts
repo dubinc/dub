@@ -171,7 +171,8 @@ export const createLinkBodySchema = z.object({
     .openapi({ example: "123456" }),
   tenantId: z
     .string()
-    .optional()
+    .max(255)
+    .nullish()
     .describe(
       "The ID of the tenant that created the link inside your system. If set, it can be used to fetch all links for a tenant.",
     ),
