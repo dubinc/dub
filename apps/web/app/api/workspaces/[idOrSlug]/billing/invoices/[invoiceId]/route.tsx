@@ -169,9 +169,35 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
         </View>
 
         <View style={tw("flex-row justify-between mb-10 ")}>
-          {addresses.map(({ title, address }, index) => (
-            <Address title={title} address={address} key={index} />
-          ))}
+          {addresses.map(({ title, address }, index) => {
+            const records = [
+              address.name,
+              address.line1,
+              address.line2,
+              `${address.city}, ${address.state} ${address.postalCode}`,
+              address.email,
+            ].filter(Boolean);
+
+            return (
+              <View style={tw("w-1/2")} key={index}>
+                <Text
+                  style={tw(
+                    "text-sm font-medium text-neutral-800 leading-6 mb-2",
+                  )}
+                >
+                  {title}
+                </Text>
+                {records.map((record, index) => (
+                  <Text
+                    style={tw("font-normal text-sm text-neutral-500 leading-6")}
+                    key={index}
+                  >
+                    {record}
+                  </Text>
+                ))}
+              </View>
+            );
+          })}
         </View>
 
         <View
@@ -303,45 +329,3 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     },
   });
 });
-
-const Address = ({
-  title,
-  address,
-}: {
-  title: string;
-  address: {
-    name?: string | null;
-    line1?: string | null;
-    line2?: string | null;
-    city?: string | null;
-    state?: string | null;
-    postalCode?: string | null;
-    email?: string | null;
-  };
-}) => {
-  const { name, line1, line2, city, state, postalCode, email } = address;
-
-  const records = [
-    name,
-    line1,
-    line2,
-    `${city}, ${state} ${postalCode}`,
-    email,
-  ].filter(Boolean);
-
-  return (
-    <View style={tw("w-1/2")}>
-      <Text style={tw("text-sm font-medium text-neutral-800 leading-6 mb-2")}>
-        {title}
-      </Text>
-      {records.map((record, index) => (
-        <Text
-          style={tw("font-normal text-sm text-neutral-500 leading-6")}
-          key={index}
-        >
-          {record}
-        </Text>
-      ))}
-    </View>
-  );
-};
