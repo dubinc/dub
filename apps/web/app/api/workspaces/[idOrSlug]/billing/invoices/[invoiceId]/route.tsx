@@ -17,10 +17,15 @@ import Stripe from "stripe";
 
 export const dynamic = "force-dynamic";
 
+// Font.register({
+//   family: "Inter",
+//   src: "../",
+// });
+
 const tw = createTw({
   theme: {
     fontFamily: {
-      sans: ["Inter"],
+      // sans: ["Times-Bold"],
     },
   },
 });
@@ -145,7 +150,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
 
   const pdf = await renderToBuffer(
     <Document>
-      <Page size="A4" style={tw("p-20")}>
+      <Page size="A4" style={tw("p-20 font-sans")}>
         <View style={tw("flex-row justify-between items-center mb-10")}>
           <Image
             src="https://dubassets.com/logos/clrei1gld0002vs9mzn93p8ik_384uSfo"
