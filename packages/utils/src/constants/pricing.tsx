@@ -1,4 +1,4 @@
-import { nFormatter } from "../functions";
+import { currencyFormatter, nFormatter } from "../functions";
 import { INFINITY_NUMBER } from "./misc";
 
 export type PlanFeature = {
@@ -17,7 +17,7 @@ const BUSINESS_PLAN_MODIFIER = ({
   yearly = 49,
   links = 5000,
   clicks = 150000,
-  sales = 10000_00,
+  sales = 5000_00,
   domains = 40,
   users = 15,
   ids = [],
@@ -33,7 +33,7 @@ const BUSINESS_PLAN_MODIFIER = ({
   ids: string[];
 }) => ({
   name,
-  tagline: "For growing teams and groups who need advanced features ",
+  tagline: "For fast-growing startups and businesses looking to scale",
   link: "https://dub.co/help/article/business-plan",
   price: {
     monthly,
@@ -55,8 +55,8 @@ const BUSINESS_PLAN_MODIFIER = ({
     text: "text-sky-900",
   },
   cta: {
-    text: "Get started with Business",
-    shortText: "Get Business",
+    text: `Get started with ${name}`,
+    shortText: `Get ${name}`,
     href: "https://app.dub.co/register",
     color: "bg-sky-900 hover:bg-sky-800 hover:ring-sky-100",
   },
@@ -72,7 +72,13 @@ const BUSINESS_PLAN_MODIFIER = ({
     },
     {
       id: "sales",
-      text: `$${nFormatter(sales / 100)} tracked sales/mo`,
+      text: `${currencyFormatter(sales / 100)} tracked sales/mo`,
+      footnote: {
+        title:
+          "Use Dub Conversions to track how your link clicks are converting to signups and sales. Limits are based on the total sale amount tracked within a given month.",
+        cta: "Learn more.",
+        href: "https://dub.co/help/article/dub-conversions",
+      },
     },
     {
       id: "retention",
@@ -112,7 +118,7 @@ const BUSINESS_PLAN_MODIFIER = ({
 export const PLANS = [
   {
     name: "Free",
-    tagline: "For individuals or teams of one getting started with Dub",
+    tagline: "For hobbyists and individuals looking to manage their links",
     price: {
       monthly: 0,
       yearly: 0,
@@ -171,7 +177,7 @@ export const PLANS = [
   },
   {
     name: "Pro",
-    tagline: "For content creators or smaller teams looking for more tracking",
+    tagline: "For content creators or small teams needing advanced features",
     link: "https://dub.co/help/article/pro-plan",
     price: {
       monthly: 24,
@@ -255,7 +261,7 @@ export const PLANS = [
     yearly: 49,
     links: 5000,
     clicks: 150000,
-    sales: 10000_00,
+    sales: 5000_00,
     domains: 40,
     users: 15,
     ids: [
@@ -274,7 +280,7 @@ export const PLANS = [
     yearly: 99,
     links: 15000,
     clicks: 400000,
-    sales: 50000_00,
+    sales: 15000_00,
     domains: 100,
     users: 30,
     ids: [
@@ -290,7 +296,7 @@ export const PLANS = [
     yearly: 199,
     links: 40000,
     clicks: 1000000,
-    sales: 150000_00,
+    sales: 40000_00,
     domains: 250,
     users: 50,
     ids: [
@@ -306,7 +312,7 @@ export const PLANS = [
     yearly: 399,
     links: 100000,
     clicks: 2500000,
-    sales: 500000_00,
+    sales: 100000_00,
     domains: 500,
     users: 100,
     ids: [
@@ -318,7 +324,7 @@ export const PLANS = [
   }),
   {
     name: "Enterprise",
-    tagline: "For organizations that require governance and scale",
+    tagline: "For large organizations and governments with custom needs",
     link: "https://dub.co/enterprise",
     price: {
       monthly: null,
@@ -347,6 +353,7 @@ export const PLANS = [
     features: [
       { id: "sso", text: "SSO/SAML" },
       { id: "roles", text: "Role-based controls" },
+      { id: "volume", text: "Volume discounts" },
       { id: "sla", text: "Custom SLA" },
       { id: "logs", text: "Audit logs" },
       { id: "success", text: "Dedicated success manager" },

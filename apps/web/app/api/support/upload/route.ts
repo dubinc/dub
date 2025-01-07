@@ -14,7 +14,7 @@ export const GET = withSession(async ({ searchParams, session }) => {
   if (plainCustomer.data) {
     plainCustomerId = plainCustomer.data.id;
   } else {
-    const { data } = await upsertPlainCustomer(session);
+    const { data } = await upsertPlainCustomer(session.user);
     if (data) {
       plainCustomerId = data.customer.id;
     }

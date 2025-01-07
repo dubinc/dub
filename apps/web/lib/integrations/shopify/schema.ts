@@ -7,5 +7,8 @@ export const orderSchema = z.object({
   checkout_token: z.string(),
   customer: z.object({
     id: z.number(),
+    email: z.string().nullish(),
+    first_name: z.string().nullish(),
+    last_name: z.string().nullish(),
   }),
 });
