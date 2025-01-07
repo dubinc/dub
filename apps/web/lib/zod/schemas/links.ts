@@ -57,6 +57,12 @@ const LinksQuerySchema = z.object({
       "The search term to filter the links by. The search term will be matched against the short link slug and the destination url.",
     ),
   userId: z.string().optional().describe("The user ID to filter the links by."),
+  tenantId: z
+    .string()
+    .optional()
+    .describe(
+      "The ID of the tenant that created the link inside your system. If set, will only return links for the specified tenant.",
+    ),
   showArchived: booleanQuerySchema
     .optional()
     .default("false")
@@ -160,9 +166,16 @@ export const createLinkBodySchema = z.object({
     .transform((v) => (v?.startsWith("ext_") ? v.slice(4) : v))
     .nullish()
     .describe(
-      "This is the ID of the link in your database. If set, it can be used to identify the link in the future. Must be prefixed with `ext_` when passed as a query parameter.",
+      "The ID of the link in your database. If set, it can be used to identify the link in future API requests (must be prefixed with 'ext_' when passed as a query parameter). This key is unique across your workspace.",
     )
     .openapi({ example: "123456" }),
+  tenantId: z
+    .string()
+    .max(255)
+    .nullish()
+    .describe(
+      "The ID of the tenant that created the link inside your system. If set, it can be used to fetch all links for a tenant.",
+    ),
   prefix: z
     .string()
     .optional()
@@ -392,7 +405,13 @@ export const LinkSchema = z
       .string()
       .nullable()
       .describe(
-        "This is the ID of the link in your database that is unique across your workspace. If set, it can be used to identify the link in future API requests. Must be prefixed with 'ext_' when passed as a query parameter.",
+        "The ID of the link in your database. If set, it can be used to identify the link in future API requests (must be prefixed with 'ext_' when passed as a query parameter). This key is unique across your workspace.",
+      ),
+    tenantId: z
+      .string()
+      .nullable()
+      .describe(
+        "The ID of the tenant that created the link inside your system. If set, it can be used to fetch all links for a tenant.",
       ),
     archived: z
       .boolean()

@@ -66,7 +66,8 @@ export function LinkControls({ link }: { link: ResponseLink }) {
     id: _,
     createdAt: __,
     updatedAt: ___,
-    userId: ____,
+    userId: ____, // don't duplicate userId since the current user can be different
+    externalId: _____, // don't duplicate externalId since it should be unique
     ...propsToDuplicate
   } = link;
   const {
