@@ -71,7 +71,6 @@ export const GET = async (req: Request) => {
 
       validDateRangeForPlan({
         plan: workspace?.plan || "free",
-        conversionEnabled: workspace?.conversionEnabled,
         interval,
         start,
         end,

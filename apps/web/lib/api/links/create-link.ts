@@ -104,7 +104,6 @@ export async function createLink(link: ProcessedLinkProps) {
         dashboard: {
           create: {
             id: createId({ prefix: "dash_" }),
-            showConversions: link.trackConversion,
             projectId: link.projectId,
             userId: link.userId,
           },

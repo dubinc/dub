@@ -37,7 +37,6 @@ export interface AnalyticsDashboardProps {
   domain: string;
   key: string;
   url: string;
-  showConversions?: boolean;
   workspacePlan?: PlanProps;
 }
 
@@ -62,7 +61,6 @@ export const AnalyticsContext = createContext<{
   adminPage?: boolean;
   demoPage?: boolean;
   partnerPage?: boolean;
-  showConversions?: boolean;
   requiresUpgrade?: boolean;
   dashboardProps?: AnalyticsDashboardProps;
 }>({
@@ -79,7 +77,6 @@ export const AnalyticsContext = createContext<{
   adminPage: false,
   demoPage: false,
   partnerPage: false,
-  showConversions: false,
   requiresUpgrade: false,
   dashboardProps: undefined,
 });
@@ -111,16 +108,6 @@ export default function AnalyticsProvider({
   // key can be a query param (stats pages in app) or passed as a staticKey (shared analytics dashboards)
   const key = searchParams?.get("key") || dashboardProps?.key;
 
-  // Whether to show conversions in shared analytics dashboards
-  const showConversions =
-    adminPage ||
-    demoPage ||
-    partnerPage ||
-    conversionEnabled ||
-    dashboardProps?.showConversions
-      ? true
-      : false;
-
   const tagIds = combineTagIds({
     tagId: searchParams?.get("tagId"),
     tagIds: searchParams?.get("tagIds")?.split(","),
@@ -150,8 +137,6 @@ export default function AnalyticsProvider({
     start || end ? undefined : searchParams?.get("interval") ?? defaultInterval;
 
   const selectedTab: EventType = useMemo(() => {
-    if (!showConversions) return "clicks";
-
     const event = searchParams.get("event");
 
     return EVENT_TYPES.find((t) => t === event) ?? "clicks";
@@ -176,8 +161,6 @@ export default function AnalyticsProvider({
     "timeseries",
   );
   const view: AnalyticsView = useMemo(() => {
-    if (!showConversions) return "timeseries";
-
     const searchParamsView = searchParams.get("view") as AnalyticsView;
     if (ANALYTICS_VIEWS.includes(searchParamsView)) {
       setPersistedView(searchParamsView);
@@ -290,7 +273,7 @@ export default function AnalyticsProvider({
     [key in AnalyticsResponseOptions]: number;
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
-      event: showConversions ? "composite" : "clicks",
+      event: "composite",
     })}`,
     fetcher,
     {
@@ -345,7 +328,6 @@ export default function AnalyticsProvider({
         adminPage, // whether the user is an admin
         demoPage, // whether the user is viewing demo analytics
         partnerPage, // whether the user is viewing partner analytics
-        showConversions, // whether conversions are enabled
         dashboardProps,
         requiresUpgrade, // whether an upgrade is required to perform the query
       }}

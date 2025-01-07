@@ -1,56 +1,36 @@
-import { AnalyticsSaleUnit, EventType } from "@/lib/analytics/types";
+import { AnalyticsSaleUnit } from "@/lib/analytics/types";
 import { ChartLine, Filter2, ToggleGroup, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { ChevronRight, Lock } from "lucide-react";
 import Link from "next/link";
-import { useContext, useMemo } from "react";
+import { useContext } from "react";
 import AnalyticsAreaChart from "./analytics-area-chart";
 import { AnalyticsFunnelChart } from "./analytics-funnel-chart";
 import { AnalyticsContext } from "./analytics-provider";
 
-type Tab = {
-  id: EventType;
-  label: string;
-  colorClassName: string;
-};
-
 export default function Main() {
-  const {
-    totalEvents,
-    requiresUpgrade,
-    showConversions,
-    selectedTab,
-    saleUnit,
-    view,
-  } = useContext(AnalyticsContext);
+  const { totalEvents, requiresUpgrade, selectedTab, saleUnit, view } =
+    useContext(AnalyticsContext);
   const { queryParams } = useRouterStuff();
 
-  const tabs = useMemo(
-    () =>
-      [
-        {
-          id: "clicks",
-          label: "Clicks",
-          colorClassName: "text-blue-500/50",
-        },
-        ...(showConversions
-          ? [
-              {
-                id: "leads",
-                label: "Leads",
-                colorClassName: "text-violet-600/50",
-              },
-              {
-                id: "sales",
-                label: "Sales",
-                colorClassName: "text-teal-400/50",
-              },
-            ]
-          : []),
-      ] as Tab[],
-    [showConversions],
-  );
+  const tabs = [
+    {
+      id: "clicks",
+      label: "Clicks",
+      colorClassName: "text-blue-500/50",
+    },
+    {
+      id: "leads",
+      label: "Leads",
+      colorClassName: "text-violet-600/50",
+    },
+    {
+      id: "sales",
+      label: "Sales",
+      colorClassName: "text-teal-400/50",
+    },
+  ] as const;
 
   const tab = tabs.find(({ id }) => id === selectedTab) ?? tabs[0];
 
@@ -171,31 +151,27 @@ export default function Main() {
           </div>
         )}
         {view === "funnel" && <AnalyticsFunnelChart />}
-        {showConversions && (
-          <ToggleGroup
-            className="absolute right-3 top-3 flex w-fit shrink-0 items-center gap-1 border-neutral-100 bg-neutral-100"
-            optionClassName="size-8 p-0 flex items-center justify-center"
-            indicatorClassName="border border-neutral-200 bg-white"
-            options={[
-              {
-                label: <ChartLine className="size-4 text-neutral-600" />,
-                value: "timeseries",
-              },
-              {
-                label: (
-                  <Filter2 className="size-4 -rotate-90 text-neutral-600" />
-                ),
-                value: "funnel",
-              },
-            ]}
-            selected={view}
-            selectAction={(option) => {
-              queryParams({
-                set: { view: option },
-              });
-            }}
-          />
-        )}
+        <ToggleGroup
+          className="absolute right-3 top-3 flex w-fit shrink-0 items-center gap-1 border-neutral-100 bg-neutral-100"
+          optionClassName="size-8 p-0 flex items-center justify-center"
+          indicatorClassName="border border-neutral-200 bg-white"
+          options={[
+            {
+              label: <ChartLine className="size-4 text-neutral-600" />,
+              value: "timeseries",
+            },
+            {
+              label: <Filter2 className="size-4 -rotate-90 text-neutral-600" />,
+              value: "funnel",
+            },
+          ]}
+          selected={view}
+          selectAction={(option) => {
+            queryParams({
+              set: { view: option },
+            });
+          }}
+        />
       </div>
     </div>
   );
