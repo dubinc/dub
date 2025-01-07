@@ -41,7 +41,11 @@ export async function POST(req: Request) {
         domain: newDomain,
       },
       include: {
-        tags: true,
+        tags: {
+          select: {
+            tag: true,
+          },
+        },
       },
       skip: (page - 1) * pageSize,
       take: pageSize,
@@ -59,18 +63,7 @@ export async function POST(req: Request) {
       }),
 
       // update links in Tinybird
-      recordLink(
-        links.map((link) => ({
-          link_id: link.id,
-          domain: link.domain,
-          key: link.key,
-          url: link.url,
-          tag_ids: link.tags.map((tag) => tag.tagId),
-          program_id: link.programId ?? "",
-          workspace_id: link.projectId,
-          created_at: link.createdAt,
-        })),
-      ),
+      recordLink(links),
     ]);
 
     await queueDomainUpdate({

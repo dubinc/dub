@@ -39,7 +39,11 @@ export async function POST(req: Request) {
         domain,
       },
       include: {
-        tags: true,
+        tags: {
+          select: {
+            tag: true,
+          },
+        },
       },
       take: 100, // TODO: We can adjust this number based on the performance
     });
@@ -53,19 +57,7 @@ export async function POST(req: Request) {
       linkCache.deleteMany(links),
 
       // Record link in the Tinybird
-      recordLink(
-        links.map((link) => ({
-          link_id: link.id,
-          domain: link.domain,
-          key: link.key,
-          url: link.url,
-          tag_ids: link.tags.map((tag) => tag.id),
-          workspace_id: workspaceId,
-          program_id: link.programId ?? "",
-          created_at: link.createdAt,
-          deleted: true,
-        })),
-      ),
+      recordLink(links),
 
       // Remove image from R2 storage if it exists
       links
