@@ -3,7 +3,8 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { createId } from "@/lib/api/utils";
 import {
-  DUB_PARTNERS_PAYOUT_FEE,
+  DUB_PARTNERS_PAYOUT_FEE_ACH,
+  DUB_PARTNERS_PAYOUT_FEE_CARD,
   MIN_PAYOUT_AMOUNT,
 } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
@@ -41,6 +42,12 @@ export const confirmPayoutsAction = authActionClient
       throw new Error("Invalid payout method.");
     }
 
+    if (!["card", "us_bank_account"].includes(payoutMethod.type)) {
+      throw new Error(
+        `We only support card and ACH for now. Please update your payout method to one of these.`,
+      );
+    }
+
     const payouts = await prisma.payout.findMany({
       where: {
         programId,
@@ -75,7 +82,12 @@ export const confirmPayoutsAction = authActionClient
         (total, payout) => total + payout.amount,
         0,
       );
-      const fee = amount * DUB_PARTNERS_PAYOUT_FEE;
+
+      const fee =
+        payoutMethod.type === "card"
+          ? amount * DUB_PARTNERS_PAYOUT_FEE_CARD
+          : amount * DUB_PARTNERS_PAYOUT_FEE_ACH;
+
       const total = amount + fee;
 
       const invoice = await tx.invoice.create({
