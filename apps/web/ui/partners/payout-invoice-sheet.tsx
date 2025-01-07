@@ -57,12 +57,6 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     },
   });
 
-  useEffect(() => {
-    if (paymentMethods && paymentMethods.length > 0 && !payoutMethodId) {
-      setPayoutMethodId(paymentMethods[0].id);
-    }
-  }, [paymentMethods, payoutMethodId]);
-
   const { executeAsync, isExecuting } = useAction(confirmPayoutsAction, {
     onSuccess: async () => {
       toast.success(
@@ -86,6 +80,12 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
       ),
     [payouts],
   );
+
+  useEffect(() => {
+    if (paymentMethods && paymentMethods.length > 0 && !payoutMethodId) {
+      setPayoutMethodId(paymentMethods[0].id);
+    }
+  }, [paymentMethods, payoutMethodId]);
 
   const invoiceData = useMemo(() => {
     const paymentMethodOption = (paymentMethod: Stripe.PaymentMethod) => {
@@ -182,7 +182,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         maximumFractionDigits: 2,
       }),
     };
-  }, [selectedPayouts, paymentMethods]);
+  }, [selectedPayouts, paymentMethods, payoutMethodId]);
 
   const table = useTable({
     data: pendingPayouts || [],
