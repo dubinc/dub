@@ -1,5 +1,9 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
-import { MIN_PAYOUT_AMOUNT } from "@/lib/partners/constants";
+import {
+  DUB_PARTNERS_PAYOUT_FEE_ACH,
+  DUB_PARTNERS_PAYOUT_FEE_CARD,
+  MIN_PAYOUT_AMOUNT,
+} from "@/lib/partners/constants";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import usePayouts from "@/lib/swr/use-payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -46,14 +50,14 @@ const payoutMethodsTypes = [
     type: "card",
     title: "Card",
     icon: CreditCard,
-    fee: 6,
+    fee: DUB_PARTNERS_PAYOUT_FEE_CARD,
     time: "instantly",
   },
   {
     type: "us_bank_account",
     title: "ACH",
     icon: GreekTemple,
-    fee: 3,
+    fee: DUB_PARTNERS_PAYOUT_FEE_ACH,
     time: "4 business days",
   },
 ] as const;
@@ -161,7 +165,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
       (acc, payout) => acc + payout.amount,
       0,
     );
-    const fee = (amount * (selectedPayoutMethodType?.fee ?? 0)) / 100;
+    const fee = amount * (selectedPayoutMethodType?.fee ?? 0);
     const total = amount + fee;
 
     return {
@@ -205,7 +209,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
           content={
             <div className="w-28 p-1.5 text-center text-[12px] font-medium text-neutral-600">
               {selectedPayoutMethodType
-                ? `${selectedPayoutMethodType.fee}% ${selectedPayoutMethodType.title} fees`
+                ? `${selectedPayoutMethodType.fee * 100}% ${selectedPayoutMethodType.title} fees`
                 : "Loading..."}
             </div>
           }
