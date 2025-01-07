@@ -56,6 +56,7 @@ type UseTableProps<T> = {
   resourceName?: (plural: boolean) => string;
   onRowClick?: (row: Row<T>, e: MouseEvent) => void;
   onRowSelectionChange?: (rows: Row<T>[]) => void;
+  getRowId?: (row: T) => string;
 
   className?: string;
   containerClassName?: string;
@@ -87,6 +88,7 @@ export function useTable<T extends any>(
     columnPinning,
     pagination,
     onPaginationChange,
+    getRowId
   } = props;
 
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
@@ -94,6 +96,8 @@ export function useTable<T extends any>(
   );
 
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+
+  console.log(rowSelection)
 
   // Update internal columnVisibility when prop value changes
   useEffect(() => {
@@ -139,6 +143,7 @@ export function useTable<T extends any>(
     manualPagination: true,
     autoResetPageIndex: false,
     manualSorting: true,
+    getRowId
   });
 
   return {

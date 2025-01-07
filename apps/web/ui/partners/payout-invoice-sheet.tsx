@@ -176,6 +176,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     onRowSelectionChange: (rows) => {
       setSelectedPayouts(rows.map((row) => row.original));
     },
+    getRowId: (originalRow) => originalRow.id,
   } as any);
 
   return (
