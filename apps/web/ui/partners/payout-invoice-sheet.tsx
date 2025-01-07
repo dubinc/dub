@@ -9,16 +9,10 @@ import { PayoutResponse } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet, Table, useRouterStuff, useTable } from "@dub/ui";
 import { cn, currencyFormatter, DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { Row } from "@tanstack/react-table";
 import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
-import {
-  Dispatch,
-  Fragment,
-  SetStateAction,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 interface PayoutInvoiceSheetProps {
@@ -63,13 +57,6 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
       ),
     [payouts],
   );
-
-  // Select all pending payouts by default
-  useEffect(() => {
-    if (pendingPayouts) {
-      setSelectedPayouts(pendingPayouts);
-    }
-  }, [pendingPayouts]);
 
   const invoiceData = useMemo(() => {
     if (!selectedPayouts) {
@@ -173,10 +160,14 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     error: payoutsError
       ? "Failed to load payouts for this invoice."
       : undefined,
-    onRowSelectionChange: (rows) => {
-      setSelectedPayouts(rows.map((row) => row.original));
-    },
-    getRowId: (originalRow) => originalRow.id,
+
+    getRowId: (originalRow: PayoutResponse) => originalRow.id,
+    onRowSelectionChange: (rows: Row<PayoutResponse>[]) =>
+      setSelectedPayouts(rows.map((row) => row.original)),
+    selectedRows: selectedPayouts?.reduce((acc, payout) => {
+      acc[payout.id] = true;
+      return acc;
+    }, {}),
   } as any);
 
   return (
