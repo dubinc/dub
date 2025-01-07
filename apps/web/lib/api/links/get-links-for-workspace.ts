@@ -64,9 +64,9 @@ export async function getLinksForWorkspace({
               },
             }
           : {}),
+      ...(tenantId && { tenantId }),
       ...(userId && { userId }),
       ...(linkIds && { id: { in: linkIds } }),
-      ...(tenantId && { tenantId }),
     },
     include: {
       tags: {
