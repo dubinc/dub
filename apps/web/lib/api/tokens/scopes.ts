@@ -93,9 +93,9 @@ export const RESOURCE_SCOPES: {
   {
     scope: "analytics.write",
     roles: ["owner", "member"],
-    permissions: ["analytics.write"],
+    permissions: ["analytics.write", "analytics.read"],
     type: "write",
-    resource: "conversions",
+    resource: "analytics",
   },
   {
     scope: "apis.read",

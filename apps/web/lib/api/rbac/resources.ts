@@ -5,7 +5,6 @@ export const RESOURCE_KEYS = [
   "domains",
   "tags",
   "tokens",
-  "conversions",
 ] as const;
 
 export type ResourceKey = (typeof RESOURCE_KEYS)[number];
@@ -23,7 +22,7 @@ export const RESOURCES: {
   {
     name: "Analytics",
     key: "analytics",
-    description: "Read analytics",
+    description: "Create and read analytics events",
   },
   {
     name: "Workspaces",
@@ -39,10 +38,5 @@ export const RESOURCES: {
     name: "Tags",
     key: "tags",
     description: "Create, read, update, and delete tags",
-  },
-  {
-    name: "Conversions",
-    key: "conversions",
-    description: "Track conversions (customer, lead, sales)",
   },
 ];
