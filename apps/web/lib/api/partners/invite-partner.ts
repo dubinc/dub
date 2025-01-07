@@ -3,6 +3,7 @@ import { recordLink } from "@/lib/tinybird";
 import { ProgramProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
 import PartnerInvite from "emails/partner-invite";
 import { createId } from "../utils";
@@ -50,17 +51,7 @@ export const invitePartner = async ({
     throw new Error(`Partner ${email} already invited to this program.`);
   }
 
-  const tags = await prisma.tag.findMany({
-    where: {
-      links: {
-        some: {
-          linkId: link.id,
-        },
-      },
-    },
-  });
-
-  const [programInvited] = await Promise.all([
+  const [programInvited, updatedLink] = await Promise.all([
     prisma.programInvite.create({
       data: {
         id: createId({ prefix: "pgi_" }),
@@ -78,13 +69,13 @@ export const invitePartner = async ({
       data: {
         programId: program.id,
       },
-    }),
-
-    // record link update in tinybird
-    recordLink({
-      ...link,
-      tags: tags.map((t) => ({ tag: t })),
-      programId: program.id,
+      include: {
+        tags: {
+          select: {
+            tag: true,
+          },
+        },
+      },
     }),
 
     // TODO: Remove this once we open up partners.dub.co to everyone
@@ -94,18 +85,23 @@ export const invitePartner = async ({
     }),
   ]);
 
-  await sendEmail({
-    subject: `${program.name} invited you to join Dub Partners`,
-    email,
-    react: PartnerInvite({
-      email,
-      appName: `${process.env.NEXT_PUBLIC_APP_NAME}`,
-      program: {
-        name: program.name,
-        logo: program.logo,
-      },
-    }),
-  });
+  waitUntil(
+    Promise.all([
+      recordLink(updatedLink),
+      sendEmail({
+        subject: `${program.name} invited you to join Dub Partners`,
+        email,
+        react: PartnerInvite({
+          email,
+          appName: `${process.env.NEXT_PUBLIC_APP_NAME}`,
+          program: {
+            name: program.name,
+            logo: program.logo,
+          },
+        }),
+      }),
+    ]),
+  );
 
   return programInvited;
 };
