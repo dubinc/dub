@@ -23,7 +23,7 @@ export const POST = withSession(async ({ req, session }) => {
   if (plainCustomer.data) {
     plainCustomerId = plainCustomer.data.id;
   } else {
-    const { data } = await upsertPlainCustomer(session);
+    const { data } = await upsertPlainCustomer(session.user);
     if (data) {
       plainCustomerId = data.customer.id;
     }
