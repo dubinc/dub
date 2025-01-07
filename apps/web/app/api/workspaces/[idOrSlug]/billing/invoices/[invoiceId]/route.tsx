@@ -38,8 +38,9 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
       amount: true,
       fee: true,
       total: true,
-      createdAt: true,
       status: true,
+      number: true,
+      createdAt: true,
       payouts: {
         select: {
           periodStart: true,
@@ -79,20 +80,16 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
 
   const invoiceMetadata = [
     {
+      label: "Invoice #",
+      value: invoice.number,
+    },
+    {
       label: "Date",
       value: invoice.createdAt.toLocaleString("en-US", {
         month: "short",
         day: "2-digit",
         year: "numeric",
       }),
-    },
-    {
-      label: "Receipt #",
-      value: "3149-0001",
-    },
-    {
-      label: "Invoice #",
-      value: "1354-2341-123",
     },
   ];
 
@@ -148,22 +145,27 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
         <View style={tw("flex-row justify-between mb-10 ")}>
           <Address
             title="From"
-            name="Dub Technologies, Inc."
-            line1="2261 Market Street STE 5906"
-            city="San Francisco"
-            state="CA"
-            postalCode="94114"
-            email="support@dub.co"
+            address={{
+              name: "Dub Technologies, Inc.",
+              line1: "2261 Market Street STE 5906",
+              city: "San Francisco",
+              state: "CA",
+              postalCode: "94114",
+              email: "support@dub.co",
+            }}
           />
 
           <Address
             title="Bill to"
-            name={customer.shipping?.name}
-            line1={customerAddress?.line1}
-            line2={customerAddress?.line2}
-            city={customerAddress?.city}
-            state={customerAddress?.state}
-            postalCode={customerAddress?.postal_code}
+            address={{
+              name: customer.shipping?.name,
+              line1: customerAddress?.line1,
+              line2: customerAddress?.line2,
+              city: customerAddress?.city,
+              state: customerAddress?.state,
+              postalCode: customerAddress?.postal_code,
+              email: customer.email,
+            }}
           />
         </View>
 
@@ -297,46 +299,44 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   });
 });
 
-// Address component
 const Address = ({
-  name,
-  line1,
-  line2,
-  city,
-  state,
-  postalCode,
   title,
-  email,
+  address,
 }: {
-  name?: string | null;
-  line1?: string | null;
-  line2?: string | null;
-  city?: string | null;
-  state?: string | null;
-  postalCode?: string | null;
   title: string;
-  email?: string | null;
+  address: {
+    name?: string | null;
+    line1?: string | null;
+    line2?: string | null;
+    city?: string | null;
+    state?: string | null;
+    postalCode?: string | null;
+    email?: string | null;
+  };
 }) => {
+  const { name, line1, line2, city, state, postalCode, email } = address;
+
+  const records = [
+    name,
+    line1,
+    line2,
+    `${city}, ${state} ${postalCode}`,
+    email,
+  ].filter(Boolean);
+
   return (
     <View style={tw("w-1/2")}>
       <Text style={tw("text-sm font-medium text-neutral-800 leading-6 mb-2")}>
         {title}
       </Text>
-      <Text style={tw("font-normal text-sm text-neutral-500 leading-6")}>
-        {name}
-      </Text>
-      <Text style={tw("font-normal text-sm text-neutral-500 leading-6")}>
-        {line1}
-      </Text>
-      <Text style={tw("font-normal text-sm text-neutral-500 leading-6")}>
-        {line2}
-      </Text>
-      <Text style={tw("font-normal text-sm text-neutral-500 leading-6")}>
-        {city}, {state} {postalCode}
-      </Text>
-      <Text style={tw("font-normal text-sm text-neutral-500 leading-6")}>
-        {email}
-      </Text>
+      {records.map((record, index) => (
+        <Text
+          style={tw("font-normal text-sm text-neutral-500 leading-6")}
+          key={index}
+        >
+          {record}
+        </Text>
+      ))}
     </View>
   );
 };
