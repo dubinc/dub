@@ -123,7 +123,7 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
       <div>
         <div className="flex items-start justify-between border-b border-neutral-200 p-6">
           <Sheet.Title className="text-xl font-semibold">
-            Invite partner
+            Add partner
           </Sheet.Title>
           <Sheet.Close asChild>
             <Button
