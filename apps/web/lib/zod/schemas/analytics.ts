@@ -244,8 +244,8 @@ export const eventsFilterTB = analyticsFilterTB
 
 const sortOrder = z
   .enum(["asc", "desc"])
-  .optional()
   .default("desc")
+  .optional()
   .describe("The sort order. The default is `desc`.");
 
 export const eventsQuerySchema = analyticsQuerySchema

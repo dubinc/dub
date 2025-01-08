@@ -53,7 +53,7 @@ async function main() {
         interval: "all",
         page: 1,
         limit: 1000,
-        order: "desc",
+        sortOrder: "desc",
         sortBy: "timestamp",
       })) as unknown as SaleEvent[];
 
