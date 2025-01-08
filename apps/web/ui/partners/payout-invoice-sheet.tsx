@@ -57,7 +57,7 @@ const paymentMethodsTypes = Object.freeze({
     type: "us_bank_account",
     icon: GreekTemple,
     fee: DUB_PARTNERS_PAYOUT_FEE_ACH,
-    duration: "4-5 business days",
+    duration: "4 business days",
   },
 });
 
@@ -109,17 +109,6 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
       ),
     [payouts],
   );
-
-  // Automatically select all pending payouts on first load
-  useEffect(() => {
-    if (
-      pendingPayouts &&
-      pendingPayouts.length > 0 &&
-      selectedPayouts.length === 0
-    ) {
-      setSelectedPayouts(pendingPayouts);
-    }
-  }, [pendingPayouts, selectedPayouts]);
 
   // Set the first payment method as the selected payment method
   useEffect(() => {
@@ -343,10 +332,6 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     getRowId: (originalRow: PayoutResponse) => originalRow.id,
     onRowSelectionChange: (rows: Row<PayoutResponse>[]) =>
       setSelectedPayouts(rows.map((row) => row.original)),
-    // selectedRows: (selectedPayouts || []).reduce((acc, payout) => {
-    //   acc[payout.id] = true;
-    //   return acc;
-    // }, {} as RowSelectionState),
   } as any);
 
   return (

@@ -57,10 +57,9 @@ type UseTableProps<T> = {
   onRowClick?: (row: Row<T>, e: MouseEvent) => void;
 
   // Row selection
+  getRowId?: (row: T) => string;
   onRowSelectionChange?: (rows: Row<T>[]) => void;
   selectedRows?: RowSelectionState;
-  getRowId?: (row: T) => string;
-  defaultSelectedRows?: RowSelectionState;
 
   // Table styles
   className?: string;
@@ -100,13 +99,9 @@ export function useTable<T extends any>(
     props.columnVisibility ?? {},
   );
 
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-
-  useEffect(() => {
-    if (props.selectedRows && !deepEqual(props.selectedRows, rowSelection)) {
-      setRowSelection(props.selectedRows);
-    }
-  }, [props.selectedRows, rowSelection]);
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>(
+    props.selectedRows ?? {},
+  );
 
   useEffect(() => {
     props.onRowSelectionChange?.(table.getSelectedRowModel().rows);
