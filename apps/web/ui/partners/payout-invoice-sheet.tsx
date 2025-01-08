@@ -27,7 +27,7 @@ import {
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
 } from "@dub/utils";
-import { Row, RowSelectionState } from "@tanstack/react-table";
+import { Row } from "@tanstack/react-table";
 import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
 import {
