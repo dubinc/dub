@@ -59,8 +59,9 @@ export const getEvents = async (params: EventsFilters) => {
     region = split[1];
   }
 
-  if (sortOrder && sortOrder !== "desc") {
-    order = sortOrder;
+  // support legacy order param
+  if (order && order !== "desc") {
+    sortOrder = order;
   }
 
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
@@ -81,7 +82,7 @@ export const getEvents = async (params: EventsFilters) => {
     qr,
     country,
     region,
-    order,
+    order: sortOrder,
     offset: (params.page - 1) * params.limit,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
