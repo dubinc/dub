@@ -15,20 +15,20 @@ export type LinksViewMode = (typeof linkViewModes)[number];
 
 export const sortOptions = [
   {
-    display: "Date Added",
+    display: "Date created",
     slug: "createdAt",
   },
   {
-    display: "Number of Clicks",
+    display: "Total clicks",
     slug: "clicks",
   },
   {
-    display: "Sales Amount",
-    slug: "saleAmount",
+    display: "Last clicked",
+    slug: "lastClicked",
   },
   {
-    display: "Last Clicked",
-    slug: "lastClicked",
+    display: "Total sales",
+    slug: "saleAmount",
   },
 ] as const;
 
