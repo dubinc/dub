@@ -45,7 +45,7 @@ export const partnerInvitesQuerySchema = getPaginationQuerySchema({
 export const PartnerSchema = z.object({
   id: z.string(),
   name: z.string(),
-  email: z.string(),
+  email: z.string().nullable(),
   image: z.string().nullable(),
   country: z.string(),
   bio: z.string().nullable(),
