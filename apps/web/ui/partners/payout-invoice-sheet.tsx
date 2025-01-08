@@ -39,36 +39,42 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import Stripe from "stripe";
 
 interface PayoutInvoiceSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-const payoutMethodsTypes = [
-  {
+const paymentMethodsTypes = Object.freeze({
+  card: {
+    label: "card",
     type: "card",
-    title: "Card",
     icon: CreditCard,
     fee: DUB_PARTNERS_PAYOUT_FEE_CARD,
     time: "instantly",
   },
-  {
+  us_bank_account: {
+    label: "ACH",
     type: "us_bank_account",
-    title: "ACH",
     icon: GreekTemple,
     fee: DUB_PARTNERS_PAYOUT_FEE_ACH,
     time: "4 business days",
   },
-] as const;
+});
+
+type PaymentMethodWithFee =
+  (typeof paymentMethodsTypes)[keyof typeof paymentMethodsTypes] & {
+    id: string;
+  };
 
 function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   const { id: workspaceId, slug } = useWorkspace();
   const { programId } = useParams<{ programId: string }>();
   const { paymentMethods, loading: paymentMethodsLoading } =
     usePaymentMethods();
+
   const [selectedPayouts, setSelectedPayouts] = useState<PayoutResponse[]>([]);
-  const [payoutMethodId, setPayoutMethodId] = useState<string | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] =
+    useState<PaymentMethodWithFee | null>(null);
 
   const {
     payouts,
@@ -104,38 +110,34 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     [payouts],
   );
 
+  // Set the first payment method as the selected payment method
   useEffect(() => {
-    if (paymentMethods && paymentMethods.length > 0 && !payoutMethodId) {
-      setPayoutMethodId(paymentMethods[0].id);
+    if (!paymentMethods || !paymentMethods.length) {
+      return;
     }
-  }, [paymentMethods, payoutMethodId]);
+
+    if (!selectedPaymentMethod) {
+      const firstPaymentMethod = paymentMethods[0];
+      setSelectedPaymentMethod({
+        ...paymentMethodsTypes[firstPaymentMethod.type],
+        id: firstPaymentMethod.id,
+      });
+    }
+  }, [paymentMethods, selectedPaymentMethod]);
+
+  const paymentMethodsWithFee = useMemo(
+    () =>
+      paymentMethods?.map((pm) => ({
+        ...paymentMethodsTypes[pm.type],
+        id: pm.id,
+        title: pm.card
+          ? `${capitalize(pm.card?.brand)} **** ${pm.card?.last4}`
+          : `ACH **** ${pm.us_bank_account?.last4}`,
+      })),
+    [paymentMethods],
+  );
 
   const invoiceData = useMemo(() => {
-    const paymentMethodOption = (paymentMethod: Stripe.PaymentMethod) => {
-      const payoutMethod = payoutMethodsTypes.find(
-        (pm) => pm.type === paymentMethod.type,
-      );
-
-      if (!payoutMethod) {
-        return;
-      }
-
-      const { icon: Icon } = payoutMethod;
-
-      const title = paymentMethod.card
-        ? `${capitalize(paymentMethod.card?.brand)} **** ${paymentMethod.card?.last4}`
-        : `ACH **** ${paymentMethod.us_bank_account?.last4}`;
-
-      return (
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-neutral-500">
-            <Icon className="size-4" />
-          </span>
-          <span>{title}</span>
-        </div>
-      );
-    };
-
     if (!selectedPayouts) {
       return {
         Method: (
@@ -153,19 +155,11 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
       };
     }
 
-    const selectedPayoutMethod = paymentMethods?.find(
-      (pm) => pm.id === payoutMethodId,
-    );
-
-    const selectedPayoutMethodType = payoutMethodsTypes.find(
-      (pm) => pm.type === selectedPayoutMethod?.type,
-    );
-
     const amount = selectedPayouts.reduce(
       (acc, payout) => acc + payout.amount,
       0,
     );
-    const fee = amount * (selectedPayoutMethodType?.fee ?? 0);
+    const fee = amount * (selectedPaymentMethod?.fee ?? 0);
     const total = amount + fee;
 
     return {
@@ -176,12 +170,23 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
           ) : (
             <select
               className="h-auto flex-1 rounded-md border border-neutral-200 py-1.5 text-xs focus:border-neutral-600 focus:ring-neutral-600"
-              value={payoutMethodId || ""}
-              onChange={(e) => setPayoutMethodId(e.target.value)}
+              value={selectedPaymentMethod?.id || ""}
+              onChange={(e) =>
+                setSelectedPaymentMethod(
+                  paymentMethodsWithFee?.find(
+                    (pm) => pm.id === e.target.value,
+                  ) || null,
+                )
+              }
             >
-              {paymentMethods?.map((pm) => (
-                <option key={pm.id} value={pm.id}>
-                  {paymentMethodOption(pm)}
+              {paymentMethodsWithFee?.map(({ id, icon: Icon, title }) => (
+                <option key={id} value={id}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-neutral-500">
+                      <Icon className="size-4" />
+                    </span>
+                    <span>{title}</span>
+                  </div>
                 </option>
               ))}
             </select>
@@ -208,8 +213,10 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         <Tooltip
           content={
             <div className="w-28 p-1.5 text-center text-[12px] font-medium text-neutral-600">
-              {selectedPayoutMethodType
-                ? `${selectedPayoutMethodType.fee * 100}% ${selectedPayoutMethodType.title} fees`
+              {selectedPaymentMethod
+                ? `${selectedPaymentMethod.fee * 100}% ${
+                    selectedPaymentMethod?.label
+                  } fees`
                 : "Loading..."}
             </div>
           }
@@ -228,7 +235,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         maximumFractionDigits: 2,
       }),
     };
-  }, [selectedPayouts, paymentMethods, payoutMethodId]);
+  }, [selectedPayouts, paymentMethods, selectedPaymentMethod]);
 
   const table = useTable({
     data: pendingPayouts || [],
@@ -350,7 +357,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
                 !workspaceId ||
                 !programId ||
                 !selectedPayouts.length ||
-                !payoutMethodId
+                !selectedPaymentMethod
               ) {
                 return;
               }
@@ -358,7 +365,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
               await executeAsync({
                 workspaceId,
                 programId,
-                payoutMethodId,
+                paymentMethodId: selectedPaymentMethod.id,
                 payoutIds: selectedPayouts.map((p) => p.id),
               });
             }}

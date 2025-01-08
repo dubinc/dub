@@ -15,7 +15,7 @@ import { authActionClient } from "../safe-action";
 const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
   programId: z.string(),
-  payoutMethodId: z.string(),
+  paymentMethodId: z.string(),
   payoutIds: z.array(z.string()).min(1),
 });
 
@@ -24,7 +24,7 @@ export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, payoutMethodId, payoutIds } = parsedInput;
+    const { programId, paymentMethodId, payoutIds } = parsedInput;
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -36,7 +36,7 @@ export const confirmPayoutsAction = authActionClient
     }
 
     // Check the payout method is valid
-    const payoutMethod = await stripe.paymentMethods.retrieve(payoutMethodId);
+    const payoutMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
 
     if (payoutMethod.customer !== workspace.stripeId) {
       throw new Error("Invalid payout method.");
