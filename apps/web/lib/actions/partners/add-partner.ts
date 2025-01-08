@@ -37,19 +37,25 @@ export const addPartnerAction = authActionClient
       throw new Error("Link is already associated with another partner.");
     }
 
+    // Invite a partner
     if (action === "invite") {
       if (!email) {
         throw new Error("Email is required to invite a partner.");
       }
+
       return await invitePartner({
         email,
         program,
         link,
       });
-    } else if (action === "enroll") {
+    }
+
+    // Enroll a partner
+    else if (action === "enroll") {
       if (!name) {
         throw new Error("Name is required to enroll a partner.");
       }
+
       return await enrollPartner({
         programId,
         linkId,

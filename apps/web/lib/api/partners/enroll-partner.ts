@@ -19,6 +19,18 @@ export const enrollPartner = async ({
     image?: string | null;
   };
 }) => {
+  if (partner.email) {
+    const partnerFound = await prisma.partner.findUnique({
+      where: {
+        email: partner.email,
+      },
+    });
+
+    if (partnerFound) {
+      throw new Error(`Partner with email ${partner.email} already exists.`);
+    }
+  }
+
   const [createdPartner, updatedLink] = await Promise.all([
     prisma.partner.create({
       data: {
@@ -52,6 +64,7 @@ export const enrollPartner = async ({
       },
     }),
   ]);
+
   waitUntil(
     Promise.all([
       recordLink(updatedLink),
@@ -63,5 +76,6 @@ export const enrollPartner = async ({
         }),
     ]),
   );
+
   return createdPartner;
 };

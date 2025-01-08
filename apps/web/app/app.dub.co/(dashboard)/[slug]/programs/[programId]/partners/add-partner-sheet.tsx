@@ -336,7 +336,9 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
           <Button
             type="submit"
             variant="primary"
-            text="Send invite"
+            text={
+              selectedActionType === "invite" ? "Send invite" : "Enroll partner"
+            }
             className="w-fit"
             loading={isExecuting}
           />
