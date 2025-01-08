@@ -50,14 +50,14 @@ const paymentMethodsTypes = Object.freeze({
     type: "card",
     icon: CreditCard,
     fee: DUB_PARTNERS_PAYOUT_FEE_CARD,
-    time: "instantly",
+    duration: "Instantly",
   },
   us_bank_account: {
     label: "ACH",
     type: "us_bank_account",
     icon: GreekTemple,
     fee: DUB_PARTNERS_PAYOUT_FEE_ACH,
-    time: "4 business days",
+    duration: "4-5 business days",
   },
 });
 
@@ -160,6 +160,9 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         Fee: (
           <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
         ),
+        Duration: (
+          <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
+        ),
         Total: (
           <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
         ),
@@ -237,6 +240,33 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}
+          </span>
+        </Tooltip>
+      ),
+
+      Duration: (
+        <Tooltip
+          content={
+            <div className="w-48 gap-1 p-3">
+              {paymentMethodsWithFee?.map((method) => (
+                <div key={method.id} className="flex justify-between gap-1">
+                  <div className="text-sm text-neutral-500">
+                    {capitalize(method.label)}
+                  </div>
+                  <div className="text-sm text-neutral-500">
+                    {method.duration}
+                  </div>
+                </div>
+              ))}
+            </div>
+          }
+        >
+          <span className="underline decoration-dotted underline-offset-2">
+            {selectedPaymentMethod ? (
+              selectedPaymentMethod?.duration
+            ) : (
+              <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
+            )}
           </span>
         </Tooltip>
       ),
