@@ -60,6 +60,7 @@ type UseTableProps<T> = {
   onRowSelectionChange?: (rows: Row<T>[]) => void;
   selectedRows?: RowSelectionState;
   getRowId?: (row: T) => string;
+  defaultSelectedRows?: RowSelectionState;
 
   // Table styles
   className?: string;
@@ -99,9 +100,17 @@ export function useTable<T extends any>(
     props.columnVisibility ?? {},
   );
 
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>(
-    props.selectedRows ?? {},
-  );
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+
+  useEffect(() => {
+    if (props.selectedRows && !deepEqual(props.selectedRows, rowSelection)) {
+      setRowSelection(props.selectedRows);
+    }
+  }, [props.selectedRows, rowSelection]);
+
+  useEffect(() => {
+    props.onRowSelectionChange?.(table.getSelectedRowModel().rows);
+  }, [rowSelection]);
 
   // Update internal columnVisibility when prop value changes
   useEffect(() => {
@@ -116,13 +125,6 @@ export function useTable<T extends any>(
   useEffect(() => {
     props.onColumnVisibilityChange?.(columnVisibility);
   }, [columnVisibility]);
-
-  // Call onRowSelectionChange when internal rowSelection changes
-  useEffect(() => {
-    props.onRowSelectionChange?.(
-      Object.keys(rowSelection).map((key) => table.getRow(key)),
-    );
-  }, [rowSelection]);
 
   const table = useReactTable({
     data,

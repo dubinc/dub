@@ -27,7 +27,7 @@ import {
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
 } from "@dub/utils";
-import { Row } from "@tanstack/react-table";
+import { Row, RowSelectionState } from "@tanstack/react-table";
 import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
 import {
@@ -109,6 +109,17 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
       ),
     [payouts],
   );
+
+  // Automatically select all pending payouts on first load
+  useEffect(() => {
+    if (
+      pendingPayouts &&
+      pendingPayouts.length > 0 &&
+      selectedPayouts.length === 0
+    ) {
+      setSelectedPayouts(pendingPayouts);
+    }
+  }, [pendingPayouts, selectedPayouts]);
 
   // Set the first payment method as the selected payment method
   useEffect(() => {
@@ -302,6 +313,10 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     getRowId: (originalRow: PayoutResponse) => originalRow.id,
     onRowSelectionChange: (rows: Row<PayoutResponse>[]) =>
       setSelectedPayouts(rows.map((row) => row.original)),
+    selectedRows: (selectedPayouts || []).reduce((acc, payout) => {
+      acc[payout.id] = true;
+      return acc;
+    }, {} as RowSelectionState),
   } as any);
 
   return (
