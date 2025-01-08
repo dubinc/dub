@@ -84,29 +84,19 @@ const sortBy = z
   .default("createdAt")
   .describe("The field to sort the links by. The default is `createdAt`.");
 
-const sortParams = z.object({
-  sortBy,
-  sortOrder: z
-    .enum(["asc", "desc"])
-    .optional()
-    .default("desc")
-    .describe("The sort order. The default is `desc`."),
-  sort: sortBy
-    .openapi({ deprecated: true })
-    .describe("DEPRECATED. Use `sortBy` instead."),
-});
-
-const getLinksQuerySchemaBase = LinksQuerySchema.merge(sortParams).merge(
-  getPaginationQuerySchema({ pageSize: 100 }),
-);
-
-export const getLinksQuerySchema = getLinksQuerySchemaBase.transform(
-  (data) => ({
-    ...data,
-    // If sortBy is not provided but sort is, use sort value
-    sortBy: data.sortBy === "createdAt" && data.sort ? data.sort : data.sortBy,
+const getLinksQuerySchemaBase = LinksQuerySchema.merge(
+  z.object({
+    sortBy,
+    sortOrder: z
+      .enum(["asc", "desc"])
+      .optional()
+      .default("desc")
+      .describe("The sort order. The default is `desc`."),
+    sort: sortBy
+      .openapi({ deprecated: true })
+      .describe("DEPRECATED. Use `sortBy` instead."),
   }),
-);
+).merge(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const getLinksCountQuerySchema = LinksQuerySchema.merge(
   z.object({
@@ -621,25 +611,24 @@ export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
   }),
 );
 
-export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase
-  .merge(
-    z.object({
-      // Only Dub UI uses the following query parameters
-      includeUser: booleanQuerySchema.default("false"),
-      includeWebhooks: booleanQuerySchema.default("false"),
-      includeDashboard: booleanQuerySchema.default("false"),
-      linkIds: z
-        .union([z.string(), z.array(z.string())])
-        .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-        .optional()
-        .describe("Link IDs to filter by."),
-    }),
-  )
-  .transform((data) => ({
-    ...data,
-    // If sortBy is not provided but sort is, use sort value
-    sortBy: data.sortBy === "createdAt" && data.sort ? data.sort : data.sortBy,
-  }));
+export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
+  z.object({
+    // Only Dub UI uses the following query parameters
+    includeUser: booleanQuerySchema.default("false"),
+    includeWebhooks: booleanQuerySchema.default("false"),
+    includeDashboard: booleanQuerySchema.default("false"),
+    linkIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .optional()
+      .describe("Link IDs to filter by."),
+  }),
+);
+// .transform((data) => ({
+//   ...data,
+//   // If sortBy is not provided but sort is, use sort value
+//   sortBy: data.sortBy === "createdAt" && data.sort ? data.sort : data.sortBy,
+// }));
 
 export const linkEventSchema = LinkSchema.extend({
   // here we use string because url can be empty

@@ -19,7 +19,6 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ req, headers, workspace }) => {
     const searchParams = getSearchParamsWithArray(req.url);
-
     const params = getLinksQuerySchemaExtended.parse(searchParams);
 
     if (params.domain) {
@@ -27,8 +26,8 @@ export const GET = withWorkspace(
     }
 
     const response = await getLinksForWorkspace({
-      workspaceId: workspace.id,
       ...params,
+      workspaceId: workspace.id,
     });
 
     return NextResponse.json(response, {

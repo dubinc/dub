@@ -11,6 +11,7 @@ export async function getLinksForWorkspace({
   tagIds,
   tagNames,
   search,
+  sort, // Deprecated
   sortBy,
   sortOrder,
   page,
@@ -27,6 +28,11 @@ export async function getLinksForWorkspace({
   workspaceId: string;
 }) {
   const combinedTagIds = combineTagIds({ tagId, tagIds });
+
+  // support legacy sort param
+  if (sort && sort !== "createdAt") {
+    sortBy = sort;
+  }
 
   const links = await prisma.link.findMany({
     where: {

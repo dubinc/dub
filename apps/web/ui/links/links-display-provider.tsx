@@ -23,6 +23,10 @@ export const sortOptions = [
     slug: "clicks",
   },
   {
+    display: "Sales Amount",
+    slug: "saleAmount",
+  },
+  {
     display: "Last Clicked",
     slug: "lastClicked",
   },
@@ -98,7 +102,7 @@ export const LinksDisplayContext = createContext<{
   setViewMode: Dispatch<SetStateAction<LinksViewMode>>;
   displayProperties: LinkDisplayProperty[];
   setDisplayProperties: Dispatch<SetStateAction<LinkDisplayProperty[]>>;
-  sort: LinksSortSlug;
+  sortBy: LinksSortSlug;
   setSort: Dispatch<SetStateAction<LinksSortSlug>>;
   showArchived: boolean;
   setShowArchived: Dispatch<SetStateAction<boolean>>;
@@ -110,7 +114,7 @@ export const LinksDisplayContext = createContext<{
   setViewMode: () => {},
   displayProperties: defaultDisplayProperties,
   setDisplayProperties: () => {},
-  sort: sortOptions[0].slug,
+  sortBy: sortOptions[0].slug,
   setSort: () => {},
   showArchived: false,
   setShowArchived: () => {},
@@ -137,7 +141,7 @@ const parseShowArchived = (showArchived: boolean) => showArchived === true;
 
 export function LinksDisplayProvider({ children }: PropsWithChildren) {
   const searchParams = useSearchParams();
-  const sortRaw = searchParams?.get("sort");
+  const sortRaw = searchParams?.get("sortBy");
   const showArchivedRaw = searchParams?.get("showArchived");
 
   // View mode
@@ -155,13 +159,13 @@ export function LinksDisplayProvider({ children }: PropsWithChildren) {
 
   // Sort
   const {
-    value: sort,
+    value: sortBy,
     setValue: setSort,
     valuePersisted: sortPersisted,
     persist: persistSort,
     reset: resetSort,
   } = useLinksDisplayOption<string>(
-    "sort",
+    "sortBy",
     parseSort,
     sortOptions[0].slug,
     sortRaw ? parseSort(sortRaw) : undefined,
@@ -196,7 +200,7 @@ export function LinksDisplayProvider({ children }: PropsWithChildren) {
 
   const isDirty = useMemo(() => {
     if (viewMode !== parseViewMode(viewModePersisted)) return true;
-    if (sort !== parseSort(sortPersisted)) return true;
+    if (sortBy !== parseSort(sortPersisted)) return true;
     if (showArchived !== parseShowArchived(showArchivedPersisted)) return true;
     if (
       displayProperties.slice().sort().join(",") !==
@@ -212,7 +216,7 @@ export function LinksDisplayProvider({ children }: PropsWithChildren) {
     viewModePersisted,
     viewMode,
     sortPersisted,
-    sort,
+    sortBy,
     showArchivedPersisted,
     showArchived,
     displayPropertiesPersisted,
@@ -226,7 +230,7 @@ export function LinksDisplayProvider({ children }: PropsWithChildren) {
         setViewMode,
         displayProperties,
         setDisplayProperties,
-        sort: sort as LinksSortSlug,
+        sortBy: sortBy as LinksSortSlug,
         setSort,
         showArchived,
         setShowArchived,
