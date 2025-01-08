@@ -1,5 +1,5 @@
 import { addPartnerAction } from "@/lib/actions/partners/add-partner";
-import { mutatePrefix } from "@/lib/swr/mutate-prefix";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerLinkSelector } from "@/ui/partners/partner-link-selector";
