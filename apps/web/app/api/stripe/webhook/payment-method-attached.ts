@@ -1,5 +1,4 @@
 import { prisma } from "@dub/prisma";
-import { generateRandomString } from "@dub/utils";
 import Stripe from "stripe";
 
 export async function paymentMethodAttached(event: Stripe.Event) {
@@ -9,7 +8,7 @@ export async function paymentMethodAttached(event: Stripe.Event) {
     return;
   }
 
-  const workspace = await prisma.project.update({
+  await prisma.project.update({
     where: {
       stripeId: customer as string,
     },
@@ -21,16 +20,4 @@ export async function paymentMethodAttached(event: Stripe.Event) {
       invoicePrefix: true,
     },
   });
-
-  // Generate invoice prefix if it doesn't exist
-  if (!workspace.invoicePrefix) {
-    await prisma.project.update({
-      where: {
-        id: workspace.id,
-      },
-      data: {
-        invoicePrefix: generateRandomString(8),
-      },
-    });
-  }
 }

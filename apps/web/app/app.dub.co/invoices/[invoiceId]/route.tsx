@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { withWorkspace } from "@/lib/auth";
+import { withSession } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import {
@@ -30,7 +30,7 @@ const tw = createTw({
   },
 });
 
-export const GET = withWorkspace(async ({ workspace, params }) => {
+export const GET = withSession(async ({ session, params }) => {
   const { invoiceId } = params;
 
   const invoice = await prisma.invoice.findUniqueOrThrow({
@@ -39,7 +39,6 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     },
     select: {
       id: true,
-      workspaceId: true,
       amount: true,
       fee: true,
       total: true,
@@ -60,25 +59,33 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
           },
         },
       },
+      workspace: {
+        select: {
+          id: true,
+          stripeId: true,
+        },
+      },
     },
   });
 
-  if (invoice.workspaceId !== workspace.id) {
+  const userInWorkspace = await prisma.projectUsers.findUnique({
+    where: {
+      userId_projectId: {
+        userId: session.user.id,
+        projectId: invoice.workspace.id,
+      },
+    },
+  });
+
+  if (!userInWorkspace) {
     throw new DubApiError({
       code: "unauthorized",
       message: "You are not authorized to view this invoice",
     });
   }
 
-  if (invoice.status !== "completed") {
-    throw new DubApiError({
-      code: "unprocessable_entity",
-      message: "You can download the invoice once it is completed.",
-    });
-  }
-
   const customer = (await stripe.customers.retrieve(
-    workspace.stripeId!,
+    invoice.workspace.stripeId!,
   )) as Stripe.Customer;
 
   const customerAddress = customer.shipping?.address;
