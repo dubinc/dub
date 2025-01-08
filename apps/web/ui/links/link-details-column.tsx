@@ -152,7 +152,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
           link.leads > 0 || link.saleAmount > 0
             ? undefined
             : (value) => pluralize("click", value),
-        iconClassName: "data-[active=true]:text-blue-600",
+        iconClassName: "data-[active=true]:text-blue-500",
       },
       // TODO: Remove this once Dub Conversions goes GA
       ...(link.leads > 0 || link.saleAmount > 0
@@ -162,14 +162,14 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
               icon: UserCheck,
               value: link.leads,
               className: "hidden sm:flex",
-              iconClassName: "data-[active=true]:text-purple-600",
+              iconClassName: "data-[active=true]:text-purple-500",
             },
             {
               id: "sales",
               icon: InvoiceDollar,
               value: link.saleAmount,
               className: "hidden sm:flex",
-              iconClassName: "data-[active=true]:text-teal-600",
+              iconClassName: "data-[active=true]:text-teal-500",
             },
           ]
         : []),
@@ -206,6 +206,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                     ? currencyFormatter(value / 100)
                     : nFormatter(value, { full: value < INFINITY_NUMBER })}
                 </span>{" "}
+                {tab === "sales" ? "total " : ""}
                 {pluralize(tab.slice(0, -1), value)}
               </div>
             ))}
