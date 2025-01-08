@@ -140,12 +140,10 @@ const InvoiceCard = ({ invoice }: { invoice: InvoiceProps }) => {
           <a
             href={invoice.pdfUrl}
             target="_blank"
-            download
             className={cn(
               buttonVariants({ variant: "secondary" }),
               "flex size-8 items-center justify-center rounded-md border text-sm sm:size-auto sm:h-9 sm:px-3",
             )}
-            title="View invoice"
           >
             <p className="hidden sm:block">View invoice</p>
             <InvoiceDollar className="size-4 sm:hidden" />

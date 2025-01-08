@@ -1,5 +1,5 @@
-import { generateInvoicePrefix } from "@/lib/api/invoices/utils";
 import { prisma } from "@dub/prisma";
+import { generateRandomString } from "@dub/utils";
 import "dotenv-flow/config";
 
 async function main() {
@@ -20,15 +20,11 @@ async function main() {
     return;
   }
 
-  const invoicePrefixes = await Promise.all(
-    workspaces.map(async () => generateInvoicePrefix()),
-  );
-
   const updatedWorkspaces = await Promise.all(
-    workspaces.map(async (workspace, index) =>
+    workspaces.map(async (workspace) =>
       prisma.project.update({
         where: { id: workspace.id },
-        data: { invoicePrefix: invoicePrefixes[index] },
+        data: { invoicePrefix: generateRandomString(8) },
         select: { id: true, invoicePrefix: true },
       }),
     ),

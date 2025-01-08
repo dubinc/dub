@@ -1,5 +1,5 @@
-import { generateInvoicePrefix } from "@/lib/api/invoices/utils";
 import { prisma } from "@dub/prisma";
+import { generateRandomString } from "@dub/utils";
 import Stripe from "stripe";
 
 export async function paymentMethodAttached(event: Stripe.Event) {
@@ -29,7 +29,7 @@ export async function paymentMethodAttached(event: Stripe.Event) {
         id: workspace.id,
       },
       data: {
-        invoicePrefix: await generateInvoicePrefix(),
+        invoicePrefix: generateRandomString(8),
       },
     });
   }

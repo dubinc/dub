@@ -172,13 +172,21 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
 
         <View style={tw("flex-row justify-between mb-10 ")}>
           {addresses.map(({ title, address }, index) => {
+            const cityStatePostal = [
+              address.city,
+              address.state,
+              address.postalCode,
+            ]
+              .filter(Boolean)
+              .join(", ");
+
             const records = [
               address.name,
               address.line1,
               address.line2,
-              `${address.city}, ${address.state} ${address.postalCode}`,
+              cityStatePostal,
               address.email,
-            ].filter(Boolean);
+            ].filter((record) => record && record.length > 0);
 
             return (
               <View style={tw("w-1/2")} key={index}>
