@@ -81,6 +81,8 @@ export const GET = withWorkspace(
           }),
         ...(userId && { userId }),
       },
+
+      // TODO: orderBy is not currently supported
       orderBy: {
         [sort]: "desc",
       },

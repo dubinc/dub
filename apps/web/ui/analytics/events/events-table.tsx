@@ -65,8 +65,8 @@ export default function EventsTable({
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility();
 
-  const sortBy = searchParams.get("sort") || "timestamp";
-  const order = searchParams.get("order") === "asc" ? "asc" : "desc";
+  const sortBy = searchParams.get("sortBy") || "timestamp";
+  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const columns = useMemo<ColumnDef<EventDatum, any>[]>(
     () =>
@@ -440,9 +440,9 @@ export default function EventsTable({
         event: tab,
         page: pagination.pageIndex.toString(),
         sortBy,
-        order,
+        sortOrder,
       }).toString(),
-    [originalQueryString, tab, pagination, sortBy, order],
+    [originalQueryString, tab, pagination, sortBy, sortOrder],
   );
 
   // Update export query string
@@ -483,13 +483,13 @@ export default function EventsTable({
     columnVisibility: columnVisibility[tab],
     onColumnVisibilityChange: (args) => setColumnVisibility(tab, args),
     sortableColumns: ["timestamp"],
-    sortBy: sortBy,
-    sortOrder: order,
+    sortBy,
+    sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
       queryParams({
         set: {
-          ...(sortBy && { sort: sortBy }),
-          ...(sortOrder && { order: sortOrder }),
+          ...(sortBy && { sortBy }),
+          ...(sortOrder && { sortOrder }),
         },
       }),
     columnPinning: { right: ["menu"] },
