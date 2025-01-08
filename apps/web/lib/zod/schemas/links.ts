@@ -78,15 +78,23 @@ const LinksQuerySchema = z.object({
     .openapi({ deprecated: true }),
 });
 
-export const getLinksQuerySchema = LinksQuerySchema.merge(
+const sortBy = z
+  .enum(["createdAt", "clicks", "saleAmount", "lastClicked"])
+  .optional()
+  .default("createdAt")
+  .describe("The field to sort the links by. The default is `createdAt`.");
+
+export const getLinksQuerySchemaBase = LinksQuerySchema.merge(
   z.object({
-    sort: z
-      .enum(["createdAt", "clicks", "lastClicked"])
+    sortBy,
+    sortOrder: z
+      .enum(["asc", "desc"])
       .optional()
-      .default("createdAt")
-      .describe(
-        "The field to sort the links by. The default is `createdAt`, and sort order is always descending.",
-      ),
+      .default("desc")
+      .describe("The sort order. The default is `desc`."),
+    sort: sortBy
+      .openapi({ deprecated: true })
+      .describe("DEPRECATED. Use `sortBy` instead."),
   }),
 ).merge(getPaginationQuerySchema({ pageSize: 100 }));
 
@@ -99,7 +107,7 @@ export const getLinksCountQuerySchema = LinksQuerySchema.merge(
   }),
 );
 
-export const linksExportQuerySchema = getLinksQuerySchema
+export const linksExportQuerySchema = getLinksQuerySchemaBase
   .omit({ page: true, pageSize: true })
   .merge(
     z.object({
@@ -603,7 +611,7 @@ export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
   }),
 );
 
-export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
+export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
   z.object({
     // Only Dub UI uses the following query parameters
     includeUser: booleanQuerySchema.default("false"),
