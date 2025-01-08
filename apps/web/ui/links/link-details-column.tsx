@@ -136,7 +136,7 @@ function TagButton({ tag, plus }: { tag: TagProps; plus?: number }) {
 }
 
 function AnalyticsBadge({ link }: { link: ResponseLink }) {
-  const { domain, key, trackConversion } = link;
+  const { domain, key } = link;
 
   const { slug } = useWorkspace();
   const { isMobile } = useMediaQuery();
@@ -148,29 +148,33 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
         id: "clicks",
         icon: CursorRays,
         value: link.clicks,
-        label: trackConversion
-          ? undefined
-          : (value) => pluralize("click", value),
+        label:
+          link.leads > 0 || link.saleAmount > 0
+            ? undefined
+            : (value) => pluralize("click", value),
+        iconClassName: "data-[active=true]:text-blue-600",
       },
       // TODO: Remove this once Dub Conversions goes GA
-      ...(trackConversion || link.leads > 0 || link.saleAmount > 0
+      ...(link.leads > 0 || link.saleAmount > 0
         ? [
             {
               id: "leads",
               icon: UserCheck,
               value: link.leads,
               className: "hidden sm:flex",
+              iconClassName: "data-[active=true]:text-purple-600",
             },
             {
               id: "sales",
               icon: InvoiceDollar,
               value: link.saleAmount,
               className: "hidden sm:flex",
+              iconClassName: "data-[active=true]:text-teal-600",
             },
           ]
         : []),
     ],
-    [trackConversion, link],
+    [link],
   );
 
   const { ShareDashboardModal, setShowShareDashboardModal } =
@@ -237,32 +241,44 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
         <Link
           href={`/${slug}/analytics?domain=${domain}&key=${key}`}
           className={cn(
-            "overflow-hidden rounded-md border border-gray-200 bg-gray-50 text-sm text-gray-800",
+            "overflow-hidden rounded-md border border-gray-200 bg-gray-50 p-0.5 text-sm text-gray-600 transition-colors",
             variant === "loose" ? "hover:bg-gray-100" : "hover:bg-white",
           )}
         >
-          <div className="hidden items-center sm:flex">
-            {stats.map(({ id: tab, icon: Icon, value, className, label }) => (
-              <div
-                key={tab}
-                className={cn(
-                  "flex items-center gap-1 whitespace-nowrap px-1.5 py-0.5 transition-colors",
-                  className,
-                )}
-              >
-                <Icon className="h-4 w-4 shrink-0 text-gray-600" />
-                <span>
-                  {tab === "sales"
-                    ? currencyFormatter(value / 100)
-                    : nFormatter(value)}
-                  {label && (
-                    <span className="hidden md:inline-block">
-                      &nbsp;{label(value)}
-                    </span>
+          <div className="hidden items-center gap-0.5 sm:flex">
+            {stats.map(
+              ({
+                id: tab,
+                icon: Icon,
+                value,
+                label,
+                className,
+                iconClassName,
+              }) => (
+                <div
+                  key={tab}
+                  className={cn(
+                    "flex items-center gap-1 whitespace-nowrap rounded-md px-1 py-px transition-colors",
+                    className,
                   )}
-                </span>
-              </div>
-            ))}
+                >
+                  <Icon
+                    data-active={value > 0}
+                    className={cn("h-4 w-4 shrink-0", iconClassName)}
+                  />
+                  <span>
+                    {tab === "sales"
+                      ? currencyFormatter(value / 100)
+                      : nFormatter(value)}
+                    {label && (
+                      <span className="hidden md:inline-block">
+                        &nbsp;{label(value)}
+                      </span>
+                    )}
+                  </span>
+                </div>
+              ),
+            )}
             {link.dashboardId && (
               <div className="border-l border-gray-200 px-1.5">
                 <ReferredVia className="h-4 w-4 shrink-0 text-gray-600" />
