@@ -22,11 +22,6 @@ import Stripe from "stripe";
 
 export const dynamic = "force-dynamic";
 
-// Font.register({
-//   family: "Inter",
-//   src: "../",
-// });
-
 const tw = createTw({
   theme: {
     fontFamily: {
@@ -155,7 +150,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
 
   const pdf = await renderToBuffer(
     <Document>
-      <Page size="A4" style={tw("p-20 font-sans")}>
+      <Page size="A4" style={tw("p-20 bg-white")}>
         <View style={tw("flex-row justify-between items-center mb-10")}>
           <Image src={DUB_WORDMARK} style={tw("w-20 h-10")} />
           <View style={tw("text-right w-1/2")}>
