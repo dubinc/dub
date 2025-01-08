@@ -64,6 +64,7 @@ const partnerEventsSchema = eventsQuerySchema
     page: true,
     limit: true,
     order: true,
+    sortOrder: true,
     sortBy: true,
   })
   .partial();

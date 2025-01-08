@@ -33,7 +33,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     getEvents({
       customerId: customer.id,
       event: "sales",
-      order: "desc",
+      sortOrder: "desc",
       sortBy: "timestamp",
       interval: "1y",
       page: 1,
