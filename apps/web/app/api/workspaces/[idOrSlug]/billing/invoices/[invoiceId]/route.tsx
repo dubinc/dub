@@ -86,7 +86,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   const invoiceMetadata = [
     {
       label: "Invoice number",
-      value: invoice.number,
+      value: `#${invoice.number}`,
     },
     {
       label: "Date",
@@ -335,7 +335,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   return new Response(pdf, {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-disposition": "inline",
+      "Content-Disposition": `inline; filename="Invoice-${invoice.number}.pdf"`,
     },
   });
 });
