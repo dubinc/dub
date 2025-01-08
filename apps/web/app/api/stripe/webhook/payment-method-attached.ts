@@ -15,9 +15,5 @@ export async function paymentMethodAttached(event: Stripe.Event) {
     data: {
       payoutMethodId: id,
     },
-    select: {
-      id: true,
-      invoicePrefix: true,
-    },
   });
 }

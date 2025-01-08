@@ -154,7 +154,7 @@ const InvoiceCard = ({ invoice }: { invoice: InvoiceProps }) => {
             variant="secondary"
             text="View invoice"
             disabled
-            disabledTooltip="PDF will be available shortly after the payment is processed by Stripe."
+            disabledTooltip="Invoice not available. Contact support if you need assistance."
           />
         )}
       </div>
