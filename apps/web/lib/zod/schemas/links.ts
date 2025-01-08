@@ -84,7 +84,7 @@ const sortBy = z
   .default("createdAt")
   .describe("The field to sort the links by. The default is `createdAt`.");
 
-const getLinksQuerySchemaBase = LinksQuerySchema.merge(
+export const getLinksQuerySchemaBase = LinksQuerySchema.merge(
   z.object({
     sortBy,
     sortOrder: z
@@ -624,11 +624,6 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
       .describe("Link IDs to filter by."),
   }),
 );
-// .transform((data) => ({
-//   ...data,
-//   // If sortBy is not provided but sort is, use sort value
-//   sortBy: data.sortBy === "createdAt" && data.sort ? data.sort : data.sortBy,
-// }));
 
 export const linkEventSchema = LinkSchema.extend({
   // here we use string because url can be empty
