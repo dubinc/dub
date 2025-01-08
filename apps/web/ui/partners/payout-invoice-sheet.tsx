@@ -343,10 +343,10 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     getRowId: (originalRow: PayoutResponse) => originalRow.id,
     onRowSelectionChange: (rows: Row<PayoutResponse>[]) =>
       setSelectedPayouts(rows.map((row) => row.original)),
-    selectedRows: (selectedPayouts || []).reduce((acc, payout) => {
-      acc[payout.id] = true;
-      return acc;
-    }, {} as RowSelectionState),
+    // selectedRows: (selectedPayouts || []).reduce((acc, payout) => {
+    //   acc[payout.id] = true;
+    //   return acc;
+    // }, {} as RowSelectionState),
   } as any);
 
   return (

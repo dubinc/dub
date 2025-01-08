@@ -2,6 +2,7 @@
 
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { createId } from "@/lib/api/utils";
+import { limiter } from "@/lib/cron/limiter";
 import {
   DUB_PARTNERS_PAYOUT_FEE_ACH,
   DUB_PARTNERS_PAYOUT_FEE_CARD,
@@ -9,6 +10,9 @@ import {
 } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
+import { sendEmail } from "emails";
+import PartnerPayoutConfirmed from "emails/partner-payout-confirmed";
 import z from "zod";
 import { authActionClient } from "../safe-action";
 
@@ -36,13 +40,13 @@ export const confirmPayoutsAction = authActionClient
     }
 
     // Check the payout method is valid
-    const payoutMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+    const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
 
-    if (payoutMethod.customer !== workspace.stripeId) {
+    if (paymentMethod.customer !== workspace.stripeId) {
       throw new Error("Invalid payout method.");
     }
 
-    if (!["card", "us_bank_account"].includes(payoutMethod.type)) {
+    if (!["card", "us_bank_account"].includes(paymentMethod.type)) {
       throw new Error(
         `We only support card and ACH for now. Please update your payout method to one of these.`,
       );
@@ -69,6 +73,28 @@ export const confirmPayoutsAction = authActionClient
       select: {
         id: true,
         amount: true,
+        periodStart: true,
+        periodEnd: true,
+        partner: {
+          select: {
+            users: {
+              select: {
+                user: {
+                  select: {
+                    email: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        program: {
+          select: {
+            id: true,
+            name: true,
+            logo: true,
+          },
+        },
       },
     });
 
@@ -77,14 +103,14 @@ export const confirmPayoutsAction = authActionClient
     }
 
     // Create the invoice for the payouts
-    return await prisma.$transaction(async (tx) => {
+    const newInvoice = await prisma.$transaction(async (tx) => {
       const amount = payouts.reduce(
         (total, payout) => total + payout.amount,
         0,
       );
 
       const fee =
-        payoutMethod.type === "card"
+        paymentMethod.type === "card"
           ? amount * DUB_PARTNERS_PAYOUT_FEE_CARD
           : amount * DUB_PARTNERS_PAYOUT_FEE_ACH;
 
@@ -130,8 +156,39 @@ export const confirmPayoutsAction = authActionClient
         },
       });
 
-      return {
-        invoice,
-      };
+      return invoice;
     });
+
+    waitUntil(
+      (async () => {
+        // Send emails to all the partners involved in the payouts if the payout method is ACH
+        // ACH takes 4 business days to process
+        if (newInvoice && paymentMethod.type === "us_bank_account") {
+          for (const payout of payouts) {
+            const { program, partner } = payout;
+            const partnerUsers = partner.users.map(({ user }) => user);
+
+            partnerUsers.map((user) =>
+              limiter.schedule(() =>
+                sendEmail({
+                  subject: "Payout confirmed!",
+                  email: user.email!,
+                  from: "Dub Partners <system@dub.co>",
+                  react: PartnerPayoutConfirmed({
+                    email: user.email!,
+                    program,
+                    payout: {
+                      id: payout.id,
+                      amount: payout.amount,
+                      startDate: payout.periodStart!,
+                      endDate: payout.periodEnd!,
+                    },
+                  }),
+                }),
+              ),
+            );
+          }
+        }
+      })(),
+    );
   });
