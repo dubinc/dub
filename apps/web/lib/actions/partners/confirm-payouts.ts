@@ -70,9 +70,19 @@ export const confirmPayoutsAction = authActionClient
       const fee = amount * DUB_PARTNERS_PAYOUT_FEE;
       const total = amount + fee;
 
+      // Generate the next invoice number
+      const totalInvoices = await tx.invoice.count({
+        where: {
+          workspaceId: workspace.id,
+        },
+      });
+      const paddedNumber = String(totalInvoices + 1).padStart(4, "0");
+      const invoiceNumber = `${workspace.invoicePrefix}-${paddedNumber}`;
+
       const invoice = await tx.invoice.create({
         data: {
           id: createId({ prefix: "inv_" }),
+          number: invoiceNumber,
           programId,
           workspaceId: workspace.id,
           amount,
