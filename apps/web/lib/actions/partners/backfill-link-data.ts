@@ -45,7 +45,7 @@ export const backfillLinkData = async ({
     interval: "all",
     page: 1,
     limit: 5000,
-    order: "desc",
+    sortOrder: "desc",
     sortBy: "timestamp",
   });
 

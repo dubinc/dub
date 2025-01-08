@@ -256,7 +256,9 @@ export function AppSidebarNav({
       currentArea={currentArea}
       data={{
         slug: slug || "",
-        queryString: getQueryString(),
+        queryString: getQueryString(undefined, {
+          ignore: ["sortBy", "sortOrder"],
+        }),
         programs,
         session: session || undefined,
         showNews: pathname.startsWith(`/${slug}/programs/`) ? false : true,
