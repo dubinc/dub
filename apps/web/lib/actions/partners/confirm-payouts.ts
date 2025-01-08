@@ -69,33 +69,20 @@ export const confirmPayoutsAction = authActionClient
       );
       const fee = amount * DUB_PARTNERS_PAYOUT_FEE;
       const total = amount + fee;
-      let number: string | null = null;
 
       // Generate the next invoice number
-      const lastInvoice = await tx.invoice.findFirst({
+      const totalInvoices = await tx.invoice.count({
         where: {
           workspaceId: workspace.id,
         },
-        select: {
-          number: true,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
       });
-
-      if (lastInvoice) {
-        const [_, lastNumber] = lastInvoice.number?.split("-") ?? [];
-        const newNumber = parseInt(lastNumber) + 1;
-        number = `${workspace.invoicePrefix}-${newNumber}`;
-      } else {
-        number = `${workspace.invoicePrefix}-0001`;
-      }
+      const paddedNumber = String(totalInvoices + 1).padStart(4, "0");
+      const invoiceNumber = `${workspace.invoicePrefix}-${paddedNumber}`;
 
       const invoice = await tx.invoice.create({
         data: {
           id: createId({ prefix: "inv_" }),
-          number,
+          number: invoiceNumber,
           programId,
           workspaceId: workspace.id,
           amount,
