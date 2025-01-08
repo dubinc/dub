@@ -113,8 +113,8 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
           workspaceId: workspaceId!,
           programId: program?.id!,
           action: selectedActionType,
-          name: data.name,
-          email: data.email,
+          name: data.name || undefined,
+          email: data.email || undefined,
           linkId: data.linkId,
         });
       })}
@@ -163,7 +163,7 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
                   />
                   <div className="flex flex-col gap-1.5 text-sm">
                     <span className="font-medium">{actionType.label}</span>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-neutral-500">
                       {actionType.description}
                     </span>
                   </div>
@@ -181,12 +181,17 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
             {selectedActionType === "enroll" && (
               <div>
                 <label htmlFor="name" className="flex items-center space-x-2">
-                  <h2 className="text-sm font-medium text-gray-900">Name</h2>
+                  <h2 className="text-sm font-medium text-neutral-900">
+                    Name{" "}
+                    <span className="font-normal text-neutral-500">
+                      (required)
+                    </span>
+                  </h2>
                 </label>
                 <div className="relative mt-2 rounded-md shadow-sm">
                   <input
                     {...register("name")}
-                    className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                    className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                     placeholder="John Doe"
                     type="text"
                     autoComplete="off"
@@ -198,12 +203,18 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
 
             <div>
               <label htmlFor="email" className="flex items-center space-x-2">
-                <h2 className="text-sm font-medium text-gray-900">Email</h2>
+                <h2 className="text-sm font-medium text-neutral-900">
+                  Email{" "}
+                  <span className="font-normal text-neutral-500">
+                    ({selectedActionType === "enroll" ? "optional" : "required"}
+                    )
+                  </span>
+                </h2>
               </label>
               <div className="relative mt-2 rounded-md shadow-sm">
                 <input
                   {...register("email")}
-                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                  className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                   placeholder="panic@thedis.co"
                   type="email"
                   autoComplete="off"
@@ -211,7 +222,7 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
                 />
               </div>
               {selectedActionType === "enroll" && (
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-neutral-500">
                   Partner will be able to claim their profile by signing up to
                   Dub Partners with this email
                 </p>
@@ -220,13 +231,13 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
 
             <div>
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-medium text-gray-900">
+                <h2 className="text-sm font-medium text-neutral-900">
                   Referral link
                 </h2>
                 <a
                   href={`/${slug}/programs/${program?.id}/settings`}
                   target="_blank"
-                  className="text-sm text-gray-500 underline-offset-2 hover:underline"
+                  className="text-sm text-neutral-500 underline-offset-2 hover:underline"
                 >
                   Settings
                 </a>
@@ -269,7 +280,7 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
 
           {selectedActionType === "invite" && (
             <div className="mt-8">
-              <h2 className="text-sm font-medium text-gray-900">Preview</h2>
+              <h2 className="text-sm font-medium text-neutral-900">Preview</h2>
               <div className="mt-2 overflow-hidden rounded-md border border-neutral-200">
                 <div className="grid gap-4 p-6 pb-10">
                   <BlurImage
@@ -279,10 +290,10 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
                     width={48}
                     height={48}
                   />
-                  <h3 className="font-medium text-gray-900">
+                  <h3 className="font-medium text-neutral-900">
                     {program?.name || "Dub"} invited you to join Dub Partners
                   </h3>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-neutral-500">
                     {program?.name || "Dub"} uses Dub Partners to power their
                     partnership programs and wants to partner with great people
                     like yourself!
@@ -293,15 +304,15 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
                     className="w-fit"
                   />
                 </div>
-                <div className="grid gap-1 border-t border-gray-200 bg-gray-50 px-6 py-4">
-                  <p className="text-sm text-gray-500">
-                    <strong className="font-medium text-gray-900">
+                <div className="grid gap-1 border-t border-neutral-200 bg-neutral-50 px-6 py-4">
+                  <p className="text-sm text-neutral-500">
+                    <strong className="font-medium text-neutral-900">
                       From:{" "}
                     </strong>
                     system@dub.co
                   </p>
-                  <p className="text-sm text-gray-500">
-                    <strong className="font-medium text-gray-900">
+                  <p className="text-sm text-neutral-500">
+                    <strong className="font-medium text-neutral-900">
                       Subject:{" "}
                     </strong>
                     You've been invited to Dub Partners

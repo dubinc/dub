@@ -53,8 +53,10 @@ export const addPartnerAction = authActionClient
       return await enrollPartner({
         programId,
         linkId,
-        name,
-        email,
+        partner: {
+          name,
+          email,
+        },
       });
     }
   });
