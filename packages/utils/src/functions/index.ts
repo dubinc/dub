@@ -10,6 +10,7 @@ export * from "./deep-equal";
 export * from "./domains";
 export * from "./fetch-with-timeout";
 export * from "./fetcher";
+export * from "./generate-random-string";
 export * from "./hash-string";
 export * from "./is-click-on-interactive-child";
 export * from "./is-iframeable";
