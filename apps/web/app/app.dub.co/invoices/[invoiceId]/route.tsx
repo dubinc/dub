@@ -62,6 +62,7 @@ export const GET = withSession(async ({ session, params }) => {
       workspace: {
         select: {
           id: true,
+          name: true,
           stripeId: true,
         },
       },
@@ -84,11 +85,17 @@ export const GET = withSession(async ({ session, params }) => {
     });
   }
 
-  const customer = (await stripe.customers.retrieve(
-    invoice.workspace.stripeId!,
-  )) as Stripe.Customer;
+  let customer: Stripe.Customer | null = null;
 
-  const customerAddress = customer.shipping?.address;
+  if (invoice.workspace.stripeId) {
+    try {
+      customer = (await stripe.customers.retrieve(
+        invoice.workspace.stripeId!,
+      )) as Stripe.Customer;
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
   const invoiceMetadata = [
     {
@@ -144,13 +151,14 @@ export const GET = withSession(async ({ session, params }) => {
     {
       title: "Bill to",
       address: {
-        name: customer.shipping?.name,
-        line1: customerAddress?.line1,
-        line2: customerAddress?.line2,
-        city: customerAddress?.city,
-        state: customerAddress?.state,
-        postalCode: customerAddress?.postal_code,
-        email: customer.email,
+        companyName: invoice.workspace.name,
+        name: customer?.shipping?.name,
+        line1: customer?.shipping?.address?.line1,
+        line2: customer?.shipping?.address?.line2,
+        city: customer?.shipping?.address?.city,
+        state: customer?.shipping?.address?.state,
+        postalCode: customer?.shipping?.address?.postal_code,
+        email: customer?.email,
       },
     },
   ];
@@ -188,6 +196,7 @@ export const GET = withSession(async ({ session, params }) => {
               .join(", ");
 
             const records = [
+              address.companyName,
               address.name,
               address.line1,
               address.line2,
