@@ -11,7 +11,8 @@ export async function getLinksForWorkspace({
   tagIds,
   tagNames,
   search,
-  sort = "createdAt",
+  sortBy,
+  sortOrder,
   page,
   pageSize,
   userId,
@@ -85,7 +86,7 @@ export async function getLinksForWorkspace({
       dashboard: includeDashboard,
     },
     orderBy: {
-      [sort]: "desc",
+      [sortBy]: sortOrder,
     },
     take: pageSize,
     skip: (page - 1) * pageSize,

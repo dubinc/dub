@@ -20,45 +20,15 @@ export const GET = withWorkspace(
   async ({ req, headers, workspace }) => {
     const searchParams = getSearchParamsWithArray(req.url);
 
-    const {
-      domain,
-      tagId,
-      tagIds,
-      search,
-      sort,
-      page,
-      pageSize,
-      userId,
-      showArchived,
-      withTags,
-      includeUser,
-      includeWebhooks,
-      includeDashboard,
-      linkIds,
-      tenantId,
-    } = getLinksQuerySchemaExtended.parse(searchParams);
+    const params = getLinksQuerySchemaExtended.parse(searchParams);
 
-    if (domain) {
-      await getDomainOrThrow({ workspace, domain });
+    if (params.domain) {
+      await getDomainOrThrow({ workspace, domain: params.domain });
     }
 
     const response = await getLinksForWorkspace({
       workspaceId: workspace.id,
-      domain,
-      tagId,
-      tagIds,
-      search,
-      sort,
-      page,
-      pageSize,
-      userId,
-      showArchived,
-      withTags,
-      includeUser,
-      includeWebhooks,
-      includeDashboard,
-      linkIds,
-      tenantId,
+      ...params,
     });
 
     return NextResponse.json(response, {
