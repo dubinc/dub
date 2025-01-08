@@ -31,7 +31,11 @@ export async function GET(req: Request) {
           },
         },
         include: {
-          tags: true,
+          tags: {
+            select: {
+              tag: true,
+            },
+          },
         },
         take: 100,
       }),
@@ -63,9 +67,7 @@ export async function GET(req: Request) {
       });
 
       // Post delete cleanup
-      await bulkDeleteLinks({
-        links,
-      });
+      await bulkDeleteLinks(links);
     }
 
     // Delete the domains

@@ -80,17 +80,7 @@ export const POST = withWorkspace(
     waitUntil(
       Promise.all([
         linkCache.set({ ...link, projectId: newWorkspaceId }),
-
-        recordLink({
-          link_id: link.id,
-          domain: link.domain,
-          key: link.key,
-          url: link.url,
-          tag_ids: [],
-          program_id: link.programId ?? "",
-          workspace_id: newWorkspaceId,
-          created_at: link.createdAt,
-        }),
+        recordLink({ ...link, projectId: newWorkspaceId }),
         // increment new workspace usage
         prisma.project.update({
           where: {

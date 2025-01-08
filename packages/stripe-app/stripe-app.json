@@ -1,8 +1,8 @@
 {
   "id": "dub.co",
-  "version": "0.0.4",
-  "name": "Dub Conversions",
-  "icon": "./logo.png",
+  "version": "0.0.7",
+  "name": "Dub - Conversion Analytics",
+  "icon": "./stripe-icon.png",
   "permissions": [
     {
       "permission": "customer_read",

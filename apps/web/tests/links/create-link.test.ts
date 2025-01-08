@@ -139,7 +139,7 @@ describe.sequential("POST /links", async () => {
     });
   });
 
-  test("utm builder", async (ctx) => {
+  test("utm builder", async () => {
     const longUrl = new URL(url);
     const utm = {
       utm_source: "facebook",
