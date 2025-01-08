@@ -177,7 +177,7 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
               );
             })}
           </div>
-          <div className="mt-4 grid gap-4">
+          <div className="mt-6 grid gap-6">
             {selectedActionType === "enroll" && (
               <div>
                 <label htmlFor="name" className="flex items-center space-x-2">
@@ -210,6 +210,12 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
                   autoFocus={!isMobile && selectedActionType !== "invite"}
                 />
               </div>
+              {selectedActionType === "enroll" && (
+                <p className="mt-1 text-xs text-gray-500">
+                  Partner will be able to claim their profile by signing up to
+                  Dub Partners with this email
+                </p>
+              )}
             </div>
 
             <div>
