@@ -2,15 +2,20 @@ import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
-import { capitalize, currencyFormatter, formatDate } from "@dub/utils";
+import {
+  capitalize,
+  currencyFormatter,
+  DUB_WORDMARK,
+  formatDate,
+} from "@dub/utils";
 import {
   Document,
   Image,
   Link,
   Page,
+  renderToBuffer,
   Text,
   View,
-  renderToBuffer,
 } from "@react-pdf/renderer";
 import { createTw } from "react-pdf-tailwind";
 import Stripe from "stripe";
@@ -152,10 +157,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     <Document>
       <Page size="A4" style={tw("p-20 font-sans")}>
         <View style={tw("flex-row justify-between items-center mb-10")}>
-          <Image
-            src="https://dubassets.com/logos/clrei1gld0002vs9mzn93p8ik_384uSfo"
-            style={tw("w-12 h-12")}
-          />
+          <Image src={DUB_WORDMARK} style={tw("w-20 h-10")} />
           <View style={tw("text-right w-1/2")}>
             <Text style={tw("text-sm font-medium text-neutral-800")}>
               Dub Technologies Inc.
@@ -264,7 +266,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
             <View
               key={index}
               style={tw(
-                `flex-row text-sm font-medium text-neutral-700 border-neutral-200 ${index + 1 === invoice.payouts.length ? "" : "border-b"}`,
+                `flex-row text-sm font-medium text-neutral-700 border-neutral-200 items-center ${index + 1 === invoice.payouts.length ? "" : "border-b"}`,
               )}
             >
               <View style={tw("flex-row items-center gap-2 w-2/6 p-3.5")}>

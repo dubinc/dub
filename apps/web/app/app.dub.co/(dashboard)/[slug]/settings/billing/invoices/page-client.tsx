@@ -5,6 +5,7 @@ import { InvoiceProps } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import {
+  Button,
   buttonVariants,
   InvoiceDollar,
   Receipt2,
@@ -135,19 +136,29 @@ const InvoiceCard = ({ invoice }: { invoice: InvoiceProps }) => {
       </div>
 
       <div className="flex items-center justify-end">
-        <a
-          href={invoice.pdfUrl || "#"}
-          target="_blank"
-          download
-          className={cn(
-            buttonVariants({ variant: "secondary" }),
-            "flex size-8 items-center justify-center rounded-md border text-sm sm:size-auto sm:h-9 sm:px-3",
-          )}
-          title="View invoice"
-        >
-          <p className="hidden sm:block">View invoice</p>
-          <InvoiceDollar className="size-4 sm:hidden" />
-        </a>
+        {invoice.pdfUrl ? (
+          <a
+            href={invoice.pdfUrl}
+            target="_blank"
+            download
+            className={cn(
+              buttonVariants({ variant: "secondary" }),
+              "flex size-8 items-center justify-center rounded-md border text-sm sm:size-auto sm:h-9 sm:px-3",
+            )}
+            title="View invoice"
+          >
+            <p className="hidden sm:block">View invoice</p>
+            <InvoiceDollar className="size-4 sm:hidden" />
+          </a>
+        ) : (
+          <Button
+            className="w-fit"
+            variant="secondary"
+            text="View invoice"
+            disabled
+            disabledTooltip="PDF will be available shortly after the payment is processed by Stripe."
+          />
+        )}
       </div>
     </div>
   );

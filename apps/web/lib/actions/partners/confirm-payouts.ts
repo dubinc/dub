@@ -138,34 +138,3 @@ export const confirmPayoutsAction = authActionClient
       };
     });
   });
-
-// Get the next invoice number for the given workspace
-const nextInvoiceNumber = async ({
-  workspaceId,
-  invoicePrefix,
-}: {
-  workspaceId: string;
-  invoicePrefix: string;
-}) => {
-  const lastInvoice = await prisma.invoice.findFirst({
-    where: {
-      workspaceId,
-    },
-    select: {
-      number: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  if (!lastInvoice) {
-    return `${invoicePrefix}-1`;
-  }
-
-  const [_, number] = lastInvoice.number?.split("-") ?? [];
-
-  const newNumber = parseInt(number) + 1;
-
-  return `${invoicePrefix}-${newNumber}`;
-};
