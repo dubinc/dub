@@ -35,6 +35,8 @@ export const getEvents = async (params: EventsFilters) => {
     region,
     country,
     isDemo,
+    order,
+    sortOrder,
   } = params;
 
   const { startDate, endDate } = getStartEndDates({
@@ -57,6 +59,10 @@ export const getEvents = async (params: EventsFilters) => {
     region = split[1];
   }
 
+  if (sortOrder && sortOrder !== "desc") {
+    order = sortOrder;
+  }
+
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
     pipe: "v2_events",
     parameters: eventsFilterTB,
@@ -75,6 +81,7 @@ export const getEvents = async (params: EventsFilters) => {
     qr,
     country,
     region,
+    order,
     offset: (params.page - 1) * params.limit,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
