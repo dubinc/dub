@@ -12,8 +12,8 @@ export async function generateCsvMapping(
   const stream = createStreamableValue();
 
   (async () => {
-    const { partialObjectStream } = await streamObject({
-      model: anthropic("claude-3-sonnet-20240229"),
+    const { partialObjectStream } = streamObject({
+      model: anthropic("claude-3-5-sonnet-latest"),
       schema: z.object({
         link: z
           .string()

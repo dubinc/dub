@@ -131,11 +131,10 @@ function LinkBuilderInner({
   const formRef = useRef<HTMLFormElement>(null);
   const { handleKeyDown } = useEnterSubmit(formRef);
 
-  const [url, domain, key, proxy, title, description] = watch([
+  const [url, domain, key, title, description] = watch([
     "url",
     "domain",
     "key",
-    "proxy",
     "title",
     "description",
   ]);
