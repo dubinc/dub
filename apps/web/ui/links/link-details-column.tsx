@@ -138,7 +138,7 @@ function TagButton({ tag, plus }: { tag: TagProps; plus?: number }) {
 function AnalyticsBadge({ link }: { link: ResponseLink }) {
   const { domain, key } = link;
 
-  const { slug } = useWorkspace();
+  const { slug, conversionEnabled } = useWorkspace();
   const { isMobile } = useMediaQuery();
   const { variant } = useContext(CardList.Context);
 
@@ -148,26 +148,29 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
         id: "clicks",
         icon: CursorRays,
         value: link.clicks,
-        label:
-          link.leads > 0 || link.saleAmount > 0
-            ? undefined
-            : (value) => pluralize("click", value),
+        label: conversionEnabled
+          ? undefined
+          : (value) => pluralize("click", value),
         iconClassName: "data-[active=true]:text-blue-500",
       },
-      {
-        id: "leads",
-        icon: UserCheck,
-        value: link.leads,
-        className: "hidden sm:flex",
-        iconClassName: "data-[active=true]:text-purple-500",
-      },
-      {
-        id: "sales",
-        icon: InvoiceDollar,
-        value: link.saleAmount,
-        className: "hidden sm:flex",
-        iconClassName: "data-[active=true]:text-teal-500",
-      },
+      ...(conversionEnabled
+        ? [
+            {
+              id: "leads",
+              icon: UserCheck,
+              value: link.leads,
+              className: "hidden sm:flex",
+              iconClassName: "data-[active=true]:text-purple-500",
+            },
+            {
+              id: "sales",
+              icon: InvoiceDollar,
+              value: link.saleAmount,
+              className: "hidden sm:flex",
+              iconClassName: "data-[active=true]:text-teal-500",
+            },
+          ]
+        : []),
     ],
     [link],
   );
