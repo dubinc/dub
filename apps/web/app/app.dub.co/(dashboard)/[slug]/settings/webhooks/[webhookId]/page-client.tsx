@@ -16,14 +16,14 @@ export default function WebhookLogsPageClient({
 }: {
   webhookId: string;
 }) {
-  const { slug, flags, role, id: workspaceId } = useWorkspace();
+  const { slug, role, id: workspaceId } = useWorkspace();
 
   const { error: permissionsError } = clientAccessCheck({
     action: "webhooks.read",
     role,
   });
 
-  if (!flags?.webhooks || permissionsError) {
+  if (permissionsError) {
     redirect(`/${slug}/settings`);
   }
 

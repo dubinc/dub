@@ -12,7 +12,7 @@ import { LaterButton } from "../../later-button";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
 
 export function DomainSelector() {
-  const { loading: isWorkspaceLoading, flags } = useWorkspace();
+  const { loading: isWorkspaceLoading } = useWorkspace();
   const { continueTo, isLoading, isSuccessful } = useOnboardingProgress();
 
   const [selectedOption, setSelectedOption] = useState<"custom" | "register">(
