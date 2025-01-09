@@ -251,9 +251,9 @@ function PersistentPercentage({
         textAnchor="middle"
         verticalAnchor="middle"
         fill="currentColor"
-        fontSize={16}
+        fontSize={14}
         className={cn(
-          "pointer-events-none select-none brightness-50",
+          "pointer-events-none select-none font-medium brightness-50",
           colorClassName,
         )}
       >
