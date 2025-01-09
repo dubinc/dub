@@ -11,9 +11,9 @@ export const runtime = "edge";
 const completionSchema = z.object({
   prompt: z.string(),
   model: z
-    .enum(["claude-3-haiku-20240307", "claude-3-sonnet-20240229"])
+    .enum(["claude-3-haiku-20240307", "claude-3-5-sonnet-latest"])
     .optional()
-    .default("claude-3-sonnet-20240229"),
+    .default("claude-3-5-sonnet-latest"),
 });
 
 // POST /api/ai/completion – Generate AI completion
@@ -26,7 +26,7 @@ export const POST = withWorkspaceEdge(
         model,
       } = completionSchema.parse(await req.json());
 
-      const result = await streamText({
+      const result = streamText({
         model: anthropic(model),
         messages: [
           {
@@ -37,7 +37,7 @@ export const POST = withWorkspaceEdge(
         maxTokens: 300,
       });
       // only count usage for the sonnet model
-      if (model === "claude-3-sonnet-20240229") {
+      if (model === "claude-3-5-sonnet-latest") {
         waitUntil(
           prismaEdge.project.update({
             where: { id: workspace.id.replace("ws_", "") },
