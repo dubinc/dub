@@ -8,7 +8,6 @@ import { ratelimit } from "@/lib/upstash";
 import { prismaEdge } from "@dub/prisma/edge";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { StreamingTextResponse } from "ai";
 import { getToken } from "next-auth/jwt";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextRequest } from "next/server";
@@ -39,7 +38,7 @@ interface WithWorkspaceEdgeHandler {
     session: Session;
     workspace: WorkspaceProps;
     permissions: PermissionAction[];
-  }): Promise<Response | StreamingTextResponse>;
+  }): Promise<Response>;
 }
 
 export const withWorkspaceEdge = (
