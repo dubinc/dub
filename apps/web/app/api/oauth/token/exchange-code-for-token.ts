@@ -7,7 +7,7 @@ import { generateRandomName } from "@/lib/names";
 import z from "@/lib/zod";
 import { authCodeExchangeSchema } from "@/lib/zod/schemas/oauth";
 import { prisma } from "@dub/prisma";
-import { PRO_PLAN } from "@dub/utils";
+import { getPlanDetails } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextRequest } from "next/server";
 
@@ -174,45 +174,69 @@ export const exchangeAuthCodeForToken = async (
     integrationId: app.integrationId,
   });
 
-  await prisma.$transaction([
-    // Remove all existing tokens for this client
-    prisma.restrictedToken.deleteMany({
-      where: {
-        installationId: installation.id,
-      },
-    }),
-    // Create the access token and refresh token
-    prisma.restrictedToken.create({
-      data: {
-        name: generateRandomName(),
-        hashedKey: await hashToken(accessToken),
-        partialKey: `${accessToken.slice(0, 3)}...${accessToken.slice(-4)}`,
-        scopes,
-        expires: accessTokenExpires,
-        rateLimit: PRO_PLAN.limits.api,
-        userId,
-        projectId,
-        installationId: installation.id,
-        refreshTokens: {
-          create: {
-            installationId: installation.id,
-            hashedRefreshToken: await hashToken(refreshToken),
-            expiresAt: new Date(
-              Date.now() + OAUTH_CONFIG.REFRESH_TOKEN_LIFETIME * 1000,
-            ),
-          },
+  // Create the access token and refresh token
+  const restrictedToken = await prisma.restrictedToken.create({
+    data: {
+      name: generateRandomName(),
+      hashedKey: await hashToken(accessToken),
+      partialKey: `${accessToken.slice(0, 3)}...${accessToken.slice(-4)}`,
+      scopes,
+      expires: accessTokenExpires,
+      userId,
+      projectId,
+      installationId: installation.id,
+      refreshTokens: {
+        create: {
+          installationId: installation.id,
+          hashedRefreshToken: await hashToken(refreshToken),
+          expiresAt: new Date(
+            Date.now() + OAUTH_CONFIG.REFRESH_TOKEN_LIFETIME * 1000,
+          ),
         },
       },
-    }),
-  ]);
+    },
+  });
 
   waitUntil(
-    // Delete the code after it's been used
-    prisma.oAuthCode.delete({
-      where: {
-        code,
-      },
-    }),
+    Promise.all([
+      // Delete the code after it's been used
+      prisma.oAuthCode.delete({
+        where: {
+          code,
+        },
+      }),
+      // Remove all existing tokens for this client
+      prisma.restrictedToken.deleteMany({
+        where: {
+          installationId: installation.id,
+          id: {
+            not: restrictedToken.id,
+          },
+        },
+      }),
+      // Update restricted token rate limit to the plan limit
+      prisma.project
+        .findUnique({
+          where: {
+            id: projectId,
+          },
+          select: {
+            plan: true,
+          },
+        })
+        .then(async (project) => {
+          if (!project?.plan) {
+            return;
+          }
+
+          await prisma.restrictedToken.update({
+            where: { id: restrictedToken.id },
+            data: {
+              rateLimit: getPlanDetails(project.plan).limits.api,
+            },
+          });
+        }),
+    ]),
   );
 
   // https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
