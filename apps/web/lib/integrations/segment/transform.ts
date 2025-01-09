@@ -5,6 +5,7 @@ import {
   SaleEventWebhookData,
 } from "@/lib/webhook/types";
 import { Link } from "@dub/prisma/client";
+import { capitalize } from "@dub/utils";
 import { z } from "zod";
 
 export const formatEventForSegment = (
@@ -28,7 +29,7 @@ const transformClickEvent = (data: ClickEventWebhookData) => {
   const { click, link } = data;
 
   return {
-    event: "Link clicked",
+    event: "Link Clicked",
     anonymousId: click.id,
     context: {
       ip: click.ip,
@@ -45,7 +46,7 @@ const transformLeadEvent = (data: LeadEventWebhookData) => {
   const { link, click, customer, eventName } = data;
 
   return {
-    event: eventName,
+    event: capitalize(eventName),
     userId: customer.externalId,
     context: {
       ip: click.ip,
@@ -63,7 +64,7 @@ const transformSaleEvent = (data: SaleEventWebhookData) => {
   const { link, click, customer, sale, eventName } = data;
 
   return {
-    event: eventName,
+    event: capitalize(eventName),
     userId: customer.externalId,
     context: {
       ip: click.ip,

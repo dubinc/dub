@@ -107,7 +107,10 @@ export function ConfigureWebhook({
               </span>
             </label>
             <div className="mt-3 flex flex-col gap-2">
-              {WORKSPACE_LEVEL_WEBHOOK_TRIGGERS.map((trigger) => (
+              {WORKSPACE_LEVEL_WEBHOOK_TRIGGERS.filter(
+                (trigger) =>
+                  canManageWebhook && supportedEvents.includes(trigger),
+              ).map((trigger) => (
                 <div key={trigger} className="group flex gap-2">
                   <Checkbox
                     value={trigger}
