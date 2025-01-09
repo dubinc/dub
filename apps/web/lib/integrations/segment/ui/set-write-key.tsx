@@ -3,7 +3,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { SegmentIntegrationCredentials } from "@/lib/types";
 import { Lock } from "@/ui/shared/icons";
-import { Button } from "@dub/ui";
+import { Button, Tooltip, TooltipContent } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -16,7 +16,7 @@ export function SetWriteKey({
   credentials: SegmentIntegrationCredentials;
   installed: boolean;
 }) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug, plan } = useWorkspace();
   const [writeKey, setWriteKey] = useState(credentials?.writeKey);
 
   const { executeAsync, isExecuting } = useAction(installSegmentAction, {
@@ -46,6 +46,14 @@ export function SetWriteKey({
     });
   };
 
+  const planDisabledTooltip = (
+    <TooltipContent
+      title="You can only install the Segment integration on the Business plan and above."
+      cta="Upgrade to Business"
+      href={`/${slug}/upgrade`}
+    />
+  );
+
   return (
     <form className="mt-4 flex items-end gap-2" onSubmit={onSubmit}>
       <div className="w-full rounded-lg border border-gray-200 bg-white">
@@ -69,19 +77,27 @@ export function SetWriteKey({
             how to locate your write key.
           </p>
 
-          <div className="relative mt-4 rounded-md shadow-sm">
-            <input
-              className="w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-              placeholder="Enter your write key"
-              required
-              type="text"
-              autoComplete="off"
-              name="writeKey"
-              value={writeKey}
-              onChange={(e) => setWriteKey(e.target.value)}
-              readOnly={installed}
-            />
-          </div>
+          {plan === "free" || plan === "pro" ? (
+            <Tooltip content={planDisabledTooltip}>
+              <div className="mt-4 cursor-not-allowed rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-400">
+                Enter your write key
+              </div>
+            </Tooltip>
+          ) : (
+            <div className="relative mt-4 rounded-md shadow-sm">
+              <input
+                className="w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                placeholder="Enter your write key"
+                required
+                type="text"
+                autoComplete="off"
+                name="writeKey"
+                value={writeKey}
+                onChange={(e) => setWriteKey(e.target.value)}
+                readOnly={installed}
+              />
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-end rounded-b-lg border-t border-gray-200 bg-gray-50 px-4 py-3">
@@ -93,6 +109,11 @@ export function SetWriteKey({
               className="h-8 w-fit"
               loading={isExecuting}
               disabled={installed || !writeKey}
+              disabledTooltip={
+                plan === "free" || plan === "pro"
+                  ? planDisabledTooltip
+                  : undefined
+              }
             />
           </div>
         </div>

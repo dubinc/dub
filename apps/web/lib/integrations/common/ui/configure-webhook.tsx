@@ -25,7 +25,7 @@ export function ConfigureWebhook({
   supportedEvents: WebhookTrigger[]; // Not all integrations support all events.
 }) {
   const [saving, setSaving] = useState(false);
-  const { id: workspaceId, role } = useWorkspace();
+  const { id: workspaceId, plan, role } = useWorkspace();
 
   const { data: webhook, isLoading } = useSWR<WebhookProps>(
     `/api/webhooks/${webhookId}?workspaceId=${workspaceId}`,
@@ -83,7 +83,9 @@ export function ConfigureWebhook({
 
   const { linkIds = [], triggers = [] } = data;
 
-  const canManageWebhook = !permissionsError;
+  const canManageWebhook =
+    !permissionsError || plan === "free" || plan === "pro";
+
   const enableLinkSelection = LINK_LEVEL_WEBHOOK_TRIGGERS.some((trigger) =>
     triggers.includes(trigger),
   );
