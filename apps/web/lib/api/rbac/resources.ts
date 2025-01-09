@@ -5,6 +5,7 @@ export const RESOURCE_KEYS = [
   "domains",
   "tags",
   "tokens",
+  "webhooks",
 ] as const;
 
 export type ResourceKey = (typeof RESOURCE_KEYS)[number];

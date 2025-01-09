@@ -135,7 +135,10 @@ function AddEditTokenModal({
     (!name || token?.name === name) && token?.scopes === scopes;
 
   const scopesByResources = useMemo(
-    () => transformScopesForUI(getScopesByResourceForRole(role)),
+    () =>
+      transformScopesForUI(getScopesByResourceForRole(role)).filter(
+        ({ name }) => name,
+      ),
     [role],
   );
 

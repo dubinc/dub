@@ -408,7 +408,7 @@ export const LinkSchema = z
     trackConversion: z
       .boolean()
       .default(false)
-      .describe("[BETA] Whether to track conversions for the short link."),
+      .describe("Whether to track conversions for the short link."),
     externalId: z
       .string()
       .nullable()
@@ -566,16 +566,16 @@ export const LinkSchema = z
     leads: z
       .number()
       .default(0)
-      .describe("[BETA]: The number of leads the short links has generated."),
+      .describe("The number of leads the short links has generated."),
     sales: z
       .number()
       .default(0)
-      .describe("[BETA]: The number of sales the short links has generated."),
+      .describe("The number of sales the short links has generated."),
     saleAmount: z
       .number()
       .default(0)
       .describe(
-        "[BETA]: The total dollar amount of sales the short links has generated (in cents).",
+        "The total dollar amount of sales the short links has generated (in cents).",
       ),
     createdAt: z
       .string()
