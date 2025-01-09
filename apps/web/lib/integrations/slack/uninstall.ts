@@ -9,7 +9,6 @@ export const uninstallSlackIntegration = async ({
   installation: InstalledIntegration;
 }) => {
   const env = getSlackEnv();
-
   const credentials = installation.credentials as SlackCredential;
 
   const response = await fetch("https://slack.com/api/apps.uninstall", {
