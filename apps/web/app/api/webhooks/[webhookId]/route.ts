@@ -37,7 +37,6 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["webhooks.read"],
-    featureFlag: "webhooks",
     requiredPlan: [
       "business",
       "business plus",
@@ -226,7 +225,6 @@ export const PATCH = withWorkspace(
   },
   {
     requiredPermissions: ["webhooks.write"],
-    featureFlag: "webhooks",
     requiredPlan: [
       "business",
       "business plus",
@@ -306,7 +304,6 @@ export const DELETE = withWorkspace(
   },
   {
     requiredPermissions: ["webhooks.write"],
-    featureFlag: "webhooks",
     requiredPlan: [
       "business",
       "business plus",

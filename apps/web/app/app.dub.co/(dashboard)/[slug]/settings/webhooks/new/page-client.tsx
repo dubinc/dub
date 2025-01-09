@@ -12,14 +12,10 @@ export default function NewWebhookPageClient({
 }: {
   newSecret: string;
 }) {
-  const { slug, flags, plan, conversionEnabled } = useWorkspace();
+  const { slug, plan, conversionEnabled } = useWorkspace();
 
   const needsHigherPlan =
     (plan === "free" || plan === "pro") && !conversionEnabled;
-
-  if (!flags?.webhooks) {
-    redirect(`/${slug}/settings`);
-  }
 
   if (needsHigherPlan) {
     redirect(`/${slug}/settings/webhooks`);
