@@ -278,7 +278,7 @@ function UsageRow({
                     warning && "to-rose-500",
                   )}
                   style={{
-                    transform: `translateX(-${100 - Math.floor((usage / Math.max(0, usage, limit)) * 100)}%)`,
+                    transform: `translateX(-${100 - Math.max(Math.floor((usage / Math.max(0, usage, limit)) * 100), usage === 0 ? 0 : 1)}%)`,
                     transition: "transform 0.25s ease-in-out",
                   }}
                 />

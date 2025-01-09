@@ -1,5 +1,6 @@
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
+import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
 import { FREE_PLAN, log } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -155,5 +156,40 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     sendCancellationFeedback({
       owners: workspaceUsers,
     }),
+
+    // Disable the webhooks
+    prisma.webhook.updateMany({
+      where: {
+        projectId: workspace.id,
+      },
+      data: {
+        disabledAt: new Date(),
+      },
+    }),
+
+    prisma.project.update({
+      where: {
+        id: workspace.id,
+      },
+      data: {
+        webhookEnabled: false,
+      },
+    }),
   ]);
+
+  // Update the webhooks cache
+  const webhooks = await prisma.webhook.findMany({
+    where: {
+      projectId: workspace.id,
+    },
+    select: {
+      id: true,
+      url: true,
+      secret: true,
+      triggers: true,
+      disabledAt: true,
+    },
+  });
+
+  await webhookCache.mset(webhooks);
 }

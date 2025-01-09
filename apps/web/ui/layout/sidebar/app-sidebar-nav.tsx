@@ -1,8 +1,6 @@
 "use client";
 
 import usePrograms from "@/lib/swr/use-programs";
-import useWorkspace from "@/lib/swr/use-workspace";
-import { BetaFeatures } from "@/lib/types";
 import { useRouterStuff } from "@dub/ui";
 import {
   Books2,
@@ -35,7 +33,6 @@ import { WorkspaceDropdown } from "./workspace-dropdown";
 const NAV_AREAS: SidebarNavAreas<{
   slug: string;
   queryString: string;
-  flags?: Record<BetaFeatures, boolean>;
   programs?: { id: string }[];
   session?: Session | null;
   showNews?: boolean;
@@ -120,7 +117,7 @@ const NAV_AREAS: SidebarNavAreas<{
   }),
 
   // Workspace settings
-  workspaceSettings: ({ slug, flags }) => ({
+  workspaceSettings: ({ slug }) => ({
     title: "Settings",
     backHref: `/${slug}`,
     content: [
@@ -178,15 +175,11 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: CubeSettings,
             href: `/${slug}/settings/oauth-apps`,
           },
-          ...(flags?.webhooks
-            ? [
-                {
-                  name: "Webhooks",
-                  icon: Webhook,
-                  href: `/${slug}/settings/webhooks`,
-                },
-              ]
-            : []),
+          {
+            name: "Webhooks",
+            icon: Webhook,
+            href: `/${slug}/settings/webhooks`,
+          },
         ],
       },
       {
@@ -245,7 +238,6 @@ export function AppSidebarNav({
 }) {
   const { slug } = useParams() as { slug?: string };
   const pathname = usePathname();
-  const { flags } = useWorkspace();
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
   const { programs } = usePrograms();
@@ -267,7 +259,6 @@ export function AppSidebarNav({
         queryString: getQueryString(undefined, {
           ignore: ["sortBy", "sortOrder"],
         }),
-        flags,
         programs,
         session: session || undefined,
         showNews: pathname.startsWith(`/${slug}/programs/`) ? false : true,
