@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { uninstallSlackIntegration } from "@/lib/integrations/slack/uninstall";
 import { prisma } from "@dub/prisma";
+import { SLACK_INTEGRATION_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // DELETE /api/integrations/uninstall - uninstall an installation by id
@@ -38,13 +39,13 @@ export const DELETE = withWorkspace(
       select: {
         integration: {
           select: {
-            slug: true,
+            id: true,
           },
         },
       },
     });
 
-    if (integration.slug === "slack") {
+    if (integration.id === SLACK_INTEGRATION_ID) {
       await uninstallSlackIntegration({
         installation,
       });
