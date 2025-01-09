@@ -11,7 +11,7 @@ export async function generateFilters(prompt: string) {
 
   (async () => {
     const { partialObjectStream } = await streamObject({
-      model: anthropic("claude-3-sonnet-20240229"),
+      model: anthropic("claude-3-5-sonnet-latest"),
       schema: analyticsQuerySchema.pick({
         ...(VALID_ANALYTICS_FILTERS.reduce((acc, filter) => {
           acc[filter] = true;
