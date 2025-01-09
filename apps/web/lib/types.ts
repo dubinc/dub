@@ -4,6 +4,7 @@ import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
   Link,
   PayoutStatus,
+  Prisma,
   ProgramEnrollmentStatus,
   Project,
   SaleStatus,
@@ -55,7 +56,7 @@ import { usageResponse } from "./zod/schemas/usage";
 import {
   createWebhookSchema,
   webhookEventSchemaTB,
-  webhookSchema,
+  WebhookSchema,
 } from "./zod/schemas/webhooks";
 
 export type LinkProps = Link;
@@ -304,11 +305,13 @@ export type InstalledIntegrationInfoProps = Pick<
       image: string | null;
     };
   } | null;
+  credentials?: Prisma.JsonValue;
+  webhookId?: string; // Only if the webhook is managed by an integration
 };
 
 export type WebhookTrigger = keyof typeof WEBHOOK_TRIGGER_DESCRIPTIONS;
 
-export type WebhookProps = z.infer<typeof webhookSchema>;
+export type WebhookProps = z.infer<typeof WebhookSchema>;
 
 export type NewWebhook = z.infer<typeof createWebhookSchema>;
 
@@ -316,7 +319,7 @@ export type WebhookEventProps = z.infer<typeof webhookEventSchemaTB>;
 
 export type WebhookCacheProps = Pick<
   Webhook,
-  "id" | "url" | "secret" | "triggers"
+  "id" | "url" | "secret" | "triggers" | "disabledAt"
 >;
 
 export type TrackLeadResponse = z.infer<typeof trackLeadResponseSchema>;
@@ -367,6 +370,9 @@ export type PayoutResponse = z.infer<typeof PayoutResponseSchema>;
 
 export type PartnerPayoutResponse = z.infer<typeof PartnerPayoutResponseSchema>;
 
+export type SegmentIntegrationCredentials = {
+  writeKey?: string;
+};
 export type InvoiceProps = z.infer<typeof InvoiceSchema>;
 
 export type CustomerActivity = z.infer<typeof customerActivitySchema>;
