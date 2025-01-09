@@ -224,39 +224,41 @@ export default function IntegrationPageClient({
               Manage
             </Link>
           )}
-          {!integration.installed && (
-            <Button
-              onClick={() => {
-                const { installUrl } = integration;
+          {!integration.installed &&
+            integration.id !== SEGMENT_INTEGRATION_ID && (
+              <Button
+                onClick={() => {
+                  const { installUrl } = integration;
 
-                if (installUrl) {
-                  // open in a new tab
-                  window.open(installUrl, "_blank");
-                  return;
-                }
+                  if (installUrl) {
+                    // open in a new tab
+                    window.open(installUrl, "_blank");
+                    return;
+                  }
 
-                getInstallationUrl.execute({
-                  workspaceId: workspaceId!,
-                  integrationSlug: integration.slug,
-                });
-              }}
-              loading={getInstallationUrl.isExecuting}
-              text="Enable"
-              variant="primary"
-              icon={<ConnectedDots className="size-4" />}
-              {...(integration.id === STRIPE_INTEGRATION_ID &&
-                !conversionEnabled && {
-                  disabledTooltip: (
-                    <TooltipContent
-                      title="To use this integration, you need to have Dub Conversions enabled for your workspace."
-                      cta="Learn more"
-                      href="https://d.to/conversions"
-                      target="_blank"
-                    />
-                  ),
-                })}
-            />
-          )}
+                  getInstallationUrl.execute({
+                    workspaceId: workspaceId!,
+                    integrationSlug: integration.slug,
+                  });
+                }}
+                loading={getInstallationUrl.isExecuting}
+                text="Enable"
+                variant="primary"
+                className="h-9 px-4"
+                icon={<ConnectedDots className="size-4" />}
+                {...(integration.id === STRIPE_INTEGRATION_ID &&
+                  !conversionEnabled && {
+                    disabledTooltip: (
+                      <TooltipContent
+                        title="To use this integration, you need to have Dub Conversions enabled for your workspace."
+                        cta="Learn more"
+                        href="https://d.to/conversions"
+                        target="_blank"
+                      />
+                    ),
+                  })}
+              />
+            )}
         </div>
       </div>
 
