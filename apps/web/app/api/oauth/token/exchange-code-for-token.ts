@@ -7,7 +7,7 @@ import { generateRandomName } from "@/lib/names";
 import z from "@/lib/zod";
 import { authCodeExchangeSchema } from "@/lib/zod/schemas/oauth";
 import { prisma } from "@dub/prisma";
-import { getPlanDetails } from "@dub/utils";
+import { getCurrentPlan } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextRequest } from "next/server";
 
@@ -232,7 +232,7 @@ export const exchangeAuthCodeForToken = async (
           await prisma.restrictedToken.update({
             where: { id: restrictedToken.id },
             data: {
-              rateLimit: getPlanDetails(project.plan).limits.api,
+              rateLimit: getCurrentPlan(project.plan).limits.api,
             },
           });
         }),
