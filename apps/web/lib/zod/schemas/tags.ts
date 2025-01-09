@@ -6,6 +6,16 @@ export const TAGS_MAX_PAGE_SIZE = 100;
 
 export const getTagsQuerySchema = z
   .object({
+    sortBy: z
+      .enum(["name", "createdAt"])
+      .optional()
+      .default("name")
+      .describe("The field to sort the tags by."),
+    sortOrder: z
+      .enum(["asc", "desc"])
+      .optional()
+      .default("asc")
+      .describe("The order to sort the tags by."),
     search: z
       .string()
       .optional()
