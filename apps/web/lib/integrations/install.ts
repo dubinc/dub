@@ -73,7 +73,7 @@ export const installIntegration = async ({
         }),
       ]);
 
-      await Promise.all(
+      await Promise.allSettled(
         workspace.users.map(({ user: { email } }) =>
           sendEmail({
             email: email!,
