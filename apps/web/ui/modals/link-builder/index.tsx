@@ -490,7 +490,7 @@ function LinkBuilderInner({
                   <TargetingButton />
                   <PasswordButton />
                 </div>
-                {flags?.webhooks && <WebhookSelect />}
+                <WebhookSelect />
                 <MoreDropdown />
               </div>
               {homepageDemo ? (

@@ -10,7 +10,7 @@ import {
 } from "@/lib/webhook/constants";
 import { Button, Checkbox, CopyButton, InfoTooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -33,11 +33,7 @@ export default function AddEditWebhookForm({
 }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
-  const { slug: workspaceSlug, id: workspaceId, flags, role } = useWorkspace();
-
-  if (!flags?.webhooks) {
-    redirect(`/${workspaceSlug}`);
-  }
+  const { slug: workspaceSlug, id: workspaceId, role } = useWorkspace();
 
   const [data, setData] = useState<NewWebhook | WebhookProps>(
     webhook || {
