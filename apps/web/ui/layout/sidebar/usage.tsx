@@ -1,6 +1,10 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
+import {
+  STORE_KEYS,
+  useWorkspaceStore,
+} from "@/lib/workspace/use-workspace-store";
 import { X } from "@/ui/shared/icons";
 import ManageSubscriptionButton from "@/ui/workspaces/manage-subscription-button";
 import {
@@ -93,8 +97,17 @@ function UsageInner() {
   const warning = warnings.some((w) => w);
 
   const [salesRef, setSalesRef] = useState<HTMLDivElement | null>(null);
+  const [
+    conversionsOnboarding,
+    setConversionsOnboarding,
+    { loading: loadingConversionsOnboarding },
+  ] = useWorkspaceStore<string>(STORE_KEYS.conversionsOnboarding);
+
   const showConversionOnboarding =
-    salesUsage === 0 && salesLimit && salesLimit > 0;
+    salesUsage === 0 &&
+    salesLimit &&
+    salesLimit > 0 &&
+    !loadingConversionsOnboarding;
 
   return loading || usage !== undefined ? (
     <>
@@ -191,8 +204,11 @@ function UsageInner() {
           ) : null}
         </div>
       </AnimatedSizeContainer>
-      {showConversionOnboarding && !isMobile && (
-        <ConversionOnboardingPopup reference={salesRef} />
+      {showConversionOnboarding && !isMobile && !conversionsOnboarding && (
+        <ConversionOnboardingPopup
+          reference={salesRef}
+          onDismiss={() => setConversionsOnboarding("modal-dismissed")}
+        />
       )}
     </>
   ) : null;
@@ -338,8 +354,10 @@ const formatNumber = (value: number) =>
 
 function ConversionOnboardingPopup({
   reference,
+  onDismiss,
 }: {
   reference: HTMLDivElement | null;
+  onDismiss: () => void;
 }) {
   const arrowRef = useRef<SVGSVGElement>(null);
 
@@ -370,8 +388,6 @@ function ConversionOnboardingPopup({
     ],
   });
 
-  const dismiss = () => {};
-
   return (
     <FloatingPortal>
       <div
@@ -399,7 +415,7 @@ function ConversionOnboardingPopup({
             </Link>
             <button
               type="button"
-              onClick={dismiss}
+              onClick={onDismiss}
               className="absolute right-2 top-2 rounded-md border border-neutral-200 bg-white p-1.5 shadow-sm transition-colors duration-75 hover:bg-neutral-50"
             >
               <X className="size-4 text-neutral-500" />
@@ -418,7 +434,7 @@ function ConversionOnboardingPopup({
               variant="secondary"
               className="h-7 text-xs"
               text="Maybe later"
-              onClick={dismiss}
+              onClick={onDismiss}
             />
             <Link
               href={`https://dub.co/help/article/dub-conversions`}
