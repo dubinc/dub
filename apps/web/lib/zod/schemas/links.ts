@@ -1,3 +1,4 @@
+import { ErrorCode } from "@/lib/api/errors";
 import z from "@/lib/zod";
 import {
   COUNTRY_CODES,
@@ -596,6 +597,14 @@ export const LinkSchema = z
   })
   .openapi({ title: "Link" });
 
+export const LinkErrorSchema = z
+  .object({
+    link: z.any().describe("The link that caused the error."),
+    error: z.string().describe("The error message."),
+    code: ErrorCode.describe("The error code."),
+  })
+  .openapi({ title: "LinkError" });
+
 export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
   z.object({
     linkId: z
@@ -610,7 +619,6 @@ export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
       .openapi({ example: "123456" }),
   }),
 );
-
 export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
   z.object({
     // Only Dub UI uses the following query parameters
