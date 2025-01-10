@@ -1,6 +1,6 @@
-import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
+import { webhookCache } from "../lib/webhook/cache";
 
 async function main() {
   // Find link level webhooks
