@@ -25,7 +25,7 @@ const oAuthCallbackSchema = z.object({
 export const GET = async (req: Request) => {
   const env = getSlackEnv();
 
-  let workspace: Pick<Project, "id" | "slug"> | null = null;
+  let workspace: Pick<Project, "id" | "slug" | "plan"> | null = null;
 
   try {
     const session = await getSession();
@@ -56,6 +56,7 @@ export const GET = async (req: Request) => {
       select: {
         id: true,
         slug: true,
+        plan: true,
       },
     });
 
@@ -101,7 +102,7 @@ export const GET = async (req: Request) => {
       url: data.incoming_webhook.url,
       receiver: WebhookReceiver.slack,
       triggers: [],
-      workspaceId,
+      workspace,
       installationId: installation.id,
     });
   } catch (e: any) {
