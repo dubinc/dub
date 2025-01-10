@@ -13,6 +13,7 @@ export * from "./bolt-fill";
 export * from "./book-open";
 export * from "./book2";
 export * from "./book2-fill";
+export * from "./book2-small";
 export * from "./books2";
 export * from "./box-archive";
 export * from "./bullet-list";
