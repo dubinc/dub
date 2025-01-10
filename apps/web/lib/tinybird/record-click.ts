@@ -48,9 +48,9 @@ export async function recordClick({
     return null;
   }
 
+  // don't record clicks from bots
   const isBot = detectBot(req);
 
-  // don't record clicks from bots
   if (isBot) {
     return null;
   }
