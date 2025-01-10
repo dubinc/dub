@@ -9,6 +9,9 @@ export const GET = withEmbedToken(async ({ program, searchParams }) => {
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       programId: program.id,
+      partner: {
+        showOnLeaderboard: true,
+      },
     },
     orderBy: [
       {

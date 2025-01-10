@@ -13,8 +13,15 @@ import { NextResponse } from "next/server";
 // GET /api/tags - get all tags for a workspace
 export const GET = withWorkspace(
   async ({ workspace, headers, searchParams }) => {
-    const { search, ids, page, pageSize, includeLinksCount } =
-      getTagsQuerySchemaExtended.parse(searchParams);
+    const {
+      search,
+      ids,
+      sortBy,
+      sortOrder,
+      page,
+      pageSize,
+      includeLinksCount,
+    } = getTagsQuerySchemaExtended.parse(searchParams);
 
     const tags = await prisma.tag.findMany({
       where: {
@@ -43,7 +50,7 @@ export const GET = withWorkspace(
         }),
       },
       orderBy: {
-        name: "asc",
+        [sortBy]: sortOrder,
       },
       take: pageSize,
       skip: (page - 1) * pageSize,

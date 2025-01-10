@@ -90,6 +90,7 @@ function UninstallIntegrationModal({
               },
             ).then(async (res) => {
               if (res.status === 200) {
+                setShowUninstallIntegrationModal(false);
                 router.refresh();
                 toast.success("Successfully removed integration!");
               } else {

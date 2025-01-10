@@ -41,9 +41,7 @@ export const WorkspaceSchema = z
     stripeConnectId: z
       .string()
       .nullable()
-      .describe(
-        "[BETA – Dub Conversions]: The Stripe Connect ID of the workspace.",
-      ),
+      .describe("The Stripe Connect ID of the workspace."),
     payoutMethodId: z
       .string()
       .nullable()

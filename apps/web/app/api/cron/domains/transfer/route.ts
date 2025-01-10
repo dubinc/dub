@@ -72,16 +72,7 @@ export async function POST(req: Request) {
         }),
 
         recordLink(
-          links.map((link) => ({
-            link_id: link.id,
-            domain: link.domain,
-            key: link.key,
-            url: link.url,
-            tag_ids: [],
-            program_id: link.programId ?? "",
-            workspace_id: newWorkspaceId,
-            created_at: link.createdAt,
-          })),
+          links.map((link) => ({ ...link, projectId: newWorkspaceId })),
         ),
       ]);
 

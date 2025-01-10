@@ -11,7 +11,9 @@ export async function getLinksForWorkspace({
   tagIds,
   tagNames,
   search,
-  sort = "createdAt",
+  sort, // Deprecated
+  sortBy,
+  sortOrder,
   page,
   pageSize,
   userId,
@@ -21,10 +23,16 @@ export async function getLinksForWorkspace({
   includeWebhooks,
   includeDashboard,
   linkIds,
+  tenantId,
 }: z.infer<typeof getLinksQuerySchemaExtended> & {
   workspaceId: string;
 }) {
   const combinedTagIds = combineTagIds({ tagId, tagIds });
+
+  // support legacy sort param
+  if (sort && sort !== "createdAt") {
+    sortBy = sort;
+  }
 
   const links = await prisma.link.findMany({
     where: {
@@ -63,6 +71,7 @@ export async function getLinksForWorkspace({
               },
             }
           : {}),
+      ...(tenantId && { tenantId }),
       ...(userId && { userId }),
       ...(linkIds && { id: { in: linkIds } }),
     },
@@ -83,7 +92,7 @@ export async function getLinksForWorkspace({
       dashboard: includeDashboard,
     },
     orderBy: {
-      [sort]: "desc",
+      [sortBy]: sortOrder,
     },
     take: pageSize,
     skip: (page - 1) * pageSize,

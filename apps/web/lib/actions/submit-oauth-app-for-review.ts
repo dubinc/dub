@@ -46,7 +46,7 @@ export const submitOAuthAppForReview = authActionClient
     if (plainCustomer.data) {
       plainCustomerId = plainCustomer.data.id;
     } else {
-      const { data } = await upsertPlainCustomer({ user });
+      const { data } = await upsertPlainCustomer(user);
       if (data) {
         plainCustomerId = data.customer.id;
       }

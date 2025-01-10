@@ -10,6 +10,8 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
+export const maxDuration = 30;
+
 // POST /api/oauth/token - Exchange authorization code for access token and refresh access token
 export async function POST(req: NextRequest) {
   try {
@@ -17,14 +19,13 @@ export async function POST(req: NextRequest) {
     const validatedData = tokenGrantSchema.parse(formData);
 
     if (validatedData.grant_type === "authorization_code") {
-      return NextResponse.json(
-        await exchangeAuthCodeForToken(req, validatedData),
-        {
-          headers: CORS_HEADERS,
-        },
-      );
+      const data = await exchangeAuthCodeForToken(req, validatedData);
+      return NextResponse.json(data, {
+        headers: CORS_HEADERS,
+      });
     } else if (validatedData.grant_type === "refresh_token") {
-      return NextResponse.json(await refreshAccessToken(req, validatedData), {
+      const data = await refreshAccessToken(req, validatedData);
+      return NextResponse.json(data, {
         headers: CORS_HEADERS,
       });
     }

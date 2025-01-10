@@ -31,3 +31,5 @@ export const WEBHOOK_TRIGGER_DESCRIPTIONS = {
   "lead.created": "Lead created",
   "sale.created": "Sale created",
 } as const;
+
+export const WEBHOOK_FAILURE_NOTIFY_THRESHOLD = 20;

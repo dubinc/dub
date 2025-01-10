@@ -1,14 +1,10 @@
 import { storage } from "@/lib/storage";
-import { recordLink } from "@/lib/tinybird";
+import { recordLinkTB, transformLinkTB } from "@/lib/tinybird";
 import { R2_URL } from "@dub/utils";
-import { Link } from "@prisma/client";
 import { linkCache } from "./cache";
+import { ExpandedLink } from "./utils";
 
-export async function bulkDeleteLinks({
-  links,
-}: {
-  links: (Link & { tags: { tagId: string }[] })[];
-}) {
+export async function bulkDeleteLinks(links: ExpandedLink[]) {
   if (links.length === 0) {
     return;
   }
@@ -18,16 +14,9 @@ export async function bulkDeleteLinks({
     linkCache.deleteMany(links),
 
     // Record the links deletion in Tinybird
-    recordLink(
+    recordLinkTB(
       links.map((link) => ({
-        link_id: link.id,
-        domain: link.domain,
-        key: link.key,
-        url: link.url,
-        tag_ids: link.tags.map(({ tagId }) => tagId),
-        program_id: link.programId ?? "",
-        workspace_id: link.projectId,
-        created_at: link.createdAt,
+        ...transformLinkTB(link),
         deleted: true,
       })),
     ),

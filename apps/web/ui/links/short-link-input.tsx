@@ -270,13 +270,6 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
                 } else {
                   runKeyChecks(e.target.value);
                 }
-              } else if (
-                domain &&
-                workspaceId &&
-                data.url.length > 0 &&
-                !saving
-              ) {
-                generateRandomKey();
               }
             }}
             disabled={lockKey}
