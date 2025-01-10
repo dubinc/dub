@@ -126,9 +126,16 @@ export const POST = withWorkspace(
       triggers,
       linkIds,
       secret,
-      workspaceId: workspace.id,
+      workspace,
       installationId: zapierInstallation ? zapierInstallation.id : undefined,
     });
+
+    if (!webhook) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Failed to create webhook.",
+      });
+    }
 
     waitUntil(
       (async () => {
