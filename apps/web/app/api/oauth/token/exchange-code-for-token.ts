@@ -8,6 +8,7 @@ import z from "@/lib/zod";
 import { authCodeExchangeSchema } from "@/lib/zod/schemas/oauth";
 import { prisma } from "@dub/prisma";
 import { getCurrentPlan } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextRequest } from "next/server";
 
 // Exchange authorization code with access token
@@ -46,16 +47,33 @@ export const exchangeAuthCodeForToken = async (
     });
   }
 
-  const app = await prisma.oAuthApp.findFirst({
-    where: {
-      clientId,
-    },
-    select: {
-      integrationId: true,
-      pkce: true,
-      hashedClientSecret: true,
-    },
-  });
+  const [app, accessCode] = await Promise.all([
+    prisma.oAuthApp.findUnique({
+      where: {
+        clientId,
+      },
+      select: {
+        integrationId: true,
+        pkce: true,
+        hashedClientSecret: true,
+      },
+    }),
+    prisma.oAuthCode.findUnique({
+      where: {
+        code,
+      },
+      select: {
+        clientId: true,
+        userId: true,
+        projectId: true,
+        scopes: true,
+        redirectUri: true,
+        expiresAt: true,
+        codeChallenge: true,
+        codeChallengeMethod: true,
+      },
+    }),
+  ]);
 
   if (!app || !app.integrationId) {
     throw new DubApiError({
@@ -91,24 +109,7 @@ export const exchangeAuthCodeForToken = async (
     }
   }
 
-  // Now let's find the access code and validate it
-  const accessCode = await prisma.oAuthCode.findUnique({
-    where: {
-      code,
-      clientId,
-    },
-    select: {
-      userId: true,
-      projectId: true,
-      scopes: true,
-      redirectUri: true,
-      expiresAt: true,
-      codeChallenge: true,
-      codeChallengeMethod: true,
-    },
-  });
-
-  if (!accessCode) {
+  if (!accessCode || accessCode.clientId !== clientId) {
     throw new DubApiError({
       code: "unauthorized",
       message: "Invalid code",
@@ -150,15 +151,6 @@ export const exchangeAuthCodeForToken = async (
     });
   }
 
-  const workspace = await prisma.project.findUniqueOrThrow({
-    where: {
-      id: accessCode.projectId,
-    },
-    select: {
-      plan: true,
-    },
-  });
-
   const accessToken = createToken({
     length: OAUTH_CONFIG.ACCESS_TOKEN_LENGTH,
     prefix: OAUTH_CONFIG.ACCESS_TOKEN_PREFIX,
@@ -182,45 +174,70 @@ export const exchangeAuthCodeForToken = async (
     integrationId: app.integrationId,
   });
 
-  await prisma.$transaction([
-    // Remove all existing tokens for this client
-    prisma.restrictedToken.deleteMany({
-      where: {
-        installationId: installation.id,
-      },
-    }),
-
-    // Delete the code after it's been used
-    prisma.oAuthCode.delete({
-      where: {
-        code,
-      },
-    }),
-
-    // Create the access token and refresh token
-    prisma.restrictedToken.create({
-      data: {
-        name: generateRandomName(),
-        hashedKey: await hashToken(accessToken),
-        partialKey: `${accessToken.slice(0, 3)}...${accessToken.slice(-4)}`,
-        scopes,
-        expires: accessTokenExpires,
-        rateLimit: getCurrentPlan(workspace.plan as string).limits.api,
-        userId,
-        projectId,
-        installationId: installation.id,
-        refreshTokens: {
-          create: {
-            installationId: installation.id,
-            hashedRefreshToken: await hashToken(refreshToken),
-            expiresAt: new Date(
-              Date.now() + OAUTH_CONFIG.REFRESH_TOKEN_LIFETIME * 1000,
-            ),
-          },
+  // Create the access token and refresh token
+  const restrictedToken = await prisma.restrictedToken.create({
+    data: {
+      name: generateRandomName(),
+      hashedKey: await hashToken(accessToken),
+      partialKey: `${accessToken.slice(0, 3)}...${accessToken.slice(-4)}`,
+      scopes,
+      expires: accessTokenExpires,
+      userId,
+      projectId,
+      installationId: installation.id,
+      refreshTokens: {
+        create: {
+          installationId: installation.id,
+          hashedRefreshToken: await hashToken(refreshToken),
+          expiresAt: new Date(
+            Date.now() + OAUTH_CONFIG.REFRESH_TOKEN_LIFETIME * 1000,
+          ),
         },
       },
-    }),
-  ]);
+    },
+  });
+
+  waitUntil(
+    Promise.all([
+      // Delete the code after it's been used
+      prisma.oAuthCode.delete({
+        where: {
+          code,
+        },
+      }),
+      // Remove all existing tokens for this client
+      prisma.restrictedToken.deleteMany({
+        where: {
+          installationId: installation.id,
+          id: {
+            not: restrictedToken.id,
+          },
+        },
+      }),
+      // Update restricted token rate limit to the plan limit
+      prisma.project
+        .findUnique({
+          where: {
+            id: projectId,
+          },
+          select: {
+            plan: true,
+          },
+        })
+        .then(async (project) => {
+          if (!project?.plan) {
+            return;
+          }
+
+          await prisma.restrictedToken.update({
+            where: { id: restrictedToken.id },
+            data: {
+              rateLimit: getCurrentPlan(project.plan).limits.api,
+            },
+          });
+        }),
+    ]),
+  );
 
   // https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
   return {
