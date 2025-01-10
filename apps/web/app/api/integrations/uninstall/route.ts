@@ -1,6 +1,8 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { uninstallSlackIntegration } from "@/lib/integrations/slack/uninstall";
+import { webhookCache } from "@/lib/webhook/cache";
+import { isLinkLevelWebhook } from "@/lib/webhook/utils";
 import { prisma } from "@dub/prisma";
 import { SLACK_INTEGRATION_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -32,24 +34,32 @@ export const DELETE = withWorkspace(
       });
     }
 
-    const { integration } = await prisma.installedIntegration.delete({
-      where: {
-        id: installationId,
-      },
-      select: {
-        integration: {
-          select: {
-            id: true,
+    const { integrationId, webhook } = await prisma.installedIntegration.delete(
+      {
+        where: {
+          id: installationId,
+        },
+        select: {
+          integrationId: true,
+          webhook: {
+            select: {
+              id: true,
+              triggers: true,
+            },
           },
         },
       },
-    });
+    );
 
-    if (integration.id === SLACK_INTEGRATION_ID) {
-      await uninstallSlackIntegration({
-        installation,
-      });
-    }
+    await Promise.all([
+      ...(integrationId === SLACK_INTEGRATION_ID
+        ? [uninstallSlackIntegration({ installation })]
+        : []),
+
+      ...(webhook && isLinkLevelWebhook(webhook)
+        ? [webhookCache.delete(webhook.id)]
+        : []),
+    ]);
 
     return NextResponse.json({ id: installationId });
   },
