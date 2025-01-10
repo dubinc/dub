@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 export const runtime = "edge";
 
 export const metadata = constructMetadata({
-  title: "Expired Link – Dub.co",
+  title: "Expired Link",
   description:
     "This link has expired. Please contact the owner of this link to get a new one.",
   noIndex: true,

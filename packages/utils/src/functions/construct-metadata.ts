@@ -2,8 +2,8 @@ import { Metadata } from "next";
 import { HOME_DOMAIN } from "../constants";
 
 export function constructMetadata({
-  title = `${process.env.NEXT_PUBLIC_APP_NAME} - Link Management for Modern Marketing Teams`,
-  description = `${process.env.NEXT_PUBLIC_APP_NAME} is the open-source link management platform for modern marketing teams to create marketing campaigns, link sharing features, and referral programs.`,
+  title,
+  description = "Dub.co is the open-source link management platform for modern marketing teams to create marketing campaigns, link sharing features, and referral programs.",
   image = "https://assets.dub.co/thumbnail.jpg",
   video,
   icons = [
@@ -37,7 +37,9 @@ export function constructMetadata({
   noIndex?: boolean;
 } = {}): Metadata {
   return {
-    title,
+    title: title
+      ? `${title} | Dub.co`
+      : "Dub.co - Link Management for Modern Marketing Teams",
     description,
     openGraph: {
       title,
