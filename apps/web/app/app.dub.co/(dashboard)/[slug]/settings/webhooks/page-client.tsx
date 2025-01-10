@@ -8,15 +8,11 @@ import WebhookCard from "@/ui/webhooks/webhook-card";
 import WebhookPlaceholder from "@/ui/webhooks/webhook-placeholder";
 import { Button, InfoTooltip, TooltipContent } from "@dub/ui";
 import { Webhook } from "lucide-react";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function WebhooksPageClient() {
   const router = useRouter();
-  const { slug, plan, role, conversionEnabled, flags } = useWorkspace();
-
-  if (!flags?.webhooks) {
-    redirect(`/${slug}/settings`);
-  }
+  const { slug, plan, role, conversionEnabled } = useWorkspace();
 
   const { webhooks, isLoading } = useWebhooks();
 
@@ -92,7 +88,7 @@ export default function WebhooksPageClient() {
         ) : (
           <div className="grid grid-cols-1 gap-3">
             {Array.from({ length: 3 }).map((_, idx) => (
-              <WebhookPlaceholder />
+              <WebhookPlaceholder key={idx} />
             ))}
           </div>
         )}

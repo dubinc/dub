@@ -132,6 +132,7 @@ function FunnelChartInner({
             {/* Funnel */}
             {layers.map(({ opacity, padding }) => (
               <Area
+                key={`${id}-${opacity}-${padding}`}
                 data={data[id]}
                 curve={curveBasis}
                 x={(d) => xScale(idx + d.x)}

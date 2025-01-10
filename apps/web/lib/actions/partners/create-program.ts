@@ -3,8 +3,8 @@
 import { prisma } from "@dub/prisma";
 import slugify from "@sindresorhus/slugify";
 import { z } from "zod";
-import { createProgramSchema } from "../zod/schemas/programs";
-import { authActionClient } from "./safe-action";
+import { createProgramSchema } from "../../zod/schemas/programs";
+import { authActionClient } from "../safe-action";
 
 const schema = createProgramSchema.extend({ workspaceId: z.string() });
 

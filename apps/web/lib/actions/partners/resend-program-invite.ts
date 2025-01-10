@@ -3,8 +3,8 @@
 import { sendEmail } from "@dub/email";
 import { PartnerInvite } from "@dub/email/templates/partner-invite";
 import { prisma } from "@dub/prisma";
-import z from "../zod";
-import { authActionClient } from "./safe-action";
+import z from "../../zod";
+import { authActionClient } from "../safe-action";
 
 export const resendProgramInviteAction = authActionClient
   .schema(

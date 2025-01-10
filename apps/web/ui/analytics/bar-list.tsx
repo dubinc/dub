@@ -1,17 +1,21 @@
 "use client";
 
 import { LinkProps } from "@/lib/types";
-import {
-  LinkifyTooltipContent,
-  NumberTooltip,
-  Tooltip,
-  useMediaQuery,
-} from "@dub/ui";
-import { cn, getPrettyUrl, nFormatter } from "@dub/utils";
+import { LinkifyTooltipContent, Tooltip, useMediaQuery } from "@dub/ui";
+import { cn, getPrettyUrl } from "@dub/utils";
+import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import Link from "next/link";
-import { Dispatch, ReactNode, SetStateAction, useMemo, useState } from "react";
+import {
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
+import { AnalyticsContext } from "./analytics-provider";
 import LinkPreviewTooltip from "./link-preview";
 
 export default function BarList({
@@ -57,20 +61,22 @@ export default function BarList({
   const { isMobile } = useMediaQuery();
 
   const bars = (
-    <div className="grid">
-      {filteredData.map((data, idx) => (
-        <LineItem
-          key={idx}
-          {...data}
-          maxValue={maxValue}
-          tab={tab}
-          unit={unit}
-          setShowModal={setShowModal}
-          barBackground={barBackground}
-          hoverBackground={hoverBackground}
-        />
-      ))}
-    </div>
+    <NumberFlowGroup>
+      <div className="grid">
+        {filteredData.map((data, idx) => (
+          <LineItem
+            key={idx}
+            {...data}
+            maxValue={maxValue}
+            tab={tab}
+            unit={unit}
+            setShowModal={setShowModal}
+            barBackground={barBackground}
+            hoverBackground={hoverBackground}
+          />
+        ))}
+      </div>
+    </NumberFlowGroup>
   );
 
   if (limit) {
@@ -132,6 +138,8 @@ export function LineItem({
     );
   }, [icon, tab, title]);
 
+  const { saleUnit } = useContext(AnalyticsContext);
+
   return (
     <Link
       href={href}
@@ -171,16 +179,24 @@ export function LineItem({
             animate={{ transform: "scaleX(1)" }}
           />
         </div>
-        <NumberTooltip
-          value={unit === "sales" ? value / 100 : value}
-          unit={`total ${unit}`}
-          prefix={unit === "sales" ? "$" : undefined}
-        >
-          <p className="z-10 px-2 text-sm text-gray-600">
-            {unit === "sales" && "$"}
-            {nFormatter(unit === "sales" ? value / 100 : value)}
-          </p>
-        </NumberTooltip>
+        <NumberFlow
+          value={
+            unit === "sales" && saleUnit === "saleAmount" ? value / 100 : value
+          }
+          className="z-10 px-2 text-sm text-gray-600"
+          format={
+            unit === "sales" && saleUnit === "saleAmount"
+              ? {
+                  style: "currency",
+                  currency: "USD",
+                  // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                  trailingZeroDisplay: "stripIfInteger",
+                }
+              : {
+                  notation: value > 999999 ? "compact" : "standard",
+                }
+          }
+        />
       </div>
     </Link>
   );

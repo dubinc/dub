@@ -43,7 +43,7 @@ export const refreshAccessToken = async (
     });
   }
 
-  const oAuthApp = await prisma.oAuthApp.findFirst({
+  const oAuthApp = await prisma.oAuthApp.findUnique({
     where: {
       clientId,
     },
@@ -77,7 +77,7 @@ export const refreshAccessToken = async (
     }
   }
 
-  const refreshTokenRecord = await prisma.oAuthRefreshToken.findFirst({
+  const refreshTokenRecord = await prisma.oAuthRefreshToken.findUnique({
     where: {
       hashedRefreshToken: await hashToken(refresh_token),
     },

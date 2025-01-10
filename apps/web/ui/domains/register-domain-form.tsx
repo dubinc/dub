@@ -1,3 +1,4 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   AnimatedSizeContainer,
@@ -13,7 +14,6 @@ import { CircleCheck, Star } from "lucide-react";
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
 import { AlertCircleFill, CheckCircleFill } from "../shared/icons";
 import { ProBadgeTooltip } from "../shared/pro-badge-tooltip";
@@ -107,15 +107,10 @@ export function RegisterDomainForm({
       toast.success("Domain registered successfully!");
 
       // Mutate workspace, domains, and links
-      await Promise.all([
-        mutate(`/api/workspaces/${workspace.slug}`),
-        mutate(
-          (key) =>
-            typeof key === "string" &&
-            (key.startsWith("/api/domains") || key.startsWith("/api/links")),
-          undefined,
-          { revalidate: true },
-        ),
+      await mutatePrefix([
+        `/api/workspaces/${workspace.slug}`,
+        "/api/domains",
+        "/api/links",
       ]);
     }
 

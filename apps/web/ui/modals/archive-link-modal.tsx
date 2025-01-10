@@ -1,3 +1,4 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { Button, LinkLogo, Modal, useToastWithUndo } from "@dub/ui";
@@ -11,7 +12,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 
 const sendArchiveRequest = ({
   linkId,
@@ -29,14 +29,6 @@ const sendArchiveRequest = ({
       "Content-Type": "application/json",
     },
   });
-};
-
-const revalidateLinks = () => {
-  return mutate(
-    (key) => typeof key === "string" && key.startsWith("/api/links"),
-    undefined,
-    { revalidate: true },
-  );
 };
 
 type ArchiveLinkModalProps = {
@@ -93,7 +85,7 @@ function ArchiveLinkModalInner({
       return;
     }
 
-    revalidateLinks();
+    mutatePrefix("/api/links");
     setShowArchiveLinkModal(false);
     toastWithUndo({
       id: "link-archive-undo-toast",
@@ -114,7 +106,7 @@ function ArchiveLinkModalInner({
         loading: "Undo in progress...",
         error: "Failed to roll back changes. An error occurred.",
         success: () => {
-          revalidateLinks();
+          mutatePrefix("/api/links");
           return "Undo successful! Changes reverted.";
         },
       },

@@ -41,13 +41,16 @@ export const requestPasswordResetAction = actionClient
 
     const token = randomBytes(32).toString("hex");
 
-    await Promise.all([
+    // Run this sequentially to avoid race conditions
+    await prisma.$transaction([
+      // Remove old password reset tokens
       prisma.passwordResetToken.deleteMany({
         where: {
           identifier: email,
         },
       }),
 
+      // Create a new password reset token
       prisma.passwordResetToken.create({
         data: {
           identifier: email,

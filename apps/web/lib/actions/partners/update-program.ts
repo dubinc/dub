@@ -2,9 +2,9 @@
 
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
-import { getProgramOrThrow } from "../api/programs/get-program-or-throw";
-import { createProgramSchema } from "../zod/schemas/programs";
-import { authActionClient } from "./safe-action";
+import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
+import { createProgramSchema } from "../../zod/schemas/programs";
+import { authActionClient } from "../safe-action";
 
 const schema = createProgramSchema.partial().extend({
   workspaceId: z.string(),

@@ -1,5 +1,6 @@
 "use client";
 
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps } from "@/lib/types";
 import { DestinationUrlInput } from "@/ui/links/destination-url-input";
@@ -132,11 +133,10 @@ function LinkBuilderInner({
   const formRef = useRef<HTMLFormElement>(null);
   const { handleKeyDown } = useEnterSubmit(formRef);
 
-  const [url, domain, key, proxy, title, description] = watch([
+  const [url, domain, key, title, description] = watch([
     "url",
     "domain",
     "key",
-    "proxy",
     "title",
     "description",
   ]);
@@ -267,24 +267,10 @@ function LinkBuilderInner({
                 });
 
                 if (res.status === 200) {
-                  await Promise.all([
-                    mutate(
-                      (key) =>
-                        typeof key === "string" && key.startsWith("/api/links"),
-                      undefined,
-                      { revalidate: true },
-                    ),
-                    // Mutate workspace to update usage stats
-                    mutate(`/api/workspaces/${slug}`),
+                  await mutatePrefix([
+                    "/api/links",
                     // if updating root domain link, mutate domains as well
-                    key === "_root" &&
-                      mutate(
-                        (key) =>
-                          typeof key === "string" &&
-                          key.startsWith("/api/domains"),
-                        undefined,
-                        { revalidate: true },
-                      ),
+                    ...(key === "_root" ? ["/api/domains"] : []),
                   ]);
                   const data = await res.json();
                   posthog.capture(
@@ -304,6 +290,9 @@ function LinkBuilderInner({
 
                   draftControlsRef.current?.onSubmitSuccessful();
                   setShowLinkBuilder(false);
+
+                  // Mutate workspace to update usage stats
+                  mutate(`/api/workspaces/${slug}`);
                 } else {
                   const { error } = await res.json();
 
@@ -501,7 +490,7 @@ function LinkBuilderInner({
                   <TargetingButton />
                   <PasswordButton />
                 </div>
-                {flags?.webhooks && <WebhookSelect />}
+                <WebhookSelect />
                 <MoreDropdown />
               </div>
               {homepageDemo ? (
