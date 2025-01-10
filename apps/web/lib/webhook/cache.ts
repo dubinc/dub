@@ -40,6 +40,20 @@ class WebhookCache {
     return await redis.del(this._createKey(webhookId));
   }
 
+  async deleteMany(webhookIds: string[]) {
+    if (webhookIds.length === 0) {
+      return;
+    }
+
+    const pipeline = redis.pipeline();
+
+    webhookIds.map((webhookId) => {
+      pipeline.del(this._createKey(webhookId));
+    });
+
+    return await pipeline.exec();
+  }
+
   _format(webhook: WebhookCacheProps) {
     return {
       id: webhook.id,
