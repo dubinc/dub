@@ -5,6 +5,7 @@ import { webhookCache } from "@/lib/webhook/cache";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";
 import { prisma } from "@dub/prisma";
 import { SLACK_INTEGRATION_ID } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // DELETE /api/integrations/uninstall - uninstall an installation by id
@@ -51,15 +52,17 @@ export const DELETE = withWorkspace(
       },
     );
 
-    await Promise.all([
-      ...(integrationId === SLACK_INTEGRATION_ID
-        ? [uninstallSlackIntegration({ installation })]
-        : []),
+    waitUntil(
+      Promise.all([
+        ...(integrationId === SLACK_INTEGRATION_ID
+          ? [uninstallSlackIntegration({ installation })]
+          : []),
 
-      ...(webhook && isLinkLevelWebhook(webhook)
-        ? [webhookCache.delete(webhook.id)]
-        : []),
-    ]);
+        ...(webhook && isLinkLevelWebhook(webhook)
+          ? [webhookCache.delete(webhook.id)]
+          : []),
+      ]),
+    );
 
     return NextResponse.json({ id: installationId });
   },
