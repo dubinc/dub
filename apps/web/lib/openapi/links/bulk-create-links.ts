@@ -28,8 +28,8 @@ export const bulkCreateLinks: ZodOpenApiOperationObject = {
             type: "array",
             items: {
               oneOf: [
-                { $ref: "#/components/schemas/Link" },
-                { $ref: "#/components/schemas/LinkError" },
+                { $ref: "#/components/schemas/LinkSchema" },
+                { $ref: "#/components/schemas/LinkErrorSchema" },
               ],
             },
           }),
