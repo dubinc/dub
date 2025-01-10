@@ -597,6 +597,14 @@ export const LinkSchema = z
   })
   .openapi({ title: "Link" });
 
+export const LinkErrorSchema = z
+  .object({
+    link: z.any().describe("The link that caused the error."),
+    error: z.string().describe("The error message."),
+    code: ErrorCode.describe("The error code."),
+  })
+  .openapi({ title: "LinkError" });
+
 export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
   z.object({
     linkId: z
@@ -611,15 +619,6 @@ export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
       .openapi({ example: "123456" }),
   }),
 );
-
-export const LinkErrorSchema = z.object({
-  link: createLinkBodySchema
-    .partial()
-    .describe("The link that caused the error."),
-  error: z.string().describe("The error message."),
-  code: ErrorCode.describe("The error code."),
-});
-
 export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
   z.object({
     // Only Dub UI uses the following query parameters
