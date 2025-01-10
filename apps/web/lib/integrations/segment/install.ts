@@ -33,7 +33,7 @@ export const installSegmentAction = authActionClient
       url: "https://api.segment.io/v1/track",
       receiver: WebhookReceiver.segment,
       triggers: [],
-      workspaceId: workspace.id,
+      workspace,
       secret: writeKey,
       installationId: installation.id,
     });
