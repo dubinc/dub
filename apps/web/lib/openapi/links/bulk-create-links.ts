@@ -1,6 +1,10 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
-import { LinkSchema, createLinkBodySchema } from "@/lib/zod/schemas/links";
+import {
+  LinkErrorSchema,
+  LinkSchema,
+  createLinkBodySchema,
+} from "@/lib/zod/schemas/links";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const bulkCreateLinks: ZodOpenApiOperationObject = {
@@ -20,7 +24,8 @@ export const bulkCreateLinks: ZodOpenApiOperationObject = {
       description: "The created links",
       content: {
         "application/json": {
-          schema: z.array(LinkSchema),
+          // array can be LinkSchema or LinkErrorSchema
+          schema: z.array(LinkSchema.or(LinkErrorSchema)),
         },
       },
     },

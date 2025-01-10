@@ -1,3 +1,4 @@
+import { ErrorCode } from "@/lib/api/errors";
 import z from "@/lib/zod";
 import {
   COUNTRY_CODES,
@@ -610,6 +611,14 @@ export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
       .openapi({ example: "123456" }),
   }),
 );
+
+export const LinkErrorSchema = z.object({
+  link: createLinkBodySchema
+    .partial()
+    .describe("The link that caused the error."),
+  error: z.string().describe("The error message."),
+  code: ErrorCode.describe("The error code."),
+});
 
 export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
   z.object({
