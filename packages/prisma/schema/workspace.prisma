@@ -29,6 +29,8 @@ model Project {
   referralLinkId  String? @unique
   referredSignups Int     @default(0)
 
+  store Json @default("{}") // General key-value store for things like persisting toggles, dismissing popups, etc.
+
   webhookEnabled    Boolean @default(false)
   conversionEnabled Boolean @default(false) // TODO: remove this once Conversions goes GA
   partnersEnabled   Boolean @default(false)
