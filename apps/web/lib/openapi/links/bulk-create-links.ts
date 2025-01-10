@@ -24,8 +24,15 @@ export const bulkCreateLinks: ZodOpenApiOperationObject = {
       description: "The created links",
       content: {
         "application/json": {
-          // array can be LinkSchema or LinkErrorSchema
-          schema: z.array(LinkSchema.or(LinkErrorSchema)),
+          schema: z.array(z.union([LinkSchema, LinkErrorSchema])).openapi({
+            type: "array",
+            items: {
+              oneOf: [
+                { $ref: "#/components/schemas/Link" },
+                { $ref: "#/components/schemas/LinkError" },
+              ],
+            },
+          }),
         },
       },
     },
