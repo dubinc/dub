@@ -38,60 +38,63 @@ export const installIntegration = async ({
 
   waitUntil(
     (async () => {
-      const [integration, workspace] = await Promise.all([
-        prisma.integration.findUniqueOrThrow({
-          where: {
-            id: integrationId,
-          },
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
-        }),
-
-        prisma.project.findUniqueOrThrow({
-          where: {
-            id: workspaceId,
-            users: {
-              some: {
-                role: "owner",
+      const workspace = await prisma.project.findUniqueOrThrow({
+        where: {
+          id: workspaceId,
+        },
+        select: {
+          name: true,
+          slug: true,
+          users: {
+            select: {
+              user: {
+                select: { email: true },
               },
             },
+            where: {
+              userId,
+            },
           },
-          select: {
-            name: true,
-            slug: true,
-            users: {
-              select: {
-                user: {
-                  select: { email: true },
+          installedIntegrations: {
+            where: {
+              integrationId,
+            },
+            select: {
+              integration: {
+                select: {
+                  name: true,
+                  slug: true,
                 },
               },
             },
           },
-        }),
-      ]);
+        },
+      });
 
-      await Promise.allSettled(
-        workspace.users.map(({ user: { email } }) =>
-          sendEmail({
+      const email =
+        workspace.users.length > 0 ? workspace.users[0].user.email : null;
+      const integration =
+        workspace.installedIntegrations.length > 0
+          ? workspace.installedIntegrations[0].integration
+          : null;
+
+      if (email && integration) {
+        await sendEmail({
+          email: email!,
+          subject: `The "${integration.name}" integration has been added to your workspace`,
+          react: IntegrationInstalled({
             email: email!,
-            subject: `The "${integration.name}" integration has been added to your workspace`,
-            react: IntegrationInstalled({
-              email: email!,
-              workspace: {
-                name: workspace.name,
-                slug: workspace.slug,
-              },
-              integration: {
-                name: integration.name,
-                slug: integration.slug,
-              },
-            }),
+            workspace: {
+              name: workspace.name,
+              slug: workspace.slug,
+            },
+            integration: {
+              name: integration.name,
+              slug: integration.slug,
+            },
           }),
-        ),
-      );
+        });
+      }
     })(),
   );
 
