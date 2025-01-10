@@ -5,7 +5,7 @@ import { ShieldBan } from "lucide-react";
 export const runtime = "edge";
 
 export const metadata = constructMetadata({
-  title: "Banned Link – Dub.co",
+  title: "Banned Link",
   description: "This link has been banned for violating our terms of service.",
   noIndex: true,
 });
