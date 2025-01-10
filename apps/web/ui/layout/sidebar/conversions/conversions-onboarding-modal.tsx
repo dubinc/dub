@@ -377,10 +377,12 @@ function Docs() {
             key={name}
             href={url || "https://dub.co/docs/conversions/quickstart"}
             target="_blank"
-            className="group flex flex-col items-center rounded-lg bg-neutral-200/40 p-8 pb-6 transition-colors duration-100 hover:bg-neutral-200/60"
+            className="group flex flex-col items-center rounded-lg bg-neutral-200/40 pb-6 pt-8 transition-colors duration-100 hover:bg-neutral-200/60"
           >
-            <div className="aspect-video w-full rounded bg-neutral-300 shadow-sm"></div>
-            <span className="mt-6 flex items-center gap-2 text-left text-sm font-medium text-neutral-700">
+            <div className="w-full px-8">
+              <div className="aspect-video w-full rounded bg-neutral-300 shadow-sm"></div>
+            </div>
+            <span className="mt-6 flex items-center gap-2 px-2 text-left text-sm font-medium text-neutral-700">
               <BookOpen className="size-4" />
               Read {name} guide
             </span>
