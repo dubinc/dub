@@ -33,6 +33,7 @@ export default function Main() {
     saleUnit,
     view,
   } = useContext(AnalyticsContext);
+  const { plan } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   const tabs = useMemo(
@@ -67,7 +68,8 @@ export default function Main() {
   const tab = tabs.find(({ id }) => id === selectedTab) ?? tabs[0];
 
   const showPaywall =
-    (tab.conversions || view === "funnel") && !conversionsEnabled;
+    (tab.conversions || view === "funnel") &&
+    (plan === "free" || plan === "pro");
 
   return (
     <div className="w-full overflow-hidden bg-white">
