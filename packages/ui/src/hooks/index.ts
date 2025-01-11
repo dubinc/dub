@@ -10,6 +10,7 @@ export * from "./use-local-storage";
 export * from "./use-media-query";
 export * from "./use-optimistic-update";
 export * from "./use-pagination";
+export * from "./use-remove-ga-params";
 export * from "./use-resize-observer";
 export * from "./use-router-stuff";
 export * from "./use-scroll";
