@@ -152,7 +152,7 @@ export default function Main() {
                         }
                         className={cn(
                           "text-2xl font-medium sm:text-3xl",
-                          conversions && !conversionsEnabled && "opacity-30",
+                          showPaywall && "opacity-30",
                         )}
                         format={
                           id === "sales" && saleUnit === "saleAmount"
