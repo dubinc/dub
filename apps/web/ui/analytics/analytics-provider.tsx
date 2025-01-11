@@ -298,7 +298,7 @@ export default function AnalyticsProvider({
       onSuccess: () => setRequiresUpgrade(false),
       onError: (error) => {
         try {
-          const errorMessage = JSON.parse(error.message)?.error.message;
+          const errorMessage = error.message;
           if (
             error.status === 403 &&
             errorMessage.toLowerCase().includes("upgrade")
