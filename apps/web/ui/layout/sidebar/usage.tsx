@@ -319,6 +319,6 @@ const formatNumber = (value: number) =>
   value >= INFINITY_NUMBER
     ? "∞"
     : nFormatter(value, {
-        full: value !== undefined && value < 99999,
+        full: value !== undefined && value < 999,
         digits: 1,
       });

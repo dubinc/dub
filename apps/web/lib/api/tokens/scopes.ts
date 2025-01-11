@@ -8,7 +8,6 @@ export const SCOPES = [
   "tags.read",
   "tags.write",
   "analytics.read",
-  "analytics.write",
   "domains.read",
   "domains.write",
   "workspaces.read",
@@ -93,13 +92,6 @@ export const RESOURCE_SCOPES: {
     resource: "analytics",
   },
   {
-    scope: "analytics.write",
-    roles: ["owner", "member"],
-    permissions: ["analytics.write", "analytics.read"],
-    type: "write",
-    resource: "analytics",
-  },
-  {
     scope: "webhooks.read",
     roles: ["owner", "member"],
     permissions: ["webhooks.read"],
@@ -137,7 +129,6 @@ export const RESOURCE_SCOPES: {
       "workspaces.read",
       "workspaces.write",
       "analytics.read",
-      "analytics.write",
     ],
   },
 ];

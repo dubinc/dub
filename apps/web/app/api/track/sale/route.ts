@@ -227,6 +227,5 @@ export const POST = withWorkspaceEdge(
       "business max",
       "enterprise",
     ],
-    requiredPermissions: ["analytics.write"],
   },
 );
