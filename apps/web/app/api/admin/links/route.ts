@@ -37,14 +37,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
             },
           }),
       ...(search && {
-        OR: [
-          {
-            shortLink: { contains: search },
-          },
-          {
-            url: { contains: search },
-          },
-        ],
+        shortLink: search,
       }),
     },
     include: {
