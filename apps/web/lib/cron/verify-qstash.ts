@@ -9,13 +9,14 @@ const receiver = new Receiver({
 
 export const verifyQstashSignature = async (
   req: Request,
-  body?: Record<string, unknown>,
+  body?: any,
+  bodyType: "json" | "text" = "json",
 ) => {
-  body = body || (await req.json());
+  body = body || (bodyType === "json" ? await req.json() : await req.text());
 
   const isValid = await receiver.verify({
     signature: req.headers.get("Upstash-Signature") || "",
-    body: JSON.stringify(body),
+    body: bodyType === "json" ? JSON.stringify(body) : body,
   });
 
   if (!isValid) {
