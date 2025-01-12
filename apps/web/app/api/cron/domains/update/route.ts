@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    await verifyQstashSignature(req, body);
+    await verifyQstashSignature({ req, body });
 
     const { newDomain, oldDomain, workspaceId, page } = schema.parse(body);
 

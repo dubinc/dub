@@ -90,7 +90,7 @@ const NoWebhooksFound = () => {
       <div>
         <Button
           className="mt-1 h-8"
-          onClick={() => router.push(`/${slug}/settings/webhooks`)}
+          onClick={() => window.open(`/${slug}/settings/webhooks`, "_blank")}
           text="Add webhook"
         />
       </div>
