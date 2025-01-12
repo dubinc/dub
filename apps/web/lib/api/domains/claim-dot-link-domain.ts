@@ -3,6 +3,8 @@ import { createLink } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
 import { registerDomain } from "@/lib/dynadot/register-domain";
 import { WorkspaceWithUsers } from "@/lib/types";
+import { sendEmail } from "@dub/email";
+import { DomainClaimed } from "@dub/email/templates/domain-claimed";
 import { prisma } from "@dub/prisma";
 import {
   ACME_WORKSPACE_ID,
@@ -10,8 +12,6 @@ import {
   DEFAULT_LINK_PROPS,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { sendEmail } from "emails";
-import DomainClaimed from "emails/domain-claimed";
 import { addDomainToVercel } from "./add-domain-vercel";
 import { markDomainAsDeleted } from "./mark-domain-deleted";
 

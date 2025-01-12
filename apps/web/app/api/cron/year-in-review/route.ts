@@ -1,9 +1,9 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
-import { resend } from "@/lib/resend";
+import { resend } from "@dub/email/resend";
+import { DubWrapped } from "@dub/email/templates/dub-wrapped";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import DubWrapped from "emails/dub-wrapped";
 
 export const dynamic = "force-dynamic";
 

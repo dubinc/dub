@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
-import { unsubscribe } from "@/lib/resend";
 import { storage } from "@/lib/storage";
+import { unsubscribe } from "@dub/email/resend/unsubscribe";
 import { prisma } from "@dub/prisma";
 import { R2_URL, nanoid, trim } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
