@@ -7,15 +7,22 @@ const receiver = new Receiver({
   nextSigningKey: process.env.QSTASH_NEXT_SIGNING_KEY || "",
 });
 
-export const verifyQstashSignature = async (
-  req: Request,
-  body?: Record<string, unknown>,
-) => {
-  body = body || (await req.json());
+export const verifyQstashSignature = async ({
+  req,
+  body,
+  bodyType = "json",
+}: {
+  req: Request;
+  body?: any;
+  // due to a weird QStash bug, webhook URLs that have query params
+  // need to be verified with the text body type (instead of JSON)
+  bodyType?: "json" | "text";
+}) => {
+  body = body || (bodyType === "json" ? await req.json() : await req.text());
 
   const isValid = await receiver.verify({
     signature: req.headers.get("Upstash-Signature") || "",
-    body: JSON.stringify(body),
+    body: bodyType === "json" ? JSON.stringify(body) : body,
   });
 
   if (!isValid) {
