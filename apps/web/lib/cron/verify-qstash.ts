@@ -9,7 +9,7 @@ const receiver = new Receiver({
 
 export const verifyQstashSignature = async (
   req: Request,
-  body: any,
+  body?: any,
   bodyType: "json" | "text" = "json",
 ) => {
   body = body || (bodyType === "json" ? await req.json() : await req.text());
