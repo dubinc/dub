@@ -38,7 +38,6 @@ const AnimatedSizeContainer = forwardRef<
     return (
       <motion.div
         ref={forwardedRef}
-        className={cn("overflow-hidden", className)}
         animate={{
           width: width
             ? resizeObserverEntry?.contentRect?.width ?? "auto"
