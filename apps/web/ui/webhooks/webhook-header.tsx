@@ -95,12 +95,11 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
           {isLoading || !webhook ? (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="w-fit flex-none rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
-                <TokenAvatar id="placeholder-oauth-app" className="size-8" />
+                <div className="size-8 rounded-full bg-gray-100" />
               </div>
               <div className="flex flex-col gap-2">
                 <div className="h-5 w-28 rounded-full bg-gray-100"></div>
                 <div className="h-3 w-48 rounded-full bg-gray-100"></div>
-                <div className="h-3 w-40 rounded-full bg-gray-100"></div>
               </div>
             </div>
           ) : (
