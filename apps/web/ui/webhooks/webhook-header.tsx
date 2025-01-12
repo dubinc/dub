@@ -91,7 +91,7 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
           <ChevronLeft className="size-4" />
           <p className="text-sm font-medium text-gray-500">Back to webhooks</p>
         </Link>
-        <div className="flex justify-between gap-2 sm:items-center">
+        <div className="flex justify-between gap-8 sm:items-center">
           {isLoading || !webhook ? (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="w-fit flex-none rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
@@ -117,7 +117,7 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
                 <a
                   href={webhook.url}
                   target="_blank"
-                  className="text-pretty break-all text-sm text-gray-500 underline-offset-4 hover:text-gray-700 hover:underline"
+                  className="line-clamp-1 text-pretty break-all text-sm text-gray-500 underline-offset-4 hover:text-gray-700 hover:underline"
                 >
                   {webhook.url}
                 </a>
