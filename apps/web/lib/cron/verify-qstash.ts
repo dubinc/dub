@@ -7,12 +7,16 @@ const receiver = new Receiver({
   nextSigningKey: process.env.QSTASH_NEXT_SIGNING_KEY || "",
 });
 
-export const verifyQstashSignature = async (req: Request, body?: any) => {
-  body = body || (await req.text());
+export const verifyQstashSignature = async (
+  req: Request,
+  body: any,
+  bodyType: "json" | "text" = "json",
+) => {
+  body = body || (bodyType === "json" ? await req.json() : await req.text());
 
   const isValid = await receiver.verify({
     signature: req.headers.get("Upstash-Signature") || "",
-    body,
+    body: bodyType === "json" ? JSON.stringify(body) : body,
   });
 
   if (!isValid) {
