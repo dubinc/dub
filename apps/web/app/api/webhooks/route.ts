@@ -38,17 +38,11 @@ export const GET = withWorkspace(
         installationId: true,
       },
       orderBy: {
-        updatedAt: "desc",
+        createdAt: "desc",
       },
     });
 
-    // Make sure the user webhook is always at the top
-    const sortedWebhooks = webhooks.sort(
-      (a, b) =>
-        (b.receiver === "user" ? 1 : 0) - (a.receiver === "user" ? 1 : 0),
-    );
-
-    return NextResponse.json(sortedWebhooks.map(transformWebhook));
+    return NextResponse.json(webhooks.map(transformWebhook));
   },
   {
     requiredPermissions: ["webhooks.read"],

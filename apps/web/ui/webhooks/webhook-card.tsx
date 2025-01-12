@@ -13,17 +13,15 @@ export default function WebhookCard(webhook: WebhookProps) {
       className="hover:drop-shadow-card-hover relative rounded-xl border border-gray-200 bg-white px-5 py-4 transition-[filter]"
     >
       <div className="flex items-center gap-x-3">
-        <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2.5">
+        <div className="flex-shrink-0 rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2.5">
           <TokenAvatar id={webhook.name} className="size-6" />
         </div>
-        <div>
+        <div className="overflow-hidden">
           <div className="flex items-center gap-1">
             <span className="font-semibold text-gray-700">{webhook.name}</span>
             <WebhookStatus webhook={webhook} />
           </div>
-          <div className="flex items-center gap-1 text-sm text-gray-500">
-            {webhook.url}
-          </div>
+          <div className="truncate text-sm text-gray-500">{webhook.url}</div>
         </div>
       </div>
     </Link>

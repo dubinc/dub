@@ -6,6 +6,7 @@ import { cn } from "@dub/utils";
   2. Public stats page, e.g. dub.sh/stats/github, stey.me/stats/weathergpt
 */
 
+import useWorkspace from "@/lib/swr/use-workspace";
 import { useContext } from "react";
 import AnalyticsProvider, {
   AnalyticsContext,
@@ -47,13 +48,15 @@ export default function Analytics({
 }
 
 function StatsGrid() {
-  const { dashboardProps, partnerPage, conversionsEnabled, selectedTab, view } =
+  const { dashboardProps, partnerPage, selectedTab, view } =
     useContext(AnalyticsContext);
+  const { plan } = useWorkspace();
 
-  const show =
-    conversionsEnabled || (selectedTab === "clicks" && view !== "funnel");
+  const hide =
+    (selectedTab === "leads" || selectedTab === "sales" || view === "funnel") &&
+    (plan === "free" || plan === "pro");
 
-  return show ? (
+  return hide ? null : (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
       {!dashboardProps && !partnerPage && <TopLinks />}
       <Locations />
@@ -61,5 +64,5 @@ function StatsGrid() {
       <Referer />
       {/* <Feedback /> */}
     </div>
-  ) : null;
+  );
 }
