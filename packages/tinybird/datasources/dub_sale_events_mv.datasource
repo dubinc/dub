@@ -10,6 +10,8 @@ SCHEMA >
     `payment_processor` LowCardinality(String),
     `invoice_id` String,
     `amount` UInt32,
+    `earnings` UInt32,
+    `status` LowCardinality(String),
     `url` String,
     `continent` LowCardinality(String),
     `country` LowCardinality(String),
@@ -27,6 +29,6 @@ SCHEMA >
     `qr` UInt8,
     `ip` String
 
-ENGINE "MergeTree"
+ENGINE "ReplacingMergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
-ENGINE_SORTING_KEY "link_id, timestamp"
+ENGINE_SORTING_KEY "link_id, timestamp, event_id"

@@ -34,7 +34,12 @@ export const GET = withWorkspace(
       }),
 
       prisma.sale.aggregate({
-        where,
+        where: {
+          ...where,
+          status: {
+            notIn: ["duplicate", "fraud", "refunded"],
+          },
+        },
         _sum: {
           amount: true,
         },
