@@ -4,7 +4,7 @@ import { useAction } from "next-safe-action/hooks";
 import { useEffect, useState } from "react";
 import { mutate } from "swr";
 import { updateWorkspaceStore } from "../actions/update-workspace-store";
-import useWorkspace from "../swr/use-workspace";
+import useWorkspace from "./use-workspace";
 
 export const STORE_KEYS = {
   conversionsOnboarding: "conversionsOnboarding",

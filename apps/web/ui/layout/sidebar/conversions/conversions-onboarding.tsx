@@ -1,10 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import {
-  STORE_KEYS,
-  useWorkspaceStore,
-} from "@/lib/workspace/use-workspace-store";
+import { STORE_KEYS, useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { X } from "@/ui/shared/icons";
 import { Book2Small, useMediaQuery } from "@dub/ui";
 import { useConversionOnboardingModal } from "./conversions-onboarding-modal";

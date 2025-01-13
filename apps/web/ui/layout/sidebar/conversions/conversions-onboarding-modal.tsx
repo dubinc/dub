@@ -3,6 +3,7 @@
 import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
+  BlurImage,
   Book2Small,
   BookOpen,
   CircleDollar,
@@ -28,6 +29,10 @@ import { Shopify } from "./icons/shopify";
 import { Stripe } from "./icons/stripe";
 import { Supabase } from "./icons/supabase";
 
+const GUIDE_THUMBNAIL = (title: string, description: string) => {
+  return `https://mintlify.com/docs/api/og?division=Documentation&title=${title}&description=${description}&logoLight=https%3A%2F%2Fmintlify.s3.us-west-1.amazonaws.com%2Fdub%2Flogos%2Fwordmark.svg&logoDark=https%3A%2F%2Fmintlify.s3.us-west-1.amazonaws.com%2Fdub%2Flogos%2Fwordmark-dark.svg&primaryColor=%23eb5611&lightColor=%23eb5611&darkColor=%23eb5611`;
+};
+
 const PAYMENT_PROCESSORS = [
   {
     name: "Stripe",
@@ -35,6 +40,10 @@ const PAYMENT_PROCESSORS = [
     site: "stripe.com",
     docs: "docs.stripe.com",
     guide: "https://dub.co/docs/conversions/sales/stripe",
+    thumbnail: GUIDE_THUMBNAIL(
+      "Stripe",
+      "Learn how to set up Stripe conversion tracking",
+    ),
   },
   {
     name: "Shopify",
@@ -42,12 +51,20 @@ const PAYMENT_PROCESSORS = [
     site: "shopify.com",
     docs: "help.shopify.com",
     guide: "https://dub.co/docs/conversions/sales/shopify",
+    thumbnail: GUIDE_THUMBNAIL(
+      "Shopify",
+      "Learn how to set up Shopify conversion tracking",
+    ),
   },
   {
     name: "Custom Payments",
     shortName: "Custom",
     icon: Custom,
     guide: "https://dub.co/docs/conversions/quickstart", // TODO: [Conversions] update guide URL
+    thumbnail: GUIDE_THUMBNAIL(
+      "Custom Payments",
+      "Learn how to set up custom payment conversion tracking",
+    ),
   },
 ];
 
@@ -56,33 +73,57 @@ const AUTH_PROVIDERS = [
     name: "Auth.js",
     icon: AuthJs,
     guide: "https://dub.co/docs/conversions/leads/next-auth",
+    thumbnail: GUIDE_THUMBNAIL(
+      "Auth.js",
+      "Learn how to set up Auth.js conversion tracking",
+    ),
   },
   {
     name: "Clerk",
     icon: Clerk,
     guide: "https://dub.co/docs/conversions/leads/clerk",
+    thumbnail: GUIDE_THUMBNAIL(
+      "Clerk",
+      "Learn how to set up Clerk conversion tracking",
+    ),
   },
   {
     name: "Supabase",
     icon: Supabase,
     guide: "https://dub.co/docs/conversions/leads/supabase-auth",
+    thumbnail: GUIDE_THUMBNAIL(
+      "Supabase",
+      "Learn how to set up Supabase conversion tracking",
+    ),
   },
   {
     name: "Auth0",
     icon: Auth0,
     guide: "https://dub.co/docs/conversions/leads/auth0",
+    thumbnail: GUIDE_THUMBNAIL(
+      "Auth0",
+      "Learn how to set up Auth0 conversion tracking",
+    ),
   },
   {
     name: "Custom Auth",
     shortName: "Custom",
     icon: Custom,
     guide: "https://dub.co/docs/conversions/quickstart", // TODO: [Conversions] update guide URL
+    thumbnail: GUIDE_THUMBNAIL(
+      "Custom Auth",
+      "Learn how to set up custom auth conversion tracking",
+    ),
   },
   {
     name: "Shopify",
     icon: Shopify,
     hidden: true,
     guide: "https://dub.co/docs/conversions/sales/shopify",
+    thumbnail: GUIDE_THUMBNAIL(
+      "Shopify",
+      "Learn how to set up Shopify conversion tracking",
+    ),
   },
 ];
 
@@ -142,7 +183,7 @@ function ConversionOnboardingModalInner({
           onClick={() => setShowConversionOnboardingModal(false)}
           className="group absolute right-4 top-4 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 md:block"
         >
-          <X className="h-5 w-5" />
+          <X className="size-5" />
         </button>
         <ConversionOnboardingModalContext.Provider
           value={{
@@ -368,21 +409,36 @@ function Docs() {
           {
             name: paymentProcessor.shortName || paymentProcessor.name,
             url: paymentProcessor.guide,
+            thumbnail: paymentProcessor.thumbnail,
           },
           ...(!isSameProvider
-            ? [{ name: authProvider.name, url: authProvider.guide }]
+            ? [
+                {
+                  name: authProvider.name,
+                  url: authProvider.guide,
+                  thumbnail: authProvider.thumbnail,
+                },
+              ]
             : []),
-        ].map(({ name, url }) => (
+        ].map(({ name, url, thumbnail }) => (
           <Link
             key={name}
             href={url || "https://dub.co/docs/conversions/quickstart"}
             target="_blank"
-            className="group flex flex-col items-center rounded-lg bg-neutral-200/40 pb-6 pt-8 transition-colors duration-100 hover:bg-neutral-200/60"
+            className="group flex flex-col items-center rounded-lg bg-neutral-200/40 p-6 pb-4 transition-colors duration-100 hover:bg-neutral-200/60"
           >
-            <div className="w-full px-8">
-              <div className="aspect-video w-full rounded bg-neutral-300 shadow-sm"></div>
-            </div>
-            <span className="mt-6 flex items-center gap-2 px-2 text-left text-sm font-medium text-neutral-700">
+            {thumbnail ? (
+              <BlurImage
+                src={thumbnail}
+                alt={`${name} guide thumbnail`}
+                className="w-full max-w-[240px] rounded-lg object-cover"
+                width={1200}
+                height={630}
+              />
+            ) : (
+              <div className="aspect-video w-full rounded bg-neutral-300 shadow-sm" />
+            )}
+            <span className="mt-4 flex items-center gap-2 text-left text-sm font-medium text-neutral-700">
               <BookOpen className="size-4" />
               Read {name} guide
             </span>

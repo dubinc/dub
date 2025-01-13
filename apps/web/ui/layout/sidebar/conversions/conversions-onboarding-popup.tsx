@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "@/ui/shared/icons";
-import { Button } from "@dub/ui";
+import { BlurImage, Button } from "@dub/ui";
 import {
   arrow,
   autoUpdate,
@@ -67,13 +67,12 @@ export function ConversionOnboardingPopup({
               target="_blank"
               className="group relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-md border border-neutral-200 bg-neutral-100"
             >
-              {/* TODO: Add video thumbnail */}
-              {/* <Image
-                  src=""
-                  alt="Video thumbnail"
-                  fill
-                  className="object-cover"
-                /> */}
+              <BlurImage
+                src="https://assets.dub.co/blog/conversion-analytics.png"
+                alt="thumbnail"
+                fill
+                className="object-cover"
+              />
               <div className="relative flex size-10 items-center justify-center rounded-full bg-neutral-900 ring-[6px] ring-black/5 transition-all duration-75 group-hover:ring-[8px] group-active:ring-[7px]">
                 <Play className="size-4 fill-current text-white" />
               </div>
@@ -87,7 +86,7 @@ export function ConversionOnboardingPopup({
             </button>
           </div>
           <h2 className="mt-4 text-sm font-semibold text-neutral-700">
-            Conversion tracking unlocked
+            Conversion analytics unlocked
           </h2>
           <p className="mt-1.5 text-xs text-neutral-500">
             Follow our guides to get set up and track your short link
