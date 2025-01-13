@@ -1,6 +1,6 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { MaxWidthWrapper } from "@dub/ui";
-import { InvitePartnerButton } from "./invite-partner-button";
+import { AddPartnerButton } from "./add-partner-button";
 import { InvitesTableLink } from "./invites-table-link";
 import { ProgramPartnersPageClient } from "./page-client";
 
@@ -10,7 +10,7 @@ export default function ProgramPartners() {
       title="Partners"
       titleControls={
         <div className="flex items-center gap-2">
-          <InvitePartnerButton />
+          <AddPartnerButton />
           <InvitesTableLink />
         </div>
       }
