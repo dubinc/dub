@@ -229,6 +229,11 @@ module.exports = withAxiom({
   },
   async rewrites() {
     return [
+      // for dub proxy
+      {
+        source: "/_proxy/dub/track/click",
+        destination: "https://api.dub.co/track/click",
+      },
       // for posthog proxy
       {
         source: "/_proxy/posthog/ingest/static/:path*",

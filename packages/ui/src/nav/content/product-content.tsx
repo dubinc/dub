@@ -47,7 +47,7 @@ export function ProductContent({ domain }: { domain: string }) {
       </Link>
       <div className="flex flex-col gap-4">
         <Link
-          href={createHref("/help/article/dub-analytics", domain)}
+          href={createHref("/analytics", domain)}
           className="group relative flex flex-col overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50 dark:border-white/20 dark:bg-white/10"
         >
           <AnalyticsGraphic className="absolute bottom-0 h-auto w-full translate-y-[15%] [mask-image:linear-gradient(90deg,transparent,black)]" />

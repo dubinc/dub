@@ -159,7 +159,7 @@ export const PLANS = [
           title:
             "Get location (country, city, continent), device (type, browser, OS), and referer data on your clicks.",
           cta: "Learn more.",
-          href: "https://dub.co/help/article/dub-analytics",
+          href: "https://dub.co/analytics",
         },
       },
       { id: "ai", text: "10 AI credits/mo" },
