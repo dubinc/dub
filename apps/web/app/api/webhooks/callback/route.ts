@@ -19,8 +19,7 @@ const searchParamsSchema = z.object({
 // POST /api/webhooks/callback – listen to webhooks status from QStash
 export const POST = async (req: Request) => {
   const rawBody = await req.text();
-
-  await verifyQstashSignature({ req, body: rawBody, bodyType: "text" });
+  await verifyQstashSignature({ req, rawBody });
 
   const { url, status, body, sourceBody, sourceMessageId } =
     webhookCallbackSchema.parse(JSON.parse(rawBody));

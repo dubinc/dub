@@ -19,11 +19,12 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const rawBody = await req.text();
+    await verifyQstashSignature({ req, rawBody });
 
-    await verifyQstashSignature({ req, body });
-
-    const { currentWorkspaceId, newWorkspaceId, domain } = schema.parse(body);
+    const { currentWorkspaceId, newWorkspaceId, domain } = schema.parse(
+      JSON.parse(rawBody),
+    );
 
     const links = await prisma.link.findMany({
       where: { domain, projectId: currentWorkspaceId },

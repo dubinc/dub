@@ -11,9 +11,10 @@ export const dynamic = "force-dynamic";
 */
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    await verifyQstashSignature({ req, body });
-    const { linkId } = body;
+    const rawBody = await req.text();
+    await verifyQstashSignature({ req, rawBody });
+
+    const { linkId } = JSON.parse(rawBody);
 
     const link = await prisma.link.findUnique({
       where: {

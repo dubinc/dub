@@ -9,9 +9,10 @@ export const dynamic = "force-dynamic";
 */
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    await verifyQstashSignature({ req, body });
-    const { domain } = body;
+    const rawBody = await req.text();
+    await verifyQstashSignature({ req, rawBody });
+
+    const { domain } = JSON.parse(rawBody);
 
     const res = await configureDNS({ domain });
     console.log("Dynadot DNS configured.", res);
