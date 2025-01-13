@@ -88,4 +88,3 @@ export const OPTIONS = () => {
     headers: CORS_HEADERS,
   });
 };
-
