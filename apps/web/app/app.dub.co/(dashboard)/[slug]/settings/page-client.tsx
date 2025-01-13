@@ -92,8 +92,8 @@ export default function WorkspaceSettingsClient() {
           })
         }
       />
-      <ConversionTrackingToggle />
       <UploadLogo />
+      <ConversionTrackingToggle />
       <WorkspaceId />
       <DeleteWorkspace />
     </>
