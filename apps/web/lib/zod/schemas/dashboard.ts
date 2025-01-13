@@ -7,7 +7,6 @@ export const dashboardSchema = z.object({
   userId: z.string().nullable(),
   password: z.string().nullable(),
   doIndex: z.boolean(),
-  showConversions: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

@@ -34,7 +34,7 @@ import DeviceIcon from "../device-icon";
 import { CustomerRowItem } from "./customer-row-item";
 import EditColumnsButton from "./edit-columns-button";
 import { EventsContext } from "./events-provider";
-import { exampleData } from "./example-data";
+import { EXAMPLE_EVENTS_DATA } from "./example-data";
 import FilterButton from "./filter-button";
 import { RowMenuButton } from "./row-menu-button";
 import { eventColumns, useColumnVisibility } from "./use-column-visibility";
@@ -472,7 +472,8 @@ export default function EventsTable({
   );
 
   const { table, ...tableProps } = useTable({
-    data: (data ?? (requiresUpgrade ? exampleData[tab] : [])) as EventDatum[],
+    data: (data ??
+      (requiresUpgrade ? EXAMPLE_EVENTS_DATA[tab] : [])) as EventDatum[],
     loading: isLoading,
     error: error && !requiresUpgrade ? "Failed to fetch events." : undefined,
     columns,

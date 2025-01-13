@@ -70,7 +70,6 @@ export const LinkModalContext = createContext<{
   workspaceId?: string;
   workspacePlan?: string;
   workspaceLogo?: string;
-  conversionEnabled?: boolean;
   generatingMetatags: boolean;
 }>({ generatingMetatags: false });
 
@@ -89,8 +88,14 @@ export function LinkBuilder(props: LinkBuilderProps) {
 }
 
 function LinkBuilderOuter(props: LinkBuilderProps) {
+  // TODO: should we use a different value for this? or just keep it as is?
+  const { conversionEnabled } = useWorkspace();
   const form = useForm<LinkFormData>({
-    defaultValues: props.props || props.duplicateProps || DEFAULT_LINK_PROPS,
+    defaultValues: props.props ||
+      props.duplicateProps || {
+        ...DEFAULT_LINK_PROPS,
+        trackConversion: conversionEnabled || false,
+      },
   });
 
   return (
@@ -111,14 +116,7 @@ function LinkBuilderInner({
   const { slug } = params;
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
-  const {
-    id: workspaceId,
-    plan,
-    nextPlan,
-    logo,
-    flags,
-    conversionEnabled,
-  } = useWorkspace();
+  const { id: workspaceId, plan, nextPlan, logo, flags } = useWorkspace();
 
   const {
     control,
@@ -237,7 +235,6 @@ function LinkBuilderInner({
             workspaceId,
             workspacePlan: plan,
             workspaceLogo: logo ?? undefined,
-            conversionEnabled: conversionEnabled,
             generatingMetatags,
           }}
         >

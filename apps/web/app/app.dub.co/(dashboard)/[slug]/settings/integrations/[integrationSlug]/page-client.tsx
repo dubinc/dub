@@ -36,7 +36,6 @@ import {
   getPrettyUrl,
   SEGMENT_INTEGRATION_ID,
   SLACK_INTEGRATION_ID,
-  STRIPE_INTEGRATION_ID,
   ZAPIER_INTEGRATION_ID,
 } from "@dub/utils";
 import { BookOpenText, ChevronLeft, Trash } from "lucide-react";
@@ -57,7 +56,7 @@ export default function IntegrationPageClient({
 }: {
   integration: InstalledIntegrationInfoProps;
 }) {
-  const { slug, id: workspaceId, conversionEnabled } = useWorkspace();
+  const { slug, id: workspaceId } = useWorkspace();
 
   const [openPopover, setOpenPopover] = useState(false);
   const getInstallationUrl = useAction(getIntegrationInstallUrl, {
@@ -244,19 +243,7 @@ export default function IntegrationPageClient({
                 loading={getInstallationUrl.isExecuting}
                 text="Enable"
                 variant="primary"
-                className="h-9 px-4"
                 icon={<ConnectedDots className="size-4" />}
-                {...(integration.id === STRIPE_INTEGRATION_ID &&
-                  !conversionEnabled && {
-                    disabledTooltip: (
-                      <TooltipContent
-                        title="To use this integration, you need to have Dub Conversions enabled for your workspace."
-                        cta="Learn more"
-                        href="https://d.to/conversions"
-                        target="_blank"
-                      />
-                    ),
-                  })}
               />
             )}
         </div>

@@ -29,7 +29,13 @@ export const GET = withWorkspace(
     return NextResponse.json(CustomerSchema.parse(transformCustomer(customer)));
   },
   {
-    requiredAddOn: "conversion",
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "enterprise",
+    ],
   },
 );
 
@@ -91,7 +97,13 @@ export const PATCH = withWorkspace(
     }
   },
   {
-    requiredAddOn: "conversion",
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "enterprise",
+    ],
   },
 );
 
@@ -116,6 +128,12 @@ export const DELETE = withWorkspace(
     });
   },
   {
-    requiredAddOn: "conversion",
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "enterprise",
+    ],
   },
 );

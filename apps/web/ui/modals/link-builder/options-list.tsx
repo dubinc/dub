@@ -50,11 +50,12 @@ export function OptionsList() {
                 toggle={item}
                 {...(item.type === "modal" &&
                   "enabled" in item &&
+                  typeof item.enabled === "function" &&
                   item.enabled(data) && {
                     icon: <item.icon className="size-3.5 text-blue-500" />,
                   })}
                 onRemove={() =>
-                  "remove" in item
+                  "remove" in item && typeof item.remove === "function"
                     ? item.remove(setValue)
                     : setValue(item.key as any, false, { shouldDirty: true })
                 }

@@ -63,6 +63,7 @@ export const AnalyticsContext = createContext<{
   demoPage?: boolean;
   partnerPage?: boolean;
   showConversions?: boolean;
+  conversionsEnabled?: boolean;
   requiresUpgrade?: boolean;
   dashboardProps?: AnalyticsDashboardProps;
 }>({
@@ -80,6 +81,7 @@ export const AnalyticsContext = createContext<{
   demoPage: false,
   partnerPage: false,
   showConversions: false,
+  conversionsEnabled: false,
   requiresUpgrade: false,
   dashboardProps: undefined,
 });
@@ -96,7 +98,12 @@ export default function AnalyticsProvider({
 }>) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { id: workspaceId, slug, conversionEnabled, domains } = useWorkspace();
+  const {
+    id: workspaceId,
+    slug,
+    domains,
+    conversionEnabled: conversionsEnabledWorkspace,
+  } = useWorkspace();
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
   const { dashboardId, programSlug } = useParams() as {
@@ -111,15 +118,13 @@ export default function AnalyticsProvider({
   // key can be a query param (stats pages in app) or passed as a staticKey (shared analytics dashboards)
   const key = searchParams?.get("key") || dashboardProps?.key;
 
-  // Whether to show conversions in shared analytics dashboards
+  // Show conversion tabs/data for all dashboards except shared (unless explicitly set)
   const showConversions =
-    adminPage ||
-    demoPage ||
-    partnerPage ||
-    conversionEnabled ||
-    dashboardProps?.showConversions
-      ? true
-      : false;
+    !dashboardProps || dashboardProps?.showConversions ? true : false;
+
+  // Conversions must be enabled for dashboards showing them, otherwise defer to the workspace
+  const conversionsEnabled =
+    dashboardProps?.showConversions || conversionsEnabledWorkspace;
 
   const tagIds = combineTagIds({
     tagId: searchParams?.get("tagId"),
@@ -150,8 +155,6 @@ export default function AnalyticsProvider({
     start || end ? undefined : searchParams?.get("interval") ?? defaultInterval;
 
   const selectedTab: EventType = useMemo(() => {
-    if (!showConversions) return "clicks";
-
     const event = searchParams.get("event");
 
     return EVENT_TYPES.find((t) => t === event) ?? "clicks";
@@ -176,8 +179,6 @@ export default function AnalyticsProvider({
     "timeseries",
   );
   const view: AnalyticsView = useMemo(() => {
-    if (!showConversions) return "timeseries";
-
     const searchParamsView = searchParams.get("view") as AnalyticsView;
     if (ANALYTICS_VIEWS.includes(searchParamsView)) {
       setPersistedView(searchParamsView);
@@ -290,7 +291,7 @@ export default function AnalyticsProvider({
     [key in AnalyticsResponseOptions]: number;
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
-      event: showConversions ? "composite" : "clicks",
+      event: "composite",
     })}`,
     fetcher,
     {
@@ -345,8 +346,9 @@ export default function AnalyticsProvider({
         adminPage, // whether the user is an admin
         demoPage, // whether the user is viewing demo analytics
         partnerPage, // whether the user is viewing partner analytics
-        showConversions, // whether conversions are enabled
         dashboardProps,
+        showConversions, // Whether to show conversions tabs/data
+        conversionsEnabled, // Whether conversions are fully enabled
         requiresUpgrade, // whether an upgrade is required to perform the query
       }}
     >

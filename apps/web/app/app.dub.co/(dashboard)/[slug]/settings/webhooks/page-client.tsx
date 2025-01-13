@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 
 export default function WebhooksPageClient() {
   const router = useRouter();
-  const { slug, plan, role, conversionEnabled } = useWorkspace();
+  const { slug, plan, role } = useWorkspace();
 
   const { webhooks, isLoading } = useWebhooks();
 
@@ -21,8 +21,7 @@ export default function WebhooksPageClient() {
     role: role,
   });
 
-  const needsHigherPlan =
-    (plan === "free" || plan === "pro") && !conversionEnabled;
+  const needsHigherPlan = plan === "free" || plan === "pro";
 
   if (needsHigherPlan) {
     return (

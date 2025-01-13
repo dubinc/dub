@@ -30,10 +30,7 @@ export async function processLink<T extends Record<string, any>>({
   skipExternalIdChecks = false, // only skip when externalId doesn't change (e.g. when editing a link)
 }: {
   payload: NewLinkProps & T;
-  workspace?: Pick<
-    WorkspaceProps,
-    "id" | "plan" | "conversionEnabled" | "flags"
-  >;
+  workspace?: Pick<WorkspaceProps, "id" | "plan" | "flags">;
   userId?: string;
   bulk?: boolean;
   skipKeyChecks?: boolean;
@@ -277,10 +274,11 @@ export async function processLink<T extends Record<string, any>>({
   }
 
   if (trackConversion) {
-    if (!workspace || !workspace.conversionEnabled) {
+    if (!workspace || workspace.plan === "free" || workspace.plan === "pro") {
       return {
         link: payload,
-        error: "Conversion tracking is not enabled for this workspace.",
+        error:
+          "Conversion tracking is only available for workspaces with a Business plan and above. Please upgrade to continue.",
         code: "forbidden",
       };
     }
@@ -376,13 +374,6 @@ export async function processLink<T extends Record<string, any>>({
 
     // Program validity checks
     if (programId) {
-      if (!workspace?.conversionEnabled) {
-        return {
-          link: payload,
-          error: "Conversion tracking is not enabled for this workspace.",
-          code: "forbidden",
-        };
-      }
       const program = await prisma.program.findUnique({
         where: { id: programId },
       });

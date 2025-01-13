@@ -20,14 +20,12 @@ export default function AnalyticsEvents({
   adminPage?: boolean;
   demoPage?: boolean;
 }) {
-  const { conversionEnabled } = useWorkspace();
-
   return (
     <AnalyticsProvider {...{ staticDomain, staticUrl, adminPage, demoPage }}>
       <div className="pb-10">
         <Toggle page="events" />
         <div className="mx-auto flex max-w-screen-xl flex-col gap-3 px-3 lg:px-10">
-          <EventsTabs conversionEnabled={conversionEnabled} />
+          <EventsTabs />
           <EventsTableContainer />
         </div>
       </div>
@@ -37,10 +35,9 @@ export default function AnalyticsEvents({
 
 function EventsTableContainer() {
   const { selectedTab } = useContext(AnalyticsContext);
-  const { plan, slug, conversionEnabled } = useWorkspace();
+  const { plan, slug } = useWorkspace();
 
-  const requiresUpgrade =
-    (plan === "free" || plan === "pro") && !conversionEnabled;
+  const requiresUpgrade = plan === "free" || plan === "pro";
 
   return (
     <EventsTable

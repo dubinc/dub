@@ -39,7 +39,6 @@ export const POST = withWorkspace(
         linkId: link.id,
         projectId: workspace.id,
         userId: link.userId,
-        showConversions: link.trackConversion,
       },
     });
 

@@ -31,7 +31,6 @@ async function main() {
           linkId: link.id,
           projectId: link.projectId,
           userId: link.userId,
-          showConversions: link.trackConversion,
         },
       });
 

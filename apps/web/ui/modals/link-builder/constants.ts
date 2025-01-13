@@ -32,7 +32,6 @@ export const TOGGLES = [
       "Track conversions on your short link to measure the effectiveness of your marketing campaigns.",
     learnMoreUrl: "https://dub.co/help/article/conversion-tracking",
     shortcutKey: "c",
-    conversionEnabled: true,
     type: "boolean",
   },
   {
