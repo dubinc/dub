@@ -72,7 +72,7 @@ export const WorkspaceSchema = z
     conversionEnabled: z
       .boolean()
       .describe(
-        "Whether the workspace has conversion tracking enabled (d.to/conversions).",
+        "Whether the workspace has conversion tracking enabled automatically for new links (d.to/conversions).",
       ),
     dotLinkClaimed: z
       .boolean()
@@ -129,6 +129,7 @@ export const createWorkspaceSchema = z.object({
       message: "Cannot use reserved slugs",
     }),
   logo: z.string().optional(),
+  conversionEnabled: z.boolean().optional(),
 });
 
 export const updateWorkspaceSchema = createWorkspaceSchema.partial();

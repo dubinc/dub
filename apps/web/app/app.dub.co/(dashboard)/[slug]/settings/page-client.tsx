@@ -2,6 +2,7 @@
 
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { ConversionTrackingToggle } from "@/ui/workspaces/conversion-tracking-toggle";
 import DeleteWorkspace from "@/ui/workspaces/delete-workspace";
 import UploadLogo from "@/ui/workspaces/upload-logo";
 import WorkspaceId from "@/ui/workspaces/workspace-id";
@@ -13,7 +14,7 @@ import { mutate } from "swr";
 
 export default function WorkspaceSettingsClient() {
   const router = useRouter();
-  const { id, name, slug, role } = useWorkspace();
+  const { id, name, slug, role, plan } = useWorkspace();
 
   const permissionsError = clientAccessCheck({
     action: "workspaces.write",
@@ -93,6 +94,7 @@ export default function WorkspaceSettingsClient() {
       />
       <UploadLogo />
       <WorkspaceId />
+      <ConversionTrackingToggle />
       <DeleteWorkspace />
     </>
   );
