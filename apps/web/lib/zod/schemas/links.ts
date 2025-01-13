@@ -194,19 +194,20 @@ export const createLinkBodySchema = z.object({
   trackConversion: z
     .boolean()
     .optional()
-    .default(false)
-    .describe("Whether to track conversions for the short link."),
+    .describe(
+      "Whether to track conversions for the short link. Defaults to `false` if not provided.",
+    ),
   archived: z
     .boolean()
     .optional()
-    .default(false)
-    .describe("Whether the short link is archived."),
+    .describe(
+      "Whether the short link is archived. Defaults to `false` if not provided.",
+    ),
   publicStats: z
     .boolean()
     .optional()
-    .default(false)
     .describe(
-      "Deprecated: Use `dashboard` instead. Whether the short link's stats are publicly accessible.",
+      "Deprecated: Use `dashboard` instead. Whether the short link's stats are publicly accessible. Defaults to `false` if not provided.",
     )
     .openapi({ deprecated: true }),
   tagId: z
@@ -246,8 +247,9 @@ export const createLinkBodySchema = z.object({
   proxy: z
     .boolean()
     .optional()
-    .default(false)
-    .describe("Whether the short link uses Custom Social Media Cards feature."),
+    .describe(
+      "Whether the short link uses Custom Social Media Cards feature. Defaults to `false` if not provided.",
+    ),
   title: z
     .string()
     .nullish()
@@ -275,8 +277,9 @@ export const createLinkBodySchema = z.object({
   rewrite: z
     .boolean()
     .optional()
-    .default(false)
-    .describe("Whether the short link uses link cloaking."),
+    .describe(
+      "Whether the short link uses link cloaking. Defaults to `false` if not provided.",
+    ),
   ios: parseUrlSchema
     .nullish()
     .describe(
@@ -297,7 +300,6 @@ export const createLinkBodySchema = z.object({
   doIndex: z
     .boolean()
     .optional()
-    .default(false)
     .describe(
       "Allow search engines to index your short link. Defaults to `false` if not provided. Learn more: https://d.to/noindex",
     ),
@@ -349,7 +351,7 @@ export const createLinkBodySchema = z.object({
     ),
 });
 
-export const updateLinkBodySchema = createLinkBodySchema.partial().optional();
+export const updateLinkBodySchema = createLinkBodySchema.partial();
 
 export const bulkCreateLinksBodySchema = z
   .array(createLinkBodySchema)
