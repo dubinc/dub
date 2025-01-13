@@ -49,7 +49,10 @@
       }
     ],
     "content_security_policy": {
-      "connect-src": null,
+      "connect-src": [
+        "https://api.dub.co/links",
+        "https://api-staging.dub.co/links"
+      ],
       "image-src": null,
       "purpose": ""
     }
@@ -58,6 +61,10 @@
     "type": "settings",
     "url": ""
   },
-  "stripe_api_access_type": "platform",
+  "allowed_redirect_uris": [
+    "https://app.dub.co/api/stripe/integration/callback",
+    "https://preview.dub.co/api/stripe/integration/callback"
+  ],
+  "stripe_api_access_type": "oauth",
   "distribution_type": "public"
 }
