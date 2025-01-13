@@ -83,8 +83,9 @@ export const POST = async (req: Request) => {
 };
 
 export const OPTIONS = () => {
-  return new Response(null, {
+  return new Response("OK", {
     status: 204,
     headers: CORS_HEADERS,
   });
 };
+
