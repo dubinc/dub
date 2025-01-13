@@ -63,6 +63,9 @@ importers:
       '@dub/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      '@floating-ui/react':
+        specifier: ^0.26.20
+        version: 0.26.20(react-dom@18.2.0)(react@18.2.0)
       '@hookform/resolvers':
         specifier: ^3.9.0
         version: 3.9.0(react-hook-form@7.52.1)
@@ -4310,14 +4313,10 @@ packages:
       react-dom: '>=16.8.0'
     dependencies:
       '@floating-ui/react-dom': 2.1.1(react-dom@18.2.0)(react@18.2.0)
-      '@floating-ui/utils': 0.2.5
+      '@floating-ui/utils': 0.2.8
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
       tabbable: 6.2.0
-    dev: false
-
-  /@floating-ui/utils@0.2.5:
-    resolution: {integrity: sha512-sTcG+QZ6fdEUObICavU+aB3Mp8HY4n14wYHdxK4fXjPmv3PXZZeY5RaguJmGyeH/CJQhX3fqKUtS4qc1LoHwhQ==}
     dev: false
 
   /@floating-ui/utils@0.2.8:

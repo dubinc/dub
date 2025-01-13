@@ -132,6 +132,7 @@ export interface WorkspaceProps extends Project {
   flags?: {
     [key in BetaFeatures]: boolean;
   };
+  store: Record<string, any> | null;
 }
 
 export type ExpandedWorkspaceProps = WorkspaceProps & {

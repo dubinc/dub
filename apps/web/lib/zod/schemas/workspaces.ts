@@ -108,6 +108,10 @@ export const WorkspaceSchema = z
       .describe(
         "The feature flags of the workspace, indicating which features are enabled.",
       ),
+    store: z
+      .record(z.any())
+      .nullable()
+      .describe("The miscellaneous key-value store of the workspace."),
   })
   .openapi({
     title: "Workspace",
