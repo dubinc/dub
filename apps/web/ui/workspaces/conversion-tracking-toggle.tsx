@@ -2,7 +2,7 @@
 
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { SquareChart, Switch } from "@dub/ui";
+import { SquareChart, Switch, TooltipContent } from "@dub/ui";
 import { ComponentProps, useEffect, useId, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -11,29 +11,29 @@ export function ConversionTrackingToggle() {
   const id = useId();
 
   const { plan } = useWorkspace();
-  const enabled = plan !== "free" && plan !== "pro";
 
-  return enabled ? (
+  return (
     <div className="flex items-center justify-between gap-4 rounded-lg border border-gray-200 bg-white p-5">
       <div className="flex min-w-0 items-center gap-4">
-        <div className="hidden rounded-md border border-gray-200 p-2 sm:block">
+        <div className="hidden rounded-md border border-gray-200 p-3 sm:block">
           <SquareChart className="size-5" />
         </div>
         <div className="overflow-hidden">
           <label
             htmlFor={`${id}-switch`}
-            className="block text-pretty text-sm font-medium"
+            className="block text-pretty font-medium"
           >
-            Enable conversion tracking for future links
+            Workspace-level conversion tracking
           </label>
-          <p className="mt-1 flex items-center gap-1 text-xs text-gray-500">
+          <p className="mt-1 flex items-center gap-1 text-sm text-gray-500">
+            Enable conversion tracking for all links made in this workspace.
             This only affects links made with the link builder.
           </p>
         </div>
       </div>
       <ConversionTrackingToggleSwitch id={`${id}-switch`} />
     </div>
-  ) : null;
+  );
 }
 
 export function ConversionTrackingToggleSwitch(
@@ -41,6 +41,7 @@ export function ConversionTrackingToggleSwitch(
 ) {
   const {
     slug: workspaceSlug,
+    plan,
     role,
     conversionEnabled: workspaceConversionEnabled,
   } = useWorkspace();
@@ -62,7 +63,17 @@ export function ConversionTrackingToggleSwitch(
   return (
     <Switch
       disabled={isSubmitting}
-      disabledTooltip={permissionsError}
+      disabledTooltip={
+        plan === "free" || plan === "pro" ? (
+          <TooltipContent
+            title="You can only enable conversion tracking on Business plans and above."
+            cta="Upgrade to Business"
+            href={`/${workspaceSlug}/upgrade`}
+          />
+        ) : (
+          permissionsError
+        )
+      }
       checked={conversionEnabled}
       fn={(checked) => {
         const oldConversionEnabled = conversionEnabled;

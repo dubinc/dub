@@ -14,7 +14,7 @@ import { mutate } from "swr";
 
 export default function WorkspaceSettingsClient() {
   const router = useRouter();
-  const { id, name, slug, role, plan } = useWorkspace();
+  const { id, name, slug, role } = useWorkspace();
 
   const permissionsError = clientAccessCheck({
     action: "workspaces.write",
@@ -92,9 +92,9 @@ export default function WorkspaceSettingsClient() {
           })
         }
       />
+      <ConversionTrackingToggle />
       <UploadLogo />
       <WorkspaceId />
-      <ConversionTrackingToggle />
       <DeleteWorkspace />
     </>
   );
