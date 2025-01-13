@@ -20,6 +20,7 @@ import {
   cn,
   DUB_DOMAINS,
   getApexDomain,
+  getDomainWithoutWWW,
   linkConstructor,
   nanoid,
   punycode,
@@ -395,10 +396,17 @@ function DefaultDomainPrompt({
 }) {
   if (!url || !domain) return null;
 
+  const urlDomain = getDomainWithoutWWW(url);
   const apexDomain = getApexDomain(url);
-  const hostnameFor = DUB_DOMAINS.find((domain) =>
-    domain?.allowedHostnames?.includes(apexDomain),
-  );
+  const hostnameFor = DUB_DOMAINS.find((domain) => {
+    if (domain?.allowedHostnames) {
+      return (
+        (urlDomain && domain.allowedHostnames.includes(urlDomain)) ||
+        domain.allowedHostnames.includes(apexDomain)
+      );
+    }
+    return false;
+  });
   const domainSlug = hostnameFor?.slug;
 
   if (!domainSlug || domain === domainSlug) return null;

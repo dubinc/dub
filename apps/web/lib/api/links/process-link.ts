@@ -192,11 +192,13 @@ export async function processLink<T extends Record<string, any>>({
   } else if (isDubDomain(domain)) {
     // coerce type with ! cause we already checked if it exists
     const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
-    const urlDomain = getApexDomain(url) || "";
+    const urlDomain = getDomainWithoutWWW(url) || "";
+    const apexDomain = getApexDomain(url);
     if (
       key !== "_root" &&
       allowedHostnames &&
-      !allowedHostnames.includes(urlDomain)
+      !allowedHostnames.includes(urlDomain) &&
+      !allowedHostnames.includes(apexDomain)
     ) {
       return {
         link: payload,
