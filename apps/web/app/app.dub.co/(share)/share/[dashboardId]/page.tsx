@@ -75,7 +75,7 @@ export default async function dashboardPage({
             domain: data.link.domain,
             key: data.link.key,
             url: data.link.url,
-            showConversions: data.link.trackConversion,
+            showConversions: data.showConversions,
             workspacePlan: data.project?.plan as PlanProps,
           }}
         />
