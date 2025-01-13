@@ -94,7 +94,12 @@ export const POST = withWorkspace(
         );
       }
 
-      return NextResponse.json(response, { headers });
+      return NextResponse.json(response, {
+        headers: {
+          ...headers,
+          ...CORS_HEADERS,
+        },
+      });
     } catch (error) {
       throw new DubApiError({
         code: "unprocessable_entity",
