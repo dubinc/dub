@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "@/ui/shared/icons";
+import { ConversionTrackingToggleSwitch } from "@/ui/workspaces/conversion-tracking-toggle";
 import {
   AnimatedSizeContainer,
   BlurImage,
@@ -8,6 +9,7 @@ import {
   CircleDollar,
   CirclePlay,
   Modal,
+  SquareChart,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
@@ -18,6 +20,7 @@ import {
   ReactNode,
   SetStateAction,
   useContext,
+  useId,
   useState,
 } from "react";
 import { AuthJs } from "./icons/auth-js";
@@ -332,6 +335,8 @@ function AuthProviderSelection() {
 }
 
 function Docs() {
+  const id = useId();
+
   const {
     paymentProcessorIndex,
     authProviderIndex,
@@ -429,6 +434,24 @@ function Docs() {
             </span>
           </Link>
         ))}
+      </div>
+      <div className="mt-4 flex items-start gap-3 rounded-lg border border-neutral-300 p-4">
+        <div className="hidden rounded-md border border-neutral-300 p-1.5 sm:block">
+          <SquareChart className="size-5" />
+        </div>
+        <div>
+          <label
+            htmlFor={`${id}-switch`}
+            className="block select-none text-pretty text-sm font-semibold text-neutral-900"
+          >
+            Enable conversion tracking for future links
+          </label>
+          <p className="mt-1 text-xs text-neutral-500">
+            This only affects links made with the link builder. You can update
+            this behavior later in your workspace settings.
+          </p>
+        </div>
+        <ConversionTrackingToggleSwitch id={`${id}-switch`} />
       </div>
       <div className="mt-6 flex justify-center">
         <button
