@@ -4,10 +4,9 @@ import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
   BlurImage,
-  Book2Small,
   BookOpen,
   CircleDollar,
-  Globe,
+  CirclePlay,
   Modal,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -37,8 +36,6 @@ const PAYMENT_PROCESSORS = [
   {
     name: "Stripe",
     icon: Stripe,
-    site: "stripe.com",
-    docs: "docs.stripe.com",
     guide: "https://dub.co/docs/conversions/sales/stripe",
     thumbnail: GUIDE_THUMBNAIL(
       "Stripe",
@@ -48,13 +45,14 @@ const PAYMENT_PROCESSORS = [
   {
     name: "Shopify",
     icon: Shopify,
-    site: "shopify.com",
-    docs: "help.shopify.com",
     guide: "https://dub.co/docs/conversions/sales/shopify",
     thumbnail: GUIDE_THUMBNAIL(
       "Shopify",
       "Learn how to set up Shopify conversion tracking",
     ),
+    video: "https://www.loom.com/share/936970b8db5b41488657fa92ffec384a", // TODO: [Conversions] update video URL
+    videoThumbnail:
+      "https://cdn.loom.com/sessions/thumbnails/936970b8db5b41488657fa92ffec384a-0198848bd96f7918.jpg", // TODO: [Conversions] update video thumbnail
   },
   {
     name: "Custom Payments",
@@ -294,33 +292,6 @@ function AuthProviderSelection() {
       <h3 className="mt-6 text-lg font-semibold text-neutral-800">
         {paymentProcessor.name}
       </h3>
-      {paymentProcessor.site && (
-        <>
-          <div className="mt-2 grid grid-cols-2">
-            {[
-              { label: "Website", key: "site", icon: Globe },
-              { label: "Docs", key: "docs", icon: Book2Small },
-            ].map(({ label, key, icon: Icon }) => (
-              <div key={key}>
-                <span className="text-[0.625rem] uppercase text-neutral-500">
-                  {label}
-                </span>
-                <Link
-                  href={`//${paymentProcessor[key]}`}
-                  target="_blank"
-                  className="mt-1.5 flex items-center gap-2 text-neutral-800"
-                >
-                  <Icon className="size-3" />
-                  <span className="text-xs font-medium leading-none">
-                    {paymentProcessor[key]}
-                  </span>
-                </Link>
-              </div>
-            ))}
-          </div>
-          <hr className="mt-5 border-neutral-200" />
-        </>
-      )}
 
       <p className="mt-5 text-sm leading-none text-neutral-500">
         Select your auth provider
@@ -371,76 +342,90 @@ function Docs() {
   const paymentProcessor = PAYMENT_PROCESSORS[paymentProcessorIndex ?? 0];
   const authProvider = AUTH_PROVIDERS[authProviderIndex ?? 0];
 
-  const isSameProvider =
-    (authProvider.shortName || authProvider.name) ===
-    (paymentProcessor.shortName || paymentProcessor.name);
+  const isSameProvider = authProvider.name === paymentProcessor.name;
 
   return (
     <div>
-      <div className="flex items-center gap-2">
-        <div className="flex size-12 items-center justify-center rounded-lg border border-neutral-200 text-neutral-900">
-          <paymentProcessor.icon className="size-8" />
+      <div className="flex grid-cols-2 gap-12 sm:grid sm:gap-4">
+        <div>
+          <div className="flex size-12 items-center justify-center rounded-lg border border-neutral-200 text-neutral-900">
+            <paymentProcessor.icon className="size-8" />
+          </div>
+          <h3 className="mt-6 text-lg font-semibold text-neutral-800">
+            {paymentProcessor.name}
+          </h3>
         </div>
         {!isSameProvider && (
-          <>
-            <span className="text-neutral-500">+</span>
+          <div>
             <div className="flex size-12 items-center justify-center rounded-lg border border-neutral-200 text-neutral-900">
               <authProvider.icon className="size-8" />
             </div>
-          </>
+            <h3 className="mt-6 text-lg font-semibold text-neutral-800">
+              {authProvider.name}
+            </h3>
+          </div>
         )}
       </div>
-      <h3 className="mt-6 text-lg font-semibold text-neutral-800">
-        {paymentProcessor.name}
-        {paymentProcessor.name !== authProvider.name && (
-          <>
-            {" "}
-            <span className="text-neutral-500">+</span> {authProvider.name}
-          </>
-        )}
-      </h3>
       <div
         className={cn(
           "mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2",
-          isSameProvider && "mx-auto max-w-xs sm:grid-cols-1",
+          isSameProvider &&
+            !paymentProcessor.video &&
+            "mx-auto max-w-xs sm:grid-cols-1",
         )}
       >
         {[
-          {
-            name: paymentProcessor.shortName || paymentProcessor.name,
-            url: paymentProcessor.guide,
-            thumbnail: paymentProcessor.thumbnail,
-          },
-          ...(!isSameProvider
+          // If it's the same provider but there's also a video, show that too
+          ...(isSameProvider && paymentProcessor.video
             ? [
                 {
-                  name: authProvider.name,
-                  url: authProvider.guide,
-                  thumbnail: authProvider.thumbnail,
+                  label: "Watch app demo",
+                  url: paymentProcessor.video,
+                  thumbnail: paymentProcessor.videoThumbnail,
+                  icon: CirclePlay,
                 },
               ]
             : []),
-        ].map(({ name, url, thumbnail }) => (
+          {
+            label: `Read ${paymentProcessor.name} guide`,
+            url: paymentProcessor.guide,
+            thumbnail: paymentProcessor.thumbnail,
+            icon: BookOpen,
+          },
+          // If it's the same provider don't show the auth provider guide
+          ...(!isSameProvider
+            ? [
+                {
+                  label: `Read ${authProvider.name} guide`,
+                  url: authProvider.guide,
+                  thumbnail: authProvider.thumbnail,
+                  icon: BookOpen,
+                },
+              ]
+            : []),
+        ].map(({ icon: Icon, label, url, thumbnail }) => (
           <Link
-            key={name}
+            key={label}
             href={url || "https://dub.co/docs/conversions/quickstart"}
             target="_blank"
-            className="group flex flex-col items-center rounded-lg bg-neutral-200/40 p-6 pb-4 transition-colors duration-100 hover:bg-neutral-200/60"
+            className="group flex flex-col items-center rounded-lg bg-neutral-200/40 pb-4 pt-6 transition-colors duration-100 hover:bg-neutral-200/60"
           >
-            {thumbnail ? (
-              <BlurImage
-                src={thumbnail}
-                alt={`${name} guide thumbnail`}
-                className="w-full max-w-[240px] rounded-lg object-cover"
-                width={1200}
-                height={630}
-              />
-            ) : (
-              <div className="aspect-video w-full rounded bg-neutral-300 shadow-sm" />
-            )}
-            <span className="mt-4 flex items-center gap-2 text-left text-sm font-medium text-neutral-700">
-              <BookOpen className="size-4" />
-              Read {name} guide
+            <div className="flex w-full justify-center px-6">
+              {thumbnail ? (
+                <BlurImage
+                  src={thumbnail}
+                  alt={`${label} thumbnail`}
+                  className="aspect-[1200/630] w-full max-w-[240px] rounded-lg bg-neutral-800 object-cover"
+                  width={1200}
+                  height={630}
+                />
+              ) : (
+                <div className="aspect-video w-full rounded bg-neutral-300 shadow-sm" />
+              )}
+            </div>
+            <span className="mt-4 flex items-center gap-2 px-2 text-left text-[0.8125rem] font-medium text-neutral-700">
+              <Icon className="size-4" />
+              {label}
             </span>
           </Link>
         ))}

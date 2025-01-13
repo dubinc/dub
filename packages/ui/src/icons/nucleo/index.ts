@@ -36,6 +36,7 @@ export * from "./circle-dotted";
 export * from "./circle-half-dotted-check";
 export * from "./circle-half-dotted-clock";
 export * from "./circle-info";
+export * from "./circle-play";
 export * from "./circle-play-fill";
 export * from "./circle-question";
 export * from "./circle-warning";
