@@ -49,7 +49,11 @@
       }
     ],
     "content_security_policy": {
-      "connect-src": null,
+      "connect-src": [
+        "http://localhost:8888/api/",
+        "https://api.dub.co/",
+        "https://api-staging.dub.co/"
+      ],
       "image-src": null,
       "purpose": ""
     }
