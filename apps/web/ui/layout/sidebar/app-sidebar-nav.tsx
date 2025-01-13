@@ -272,6 +272,6 @@ export function AppSidebarNav({
           <Usage />
         </>
       }
-      />
+    />
   );
 }
