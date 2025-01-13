@@ -11,6 +11,7 @@ export function Switch({
   trackDimensions,
   thumbDimensions,
   thumbTranslate,
+  thumbIcon,
   checked = true,
   loading = false,
   disabled = false,
@@ -21,6 +22,7 @@ export function Switch({
   trackDimensions?: string;
   thumbDimensions?: string;
   thumbTranslate?: string;
+  thumbIcon?: ReactNode;
   checked?: boolean;
   loading?: boolean;
   disabled?: boolean;
@@ -52,7 +54,9 @@ export function Switch({
           thumbDimensions,
           thumbTranslate,
         )}
-      />
+      >
+        {thumbIcon}
+      </SwitchPrimitive.Thumb>
     </SwitchPrimitive.Root>
   );
 
