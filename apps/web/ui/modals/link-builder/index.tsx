@@ -89,13 +89,14 @@ export function LinkBuilder(props: LinkBuilderProps) {
 }
 
 function LinkBuilderOuter(props: LinkBuilderProps) {
-  // TODO: should we use a different value for this? or just keep it as is?
-  const { conversionEnabled } = useWorkspace();
+  const { plan, conversionEnabled } = useWorkspace();
   const form = useForm<LinkFormData>({
     defaultValues: props.props ||
       props.duplicateProps || {
         ...DEFAULT_LINK_PROPS,
-        trackConversion: conversionEnabled || false,
+        trackConversion:
+          (plan && plan !== "free" && plan !== "pro" && conversionEnabled) ||
+          false,
       },
   });
 
