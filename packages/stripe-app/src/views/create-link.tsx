@@ -74,8 +74,8 @@ export const CreateLink = ({ workspace }: { workspace: Workspace | null }) => {
           borderTopColor: "neutral",
         }}
       >
-        Want to claim your links and view analytics for them? Connect your Dub
-        workspace.
+        Want to claim your links and track conversions for them? Connect your
+        Dub workspace.
       </Box>
     </Box>
   );
