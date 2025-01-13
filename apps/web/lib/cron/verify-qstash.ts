@@ -9,26 +9,29 @@ const receiver = new Receiver({
 
 export const verifyQstashSignature = async ({
   req,
-  body,
-  bodyType = "json",
+  rawBody,
 }: {
   req: Request;
-  body?: any;
-  // due to a weird QStash bug, webhook URLs that have query params
-  // need to be verified with the text body type (instead of JSON)
-  bodyType?: "json" | "text";
+  rawBody: string; // Make sure to pass the raw body not the parsed JSON
 }) => {
-  body = body || (bodyType === "json" ? await req.json() : await req.text());
+  const signature = req.headers.get("Upstash-Signature");
+
+  if (!signature) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "Upstash-Signature header not found.",
+    });
+  }
 
   const isValid = await receiver.verify({
-    signature: req.headers.get("Upstash-Signature") || "",
-    body: bodyType === "json" ? JSON.stringify(body) : body,
+    signature,
+    body: rawBody,
   });
 
   if (!isValid) {
     throw new DubApiError({
       code: "unauthorized",
-      message: "Invalid QStash request signature",
+      message: "Invalid QStash request signature.",
     });
   }
 };
