@@ -181,7 +181,7 @@ function ConversionOnboardingModalInner({
         <button
           type="button"
           onClick={() => setShowConversionOnboardingModal(false)}
-          className="group absolute right-4 top-4 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 md:block"
+          className="group absolute right-4 top-4 z-[1] hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 md:block"
         >
           <X className="size-5" />
         </button>
