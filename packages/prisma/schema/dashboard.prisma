@@ -15,6 +15,7 @@ model Dashboard {
   // additional link configurations
   doIndex         Boolean @default(false) // whether to index the share link on Google or not
   password        String? // password to access the share link
+  showConversions Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
