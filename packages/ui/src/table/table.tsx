@@ -8,6 +8,7 @@ import {
   getCoreRowModel,
   PaginationState,
   Row,
+  RowSelectionState,
   Table as TableType,
   useReactTable,
   VisibilityState,
@@ -55,6 +56,12 @@ type UseTableProps<T> = {
   resourceName?: (plural: boolean) => string;
   onRowClick?: (row: Row<T>, e: MouseEvent) => void;
 
+  // Row selection
+  getRowId?: (row: T) => string;
+  onRowSelectionChange?: (rows: Row<T>[]) => void;
+  selectedRows?: RowSelectionState;
+
+  // Table styles
   className?: string;
   containerClassName?: string;
   scrollWrapperClassName?: string;
@@ -85,11 +92,20 @@ export function useTable<T extends any>(
     columnPinning,
     pagination,
     onPaginationChange,
+    getRowId,
   } = props;
 
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     props.columnVisibility ?? {},
   );
+
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>(
+    props.selectedRows ?? {},
+  );
+
+  useEffect(() => {
+    props.onRowSelectionChange?.(table.getSelectedRowModel().rows);
+  }, [rowSelection]);
 
   // Update internal columnVisibility when prop value changes
   useEffect(() => {
@@ -118,14 +134,17 @@ export function useTable<T extends any>(
     getCoreRowModel: getCoreRowModel(),
     onPaginationChange,
     onColumnVisibilityChange: (visibility) => setColumnVisibility(visibility),
+    onRowSelectionChange: setRowSelection,
     state: {
-      pagination: pagination,
+      pagination,
       columnVisibility,
       columnPinning: { left: [], right: [], ...columnPinning },
+      rowSelection,
     },
     manualPagination: true,
     autoResetPageIndex: false,
     manualSorting: true,
+    getRowId,
   });
 
   return {

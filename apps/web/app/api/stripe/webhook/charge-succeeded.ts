@@ -1,7 +1,6 @@
 import { limiter } from "@/lib/cron/limiter";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
-import { formatDate } from "@dub/utils";
 import { sendEmail } from "emails";
 import PartnerPayoutSent from "emails/partner-payout-sent";
 import Stripe from "stripe";
@@ -100,16 +99,8 @@ export async function chargeSucceeded(event: Stripe.Event) {
               payout: {
                 id: payout.id,
                 amount: payout.amount,
-                startDate: formatDate(payout.periodStart!, {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                }),
-                endDate: formatDate(payout.periodEnd!, {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                }),
+                startDate: payout.periodStart!,
+                endDate: payout.periodEnd!,
               },
             }),
           }),
