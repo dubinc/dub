@@ -15,6 +15,7 @@ export async function createLink({
     method: "POST",
     body: JSON.stringify({
       url,
+      ...(token ? { trackConversion: true } : {}),
     }),
     headers: {
       "Content-Type": "application/json",

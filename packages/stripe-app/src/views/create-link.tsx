@@ -53,36 +53,30 @@ export const CreateLink = ({ workspace }: { workspace: Workspace | null }) => {
           label="Destination URL"
           placeholder="https://dub.co/help/article/what-is-dub"
           hiddenElements={["label"]}
-          size="large"
           onChange={(e) => setUrl(e.target.value)}
           value={url}
         />
         <Button
           type="primary"
-          size="large"
           onPress={handleCreateLink}
           disabled={isSubmitting || !url}
         >
-          {isSubmitting ? "Creating..." : "Create link"}
+          {isSubmitting ? "Shortening..." : "Shorten link"}
         </Button>
       </FormFieldGroup>
-
       {shortLink && (
         <Link href={shortLink} target="_blank">
           {shortLink}
         </Link>
       )}
-
-      {!workspace && (
-        <Button
-          type="secondary"
-          size="small"
-          target="_blank"
-          href="https://d.to/register"
-        >
-          Connect to Dub to shorten more links
-        </Button>
-      )}
+      <Box
+        css={{
+          borderTopColor: "neutral",
+        }}
+      >
+        Want to claim your links and view analytics for them? Connect your Dub
+        workspace.
+      </Box>
     </Box>
   );
 };
