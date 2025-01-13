@@ -1,3 +1,4 @@
+import { log } from "@dub/utils";
 import { Receiver } from "@upstash/qstash";
 import { DubApiError } from "../api/errors";
 
@@ -29,6 +30,15 @@ export const verifyQstashSignature = async ({
   });
 
   if (!isValid) {
+    const url = req.url;
+    const messageId = req.headers.get("Upstash-Message-Id");
+
+    log({
+      message: `Invalid QStash request signature: *${url}* - *${messageId}*`,
+      type: "errors",
+      mention: true,
+    });
+
     throw new DubApiError({
       code: "unauthorized",
       message: "Invalid QStash request signature.",
