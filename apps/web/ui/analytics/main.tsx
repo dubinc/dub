@@ -1,6 +1,7 @@
 import { AnalyticsSaleUnit, EventType } from "@/lib/analytics/types";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
+  BlurImage,
   buttonVariants,
   ChartLine,
   Filter2,
@@ -15,7 +16,6 @@ import { useContext, useMemo } from "react";
 import AnalyticsAreaChart from "./analytics-area-chart";
 import { AnalyticsFunnelChart } from "./analytics-funnel-chart";
 import { AnalyticsContext } from "./analytics-provider";
-
 type Tab = {
   id: EventType;
   label: string;
@@ -27,7 +27,6 @@ export default function Main() {
   const {
     totalEvents,
     requiresUpgrade,
-    conversionsEnabled,
     showConversions,
     selectedTab,
     saleUnit,
@@ -237,13 +236,12 @@ function ConversionTrackingPaywall() {
           target="_blank"
           className="group relative flex aspect-video w-full max-w-80 items-center justify-center overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100"
         >
-          {/* TODO: Add video thumbnail */}
-          {/* <Image
-            src=""
-            alt="Video thumbnail"
+          <BlurImage
+            src="https://assets.dub.co/blog/conversion-analytics.png"
+            alt="thumbnail"
             fill
             className="object-cover"
-          /> */}
+          />
           <div className="relative flex size-10 items-center justify-center rounded-full bg-neutral-900 ring-[6px] ring-black/5 transition-all duration-75 group-hover:ring-[8px] group-active:ring-[7px]">
             <Play className="size-4 fill-current text-white" />
           </div>
