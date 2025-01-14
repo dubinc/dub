@@ -7,7 +7,6 @@ import {
   BlurImage,
   BookOpen,
   CircleDollar,
-  CirclePlay,
   Modal,
   SquareChart,
 } from "@dub/ui";
@@ -53,9 +52,6 @@ const PAYMENT_PROCESSORS = [
       "Shopify",
       "Learn how to set up Shopify conversion tracking",
     ),
-    video: "https://www.loom.com/share/936970b8db5b41488657fa92ffec384a", // TODO: [Conversions] update video URL
-    videoThumbnail:
-      "https://cdn.loom.com/sessions/thumbnails/936970b8db5b41488657fa92ffec384a-0198848bd96f7918.jpg", // TODO: [Conversions] update video thumbnail
   },
   {
     name: "Custom Payments",
@@ -374,23 +370,10 @@ function Docs() {
       <div
         className={cn(
           "mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2",
-          isSameProvider &&
-            !paymentProcessor.video &&
-            "mx-auto max-w-xs sm:grid-cols-1",
+          isSameProvider && "mx-auto max-w-xs sm:grid-cols-1",
         )}
       >
         {[
-          // If it's the same provider but there's also a video, show that too
-          ...(isSameProvider && paymentProcessor.video
-            ? [
-                {
-                  label: "Watch app demo",
-                  url: paymentProcessor.video,
-                  thumbnail: paymentProcessor.videoThumbnail,
-                  icon: CirclePlay,
-                },
-              ]
-            : []),
           {
             label: `Read ${paymentProcessor.name} guide`,
             url: paymentProcessor.guide,
