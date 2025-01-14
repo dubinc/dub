@@ -10,7 +10,7 @@ export const getContentAPI: () => Promise<{
   try {
     return await fetch("https://dub.co/api/content", {
       next: {
-        revalidate: 60 * 60 * 24, // cache for 24 hours
+        revalidate: 60 * 5, // cache for 5 minutes
       },
     }).then((res) => res.json());
   } catch (e) {
