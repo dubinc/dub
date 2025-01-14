@@ -250,8 +250,8 @@ function ConversionTrackingPaywall() {
           Conversion Tracking
         </h2>
         <p className="mt-4 max-w-sm text-center text-sm text-neutral-500">
-          Upgrade to our Business Plan to get a detailed conversion tracking and
-          events in your workspace.{" "}
+          Want to see how your clicks are converting to revenue? Upgrade to our
+          Business Plan and start tracking conversion events with Dub.{" "}
           <Link
             href="https://d.to/conversions"
             target="_blank"
