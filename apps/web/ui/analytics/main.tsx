@@ -232,7 +232,7 @@ function ConversionTrackingPaywall() {
     <div className="animate-slide-up-fade pointer-events-none absolute inset-0 flex items-center justify-center pt-24">
       <div className="pointer-events-auto flex flex-col items-center">
         <Link
-          href="https://dub.co/help/article/dub-conversions"
+          href="https://d.to/conversions"
           target="_blank"
           className="group relative flex aspect-video w-full max-w-80 items-center justify-center overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100"
         >
@@ -253,7 +253,7 @@ function ConversionTrackingPaywall() {
           Upgrade to our Business Plan to get a detailed conversion tracking and
           events in your workspace.{" "}
           <Link
-            href="https://dub.co/help/article/dub-conversions"
+            href="https://d.to/conversions"
             target="_blank"
             className="underline transition-colors duration-75 hover:text-neutral-700"
           >

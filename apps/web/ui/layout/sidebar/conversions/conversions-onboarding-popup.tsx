@@ -63,7 +63,7 @@ export function ConversionOnboardingPopup({
         <div className="animate-slide-up-fade relative flex w-[244px] flex-col rounded-lg border border-neutral-200 bg-white p-3 text-left">
           <div className="relative">
             <Link
-              href="https://dub.co/help/article/dub-conversions"
+              href="https://d.to/conversions"
               target="_blank"
               className="group relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-md border border-neutral-200 bg-neutral-100"
             >
