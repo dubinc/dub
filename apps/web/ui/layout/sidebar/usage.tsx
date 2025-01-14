@@ -2,12 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import ManageSubscriptionButton from "@/ui/workspaces/manage-subscription-button";
-import {
-  AnimatedSizeContainer,
-  buttonVariants,
-  Icon,
-  useMediaQuery,
-} from "@dub/ui";
+import { AnimatedSizeContainer, buttonVariants, Icon } from "@dub/ui";
 import { CircleDollar, CursorRays, Hyperlink } from "@dub/ui/icons";
 import {
   cn,
@@ -31,8 +26,6 @@ export function Usage() {
 }
 
 function UsageInner() {
-  const { isMobile } = useMediaQuery();
-
   const {
     usage,
     usageLimit,
