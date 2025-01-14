@@ -101,7 +101,6 @@ export default function Toggle({
     demoPage,
     partnerPage,
     dashboardProps,
-    showConversions,
     start,
     end,
     interval,
@@ -598,9 +597,13 @@ export default function Toggle({
           for await (const partialObject of readStreamableValue(object)) {
             if (partialObject) {
               queryParams({
-                set: {
-                  ...partialObject,
-                },
+                set: Object.fromEntries(
+                  Object.entries(partialObject).map(([key, value]) => [
+                    key,
+                    // Convert Dates to ISO strings
+                    value instanceof Date ? value.toISOString() : String(value),
+                  ]),
+                ),
               });
             }
           }
@@ -701,7 +704,6 @@ export default function Toggle({
           ? false
           : !validDateRangeForPlan({
               plan: plan || dashboardProps?.workspacePlan,
-              conversionEnabled: showConversions,
               start,
               end,
             });

@@ -9,9 +9,9 @@ import {
 import { Dots } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Settings } from "lucide-react";
-import { useContext, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { LinkFormData, LinkModalContext } from ".";
+import { LinkFormData } from ".";
 import { useAdvancedModal } from "./advanced-modal";
 import { MOBILE_MORE_ITEMS, TOGGLES } from "./constants";
 import { useExpirationModal } from "./expiration-modal";
@@ -21,20 +21,14 @@ import { useTargetingModal } from "./targeting-modal";
 export function MoreDropdown() {
   const { isMobile } = useMediaQuery();
 
-  const { conversionEnabled } = useContext(LinkModalContext);
-
   const { watch, setValue } = useFormContext<LinkFormData>();
   const data = watch();
 
   const [openPopover, setOpenPopover] = useState(false);
 
   const options = useMemo(() => {
-    const toggles = TOGGLES.filter((toggle) =>
-      toggle.conversionEnabled ? conversionEnabled || data[toggle.key] : true,
-    );
-
-    return [...(isMobile ? MOBILE_MORE_ITEMS : []), ...toggles];
-  }, [conversionEnabled, data, isMobile]);
+    return [...(isMobile ? MOBILE_MORE_ITEMS : []), ...TOGGLES];
+  }, [data, isMobile]);
 
   useKeyboardShortcut(
     options.map(({ shortcutKey }) => shortcutKey),
@@ -65,7 +59,9 @@ export function MoreDropdown() {
           <div className="grid p-1 max-sm:w-full md:min-w-72">
             {options.map((option) => {
               const enabled =
-                "enabled" in option ? option.enabled(data) : data[option.key];
+                "enabled" in option && typeof option.enabled === "function"
+                  ? option.enabled(data)
+                  : data[option.key];
 
               return (
                 <Button

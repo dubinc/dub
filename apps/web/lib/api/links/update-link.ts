@@ -133,7 +133,6 @@ export async function updateLink({
         dashboard: {
           create: {
             id: createId({ prefix: "dash_" }),
-            showConversions: updatedLink.trackConversion,
             projectId: updatedLink.projectId,
             userId: updatedLink.userId,
           },
