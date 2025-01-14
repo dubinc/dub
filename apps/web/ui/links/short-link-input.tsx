@@ -371,7 +371,8 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
             onChange={(domain) => onChange({ domain })}
           />
         )}
-        {!onboarding && !dotLinkClaimed && (
+        {/* Hidden for now to make room for the conversion tracking toggle */}
+        {!onboarding && !dotLinkClaimed && false && (
           <AnimatedSizeContainer
             height
             transition={{ ease: "linear", duration: 0.1 }}

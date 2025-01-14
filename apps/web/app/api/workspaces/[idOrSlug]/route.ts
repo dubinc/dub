@@ -57,9 +57,8 @@ export const GET = withWorkspace(
 // PATCH /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
-    const { name, slug, logo } = await updateWorkspaceSchema.parseAsync(
-      await req.json(),
-    );
+    const { name, slug, logo, conversionEnabled } =
+      await updateWorkspaceSchema.parseAsync(await req.json());
 
     const logoUploaded = logo
       ? await storage.upload(
@@ -77,6 +76,7 @@ export const PATCH = withWorkspace(
           ...(name && { name }),
           ...(slug && { slug }),
           ...(logoUploaded && { logo: logoUploaded.url }),
+          ...(conversionEnabled !== undefined && { conversionEnabled }),
         },
         include: {
           domains: true,
