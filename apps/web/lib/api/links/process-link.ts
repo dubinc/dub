@@ -313,13 +313,6 @@ export async function processLink<T extends Record<string, any>>({
         code: "unprocessable_entity",
       };
     }
-    if (rewrite) {
-      return {
-        link: payload,
-        error: "You cannot use link cloaking with bulk link creation.",
-        code: "unprocessable_entity",
-      };
-    }
 
     // only perform tag validity checks if:
     // - not bulk creation (we do that check separately in the route itself)
