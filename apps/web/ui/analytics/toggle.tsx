@@ -598,9 +598,13 @@ export default function Toggle({
           for await (const partialObject of readStreamableValue(object)) {
             if (partialObject) {
               queryParams({
-                set: {
-                  ...partialObject,
-                },
+                set: Object.fromEntries(
+                  Object.entries(partialObject).map(([key, value]) => [
+                    key,
+                    // Convert Dates to ISO strings
+                    value instanceof Date ? value.toISOString() : String(value),
+                  ]),
+                ),
               });
             }
           }
