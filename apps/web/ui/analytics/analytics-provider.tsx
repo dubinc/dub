@@ -63,7 +63,6 @@ export const AnalyticsContext = createContext<{
   demoPage?: boolean;
   partnerPage?: boolean;
   showConversions?: boolean;
-  conversionsEnabled?: boolean;
   requiresUpgrade?: boolean;
   dashboardProps?: AnalyticsDashboardProps;
 }>({
@@ -81,7 +80,6 @@ export const AnalyticsContext = createContext<{
   demoPage: false,
   partnerPage: false,
   showConversions: false,
-  conversionsEnabled: false,
   requiresUpgrade: false,
   dashboardProps: undefined,
 });
@@ -98,12 +96,8 @@ export default function AnalyticsProvider({
 }>) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const {
-    id: workspaceId,
-    slug,
-    domains,
-    conversionEnabled: conversionsEnabledWorkspace,
-  } = useWorkspace();
+  const { id: workspaceId, slug, domains } = useWorkspace();
+
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
   const { dashboardId, programSlug } = useParams() as {
@@ -121,10 +115,6 @@ export default function AnalyticsProvider({
   // Show conversion tabs/data for all dashboards except shared (unless explicitly set)
   const showConversions =
     !dashboardProps || dashboardProps?.showConversions ? true : false;
-
-  // Conversions must be enabled for dashboards showing them, otherwise defer to the workspace
-  const conversionsEnabled =
-    dashboardProps?.showConversions || conversionsEnabledWorkspace;
 
   const tagIds = combineTagIds({
     tagId: searchParams?.get("tagId"),
@@ -348,7 +338,6 @@ export default function AnalyticsProvider({
         partnerPage, // whether the user is viewing partner analytics
         dashboardProps,
         showConversions, // Whether to show conversions tabs/data
-        conversionsEnabled, // Whether conversions are fully enabled
         requiresUpgrade, // whether an upgrade is required to perform the query
       }}
     >
