@@ -5,7 +5,7 @@ import { scaleLinear } from "@visx/scale";
 import { Area } from "@visx/shape";
 import { Text } from "@visx/text";
 import { motion } from "framer-motion";
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useMemo, useRef, useState } from "react";
 import { useMediaQuery } from "../hooks";
 
 const layers = [
@@ -104,70 +104,68 @@ function FunnelChartInner({
   return (
     <div className="relative">
       <svg width={width} height={height}>
-        {steps.map(({ id, value, colorClassName }, idx) => (
-          <Fragment key={id}>
-            {/* Background */}
-            <rect
-              x={xScale(idx)}
-              y={0}
-              width={width / steps.length}
-              height={height}
-              className="fill-transparent transition-colors hover:fill-blue-600/5"
-              onPointerEnter={() => setTooltip(id)}
-              onPointerDown={() => setTooltip(id)}
-              onPointerLeave={() =>
-                !isMobile && setTooltip(defaultTooltipStepId ?? null)
-              }
-            />
+        {steps.map(({ id, value, colorClassName }, idx) => {
+          const stepCenterX = (xScale(idx) + xScale(idx + 1)) / 2;
+          return (
+            <Fragment key={id}>
+              {/* Background */}
+              <rect
+                x={xScale(idx)}
+                y={0}
+                width={width / steps.length}
+                height={height}
+                className="fill-transparent transition-colors hover:fill-blue-600/5"
+                onPointerEnter={() => setTooltip(id)}
+                onPointerDown={() => setTooltip(id)}
+                onPointerLeave={() =>
+                  !isMobile && setTooltip(defaultTooltipStepId ?? null)
+                }
+              />
 
-            {/* Divider line */}
-            <line
-              x1={xScale(idx)}
-              y1={0}
-              x2={xScale(idx)}
-              y2={height}
-              className="stroke-black/5 sm:stroke-black/10"
-            />
+              {/* Divider line */}
+              <line
+                x1={xScale(idx)}
+                y1={0}
+                x2={xScale(idx)}
+                y2={height}
+                className="stroke-black/5 sm:stroke-black/10"
+              />
 
-            {/* Funnel */}
-            {layers.map(({ opacity, padding }) => (
-              <Area
-                key={`${id}-${opacity}-${padding}`}
-                data={data[id]}
-                curve={curveBasis}
-                x={(d) => xScale(idx + d.x)}
-                y0={(d) => yScale(-d.y) - padding}
-                y1={(d) => yScale(d.y) + padding}
-              >
-                {({ path }) => {
-                  return (
-                    <motion.path
-                      initial={{ d: path(zeroData) || "", opacity: 0 }}
-                      animate={{ d: path(data[id]) || "", opacity }}
-                      className={cn(colorClassName, "pointer-events-none")}
-                      fill="currentColor"
-                    />
-                  );
-                }}
-              </Area>
-            ))}
+              {/* Funnel */}
+              {layers.map(({ opacity, padding }) => (
+                <Area
+                  key={`${id}-${opacity}-${padding}`}
+                  data={data[id]}
+                  curve={curveBasis}
+                  x={(d) => xScale(idx + d.x)}
+                  y0={(d) => yScale(-d.y) - padding}
+                  y1={(d) => yScale(d.y) + padding}
+                >
+                  {({ path }) => {
+                    return (
+                      <motion.path
+                        initial={{ d: path(zeroData) || "", opacity: 0 }}
+                        animate={{ d: path(data[id]) || "", opacity }}
+                        className={cn(colorClassName, "pointer-events-none")}
+                        fill="currentColor"
+                      />
+                    );
+                  }}
+                </Area>
+              ))}
 
-            {/* Percentage */}
-            {persistentPercentages && (
-              <Text
-                x={(xScale(idx) + xScale(idx + 1)) / 2}
-                y={height / 2}
-                textAnchor="middle"
-                verticalAnchor="middle"
-                fill="white"
-                fontSize={16}
-                className="pointer-events-none select-none"
-              >
-                {formatPercentage((value / maxValue) * 100) + "%"}
-              </Text>
-            )}
-          </Fragment>
-        ))}
+              {/* Percentage */}
+              {persistentPercentages && (
+                <PersistentPercentage
+                  x={stepCenterX}
+                  y={height / 2}
+                  value={formatPercentage((value / maxValue) * 100) + "%"}
+                  colorClassName={colorClassName}
+                />
+              )}
+            </Fragment>
+          );
+        })}
       </svg>
       {tooltipStep && (
         <div
@@ -217,6 +215,51 @@ function FunnelChartInner({
         </div>
       )}
     </div>
+  );
+}
+
+function PersistentPercentage({
+  x,
+  y,
+  value,
+  colorClassName,
+}: {
+  x: number;
+  y: number;
+  value: string;
+  colorClassName: string;
+}) {
+  const textRef = useRef<SVGTextElement>(null);
+
+  const textWidth = textRef.current?.getComputedTextLength() ?? 0;
+  const pillWidth = textWidth + 28;
+
+  return (
+    <g>
+      <rect
+        x={x - pillWidth / 2}
+        width={pillWidth}
+        y={y - 14}
+        height={28}
+        rx={14}
+        fill="white"
+      />
+      <Text
+        innerTextRef={textRef}
+        x={x}
+        y={y}
+        textAnchor="middle"
+        verticalAnchor="middle"
+        fill="currentColor"
+        fontSize={14}
+        className={cn(
+          "pointer-events-none select-none font-medium brightness-50",
+          colorClassName,
+        )}
+      >
+        {value}
+      </Text>
+    </g>
   );
 }
 

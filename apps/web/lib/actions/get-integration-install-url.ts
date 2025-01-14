@@ -20,9 +20,6 @@ export const getIntegrationInstallUrl = authActionClient
     let url: string | null = null;
 
     if (integrationSlug === "stripe") {
-      if (!workspace.conversionEnabled) {
-        throw new Error("Conversions feature is not enabled.");
-      }
       url = await getStripeInstallationUrl(workspace.id);
     } else if (integrationSlug === "slack") {
       url = await getSlackInstallationUrl(workspace.id);

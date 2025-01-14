@@ -5,6 +5,7 @@ import { ComponentType, SVGProps } from "react";
 
 // custom icons
 export { default as Copy } from "./copy";
+export * from "./crown-small";
 export { default as ExpandingArrow } from "./expanding-arrow";
 export { default as Magic } from "./magic";
 export * from "./matrix-lines";

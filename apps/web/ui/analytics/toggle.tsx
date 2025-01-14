@@ -101,7 +101,6 @@ export default function Toggle({
     demoPage,
     partnerPage,
     dashboardProps,
-    showConversions,
     start,
     end,
     interval,
@@ -705,7 +704,6 @@ export default function Toggle({
           ? false
           : !validDateRangeForPlan({
               plan: plan || dashboardProps?.workspacePlan,
-              conversionEnabled: showConversions,
               start,
               end,
             });

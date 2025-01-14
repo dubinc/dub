@@ -138,7 +138,7 @@ function TagButton({ tag, plus }: { tag: TagProps; plus?: number }) {
 function AnalyticsBadge({ link }: { link: ResponseLink }) {
   const { domain, key } = link;
 
-  const { slug, conversionEnabled } = useWorkspace();
+  const { slug } = useWorkspace();
   const { isMobile } = useMediaQuery();
   const { variant } = useContext(CardList.Context);
 
@@ -148,29 +148,22 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
         id: "clicks",
         icon: CursorRays,
         value: link.clicks,
-        label: conversionEnabled
-          ? undefined
-          : (value) => pluralize("click", value),
         iconClassName: "data-[active=true]:text-blue-500",
       },
-      ...(conversionEnabled
-        ? [
-            {
-              id: "leads",
-              icon: UserCheck,
-              value: link.leads,
-              className: "hidden sm:flex",
-              iconClassName: "data-[active=true]:text-purple-500",
-            },
-            {
-              id: "sales",
-              icon: InvoiceDollar,
-              value: link.saleAmount,
-              className: "hidden sm:flex",
-              iconClassName: "data-[active=true]:text-teal-500",
-            },
-          ]
-        : []),
+      {
+        id: "leads",
+        icon: UserCheck,
+        value: link.leads,
+        className: "hidden sm:flex",
+        iconClassName: "data-[active=true]:text-purple-500",
+      },
+      {
+        id: "sales",
+        icon: InvoiceDollar,
+        value: link.saleAmount,
+        className: "hidden sm:flex",
+        iconClassName: "data-[active=true]:text-teal-500",
+      },
     ],
     [link],
   );
@@ -246,14 +239,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
         >
           <div className="hidden items-center gap-0.5 sm:flex">
             {stats.map(
-              ({
-                id: tab,
-                icon: Icon,
-                value,
-                label,
-                className,
-                iconClassName,
-              }) => (
+              ({ id: tab, icon: Icon, value, className, iconClassName }) => (
                 <div
                   key={tab}
                   className={cn(
@@ -269,11 +255,6 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                     {tab === "sales"
                       ? currencyFormatter(value / 100)
                       : nFormatter(value)}
-                    {label && (
-                      <span className="hidden md:inline-block">
-                        &nbsp;{label(value)}
-                      </span>
-                    )}
                   </span>
                 </div>
               ),

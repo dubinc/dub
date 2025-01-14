@@ -6,10 +6,9 @@ import { EventsContext } from "./events-provider";
 
 export default function ExportButton({ onClick }: { onClick?: () => void }) {
   const { exportQueryString } = useContext(EventsContext);
-  const { slug, plan, conversionEnabled } = useWorkspace();
+  const { slug, plan } = useWorkspace();
 
-  const needsHigherPlan =
-    (plan === "free" || plan === "pro") && !conversionEnabled;
+  const needsHigherPlan = plan === "free" || plan === "pro";
 
   async function exportData() {
     const response = await fetch(`/api/events/export?${exportQueryString}`, {
