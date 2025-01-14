@@ -61,7 +61,7 @@ const PAYMENT_PROCESSORS = [
     name: "Custom Payments",
     shortName: "Custom",
     icon: Custom,
-    guide: "https://dub.co/docs/conversions/quickstart", // TODO: [Conversions] update guide URL
+    guide: "https://dub.co/docs/conversions/sales/introduction",
     thumbnail: GUIDE_THUMBNAIL(
       "Custom Payments",
       "Learn how to set up custom payment conversion tracking",
@@ -110,7 +110,7 @@ const AUTH_PROVIDERS = [
     name: "Custom Auth",
     shortName: "Custom",
     icon: Custom,
-    guide: "https://dub.co/docs/conversions/quickstart", // TODO: [Conversions] update guide URL
+    guide: "https://dub.co/docs/conversions/leads/introduction",
     thumbnail: GUIDE_THUMBNAIL(
       "Custom Auth",
       "Learn how to set up custom auth conversion tracking",
