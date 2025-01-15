@@ -6,7 +6,7 @@ import { env, integrationTestEnv } from "./env";
 
 interface Resources {
   user: Pick<User, "id">;
-  workspace: Pick<Project, "id" | "slug" | "name">;
+  workspace: Pick<Project, "id" | "slug" | "name" | "webhookEnabled">;
   apiKey: { token: string };
 }
 
@@ -42,6 +42,7 @@ export class IntegrationHarness {
       id: this.env.E2E_WORKSPACE_ID,
       slug: "acme",
       name: "Acme, Inc.",
+      webhookEnabled: true,
     };
 
     this.resources = {
