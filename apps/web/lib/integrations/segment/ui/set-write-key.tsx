@@ -106,9 +106,9 @@ export function SetWriteKey({
           <div>
             <label htmlFor="region" className="flex items-center space-x-2">
               <h2 className="text-sm font-medium text-gray-900">
-                Supported regions
+                Select the region
               </h2>
-              <InfoTooltip content="This setting allows you to add a source within an EU workspace." />
+              <InfoTooltip content="Choose the data region where your events will be sent." />
             </label>
 
             <div className="mt-2 space-y-2">
