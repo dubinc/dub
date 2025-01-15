@@ -79,6 +79,7 @@ async function main() {
       linkId: linkId,
       country: newClickEvent.country,
       clickedAt: clickTime,
+      createdAt: leadTime,
     },
   });
 
