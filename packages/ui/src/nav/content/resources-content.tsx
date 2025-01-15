@@ -1,6 +1,6 @@
 import { cn, createHref } from "@dub/utils";
+import Image from "next/image";
 import Link from "next/link";
-import { BlurImage } from "../../blur-image";
 import { SDKS } from "../../content";
 import { DubWireframeGraphic } from "./graphics/dub-wireframe-graphic";
 import { ContentLinkCard, contentHeadingClassName } from "./shared";
@@ -9,13 +9,13 @@ const mainLinks = [
   {
     title: "Docs",
     description: "Platform documentation",
-    thumbnail: "http://localhost:3000/_static/tmp/docs-thumbnail.jpg", // TODO: Update
+    thumbnail: "https://assets.dub.co/misc/docs-thumbnail.jpg",
     href: "/docs/introduction",
   },
   {
     title: "Help Center",
     description: "Answers to your questions",
-    thumbnail: "http://localhost:3000/_static/tmp/help-thumbnail.jpg", // TODO: Update
+    thumbnail: "https://assets.dub.co/misc/help-thumbnail.jpg", // TODO: Update
     href: "/help",
   },
 ];
@@ -48,7 +48,7 @@ export function ResourcesContent({ domain }: { domain: string }) {
                   "[mask-image:linear-gradient(black_50%,transparent)]",
                 )}
               >
-                <BlurImage
+                <Image
                   src={thumbnail}
                   alt={`${title} thumbnail`}
                   fill
