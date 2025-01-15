@@ -27,7 +27,7 @@ const largeLinks = [
 
 export function ProductContent({ domain }: { domain: string }) {
   return (
-    <div className="grid w-[1020px] grid-cols-[repeat(2,minmax(0,1fr)),0.8fr] gap-4 p-5">
+    <div className="grid w-[1020px] grid-cols-[repeat(2,minmax(0,1fr)),0.8fr] gap-4 p-4">
       <Link
         href={createHref("/home", domain)}
         className="group relative flex flex-col overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50 dark:border-white/20 dark:bg-white/10"

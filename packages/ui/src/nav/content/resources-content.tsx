@@ -22,7 +22,7 @@ const mainLinks = [
 
 export function ResourcesContent({ domain }: { domain: string }) {
   return (
-    <div className="grid w-[1020px] grid-cols-[repeat(2,minmax(0,1fr)),0.8fr] gap-4 p-5">
+    <div className="grid w-[1020px] grid-cols-[repeat(2,minmax(0,1fr)),0.8fr] gap-4 p-4">
       {mainLinks.map(({ title, description, thumbnail, href }) => (
         <Link
           key={title}
