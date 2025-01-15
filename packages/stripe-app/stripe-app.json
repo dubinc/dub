@@ -1,6 +1,6 @@
 {
   "id": "dub.co",
-  "version": "0.0.7",
+  "version": "0.0.9",
   "name": "Dub - Conversion Analytics",
   "icon": "./stripe-icon.png",
   "permissions": [
@@ -50,8 +50,10 @@
     ],
     "content_security_policy": {
       "connect-src": [
-        "https://api.dub.co/links",
-        "https://api-staging.dub.co/links"
+        "https://api.dub.co/oauth/",
+        "https://api-staging.dub.co/oauth/",
+        "https://api.dub.co/stripe/integration",
+        "https://api-staging.dub.co/stripe/integration"
       ],
       "image-src": null,
       "purpose": ""

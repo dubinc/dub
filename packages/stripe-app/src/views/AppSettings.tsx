@@ -21,7 +21,6 @@ import {
 import { deleteSecret, setSecret } from "../utils/secrets";
 import { stripe } from "../utils/stripe";
 import { Workspace } from "../utils/types";
-import { CreateLink } from "./create-link";
 
 // TODO:
 // Handle errors and display them to the user
@@ -36,7 +35,6 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
 
   const code = oauthContext?.code;
   const verifier = oauthContext?.verifier;
-  const error = oauthContext?.error;
 
   // Disconnect workspace
   const disconnectWorkspace = async ({
@@ -192,7 +190,7 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
         />
       )}
 
-      <CreateLink workspace={workspace} />
+      {/* <CreateLink workspace={workspace} /> */}
     </Box>
   );
 };

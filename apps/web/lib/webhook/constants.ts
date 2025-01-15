@@ -32,4 +32,5 @@ export const WEBHOOK_TRIGGER_DESCRIPTIONS = {
   "sale.created": "Sale created",
 } as const;
 
-export const WEBHOOK_FAILURE_NOTIFY_THRESHOLD = 20;
+export const WEBHOOK_FAILURE_NOTIFY_THRESHOLDS = [5, 10, 15] as const;
+export const WEBHOOK_FAILURE_DISABLE_THRESHOLD = 20 as const;

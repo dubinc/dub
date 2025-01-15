@@ -39,7 +39,11 @@ export async function getSecret<T>({
       expand: ["payload"],
     });
 
-    return secret.payload;
+    if (!secret.payload) {
+      return null;
+    }
+
+    return JSON.parse(secret.payload) as T;
   } catch (e) {
     return null;
   }
