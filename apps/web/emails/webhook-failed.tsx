@@ -1,4 +1,3 @@
-import { WEBHOOK_FAILURE_DISABLE_THRESHOLD } from "@/lib/webhook/constants";
 import { DUB_WORDMARK } from "@dub/utils";
 import {
   Body,
@@ -15,7 +14,7 @@ import {
 } from "@react-email/components";
 import Footer from "./components/footer";
 
-export default function WebhookDisabled({
+export default function WebhookFailed({
   email = "panic@thedis.co",
   workspace = {
     name: "Acme, Inc",
@@ -39,7 +38,7 @@ export default function WebhookDisabled({
   return (
     <Html>
       <Head />
-      <Preview>Webhook has been disabled</Preview>
+      <Preview>Webhook is failing to deliver</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
@@ -52,12 +51,11 @@ export default function WebhookDisabled({
               />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
-              Webhook has been disabled
+              Webhook is failing to deliver
             </Heading>
             <Text className="text-sm leading-6 text-black">
-              Your webhook <strong>{webhook.url}</strong> has failed to deliver
-              successfully {WEBHOOK_FAILURE_DISABLE_THRESHOLD} times in a row
-              and has been deactivated to prevent further issues.
+              Your webhook <strong>{webhook.url}</strong> is encountering
+              delivery failures and will be disabled if it continues to fail.
             </Text>
             <Text className="text-sm leading-6 text-black">
               Please review the webhook details and update the URL if necessary
