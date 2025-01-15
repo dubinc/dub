@@ -86,7 +86,7 @@ export async function getUserInfo({ token }: { token: Token }) {
 
 // If the token is expired, it will refresh it
 export async function getValidToken({ stripe }: { stripe: Stripe }) {
-  const token = await getSecret({
+  const token = await getSecret<Token>({
     stripe,
     name: "dub_token",
   });
@@ -95,16 +95,18 @@ export async function getValidToken({ stripe }: { stripe: Stripe }) {
     throw new Error("Access token not found for the account.");
   }
 
-  const tokenData = JSON.parse(token) as Token;
-
   try {
-    await getUserInfo({ token: tokenData });
+    await getUserInfo({ token });
   } catch (e) {
-    const refreshedToken = await refreshToken({ token: tokenData });
-    return refreshedToken!;
+    const refreshedToken = await refreshToken({ token });
+    if (!refreshedToken) {
+      throw new Error("Failed to refresh access token.");
+    }
+
+    return refreshedToken;
   }
 
-  return tokenData as Token;
+  return token;
 }
 
 export async function refreshToken({ token }: { token: Token }) {
