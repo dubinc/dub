@@ -2,13 +2,19 @@ import { prisma } from "@dub/prisma";
 import { Webhook } from "@dub/prisma/client";
 import { sendEmail } from "emails";
 import WebhookDisabled from "emails/webhook-disabled";
+import WebhookFailed from "emails/webhook-failed";
 import { webhookCache } from "./cache";
-import { WEBHOOK_FAILURE_NOTIFY_THRESHOLD } from "./constants";
+import {
+  WEBHOOK_FAILURE_DISABLE_THRESHOLD,
+  WEBHOOK_FAILURE_NOTIFY_THRESHOLDS,
+} from "./constants";
 import { toggleWebhooksForWorkspace } from "./update-webhook";
 
 export const handleWebhookFailure = async (webhookId: string) => {
   const webhook = await prisma.webhook.update({
-    where: { id: webhookId },
+    where: {
+      id: webhookId,
+    },
     data: {
       consecutiveFailures: { increment: 1 },
       lastFailedAt: new Date(),
@@ -29,10 +35,16 @@ export const handleWebhookFailure = async (webhookId: string) => {
     return;
   }
 
-  const failureThresholdReached =
-    webhook.consecutiveFailures >= WEBHOOK_FAILURE_NOTIFY_THRESHOLD;
+  if (
+    WEBHOOK_FAILURE_NOTIFY_THRESHOLDS.includes(
+      webhook.consecutiveFailures as any,
+    )
+  ) {
+    await notifyWebhookFailure(webhook);
+    return;
+  }
 
-  if (failureThresholdReached) {
+  if (webhook.consecutiveFailures >= WEBHOOK_FAILURE_DISABLE_THRESHOLD) {
     // Disable the webhook
     const updatedWebhook = await prisma.webhook.update({
       where: { id: webhookId },
@@ -43,7 +55,7 @@ export const handleWebhookFailure = async (webhookId: string) => {
 
     await Promise.allSettled([
       // Notify the user
-      sendFailureNotification(updatedWebhook),
+      notifyWebhookDisabled(updatedWebhook),
 
       // Update the webhook cache
       webhookCache.set(updatedWebhook),
@@ -66,7 +78,53 @@ export const resetWebhookFailureCount = async (webhookId: string) => {
   });
 };
 
-const sendFailureNotification = async (
+// Send email to workspace owners when the webhook is failing to deliver
+const notifyWebhookFailure = async (
+  webhook: Pick<Webhook, "id" | "url" | "projectId">,
+) => {
+  const workspaceOwners = await prisma.projectUsers.findFirst({
+    where: { projectId: webhook.projectId, role: "owner" },
+    select: {
+      project: {
+        select: {
+          name: true,
+          slug: true,
+        },
+      },
+      user: {
+        select: {
+          email: true,
+        },
+      },
+    },
+  });
+
+  if (!workspaceOwners) {
+    return;
+  }
+
+  const email = workspaceOwners.user.email!;
+  const workspace = workspaceOwners.project;
+
+  sendEmail({
+    subject: "Webhook is failing to deliver",
+    email,
+    react: WebhookFailed({
+      email,
+      workspace: {
+        name: workspace.name,
+        slug: workspace.slug,
+      },
+      webhook: {
+        id: webhook.id,
+        url: webhook.url,
+      },
+    }),
+  });
+};
+
+// Send email to the workspace owners when the webhook has been disabled
+const notifyWebhookDisabled = async (
   webhook: Pick<Webhook, "id" | "url" | "projectId">,
 ) => {
   const workspaceOwners = await prisma.projectUsers.findFirst({

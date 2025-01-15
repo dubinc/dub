@@ -19,9 +19,7 @@ export const enableOrDisableWebhook = authActionClient
     const { workspace } = ctx;
     const { webhookId } = parsedInput;
 
-    const canAccessWebhook = !["free", "pro"].includes(workspace.plan);
-
-    if (!canAccessWebhook) {
+    if (["free", "pro"].includes(workspace.plan)) {
       throw new Error("You must upgrade your plan to enable webhooks.");
     }
 
