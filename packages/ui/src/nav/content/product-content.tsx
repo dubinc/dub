@@ -8,6 +8,7 @@ import {
   ContentLinkCard,
   LargeLinkCard,
   contentHeadingClassName,
+  getUtmParams,
 } from "./shared";
 
 const largeLinks = [
@@ -30,7 +31,11 @@ export function ProductContent({ domain }: { domain: string }) {
     <div className="grid w-[1020px] grid-cols-[minmax(0,1fr),0.4fr] divide-x divide-gray-200">
       <div className="grid grid-cols-2 gap-4 p-4">
         <Link
-          href={createHref("/home", domain)}
+          href={createHref(
+            "/home",
+            domain,
+            getUtmParams({ domain, utm_content: "Dub Links" }),
+          )}
           className="group relative flex flex-col overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50 dark:border-white/20 dark:bg-white/10"
         >
           <div className="p-5 pb-0">
@@ -48,7 +53,11 @@ export function ProductContent({ domain }: { domain: string }) {
         </Link>
         <div className="flex flex-col gap-4">
           <Link
-            href={createHref("/analytics", domain)}
+            href={createHref(
+              "/analytics",
+              domain,
+              getUtmParams({ domain, utm_content: "Dub Analytics" }),
+            )}
             className="group relative flex flex-col overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50 dark:border-white/20 dark:bg-white/10"
           >
             <AnalyticsGraphic className="absolute bottom-0 h-auto w-full translate-y-[15%] [mask-image:linear-gradient(90deg,transparent,black)]" />
@@ -69,7 +78,11 @@ export function ProductContent({ domain }: { domain: string }) {
                 title={title}
                 description={description}
                 icon={icon}
-                href={createHref(href, domain)}
+                href={createHref(
+                  href,
+                  domain,
+                  getUtmParams({ domain, utm_content: title }),
+                )}
               />
             ))}
           </div>
@@ -83,12 +96,11 @@ export function ProductContent({ domain }: { domain: string }) {
               <ContentLinkCard
                 key={href}
                 className="-mx-2"
-                href={createHref(href, domain, {
-                  utm_source: "Custom Domain",
-                  utm_medium: "Navbar",
-                  utm_campaign: domain,
-                  utm_content: title,
-                })}
+                href={createHref(
+                  href,
+                  domain,
+                  getUtmParams({ domain, utm_content: title }),
+                )}
                 icon={
                   <div className="shrink-0 rounded-[10px] border border-gray-200 bg-white/50 p-2 dark:border-white/20 dark:bg-white/10">
                     <Icon
@@ -106,12 +118,11 @@ export function ProductContent({ domain }: { domain: string }) {
           )}
           <ContentLinkCard
             className="-mx-2"
-            href={createHref("/customers", domain, {
-              utm_source: "Custom Domain",
-              utm_medium: "Navbar",
-              utm_campaign: domain,
-              utm_content: "Customer Stories",
-            })}
+            href={createHref(
+              "/customers",
+              domain,
+              getUtmParams({ domain, utm_content: "Customer Stories" }),
+            )}
             title="View all stories"
             showArrow
           />
@@ -123,12 +134,11 @@ export function ProductContent({ domain }: { domain: string }) {
             <ContentLinkCard
               key={slug}
               className="-mx-2"
-              href={createHref(`/compare/${slug}`, domain, {
-                utm_source: "Custom Domain",
-                utm_medium: "Navbar",
-                utm_campaign: domain,
-                utm_content: `Dub vs. ${name}`,
-              })}
+              href={createHref(
+                `/compare/${slug}`,
+                domain,
+                getUtmParams({ domain, utm_content: `Dub vs. ${name}` }),
+              )}
               title={`Dub vs. ${name}`}
               showArrow
             />

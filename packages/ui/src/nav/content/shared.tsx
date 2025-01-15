@@ -9,6 +9,16 @@ export const contentHeadingClassName =
 export const contentLinkCardClassName =
   "group rounded-[8px] p-2 transition-colors hover:bg-neutral-50 active:bg-neutral-100 dark:hover:bg-white/[0.15] dark:active:bg-white/20";
 
+export const getUtmParams = ({
+  domain,
+  ...rest
+}: { domain: string } & Record<string, string>) => ({
+  utm_source: "Custom Domain",
+  utm_medium: "Navbar",
+  utm_campaign: domain,
+  ...rest,
+});
+
 export function ContentLinkCard({
   icon,
   title,

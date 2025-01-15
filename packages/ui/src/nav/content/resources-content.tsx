@@ -3,7 +3,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { SDKS } from "../../content";
 import { DubWireframeGraphic } from "./graphics/dub-wireframe-graphic";
-import { ContentLinkCard, contentHeadingClassName } from "./shared";
+import {
+  ContentLinkCard,
+  contentHeadingClassName,
+  getUtmParams,
+} from "./shared";
 
 const mainLinks = [
   {
@@ -27,7 +31,11 @@ export function ResourcesContent({ domain }: { domain: string }) {
         {mainLinks.map(({ title, description, thumbnail, href }) => (
           <Link
             key={title}
-            href={createHref(href, domain)}
+            href={createHref(
+              href,
+              domain,
+              getUtmParams({ domain, utm_content: title }),
+            )}
             className={cn(
               "group relative flex flex-col overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50 transition-colors duration-75 hover:bg-neutral-100/80",
               "dark:border-white/20 dark:bg-white/10 dark:hover:bg-white/15",
@@ -67,12 +75,11 @@ export function ResourcesContent({ domain }: { domain: string }) {
               <ContentLinkCard
                 key={href}
                 className="-mx-2"
-                href={createHref(href, domain, {
-                  utm_source: "Custom Domain",
-                  utm_medium: "Navbar",
-                  utm_campaign: domain,
-                  utm_content: title,
-                })}
+                href={createHref(
+                  href,
+                  domain,
+                  getUtmParams({ domain, utm_content: title }),
+                )}
                 icon={
                   <div className="shrink-0 rounded-[10px] border border-gray-200 bg-white/50 p-1 dark:border-white/20 dark:bg-white/10">
                     <Icon
@@ -91,7 +98,11 @@ export function ResourcesContent({ domain }: { domain: string }) {
         </div>
         <div className="-mx-2 flex grow flex-col justify-end">
           <Link
-            href={createHref("/brand", domain)}
+            href={createHref(
+              "/brand",
+              domain,
+              getUtmParams({ domain, utm_content: "Dub Brand" }),
+            )}
             className="group relative flex flex-col overflow-hidden rounded-xl bg-black transition-colors duration-75 dark:border dark:border-white/20"
           >
             <div className="pointer-events-none absolute inset-0">

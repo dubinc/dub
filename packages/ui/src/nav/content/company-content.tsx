@@ -3,6 +3,7 @@ import { COMPANY, SOCIAL_LINKS } from "../../content";
 import {
   contentHeadingClassName,
   ContentLinkCard,
+  getUtmParams,
   LargeLinkCard,
 } from "./shared";
 
@@ -17,7 +18,11 @@ export function CompanyContent({ domain }: { domain: string }) {
             description={description}
             icon={icon}
             iconClassName="size-5"
-            href={createHref(href, domain)}
+            href={createHref(
+              href,
+              domain,
+              getUtmParams({ domain, utm_content: title }),
+            )}
           />
         ))}
       </div>
