@@ -8,8 +8,8 @@ import {
 
 export function CompanyContent({ domain }: { domain: string }) {
   return (
-    <div className="grid w-[540px] grid-cols-[minmax(0,1fr),minmax(0,0.75fr)]">
-      <div className="flex flex-col gap-4 border-r border-neutral-200 p-4">
+    <div className="grid w-[540px] grid-cols-[minmax(0,1fr),minmax(0,0.75fr)] divide-x divide-neutral-200">
+      <div className="flex flex-col gap-4 p-4">
         {COMPANY.map(({ title, description, icon, href }) => (
           <LargeLinkCard
             key={title}

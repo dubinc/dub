@@ -22,48 +22,51 @@ const mainLinks = [
 
 export function ResourcesContent({ domain }: { domain: string }) {
   return (
-    <div className="grid w-[1020px] grid-cols-[repeat(2,minmax(0,1fr)),0.8fr] gap-4 p-4">
-      {mainLinks.map(({ title, description, thumbnail, href }) => (
-        <Link
-          key={title}
-          href={createHref(href, domain)}
-          className={cn(
-            "group relative flex flex-col overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50 transition-colors duration-75 hover:bg-neutral-100/80",
-            "dark:border-white/20 dark:bg-white/10 dark:hover:bg-white/15",
-          )}
-        >
-          <div className="p-5 pb-0">
-            <span className="text-sm font-medium text-neutral-900 dark:text-white">
-              {title}
-            </span>
-            <p className="mt-3 max-w-56 text-sm text-neutral-500 dark:text-white/60">
-              {description}
-            </p>
-          </div>
-          <div className="relative mt-7 grow overflow-hidden pl-5 [mask-image:linear-gradient(90deg,black_50%,transparent)]">
-            <div
-              className={cn(
-                "relative size-full overflow-hidden rounded-tl-lg border-l border-t border-black/10",
-                "[mask-image:linear-gradient(black_50%,transparent)]",
-              )}
-            >
-              <BlurImage
-                src={thumbnail}
-                alt={`${title} thumbnail`}
-                fill
-                className="bg-white object-cover object-left-top grayscale transition-[filter] duration-75 group-hover:grayscale-0 dark:opacity-50"
-              />
+    <div className="grid w-[1020px] grid-cols-[minmax(0,1fr),0.4fr] divide-x divide-neutral-200">
+      <div className="grid grid-cols-2 gap-4 p-4">
+        {mainLinks.map(({ title, description, thumbnail, href }) => (
+          <Link
+            key={title}
+            href={createHref(href, domain)}
+            className={cn(
+              "group relative flex flex-col overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50 transition-colors duration-75 hover:bg-neutral-100/80",
+              "dark:border-white/20 dark:bg-white/10 dark:hover:bg-white/15",
+            )}
+          >
+            <div className="p-5 pb-0">
+              <span className="text-sm font-medium text-neutral-900 dark:text-white">
+                {title}
+              </span>
+              <p className="mt-3 max-w-56 text-sm text-neutral-500 dark:text-white/60">
+                {description}
+              </p>
             </div>
-          </div>
-        </Link>
-      ))}
-      <div className="flex flex-col gap-2">
+            <div className="relative mt-7 grow overflow-hidden pl-5 [mask-image:linear-gradient(90deg,black_50%,transparent)]">
+              <div
+                className={cn(
+                  "relative size-full overflow-hidden rounded-tl-lg border-l border-t border-black/10",
+                  "[mask-image:linear-gradient(black_50%,transparent)]",
+                )}
+              >
+                <BlurImage
+                  src={thumbnail}
+                  alt={`${title} thumbnail`}
+                  fill
+                  className="bg-white object-cover object-left-top grayscale transition-[filter] duration-75 group-hover:grayscale-0 dark:opacity-50"
+                />
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+      <div className="flex flex-col gap-2 px-6 py-4">
         <div>
-          <p className={cn(contentHeadingClassName, "my-2")}>SDKs</p>
+          <p className={cn(contentHeadingClassName, "mb-2")}>SDKs</p>
           <div className="flex flex-col gap-0.5">
             {SDKS.map(({ icon: Icon, iconClassName, title, href }) => (
               <ContentLinkCard
                 key={href}
+                className="-mx-2"
                 href={createHref(href, domain, {
                   utm_source: "Custom Domain",
                   utm_medium: "Navbar",
@@ -86,7 +89,7 @@ export function ResourcesContent({ domain }: { domain: string }) {
             ))}
           </div>
         </div>
-        <div className="flex grow flex-col justify-end">
+        <div className="-mx-2 flex grow flex-col justify-end">
           <Link
             href={createHref("/brand", domain)}
             className="group relative flex flex-col overflow-hidden rounded-xl bg-black transition-colors duration-75 dark:border dark:border-white/20"

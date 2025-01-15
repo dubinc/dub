@@ -179,7 +179,7 @@ export function Nav({
                 <div className="absolute left-1/2 top-full mt-3 -translate-x-1/2">
                   <NavigationMenuPrimitive.Viewport
                     className={cn(
-                      "relative flex origin-[top_center] justify-start overflow-hidden rounded-[20px] border border-gray-200 bg-white shadow-md dark:border-white/[0.15] dark:bg-black",
+                      "relative flex origin-[top_center] justify-start overflow-hidden rounded-[20px] border border-neutral-200 bg-white shadow-md dark:border-white/[0.15] dark:bg-black",
                       "data-[state=closed]:animate-scale-out-content data-[state=open]:animate-scale-in-content",
                       "h-[var(--radix-navigation-menu-viewport-height)] w-[var(--radix-navigation-menu-viewport-width)] transition-[width,height]",
                     )}
