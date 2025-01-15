@@ -41,5 +41,5 @@ jobs:
           E2E_WORKSPACE_ID: ${{ secrets.E2E_WORKSPACE_ID }}
           QSTASH_TOKEN: ${{ secrets.QSTASH_TOKEN }}
           QSTASH_CURRENT_SIGNING_KEY: ${{ secrets.QSTASH_CURRENT_SIGNING_KEY }}
-          APP_DOMAIN_WITH_NGROK: ${{ github.event.deployment_status.environment_url }}
+          NEXT_PUBLIC_NGROK_URL: ${{ github.event.deployment_status.environment_url }}
         run: pnpm test
