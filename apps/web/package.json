@@ -18,12 +18,13 @@
     "@ai-sdk/anthropic": "^1.0.7",
     "@boxyhq/saml-jackson": "1.23.9",
     "@chronark/zod-bird": "^0.3.9",
-    "@dub/analytics": "^0.0.22",
+    "@dub/analytics": "^0.0.23",
     "@dub/embed-react": "workspace:*",
     "@dub/prisma": "workspace:*",
     "@dub/tailwind-config": "workspace:*",
     "@dub/ui": "workspace:*",
     "@dub/utils": "workspace:*",
+    "@floating-ui/react": "^0.26.20",
     "@hookform/resolvers": "^3.9.0",
     "@next-auth/prisma-adapter": "^1.0.5",
     "@next/third-parties": "^15.1.0",
@@ -142,7 +143,7 @@
     "typescript": "^5.4.4",
     "vite": "5.2.9",
     "vite-tsconfig-paths": "^4.3.2",
-    "vitest": "1.5.0"
+    "vitest": "2.1.8"
   },
   "browser": {
     "crypto": false

@@ -37,35 +37,33 @@ export function PlanFeatures({
           Everything in Pro, plus:
         </motion.div>
       )}
-      {selectedPlan.features
-        .filter((f) => f.id !== "sales")
-        .map(({ text, footnote }, i) => (
-          <motion.div
-            key={i}
-            variants={STAGGER_CHILD_VARIANTS}
-            className="flex items-center space-x-2 text-sm text-gray-500"
-          >
-            <CheckCircleFill className="h-5 w-5 text-green-500" />
+      {selectedPlan.features.map(({ text, footnote }, i) => (
+        <motion.div
+          key={i}
+          variants={STAGGER_CHILD_VARIANTS}
+          className="flex items-center space-x-2 text-sm text-gray-500"
+        >
+          <CheckCircleFill className="h-5 w-5 text-green-500" />
 
-            {footnote ? (
-              <Tooltip
-                content={
-                  typeof footnote === "string" ? (
-                    footnote
-                  ) : (
-                    <SimpleTooltipContent {...footnote} />
-                  )
-                }
-              >
-                <p className="cursor-help text-gray-600 underline decoration-dotted underline-offset-2">
-                  {text}
-                </p>
-              </Tooltip>
-            ) : (
-              <p className="text-gray-600">{text}</p>
-            )}
-          </motion.div>
-        ))}
+          {footnote ? (
+            <Tooltip
+              content={
+                typeof footnote === "string" ? (
+                  footnote
+                ) : (
+                  <SimpleTooltipContent {...footnote} />
+                )
+              }
+            >
+              <p className="cursor-help text-gray-600 underline decoration-dotted underline-offset-2">
+                {text}
+              </p>
+            </Tooltip>
+          ) : (
+            <p className="text-gray-600">{text}</p>
+          )}
+        </motion.div>
+      ))}
     </motion.div>
   );
 }

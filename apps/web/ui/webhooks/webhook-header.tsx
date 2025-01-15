@@ -221,8 +221,8 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
         <div className="-ml-1.5 border-b border-gray-200">
           <TabSelect
             options={[
-              { id: "", label: "Webhook Logs" },
-              { id: "edit", label: "Update Details" },
+              { id: "", label: "Event Logs" },
+              { id: "edit", label: "Configuration" },
             ]}
             selected={page}
             onSelect={(id: "" | "edit") => {

@@ -24,24 +24,24 @@ const githubLink = {
 };
 
 const steven = {
-  name: "Steven",
-  email: "",
+  name: "Steven Tey",
+  email: "steven@dub.co",
   avatar: "https://avatar.vercel.sh/s.png?text=S",
 };
 
 const tim = {
-  name: "Tim",
-  email: "",
+  name: "Tim Wilson",
+  email: "tim@dub.co",
   avatar: "https://avatar.vercel.sh/t.png?text=T",
 };
 
 const kiran = {
-  name: "Kiran",
-  email: "",
+  name: "Kiran Kuriya",
+  email: "kiran@dub.co",
   avatar: "https://avatar.vercel.sh/k.png?text=K",
 };
 
-export const exampleData = {
+export const EXAMPLE_EVENTS_DATA = {
   clicks: [
     {
       event: "click",
@@ -107,10 +107,10 @@ export const exampleData = {
       eventName: "Sign up",
       click: {
         id: "1",
-        country: "US",
-        city: "San Francisco",
-        region: "US-CA",
-        continent: "NA",
+        country: "IN",
+        city: "Kerala",
+        region: "IN-KL",
+        continent: "AS",
         ...common,
       },
       link: dubLink,
@@ -140,7 +140,7 @@ export const exampleData = {
       eventId: "Nffk2cwShKu5lQ7E",
       eventName: "Purchase",
       sale: {
-        amount: 900,
+        amount: 49_90,
         paymentProcessor: "stripe",
         invoiceId: "123456",
       },
@@ -161,7 +161,7 @@ export const exampleData = {
       eventId: "Nffk2cwShKu5lQ7E",
       eventName: "Purchase",
       sale: {
-        amount: 700,
+        amount: 79_90,
         paymentProcessor: "stripe",
         invoiceId: "123456",
       },
@@ -182,7 +182,7 @@ export const exampleData = {
       eventId: "Nffk2cwShKu5lQ7E",
       eventName: "Purchase",
       sale: {
-        amount: 1000,
+        amount: 99_90,
         paymentProcessor: "stripe",
         invoiceId: "123456",
       },
