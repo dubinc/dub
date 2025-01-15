@@ -28,14 +28,14 @@ export const SignUpEmail = () => {
       setStep("verify");
     },
     onError: ({ error }) => {
-      toast.error(error.serverError);
+      toast.error(error.serverError||error.validationErrors?.email||error.validationErrors?.password||error.bindArgsValidationErrors);
     },
   });
 
   return (
     <>
       <form
-        onSubmit={handleSubmit((data) => executeAsync({ email: data.email }))}
+        onSubmit={handleSubmit((data) => executeAsync({ email: data.email, password:data.password }))}
       >
         <div className="flex flex-col space-y-4">
           <Input

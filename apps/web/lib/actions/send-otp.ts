@@ -10,12 +10,13 @@ import { getIP } from "../api/utils";
 import { generateOTP } from "../auth";
 import { EMAIL_OTP_EXPIRY_IN } from "../auth/constants";
 import z from "../zod";
-import { emailSchema } from "../zod/schemas/auth";
+import { emailSchema, passwordSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
 
 const schema = z.object({
   email: emailSchema,
+  password: passwordSchema
 });
 
 // Send OTP to email to verify account
@@ -26,7 +27,7 @@ export const sendOtpAction = actionClient
   })
   .use(throwIfAuthenticated)
   .action(async ({ parsedInput }) => {
-    const { email } = parsedInput;
+    const { email, password } = parsedInput;
 
     const { success } = await ratelimit(2, "1 m").limit(`send-otp:${getIP()}`);
 
