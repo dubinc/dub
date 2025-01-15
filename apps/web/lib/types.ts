@@ -369,9 +369,13 @@ export type PayoutResponse = z.infer<typeof PayoutResponseSchema>;
 
 export type PartnerPayoutResponse = z.infer<typeof PartnerPayoutResponseSchema>;
 
+export const SegmentRegion = z.enum(["us-west-2", "eu-west-1"]);
+
 export type SegmentIntegrationCredentials = {
   writeKey?: string;
+  region?: z.infer<typeof SegmentRegion>;
 };
+
 export type InvoiceProps = z.infer<typeof InvoiceSchema>;
 
 export type CustomerActivity = z.infer<typeof customerActivitySchema>;
