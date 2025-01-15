@@ -35,7 +35,6 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
 
   const code = oauthContext?.code;
   const verifier = oauthContext?.verifier;
-  const error = oauthContext?.error;
 
   // Disconnect workspace
   const disconnectWorkspace = async ({
