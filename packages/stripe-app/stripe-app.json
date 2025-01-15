@@ -50,8 +50,10 @@
     ],
     "content_security_policy": {
       "connect-src": [
-        "https://api.dub.co/oauth/token",
-        "https://api-staging.dub.co/oauth/token"
+        "https://api.dub.co/oauth/",
+        "https://api-staging.dub.co/oauth/",
+        "https://api.dub.co/stripe/integration",
+        "https://api-staging.dub.co/stripe/integration"
       ],
       "image-src": null,
       "purpose": ""

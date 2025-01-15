@@ -12,5 +12,5 @@ This is the [Stripe app](https://marketplace.stripe.com/apps/dub-conversions) fo
 ## Run locally
 
 ```
-stripe apps dev
+stripe apps start
 ```
