@@ -15,7 +15,6 @@ export function CompanyContent({ domain }: { domain: string }) {
             key={title}
             title={title}
             description={description}
-            descriptionClassName="mt-0.5"
             icon={icon}
             iconClassName="size-5"
             href={createHref(href, domain)}

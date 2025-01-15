@@ -87,14 +87,12 @@ export function LargeLinkCard({
   icon: Icon,
   title,
   description,
-  descriptionClassName,
   iconClassName,
   ...rest
 }: {
   icon: Icon;
   title: string;
   description?: string;
-  descriptionClassName?: string;
   iconClassName?: string;
 } & ComponentProps<typeof Link>) {
   return (
@@ -104,15 +102,10 @@ export function LargeLinkCard({
     >
       <div className="flex items-center justify-between px-5 py-4">
         <div>
-          <span className="block text-sm font-medium leading-none text-neutral-900 dark:text-white">
+          <span className="text-sm font-medium leading-none text-neutral-900 dark:text-white">
             {title}
           </span>
-          <p
-            className={cn(
-              "mt-1.5 text-sm text-neutral-500 dark:text-white/60",
-              descriptionClassName,
-            )}
-          >
+          <p className="mt-1 text-sm text-neutral-500 dark:text-white/60">
             {description}
           </p>
         </div>
