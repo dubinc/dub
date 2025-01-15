@@ -1,11 +1,10 @@
 import {
   Book2Fill,
-  BulletListFill,
   ConnectedDotsFill,
   CubeSettingsFill,
-  FeatherFill,
   Go,
   HeadsetFill,
+  HexadecagonStar,
   Hyperlink,
   LinesY,
   Php,
@@ -105,18 +104,18 @@ export const SDKS = [
 ];
 
 export const RESOURCES = [
-  {
-    icon: FeatherFill,
-    title: "Blog",
-    description: "Insights and stories",
-    href: "/blog",
-  },
-  {
-    icon: BulletListFill,
-    title: "Changelog",
-    description: "Releases and updates",
-    href: "/changelog",
-  },
+  // {
+  //   icon: FeatherFill,
+  //   title: "Blog",
+  //   description: "Insights and stories",
+  //   href: "/blog",
+  // },
+  // {
+  //   icon: BulletListFill,
+  //   title: "Changelog",
+  //   description: "Releases and updates",
+  //   href: "/changelog",
+  // },
   {
     icon: Book2Fill,
     title: "Docs",
@@ -128,6 +127,12 @@ export const RESOURCES = [
     title: "Help Center",
     description: "Answers to your questions",
     href: "/help",
+  },
+  {
+    icon: HexadecagonStar,
+    title: "Dub Brand",
+    description: "Logos, wordmark, etc.",
+    href: "/brand",
   },
 ];
 

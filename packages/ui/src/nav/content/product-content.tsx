@@ -30,7 +30,7 @@ export function ProductContent({ domain }: { domain: string }) {
     <div className="grid w-[1020px] grid-cols-[repeat(2,minmax(0,1fr)),0.8fr] gap-4 p-5">
       <Link
         href={createHref("/home", domain)}
-        className="group relative flex flex-col rounded-xl border border-neutral-100 bg-neutral-50 dark:border-white/20 dark:bg-white/10"
+        className="group relative flex flex-col overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50 dark:border-white/20 dark:bg-white/10"
       >
         <div className="p-5 pb-0">
           <span className="text-sm font-medium text-neutral-900 dark:text-white">
