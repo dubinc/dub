@@ -12,6 +12,7 @@ import {
   Webhook,
   YearInReview,
 } from "@dub/prisma/client";
+import { segmentRegions } from "./integrations/segment/utils";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import { clickEventResponseSchema } from "./zod/schemas/clicks";
 import {
@@ -369,11 +370,11 @@ export type PayoutResponse = z.infer<typeof PayoutResponseSchema>;
 
 export type PartnerPayoutResponse = z.infer<typeof PartnerPayoutResponseSchema>;
 
-export const SegmentRegion = z.enum(["us-west-2", "eu-west-1"]);
+export type SegmentRegion = (typeof segmentRegions)[number]["value"];
 
 export type SegmentIntegrationCredentials = {
   writeKey?: string;
-  region?: z.infer<typeof SegmentRegion>;
+  region?: SegmentRegion;
 };
 
 export type InvoiceProps = z.infer<typeof InvoiceSchema>;

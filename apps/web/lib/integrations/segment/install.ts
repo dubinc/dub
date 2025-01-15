@@ -1,18 +1,17 @@
 "use server";
 
 import { authActionClient } from "@/lib/actions/safe-action";
-import { SegmentRegion } from "@/lib/types";
 import { createWebhook } from "@/lib/webhook/create-webhook";
 import { WebhookReceiver } from "@dub/prisma/client";
 import { SEGMENT_INTEGRATION_ID } from "@dub/utils";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { installIntegration } from "../install";
-import { regionToUrl } from "./utils";
+import { segmentRegions } from "./utils";
 
 const schema = z.object({
   writeKey: z.string().min(1).max(40),
-  region: SegmentRegion.default("us-west-2"),
+  region: z.enum(segmentRegions.map((r) => r.value) as [string, ...string[]]),
   workspaceId: z.string(),
 });
 
@@ -32,9 +31,15 @@ export const installSegmentAction = authActionClient
       },
     });
 
+    const url = segmentRegions.find((r) => r.value === region)?.url;
+
+    if (!url) {
+      throw new Error("Invalid region.");
+    }
+
     await createWebhook({
       name: "Segment",
-      url: regionToUrl[region],
+      url,
       receiver: WebhookReceiver.segment,
       triggers: [],
       workspace,
