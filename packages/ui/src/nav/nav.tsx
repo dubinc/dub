@@ -6,7 +6,7 @@ import { LayoutGroup } from "framer-motion";
 import Cookies from "js-cookie";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { PropsWithChildren, createContext, useId } from "react";
+import { PropsWithChildren, SVGProps, createContext, useId } from "react";
 import useSWR from "swr";
 import { buttonVariants } from "../button";
 import { COMPANY, FEATURES_LIST, RESOURCES } from "../content";
@@ -55,7 +55,7 @@ export const navItems = [
 ];
 
 const navItemClassName = cn(
-  "relative block rounded-md px-4 py-2 text-sm rounded-lg font-medium text-neutral-700 hover:text-neutral-900 transition-colors",
+  "relative group/item flex items-center rounded-md px-4 py-2 text-sm rounded-lg font-medium text-neutral-700 hover:text-neutral-900 transition-colors",
   "dark:text-white/90 dark:hover:text-white",
   "hover:bg-neutral-900/5 dark:hover:bg-white/10",
   "data-[active=true]:bg-neutral-900/5 dark:data-[active=true]:bg-white/10",
@@ -161,6 +161,7 @@ export function Nav({
                                 data-active={isActive}
                               >
                                 {name}
+                                <AnimatedChevron className="ml-1.5 size-2 text-neutral-800 opacity-25" />
                               </button>
                             )}
                           </WithTrigger>
@@ -237,6 +238,28 @@ export function Nav({
         </div>
       </LayoutGroup>
     </NavContext.Provider>
+  );
+}
+
+function AnimatedChevron(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="9"
+      height="9"
+      fill="none"
+      viewBox="0 0 9 9"
+      {...props}
+    >
+      <path
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+        d="M7.278 3.389 4.5 6.167 1.722 3.389"
+        className="transition-transform duration-150 [transform-box:view-box] [transform-origin:center] [vector-effect:non-scaling-stroke] group-data-[state=open]/item:-scale-y-100"
+      />
+    </svg>
   );
 }
 
