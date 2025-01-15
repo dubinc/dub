@@ -30,7 +30,7 @@ export default async function BannedPage() {
           Create Your Free Branded Link
         </a>
       </div>
-      <Footer />
+      <Footer staticDomain="dub.sh" />
       <Background />
     </main>
   );
