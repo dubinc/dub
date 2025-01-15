@@ -6,7 +6,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import { prisma } from "@dub/prisma";
-import { STRIPE_INTEGRATION_ID } from "@dub/utils";
+import { SHOPIFY_INTEGRATION_ID, STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // POST /api/oauth/authorize - approve OAuth authorization request
@@ -45,15 +45,16 @@ export const POST = withWorkspace(async ({ session, req, workspace }) => {
     },
   });
 
-  // Special case for Stripe app: check if the workspace has conversionEnabled
   if (
-    app.integrationId === STRIPE_INTEGRATION_ID &&
-    !workspace.conversionEnabled
+    [STRIPE_INTEGRATION_ID, SHOPIFY_INTEGRATION_ID].includes(
+      app.integrationId,
+    ) &&
+    (workspace.plan === "free" || workspace.plan === "pro")
   ) {
     throw new DubApiError({
       code: "bad_request",
       message:
-        "Stripe app can only be connected to a workspace with conversion enabled. Please contact us to get access.",
+        "This integration is only available for workspaces with a Business plan or higher. Please upgrade your plan to continue.",
     });
   }
 

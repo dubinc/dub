@@ -137,6 +137,7 @@ export const PATCH = withWorkspace(
             })),
           },
         }),
+        disabledAt: null,
       },
       select: {
         id: true,

@@ -1,5 +1,10 @@
 import Stripe from "stripe";
-import { DUB_CLIENT_ID, DUB_HOST, STRIPE_MODE } from "./constants";
+import {
+  DUB_API_HOST,
+  DUB_CLIENT_ID,
+  DUB_HOST,
+  STRIPE_MODE,
+} from "./constants";
 import { getSecret } from "./secrets";
 import { Token, Workspace } from "./types";
 
@@ -18,7 +23,7 @@ export function getOAuthUrl({
   state: string;
   challenge: string;
 }) {
-  return `${DUB_HOST}/oauth/authorize?client_id=${DUB_CLIENT_ID}&redirect_uri=${getRedirectURL()}&response_type=code&scope=workspaces.write&state=${state}&code_challenge=${challenge}&code_challenge_method=S256`;
+  return `${DUB_HOST}/oauth/authorize?client_id=${DUB_CLIENT_ID}&redirect_uri=${getRedirectURL()}&response_type=code&scope=workspaces.write,links.write&state=${state}&code_challenge=${challenge}&code_challenge_method=S256`;
 }
 
 // Exchanges the authorization code for an access token
@@ -29,7 +34,7 @@ export async function getToken({
   code: string;
   verifier: string;
 }) {
-  const url = `${DUB_HOST}/api/oauth/token`;
+  const url = `${DUB_API_HOST}/oauth/token`;
 
   try {
     const response = await fetch(url, {
@@ -60,7 +65,7 @@ export async function getToken({
 
 // Returns the user info from Dub using the access token
 export async function getUserInfo({ token }: { token: Token }) {
-  const response = await fetch(`${DUB_HOST}/api/oauth/userinfo`, {
+  const response = await fetch(`${DUB_API_HOST}/oauth/userinfo`, {
     headers: {
       Authorization: `Bearer ${token.access_token}`,
     },
@@ -81,7 +86,7 @@ export async function getUserInfo({ token }: { token: Token }) {
 
 // If the token is expired, it will refresh it
 export async function getValidToken({ stripe }: { stripe: Stripe }) {
-  const token = await getSecret({
+  const token = await getSecret<Token>({
     stripe,
     name: "dub_token",
   });
@@ -90,10 +95,44 @@ export async function getValidToken({ stripe }: { stripe: Stripe }) {
     throw new Error("Access token not found for the account.");
   }
 
-  const tokenData = JSON.parse(token) as Token;
+  try {
+    await getUserInfo({ token });
+  } catch (e) {
+    const refreshedToken = await refreshToken({ token });
+    if (!refreshedToken) {
+      throw new Error("Failed to refresh access token.");
+    }
 
-  return tokenData as Token;
+    return refreshedToken;
+  }
 
-  // TODO:
-  // Refresh the token
+  return token;
+}
+
+export async function refreshToken({ token }: { token: Token }) {
+  const url = `${DUB_API_HOST}/oauth/token`;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        client_id: DUB_CLIENT_ID,
+        grant_type: "refresh_token",
+        refresh_token: token.refresh_token,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error.message);
+    }
+
+    return data as Token;
+  } catch (e) {
+    console.error("Unable to refresh Dub access token:", (e as Error).message);
+  }
 }

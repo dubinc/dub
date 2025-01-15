@@ -5,7 +5,7 @@ import {
   useTooltip as useVisxTooltip,
 } from "@visx/tooltip";
 import { bisector } from "d3-array";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import {
   ChartContext,
   ChartTooltipContext,
@@ -62,9 +62,11 @@ export function useTooltip<T extends Datum>({
     [defaultTooltipDatum, snapToX, snapToY, xScale, yScale, series, seriesId],
   );
 
-  const visxTooltip = useVisxTooltip<TimeSeriesDatum<T>>(
-    defaultTooltipData ?? undefined,
-  );
+  const visxTooltip = useVisxTooltip<TimeSeriesDatum<T>>();
+
+  useEffect(() => {
+    if (defaultTooltipData) visxTooltip.showTooltip(defaultTooltipData);
+  }, [defaultTooltipData]);
 
   const handleTooltip = useCallback(
     (

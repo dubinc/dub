@@ -1,4 +1,4 @@
-import { DUB_HOST } from "./constants";
+import { DUB_API_HOST } from "./constants";
 import { Token } from "./types";
 
 // Update the workspace with stripeAccountId
@@ -12,7 +12,7 @@ export async function updateWorkspace({
   accountId: string | null;
 }) {
   const response = await fetch(
-    `${DUB_HOST}/api/stripe/integration?workspaceId=${workspaceId}`,
+    `${DUB_API_HOST}/stripe/integration?workspaceId=${workspaceId}`,
     {
       method: "PATCH",
       headers: {

@@ -1,6 +1,6 @@
 {
   "id": "dub.co",
-  "version": "0.0.7",
+  "version": "0.0.9",
   "name": "Dub - Conversion Analytics",
   "icon": "./stripe-icon.png",
   "permissions": [
@@ -49,7 +49,12 @@
       }
     ],
     "content_security_policy": {
-      "connect-src": null,
+      "connect-src": [
+        "https://api.dub.co/oauth/",
+        "https://api-staging.dub.co/oauth/",
+        "https://api.dub.co/stripe/integration",
+        "https://api-staging.dub.co/stripe/integration"
+      ],
       "image-src": null,
       "purpose": ""
     }
@@ -58,6 +63,10 @@
     "type": "settings",
     "url": ""
   },
-  "stripe_api_access_type": "platform",
+  "allowed_redirect_uris": [
+    "https://app.dub.co/api/stripe/integration/callback",
+    "https://preview.dub.co/api/stripe/integration/callback"
+  ],
+  "stripe_api_access_type": "oauth",
   "distribution_type": "public"
 }
