@@ -104,10 +104,10 @@ const BUSINESS_PLAN_MODIFIER = ({
     },
     {
       id: "webhooks",
-      text: "Event webhooks (beta)",
+      text: "Real-time webhooks",
       footnote: {
         title:
-          "Get notified when a link is clicked or a QR code is scanned using webhooks.",
+          "Use webhooks to connect Dub with your data stack and workflows – with native integrations for Segment, Zapier, Slack, and more.",
         cta: "Learn more.",
         href: "https://d.to/webhooks",
       },
