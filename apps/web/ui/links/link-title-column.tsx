@@ -24,6 +24,7 @@ import {
   InputPassword,
   Page2,
   Robot,
+  SquareChart,
 } from "@dub/ui/icons";
 import {
   cn,
@@ -42,6 +43,7 @@ import { ResponseLink } from "./links-container";
 import { LinksDisplayContext } from "./links-display-provider";
 
 const quickViewSettings = [
+  { label: "Conversion Tracking", icon: SquareChart, key: "trackConversion" },
   { label: "Custom Link Preview", icon: Cards, key: "proxy" },
   { label: "Link Cloaking", icon: Incognito, key: "rewrite" },
   { label: "Password Protection", icon: InputPassword, key: "password" },

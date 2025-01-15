@@ -48,6 +48,7 @@ export const trackSaleRequestSchema = z.object({
   currency: z
     .string()
     .default("usd")
+    .transform((val) => val.toLowerCase())
     .describe("The currency of the sale. Accepts ISO 4217 currency codes."),
   metadata: z
     .record(z.unknown())

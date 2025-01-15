@@ -3,6 +3,7 @@ import { HOME_DOMAIN } from "../constants";
 
 export function constructMetadata({
   title,
+  fullTitle,
   description = "Dub.co is the open-source link management platform for modern marketing teams to create marketing campaigns, link sharing features, and referral programs.",
   image = "https://assets.dub.co/thumbnail.jpg",
   video,
@@ -29,6 +30,7 @@ export function constructMetadata({
   noIndex = false,
 }: {
   title?: string;
+  fullTitle?: string;
   description?: string;
   image?: string | null;
   video?: string | null;
@@ -37,9 +39,11 @@ export function constructMetadata({
   noIndex?: boolean;
 } = {}): Metadata {
   return {
-    title: title
-      ? `${title} | Dub.co`
-      : "Dub.co - Link Management for Modern Marketing Teams",
+    title:
+      fullTitle ||
+      (title
+        ? `${title} | Dub.co`
+        : "Dub.co - Link Management for Modern Marketing Teams"),
     description,
     openGraph: {
       title,
