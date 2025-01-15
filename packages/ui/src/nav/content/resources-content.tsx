@@ -9,13 +9,13 @@ const mainLinks = [
   {
     title: "Docs",
     description: "Platform documentation",
-    thumbnail: "http://localhost:3000/_static/tmp/docs-thumbnail.jpg",
+    thumbnail: "http://localhost:3000/_static/tmp/docs-thumbnail.jpg", // TODO: Update
     href: "/docs/introduction",
   },
   {
     title: "Help Center",
     description: "Answers to your questions",
-    thumbnail: "http://localhost:3000/_static/tmp/help-thumbnail.jpg",
+    thumbnail: "http://localhost:3000/_static/tmp/help-thumbnail.jpg", // TODO: Update
     href: "/help",
   },
 ];
