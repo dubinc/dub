@@ -54,8 +54,8 @@ export const createIntegrationSchema = z.object({
     .nullish(),
   screenshots: z
     .array(z.string())
-    .max(4, {
-      message: "only 4 screenshots are allowed",
+    .max(6, {
+      message: "up to 6 screenshots are allowed",
     })
     .transform((screenshots) =>
       screenshots.map((screenshot) =>
