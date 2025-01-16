@@ -54,14 +54,13 @@ export async function customerCreated(event: Stripe.Event) {
   let customer: Customer;
 
   if (customerFound) {
-    // if customer exists, update it
+    // if customer exists (created via /track/lead)
+    // update it with the Stripe customer ID (for future reference by invoice.paid)
     customer = await prisma.customer.update({
       where: {
         id: customerFound.id,
       },
       data: {
-        name: stripeCustomer.name,
-        email: stripeCustomer.email,
         stripeCustomerId: stripeCustomer.id,
         projectConnectId: stripeAccountId,
       },
