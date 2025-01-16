@@ -60,7 +60,7 @@ test("POST /track/sale", async () => {
     },
   });
 
-  expect(response2.status).toEqual(304);
+  expect(response2.status).toEqual(200);
   expect(response2.data).toStrictEqual({
     eventName: "Subscription",
     customer: null,
