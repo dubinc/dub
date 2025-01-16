@@ -7,7 +7,6 @@ export const sendEmail = async ({
   subject,
   from,
   bcc,
-  replyToFromEmail,
   text,
   react,
   scheduledAt,
@@ -15,7 +14,6 @@ export const sendEmail = async ({
 }: Omit<CreateEmailOptions, "to" | "from"> & {
   email: string;
   from?: string;
-  replyToFromEmail?: boolean;
   marketing?: boolean;
 }) => {
   if (resend) {
@@ -24,7 +22,6 @@ export const sendEmail = async ({
       subject,
       from,
       bcc,
-      replyToFromEmail,
       text,
       react,
       scheduledAt,

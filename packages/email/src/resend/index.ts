@@ -10,7 +10,7 @@ export const sendEmailViaResend = async ({
   subject,
   from,
   bcc,
-  replyTo = "support@dub.co",
+  replyTo,
   text,
   react,
   scheduledAt,
