@@ -161,7 +161,7 @@ export function Nav({
                                 data-active={isActive}
                               >
                                 {name}
-                                <AnimatedChevron className="ml-1.5 size-2 text-neutral-800 opacity-25" />
+                                <AnimatedChevron className="ml-1.5 size-2.5 text-neutral-700" />
                               </button>
                             )}
                           </WithTrigger>
