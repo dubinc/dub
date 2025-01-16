@@ -17,8 +17,12 @@ const relevantEvents = new Set([
 export const POST = withAxiom(
   async (req: Request) => {
     const buf = await req.text();
+    const { livemode } = JSON.parse(buf);
+
     const sig = req.headers.get("Stripe-Signature");
-    const webhookSecret = process.env.STRIPE_APP_WEBHOOK_SECRET;
+    const webhookSecret = livemode
+      ? process.env.STRIPE_APP_WEBHOOK_SECRET
+      : process.env.STRIPE_APP_WEBHOOK_SECRET_TEST;
 
     if (!sig || !webhookSecret) {
       return new Response("Invalid request", {
