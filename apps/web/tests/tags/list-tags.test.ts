@@ -18,7 +18,7 @@ test("GET /tags", async (ctx) => {
   });
 
   const { status, data: tags } = await http.get<Tag[]>({
-    path: "/tags",
+    path: "/tags?sortBy=createdAt&sortOrder=desc",
   });
 
   expect(status).toEqual(200);
