@@ -52,16 +52,11 @@ export const POST = withWorkspaceEdge(
     });
 
     if (!customer) {
-      return NextResponse.json(
-        {
-          eventName,
-          customer: null,
-          sale: null,
-        },
-        {
-          status: 304,
-        },
-      );
+      return NextResponse.json({
+        eventName,
+        customer: null,
+        sale: null,
+      });
     }
 
     // Find lead
