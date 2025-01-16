@@ -65,6 +65,7 @@ export async function customerCreated(event: Stripe.Event) {
         projectConnectId: stripeAccountId,
       },
     });
+    return `Dub customer with ID ${customer.id} updated with Stripe customer ID ${stripeCustomer.id}`;
   } else {
     // else create a new customer
     customer = await prisma.customer.create({
@@ -82,60 +83,59 @@ export async function customerCreated(event: Stripe.Event) {
         country: clickData.country,
       },
     });
-  }
 
-  const leadData = {
-    ...clickData,
-    event_id: nanoid(16),
-    event_name: "New customer",
-    customer_id: customer.id,
-  };
+    const leadData = {
+      ...clickData,
+      event_id: nanoid(16),
+      event_name: "New customer",
+      customer_id: customer.id,
+    };
 
-  const [_lead, _link, workspace] = await Promise.all([
-    // Record lead
-    recordLead(leadData),
+    const [_lead, _link, workspace] = await Promise.all([
+      // Record lead
+      recordLead(leadData),
 
-    // update link leads count
-    prisma.link.update({
-      where: {
-        id: linkId,
-      },
-      data: {
-        leads: {
-          increment: 1,
+      // update link leads count
+      prisma.link.update({
+        where: {
+          id: linkId,
         },
-      },
-    }),
-
-    // update workspace usage
-    prisma.project.update({
-      where: {
-        id: customer.projectId,
-      },
-      data: {
-        usage: {
-          increment: 1,
+        data: {
+          leads: {
+            increment: 1,
+          },
         },
-      },
-    }),
-  ]);
-
-  waitUntil(
-    sendWorkspaceWebhook({
-      trigger: "lead.created",
-      workspace,
-      data: transformLeadEventData({
-        ...leadData,
-        link,
-        customerId: customer.id,
-        customerExternalId: customer.externalId,
-        customerName: customer.name,
-        customerEmail: customer.email,
-        customerAvatar: customer.avatar,
-        customerCreatedAt: customer.createdAt,
       }),
-    }),
-  );
 
-  return `Customer created: ${customer.id}`;
+      // update workspace usage
+      prisma.project.update({
+        where: {
+          id: customer.projectId,
+        },
+        data: {
+          usage: {
+            increment: 1,
+          },
+        },
+      }),
+    ]);
+
+    waitUntil(
+      sendWorkspaceWebhook({
+        trigger: "lead.created",
+        workspace,
+        data: transformLeadEventData({
+          ...leadData,
+          link,
+          customerId: customer.id,
+          customerExternalId: customer.externalId,
+          customerName: customer.name,
+          customerEmail: customer.email,
+          customerAvatar: customer.avatar,
+          customerCreatedAt: customer.createdAt,
+        }),
+      }),
+    );
+    return `New Dub customer created: ${customer.id}. Lead event recorded: ${leadData.event_id}`;
+  }
 }
