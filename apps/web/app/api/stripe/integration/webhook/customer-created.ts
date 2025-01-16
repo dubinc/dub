@@ -3,6 +3,7 @@ import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
+import { Customer } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
@@ -50,26 +51,39 @@ export async function customerCreated(event: Stripe.Event) {
     },
   });
 
-  if (customerFound) {
-    return `Customer with external ID ${externalId} already exists, skipping...`;
-  }
+  let customer: Customer;
 
-  // Create customer
-  const customer = await prisma.customer.create({
-    data: {
-      id: createId({ prefix: "cus_" }),
-      name: stripeCustomer.name,
-      email: stripeCustomer.email,
-      stripeCustomerId: stripeCustomer.id,
-      projectConnectId: stripeAccountId,
-      externalId,
-      projectId: link.projectId,
-      linkId,
-      clickId,
-      clickedAt: new Date(clickData.timestamp + "Z"),
-      country: clickData.country,
-    },
-  });
+  if (customerFound) {
+    // if customer exists, update it
+    customer = await prisma.customer.update({
+      where: {
+        id: customerFound.id,
+      },
+      data: {
+        name: stripeCustomer.name,
+        email: stripeCustomer.email,
+        stripeCustomerId: stripeCustomer.id,
+        projectConnectId: stripeAccountId,
+      },
+    });
+  } else {
+    // else create a new customer
+    customer = await prisma.customer.create({
+      data: {
+        id: createId({ prefix: "cus_" }),
+        name: stripeCustomer.name,
+        email: stripeCustomer.email,
+        stripeCustomerId: stripeCustomer.id,
+        projectConnectId: stripeAccountId,
+        externalId,
+        projectId: link.projectId,
+        linkId,
+        clickId,
+        clickedAt: new Date(clickData.timestamp + "Z"),
+        country: clickData.country,
+      },
+    });
+  }
 
   const leadData = {
     ...clickData,
