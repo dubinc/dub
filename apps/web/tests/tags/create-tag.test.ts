@@ -1,6 +1,6 @@
 import { Tag } from "@dub/prisma/client";
 import { afterAll, expect, test } from "vitest";
-import { randomId } from "../utils/helpers";
+import { randomTagName } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 
 test("POST /tags", async (ctx) => {
@@ -8,7 +8,7 @@ test("POST /tags", async (ctx) => {
   const { http } = await h.init();
 
   const newTag = {
-    name: randomId(),
+    name: randomTagName(),
     color: "red",
   };
 
