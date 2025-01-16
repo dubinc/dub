@@ -1,8 +1,8 @@
+import { sendEmail } from "@dub/email";
+import WebhookDisabled from "@dub/email/templates/webhook-disabled";
+import WebhookFailed from "@dub/email/templates/webhook-failed";
 import { prisma } from "@dub/prisma";
 import { Webhook } from "@dub/prisma/client";
-import { sendEmail } from "emails";
-import WebhookDisabled from "emails/webhook-disabled";
-import WebhookFailed from "emails/webhook-failed";
 import { webhookCache } from "./cache";
 import {
   WEBHOOK_FAILURE_DISABLE_THRESHOLD,
