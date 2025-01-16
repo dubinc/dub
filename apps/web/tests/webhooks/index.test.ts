@@ -43,10 +43,10 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
 };
 
 describe.concurrent("suite", () => {
+  console.log("NODE_ENV", process.env.NODE_ENV);
+
   WEBHOOK_TRIGGERS.forEach((trigger) => {
-    it(`webhook event - ${trigger}`, async () => {
-      await testWebhookEvent(trigger);
-    });
+    it(`webhook event - ${trigger}`, () => testWebhookEvent(trigger));
   });
 });
 
@@ -74,6 +74,8 @@ const assertQstashMessage = async (
   body: any,
   trigger: WebhookTrigger,
 ) => {
+  console.log(qstashMessage.messageId, trigger);
+
   const callbackUrl = new URL(qstashMessage.callback!);
   const failureCallbackUrl = new URL(qstashMessage.failureCallback!);
   const receivedBody = JSON.parse(qstashMessage.body!) as WebhookEvent;
