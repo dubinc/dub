@@ -1,4 +1,4 @@
-// import { WEBHOOK_FAILURE_NOTIFY_THRESHOLD } from "@/lib/webhook/constants";
+// import { WEBHOOK_FAILURE_DISABLE_THRESHOLD } from "@/lib/webhook/constants";
 import { DUB_WORDMARK } from "@dub/utils";
 import {
   Body,

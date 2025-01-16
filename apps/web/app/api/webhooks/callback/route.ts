@@ -18,12 +18,11 @@ const searchParamsSchema = z.object({
 
 // POST /api/webhooks/callback – listen to webhooks status from QStash
 export const POST = async (req: Request) => {
-  const rawBody = await req.json();
-
-  await verifyQstashSignature(req, rawBody);
+  const rawBody = await req.text();
+  await verifyQstashSignature({ req, rawBody });
 
   const { url, status, body, sourceBody, sourceMessageId } =
-    webhookCallbackSchema.parse(rawBody);
+    webhookCallbackSchema.parse(JSON.parse(rawBody));
 
   const { webhookId, eventId, event } = searchParamsSchema.parse(
     getSearchParams(req.url),
@@ -41,6 +40,21 @@ export const POST = async (req: Request) => {
   const request = Buffer.from(sourceBody, "base64").toString("utf-8");
   const response = Buffer.from(body, "base64").toString("utf-8");
   const isFailed = status >= 400;
+
+  // Unsubscribe Zapier webhook
+  if (
+    webhook.receiver === "zapier" &&
+    webhook.installationId &&
+    status === 410
+  ) {
+    await prisma.webhook.delete({
+      where: {
+        id: webhookId,
+      },
+    });
+
+    return new Response(`Unsubscribed Zapier webhook ${webhookId}`);
+  }
 
   await Promise.all([
     // Record the webhook event
@@ -64,5 +78,5 @@ export const POST = async (req: Request) => {
       : []),
   ]);
 
-  return new Response("OK");
+  return new Response(`Webhook ${webhookId} processed`);
 };

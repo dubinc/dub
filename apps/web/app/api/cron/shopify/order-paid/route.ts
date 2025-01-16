@@ -14,10 +14,10 @@ const schema = z.object({
 // POST /api/cron/shopify/order-paid
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    await verifyQstashSignature(req, body);
+    const rawBody = await req.text();
+    await verifyQstashSignature({ req, rawBody });
 
-    const { workspaceId, checkoutToken } = schema.parse(body);
+    const { workspaceId, checkoutToken } = schema.parse(JSON.parse(rawBody));
 
     // Find Shopify order
     const event = await redis.hget(

@@ -12,7 +12,7 @@ model Webhook {
   installationId      String?         @unique // indicates which integration installation added the webhook
   receiver            WebhookReceiver @default(user)
   name                String
-  url                 String
+  url                 String          @db.LongText
   secret              String
   triggers            Json
   consecutiveFailures Int             @default(0)

@@ -1,18 +1,14 @@
 import type { ExtensionContextValue } from "@stripe/ui-extension-sdk/context";
-import {
-  createHttpClient,
-  STRIPE_API_KEY,
-} from "@stripe/ui-extension-sdk/http_client";
 import { createOAuthState } from "@stripe/ui-extension-sdk/oauth";
 import {
   Banner,
+  Box,
   Button,
   Link,
   SignInView,
   Spinner,
 } from "@stripe/ui-extension-sdk/ui";
 import { useEffect, useRef, useState } from "react";
-import Stripe from "stripe";
 import { useWorkspace } from "../hooks/use-workspace";
 import appIcon from "../icon.svg";
 import { updateWorkspace } from "../utils/dub";
@@ -23,17 +19,11 @@ import {
   getValidToken,
 } from "../utils/oauth";
 import { deleteSecret, setSecret } from "../utils/secrets";
+import { stripe } from "../utils/stripe";
 import { Workspace } from "../utils/types";
 
 // TODO:
 // Handle errors and display them to the user
-
-// You don't need an API Key here, because the app uses the
-// dashboard credentials to make requests.
-const stripe: Stripe = new Stripe(STRIPE_API_KEY, {
-  httpClient: createHttpClient() as Stripe.HttpClient,
-  apiVersion: "2023-08-16",
-});
 
 const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
   const credentialsUsed = useRef(false);
@@ -45,7 +35,6 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
 
   const code = oauthContext?.code;
   const verifier = oauthContext?.verifier;
-  const error = oauthContext?.error;
 
   // Disconnect workspace
   const disconnectWorkspace = async ({
@@ -151,52 +140,58 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
     return <Spinner size="large" />;
   }
 
-  if (workspace) {
-    return (
-      <Banner
-        title="Dub workspace"
-        description={`Connected to ${workspace.name}`}
-        actions={
-          <Button
-            type="destructive"
-            size="small"
-            disabled={disconnecting}
-            onPress={async () => {
-              setDisconnecting(true);
-
-              await disconnectWorkspace({
-                workspace,
-              });
-
-              mutate();
-              setDisconnecting(false);
-            }}
-          >
-            {disconnecting ? "Disconnecting..." : "Disconnect"}
-          </Button>
-        }
-      />
-    );
-  }
-
   return (
-    <SignInView
-      description="Connect your Dub workspace with Stripe to start tracking the conversions."
-      primaryAction={{
-        label: connecting ? "Connecting please wait..." : "Connect workspace",
-        href: connecting ? "#" : getOAuthUrl({ state: oauthState, challenge }),
-      }}
-      footerContent={
-        <>
-          Don&apos;t have an Dub account?{" "}
-          <Link href="https://app.dub.co/register" target="_blank" external>
-            Sign up
-          </Link>
-        </>
-      }
-      brandColor="#000000"
-      brandIcon={appIcon}
-    />
+    <Box css={{ width: "6/12", stack: "y", gap: "large" }}>
+      {workspace ? (
+        <Banner
+          title="Dub workspace"
+          description={`Connected to ${workspace.name}`}
+          actions={
+            <Button
+              type="destructive"
+              size="small"
+              disabled={disconnecting}
+              onPress={async () => {
+                setDisconnecting(true);
+
+                await disconnectWorkspace({
+                  workspace,
+                });
+
+                mutate();
+                setDisconnecting(false);
+              }}
+            >
+              {disconnecting ? "Disconnecting..." : "Disconnect"}
+            </Button>
+          }
+        />
+      ) : (
+        <SignInView
+          description="Connect your Dub workspace with Stripe to start tracking the conversions."
+          primaryAction={{
+            label: connecting
+              ? "Connecting please wait..."
+              : "Connect workspace",
+            href: connecting
+              ? "#"
+              : getOAuthUrl({ state: oauthState, challenge }),
+          }}
+          footerContent={
+            <>
+              Don&apos;t have an Dub account?{" "}
+              <Link href="https://app.dub.co/register" target="_blank" external>
+                Sign up
+              </Link>
+            </>
+          }
+          brandColor="#000000"
+          brandIcon={appIcon}
+        />
+      )}
+
+      {/* <CreateLink workspace={workspace} /> */}
+    </Box>
   );
 };
 

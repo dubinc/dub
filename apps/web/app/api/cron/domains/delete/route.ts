@@ -18,11 +18,10 @@ const schema = z.object({
 // POST /api/cron/domains/delete
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const rawBody = await req.text();
+    await verifyQstashSignature({ req, rawBody });
 
-    await verifyQstashSignature(req, body);
-
-    const { domain, workspaceId } = schema.parse(body);
+    const { domain, workspaceId } = schema.parse(JSON.parse(rawBody));
 
     const domainRecord = await prisma.domain.findUnique({
       where: {

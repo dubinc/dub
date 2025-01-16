@@ -96,7 +96,8 @@ export default function AnalyticsProvider({
 }>) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { id: workspaceId, slug, conversionEnabled, domains } = useWorkspace();
+  const { id: workspaceId, slug, domains } = useWorkspace();
+
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
   const { dashboardId, programSlug } = useParams() as {
@@ -111,15 +112,9 @@ export default function AnalyticsProvider({
   // key can be a query param (stats pages in app) or passed as a staticKey (shared analytics dashboards)
   const key = searchParams?.get("key") || dashboardProps?.key;
 
-  // Whether to show conversions in shared analytics dashboards
+  // Show conversion tabs/data for all dashboards except shared (unless explicitly set)
   const showConversions =
-    adminPage ||
-    demoPage ||
-    partnerPage ||
-    conversionEnabled ||
-    dashboardProps?.showConversions
-      ? true
-      : false;
+    !dashboardProps || dashboardProps?.showConversions ? true : false;
 
   const tagIds = combineTagIds({
     tagId: searchParams?.get("tagId"),
@@ -150,8 +145,6 @@ export default function AnalyticsProvider({
     start || end ? undefined : searchParams?.get("interval") ?? defaultInterval;
 
   const selectedTab: EventType = useMemo(() => {
-    if (!showConversions) return "clicks";
-
     const event = searchParams.get("event");
 
     return EVENT_TYPES.find((t) => t === event) ?? "clicks";
@@ -176,8 +169,6 @@ export default function AnalyticsProvider({
     "timeseries",
   );
   const view: AnalyticsView = useMemo(() => {
-    if (!showConversions) return "timeseries";
-
     const searchParamsView = searchParams.get("view") as AnalyticsView;
     if (ANALYTICS_VIEWS.includes(searchParamsView)) {
       setPersistedView(searchParamsView);
@@ -290,7 +281,7 @@ export default function AnalyticsProvider({
     [key in AnalyticsResponseOptions]: number;
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
-      event: showConversions ? "composite" : "clicks",
+      event: "composite",
     })}`,
     fetcher,
     {
@@ -298,7 +289,7 @@ export default function AnalyticsProvider({
       onSuccess: () => setRequiresUpgrade(false),
       onError: (error) => {
         try {
-          const errorMessage = JSON.parse(error.message)?.error.message;
+          const errorMessage = error.message;
           if (
             error.status === 403 &&
             errorMessage.toLowerCase().includes("upgrade")
@@ -345,8 +336,8 @@ export default function AnalyticsProvider({
         adminPage, // whether the user is an admin
         demoPage, // whether the user is viewing demo analytics
         partnerPage, // whether the user is viewing partner analytics
-        showConversions, // whether conversions are enabled
         dashboardProps,
+        showConversions, // Whether to show conversions tabs/data
         requiresUpgrade, // whether an upgrade is required to perform the query
       }}
     >

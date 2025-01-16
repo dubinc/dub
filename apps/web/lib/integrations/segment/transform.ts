@@ -8,6 +8,11 @@ import { Link } from "@dub/prisma/client";
 import { capitalize } from "@dub/utils";
 import { z } from "zod";
 
+const integration = {
+  name: "dub",
+  version: "1.0.0",
+};
+
 export const formatEventForSegment = (
   payload: z.infer<typeof webhookPayloadSchema>,
 ) => {
@@ -33,6 +38,7 @@ const transformClickEvent = (data: ClickEventWebhookData) => {
     anonymousId: click.id,
     context: {
       ip: click.ip,
+      integration,
       ...buildCampaignContext(link),
     },
     properties: {
@@ -50,6 +56,7 @@ const transformLeadEvent = (data: LeadEventWebhookData) => {
     userId: customer.externalId,
     context: {
       ip: click.ip,
+      integration,
       ...buildCampaignContext(link),
     },
     properties: {
@@ -68,6 +75,7 @@ const transformSaleEvent = (data: SaleEventWebhookData) => {
     userId: customer.externalId,
     context: {
       ip: click.ip,
+      integration,
       ...buildCampaignContext(link),
     },
     properties: {

@@ -28,7 +28,7 @@ export const FEATURES_LIST = [
     title: "Dub Analytics",
     description: "Powerful real-time analytics",
     icon: LinesY,
-    href: "/help/article/dub-analytics",
+    href: "/analytics",
   },
   {
     title: "Dub API",

@@ -15,11 +15,10 @@ const schema = z.object({
 // POST /api/cron/workspaces/delete
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const rawBody = await req.text();
+    await verifyQstashSignature({ req, rawBody });
 
-    await verifyQstashSignature(req, body);
-
-    const { workspaceId } = schema.parse(body);
+    const { workspaceId } = schema.parse(JSON.parse(rawBody));
 
     const workspace = await prisma.project.findUnique({
       where: {

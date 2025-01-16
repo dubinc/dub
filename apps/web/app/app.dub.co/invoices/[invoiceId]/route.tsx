@@ -17,6 +17,7 @@ import {
   Text,
   View,
 } from "@react-pdf/renderer";
+import { endOfMonth, startOfMonth } from "date-fns";
 import { createTw } from "react-pdf-tailwind";
 import Stripe from "stripe";
 
@@ -57,6 +58,9 @@ export const GET = withSession(async ({ session, params }) => {
               image: true,
             },
           },
+        },
+        orderBy: {
+          periodStart: "desc",
         },
       },
       workspace: {
@@ -103,32 +107,43 @@ export const GET = withSession(async ({ session, params }) => {
       value: `#${invoice.number}`,
     },
     {
-      label: "Date",
-      value: invoice.createdAt.toLocaleString("en-US", {
+      label: "Date of issue",
+      value: formatDate(invoice.createdAt, {
         month: "short",
         day: "2-digit",
         year: "numeric",
+        timeZone: "UTC",
       }),
+    },
+    {
+      label: "Payout period",
+      value: `${formatDate(startOfMonth(invoice.createdAt), {
+        month: "short",
+        year: "numeric",
+      })} - ${formatDate(endOfMonth(invoice.createdAt), {
+        month: "short",
+        year: "numeric",
+      })}`,
     },
   ];
 
   const invoiceSummaryDetails = [
     {
-      label: "Amount",
+      label: "Invoice amount",
       value: currencyFormatter(invoice.amount / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }),
     },
     {
-      label: "Fees",
-      value: currencyFormatter(invoice.fee / 100, {
+      label: `Platform fees (${Math.round((invoice.fee / invoice.amount) * 100)}%)`,
+      value: `${currencyFormatter(invoice.fee / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-      }),
+      })}`,
     },
     {
-      label: "Total",
+      label: "Invoice total",
       value: currencyFormatter(invoice.total / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,

@@ -2,6 +2,7 @@ import { qstash } from "@/lib/cron";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
+import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import {
@@ -104,7 +105,6 @@ export async function createLink(link: ProcessedLinkProps) {
         dashboard: {
           create: {
             id: createId({ prefix: "dash_" }),
-            showConversions: link.trackConversion,
             projectId: link.projectId,
             userId: link.userId,
           },
@@ -173,6 +173,11 @@ export async function createLink(link: ProcessedLinkProps) {
         updateLinksUsage({
           workspaceId: link.projectId,
           increment: 1,
+        }),
+
+      webhookIds &&
+        propagateWebhookTriggerChanges({
+          webhookIds,
         }),
     ]),
   );

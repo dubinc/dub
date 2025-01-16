@@ -10,7 +10,7 @@ export const sendEmailViaResend = async ({
   subject,
   from,
   bcc,
-  replyToFromEmail,
+  replyTo = "support@dub.co",
   text,
   react,
   scheduledAt,
@@ -18,7 +18,7 @@ export const sendEmailViaResend = async ({
 }: Omit<CreateEmailOptions, "to" | "from"> & {
   email: string;
   from?: string;
-  replyToFromEmail?: boolean;
+  replyTo?: string;
   marketing?: boolean;
 }) => {
   if (!resend) {
@@ -36,12 +36,10 @@ export const sendEmailViaResend = async ({
         ? "Steven from Dub.co <steven@ship.dub.co>"
         : "Dub.co <system@dub.co>"),
     bcc: bcc,
-    ...(!replyToFromEmail && {
-      replyTo: "support@dub.co",
-    }),
-    subject: subject,
-    text: text,
-    react: react,
+    replyTo,
+    subject,
+    text,
+    react,
     scheduledAt,
     ...(marketing && {
       headers: {

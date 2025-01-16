@@ -107,9 +107,6 @@ export function TagSelect() {
     body: {
       model: "claude-3-haiku-20240307",
     },
-    onError: (error) => {
-      toast.error(error.message);
-    },
     onFinish: (_, completion) => {
       mutateWorkspace();
       if (completion) {

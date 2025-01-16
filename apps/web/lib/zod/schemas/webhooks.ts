@@ -1,5 +1,6 @@
 import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
 import { z } from "zod";
+import { parseUrlSchema } from "./utils";
 
 export const WebhookSchema = z.object({
   id: z.string(),
@@ -14,7 +15,7 @@ export const WebhookSchema = z.object({
 
 export const createWebhookSchema = z.object({
   name: z.string().min(1).max(40),
-  url: z.string().url().max(190),
+  url: parseUrlSchema,
   secret: z.string().optional(),
   triggers: z.array(z.enum(WEBHOOK_TRIGGERS)),
   linkIds: z.array(z.string()).optional(),

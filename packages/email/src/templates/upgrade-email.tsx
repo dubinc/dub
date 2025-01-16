@@ -17,7 +17,7 @@ import { Footer } from "../components/footer";
 export function UpgradeEmail({
   name = "Brendon Urie",
   email = "panic@thedis.co",
-  plan = "Pro",
+  plan = "Business",
 }: {
   name: string | null;
   email: string;
@@ -31,15 +31,10 @@ export function UpgradeEmail({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
-            <Section className="mt-8">
-              <Img
-                src={DUB_WORDMARK}
-                height="40"
-                alt="Dub"
-                className="mx-auto my-0"
-              />
+            <Section className="my-8">
+              <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
-            <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
+            <Heading className="mx-0 p-0 text-lg font-medium text-black">
               Thank you for upgrading to Dub.co {plan}!
             </Heading>
             <Section className="my-8">
@@ -88,8 +83,8 @@ export function UpgradeEmail({
               </Text>
             ))}
             <Text className="text-sm leading-6 text-black">
-              Let me know if you have any questions or feedback. I'm always
-              happy to help!
+              If you have any questions or feedback about Dub, please don't
+              hesitate to reach out – I'm always happy to help!
             </Text>
             <Text className="text-sm font-light leading-6 text-gray-400">
               Steven from Dub

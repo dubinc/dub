@@ -68,6 +68,7 @@ const publishWebhookEventToQStash = async ({
     },
     callback: callbackUrl.href,
     failureCallback: callbackUrl.href,
+    ...(process.env.NODE_ENV === "test" && { delay: 2 }),
   });
 
   if (!response.messageId) {
