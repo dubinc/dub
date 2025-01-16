@@ -52,12 +52,16 @@ export const POST = withWorkspaceEdge(
     });
 
     if (!customer) {
-      // instead of throwing an error, maybe we should return a 304 status code
-      // and say that the customer was not found, so sale was not tracked?
-      throw new DubApiError({
-        code: "not_found",
-        message: `Customer not found for externalId: ${customerExternalId}`,
-      });
+      return NextResponse.json(
+        {
+          eventName,
+          customer: null,
+          sale: null,
+        },
+        {
+          status: 304,
+        },
+      );
     }
 
     // Find lead
