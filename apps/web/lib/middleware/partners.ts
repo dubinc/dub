@@ -10,20 +10,18 @@ const UNAUTHENTICATED_PATHS = [
   "/forgot-password",
   "/auth/reset-password",
   "/apply",
+  "/apply/framer",
+  "/framer",
+  "/framer/apply",
+  "/framer/login",
 ];
-
-// const PARTNER_REDIRECTS = {
-//   "/settings/payouts": "/settings/wallet",
-// };
 
 export default async function PartnersMiddleware(req: NextRequest) {
   const { path, fullPath } = parse(req);
 
   const user = await getUserViaToken(req);
 
-  const isUnauthenticatedPath = UNAUTHENTICATED_PATHS.some((p) =>
-    path.startsWith(p),
-  );
+  const isUnauthenticatedPath = UNAUTHENTICATED_PATHS.some((p) => path === p);
 
   if (!user && !isUnauthenticatedPath) {
     return NextResponse.redirect(
@@ -45,15 +43,18 @@ export default async function PartnersMiddleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/onboarding", req.url));
     } else if (path === "/" || path.startsWith("/pn_")) {
       return NextResponse.redirect(new URL("/programs", req.url));
-    }
-
-    // else if (PARTNER_REDIRECTS[path]) {
-    //   return NextResponse.redirect(new URL(PARTNER_REDIRECTS[path], req.url));
-    // }
-    else if (["/login", "/register"].some((p) => path.startsWith(p))) {
+    } else if (["/login", "/register"].some((p) => path.startsWith(p))) {
       return NextResponse.redirect(new URL("/", req.url)); // Redirect authenticated users to dashboard
     }
   }
+
+  // if (path === "/framer") {
+  //   return NextResponse.redirect(new URL("/apply/framer", req.url));
+  // }
+
+  // if (path === "/framer/apply") {
+  //   return NextResponse.redirect(new URL("/apply/framer/application", req.url));
+  // }
 
   return NextResponse.rewrite(new URL(`/partners.dub.co${fullPath}`, req.url));
 }
