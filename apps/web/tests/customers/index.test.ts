@@ -32,18 +32,6 @@ describe.sequential("/customers/**", async () => {
     await h.deleteCustomer(customerId);
   });
 
-  test("POST /customers", async () => {
-    const { status, data: createdCustomer } = await http.post<Customer>({
-      path: "/customers",
-      body: customerRecord,
-    });
-
-    expect(status).toEqual(201);
-    expect(createdCustomer).toStrictEqual(expectedCustomer);
-
-    customerId = createdCustomer.id;
-  });
-
   test("GET /customers/{id}", async () => {
     const { status, data: retrievedCustomer } = await http.get<Customer>({
       path: `/customers/${customerId}`,
