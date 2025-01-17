@@ -8,19 +8,13 @@ export const WEBHOOK_EVENT_ID_PREFIX = "evt_";
 
 export const WEBHOOK_REDIS_KEY = "dub:webhooks";
 
-export const WORKSPACE_LEVEL_WEBHOOK_TRIGGERS = [
+export const WEBHOOK_TRIGGERS = [
   "link.created",
   "link.updated",
   "link.deleted",
+  "link.clicked",
   "lead.created",
   "sale.created",
-] as const;
-
-export const LINK_LEVEL_WEBHOOK_TRIGGERS = ["link.clicked"] as const;
-
-export const WEBHOOK_TRIGGERS = [
-  ...WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
-  ...LINK_LEVEL_WEBHOOK_TRIGGERS,
 ] as const;
 
 export const WEBHOOK_TRIGGER_DESCRIPTIONS = {
@@ -33,4 +27,5 @@ export const WEBHOOK_TRIGGER_DESCRIPTIONS = {
 } as const;
 
 export const WEBHOOK_FAILURE_NOTIFY_THRESHOLDS = [5, 10, 15] as const;
+
 export const WEBHOOK_FAILURE_DISABLE_THRESHOLD = 20 as const;

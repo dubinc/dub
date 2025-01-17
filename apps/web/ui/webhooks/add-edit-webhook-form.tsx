@@ -4,9 +4,8 @@ import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NewWebhook, WebhookProps } from "@/lib/types";
 import {
-  LINK_LEVEL_WEBHOOK_TRIGGERS,
   WEBHOOK_TRIGGER_DESCRIPTIONS,
-  WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
+  WEBHOOK_TRIGGERS,
 } from "@/lib/webhook/constants";
 import { Button, Checkbox, CopyButton, InfoTooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -14,14 +13,12 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { LinksSelector } from "./link-selector";
 
 const defaultValues: NewWebhook = {
   name: "",
   url: "",
   secret: "",
   triggers: [],
-  linkIds: [],
 };
 
 export default function AddEditWebhookForm({
@@ -95,7 +92,7 @@ export default function AddEditWebhookForm({
     toast.success(endpoint.successMessage);
   };
 
-  const { name, url, secret, triggers, linkIds = [] } = data;
+  const { name, url, secret, triggers } = data;
 
   const buttonDisabled = !name || !url || !triggers.length || saving;
 
@@ -108,10 +105,6 @@ export default function AddEditWebhookForm({
       : permissionsError
         ? permissionsError
         : undefined;
-
-  const enableLinkSelection = LINK_LEVEL_WEBHOOK_TRIGGERS.some((trigger) =>
-    triggers.includes(trigger),
-  );
 
   return (
     <>
@@ -191,7 +184,7 @@ export default function AddEditWebhookForm({
             </span>
           </label>
           <div className="mt-3 flex flex-col gap-2">
-            {WORKSPACE_LEVEL_WEBHOOK_TRIGGERS.map((trigger) => (
+            {WEBHOOK_TRIGGERS.map((trigger) => (
               <div key={trigger} className="group flex gap-2">
                 <Checkbox
                   value={trigger}
@@ -212,70 +205,16 @@ export default function AddEditWebhookForm({
                   className="select-none text-sm text-gray-600 group-hover:text-gray-800"
                 >
                   {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
+
+                  {trigger === "link.clicked" && (
+                    <span className="ml-2 rounded bg-yellow-100 px-1 py-0.5 text-xs font-medium text-yellow-800">
+                      High traffic
+                    </span>
+                  )}
                 </label>
               </div>
             ))}
           </div>
-        </div>
-
-        <div className="rounded-md border border-gray-200 p-4">
-          <label htmlFor="triggers" className="flex flex-col gap-1">
-            <h2 className="text-sm font-medium text-gray-900">
-              Link level events{" "}
-              <span className="rounded bg-yellow-100 px-1 py-0.5 text-xs font-medium text-yellow-800">
-                High traffic
-              </span>
-            </h2>
-            <span className="text-xs text-gray-500">
-              These events are triggered at the link level.
-            </span>
-          </label>
-          <div className="mt-3 flex flex-col gap-2">
-            {LINK_LEVEL_WEBHOOK_TRIGGERS.map((trigger) => (
-              <div key={trigger} className="group flex gap-2">
-                <Checkbox
-                  value={trigger}
-                  id={trigger}
-                  checked={triggers.includes(trigger)}
-                  disabled={updateDisabled}
-                  onCheckedChange={(checked) => {
-                    setData({
-                      ...data,
-                      triggers: checked
-                        ? [...triggers, trigger]
-                        : triggers.filter((t) => t !== trigger),
-                    });
-                  }}
-                />
-                <label
-                  htmlFor={trigger}
-                  className="flex select-none items-center gap-2 text-sm text-gray-600 group-hover:text-gray-800"
-                >
-                  {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
-                </label>
-              </div>
-            ))}
-          </div>
-
-          {enableLinkSelection || linkIds.length ? (
-            <div className="mt-4">
-              <h2 className="text-sm font-medium text-gray-900">
-                Choose links we should send events for
-              </h2>
-              <div className="mt-3">
-                <LinksSelector
-                  selectedLinkIds={linkIds}
-                  setSelectedLinkIds={(ids) =>
-                    setData({
-                      ...data,
-                      linkIds: ids,
-                    })
-                  }
-                  disabled={updateDisabled}
-                />
-              </div>
-            </div>
-          ) : null}
         </div>
 
         <Button

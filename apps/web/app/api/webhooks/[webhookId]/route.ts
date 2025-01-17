@@ -6,7 +6,7 @@ import { webhookCache } from "@/lib/webhook/cache";
 import { transformWebhook } from "@/lib/webhook/transform";
 import { toggleWebhooksForWorkspace } from "@/lib/webhook/update-webhook";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";
-import { updateWebhookSchema } from "@/lib/zod/schemas/webhooks";
+import { updateWebhookSchema, WebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -28,12 +28,11 @@ export const GET = withWorkspace(
         secret: true,
         triggers: true,
         disabledAt: true,
-        links: true,
         installationId: true,
       },
     });
 
-    return NextResponse.json(transformWebhook(webhook));
+    return NextResponse.json(WebhookSchema.parse(webhook));
   },
   {
     requiredPermissions: ["webhooks.read"],
@@ -52,7 +51,7 @@ export const PATCH = withWorkspace(
   async ({ workspace, params, req }) => {
     const { webhookId } = params;
 
-    const { name, url, triggers, linkIds } = updateWebhookSchema.parse(
+    const { name, url, triggers } = updateWebhookSchema.parse(
       await parseRequestBody(req),
     );
 
@@ -63,12 +62,12 @@ export const PATCH = withWorkspace(
       },
     });
 
-    // If the webhook is managed by an integration, only the linkIds & triggers can be updated manually.
+    // If the webhook is managed by an integration, triggers can be updated manually.
     if (existingWebhook.installationId && (name || url)) {
       throw new DubApiError({
         code: "bad_request",
         message:
-          "This webhook is managed by an integration. Only the linkIds & triggers can be updated.",
+          "This webhook is managed by an integration. Only the triggers can be updated.",
       });
     }
 
@@ -91,26 +90,6 @@ export const PATCH = withWorkspace(
       }
     }
 
-    if (linkIds && linkIds.length > 0) {
-      const links = await prisma.link.findMany({
-        where: {
-          id: { in: linkIds },
-          projectId: workspace.id,
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (links.length !== linkIds.length) {
-        throw new DubApiError({
-          code: "bad_request",
-          message:
-            "Invalid link IDs provided. Please check the links you are adding the webhook to.",
-        });
-      }
-    }
-
     const oldLinks = await prisma.linkWebhook.findMany({
       where: {
         webhookId,
@@ -129,14 +108,6 @@ export const PATCH = withWorkspace(
         ...(name && { name }),
         ...(url && { url }),
         ...(triggers && { triggers }),
-        ...(linkIds && {
-          links: {
-            deleteMany: {},
-            create: linkIds.map((linkId) => ({
-              linkId,
-            })),
-          },
-        }),
         disabledAt: null,
         consecutiveFailures: 0,
       },
