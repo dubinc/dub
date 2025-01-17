@@ -259,6 +259,27 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
+
+    // Framer
+    {
+      id: "framer",
+      name: "Framer",
+      type: "oauth",
+      clientId: process.env.FRAMER_CLIENT_ID,
+      clientSecret: process.env.FRAMER_CLIENT_SECRET,
+      checks: ["state"],
+      authorization: "https://api.development.framer.com/auth/oauth/authorize",
+      token: "https://api.development.framer.com/auth/oauth/token",
+      userinfo: "https://api.development.framer.com/auth/oauth/profile",
+      profile({ sub, email, name, picture }) {
+        return {
+          id: sub,
+          name,
+          email,
+          image: picture,
+        };
+      },
+    },
   ],
   // @ts-ignore
   adapter: PrismaAdapter(prisma),
@@ -285,12 +306,42 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     signIn: async ({ user, account, profile }) => {
       console.log({ user, account, profile });
+
       if (!user.email || (await isBlacklistedEmail(user.email))) {
         return false;
       }
 
       if (user?.lockedAt) {
         return false;
+      }
+
+      // Login with Framer
+      if (account?.provider === "framer") {
+        const userFound = await prisma.user.findUnique({
+          where: {
+            email: user.email,
+          },
+          include: {
+            accounts: true,
+          },
+        });
+
+        // account doesn't exist, let the user sign in
+        if (!userFound) {
+          return true;
+        }
+
+        const otherAccounts = userFound?.accounts.filter(
+          (account) => account.provider !== "framer",
+        );
+
+        // we don't allow account linking for Framer partners
+        // so redirect to the standard login page
+        if (otherAccounts && otherAccounts.length > 0) {
+          throw new Error("framer-account-linking-not-allowed");
+        }
+
+        return true;
       }
 
       if (account?.provider === "google" || account?.provider === "github") {
