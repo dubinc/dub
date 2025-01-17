@@ -33,7 +33,7 @@ import {
 import {
   cn,
   formatDate,
-  getPrettyUrl,
+  getDomainWithoutWWW,
   SEGMENT_INTEGRATION_ID,
   SLACK_INTEGRATION_ID,
   ZAPIER_INTEGRATION_ID,
@@ -206,7 +206,7 @@ export default function IntegrationPageClient({
               rel="noopener noreferrer"
             >
               <Globe className="size-3" />
-              {getPrettyUrl(integration.website)}
+              {getDomainWithoutWWW(integration.website)}
             </a>
           </div>
         </div>
