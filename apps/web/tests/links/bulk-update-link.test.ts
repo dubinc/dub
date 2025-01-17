@@ -1,6 +1,6 @@
 import { Link, Tag } from "@dub/prisma/client";
 import { afterAll, expect, test } from "vitest";
-import { randomId } from "../utils/helpers";
+import { randomId, randomTagName } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK } from "../utils/resource";
 import { expectedLink } from "../utils/schema";
@@ -34,7 +34,7 @@ test("PATCH /links/bulk", async (ctx) => {
     .concat(["xxx"])
     .filter(Boolean);
 
-  const tagName = randomId();
+  const tagName = randomTagName();
   const { data: tag } = await http.post<Tag>({
     path: "/tags",
     query: { workspaceId },
