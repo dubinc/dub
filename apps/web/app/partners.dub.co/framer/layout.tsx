@@ -1,5 +1,5 @@
 import { Framer } from "@/ui/shared/icons/framer";
-import { Grid } from "@dub/ui";
+import { Grid, Wordmark } from "@dub/ui";
 
 export default function PartnerAuthLayout({
   children,
@@ -20,9 +20,15 @@ export default function PartnerAuthLayout({
       </div>
       <div className="flex flex-col justify-end">
         <div className="relative flex w-full flex-col items-center justify-center gap-2 py-10 pb-6">
-          <p className="text-xs text-gray-600">
-            © {new Date().getFullYear()} Dub Technologies, Inc.
-          </p>
+          <a
+            href="https://dub.partners"
+            target="_blank"
+            className="mt-4 flex items-center justify-center gap-1.5 text-neutral-500 transition-colors duration-75 hover:text-neutral-700"
+          >
+            <p className="text-xs font-medium">Powered by</p>
+            <Wordmark className="h-3.5 text-neutral-900" />
+          </a>
+
           <div className="flex gap-3 text-center text-xs text-gray-500 underline underline-offset-2">
             <a
               href="https://dub.co/legal/privacy"
@@ -37,13 +43,6 @@ export default function PartnerAuthLayout({
               className="hover:text-gray-800"
             >
               Terms of Service
-            </a>
-            <a
-              href="https://app.dub.co"
-              target="_blank"
-              className="hover:text-gray-800"
-            >
-              app.dub.co
             </a>
           </div>
         </div>

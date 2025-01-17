@@ -19,7 +19,7 @@ export const FramerButton = () => {
         });
       }}
       icon={<Framer className="size-4 fill-white text-white" />}
-      className="bg-blue-600 text-white h-10"
+      className="h-10 bg-blue-600 text-white hover:bg-blue-700"
     />
   );
 };

@@ -9,9 +9,9 @@ export const metadata = constructMetadata({
 
 export default function FramerLoginPage() {
   return (
-    <div className="mx-auto my-10 w-full max-w-sm">
+    <div className="mx-auto my-10 w-full max-w-md">
       <div className="flex flex-col items-center justify-center gap-2">
-        <h1 className="text-lg font-semibold text-neutral-800">
+        <h1 className="text-lg font-medium text-neutral-800">
           Sign in to Framer Partners
         </h1>
         <p className="text-center text-sm text-neutral-700">
