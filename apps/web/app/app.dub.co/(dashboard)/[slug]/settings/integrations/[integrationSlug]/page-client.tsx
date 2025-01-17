@@ -263,9 +263,9 @@ export default function IntegrationPageClient({
                   <BlurImage
                     src={src}
                     alt={`Screenshot of ${integration.name}`}
-                    width={2880}
-                    height={1640}
-                    className="aspect-[2880/1640] w-[5/6] overflow-hidden rounded-md border border-gray-200 object-cover"
+                    width={900}
+                    height={580}
+                    className="aspect-[900/580] w-[5/6] overflow-hidden rounded-md border border-gray-200 object-cover object-top"
                   />
                 </CarouselItem>
               ))}
