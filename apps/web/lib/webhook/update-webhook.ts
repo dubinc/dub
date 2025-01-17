@@ -1,4 +1,5 @@
 import { prisma } from "@dub/prisma";
+import { WebhookTrigger } from "../types";
 import { webhookCache } from "./cache";
 
 // Based on the webhook count, we toggle the webhook status for the workspace
@@ -7,19 +8,33 @@ export const toggleWebhooksForWorkspace = async ({
 }: {
   workspaceId: string;
 }) => {
-  const activeWebhooksCount = await prisma.webhook.count({
+  const activeWebhooks = await prisma.webhook.findMany({
     where: {
       projectId: workspaceId,
       disabledAt: null,
     },
+    select: {
+      triggers: true,
+    },
   });
+
+  const webhookEnabled = activeWebhooks.length > 0;
+
+  const triggers = activeWebhooks.map(
+    (webhook) => webhook.triggers as WebhookTrigger,
+  );
+
+  const clickWebhookEnabled = triggers.some((trigger) =>
+    trigger.includes("link.clicked"),
+  );
 
   await prisma.project.update({
     where: {
       id: workspaceId,
     },
     data: {
-      webhookEnabled: activeWebhooksCount > 0,
+      webhookEnabled,
+      clickWebhookEnabled,
     },
   });
 };

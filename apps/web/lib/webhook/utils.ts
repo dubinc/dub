@@ -1,5 +1,5 @@
 import { Webhook, WebhookReceiver } from "@dub/prisma/client";
-import { LINK_LEVEL_WEBHOOK_TRIGGERS } from "./constants";
+import { WebhookTrigger } from "../types";
 
 const webhookReceivers: Record<string, WebhookReceiver> = {
   "zapier.com": "zapier",
@@ -9,21 +9,18 @@ const webhookReceivers: Record<string, WebhookReceiver> = {
   "api.segment.io": "segment",
 };
 
-export const isLinkLevelWebhook = (webhook: Pick<Webhook, "triggers">) => {
-  if (!webhook.triggers) {
-    return false;
-  }
-
-  const triggers =
-    webhook.triggers as (typeof LINK_LEVEL_WEBHOOK_TRIGGERS)[number][];
-
-  return triggers.some((trigger) =>
-    LINK_LEVEL_WEBHOOK_TRIGGERS.includes(trigger),
-  );
-};
-
 export const identifyWebhookReceiver = (url: string): WebhookReceiver => {
   const { hostname } = new URL(url);
 
   return webhookReceivers[hostname] || "user";
+};
+
+export const checkForClickTrigger = (webhook: Pick<Webhook, "triggers">) => {
+  const triggers = webhook.triggers as WebhookTrigger[];
+
+  if (!triggers) {
+    return false;
+  }
+
+  return triggers.some((trigger) => trigger.includes("link.clicked"));
 };

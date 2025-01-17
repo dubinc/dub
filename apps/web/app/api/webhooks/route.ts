@@ -5,10 +5,9 @@ import { withWorkspace } from "@/lib/auth";
 import { webhookCache } from "@/lib/webhook/cache";
 import { createWebhook } from "@/lib/webhook/create-webhook";
 import { transformWebhook } from "@/lib/webhook/transform";
-import { toggleWebhooksForWorkspace } from "@/lib/webhook/update-webhook";
 import {
+  checkForClickTrigger,
   identifyWebhookReceiver,
-  isLinkLevelWebhook,
 } from "@/lib/webhook/utils";
 import { createWebhookSchema, WebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { prisma } from "@dub/prisma";
@@ -112,6 +111,9 @@ export const POST = withWorkspace(
 
     waitUntil(
       (async () => {
+        // TODO:
+        // Handle this via a background job
+
         const links = await prisma.link.findMany({
           where: {
             projectId: workspace.id,
@@ -126,10 +128,6 @@ export const POST = withWorkspace(
         });
 
         Promise.allSettled([
-          toggleWebhooksForWorkspace({
-            workspaceId: workspace.id,
-          }),
-
           sendEmail({
             email: session.user.email,
             subject: "New webhook added",
@@ -147,7 +145,7 @@ export const POST = withWorkspace(
 
           ...(links && links.length > 0 ? [linkCache.mset(links), []] : []),
 
-          ...(isLinkLevelWebhook(webhook) ? [webhookCache.set(webhook)] : []),
+          ...(checkForClickTrigger(webhook) ? [webhookCache.set(webhook)] : []),
         ]);
       })(),
     );

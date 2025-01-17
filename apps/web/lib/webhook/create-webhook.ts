@@ -2,20 +2,20 @@ import { linkCache } from "@/lib/api/links/cache";
 import { createId } from "@/lib/api/utils";
 import { webhookCache } from "@/lib/webhook/cache";
 import { WEBHOOK_ID_PREFIX } from "@/lib/webhook/constants";
-import { isLinkLevelWebhook } from "@/lib/webhook/utils";
+import { checkForClickTrigger } from "@/lib/webhook/utils";
 import { prisma } from "@dub/prisma";
 import { Project, WebhookReceiver } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { createWebhookSchema } from "../zod/schemas/webhooks";
 import { createWebhookSecret } from "./secret";
+import { toggleWebhooksForWorkspace } from "./update-webhook";
 
 export async function createWebhook({
   name,
   url,
   secret,
   triggers,
-  linkIds,
   workspace,
   receiver,
   installationId,
@@ -39,14 +39,6 @@ export async function createWebhook({
       installationId,
       projectId: workspace.id,
       secret: secret || createWebhookSecret(),
-      links: {
-        ...(linkIds &&
-          linkIds.length > 0 && {
-            create: linkIds.map((linkId) => ({
-              linkId,
-            })),
-          }),
-      },
     },
     select: {
       id: true,
@@ -60,45 +52,57 @@ export async function createWebhook({
     },
   });
 
-  await prisma.project.update({
-    where: {
-      id: workspace.id,
-    },
-    data: {
-      webhookEnabled: true,
-    },
+  await toggleWebhooksForWorkspace({
+    workspaceId: workspace.id,
   });
 
   waitUntil(
     (async () => {
-      const links = await prisma.link.findMany({
+      const hasClickTrigger = checkForClickTrigger(webhook);
+
+      if (!hasClickTrigger) {
+        return;
+      }
+
+      await webhookCache.set(webhook);
+
+      // TODO:
+      // Move this to a background job and process x links at a time
+
+      const webhooks = await prisma.webhook.findMany({
         where: {
-          id: { in: linkIds },
           projectId: workspace.id,
-        },
-        include: {
-          webhooks: {
-            select: {
-              webhookId: true,
-            },
+          triggers: {
+            array_contains: ["link.clicked"],
           },
         },
+        select: {
+          id: true,
+        },
       });
+
+      if (webhooks.length === 0) {
+        return;
+      }
+
+      const links = await prisma.link.findMany({
+        where: {
+          projectId: workspace.id,
+        },
+      });
+
+      if (links.length === 0) {
+        return;
+      }
 
       const formatedLinks = links.map((link) => {
         return {
           ...link,
-          webhookIds: link.webhooks.map((webhook) => webhook.webhookId),
+          webhookIds: webhooks.map((webhook) => webhook.id),
         };
       });
 
-      Promise.all([
-        ...(links && links.length > 0
-          ? [linkCache.mset(formatedLinks), []]
-          : []),
-
-        ...(isLinkLevelWebhook(webhook) ? [webhookCache.set(webhook)] : []),
-      ]);
+      await linkCache.mset(formatedLinks);
     })(),
   );
 

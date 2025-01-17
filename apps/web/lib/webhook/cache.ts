@@ -1,6 +1,6 @@
 import { redis } from "@/lib/upstash";
 import { WebhookCacheProps } from "../types";
-import { isLinkLevelWebhook } from "./utils";
+import { checkForClickTrigger } from "./utils";
 
 const WEBHOOK_CACHE_KEY_PREFIX = "webhook";
 
@@ -21,7 +21,7 @@ class WebhookCache {
 
   async set(webhook: WebhookCacheProps) {
     // We only cache the link level webhooks for now
-    if (!isLinkLevelWebhook(webhook)) {
+    if (!checkForClickTrigger(webhook)) {
       return;
     }
 

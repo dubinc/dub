@@ -5,7 +5,7 @@ import { withWorkspace } from "@/lib/auth";
 import { webhookCache } from "@/lib/webhook/cache";
 import { transformWebhook } from "@/lib/webhook/transform";
 import { toggleWebhooksForWorkspace } from "@/lib/webhook/update-webhook";
-import { isLinkLevelWebhook } from "@/lib/webhook/utils";
+import { checkForClickTrigger } from "@/lib/webhook/utils";
 import { updateWebhookSchema, WebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
@@ -127,12 +127,25 @@ export const PATCH = withWorkspace(
       },
     });
 
+    await toggleWebhooksForWorkspace({
+      workspaceId: workspace.id,
+    });
+
     waitUntil(
       (async () => {
+        const shouldRemoveCache =
+          checkForClickTrigger(existingWebhook) &&
+          !checkForClickTrigger(webhook);
+
+        if (shouldRemoveCache) {
+          await webhookCache.delete(webhookId);
+        }
+
+        // If the webhook is being changed from link level to workspace level, delete the cache
         // If the webhook is being changed from link level to workspace level, delete the cache
         if (
-          isLinkLevelWebhook(existingWebhook) &&
-          !isLinkLevelWebhook(webhook)
+          checkForClickTrigger(existingWebhook) &&
+          !checkForClickTrigger(webhook)
         ) {
           await webhookCache.delete(webhookId);
 
@@ -153,7 +166,7 @@ export const PATCH = withWorkspace(
         }
 
         // If the webhook is being changed from workspace level to link level, set the cache
-        else if (isLinkLevelWebhook(webhook)) {
+        else if (checkForClickTrigger(webhook)) {
           await webhookCache.set(webhook);
         }
 
