@@ -59,20 +59,24 @@ export const trackSaleRequestSchema = z.object({
 
 export const trackSaleResponseSchema = z.object({
   eventName: z.string(),
-  customer: z.object({
-    id: z.string(),
-    name: z.string().nullable(),
-    email: z.string().nullable(),
-    avatar: z.string().nullable(),
-    externalId: z.string().nullable(),
-  }),
-  sale: z.object({
-    amount: z.number(),
-    currency: z.string(),
-    paymentProcessor: z.string(),
-    invoiceId: z.string().nullable(),
-    metadata: z.record(z.unknown()).nullable(),
-  }),
+  customer: z
+    .object({
+      id: z.string(),
+      name: z.string().nullable(),
+      email: z.string().nullable(),
+      avatar: z.string().nullable(),
+      externalId: z.string().nullable(),
+    })
+    .nullable(),
+  sale: z
+    .object({
+      amount: z.number(),
+      currency: z.string(),
+      paymentProcessor: z.string(),
+      invoiceId: z.string().nullable(),
+      metadata: z.record(z.unknown()).nullable(),
+    })
+    .nullable(),
 });
 
 export const saleEventSchemaTB = clickEventSchemaTB
