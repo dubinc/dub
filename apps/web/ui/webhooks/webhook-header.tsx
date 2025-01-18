@@ -49,7 +49,7 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
     role,
   });
 
-  const { execute, isExecuting } = useAction(enableOrDisableWebhook, {
+  const { execute, isPending } = useAction(enableOrDisableWebhook, {
     onSuccess: async ({ data }) => {
       await mutate();
       toast.success(
@@ -189,7 +189,7 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
                     }}
                     disabled={disabled}
                     disabledTooltip={disabledTooltip}
-                    loading={isExecuting}
+                    loading={isPending}
                   />
 
                   <Button

@@ -256,7 +256,7 @@ function PartnerApproval({
     if (selectedLinkId) setLinkError(false);
   }, [selectedLinkId]);
 
-  const { executeAsync, isExecuting } = useAction(approvePartnerAction, {
+  const { executeAsync, isPending } = useAction(approvePartnerAction, {
     onSuccess() {
       mutatePrefix(`/api/programs/${partner.programId}/partners`);
 
@@ -356,7 +356,7 @@ function PartnerApproval({
             type="button"
             variant="primary"
             text="Approve"
-            loading={isExecuting}
+            loading={isPending}
             onClick={async () => {
               if (!isApproving) {
                 setIsApproving(true);
@@ -393,7 +393,7 @@ function PartnerRejectButton({
 }) {
   const { id: workspaceId } = useWorkspace();
 
-  const { executeAsync, isExecuting } = useAction(rejectPartnerAction, {
+  const { executeAsync, isPending } = useAction(rejectPartnerAction, {
     onSuccess: async () => {
       await mutatePrefix(`/api/programs/${partner.programId}/partners`);
 
@@ -409,8 +409,8 @@ function PartnerRejectButton({
     <Button
       type="button"
       variant="secondary"
-      text={isExecuting ? "" : "Decline"}
-      loading={isExecuting}
+      text={isPending ? "" : "Decline"}
+      loading={isPending}
       onClick={async () => {
         await executeAsync({
           workspaceId: workspaceId!,

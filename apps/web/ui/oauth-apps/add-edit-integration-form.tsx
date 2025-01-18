@@ -98,7 +98,7 @@ export default function AddEditIntegrationForm({
   const uploading = screenshots.some((s) => s.uploading);
   const canManageApp = !permissionsError;
 
-  const { executeAsync, isExecuting } = useAction(addEditIntegration, {
+  const { executeAsync, isPending } = useAction(addEditIntegration, {
     onSuccess: () => {
       toast.success(`Integration ${integration.id ? "updated" : "created"}`);
     },
@@ -347,8 +347,8 @@ export default function AddEditIntegrationForm({
 
         <Button
           text={integration.id ? "Save changes" : "Create"}
-          disabled={buttonDisabled || uploading || isExecuting}
-          loading={isExecuting}
+          disabled={buttonDisabled || uploading || isPending}
+          loading={isPending}
           type="submit"
           {...(permissionsError && {
             disabledTooltip: permissionsError,

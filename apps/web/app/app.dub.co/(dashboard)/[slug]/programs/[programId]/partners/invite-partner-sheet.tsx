@@ -46,7 +46,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
 
   const selectedLinkId = watch("linkId");
 
-  const { executeAsync, isExecuting } = useAction(invitePartnerAction, {
+  const { executeAsync, isPending } = useAction(invitePartnerAction, {
     onSuccess: async () => {
       toast.success("Successfully invited partner!");
       setIsOpen(false);
@@ -244,14 +244,14 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             onClick={() => setIsOpen(false)}
             text="Cancel"
             className="w-fit"
-            disabled={isExecuting}
+            disabled={isPending}
           />
           <Button
             type="submit"
             variant="primary"
             text="Send invite"
             className="w-fit"
-            loading={isExecuting}
+            loading={isPending}
           />
         </div>
       </div>
