@@ -5,6 +5,7 @@ import {
   Icon,
   ShimmerDots,
   SimpleTooltipContent,
+  Switch,
   useKeyboardShortcut,
   useMediaQuery,
 } from "@dub/ui";
@@ -95,7 +96,9 @@ export function LinkPreview() {
       <OGModal />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-medium text-gray-700">Link Preview</h2>
+          <h2 className="text-sm font-medium text-gray-700">
+            Custom Link Preview
+          </h2>
           <ProBadgeTooltip
             content={
               <SimpleTooltipContent
@@ -106,14 +109,9 @@ export function LinkPreview() {
             }
           />
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          icon={
-            <Pen2 className={cn("mx-px size-4", proxy && "text-blue-500")} />
-          }
-          className="h-7 w-fit px-1"
-          onClick={() => setShowOGModal(true)}
+        <Switch
+          checked={proxy}
+          fn={() => setValue("proxy", !proxy, { shouldDirty: true })}
         />
       </div>
       <div className="mt-2.5 grid grid-cols-4 gap-2">
@@ -138,7 +136,14 @@ export function LinkPreview() {
           );
         })}
       </div>
-      <div className="mt-2">
+      <div className="relative mt-2">
+        <Button
+          type="button"
+          variant="secondary"
+          icon={<Pen2 className="mx-px size-4" />}
+          className="absolute right-2 top-2 z-10 h-8 w-fit px-1.5"
+          onClick={() => setShowOGModal(true)}
+        />
         <OGPreview
           title={title}
           description={description}

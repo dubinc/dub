@@ -1,9 +1,11 @@
 import useDomain from "@/lib/swr/use-domain";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import { QRCode } from "@/ui/shared/qr-code";
 import {
   Button,
   ShimmerDots,
+  SimpleTooltipContent,
   useInViewport,
   useKeyboardShortcut,
   useLocalStorage,
@@ -74,19 +76,30 @@ export function QRCodePreview() {
     <div ref={ref}>
       <LinkQRModal />
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium text-gray-700">QR Code</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-medium text-gray-700">QR Code</h2>
+          <ProBadgeTooltip
+            content={
+              <SimpleTooltipContent
+                title="Set a custom QR code design to improve click-through rates."
+                cta="Learn more."
+                href="https://dub.co/help/article/custom-qr-codes"
+              />
+            }
+          />
+        </div>
+      </div>
+      <div className="relative mt-2 h-24 overflow-hidden rounded-md border border-gray-300">
         <Button
           type="button"
-          variant="outline"
+          variant="secondary"
           icon={<Pen2 className="mx-px size-4" />}
-          className="h-7 w-fit px-1"
+          className="absolute right-2 top-2 z-10 h-8 w-fit bg-white px-1.5"
           onClick={() => setShowLinkQRModal(true)}
           disabledTooltip={
             key && domain ? undefined : "Enter a short link to customize"
           }
         />
-      </div>
-      <div className="relative mt-2 h-24 overflow-hidden rounded-md border border-gray-300">
         {!isMobile && (
           <ShimmerDots className="opacity-30 [mask-image:radial-gradient(40%_80%,transparent_50%,black)]" />
         )}
