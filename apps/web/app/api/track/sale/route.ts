@@ -52,9 +52,10 @@ export const POST = withWorkspaceEdge(
     });
 
     if (!customer) {
-      throw new DubApiError({
-        code: "not_found",
-        message: `Customer not found for externalId: ${customerExternalId}`,
+      return NextResponse.json({
+        eventName,
+        customer: null,
+        sale: null,
       });
     }
 
