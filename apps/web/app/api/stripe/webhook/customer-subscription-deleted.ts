@@ -92,6 +92,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         aiLimit: FREE_PLAN.limits.ai!,
         tagsLimit: FREE_PLAN.limits.tags!,
         usersLimit: FREE_PLAN.limits.users!,
+        salesLimit: FREE_PLAN.limits.sales!,
         paymentFailedAt: null,
       },
     }),
