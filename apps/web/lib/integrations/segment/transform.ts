@@ -39,6 +39,7 @@ const transformClickEvent = (data: ClickEventWebhookData) => {
     context: {
       ip: click.ip,
       integration,
+      library: integration,
       ...buildCampaignContext(link),
     },
     properties: {
@@ -57,6 +58,7 @@ const transformLeadEvent = (data: LeadEventWebhookData) => {
     context: {
       ip: click.ip,
       integration,
+      library: integration,
       ...buildCampaignContext(link),
     },
     properties: {
@@ -76,6 +78,7 @@ const transformSaleEvent = (data: SaleEventWebhookData) => {
     context: {
       ip: click.ip,
       integration,
+      library: integration,
       ...buildCampaignContext(link),
     },
     properties: {

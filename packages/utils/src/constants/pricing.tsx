@@ -126,6 +126,7 @@ export const PLANS = [
     limits: {
       links: 25,
       clicks: 1000,
+      sales: 0,
       domains: 3,
       tags: 5,
       users: 1,
@@ -194,6 +195,7 @@ export const PLANS = [
     limits: {
       links: 1000,
       clicks: 50000,
+      sales: 0,
       domains: 10,
       tags: 25,
       users: 5,
@@ -333,6 +335,7 @@ export const PLANS = [
     limits: {
       links: 250000,
       clicks: 5000000,
+      sales: 1000000_00,
       domains: 1000,
       tags: 1000,
       users: 500,
