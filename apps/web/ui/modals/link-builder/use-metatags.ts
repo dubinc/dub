@@ -26,7 +26,7 @@ export function useMetatags({
 
   useEffect(() => {
     // no need to generate metatags if proxy is enabled, or if any of the metatags are set
-    if (proxy || title || description || image) {
+    if (proxy) {
       setGeneratingMetatags(false);
       return;
     }
@@ -68,7 +68,7 @@ export function useMetatags({
     } else {
       setGeneratingMetatags(false);
     }
-  }, [debouncedUrl, password, proxy, title, description, image, enabled]);
+  }, [debouncedUrl, password, proxy, enabled]);
 
   return { generatingMetatags };
 }
