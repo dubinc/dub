@@ -8,8 +8,8 @@ import {
   FileUpload,
   Modal,
   Popover,
+  SimpleTooltipContent,
   Tooltip,
-  TooltipContent,
 } from "@dub/ui";
 import { LoadingCircle, Magic, Unsplash } from "@dub/ui/icons";
 import { resizeImage } from "@dub/utils";
@@ -222,11 +222,10 @@ function OGModalInner({
               <h3 className="text-lg font-medium">Link Preview</h3>
               <ProBadgeTooltip
                 content={
-                  <TooltipContent
+                  <SimpleTooltipContent
                     title="Customize how your links look when shared on social media to improve click-through rates. When enabled, the preview settings below will be shown publicly (instead of the URL's original metatags)."
-                    cta="Learn more"
+                    cta="Learn more."
                     href="https://dub.co/help/article/custom-link-previews"
-                    target="_blank"
                   />
                 }
               />

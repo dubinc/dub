@@ -1,9 +1,9 @@
 import useDomain from "@/lib/swr/use-domain";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import { QRCode } from "@/ui/shared/qr-code";
 import {
   Button,
+  InfoTooltip,
   ShimmerDots,
   SimpleTooltipContent,
   useInViewport,
@@ -78,7 +78,7 @@ export function QRCodePreview() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-medium text-gray-700">QR Code</h2>
-          <ProBadgeTooltip
+          <InfoTooltip
             content={
               <SimpleTooltipContent
                 title="Set a custom QR code design to improve click-through rates."

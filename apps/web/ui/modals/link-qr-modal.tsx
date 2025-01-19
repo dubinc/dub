@@ -43,6 +43,7 @@ import {
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
+import { ProBadgeTooltip } from "../shared/pro-badge-tooltip";
 
 const DEFAULT_COLORS = [
   "#000000",
@@ -150,7 +151,18 @@ function LinkQRModalInner({
       }}
     >
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">QR Code Design</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-medium">QR Code</h3>
+          <ProBadgeTooltip
+            content={
+              <SimpleTooltipContent
+                title="Set a custom QR code design to improve click-through rates."
+                cta="Learn more."
+                href="https://dub.co/help/article/custom-qr-codes"
+              />
+            }
+          />
+        </div>
         <div className="max-md:hidden">
           <Tooltip
             content={

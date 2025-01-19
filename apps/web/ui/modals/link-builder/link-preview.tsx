@@ -5,6 +5,7 @@ import {
   Icon,
   InfoTooltip,
   ShimmerDots,
+  SimpleTooltipContent,
   Switch,
   TooltipContent,
   useKeyboardShortcut,
@@ -104,11 +105,10 @@ export function LinkPreview() {
           </h2>
           <InfoTooltip
             content={
-              <TooltipContent
+              <SimpleTooltipContent
                 title="Customize how your links look when shared on social media to improve click-through rates. When enabled, the preview settings below will be shown publicly (instead of the URL's original metatags)."
-                cta="Learn more"
+                cta="Learn more."
                 href="https://dub.co/help/article/custom-link-previews"
-                target="_blank"
               />
             }
           />
