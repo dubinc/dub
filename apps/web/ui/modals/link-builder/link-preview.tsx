@@ -118,7 +118,9 @@ export function LinkPreview() {
           checked={proxy}
           fn={(checked) => setValue("proxy", checked, { shouldDirty: true })}
           disabledTooltip={
-            !plan || plan === "free" ? (
+            !url ? (
+              "Enter a URL to enable custom link previews."
+            ) : !plan || plan === "free" ? (
               <TooltipContent
                 title="Custom Link Previews are only available on the Pro plan and above."
                 cta="Upgrade to Pro"

@@ -61,8 +61,8 @@ export function QRCodePreview() {
 
   const { LinkQRModal, setShowLinkQRModal } = useLinkQRModal({
     props: {
-      key: rawKey,
       domain: rawDomain,
+      key: rawKey,
     },
     onSave: (data) => setData(data),
   });
@@ -96,9 +96,6 @@ export function QRCodePreview() {
           icon={<Pen2 className="mx-px size-4" />}
           className="absolute right-2 top-2 z-10 h-8 w-fit bg-white px-1.5"
           onClick={() => setShowLinkQRModal(true)}
-          disabledTooltip={
-            key && domain ? undefined : "Enter a short link to customize"
-          }
         />
         {!isMobile && (
           <ShimmerDots className="opacity-30 [mask-image:radial-gradient(40%_80%,transparent_50%,black)]" />

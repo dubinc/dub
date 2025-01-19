@@ -104,6 +104,18 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
       setGeneratingRandomKey(false);
     };
 
+    const [isFocused, setIsFocused] = useState(false);
+
+    useEffect(() => {
+      // generate a random key if:
+      // - there is a domain
+      // - there is no key
+      // - the input is not focused
+      if (domain && !key && !isFocused) {
+        generateRandomKey();
+      }
+    }, [domain, key, isFocused]);
+
     const runKeyChecks = async (value: string) => {
       const res = await fetch(
         `/api/links/exists?domain=${domain}&key=${value}&workspaceId=${workspaceId}`,
@@ -115,6 +127,14 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
         setKeyError(null);
       }
     };
+
+    const [debouncedKey] = useDebounce(key, 500);
+
+    useEffect(() => {
+      if (debouncedKey) {
+        runKeyChecks(debouncedKey);
+      }
+    }, [debouncedKey]);
 
     const [generatedKeys, setGeneratedKeys] = useState<string[]>(
       existingLink && key ? [key] : [],
@@ -141,7 +161,6 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
       onFinish: (_, completion) => {
         setGeneratedKeys((prev) => [...prev, completion]);
         mutateWorkspace();
-        runKeyChecks(completion);
         posthog.capture("ai_key_generated", {
           key: completion,
           url: data.url,
@@ -262,17 +281,8 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
                 "Only letters, numbers, '-', '_', '/', and emojis are allowed.",
               );
             }}
-            onBlur={(e) => {
-              // if the key is changed, check if key exists
-              if (e.target.value) {
-                // no need to check if the link key didn't change (for editing existing links)
-                if (existingLinkProps?.key === e.target.value) {
-                  return;
-                } else {
-                  runKeyChecks(e.target.value);
-                }
-              }
-            }}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
             disabled={lockKey}
             autoComplete="off"
             autoCapitalize="none"
