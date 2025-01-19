@@ -116,7 +116,7 @@ export function LinkPreview() {
 
         <Switch
           checked={proxy}
-          fn={() => setValue("proxy", !proxy, { shouldDirty: true })}
+          fn={(checked) => setValue("proxy", checked, { shouldDirty: true })}
           disabledTooltip={
             !plan || plan === "free" ? (
               <TooltipContent

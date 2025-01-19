@@ -68,7 +68,7 @@ export function useMetatags({
     } else {
       setGeneratingMetatags(false);
     }
-  }, [debouncedUrl, password, proxy, enabled]);
+  }, [debouncedUrl, password, enabled]);
 
   return { generatingMetatags };
 }
