@@ -19,7 +19,15 @@ import {
   useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
-import { Check, Check2, Copy, Download, Hyperlink, Photo } from "@dub/ui/icons";
+import {
+  Check,
+  Check2,
+  Copy,
+  CrownSmall,
+  Download,
+  Hyperlink,
+  Photo,
+} from "@dub/ui/icons";
 import { API_DOMAIN, cn, DUB_QR_LOGO, linkConstructor } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -256,12 +264,22 @@ function LinkQRModalInner({
             setData((d) => ({ ...d, hideLogo: !d.hideLogo }));
           }}
           disabledTooltip={
-            plan === "free" ? (
+            !plan || plan === "free" ? (
               <TooltipContent
                 title="You need to be on the Pro plan and above to customize your QR Code logo."
                 cta="Upgrade to Pro"
-                href={slug ? `/${slug}/upgrade` : "https://dub.co/pricing"}
+                href={
+                  slug
+                    ? `/${slug}/upgrade?exit=close`
+                    : "https://dub.co/pricing"
+                }
+                target="_blank"
               />
+            ) : undefined
+          }
+          thumbIcon={
+            !plan || plan === "free" ? (
+              <CrownSmall className="size-full text-neutral-500" />
             ) : undefined
           }
         />

@@ -8,8 +8,8 @@ import {
   FileUpload,
   Modal,
   Popover,
-  SimpleTooltipContent,
   Tooltip,
+  TooltipContent,
 } from "@dub/ui";
 import { LoadingCircle, Magic, Unsplash } from "@dub/ui/icons";
 import { resizeImage } from "@dub/utils";
@@ -51,7 +51,7 @@ function OGModalInner({
   showOGModal: boolean;
   setShowOGModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { id: workspaceId, mutate, exceededAI } = useWorkspace();
+  const { id: workspaceId, plan, exceededAI, mutate } = useWorkspace();
 
   const { generatingMetatags } = useContext(LinkModalContext);
   const {
@@ -91,7 +91,9 @@ function OGModalInner({
       if (!image) return;
 
       setValue("image", image, { shouldDirty: true });
-      setValue("proxy", true, { shouldDirty: true });
+      if (plan && plan !== "free") {
+        setValue("proxy", true, { shouldDirty: true });
+      }
     },
   });
 
@@ -141,7 +143,9 @@ function OGModalInner({
   useEffect(() => {
     if (completionTitle) {
       setValue("title", completionTitle, { shouldDirty: true });
-      setValue("proxy", true, { shouldDirty: true });
+      if (plan && plan !== "free") {
+        setValue("proxy", true, { shouldDirty: true });
+      }
     }
   }, [completionTitle]);
 
@@ -187,7 +191,9 @@ function OGModalInner({
   useEffect(() => {
     if (completionDescription) {
       setValue("description", completionDescription, { shouldDirty: true });
-      setValue("proxy", true, { shouldDirty: true });
+      if (plan && plan !== "free") {
+        setValue("proxy", true, { shouldDirty: true });
+      }
     }
   }, [completionDescription]);
 
@@ -216,10 +222,10 @@ function OGModalInner({
               <h3 className="text-lg font-medium">Link Preview</h3>
               <ProBadgeTooltip
                 content={
-                  <SimpleTooltipContent
-                    title="Customize how your links look when shared on social media to improve click-through rates."
-                    cta="Learn more."
-                    href="https://dub.co/help/article/custom-social-media-cards"
+                  <TooltipContent
+                    title="Customize how your links look when shared on social media to improve click-through rates. When enabled, the preview settings below will be shown publicly (instead of the URL's original metatags)."
+                    cta="Learn more"
+                    href="https://dub.co/help/article/custom-link-previews"
                   />
                 }
               />
@@ -274,7 +280,9 @@ function OGModalInner({
                       <UnsplashSearch
                         onImageSelected={(image) => {
                           setValue("image", image, { shouldDirty: true });
-                          setValue("proxy", true, { shouldDirty: true });
+                          if (plan && plan !== "free") {
+                            setValue("proxy", true, { shouldDirty: true });
+                          }
                         }}
                         setOpenPopover={setOpenUnsplashPopover}
                       />
@@ -304,7 +312,9 @@ function OGModalInner({
 
                   const image = await resizeImage(file);
                   setValue("image", image, { shouldDirty: true });
-                  setValue("proxy", true, { shouldDirty: true });
+                  if (plan && plan !== "free") {
+                    setValue("proxy", true, { shouldDirty: true });
+                  }
 
                   // Delay to prevent flickering
                   setTimeout(() => setResizing(false), 500);
@@ -366,7 +376,9 @@ function OGModalInner({
                   value={title || ""}
                   onChange={(e) => {
                     setValue("title", e.target.value, { shouldDirty: true });
-                    setValue("proxy", true, { shouldDirty: true });
+                    if (plan && plan !== "free") {
+                      setValue("proxy", true, { shouldDirty: true });
+                    }
                   }}
                   aria-invalid="true"
                 />
@@ -422,7 +434,9 @@ function OGModalInner({
                     setValue("description", e.target.value, {
                       shouldDirty: true,
                     });
-                    setValue("proxy", true, { shouldDirty: true });
+                    if (plan && plan !== "free") {
+                      setValue("proxy", true, { shouldDirty: true });
+                    }
                   }}
                   aria-invalid="true"
                 />
@@ -431,24 +445,20 @@ function OGModalInner({
           </div>
 
           <div className="mt-6 flex items-center justify-between">
-            <div>
-              {parentProxy && (
-                <button
-                  type="button"
-                  className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
-                  onClick={() => {
-                    setValueParent("proxy", false, { shouldDirty: true });
-                    ["title", "description", "image"].forEach(
-                      (key: "title" | "description" | "image") =>
-                        setValueParent(key, null, { shouldDirty: true }),
-                    );
-                    setShowOGModal(false);
-                  }}
-                >
-                  Reset to default
-                </button>
-              )}
-            </div>
+            <button
+              type="button"
+              className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
+              onClick={() => {
+                setValueParent("proxy", false, { shouldDirty: true });
+                ["title", "description", "image"].forEach(
+                  (key: "title" | "description" | "image") =>
+                    setValueParent(key, null, { shouldDirty: true }),
+                );
+                setShowOGModal(false);
+              }}
+            >
+              Reset to default
+            </button>
             <div className="flex items-center gap-2">
               <Button
                 type="button"
