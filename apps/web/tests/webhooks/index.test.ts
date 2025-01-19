@@ -42,9 +42,9 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "sale.created": saleWebhookEventSchemaExtended,
 };
 
-describe.concurrent("suite", () => {
+describe.concurrent("webhooks", () => {
   WEBHOOK_TRIGGERS.forEach((trigger) => {
-    it(`webhook event - ${trigger}`, () => testWebhookEvent(trigger));
+    it(trigger, () => testWebhookEvent(trigger));
   });
 });
 
