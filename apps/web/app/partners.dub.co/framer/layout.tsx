@@ -1,4 +1,3 @@
-import { Framer } from "@/ui/shared/icons/framer";
 import { Grid, Wordmark } from "@dub/ui";
 
 export default function PartnerAuthLayout({
@@ -13,9 +12,6 @@ export default function PartnerAuthLayout({
         <div className="absolute inset-0 -translate-y-1/2 -scale-x-100 bg-[conic-gradient(from_-32deg,#f00_0deg,#EAB308_99deg,#5CFF80_162deg,#00FFF9_216deg,#3A8BFD_288deg,#855AFC_360deg)] opacity-25 blur-[200px]" />
       </div>
       <div className="relative z-10 flex grow flex-col items-center justify-center px-3 text-center md:px-8">
-        <div className="animate-slide-up-fade relative flex w-auto flex-col items-center [--offset:10px] [animation-duration:1.3s] [animation-fill-mode:both]">
-          <Framer />
-        </div>
         {children}
       </div>
       <div className="flex flex-col justify-end">

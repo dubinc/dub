@@ -9,7 +9,14 @@ export const metadata = constructMetadata({
 
 export default function FramerLoginPage() {
   return (
-    <div className="mx-auto my-10 w-full max-w-md">
+    <div className="mx-auto my-10 flex w-full max-w-sm flex-col gap-8">
+      <div className="animate-slide-up-fade relative flex w-auto flex-col items-center [--offset:10px] [animation-duration:1.3s] [animation-fill-mode:both]">
+        <img
+          src="https://assets.dub.co/testimonials/companies/framer.svg"
+          alt="Framer Logo"
+          className="h-8"
+        />
+      </div>
       <div className="flex flex-col items-center justify-center gap-2">
         <h1 className="text-lg font-medium text-neutral-800">
           Sign in to Framer Partners
@@ -25,9 +32,7 @@ export default function FramerLoginPage() {
         </p>
       </div>
 
-      <div className="mt-8">
-        <FramerButton />
-      </div>
+      <FramerButton />
     </div>
   );
 }
