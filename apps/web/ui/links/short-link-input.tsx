@@ -131,10 +131,14 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
     const [debouncedKey] = useDebounce(key, 500);
 
     useEffect(() => {
-      if (debouncedKey) {
+      // only run key checks if:
+      // - there is a key
+      // - there is a workspace
+      // - it's not an existing link
+      if (debouncedKey && workspaceId && !existingLink) {
         runKeyChecks(debouncedKey);
       }
-    }, [debouncedKey]);
+    }, [debouncedKey, workspaceId, existingLink]);
 
     const [generatedKeys, setGeneratedKeys] = useState<string[]>(
       existingLink && key ? [key] : [],
