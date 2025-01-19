@@ -18,6 +18,7 @@ import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { completeProgramApplications } from "../partners/complete-program-applications";
+import { FRAMER_API_HOST } from "./constants";
 import {
   exceededLoginAttemptsThreshold,
   incrementLoginAttempts,
@@ -268,9 +269,9 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.FRAMER_CLIENT_ID,
       clientSecret: process.env.FRAMER_CLIENT_SECRET,
       checks: ["state"],
-      authorization: "https://api.development.framer.com/auth/oauth/authorize",
-      token: "https://api.development.framer.com/auth/oauth/token",
-      userinfo: "https://api.development.framer.com/auth/oauth/profile",
+      authorization: `${FRAMER_API_HOST}/auth/oauth/authorize`,
+      token: `${FRAMER_API_HOST}/auth/oauth/token`,
+      userinfo: `${FRAMER_API_HOST}/auth/oauth/profile`,
       profile({ sub, email, name, picture }) {
         return {
           id: sub,
