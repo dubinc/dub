@@ -144,32 +144,34 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
       }
     },
     onError({ error }) {
-      console.log(error);
       toast.error(error.serverError);
     },
   });
 
   const onSubmit = async (data: FormData) => {
-    if (workspaceId && program && partnerId) {
-      const startDate = data.start
-        ? data.start.getTime() - data.start.getTimezoneOffset() * 60000
-        : undefined;
-      const endDate = data.end
-        ? data.end.getTime() - data.end.getTimezoneOffset() * 60000
-        : undefined;
-
-      await executeAsync({
-        ...data,
-        workspaceId,
-        programId: program.id,
-        start: startDate ? new Date(startDate).toISOString() : undefined,
-        end: endDate ? new Date(endDate).toISOString() : undefined,
-        ...(payoutType != "sales" && {
-          amount: amount! * 100,
-        }),
-        partnerId,
-      });
+    if (!workspaceId || !program || !partnerId || !amount) {
+      toast.error("Please fill all required fields");
+      return;
     }
+
+    const startDate = data.start
+      ? data.start.getTime() - data.start.getTimezoneOffset() * 60000
+      : undefined;
+    const endDate = data.end
+      ? data.end.getTime() - data.end.getTimezoneOffset() * 60000
+      : undefined;
+
+    await executeAsync({
+      ...data,
+      workspaceId,
+      programId: program.id,
+      start: startDate ? new Date(startDate).toISOString() : undefined,
+      end: endDate ? new Date(endDate).toISOString() : undefined,
+      ...(payoutType != "sales" && {
+        amount: amount * 100,
+      }),
+      partnerId,
+    });
   };
 
   const selectedPartner = partners?.find((p) => p.id === partnerId);
