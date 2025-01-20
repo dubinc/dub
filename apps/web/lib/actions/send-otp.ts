@@ -16,7 +16,7 @@ import { actionClient } from "./safe-action";
 
 const schema = z.object({
   email: emailSchema,
-  password: passwordSchema,
+  password: passwordSchema.optional(),
 });
 
 // Send OTP to email to verify account
@@ -84,6 +84,7 @@ export const sendOtpAction = actionClient
           expires: new Date(Date.now() + EMAIL_OTP_EXPIRY_IN * 1000),
         },
       }),
+
       sendEmail({
         subject: `${process.env.NEXT_PUBLIC_APP_NAME}: OTP to verify your account`,
         email,
@@ -93,6 +94,4 @@ export const sendOtpAction = actionClient
         }),
       }),
     ]);
-
-    return { ok: true };
   });
