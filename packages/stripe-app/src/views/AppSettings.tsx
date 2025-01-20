@@ -1,3 +1,5 @@
+import { I18nextProvider } from "react-i18next";
+import { i18n } from ".././i18n";
 import type { ExtensionContextValue } from "@stripe/ui-extension-sdk/context";
 import { createOAuthState } from "@stripe/ui-extension-sdk/oauth";
 import {
@@ -136,7 +138,8 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
   }
 
   return (
-    <Box css={{ width: "6/12", stack: "y", gap: "large" }}>
+    <I18nextProvider i18n={i18n}>
+<Box css={{ width: "6/12", stack: "y", gap: "large" }}>
       {workspace ? (
         <Banner
           title="Dub workspace"
@@ -185,6 +188,7 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
         />
       )}
     </Box>
+</I18nextProvider>
   );
 };
 
