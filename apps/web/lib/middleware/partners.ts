@@ -8,8 +8,9 @@ const AUTHENTICATED_PATHS = [
   "/programs",
   "/marketplace",
   "/onboarding",
+  "/waitlist",
   "/settings",
-  "/accounts",
+  "/account",
 ];
 
 export default async function PartnersMiddleware(req: NextRequest) {
@@ -32,21 +33,23 @@ export default async function PartnersMiddleware(req: NextRequest) {
     const partnersEnabled = await userIsInBeta(user.email, "partnersPortal");
 
     if (!partnersEnabled) {
-      return NextResponse.rewrite(new URL("/partners.dub.co", req.url));
-    }
+      if (path !== "/waitlist") {
+        return NextResponse.redirect(new URL("/waitlist", req.url));
+      }
+    } else {
+      const defaultPartner = await getDefaultPartner(user);
 
-    const defaultPartner = await getDefaultPartner(user);
-
-    if (!defaultPartner && !path.startsWith("/onboarding")) {
-      return NextResponse.redirect(new URL("/onboarding", req.url));
-    } else if (path === "/" || path.startsWith("/pn_")) {
-      return NextResponse.redirect(new URL("/programs", req.url));
-    } else if (
-      ["/login", "/register"].some(
-        (p) => path.startsWith(p) || path.endsWith(p),
-      )
-    ) {
-      return NextResponse.redirect(new URL("/", req.url)); // Redirect authenticated users to dashboard
+      if (!defaultPartner && !path.startsWith("/onboarding")) {
+        return NextResponse.redirect(new URL("/onboarding", req.url));
+      } else if (path === "/" || path.startsWith("/pn_")) {
+        return NextResponse.redirect(new URL("/programs", req.url));
+      } else if (
+        ["/login", "/register"].some(
+          (p) => path.startsWith(p) || path.endsWith(p),
+        )
+      ) {
+        return NextResponse.redirect(new URL("/", req.url)); // Redirect authenticated users to dashboard
+      }
     }
   }
 

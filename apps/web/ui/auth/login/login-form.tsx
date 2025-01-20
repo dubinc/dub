@@ -35,7 +35,7 @@ export const errorCodes = {
   "too-many-login-attempts": "Too many login attempts. Please try again later.",
   "email-not-verified": "Please verify your email address.",
   "framer-account-linking-not-allowed":
-    "It looks like you already have an account with us. Please sign in with the email you used to sign up.",
+    "It looks like you already have an account with us. Please sign in with your Framer account email instead.",
   Callback:
     "We encountered an issue processing your request. Please try again or contact support if the problem persists.",
   OAuthSignin:
