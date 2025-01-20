@@ -42,7 +42,13 @@ export default function RootProviders({ children }: { children: ReactNode }) {
           <Toaster closeButton className="pointer-events-auto" />
           <PosthogPageview />
           {children}
-          <DubAnalytics apiHost="/_proxy/dub" shortDomain="refer.dub.co" />
+          <DubAnalytics
+            apiHost="/_proxy/dub"
+            shortDomain="refer.dub.co"
+            cookieOptions={{
+              domain: ".dub.co",
+            }}
+          />
         </KeyboardShortcutProvider>
       </TooltipProvider>
     </PostHogProvider>
