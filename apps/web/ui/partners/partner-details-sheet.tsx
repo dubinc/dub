@@ -163,7 +163,7 @@ function PartnerDetailsSheetContent({
           {partner.link && (
             <div className="xs:grid-cols-2 mt-4 grid grid-cols-1 gap-3">
               <Link
-                href={`/${slug}/analytics?domain=${partner.link.domain}&key=${partner.link.key}`}
+                href={`/${slug}/analytics?domain=${partner.link.domain}&key=${partner.link.key}&interval=all`}
                 target="_blank"
                 className={cn(
                   buttonVariants({ variant: "secondary" }),
@@ -174,7 +174,7 @@ function PartnerDetailsSheetContent({
                 Analytics
               </Link>
               <Link
-                href={`/${slug}/events?domain=${partner.link.domain}&key=${partner.link.key}`}
+                href={`/${slug}/events?domain=${partner.link.domain}&key=${partner.link.key}&interval=all`}
                 target="_blank"
                 className={cn(
                   buttonVariants({ variant: "secondary" }),
