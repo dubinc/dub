@@ -1,5 +1,5 @@
 import { Domain } from "@dub/prisma/client";
-import { afterAll, describe, expect, test } from "vitest";
+import { describe, expect, onTestFinished, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 
@@ -31,7 +31,7 @@ describe.sequential("/domains/**", async () => {
   const h = new IntegrationHarness();
   const { workspace, http } = await h.init();
 
-  afterAll(async () => {
+  onTestFinished(async () => {
     await h.deleteDomain(domainRecord.slug);
   });
 

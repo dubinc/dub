@@ -1,11 +1,15 @@
 import { Tag } from "@dub/prisma/client";
-import { afterAll, expect, test } from "vitest";
+import { expect, onTestFinished, test } from "vitest";
 import { randomTagName } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 
 test("POST /tags", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { http } = await h.init();
+
+  onTestFinished(async () => {
+    await h.deleteTag(tag.id);
+  });
 
   const newTag = {
     name: randomTagName(),
@@ -21,9 +25,5 @@ test("POST /tags", async (ctx) => {
   expect(tag).toStrictEqual({
     id: expect.any(String),
     ...newTag,
-  });
-
-  afterAll(async () => {
-    await h.deleteTag(tag.id);
   });
 });
