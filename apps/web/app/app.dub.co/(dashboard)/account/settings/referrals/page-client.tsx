@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -9,6 +10,10 @@ import { useSession } from "next-auth/react";
 import useSWRImmutable from "swr/immutable";
 
 export function ReferralsPageClient() {
+  const t = useTranslations(
+    "app.dub.co/(dashboard)/account/settings/referrals",
+  );
+
   const { data: session, status } = useSession();
   const referralLinkId = session?.user?.["referralLinkId"];
 
@@ -25,8 +30,8 @@ export function ReferralsPageClient() {
   if (!referralLinkId || !publicToken) {
     return (
       <AnimatedEmptyState
-        title="Refer a friend"
-        description="Activate your referral link to share the word about Dub and earn cash rewards"
+        title={t("refer-a-friend")}
+        description={t("activate-referral-link")}
         cardContent={
           <>
             <Hyperlink className="size-4 text-neutral-700" />

@@ -8,6 +8,7 @@ import {
 } from "@dub/ui";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, Paperclip, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
@@ -17,6 +18,8 @@ export function ContactForm({
 }: {
   setScreen: Dispatch<SetStateAction<"main" | "contact">>;
 }) {
+  const t = useTranslations("../ui/layout/help");
+
   const [data, setData] = useState<{
     message: string;
     attachmentIds: string[];
@@ -93,7 +96,9 @@ export function ContactForm({
         onClick={() => setScreen("main")}
       >
         <ChevronLeft className="h-5 w-5" />
-        <h3 className="text-lg font-semibold text-gray-700">Contact support</h3>
+        <h3 className="text-lg font-semibold text-gray-700">
+          {t("contact-support")}
+        </h3>
       </button>
 
       <AnimatePresence>
@@ -105,8 +110,9 @@ export function ContactForm({
           >
             <CheckCircleFill className="h-8 w-8 text-green-500" />
             <p className="text-gray-500">
-              Thanks for reaching out! <br /> We'll get back to you as soon as
-              possible.
+              {t("thanks-for-reaching-out")}
+              <br />
+              {t("response-time-acknowledgment")}
             </p>
           </motion.div>
         ) : (
@@ -133,12 +139,12 @@ export function ContactForm({
           >
             <label>
               <span className="text-sm font-medium text-gray-700">
-                Describe the issue
+                {t("describe-issue")}
               </span>
               <TextareaAutosize
                 name="message"
                 required
-                placeholder="E.g. My custom domain is not working."
+                placeholder={t("example-issue-description")}
                 minRows={8}
                 autoFocus={!isMobile}
                 autoComplete="off"
@@ -204,7 +210,7 @@ export function ContactForm({
                 className="h-9"
                 disabled={!data.message}
                 loading={formStatus === "loading"}
-                text="Send message"
+                text={t("send-message")}
               />
             </div>
           </motion.form>

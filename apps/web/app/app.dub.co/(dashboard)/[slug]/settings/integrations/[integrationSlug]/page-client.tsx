@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import { getIntegrationInstallUrl } from "@/lib/actions/get-integration-install-url";
 import { SegmentSettings } from "@/lib/integrations/segment/ui/settings";
@@ -56,6 +57,10 @@ export default function IntegrationPageClient({
 }: {
   integration: InstalledIntegrationInfoProps;
 }) {
+  const t = useTranslations(
+    "app.dub.co/(dashboard)/[slug]/settings/integrations/[integrationSlug]",
+  );
+
   const { slug, id: workspaceId } = useWorkspace();
 
   const [openPopover, setOpenPopover] = useState(false);
@@ -87,7 +92,9 @@ export default function IntegrationPageClient({
         className="flex items-center gap-x-1"
       >
         <ChevronLeft className="size-4" />
-        <p className="text-sm font-medium text-gray-500">Integrations</p>
+        <p className="text-sm font-medium text-gray-500">
+          {t("integrations-title")}
+        </p>
       </Link>
       <div className="flex justify-between gap-2">
         <div className="flex items-center gap-x-3">
@@ -95,7 +102,9 @@ export default function IntegrationPageClient({
             {integration.logo ? (
               <BlurImage
                 src={integration.logo}
-                alt={`Logo for ${integration.name}`}
+                alt={t("integration-logo-description", {
+                  integrationName: integration.name,
+                })}
                 className="size-8 rounded-full border border-gray-200"
                 width={20}
                 height={20}
@@ -133,7 +142,7 @@ export default function IntegrationPageClient({
             content={
               <div className="grid w-screen gap-px p-2 sm:w-48">
                 <Button
-                  text="Uninstall Integration"
+                  text={t("uninstall-integration")}
                   variant="danger-outline"
                   icon={<Trash className="size-4" />}
                   className="h-9 justify-start px-2"
@@ -143,7 +152,7 @@ export default function IntegrationPageClient({
                   {...(integration.slug === "stripe" && {
                     disabledTooltip: (
                       <TooltipContent
-                        title="You cannot uninstall the Stripe integration from here. Please visit the Stripe dashboard to uninstall the app."
+                        title={t("uninstall-integration-stripe-warning")}
                         cta="Go to Stripe"
                         href="https://dashboard.stripe.com/settings/apps/dub.co"
                         target="_blank"
@@ -176,7 +185,9 @@ export default function IntegrationPageClient({
             <div className="flex items-center gap-2">
               <Avatar user={integration.installed.by} className="size-8" />
               <div className="flex flex-col gap-1">
-                <p className="text-xs text-gray-500">INSTALLED BY</p>
+                <p className="text-xs text-gray-500">
+                  {t("installed-by-label")}
+                </p>
                 <p className="text-sm font-medium text-gray-700">
                   {integration.installed.by.name}
                   <span className="ml-1 font-normal text-gray-500">
@@ -190,7 +201,7 @@ export default function IntegrationPageClient({
           )}
 
           <div className="flex flex-col gap-1">
-            <p className="text-xs text-gray-500">DEVELOPER</p>
+            <p className="text-xs text-gray-500">{t("developer-label")}</p>
             <div className="flex items-center gap-x-1 text-sm font-medium text-gray-700">
               <OfficeBuilding className="size-3" />
               {integration.developer}
@@ -198,7 +209,7 @@ export default function IntegrationPageClient({
           </div>
 
           <div className="flex flex-col gap-1">
-            <p className="text-xs text-gray-500">WEBSITE</p>
+            <p className="text-xs text-gray-500">{t("website-label")}</p>
             <a
               href={integration.website}
               className="flex items-center gap-x-1 text-sm font-medium text-gray-700"
@@ -220,7 +231,7 @@ export default function IntegrationPageClient({
                 "flex h-9 items-center rounded-md border px-4 text-sm",
               )}
             >
-              Manage
+              {t("manage-button-label")}
             </Link>
           )}
           {!integration.installed &&
@@ -241,7 +252,7 @@ export default function IntegrationPageClient({
                   });
                 }}
                 loading={getInstallationUrl.isExecuting}
-                text="Enable"
+                text={t("enable-button-label")}
                 variant="primary"
                 icon={<ConnectedDots className="size-4" />}
               />
@@ -252,7 +263,9 @@ export default function IntegrationPageClient({
       <div className="w-full rounded-lg border border-gray-200 bg-white">
         <div className="flex items-center gap-x-2 border-b border-gray-200 px-6 py-4">
           <BookOpenText className="size-4" />
-          <p className="text-sm font-medium text-gray-700">Overview</p>
+          <p className="text-sm font-medium text-gray-700">
+            {t("overview-title")}
+          </p>
         </div>
 
         {integration.screenshots && integration.screenshots.length > 0 ? (
@@ -262,7 +275,9 @@ export default function IntegrationPageClient({
                 <CarouselItem key={idx}>
                   <BlurImage
                     src={src}
-                    alt={`Screenshot of ${integration.name}`}
+                    alt={t("integration-screenshot-description", {
+                      integrationName: integration.name,
+                    })}
                     width={900}
                     height={580}
                     className="aspect-[900/580] w-[5/6] overflow-hidden rounded-md border border-gray-200 object-cover object-top"

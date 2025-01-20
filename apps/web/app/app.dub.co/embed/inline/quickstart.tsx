@@ -12,6 +12,7 @@ import {
 import { cn, DUB_LOGO, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
 import { Link, Program } from "@prisma/client";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 
 const BUTTON_CLASSNAME = "h-9 rounded-lg bg-neutral-900 hover:bg-neutral-800";
 
@@ -22,6 +23,8 @@ export function EmbedQuickstart({
   program: Program;
   link: Link;
 }) {
+  const t = useTranslations("app.dub.co/embed/inline");
+
   const [copied, copyToClipboard] = useCopyToClipboard();
   const { isMobile } = useMediaQuery();
   const payoutsDisabled = link.saleAmount === 0;
@@ -64,7 +67,9 @@ export function EmbedQuickstart({
       description:
         "Make sure you get setup for success with the official brand files and supportive content and documents.",
       illustration: <SuccessKit logo={program.logo ?? DUB_LOGO} />,
-      cta: <Button className="h-9 rounded-lg" text="Coming soon" disabled />,
+      cta: (
+        <Button className="h-9 rounded-lg" text={t("coming-soon")} disabled />
+      ),
     },
     {
       title: "Receive earnings",
@@ -82,7 +87,7 @@ export function EmbedQuickstart({
           onClick={() =>
             window.open("https://partners.dub.co/settings/payouts", "_blank")
           }
-          text="Connect payouts"
+          text={t("connect-payouts")}
         />
       ),
     },

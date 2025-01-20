@@ -3,6 +3,7 @@ import { SimpleTooltipContent, Tooltip, useMediaQuery } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/icons";
 import { fetcher, isValidUrl as isValidUrlFn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { ReactNode, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import useSWR from "swr";
@@ -99,6 +100,8 @@ function LinkCloakingToggleBadge({
   toggle: (typeof TOGGLES)[number];
   onRemove: () => void;
 }) {
+  const t = useTranslations("../ui/modals/link-builder");
+
   const { watch } = useFormContext<LinkFormData>();
   const [url, domain] = watch(["url", "domain"]);
   const [debouncedUrl] = useDebounce(url, 500);
@@ -147,11 +150,11 @@ function LinkCloakingToggleBadge({
                 className="h-[500px] w-[888px]"
               />
             </div>
-            <p>Your link will be successfully cloaked.</p>
+            <p>{t("link-successfully-cloaked")}</p>
           </div>
         ) : (
           <SimpleTooltipContent
-            title="Your link is not cloakable – make sure you have the right security headers set on your target URL."
+            title={t("link-not-cloakable-security-headers")}
             cta="Learn more"
             href="https://dub.co/help/article/link-cloaking#link-cloaking-with-security-headers"
           />

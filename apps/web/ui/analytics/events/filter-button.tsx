@@ -1,8 +1,11 @@
 import { useRouterStuff } from "@dub/ui";
 import { FilterBars } from "@dub/ui/icons";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 export default function FilterButton({ set }: { set: Record<string, any> }) {
+  const t = useTranslations("../ui/analytics/events");
+
   const { queryParams } = useRouterStuff();
 
   return (
@@ -17,7 +20,7 @@ export default function FilterButton({ set }: { set: Record<string, any> }) {
         }
         className="block rounded-md border border-transparent bg-white p-0.5 text-gray-600 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-gray-950"
       >
-        <span className="sr-only">Filter</span>
+        <span className="sr-only">{t("filter")}</span>
         <FilterBars className="size-3.5" />
       </Link>
     </div>

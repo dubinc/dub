@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import { sendOtpAction } from "@/lib/actions/send-otp";
 import { LoadingSpinner } from "@dub/ui";
@@ -7,6 +8,8 @@ import { useAction } from "next-safe-action/hooks";
 import { useEffect, useState } from "react";
 
 export const ResendOtp = ({ email }: { email: string }) => {
+  const t = useTranslations("../ui/auth/register");
+
   const [delaySeconds, setDelaySeconds] = useState(0);
   const [state, setState] = useState<"default" | "success" | "error">(
     "default",
@@ -49,7 +52,7 @@ export const ResendOtp = ({ email }: { email: string }) => {
           )}
 
           <p className={cn(isExecuting && "opacity-80")}>
-            Didn't receive a code?{" "}
+            {t("did-not-receive-code")}
             <button
               onClick={() => executeAsync({ email })}
               className={cn(
@@ -57,7 +60,7 @@ export const ResendOtp = ({ email }: { email: string }) => {
                 isExecuting && "pointer-events-none",
               )}
             >
-              Resend
+              {t("resend-code")}
             </button>
           </p>
         </>
@@ -65,13 +68,15 @@ export const ResendOtp = ({ email }: { email: string }) => {
 
       {state === "success" && (
         <p className="text-sm text-gray-500">
-          Code sent successfully. <Delay seconds={delaySeconds} />
+          {t("code-sent-successfully")}
+          <Delay seconds={delaySeconds} />
         </p>
       )}
 
       {state === "error" && (
         <p className="text-sm text-gray-500">
-          Failed to send code. <Delay seconds={delaySeconds} />
+          {t("failed-to-send-code")}
+          <Delay seconds={delaySeconds} />
         </p>
       )}
     </div>
@@ -79,7 +84,11 @@ export const ResendOtp = ({ email }: { email: string }) => {
 };
 
 const Delay = ({ seconds }: { seconds: number }) => {
+  const t = useTranslations("../ui/auth/register");
+
   return (
-    <span className="ml-1 text-sm tabular-nums text-gray-400">{seconds}s</span>
+    <span className="ml-1 text-sm tabular-nums text-gray-400">
+      {t("seconds-remaining", { seconds: seconds })}
+    </span>
   );
 };

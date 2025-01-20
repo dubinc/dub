@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import z from "@/lib/zod";
 import { updatePasswordSchema } from "@/lib/zod/schemas/auth";
@@ -8,6 +9,8 @@ import { toast } from "sonner";
 
 // Allow the user to update their existing password
 export const UpdatePassword = () => {
+  const t = useTranslations("app.dub.co/(dashboard)/account/settings/security");
+
   const {
     register,
     handleSubmit,
@@ -46,14 +49,18 @@ export const UpdatePassword = () => {
     >
       <div>
         <div className="flex flex-col gap-3 border-b border-gray-200 p-5 sm:p-10">
-          <h2 className="text-xl font-medium">Password</h2>
+          <h2 className="text-xl font-medium">{t("password-label")}</h2>
           <p className="pb-2 text-sm text-gray-500">
-            Manage your account password on {process.env.NEXT_PUBLIC_APP_NAME}.
+            {t("manage-account-password-description", {
+              processEnvNextPublicAppName: process.env.NEXT_PUBLIC_APP_NAME,
+            })}
           </p>
         </div>
         <div className="flex flex-wrap justify-between gap-4 p-5 sm:p-10">
           <div className="grid w-full max-w-sm items-center gap-2">
-            <Label htmlFor="currentPassword">Current Password</Label>
+            <Label htmlFor="currentPassword">
+              {t("current-password-label")}
+            </Label>
             <Input
               type="password"
               {...register("currentPassword", { required: true })}
@@ -68,7 +75,7 @@ export const UpdatePassword = () => {
           </div>
 
           <div className="grid w-full max-w-sm items-center gap-2">
-            <Label htmlFor="newPassword">New Password</Label>
+            <Label htmlFor="newPassword">{t("new-password-label")}</Label>
             <Input
               type="password"
               {...register("newPassword", { required: true })}
@@ -87,12 +94,12 @@ export const UpdatePassword = () => {
       <div className="flex items-center justify-between space-x-4 rounded-b-lg border-t border-gray-200 bg-gray-50 p-3 sm:px-10">
         <Tooltip content="Passwords must be at least 8 characters long containing at least one number, one uppercase, and one lowercase letter.">
           <p className="text-sm text-gray-500 underline decoration-dotted underline-offset-2 hover:text-gray-700">
-            Password requirements
+            {t("password-requirements-title")}
           </p>
         </Tooltip>
         <div className="shrink-0">
           <Button
-            text="Update Password"
+            text={t("update-password-button")}
             loading={isSubmitting}
             disabled={!isDirty}
             type="submit"

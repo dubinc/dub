@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
@@ -39,6 +40,10 @@ const ProgramOverviewContext = createContext<{
 }>({});
 
 export default function ProgramPageClient() {
+  const t = useTranslations(
+    "partners.dub.co/(dashboard)/programs/[programSlug]",
+  );
+
   const { getQueryString, searchParamsObj } = useRouterStuff();
   const { programSlug } = useParams();
 
@@ -65,7 +70,7 @@ export default function ProgramPageClient() {
         )}
         <span className="flex items-center gap-2 text-sm text-neutral-500">
           <MoneyBill2 className="size-4" />
-          Refer and earn
+          {t("refer-and-earn")}
         </span>
         <div className="relative mt-24 text-lg text-neutral-900 sm:max-w-[50%]">
           {program ? (
@@ -78,7 +83,7 @@ export default function ProgramPageClient() {
           )}
         </div>
         <span className="mb-1.5 mt-6 block text-sm text-neutral-800">
-          Referral link
+          {t("referral-link")}
         </span>
         <div className="xs:flex-row relative flex flex-col items-center gap-2">
           {programEnrollment?.link ? (
@@ -137,15 +142,15 @@ export default function ProgramPageClient() {
         </div>
         <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-3">
           <NumberFlowGroup>
-            <StatCard title="Clicks" event="clicks" />
-            <StatCard title="Leads" event="leads" />
-            <StatCard title="Sales" event="sales" />
+            <StatCard title={t("clicks")} event="clicks" />
+            <StatCard title={t("leads")} event="leads" />
+            <StatCard title={t("sales")} event="sales" />
           </NumberFlowGroup>
         </div>
         <div className="mt-6">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-medium text-neutral-900">
-              Recent sales
+              {t("recent-sales")}
             </h2>
             <Link
               href={`/programs/${programSlug}/sales${getQueryString()}`}
@@ -154,7 +159,7 @@ export default function ProgramPageClient() {
                 "flex h-8 items-center rounded-lg border px-2 text-sm",
               )}
             >
-              View all
+              {t("view-all")}
             </Link>
           </div>
           <div className="mt-4">
@@ -167,6 +172,10 @@ export default function ProgramPageClient() {
 }
 
 function EarningsChart() {
+  const t = useTranslations(
+    "partners.dub.co/(dashboard)/programs/[programSlug]",
+  );
+
   const id = useId();
 
   const { start, end, interval, color } = useContext(ProgramOverviewContext);
@@ -199,7 +208,9 @@ function EarningsChart() {
     <div>
       <div className="flex flex-col-reverse items-start justify-between gap-4 md:flex-row">
         <div>
-          <span className="block text-sm text-neutral-500">Earnings</span>
+          <span className="block text-sm text-neutral-500">
+            {t("earnings")}
+          </span>
           <div className="mt-1.5">
             {total !== undefined ? (
               <NumberFlow
@@ -252,7 +263,9 @@ function EarningsChart() {
                           color ? `bg-[${color}]` : "bg-violet-500",
                         )}
                       />
-                      <p className="capitalize text-gray-600">Earnings</p>
+                      <p className="capitalize text-gray-600">
+                        {t("earnings-duplicate")}
+                      </p>
                     </div>
                     <p className="text-right font-medium text-gray-900">
                       {currencyFormatter(d.values.earnings, {
@@ -295,7 +308,7 @@ function EarningsChart() {
           <div className="flex size-full items-center justify-center">
             {error ? (
               <span className="text-sm text-neutral-500">
-                Failed to load earnings data.
+                {t("failed-to-load-earnings-data")}
               </span>
             ) : (
               <LoadingSpinner />
@@ -314,6 +327,10 @@ function StatCard({
   title: string;
   event: "clicks" | "leads" | "sales";
 }) {
+  const t = useTranslations(
+    "partners.dub.co/(dashboard)/programs/[programSlug]",
+  );
+
   const { programSlug } = useParams();
   const { getQueryString } = useRouterStuff();
   const { start, end, interval, color } = useContext(ProgramOverviewContext);
@@ -377,7 +394,7 @@ function StatCard({
           <div className="flex size-full items-center justify-center">
             {error ? (
               <span className="text-sm text-neutral-500">
-                Failed to load data.
+                {t("failed-to-load-data")}
               </span>
             ) : (
               <LoadingSpinner />

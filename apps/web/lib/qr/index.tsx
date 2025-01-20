@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 /**
  * @license qrcode.react
  * Copyright (c) Paul O'Shannessy
@@ -25,6 +26,8 @@ export * from "./types";
 export * from "./utils";
 
 export function QRCodeCanvas(props: QRPropsCanvas) {
+  const t = useTranslations("../lib/qr");
+
   const {
     value,
     size = DEFAULT_SIZE,
@@ -134,7 +137,7 @@ export function QRCodeCanvas(props: QRPropsCanvas) {
   if (imgSrc != null) {
     img = (
       <img
-        alt="QR code"
+        alt={t("qr-code")}
         src={imgSrc}
         key={imgSrc}
         style={{ display: "none" }}

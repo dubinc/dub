@@ -1,5 +1,6 @@
 import { Button } from "@dub/ui";
 import { Download } from "@dub/ui/icons";
+import { useTranslations } from "next-intl";
 import { Dispatch, SetStateAction, useContext, useState } from "react";
 import { toast } from "sonner";
 import { AnalyticsContext } from "./analytics-provider";
@@ -9,6 +10,8 @@ export default function ExportButton({
 }: {
   setOpenPopover: Dispatch<SetStateAction<boolean>>;
 }) {
+  const t = useTranslations("../ui/analytics");
+
   const [loading, setLoading] = useState(false);
   const { queryString } = useContext(AnalyticsContext);
 
@@ -41,7 +44,7 @@ export default function ExportButton({
 
   return (
     <Button
-      text="Download as CSV"
+      text={t("download-as-csv")}
       variant="outline"
       icon={<Download className="h-4 w-4" />}
       className="h-9 justify-start px-2 text-black"

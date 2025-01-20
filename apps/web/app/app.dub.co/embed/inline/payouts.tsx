@@ -1,16 +1,19 @@
 import { PayoutStatus } from "@dub/prisma/client";
 import { InfoTooltip } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
+import { useTranslations } from "next-intl";
 
 export function EmbedPayouts({
   payouts,
 }: {
   payouts: { status: PayoutStatus; amount: number }[];
 }) {
+  const t = useTranslations("app.dub.co/embed/inline");
+
   return (
     <div className="flex flex-col justify-between gap-4 rounded-lg border border-neutral-200 bg-white p-4">
       <div className="flex items-center gap-1">
-        <p className="text-sm text-neutral-500">Payouts</p>
+        <p className="text-sm text-neutral-500">{t("payouts")}</p>
         <InfoTooltip content="Payouts are processed at the start of each month. Your earnings are automatically transferred to your bank account." />
       </div>
       <div className="grid gap-1">
