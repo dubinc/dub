@@ -149,7 +149,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
   });
 
   const onSubmit = async (data: FormData) => {
-    if (!workspaceId || !program || !partnerId || !amount) {
+    if (!workspaceId || !program || !partnerId) {
       toast.error("Please fill all required fields");
       return;
     }
@@ -167,9 +167,10 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
       programId: program.id,
       start: startDate ? new Date(startDate).toISOString() : undefined,
       end: endDate ? new Date(endDate).toISOString() : undefined,
-      ...(payoutType != "sales" && {
-        amount: amount * 100,
-      }),
+      ...(payoutType != "sales" &&
+        amount && {
+          amount: amount * 100,
+        }),
       partnerId,
     });
   };
