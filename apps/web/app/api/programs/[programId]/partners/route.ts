@@ -91,13 +91,7 @@ export const POST = withWorkspace(async ({ workspace, params, req }) => {
     key: username,
     url: program.url,
     programId,
-    // TODO: investigate why we need to set these
     trackConversion: true,
-    archived: false,
-    proxy: false,
-    rewrite: false,
-    doIndex: true,
-    publicStats: true,
   });
 
   const createdPartner = await enrollPartner({
