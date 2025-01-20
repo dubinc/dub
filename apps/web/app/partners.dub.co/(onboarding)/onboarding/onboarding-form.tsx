@@ -43,7 +43,7 @@ export function OnboardingForm() {
     }
   }, [session?.user]);
 
-  const { executeAsync, isExecuting } = useAction(onboardPartnerAction, {
+  const { executeAsync, isPending } = useAction(onboardPartnerAction, {
     onSuccess: () => {
       if (watch("country") === "US") {
         router.push("/onboarding/verify");
@@ -183,7 +183,7 @@ export function OnboardingForm() {
         type="submit"
         text="Create partner account"
         className="mt-2"
-        loading={isExecuting || isSubmitting || isSubmitSuccessful}
+        loading={isPending || isSubmitting || isSubmitSuccessful}
       />
     </form>
   );

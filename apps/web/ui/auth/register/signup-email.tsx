@@ -21,7 +21,7 @@ export const SignUpEmail = () => {
     getValues,
   } = useForm<SignUpProps>();
 
-  const { executeAsync, isExecuting } = useAction(sendOtpAction, {
+  const { executeAsync, isPending } = useAction(sendOtpAction, {
     onSuccess: () => {
       setEmail(getValues("email"));
       setPassword(getValues("password"));
@@ -57,9 +57,9 @@ export const SignUpEmail = () => {
         />
         <Button
           type="submit"
-          text={isExecuting ? "Submitting..." : "Sign Up"}
-          disabled={isExecuting}
-          loading={isExecuting}
+          text={isPending ? "Submitting..." : "Sign Up"}
+          disabled={isPending}
+          loading={isPending}
         />
       </div>
     </form>
