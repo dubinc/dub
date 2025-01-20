@@ -16,7 +16,7 @@ import { actionClient } from "./safe-action";
 
 const schema = z.object({
   email: emailSchema,
-  password: passwordSchema
+  password: passwordSchema,
 });
 
 // Send OTP to email to verify account
@@ -27,7 +27,7 @@ export const sendOtpAction = actionClient
   })
   .use(throwIfAuthenticated)
   .action(async ({ parsedInput }) => {
-    const { email, password } = parsedInput;
+    const { email } = parsedInput;
 
     const { success } = await ratelimit(2, "1 m").limit(`send-otp:${getIP()}`);
 
