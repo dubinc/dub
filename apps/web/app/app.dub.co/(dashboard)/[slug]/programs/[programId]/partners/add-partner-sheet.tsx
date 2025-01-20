@@ -63,7 +63,11 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
 
   const { executeAsync, isExecuting } = useAction(addPartnerAction, {
     onSuccess: async () => {
-      toast.success("Successfully invited partner!");
+      toast.success(
+        `Successfully ${
+          selectedActionType === "invite" ? "invited" : "enrolled"
+        } partner!`,
+      );
       setIsOpen(false);
       program && mutatePrefix(`/api/programs/${program.id}/partners`);
     },
