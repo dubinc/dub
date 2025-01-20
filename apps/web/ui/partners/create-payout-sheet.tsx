@@ -380,40 +380,47 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
           </Sheet.Close>
         </div>
         <div className="flex flex-col gap-4 p-6">
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-gray-900">
-              Partner
-              <span className="font-normal text-neutral-500"> (required)</span>
-            </label>
-            <Combobox
-              selected={
-                partnerOptions?.find((o) => o.value === partnerId) ?? null
-              }
-              setSelected={(option) => {
-                if (option) {
-                  setValue("partnerId", option.value);
-                  clearErrors("partnerId");
+          {!props.partnerId && (
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-gray-900">
+                Partner
+                <span className="font-normal text-neutral-500">
+                  {" "}
+                  (required)
+                </span>
+              </label>
+              <Combobox
+                selected={
+                  partnerOptions?.find((o) => o.value === partnerId) ?? null
                 }
-              }}
-              options={partnerOptions}
-              caret={true}
-              placeholder="Select partners"
-              searchPlaceholder="Search..."
-              matchTriggerWidth
-              buttonProps={{
-                className: cn(
-                  "w-full justify-start border-gray-300 px-3",
-                  "data-[state=open]:ring-1 data-[state=open]:ring-gray-500 data-[state=open]:border-gray-500",
-                  "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
-                  !partnerId && "text-gray-400",
-                  errors.partnerId && "border-red-500",
-                ),
-              }}
-            />
-            {errors.partnerId && (
-              <p className="text-xs text-red-600">{errors.partnerId.message}</p>
-            )}
-          </div>
+                setSelected={(option) => {
+                  if (option) {
+                    setValue("partnerId", option.value);
+                    clearErrors("partnerId");
+                  }
+                }}
+                options={partnerOptions}
+                caret={true}
+                placeholder="Select partners"
+                searchPlaceholder="Search..."
+                matchTriggerWidth
+                buttonProps={{
+                  className: cn(
+                    "w-full justify-start border-gray-300 px-3",
+                    "data-[state=open]:ring-1 data-[state=open]:ring-gray-500 data-[state=open]:border-gray-500",
+                    "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
+                    !partnerId && "text-gray-400",
+                    errors.partnerId && "border-red-500",
+                  ),
+                }}
+              />
+              {errors.partnerId && (
+                <p className="text-xs text-red-600">
+                  {errors.partnerId.message}
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="flex flex-col gap-2">
             <label
