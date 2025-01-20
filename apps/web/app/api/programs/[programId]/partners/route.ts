@@ -1,10 +1,6 @@
-import { DubApiError } from "@/lib/api/errors";
-import { createLink } from "@/lib/api/links";
-import { enrollPartner } from "@/lib/api/partners/enroll-partner";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
-  createPartnerSchema,
   EnrolledPartnerSchema,
   partnersQuerySchema,
 } from "@/lib/zod/schemas/partners";
@@ -66,49 +62,3 @@ export const GET = withWorkspace(
     return NextResponse.json(z.array(EnrolledPartnerSchema).parse(partners));
   },
 );
-
-export const POST = withWorkspace(async ({ workspace, params, req }) => {
-  const { programId } = params;
-  const { name, email, image, username } = createPartnerSchema.parse(
-    await req.json(),
-  );
-
-  const program = await getProgramOrThrow({
-    workspaceId: workspace.id,
-    programId,
-  });
-
-  if (!program.domain || !program.url) {
-    throw new DubApiError({
-      code: "unprocessable_entity",
-      message: "Program domain and url are required",
-    });
-  }
-
-  const link = await createLink({
-    projectId: workspace.id,
-    domain: program.domain,
-    key: username,
-    url: program.url,
-    programId,
-    // TODO: investigate why we need to set these
-    trackConversion: true,
-    archived: false,
-    proxy: false,
-    rewrite: false,
-    doIndex: true,
-    publicStats: true,
-  });
-
-  const createdPartner = await enrollPartner({
-    programId,
-    linkId: link.id,
-    partner: {
-      name,
-      email,
-      image,
-    },
-  });
-
-  return NextResponse.json(createdPartner);
-});
