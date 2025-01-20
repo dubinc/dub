@@ -1,23 +1,19 @@
 import { Link } from "@dub/prisma/client";
 import { expectedLink } from "tests/utils/schema";
-import { describe, expect, onTestFinished, test } from "vitest";
+import { afterAll, describe, expect, onTestFinished, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK } from "../utils/resource";
 
 const { domain, url } = E2E_LINK;
 
-describe.sequential("GET /links/{linkId}", async () => {
+describe.concurrent("GET /links/{linkId}", async () => {
   const h = new IntegrationHarness();
   const { workspace, http, user } = await h.init();
   const workspaceId = workspace.id;
   const projectId = workspaceId.replace("ws_", "");
   const externalId = randomId();
   const key = randomId();
-
-  onTestFinished(async () => {
-    await h.deleteLink(newLink.id);
-  });
 
   const { data: newLink } = await http.post<Link>({
     path: "/links",
@@ -27,6 +23,10 @@ describe.sequential("GET /links/{linkId}", async () => {
       key,
       externalId,
     },
+  });
+
+  afterAll(async () => {
+    await h.deleteLink(newLink.id);
   });
 
   test("by linkId", async () => {

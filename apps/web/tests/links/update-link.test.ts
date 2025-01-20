@@ -1,5 +1,5 @@
 import { Link } from "@dub/prisma/client";
-import { describe, expect, onTestFinished, test } from "vitest";
+import { afterAll, describe, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK } from "../utils/resource";
@@ -13,10 +13,6 @@ describe.sequential("PATCH /links/{linkId}", async () => {
   const workspaceId = workspace.id;
   const projectId = workspaceId.replace("ws_", "");
   const externalId = randomId();
-
-  onTestFinished(async () => {
-    await h.deleteLink(link.id);
-  });
 
   const { data: link } = await http.post<Link>({
     path: "/links",
@@ -43,6 +39,10 @@ describe.sequential("PATCH /links/{linkId}", async () => {
       AF: `${url}/AF`,
     },
   };
+
+  afterAll(async () => {
+    await h.deleteLink(link.id);
+  });
 
   test("update link using linkId", async () => {
     const { data: updatedLink } = await http.patch<Link>({
@@ -189,10 +189,6 @@ describe.sequential(
     const projectId = workspaceId.replace("ws_", "");
     const externalId = randomId();
 
-    onTestFinished(async () => {
-      await h.deleteLink(link.id);
-    });
-
     const { data: link } = await http.post<Link>({
       path: "/links",
       body: {
@@ -218,6 +214,10 @@ describe.sequential(
         AF: `${url}/AF`,
       },
     };
+
+    afterAll(async () => {
+      await h.deleteLink(link.id);
+    });
 
     test("update link using PUT", async () => {
       const { data: updatedLink } = await http.put<Link>({

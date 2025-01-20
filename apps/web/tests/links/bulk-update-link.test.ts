@@ -67,7 +67,7 @@ test("PATCH /links/bulk", async (ctx) => {
   });
 
   expect(status).toEqual(200);
-  expect(links).toHaveLength(2);
+  expect(links).toHaveLength(3);
 
   // first link should be updated
   expect(links[0]).toStrictEqual({

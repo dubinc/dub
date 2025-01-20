@@ -31,10 +31,6 @@ describe.sequential("/domains/**", async () => {
   const h = new IntegrationHarness();
   const { workspace, http } = await h.init();
 
-  onTestFinished(async () => {
-    await h.deleteDomain(domainRecord.slug);
-  });
-
   test("POST /domains", async () => {
     const { status, data: domain } = await http.post<Domain>({
       path: "/domains",
@@ -88,6 +84,10 @@ describe.sequential("/domains/**", async () => {
       notFoundUrl: `https://${slug}/not-found-new`,
       archived: true,
     };
+
+    onTestFinished(async () => {
+      await h.deleteDomain(domainRecord.slug);
+    });
 
     const { status, data: domain } = await http.patch<Domain>({
       path: `/domains/${domainRecord.slug}`,

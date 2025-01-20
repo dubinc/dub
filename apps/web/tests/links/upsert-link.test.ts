@@ -1,5 +1,5 @@
 import { Link } from "@dub/prisma/client";
-import { describe, expect, onTestFinished, test } from "vitest";
+import { afterAll, describe, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK } from "../utils/resource";
@@ -15,7 +15,7 @@ describe.sequential("PUT /links/upsert", async () => {
   const projectId = workspaceId.replace("ws_", "");
   let createdLink: Link;
 
-  onTestFinished(async () => {
+  afterAll(async () => {
     await h.deleteLink(createdLink.id);
   });
 
