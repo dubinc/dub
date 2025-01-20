@@ -180,6 +180,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           id: link.id,
         },
         data: {
+          // if the clickEvent variable exists, it means that a new lead was created
           ...(clickEvent && {
             leads: {
               increment: 1,
@@ -269,6 +270,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   waitUntil(
     (async () => {
+      // if the clickEvent variable exists, it means that a new lead was created
       if (clickEvent) {
         await sendWorkspaceWebhook({
           trigger: "lead.created",
