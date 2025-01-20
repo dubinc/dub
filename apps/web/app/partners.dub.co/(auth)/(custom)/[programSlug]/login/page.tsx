@@ -1,13 +1,22 @@
 import { FramerButton } from "@/ui/auth/login/framer-button";
 import { APP_DOMAIN, constructMetadata } from "@dub/utils";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 export const metadata = constructMetadata({
   title: `Sign in to Framer Partners`,
   canonicalUrl: `${APP_DOMAIN}/login`,
 });
 
-export default function FramerLoginPage() {
+export default function CustomPartnerLoginPage({
+  params: { programSlug },
+}: {
+  params: { programSlug: string };
+}) {
+  if (programSlug !== "framer") {
+    redirect("/login");
+  }
+
   return (
     <div className="mx-auto my-10 flex w-full max-w-sm flex-col gap-8">
       <div className="animate-slide-up-fade relative flex w-auto flex-col items-center [--offset:10px] [animation-duration:1.3s] [animation-fill-mode:both]">
@@ -17,7 +26,7 @@ export default function FramerLoginPage() {
           className="h-8"
         />
       </div>
-      <div className="flex flex-col items-center justify-center gap-2">
+      <div className="animate-slide-up-fade flex flex-col items-center justify-center gap-2 [--offset:10px] [animation-delay:0.15s] [animation-duration:1.3s] [animation-fill-mode:both]">
         <h1 className="text-lg font-medium text-neutral-800">
           Sign in to Framer Partners
         </h1>
@@ -32,7 +41,9 @@ export default function FramerLoginPage() {
         </p>
       </div>
 
-      <FramerButton />
+      <div className="animate-slide-up-fade [--offset:10px] [animation-delay:0.3s] [animation-duration:1.3s] [animation-fill-mode:both]">
+        <FramerButton />
+      </div>
     </div>
   );
 }
