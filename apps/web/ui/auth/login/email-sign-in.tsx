@@ -1,9 +1,10 @@
-import { emailSchema } from "@/lib/zod/schemas/auth";
+import { checkAccountExistsAction } from "@/lib/actions/check-account-exists";
 import { Button, Input, useMediaQuery } from "@dub/ui";
 import { InputPassword } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useContext, useState } from "react";
@@ -31,6 +32,15 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
     setShowSSOOption,
   } = useContext(LoginFormContext);
 
+  const { executeAsync, isPending } = useAction(checkAccountExistsAction, {
+    onSuccess: (data) => {
+      console.log(data);
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+  });
+
   return (
     <>
       <form
@@ -39,88 +49,130 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
 
           // Check if the user can enter a password, and if so display the field
           if (!showPasswordField) {
-            const { success } = emailSchema.safeParse(email);
+            const result = await executeAsync({ email });
 
-            if (success) {
-              try {
-                setCheckingEmailPassword(true);
-                const res = await fetch("/api/auth/account-exists", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ email }),
-                });
-                setCheckingEmailPassword(false);
+            if (!result?.data) {
+              return;
+            }
 
-                const { accountExists, hasPassword } = await res.json();
-                if (accountExists && hasPassword) {
-                  setShowPasswordField(true);
-                  return;
-                }
-              } catch (e) {
-                console.error("Failed to determine if user has password", e);
-              }
+            const { accountExists, hasPassword } = result.data;
+
+            if (accountExists && hasPassword) {
+              setShowPasswordField(true);
+              return;
             }
           }
 
           setClickedMethod("email");
 
-          fetch("/api/auth/account-exists", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email }),
-          }).then(async (res) => {
-            if (!res.ok) {
-              const error = await res.text();
-              toast.error(error);
-              setClickedMethod(undefined);
-              return;
-            }
+          const result = await executeAsync({ email });
 
-            const { accountExists, hasPassword } = await res.json();
+          if (!result?.data) {
+            return;
+          }
 
-            if (!accountExists) {
-              setClickedMethod(undefined);
-              toast.error("No account found with that email address.");
-              return;
-            }
+          const { accountExists, hasPassword } = result.data;
 
-            const provider = hasPassword && password ? "credentials" : "email";
+          if (!accountExists) {
+            setClickedMethod(undefined);
+            toast.error("No account found with that email address.");
+            return;
+          }
 
-            const response = await signIn(provider, {
-              email,
-              redirect: false,
-              callbackUrl: next || redirectTo || "/workspaces",
-              ...(password && { password }),
-            });
+          const provider = hasPassword && password ? "credentials" : "email";
 
-            if (!response) {
-              return;
-            }
-
-            if (!response.ok && response.error) {
-              if (errorCodes[response.error]) {
-                toast.error(errorCodes[response.error]);
-              } else {
-                toast.error(response.error);
-              }
-
-              setClickedMethod(undefined);
-              return;
-            }
-
-            setLastUsedAuthMethod("email");
-
-            if (provider === "email") {
-              toast.success("Email sent - check your inbox!");
-              setEmail("");
-              setClickedMethod(undefined);
-              return;
-            }
-
-            if (provider === "credentials") {
-              router.push(response?.url || redirectTo || "/workspaces");
-            }
+          const response = await signIn(provider, {
+            email,
+            redirect: false,
+            callbackUrl: next || redirectTo || "/workspaces",
+            ...(password && { password }),
           });
+
+          if (!response) {
+            return;
+          }
+
+          if (!response.ok && response.error) {
+            if (errorCodes[response.error]) {
+              toast.error(errorCodes[response.error]);
+            } else {
+              toast.error(response.error);
+            }
+
+            setClickedMethod(undefined);
+            return;
+          }
+
+          setLastUsedAuthMethod("email");
+
+          if (provider === "email") {
+            toast.success("Email sent - check your inbox!");
+            setEmail("");
+            setClickedMethod(undefined);
+            return;
+          }
+
+          if (provider === "credentials") {
+            router.push(response?.url || redirectTo || "/workspaces");
+          }
+
+          // fetch("/api/auth/account-exists", {
+          //   method: "POST",
+          //   headers: { "Content-Type": "application/json" },
+          //   body: JSON.stringify({ email }),
+          // }).then(async (res) => {
+          //   if (!res.ok) {
+          //     const error = await res.text();
+          //     toast.error(error);
+          //     setClickedMethod(undefined);
+          //     return;
+          //   }
+
+          //   const { accountExists, hasPassword } = await res.json();
+
+          //   if (!accountExists) {
+          //     setClickedMethod(undefined);
+          //     toast.error("No account found with that email address.");
+          //     return;
+          //   }
+
+          //   const provider = hasPassword && password ? "credentials" : "email";
+
+          //   const response = await signIn(provider, {
+          //     email,
+          //     redirect: false,
+          //     callbackUrl: next || redirectTo || "/workspaces",
+          //     ...(password && { password }),
+          //   });
+
+          //   if (!response) {
+          //     return;
+          //   }
+
+          //   if (!response.ok && response.error) {
+          //     if (errorCodes[response.error]) {
+          //       toast.error(errorCodes[response.error]);
+          //     } else {
+          //       toast.error(response.error);
+          //     }
+
+          //     setClickedMethod(undefined);
+          //     return;
+          //   }
+
+          //   setLastUsedAuthMethod("email");
+
+          //   if (provider === "email") {
+          //     toast.success("Email sent - check your inbox!");
+          //     setEmail("");
+          //     setClickedMethod(undefined);
+          //     return;
+          //   }
+
+          //   if (provider === "credentials") {
+          //     router.push(response?.url || redirectTo || "/workspaces");
+          //   }
+          // });
         }}
         className="flex flex-col gap-y-3"
       >
@@ -139,7 +191,7 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
             className={cn(
               "block w-full min-w-0 appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm",
               {
-                "pr-10": checkingEmailPassword,
+                "pr-10": isPending,
               },
             )}
           />
