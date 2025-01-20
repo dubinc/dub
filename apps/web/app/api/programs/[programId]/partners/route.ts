@@ -3,6 +3,7 @@ import { createLink } from "@/lib/api/links";
 import { enrollPartner } from "@/lib/api/partners/enroll-partner";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { checkIfKeyExists } from "@/lib/planetscale";
 import {
   createPartnerSchema,
   EnrolledPartnerSchema,
@@ -82,6 +83,15 @@ export const POST = withWorkspace(async ({ workspace, params, req }) => {
     throw new DubApiError({
       code: "unprocessable_entity",
       message: "Program domain and url are required",
+    });
+  }
+
+  const linkExists = await checkIfKeyExists(program.domain, username);
+
+  if (linkExists) {
+    throw new DubApiError({
+      code: "conflict",
+      message: "This username is already in use. Choose a different one.",
     });
   }
 
