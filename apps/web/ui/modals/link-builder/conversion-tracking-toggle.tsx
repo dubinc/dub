@@ -4,10 +4,9 @@ import {
   InfoTooltip,
   SimpleTooltipContent,
   Switch,
-  Tooltip,
+  TooltipContent,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { PropsWithChildren } from "react";
 import { useFormContext } from "react-hook-form";
 import { LinkFormData } from ".";
 
@@ -16,7 +15,7 @@ const isNew =
   new Date().getTime() - new Date("2025-01-13").getTime() < 30 * 86_400_000;
 
 export function ConversionTrackingToggle() {
-  const { plan } = useWorkspace();
+  const { slug, plan } = useWorkspace();
   const { watch, setValue } = useFormContext<LinkFormData>();
 
   const conversionsEnabled = !!plan && plan !== "free" && plan !== "pro";
@@ -50,35 +49,31 @@ export function ConversionTrackingToggle() {
           />
         </span>
       </div>
-      <DisabledTooltip disabled={!conversionsEnabled}>
-        <Switch
-          checked={trackConversion}
-          fn={(checked) =>
-            setValue("trackConversion", checked, {
-              shouldDirty: true,
-            })
-          }
-          disabled={!conversionsEnabled}
-          thumbIcon={
-            conversionsEnabled ? undefined : (
-              <CrownSmall className="size-full text-neutral-500" />
-            )
-          }
-        />
-      </DisabledTooltip>
+      <Switch
+        checked={trackConversion}
+        fn={(checked) =>
+          setValue("trackConversion", checked, {
+            shouldDirty: true,
+          })
+        }
+        disabledTooltip={
+          conversionsEnabled ? undefined : (
+            <TooltipContent
+              title="Conversion tracking is only available on Business plans and above."
+              cta="Upgrade to Business"
+              href={
+                slug ? `/${slug}/upgrade?exit=close` : "https://dub.co/pricing"
+              }
+              target="_blank"
+            />
+          )
+        }
+        thumbIcon={
+          conversionsEnabled ? undefined : (
+            <CrownSmall className="size-full text-neutral-500" />
+          )
+        }
+      />
     </label>
-  );
-}
-
-function DisabledTooltip({
-  children,
-  disabled,
-}: PropsWithChildren<{ disabled: boolean }>) {
-  return disabled ? (
-    <Tooltip content="Requires a Dub Business Plan to enable">
-      <div>{children}</div>
-    </Tooltip>
-  ) : (
-    children
   );
 }

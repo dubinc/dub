@@ -53,6 +53,7 @@ export const getIP = () => {
 };
 
 const prefixes = [
+  "user_",
   "link_",
   "tag_",
   "dom_",
