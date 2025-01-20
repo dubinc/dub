@@ -1,8 +1,13 @@
 import { Globe } from "@dub/ui/icons";
+import { useTranslations } from "next-intl";
 import { StepPage } from "../../step-page";
 import { Form } from "./form";
 
 export default function Custom() {
+  const t = useTranslations(
+    "app.dub.co/(onboarding)/onboarding/(steps)/domain/custom",
+  );
+
   return (
     <StepPage
       icon={Globe}
@@ -13,7 +18,7 @@ export default function Custom() {
           target="_blank"
           className="underline transition-colors hover:text-gray-700"
         >
-          Read our guide for best practices
+          {t("read-guide-best-practices")}
         </a>
       }
     >

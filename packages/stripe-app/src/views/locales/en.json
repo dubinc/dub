@@ -1,0 +1,6 @@
+{
+  "dub-workspace-title": "Dub workspace",
+  "connected-to-workspace": "Connected to {{workspaceName}}",
+  "connect-dub-workspace-with-stripe": "Connect your Dub workspace with Stripe to start tracking the conversions.",
+  "no-dub-account-signup": "Don't have an Dub account? <0>Sign up</0>"
+}

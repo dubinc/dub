@@ -1,11 +1,14 @@
 import { FileUpload, LoadingSpinner } from "@dub/ui";
 import { truncate } from "@dub/utils";
+import { useTranslations } from "next-intl";
 import Papa from "papaparse";
 import { useEffect, useState } from "react";
 import { Controller } from "react-hook-form";
 import { useCsvContext } from ".";
 
 export function SelectFile() {
+  const t = useTranslations("../ui/modals/import-csv-modal");
+
   const { watch, control, fileColumns, setFileColumns, setFirstRows } =
     useCsvContext();
 
@@ -76,7 +79,8 @@ export function SelectFile() {
         <p className="text-center text-sm text-red-600">{error}</p>
       ) : fileColumns ? (
         <p className="text-sm text-gray-600">
-          Columns found: {listColumns(fileColumns)}
+          {t("columns-found")}
+          {listColumns(fileColumns)}
         </p>
       ) : file ? (
         <div className="flex items-center justify-center">

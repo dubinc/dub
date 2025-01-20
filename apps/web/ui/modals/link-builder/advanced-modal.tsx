@@ -6,6 +6,7 @@ import {
   Tooltip,
   useKeyboardShortcut,
 } from "@dub/ui";
+import { useTranslations } from "next-intl";
 import {
   Dispatch,
   SetStateAction,
@@ -24,6 +25,8 @@ function AdvancedModal({
   showAdvancedModal: boolean;
   setShowAdvancedModal: Dispatch<SetStateAction<boolean>>;
 }) {
+  const t = useTranslations("../ui/modals/link-builder");
+
   const id = useId();
 
   const {
@@ -76,19 +79,24 @@ function AdvancedModal({
         }}
       >
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium">Advanced Options</h3>
+          <h3 className="text-lg font-medium">{t("advanced-options")}</h3>
           <div className="max-md:hidden">
             <Tooltip
               content={
                 <div className="px-2 py-1 text-xs text-gray-700">
-                  Press <strong className="font-medium text-gray-950">A</strong>{" "}
-                  to open this quickly
+                  {t("press-a-to-open-quickly", {
+                    component0: (
+                      <strong className="font-medium text-gray-950">
+                        {t("press-a-to-open-quickly_component0")}
+                      </strong>
+                    ),
+                  })}
                 </div>
               }
               side="right"
             >
               <kbd className="flex size-6 cursor-default items-center justify-center gap-1 rounded-md border border-gray-200 font-sans text-xs text-gray-950">
-                A
+                {t("letter-a")}
               </kbd>
             </Tooltip>
           </div>
@@ -102,11 +110,11 @@ function AdvancedModal({
                 htmlFor={`${id}-external-id`}
                 className="flex items-center gap-2 text-sm font-medium text-gray-700"
               >
-                External ID{" "}
+                {t("external-id")}
                 <InfoTooltip
                   content={
                     <SimpleTooltipContent
-                      title="A unique identifier for this link in your database."
+                      title={t("unique-identifier-database")}
                       cta="Learn more about external IDs."
                       href="https://d.to/externalId"
                     />
@@ -116,7 +124,7 @@ function AdvancedModal({
               <Tooltip
                 content={
                   <SimpleTooltipContent
-                    title="A unique identifier for this link in your system."
+                    title={t("unique-identifier-system")}
                     cta="Learn more about external IDs."
                     href="https://d.to/externalId"
                   />
@@ -127,7 +135,7 @@ function AdvancedModal({
               <input
                 id={`${id}-external-id`}
                 type="text"
-                placeholder="Eg: 123456"
+                placeholder={t("example-123456")}
                 className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                 {...register("externalId")}
               />
@@ -141,7 +149,7 @@ function AdvancedModal({
                 htmlFor={`${id}-tenant-id`}
                 className="flex items-center gap-2 text-sm font-medium text-gray-700"
               >
-                Tenant ID{" "}
+                {t("tenant-id")}
                 <InfoTooltip content="The ID of the tenant that created the link inside your system. If set, it can be used to fetch all links for a tenant." />
               </label>
               <Tooltip content="The ID of the tenant that created the link inside your system. If set, it can be used to fetch all links for a tenant." />
@@ -150,7 +158,7 @@ function AdvancedModal({
               <input
                 id={`${id}-tenant-id`}
                 type="text"
-                placeholder="Eg: user_123"
+                placeholder={t("example-user-123")}
                 className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                 {...register("tenantId")}
               />
@@ -169,7 +177,7 @@ function AdvancedModal({
                   setShowAdvancedModal(false);
                 }}
               >
-                Remove advanced options
+                {t("remove-advanced-options")}
               </button>
             )}
           </div>
@@ -177,14 +185,14 @@ function AdvancedModal({
             <Button
               type="button"
               variant="secondary"
-              text="Cancel"
+              text={t("cancel")}
               className="h-9 w-fit"
               onClick={() => setShowAdvancedModal(false)}
             />
             <Button
               type="submit"
               variant="primary"
-              text="Save"
+              text={t("save")}
               className="h-9 w-fit"
               disabled={!isDirty}
             />

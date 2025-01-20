@@ -1,6 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UserProps } from "@/lib/types";
 import { Avatar, BlurImage, Button, Logo, Modal } from "@dub/ui";
+import { useTranslations } from "next-intl";
 import {
   Dispatch,
   SetStateAction,
@@ -22,6 +23,8 @@ function EditRoleModal({
   user: UserProps;
   role: "owner" | "member";
 }) {
+  const t = useTranslations("../ui/modals");
+
   const [editing, setEditing] = useState(false);
   const { id, name: workspaceName, logo } = useWorkspace();
   const { id: userId, name, email } = user;
@@ -32,7 +35,7 @@ function EditRoleModal({
         {logo ? (
           <BlurImage
             src={logo}
-            alt="Workspace logo"
+            alt={t("workspace-logo")}
             className="h-10 w-10 rounded-full"
             width={20}
             height={20}
@@ -40,12 +43,13 @@ function EditRoleModal({
         ) : (
           <Logo />
         )}
-        <h3 className="text-lg font-medium">Change Teammate Role</h3>
+        <h3 className="text-lg font-medium">{t("change-teammate-role")}</h3>
         <p className="text-center text-sm text-gray-500">
-          This will change <b className="text-gray-800">{name || email}</b>'s
-          role in <b className="text-gray-800">{workspaceName}</b> to{" "}
-          <b className="text-gray-800">{role}</b>. Are you sure you want to
-          continue?
+          {t("confirm-role-change", {
+            component0: <b className="text-gray-800">{name || email}</b>,
+            component1: <b className="text-gray-800">{workspaceName}</b>,
+            component2: <b className="text-gray-800">{role}</b>,
+          })}
         </p>
       </div>
 
@@ -58,7 +62,7 @@ function EditRoleModal({
           </div>
         </div>
         <Button
-          text="Confirm"
+          text={t("confirm")}
           loading={editing}
           onClick={() => {
             setEditing(true);

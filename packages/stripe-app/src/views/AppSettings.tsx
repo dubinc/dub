@@ -1,5 +1,3 @@
-import { I18nextProvider } from "react-i18next";
-import { i18n } from ".././i18n";
 import type { ExtensionContextValue } from "@stripe/ui-extension-sdk/context";
 import { createOAuthState } from "@stripe/ui-extension-sdk/oauth";
 import {
@@ -11,6 +9,8 @@ import {
   Spinner,
 } from "@stripe/ui-extension-sdk/ui";
 import { useEffect, useRef, useState } from "react";
+import { I18nextProvider, Trans, useTranslation } from "react-i18next";
+import { i18n } from ".././i18n";
 import { useWorkspace } from "../hooks/use-workspace";
 import appIcon from "../icon.svg";
 import { updateWorkspace } from "../utils/dub";
@@ -25,6 +25,8 @@ import { stripe } from "../utils/stripe";
 import { Workspace } from "../utils/types";
 
 const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
+  const { t } = useTranslation("views");
+
   const credentialsUsed = useRef(false);
   const [oauthState, setOAuthState] = useState("");
   const [challenge, setChallenge] = useState("");
@@ -139,56 +141,66 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
 
   return (
     <I18nextProvider i18n={i18n}>
-<Box css={{ width: "6/12", stack: "y", gap: "large" }}>
-      {workspace ? (
-        <Banner
-          title="Dub workspace"
-          description={`Connected to ${workspace.name}`}
-          actions={
-            <Button
-              type="destructive"
-              size="small"
-              disabled={disconnecting}
-              onPress={async () => {
-                setDisconnecting(true);
+      <Box css={{ width: "6/12", stack: "y", gap: "large" }}>
+        {workspace ? (
+          <Banner
+            title={t("dub-workspace-title")}
+            description={t("connected-to-workspace", {
+              workspaceName: workspace.name,
+            })}
+            actions={
+              <Button
+                type="destructive"
+                size="small"
+                disabled={disconnecting}
+                onPress={async () => {
+                  setDisconnecting(true);
 
-                await disconnectWorkspace({
-                  workspace,
-                });
+                  await disconnectWorkspace({
+                    workspace,
+                  });
 
-                mutate();
-                setDisconnecting(false);
-              }}
-            >
-              {disconnecting ? "Disconnecting..." : "Disconnect"}
-            </Button>
-          }
-        />
-      ) : (
-        <SignInView
-          description="Connect your Dub workspace with Stripe to start tracking the conversions."
-          primaryAction={{
-            label: connecting
-              ? "Connecting please wait..."
-              : "Connect workspace",
-            href: connecting
-              ? "#"
-              : getOAuthUrl({ state: oauthState, challenge }),
-          }}
-          footerContent={
-            <>
-              Don&apos;t have an Dub account?{" "}
-              <Link href="https://app.dub.co/register" target="_blank" external>
-                Sign up
-              </Link>
-            </>
-          }
-          brandColor="#000000"
-          brandIcon={appIcon}
-        />
-      )}
-    </Box>
-</I18nextProvider>
+                  mutate();
+                  setDisconnecting(false);
+                }}
+              >
+                {disconnecting ? "Disconnecting..." : "Disconnect"}
+              </Button>
+            }
+          />
+        ) : (
+          <SignInView
+            description={t("connect-dub-workspace-with-stripe")}
+            primaryAction={{
+              label: connecting
+                ? "Connecting please wait..."
+                : "Connect workspace",
+              href: connecting
+                ? "#"
+                : getOAuthUrl({ state: oauthState, challenge }),
+            }}
+            footerContent={
+              <>
+                <Trans
+                  i18nKey="no-dub-account-signup"
+                  components={{
+                    "0": (
+                      <Link
+                        href="https://app.dub.co/register"
+                        target="_blank"
+                        external
+                      />
+                    ),
+                  }}
+                />
+              </>
+            }
+            brandColor="#000000"
+            brandIcon={appIcon}
+          />
+        )}
+      </Box>
+    </I18nextProvider>
   );
 };
 

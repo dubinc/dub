@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { STORE_KEYS, useWorkspaceStore } from "@/lib/swr/use-workspace-store";
@@ -12,6 +13,8 @@ export function ConversionsOnboarding({
 }: {
   referenceElement: HTMLDivElement | null;
 }) {
+  const t = useTranslations("../ui/layout/sidebar/conversions");
+
   const { isMobile } = useMediaQuery();
 
   const { salesUsage, salesLimit, loading } = useWorkspace({
@@ -61,7 +64,7 @@ export function ConversionsOnboarding({
             onClick={() => setShowConversionOnboardingModal(true)}
           >
             <Book2Small className="size-3 text-neutral-800" />
-            View setup guides
+            {t("view-setup-guides")}
           </button>
           <div className="absolute right-0 top-0 flex h-full items-center p-1">
             <button

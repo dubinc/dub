@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import { addEditIntegration } from "@/lib/actions/add-edit-integration";
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
@@ -19,6 +20,8 @@ export default function AddEditIntegrationForm({
 }: {
   integration: NewOrExistingIntegration;
 }) {
+  const t = useTranslations("../ui/oauth-apps");
+
   const { id: workspaceId, role } = useWorkspace();
   const [screenshots, setScreenshots] = useState<
     {
@@ -145,7 +148,7 @@ export default function AddEditIntegrationForm({
         <div>
           <label htmlFor="name" className="flex items-center space-x-2">
             <h2 className="text-sm font-medium text-gray-900">
-              Application name
+              {t("application-name")}
             </h2>
             <InfoTooltip content="Application name will be displayed in the OAuth consent screen" />
           </label>
@@ -162,7 +165,7 @@ export default function AddEditIntegrationForm({
               onChange={(e) => setData({ ...data, name: e.target.value })}
               autoFocus
               autoComplete="off"
-              placeholder="My App"
+              placeholder={t("my-app-name")}
               disabled={!canManageApp}
             />
           </div>
@@ -171,7 +174,7 @@ export default function AddEditIntegrationForm({
         <div>
           <label htmlFor="slug" className="flex items-center space-x-2">
             <h2 className="text-sm font-medium text-gray-900">
-              Application slug
+              {t("application-slug")}
             </h2>
             <InfoTooltip content="Unique slug for this application on Dub" />
           </label>
@@ -195,7 +198,9 @@ export default function AddEditIntegrationForm({
 
         <div>
           <label htmlFor="slug" className="flex items-center space-x-2">
-            <h2 className="text-sm font-medium text-gray-900">Description</h2>
+            <h2 className="text-sm font-medium text-gray-900">
+              {t("description")}
+            </h2>
             <InfoTooltip content="Description of your application" />
           </label>
           <div className="relative mt-2 rounded-md shadow-sm">
@@ -208,7 +213,7 @@ export default function AddEditIntegrationForm({
                   "cursor-not-allowed bg-gray-50": !canManageApp,
                 },
               )}
-              placeholder="Add a description"
+              placeholder={t("add-description")}
               value={description || ""}
               maxLength={120}
               onChange={(e) => {
@@ -221,7 +226,9 @@ export default function AddEditIntegrationForm({
 
         <div>
           <label htmlFor="slug" className="flex items-center space-x-2">
-            <h2 className="text-sm font-medium text-gray-900">Overview</h2>
+            <h2 className="text-sm font-medium text-gray-900">
+              {t("overview")}
+            </h2>
             <InfoTooltip content="Provide some details about your integration. This will be displayed on the integration page. Markdown is supported." />
           </label>
           <div className="relative mt-2 rounded-md shadow-sm">
@@ -234,7 +241,7 @@ export default function AddEditIntegrationForm({
                   "cursor-not-allowed bg-gray-50": !canManageApp,
                 },
               )}
-              placeholder="## My Awesome Integration"
+              placeholder={t("my-awesome-integration-title")}
               value={readme || ""}
               maxLength={1000}
               onChange={(e) => {
@@ -247,7 +254,9 @@ export default function AddEditIntegrationForm({
 
         <div>
           <label htmlFor="slug" className="flex items-center space-x-2">
-            <h2 className="text-sm font-medium text-gray-900">Screenshots</h2>
+            <h2 className="text-sm font-medium text-gray-900">
+              {t("screenshots")}
+            </h2>
             <InfoTooltip content="You can upload up to 4 screenshots that will be displayed on the integration page." />
           </label>
           <Reorder.Group
@@ -301,7 +310,7 @@ export default function AddEditIntegrationForm({
         <div>
           <label htmlFor="developer" className="flex items-center space-x-2">
             <h2 className="text-sm font-medium text-gray-900">
-              Developer name
+              {t("developer-name")}
             </h2>
             <InfoTooltip content="The person or company developing this application" />
           </label>
@@ -316,7 +325,7 @@ export default function AddEditIntegrationForm({
               required
               value={developer}
               onChange={(e) => setData({ ...data, developer: e.target.value })}
-              placeholder="Acme Inc."
+              placeholder={t("acme-inc-name")}
               disabled={!canManageApp}
             />
           </div>
@@ -324,7 +333,9 @@ export default function AddEditIntegrationForm({
 
         <div>
           <label htmlFor="website" className="flex items-center space-x-2">
-            <h2 className="text-sm font-medium text-gray-900">Website URL</h2>
+            <h2 className="text-sm font-medium text-gray-900">
+              {t("website-url")}
+            </h2>
             <InfoTooltip content="URL to the developer's website or documentation" />
           </label>
           <div className="relative mt-2 rounded-md shadow-sm">
@@ -339,7 +350,7 @@ export default function AddEditIntegrationForm({
               required
               value={website}
               onChange={(e) => setData({ ...data, website: e.target.value })}
-              placeholder="https://acme.com"
+              placeholder={t("acme-website-url")}
               disabled={!canManageApp}
             />
           </div>

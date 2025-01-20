@@ -1,6 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
 import { Button, LinkLogo, Modal } from "@dub/ui";
+import { useTranslations } from "next-intl";
 import {
   Dispatch,
   SetStateAction,
@@ -20,6 +21,8 @@ function PrimaryDomainModal({
   setShowPrimaryDomainModal: Dispatch<SetStateAction<boolean>>;
   props: DomainProps;
 }) {
+  const t = useTranslations("../ui/modals");
+
   const { id: workspaceId } = useWorkspace();
   const [loading, setLoading] = useState(false);
   const domain = props.slug;
@@ -49,17 +52,21 @@ function PrimaryDomainModal({
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
         <LinkLogo apexDomain={domain} />
-        <h3 className="text-lg font-medium">Set {domain} as primary domain</h3>
+        <h3 className="text-lg font-medium">
+          {t("set-primary-domain", { domain: domain })}
+        </h3>
         <p className="text-sm text-gray-500">
-          Setting this domain as primary will make it the default domain in the
-          link creation modal, as well as in the API.{" "}
-          <a
-            href="https://dub.co/help/article/how-to-set-primary-domain"
-            target="_blank"
-            className="text-gray-500 underline underline-offset-4 hover:text-gray-800"
-          >
-            Learn more
-          </a>
+          {t("setting-primary-domain-description", {
+            component0: (
+              <a
+                href="https://dub.co/help/article/how-to-set-primary-domain"
+                target="_blank"
+                className="text-gray-500 underline underline-offset-4 hover:text-gray-800"
+              >
+                {t("setting-primary-domain-description_component0")}
+              </a>
+            ),
+          })}
         </p>
       </div>
 
@@ -76,7 +83,7 @@ function PrimaryDomainModal({
           }
           autoFocus
           loading={loading}
-          text="Set as primary domain"
+          text={t("set-as-primary-domain")}
         />
       </div>
     </Modal>

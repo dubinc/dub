@@ -1,0 +1,327 @@
+{
+  "../ui/auth/login": {
+    "continue-with-github": "Continue with Github"
+  },
+  "../ui/analytics": {
+    "no-url-configured": "No URL configured",
+    "no-data-available": "No data available",
+    "download-as-csv": "Download as CSV",
+    "plan-required-to-view-more-analytics": " plan required to view more analytics",
+    "upgrade-to": "Upgrade to"
+  },
+  "../ui/analytics/events": {
+    "filter": "Filter"
+  },
+  "../ui/auth/register": {
+    "work-email": "Work Email",
+    "password": "Password",
+    "did-not-receive-code": "Didn't receive a code?",
+    "resend-code": "Resend",
+    "code-sent-successfully": "Code sent successfully.",
+    "failed-to-send-code": "Failed to send code.",
+    "seconds-remaining": "{seconds}s"
+  },
+  "../ui/modals/link-builder": {
+    "link-successfully-cloaked": "Your link will be successfully cloaked.",
+    "link-not-cloakable-security-headers": "Your link is not cloakable – make sure you have the right security headers set on your target URL.",
+    "link": "(link)",
+    "templates-label": "Templates",
+    "no-utm-templates-found": "No UTM templates found",
+    "add-utm-template-description": "Add a UTM template to easily create links with the same UTM parameters.",
+    "add-utm-template-button": "Add UTM template",
+    "advanced-options": "Advanced Options",
+    "press-a-to-open-quickly_component0": "A",
+    "press-a-to-open-quickly": "Press {component0}  to open this quickly",
+    "letter-a": "A",
+    "external-id": "External ID",
+    "unique-identifier-database": "A unique identifier for this link in your database.",
+    "unique-identifier-system": "A unique identifier for this link in your system.",
+    "example-123456": "Eg: 123456",
+    "tenant-id": "Tenant ID",
+    "example-user-123": "Eg: user_123",
+    "remove-advanced-options": "Remove advanced options",
+    "cancel": "Cancel",
+    "save": "Save",
+    "usage-limit-exceeded": "You've exceeded your AI usage limit",
+    "usage-limit-exceeded-duplicate": "You've exceeded your AI usage limit",
+    "link-preview": "Link Preview",
+    "customize-link-preview-description": "Customize how your links look when shared on social media to improve click-through rates. When enabled, the preview settings below will be shown publicly (instead of the URL's original metatags).",
+    "quick-open-instruction_component0": "L",
+    "quick-open-instruction": "Press {component0} to open this quickly",
+    "shortcut-key-l": "L",
+    "image-label": "Image",
+    "remove-button": "Remove",
+    "upload-instruction": "Drag and drop or click to upload.",
+    "recommended-image-dimensions": "Recommended: 1200 x 630 pixels",
+    "title-label": "Title",
+    "add-title-placeholder": "Add a title...",
+    "description-label": "Description",
+    "add-description-placeholder": "Add a description...",
+    "reset-to-default": "Reset to default",
+    "cancel-button": "Cancel",
+    "save-changes-button": "Save changes"
+  },
+  "../ui/modals/import-csv-modal": {
+    "columns-found": "Columns found:"
+  },
+  "../ui/webhooks": {
+    "response-message": "Response",
+    "http-status-code": "HTTP status code",
+    "request-message": "Request"
+  },
+  "../ui/modals": {
+    "workspace-logo": "Workspace logo",
+    "change-teammate-role": "Change Teammate Role",
+    "confirm-role-change": "This will change {component0}''s role in {component1} to {component2}. Are you sure you want to continue?",
+    "confirm": "Confirm",
+    "create-new-workspace": "Create a new workspace",
+    "what-is-a-workspace": "What is a workspace?",
+    "set-primary-domain": "Set {domain} as primary domain",
+    "setting-primary-domain-description_component0": "Learn more",
+    "setting-primary-domain-description": "Setting this domain as primary will make it the default domain in the link creation modal, as well as in the API. {component0}",
+    "set-as-primary-domain": "Set as primary domain",
+    "congratulations-claim-success": "Congratulations! You've claimed",
+    "domain-registered-propagation-info_component0": "Learn more.",
+    "domain-registered-propagation-info": "Your domain is now registered and ready to use, though it may take some time for the domain configuration to propagate globally. {component0}",
+    "start-using-domain": "Start using your domain",
+    "invite-via-email": "Invite via Email",
+    "invite-friend-colleague": "Invite a friend or colleague to use Dub with your referral link.",
+    "email-label": "Email",
+    "panic-email": "panic@thedis.co",
+    "name-email-sharing-notice": "Your name and email address will be shared in this invitation.",
+    "send-invite-button": "Send invite",
+    "delete-action": "Delete",
+    "deletion-warning": "Deleting this application will invalidate any access tokens authorized by users. Are you sure you want to continue?",
+    "verification-prompt": "To verify, type {component0}  below",
+    "confirm-delete": "Confirm delete"
+  },
+  "../ui/shared": {
+    "upgrade-to": "Upgrade to"
+  },
+  "../ui/oauth-apps": {
+    "application-name": "Application name",
+    "my-app-name": "My App",
+    "application-slug": "Application slug",
+    "description": "Description",
+    "add-description": "Add a description",
+    "overview": "Overview",
+    "my-awesome-integration-title": "## My Awesome Integration",
+    "screenshots": "Screenshots",
+    "developer-name": "Developer name",
+    "acme-inc-name": "Acme Inc.",
+    "website-url": "Website URL",
+    "acme-website-url": "https://acme.com"
+  },
+  "../ui/partners": {
+    "payouts-status": "Payouts {partnerPayoutsEnabledEnabledDisabled}",
+    "partner-details": "Partner details",
+    "analytics": " Analytics",
+    "events": " Events",
+    "about-this-partner": "About this partner",
+    "description": "Description",
+    "no-description-provided": "No description provided",
+    "create-payout": "Create payout",
+    "approve": "Approve",
+    "view-all": "View all",
+    "no-payouts": "No payouts",
+    "payout-eligibility-info": "When this partner is eligible for or has received payouts, they will appear here."
+  },
+  "../ui/layout/sidebar/conversions": {
+    "view-setup-guides": " View setup guides"
+  },
+  "../ui/layout/toolbar/onboarding": {
+    "getting-started-title": "Getting Started",
+    "getting-started-introduction": "Get familiar with Dub by completing the",
+    "getting-started-tasks": " following tasks",
+    "getting-started-title-duplicate": "Getting Started",
+    "completion-percentage": "% complete",
+    "dismiss-forever-button": "Dismiss forever"
+  },
+  "admin.dub.co/(dashboard)/revenue": {
+    "mrr-message-1": "MRR",
+    "mrr-message-2": "MRR"
+  },
+  "partners.dub.co/(onboarding)": {
+    "partner": "Partner"
+  },
+  "../ui/layout/help": {
+    "contact-support": "Contact support",
+    "thanks-for-reaching-out": "Thanks for reaching out!",
+    "response-time-acknowledgment": " We'll get back to you as soon as possible.",
+    "describe-issue": "Describe the issue",
+    "example-issue-description": "E.g. My custom domain is not working.",
+    "send-message": "Send message"
+  },
+  "app.dub.co/embed/inline": {
+    "payouts": "Payouts",
+    "coming-soon": "Coming soon",
+    "connect-payouts": "Connect payouts",
+    "refer-and-earn": " Refer and earn",
+    "referral-link": "Referral link",
+    "copy-link": "Copy link",
+    "powered-by": "Powered by"
+  },
+  "partners.dub.co/(auth)/(custom)/[programSlug]/login": {
+    "framer-logo": "Framer Logo",
+    "sign-in-framer-partners": "Sign in to Framer Partners",
+    "not-a-framer-partner-apply-today_component0": "Apply today",
+    "not-a-framer-partner-apply-today": "Not a Framer Partner? {component0}"
+  },
+  "partners.dub.co/(onboarding)/onboarding/verify": {
+    "setup-your-payouts-account": "Setup your payouts account",
+    "stripe-wordmark": "Stripe wordmark",
+    "stripe-payment-info_component0": "Continue to Stripe",
+    "stripe-payment-info": "We use Stripe to ensure you get paid on time and to keep your personal bank details secure. Click {component0} to setup your payouts account.",
+    "complete-later-warning": " You can complete this at a later date, but won't be able to collect any payouts until it's completed.",
+    "continue-to-stripe-button": "Continue to Stripe",
+    "complete-later-option": "I'll complete this later"
+  },
+  "../lib/qr": {
+    "qr-code": "QR code"
+  },
+  "app.dub.co/(auth)/auth/reset-password/[token]": {
+    "invalid-reset-token": "Invalid Reset Token",
+    "invalid-or-expired-token-message": "The password reset token is invalid or expired. Please request a new one.",
+    "reset-your-password": "Reset your password",
+    "enter-new-password": "Enter new password for your account."
+  },
+  "partners.dub.co/(dashboard)/programs/[programSlug]": {
+    "refer-and-earn": " Refer and earn",
+    "referral-link": "Referral link",
+    "clicks": "Clicks",
+    "leads": "Leads",
+    "sales": "Sales",
+    "recent-sales": "Recent sales",
+    "view-all": "View all",
+    "earnings": "Earnings",
+    "earnings-duplicate": "Earnings",
+    "failed-to-load-earnings-data": "Failed to load earnings data.",
+    "failed-to-load-data": "Failed to load data."
+  },
+  "app.dub.co/(share)/share/[dashboardId]": {
+    "password-label": "PASSWORD",
+    "incorrect-password-message": "Incorrect password",
+    "submit-button": "Submit"
+  },
+  "app.dub.co/(onboarding)/onboarding/(steps)/workspace": {
+    "what-is-a-workspace": "What is a workspace?"
+  },
+  "app.dub.co/(auth)/oauth/authorize": {
+    "select-workspace-api-access": "Select a workspace to grant API access to",
+    "create-new-workspace": "Create new workspace",
+    "decline": "Decline",
+    "authorize": "Authorize"
+  },
+  "app.dub.co/(onboarding)/onboarding/(steps)/domain": {
+    "connect-custom-domain": "Connect a custom domain",
+    "claim-free-domain_component0": ".link",
+    "claim-free-domain": "Claim a free {component0}  domain",
+    "continue-button": "Continue",
+    "paid-plan-required": " Paid plan required"
+  },
+  "app.dub.co/(onboarding)/onboarding/(steps)/domain/custom": {
+    "read-guide-best-practices": "Read our guide for best practices"
+  },
+  "app.dub.co/(dashboard)/account/settings/security": {
+    "password": "Password",
+    "password-label": "Password",
+    "password-description": " You can set a password to use with your Dub account.",
+    "account-provider-info": "Your account is managed by {component0}.",
+    "create-account-password": "Create account password",
+    "manage-account-password-description": "Manage your account password on {processEnvNextPublicAppName}.",
+    "current-password-label": "Current Password",
+    "new-password-label": "New Password",
+    "password-requirements-title": "Password requirements",
+    "update-password-button": "Update Password"
+  },
+  "app.dub.co/(dashboard)/account/settings/referrals": {
+    "refer-a-friend": "Refer a friend",
+    "activate-referral-link": "Activate your referral link to share the word about Dub and earn cash rewards"
+  },
+  "../emails": {
+    "dub-title": "Dub",
+    "failed-payment-notification": "{attemptCount,select,true{2nd } false{{attemptCount,select,true{3rd  } false{}}}} Failed Payment for Dub.co",
+    "greeting-with-user-name": "Hey{userNameUserName}!",
+    "payment-failure-details_component0": "$",
+    "payment-failure-details_component2": "update your payment information",
+    "payment-failure-details": "Your payment of {component0} for your Dub workspace {component1} has failed. Please {component2}  using the link below:",
+    "update-payment-information": "Update payment information",
+    "customer-support-offer": "If you have any questions, feel free to respond to this email – we're happy to help!",
+    "new-feedback-received": "New Feedback Received",
+    "new-feedback-received-whitespace": "New Feedback Received",
+    "new-feedback-from-email": "New feedback from {component0}"
+  },
+  "app.dub.co/(onboarding)/[slug]/wrapped/[year]": {
+    "year-in-review-title": "{year} Year in Review 🎊",
+    "year-in-review-thank-you-message": "As we put a wrap on {year}, we wanted to say thank you for your support! Here's a look back at your activity in {year}:",
+    "top-links-title": "Top Links",
+    "top-countries-title": "Top Countries",
+    "dub-logo-with-confetti": "Dub logo with confetti",
+    "dub-year-in-review-title": "Dub {year} Year in Review 🎊",
+    "yearly-recap-features": "A full recap of some of the top features we shipped this year – and how we grew as a company."
+  },
+  "app.dub.co/(onboarding)/onboarding/(steps)/link": {
+    "discovered-feature": "You've discovered a {nextPlanName} feature!",
+    "press-enter-to-submit_component0": "Enter",
+    "press-enter-to-submit": "press {component0} ↵ to submit",
+    "link-preview-title": "Link Preview",
+    "preview-label": "Preview",
+    "enter-link-to-generate-preview": "Enter a link to generate a preview.",
+    "create-link-button": "Create link"
+  },
+  "app.dub.co/(dashboard)/[slug]/programs/[programId]": {
+    "revenue": "Revenue",
+    "failed-to-load-data": "Failed to load data",
+    "revenue-duplicate": "Revenue"
+  },
+  "app.dub.co/(dashboard)/[slug]/settings/integrations": {
+    "integrations-title": "Integrations",
+    "create-integration-button": "Create Integration"
+  },
+  "app.dub.co/(dashboard)/[slug]/settings/integrations/new": {
+    "back-to-integrations": "Back to integrations"
+  },
+  "app.dub.co/(dashboard)/[slug]/settings/billing/invoices": {
+    "invoices": "Invoices",
+    "invoices-history": "A history of all your Dub invoices",
+    "no-invoices-found": "No invoices found",
+    "no-invoices-yet": "You don't have any invoices yet",
+    "total": "Total",
+    "view-invoice": "View invoice",
+    "view-invoice-text": "View invoice"
+  },
+  "app.dub.co/(dashboard)/[slug]/settings/integrations/[integrationSlug]": {
+    "integrations-title": "Integrations",
+    "integration-logo-description": "Logo for {integrationName}",
+    "uninstall-integration": "Uninstall Integration",
+    "uninstall-integration-stripe-warning": "You cannot uninstall the Stripe integration from here. Please visit the Stripe dashboard to uninstall the app.",
+    "installed-by-label": "INSTALLED BY",
+    "developer-label": "DEVELOPER",
+    "website-label": "WEBSITE",
+    "manage-button-label": "Manage",
+    "enable-button-label": "Enable",
+    "overview-title": "Overview",
+    "integration-screenshot-description": "Screenshot of {integrationName}"
+  },
+  "app.dub.co/(dashboard)/[slug]/settings/billing": {
+    "payment-methods-title": "Payment methods",
+    "manage-payment-methods-description": "Manage your payment methods on Dub",
+    "manage-action": "Manage",
+    "no-payment-methods-found": "No payment methods found",
+    "no-payment-methods-added-yet": "You haven't added any payment methods yet",
+    "recommended-for-partners-payouts": "Recommended for Dub Partners payouts",
+    "connect-action": "Connect"
+  },
+  "partners.dub.co/(dashboard)/settings": {
+    "about-you": "About you",
+    "failed-to-load-profile-data": "Failed to load profile data",
+    "display-image": "Display Image",
+    "upload-image": "Upload image",
+    "recommended-size-160x160px": "Recommended size: 160x160px",
+    "full-name": "Full Name",
+    "company-name": "Acme, Inc.",
+    "description": "Description",
+    "content-description-prompt": "Tell us about the kind of content you create – e.g. tech, travel, fashion, etc.",
+    "save-changes": "Save changes"
+  }
+}

@@ -7,6 +7,7 @@ import {
   OfficeBuilding,
 } from "@dub/ui/icons";
 import { CONTINENTS, COUNTRIES, REGIONS } from "@dub/utils";
+import { useTranslations } from "next-intl";
 import { useContext, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
@@ -16,6 +17,8 @@ import ContinentIcon from "./continent-icon";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Locations() {
+  const t = useTranslations("../ui/analytics");
+
   const { queryParams, searchParams } = useRouterStuff();
 
   const { selectedTab, saleUnit } = useContext(AnalyticsContext);
@@ -93,7 +96,7 @@ export default function Locations() {
             />
           ) : (
             <div className="flex h-[300px] items-center justify-center">
-              <p className="text-sm text-gray-600">No data available</p>
+              <p className="text-sm text-gray-600">{t("no-data-available")}</p>
             </div>
           )
         ) : (

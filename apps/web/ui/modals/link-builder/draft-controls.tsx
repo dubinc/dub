@@ -3,6 +3,7 @@ import { AnimatedSizeContainer, Button, Popover, useMediaQuery } from "@dub/ui";
 import { CircleCheck, CircleInfo, LoadingCircle, Xmark } from "@dub/ui/icons";
 import { cn, nanoid, punycode, timeAgo, truncate } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   forwardRef,
   SVGProps,
@@ -181,6 +182,8 @@ function DraftOption({
   onSelect: () => void;
   onDelete: () => void;
 }) {
+  const t = useTranslations("../ui/modals/link-builder");
+
   const { isMobile } = useMediaQuery();
 
   // Memoize time so it doesn't change on rerender
@@ -206,7 +209,7 @@ function DraftOption({
             {draft.link.key ? (
               punycode(draft.link.key)
             ) : (
-              <span className="text-gray-400">(link)</span>
+              <span className="text-gray-400">{t("link")}</span>
             )}
           </span>
         </div>

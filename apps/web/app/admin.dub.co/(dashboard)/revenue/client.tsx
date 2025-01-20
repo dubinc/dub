@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { currencyFormatter } from "@dub/utils";
@@ -9,6 +10,8 @@ export default function RevenueClient({
 }: {
   data: { date: string; value: number }[];
 }) {
+  const t = useTranslations("admin.dub.co/(dashboard)/revenue");
+
   // take the last 12 months
   const chartData = data.slice(-12).map(({ date, value }) => ({
     date: new Date(date),
@@ -45,7 +48,7 @@ export default function RevenueClient({
       <div className="w-fit border-b-2 border-black px-8 py-6">
         <div className="flex items-center gap-2.5 text-sm text-gray-600">
           <div className="h-2 w-2 rounded-sm bg-green-200 shadow-[inset_0_0_0_1px_#00000019]" />
-          <span>MRR</span>
+          <span>{t("mrr-message-1")}</span>
         </div>
         <div className="mt-1 flex items-center gap-3">
           <h3 className="text-3xl font-medium">
@@ -72,7 +75,9 @@ export default function RevenueClient({
                   <Fragment>
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-sm bg-current bg-green-200 opacity-50 shadow-[inset_0_0_0_1px_#0003]" />
-                      <p className="capitalize text-gray-600">MRR</p>
+                      <p className="capitalize text-gray-600">
+                        {t("mrr-message-2")}
+                      </p>
                     </div>
                     <p className="text-right font-medium text-gray-900">
                       {currencyFormatter(d.values.value)}

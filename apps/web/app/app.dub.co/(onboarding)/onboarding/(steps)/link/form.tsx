@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -26,6 +27,8 @@ type FormData = {
 };
 
 export function Form() {
+  const t = useTranslations("app.dub.co/(onboarding)/onboarding/(steps)/link");
+
   const { continueTo } = useOnboardingProgress();
 
   const { id: workspaceId, nextPlan } = useWorkspace();
@@ -119,7 +122,9 @@ export function Form() {
               if (error.message.includes("Upgrade to")) {
                 toast.custom(() => (
                   <UpgradeRequiredToast
-                    title={`You've discovered a ${nextPlan.name} feature!`}
+                    title={t("discovered-feature", {
+                      nextPlanName: nextPlan.name,
+                    })}
                     message={error.message}
                   />
                 ));
@@ -141,7 +146,11 @@ export function Form() {
           domains={domains}
           right={
             <div className="animate-text-appear text-xs font-normal text-gray-500">
-              press <strong>Enter</strong> ↵ to submit
+              {t("press-enter-to-submit", {
+                component0: (
+                  <strong>{t("press-enter-to-submit_component0")}</strong>
+                ),
+              })}
             </div>
           }
           {...register("url")}
@@ -163,20 +172,20 @@ export function Form() {
         />
         <div className="flex flex-col gap-2">
           <span className="block text-sm font-medium text-gray-700">
-            Link Preview
+            {t("link-preview-title")}
           </span>
           <div className="relative aspect-[1.91/1] w-full overflow-hidden rounded-md border border-gray-300 bg-gray-100">
             {previewImage ? (
               <img
                 src={previewImage}
-                alt="Preview"
+                alt={t("preview-label")}
                 className="relative size-full rounded-[inherit] object-cover"
               />
             ) : (
               <div className="relative flex size-full flex-col items-center justify-center space-y-4 bg-white">
                 <Photo className="h-8 w-8 text-gray-400" />
                 <p className="text-sm text-gray-400">
-                  Enter a link to generate a preview.
+                  {t("enter-link-to-generate-preview")}
                 </p>
               </div>
             )}
@@ -189,7 +198,7 @@ export function Form() {
         </div>
         <Button
           type="submit"
-          text="Create link"
+          text={t("create-link-button")}
           loading={isSubmitting || isSubmitSuccessful}
         />
       </form>

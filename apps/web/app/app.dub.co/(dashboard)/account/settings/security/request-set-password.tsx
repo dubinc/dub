@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import useUser from "@/lib/swr/use-user";
 import { Button } from "@dub/ui";
@@ -7,6 +8,8 @@ import { toast } from "sonner";
 
 // Displayed when the user doesn't have a password set for their account
 export const RequestSetPassword = () => {
+  const t = useTranslations("app.dub.co/(dashboard)/account/settings/security");
+
   const { user } = useUser();
   const [sending, setSending] = useState(false);
 
@@ -38,20 +41,21 @@ export const RequestSetPassword = () => {
   return (
     <div className="rounded-lg border border-gray-200 bg-white">
       <div className="flex flex-col gap-3 border-b border-gray-200 p-5 sm:p-10">
-        <h2 className="text-xl font-medium">Password</h2>
+        <h2 className="text-xl font-medium">{t("password-label")}</h2>
         <p className="pb-2 text-sm text-gray-500">
           {user?.provider && (
             <>
-              Your account is managed by{" "}
-              <span className="uppercase">{user?.provider}</span>.{" "}
+              {t("account-provider-info", {
+                component0: <span className="uppercase">{user?.provider}</span>,
+              })}
             </>
           )}
-          You can set a password to use with your Dub account.
+          {t("password-description")}
         </p>
       </div>
       <div className="p-5 sm:p-10">
         <Button
-          text="Create account password"
+          text={t("create-account-password")}
           onClick={sendPasswordSetRequest}
           loading={sending}
           disabled={sending}

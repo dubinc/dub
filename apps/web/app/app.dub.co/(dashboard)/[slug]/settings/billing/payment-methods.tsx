@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -11,6 +12,8 @@ import { Stripe } from "stripe";
 import { PaymentMethodTypesList } from "./payment-method-types";
 
 export default function PaymentMethods() {
+  const t = useTranslations("app.dub.co/(dashboard)/[slug]/settings/billing");
+
   const { stripeId, partnersEnabled } = useWorkspace();
   const { paymentMethods } = usePaymentMethods();
 
@@ -26,13 +29,16 @@ export default function PaymentMethods() {
     <div className="rounded-lg border border-neutral-200 bg-white">
       <div className="flex flex-col items-center justify-between gap-y-4 p-6 md:p-8 xl:flex-row">
         <div>
-          <h2 className="text-xl font-medium">Payment methods</h2>
+          <h2 className="text-xl font-medium">{t("payment-methods-title")}</h2>
           <p className="text-balance text-sm leading-normal text-neutral-500">
-            Manage your payment methods on Dub
+            {t("manage-payment-methods-description")}
           </p>
         </div>
         {stripeId && (
-          <ManageSubscriptionButton text="Manage" className="w-fit" />
+          <ManageSubscriptionButton
+            text={t("manage-action")}
+            className="w-fit"
+          />
         )}
       </div>
       <div className="grid gap-4 border-t border-neutral-200 p-6">
@@ -47,8 +53,8 @@ export default function PaymentMethods() {
             ))
           ) : (
             <AnimatedEmptyState
-              title="No payment methods found"
-              description="You haven't added any payment methods yet"
+              title={t("no-payment-methods-found")}
+              description={t("no-payment-methods-added-yet")}
               cardContent={() => (
                 <>
                   <CreditCard className="size-4 text-neutral-700" />
@@ -91,6 +97,8 @@ const PaymentMethodCard = ({
   type: Stripe.PaymentMethod.Type;
   paymentMethod?: Stripe.PaymentMethod;
 }) => {
+  const t = useTranslations("app.dub.co/(dashboard)/[slug]/settings/billing");
+
   const { slug } = useWorkspace();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -133,7 +141,7 @@ const PaymentMethodCard = ({
             <p className="font-medium text-neutral-900">{title}</p>
             {type === "us_bank_account" && (
               <Badge variant="neutral">
-                Recommended for Dub Partners payouts
+                {t("recommended-for-partners-payouts")}
               </Badge>
             )}
           </div>
@@ -144,7 +152,7 @@ const PaymentMethodCard = ({
         <Button
           variant="primary"
           className="h-8 w-fit"
-          text="Connect"
+          text={t("connect-action")}
           onClick={() => managePaymentMethods(type)}
           loading={isLoading}
         />

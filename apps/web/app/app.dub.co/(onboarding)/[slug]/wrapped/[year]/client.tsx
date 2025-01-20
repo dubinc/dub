@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BlurImage, ExpandingArrow } from "@dub/ui";
@@ -16,6 +17,8 @@ import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
 
 export default function WrappedPageClient() {
+  const t = useTranslations("app.dub.co/(onboarding)/[slug]/wrapped/[year]");
+
   const { slug, year } = useParams();
   const { name, logo, yearInReview, loading } = useWorkspace();
 
@@ -39,11 +42,10 @@ export default function WrappedPageClient() {
   return (
     <div className="relative mx-auto my-10 max-w-lg px-4 sm:px-8">
       <h1 className="animate-slide-up-fade font-display mx-0 mb-4 mt-8 p-0 text-center text-xl font-semibold text-black [animation-delay:150ms] [animation-duration:1s] [animation-fill-mode:both]">
-        {year} Year in Review 🎊
+        {t("year-in-review-title", { year: year })}
       </h1>
       <p className="animate-slide-up-fade text-balance text-center text-sm leading-6 text-black [animation-delay:300ms] [animation-duration:1s] [animation-fill-mode:both]">
-        As we put a wrap on {year}, we wanted to say thank you for your support!
-        Here's a look back at your activity in {year}:
+        {t("year-in-review-thank-you-message", { year: year })}
       </p>
 
       <div className="animate-slide-up-fade mb-4 mt-8 rounded-lg border border-neutral-200 bg-white p-2 shadow-md [animation-delay:450ms] [animation-duration:1s] [animation-fill-mode:both]">
@@ -80,7 +82,7 @@ export default function WrappedPageClient() {
         </div>
         <div className="grid gap-2 p-4">
           <StatTable
-            title="Top Links"
+            title={t("top-links-title")}
             value={
               topLinks
                 ? (topLinks as { item: string; count: number }[])
@@ -88,7 +90,7 @@ export default function WrappedPageClient() {
             }
           />
           <StatTable
-            title="Top Countries"
+            title={t("top-countries-title")}
             value={
               topCountries
                 ? (topCountries as { item: string; count: number }[])
@@ -105,7 +107,7 @@ export default function WrappedPageClient() {
       >
         <Image
           src="https://assets.dub.co/blog/2024.jpg"
-          alt="Dub logo with confetti"
+          alt={t("dub-logo-with-confetti")}
           width={1838}
           height={1172}
           className="w-1/3 rounded-md"
@@ -113,11 +115,10 @@ export default function WrappedPageClient() {
         />
         <div className="flex flex-col gap-2">
           <h3 className="font-display font-semibold text-black">
-            Dub {year} Year in Review 🎊
+            {t("dub-year-in-review-title", { year: year })}
           </h3>
           <p className="text-sm text-neutral-500 group-hover:underline">
-            A full recap of some of the top features we shipped this year – and
-            how we grew as a company.
+            {t("yearly-recap-features")}
           </p>
         </div>
       </Link>

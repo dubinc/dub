@@ -3,15 +3,22 @@ import { GreekTemple, Tooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils/src/constants";
 import { CircleMinus } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export function PartnerRowItem({ partner }: { partner: PartnerProps }) {
+  const t = useTranslations("../ui/partners");
+
   return (
     <div className="flex items-center gap-2">
       <Tooltip
         content={
           <div className="grid max-w-xs gap-2 p-4">
             <div className="flex items-center gap-2 text-sm font-medium">
-              Payouts {partner.payoutsEnabled ? "enabled" : "disabled"}
+              {t("payouts-status", {
+                partnerPayoutsEnabledEnabledDisabled: partner.payoutsEnabled
+                  ? "enabled"
+                  : "disabled",
+              })}
               <div
                 className={cn(
                   "flex size-5 items-center justify-center rounded-md border border-green-300 bg-green-200 text-green-800",
