@@ -1,11 +1,15 @@
 import { Tag } from "@dub/prisma/client";
-import { expect, test } from "vitest";
+import { expect, onTestFinished, test } from "vitest";
 import { randomTagName } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 
 test("GET /tags", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { http } = await h.init();
+
+  onTestFinished(async () => {
+    await h.deleteTag(tagCreated.id);
+  });
 
   const newTag = {
     tag: randomTagName(),
@@ -31,6 +35,4 @@ test("GET /tags", async (ctx) => {
       },
     ]),
   );
-
-  await h.deleteTag(tagCreated.id);
 });
