@@ -21,8 +21,6 @@ import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { z } from "zod";
 
-type OnboardingFormData = z.infer<typeof onboardPartnerSchema>;
-
 export function OnboardingForm() {
   const router = useRouter();
   const { data: session } = useSession();
@@ -36,7 +34,7 @@ export function OnboardingForm() {
     setValue,
     watch,
     formState: { errors, isSubmitting, isSubmitSuccessful },
-  } = useForm<OnboardingFormData>();
+  } = useForm<z.infer<typeof onboardPartnerSchema>>();
 
   useEffect(() => {
     if (session?.user) {

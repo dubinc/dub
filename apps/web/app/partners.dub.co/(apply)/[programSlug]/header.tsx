@@ -38,7 +38,7 @@ export function Header({
         )}
       />
 
-      <Link href={`/apply/${slug}`} className="animate-fade-in my-0.5 block">
+      <Link href={`/${slug}`} className="animate-fade-in my-0.5 block">
         {program.wordmark || program.logo ? (
           <img
             className="h-7 max-w-32"
@@ -51,21 +51,23 @@ export function Header({
 
       <div className="flex items-center gap-2">
         {showLogin && !session?.user && status !== "loading" && (
-          <Button
-            type="button"
-            variant="secondary"
-            text="Log in"
-            className="animate-fade-in h-8 w-fit text-neutral-600"
-            onClick={() => router.push(`/login?next=${pathname}`)}
-          />
+          <Link href={`/login?next=${pathname}`}>
+            <Button
+              type="button"
+              variant="secondary"
+              text="Log in"
+              className="animate-fade-in h-8 w-fit text-neutral-600"
+            />
+          </Link>
         )}
         {showApply && (
-          <Button
-            type="button"
-            text="Apply"
-            className="animate-fade-in h-8 w-fit border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
-            onClick={() => router.push(`/apply/${slug}/application`)}
-          />
+          <Link href={`/${slug}/apply`}>
+            <Button
+              type="button"
+              text="Apply"
+              className="animate-fade-in h-8 w-fit border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
+            />
+          </Link>
         )}
       </div>
     </header>

@@ -4,28 +4,24 @@ import { userIsInBeta } from "../edge-config";
 import { getDefaultPartner } from "./utils/get-default-partner";
 import { getUserViaToken } from "./utils/get-user-via-token";
 
-const UNAUTHENTICATED_PATHS = [
-  "/login",
-  "/register",
-  "/forgot-password",
-  "/auth/reset-password",
-  "/apply",
+const AUTHENTICATED_PATHS = [
+  "/programs",
+  "/marketplace",
+  "/onboarding",
+  "/settings",
+  "/accounts",
 ];
-
-// const PARTNER_REDIRECTS = {
-//   "/settings/payouts": "/settings/wallet",
-// };
 
 export default async function PartnersMiddleware(req: NextRequest) {
   const { path, fullPath } = parse(req);
 
   const user = await getUserViaToken(req);
 
-  const isUnauthenticatedPath = UNAUTHENTICATED_PATHS.some((p) =>
-    path.startsWith(p),
+  const isAuthenticatedPath = AUTHENTICATED_PATHS.some(
+    (p) => path === "/" || path.startsWith(p),
   );
 
-  if (!user && !isUnauthenticatedPath) {
+  if (!user && isAuthenticatedPath) {
     return NextResponse.redirect(
       new URL(
         `/login${path === "/" ? "" : `?next=${encodeURIComponent(fullPath)}`}`,
@@ -45,12 +41,11 @@ export default async function PartnersMiddleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/onboarding", req.url));
     } else if (path === "/" || path.startsWith("/pn_")) {
       return NextResponse.redirect(new URL("/programs", req.url));
-    }
-
-    // else if (PARTNER_REDIRECTS[path]) {
-    //   return NextResponse.redirect(new URL(PARTNER_REDIRECTS[path], req.url));
-    // }
-    else if (["/login", "/register"].some((p) => path.startsWith(p))) {
+    } else if (
+      ["/login", "/register"].some(
+        (p) => path.startsWith(p) || path.endsWith(p),
+      )
+    ) {
       return NextResponse.redirect(new URL("/", req.url)); // Redirect authenticated users to dashboard
     }
   }
