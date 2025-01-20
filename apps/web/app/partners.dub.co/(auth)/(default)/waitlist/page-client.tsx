@@ -3,9 +3,12 @@
 import { buttonVariants } from "@dub/ui";
 import { LinkedIn, Twitter } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 
-export function PartnersPageClient() {
+export function PartnersWaitlistPageClient() {
+  const { data: session } = useSession();
+
   return (
     <div className="mx-auto my-10 w-full max-w-md md:mt-16 lg:mt-20">
       <div className="rounded-lg border border-neutral-200 bg-white p-4 py-6 sm:p-8 sm:pb-10">
@@ -45,6 +48,24 @@ export function PartnersPageClient() {
             <LinkedIn className="mr-2 size-4 text-current" />
             dubinc
           </Link>
+        </div>
+        <div className="mt-8 text-[0.8rem] text-neutral-500">
+          <p>
+            You're logged in as{" "}
+            {session?.user?.email ? (
+              <span className="font-medium text-neutral-700">
+                {session.user.email}
+              </span>
+            ) : (
+              <span className="inline-flex h-2 w-48 rounded-md bg-neutral-100" />
+            )}
+          </p>
+          <button
+            onClick={() => signOut()}
+            className="underline underline-offset-2 hover:text-neutral-800"
+          >
+            Sign out to switch accounts
+          </button>
         </div>
       </div>
     </div>

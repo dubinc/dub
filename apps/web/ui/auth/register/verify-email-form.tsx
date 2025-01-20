@@ -34,7 +34,9 @@ export const VerifyEmailForm = () => {
       if (response?.ok) {
         router.push("/onboarding");
       } else {
-        toast.error("Failed to redirect to dashboard.");
+        toast.error(
+          "Failed to sign in with credentials. Please try again or contact support.",
+        );
       }
     },
     onError({ error }) {
