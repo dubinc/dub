@@ -26,7 +26,7 @@ export const createManualPayoutAction = authActionClient
     const { programId, partnerId, start, end, type, amount, description } =
       parsedInput;
 
-    const [program, programEnrollment] = await Promise.all([
+    const [_program, programEnrollment] = await Promise.all([
       getProgramOrThrow({
         workspaceId: workspace.id,
         programId,

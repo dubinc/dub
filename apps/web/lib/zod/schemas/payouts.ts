@@ -12,10 +12,12 @@ export const createManualPayoutSchema = z.object({
   partnerId: z.string({ required_error: "Please select a partner" }),
   start: parseDateSchema.optional(),
   end: parseDateSchema.optional(),
-  amount: z.preprocess(
-    (val) => parseFloat(val as string),
-    z.number().default(0),
-  ),
+  amount: z
+    .preprocess((val) => {
+      const parsed = parseFloat(val as string);
+      return isNaN(parsed) ? 0 : parsed;
+    }, z.number())
+    .optional(),
   type: z.nativeEnum(PayoutType),
   description: z
     .string()

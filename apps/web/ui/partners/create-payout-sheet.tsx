@@ -10,7 +10,13 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { createManualPayoutSchema } from "@/lib/zod/schemas/payouts";
 import { X } from "@/ui/shared/icons";
 import { PayoutType } from "@dub/prisma/client";
-import { Button, DateRangePicker, Sheet, useEnterSubmit } from "@dub/ui";
+import {
+  Button,
+  Combobox,
+  DateRangePicker,
+  Sheet,
+  useEnterSubmit,
+} from "@dub/ui";
 import {
   capitalize,
   cn,
@@ -48,7 +54,7 @@ import { z } from "zod";
 
 interface CreatePayoutSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  partnerId: string;
+  partnerId?: string;
 }
 
 const schema = createManualPayoutSchema
@@ -56,6 +62,7 @@ const schema = createManualPayoutSchema
     type: true,
     amount: true,
     description: true,
+    partnerId: true,
   })
   .and(
     z.object({
@@ -75,17 +82,15 @@ const schema = createManualPayoutSchema
 
 type FormData = z.infer<typeof schema>;
 
-function CreatePayoutSheetContent({
-  setIsOpen,
-  partnerId,
-}: CreatePayoutSheetProps) {
+function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
+  const { setIsOpen } = props;
+
   const dateRangePickerId = useId();
   const { program } = useProgram();
   const { data: partners } = usePartners();
   const { id: workspaceId } = useWorkspace();
   const router = useRouter();
   const { slug, programId } = useParams();
-
   const formRef = useRef<HTMLFormElement>(null);
   const { handleKeyDown } = useEnterSubmit(formRef);
 
@@ -99,13 +104,30 @@ function CreatePayoutSheetContent({
   } = useForm<FormData>({
     defaultValues: {
       type: "custom",
+      partnerId: props.partnerId,
     },
   });
 
-  const { type: payoutType, start, end, amount } = watch();
+  const { type: payoutType, start, end, amount, partnerId } = watch();
 
   const isPercentageBased =
     payoutType === "sales" && program?.commissionType === "percentage";
+
+  const partnerOptions = useMemo(() => {
+    return partners?.map((partner) => ({
+      value: partner.id,
+      label: partner.name,
+      icon: (
+        <img
+          src={
+            partner.image ||
+            `https://api.dicebear.com/9.x/micah/svg?seed=${partner.id}`
+          }
+          className="size-4 rounded-full"
+        />
+      ),
+    }));
+  }, [partners]);
 
   const { executeAsync, isExecuting } = useAction(createManualPayoutAction, {
     onSuccess: async (res) => {
@@ -122,12 +144,13 @@ function CreatePayoutSheetContent({
       }
     },
     onError({ error }) {
+      console.log(error);
       toast.error(error.serverError);
     },
   });
 
   const onSubmit = async (data: FormData) => {
-    if (workspaceId && program) {
+    if (workspaceId && program && partnerId) {
       const startDate = data.start
         ? data.start.getTime() - data.start.getTimezoneOffset() * 60000
         : undefined;
@@ -141,7 +164,9 @@ function CreatePayoutSheetContent({
         programId: program.id,
         start: startDate ? new Date(startDate).toISOString() : undefined,
         end: endDate ? new Date(endDate).toISOString() : undefined,
-        amount: isPercentageBased ? amount : amount * 100,
+        ...(payoutType != "sales" && {
+          amount: amount! * 100,
+        }),
         partnerId,
       });
     }
@@ -202,21 +227,19 @@ function CreatePayoutSheetContent({
     fetcher,
   );
 
+  // Calculate payout amount
   const payoutAmount = useMemo(() => {
-    const quantity =
-      payoutType === "sales" ? salesCount?.pending : totalEvents?.[payoutType];
-
     if (payoutType === "custom") {
       return amount;
     }
 
+    const quantity =
+      payoutType === "sales" ? salesCount?.pending : totalEvents?.[payoutType];
+
     if (isPercentageBased && salesAmount?.amount) {
       return (
         calculateEarnings({
-          program: {
-            commissionAmount: amount,
-            commissionType: "percentage",
-          },
+          program,
           partner: selectedPartner,
           sales: 1,
           saleAmount: salesAmount.amount,
@@ -235,6 +258,7 @@ function CreatePayoutSheetContent({
     program,
   ]);
 
+  // Invoice summary
   const invoiceData = useMemo(() => {
     const quantity =
       payoutType === "sales" ? salesCount?.pending : totalEvents?.[payoutType];
@@ -290,7 +314,7 @@ function CreatePayoutSheetContent({
           : "-",
       }),
 
-      ...(isPercentageBased && {
+      ...(payoutType === "sales" && {
         Revenue: isValidatingSalesAmount ? (
           <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
         ) : salesAmount?.amount ? (
@@ -356,6 +380,41 @@ function CreatePayoutSheetContent({
           </Sheet.Close>
         </div>
         <div className="flex flex-col gap-4 p-6">
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-gray-900">
+              Partner
+              <span className="font-normal text-neutral-500"> (required)</span>
+            </label>
+            <Combobox
+              selected={
+                partnerOptions?.find((o) => o.value === partnerId) ?? null
+              }
+              setSelected={(option) => {
+                if (option) {
+                  setValue("partnerId", option.value);
+                  clearErrors("partnerId");
+                }
+              }}
+              options={partnerOptions}
+              caret={true}
+              placeholder="Select partners"
+              searchPlaceholder="Search..."
+              matchTriggerWidth
+              buttonProps={{
+                className: cn(
+                  "w-full justify-start border-gray-300 px-3",
+                  "data-[state=open]:ring-1 data-[state=open]:ring-gray-500 data-[state=open]:border-gray-500",
+                  "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
+                  !partnerId && "text-gray-400",
+                  errors.partnerId && "border-red-500",
+                ),
+              }}
+            />
+            {errors.partnerId && (
+              <p className="text-xs text-red-600">{errors.partnerId.message}</p>
+            )}
+          </div>
+
           <div className="flex flex-col gap-2">
             <label
               htmlFor={dateRangePickerId}
