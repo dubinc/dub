@@ -1,6 +1,6 @@
 import { Link } from "@dub/prisma/client";
 import { expectedLink } from "tests/utils/schema";
-import { afterAll, describe, expect, onTestFinished, test } from "vitest";
+import { afterAll, describe, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK } from "../utils/resource";
@@ -66,7 +66,7 @@ describe.sequential("GET /links/info", async () => {
   const externalId = randomId();
   const key = randomId();
 
-  onTestFinished(async () => {
+  afterAll(async () => {
     await h.deleteLink(newLink.id);
   });
 
