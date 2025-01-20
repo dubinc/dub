@@ -44,7 +44,7 @@ export function ProgramApplicationForm({
     }
   }, [session?.user, setValue]);
 
-  const { executeAsync, isExecuting } = useAction(
+  const { executeAsync, isPending } = useAction(
     createProgramApplicationAction,
     {
       async onSuccess({ data }) {
@@ -78,7 +78,7 @@ export function ProgramApplicationForm({
     },
   );
 
-  const isLoading = isSubmitting || isSubmitSuccessful || isExecuting;
+  const isLoading = isSubmitting || isSubmitSuccessful || isPending;
 
   return (
     <form

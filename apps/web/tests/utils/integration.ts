@@ -56,6 +56,8 @@ export class IntegrationHarness {
 
   // Delete link
   public async deleteLink(id: string) {
+    if (!id) return;
+
     await this.http.delete({
       path: `/links/${id}`,
     });
@@ -63,6 +65,8 @@ export class IntegrationHarness {
 
   // Delete tag
   public async deleteTag(id: string) {
+    if (!id) return;
+
     await this.http.delete({
       path: `/tags/${id}`,
     });

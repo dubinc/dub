@@ -29,17 +29,14 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
   const searchParams = useSearchParams();
   const { slug, id: workspaceId, role } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
-  const { executeAsync, result, isExecuting } = useAction(
-    generateClientSecret,
-    {
-      onSuccess: () => {
-        toast.success("New client secret generated.");
-      },
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
+  const { executeAsync, result, isPending } = useAction(generateClientSecret, {
+    onSuccess: () => {
+      toast.success("New client secret generated.");
     },
-  );
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+  });
 
   const { data: oAuthApp, isLoading } = useSWR<OAuthAppProps>(
     `/api/oauth/apps/${appId}?workspaceId=${workspaceId}`,
@@ -118,11 +115,11 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
             content={
               <div className="grid w-screen gap-px p-2 sm:w-48">
                 <Button
-                  text={isExecuting ? "Regenerating..." : "Regenerate secret"}
+                  text={isPending ? "Regenerating..." : "Regenerate secret"}
                   variant="outline"
                   icon={<RefreshCcw className="h-4 w-4" />}
                   className="h-9 justify-start px-2 font-medium"
-                  disabled={isExecuting}
+                  disabled={isPending}
                   onClick={async () => {
                     await executeAsync({
                       workspaceId: workspaceId!,

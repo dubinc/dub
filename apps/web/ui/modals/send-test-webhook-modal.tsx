@@ -32,7 +32,7 @@ function SendTestWebhookModal({
   const [selectedTrigger, setSelectedTrigger] =
     useState<InputSelectItemProps | null>(null);
 
-  const { execute, isExecuting } = useAction(sendTestWebhookEvent, {
+  const { execute, isPending } = useAction(sendTestWebhookEvent, {
     onSuccess: () => {
       toast.success("Webhook event sent.");
       setShowSendTestWebhookModal(false);
@@ -88,7 +88,7 @@ function SendTestWebhookModal({
           <Button
             disabled={!selectedTrigger}
             text="Send test webhook"
-            loading={isExecuting}
+            loading={isPending}
           />
         </div>
       </form>

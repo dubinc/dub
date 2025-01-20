@@ -1,5 +1,5 @@
 import { Domain } from "@dub/prisma/client";
-import { afterAll, describe, expect, test } from "vitest";
+import { describe, expect, onTestFinished, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 
@@ -30,10 +30,6 @@ const expectedDomain = {
 describe.sequential("/domains/**", async () => {
   const h = new IntegrationHarness();
   const { workspace, http } = await h.init();
-
-  afterAll(async () => {
-    await h.deleteDomain(domainRecord.slug);
-  });
 
   test("POST /domains", async () => {
     const { status, data: domain } = await http.post<Domain>({
@@ -88,6 +84,10 @@ describe.sequential("/domains/**", async () => {
       notFoundUrl: `https://${slug}/not-found-new`,
       archived: true,
     };
+
+    onTestFinished(async () => {
+      await h.deleteDomain(domainRecord.slug);
+    });
 
     const { status, data: domain } = await http.patch<Domain>({
       path: `/domains/${domainRecord.slug}`,
