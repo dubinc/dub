@@ -16,10 +16,8 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
   const searchParams = useSearchParams();
   const next = searchParams?.get("next");
   const { isMobile } = useMediaQuery();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [checkingEmailPassword, setCheckingEmailPassword] = useState(false);
 
   const {
     showPasswordField,
@@ -33,9 +31,6 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
   } = useContext(LoginFormContext);
 
   const { executeAsync, isPending } = useAction(checkAccountExistsAction, {
-    onSuccess: (data) => {
-      console.log(data);
-    },
     onError: ({ error }) => {
       toast.error(error.serverError);
     },
@@ -61,6 +56,12 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
               setShowPasswordField(true);
               return;
             }
+
+            if (!accountExists) {
+              setClickedMethod(undefined);
+              toast.error("No account found with that email address.");
+              return;
+            }
           }
 
           setClickedMethod("email");
@@ -79,7 +80,7 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
             return;
           }
 
-          const provider = hasPassword && password ? "credentials" : "email";
+          const provider = password && hasPassword ? "credentials" : "email";
 
           const response = await signIn(provider, {
             email,
@@ -115,64 +116,6 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
           if (provider === "credentials") {
             router.push(response?.url || redirectTo || "/workspaces");
           }
-
-          // fetch("/api/auth/account-exists", {
-          //   method: "POST",
-          //   headers: { "Content-Type": "application/json" },
-          //   body: JSON.stringify({ email }),
-          // }).then(async (res) => {
-          //   if (!res.ok) {
-          //     const error = await res.text();
-          //     toast.error(error);
-          //     setClickedMethod(undefined);
-          //     return;
-          //   }
-
-          //   const { accountExists, hasPassword } = await res.json();
-
-          //   if (!accountExists) {
-          //     setClickedMethod(undefined);
-          //     toast.error("No account found with that email address.");
-          //     return;
-          //   }
-
-          //   const provider = hasPassword && password ? "credentials" : "email";
-
-          //   const response = await signIn(provider, {
-          //     email,
-          //     redirect: false,
-          //     callbackUrl: next || redirectTo || "/workspaces",
-          //     ...(password && { password }),
-          //   });
-
-          //   if (!response) {
-          //     return;
-          //   }
-
-          //   if (!response.ok && response.error) {
-          //     if (errorCodes[response.error]) {
-          //       toast.error(errorCodes[response.error]);
-          //     } else {
-          //       toast.error(response.error);
-          //     }
-
-          //     setClickedMethod(undefined);
-          //     return;
-          //   }
-
-          //   setLastUsedAuthMethod("email");
-
-          //   if (provider === "email") {
-          //     toast.success("Email sent - check your inbox!");
-          //     setEmail("");
-          //     setClickedMethod(undefined);
-          //     return;
-          //   }
-
-          //   if (provider === "credentials") {
-          //     router.push(response?.url || redirectTo || "/workspaces");
-          //   }
-          // });
         }}
         className="flex flex-col gap-y-3"
       >
@@ -227,7 +170,7 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
               setAuthMethod("email");
             },
           })}
-          loading={checkingEmailPassword || clickedMethod === "email"}
+          loading={clickedMethod === "email" || isPending}
           disabled={clickedMethod && clickedMethod !== "email"}
         />
       </form>
