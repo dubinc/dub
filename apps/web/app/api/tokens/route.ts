@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { scopesToName, validateScopesForRole } from "@/lib/api/tokens/scopes";
-import { parseRequestBody } from "@/lib/api/utils";
+import { createId, parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { createTokenSchema, tokenSchema } from "@/lib/zod/schemas/token";
@@ -89,6 +89,7 @@ export const POST = withWorkspace(
       const randomName = generateRandomName();
       machineUser = await prisma.user.create({
         data: {
+          id: createId({ prefix: "user_" }),
           name: `${randomName} (Machine User)`,
           isMachine: true,
         },
