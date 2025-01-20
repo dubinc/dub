@@ -78,8 +78,8 @@ model ProgramEnrollment {
   createdAt        DateTime                @default(now())
   updatedAt        DateTime                @updatedAt
 
-  partner     Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  program     Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  partner     Partner             @relation(fields: [partnerId], references: [id])
+  program     Program             @relation(fields: [programId], references: [id])
   link        Link?               @relation(fields: [linkId], references: [id])
   discount    Discount?           @relation(fields: [discountId], references: [id])
   application ProgramApplication? @relation(fields: [applicationId], references: [id])

@@ -154,49 +154,11 @@ export const getPartnerSalesCountQuerySchema = getSalesCountQuerySchema.omit({
   partnerId: true,
 });
 
-export const createPartnerSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1)
-    .max(100)
-    .describe("Full legal name of the partner."),
-  email: z
-    .string()
-    .trim()
-    .min(1)
-    .max(190)
-    .email()
-    .describe(
-      "Email for the partner in your system. Partners will be able to claim their profile by signing up to Dub Partners with this email.",
-    ),
-  username: z
-    .string()
-    .min(1)
-    .max(100)
-    .describe(
-      "A unique username for the partner in your system. This will be used to create a short link for the partner using your program's default domain.",
-    ),
-  image: z
-    .string()
-    .nullish()
-    .describe(
-      "Avatar image for the partner – if not provided, a default avatar will be used.",
-    ),
-  country: z
-    .enum(COUNTRY_CODES)
-    .nullish()
-    .describe("Country where the partner is based."),
-  description: z
-    .string()
-    .max(5000)
-    .nullish()
-    .describe("A brief description of the partner and their background."),
+export const onboardPartnerSchema = z.object({
+  name: z.string().trim().min(1).max(100),
+  email: z.string().trim().min(1).max(190).email(),
+  logo: z.string().optional(),
+  image: z.string(),
+  country: z.enum(COUNTRY_CODES),
+  description: z.string().max(5000).nullable(),
 });
-
-export const onboardPartnerSchema = createPartnerSchema.merge(
-  z.object({
-    image: z.string(),
-    country: z.enum(COUNTRY_CODES),
-  }),
-);
