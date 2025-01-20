@@ -10,13 +10,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { createManualPayoutSchema } from "@/lib/zod/schemas/payouts";
 import { X } from "@/ui/shared/icons";
 import { PayoutType } from "@dub/prisma/client";
-import {
-  Button,
-  DateRangePicker,
-  Sheet,
-  useEnterSubmit,
-  useRouterStuff,
-} from "@dub/ui";
+import { Button, DateRangePicker, Sheet, useEnterSubmit } from "@dub/ui";
 import {
   capitalize,
   cn,
@@ -589,8 +583,6 @@ export function CreatePayoutSheet({
   isOpen: boolean;
   nested?: boolean;
 }) {
-  const { queryParams } = useRouterStuff();
-
   return (
     <Sheet open={isOpen} onOpenChange={rest.setIsOpen} nested={nested}>
       <CreatePayoutSheetContent {...rest} />
