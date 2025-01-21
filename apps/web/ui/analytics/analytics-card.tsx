@@ -199,7 +199,7 @@ function SubTabs({
       }))}
       selected={selectedTab}
       selectAction={(period) => onSelectTab(period)}
-      className="flex w-full flex-wrap rounded-md rounded-none border-x-0 border-t-0 border-gray-200 bg-gray-50 px-3 py-2 sm:flex-nowrap"
+      className="flex w-full flex-wrap rounded-none border-x-0 border-t-0 border-gray-200 bg-gray-50 px-6 py-2.5 sm:flex-nowrap"
       optionClassName="text-xs px-2 font-normal hover:text-gray-700"
       indicatorClassName="border-0 bg-gray-200 rounded-md"
     />
