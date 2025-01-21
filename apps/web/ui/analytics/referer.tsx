@@ -3,7 +3,7 @@ import { BlurImage, useRouterStuff, UTM_PARAMETERS } from "@dub/ui";
 import { Note, ReferredVia } from "@dub/ui/icons";
 import { getApexDomain, GOOGLE_FAVICON_URL } from "@dub/utils";
 import { Link2 } from "lucide-react";
-import { useContext, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import { AnalyticsContext } from "./analytics-provider";
@@ -16,38 +16,52 @@ export default function Referer() {
   const { selectedTab, saleUnit } = useContext(AnalyticsContext);
   const dataKey = selectedTab === "sales" ? saleUnit : "count";
 
-  const [tab, setTab] = useState<"referers" | "utms" | "referer_urls">(
+  const [tab, setTab] = useState<"referers" | "utms">("referers");
+  const [utmTag, setUtmTag] = useState<string>("utm_source");
+  const [refererType, setRefererType] = useState<"referers" | "referer_urls">(
     "referers",
   );
-  const [utmTag, setUtmTag] = useState<string>("utm_source");
 
   const { data } = useAnalyticsFilterOption({
-    groupBy: tab,
+    groupBy: tab === "referers" ? refererType : tab,
     utmTag: tab === "utms" ? utmTag : undefined,
   });
   const singularTabName = SINGULAR_ANALYTICS_ENDPOINTS[tab];
 
   const { icon: UTMTagIcon } = UTM_PARAMETERS.find((p) => p.key === utmTag)!;
 
+  const subTabProps = useMemo(() => {
+    return (
+      {
+        utms: {
+          subTabs: UTM_PARAMETERS.filter((p) => p.key !== "ref").map((p) => ({
+            id: p.key,
+            label: p.label,
+          })),
+          selectedSubTabId: utmTag,
+          onSelectSubTab: setUtmTag,
+        },
+        referers: {
+          subTabs: [
+            { id: "referers", label: "Domain" },
+            { id: "referer_urls", label: "URL" },
+          ],
+          selectedSubTabId: refererType,
+          onSelectSubTab: setRefererType,
+        },
+      }[tab] ?? {}
+    );
+  }, [tab, utmTag, refererType]);
+
   return (
     <AnalyticsCard
       tabs={[
         { id: "referers", label: "Referrers", icon: ReferredVia },
         { id: "utms", label: "UTM Parameters", icon: Note },
-        { id: "referer_urls", label: "Referrer URLs", icon: ReferredVia },
       ]}
       selectedTabId={tab}
       onSelectTab={setTab}
-      subTabs={
-        tab === "utms"
-          ? UTM_PARAMETERS.filter((p) => p.key !== "ref").map((p) => ({
-              id: p.key,
-              label: p.label,
-            }))
-          : undefined
-      }
-      selectedSubTabId={utmTag}
-      onSelectSubTab={setUtmTag}
+      {...subTabProps}
       expandLimit={8}
       hasMore={(data?.length ?? 0) > 0} // TODO: Undo change
     >
@@ -56,7 +70,7 @@ export default function Referer() {
           {data ? (
             data.length > 0 ? (
               <BarList
-                tab="Referrer"
+                tab={tab === "referers" ? "Referrer" : "UTM Parameter"}
                 data={
                   data
                     ?.map((d) => ({

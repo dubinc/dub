@@ -192,6 +192,7 @@ function SubTabs({
 }) {
   return (
     <ToggleGroup
+      key={JSON.stringify(subTabs)}
       options={subTabs.map(({ id, label }) => ({
         value: id,
         label: label,
