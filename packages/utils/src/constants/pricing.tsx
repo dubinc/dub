@@ -30,8 +30,6 @@ const BUSINESS_PLAN_MODIFIER = ({
   sales: number;
   domains: number;
   users: number;
-  tags: number;
-  folders: number;
   ids: string[];
 }) => ({
   name,
@@ -270,8 +268,6 @@ export const PLANS = [
     clicks: 150000,
     sales: 5000_00,
     domains: 40,
-    tags: 150,
-    folders: 150,
     users: 15,
     ids: [
       "price_1LodLoAlJJEpqkPV9rD0rlNL", // old monthly
@@ -291,8 +287,6 @@ export const PLANS = [
     clicks: 400000,
     sales: 15000_00,
     domains: 100,
-    tags: 300,
-    folders: 300,
     users: 30,
     ids: [
       "price_1OnWu0AlJJEpqkPVWk4144ZG", // monthly (test)
@@ -309,8 +303,6 @@ export const PLANS = [
     clicks: 1000000,
     sales: 40000_00,
     domains: 250,
-    tags: 500,
-    folders: 500,
     users: 50,
     ids: [
       "price_1OnWvCAlJJEpqkPVLzLHx5QD", // monthly (test)
@@ -327,8 +319,6 @@ export const PLANS = [
     clicks: 2500000,
     sales: 100000_00,
     domains: 500,
-    tags: 1000,
-    folders: 1000,
     users: 100,
     ids: [
       "price_1OnWwLAlJJEpqkPVXtJyPqLk", // monthly (test)
