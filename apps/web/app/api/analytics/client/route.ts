@@ -14,6 +14,7 @@ export const GET = withEmbedToken(async ({ link, searchParams, program }) => {
       interval: true,
       groupBy: true,
       timezone: true,
+      utmTag: true,
     })
     .parse(searchParams);
 
