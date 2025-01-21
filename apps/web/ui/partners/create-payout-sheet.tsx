@@ -491,7 +491,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
               htmlFor="description"
               className="flex items-center space-x-2 text-sm font-medium text-gray-900"
             >
-              Description
+              Description{" "}
               <span className="ml-1 font-normal text-neutral-500">
                 (optional)
               </span>
