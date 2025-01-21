@@ -492,6 +492,19 @@ importers:
         specifier: ^5.6.2
         version: 5.6.2
 
+  packages/ee:
+    dependencies:
+      '@dub/prisma':
+        specifier: workspace:*
+        version: link:../prisma
+    devDependencies:
+      '@types/node':
+        specifier: 18.11.9
+        version: 18.11.9
+      typescript:
+        specifier: 5.2.2
+        version: 5.2.2
+
   packages/embeds/core:
     dependencies:
       '@floating-ui/dom':
