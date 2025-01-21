@@ -86,8 +86,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         : analyticsResponse[groupBy],
   });
 
-  console.log("params", params);
-
   const response = await pipe({
     ...params,
     eventType: event,
