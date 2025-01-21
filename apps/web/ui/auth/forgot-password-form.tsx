@@ -13,7 +13,7 @@ export const ForgotPasswordForm = () => {
   const searchParams = useSearchParams();
   const [email, setEmail] = useState(searchParams.get("email") || "");
 
-  const { executeAsync, isExecuting } = useAction(requestPasswordResetAction, {
+  const { executeAsync, isPending } = useAction(requestPasswordResetAction, {
     onSuccess() {
       toast.success(
         "You will receive an email with instructions to reset your password.",
@@ -47,8 +47,8 @@ export const ForgotPasswordForm = () => {
           </label>
           <Button
             type="submit"
-            text={isExecuting ? "Sending..." : "Send reset link"}
-            loading={isExecuting}
+            text={isPending ? "Sending..." : "Send reset link"}
+            loading={isPending}
             disabled={email.length < 3}
           />
         </div>

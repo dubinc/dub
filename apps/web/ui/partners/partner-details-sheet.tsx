@@ -163,7 +163,7 @@ function PartnerDetailsSheetContent({
           {partner.link && (
             <div className="xs:grid-cols-2 mt-4 grid grid-cols-1 gap-3">
               <Link
-                href={`/${slug}/analytics?domain=${partner.link.domain}&key=${partner.link.key}`}
+                href={`/${slug}/analytics?domain=${partner.link.domain}&key=${partner.link.key}&interval=all`}
                 target="_blank"
                 className={cn(
                   buttonVariants({ variant: "secondary" }),
@@ -174,7 +174,7 @@ function PartnerDetailsSheetContent({
                 Analytics
               </Link>
               <Link
-                href={`/${slug}/events?domain=${partner.link.domain}&key=${partner.link.key}`}
+                href={`/${slug}/events?domain=${partner.link.domain}&key=${partner.link.key}&interval=all`}
                 target="_blank"
                 className={cn(
                   buttonVariants({ variant: "secondary" }),
@@ -256,7 +256,7 @@ function PartnerApproval({
     if (selectedLinkId) setLinkError(false);
   }, [selectedLinkId]);
 
-  const { executeAsync, isExecuting } = useAction(approvePartnerAction, {
+  const { executeAsync, isPending } = useAction(approvePartnerAction, {
     onSuccess() {
       mutatePrefix(`/api/programs/${partner.programId}/partners`);
 
@@ -356,7 +356,7 @@ function PartnerApproval({
             type="button"
             variant="primary"
             text="Approve"
-            loading={isExecuting}
+            loading={isPending}
             onClick={async () => {
               if (!isApproving) {
                 setIsApproving(true);
@@ -393,7 +393,7 @@ function PartnerRejectButton({
 }) {
   const { id: workspaceId } = useWorkspace();
 
-  const { executeAsync, isExecuting } = useAction(rejectPartnerAction, {
+  const { executeAsync, isPending } = useAction(rejectPartnerAction, {
     onSuccess: async () => {
       await mutatePrefix(`/api/programs/${partner.programId}/partners`);
 
@@ -409,8 +409,8 @@ function PartnerRejectButton({
     <Button
       type="button"
       variant="secondary"
-      text={isExecuting ? "" : "Decline"}
-      loading={isExecuting}
+      text={isPending ? "" : "Decline"}
+      loading={isPending}
       onClick={async () => {
         await executeAsync({
           workspaceId: workspaceId!,

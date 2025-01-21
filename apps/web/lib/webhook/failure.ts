@@ -80,7 +80,7 @@ export const resetWebhookFailureCount = async (webhookId: string) => {
 
 // Send email to workspace owners when the webhook is failing to deliver
 const notifyWebhookFailure = async (
-  webhook: Pick<Webhook, "id" | "url" | "projectId">,
+  webhook: Pick<Webhook, "id" | "url" | "projectId" | "consecutiveFailures">,
 ) => {
   const workspaceOwners = await prisma.projectUsers.findFirst({
     where: { projectId: webhook.projectId, role: "owner" },
@@ -118,6 +118,7 @@ const notifyWebhookFailure = async (
       webhook: {
         id: webhook.id,
         url: webhook.url,
+        consecutiveFailures: webhook.consecutiveFailures,
       },
     }),
   });

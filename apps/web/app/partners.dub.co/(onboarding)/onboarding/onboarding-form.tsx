@@ -21,8 +21,6 @@ import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { z } from "zod";
 
-type OnboardingFormData = z.infer<typeof onboardPartnerSchema>;
-
 export function OnboardingForm() {
   const router = useRouter();
   const { data: session } = useSession();
@@ -36,7 +34,7 @@ export function OnboardingForm() {
     setValue,
     watch,
     formState: { errors, isSubmitting, isSubmitSuccessful },
-  } = useForm<OnboardingFormData>();
+  } = useForm<z.infer<typeof onboardPartnerSchema>>();
 
   useEffect(() => {
     if (session?.user) {
@@ -45,7 +43,7 @@ export function OnboardingForm() {
     }
   }, [session?.user]);
 
-  const { executeAsync, isExecuting } = useAction(onboardPartnerAction, {
+  const { executeAsync, isPending } = useAction(onboardPartnerAction, {
     onSuccess: () => {
       if (watch("country") === "US") {
         router.push("/onboarding/verify");
@@ -185,7 +183,7 @@ export function OnboardingForm() {
         type="submit"
         text="Create partner account"
         className="mt-2"
-        loading={isExecuting || isSubmitting || isSubmitSuccessful}
+        loading={isPending || isSubmitting || isSubmitSuccessful}
       />
     </form>
   );

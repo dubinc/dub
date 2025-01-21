@@ -8,7 +8,7 @@
     "lint": "next lint",
     "start": "next start",
     "script": "tsx ./scripts/run.ts",
-    "test": "vitest -no-file-parallelism",
+    "test": "vitest -no-file-parallelism --bail=1",
     "generate-openapi": "tsx ./scripts/generate-openapi.ts",
     "prisma:generate": "dotenv-flow -e .env -- pnpm --filter=@dub/prisma generate",
     "prisma:push": "dotenv-flow -e .env -- pnpm --filter=@dub/prisma push",

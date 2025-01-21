@@ -22,13 +22,7 @@ export const invitePartner = async ({
       where: {
         programId: program.id,
         partner: {
-          users: {
-            some: {
-              user: {
-                email,
-              },
-            },
-          },
+          email,
         },
       },
     }),

@@ -6,7 +6,20 @@ import type Stripe from "stripe";
 export async function accountApplicationDeauthorized(event: Stripe.Event) {
   const stripeAccountId = event.account;
 
-  const workspace = await prisma.project.update({
+  const workspace = await prisma.project.findUnique({
+    where: {
+      stripeConnectId: stripeAccountId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!workspace) {
+    return `Stripe Connect account ${stripeAccountId} deauthorized.`;
+  }
+
+  await prisma.project.update({
     where: {
       stripeConnectId: stripeAccountId,
     },

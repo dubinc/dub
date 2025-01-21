@@ -6,13 +6,14 @@ import { LayoutGroup } from "framer-motion";
 import Cookies from "js-cookie";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { PropsWithChildren, createContext, useId } from "react";
+import { PropsWithChildren, SVGProps, createContext, useId } from "react";
 import useSWR from "swr";
 import { buttonVariants } from "../button";
-import { FEATURES_LIST, RESOURCES } from "../content";
+import { COMPANY, FEATURES_LIST, RESOURCES } from "../content";
 import { useScroll } from "../hooks";
 import { MaxWidthWrapper } from "../max-width-wrapper";
 import { NavWordmark } from "../nav-wordmark";
+import { CompanyContent } from "./content/company-content";
 import { ProductContent } from "./content/product-content";
 import { ResourcesContent } from "./content/resources-content";
 
@@ -27,23 +28,24 @@ export const navItems = [
     name: "Product",
     content: ProductContent,
     childItems: FEATURES_LIST,
-    segments: ["/features", "/compare"],
+    segments: ["/home", "/analytics", "/features", "/compare"],
   },
   {
     name: "Resources",
     content: ResourcesContent,
     childItems: RESOURCES,
-    segments: ["/solutions", "/blog", "/changelog", "/docs", "/help", "/brand"],
+    segments: ["/solutions", "/docs", "/help", "/brand"],
+  },
+  {
+    name: "Company",
+    content: CompanyContent,
+    childItems: COMPANY,
+    segments: ["about", "/blog", "/changelog", "/customers"],
   },
   {
     name: "Enterprise",
     href: "/enterprise",
     segments: ["/enterprise"],
-  },
-  {
-    name: "Customers",
-    href: "/customers",
-    segments: ["/customers"],
   },
   {
     name: "Pricing",
@@ -53,7 +55,7 @@ export const navItems = [
 ];
 
 const navItemClassName = cn(
-  "relative block rounded-md px-4 py-2 text-sm rounded-lg font-medium text-neutral-700 hover:text-neutral-900 transition-colors",
+  "relative group/item flex items-center rounded-md px-4 py-2 text-sm rounded-lg font-medium text-neutral-700 hover:text-neutral-900 transition-colors",
   "dark:text-white/90 dark:hover:text-white",
   "hover:bg-neutral-900/5 dark:hover:bg-white/10",
   "data-[active=true]:bg-neutral-900/5 dark:data-[active=true]:bg-white/10",
@@ -159,6 +161,7 @@ export function Nav({
                                 data-active={isActive}
                               >
                                 {name}
+                                <AnimatedChevron className="ml-1.5 size-2.5 text-neutral-700" />
                               </button>
                             )}
                           </WithTrigger>
@@ -177,7 +180,7 @@ export function Nav({
                 <div className="absolute left-1/2 top-full mt-3 -translate-x-1/2">
                   <NavigationMenuPrimitive.Viewport
                     className={cn(
-                      "relative flex origin-[top_center] justify-start overflow-hidden rounded-[20px] border border-gray-200 bg-white shadow-md dark:border-white/[0.15] dark:bg-black",
+                      "relative flex origin-[top_center] justify-start overflow-hidden rounded-[20px] border border-neutral-200 bg-white shadow-md dark:border-white/[0.15] dark:bg-black",
                       "data-[state=closed]:animate-scale-out-content data-[state=open]:animate-scale-in-content",
                       "h-[var(--radix-navigation-menu-viewport-height)] w-[var(--radix-navigation-menu-viewport-width)] transition-[width,height]",
                     )}
@@ -235,6 +238,28 @@ export function Nav({
         </div>
       </LayoutGroup>
     </NavContext.Provider>
+  );
+}
+
+function AnimatedChevron(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="9"
+      height="9"
+      fill="none"
+      viewBox="0 0 9 9"
+      {...props}
+    >
+      <path
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+        d="M7.278 3.389 4.5 6.167 1.722 3.389"
+        className="transition-transform duration-150 [transform-box:view-box] [transform-origin:center] [vector-effect:non-scaling-stroke] group-data-[state=open]/item:-scale-y-100"
+      />
+    </svg>
   );
 }
 

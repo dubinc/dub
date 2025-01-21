@@ -1,14 +1,18 @@
 import { Tag } from "@dub/prisma/client";
-import { expect, test } from "vitest";
-import { randomId } from "../utils/helpers";
+import { expect, onTestFinished, test } from "vitest";
+import { randomTagName } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 
 test("GET /tags", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { http } = await h.init();
 
+  onTestFinished(async () => {
+    await h.deleteTag(tagCreated.id);
+  });
+
   const newTag = {
-    tag: randomId(),
+    tag: randomTagName(),
     color: "red",
   };
 
@@ -18,7 +22,7 @@ test("GET /tags", async (ctx) => {
   });
 
   const { status, data: tags } = await http.get<Tag[]>({
-    path: "/tags",
+    path: "/tags?sortBy=createdAt&sortOrder=desc",
   });
 
   expect(status).toEqual(200);
@@ -31,6 +35,4 @@ test("GET /tags", async (ctx) => {
       },
     ]),
   );
-
-  await h.deleteTag(tagCreated.id);
 });

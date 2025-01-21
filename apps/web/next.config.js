@@ -67,9 +67,6 @@ module.exports = withAxiom({
         hostname: "avatars.githubusercontent.com",
       },
       {
-        hostname: "mintlify.com", // for guide thumbnails
-      },
-      {
         hostname: "media.cleanshot.cloud", // only for staging purposes
       },
     ],

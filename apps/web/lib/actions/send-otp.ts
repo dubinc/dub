@@ -10,12 +10,13 @@ import { getIP } from "../api/utils";
 import { generateOTP } from "../auth";
 import { EMAIL_OTP_EXPIRY_IN } from "../auth/constants";
 import z from "../zod";
-import { emailSchema } from "../zod/schemas/auth";
+import { emailSchema, passwordSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
 
 const schema = z.object({
   email: emailSchema,
+  password: passwordSchema.optional(),
 });
 
 // Send OTP to email to verify account
@@ -83,6 +84,7 @@ export const sendOtpAction = actionClient
           expires: new Date(Date.now() + EMAIL_OTP_EXPIRY_IN * 1000),
         },
       }),
+
       sendEmail({
         subject: `${process.env.NEXT_PUBLIC_APP_NAME}: OTP to verify your account`,
         email,
@@ -92,6 +94,4 @@ export const sendOtpAction = actionClient
         }),
       }),
     ]);
-
-    return { ok: true };
   });

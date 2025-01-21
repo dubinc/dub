@@ -1,4 +1,4 @@
-import { isBlacklistedEmail } from "@/lib/edge-config";
+import { isBlacklistedEmail, updateConfig } from "@/lib/edge-config";
 import jackson from "@/lib/jackson";
 import { isStored, storage } from "@/lib/storage";
 import { UserProps } from "@/lib/types";
@@ -8,6 +8,7 @@ import { subscribe } from "@dub/email/resend/subscribe";
 import { LoginLink } from "@dub/email/templates/login-link";
 import { WelcomeEmail } from "@dub/email/templates/welcome-email";
 import { prisma } from "@dub/prisma";
+import { PrismaClient } from "@dub/prisma/client";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { waitUntil } from "@vercel/functions";
 import { User, type NextAuthOptions } from "next-auth";
@@ -17,7 +18,9 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
+import { createId } from "../api/utils";
 import { completeProgramApplications } from "../partners/complete-program-applications";
+import { FRAMER_API_HOST } from "./constants";
 import {
   exceededLoginAttemptsThreshold,
   incrementLoginAttempts,
@@ -26,6 +29,20 @@ import { validatePassword } from "./password";
 import { trackLead } from "./track-lead";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
+
+const CustomPrismaAdapter = (p: PrismaClient) => {
+  return {
+    ...PrismaAdapter(p),
+    createUser: async (data: any) => {
+      return p.user.create({
+        data: {
+          ...data,
+          id: createId({ prefix: "user_" }),
+        },
+      });
+    },
+  };
+};
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -81,6 +98,7 @@ export const authOptions: NextAuthOptions = {
         if (!existingUser) {
           existingUser = await prisma.user.create({
             data: {
+              id: createId({ prefix: "user_" }),
               email: profile.email,
               name: `${profile.firstName || ""} ${
                 profile.lastName || ""
@@ -151,6 +169,7 @@ export const authOptions: NextAuthOptions = {
         if (!existingUser) {
           existingUser = await prisma.user.create({
             data: {
+              id: createId({ prefix: "user_" }),
               email: userInfo.email,
               name: `${userInfo.firstName || ""} ${
                 userInfo.lastName || ""
@@ -259,9 +278,30 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
+
+    // Framer
+    {
+      id: "framer",
+      name: "Framer",
+      type: "oauth",
+      clientId: process.env.FRAMER_CLIENT_ID,
+      clientSecret: process.env.FRAMER_CLIENT_SECRET,
+      checks: ["state"],
+      authorization: `${FRAMER_API_HOST}/auth/oauth/authorize`,
+      token: `${FRAMER_API_HOST}/auth/oauth/token`,
+      userinfo: `${FRAMER_API_HOST}/auth/oauth/profile`,
+      profile({ sub, email, name, picture }) {
+        return {
+          id: sub,
+          name,
+          email,
+          image: picture,
+        };
+      },
+    },
   ],
   // @ts-ignore
-  adapter: PrismaAdapter(prisma),
+  adapter: CustomPrismaAdapter(prisma),
   session: { strategy: "jwt" },
   cookies: {
     sessionToken: {
@@ -285,6 +325,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     signIn: async ({ user, account, profile }) => {
       console.log({ user, account, profile });
+
       if (!user.email || (await isBlacklistedEmail(user.email))) {
         return false;
       }
@@ -378,6 +419,38 @@ export const authOptions: NextAuthOptions = {
             }),
           ]);
         }
+        // Login with Framer
+      } else if (account?.provider === "framer") {
+        const userFound = await prisma.user.findUnique({
+          where: {
+            email: user.email,
+          },
+          include: {
+            accounts: true,
+          },
+        });
+
+        // account doesn't exist, let the user sign in
+        if (!userFound) {
+          // TODO: Remove this once we open up partners.dub.co to everyone
+          await updateConfig({
+            key: "partnersPortal",
+            value: user.email,
+          });
+          return true;
+        }
+
+        const otherAccounts = userFound?.accounts.filter(
+          (account) => account.provider !== "framer",
+        );
+
+        // we don't allow account linking for Framer partners
+        // so redirect to the standard login page
+        if (otherAccounts && otherAccounts.length > 0) {
+          throw new Error("framer-account-linking-not-allowed");
+        }
+
+        return true;
       }
       return true;
     },
