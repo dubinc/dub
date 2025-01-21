@@ -113,7 +113,7 @@ function CreatePayoutSheetContent({
   const isPercentageBased =
     payoutType === "sales" && program?.commissionType === "percentage";
 
-  const { executeAsync, isExecuting } = useAction(createManualPayoutAction, {
+  const { executeAsync, isPending } = useAction(createManualPayoutAction, {
     onSuccess: async (res) => {
       toast.success("Successfully created payout!");
       setIsOpen(false);
@@ -335,7 +335,7 @@ function CreatePayoutSheetContent({
   ]);
 
   const buttonDisabled =
-    isExecuting ||
+    isPending ||
     isValidating ||
     isValidatingSalesAmount ||
     isValidatingSalesCount ||
@@ -565,14 +565,14 @@ function CreatePayoutSheetContent({
             onClick={() => setIsOpen(false)}
             text="Cancel"
             className="w-fit"
-            disabled={isExecuting}
+            disabled={isPending}
           />
           <Button
             type="submit"
             variant="primary"
             text="Create payout"
             className="w-fit"
-            loading={isExecuting}
+            loading={isPending}
             disabled={buttonDisabled}
           />
         </div>
