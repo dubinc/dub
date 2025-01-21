@@ -338,4 +338,26 @@ export const analyticsResponse = {
         .default(0),
     })
     .openapi({ ref: "AnalyticsTopUrls" }),
+
+  utms: z
+    .object({
+      utm: z.string().describe("The name of the UTM parameter"),
+      clicks: z
+        .number()
+        .describe("The number of clicks from this UTM parameter")
+        .default(0),
+      leads: z
+        .number()
+        .describe("The number of leads from this UTM parameter")
+        .default(0),
+      sales: z
+        .number()
+        .describe("The number of sales from this UTM parameter")
+        .default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales from this UTM parameter, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsUTMs" }),
 } as const;

@@ -22,8 +22,8 @@ import { fetcher } from "@dub/utils";
 import { endOfDay, startOfDay, subDays } from "date-fns";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import {
-  PropsWithChildren,
   createContext,
+  PropsWithChildren,
   useEffect,
   useMemo,
   useState,
@@ -65,6 +65,8 @@ export const AnalyticsContext = createContext<{
   showConversions?: boolean;
   requiresUpgrade?: boolean;
   dashboardProps?: AnalyticsDashboardProps;
+  utmTag?: string;
+  setUtmTag?: (key: string) => void;
 }>({
   basePath: "",
   baseApiPath: "",
@@ -82,6 +84,8 @@ export const AnalyticsContext = createContext<{
   showConversions: false,
   requiresUpgrade: false,
   dashboardProps: undefined,
+  utmTag: "utm_source",
+  setUtmTag: () => {},
 });
 
 export default function AnalyticsProvider({
@@ -120,6 +124,8 @@ export default function AnalyticsProvider({
     tagId: searchParams?.get("tagId"),
     tagIds: searchParams?.get("tagIds")?.split(","),
   })?.join(",");
+
+  const [utmTag, setUtmTag] = useState<string>("utm_source");
 
   // Default to last 24 hours
   const { start, end } = useMemo(() => {
@@ -271,8 +277,19 @@ export default function AnalyticsProvider({
       ...(tagIds && { tagIds }),
       ...(root && { root: root.toString() }),
       event: selectedTab,
+      ...(utmTag && { utmTag }),
     }).toString();
-  }, [workspaceId, domain, key, searchParams, start, end, tagIds, selectedTab]);
+  }, [
+    workspaceId,
+    domain,
+    key,
+    searchParams,
+    start,
+    end,
+    tagIds,
+    selectedTab,
+    utmTag,
+  ]);
 
   // Reset requiresUpgrade when query changes
   useEffect(() => setRequiresUpgrade(false), [queryString]);
@@ -339,6 +356,8 @@ export default function AnalyticsProvider({
         dashboardProps,
         showConversions, // Whether to show conversions tabs/data
         requiresUpgrade, // whether an upgrade is required to perform the query
+        utmTag,
+        setUtmTag,
       }}
     >
       {children}

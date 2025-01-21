@@ -113,6 +113,7 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "referer_urls",
   "top_links",
   "top_urls",
+  "utms",
 ] as const;
 
 export const SINGULAR_ANALYTICS_ENDPOINTS = {
@@ -126,6 +127,7 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
   referer_urls: "refererUrl",
   os: "os",
   triggers: "trigger",
+  utms: "utm",
 };
 
 export const VALID_ANALYTICS_FILTERS = [

@@ -188,6 +188,11 @@ export const analyticsQuerySchema = z.object({
     .describe(
       "Filter for root domains. If true, filter for domains only. If false, filter for links only. If undefined, return both.",
     ),
+  utmTag: z
+    .string()
+    .optional()
+    .default("utm_source")
+    .describe("The UTM tag to filter for. Defaults to `utm_source`."),
 });
 
 // Analytics filter params for Tinybird endpoints

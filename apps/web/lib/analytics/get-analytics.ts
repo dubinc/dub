@@ -80,8 +80,13 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
     pipe: `v2_${groupBy}`,
     parameters: analyticsFilterTB,
-    data: groupBy === "top_links" ? z.any() : analyticsResponse[groupBy],
+    data:
+      groupBy === "top_links" || groupBy === "utms"
+        ? z.any()
+        : analyticsResponse[groupBy],
   });
+
+  console.log("params", params);
 
   const response = await pipe({
     ...params,
@@ -146,6 +151,18 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         });
       })
       .filter((d) => d !== null);
+  }
+
+  // UTMs
+  else if (groupBy === "utms") {
+    const schema = analyticsResponse[groupBy];
+
+    return response.data.map((item) =>
+      schema.parse({
+        utm: item.value,
+        clicks: item.count,
+      }),
+    );
   }
 
   // Return array for other endpoints
