@@ -86,7 +86,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     },
   });
 
-  const { executeAsync, isExecuting } = useAction(confirmPayoutsAction, {
+  const { executeAsync, isPending } = useAction(confirmPayoutsAction, {
     onSuccess: async () => {
       toast.success(
         "Payouts confirmed successfully! They will be processed soon.",
@@ -381,7 +381,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
           <Button
             type="button"
             variant="primary"
-            loading={isExecuting}
+            loading={isPending}
             onClick={async () => {
               if (
                 !workspaceId ||

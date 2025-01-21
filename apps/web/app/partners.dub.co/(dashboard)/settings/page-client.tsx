@@ -67,7 +67,7 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
   const formRef = useRef<HTMLFormElement>(null);
   const { handleKeyDown } = useEnterSubmit(formRef);
 
-  const { executeAsync, isExecuting } = useAction(updatePartnerProfileAction, {
+  const { executeAsync, isPending } = useAction(updatePartnerProfileAction, {
     onSuccess: async () => {
       toast.success("Profile updated successfully.");
     },
@@ -185,7 +185,7 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
           type="submit"
           text="Save changes"
           className="h-8 w-fit px-2.5"
-          loading={isSubmitting || isExecuting}
+          loading={isSubmitting || isPending}
         />
       </div>
     </form>

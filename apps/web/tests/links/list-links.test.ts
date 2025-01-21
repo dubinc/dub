@@ -1,5 +1,5 @@
 import { Link } from "@dub/prisma/client";
-import { afterAll, expect, test } from "vitest";
+import { expect, onTestFinished, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK } from "../utils/resource";
 
@@ -10,6 +10,10 @@ test("GET /links", async (ctx) => {
   const { workspace, http, user } = await h.init();
   const workspaceId = workspace.id;
   const projectId = workspaceId.replace("ws_", "");
+
+  onTestFinished(async () => {
+    await h.deleteLink(firstLink.id);
+  });
 
   const { data: firstLink } = await http.post<Link>({
     path: "/links",
@@ -33,9 +37,5 @@ test("GET /links", async (ctx) => {
     workspaceId,
     shortLink: `https://${domain}/${firstLink.key}`,
     qrCode: `https://api.dub.co/qr?url=https://${domain}/${firstLink.key}?qr=1`,
-  });
-
-  afterAll(async () => {
-    await h.deleteLink(firstLink.id);
   });
 });

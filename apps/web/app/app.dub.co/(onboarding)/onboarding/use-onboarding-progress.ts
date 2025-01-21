@@ -14,7 +14,7 @@ export function useOnboardingProgress() {
   const { slug: workspaceSlug } = useWorkspace();
   const slug = workspaceSlug || searchParams.get("workspace");
 
-  const { execute, executeAsync, isExecuting, hasSucceeded } = useAction(
+  const { execute, executeAsync, isPending, hasSucceeded } = useAction(
     setOnboardingProgress,
     {
       onSuccess: () => {
@@ -55,7 +55,7 @@ export function useOnboardingProgress() {
   return {
     continueTo,
     finish,
-    isLoading: isExecuting,
+    isLoading: isPending,
     isSuccessful: hasSucceeded,
   };
 }

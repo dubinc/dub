@@ -20,7 +20,7 @@ export const VerifyEmailForm = () => {
   const [isInvalidCode, setIsInvalidCode] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  const { executeAsync, isExecuting } = useAction(createUserAccountAction, {
+  const { executeAsync, isPending } = useAction(createUserAccountAction, {
     async onSuccess() {
       toast.success("Account created! Redirecting to dashboard...");
       setIsRedirecting(true);
@@ -106,9 +106,9 @@ export const VerifyEmailForm = () => {
 
             <Button
               className="mt-8"
-              text={isExecuting ? "Verifying..." : "Continue"}
+              text={isPending ? "Verifying..." : "Continue"}
               type="submit"
-              loading={isExecuting || isRedirecting}
+              loading={isPending || isRedirecting}
               disabled={!code || code.length < 6}
             />
           </div>
