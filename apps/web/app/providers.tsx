@@ -2,7 +2,11 @@
 
 import { PosthogPageview } from "@/ui/layout/posthog-pageview";
 import { Analytics as DubAnalytics } from "@dub/analytics/react";
-import { KeyboardShortcutProvider, TooltipProvider } from "@dub/ui";
+import {
+  KeyboardShortcutProvider,
+  TooltipProvider,
+  useRemoveGAParams,
+} from "@dub/ui";
 import PlausibleProvider from "next-plausible";
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
@@ -20,6 +24,8 @@ if (typeof window !== "undefined") {
 }
 
 export default function RootProviders({ children }: { children: ReactNode }) {
+  useRemoveGAParams();
+
   return (
     <PostHogProvider client={posthog}>
       <PlausibleProvider
@@ -36,7 +42,13 @@ export default function RootProviders({ children }: { children: ReactNode }) {
           <Toaster closeButton className="pointer-events-auto" />
           <PosthogPageview />
           {children}
-          <DubAnalytics />
+          <DubAnalytics
+            apiHost="/_proxy/dub"
+            shortDomain="refer.dub.co"
+            cookieOptions={{
+              domain: ".dub.co",
+            }}
+          />
         </KeyboardShortcutProvider>
       </TooltipProvider>
     </PostHogProvider>

@@ -53,6 +53,7 @@ export const getIP = () => {
 };
 
 const prefixes = [
+  "user_",
   "link_",
   "tag_",
   "dom_",
@@ -69,6 +70,7 @@ const prefixes = [
   "sale_",
   "pga_",
   "dub_embed_",
+  "inv_",
 ] as const;
 
 export const createId = ({

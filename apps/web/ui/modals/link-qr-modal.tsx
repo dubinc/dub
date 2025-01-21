@@ -23,10 +23,11 @@ import {
   Check,
   Check2,
   Copy,
+  CrownSmall,
   Download,
   Hyperlink,
   Photo,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import { API_DOMAIN, cn, DUB_QR_LOGO, linkConstructor } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -42,6 +43,7 @@ import {
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
+import { ProBadgeTooltip } from "../shared/pro-badge-tooltip";
 
 const DEFAULT_COLORS = [
   "#000000",
@@ -90,10 +92,13 @@ function LinkQRModalInner({
   showLinkQRModal: boolean;
   setShowLinkQRModal: Dispatch<SetStateAction<boolean>>;
 } & LinkQRModalProps) {
-  const { plan, id: workspaceId, slug } = useWorkspace();
+  const { id: workspaceId, slug, plan, logo: workspaceLogo } = useWorkspace();
   const id = useId();
   const { isMobile } = useMediaQuery();
-  const { logo: domainLogo } = useDomain(props.domain);
+  const { logo: domainLogo } = useDomain({
+    slug: props.domain,
+    enabled: showLinkQRModal,
+  });
 
   const url = useMemo(() => {
     return props.key && props.domain
@@ -112,7 +117,8 @@ function LinkQRModalInner({
   const [data, setData] = useState(dataPersisted);
 
   const hideLogo = data.hideLogo && plan !== "free";
-  const logo = domainLogo || DUB_QR_LOGO;
+  const logo =
+    plan === "free" ? DUB_QR_LOGO : domainLogo || workspaceLogo || DUB_QR_LOGO;
 
   const qrData = useMemo(
     () =>
@@ -145,7 +151,18 @@ function LinkQRModalInner({
       }}
     >
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">QR Code Design</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-medium">QR Code</h3>
+          <ProBadgeTooltip
+            content={
+              <SimpleTooltipContent
+                title="Set a custom QR code design to improve click-through rates."
+                cta="Learn more."
+                href="https://dub.co/help/article/custom-qr-codes"
+              />
+            }
+          />
+        </div>
         <div className="max-md:hidden">
           <Tooltip
             content={
@@ -259,12 +276,22 @@ function LinkQRModalInner({
             setData((d) => ({ ...d, hideLogo: !d.hideLogo }));
           }}
           disabledTooltip={
-            plan === "free" ? (
+            !plan || plan === "free" ? (
               <TooltipContent
                 title="You need to be on the Pro plan and above to customize your QR Code logo."
                 cta="Upgrade to Pro"
-                href={slug ? `/${slug}/upgrade` : "https://dub.co/pricing"}
+                href={
+                  slug
+                    ? `/${slug}/upgrade?exit=close`
+                    : "https://dub.co/pricing"
+                }
+                target="_blank"
               />
+            ) : undefined
+          }
+          thumbIcon={
+            !plan || plan === "free" ? (
+              <CrownSmall className="size-full text-neutral-500" />
             ) : undefined
           }
         />

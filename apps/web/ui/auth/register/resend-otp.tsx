@@ -12,7 +12,7 @@ export const ResendOtp = ({ email }: { email: string }) => {
     "default",
   );
 
-  const { executeAsync, isExecuting } = useAction(sendOtpAction, {
+  const { executeAsync, isPending } = useAction(sendOtpAction, {
     onSuccess: () => setState("success"),
     onError: () => setState("error"),
   });
@@ -42,19 +42,19 @@ export const ResendOtp = ({ email }: { email: string }) => {
     <div className="relative mt-4 text-center text-sm text-gray-500">
       {state === "default" && (
         <>
-          {isExecuting && (
+          {isPending && (
             <div className="absolute left-0 top-1/2 -translate-x-full -translate-y-1/2 pr-1.5">
               <LoadingSpinner className="h-3 w-3" />
             </div>
           )}
 
-          <p className={cn(isExecuting && "opacity-80")}>
+          <p className={cn(isPending && "opacity-80")}>
             Didn't receive a code?{" "}
             <button
               onClick={() => executeAsync({ email })}
               className={cn(
                 "font-semibold text-gray-500 underline underline-offset-2 transition-colors hover:text-black",
-                isExecuting && "pointer-events-none",
+                isPending && "pointer-events-none",
               )}
             >
               Resend

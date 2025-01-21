@@ -5,6 +5,8 @@ import linkDeleted from "./link-deleted.json";
 import linkUpdated from "./link-updated.json";
 import saleCreated from "./sale-created.json";
 
+// TODO:
+// Make this more typesafe
 export const samplePayload = {
   "link.created": linkCreated,
   "link.updated": linkUpdated,
@@ -12,4 +14,4 @@ export const samplePayload = {
   "link.clicked": linkClicked,
   "lead.created": leadCreated,
   "sale.created": saleCreated,
-};
+} as any;

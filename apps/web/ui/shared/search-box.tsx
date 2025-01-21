@@ -1,5 +1,5 @@
 import { LoadingSpinner, useRouterStuff } from "@dub/ui";
-import { CircleXmark, Magnifier } from "@dub/ui/src/icons";
+import { CircleXmark, Magnifier } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import {
   forwardRef,
@@ -54,6 +54,8 @@ export const SearchBox = forwardRef(
       ) {
         e.preventDefault();
         inputRef.current?.focus();
+      } else if (e.key === "Escape") {
+        inputRef.current?.blur();
       }
     }, []);
 

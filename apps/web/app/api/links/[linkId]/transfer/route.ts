@@ -1,11 +1,11 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { DubApiError } from "@/lib/api/errors";
+import { linkCache } from "@/lib/api/links/cache";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
-import { formatRedisLink, redis } from "@/lib/upstash";
 import z from "@/lib/zod";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -79,22 +79,8 @@ export const POST = withWorkspace(
 
     waitUntil(
       Promise.all([
-        redis.hset(link.domain.toLowerCase(), {
-          [link.key.toLowerCase()]: await formatRedisLink({
-            ...link,
-            projectId: newWorkspaceId,
-          }),
-        }),
-        recordLink({
-          link_id: link.id,
-          domain: link.domain,
-          key: link.key,
-          url: link.url,
-          tag_ids: [],
-          program_id: link.programId ?? "",
-          workspace_id: newWorkspaceId,
-          created_at: link.createdAt,
-        }),
+        linkCache.set({ ...link, projectId: newWorkspaceId }),
+        recordLink({ ...link, projectId: newWorkspaceId }),
         // increment new workspace usage
         prisma.project.update({
           where: {

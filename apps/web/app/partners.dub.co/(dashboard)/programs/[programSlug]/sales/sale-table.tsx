@@ -12,17 +12,22 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CircleDollar } from "@dub/ui/src/icons";
-import { currencyFormatter, fetcher, formatDate } from "@dub/utils";
+import { CircleDollar } from "@dub/ui/icons";
+import {
+  currencyFormatter,
+  fetcher,
+  formatDate,
+  formatDateTime,
+} from "@dub/utils";
 import useSWR from "swr";
 
 export function SaleTablePartner({ limit }: { limit?: number }) {
   const { programEnrollment } = useProgramEnrollment();
   const { queryParams, searchParamsObj, getQueryString } = useRouterStuff();
 
-  const { sortBy = "timestamp", order = "desc" } = searchParamsObj as {
-    sortBy?: "timestamp";
-    order?: "asc" | "desc";
+  const { sortBy = "createdAt", sortOrder = "desc" } = searchParamsObj as {
+    sortBy?: "createdAt";
+    sortOrder?: "asc" | "desc";
   };
 
   const { data: salesCount } = useSWR<{ count: number }>(
@@ -49,12 +54,14 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
     error: error ? "Failed to fetch sales events." : undefined,
     columns: [
       {
-        id: "timestamp",
+        id: "createdAt",
         header: "Date",
         accessorKey: "timestamp",
-        cell: ({ row }) => {
-          return formatDate(row.original.createdAt, { month: "short" });
-        },
+        cell: ({ row }) => (
+          <p title={formatDateTime(row.original.createdAt)}>
+            {formatDate(row.original.createdAt, { month: "short" })}
+          </p>
+        ),
       },
       {
         id: "customer",
@@ -102,14 +109,14 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
     ...(!limit && {
       pagination,
       onPaginationChange: setPagination,
-      sortableColumns: ["timestamp"],
+      sortableColumns: ["createdAt"],
       sortBy,
-      sortOrder: order,
+      sortOrder,
       onSortChange: ({ sortBy, sortOrder }) =>
         queryParams({
           set: {
-            ...(sortBy && { sort: sortBy }),
-            ...(sortOrder && { order: sortOrder }),
+            ...(sortBy && { sortBy }),
+            ...(sortOrder && { sortOrder }),
           },
         }),
     }),

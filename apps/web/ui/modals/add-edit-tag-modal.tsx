@@ -1,3 +1,4 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useTags from "@/lib/swr/use-tags";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TagColorProps, TagProps } from "@/lib/types";
@@ -23,7 +24,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 import { COLORS_LIST, randomBadgeColor } from "../links/tag-badge";
 
 function AddEditTagModal({
@@ -122,20 +122,7 @@ function AddEditTagModal({
                 tag_name: data.name,
                 tag_color: data.color,
               });
-              await Promise.all([
-                mutate(
-                  (key) =>
-                    typeof key === "string" && key.startsWith("/api/tags"),
-                  undefined,
-                  { revalidate: true },
-                ),
-                mutate(
-                  (key) =>
-                    typeof key === "string" && key.startsWith("/api/links"),
-                  undefined,
-                  { revalidate: true },
-                ),
-              ]);
+              await mutatePrefix(["/api/tags", "/api/links"]);
               toast.success(endpoint.successMessage);
               setShowAddEditTagModal(false);
             } else {

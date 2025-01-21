@@ -4,7 +4,7 @@ import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CheckCircleFill } from "@/ui/shared/icons";
 import { Button } from "@dub/ui";
-import { Globe2, LoadingSpinner } from "@dub/ui/src/icons";
+import { Globe2, LoadingSpinner } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Crown } from "lucide-react";
 import { ReactNode, useEffect, useState } from "react";
@@ -12,7 +12,7 @@ import { LaterButton } from "../../later-button";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
 
 export function DomainSelector() {
-  const { loading: isWorkspaceLoading, flags } = useWorkspace();
+  const { loading: isWorkspaceLoading } = useWorkspace();
   const { continueTo, isLoading, isSuccessful } = useOnboardingProgress();
 
   const [selectedOption, setSelectedOption] = useState<"custom" | "register">(

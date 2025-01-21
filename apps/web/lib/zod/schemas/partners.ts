@@ -1,29 +1,29 @@
 import { intervals } from "@/lib/analytics/constants";
-import { COUNTRY_CODES } from "@dub/utils";
 import {
   PartnerStatus,
-  PayoutStatus,
-  PayoutType,
   ProgramEnrollmentStatus,
   SaleStatus,
-} from "@prisma/client";
+} from "@dub/prisma/client";
+import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
 import { CustomerSchema } from "./customers";
+import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { ProgramEnrollmentSchema } from "./programs";
 import { parseDateSchema } from "./utils";
 
 export const PARTNERS_MAX_PAGE_SIZE = 100;
+export const PAYOUTS_MAX_PAGE_SIZE = 100;
 
 export const partnersQuerySchema = z
   .object({
     status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
     country: z.string().optional(),
     search: z.string().optional(),
-    order: z.enum(["asc", "desc"]).default("desc"),
     sortBy: z
       .enum(["createdAt", "clicks", "leads", "sales", "earnings"])
       .default("createdAt"),
+    sortOrder: z.enum(["asc", "desc"]).default("desc"),
     ids: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
@@ -32,14 +32,27 @@ export const partnersQuerySchema = z
   })
   .merge(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
 
+export const partnersCountQuerySchema = z.object({
+  status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
+  country: z.string().optional(),
+  groupBy: z.enum(["status", "country"]).optional(),
+});
+
+export const partnerInvitesQuerySchema = getPaginationQuerySchema({
+  pageSize: 100,
+});
+
 export const PartnerSchema = z.object({
   id: z.string(),
   name: z.string(),
+  email: z.string().nullable(),
   image: z.string().nullable(),
+  country: z.string(),
   bio: z.string().nullable(),
-  country: z.string().nullable(),
   status: z.nativeEnum(PartnerStatus),
-  dotsUserId: z.string().nullable(),
+  stripeConnectId: z.string().nullable(),
+  couponId: z.string().nullish(),
+  payoutsEnabled: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -55,47 +68,24 @@ export const EnrolledPartnerSchema = PartnerSchema.omit({
     earnings: z.number(),
   });
 
-export const PAYOUTS_MAX_PAGE_SIZE = 100;
-
-export const payoutsQuerySchema = z
-  .object({
-    status: z.nativeEnum(PayoutStatus).optional(),
-    search: z.string().optional(),
-    partnerId: z.string().optional(),
-    order: z.enum(["asc", "desc"]).default("desc"),
-    sortBy: z.enum(["periodStart", "total"]).default("periodStart"),
-    type: z.nativeEnum(PayoutType).optional(),
-  })
-  .merge(getPaginationQuerySchema({ pageSize: PAYOUTS_MAX_PAGE_SIZE }));
-
-export const PayoutSchema = z.object({
-  id: z.string(),
-  amount: z.number(),
-  fee: z.number(),
-  total: z.number(),
-  currency: z.string(),
-  status: z.nativeEnum(PayoutStatus),
-  type: z.nativeEnum(PayoutType),
-  description: z.string().nullish(),
-  periodStart: z.date().nullable(),
-  periodEnd: z.date().nullable(),
-  dotsTransferId: z.string().nullable(),
-  quantity: z.number().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
-
-export const PayoutResponseSchema = PayoutSchema.merge(
-  z.object({
-    partner: PartnerSchema,
-    _count: z.object({ sales: z.number() }),
+export const LeaderboardPartnerSchema = z.object({
+  partner: z.object({
+    id: z.string(),
+    name: z.string().transform((name) => {
+      const parts = name.trim().split(/\s+/);
+      if (parts.length < 2) return name; // Return original if single word
+      const firstName = parts[0];
+      const lastInitial = parts[parts.length - 1][0];
+      return `${firstName} ${lastInitial}.`;
+    }),
   }),
-);
-
-export const PartnerPayoutResponseSchema = PayoutResponseSchema.omit({
-  partner: true,
-  fee: true,
-  total: true,
+  link: LinkSchema.pick({
+    shortLink: true,
+    clicks: true,
+    leads: true,
+    sales: true,
+    saleAmount: true,
+  }),
 });
 
 export const SaleSchema = z.object({
@@ -111,9 +101,9 @@ export const SaleSchema = z.object({
 export const getSalesQuerySchema = z
   .object({
     status: z.nativeEnum(SaleStatus).optional(),
-    order: z.enum(["asc", "desc"]).default("desc"),
     sortBy: z.enum(["createdAt", "amount"]).default("createdAt"),
-    interval: z.enum(intervals).default("30d"),
+    sortOrder: z.enum(["asc", "desc"]).default("desc"),
+    interval: z.enum(intervals).default("1y"),
     start: parseDateSchema.optional(),
     end: parseDateSchema.optional(),
     customerId: z.string().optional(),
@@ -132,7 +122,7 @@ export const SaleResponseSchema = SaleSchema.merge(
 export const getSalesCountQuerySchema = getSalesQuerySchema.omit({
   page: true,
   pageSize: true,
-  order: true,
+  sortOrder: true,
   sortBy: true,
 });
 
@@ -164,12 +154,49 @@ export const getPartnerSalesCountQuerySchema = getSalesCountQuerySchema.omit({
   partnerId: true,
 });
 
-export const onboardPartnerSchema = z.object({
-  name: z.string().trim().min(1).max(100),
-  email: z.string().trim().min(1).max(190).email(),
-  logo: z.string().optional(),
-  image: z.string(),
-  country: z.enum(COUNTRY_CODES),
-  phoneNumber: z.string().trim().min(1).max(24),
-  description: z.string().max(5000).nullable(),
+export const createPartnerSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1)
+    .max(100)
+    .describe("Full legal name of the partner."),
+  email: z
+    .string()
+    .trim()
+    .min(1)
+    .max(190)
+    .email()
+    .describe(
+      "Email for the partner in your system. Partners will be able to claim their profile by signing up to Dub Partners with this email.",
+    ),
+  username: z
+    .string()
+    .min(1)
+    .max(100)
+    .describe(
+      "A unique username for the partner in your system. This will be used to create a short link for the partner using your program's default domain.",
+    ),
+  image: z
+    .string()
+    .nullish()
+    .describe(
+      "Avatar image for the partner – if not provided, a default avatar will be used.",
+    ),
+  country: z
+    .enum(COUNTRY_CODES)
+    .nullish()
+    .describe("Country where the partner is based."),
+  description: z
+    .string()
+    .max(5000)
+    .nullish()
+    .describe("A brief description of the partner and their background."),
 });
+
+export const onboardPartnerSchema = createPartnerSchema.merge(
+  z.object({
+    image: z.string(),
+    country: z.enum(COUNTRY_CODES),
+  }),
+);

@@ -1,3 +1,4 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { DomainProps } from "@/lib/types";
@@ -17,7 +18,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 
 function TransferDomainModal({
   showTransferDomainModal,
@@ -48,11 +48,7 @@ function TransferDomainModal({
       },
     ).then(async (res) => {
       if (res.ok) {
-        mutate(
-          (key) => typeof key === "string" && key.startsWith("/api/domains"),
-          undefined,
-          { revalidate: true },
-        );
+        mutatePrefix("/api/domains");
         setShowTransferDomainModal(false);
         return true;
       } else {

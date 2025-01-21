@@ -3,11 +3,11 @@ import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { prisma } from "@/lib/prisma";
 import {
   DomainSchema,
   transferDomainBodySchema,
 } from "@/lib/zod/schemas/domains";
+import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -23,7 +23,7 @@ export const POST = withWorkspace(
     if (registeredDomain) {
       throw new DubApiError({
         code: "forbidden",
-        message: "You cannot delete a Dub-provisioned domain.",
+        message: "You cannot transfer a Dub-provisioned domain.",
       });
     }
 
@@ -107,6 +107,9 @@ export const POST = withWorkspace(
         data: {
           projectId: newWorkspaceId,
           primary: newWorkspace.domains.length === 0,
+        },
+        include: {
+          registeredDomain: true,
         },
       }),
       prisma.project.update({

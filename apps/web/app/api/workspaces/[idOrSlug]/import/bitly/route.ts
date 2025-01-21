@@ -1,11 +1,12 @@
 import { addDomainToVercel } from "@/lib/api/domains";
+import { DubApiError } from "@/lib/api/errors";
 import { bulkCreateLinks } from "@/lib/api/links";
 import { createId } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { prisma } from "@/lib/prisma";
 import { BitlyGroupProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -13,7 +14,10 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(async ({ workspace }) => {
   const accessToken = await redis.get(`import:bitly:${workspace.id}`);
   if (!accessToken) {
-    return new Response("No Bitly access token found", { status: 400 });
+    throw new DubApiError({
+      code: "bad_request",
+      message: "No Bitly access token found",
+    });
   }
   const response = await fetch(`https://api-ssl.bitly.com/v4/groups`, {
     headers: {
@@ -23,7 +27,10 @@ export const GET = withWorkspace(async ({ workspace }) => {
   });
   const data = await response.json();
   if (data.message === "FORBIDDEN") {
-    return new Response("Invalid Bitly access token", { status: 403 });
+    throw new DubApiError({
+      code: "unauthorized",
+      message: "Invalid Bitly access token",
+    });
   }
 
   const groups = data.groups

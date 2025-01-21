@@ -4,48 +4,65 @@ import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
   Link,
   PayoutStatus,
+  Prisma,
   ProgramEnrollmentStatus,
   Project,
   SaleStatus,
   UtmTemplate,
   Webhook,
-} from "@prisma/client";
+  YearInReview,
+} from "@dub/prisma/client";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
+import { clickEventResponseSchema } from "./zod/schemas/clicks";
 import {
+  customerActivityResponseSchema,
+  customerActivitySchema,
   CustomerSchema,
-  trackCustomerResponseSchema,
 } from "./zod/schemas/customers";
 import { dashboardSchema } from "./zod/schemas/dashboard";
+import { DiscountSchema } from "./zod/schemas/discount";
 import { integrationSchema } from "./zod/schemas/integration";
-import { trackLeadResponseSchema } from "./zod/schemas/leads";
+import { InvoiceSchema } from "./zod/schemas/invoices";
+import {
+  leadEventResponseSchema,
+  trackLeadResponseSchema,
+} from "./zod/schemas/leads";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   EnrolledPartnerSchema,
-  PartnerPayoutResponseSchema,
   PartnerSaleResponseSchema,
   PartnerSchema,
-  PayoutResponseSchema,
-  PayoutSchema,
   SaleResponseSchema,
   SaleSchema,
 } from "./zod/schemas/partners";
 import {
+  PartnerPayoutResponseSchema,
+  PayoutResponseSchema,
+  PayoutSchema,
+} from "./zod/schemas/payouts";
+import {
+  PartnerProgramInviteSchema,
   ProgramEnrollmentSchema,
   ProgramInviteSchema,
   ProgramSchema,
 } from "./zod/schemas/programs";
-import { trackSaleResponseSchema } from "./zod/schemas/sales";
+import {
+  saleEventResponseSchema,
+  trackSaleResponseSchema,
+} from "./zod/schemas/sales";
 import { tokenSchema } from "./zod/schemas/token";
 import { usageResponse } from "./zod/schemas/usage";
 import {
   createWebhookSchema,
   webhookEventSchemaTB,
-  webhookSchema,
+  WebhookSchema,
 } from "./zod/schemas/webhooks";
 
 export type LinkProps = Link;
 
+// used on client side (e.g. Link builder)
+// TODO: standardize this with ExpandedLink
 export interface ExpandedLinkProps extends LinkProps {
   tags: TagProps[];
   webhookIds: string[];
@@ -71,7 +88,6 @@ export interface RedisLinkProps {
   password?: boolean;
   proxy?: boolean;
   rewrite?: boolean;
-  iframeable?: boolean;
   expiresAt?: Date;
   expiredUrl?: string;
   ios?: string;
@@ -99,9 +115,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "webhooks" | "noDubLink";
-
-export type AddOns = "conversion" | "sso";
+export type BetaFeatures = "noDubLink";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
@@ -118,6 +132,7 @@ export interface WorkspaceProps extends Project {
   flags?: {
     [key in BetaFeatures]: boolean;
   };
+  store: Record<string, any> | null;
 }
 
 export type ExpandedWorkspaceProps = WorkspaceProps & {
@@ -125,6 +140,7 @@ export type ExpandedWorkspaceProps = WorkspaceProps & {
     id: string;
     name: string;
   }[];
+  yearInReview: YearInReview | null;
 };
 
 export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;
@@ -288,11 +304,13 @@ export type InstalledIntegrationInfoProps = Pick<
       image: string | null;
     };
   } | null;
+  credentials?: Prisma.JsonValue;
+  webhookId?: string; // Only if the webhook is managed by an integration
 };
 
 export type WebhookTrigger = keyof typeof WEBHOOK_TRIGGER_DESCRIPTIONS;
 
-export type WebhookProps = z.infer<typeof webhookSchema>;
+export type WebhookProps = z.infer<typeof WebhookSchema>;
 
 export type NewWebhook = z.infer<typeof createWebhookSchema>;
 
@@ -300,10 +318,8 @@ export type WebhookEventProps = z.infer<typeof webhookEventSchemaTB>;
 
 export type WebhookCacheProps = Pick<
   Webhook,
-  "id" | "url" | "secret" | "triggers"
+  "id" | "url" | "secret" | "triggers" | "disabledAt"
 >;
-
-export type TrackCustomerResponse = z.infer<typeof trackCustomerResponseSchema>;
 
 export type TrackLeadResponse = z.infer<typeof trackLeadResponseSchema>;
 
@@ -329,16 +345,43 @@ export type PartnerProps = z.infer<typeof PartnerSchema>;
 
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
 
+export type DiscountProps = z.infer<typeof DiscountSchema>;
+
 export type ProgramProps = z.infer<typeof ProgramSchema>;
 
 export type ProgramInviteProps = z.infer<typeof ProgramInviteSchema>;
 
+export type PartnerProgramInviteProps = z.infer<
+  typeof PartnerProgramInviteSchema
+>;
+
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 
-export type PayoutsCount = Record<PayoutStatus | "all", number>;
+export type PayoutsCount = {
+  status: PayoutStatus;
+  count: number;
+  amount: number;
+};
 
 export type PayoutProps = z.infer<typeof PayoutSchema>;
 
 export type PayoutResponse = z.infer<typeof PayoutResponseSchema>;
 
 export type PartnerPayoutResponse = z.infer<typeof PartnerPayoutResponseSchema>;
+
+export type SegmentIntegrationCredentials = {
+  writeKey?: string;
+};
+export type InvoiceProps = z.infer<typeof InvoiceSchema>;
+
+export type CustomerActivity = z.infer<typeof customerActivitySchema>;
+
+export type CustomerActivityResponse = z.infer<
+  typeof customerActivityResponseSchema
+>;
+
+export type ClickEvent = z.infer<typeof clickEventResponseSchema>;
+
+export type SaleEvent = z.infer<typeof saleEventResponseSchema>;
+
+export type LeadEvent = z.infer<typeof leadEventResponseSchema>;

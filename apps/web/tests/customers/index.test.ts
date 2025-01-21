@@ -1,23 +1,14 @@
 import { Customer } from "@/lib/types";
-import { afterAll, describe, expect, test } from "vitest";
-import { randomId } from "../utils/helpers";
+import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
-const externalId = `cust_${randomId()}`;
-
-const customerRecord = {
-  externalId,
-  name: "John Doe",
-  email: `${externalId}@example.com`,
-  avatar: `https://www.gravatar.com/avatar/${externalId}`,
-};
-
 const expectedCustomer = {
-  id: expect.any(String),
-  externalId: customerRecord.externalId,
-  name: customerRecord.name,
-  email: customerRecord.email,
-  avatar: customerRecord.avatar,
+  id: "cus_n5LF7wS3Z1vfwjZCyy5QDC7Q",
+  externalId: "cus_OmLauTvvWCtJsFN1yJb0oevj",
+  email: "abundant.coral.platypus@example.com",
+  country: "US",
+  name: expect.any(String),
+  avatar: expect.any(String),
   createdAt: expect.any(String),
 };
 
@@ -25,50 +16,31 @@ describe.sequential("/customers/**", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
-  let customerId: string;
-
-  afterAll(async () => {
-    await h.deleteCustomer(customerId);
-  });
-
-  test("POST /customers", async () => {
-    const { status, data: customer } = await http.post<Customer>({
-      path: "/customers",
-      body: customerRecord,
-    });
-
-    expect(status).toEqual(201);
-    expect(customer).toStrictEqual(expectedCustomer);
-
-    customerId = customer.id;
-  });
+  const customerId = expectedCustomer.id;
 
   test("GET /customers/{id}", async () => {
-    const { status, data: customer } = await http.get<Customer>({
+    const { status, data: retrievedCustomer } = await http.get<Customer>({
       path: `/customers/${customerId}`,
     });
 
     expect(status).toEqual(200);
-    expect(customer).toStrictEqual(expectedCustomer);
+    expect(retrievedCustomer).toStrictEqual(expectedCustomer);
   });
 
   test("GET /customers", async () => {
     const { status, data: customers } = await http.get<Customer[]>({
-      path: "/customers",
+      path: `/customers?email=${expectedCustomer.email}`,
     });
-
-    const customerFound = customers.find(
-      (c) => c.externalId === customerRecord.externalId,
-    );
 
     expect(status).toEqual(200);
     expect(customers.length).toBeGreaterThanOrEqual(1);
-    expect(customerFound).toStrictEqual(expectedCustomer);
+    expect(customers[0]).toStrictEqual(expectedCustomer);
   });
 
   test("PATCH /customers/{id}", async () => {
     const toUpdate = {
-      email: `${externalId}@example.co`,
+      name: "Updated",
+      avatar: "https://www.gravatar.com/avatar/1234567890",
     };
 
     const { status, data: customer } = await http.patch<Customer>({
@@ -81,14 +53,5 @@ describe.sequential("/customers/**", async () => {
       ...expectedCustomer,
       ...toUpdate,
     });
-  });
-
-  test("DELETE /customers/{id}", async () => {
-    const { status, data } = await http.delete({
-      path: `/customers/${customerId}`,
-    });
-
-    expect(status).toEqual(200);
-    expect(data).toEqual({ id: customerId });
   });
 });

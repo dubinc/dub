@@ -1,18 +1,18 @@
 "use client";
 
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DestinationUrlInput } from "@/ui/links/destination-url-input";
 import { ShortLinkInput } from "@/ui/links/short-link-input";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import { Button } from "@dub/ui";
-import { LoadingCircle, Photo } from "@dub/ui/src/icons";
+import { LoadingCircle, Photo } from "@dub/ui/icons";
 import { getUrlWithoutUTMParams } from "@dub/utils";
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
 import { LaterButton } from "../../later-button";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
@@ -130,11 +130,7 @@ export function Form() {
             throw new Error(error);
           }
 
-          await mutate(
-            (key) => typeof key === "string" && key.startsWith("/api/links"),
-            undefined,
-            { revalidate: true },
-          );
+          await mutatePrefix("/api/links");
           const result = await res.json();
           posthog.capture("link_created", result);
 

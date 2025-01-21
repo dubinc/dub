@@ -8,7 +8,7 @@ import {
   useKeyboardShortcut,
   UTM_PARAMETERS,
 } from "@dub/ui";
-import { Crosshairs3, Trash } from "@dub/ui/src/icons";
+import { Crosshairs3, Trash } from "@dub/ui/icons";
 import {
   cn,
   constructURLFromUTMParams,

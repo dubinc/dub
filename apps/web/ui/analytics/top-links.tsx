@@ -1,5 +1,5 @@
 import { LinkLogo, useRouterStuff } from "@dub/ui";
-import { Globe, Hyperlink } from "@dub/ui/src/icons";
+import { Globe, Hyperlink } from "@dub/ui/icons";
 import { getApexDomain } from "@dub/utils";
 import { useContext, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
@@ -11,11 +11,11 @@ import { useAnalyticsFilterOption } from "./utils";
 export default function TopLinks() {
   const { queryParams, searchParams } = useRouterStuff();
 
-  const { selectedTab } = useContext(AnalyticsContext);
-  const dataKey = selectedTab === "sales" ? "saleAmount" : "count";
+  const { selectedTab, saleUnit } = useContext(AnalyticsContext);
+  const dataKey = selectedTab === "sales" ? saleUnit : "count";
 
   const [tab, setTab] = useState<"links" | "urls">("links");
-  const data = useAnalyticsFilterOption({
+  const { data, loading } = useAnalyticsFilterOption({
     groupBy: `top_${tab}`,
   });
 
@@ -84,7 +84,7 @@ export default function TopLinks() {
             </div>
           )
         ) : (
-          <div className="flex h-[300px] items-center justify-center">
+          <div className="absolute inset-0 flex h-[300px] w-full items-center justify-center bg-white/50">
             <AnalyticsLoadingSpinner />
           </div>
         )

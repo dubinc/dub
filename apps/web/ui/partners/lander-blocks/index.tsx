@@ -1,5 +1,5 @@
 import z from "@/lib/zod";
-import { programLanderBlockSchema } from "@/lib/zod/schemas/programs";
+import { programLanderBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { AccordionBlock } from "@/ui/partners/lander-blocks/AccordionBlock";
 import { FilesBlock } from "@/ui/partners/lander-blocks/FilesBlock";
 import { ImageBlock } from "@/ui/partners/lander-blocks/ImageBlock";

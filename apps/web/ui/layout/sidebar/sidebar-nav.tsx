@@ -1,5 +1,6 @@
 import { AnimatedSizeContainer, ClientOnly, Icon, NavWordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -16,7 +17,6 @@ export type NavItemCommon = {
   name: string;
   href: string;
   exact?: boolean;
-  hasIndicator?: boolean;
 };
 
 export type NavSubItemType = NavItemCommon;
@@ -123,9 +123,22 @@ export function SidebarNav<T extends Record<any, any>>({
                     </div>
                   ))}
                 </div>
-                <div className="-mx-3 flex grow flex-col justify-end">
-                  {showNews && newsContent}
-                </div>
+                <AnimatePresence>
+                  {showNews && (
+                    <motion.div
+                      className="-mx-3 flex grow flex-col justify-end"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      transition={{
+                        duration: 0.1,
+                        ease: "easeInOut",
+                      }}
+                    >
+                      {newsContent}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </Area>
             );
           })}
@@ -139,7 +152,7 @@ export function SidebarNav<T extends Record<any, any>>({
 }
 
 function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
-  const { name, href, exact, hasIndicator } = item;
+  const { name, href, exact } = item;
 
   const Icon = "icon" in item ? item.icon : undefined;
   const items = "items" in item ? item.items : undefined;
@@ -180,12 +193,10 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
           />
         )}
         {name}
-        {(items || hasIndicator) && (
+        {items && (
           <div className="flex grow justify-end">
             {items ? (
               <ChevronDown className="size-3.5 text-neutral-500 transition-transform duration-75 group-data-[active=true]:rotate-180" />
-            ) : hasIndicator ? (
-              <div className="size-2 rounded-full bg-blue-600" />
             ) : null}
           </div>
         )}

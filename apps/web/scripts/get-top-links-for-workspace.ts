@@ -1,5 +1,5 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { linkConstructor } from "@dub/utils";
 import "dotenv-flow/config";
 

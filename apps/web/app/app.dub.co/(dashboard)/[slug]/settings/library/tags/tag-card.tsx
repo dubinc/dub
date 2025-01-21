@@ -1,5 +1,6 @@
 "use client";
 
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TagProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
@@ -12,17 +13,11 @@ import {
   useCopyToClipboard,
   useKeyboardShortcut,
 } from "@dub/ui";
-import {
-  CircleCheck,
-  Copy,
-  LoadingSpinner,
-  PenWriting,
-} from "@dub/ui/src/icons";
+import { CircleCheck, Copy, LoadingSpinner, PenWriting } from "@dub/ui/icons";
 import { cn, nFormatter, pluralize } from "@dub/utils";
 import Link from "next/link";
 import { useContext, useState } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 import { TagsListContext } from "./page-client";
 
 export function TagCard({
@@ -69,16 +64,8 @@ export function TagCard({
       .then(async (res) => {
         if (res.ok) {
           await Promise.all([
-            mutate(
-              (key) => typeof key === "string" && key.startsWith("/api/tags"),
-              undefined,
-              { revalidate: true },
-            ),
-            mutate(
-              (key) => typeof key === "string" && key.startsWith("/api/links"),
-              undefined,
-              { revalidate: true },
-            ),
+            mutatePrefix("/api/tags"),
+            mutatePrefix("/api/links"),
           ]);
           toast.success("Tag deleted");
         } else {

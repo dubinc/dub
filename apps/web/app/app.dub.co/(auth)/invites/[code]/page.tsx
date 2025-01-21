@@ -1,15 +1,15 @@
 import { getSession } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import EmptyState from "@/ui/shared/empty-state";
+import { prisma } from "@dub/prisma";
 import { LoadingSpinner } from "@dub/ui";
-import { LinkBroken, Users6 } from "@dub/ui/src/icons";
+import { LinkBroken, Users6 } from "@dub/ui/icons";
 import { APP_NAME } from "@dub/utils";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 export const runtime = "nodejs";
 
-export default function InitesPage({
+export default function InvitesPage({
   params,
 }: {
   params: {

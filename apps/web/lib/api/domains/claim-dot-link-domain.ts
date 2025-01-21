@@ -2,18 +2,18 @@ import { DubApiError } from "@/lib/api/errors";
 import { createLink } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
 import { registerDomain } from "@/lib/dynadot/register-domain";
-import { prisma } from "@/lib/prisma";
 import { WorkspaceWithUsers } from "@/lib/types";
+import { sendEmail } from "@dub/email";
+import { DomainClaimed } from "@dub/email/templates/domain-claimed";
+import { prisma } from "@dub/prisma";
 import {
   ACME_WORKSPACE_ID,
   APP_DOMAIN_WITH_NGROK,
   DEFAULT_LINK_PROPS,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { sendEmail } from "emails";
-import DomainClaimed from "emails/domain-claimed";
 import { addDomainToVercel } from "./add-domain-vercel";
-import { deleteDomainAndLinks } from "./delete-domain-links";
+import { markDomainAsDeleted } from "./mark-domain-deleted";
 
 export async function claimDotLinkDomain({
   domain,
@@ -58,18 +58,15 @@ export async function claimDotLinkDomain({
     }),
   ]);
 
-  // if for some reason the domain is already registered, we should fail
-  if (response.RegisterResponse.Error) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: response.RegisterResponse.Error,
-    });
-  }
-
   // if the domain was added to a different workspace but is not verified
   // we should remove it to free up the domain for the current workspace
   if (matchingUnverifiedDomain) {
-    await deleteDomainAndLinks(matchingUnverifiedDomain.slug);
+    const { projectId, slug } = matchingUnverifiedDomain;
+
+    await markDomainAsDeleted({
+      domain: slug,
+      workspaceId: projectId!,
+    });
   }
 
   await Promise.all([

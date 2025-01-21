@@ -2,8 +2,10 @@ import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { qstash } from "@/lib/cron";
 import { limiter } from "@/lib/cron/limiter";
 import { sendLimitEmail } from "@/lib/cron/send-limit-email";
-import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
+import { sendEmail } from "@dub/email";
+import { ClicksSummary } from "@dub/email/templates/clicks-summary";
+import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
   capitalize,
@@ -11,8 +13,6 @@ import {
   linkConstructor,
   log,
 } from "@dub/utils";
-import { sendEmail } from "emails";
-import ClicksSummary from "emails/clicks-summary";
 
 const limit = 100;
 
@@ -169,8 +169,6 @@ export const updateUsage = async () => {
                 email,
                 react: ClicksSummary({
                   email,
-                  appName: process.env.NEXT_PUBLIC_APP_NAME as string,
-                  appDomain: process.env.NEXT_PUBLIC_APP_DOMAIN as string,
                   workspaceName: workspace.name,
                   workspaceSlug: workspace.slug,
                   totalClicks: workspace.usage,

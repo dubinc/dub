@@ -1,11 +1,11 @@
 "use server";
 
 import { createId } from "@/lib/api/utils";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 import { backfillLinkData } from "./backfill-link-data";
-import { enrollDotsUserApp } from "./enroll-dots-user-app";
 
 const acceptProgramInviteSchema = z.object({
   programInviteId: z.string(),
@@ -19,6 +19,13 @@ export const acceptProgramInviteAction = authPartnerActionClient
 
     const programInvite = await prisma.programInvite.findUniqueOrThrow({
       where: { id: programInviteId },
+      include: {
+        program: {
+          select: {
+            discounts: true,
+          },
+        },
+      },
     });
 
     // enroll partner in program and delete the invite
@@ -30,13 +37,10 @@ export const acceptProgramInviteAction = authPartnerActionClient
           linkId: programInvite.linkId,
           partnerId: partner.id,
           status: "approved",
-        },
-        include: {
-          program: {
-            include: {
-              workspace: true,
-            },
-          },
+          discountId:
+            programInvite.program.discounts.length > 0
+              ? programInvite.program.discounts[0].id
+              : null,
         },
       }),
       prisma.programInvite.delete({
@@ -44,17 +48,12 @@ export const acceptProgramInviteAction = authPartnerActionClient
       }),
     ]);
 
-    const workspace = programEnrollment.program.workspace;
-
-    await Promise.all([
-      backfillLinkData(programEnrollment.id),
-      workspace.dotsAppId &&
-        enrollDotsUserApp({
-          partner,
-          dotsAppId: workspace.dotsAppId,
-          programEnrollmentId: programEnrollment.id,
-        }),
-    ]);
+    waitUntil(
+      backfillLinkData({
+        programEnrollmentId: programEnrollment.id,
+        linkId: programInvite.linkId,
+      }),
+    );
 
     return {
       id: programEnrollment.id,

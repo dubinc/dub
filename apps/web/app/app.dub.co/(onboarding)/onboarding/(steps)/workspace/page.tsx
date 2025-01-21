@@ -1,4 +1,4 @@
-import { GridPlus } from "@dub/ui/src/icons";
+import { GridPlus } from "@dub/ui/icons";
 import { StepPage } from "../step-page";
 import { Form } from "./form";
 

@@ -2,7 +2,7 @@ import useLink from "@/lib/swr/use-link";
 import useLinks from "@/lib/swr/use-links";
 import { LinkProps } from "@/lib/types";
 import { Combobox, LinkLogo } from "@dub/ui";
-import { ArrowTurnRight2 } from "@dub/ui/src/icons";
+import { ArrowTurnRight2 } from "@dub/ui/icons";
 import { cn, getApexDomain, linkConstructor } from "@dub/utils";
 import { useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";

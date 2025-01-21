@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
 import { dubLinksMetadataSchema } from "@/lib/tinybird";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 const enrollmentIds = [

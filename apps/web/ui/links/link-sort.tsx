@@ -9,9 +9,9 @@ export default function LinkSort() {
 
   const [openPopover, setOpenPopover] = useState(false);
 
-  const { sort: sortSlug, setSort } = useContext(LinksDisplayContext);
+  const { sortBy, setSort } = useContext(LinksDisplayContext);
   const selectedSort =
-    sortOptions.find((s) => s.slug === sortSlug) ?? sortOptions[0];
+    sortOptions.find((s) => s.slug === sortBy) ?? sortOptions[0];
 
   return (
     <Popover
@@ -36,7 +36,7 @@ export default function LinkSort() {
                 text={display}
                 icon={<SortDesc className="h-4 w-4" />}
               />
-              {sortSlug === slug && (
+              {sortBy === slug && (
                 <Tick className="h-4 w-4" aria-hidden="true" />
               )}
             </button>

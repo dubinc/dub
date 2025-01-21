@@ -1,31 +1,62 @@
+import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
-import { prisma } from "@/lib/prisma";
 import {
   createCustomerBodySchema,
   CustomerSchema,
+  getCustomersQuerySchema,
 } from "@/lib/zod/schemas/customers";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/customers – Get all customers
 export const GET = withWorkspace(
-  async ({ workspace }) => {
+  async ({ workspace, searchParams }) => {
+    const { email, externalId, includeExpandedFields } =
+      getCustomersQuerySchema.parse(searchParams);
+
     const customers = await prisma.customer.findMany({
       where: {
         projectId: workspace.id,
+        ...(email ? { email } : {}),
+        ...(externalId ? { externalId } : {}),
       },
       take: 100,
       orderBy: {
         createdAt: "desc",
       },
+      ...(includeExpandedFields
+        ? {
+            include: {
+              link: {
+                include: {
+                  programEnrollment: {
+                    include: {
+                      partner: true,
+                      discount: true,
+                    },
+                  },
+                },
+              },
+            },
+          }
+        : {}),
     });
 
-    return NextResponse.json(CustomerSchema.array().parse(customers));
+    return NextResponse.json(
+      CustomerSchema.array().parse(customers.map(transformCustomer)),
+    );
   },
   {
-    requiredAddOn: "conversion",
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "enterprise",
+    ],
   },
 );
 
@@ -50,9 +81,12 @@ export const POST = withWorkspace(
         },
       });
 
-      return NextResponse.json(CustomerSchema.parse(customer), {
-        status: 201,
-      });
+      return NextResponse.json(
+        CustomerSchema.parse(transformCustomer(customer)),
+        {
+          status: 201,
+        },
+      );
     } catch (error) {
       if (error.code === "P2002") {
         throw new DubApiError({
@@ -68,6 +102,12 @@ export const POST = withWorkspace(
     }
   },
   {
-    requiredAddOn: "conversion",
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "enterprise",
+    ],
   },
 );

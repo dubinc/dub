@@ -1,8 +1,6 @@
 "use client";
 
 import usePrograms from "@/lib/swr/use-programs";
-import useWorkspace from "@/lib/swr/use-workspace";
-import { BetaFeatures } from "@/lib/types";
 import { useRouterStuff } from "@dub/ui";
 import {
   Books2,
@@ -14,12 +12,11 @@ import {
   Gift,
   Globe,
   Key,
-  MoneyBills2,
   Receipt2,
   ShieldCheck,
   Users6,
   Webhook,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
@@ -36,14 +33,14 @@ import { WorkspaceDropdown } from "./workspace-dropdown";
 const NAV_AREAS: SidebarNavAreas<{
   slug: string;
   queryString: string;
-  flags?: Record<BetaFeatures, boolean>;
   programs?: { id: string }[];
   session?: Session | null;
+  showNews?: boolean;
 }> = {
   // Top-level
-  default: ({ slug, queryString, programs }) => ({
+  default: ({ slug, queryString, programs, showNews }) => ({
     showSwitcher: true,
-    showNews: true,
+    showNews,
     direction: "left",
     content: [
       {
@@ -107,7 +104,7 @@ const NAV_AREAS: SidebarNavAreas<{
                       href: `/${slug}/programs/${programs[0].id}/resources`,
                     },
                     {
-                      name: "Settings",
+                      name: "Configuration",
                       href: `/${slug}/programs/${programs[0].id}/settings`,
                     },
                   ],
@@ -120,7 +117,7 @@ const NAV_AREAS: SidebarNavAreas<{
   }),
 
   // Workspace settings
-  workspaceSettings: ({ slug, flags, programs }) => ({
+  workspaceSettings: ({ slug }) => ({
     title: "Settings",
     backHref: `/${slug}`,
     content: [
@@ -132,6 +129,11 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: Gear2,
             href: `/${slug}/settings`,
             exact: true,
+          },
+          {
+            name: "Billing",
+            icon: Receipt2,
+            href: `/${slug}/settings/billing`,
           },
           {
             name: "Domains",
@@ -148,20 +150,6 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: Users6,
             href: `/${slug}/settings/people`,
           },
-          {
-            name: "Billing",
-            icon: Receipt2,
-            href: `/${slug}/settings/billing`,
-          },
-          ...(programs?.length
-            ? [
-                {
-                  name: "Payouts",
-                  icon: MoneyBills2,
-                  href: `/${slug}/settings/payouts`,
-                },
-              ]
-            : []),
           {
             name: "Integrations",
             icon: ConnectedDots,
@@ -187,15 +175,11 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: CubeSettings,
             href: `/${slug}/settings/oauth-apps`,
           },
-          ...(flags?.webhooks
-            ? [
-                {
-                  name: "Webhooks",
-                  icon: Webhook,
-                  href: `/${slug}/settings/webhooks`,
-                },
-              ]
-            : []),
+          {
+            name: "Webhooks",
+            icon: Webhook,
+            href: `/${slug}/settings/webhooks`,
+          },
         ],
       },
       {
@@ -254,10 +238,9 @@ export function AppSidebarNav({
 }) {
   const { slug } = useParams() as { slug?: string };
   const pathname = usePathname();
-  const { flags } = useWorkspace();
-  const { programs } = usePrograms();
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
+  const { programs } = usePrograms();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -273,10 +256,12 @@ export function AppSidebarNav({
       currentArea={currentArea}
       data={{
         slug: slug || "",
-        queryString: getQueryString(),
-        flags,
+        queryString: getQueryString(undefined, {
+          ignore: ["sortBy", "sortOrder"],
+        }),
         programs,
         session: session || undefined,
+        showNews: pathname.startsWith(`/${slug}/programs/`) ? false : true,
       }}
       toolContent={toolContent}
       newsContent={newsContent}

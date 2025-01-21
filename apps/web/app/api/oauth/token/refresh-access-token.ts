@@ -3,9 +3,9 @@ import { OAUTH_CONFIG } from "@/lib/api/oauth/constants";
 import { createToken } from "@/lib/api/oauth/utils";
 import { hashToken } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
-import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { refreshTokenSchema } from "@/lib/zod/schemas/oauth";
+import { prisma } from "@dub/prisma";
 import { getCurrentPlan } from "@dub/utils";
 import { NextRequest } from "next/server";
 
@@ -43,7 +43,7 @@ export const refreshAccessToken = async (
     });
   }
 
-  const oAuthApp = await prisma.oAuthApp.findFirst({
+  const oAuthApp = await prisma.oAuthApp.findUnique({
     where: {
       clientId,
     },
@@ -77,7 +77,7 @@ export const refreshAccessToken = async (
     }
   }
 
-  const refreshTokenRecord = await prisma.oAuthRefreshToken.findFirst({
+  const refreshTokenRecord = await prisma.oAuthRefreshToken.findUnique({
     where: {
       hashedRefreshToken: await hashToken(refresh_token),
     },

@@ -9,7 +9,7 @@ import {
   PaginationControls,
   usePagination,
 } from "@dub/ui";
-import { CursorRays, Hyperlink, LoadingSpinner } from "@dub/ui/src/icons";
+import { CursorRays, Hyperlink, LoadingSpinner } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useSearchParams } from "next/navigation";
 import {
@@ -35,9 +35,9 @@ export default function LinksContainer({
 }: {
   CreateLinkButton: () => JSX.Element;
 }) {
-  const { viewMode, sort, showArchived } = useContext(LinksDisplayContext);
+  const { viewMode, sortBy, showArchived } = useContext(LinksDisplayContext);
 
-  const { links, isValidating } = useLinks({ sort, showArchived });
+  const { links, isValidating } = useLinks({ sortBy, showArchived });
   const { data: count } = useLinksCount<number>({ showArchived });
 
   return (

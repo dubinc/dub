@@ -4,9 +4,8 @@ import {
   Crosshairs3,
   Incognito,
   InputPassword,
-  SquareChart,
   WindowSearch,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import { UseFormSetValue } from "react-hook-form";
 import { LinkFormData } from ".";
 import { getExpirationLabel } from "./expiration-modal";
@@ -22,17 +21,6 @@ export const TOGGLES = [
       "Mask your destination URL so your users only see the short link in the browser address bar.",
     learnMoreUrl: "https://dub.co/help/article/link-cloaking",
     shortcutKey: "k",
-    type: "boolean",
-  },
-  {
-    key: "trackConversion",
-    icon: SquareChart,
-    label: "Conversion Tracking",
-    description:
-      "Track conversions on your short link to measure the effectiveness of your marketing campaigns.",
-    learnMoreUrl: "https://dub.co/help/article/conversion-tracking",
-    shortcutKey: "c",
-    conversionEnabled: true,
     type: "boolean",
   },
   {

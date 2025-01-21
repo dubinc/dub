@@ -41,8 +41,12 @@ export const WorkspaceSchema = z
     stripeConnectId: z
       .string()
       .nullable()
+      .describe("The Stripe Connect ID of the workspace."),
+    payoutMethodId: z
+      .string()
+      .nullable()
       .describe(
-        "[BETA – Dub Conversions]: The Stripe Connect ID of the workspace.",
+        "[BETA – Dub Partners]: The ID of the payment method for partner payouts.",
       ),
 
     usage: z.number().describe("The usage of the workspace."),
@@ -68,13 +72,16 @@ export const WorkspaceSchema = z
     conversionEnabled: z
       .boolean()
       .describe(
-        "Whether the workspace has conversion tracking enabled (d.to/conversions).",
+        "Whether the workspace has conversion tracking enabled automatically for new links (d.to/conversions).",
       ),
     dotLinkClaimed: z
       .boolean()
       .describe(
         "Whether the workspace has claimed a free .link domain. (dub.link/free)",
       ),
+    partnersEnabled: z
+      .boolean()
+      .describe("Whether the workspace has Dub Partners enabled."),
 
     createdAt: z
       .date()
@@ -101,27 +108,10 @@ export const WorkspaceSchema = z
       .describe(
         "The feature flags of the workspace, indicating which features are enabled.",
       ),
-    bankAccountName: z
-      .string()
+    store: z
+      .record(z.any())
       .nullable()
-      .describe(
-        "[BETA – Dub Partners]: The name of the connected bank account.",
-      ),
-    partialAccountNumber: z
-      .string()
-      .nullable()
-      .describe(
-        "[BETA – Dub Partners]: The partial account number of the bank account.",
-      ),
-    routingNumber: z
-      .string()
-      .nullable()
-      .describe(
-        "[BETA – Dub Partners]: The routing number of the bank account.",
-      ),
-    bankAccountVerified: z
-      .boolean()
-      .describe("[BETA – Dub Partners]: Whether the bank account is verified."),
+      .describe("The miscellaneous key-value store of the workspace."),
   })
   .openapi({
     title: "Workspace",
@@ -139,6 +129,7 @@ export const createWorkspaceSchema = z.object({
       message: "Cannot use reserved slugs",
     }),
   logo: z.string().optional(),
+  conversionEnabled: z.boolean().optional(),
 });
 
 export const updateWorkspaceSchema = createWorkspaceSchema.partial();

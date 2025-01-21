@@ -1,13 +1,14 @@
-import { updateSaleStatusAction } from "@/lib/actions/update-sale-status";
+import { updateSaleStatusAction } from "@/lib/actions/partners/update-sale-status";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { SaleProps } from "@/lib/types";
+import { SaleResponse } from "@/lib/types";
 import { Button, Icon, Popover } from "@dub/ui";
 import {
   CircleHalfDottedClock,
   Dots,
   Duplicate,
   ShieldAlert,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
@@ -15,21 +16,18 @@ import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 
-export function SaleRowMenu({ row }: { row: Row<SaleProps> }) {
+export function SaleRowMenu({ row }: { row: Row<SaleResponse> }) {
   const { id: workspaceId } = useWorkspace();
   const { programId } = useParams() as { programId: string };
   const [isOpen, setIsOpen] = useState(false);
 
   const { executeAsync } = useAction(updateSaleStatusAction, {
     onSuccess: async () => {
-      mutate(
-        (key) =>
-          typeof key === "string" &&
-          (key.startsWith(`/api/programs/${programId}/sales`) ||
-            key.startsWith(`/api/programs/${programId}/payouts`)),
-      );
+      await mutatePrefix([
+        `/api/programs/${programId}/payouts`,
+        `/api/programs/${programId}/sales`,
+      ]);
     },
   });
 

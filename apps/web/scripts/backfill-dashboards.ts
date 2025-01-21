@@ -1,5 +1,5 @@
 import { createId } from "@/lib/api/utils";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { getPrettyUrl, truncate } from "@dub/utils";
 import "dotenv-flow/config";
 
@@ -31,7 +31,6 @@ async function main() {
           linkId: link.id,
           projectId: link.projectId,
           userId: link.userId,
-          showConversions: link.trackConversion,
         },
       });
 

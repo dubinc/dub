@@ -1,4 +1,4 @@
-import { Role } from "@prisma/client";
+import { Role } from "@dub/prisma/client";
 
 export const PERMISSION_ACTIONS = [
   "workspaces.read",
@@ -12,7 +12,6 @@ export const PERMISSION_ACTIONS = [
   "domains.write",
   "tokens.read",
   "tokens.write",
-  "conversions.write",
   "oauth_apps.read",
   "oauth_apps.write",
   "integrations.read",
@@ -74,11 +73,6 @@ export const ROLE_PERMISSIONS: {
     roles: ["owner", "member"],
   },
   {
-    action: "conversions.write",
-    description: "track conversions",
-    roles: ["owner", "member"],
-  },
-  {
     action: "tokens.read",
     description: "access API keys",
     roles: ["owner", "member"],
@@ -86,7 +80,7 @@ export const ROLE_PERMISSIONS: {
   {
     action: "tokens.write",
     description: "create, update, or delete API keys",
-    roles: ["owner", "member"],
+    roles: ["owner"],
   },
   {
     action: "oauth_apps.read",

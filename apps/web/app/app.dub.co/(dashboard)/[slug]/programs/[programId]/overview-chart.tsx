@@ -1,15 +1,18 @@
+import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
 import useProgramAnalytics from "@/lib/swr/use-program-analytics";
 import useProgramMetrics from "@/lib/swr/use-program-metrics";
-import Areas from "@/ui/charts/areas";
-import { ChartContext } from "@/ui/charts/chart-context";
-import TimeSeriesChart from "@/ui/charts/time-series-chart";
-import XAxis from "@/ui/charts/x-axis";
-import YAxis from "@/ui/charts/y-axis";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { useRouterStuff } from "@dub/ui";
-import { LoadingSpinner } from "@dub/ui/src/icons";
-import { currencyFormatter, formatDate } from "@dub/utils";
+import {
+  Areas,
+  ChartContext,
+  TimeSeriesChart,
+  XAxis,
+  YAxis,
+} from "@dub/ui/charts";
+import { LoadingSpinner } from "@dub/ui/icons";
+import { currencyFormatter } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
 import { useId, useMemo } from "react";
@@ -21,7 +24,7 @@ export function OverviewChart() {
   const {
     start,
     end,
-    interval = "30d",
+    interval = "1y",
   } = searchParamsObj as {
     start?: string;
     end?: string;
@@ -55,7 +58,7 @@ export function OverviewChart() {
         <div className="flex flex-col gap-1 p-2">
           <span className="text-sm text-neutral-500">Revenue</span>
           {!metrics ? (
-            <div className="h-9 w-24 animate-pulse rounded-md bg-neutral-200" />
+            <div className="h-11 w-24 animate-pulse rounded-md bg-neutral-200" />
           ) : (
             <NumberFlow
               value={metrics.revenue / 100}
@@ -95,7 +98,7 @@ export function OverviewChart() {
               return (
                 <>
                   <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
-                    {formatDate(d.date)}
+                    {formatDateTooltip(d.date, { interval, start, end })}
                   </p>
                   <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
                     <div className="flex items-center gap-2">

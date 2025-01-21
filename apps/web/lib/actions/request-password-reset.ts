@@ -1,10 +1,10 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
+import { sendEmail } from "@dub/email";
+import { ResetPasswordLink } from "@dub/email/templates/reset-password-link";
+import { prisma } from "@dub/prisma";
 import { randomBytes } from "crypto";
-import { sendEmail } from "emails";
-import ResetPasswordLink from "emails/reset-password-link";
 import { flattenValidationErrors } from "next-safe-action";
 import { PASSWORD_RESET_TOKEN_EXPIRY } from "../auth/constants";
 import { requestPasswordResetSchema } from "../zod/schemas/auth";
@@ -41,13 +41,16 @@ export const requestPasswordResetAction = actionClient
 
     const token = randomBytes(32).toString("hex");
 
-    await Promise.all([
+    // Run this sequentially to avoid race conditions
+    await prisma.$transaction([
+      // Remove old password reset tokens
       prisma.passwordResetToken.deleteMany({
         where: {
           identifier: email,
         },
       }),
 
+      // Create a new password reset token
       prisma.passwordResetToken.create({
         data: {
           identifier: email,

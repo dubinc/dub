@@ -3,13 +3,13 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks, createLink, processLink } from "@/lib/api/links";
 import { createId } from "@/lib/api/utils";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { linkMappingSchema } from "@/lib/zod/schemas/import-csv";
 import { createLinkBodySchema } from "@/lib/zod/schemas/links";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
+import { prisma } from "@dub/prisma";
 import {
   DEFAULT_LINK_PROPS,
   DUB_DOMAINS_ARRAY,
@@ -45,8 +45,10 @@ type MapperResult =
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    await verifyQstashSignature(req, body);
+    const rawBody = await req.text();
+    await verifyQstashSignature({ req, rawBody });
+
+    const body = JSON.parse(rawBody);
     const { workspaceId, userId, id, url } = body;
     const mapping = linkMappingSchema.parse(body.mapping);
 

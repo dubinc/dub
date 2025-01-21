@@ -1,0 +1,42 @@
+enum WebhookReceiver {
+  user
+  zapier
+  make
+  slack
+  segment
+}
+
+model Webhook {
+  id                  String          @id @default(cuid())
+  projectId           String
+  installationId      String?         @unique // indicates which integration installation added the webhook
+  receiver            WebhookReceiver @default(user)
+  name                String
+  url                 String          @db.LongText
+  secret              String
+  triggers            Json
+  consecutiveFailures Int             @default(0)
+  lastFailedAt        DateTime?
+  disabledAt          DateTime?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  project              Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  installedIntegration InstalledIntegration? @relation(fields: [installationId], references: [id], onDelete: Cascade)
+  links                LinkWebhook[]
+
+  @@index([projectId])
+}
+
+model LinkWebhook {
+  id        String @id @default(cuid())
+  linkId    String
+  webhookId String
+
+  link    Link    @relation(fields: [linkId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  webhook Webhook @relation(fields: [webhookId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  @@unique([linkId, webhookId])
+  @@index([linkId])
+  @@index([webhookId])
+}

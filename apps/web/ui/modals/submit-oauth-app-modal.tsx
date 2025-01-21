@@ -28,7 +28,7 @@ function SubmitOAuthAppModal({
   const workspace = useWorkspace();
   const [message, setMessage] = useState(DEFAULT_MESSAGE);
 
-  const { execute, isExecuting } = useAction(submitOAuthAppForReview, {
+  const { execute, isPending } = useAction(submitOAuthAppForReview, {
     onSuccess: () => {
       toast.success(
         "OAuth app submitted for review. We'll be in touch shortly.",
@@ -94,8 +94,8 @@ function SubmitOAuthAppModal({
           maxLength={1000}
         />
         <Button
-          text={isExecuting ? "Submitting..." : "Submit"}
-          loading={isExecuting}
+          text={isPending ? "Submitting..." : "Submit"}
+          loading={isPending}
           disabled={message.trim().length === 0}
           type="submit"
         />

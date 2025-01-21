@@ -1,9 +1,9 @@
 import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
 import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
-import { prisma } from "@/lib/prisma";
 import { isStored } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
+import { prisma } from "@dub/prisma";
 import {
   DUB_DOMAINS,
   UTMTags,
@@ -27,18 +27,13 @@ export async function processLink<T extends Record<string, any>>({
   userId,
   bulk = false,
   skipKeyChecks = false, // only skip when key doesn't change (e.g. when editing a link)
-  skipIdentifierChecks = false, // only skip when identifier doesn't change (e.g. when editing a link)
   skipExternalIdChecks = false, // only skip when externalId doesn't change (e.g. when editing a link)
 }: {
   payload: NewLinkProps & T;
-  workspace?: Pick<
-    WorkspaceProps,
-    "id" | "plan" | "conversionEnabled" | "flags"
-  >;
+  workspace?: Pick<WorkspaceProps, "id" | "plan" | "flags">;
   userId?: string;
   bulk?: boolean;
   skipKeyChecks?: boolean;
-  skipIdentifierChecks?: boolean;
   skipExternalIdChecks?: boolean;
 }): Promise<
   | {
@@ -70,7 +65,6 @@ export async function processLink<T extends Record<string, any>>({
     doIndex,
     tagNames,
     externalId,
-    identifier,
     programId,
     webhookIds,
   } = payload;
@@ -195,11 +189,13 @@ export async function processLink<T extends Record<string, any>>({
   } else if (isDubDomain(domain)) {
     // coerce type with ! cause we already checked if it exists
     const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
-    const urlDomain = getApexDomain(url) || "";
+    const urlDomain = getDomainWithoutWWW(url) || "";
+    const apexDomain = getApexDomain(url);
     if (
       key !== "_root" &&
       allowedHostnames &&
-      !allowedHostnames.includes(urlDomain)
+      !allowedHostnames.includes(urlDomain) &&
+      !allowedHostnames.includes(apexDomain)
     ) {
       return {
         link: payload,
@@ -280,10 +276,11 @@ export async function processLink<T extends Record<string, any>>({
   }
 
   if (trackConversion) {
-    if (!workspace || !workspace.conversionEnabled) {
+    if (!workspace || workspace.plan === "free" || workspace.plan === "pro") {
       return {
         link: payload,
-        error: "Conversion tracking is not enabled for this workspace.",
+        error:
+          "Conversion tracking is only available for workspaces with a Business plan and above. Please upgrade to continue.",
         code: "forbidden",
       };
     }
@@ -308,37 +305,11 @@ export async function processLink<T extends Record<string, any>>({
     }
   }
 
-  if (identifier && workspace && !skipIdentifierChecks) {
-    const link = await prisma.link.findUnique({
-      where: {
-        projectId_identifier: {
-          projectId: workspace.id,
-          identifier,
-        },
-      },
-    });
-
-    if (link) {
-      return {
-        link: payload,
-        error: "A link with this identifier already exists in this workspace.",
-        code: "conflict",
-      };
-    }
-  }
-
   if (bulk) {
     if (proxy && image && !isStored(image)) {
       return {
         link: payload,
         error: "You cannot set custom social cards with bulk link creation.",
-        code: "unprocessable_entity",
-      };
-    }
-    if (rewrite) {
-      return {
-        link: payload,
-        error: "You cannot use link cloaking with bulk link creation.",
         code: "unprocessable_entity",
       };
     }
@@ -398,13 +369,6 @@ export async function processLink<T extends Record<string, any>>({
 
     // Program validity checks
     if (programId) {
-      if (!workspace?.conversionEnabled) {
-        return {
-          link: payload,
-          error: "Conversion tracking is not enabled for this workspace.",
-          code: "forbidden",
-        };
-      }
       const program = await prisma.program.findUnique({
         where: { id: programId },
       });
@@ -523,7 +487,7 @@ async function maliciousLinkCheck(url: string) {
     return false;
   }
 
-  const domainBlacklisted = await isBlacklistedDomain({ domain, apexDomain });
+  const domainBlacklisted = await isBlacklistedDomain(domain);
   if (domainBlacklisted === true) {
     return true;
   } else if (domainBlacklisted === "whitelisted") {
@@ -539,10 +503,6 @@ async function maliciousLinkCheck(url: string) {
       console.log("Pangea verdict for domain", apexDomain, verdict);
 
       if (verdict === "benign") {
-        await updateConfig({
-          key: "whitelistedDomains",
-          value: domain,
-        });
         return false;
       } else if (verdict === "malicious" || verdict === "suspicious") {
         await Promise.all([

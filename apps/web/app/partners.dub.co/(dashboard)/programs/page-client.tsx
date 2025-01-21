@@ -6,7 +6,7 @@ import { ProgramCard, ProgramCardSkeleton } from "@/ui/partners/program-card";
 import { ProgramInviteCard } from "@/ui/partners/program-invite-card";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { MaxWidthWrapper } from "@dub/ui";
-import { CircleDollar, GridIcon } from "@dub/ui/src/icons";
+import { CircleDollar, GridIcon } from "@dub/ui/icons";
 
 export function PartnersDashboardPageClient() {
   const { programEnrollments, isLoading } = useProgramEnrollments();
@@ -27,7 +27,7 @@ export function PartnersDashboardPageClient() {
               </div>
             </>
           }
-          learnMoreHref="https://dub.co/help/article/dub-conversions"
+          learnMoreHref="https://d.to/conversions"
         />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

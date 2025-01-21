@@ -1,4 +1,5 @@
-import { prisma } from "@/lib/prisma";
+import { webhookCache } from "@/lib/webhook/cache";
+import { prisma } from "@dub/prisma";
 import { getPlanFromPriceId, log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
@@ -59,6 +60,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
   }
 
   const newPlan = plan.name.toLowerCase();
+  const shouldDisableWebhooks = newPlan === "free" || newPlan === "pro";
 
   // If a workspace upgrades/downgrades their subscription, update their usage limit in the database.
   if (workspace.plan !== newPlan) {
@@ -75,9 +77,11 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
           aiLimit: plan.limits.ai!,
           tagsLimit: plan.limits.tags!,
           usersLimit: plan.limits.users!,
+          salesLimit: plan.limits.sales!,
           paymentFailedAt: null,
         },
       }),
+
       prisma.restrictedToken.updateMany({
         where: {
           projectId: workspace.id,
@@ -87,6 +91,45 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
         },
       }),
     ]);
+
+    // Disable the webhooks if the new plan does not support webhooks
+    if (shouldDisableWebhooks) {
+      await Promise.all([
+        prisma.project.update({
+          where: {
+            id: workspace.id,
+          },
+          data: {
+            webhookEnabled: false,
+          },
+        }),
+
+        prisma.webhook.updateMany({
+          where: {
+            projectId: workspace.id,
+          },
+          data: {
+            disabledAt: new Date(),
+          },
+        }),
+      ]);
+
+      // Update the webhooks cache
+      const webhooks = await prisma.webhook.findMany({
+        where: {
+          projectId: workspace.id,
+        },
+        select: {
+          id: true,
+          url: true,
+          secret: true,
+          triggers: true,
+          disabledAt: true,
+        },
+      });
+
+      await webhookCache.mset(webhooks);
+    }
   } else if (workspace.paymentFailedAt) {
     await prisma.project.update({
       where: {

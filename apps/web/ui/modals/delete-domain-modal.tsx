@@ -1,3 +1,4 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
 import { Button, LinkLogo, Modal, useMediaQuery } from "@dub/ui";
@@ -9,7 +10,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 
 function DeleteDomainModal({
   showDeleteDomainModal,
@@ -59,12 +59,7 @@ function DeleteDomainModal({
             method: "DELETE",
           }).then(async (res) => {
             if (res.status === 200) {
-              await mutate(
-                (key) =>
-                  typeof key === "string" && key.startsWith("/api/domains"),
-                undefined,
-                { revalidate: true },
-              );
+              await mutatePrefix("/api/domains");
               setShowDeleteDomainModal(false);
               toast.success("Successfully deleted domain!");
             } else {

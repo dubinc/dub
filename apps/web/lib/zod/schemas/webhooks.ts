@@ -1,22 +1,22 @@
-import {
-  WEBHOOK_SECRET_PREFIX,
-  WEBHOOK_TRIGGERS,
-} from "@/lib/webhook/constants";
+import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
 import { z } from "zod";
+import { parseUrlSchema } from "./utils";
 
-export const webhookSchema = z.object({
+export const WebhookSchema = z.object({
   id: z.string(),
   name: z.string(),
   url: z.string(),
   secret: z.string(),
   triggers: z.array(z.enum(WEBHOOK_TRIGGERS)),
+  disabledAt: z.date().nullable(),
   linkIds: z.array(z.string()).optional(),
+  installationId: z.string().nullable(),
 });
 
 export const createWebhookSchema = z.object({
   name: z.string().min(1).max(40),
-  url: z.string().url().max(190),
-  secret: z.string().startsWith(WEBHOOK_SECRET_PREFIX),
+  url: parseUrlSchema,
+  secret: z.string().optional(),
   triggers: z.array(z.enum(WEBHOOK_TRIGGERS)),
   linkIds: z.array(z.string()).optional(),
 });

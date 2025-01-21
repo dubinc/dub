@@ -3,24 +3,17 @@ import { DubApiError } from "../../api/errors";
 
 export const validDateRangeForPlan = ({
   plan,
-  conversionEnabled,
   interval,
   start,
   end,
   throwError,
 }: {
   plan?: string | null;
-  conversionEnabled?: boolean;
   interval?: string;
   start?: Date | null;
   end?: Date | null;
   throwError?: boolean;
 }) => {
-  // special case for conversion enabled – no restrictions on date range
-  if (conversionEnabled) {
-    return true;
-  }
-
   // Free plan users can only get analytics for 30 days
   if (
     (!plan || plan === "free") &&

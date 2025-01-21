@@ -1,5 +1,27 @@
 import z from "@/lib/zod";
-import { getPaginationQuerySchema } from "./misc";
+import { DiscountSchema } from "./discount";
+import { LinkSchema } from "./links";
+import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
+
+export const getCustomersQuerySchema = z.object({
+  email: z
+    .string()
+    .optional()
+    .describe(
+      "A case-sensitive filter on the list based on the customer's `email` field. The value must be a string.",
+    ),
+  externalId: z
+    .string()
+    .optional()
+    .describe(
+      "A case-sensitive filter on the list based on the customer's `externalId` field. The value must be a string.",
+    ),
+  includeExpandedFields: booleanQuerySchema
+    .optional()
+    .describe(
+      "Whether to include expanded fields on the customer (`link`, `partner`, `discount`).",
+    ),
+});
 
 export const createCustomerBodySchema = z.object({
   email: z
@@ -34,53 +56,24 @@ export const CustomerSchema = z.object({
   name: z.string().describe("Name of the customer."),
   email: z.string().nullish().describe("Email of the customer."),
   avatar: z.string().nullish().describe("Avatar URL of the customer."),
+  country: z.string().nullish().describe("Country of the customer."),
   createdAt: z.date().describe("The date the customer was created."),
-});
-
-export const trackCustomerRequestSchema = z.object({
-  // Required
-  customerId: z
-    .string({ required_error: "customerId is required" })
-    .trim()
-    .min(1, "customerId is required")
-    .max(100)
-    .describe(
-      "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
-    ),
-
-  // Optional
-  customerName: z
-    .string()
-    .max(100)
-    .optional()
-    .describe("Name of the customer in the client's app."),
-  customerEmail: z
-    .string()
-    .email()
-    .max(100)
-    .optional()
-    .describe("Email of the customer in the client's app."),
-  customerAvatar: z
-    .string()
-    .max(100)
-    .optional()
-    .describe("Avatar of the customer in the client's app."),
-});
-
-export const trackCustomerResponseSchema = z.object({
-  customerId: z.string(),
-  customerName: z.string().nullable(),
-  customerEmail: z.string().nullable(),
-  customerAvatar: z.string().nullable(),
-});
-
-// simple schema returned by /events API
-export const customerSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  email: z.string(),
-  avatar: z.string(),
-  externalId: z.string().optional(),
+  link: LinkSchema.pick({
+    id: true,
+    domain: true,
+    key: true,
+    shortLink: true,
+    programId: true,
+  }).nullish(),
+  partner: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      email: z.string(),
+      image: z.string().nullish(),
+    })
+    .nullish(),
+  discount: DiscountSchema.nullish(),
 });
 
 export const CUSTOMERS_MAX_PAGE_SIZE = 100;
@@ -95,3 +88,35 @@ export const customersQuerySchema = z
       .describe("IDs of customers to filter by."),
   })
   .merge(getPaginationQuerySchema({ pageSize: CUSTOMERS_MAX_PAGE_SIZE }));
+
+export const customerActivitySchema = z.object({
+  timestamp: z.date(),
+  event: z.enum(["click", "lead", "sale"]),
+  eventName: z.string(),
+  eventDetails: z.string().nullish(),
+  metadata: z.union([
+    z.null(),
+    z.object({
+      paymentProcessor: z.string(),
+      amount: z.number(),
+    }),
+  ]),
+});
+
+export const customerActivityResponseSchema = z.object({
+  ltv: z.number(),
+  timeToLead: z.number().nullable(),
+  timeToSale: z.number().nullable(),
+  activity: z.array(customerActivitySchema),
+  customer: CustomerSchema.merge(
+    z.object({
+      country: z.string().nullish(),
+    }),
+  ),
+  link: LinkSchema.pick({
+    id: true,
+    domain: true,
+    key: true,
+    shortLink: true,
+  }).nullish(),
+});
