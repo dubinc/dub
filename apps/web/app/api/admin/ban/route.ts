@@ -1,8 +1,8 @@
 import { deleteWorkspaceAdmin } from "@/lib/api/workspaces";
 import { withAdmin } from "@/lib/auth";
 import { updateConfig } from "@/lib/edge-config";
-import { unsubscribe } from "@/lib/resend";
 import { isStored, storage } from "@/lib/storage";
+import { unsubscribe } from "@dub/email/resend/unsubscribe";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
