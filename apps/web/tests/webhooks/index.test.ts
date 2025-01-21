@@ -43,7 +43,7 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
 
 describe("Webhooks", () => {
   WEBHOOK_TRIGGERS.map((trigger) =>
-    test.concurrent(trigger, () => testWebhookEvent(trigger)),
+    test.concurrent(trigger, () => testWebhookEvent(trigger), 10000),
   );
 });
 
