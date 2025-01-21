@@ -145,7 +145,7 @@ export const confirmPayoutsAction = authActionClient
         amount: invoice.total,
         customer: workspace.stripeId!,
         payment_method_types: ["us_bank_account"],
-        payment_method: workspace.payoutMethodId!,
+        payment_method: paymentMethod.id,
         currency: "usd",
         confirmation_method: "automatic",
         confirm: true,
