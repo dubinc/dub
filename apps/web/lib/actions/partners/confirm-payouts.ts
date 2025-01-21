@@ -55,11 +55,11 @@ export const confirmPayoutsAction = authActionClient
     const payouts = await prisma.payout.findMany({
       where: {
         programId,
-        status: "pending",
-        invoiceId: null, // just to be extra safe
         id: {
           in: payoutIds,
         },
+        status: "pending",
+        invoiceId: null, // just to be extra safe
         partner: {
           stripeConnectId: {
             not: null,

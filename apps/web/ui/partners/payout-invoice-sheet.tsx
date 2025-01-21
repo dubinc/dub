@@ -81,6 +81,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     usePaymentMethods();
 
   const [selectedPayouts, setSelectedPayouts] = useState<PayoutResponse[]>([]);
+
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<PaymentMethodWithFee | null>(null);
 
@@ -338,6 +339,12 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     onRowSelectionChange: (rows: Row<PayoutResponse>[]) =>
       setSelectedPayouts(rows.map((row) => row.original)),
   } as any);
+
+  useEffect(() => {
+    if (pendingPayouts) {
+      table.table.toggleAllRowsSelected();
+    }
+  }, [pendingPayouts]);
 
   return (
     <>
