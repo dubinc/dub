@@ -2,10 +2,8 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { checkFolderPermission } from "@/lib/folder/permissions";
-import { recordLink, transformLinkTB } from "@/lib/tinybird";
 import { FolderSchema, updateFolderSchema } from "@/lib/zod/schemas/folders";
 import { prisma } from "@dub/prisma";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/folders/[folderId] - get information about a folder
@@ -37,9 +35,9 @@ export const PATCH = withWorkspace(
     );
 
     await checkFolderPermission({
-      folderId,
       workspaceId: workspace.id,
       userId: session.user.id,
+      folderId,
       requiredPermission: "folders.write",
     });
 
@@ -78,9 +76,9 @@ export const DELETE = withWorkspace(
     const { folderId } = params;
 
     await checkFolderPermission({
-      folderId,
       workspaceId: workspace.id,
       userId: session.user.id,
+      folderId,
       requiredPermission: "folders.write",
     });
 

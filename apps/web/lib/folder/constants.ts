@@ -8,8 +8,8 @@ export const FOLDER_WORKSPACE_ACCESS = {
 
 export const FOLDER_USER_ROLE = {
   owner: "Owner",
-  viewer: "Viewer",
   editor: "Editor",
+  viewer: "Viewer",
 } as const;
 
 export const FOLDER_PERMISSIONS = [

@@ -1,6 +1,6 @@
 import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
 import { getFolderOrThrow } from "@/lib/folder/get-folder-or-throw";
-import { canPerformActionOnFolder } from "@/lib/folder/permissions";
+import { checkFolderPermission } from "@/lib/folder/permissions";
 import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import { isStored } from "@/lib/storage";
@@ -422,22 +422,24 @@ export async function processLink<T extends Record<string, any>>({
 
   // Folder checks
   if (folderId && workspace && userId) {
-    const folder = await getFolderOrThrow({
+    await getFolderOrThrow({
       workspaceId: workspace.id,
       folderId,
       userId,
     });
 
-    if (
-      !canPerformActionOnFolder({
-        folder,
+    try {
+      await checkFolderPermission({
+        workspaceId: workspace.id,
+        userId,
+        folderId,
         requiredPermission: "folders.links.write",
-      })
-    ) {
+      });
+    } catch (error) {
       return {
         link: payload,
-        error: "You are not allowed to perform this action on this folder.",
-        code: "unprocessable_entity",
+        error: error.message,
+        code: error.code,
       };
     }
   }

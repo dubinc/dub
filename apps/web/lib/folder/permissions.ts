@@ -3,7 +3,6 @@
 import { FolderUser } from "@dub/prisma/client";
 import { DubApiError } from "../api/errors";
 import {
-  FOLDER_PERMISSIONS,
   FOLDER_USER_ROLE,
   FOLDER_USER_ROLE_TO_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE,
@@ -43,30 +42,6 @@ export const determineFolderUserRole = ({
   return FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE[folder.accessLevel];
 };
 
-export const canPerformActionOnFolder = ({
-  folder,
-  requiredPermission,
-}: {
-  folder: FolderWithUser | null;
-  requiredPermission: (typeof FOLDER_PERMISSIONS)[number];
-}) => {
-  if (!folder) {
-    return false;
-  }
-
-  const folderUserRole = determineFolderUserRole({
-    folder,
-  });
-
-  if (!folderUserRole) {
-    return false;
-  }
-
-  const permissions = getFolderPermissions(folderUserRole);
-
-  return permissions.includes(requiredPermission);
-};
-
 export const checkFolderPermission = async ({
   workspaceId,
   userId,
@@ -84,10 +59,19 @@ export const checkFolderPermission = async ({
     userId,
   });
 
-  const hasPermission = canPerformActionOnFolder({
+  const folderUserRole = determineFolderUserRole({
     folder,
-    requiredPermission,
   });
+
+  if (!folderUserRole) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "You are not allowed to perform this action on this folder.",
+    });
+  }
+
+  const permissions = getFolderPermissions(folderUserRole);
+  const hasPermission = permissions.includes(requiredPermission);
 
   if (!hasPermission) {
     throw new DubApiError({

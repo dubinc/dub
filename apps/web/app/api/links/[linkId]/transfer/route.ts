@@ -28,9 +28,9 @@ export const POST = withWorkspace(
 
     if (link.folderId) {
       await checkFolderPermission({
-        folderId: link.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,
+        folderId: link.folderId,
         requiredPermission: "folders.links.write",
       });
     }

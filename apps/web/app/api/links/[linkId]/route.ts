@@ -27,9 +27,9 @@ export const GET = withWorkspace(
 
     if (link.folderId) {
       await checkFolderPermission({
-        folderId: link.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,
+        folderId: link.folderId,
         requiredPermission: "folders.read",
       });
     }
@@ -73,23 +73,29 @@ export const PATCH = withWorkspace(
 
     const body = updateLinkBodySchema.parse(await parseRequestBody(req)) || {};
 
-    if (link.folderId) {
-      await checkFolderPermission({
-        folderId: link.folderId,
-        workspaceId: workspace.id,
-        userId: session.user.id,
-        requiredPermission: "folders.links.write",
-      });
-    }
+    await Promise.all([
+      ...(link.folderId
+        ? [
+            checkFolderPermission({
+              workspaceId: workspace.id,
+              userId: session.user.id,
+              folderId: link.folderId,
+              requiredPermission: "folders.links.write",
+            }),
+          ]
+        : []),
 
-    if (body.folderId) {
-      await checkFolderPermission({
-        folderId: body.folderId,
-        workspaceId: workspace.id,
-        userId: session.user.id,
-        requiredPermission: "folders.links.write",
-      });
-    }
+      ...(body.folderId
+        ? [
+            checkFolderPermission({
+              workspaceId: workspace.id,
+              userId: session.user.id,
+              folderId: body.folderId,
+              requiredPermission: "folders.links.write",
+            }),
+          ]
+        : []),
+    ]);
 
     // Add body onto existing link but maintain NewLinkProps form for processLink
     const updatedLink = {
@@ -202,9 +208,9 @@ export const DELETE = withWorkspace(
 
     if (link.folderId) {
       await checkFolderPermission({
-        folderId: link.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,
+        folderId: link.folderId,
         requiredPermission: "folders.links.write",
       });
     }

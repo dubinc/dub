@@ -25,9 +25,9 @@ export const updateFolderUserRoleAction = authActionClient
     }
 
     await checkFolderPermission({
-      folderId,
       workspaceId: workspace.id,
       userId: user.id,
+      folderId,
       requiredPermission: "folders.users.write",
     });
 
