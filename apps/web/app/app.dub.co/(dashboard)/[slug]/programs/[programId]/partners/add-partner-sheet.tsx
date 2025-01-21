@@ -61,7 +61,7 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
 
   const selectedLinkId = watch("linkId");
 
-  const { executeAsync, isExecuting } = useAction(addPartnerAction, {
+  const { executeAsync, isPending } = useAction(addPartnerAction, {
     onSuccess: async () => {
       toast.success(
         `Successfully ${
@@ -335,7 +335,7 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
             onClick={() => setIsOpen(false)}
             text="Cancel"
             className="w-fit"
-            disabled={isExecuting}
+            disabled={isPending}
           />
           <Button
             type="submit"
@@ -344,7 +344,7 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
               selectedActionType === "invite" ? "Send invite" : "Enroll partner"
             }
             className="w-fit"
-            loading={isExecuting}
+            loading={isPending}
           />
         </div>
       </div>

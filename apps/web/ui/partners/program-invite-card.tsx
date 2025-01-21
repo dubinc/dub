@@ -14,7 +14,7 @@ export function ProgramInviteCard({
   invite: PartnerProgramInviteProps;
 }) {
   const { partner } = usePartnerProfile();
-  const { executeAsync, isExecuting } = useAction(acceptProgramInviteAction, {
+  const { executeAsync, isPending } = useAction(acceptProgramInviteAction, {
     onSuccess: () => {
       toast.success("Program invite accepted!");
       partner && mutatePrefix(`/api/partners/${partner.id}/programs`);
@@ -59,7 +59,7 @@ export function ProgramInviteCard({
       <Button
         text="Accept invite"
         className="h-8"
-        loading={isExecuting}
+        loading={isPending}
         onClick={() =>
           executeAsync({
             programInviteId: invite.id,

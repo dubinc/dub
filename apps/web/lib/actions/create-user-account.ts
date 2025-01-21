@@ -67,6 +67,4 @@ export const createUserAccountAction = actionClient
         },
       });
     }
-
-    return { ok: true };
   });

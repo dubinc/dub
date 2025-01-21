@@ -59,7 +59,7 @@ export default function IntegrationPageClient({
   const { slug, id: workspaceId } = useWorkspace();
 
   const [openPopover, setOpenPopover] = useState(false);
-  const getInstallationUrl = useAction(getIntegrationInstallUrl, {
+  const { execute, isPending } = useAction(getIntegrationInstallUrl, {
     onSuccess: ({ data }) => {
       if (!data?.url) {
         throw new Error("Error getting installation URL");
@@ -235,12 +235,12 @@ export default function IntegrationPageClient({
                     return;
                   }
 
-                  getInstallationUrl.execute({
+                  execute({
                     workspaceId: workspaceId!,
                     integrationSlug: integration.slug,
                   });
                 }}
-                loading={getInstallationUrl.isExecuting}
+                loading={isPending}
                 text="Enable"
                 variant="primary"
                 icon={<ConnectedDots className="size-4" />}

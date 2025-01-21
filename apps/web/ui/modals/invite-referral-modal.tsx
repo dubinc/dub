@@ -24,7 +24,7 @@ function InviteReferralModal({
   const { id: workspaceId } = useWorkspace();
   const { isMobile } = useMediaQuery();
 
-  const { execute, isExecuting } = useAction(sendInviteReferralEmail, {
+  const { execute, isPending } = useAction(sendInviteReferralEmail, {
     onSuccess: () => {
       toast.success("Invitation sent.");
       setShowInviteReferralModal(false);
@@ -75,7 +75,7 @@ function InviteReferralModal({
             Your name and email address will be shared in this invitation.
           </p>
         </div>
-        <Button loading={isExecuting} text="Send invite" />
+        <Button loading={isPending} text="Send invite" />
       </form>
     </Modal>
   );

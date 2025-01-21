@@ -11,12 +11,12 @@ import {
   isLinkLevelWebhook,
 } from "@/lib/webhook/utils";
 import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
+import { sendEmail } from "@dub/email";
+import { WebhookAdded } from "@dub/email/templates/webhook-added";
 import { prisma } from "@dub/prisma";
 import { WebhookReceiver } from "@dub/prisma/client";
 import { ZAPIER_INTEGRATION_ID } from "@dub/utils/src/constants";
 import { waitUntil } from "@vercel/functions";
-import { sendEmail } from "emails";
-import WebhookAdded from "emails/webhook-added";
 import { NextResponse } from "next/server";
 
 // GET /api/webhooks - get all webhooks for the given workspace
