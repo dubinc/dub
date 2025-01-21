@@ -22,9 +22,6 @@ import { deleteSecret, setSecret } from "../utils/secrets";
 import { stripe } from "../utils/stripe";
 import { Workspace } from "../utils/types";
 
-// TODO:
-// Handle errors and display them to the user
-
 const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
   const credentialsUsed = useRef(false);
   const [oauthState, setOAuthState] = useState("");
@@ -48,7 +45,6 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
 
     await updateWorkspace({
       token,
-      workspaceId: workspace.id,
       accountId: null,
     });
 
@@ -99,7 +95,6 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
 
     await updateWorkspace({
       token,
-      workspaceId: workspace.id,
       accountId: userContext.account.id,
     });
 
@@ -189,8 +184,6 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
           brandIcon={appIcon}
         />
       )}
-
-      {/* <CreateLink workspace={workspace} /> */}
     </Box>
   );
 };

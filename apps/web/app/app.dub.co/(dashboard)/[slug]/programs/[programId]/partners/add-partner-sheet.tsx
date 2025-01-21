@@ -1,4 +1,5 @@
-import { invitePartnerAction } from "@/lib/actions/partners/invite-partner";
+import { addPartnerAction } from "@/lib/actions/partners/add-partner";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerLinkSelector } from "@/ui/partners/partner-link-selector";
@@ -7,27 +8,46 @@ import {
   AnimatedSizeContainer,
   BlurImage,
   Button,
+  CircleCheckFill,
   Sheet,
   useMediaQuery,
 } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-interface InvitePartnerSheetProps {
+interface AddPartnerSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-interface InvitePartnerFormData {
-  email: string;
+interface AddPartnerFormData {
+  name?: string;
+  email?: string;
   linkId: string;
 }
 
-function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
+const actionTypes = [
+  {
+    id: "invite",
+    label: "Invite Partner",
+    description: "Partner will be invited via email to join your program",
+  },
+  {
+    id: "enroll",
+    label: "Enroll Partner",
+    description: "Partner is automatically enrolled to your program",
+  },
+];
+
+function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
   const { program } = useProgram();
   const { id: workspaceId, slug } = useWorkspace();
   const { isMobile } = useMediaQuery();
+  const [selectedActionType, setSelectedActionType] = useState<
+    "invite" | "enroll"
+  >("invite");
 
   const {
     register,
@@ -37,21 +57,19 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     setError,
     clearErrors,
     formState: { errors },
-  } = useForm<InvitePartnerFormData>({
-    defaultValues: {
-      email: "",
-      linkId: "",
-    },
-  });
+  } = useForm<AddPartnerFormData>();
 
   const selectedLinkId = watch("linkId");
 
-  const { executeAsync, isExecuting } = useAction(invitePartnerAction, {
+  const { executeAsync, isPending } = useAction(addPartnerAction, {
     onSuccess: async () => {
-      toast.success("Successfully invited partner!");
+      toast.success(
+        `Successfully ${
+          selectedActionType === "invite" ? "invited" : "enrolled"
+        } partner!`,
+      );
       setIsOpen(false);
-
-      // TODO: refresh the invites list
+      program && mutatePrefix(`/api/programs/${program.id}/partners`);
     },
     onError({ error }) {
       toast.error(error.serverError);
@@ -92,30 +110,24 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     return result.id;
   };
 
-  const onSubmit = async (data: InvitePartnerFormData) => {
-    let { linkId } = data;
-
-    try {
-      if (!linkId)
-        setError("linkId", { message: "Please select a referral link" });
-
-      await executeAsync({
-        workspaceId: workspaceId!,
-        programId: program?.id!,
-        email: data.email,
-        linkId,
-      });
-    } catch (error) {
-      toast.error(error.message);
-    }
-  };
-
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
+    <form
+      onSubmit={handleSubmit(async (data) => {
+        await executeAsync({
+          workspaceId: workspaceId!,
+          programId: program?.id!,
+          action: selectedActionType,
+          name: data.name || undefined,
+          email: data.email || undefined,
+          linkId: data.linkId,
+        });
+      })}
+      className="flex h-full flex-col"
+    >
       <div>
         <div className="flex items-start justify-between border-b border-neutral-200 p-6">
           <Sheet.Title className="text-xl font-semibold">
-            Invite partner
+            Add partner
           </Sheet.Title>
           <Sheet.Close asChild>
             <Button
@@ -126,33 +138,110 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
           </Sheet.Close>
         </div>
         <div className="p-6">
-          <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+            {actionTypes.map((actionType) => {
+              const isSelected = actionType.id === selectedActionType;
+
+              return (
+                <label
+                  key={actionType.label}
+                  className={cn(
+                    "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                    "transition-all duration-150",
+                    isSelected &&
+                      "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                  )}
+                >
+                  <input
+                    type="radio"
+                    value={actionType.label}
+                    className="hidden"
+                    checked={isSelected}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedActionType(
+                          actionType.id as "invite" | "enroll",
+                        );
+                      }
+                    }}
+                  />
+                  <div className="flex flex-col gap-1.5 text-sm">
+                    <span className="font-medium">{actionType.label}</span>
+                    <span className="text-xs text-neutral-500">
+                      {actionType.description}
+                    </span>
+                  </div>
+                  <CircleCheckFill
+                    className={cn(
+                      "-mr-px -mt-px flex size-4 shrink-0 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                      isSelected && "scale-100 opacity-100",
+                    )}
+                  />
+                </label>
+              );
+            })}
+          </div>
+          <div className="mt-6 grid gap-6">
+            {selectedActionType === "enroll" && (
+              <div>
+                <label htmlFor="name" className="flex items-center space-x-2">
+                  <h2 className="text-sm font-medium text-neutral-900">
+                    Name{" "}
+                    <span className="font-normal text-neutral-500">
+                      (required)
+                    </span>
+                  </h2>
+                </label>
+                <div className="relative mt-2 rounded-md shadow-sm">
+                  <input
+                    {...register("name")}
+                    className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                    placeholder="John Doe"
+                    type="text"
+                    autoComplete="off"
+                    autoFocus={!isMobile}
+                  />
+                </div>
+              </div>
+            )}
+
             <div>
               <label htmlFor="email" className="flex items-center space-x-2">
-                <h2 className="text-sm font-medium text-gray-900">Email</h2>
+                <h2 className="text-sm font-medium text-neutral-900">
+                  Email{" "}
+                  <span className="font-normal text-neutral-500">
+                    ({selectedActionType === "enroll" ? "optional" : "required"}
+                    )
+                  </span>
+                </h2>
               </label>
               <div className="relative mt-2 rounded-md shadow-sm">
                 <input
                   {...register("email")}
-                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                  className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                   placeholder="panic@thedis.co"
-                  required
                   type="email"
                   autoComplete="off"
-                  autoFocus={!isMobile}
+                  autoFocus={!isMobile && selectedActionType !== "invite"}
                 />
               </div>
+              {selectedActionType === "enroll" && (
+                <p className="mt-1 text-xs text-neutral-500">
+                  Partner will be able to claim their profile by signing up to
+                  Dub Partners with this email
+                </p>
+              )}
             </div>
 
             <div>
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-medium text-gray-900">
+                <h2 className="text-sm font-medium text-neutral-900">
                   Referral link
                 </h2>
                 <a
                   href={`/${slug}/programs/${program?.id}/settings`}
                   target="_blank"
-                  className="text-sm text-gray-500 underline-offset-2 hover:underline"
+                  className="text-sm text-neutral-500 underline-offset-2 hover:underline"
                 >
                   Settings
                 </a>
@@ -191,9 +280,11 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                 </div>
               </AnimatedSizeContainer>
             </div>
+          </div>
 
+          {selectedActionType === "invite" && (
             <div className="mt-8">
-              <h2 className="text-sm font-medium text-gray-900">Preview</h2>
+              <h2 className="text-sm font-medium text-neutral-900">Preview</h2>
               <div className="mt-2 overflow-hidden rounded-md border border-neutral-200">
                 <div className="grid gap-4 p-6 pb-10">
                   <BlurImage
@@ -203,10 +294,10 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                     width={48}
                     height={48}
                   />
-                  <h3 className="font-medium text-gray-900">
+                  <h3 className="font-medium text-neutral-900">
                     {program?.name || "Dub"} invited you to join Dub Partners
                   </h3>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-neutral-500">
                     {program?.name || "Dub"} uses Dub Partners to power their
                     partnership programs and wants to partner with great people
                     like yourself!
@@ -217,15 +308,15 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                     className="w-fit"
                   />
                 </div>
-                <div className="grid gap-1 border-t border-gray-200 bg-gray-50 px-6 py-4">
-                  <p className="text-sm text-gray-500">
-                    <strong className="font-medium text-gray-900">
+                <div className="grid gap-1 border-t border-neutral-200 bg-neutral-50 px-6 py-4">
+                  <p className="text-sm text-neutral-500">
+                    <strong className="font-medium text-neutral-900">
                       From:{" "}
                     </strong>
                     system@dub.co
                   </p>
-                  <p className="text-sm text-gray-500">
-                    <strong className="font-medium text-gray-900">
+                  <p className="text-sm text-neutral-500">
+                    <strong className="font-medium text-neutral-900">
                       Subject:{" "}
                     </strong>
                     You've been invited to Dub Partners
@@ -233,7 +324,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
       <div className="flex grow flex-col justify-end">
@@ -244,14 +335,16 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             onClick={() => setIsOpen(false)}
             text="Cancel"
             className="w-fit"
-            disabled={isExecuting}
+            disabled={isPending}
           />
           <Button
             type="submit"
             variant="primary"
-            text="Send invite"
+            text={
+              selectedActionType === "invite" ? "Send invite" : "Enroll partner"
+            }
             className="w-fit"
-            loading={isExecuting}
+            loading={isPending}
           />
         </div>
       </div>
@@ -259,26 +352,24 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   );
 }
 
-export function InvitePartnerSheet({
+export function AddPartnerSheet({
   isOpen,
   ...rest
-}: InvitePartnerSheetProps & {
+}: AddPartnerSheetProps & {
   isOpen: boolean;
 }) {
   return (
     <Sheet open={isOpen} onOpenChange={rest.setIsOpen}>
-      <InvitePartnerSheetContent {...rest} />
+      <AddPartnerSheetContent {...rest} />
     </Sheet>
   );
 }
 
-export function useInvitePartnerSheet() {
+export function useAddPartnerSheet() {
   const [isOpen, setIsOpen] = useState(false);
 
   return {
-    invitePartnerSheet: (
-      <InvitePartnerSheet setIsOpen={setIsOpen} isOpen={isOpen} />
-    ),
+    addPartnerSheet: <AddPartnerSheet setIsOpen={setIsOpen} isOpen={isOpen} />,
     setIsOpen,
   };
 }

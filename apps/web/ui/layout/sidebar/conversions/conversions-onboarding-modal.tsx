@@ -30,38 +30,25 @@ import { Shopify } from "./icons/shopify";
 import { Stripe } from "./icons/stripe";
 import { Supabase } from "./icons/supabase";
 
-const GUIDE_THUMBNAIL = (title: string, description: string) => {
-  return `https://mintlify.com/docs/api/og?division=Documentation&title=${title}&description=${description}&logoLight=https%3A%2F%2Fmintlify.s3.us-west-1.amazonaws.com%2Fdub%2Flogos%2Fwordmark.svg&logoDark=https%3A%2F%2Fmintlify.s3.us-west-1.amazonaws.com%2Fdub%2Flogos%2Fwordmark-dark.svg&primaryColor=%23eb5611&lightColor=%23eb5611&darkColor=%23eb5611`;
-};
-
 const PAYMENT_PROCESSORS = [
   {
     name: "Stripe",
     icon: Stripe,
     guide: "https://dub.co/docs/conversions/sales/stripe",
-    thumbnail: GUIDE_THUMBNAIL(
-      "Stripe",
-      "Learn how to set up Stripe conversion tracking",
-    ),
+    thumbnail: "https://assets.dub.co/help/conversions-guide-stripe.png",
   },
   {
     name: "Shopify",
     icon: Shopify,
     guide: "https://dub.co/docs/conversions/sales/shopify",
-    thumbnail: GUIDE_THUMBNAIL(
-      "Shopify",
-      "Learn how to set up Shopify conversion tracking",
-    ),
+    thumbnail: "https://assets.dub.co/help/conversions-guide-shopify.png",
   },
   {
     name: "Custom Payments",
     shortName: "Custom",
     icon: Custom,
     guide: "https://dub.co/docs/conversions/sales/introduction",
-    thumbnail: GUIDE_THUMBNAIL(
-      "Custom Payments",
-      "Learn how to set up custom payment conversion tracking",
-    ),
+    thumbnail: "https://assets.dub.co/help/conversions-guide-sales.png",
   },
 ];
 
@@ -70,57 +57,39 @@ const AUTH_PROVIDERS = [
     name: "Auth.js",
     icon: AuthJs,
     guide: "https://dub.co/docs/conversions/leads/next-auth",
-    thumbnail: GUIDE_THUMBNAIL(
-      "Auth.js",
-      "Learn how to set up Auth.js conversion tracking",
-    ),
+    thumbnail: "https://assets.dub.co/help/conversions-guide-next-auth.png",
   },
   {
     name: "Clerk",
     icon: Clerk,
     guide: "https://dub.co/docs/conversions/leads/clerk",
-    thumbnail: GUIDE_THUMBNAIL(
-      "Clerk",
-      "Learn how to set up Clerk conversion tracking",
-    ),
+    thumbnail: "https://assets.dub.co/help/conversions-guide-clerk.png",
   },
   {
     name: "Supabase",
     icon: Supabase,
     guide: "https://dub.co/docs/conversions/leads/supabase-auth",
-    thumbnail: GUIDE_THUMBNAIL(
-      "Supabase",
-      "Learn how to set up Supabase conversion tracking",
-    ),
+    thumbnail: "https://assets.dub.co/help/conversions-guide-supabase.png",
   },
   {
     name: "Auth0",
     icon: Auth0,
     guide: "https://dub.co/docs/conversions/leads/auth0",
-    thumbnail: GUIDE_THUMBNAIL(
-      "Auth0",
-      "Learn how to set up Auth0 conversion tracking",
-    ),
+    thumbnail: "https://assets.dub.co/help/conversions-guide-auth0.png",
   },
   {
     name: "Custom Auth",
     shortName: "Custom",
     icon: Custom,
     guide: "https://dub.co/docs/conversions/leads/introduction",
-    thumbnail: GUIDE_THUMBNAIL(
-      "Custom Auth",
-      "Learn how to set up custom auth conversion tracking",
-    ),
+    thumbnail: "https://assets.dub.co/help/conversions-guide-leads.png",
   },
   {
     name: "Shopify",
     icon: Shopify,
     hidden: true,
     guide: "https://dub.co/docs/conversions/sales/shopify",
-    thumbnail: GUIDE_THUMBNAIL(
-      "Shopify",
-      "Learn how to set up Shopify conversion tracking",
-    ),
+    thumbnail: "https://assets.dub.co/help/conversions-guide-shopify.png",
   },
 ];
 

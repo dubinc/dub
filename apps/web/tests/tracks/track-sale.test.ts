@@ -50,4 +50,20 @@ test("POST /track/sale", async () => {
     metadata: null,
     invoiceId: sale.invoiceId,
   });
+
+  // An externalId that does not exist should return a 304 status code
+  const response2 = await http.post<TrackSaleResponse>({
+    path: "/track/sale",
+    body: {
+      ...sale,
+      externalId: "external-id-that-does-not-exist",
+    },
+  });
+
+  expect(response2.status).toEqual(200);
+  expect(response2.data).toStrictEqual({
+    eventName: "Subscription",
+    customer: null,
+    sale: null,
+  });
 });

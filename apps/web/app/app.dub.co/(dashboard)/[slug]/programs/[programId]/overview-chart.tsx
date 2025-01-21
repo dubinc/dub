@@ -58,7 +58,7 @@ export function OverviewChart() {
         <div className="flex flex-col gap-1 p-2">
           <span className="text-sm text-neutral-500">Revenue</span>
           {!metrics ? (
-            <div className="h-9 w-24 animate-pulse rounded-md bg-neutral-200" />
+            <div className="h-11 w-24 animate-pulse rounded-md bg-neutral-200" />
           ) : (
             <NumberFlow
               value={metrics.revenue / 100}

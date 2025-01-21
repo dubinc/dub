@@ -11,9 +11,8 @@ import {
 import z from "@/lib/zod";
 import { CustomerSchema } from "@/lib/zod/schemas/customers";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
-import { Message } from "@upstash/qstash/.";
 import { WebhookEvent } from "dub/models/components";
-import { describe, expect, it } from "vitest";
+import { describe, expect, test } from "vitest";
 
 const webhook = {
   id: "wh_IFL4j0toU6RAMz4R7mXjJ6C5", // dummy id
@@ -42,12 +41,10 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "sale.created": saleWebhookEventSchemaExtended,
 };
 
-describe.concurrent("suite", () => {
-  WEBHOOK_TRIGGERS.forEach((trigger) => {
-    it(`webhook event - ${trigger}`, async () => {
-      await testWebhookEvent(trigger);
-    });
-  });
+describe("Webhooks", () => {
+  WEBHOOK_TRIGGERS.map((trigger) =>
+    test.concurrent(trigger, () => testWebhookEvent(trigger)),
+  );
 });
 
 const testWebhookEvent = async (trigger: WebhookTrigger) => {
@@ -63,17 +60,16 @@ const testWebhookEvent = async (trigger: WebhookTrigger) => {
     throw new Error("No response from sendWebhooks");
   }
 
-  const messageId = response[0].messageId;
-  const qstashMessage = await qstash.messages.get(messageId);
-
-  assertQstashMessage(qstashMessage, data, trigger);
+  await assertQstashMessage(response[0].messageId, data, trigger);
 };
 
 const assertQstashMessage = async (
-  qstashMessage: Message,
+  messageId: string,
   body: any,
   trigger: WebhookTrigger,
 ) => {
+  const qstashMessage = await qstash.messages.get(messageId);
+
   const callbackUrl = new URL(qstashMessage.callback!);
   const failureCallbackUrl = new URL(qstashMessage.failureCallback!);
   const receivedBody = JSON.parse(qstashMessage.body!) as WebhookEvent;

@@ -15,3 +15,7 @@ export const randomCustomer = () => {
     avatar: `https://api.dicebear.com/9.x/notionists/png?seed=${customerId}`,
   };
 };
+
+export const randomTagName = () => {
+  return `e2e-${randomId()}`;
+};

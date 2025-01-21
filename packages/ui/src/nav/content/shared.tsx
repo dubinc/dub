@@ -4,10 +4,20 @@ import { ComponentProps, ReactNode, SVGProps } from "react";
 import { ExpandingArrow, Icon } from "../../icons";
 
 export const contentHeadingClassName =
-  "text-xs uppercase text-neutral-400 dark:text-white/60";
+  "text-xs uppercase text-neutral-500 dark:text-white/60";
 
 export const contentLinkCardClassName =
   "group rounded-[8px] p-2 transition-colors hover:bg-neutral-50 active:bg-neutral-100 dark:hover:bg-white/[0.15] dark:active:bg-white/20";
+
+export const getUtmParams = ({
+  domain,
+  ...rest
+}: { domain: string } & Record<string, string>) => ({
+  utm_source: "Custom Domain",
+  utm_medium: "Navbar",
+  utm_campaign: domain,
+  ...rest,
+});
 
 export function ContentLinkCard({
   icon,
@@ -87,16 +97,18 @@ export function LargeLinkCard({
   icon: Icon,
   title,
   description,
+  iconClassName,
   ...rest
 }: {
   icon: Icon;
   title: string;
   description?: string;
+  iconClassName?: string;
 } & ComponentProps<typeof Link>) {
   return (
     <Link
       {...rest}
-      className="group relative flex flex-col rounded-xl border border-neutral-100 bg-neutral-50 transition-colors duration-150 hover:bg-neutral-100 active:bg-neutral-200 dark:border-white/20 dark:bg-white/10 dark:hover:bg-white/15 dark:active:bg-white/20"
+      className="group relative flex flex-col justify-center rounded-xl border border-neutral-100 bg-neutral-50 transition-colors duration-150 hover:bg-neutral-100 active:bg-neutral-200 dark:border-white/20 dark:bg-white/10 dark:hover:bg-white/15 dark:active:bg-white/20"
     >
       <div className="flex items-center justify-between px-5 py-4">
         <div>
@@ -107,7 +119,12 @@ export function LargeLinkCard({
             {description}
           </p>
         </div>
-        <Icon className="size-6 text-neutral-700 dark:text-neutral-200" />
+        <Icon
+          className={cn(
+            "size-6 text-neutral-700 dark:text-neutral-200",
+            iconClassName,
+          )}
+        />
       </div>
     </Link>
   );
