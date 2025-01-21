@@ -18,7 +18,7 @@ export const createManualPayoutSchema = z.object({
       return isNaN(parsed) ? 0 : parsed;
     }, z.number())
     .optional(),
-  type: z.nativeEnum(PayoutType),
+  type: z.enum(["custom", "clicks", "leads"]),
   description: z
     .string()
     .max(190, "Description must be less than 190 characters")

@@ -2,7 +2,6 @@
 
 import { createManualPayoutAction } from "@/lib/actions/partners/create-manual-payout";
 import { AnalyticsResponseOptions } from "@/lib/analytics/types";
-import { calculateEarnings } from "@/lib/api/sales/calculate-earnings";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
@@ -85,12 +84,13 @@ type FormData = z.infer<typeof schema>;
 function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
   const { setIsOpen } = props;
 
+  const router = useRouter();
   const dateRangePickerId = useId();
   const { program } = useProgram();
   const { data: partners } = usePartners();
   const { id: workspaceId } = useWorkspace();
-  const router = useRouter();
   const { slug, programId } = useParams();
+
   const formRef = useRef<HTMLFormElement>(null);
   const { handleKeyDown } = useEnterSubmit(formRef);
 
@@ -109,9 +109,6 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
   });
 
   const { type: payoutType, start, end, amount, partnerId } = watch();
-
-  const isPercentageBased =
-    payoutType === "sales" && program?.commissionType === "percentage";
 
   const partnerOptions = useMemo(() => {
     return partners?.map((partner) => ({
@@ -149,7 +146,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
   });
 
   const onSubmit = async (data: FormData) => {
-    if (!workspaceId || !program || !partnerId) {
+    if (!workspaceId || !program || !partnerId || !amount) {
       toast.error("Please fill all required fields");
       return;
     }
@@ -167,10 +164,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
       programId: program.id,
       start: startDate ? new Date(startDate).toISOString() : undefined,
       end: endDate ? new Date(endDate).toISOString() : undefined,
-      ...(payoutType != "sales" &&
-        amount && {
-          amount: amount * 100,
-        }),
+      amount: amount * 100,
       partnerId,
     });
   };
@@ -188,16 +182,10 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
     [workspaceId, selectedPartner?.id, start, end],
   );
 
-  const shouldRequestSales = useMemo(
-    () => !!(payoutType === "sales" && start && end && selectedPartner?.link),
-    [payoutType, start, end, selectedPartner?.link],
-  );
-
   const { data: totalEvents, isValidating } = useSWR<{
     [key in AnalyticsResponseOptions]: number;
   }>(
     payoutType !== "custom" &&
-      payoutType !== "sales" &&
       start &&
       end &&
       selectedPartner?.link &&
@@ -212,60 +200,24 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
     fetcher,
   );
 
-  const { data: salesAmount, isValidating: isValidatingSalesAmount } = useSWR<{
-    amount: number;
-  }>(
-    shouldRequestSales &&
-      `/api/programs/${program?.id}/sales/amount?${salesSearchParams.toString()}`,
-    fetcher,
-  );
-
-  const { data: salesCount, isValidating: isValidatingSalesCount } = useSWR<{
-    pending: number;
-    duplicate: number;
-    fraud: number;
-  }>(
-    shouldRequestSales &&
-      `/api/programs/${program?.id}/sales/count?${salesSearchParams.toString()}`,
-    fetcher,
-  );
-
   // Calculate payout amount
   const payoutAmount = useMemo(() => {
     if (payoutType === "custom") {
       return amount;
     }
 
-    const quantity =
-      payoutType === "sales" ? salesCount?.pending : totalEvents?.[payoutType];
+    const quantity = totalEvents?.[payoutType];
 
-    if (isPercentageBased && salesAmount?.amount) {
-      return (
-        calculateEarnings({
-          program,
-          partner: selectedPartner,
-          sales: 1,
-          saleAmount: salesAmount.amount,
-        }) / 100
-      );
+    if (!quantity || !amount) {
+      return;
     }
 
-    return quantity && amount ? quantity * amount : undefined;
-  }, [
-    payoutType,
-    salesCount,
-    totalEvents,
-    amount,
-    isPercentageBased,
-    salesAmount,
-    program,
-  ]);
+    return quantity * amount;
+  }, [payoutType, totalEvents, amount]);
 
   // Invoice summary
   const invoiceData = useMemo(() => {
-    const quantity =
-      payoutType === "sales" ? salesCount?.pending : totalEvents?.[payoutType];
-
+    const quantity = totalEvents?.[payoutType];
     const amountAsNumber = amount ? Number(amount) : undefined;
 
     return {
@@ -298,36 +250,20 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
         }),
 
       ...(payoutType !== "custom" && {
-        [capitalize(payoutType) as string]:
-          isValidating || isValidatingSalesCount ? (
-            <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
-          ) : (
-            nFormatter(quantity, {
-              full: true,
-            })
-          ),
+        [capitalize(payoutType) as string]: isValidating ? (
+          <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
+        ) : (
+          nFormatter(quantity, {
+            full: true,
+          })
+        ),
 
         [`Reward per ${payoutType.replace(/s$/, "")}`]: amountAsNumber
-          ? !isPercentageBased
-            ? currencyFormatter(amountAsNumber, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })
-            : `${amountAsNumber}%`
+          ? currencyFormatter(amountAsNumber, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })
           : "-",
-      }),
-
-      ...(payoutType === "sales" && {
-        Revenue: isValidatingSalesAmount ? (
-          <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
-        ) : salesAmount?.amount ? (
-          currencyFormatter(salesAmount.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })
-        ) : (
-          "-"
-        ),
       }),
 
       ...(payoutAmount && {
@@ -350,18 +286,11 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
     totalEvents,
     amount,
     isValidating,
-    isValidatingSalesAmount,
-    isValidatingSalesCount,
     payoutAmount,
   ]);
 
   const buttonDisabled =
-    isPending ||
-    isValidating ||
-    isValidatingSalesAmount ||
-    isValidatingSalesCount ||
-    !partnerId ||
-    !payoutAmount;
+    isPending || isValidating || !partnerId || !payoutAmount;
 
   return (
     <form
@@ -508,7 +437,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
               {...register("type", { required: true })}
               className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
               onChange={(e) => {
-                const type = e.target.value as PayoutType;
+                const type = e.target.value as Exclude<PayoutType, "sales">;
 
                 setValue("type", type);
 
@@ -516,24 +445,17 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
                   clearErrors(["start", "end"]);
                 }
 
-                if (type === "sales" && program?.commissionAmount) {
-                  setValue(
-                    "amount",
-                    program.commissionType === "percentage"
-                      ? program.commissionAmount
-                      : program.commissionAmount / 100,
-                  );
-                } else {
-                  // @ts-ignore
-                  setValue("amount", null);
-                }
+                // @ts-ignore
+                setValue("amount", null);
               }}
             >
-              {Object.values(PayoutType).map((type) => (
-                <option key={type} value={type}>
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </option>
-              ))}
+              {Object.values(PayoutType)
+                .filter((type) => type !== "sales")
+                .map((type) => (
+                  <option key={type} value={type}>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -543,43 +465,28 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
               className="flex justify-between text-sm font-medium text-neutral-800"
             >
               Reward amount
-              {payoutType === "sales" && (
-                <a
-                  href={`/${slug}/programs/${programId}/settings`}
-                  target="_blank"
-                  className="font-normal text-gray-400 underline-offset-2 transition-all hover:text-gray-600 hover:underline"
-                >
-                  Manage
-                </a>
-              )}
             </label>
             <div className="relative mt-2 rounded-md shadow-sm">
-              {!isPercentageBased && (
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-                  $
-                </span>
-              )}
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                $
+              </span>
               <input
                 className={cn(
                   "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                  "pr-[6.5rem]",
-                  payoutType === "sales" &&
-                    "cursor-not-allowed bg-neutral-100 text-neutral-500",
+                  "pl-6 pr-[6.5rem]",
                   payoutType === "custom" && "pr-12",
-                  !isPercentageBased && "pl-6",
                   errors.amount &&
                     "border-red-600 focus:border-red-500 focus:ring-red-600",
                 )}
                 {...register("amount", {
                   required: true,
                   valueAsNumber: true,
-                  disabled: payoutType === "sales",
                 })}
                 autoComplete="off"
                 placeholder="100"
               />
               <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-                {isPercentageBased ? "%" : "USD"}
+                USD
                 {payoutType !== "custom" &&
                   ` per ${payoutType.replace(/s$/, "")}`}
               </span>
