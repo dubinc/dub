@@ -9,10 +9,10 @@ import {
   MIN_PAYOUT_AMOUNT,
 } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
+import { sendEmail } from "@dub/email";
+import { PartnerPayoutConfirmed } from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { sendEmail } from "emails";
-import PartnerPayoutConfirmed from "emails/partner-payout-confirmed";
 import z from "zod";
 import { authActionClient } from "../safe-action";
 

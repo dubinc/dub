@@ -1,10 +1,10 @@
 import { markDomainAsDeleted } from "@/lib/api/domains";
 import { limiter } from "@/lib/cron/limiter";
+import { sendEmail } from "@dub/email";
+import { DomainDeleted } from "@dub/email/templates/domain-deleted";
+import { InvalidDomain } from "@dub/email/templates/invalid-domain";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
-import { sendEmail } from "emails";
-import DomainDeleted from "emails/domain-deleted";
-import InvalidDomain from "emails/invalid-domain";
 
 export const handleDomainUpdates = async ({
   domain,

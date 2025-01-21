@@ -1,8 +1,8 @@
 import { limiter } from "@/lib/cron/limiter";
 import { stripe } from "@/lib/stripe";
+import { sendEmail } from "@dub/email";
+import { PartnerPayoutSent } from "@dub/email/templates/partner-payout-sent";
 import { prisma } from "@dub/prisma";
-import { sendEmail } from "emails";
-import PartnerPayoutSent from "emails/partner-payout-sent";
 import Stripe from "stripe";
 
 export async function chargeSucceeded(event: Stripe.Event) {
