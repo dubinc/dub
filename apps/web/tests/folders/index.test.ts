@@ -1,6 +1,5 @@
 import z from "@/lib/zod";
 import { FolderSchema } from "@/lib/zod/schemas/folders";
-import { Folder } from "@dub/prisma/client";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
@@ -13,9 +12,11 @@ describe.sequential("/folders/**", async () => {
   let folderCreated: FolderRecord | undefined;
 
   test("POST /folders", async () => {
-    const { status, data } = await http.post<Folder>({
+    const { status, data } = await http.post<FolderRecord>({
       path: "/folders",
-      query: { workspaceId: workspace.id },
+      query: {
+        workspaceId: workspace.id,
+      },
       body: {
         name: "Documents",
       },
@@ -33,7 +34,9 @@ describe.sequential("/folders/**", async () => {
   test("GET /folders", async () => {
     const { status, data } = await http.get<FolderRecord[]>({
       path: "/folders",
-      query: { workspaceId: workspace.id },
+      query: {
+        workspaceId: workspace.id,
+      },
     });
 
     expect(status).toEqual(200);
@@ -43,7 +46,9 @@ describe.sequential("/folders/**", async () => {
   test("PATCH /folders/{folderId}", { retry: 3 }, async () => {
     const { status, data } = await http.patch<FolderRecord>({
       path: `/folders/${folderCreated?.id}`,
-      query: { workspaceId: workspace.id },
+      query: {
+        workspaceId: workspace.id,
+      },
       body: {
         name: "Documents-1",
       },
@@ -59,7 +64,9 @@ describe.sequential("/folders/**", async () => {
   test("DELETE /folders/{folderId}", async () => {
     const { status, data } = await http.delete<{ id: string }>({
       path: `/folders/${folderCreated?.id}`,
-      query: { workspaceId: workspace.id },
+      query: {
+        workspaceId: workspace.id,
+      },
     });
 
     expect(status).toEqual(200);

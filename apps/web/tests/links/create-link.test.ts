@@ -399,7 +399,7 @@ describe.sequential("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
     });
 
-    afterAll(async () => {
+    onTestFinished(async () => {
       await Promise.all([h.deleteFolder(folder.id), h.deleteLink(link.id)]);
     });
   });
