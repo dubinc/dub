@@ -99,7 +99,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   });
 
   //  Filter out payouts that:
-  //  - Belong to a partner that doesn’t have `payoutsEnabled`
+  //  - Belong to a partner that doesn't have `payoutsEnabled`
   //  - Payout amount is less than $10
   const pendingPayouts = useMemo(
     () =>
@@ -182,14 +182,9 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
                 )
               }
             >
-              {paymentMethodsWithFee?.map(({ id, icon: Icon, title }) => (
+              {paymentMethodsWithFee?.map(({ id, title }) => (
                 <option key={id} value={id}>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-neutral-500">
-                      <Icon className="size-4" />
-                    </span>
-                    <span>{title}</span>
-                  </div>
+                  {title}
                 </option>
               ))}
             </select>
