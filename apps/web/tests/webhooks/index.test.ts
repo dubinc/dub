@@ -42,8 +42,10 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
 };
 
 describe("Webhooks", () => {
-  WEBHOOK_TRIGGERS.map((trigger) =>
-    test.concurrent(trigger, () => testWebhookEvent(trigger), 10000),
+  test.each(WEBHOOK_TRIGGERS)(
+    "%s",
+    async (trigger: WebhookTrigger) => await testWebhookEvent(trigger),
+    10000,
   );
 });
 
@@ -69,6 +71,8 @@ const assertQstashMessage = async (
   trigger: WebhookTrigger,
 ) => {
   const qstashMessage = await qstash.messages.get(messageId);
+
+  console.log(`Got qstash message for ${trigger}`, qstashMessage.messageId);
 
   const callbackUrl = new URL(qstashMessage.callback!);
   const failureCallbackUrl = new URL(qstashMessage.failureCallback!);
