@@ -190,8 +190,8 @@ export const analyticsQuerySchema = z.object({
     ),
   utmTag: z
     .string()
-    .optional()
     .default("utm_source")
+    .optional()
     .describe("The UTM tag to filter for. Defaults to `utm_source`."),
 });
 
