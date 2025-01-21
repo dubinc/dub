@@ -88,7 +88,7 @@ export function PartnerPayoutConfirmed({
             </Text>
             <Text className="text-sm leading-6 text-gray-600">
               The payout is currently being processed and is expected to be
-              credited to your account within 4 business days.
+              credited to your account within 5 business days.
             </Text>
 
             <Section className="mb-12 mt-8">
