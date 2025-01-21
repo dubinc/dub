@@ -1,4 +1,4 @@
-import { getProgramOrThrow } from "@/lib/api/programs/get-program";
+import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { partnerInvitesQuerySchema } from "@/lib/zod/schemas/partners";
 import { ProgramInviteSchema } from "@/lib/zod/schemas/programs";

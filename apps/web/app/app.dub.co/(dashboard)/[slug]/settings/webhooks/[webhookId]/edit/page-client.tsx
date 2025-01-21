@@ -5,7 +5,7 @@ import { WebhookProps } from "@/lib/types";
 import AddEditWebhookForm from "@/ui/webhooks/add-edit-webhook-form";
 import { MaxWidthWrapper } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import useSWR from "swr";
 
 export default function UpdateWebhookPageClient({
@@ -13,11 +13,7 @@ export default function UpdateWebhookPageClient({
 }: {
   webhookId: string;
 }) {
-  const { slug, flags, id: workspaceId } = useWorkspace();
-
-  if (!flags?.webhooks) {
-    redirect(`/${slug}/settings`);
-  }
+  const { id: workspaceId } = useWorkspace();
 
   const { data: webhook, isLoading } = useSWR<WebhookProps>(
     `/api/webhooks/${webhookId}?workspaceId=${workspaceId}`,

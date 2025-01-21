@@ -1,3 +1,4 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { LinkProps } from "@/lib/types";
@@ -23,7 +24,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 
 type TransferLinkModalProps = {
   showTransferLinkModal: boolean;
@@ -72,11 +72,7 @@ function TransferLinkModalInner({
       body: JSON.stringify({ newWorkspaceId }),
     }).then(async (res) => {
       if (res.ok) {
-        mutate(
-          (key) => typeof key === "string" && key.startsWith("/api/links"),
-          undefined,
-          { revalidate: true },
-        );
+        mutatePrefix("/api/links");
         setShowTransferLinkModal(false);
         return true;
       } else {

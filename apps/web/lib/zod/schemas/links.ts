@@ -1,3 +1,4 @@
+import { ErrorCode } from "@/lib/api/errors";
 import z from "@/lib/zod";
 import {
   COUNTRY_CODES,
@@ -61,6 +62,12 @@ const LinksQuerySchema = z.object({
       "The search term to filter the links by. The search term will be matched against the short link slug and the destination url.",
     ),
   userId: z.string().optional().describe("The user ID to filter the links by."),
+  tenantId: z
+    .string()
+    .optional()
+    .describe(
+      "The ID of the tenant that created the link inside your system. If set, will only return links for the specified tenant.",
+    ),
   showArchived: booleanQuerySchema
     .optional()
     .default("false")
@@ -76,15 +83,23 @@ const LinksQuerySchema = z.object({
     .openapi({ deprecated: true }),
 });
 
-export const getLinksQuerySchema = LinksQuerySchema.merge(
+const sortBy = z
+  .enum(["createdAt", "clicks", "saleAmount", "lastClicked"])
+  .optional()
+  .default("createdAt")
+  .describe("The field to sort the links by. The default is `createdAt`.");
+
+export const getLinksQuerySchemaBase = LinksQuerySchema.merge(
   z.object({
-    sort: z
-      .enum(["createdAt", "clicks", "lastClicked"])
+    sortBy,
+    sortOrder: z
+      .enum(["asc", "desc"])
       .optional()
-      .default("createdAt")
-      .describe(
-        "The field to sort the links by. The default is `createdAt`, and sort order is always descending.",
-      ),
+      .default("desc")
+      .describe("The sort order. The default is `desc`."),
+    sort: sortBy
+      .openapi({ deprecated: true })
+      .describe("DEPRECATED. Use `sortBy` instead."),
   }),
 ).merge(getPaginationQuerySchema({ pageSize: 100 }));
 
@@ -102,7 +117,7 @@ export const getLinksCountQuerySchema = LinksQuerySchema.merge(
   }),
 );
 
-export const linksExportQuerySchema = getLinksQuerySchema
+export const linksExportQuerySchema = getLinksQuerySchemaBase
   .omit({ page: true, pageSize: true })
   .merge(
     z.object({
@@ -169,9 +184,16 @@ export const createLinkBodySchema = z.object({
     .transform((v) => (v?.startsWith("ext_") ? v.slice(4) : v))
     .nullish()
     .describe(
-      "This is the ID of the link in your database. If set, it can be used to identify the link in the future. Must be prefixed with `ext_` when passed as a query parameter.",
+      "The ID of the link in your database. If set, it can be used to identify the link in future API requests (must be prefixed with 'ext_' when passed as a query parameter). This key is unique across your workspace.",
     )
     .openapi({ example: "123456" }),
+  tenantId: z
+    .string()
+    .max(255)
+    .nullish()
+    .describe(
+      "The ID of the tenant that created the link inside your system. If set, it can be used to fetch all links for a tenant.",
+    ),
   prefix: z
     .string()
     .optional()
@@ -181,19 +203,20 @@ export const createLinkBodySchema = z.object({
   trackConversion: z
     .boolean()
     .optional()
-    .default(false)
-    .describe("Whether to track conversions for the short link."),
+    .describe(
+      "Whether to track conversions for the short link. Defaults to `false` if not provided.",
+    ),
   archived: z
     .boolean()
     .optional()
-    .default(false)
-    .describe("Whether the short link is archived."),
+    .describe(
+      "Whether the short link is archived. Defaults to `false` if not provided.",
+    ),
   publicStats: z
     .boolean()
     .optional()
-    .default(false)
     .describe(
-      "Deprecated: Use `dashboard` instead. Whether the short link's stats are publicly accessible.",
+      "Deprecated: Use `dashboard` instead. Whether the short link's stats are publicly accessible. Defaults to `false` if not provided.",
     )
     .openapi({ deprecated: true }),
   tagId: z
@@ -237,8 +260,9 @@ export const createLinkBodySchema = z.object({
   proxy: z
     .boolean()
     .optional()
-    .default(false)
-    .describe("Whether the short link uses Custom Social Media Cards feature."),
+    .describe(
+      "Whether the short link uses Custom Social Media Cards feature. Defaults to `false` if not provided.",
+    ),
   title: z
     .string()
     .nullish()
@@ -266,8 +290,9 @@ export const createLinkBodySchema = z.object({
   rewrite: z
     .boolean()
     .optional()
-    .default(false)
-    .describe("Whether the short link uses link cloaking."),
+    .describe(
+      "Whether the short link uses link cloaking. Defaults to `false` if not provided.",
+    ),
   ios: parseUrlSchema
     .nullish()
     .describe(
@@ -288,7 +313,6 @@ export const createLinkBodySchema = z.object({
   doIndex: z
     .boolean()
     .optional()
-    .default(false)
     .describe(
       "Allow search engines to index your short link. Defaults to `false` if not provided. Learn more: https://d.to/noindex",
     ),
@@ -340,7 +364,7 @@ export const createLinkBodySchema = z.object({
     ),
 });
 
-export const updateLinkBodySchema = createLinkBodySchema.partial().optional();
+export const updateLinkBodySchema = createLinkBodySchema.partial();
 
 export const bulkCreateLinksBodySchema = z
   .array(createLinkBodySchema)
@@ -400,12 +424,18 @@ export const LinkSchema = z
     trackConversion: z
       .boolean()
       .default(false)
-      .describe("[BETA] Whether to track conversions for the short link."),
+      .describe("Whether to track conversions for the short link."),
     externalId: z
       .string()
       .nullable()
       .describe(
-        "This is the ID of the link in your database that is unique across your workspace. If set, it can be used to identify the link in future API requests. Must be prefixed with 'ext_' when passed as a query parameter.",
+        "The ID of the link in your database. If set, it can be used to identify the link in future API requests (must be prefixed with 'ext_' when passed as a query parameter). This key is unique across your workspace.",
+      ),
+    tenantId: z
+      .string()
+      .nullable()
+      .describe(
+        "The ID of the tenant that created the link inside your system. If set, it can be used to fetch all links for a tenant.",
       ),
     archived: z
       .boolean()
@@ -556,16 +586,16 @@ export const LinkSchema = z
     leads: z
       .number()
       .default(0)
-      .describe("[BETA]: The number of leads the short links has generated."),
+      .describe("The number of leads the short links has generated."),
     sales: z
       .number()
       .default(0)
-      .describe("[BETA]: The number of sales the short links has generated."),
+      .describe("The number of sales the short links has generated."),
     saleAmount: z
       .number()
       .default(0)
       .describe(
-        "[BETA]: The total dollar amount of sales the short links has generated (in cents).",
+        "The total dollar amount of sales the short links has generated (in cents).",
       ),
     createdAt: z
       .string()
@@ -586,6 +616,14 @@ export const LinkSchema = z
   })
   .openapi({ title: "Link" });
 
+export const LinkErrorSchema = z
+  .object({
+    link: z.any().describe("The link that caused the error."),
+    error: z.string().describe("The error message."),
+    code: ErrorCode.describe("The error code."),
+  })
+  .openapi({ title: "LinkError" });
+
 export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
   z.object({
     linkId: z
@@ -600,8 +638,7 @@ export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
       .openapi({ example: "123456" }),
   }),
 );
-
-export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
+export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
   z.object({
     // Only Dub UI uses the following query parameters
     includeUser: booleanQuerySchema.default("false"),

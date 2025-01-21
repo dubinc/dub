@@ -4,11 +4,13 @@ import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
   Link,
   PayoutStatus,
+  Prisma,
   ProgramEnrollmentStatus,
   Project,
   SaleStatus,
   UtmTemplate,
   Webhook,
+  YearInReview,
 } from "@dub/prisma/client";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import { clickEventResponseSchema } from "./zod/schemas/clicks";
@@ -18,6 +20,7 @@ import {
   CustomerSchema,
 } from "./zod/schemas/customers";
 import { dashboardSchema } from "./zod/schemas/dashboard";
+import { DiscountSchema } from "./zod/schemas/discount";
 import { integrationSchema } from "./zod/schemas/integration";
 import { InvoiceSchema } from "./zod/schemas/invoices";
 import {
@@ -53,7 +56,7 @@ import { usageResponse } from "./zod/schemas/usage";
 import {
   createWebhookSchema,
   webhookEventSchemaTB,
-  webhookSchema,
+  WebhookSchema,
 } from "./zod/schemas/webhooks";
 
 export type LinkProps = Link;
@@ -85,7 +88,6 @@ export interface RedisLinkProps {
   password?: boolean;
   proxy?: boolean;
   rewrite?: boolean;
-  iframeable?: boolean;
   expiresAt?: Date;
   expiredUrl?: string;
   ios?: string;
@@ -113,7 +115,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "webhooks" | "noDubLink" | "linkFolders";
+export type BetaFeatures = "noDubLink" | "linkFolders";
 
 export type AddOns = "conversion" | "sso";
 
@@ -132,6 +134,7 @@ export interface WorkspaceProps extends Project {
   flags?: {
     [key in BetaFeatures]: boolean;
   };
+  store: Record<string, any> | null;
 }
 
 export type ExpandedWorkspaceProps = WorkspaceProps & {
@@ -139,6 +142,7 @@ export type ExpandedWorkspaceProps = WorkspaceProps & {
     id: string;
     name: string;
   }[];
+  yearInReview: YearInReview | null;
 };
 
 export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;
@@ -302,11 +306,13 @@ export type InstalledIntegrationInfoProps = Pick<
       image: string | null;
     };
   } | null;
+  credentials?: Prisma.JsonValue;
+  webhookId?: string; // Only if the webhook is managed by an integration
 };
 
 export type WebhookTrigger = keyof typeof WEBHOOK_TRIGGER_DESCRIPTIONS;
 
-export type WebhookProps = z.infer<typeof webhookSchema>;
+export type WebhookProps = z.infer<typeof WebhookSchema>;
 
 export type NewWebhook = z.infer<typeof createWebhookSchema>;
 
@@ -314,7 +320,7 @@ export type WebhookEventProps = z.infer<typeof webhookEventSchemaTB>;
 
 export type WebhookCacheProps = Pick<
   Webhook,
-  "id" | "url" | "secret" | "triggers"
+  "id" | "url" | "secret" | "triggers" | "disabledAt"
 >;
 
 export type TrackLeadResponse = z.infer<typeof trackLeadResponseSchema>;
@@ -341,6 +347,8 @@ export type PartnerProps = z.infer<typeof PartnerSchema>;
 
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
 
+export type DiscountProps = z.infer<typeof DiscountSchema>;
+
 export type ProgramProps = z.infer<typeof ProgramSchema>;
 
 export type ProgramInviteProps = z.infer<typeof ProgramInviteSchema>;
@@ -363,6 +371,9 @@ export type PayoutResponse = z.infer<typeof PayoutResponseSchema>;
 
 export type PartnerPayoutResponse = z.infer<typeof PartnerPayoutResponseSchema>;
 
+export type SegmentIntegrationCredentials = {
+  writeKey?: string;
+};
 export type InvoiceProps = z.infer<typeof InvoiceSchema>;
 
 export type CustomerActivity = z.infer<typeof customerActivitySchema>;

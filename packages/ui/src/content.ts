@@ -4,18 +4,25 @@ import {
   ConnectedDotsFill,
   CubeSettingsFill,
   FeatherFill,
+  Github,
   Go,
   HeadsetFill,
+  HeartFill,
+  HexadecagonStar,
   Hyperlink,
   LinesY,
+  LinkedIn,
   Php,
   ProductHunt,
   Python,
   Raycast,
   Ruby,
+  Twitter,
   Typescript,
+  YouTube,
 } from "./icons";
 import { Elxo } from "./icons/elxo";
+import { Logo } from "./logo";
 
 export const FEATURES_LIST = [
   {
@@ -28,7 +35,7 @@ export const FEATURES_LIST = [
     title: "Dub Analytics",
     description: "Powerful real-time analytics",
     icon: LinesY,
-    href: "/help/article/dub-analytics",
+    href: "/analytics",
   },
   {
     title: "Dub API",
@@ -106,6 +113,33 @@ export const SDKS = [
 
 export const RESOURCES = [
   {
+    icon: Book2Fill,
+    title: "Docs",
+    description: "Platform documentation",
+    href: "/docs/introduction",
+  },
+  {
+    icon: HeadsetFill,
+    title: "Help Center",
+    description: "Answers to your questions",
+    href: "/help",
+  },
+  {
+    icon: HexadecagonStar,
+    title: "Dub Brand",
+    description: "Logos, wordmark, etc.",
+    href: "/brand",
+  },
+];
+
+export const COMPANY = [
+  {
+    icon: Logo,
+    title: "About",
+    description: "Company and team",
+    href: "/about",
+  },
+  {
     icon: FeatherFill,
     title: "Blog",
     description: "Insights and stories",
@@ -118,16 +152,10 @@ export const RESOURCES = [
     href: "/changelog",
   },
   {
-    icon: Book2Fill,
-    title: "Docs",
-    description: "Platform documentation",
-    href: "/docs/introduction",
-  },
-  {
-    icon: HeadsetFill,
-    title: "Help Center",
-    description: "Answers to your questions",
-    href: "/help",
+    icon: HeartFill,
+    title: "Customers",
+    description: "Success stories and use cases",
+    href: "/customers",
   },
 ];
 
@@ -144,4 +172,23 @@ export const LEGAL_PAGES = [
   { name: "DPA", slug: "dpa" },
   { name: "Subprocessors", slug: "subprocessors" },
   { name: "Report Abuse", slug: "abuse" },
+];
+
+export const SOCIAL_LINKS = [
+  { name: "X (Twitter)", icon: Twitter, href: "https://x.com/dubdotco" },
+  {
+    name: "LinkedIn",
+    icon: LinkedIn,
+    href: "https://www.linkedin.com/company/dubinc",
+  },
+  {
+    name: "GitHub",
+    icon: Github,
+    href: "https://github.com/dubinc/dub",
+  },
+  {
+    name: "YouTube",
+    icon: YouTube,
+    href: "https://www.youtube.com/@dubdotco",
+  },
 ];

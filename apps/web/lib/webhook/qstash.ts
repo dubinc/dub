@@ -1,12 +1,16 @@
 import { qstash } from "@/lib/cron";
 import { webhookPayloadSchema } from "@/lib/webhook/schemas";
-import { Webhook } from "@dub/prisma/client";
+import { Webhook, WebhookReceiver } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { formatEventForSegment } from "../integrations/segment/transform";
+import { createSegmentBasicAuthHeader } from "../integrations/segment/utils";
+import { formatEventForSlack } from "../integrations/slack/transform";
 import { WebhookTrigger } from "../types";
 import z from "../zod";
 import { createWebhookSignature } from "./signature";
 import { prepareWebhookPayload } from "./transform";
 import { EventDataProps } from "./types";
+import { identifyWebhookReceiver } from "./utils";
 
 // Send webhooks to multiple webhooks
 export const sendWebhooks = async ({
@@ -32,25 +36,39 @@ export const sendWebhooks = async ({
 };
 
 // Publish webhook event to QStash
-export const publishWebhookEventToQStash = async ({
+const publishWebhookEventToQStash = async ({
   webhook,
   payload,
 }: {
   webhook: Pick<Webhook, "id" | "url" | "secret">;
   payload: z.infer<typeof webhookPayloadSchema>;
 }) => {
-  const callbackUrl = `${APP_DOMAIN_WITH_NGROK}/api/webhooks/callback?webhookId=${webhook.id}`;
-  const signature = await createWebhookSignature(webhook.secret, payload);
+  const callbackUrl = new URL(`${APP_DOMAIN_WITH_NGROK}/api/webhooks/callback`);
+  callbackUrl.searchParams.append("webhookId", webhook.id);
+  callbackUrl.searchParams.append("eventId", payload.id);
+  callbackUrl.searchParams.append("event", payload.event);
+
+  const receiver = identifyWebhookReceiver(webhook.url);
+  const finalPayload = transformPayload({ payload, receiver });
+  const signature = await createWebhookSignature(webhook.secret, finalPayload);
 
   const response = await qstash.publishJSON({
     url: webhook.url,
-    body: payload,
+    body: finalPayload,
     headers: {
       "Dub-Signature": signature,
       "Upstash-Hide-Headers": "true",
+
+      // Integration specific headers
+      ...(receiver === "segment" && {
+        "Upstash-Forward-Authorization": createSegmentBasicAuthHeader(
+          webhook.secret,
+        ),
+      }),
     },
-    callback: callbackUrl,
-    failureCallback: callbackUrl,
+    callback: callbackUrl.href,
+    failureCallback: callbackUrl.href,
+    ...(process.env.NODE_ENV === "test" && { delay: 5 }),
   });
 
   if (!response.messageId) {
@@ -58,4 +76,22 @@ export const publishWebhookEventToQStash = async ({
   }
 
   return response;
+};
+
+// Transform the payload based on the integration
+const transformPayload = ({
+  payload,
+  receiver,
+}: {
+  payload: z.infer<typeof webhookPayloadSchema>;
+  receiver: WebhookReceiver;
+}) => {
+  switch (receiver) {
+    case "slack":
+      return formatEventForSlack(payload);
+    case "segment":
+      return formatEventForSegment(payload);
+    default:
+      return payload;
+  }
 };

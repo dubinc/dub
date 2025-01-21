@@ -1,5 +1,6 @@
 "use client";
 
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps } from "@/lib/types";
 import { DestinationUrlInput } from "@/ui/links/destination-url-input";
@@ -51,6 +52,7 @@ import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
+import { ConversionTrackingToggle } from "./conversion-tracking-toggle";
 import { DraftControls, DraftControlsHandle } from "./draft-controls";
 import { useExpirationModal } from "./expiration-modal";
 import { LinkPreview } from "./link-preview";
@@ -69,7 +71,6 @@ export const LinkModalContext = createContext<{
   workspaceId?: string;
   workspacePlan?: string;
   workspaceLogo?: string;
-  conversionEnabled?: boolean;
   generatingMetatags: boolean;
 }>({ generatingMetatags: false });
 
@@ -88,8 +89,15 @@ export function LinkBuilder(props: LinkBuilderProps) {
 }
 
 function LinkBuilderOuter(props: LinkBuilderProps) {
+  const { plan, conversionEnabled } = useWorkspace();
   const form = useForm<LinkFormData>({
-    defaultValues: props.props || props.duplicateProps || DEFAULT_LINK_PROPS,
+    defaultValues: props.props ||
+      props.duplicateProps || {
+        ...DEFAULT_LINK_PROPS,
+        trackConversion:
+          (plan && plan !== "free" && plan !== "pro" && conversionEnabled) ||
+          false,
+      },
   });
 
   return (
@@ -110,14 +118,7 @@ function LinkBuilderInner({
   const { slug } = params;
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
-  const {
-    id: workspaceId,
-    plan,
-    nextPlan,
-    logo,
-    flags,
-    conversionEnabled,
-  } = useWorkspace();
+  const { id: workspaceId, plan, nextPlan, logo } = useWorkspace();
 
   const {
     control,
@@ -132,13 +133,13 @@ function LinkBuilderInner({
   const formRef = useRef<HTMLFormElement>(null);
   const { handleKeyDown } = useEnterSubmit(formRef);
 
-  const [url, domain, key, proxy, title, description] = watch([
+  const [url, domain, key, title, description, trackConversion] = watch([
     "url",
     "domain",
     "key",
-    "proxy",
     "title",
     "description",
+    "trackConversion",
   ]);
   const [debouncedUrl] = useDebounce(getUrlWithoutUTMParams(url), 500);
 
@@ -237,7 +238,6 @@ function LinkBuilderInner({
             workspaceId,
             workspacePlan: plan,
             workspaceLogo: logo ?? undefined,
-            conversionEnabled: conversionEnabled,
             generatingMetatags,
           }}
         >
@@ -270,24 +270,10 @@ function LinkBuilderInner({
                 });
 
                 if (res.status === 200) {
-                  await Promise.all([
-                    mutate(
-                      (key) =>
-                        typeof key === "string" && key.startsWith("/api/links"),
-                      undefined,
-                      { revalidate: true },
-                    ),
-                    // Mutate workspace to update usage stats
-                    mutate(`/api/workspaces/${slug}`),
+                  await mutatePrefix([
+                    "/api/links",
                     // if updating root domain link, mutate domains as well
-                    key === "_root" &&
-                      mutate(
-                        (key) =>
-                          typeof key === "string" &&
-                          key.startsWith("/api/domains"),
-                        undefined,
-                        { revalidate: true },
-                      ),
+                    ...(key === "_root" ? ["/api/domains"] : []),
                   ]);
                   const data = await res.json();
                   posthog.capture(
@@ -307,6 +293,9 @@ function LinkBuilderInner({
 
                   draftControlsRef.current?.onSubmitSuccessful();
                   setShowLinkBuilder(false);
+
+                  // Mutate workspace to update usage stats
+                  mutate(`/api/workspaces/${slug}`);
                 } else {
                   const { error } = await res.json();
 
@@ -386,7 +375,7 @@ function LinkBuilderInner({
               )}
             >
               <div className="scrollbar-hide px-6 md:overflow-auto">
-                <div className="flex min-h-full flex-col gap-8 py-4">
+                <div className="flex min-h-full flex-col gap-6 py-4">
                   <Controller
                     name="url"
                     control={control}
@@ -481,6 +470,8 @@ function LinkBuilderInner({
                     />
                   </div>
 
+                  <ConversionTrackingToggle />
+
                   <div className="flex grow flex-col justify-end">
                     <OptionsList />
                   </div>
@@ -504,7 +495,7 @@ function LinkBuilderInner({
                   <TargetingButton />
                   <PasswordButton />
                 </div>
-                {flags?.webhooks && <WebhookSelect />}
+                <WebhookSelect />
                 <MoreDropdown />
               </div>
               {homepageDemo ? (

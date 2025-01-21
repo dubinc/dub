@@ -247,6 +247,12 @@ export const eventsFilterTB = analyticsFilterTB
     }),
   );
 
+const sortOrder = z
+  .enum(["asc", "desc"])
+  .default("desc")
+  .optional()
+  .describe("The sort order. The default is `desc`.");
+
 export const eventsQuerySchema = analyticsQuerySchema
   .omit({ groupBy: true })
   .extend({
@@ -264,6 +270,13 @@ export const eventsQuerySchema = analyticsQuerySchema
       ),
     page: z.coerce.number().default(1),
     limit: z.coerce.number().default(PAGINATION_LIMIT),
-    order: z.enum(["asc", "desc"]).default("desc"),
-    sortBy: z.enum(["timestamp"]).default("timestamp"),
+    sortOrder,
+    sortBy: z
+      .enum(["timestamp"])
+      .optional()
+      .default("timestamp")
+      .describe("The field to sort the events by. The default is `timestamp`."),
+    order: sortOrder
+      .describe("DEPRECATED. Use `sortOrder` instead.")
+      .openapi({ deprecated: true }),
   });

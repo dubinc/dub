@@ -1,6 +1,7 @@
 import { approvePartnerAction } from "@/lib/actions/partners/approve-partner";
 import { rejectPartnerAction } from "@/lib/actions/partners/reject-partner";
 import { SHEET_MAX_ITEMS } from "@/lib/partners/constants";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import usePayouts from "@/lib/swr/use-payouts";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -30,7 +31,6 @@ import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
 import { useCreatePayoutSheet } from "./create-payout-sheet";
 import { PartnerLinkSelector } from "./partner-link-selector";
@@ -163,7 +163,7 @@ function PartnerDetailsSheetContent({
           {partner.link && (
             <div className="xs:grid-cols-2 mt-4 grid grid-cols-1 gap-3">
               <Link
-                href={`/${slug}/analytics?domain=${partner.link.domain}&key=${partner.link.key}`}
+                href={`/${slug}/analytics?domain=${partner.link.domain}&key=${partner.link.key}&interval=all`}
                 target="_blank"
                 className={cn(
                   buttonVariants({ variant: "secondary" }),
@@ -174,7 +174,7 @@ function PartnerDetailsSheetContent({
                 Analytics
               </Link>
               <Link
-                href={`/${slug}/events?domain=${partner.link.domain}&key=${partner.link.key}`}
+                href={`/${slug}/events?domain=${partner.link.domain}&key=${partner.link.key}&interval=all`}
                 target="_blank"
                 className={cn(
                   buttonVariants({ variant: "secondary" }),
@@ -256,15 +256,9 @@ function PartnerApproval({
     if (selectedLinkId) setLinkError(false);
   }, [selectedLinkId]);
 
-  const { executeAsync, isExecuting } = useAction(approvePartnerAction, {
+  const { executeAsync, isPending } = useAction(approvePartnerAction, {
     onSuccess() {
-      mutate(
-        (key) =>
-          typeof key === "string" &&
-          key.startsWith(`/api/programs/${partner.programId}/partners`),
-        undefined,
-        { revalidate: true },
-      );
+      mutatePrefix(`/api/programs/${partner.programId}/partners`);
 
       toast.success("Approved the partner successfully.");
       setIsOpen(false);
@@ -362,7 +356,7 @@ function PartnerApproval({
             type="button"
             variant="primary"
             text="Approve"
-            loading={isExecuting}
+            loading={isPending}
             onClick={async () => {
               if (!isApproving) {
                 setIsApproving(true);
@@ -399,15 +393,9 @@ function PartnerRejectButton({
 }) {
   const { id: workspaceId } = useWorkspace();
 
-  const { executeAsync, isExecuting } = useAction(rejectPartnerAction, {
-    onSuccess() {
-      mutate(
-        (key) =>
-          typeof key === "string" &&
-          key.startsWith(`/api/programs/${partner.programId}/partners`),
-        undefined,
-        { revalidate: true },
-      );
+  const { executeAsync, isPending } = useAction(rejectPartnerAction, {
+    onSuccess: async () => {
+      await mutatePrefix(`/api/programs/${partner.programId}/partners`);
 
       toast.success("Partner rejected successfully.");
       setIsOpen(false);
@@ -421,8 +409,8 @@ function PartnerRejectButton({
     <Button
       type="button"
       variant="secondary"
-      text={isExecuting ? "" : "Decline"}
-      loading={isExecuting}
+      text={isPending ? "" : "Decline"}
+      loading={isPending}
       onClick={async () => {
         await executeAsync({
           workspaceId: workspaceId!,

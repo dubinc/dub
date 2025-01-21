@@ -20,7 +20,7 @@ export async function generateMetadata({
   const apexDomain = getApexDomain(url);
 
   return constructMetadata({
-    title: metatags.title,
+    fullTitle: metatags.title,
     description: metatags.description,
     image: metatags.image,
     icons: `${GOOGLE_FAVICON_URL}${apexDomain}`,

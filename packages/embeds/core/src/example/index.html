@@ -1,0 +1,18 @@
+<html>
+  <head>
+    <script type="module" src="../../dist/embed/script.js"></script>
+  </head>
+  <body>
+    <h1>Dub Referral Embed</h1>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const embed = Dub.init({
+          root: document.getElementById("root"),
+          token: "dub_embed_", // Add your token here
+        });
+      });
+    </script>
+
+    <div id="root" style="border: 1px solid #aaa"></div>
+  </body>
+</html>

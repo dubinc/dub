@@ -5,6 +5,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
 // GET /api/oauth/userinfo - get user info by access token
 export async function GET(req: NextRequest) {
   try {
@@ -30,6 +36,7 @@ export async function GET(req: NextRequest) {
         },
         project: {
           select: {
+            id: true,
             name: true,
             slug: true,
             logo: true,
@@ -52,14 +59,24 @@ export async function GET(req: NextRequest) {
       name: user.name,
       image: user.image,
       workspace: {
+        id: `ws_${tokenRecord.project.id}`,
         slug: tokenRecord.project.slug,
         name: tokenRecord.project.name,
         logo: tokenRecord.project.logo,
       },
     };
 
-    return NextResponse.json(userInfo);
+    return NextResponse.json(userInfo, {
+      headers: CORS_HEADERS,
+    });
   } catch (e) {
-    return handleAndReturnErrorResponse(e);
+    return handleAndReturnErrorResponse(e, CORS_HEADERS);
   }
 }
+
+export const OPTIONS = () => {
+  return new Response(null, {
+    status: 204,
+    headers: CORS_HEADERS,
+  });
+};

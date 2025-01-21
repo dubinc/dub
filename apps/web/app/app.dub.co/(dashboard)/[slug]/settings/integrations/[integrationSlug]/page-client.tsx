@@ -1,6 +1,9 @@
 "use client";
 
 import { getIntegrationInstallUrl } from "@/lib/actions/get-integration-install-url";
+import { SegmentSettings } from "@/lib/integrations/segment/ui/settings";
+import { SlackSettings } from "@/lib/integrations/slack/ui/settings";
+import { ZapierSettings } from "@/lib/integrations/zapier/ui/settings";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
 import { useUninstallIntegrationModal } from "@/ui/modals/uninstall-integration-modal";
@@ -30,8 +33,10 @@ import {
 import {
   cn,
   formatDate,
-  getPrettyUrl,
-  STRIPE_INTEGRATION_ID,
+  getDomainWithoutWWW,
+  SEGMENT_INTEGRATION_ID,
+  SLACK_INTEGRATION_ID,
+  ZAPIER_INTEGRATION_ID,
 } from "@dub/utils";
 import { BookOpenText, ChevronLeft, Trash } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -40,15 +45,21 @@ import { useState } from "react";
 import Markdown from "react-markdown";
 import { toast } from "sonner";
 
+const integrationSettings = {
+  [ZAPIER_INTEGRATION_ID]: ZapierSettings,
+  [SLACK_INTEGRATION_ID]: SlackSettings,
+  [SEGMENT_INTEGRATION_ID]: SegmentSettings,
+};
+
 export default function IntegrationPageClient({
   integration,
 }: {
   integration: InstalledIntegrationInfoProps;
 }) {
-  const { slug, id: workspaceId, conversionEnabled } = useWorkspace();
+  const { slug, id: workspaceId } = useWorkspace();
 
   const [openPopover, setOpenPopover] = useState(false);
-  const getInstallationUrl = useAction(getIntegrationInstallUrl, {
+  const { execute, isPending } = useAction(getIntegrationInstallUrl, {
     onSuccess: ({ data }) => {
       if (!data?.url) {
         throw new Error("Error getting installation URL");
@@ -63,8 +74,10 @@ export default function IntegrationPageClient({
 
   const { UninstallIntegrationModal, setShowUninstallIntegrationModal } =
     useUninstallIntegrationModal({
-      integration: integration,
+      integration,
     });
+
+  const SettingsComponent = integrationSettings[integration.id] || null;
 
   return (
     <MaxWidthWrapper className="grid max-w-screen-lg gap-8">
@@ -193,7 +206,7 @@ export default function IntegrationPageClient({
               rel="noopener noreferrer"
             >
               <Globe className="size-3" />
-              {getPrettyUrl(integration.website)}
+              {getDomainWithoutWWW(integration.website)}
             </a>
           </div>
         </div>
@@ -210,39 +223,29 @@ export default function IntegrationPageClient({
               Manage
             </Link>
           )}
-          {!integration.installed && (
-            <Button
-              onClick={() => {
-                const { installUrl } = integration;
+          {!integration.installed &&
+            integration.id !== SEGMENT_INTEGRATION_ID && (
+              <Button
+                onClick={() => {
+                  const { installUrl } = integration;
 
-                if (installUrl) {
-                  // open in a new tab
-                  window.open(installUrl, "_blank");
-                  return;
-                }
+                  if (installUrl) {
+                    // open in a new tab
+                    window.open(installUrl, "_blank");
+                    return;
+                  }
 
-                getInstallationUrl.execute({
-                  workspaceId: workspaceId!,
-                  integrationSlug: integration.slug,
-                });
-              }}
-              loading={getInstallationUrl.isExecuting}
-              text="Enable"
-              variant="primary"
-              icon={<ConnectedDots className="size-4" />}
-              {...(integration.id === STRIPE_INTEGRATION_ID &&
-                !conversionEnabled && {
-                  disabledTooltip: (
-                    <TooltipContent
-                      title="To use this integration, you need to have Dub Conversions enabled for your workspace."
-                      cta="Learn more"
-                      href="https://d.to/conversions"
-                      target="_blank"
-                    />
-                  ),
-                })}
-            />
-          )}
+                  execute({
+                    workspaceId: workspaceId!,
+                    integrationSlug: integration.slug,
+                  });
+                }}
+                loading={isPending}
+                text="Enable"
+                variant="primary"
+                icon={<ConnectedDots className="size-4" />}
+              />
+            )}
         </div>
       </div>
 
@@ -260,9 +263,9 @@ export default function IntegrationPageClient({
                   <BlurImage
                     src={src}
                     alt={`Screenshot of ${integration.name}`}
-                    width={2880}
-                    height={1640}
-                    className="aspect-[2880/1640] w-[5/6] overflow-hidden rounded-md border border-gray-200 object-cover"
+                    width={900}
+                    height={580}
+                    className="aspect-[900/580] w-[5/6] overflow-hidden rounded-md border border-gray-200 object-cover object-top"
                   />
                 </CarouselItem>
               ))}
@@ -288,6 +291,8 @@ export default function IntegrationPageClient({
           </Markdown>
         )}
       </div>
+
+      {SettingsComponent && <SettingsComponent {...integration} />}
     </MaxWidthWrapper>
   );
 }

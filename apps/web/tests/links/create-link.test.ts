@@ -2,8 +2,8 @@ import z from "@/lib/zod";
 import { FolderSchema } from "@/lib/zod/schemas/folders";
 import { Link, Tag } from "@dub/prisma/client";
 import { IntegrationHarnessOld } from "tests/utils/integration-old";
-import { afterAll, describe, expect, test } from "vitest";
-import { randomId } from "../utils/helpers";
+import { describe, expect, onTestFinished, test } from "vitest";
+import { randomId, randomTagName } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK, E2E_WEBHOOK_ID } from "../utils/resource";
 import { LinkSchema, expectedLink } from "../utils/schema";
@@ -46,8 +46,12 @@ describe.sequential("POST /links", async () => {
     });
   });
 
-  test("default domain", async () => {
+  test("default domain", async ({ onTestFinished }) => {
     const externalId = randomId();
+
+    onTestFinished(async () => {
+      await h.deleteLink(link.id);
+    });
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
@@ -74,14 +78,14 @@ describe.sequential("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
-
-    afterAll(async () => {
-      await h.deleteLink(link.id);
-    });
   });
 
-  test("user defined key", async () => {
+  test("user defined key", async ({ onTestFinished }) => {
     const key = randomId();
+
+    onTestFinished(async () => {
+      await h.deleteLink(link.id);
+    });
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
@@ -104,14 +108,14 @@ describe.sequential("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${key}?qr=1`,
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
-
-    afterAll(async () => {
-      await h.deleteLink(link.id);
-    });
   });
 
   test("prefix", async () => {
     const prefix = "gh";
+
+    onTestFinished(async () => {
+      await h.deleteLink(link.id);
+    });
 
     const { status, data: link } = await http.post<
       Link & { shortLink: string }
@@ -137,13 +141,9 @@ describe.sequential("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
-
-    afterAll(async () => {
-      await h.deleteLink(link.id);
-    });
   });
 
-  test("utm builder", async (ctx) => {
+  test("utm builder", async () => {
     const longUrl = new URL(url);
     const utm = {
       utm_source: "facebook",
@@ -155,6 +155,10 @@ describe.sequential("POST /links", async () => {
 
     Object.keys(utm).forEach((key) => {
       longUrl.searchParams.set(key, utm[key]);
+    });
+
+    onTestFinished(async () => {
+      await h.deleteLink(link.id);
     });
 
     const { status, data: link } = await http.post<Link>({
@@ -177,14 +181,14 @@ describe.sequential("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
-
-    afterAll(async () => {
-      await h.deleteLink(link.id);
-    });
   });
 
   test("password protection", async () => {
     const password = "link-password";
+
+    onTestFinished(async () => {
+      await h.deleteLink(link.id);
+    });
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
@@ -207,15 +211,15 @@ describe.sequential("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
-
-    afterAll(async () => {
-      await h.deleteLink(link.id);
-    });
   });
 
   test("link expiration", async () => {
     const expiresAt = new Date("2030-04-16T17:00:00.000Z");
     const expiredUrl = "https://github.com/expired";
+
+    onTestFinished(async () => {
+      await h.deleteLink(link.id);
+    });
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
@@ -240,16 +244,16 @@ describe.sequential("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
-
-    afterAll(async () => {
-      await h.deleteLink(link.id);
-    });
   });
 
   test("device targeting", async () => {
     const ios = "https://apps.apple.com/app/1611158928";
     const android =
       "https://play.google.com/store/apps/details?id=com.disney.disneyplus";
+
+    onTestFinished(async () => {
+      await h.deleteLink(link.id);
+    });
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
@@ -274,10 +278,6 @@ describe.sequential("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
-
-    afterAll(async () => {
-      await h.deleteLink(link.id);
-    });
   });
 
   test("geo targeting", async () => {
@@ -286,6 +286,10 @@ describe.sequential("POST /links", async () => {
       AL: `${url}/AL`,
       DZ: `${url}/DZ`,
     };
+
+    onTestFinished(async () => {
+      await h.deleteLink(link.id);
+    });
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
@@ -308,16 +312,12 @@ describe.sequential("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
-
-    afterAll(async () => {
-      await h.deleteLink(link.id);
-    });
   });
 
   test("tags", async () => {
     const tagsToCreate = [
-      { tag: randomId(), color: "red" },
-      { tag: randomId(), color: "green" },
+      { tag: randomTagName(), color: "red" },
+      { tag: randomTagName(), color: "green" },
     ];
 
     const response = await Promise.all(
@@ -336,6 +336,13 @@ describe.sequential("POST /links", async () => {
         name: r.data.name,
         color: r.data.color,
       };
+    });
+
+    onTestFinished(async () => {
+      await Promise.all([
+        ...tagIds.map((id) => h.deleteTag(id)),
+        h.deleteLink(link.id),
+      ]);
     });
 
     const { status, data: link } = await http.post<Link & { tags: [] }>({
@@ -361,13 +368,6 @@ describe.sequential("POST /links", async () => {
       tags: expect.arrayContaining(tags),
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
-
-    afterAll(async () => {
-      await Promise.all([
-        ...tagIds.map((id) => h.deleteTag(id)),
-        h.deleteLink(link.id),
-      ]);
-    });
   });
 
   test("folders", async () => {
@@ -408,6 +408,10 @@ describe.sequential("POST /links", async () => {
     const title = "custom title";
     const description = "custom description";
 
+    onTestFinished(async () => {
+      await h.deleteLink(link.id);
+    });
+
     const { status, data: link } = await http.post<Link>({
       path: "/links",
       body: {
@@ -431,13 +435,13 @@ describe.sequential("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
-
-    afterAll(async () => {
-      await h.deleteLink(link.id);
-    });
   });
 
   test("webhooks", async () => {
+    onTestFinished(async () => {
+      await h.deleteLink(link.id);
+    });
+
     const { status, data: link } = await http.post<Link & { tags: [] }>({
       path: "/links",
       body: {
@@ -459,10 +463,6 @@ describe.sequential("POST /links", async () => {
       webhookIds: [E2E_WEBHOOK_ID],
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
-
-    afterAll(async () => {
-      await h.deleteLink(link.id);
-    });
   });
 });
 
@@ -473,6 +473,10 @@ describe.sequential("POST /links?workspaceId=xxx", async () => {
   const projectId = workspaceId.replace("ws_", "");
 
   test("create link with old personal API keys approach", async () => {
+    onTestFinished(async () => {
+      await h.deleteLink(link.id);
+    });
+
     const { status, data: link } = await http.post<Link>({
       path: "/links",
       body: {
@@ -492,9 +496,5 @@ describe.sequential("POST /links?workspaceId=xxx", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
-
-    afterAll(async () => {
-      await h.deleteLink(link.id);
-    });
   });
 });

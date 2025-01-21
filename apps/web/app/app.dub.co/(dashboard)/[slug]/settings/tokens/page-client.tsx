@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import { scopesToName } from "@/lib/api/tokens/scopes";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TokenProps } from "@/lib/types";
@@ -27,7 +28,7 @@ import { useState } from "react";
 import useSWR from "swr";
 
 export default function TokensPageClient() {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, role } = useWorkspace();
   const { pagination, setPagination } = usePagination();
   const [createdToken, setCreatedToken] = useState<string | null>(null);
   const [selectedToken, setSelectedToken] = useState<TokenProps | null>(null);
@@ -60,6 +61,12 @@ export default function TokensPageClient() {
       ...(!selectedToken && { onTokenCreated }),
       setSelectedToken,
     });
+
+  const accessCheckError = clientAccessCheck({
+    action: "tokens.write",
+    role,
+    customPermissionDescription: "update or delete API keys",
+  }).error;
 
   const { table, ...tableProps } = useTable({
     data: tokens || [],
@@ -151,10 +158,12 @@ export default function TokensPageClient() {
     rowCount: tokens?.length || 0,
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    onRowClick: (row) => {
-      setSelectedToken(row.original);
-      setShowAddEditTokenModal(true);
-    },
+    onRowClick: accessCheckError
+      ? undefined
+      : (row) => {
+          setSelectedToken(row.original);
+          setShowAddEditTokenModal(true);
+        },
     emptyState: (
       <AnimatedEmptyState
         title="No tokens found"
@@ -224,6 +233,7 @@ function RowMenuButton({
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
+  const { role } = useWorkspace();
   const { DeleteTokenModal, setShowDeleteTokenModal } = useDeleteTokenModal({
     token,
   });
@@ -258,6 +268,13 @@ function RowMenuButton({
           className="h-8 whitespace-nowrap px-2"
           variant="outline"
           icon={<Dots className="h-4 w-4 shrink-0" />}
+          disabledTooltip={
+            clientAccessCheck({
+              action: "tokens.write",
+              role,
+              customPermissionDescription: "update or delete API keys",
+            }).error
+          }
         />
       </Popover>
     </>

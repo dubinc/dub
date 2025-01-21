@@ -6,7 +6,7 @@ import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 
 export default function StripeConnectButton(props: ButtonProps) {
-  const { executeAsync, isExecuting } = useAction(createAccountLinkAction, {
+  const { executeAsync, isPending } = useAction(createAccountLinkAction, {
     onSuccess: ({ data }) => {
       if (!data?.url) {
         toast.error("Unable to create account link. Please contact support.");
@@ -20,6 +20,6 @@ export default function StripeConnectButton(props: ButtonProps) {
   });
 
   return (
-    <Button onClick={() => executeAsync()} loading={isExecuting} {...props} />
+    <Button onClick={() => executeAsync()} loading={isPending} {...props} />
   );
 }

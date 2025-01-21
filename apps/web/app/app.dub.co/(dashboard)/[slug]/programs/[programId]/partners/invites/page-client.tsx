@@ -1,6 +1,6 @@
 "use client";
 
-import { resendProgramInviteAction } from "@/lib/actions/resend-program-invite";
+import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramInviteProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -125,7 +125,7 @@ function RowMenuButton({
   const { id: workspaceId } = useWorkspace();
   const [isOpen, setIsOpen] = useState(false);
 
-  const { executeAsync, isExecuting } = useAction(resendProgramInviteAction, {
+  const { executeAsync, isPending } = useAction(resendProgramInviteAction, {
     onSuccess: async () => {
       await mutate();
       toast.success("Invite resent");
@@ -143,7 +143,7 @@ function RowMenuButton({
         <Command tabIndex={0} loop className="focus:outline-none">
           <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[160px]">
             <MenuItem
-              icon={isExecuting ? LoadingSpinner : EnvelopeArrowRight}
+              icon={isPending ? LoadingSpinner : EnvelopeArrowRight}
               label="Resend invite"
               onSelect={async () => {
                 await executeAsync({
@@ -151,7 +151,7 @@ function RowMenuButton({
                   programInviteId: row.original.id,
                 });
               }}
-              disabled={isExecuting}
+              disabled={isPending}
             />
           </Command.List>
         </Command>

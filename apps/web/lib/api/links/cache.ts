@@ -19,7 +19,7 @@ class LinkCache {
 
     const redisLinks = await Promise.all(
       links.map(async (link) => ({
-        ...(await formatRedisLink(link)),
+        ...formatRedisLink(link),
         key: link.key.toLowerCase(),
         domain: link.domain.toLowerCase(),
       })),
@@ -40,7 +40,7 @@ class LinkCache {
   }
 
   async set(link: ExpandedLink) {
-    const redisLink = await formatRedisLink(link);
+    const redisLink = formatRedisLink(link);
     const hasWebhooks = redisLink.webhookIds && redisLink.webhookIds.length > 0;
 
     return await redis.set(
@@ -90,6 +90,21 @@ class LinkCache {
       const newCacheKey = this._createKey({ domain, key });
 
       pipeline.renamenx(oldCacheKey, newCacheKey);
+    });
+
+    return await pipeline.exec();
+  }
+
+  async expireMany(links: Pick<LinkProps, "domain" | "key">[]) {
+    if (links.length === 0) {
+      return;
+    }
+
+    const pipeline = redis.pipeline();
+
+    links.forEach(({ domain, key }) => {
+      // expire the link cache key immediately
+      pipeline.expire(this._createKey({ domain, key }), 1);
     });
 
     return await pipeline.exec();

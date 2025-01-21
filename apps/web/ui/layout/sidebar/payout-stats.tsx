@@ -32,8 +32,7 @@ export function PayoutStats() {
             <div className="flex items-center gap-2">
               {partner && !partner.payoutsEnabled && (
                 <Tooltip
-                  content="You need to set up Stripe to be able to receive payouts."
-                  contentClassName="max-w-40"
+                  content="You need to set up your Stripe payouts account to be able to receive payouts from the programs you are enrolled in."
                   side="right"
                 >
                   <div>

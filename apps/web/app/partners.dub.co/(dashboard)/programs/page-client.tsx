@@ -27,7 +27,7 @@ export function PartnersDashboardPageClient() {
               </div>
             </>
           }
-          learnMoreHref="https://dub.co/help/article/dub-conversions"
+          learnMoreHref="https://d.to/conversions"
         />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

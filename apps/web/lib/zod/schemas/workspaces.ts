@@ -41,9 +41,7 @@ export const WorkspaceSchema = z
     stripeConnectId: z
       .string()
       .nullable()
-      .describe(
-        "[BETA – Dub Conversions]: The Stripe Connect ID of the workspace.",
-      ),
+      .describe("The Stripe Connect ID of the workspace."),
     payoutMethodId: z
       .string()
       .nullable()
@@ -74,7 +72,7 @@ export const WorkspaceSchema = z
     conversionEnabled: z
       .boolean()
       .describe(
-        "Whether the workspace has conversion tracking enabled (d.to/conversions).",
+        "Whether the workspace has conversion tracking enabled automatically for new links (d.to/conversions).",
       ),
     dotLinkClaimed: z
       .boolean()
@@ -110,6 +108,10 @@ export const WorkspaceSchema = z
       .describe(
         "The feature flags of the workspace, indicating which features are enabled.",
       ),
+    store: z
+      .record(z.any())
+      .nullable()
+      .describe("The miscellaneous key-value store of the workspace."),
   })
   .openapi({
     title: "Workspace",
@@ -127,6 +129,7 @@ export const createWorkspaceSchema = z.object({
       message: "Cannot use reserved slugs",
     }),
   logo: z.string().optional(),
+  conversionEnabled: z.boolean().optional(),
 });
 
 export const updateWorkspaceSchema = createWorkspaceSchema.partial();

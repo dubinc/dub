@@ -1,9 +1,11 @@
 import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
+import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
   CustomerSchema,
+  getCustomersQuerySchema,
   updateCustomerBodySchema,
 } from "@/lib/zod/schemas/customers";
 import { prisma } from "@dub/prisma";
@@ -11,30 +13,38 @@ import { NextResponse } from "next/server";
 
 // GET /api/customers/:id – Get a customer by ID
 export const GET = withWorkspace(
-  async ({ workspace, params }) => {
+  async ({ workspace, params, searchParams }) => {
     const { id } = params;
+    const { includeExpandedFields } =
+      getCustomersQuerySchema.parse(searchParams);
 
     const customer = await getCustomerOrThrow(
       {
         id,
         workspaceId: workspace.id,
       },
-      {
-        expand: ["link"],
-      },
+      { includeExpandedFields },
     );
 
-    return NextResponse.json(CustomerSchema.parse(customer));
+    return NextResponse.json(CustomerSchema.parse(transformCustomer(customer)));
   },
   {
-    requiredAddOn: "conversion",
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "enterprise",
+    ],
   },
 );
 
 // PATCH /api/customers/:id – Update a customer by ID
 export const PATCH = withWorkspace(
-  async ({ workspace, params, req }) => {
+  async ({ workspace, params, req, searchParams }) => {
     const { id } = params;
+    const { includeExpandedFields } =
+      getCustomersQuerySchema.parse(searchParams);
 
     const { name, email, avatar, externalId } = updateCustomerBodySchema.parse(
       await parseRequestBody(req),
@@ -51,12 +61,27 @@ export const PATCH = withWorkspace(
           id: customer.id,
         },
         data: { name, email, avatar, externalId },
-        include: {
-          link: true,
-        },
+        ...(includeExpandedFields
+          ? {
+              include: {
+                link: {
+                  include: {
+                    programEnrollment: {
+                      include: {
+                        partner: true,
+                        discount: true,
+                      },
+                    },
+                  },
+                },
+              },
+            }
+          : {}),
       });
 
-      return NextResponse.json(CustomerSchema.parse(updatedCustomer));
+      return NextResponse.json(
+        CustomerSchema.parse(transformCustomer(updatedCustomer)),
+      );
     } catch (error) {
       if (error.code === "P2002") {
         throw new DubApiError({
@@ -72,7 +97,13 @@ export const PATCH = withWorkspace(
     }
   },
   {
-    requiredAddOn: "conversion",
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "enterprise",
+    ],
   },
 );
 
@@ -97,6 +128,12 @@ export const DELETE = withWorkspace(
     });
   },
   {
-    requiredAddOn: "conversion",
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "enterprise",
+    ],
   },
 );

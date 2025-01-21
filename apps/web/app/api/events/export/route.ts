@@ -86,7 +86,6 @@ export const GET = withWorkspace(
 
     validDateRangeForPlan({
       plan: workspace.plan,
-      conversionEnabled: workspace.conversionEnabled,
       interval,
       start,
       end,

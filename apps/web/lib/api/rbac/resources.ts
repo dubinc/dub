@@ -6,7 +6,7 @@ export const RESOURCE_KEYS = [
   "tags",
   "folders",
   "tokens",
-  "conversions",
+  "webhooks",
 ] as const;
 
 export type ResourceKey = (typeof RESOURCE_KEYS)[number];
@@ -24,7 +24,7 @@ export const RESOURCES: {
   {
     name: "Analytics",
     key: "analytics",
-    description: "Read analytics",
+    description: "Create and read analytics events",
   },
   {
     name: "Workspaces",
@@ -45,10 +45,5 @@ export const RESOURCES: {
     name: "Folders",
     key: "folders",
     description: "Create, read, update, and delete folders",
-  },
-  {
-    name: "Conversions",
-    key: "conversions",
-    description: "Track conversions (customer, lead, sales)",
   },
 ];

@@ -15,13 +15,9 @@ export function WebhookSelect() {
 
   const webhookIds = watch("webhookIds") as string[];
 
-  const linkLevelWebhooks = availableWebhooks?.filter((webhook) =>
-    webhook.triggers.includes("link.clicked"),
-  );
-
   const options = useMemo(
     () =>
-      linkLevelWebhooks?.map((webhook) => ({
+      availableWebhooks?.map((webhook) => ({
         label: webhook.name,
         value: webhook.id,
         icon: <Webhook className="size-3.5" />,
@@ -94,7 +90,7 @@ const NoWebhooksFound = () => {
       <div>
         <Button
           className="mt-1 h-8"
-          onClick={() => router.push(`/${slug}/settings/webhooks`)}
+          onClick={() => window.open(`/${slug}/settings/webhooks`, "_blank")}
           text="Add webhook"
         />
       </div>

@@ -9,21 +9,24 @@ import { createStreamableValue } from "ai/rsc";
 export async function generateFilters(prompt: string) {
   const stream = createStreamableValue();
 
+  const schema = analyticsQuerySchema.pick({
+    ...(VALID_ANALYTICS_FILTERS.reduce((acc, filter) => {
+      acc[filter] = true;
+      return acc;
+    }, {}) as any),
+  });
+
   (async () => {
     const { partialObjectStream } = await streamObject({
-      model: anthropic("claude-3-sonnet-20240229"),
-      schema: analyticsQuerySchema.pick({
-        ...(VALID_ANALYTICS_FILTERS.reduce((acc, filter) => {
-          acc[filter] = true;
-          return acc;
-        }, {}) as any),
-      }),
+      model: anthropic("claude-3-5-sonnet-latest"),
+      schema,
       prompt,
       temperature: 0.4,
     });
 
     for await (const partialObject of partialObjectStream) {
-      stream.update(partialObject);
+      const parsed = schema.safeParse(partialObject);
+      if (parsed.success) stream.update(parsed.data);
     }
 
     stream.done();

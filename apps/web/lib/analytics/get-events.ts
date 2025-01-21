@@ -35,6 +35,8 @@ export const getEvents = async (params: EventsFilters) => {
     region,
     country,
     isDemo,
+    order,
+    sortOrder,
   } = params;
 
   const { startDate, endDate } = getStartEndDates({
@@ -57,6 +59,11 @@ export const getEvents = async (params: EventsFilters) => {
     region = split[1];
   }
 
+  // support legacy order param
+  if (order && order !== "desc") {
+    sortOrder = order;
+  }
+
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
     pipe: "v2_events",
     parameters: eventsFilterTB,
@@ -75,6 +82,7 @@ export const getEvents = async (params: EventsFilters) => {
     qr,
     country,
     region,
+    order: sortOrder,
     offset: (params.page - 1) * params.limit,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
@@ -126,6 +134,8 @@ export const getEvents = async (params: EventsFilters) => {
                 name: "Deleted Customer",
                 email: "deleted@customer.com",
                 avatar: `https://api.dicebear.com/9.x/micah/svg?seed=${evt.customer_id}`,
+                externalId: evt.customer_id,
+                createdAt: new Date("1970-01-01"),
               },
               ...(evt.event === "sale"
                 ? {

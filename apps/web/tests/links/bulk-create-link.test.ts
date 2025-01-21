@@ -1,6 +1,6 @@
 import z from "@/lib/zod";
 import { Link } from "@dub/prisma/client";
-import { expect, test } from "vitest";
+import { expect, onTestFinished, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK } from "../utils/resource";
@@ -13,6 +13,10 @@ test("POST /links/bulk", async (ctx) => {
   const { workspace, http, user } = await h.init();
   const workspaceId = workspace.id;
   const projectId = workspaceId.replace("ws_", "");
+
+  onTestFinished(async () => {
+    await Promise.all([h.deleteLink(links[0].id), h.deleteLink(links[1].id)]);
+  });
 
   const bulkLinks = Array.from({ length: 2 }, () => ({
     url: `https://example.com/${randomId()}`,
@@ -48,6 +52,4 @@ test("POST /links/bulk", async (ctx) => {
     qrCode: `https://api.dub.co/qr?url=https://${domain}/${secondLink?.key}?qr=1`,
   });
   expect(z.array(LinkSchema.strict()).parse(links)).toBeTruthy();
-
-  await Promise.all([h.deleteLink(links[0].id), h.deleteLink(links[1].id)]);
 });

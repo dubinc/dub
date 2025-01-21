@@ -34,7 +34,7 @@ import DeviceIcon from "../device-icon";
 import { CustomerRowItem } from "./customer-row-item";
 import EditColumnsButton from "./edit-columns-button";
 import { EventsContext } from "./events-provider";
-import { exampleData } from "./example-data";
+import { EXAMPLE_EVENTS_DATA } from "./example-data";
 import FilterButton from "./filter-button";
 import { RowMenuButton } from "./row-menu-button";
 import { eventColumns, useColumnVisibility } from "./use-column-visibility";
@@ -65,8 +65,8 @@ export default function EventsTable({
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility();
 
-  const sortBy = searchParams.get("sort") || "timestamp";
-  const order = searchParams.get("order") === "asc" ? "asc" : "desc";
+  const sortBy = searchParams.get("sortBy") || "timestamp";
+  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const columns = useMemo<ColumnDef<EventDatum, any>[]>(
     () =>
@@ -440,9 +440,9 @@ export default function EventsTable({
         event: tab,
         page: pagination.pageIndex.toString(),
         sortBy,
-        order,
+        sortOrder,
       }).toString(),
-    [originalQueryString, tab, pagination, sortBy, order],
+    [originalQueryString, tab, pagination, sortBy, sortOrder],
   );
 
   // Update export query string
@@ -472,7 +472,8 @@ export default function EventsTable({
   );
 
   const { table, ...tableProps } = useTable({
-    data: (data ?? (requiresUpgrade ? exampleData[tab] : [])) as EventDatum[],
+    data: (data ??
+      (requiresUpgrade ? EXAMPLE_EVENTS_DATA[tab] : [])) as EventDatum[],
     loading: isLoading,
     error: error && !requiresUpgrade ? "Failed to fetch events." : undefined,
     columns,
@@ -482,13 +483,13 @@ export default function EventsTable({
     columnVisibility: columnVisibility[tab],
     onColumnVisibilityChange: (args) => setColumnVisibility(tab, args),
     sortableColumns: ["timestamp"],
-    sortBy: sortBy,
-    sortOrder: order,
+    sortBy,
+    sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
       queryParams({
         set: {
-          ...(sortBy && { sort: sortBy }),
-          ...(sortOrder && { order: sortOrder }),
+          ...(sortBy && { sortBy }),
+          ...(sortOrder && { sortOrder }),
         },
       }),
     columnPinning: { right: ["menu"] },

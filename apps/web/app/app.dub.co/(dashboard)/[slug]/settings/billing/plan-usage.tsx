@@ -14,7 +14,12 @@ import {
   Tag,
   Users,
 } from "@dub/ui/icons";
-import { cn, getFirstAndLastDay, nFormatter } from "@dub/utils";
+import {
+  cn,
+  getFirstAndLastDay,
+  INFINITY_NUMBER,
+  nFormatter,
+} from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { CSSProperties, useMemo } from "react";
@@ -37,7 +42,6 @@ export default function PlanUsage() {
     tagsLimit,
     usersLimit,
     billingCycleStart,
-    conversionEnabled,
   } = useWorkspace();
 
   const { tags } = useTags();
@@ -101,12 +105,7 @@ export default function PlanUsage() {
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)] divide-y divide-neutral-200 border-t border-neutral-200">
         <div>
-          <div
-            className={cn(
-              "grid gap-4 p-6 sm:grid-cols-2 md:p-8 lg:gap-6",
-              conversionEnabled && "sm:grid-cols-3",
-            )}
-          >
+          <div className="grid gap-4 p-6 sm:grid-cols-3 md:p-8 lg:gap-6">
             <UsageTabCard
               id="events"
               icon={CursorRays}
@@ -121,16 +120,14 @@ export default function PlanUsage() {
               usage={linksUsage}
               limit={linksLimit}
             />
-            {conversionEnabled && (
-              <UsageTabCard
-                id="revenue"
-                icon={CircleDollar}
-                title="Revenue tracked"
-                usage={salesUsage}
-                limit={salesLimit}
-                unit="$"
-              />
-            )}
+            <UsageTabCard
+              id="revenue"
+              icon={CircleDollar}
+              title="Revenue tracked"
+              usage={salesUsage}
+              limit={salesLimit}
+              unit="$"
+            />
           </div>
           <div className="w-full px-2 pb-8 md:px-8">
             <UsageChart />
@@ -206,8 +203,9 @@ function UsageTabCard({
       : [usageProp, limitProp];
 
   const loading = usage === undefined || limit === undefined;
-  const unlimited = limit !== undefined && limit >= 1000000000;
+  const unlimited = limit !== undefined && limit >= INFINITY_NUMBER;
   const warning = !loading && !unlimited && usage >= limit * 0.9;
+  console.log({ warning, usage, limit });
   const remaining = !loading && !unlimited ? Math.max(0, limit - usage) : 0;
 
   const prefix = unit || "";
@@ -234,11 +232,11 @@ function UsageTabCard({
                 ? {
                     style: "currency",
                     currency: "USD",
-                    // @ts-ignore – this is a valid option but TS is outdated
+                    // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
                     trailingZeroDisplay: "stripIfInteger",
                   }
                 : {
-                    notation: usage < 1000000000 ? "standard" : "compact",
+                    notation: usage < INFINITY_NUMBER ? "standard" : "compact",
                   }
             }
           />
@@ -253,7 +251,7 @@ function UsageTabCard({
             loading && "bg-neutral-900/5",
           )}
         >
-          {!loading && !unlimited && limit > usage && (
+          {!loading && !unlimited && (
             <div
               className="animate-slide-right-fade size-full"
               style={{ "--offset": "-100%" } as CSSProperties}
@@ -261,10 +259,10 @@ function UsageTabCard({
               <div
                 className={cn(
                   "size-full rounded-full bg-gradient-to-r from-blue-500/80 to-blue-600",
-                  warning && "to-rose-500",
+                  warning && "from-neutral-900/10 via-red-500 to-red-600",
                 )}
                 style={{
-                  transform: `translateX(-${100 - Math.floor((usage / Math.max(0, usage, limit)) * 100)}%)`,
+                  transform: `translateX(-${100 - Math.max(Math.floor((usage / Math.max(0, usage, limit)) * 100), usage === 0 ? 0 : 1)}%)`,
                 }}
               />
             </div>
@@ -276,7 +274,7 @@ function UsageTabCard({
           <span className="text-xs leading-none text-neutral-600">
             {unlimited
               ? "Unlimited"
-              : `${prefix}${nFormatter(remaining, { full: true })} remaining of ${prefix}${nFormatter(limit, { full: limit < 1000000000 })}`}
+              : `${prefix}${nFormatter(remaining, { full: true })} remaining of ${prefix}${nFormatter(limit, { full: limit < INFINITY_NUMBER })}`}
           </span>
         ) : (
           <div className="h-4 w-20 animate-pulse rounded-md bg-neutral-200" />
@@ -308,7 +306,7 @@ function UsageCategory(data: {
         )}
         <span>/</span>
         <p className="text-neutral-400">
-          {usageLimit && usageLimit >= 1000000000
+          {usageLimit && usageLimit >= INFINITY_NUMBER
             ? "∞"
             : nFormatter(usageLimit, { full: true })}
         </p>

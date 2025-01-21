@@ -1,6 +1,27 @@
 import z from "@/lib/zod";
+import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
-import { getPaginationQuerySchema } from "./misc";
+import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
+
+export const getCustomersQuerySchema = z.object({
+  email: z
+    .string()
+    .optional()
+    .describe(
+      "A case-sensitive filter on the list based on the customer's `email` field. The value must be a string.",
+    ),
+  externalId: z
+    .string()
+    .optional()
+    .describe(
+      "A case-sensitive filter on the list based on the customer's `externalId` field. The value must be a string.",
+    ),
+  includeExpandedFields: booleanQuerySchema
+    .optional()
+    .describe(
+      "Whether to include expanded fields on the customer (`link`, `partner`, `discount`).",
+    ),
+});
 
 export const createCustomerBodySchema = z.object({
   email: z
@@ -44,6 +65,15 @@ export const CustomerSchema = z.object({
     shortLink: true,
     programId: true,
   }).nullish(),
+  partner: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      email: z.string(),
+      image: z.string().nullish(),
+    })
+    .nullish(),
+  discount: DiscountSchema.nullish(),
 });
 
 export const CUSTOMERS_MAX_PAGE_SIZE = 100;
@@ -58,13 +88,6 @@ export const customersQuerySchema = z
       .describe("IDs of customers to filter by."),
   })
   .merge(getPaginationQuerySchema({ pageSize: CUSTOMERS_MAX_PAGE_SIZE }));
-
-export const customerEventsSchemaTB = z.object({
-  timestamp: z.string(),
-  event: z.string(),
-  event_name: z.string(),
-  metadata: z.string().default(""),
-});
 
 export const customerActivitySchema = z.object({
   timestamp: z.date(),

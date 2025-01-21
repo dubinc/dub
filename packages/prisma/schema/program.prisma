@@ -36,12 +36,15 @@ model Program {
   url                 String?
   type                ProgramType         @default(affiliate)
   cookieLength        Int                 @default(90)
+
+  // Commission details
   commissionAmount    Int                 @default(0)
   commissionType      CommissionType      @default(percentage)
-  recurringCommission Boolean             @default(false)
-  recurringInterval   CommissionInterval?
-  recurringDuration   Int?
-  isLifetimeRecurring Boolean? // TODO: Maybe use just lifetimeRecurring?
+  commissionDuration  Int?
+  commissionInterval  CommissionInterval?
+
+  // Discounts (for dual-sided incentives)
+  discounts Discount[]
 
   landerData Json? @db.Json
 
@@ -64,22 +67,26 @@ model Program {
 }
 
 model ProgramEnrollment {
-  id            String                  @id @default(cuid())
-  partnerId     String
-  programId     String
-  applicationId String?                 @unique
-  linkId        String?                 @unique
-  status        ProgramEnrollmentStatus @default(pending)
-  createdAt     DateTime                @default(now())
-  updatedAt     DateTime                @updatedAt
+  id               String                  @id @default(cuid())
+  partnerId        String
+  programId        String
+  linkId           String?                 @unique
+  commissionAmount Int?    // custom commission amount for this partner
+  discountId       String? // custom discount for this partner
+  applicationId    String?                 @unique
+  status           ProgramEnrollmentStatus @default(pending)
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
 
-  partner     Partner             @relation(fields: [partnerId], references: [id])
-  program     Program             @relation(fields: [programId], references: [id])
+  partner     Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  program     Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   link        Link?               @relation(fields: [linkId], references: [id])
+  discount    Discount?           @relation(fields: [discountId], references: [id])
   application ProgramApplication? @relation(fields: [applicationId], references: [id])
-
+  
   @@unique([partnerId, programId])
   @@index([programId])
+  @@index([discountId])
 }
 
 model ProgramApplication {

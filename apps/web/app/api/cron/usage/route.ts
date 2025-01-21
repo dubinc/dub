@@ -16,7 +16,10 @@ async function handler(req: Request) {
     if (req.method === "GET") {
       await verifyVercelSignature(req);
     } else if (req.method === "POST") {
-      await verifyQstashSignature(req);
+      await verifyQstashSignature({
+        req,
+        rawBody: await req.text(),
+      });
     }
 
     await updateUsage();

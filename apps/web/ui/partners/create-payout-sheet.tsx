@@ -2,7 +2,8 @@
 
 import { createManualPayoutAction } from "@/lib/actions/partners/create-manual-payout";
 import { AnalyticsResponseOptions } from "@/lib/analytics/types";
-import { calculateEarnings } from "@/lib/api/sales/commission";
+import { calculateEarnings } from "@/lib/api/sales/calculate-earnings";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -25,7 +26,6 @@ import {
   formatDate,
 } from "@dub/utils";
 import { nFormatter } from "@dub/utils/src/functions";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
   endOfMonth,
   endOfQuarter,
@@ -49,7 +49,7 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import { z } from "zod";
 
 interface CreatePayoutSheetProps {
@@ -103,7 +103,6 @@ function CreatePayoutSheetContent({
     clearErrors,
     formState: { errors },
   } = useForm<FormData>({
-    resolver: zodResolver(schema),
     defaultValues: {
       type: "custom",
     },
@@ -114,17 +113,11 @@ function CreatePayoutSheetContent({
   const isPercentageBased =
     payoutType === "sales" && program?.commissionType === "percentage";
 
-  const { executeAsync, isExecuting } = useAction(createManualPayoutAction, {
+  const { executeAsync, isPending } = useAction(createManualPayoutAction, {
     onSuccess: async (res) => {
       toast.success("Successfully created payout!");
       setIsOpen(false);
-      await mutate(
-        (key) =>
-          typeof key === "string" &&
-          key.startsWith(`/api/programs/${program?.id}/payouts`),
-        undefined,
-        { revalidate: true },
-      );
+      await mutatePrefix(`/api/programs/${program?.id}/payouts`);
 
       const payoutId = res.data?.id;
 
@@ -230,6 +223,7 @@ function CreatePayoutSheetContent({
             commissionAmount: amount,
             commissionType: "percentage",
           },
+          partner: selectedPartner,
           sales: 1,
           saleAmount: salesAmount.amount,
         }) / 100
@@ -341,7 +335,7 @@ function CreatePayoutSheetContent({
   ]);
 
   const buttonDisabled =
-    isExecuting ||
+    isPending ||
     isValidating ||
     isValidatingSalesAmount ||
     isValidatingSalesCount ||
@@ -571,14 +565,14 @@ function CreatePayoutSheetContent({
             onClick={() => setIsOpen(false)}
             text="Cancel"
             className="w-fit"
-            disabled={isExecuting}
+            disabled={isPending}
           />
           <Button
             type="submit"
             variant="primary"
             text="Create payout"
             className="w-fit"
-            loading={isExecuting}
+            loading={isPending}
             disabled={buttonDisabled}
           />
         </div>

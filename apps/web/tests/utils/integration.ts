@@ -6,7 +6,7 @@ import { env, integrationTestEnv } from "./env";
 
 interface Resources {
   user: Pick<User, "id">;
-  workspace: Pick<Project, "id" | "slug" | "name">;
+  workspace: Pick<Project, "id" | "slug" | "name" | "webhookEnabled">;
   apiKey: { token: string };
 }
 
@@ -42,6 +42,7 @@ export class IntegrationHarness {
       id: this.env.E2E_WORKSPACE_ID,
       slug: "acme",
       name: "Acme, Inc.",
+      webhookEnabled: true,
     };
 
     this.resources = {
@@ -55,6 +56,8 @@ export class IntegrationHarness {
 
   // Delete link
   public async deleteLink(id: string) {
+    if (!id) return;
+
     await this.http.delete({
       path: `/links/${id}`,
     });
@@ -62,6 +65,8 @@ export class IntegrationHarness {
 
   // Delete tag
   public async deleteTag(id: string) {
+    if (!id) return;
+
     await this.http.delete({
       path: `/tags/${id}`,
     });

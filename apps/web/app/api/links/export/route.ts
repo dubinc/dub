@@ -104,6 +104,8 @@ export const GET = withWorkspace(
           OR: [{ folderId: { in: folderIds } }, { folderId: null }],
         },
       },
+
+      // TODO: orderBy is not currently supported
       orderBy: {
         [sort]: "desc",
       },

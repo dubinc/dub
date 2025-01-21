@@ -10,7 +10,8 @@ export function combineTagIds({
 }): string[] | undefined {
   // Use tagIds if present, fall back to tagId
   if (tagIds && Array.isArray(tagIds)) {
-    return tagIds;
+    // remove duplicates
+    return [...new Set(tagIds)];
   }
   return tagId === null ? [] : tagId !== undefined ? [tagId] : undefined;
 }

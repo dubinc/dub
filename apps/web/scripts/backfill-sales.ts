@@ -1,5 +1,5 @@
 import { getEvents } from "@/lib/analytics/get-events";
-import { createSaleData } from "@/lib/api/sales/sale";
+import { createSaleData } from "@/lib/api/sales/create-sale-data";
 import { SaleEvent } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
@@ -41,22 +41,29 @@ async function main() {
     interval: "all",
     page: 1,
     limit: 5000,
-    order: "desc",
+    sortOrder: "desc",
     sortBy: "timestamp",
   });
 
   const data = saleEvents.map((e: SaleEvent) => ({
     ...createSaleData({
-      customerId: e.customer.id,
-      linkId: e.link.id,
-      clickId: e.click.id,
-      invoiceId: e.invoice_id,
-      eventId: e.eventId,
-      paymentProcessor: e.payment_processor,
-      amount: e.sale.amount,
-      currency: "usd",
-      partnerId,
       program,
+      partner: {
+        id: partnerId,
+        commissionAmount: 0,
+      },
+      customer: {
+        id: e.customer.id,
+        linkId: e.link.id,
+        clickId: e.click.id,
+      },
+      sale: {
+        invoiceId: e.invoice_id,
+        eventId: e.eventId,
+        paymentProcessor: e.payment_processor,
+        amount: e.sale.amount,
+        currency: "usd",
+      },
       metadata: e.click,
     }),
     createdAt: new Date(e.timestamp),

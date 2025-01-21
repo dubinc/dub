@@ -1,19 +1,46 @@
+import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { EventType } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
-import { cn, fetcher, getDaysDifference, nFormatter } from "@dub/utils";
-import { Fragment, useCallback, useContext, useMemo } from "react";
+import { cn, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
+import { subDays } from "date-fns";
+import { Fragment, useContext, useMemo } from "react";
 import useSWR from "swr";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import { AnalyticsContext } from "./analytics-provider";
 
+const DEMO_DATA = [
+  180, 230, 320, 305, 330, 290, 340, 310, 380, 360, 270, 360, 280, 270, 350,
+  370, 350, 340, 300,
+]
+  .reverse()
+  .map((value, index) => ({
+    date: subDays(new Date(), index),
+    values: {
+      clicks: value,
+      leads: value,
+      sales: value,
+      saleAmount: value * 19,
+    },
+  }))
+  .reverse();
+
 export default function AnalyticsAreaChart({
   resource,
+  demo,
 }: {
   resource: EventType;
+  demo?: boolean;
 }) {
-  const { baseApiPath, queryString, start, end, interval, requiresUpgrade } =
-    useContext(AnalyticsContext);
+  const {
+    baseApiPath,
+    queryString,
+    start,
+    end,
+    interval,
+    saleUnit,
+    requiresUpgrade,
+  } = useContext(AnalyticsContext);
 
   const { data } = useSWR<
     {
@@ -24,10 +51,11 @@ export default function AnalyticsAreaChart({
       saleAmount: number;
     }[]
   >(
-    `${baseApiPath}?${editQueryString(queryString, {
-      groupBy: "timeseries",
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    })}`,
+    !demo &&
+      `${baseApiPath}?${editQueryString(queryString, {
+        groupBy: "timeseries",
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      })}`,
     fetcher,
     {
       shouldRetryOnError: !requiresUpgrade,
@@ -36,59 +64,18 @@ export default function AnalyticsAreaChart({
 
   const chartData = useMemo(
     () =>
-      data?.map(({ start, clicks, leads, sales, saleAmount }) => ({
-        date: new Date(start),
-        values: {
-          clicks,
-          leads,
-          sales,
-          saleAmount: (saleAmount ?? 0) / 100,
-        },
-      })) ?? null,
-    [data],
-  );
-
-  const formatDate = useCallback(
-    (date: Date) => {
-      if (start && end) {
-        const daysDifference = getDaysDifference(start, end);
-
-        if (daysDifference <= 2)
-          return date.toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "numeric",
-          });
-        else if (daysDifference > 180)
-          return date.toLocaleDateString("en-US", {
-            month: "short",
-            year: "numeric",
-          });
-      } else if (interval) {
-        switch (interval) {
-          case "24h":
-            return date.toLocaleTimeString("en-US", {
-              hour: "numeric",
-              minute: "numeric",
-            });
-          case "ytd":
-          case "1y":
-          case "all":
-            return date.toLocaleDateString("en-US", {
-              month: "short",
-              year: "numeric",
-            });
-          default:
-            break;
-        }
-      }
-
-      return date.toLocaleDateString("en-US", {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-      });
-    },
-    [start, end, interval],
+      demo
+        ? DEMO_DATA
+        : data?.map(({ start, clicks, leads, sales, saleAmount }) => ({
+            date: new Date(start),
+            values: {
+              clicks,
+              leads,
+              sales,
+              saleAmount: (saleAmount ?? 0) / 100,
+            },
+          })) ?? null,
+    [data, demo],
   );
 
   const series = [
@@ -106,7 +93,7 @@ export default function AnalyticsAreaChart({
     },
     {
       id: "sales",
-      valueAccessor: (d) => d.values.saleAmount,
+      valueAccessor: (d) => d.values[saleUnit],
       isActive: resource === "sales",
       colorClassName: "text-teal-400",
     },
@@ -121,12 +108,17 @@ export default function AnalyticsAreaChart({
           key={queryString}
           data={chartData}
           series={series}
+          defaultTooltipIndex={demo ? DEMO_DATA.length - 2 : undefined}
           tooltipClassName="p-0"
           tooltipContent={(d) => {
             return (
               <>
                 <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
-                  {formatDate(d.date)}
+                  {formatDateTooltip(d.date, {
+                    interval: demo ? "day" : interval,
+                    start,
+                    end,
+                  })}
                 </p>
                 <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
                   <Fragment key={resource}>
@@ -142,19 +134,9 @@ export default function AnalyticsAreaChart({
                       <p className="capitalize text-gray-600">{resource}</p>
                     </div>
                     <p className="text-right font-medium text-gray-900">
-                      {nFormatter(d.values[resource], { full: true })}
-                      {resource === "sales" && (
-                        <span className="ml-1 text-gray-500">
-                          (
-                          {Intl.NumberFormat("en-US", {
-                            style: "currency",
-                            currency: "USD",
-                            // @ts-ignore – this is a valid option but TS is outdated
-                            trailingZeroDisplay: "stripIfInteger",
-                          }).format(d.values.saleAmount)}
-                          )
-                        </span>
-                      )}
+                      {resource === "sales" && saleUnit === "saleAmount"
+                        ? currencyFormatter(d.values.saleAmount)
+                        : nFormatter(d.values[resource], { full: true })}
                     </p>
                   </Fragment>
                 </div>
@@ -163,11 +145,21 @@ export default function AnalyticsAreaChart({
           }}
         >
           <Areas />
-          <XAxis tickFormat={formatDate} />
+          <XAxis
+            tickFormat={(d) =>
+              formatDateTooltip(d, {
+                interval,
+                start,
+                end,
+              })
+            }
+          />
           <YAxis
             showGridLines
             tickFormat={
-              resource === "sales" ? (v) => `$${nFormatter(v)}` : nFormatter
+              resource === "sales" && saleUnit === "saleAmount"
+                ? (v) => `$${nFormatter(v)}`
+                : nFormatter
             }
           />
         </TimeSeriesChart>

@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
-import { stripe } from "./stripe-init";
+import { stripe } from "../lib/stripe";
 
 async function main() {
   const partners = await prisma.partner.findMany({

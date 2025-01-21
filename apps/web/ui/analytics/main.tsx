@@ -1,24 +1,38 @@
-import { EventType } from "@/lib/analytics/types";
-import { Button, Tooltip, useRouterStuff } from "@dub/ui";
-import { ChartLine, Filter2 } from "@dub/ui/icons";
+import { AnalyticsSaleUnit, EventType } from "@/lib/analytics/types";
+import useWorkspace from "@/lib/swr/use-workspace";
+import {
+  BlurImage,
+  buttonVariants,
+  ChartLine,
+  Filter2,
+  ToggleGroup,
+  useRouterStuff,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
-import { ChevronRight, Lock } from "lucide-react";
+import { ChevronRight, Lock, Play } from "lucide-react";
 import Link from "next/link";
 import { useContext, useMemo } from "react";
 import AnalyticsAreaChart from "./analytics-area-chart";
 import { AnalyticsFunnelChart } from "./analytics-funnel-chart";
 import { AnalyticsContext } from "./analytics-provider";
-
 type Tab = {
   id: EventType;
   label: string;
   colorClassName: string;
+  conversions: boolean;
 };
 
 export default function Main() {
-  const { totalEvents, requiresUpgrade, showConversions, selectedTab, view } =
-    useContext(AnalyticsContext);
+  const {
+    totalEvents,
+    requiresUpgrade,
+    showConversions,
+    selectedTab,
+    saleUnit,
+    view,
+  } = useContext(AnalyticsContext);
+  const { plan } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   const tabs = useMemo(
@@ -28,6 +42,7 @@ export default function Main() {
           id: "clicks",
           label: "Clicks",
           colorClassName: "text-blue-500/50",
+          conversions: false,
         },
         ...(showConversions
           ? [
@@ -35,11 +50,13 @@ export default function Main() {
                 id: "leads",
                 label: "Leads",
                 colorClassName: "text-violet-600/50",
+                conversions: true,
               },
               {
                 id: "sales",
                 label: "Sales",
                 colorClassName: "text-teal-400/50",
+                conversions: true,
               },
             ]
           : []),
@@ -49,161 +66,210 @@ export default function Main() {
 
   const tab = tabs.find(({ id }) => id === selectedTab) ?? tabs[0];
 
+  const showPaywall =
+    (tab.conversions || view === "funnel") &&
+    (plan === "free" || plan === "pro");
+
   return (
-    <div className="w-full overflow-hidden border border-gray-200 bg-white sm:rounded-xl">
-      <div className="flex justify-between overflow-x-scroll border-b border-gray-200">
-        <div className="scrollbar-hide flex shrink-0 grow divide-x overflow-y-hidden">
-          <NumberFlowGroup>
-            {tabs.map(({ id, label, colorClassName }, idx) => {
-              return (
-                <div key={id} className="relative z-0">
-                  {idx > 0 && (
-                    <div className="absolute left-0 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-gray-200 bg-white p-1.5">
-                      <ChevronRight
-                        className="h-3 w-3 text-gray-400"
-                        strokeWidth={2.5}
-                      />
-                    </div>
+    <div className="w-full overflow-hidden bg-white">
+      <div className="scrollbar-hide grid w-full grid-cols-3 divide-x overflow-y-hidden border border-neutral-200 sm:rounded-t-xl">
+        <NumberFlowGroup>
+          {tabs.map(({ id, label, colorClassName, conversions }, idx) => {
+            return (
+              <div key={id} className="relative z-0">
+                {idx > 0 && (
+                  <div className="absolute left-0 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-neutral-200 bg-white p-1.5">
+                    <ChevronRight
+                      className="h-3 w-3 text-neutral-400"
+                      strokeWidth={2.5}
+                    />
+                  </div>
+                )}
+                {id === "sales" && (
+                  <ToggleGroup
+                    className="absolute right-3 top-3 hidden w-fit shrink-0 items-center gap-1 border-neutral-100 bg-neutral-100 sm:flex"
+                    optionClassName="size-8 p-0 flex items-center justify-center"
+                    indicatorClassName="border border-neutral-200 bg-white"
+                    options={[
+                      {
+                        label: <div className="text-base">$</div>,
+                        value: "saleAmount",
+                      },
+                      {
+                        label: <div className="text-[11px]">123</div>,
+                        value: "sales",
+                      },
+                    ]}
+                    selected={saleUnit}
+                    selectAction={(option: AnalyticsSaleUnit) => {
+                      queryParams({
+                        set: { saleUnit: option },
+                      });
+                    }}
+                  />
+                )}
+                <Link
+                  className={cn(
+                    "border-box relative block h-full min-w-[110px] flex-none px-4 py-3 sm:min-w-[240px] sm:px-8 sm:py-6",
+                    "transition-colors hover:bg-neutral-50 focus:outline-none active:bg-neutral-100",
+                    "ring-inset ring-neutral-500 focus-visible:ring-1 sm:first:rounded-tl-xl",
                   )}
-                  <Link
+                  href={
+                    queryParams({
+                      set: {
+                        event: id,
+                      },
+                      getNewPath: true,
+                    }) as string
+                  }
+                  aria-current
+                >
+                  {/* Active tab indicator */}
+                  <div
                     className={cn(
-                      "border-box relative block h-full min-w-[110px] flex-none px-4 py-3 sm:min-w-[240px] sm:px-8 sm:py-6",
-                      "transition-colors hover:bg-gray-50 focus:outline-none active:bg-gray-100",
-                      "ring-inset ring-gray-500 focus-visible:ring-1 sm:first:rounded-tl-xl",
+                      "absolute bottom-0 left-0 h-0.5 w-full bg-black transition-transform duration-100",
+                      tab.id !== id && "translate-y-[3px]", // Translate an extra pixel to avoid sub-pixel issues
                     )}
-                    href={
-                      (tab.id === id
-                        ? queryParams({
-                            del: "event",
-                            getNewPath: true,
-                          })
-                        : queryParams({
-                            set: {
-                              event: id,
-                            },
-                            getNewPath: true,
-                          })) as string
-                    }
-                    aria-current
-                  >
-                    {/* Active tab indicator */}
+                  />
+
+                  <div className="flex items-center gap-2.5 text-sm text-neutral-600">
                     <div
                       className={cn(
-                        "absolute bottom-0 left-0 h-0.5 w-full bg-black transition-transform duration-100",
-                        tab.id !== id && "translate-y-[3px]", // Translate an extra pixel to avoid sub-pixel issues
+                        "h-2 w-2 rounded-sm bg-current shadow-[inset_0_0_0_1px_#00000019]",
+                        colorClassName,
                       )}
                     />
-
-                    <div className="flex items-center gap-2.5 text-sm text-gray-600">
-                      <div
+                    <span>{label}</span>
+                  </div>
+                  <div className="mt-1 flex h-12 items-center">
+                    {totalEvents?.[id] || totalEvents?.[id] === 0 ? (
+                      <NumberFlow
+                        value={
+                          id === "sales" && saleUnit === "saleAmount"
+                            ? totalEvents.saleAmount / 100
+                            : totalEvents[id]
+                        }
                         className={cn(
-                          "h-2 w-2 rounded-sm bg-current shadow-[inset_0_0_0_1px_#00000019]",
-                          colorClassName,
+                          "text-2xl font-medium sm:text-3xl",
+                          showPaywall && "opacity-30",
                         )}
-                      />
-                      <span>{label}</span>
-                    </div>
-                    <div className="mt-1 flex items-center gap-2">
-                      {totalEvents?.[id] || totalEvents?.[id] === 0 ? (
-                        <>
-                          <NumberFlow
-                            value={totalEvents[id]}
-                            className="text-2xl font-medium sm:text-3xl"
-                            format={{
-                              notation:
-                                totalEvents[id] > 999999
-                                  ? "compact"
-                                  : "standard",
-                            }}
-                          />
-                          {id === "sales" && (
-                            <NumberFlow
-                              className="text-lg font-medium text-gray-500 sm:text-xl"
-                              value={totalEvents.saleAmount / 100}
-                              format={{
+                        format={
+                          id === "sales" && saleUnit === "saleAmount"
+                            ? {
                                 style: "currency",
                                 currency: "USD",
-                                // @ts-ignore – this is a valid option but TS is outdated
+                                // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
                                 trailingZeroDisplay: "stripIfInteger",
-                              }}
-                            />
-                          )}
-                        </>
-                      ) : requiresUpgrade ? (
-                        <div className="block rounded-full bg-gray-100 p-2.5">
-                          <Lock className="h-4 w-4 text-gray-500" />
-                        </div>
-                      ) : (
-                        <div className="my-1 h-8 w-12 animate-pulse rounded-md bg-gray-200 sm:h-9" />
-                      )}
-                    </div>
-                  </Link>
-                </div>
-              );
-            })}
-          </NumberFlowGroup>
-        </div>
-        {showConversions && (
-          <div className="hidden sm:block">
-            <ViewButtons />
-          </div>
-        )}
+                              }
+                            : {
+                                notation:
+                                  totalEvents[id] > 999999
+                                    ? "compact"
+                                    : "standard",
+                              }
+                        }
+                      />
+                    ) : requiresUpgrade ? (
+                      <div className="block rounded-full bg-neutral-100 p-2.5">
+                        <Lock className="h-4 w-4 text-neutral-500" />
+                      </div>
+                    ) : (
+                      <div className="h-9 w-16 animate-pulse rounded-md bg-neutral-200" />
+                    )}
+                  </div>
+                </Link>
+              </div>
+            );
+          })}
+        </NumberFlowGroup>
       </div>
       <div className="relative">
-        {view === "default" && (
-          <div className="p-5 pt-10 sm:p-10">
-            <AnalyticsAreaChart resource={tab.id} />
-          </div>
-        )}
-        {view === "funnel" && <AnalyticsFunnelChart />}
-        {showConversions && (
-          <div className="absolute right-2 top-2 w-fit sm:hidden">
-            <ViewButtons />
-          </div>
-        )}
+        <div
+          className={cn(
+            "relative overflow-hidden border-x border-b border-neutral-200 sm:rounded-b-xl",
+            showPaywall &&
+              "pointer-events-none [mask-image:linear-gradient(#0006,#0006_25%,transparent_40%)]",
+          )}
+        >
+          {view === "timeseries" && (
+            <div className="p-5 pt-10 sm:p-10">
+              <AnalyticsAreaChart resource={tab.id} demo={showPaywall} />
+            </div>
+          )}
+          {view === "funnel" && <AnalyticsFunnelChart demo={showPaywall} />}
+        </div>
+        <ToggleGroup
+          className="absolute right-3 top-3 flex w-fit shrink-0 items-center gap-1 border-neutral-100 bg-neutral-100"
+          optionClassName="size-8 p-0 flex items-center justify-center"
+          indicatorClassName="border border-neutral-200 bg-white"
+          options={[
+            {
+              label: <ChartLine className="size-4 text-neutral-600" />,
+              value: "timeseries",
+            },
+            {
+              label: <Filter2 className="size-4 -rotate-90 text-neutral-600" />,
+              value: "funnel",
+            },
+          ]}
+          selected={view}
+          selectAction={(option) => {
+            queryParams({
+              set: { view: option },
+            });
+          }}
+        />
+        {showPaywall && <ConversionTrackingPaywall />}
       </div>
     </div>
   );
 }
 
-function ViewButtons() {
-  const { view } = useContext(AnalyticsContext);
-  const { queryParams } = useRouterStuff();
+function ConversionTrackingPaywall() {
+  const { slug } = useWorkspace();
 
   return (
-    <div className="flex shrink-0 items-center gap-1 border-gray-100 pr-2 pt-2 sm:pr-6 sm:pt-6">
-      <Tooltip content="Line Chart">
-        <Button
-          variant="secondary"
+    <div className="animate-slide-up-fade pointer-events-none absolute inset-0 flex items-center justify-center pt-24">
+      <div className="pointer-events-auto flex flex-col items-center">
+        <Link
+          href="https://d.to/conversions"
+          target="_blank"
+          className="group relative flex aspect-video w-full max-w-80 items-center justify-center overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100"
+        >
+          <BlurImage
+            src="https://assets.dub.co/blog/conversion-analytics.png"
+            alt="thumbnail"
+            fill
+            className="object-cover"
+          />
+          <div className="relative flex size-10 items-center justify-center rounded-full bg-neutral-900 ring-[6px] ring-black/5 transition-all duration-75 group-hover:ring-[8px] group-active:ring-[7px]">
+            <Play className="size-4 fill-current text-white" />
+          </div>
+        </Link>
+        <h2 className="mt-7 text-base font-semibold text-neutral-700">
+          Conversion Tracking
+        </h2>
+        <p className="mt-4 max-w-sm text-center text-sm text-neutral-500">
+          Want to see how your clicks are converting to revenue? Upgrade to our
+          Business Plan and start tracking conversion events with Dub.{" "}
+          <Link
+            href="https://d.to/conversions"
+            target="_blank"
+            className="underline transition-colors duration-75 hover:text-neutral-700"
+          >
+            Learn more
+          </Link>
+        </p>
+        <Link
+          href={`/${slug}/upgrade`}
           className={cn(
-            "h-9 border-transparent px-2 hover:border-gray-200",
-            view === "default" && "border border-gray-200 bg-gray-100",
+            buttonVariants({ variant: "primary" }),
+            "mt-4 flex h-8 items-center justify-center whitespace-nowrap rounded-lg border px-3 text-sm",
           )}
-          icon={<ChartLine className="h-4 w-4 text-gray-600" />}
-          onClick={() => {
-            queryParams({
-              del: "view",
-            });
-          }}
-        />
-      </Tooltip>
-      <Tooltip content="Funnel Chart">
-        <Button
-          variant="secondary"
-          className={cn(
-            "h-9 border-transparent px-2 hover:border-gray-200",
-            view === "funnel" && "border border-gray-200 bg-gray-100",
-          )}
-          icon={<Filter2 className="h-4 w-4 -rotate-90 text-gray-600" />}
-          onClick={() => {
-            queryParams({
-              set: {
-                view: "funnel",
-              },
-            });
-          }}
-        />
-      </Tooltip>
+        >
+          Upgrade to Business
+        </Link>
+      </div>
     </div>
   );
 }

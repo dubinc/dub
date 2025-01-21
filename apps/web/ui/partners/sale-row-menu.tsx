@@ -1,4 +1,5 @@
-import { updateSaleStatusAction } from "@/lib/actions/update-sale-status";
+import { updateSaleStatusAction } from "@/lib/actions/partners/update-sale-status";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { SaleResponse } from "@/lib/types";
 import { Button, Icon, Popover } from "@dub/ui";
@@ -15,7 +16,6 @@ import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 
 export function SaleRowMenu({ row }: { row: Row<SaleResponse> }) {
   const { id: workspaceId } = useWorkspace();
@@ -24,12 +24,10 @@ export function SaleRowMenu({ row }: { row: Row<SaleResponse> }) {
 
   const { executeAsync } = useAction(updateSaleStatusAction, {
     onSuccess: async () => {
-      mutate(
-        (key) =>
-          typeof key === "string" &&
-          (key.startsWith(`/api/programs/${programId}/sales`) ||
-            key.startsWith(`/api/programs/${programId}/payouts`)),
-      );
+      await mutatePrefix([
+        `/api/programs/${programId}/payouts`,
+        `/api/programs/${programId}/sales`,
+      ]);
     },
   });
 

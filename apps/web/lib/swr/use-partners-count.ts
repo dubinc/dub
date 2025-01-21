@@ -20,10 +20,15 @@ export default function usePartnersCount<T>(
         ...(opts.groupBy && { groupBy: opts.groupBy }),
         workspaceId,
       }).toString()}`
-    : getQueryString({
-        ...opts,
-        workspaceId,
-      });
+    : getQueryString(
+        {
+          ...opts,
+          workspaceId,
+        },
+        {
+          ignore: ["partnerId"],
+        },
+      );
 
   const { data: partnersCount, error } = useSWR<PartnersCount>(
     `/api/programs/${programId}/partners/count${queryString}`,

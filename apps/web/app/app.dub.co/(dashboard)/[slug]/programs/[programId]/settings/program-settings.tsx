@@ -1,6 +1,6 @@
 "use client";
 
-import { updateProgramAction } from "@/lib/actions/update-program";
+import { updateProgramAction } from "@/lib/actions/partners/update-program";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
@@ -8,7 +8,7 @@ import { EmbedDocsSheet } from "@/ui/partners/embed-docs-sheet";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
 import { AnimatedSizeContainer, Button } from "@dub/ui";
 import { CircleCheckFill, Code, LoadingSpinner } from "@dub/ui/icons";
-import { cn, pluralize } from "@dub/utils";
+import { cn, INFINITY_NUMBER, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 import {
@@ -52,11 +52,10 @@ export function ProgramSettings() {
 
 type FormData = Pick<
   ProgramProps,
-  | "recurringCommission"
-  | "recurringDuration"
-  | "isLifetimeRecurring"
-  | "commissionType"
   | "commissionAmount"
+  | "commissionType"
+  | "commissionDuration"
+  | "commissionInterval"
 >;
 
 function ProgramSettingsForm({ program }: { program: ProgramProps }) {
@@ -66,10 +65,7 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
   const form = useForm<FormData>({
     mode: "onBlur",
     defaultValues: {
-      recurringCommission: program.recurringCommission,
-      recurringDuration: program.recurringDuration,
-      isLifetimeRecurring: program.isLifetimeRecurring,
-      commissionType: program.commissionType,
+      ...program,
       commissionAmount:
         program.commissionType === "flat"
           ? program.commissionAmount / 100
@@ -87,15 +83,15 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
   } = form;
 
   const [
-    recurringCommission,
-    recurringDuration,
-    isLifetimeRecurring,
+    commissionAmount,
     commissionType,
+    commissionDuration,
+    commissionInterval,
   ] = watch([
-    "recurringCommission",
-    "recurringDuration",
-    "isLifetimeRecurring",
+    "commissionAmount",
     "commissionType",
+    "commissionDuration",
+    "commissionInterval",
   ]);
 
   const { executeAsync } = useAction(updateProgramAction, {
@@ -133,7 +129,7 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
           <h2 className="text-xl font-medium text-neutral-900">Program</h2>
           <Button
             type="button"
-            text="Embed widget"
+            text="Embed"
             onClick={() => setIsEmbedDocsOpen(true)}
             icon={<Code className="size-4" />}
             className="h-8 w-fit"
@@ -157,62 +153,67 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
               >
                 <div className="p-1">
                   <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                    {commissionTypes.map((commissionType) => (
-                      <label
-                        key={commissionType.label}
-                        className={cn(
-                          "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                          "transition-all duration-150",
-                          recurringCommission === commissionType.recurring &&
-                            "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                        )}
-                      >
-                        <input
-                          type="radio"
-                          value={commissionType.label}
-                          className="hidden"
-                          checked={
-                            recurringCommission === commissionType.recurring
-                          }
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setValue(
-                                "recurringCommission",
-                                commissionType.recurring,
-                                { shouldDirty: true },
-                              );
+                    {commissionTypes.map((commissionType) => {
+                      const isSelected =
+                        commissionDuration &&
+                        commissionDuration > 1 === commissionType.recurring
+                          ? true
+                          : false;
 
-                              // If not recurring, set lifetime recurring to false
-                              if (!commissionType.recurring)
-                                setValue("isLifetimeRecurring", false, {
-                                  shouldDirty: true,
-                                });
-                            }
-                          }}
-                        />
-                        <div className="flex grow flex-col text-sm">
-                          <span className="font-medium">
-                            {commissionType.label}
-                          </span>
-                          <span>{commissionType.description}</span>
-                        </div>
-                        <CircleCheckFill
+                      return (
+                        <label
+                          key={commissionType.label}
                           className={cn(
-                            "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                            recurringCommission === commissionType.recurring &&
-                              "scale-100 opacity-100",
+                            "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                            "transition-all duration-150",
+                            isSelected &&
+                              "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
                           )}
-                        />
-                      </label>
-                    ))}
+                        >
+                          <input
+                            type="radio"
+                            value={commissionType.label}
+                            className="hidden"
+                            checked={isSelected}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setValue(
+                                  "commissionDuration",
+                                  commissionType.recurring ? 12 : 1,
+                                  { shouldDirty: true },
+                                );
+                              }
+                            }}
+                          />
+                          <div className="flex grow flex-col text-sm">
+                            <span className="font-medium">
+                              {commissionType.label}
+                            </span>
+                            <span>{commissionType.description}</span>
+                          </div>
+                          <CircleCheckFill
+                            className={cn(
+                              "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                              isSelected && "scale-100 opacity-100",
+                            )}
+                          />
+                        </label>
+                      );
+                    })}
                   </div>
                   <div
                     className={cn(
                       "transition-opacity duration-200",
-                      recurringCommission ? "h-auto" : "h-0 opacity-0",
+                      commissionDuration && commissionDuration > 1
+                        ? "h-auto"
+                        : "h-0 opacity-0",
                     )}
-                    aria-hidden={!recurringCommission}
-                    {...{ inert: !recurringCommission ? "" : undefined }}
+                    aria-hidden={
+                      !(commissionDuration && commissionDuration > 1)
+                    }
+                    {...{
+                      inert: !(commissionDuration && commissionDuration > 1),
+                    }}
                   >
                     <div className="pt-6">
                       <label
@@ -221,42 +222,26 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
                       >
                         Duration
                       </label>
-                      <div className="relative mt-2 rounded-md shadow-sm">
+                      <div className="relati`ve mt-2 rounded-md shadow-sm">
                         <select
                           className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                           onChange={(e) => {
                             const value = parseInt(e.target.value);
-
-                            if (value === 0)
-                              setValue("isLifetimeRecurring", true, {
-                                shouldDirty: true,
-                              });
-                            else if (isLifetimeRecurring)
-                              setValue("isLifetimeRecurring", false, {
-                                shouldDirty: true,
-                              });
-
-                            setValue("recurringDuration", value, {
+                            setValue("commissionDuration", value, {
                               shouldDirty: true,
                             });
                           }}
-                          value={
-                            (isLifetimeRecurring ? 0 : recurringDuration) ?? 1
-                          }
+                          value={commissionDuration ?? 1}
                         >
-                          {(program.recurringInterval === "year"
+                          {(commissionInterval === "year"
                             ? [1, 2]
                             : [1, 3, 6, 12, 18, 24]
                           ).map((v) => (
                             <option value={v} key={v}>
-                              {v}{" "}
-                              {pluralize(
-                                program.recurringInterval ?? "month",
-                                v,
-                              )}
+                              {v} {pluralize(commissionInterval ?? "month", v)}
                             </option>
                           ))}
-                          <option value={0}>Lifetime</option>
+                          <option value={INFINITY_NUMBER}>Lifetime</option>
                         </select>
                       </div>
                     </div>
@@ -349,7 +334,7 @@ function Summary({ program }: { program: ProgramProps }) {
       ...program,
       commissionAmount:
         program.commissionType === "flat"
-          ? program.commissionAmount / 100
+          ? program.commissionAmount * 100
           : program.commissionAmount,
     },
   }) as FormData;
@@ -365,7 +350,6 @@ function Summary({ program }: { program: ProgramProps }) {
             <ProgramCommissionDescription
               program={{
                 ...data,
-                recurringInterval: program.recurringInterval,
                 commissionAmount:
                   (data.commissionType === "flat"
                     ? data.commissionAmount * 100

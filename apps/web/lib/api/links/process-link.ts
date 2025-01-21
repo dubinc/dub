@@ -32,10 +32,7 @@ export async function processLink<T extends Record<string, any>>({
   skipExternalIdChecks = false, // only skip when externalId doesn't change (e.g. when editing a link)
 }: {
   payload: NewLinkProps & T;
-  workspace?: Pick<
-    WorkspaceProps,
-    "id" | "plan" | "conversionEnabled" | "flags"
-  >;
+  workspace?: Pick<WorkspaceProps, "id" | "plan" | "flags">;
   userId?: string;
   bulk?: boolean;
   skipKeyChecks?: boolean;
@@ -195,11 +192,13 @@ export async function processLink<T extends Record<string, any>>({
   } else if (isDubDomain(domain)) {
     // coerce type with ! cause we already checked if it exists
     const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
-    const urlDomain = getApexDomain(url) || "";
+    const urlDomain = getDomainWithoutWWW(url) || "";
+    const apexDomain = getApexDomain(url);
     if (
       key !== "_root" &&
       allowedHostnames &&
-      !allowedHostnames.includes(urlDomain)
+      !allowedHostnames.includes(urlDomain) &&
+      !allowedHostnames.includes(apexDomain)
     ) {
       return {
         link: payload,
@@ -280,10 +279,11 @@ export async function processLink<T extends Record<string, any>>({
   }
 
   if (trackConversion) {
-    if (!workspace || !workspace.conversionEnabled) {
+    if (!workspace || workspace.plan === "free" || workspace.plan === "pro") {
       return {
         link: payload,
-        error: "Conversion tracking is not enabled for this workspace.",
+        error:
+          "Conversion tracking is only available for workspaces with a Business plan and above. Please upgrade to continue.",
         code: "forbidden",
       };
     }
@@ -313,13 +313,6 @@ export async function processLink<T extends Record<string, any>>({
       return {
         link: payload,
         error: "You cannot set custom social cards with bulk link creation.",
-        code: "unprocessable_entity",
-      };
-    }
-    if (rewrite) {
-      return {
-        link: payload,
-        error: "You cannot use link cloaking with bulk link creation.",
         code: "unprocessable_entity",
       };
     }
@@ -379,13 +372,6 @@ export async function processLink<T extends Record<string, any>>({
 
     // Program validity checks
     if (programId) {
-      if (!workspace?.conversionEnabled) {
-        return {
-          link: payload,
-          error: "Conversion tracking is not enabled for this workspace.",
-          code: "forbidden",
-        };
-      }
       const program = await prisma.program.findUnique({
         where: { id: programId },
       });
@@ -526,7 +512,7 @@ async function maliciousLinkCheck(url: string) {
     return false;
   }
 
-  const domainBlacklisted = await isBlacklistedDomain({ domain, apexDomain });
+  const domainBlacklisted = await isBlacklistedDomain(domain);
   if (domainBlacklisted === true) {
     return true;
   } else if (domainBlacklisted === "whitelisted") {
@@ -542,10 +528,6 @@ async function maliciousLinkCheck(url: string) {
       console.log("Pangea verdict for domain", apexDomain, verdict);
 
       if (verdict === "benign") {
-        await updateConfig({
-          key: "whitelistedDomains",
-          value: domain,
-        });
         return false;
       } else if (verdict === "malicious" || verdict === "suspicious") {
         await Promise.all([

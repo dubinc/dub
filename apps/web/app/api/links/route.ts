@@ -16,34 +16,24 @@ import { LOCALHOST_IP, getSearchParamsWithArray } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers":
+    "Content-Type, Authorization, dub-anonymous-link-creation",
+};
+
 // GET /api/links – get all links for a workspace
 export const GET = withWorkspace(
   async ({ req, headers, workspace, session }) => {
     const searchParams = getSearchParamsWithArray(req.url);
+    const params = getLinksQuerySchemaExtended.parse(searchParams);
 
-    const {
-      domain,
-      tagId,
-      tagIds,
-      folderId,
-      search,
-      sort,
-      page,
-      pageSize,
-      userId,
-      showArchived,
-      withTags,
-      includeUser,
-      includeWebhooks,
-      includeDashboard,
-      linkIds,
-    } = getLinksQuerySchemaExtended.parse(searchParams);
-
-    if (domain) {
-      await getDomainOrThrow({ workspace, domain });
+    if (params.domain) {
+      await getDomainOrThrow({ workspace, domain: params.domain });
     }
 
-    if (folderId) {
+    if (params.folderId) {
       await checkFolderPermission({
         folderId,
         workspaceId: workspace.id,
@@ -53,22 +43,8 @@ export const GET = withWorkspace(
     }
 
     const response = await getLinksForWorkspace({
+      ...params,
       workspaceId: workspace.id,
-      domain,
-      tagId,
-      tagIds,
-      folderId,
-      search,
-      sort,
-      page,
-      pageSize,
-      userId,
-      showArchived,
-      withTags,
-      includeUser,
-      includeWebhooks,
-      includeDashboard,
-      linkIds,
     });
 
     return NextResponse.json(response, {
@@ -128,7 +104,12 @@ export const POST = withWorkspace(
         );
       }
 
-      return NextResponse.json(response, { headers });
+      return NextResponse.json(response, {
+        headers: {
+          ...headers,
+          ...CORS_HEADERS,
+        },
+      });
     } catch (error) {
       throw new DubApiError({
         code: "unprocessable_entity",
@@ -140,3 +121,10 @@ export const POST = withWorkspace(
     requiredPermissions: ["links.write"],
   },
 );
+
+export const OPTIONS = () => {
+  return new Response(null, {
+    status: 204,
+    headers: CORS_HEADERS,
+  });
+};

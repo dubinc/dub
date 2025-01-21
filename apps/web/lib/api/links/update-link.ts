@@ -1,6 +1,7 @@
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { LinkProps, ProcessedLinkProps } from "@/lib/types";
+import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import {
@@ -132,7 +133,6 @@ export async function updateLink({
         dashboard: {
           create: {
             id: createId({ prefix: "dash_" }),
-            showConversions: updatedLink.trackConversion,
             projectId: updatedLink.projectId,
             userId: updatedLink.userId,
           },
@@ -159,22 +159,12 @@ export async function updateLink({
   });
 
   waitUntil(
-    Promise.all([
+    Promise.allSettled([
       // record link in Redis
       linkCache.set(response),
 
       // record link in Tinybird
-      recordLink({
-        link_id: response.id,
-        domain: response.domain,
-        key: response.key,
-        url: response.url,
-        tag_ids: response.tags.map(({ tag }) => tag.id),
-        folder_id: response.folderId,
-        program_id: response.programId ?? "",
-        workspace_id: response.projectId,
-        created_at: response.createdAt,
-      }),
+      recordLink(response),
 
       // if key is changed: delete the old key in Redis
       (changedDomain || changedKey) && linkCache.delete(oldLink),
@@ -192,6 +182,11 @@ export async function updateLink({
         oldLink.image.startsWith(`${R2_URL}/images/${id}`) &&
         oldLink.image !== image &&
         storage.delete(oldLink.image.replace(`${R2_URL}/`, "")),
+
+      webhookIds != undefined &&
+        propagateWebhookTriggerChanges({
+          webhookIds,
+        }),
     ]),
   );
 

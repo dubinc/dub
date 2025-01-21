@@ -73,18 +73,20 @@ function DeleteTokenModal({
           </div>
 
           <div className="flex items-center gap-2">
-            <Tooltip content={token.user.name}>
-              <img
-                src={
-                  token.user.isMachine
-                    ? "https://api.dicebear.com/7.x/bottts/svg?seed=Sara"
-                    : token.user.image ||
-                      `${DICEBEAR_AVATAR_URL}${token.user.id}`
-                }
-                alt={token.user.name!}
-                className="size-5 rounded-full"
-              />
-            </Tooltip>
+            {token.user && (
+              <Tooltip content={token.user.name}>
+                <img
+                  src={
+                    token.user.isMachine
+                      ? "https://api.dicebear.com/7.x/bottts/svg?seed=Sara"
+                      : token.user.image ||
+                        `${DICEBEAR_AVATAR_URL}${token.user.id}`
+                  }
+                  alt={token.user.name!}
+                  className="size-5 rounded-full"
+                />
+              </Tooltip>
+            )}
             <p className="text-xs text-neutral-500">
               {new Date(token.createdAt).toLocaleDateString("en-us", {
                 month: "short",
@@ -111,8 +113,8 @@ function DeleteTokenModal({
                 mutate(endpoint.mutate);
                 setShowDeleteTokenModal(false);
               } else {
-                const error = await res.text();
-                toast.error(error);
+                const { error } = await res.json();
+                toast.error(error.message);
               }
             });
           }}

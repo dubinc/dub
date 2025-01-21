@@ -18,11 +18,10 @@ const schema = z.object({
 // POST /api/cron/domains/delete
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const rawBody = await req.text();
+    await verifyQstashSignature({ req, rawBody });
 
-    await verifyQstashSignature(req, body);
-
-    const { domain, workspaceId } = schema.parse(body);
+    const { domain, workspaceId } = schema.parse(JSON.parse(rawBody));
 
     const domainRecord = await prisma.domain.findUnique({
       where: {
@@ -39,7 +38,11 @@ export async function POST(req: Request) {
         domain,
       },
       include: {
-        tags: true,
+        tags: {
+          select: {
+            tag: true,
+          },
+        },
       },
       take: 100, // TODO: We can adjust this number based on the performance
     });
@@ -53,20 +56,7 @@ export async function POST(req: Request) {
       linkCache.deleteMany(links),
 
       // Record link in the Tinybird
-      recordLink(
-        links.map((link) => ({
-          link_id: link.id,
-          domain: link.domain,
-          key: link.key,
-          url: link.url,
-          tag_ids: link.tags.map((tag) => tag.id),
-          folder_id: link.folderId,
-          program_id: link.programId ?? "",
-          workspace_id: workspaceId,
-          created_at: link.createdAt,
-          deleted: true,
-        })),
-      ),
+      recordLink(links),
 
       // Remove image from R2 storage if it exists
       links

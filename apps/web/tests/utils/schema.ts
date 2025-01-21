@@ -52,6 +52,7 @@ export const expectedLink: Partial<Link> & {
   expiredUrl: null,
   externalId: null,
   programId: null,
+  tenantId: null,
   folderId: null,
 };
 

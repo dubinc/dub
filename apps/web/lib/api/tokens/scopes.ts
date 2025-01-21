@@ -3,8 +3,6 @@ import { PermissionAction } from "../rbac/permissions";
 import { ResourceKey } from "../rbac/resources";
 
 export const SCOPES = [
-  "workspaces.read",
-  "workspaces.write",
   "links.read",
   "links.write",
   "tags.read",
@@ -14,7 +12,10 @@ export const SCOPES = [
   "analytics.read",
   "domains.read",
   "domains.write",
-  "conversions.write",
+  "workspaces.read",
+  "workspaces.write",
+  "webhooks.read",
+  "webhooks.write",
   "apis.all", // All API scopes
   "apis.read", // All read scopes
 ] as const;
@@ -107,11 +108,18 @@ export const RESOURCE_SCOPES: {
     resource: "analytics",
   },
   {
-    scope: "conversions.write",
+    scope: "webhooks.read",
     roles: ["owner", "member"],
-    permissions: ["conversions.write"],
+    permissions: ["webhooks.read"],
+    type: "read",
+    resource: "webhooks",
+  },
+  {
+    scope: "webhooks.write",
+    roles: ["owner"],
+    permissions: ["webhooks.write", "webhooks.read"],
     type: "write",
-    resource: "conversions",
+    resource: "webhooks",
   },
   {
     scope: "apis.read",
@@ -140,7 +148,6 @@ export const RESOURCE_SCOPES: {
       "workspaces.read",
       "workspaces.write",
       "analytics.read",
-      "conversions.write",
     ],
   },
 ];
@@ -264,4 +271,26 @@ export const validateScopesForRole = (scopes: Scope[], role: Role) => {
   );
 
   return !(invalidScopes.length > 0);
+};
+
+// Get the scopes for a role
+export const getScopesForRole = (role: Role) => {
+  return ROLE_SCOPES_MAP[role];
+};
+
+// Consolidate scopes to avoid duplication and show only the most permissive scope
+export const consolidateScopes = (scopes: string[]) => {
+  const consolidated = new Set();
+
+  scopes.forEach((scope) => {
+    const [resource, action] = scope.split(".");
+
+    if (action === "write") {
+      consolidated.add(`${resource}.write`);
+    } else if (action === "read" && !consolidated.has(`${resource}.write`)) {
+      consolidated.add(`${resource}.read`);
+    }
+  });
+
+  return Array.from(consolidated) as string[];
 };

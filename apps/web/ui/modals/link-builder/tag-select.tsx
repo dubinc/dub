@@ -45,7 +45,11 @@ export function TagSelect() {
   const useAsync = tagsCount && tagsCount > TAGS_MAX_PAGE_SIZE;
 
   const { tags: availableTags, loading: loadingTags } = useTags({
-    query: useAsync ? { search: debouncedSearch } : undefined,
+    query: {
+      sortBy: "createdAt",
+      sortOrder: "desc",
+      ...(useAsync ? { search: debouncedSearch } : {}),
+    },
   });
 
   const { watch, setValue } = useFormContext<LinkFormData>();
@@ -103,9 +107,6 @@ export function TagSelect() {
     body: {
       model: "claude-3-haiku-20240307",
     },
-    onError: (error) => {
-      toast.error(error.message);
-    },
     onFinish: (_, completion) => {
       mutateWorkspace();
       if (completion) {
@@ -114,7 +115,8 @@ export function TagSelect() {
           .map((tag: string) => {
             return availableTags?.find(({ name }) => name === tag) || null;
           })
-          .filter(Boolean);
+          .filter(Boolean)
+          .slice(0, 5);
         setSuggestedTags(suggestedTags as TagProps[]);
       }
     },

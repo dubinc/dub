@@ -55,7 +55,6 @@ function ExportLinksModal({
   const { getQueryString } = useRouterStuff();
   const dateRangePickerId = useId();
   const columnCheckboxId = useId();
-  const useFiltersCheckboxId = useId();
 
   const {
     control,
@@ -88,11 +87,13 @@ function ExportLinksModal({
           ",",
         ),
       };
+
       const queryString = data.useFilters
         ? getQueryString(params, {
             ignore: ["import", "upgrade", "newLink"],
           })
         : "?" + new URLSearchParams(params).toString();
+
       const response = await fetch(`/api/links/export${queryString}`, {
         method: "GET",
         headers: {

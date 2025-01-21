@@ -15,25 +15,37 @@ import { NextResponse } from "next/server";
 // GET /api/workspaces/[idOrSlug] – get a specific workspace by id or slug
 export const GET = withWorkspace(
   async ({ workspace, headers }) => {
-    const domains = await prisma.domain.findMany({
-      where: {
-        projectId: workspace.id,
-      },
-      select: {
-        slug: true,
-        primary: true,
-      },
-    });
+    const [domains, yearInReviews] = await Promise.all([
+      prisma.domain.findMany({
+        where: {
+          projectId: workspace.id,
+        },
+        select: {
+          slug: true,
+          primary: true,
+        },
+        take: 100,
+      }),
+      prisma.yearInReview.findMany({
+        where: {
+          workspaceId: workspace.id,
+          year: 2024,
+        },
+      }),
+    ]);
 
     return NextResponse.json(
-      WorkspaceSchema.parse({
-        ...workspace,
-        id: `ws_${workspace.id}`,
-        domains,
-        flags: await getFeatureFlags({
-          workspaceId: workspace.id,
+      {
+        ...WorkspaceSchema.parse({
+          ...workspace,
+          id: `ws_${workspace.id}`,
+          domains,
+          flags: await getFeatureFlags({
+            workspaceId: workspace.id,
+          }),
         }),
-      }),
+        yearInReview: yearInReviews.length > 0 ? yearInReviews[0] : null,
+      },
       { headers },
     );
   },
@@ -45,9 +57,8 @@ export const GET = withWorkspace(
 // PATCH /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
-    const { name, slug, logo } = await updateWorkspaceSchema.parseAsync(
-      await req.json(),
-    );
+    const { name, slug, logo, conversionEnabled } =
+      await updateWorkspaceSchema.parseAsync(await req.json());
 
     const logoUploaded = logo
       ? await storage.upload(
@@ -65,6 +76,7 @@ export const PATCH = withWorkspace(
           ...(name && { name }),
           ...(slug && { slug }),
           ...(logoUploaded && { logo: logoUploaded.url }),
+          ...(conversionEnabled !== undefined && { conversionEnabled }),
         },
         include: {
           domains: true,

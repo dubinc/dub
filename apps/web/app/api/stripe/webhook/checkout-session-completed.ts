@@ -68,6 +68,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       tagsLimit: plan.limits.tags!,
       foldersLimit: plan.limits.folders!,
       usersLimit: plan.limits.users!,
+      salesLimit: plan.limits.sales!,
     },
     select: {
       users: {
@@ -101,6 +102,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       limiter.schedule(() =>
         sendEmail({
           email: user.email as string,
+          replyTo: "steven.tey@dub.co",
           subject: `Thank you for upgrading to Dub.co ${plan.name}!`,
           react: UpgradeEmail({
             name: user.name,

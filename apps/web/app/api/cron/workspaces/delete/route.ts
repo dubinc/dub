@@ -15,11 +15,10 @@ const schema = z.object({
 // POST /api/cron/workspaces/delete
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const rawBody = await req.text();
+    await verifyQstashSignature({ req, rawBody });
 
-    await verifyQstashSignature(req, body);
-
-    const { workspaceId } = schema.parse(body);
+    const { workspaceId } = schema.parse(JSON.parse(rawBody));
 
     const workspace = await prisma.project.findUnique({
       where: {
@@ -37,7 +36,11 @@ export async function POST(req: Request) {
         projectId: workspace.id,
       },
       include: {
-        tags: true,
+        tags: {
+          select: {
+            tag: true,
+          },
+        },
       },
       take: 100, // TODO: We can adjust this number based on the performance
     });
@@ -52,9 +55,7 @@ export async function POST(req: Request) {
           },
         }),
 
-        bulkDeleteLinks({
-          links,
-        }),
+        bulkDeleteLinks(links),
       ]);
 
       console.log(res);

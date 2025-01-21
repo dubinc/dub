@@ -8,24 +8,24 @@ import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
 import { WebhookTrigger } from "../types";
 import z from "../zod";
 import { clickEventSchema, clickEventSchemaTB } from "../zod/schemas/clicks";
+import { WebhookSchema } from "../zod/schemas/webhooks";
 import { WEBHOOK_EVENT_ID_PREFIX } from "./constants";
 import { leadWebhookEventSchema, saleWebhookEventSchema } from "./schemas";
 
 interface TransformWebhookProps
-  extends Pick<Webhook, "id" | "name" | "url" | "secret" | "triggers"> {
+  extends Pick<
+    Webhook,
+    "id" | "name" | "url" | "secret" | "triggers" | "disabledAt"
+  > {
   links: { linkId: string }[];
 }
 
 // This is the format we send webhook details to the client
 export const transformWebhook = (webhook: TransformWebhookProps) => {
-  return {
-    id: webhook.id,
-    name: webhook.name,
-    url: webhook.url,
-    secret: webhook.secret,
-    triggers: webhook.triggers,
+  return WebhookSchema.parse({
+    ...webhook,
     linkIds: webhook.links.map(({ linkId }) => linkId),
-  };
+  });
 };
 
 export const transformClickEventData = (

@@ -20,11 +20,12 @@ const pageSize = 100;
 // POST /api/cron/domains/update
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const rawBody = await req.text();
+    await verifyQstashSignature({ req, rawBody });
 
-    await verifyQstashSignature(req, body);
-
-    const { newDomain, oldDomain, workspaceId, page } = schema.parse(body);
+    const { newDomain, oldDomain, workspaceId, page } = schema.parse(
+      JSON.parse(rawBody),
+    );
 
     const newDomainRecord = await prisma.domain.findUnique({
       where: {
@@ -41,7 +42,11 @@ export async function POST(req: Request) {
         domain: newDomain,
       },
       include: {
-        tags: true,
+        tags: {
+          select: {
+            tag: true,
+          },
+        },
       },
       skip: (page - 1) * pageSize,
       take: pageSize,
@@ -59,19 +64,7 @@ export async function POST(req: Request) {
       }),
 
       // update links in Tinybird
-      recordLink(
-        links.map((link) => ({
-          link_id: link.id,
-          domain: link.domain,
-          key: link.key,
-          url: link.url,
-          tag_ids: link.tags.map((tag) => tag.tagId),
-          folder_id: link.folderId,
-          program_id: link.programId ?? "",
-          workspace_id: link.projectId,
-          created_at: link.createdAt,
-        })),
-      ),
+      recordLink(links),
     ]);
 
     await queueDomainUpdate({

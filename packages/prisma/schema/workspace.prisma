@@ -11,6 +11,8 @@ model Project {
   paymentFailedAt   DateTime?
   stripeConnectId   String?   @unique // for Stripe Integration
   payoutMethodId    String? // for Stripe Connect payouts
+  shopifyStoreId    String?   @unique // for Shopify Integration
+  invoicePrefix     String?   @unique // The prefix for the customer used to generate unique invoice numbers
 
   usage        Int @default(0)
   usageLimit   Int @default(1000)
@@ -28,8 +30,10 @@ model Project {
   referralLinkId  String? @unique
   referredSignups Int     @default(0)
 
+  store Json? // General key-value store for things like persisting toggles, dismissing popups, etc.
+
+  conversionEnabled Boolean @default(false) // Whether to enable conversion tracking for links by default
   webhookEnabled    Boolean @default(false)
-  conversionEnabled Boolean @default(false) // TODO: remove this once Conversions goes GA
   partnersEnabled   Boolean @default(false)
   ssoEnabled        Boolean @default(false)
   dotLinkClaimed    Boolean @default(false)
@@ -45,6 +49,7 @@ model Project {
   domains               Domain[]
   tags                  Tag[]
   programs              Program[]
+  invoices              Invoice[]
   customers             Customer[]
   defaultDomains        DefaultDomains[]
   restrictedTokens      RestrictedToken[]
@@ -56,6 +61,7 @@ model Project {
   registeredDomains     RegisteredDomain[]
   dashboards            Dashboard[]
   utmTemplates          UtmTemplate[]
+  yearInReviews         YearInReview[]
 
   @@index(usageLastChecked(sort: Asc))
 }

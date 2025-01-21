@@ -1,5 +1,5 @@
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { createSaleData } from "@/lib/api/sales/sale";
+import { createSaleData } from "@/lib/api/sales/create-sale-data";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -20,10 +20,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   if (!dubCustomerId) {
     return "Customer ID not found in Stripe checkout session metadata, skipping...";
-  }
-
-  if (charge.amount_total === 0) {
-    return `Checkout session completed for customer with external ID ${dubCustomerId} and invoice ID ${invoiceId} but amount is 0, skipping...`;
   }
 
   let customer: Customer;
@@ -60,6 +56,10 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       );
       return `Invoice with ID ${invoiceId} already processed, skipping...`;
     }
+  }
+
+  if (charge.amount_total === 0) {
+    return `Checkout session completed for customer with external ID ${dubCustomerId} and invoice ID ${invoiceId} but amount is 0, skipping...`;
   }
 
   // Find lead
@@ -129,32 +129,36 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   // for program links
   if (link.programId) {
-    const { program, partner } =
+    const { program, partnerId, commissionAmount } =
       await prisma.programEnrollment.findUniqueOrThrow({
         where: {
           linkId: link.id,
         },
         select: {
           program: true,
-          partner: {
-            select: {
-              id: true,
-            },
-          },
+          partnerId: true,
+          commissionAmount: true,
         },
       });
 
     const saleRecord = createSaleData({
-      customerId: saleData.customer_id,
-      linkId: saleData.link_id,
-      clickId: saleData.click_id,
-      invoiceId: saleData.invoice_id,
-      eventId: saleData.event_id,
-      paymentProcessor: saleData.payment_processor,
-      amount: saleData.amount,
-      currency: saleData.currency,
-      partnerId: partner.id,
       program,
+      partner: {
+        id: partnerId,
+        commissionAmount,
+      },
+      customer: {
+        id: saleData.customer_id,
+        linkId: saleData.link_id,
+        clickId: saleData.click_id,
+      },
+      sale: {
+        amount: saleData.amount,
+        currency: saleData.currency,
+        invoiceId: saleData.invoice_id,
+        eventId: saleData.event_id,
+        paymentProcessor: saleData.payment_processor,
+      },
       metadata: {
         ...leadEvent.data[0],
         stripeMetadata: charge,
@@ -168,7 +172,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     waitUntil(
       notifyPartnerSale({
         partner: {
-          id: partner.id,
+          id: partnerId,
           referralLink: link.shortLink,
         },
         program,

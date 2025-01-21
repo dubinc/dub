@@ -1,8 +1,9 @@
 "use client";
 
+import { enableOrDisableWebhook } from "@/lib/actions/enable-disable-webhook";
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import useWebhook from "@/lib/swr/use-webhook";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { WebhookProps } from "@/lib/types";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
@@ -14,30 +15,25 @@ import {
   TokenAvatar,
   useCopyToClipboard,
 } from "@dub/ui";
-import { fetcher } from "@dub/utils";
-import { ChevronLeft, Send, Trash } from "lucide-react";
+import { ChevronLeft, CircleX, Send, Trash } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { notFound, useRouter, useSelectedLayoutSegment } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import useSWR from "swr";
 import { useDeleteWebhookModal } from "../modals/delete-webhook-modal";
 import { useSendTestWebhookModal } from "../modals/send-test-webhook-modal";
+import { WebhookStatus } from "./webhook-status";
 
 export default function WebhookHeader({ webhookId }: { webhookId: string }) {
   const router = useRouter();
+  const { webhook, isLoading, mutate } = useWebhook();
   const { slug, id: workspaceId, role } = useWorkspace();
   const [copiedWebhookId, copyToClipboard] = useCopyToClipboard();
+  const [openPopover, setOpenPopover] = useState(false);
 
   const selectedLayoutSegment = useSelectedLayoutSegment();
   const page = selectedLayoutSegment === null ? "" : selectedLayoutSegment;
-
-  const [openPopover, setOpenPopover] = useState(false);
-
-  const { data: webhook, isLoading } = useSWR<WebhookProps>(
-    `/api/webhooks/${webhookId}?workspaceId=${workspaceId}`,
-    fetcher,
-  );
 
   const { DeleteWebhookModal, setDeleteWebhookModal } = useDeleteWebhookModal({
     webhook,
@@ -53,6 +49,18 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
     role,
   });
 
+  const { execute, isPending } = useAction(enableOrDisableWebhook, {
+    onSuccess: async ({ data }) => {
+      await mutate();
+      toast.success(
+        data?.disabledAt ? "Webhook disabled." : "Webhook enabled.",
+      );
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+  });
+
   if (!isLoading && !webhook) {
     return notFound();
   }
@@ -62,6 +70,14 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
       success: "Webhook ID copied!",
     });
   };
+
+  const disabled =
+    webhook?.installationId !== null || permissionsError !== false;
+  const disabledTooltip = webhook?.installationId
+    ? `This webhook is managed by an integration.`
+    : permissionsError
+      ? permissionsError
+      : undefined;
 
   return (
     <>
@@ -75,16 +91,15 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
           <ChevronLeft className="size-4" />
           <p className="text-sm font-medium text-gray-500">Back to webhooks</p>
         </Link>
-        <div className="flex justify-between gap-2 sm:items-center">
+        <div className="flex justify-between gap-8 sm:items-center">
           {isLoading || !webhook ? (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="w-fit flex-none rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
-                <TokenAvatar id="placeholder-oauth-app" className="size-8" />
+                <div className="size-8 rounded-full bg-gray-100" />
               </div>
               <div className="flex flex-col gap-2">
                 <div className="h-5 w-28 rounded-full bg-gray-100"></div>
                 <div className="h-3 w-48 rounded-full bg-gray-100"></div>
-                <div className="h-3 w-40 rounded-full bg-gray-100"></div>
               </div>
             </div>
           ) : (
@@ -93,11 +108,16 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
                 <TokenAvatar id={webhook.id} className="size-8" />
               </div>
               <div>
-                <p className="font-semibold text-gray-700">{webhook.name}</p>
+                <div className="flex items-center gap-1">
+                  <span className="font-semibold text-gray-700">
+                    {webhook.name}
+                  </span>
+                  <WebhookStatus webhook={webhook} />
+                </div>
                 <a
                   href={webhook.url}
                   target="_blank"
-                  className="text-pretty text-sm text-gray-500 underline-offset-4 hover:text-gray-700 hover:underline"
+                  className="line-clamp-1 text-pretty break-all text-sm text-gray-500 underline-offset-4 hover:text-gray-700 hover:underline"
                 >
                   {webhook.url}
                 </a>
@@ -107,43 +127,83 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
 
           <Popover
             content={
-              <div className="grid w-screen gap-px p-2 sm:w-48">
-                <Button
-                  text="Send test event"
-                  variant="outline"
-                  icon={<Send className="size-4" />}
-                  className="h-9 justify-start px-2"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowSendTestWebhookModal(true);
-                  }}
-                />
+              <div className="w-screen sm:w-48">
+                <div className="grid gap-px p-2">
+                  <Button
+                    text="Copy Webhook ID"
+                    variant="outline"
+                    icon={
+                      copiedWebhookId ? (
+                        <CircleCheck className="h-4 w-4" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )
+                    }
+                    className="h-9 justify-start px-2"
+                    onClick={() => copyWebhookId()}
+                  />
 
-                <Button
-                  text="Copy Webhook ID"
-                  variant="outline"
-                  icon={
-                    copiedWebhookId ? (
-                      <CircleCheck className="h-4 w-4" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )
-                  }
-                  className="h-9 justify-start px-2"
-                  onClick={() => copyWebhookId()}
-                />
+                  <Button
+                    text="Send test event"
+                    variant="outline"
+                    icon={<Send className="size-4" />}
+                    className="h-9 justify-start px-2"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowSendTestWebhookModal(true);
+                    }}
+                  />
+                </div>
 
-                <Button
-                  text="Delete webhook"
-                  variant="danger-outline"
-                  icon={<Trash className="size-4" />}
-                  className="h-9 justify-start px-2"
-                  onClick={() => {
-                    setDeleteWebhookModal(true);
-                  }}
-                  disabled={!!permissionsError}
-                  disabledTooltip={permissionsError}
-                />
+                <div className="h-px w-full bg-gray-200" />
+
+                <div className="grid gap-px p-2">
+                  <Button
+                    text={
+                      webhook?.disabledAt ? "Enable webhook" : "Disable webhook"
+                    }
+                    variant="outline"
+                    icon={
+                      webhook?.disabledAt ? (
+                        <CircleCheck className="size-4" />
+                      ) : (
+                        <CircleX className="size-4" />
+                      )
+                    }
+                    className="h-9 justify-start px-2"
+                    onClick={async () => {
+                      if (
+                        !confirm(
+                          `Are you sure you want to ${
+                            webhook?.disabledAt ? "enable" : "disable"
+                          } this webhook?`,
+                        )
+                      ) {
+                        return;
+                      }
+
+                      execute({
+                        webhookId,
+                        workspaceId: workspaceId!,
+                      });
+                    }}
+                    disabled={disabled}
+                    disabledTooltip={disabledTooltip}
+                    loading={isPending}
+                  />
+
+                  <Button
+                    text="Delete webhook"
+                    variant="danger-outline"
+                    icon={<Trash className="size-4" />}
+                    className="h-9 justify-start px-2"
+                    onClick={() => {
+                      setDeleteWebhookModal(true);
+                    }}
+                    disabled={disabled}
+                    disabledTooltip={disabledTooltip}
+                  />
+                </div>
               </div>
             }
             align="end"
@@ -161,8 +221,8 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
         <div className="-ml-1.5 border-b border-gray-200">
           <TabSelect
             options={[
-              { id: "", label: "Webhook Logs" },
-              { id: "edit", label: "Update Details" },
+              { id: "", label: "Event Logs" },
+              { id: "edit", label: "Configuration" },
             ]}
             selected={page}
             onSelect={(id: "" | "edit") => {

@@ -90,7 +90,7 @@ export default async function LinkMiddleware(
     }
 
     // format link to fit the RedisLinkProps interface
-    link = await formatRedisLink(linkData as any);
+    link = formatRedisLink(linkData as any);
 
     ev.waitUntil(linkCache.set(linkData as any));
   }
@@ -102,7 +102,6 @@ export default async function LinkMiddleware(
     trackConversion,
     proxy,
     rewrite,
-    iframeable,
     expiresAt,
     ios,
     android,
@@ -110,6 +109,7 @@ export default async function LinkMiddleware(
     expiredUrl,
     doIndex,
     webhookIds,
+    projectId: workspaceId,
   } = link;
 
   // by default, we only index default dub domain links (e.g. dub.sh)
@@ -185,8 +185,7 @@ export default async function LinkMiddleware(
   }
 
   const cookieStore = cookies();
-  let clickId =
-    cookieStore.get("dub_id")?.value || cookieStore.get("dclid")?.value;
+  let clickId = cookieStore.get("dub_id")?.value;
   if (!clickId) {
     clickId = nanoid(16);
   }
@@ -200,6 +199,7 @@ export default async function LinkMiddleware(
         clickId,
         url,
         webhookIds,
+        workspaceId,
       }),
     );
 
@@ -244,6 +244,7 @@ export default async function LinkMiddleware(
         clickId,
         url,
         webhookIds,
+        workspaceId,
       }),
     );
 
@@ -277,44 +278,32 @@ export default async function LinkMiddleware(
         clickId,
         url,
         webhookIds,
+        workspaceId,
       }),
     );
 
-    if (iframeable) {
-      return createResponseWithCookie(
-        NextResponse.rewrite(
-          new URL(
-            `/cloaked/${encodeURIComponent(
-              getFinalUrl(url, {
-                req,
-                clickId: trackConversion ? clickId : undefined,
-              }),
-            )}`,
-            req.url,
-          ),
-          {
-            headers: {
-              ...DUB_HEADERS,
-              ...(!shouldIndex && {
-                "X-Robots-Tag": "googlebot: noindex",
-              }),
-            },
-          },
+    return createResponseWithCookie(
+      NextResponse.rewrite(
+        new URL(
+          `/cloaked/${encodeURIComponent(
+            getFinalUrl(url, {
+              req,
+              clickId: trackConversion ? clickId : undefined,
+            }),
+          )}`,
+          req.url,
         ),
-        { clickId, path: `/${originalKey}` },
-      );
-    } else {
-      // if link is not iframeable, use Next.js rewrite instead
-      return createResponseWithCookie(
-        NextResponse.rewrite(url, {
+        {
           headers: {
             ...DUB_HEADERS,
-            ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+            ...(!shouldIndex && {
+              "X-Robots-Tag": "googlebot: noindex",
+            }),
           },
-        }),
-        { clickId, path: `/${originalKey}` },
-      );
-    }
+        },
+      ),
+      { clickId, path: `/${originalKey}` },
+    );
 
     // redirect to iOS link if it is specified and the user is on an iOS device
   } else if (ios && userAgent(req).os?.name === "iOS") {
@@ -325,6 +314,7 @@ export default async function LinkMiddleware(
         clickId,
         url: ios,
         webhookIds,
+        workspaceId,
       }),
     );
 
@@ -354,6 +344,7 @@ export default async function LinkMiddleware(
         clickId,
         url: android,
         webhookIds,
+        workspaceId,
       }),
     );
 
@@ -383,6 +374,7 @@ export default async function LinkMiddleware(
         clickId,
         url: geo[country],
         webhookIds,
+        workspaceId,
       }),
     );
 
@@ -412,6 +404,7 @@ export default async function LinkMiddleware(
         clickId,
         url,
         webhookIds,
+        workspaceId,
       }),
     );
 

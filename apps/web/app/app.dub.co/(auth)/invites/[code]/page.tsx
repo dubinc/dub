@@ -9,7 +9,7 @@ import { Suspense } from "react";
 
 export const runtime = "nodejs";
 
-export default function InitesPage({
+export default function InvitesPage({
   params,
 }: {
   params: {
