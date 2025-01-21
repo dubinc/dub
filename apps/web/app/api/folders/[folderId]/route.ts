@@ -2,8 +2,10 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { checkFolderPermission } from "@/lib/folder/permissions";
+import { recordLink } from "@/lib/tinybird";
 import { FolderSchema, updateFolderSchema } from "@/lib/zod/schemas/folders";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/folders/[folderId] - get information about a folder
@@ -89,15 +91,10 @@ export const DELETE = withWorkspace(
       },
       include: {
         links: {
-          select: {
-            id: true,
-            domain: true,
-            key: true,
-            url: true,
-            createdAt: true,
+          include: {
             tags: {
-              select: {
-                tagId: true,
+              include: {
+                tag: true,
               },
             },
           },
@@ -105,18 +102,17 @@ export const DELETE = withWorkspace(
       },
     });
 
-    // waitUntil(
-    //   (async () => {
-    //     if (deletedFolder.links.length > 0) {
-    //       recordLink(
-    //         deletedFolder.links.map((link) => ({
-    //           ...transformLinkTB(link),
-    //           folder_id: null,
-    //         })),
-    //       );
-    //     }
-    //   })(),
-    // );
+    waitUntil(
+      (async () => {
+        const links = deletedFolder.links;
+
+        if (links.length === 0) {
+          return;
+        }
+
+        recordLink(links);
+      })(),
+    );
 
     return NextResponse.json({ id: folderId });
   },
