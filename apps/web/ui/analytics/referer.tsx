@@ -80,16 +80,19 @@ export default function Referer() {
                           />
                         ),
                       title: d[singularTabName],
-                      href: queryParams({
-                        ...(searchParams.has(singularTabName)
-                          ? { del: singularTabName }
-                          : {
-                              set: {
-                                [singularTabName]: d[singularTabName],
-                              },
-                            }),
-                        getNewPath: true,
-                      }) as string,
+                      href:
+                        tab === "utms"
+                          ? undefined
+                          : (queryParams({
+                              ...(searchParams.has(singularTabName)
+                                ? { del: singularTabName }
+                                : {
+                                    set: {
+                                      [singularTabName]: d[singularTabName],
+                                    },
+                                  }),
+                              getNewPath: true,
+                            }) as string),
                       value: d[dataKey] || 0,
                     }))
                     ?.sort((a, b) => b.value - a.value) || []
