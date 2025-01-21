@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { checkFolderPermission } from "@/lib/folder/permissions";
-import { recordLink } from "@/lib/tinybird";
+import { recordLink, transformLinkTB } from "@/lib/tinybird";
 import { FolderSchema, updateFolderSchema } from "@/lib/zod/schemas/folders";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
@@ -107,24 +107,18 @@ export const DELETE = withWorkspace(
       },
     });
 
-    waitUntil(
-      (async () => {
-        if (deletedFolder.links.length > 0) {
-          recordLink(
-            deletedFolder.links.map((link) => ({
-              link_id: link.id,
-              domain: link.domain,
-              key: link.key,
-              url: link.url,
-              tag_ids: link.tags.map((tag) => tag.tagId),
-              folder_id: null,
-              workspace_id: workspace.id,
-              created_at: link.createdAt,
-            })),
-          );
-        }
-      })(),
-    );
+    // waitUntil(
+    //   (async () => {
+    //     if (deletedFolder.links.length > 0) {
+    //       recordLink(
+    //         deletedFolder.links.map((link) => ({
+    //           ...transformLinkTB(link),
+    //           folder_id: null,
+    //         })),
+    //       );
+    //     }
+    //   })(),
+    // );
 
     return NextResponse.json({ id: folderId });
   },

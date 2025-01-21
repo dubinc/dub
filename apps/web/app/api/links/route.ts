@@ -35,7 +35,7 @@ export const GET = withWorkspace(
 
     if (params.folderId) {
       await checkFolderPermission({
-        folderId,
+        folderId: params.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,
         requiredPermission: "folders.read",
