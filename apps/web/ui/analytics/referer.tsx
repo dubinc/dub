@@ -26,7 +26,8 @@ export default function Referer() {
     groupBy: tab === "referers" ? refererType : tab,
     utmTag: tab === "utms" ? utmTag : undefined,
   });
-  const singularTabName = SINGULAR_ANALYTICS_ENDPOINTS[tab];
+  const singularTabName =
+    SINGULAR_ANALYTICS_ENDPOINTS[tab === "referers" ? refererType : tab];
 
   const { icon: UTMTagIcon } = UTM_PARAMETERS.find((p) => p.key === utmTag)!;
 
