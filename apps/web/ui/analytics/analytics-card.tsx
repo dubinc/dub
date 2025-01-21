@@ -1,5 +1,13 @@
 import { EventType } from "@/lib/analytics/types";
-import { Button, Modal, Popover, TabSelect, useMediaQuery } from "@dub/ui";
+import {
+  AnimatedSizeContainer,
+  Button,
+  Modal,
+  Popover,
+  TabSelect,
+  ToggleGroup,
+  useMediaQuery,
+} from "@dub/ui";
 import { CursorRays, InvoiceDollar, UserCheck } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
@@ -16,6 +24,9 @@ export function AnalyticsCard<T extends string>({
   tabs,
   selectedTabId,
   onSelectTab,
+  subTabs,
+  selectedSubTabId,
+  onSelectSubTab,
   expandLimit,
   hasMore,
   children,
@@ -24,6 +35,11 @@ export function AnalyticsCard<T extends string>({
   tabs: { id: T; label: string; icon: React.ElementType }[];
   selectedTabId: T;
   onSelectTab?: Dispatch<SetStateAction<T>> | ((tabId: T) => void);
+  subTabs?: { id: string; label: string }[];
+  selectedSubTabId?: string;
+  onSelectSubTab?:
+    | Dispatch<SetStateAction<string>>
+    | ((subTabId: string) => void);
   expandLimit: number;
   hasMore?: boolean;
   children: (props: {
@@ -52,6 +68,13 @@ export function AnalyticsCard<T extends string>({
         <div className="border-b border-gray-200 px-6 py-4">
           <h1 className="text-lg font-semibold">{selectedTab?.label}</h1>
         </div>
+        {subTabs && selectedSubTabId && onSelectSubTab && (
+          <SubTabs
+            subTabs={subTabs}
+            selectedTab={selectedSubTabId}
+            onSelectTab={onSelectSubTab}
+          />
+        )}
         {children({ setShowModal, event })}
       </Modal>
       <div
@@ -121,8 +144,24 @@ export function AnalyticsCard<T extends string>({
             <p className="text-xs uppercase">{event}</p>
           </div>
         </div>
+        <AnimatedSizeContainer
+          height
+          transition={{ ease: "easeInOut", duration: 0.2 }}
+        >
+          {subTabs && selectedSubTabId && onSelectSubTab && (
+            <SubTabs
+              subTabs={subTabs}
+              selectedTab={selectedSubTabId}
+              onSelectTab={onSelectSubTab}
+            />
+          )}
+        </AnimatedSizeContainer>
         <div className="py-4">
-          {children({ limit: expandLimit, event, setShowModal })}
+          {children({
+            limit: expandLimit,
+            event,
+            setShowModal,
+          })}
         </div>
         {hasMore && (
           <div className="absolute bottom-0 left-0 z-10 flex w-full items-end">
@@ -139,5 +178,29 @@ export function AnalyticsCard<T extends string>({
         )}
       </div>
     </>
+  );
+}
+
+function SubTabs({
+  subTabs,
+  selectedTab,
+  onSelectTab,
+}: {
+  subTabs: { id: string; label: string }[];
+  selectedTab: string;
+  onSelectTab: (key: string) => void;
+}) {
+  return (
+    <ToggleGroup
+      options={subTabs.map(({ id, label }) => ({
+        value: id,
+        label: label,
+      }))}
+      selected={selectedTab}
+      selectAction={(period) => onSelectTab(period)}
+      className="flex w-full flex-wrap rounded-md rounded-none border-x-0 border-t-0 border-gray-200 bg-gray-50 px-3 py-2 sm:flex-nowrap"
+      optionClassName="text-xs px-2 font-normal hover:text-gray-700"
+      indicatorClassName="border-0 bg-gray-200 rounded-md"
+    />
   );
 }

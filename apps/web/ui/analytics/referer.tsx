@@ -1,10 +1,5 @@
 import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
-import {
-  BlurImage,
-  ToggleGroup,
-  useRouterStuff,
-  UTM_PARAMETERS,
-} from "@dub/ui";
+import { BlurImage, useRouterStuff, UTM_PARAMETERS } from "@dub/ui";
 import { Note, ReferredVia } from "@dub/ui/icons";
 import { getApexDomain, GOOGLE_FAVICON_URL } from "@dub/utils";
 import { Link2 } from "lucide-react";
@@ -43,17 +38,21 @@ export default function Referer() {
       ]}
       selectedTabId={tab}
       onSelectTab={setTab}
+      subTabs={
+        tab === "utms"
+          ? UTM_PARAMETERS.filter((p) => p.key !== "ref").map((p) => ({
+              id: p.key,
+              label: p.label,
+            }))
+          : undefined
+      }
+      selectedSubTabId={utmTag}
+      onSelectSubTab={setUtmTag}
       expandLimit={8}
-      hasMore={(data?.length ?? 0) > 8}
+      hasMore={(data?.length ?? 0) > 0} // TODO: Undo change
     >
       {({ limit, setShowModal }) => (
         <>
-          {tab === "utms" && (
-            <UtmTabs
-              selectedTab={utmTag || "utm_source"}
-              onSelectTab={setUtmTag || (() => {})}
-            />
-          )}
           {data ? (
             data.length > 0 ? (
               <BarList
@@ -119,24 +118,3 @@ export default function Referer() {
     </AnalyticsCard>
   );
 }
-
-interface UtmTabsProps {
-  selectedTab: string;
-  onSelectTab: (key: string) => void;
-}
-
-const UtmTabs: React.FC<UtmTabsProps> = ({ selectedTab, onSelectTab }) => {
-  return (
-    <div className="my-2 w-full px-4">
-      <ToggleGroup
-        options={UTM_PARAMETERS.map((p) => ({
-          value: p.key,
-          label: p.label,
-        }))}
-        selected={selectedTab}
-        selectAction={(period) => onSelectTab(period)}
-        className="flex w-full flex-wrap rounded-md sm:flex-nowrap"
-      />
-    </div>
-  );
-};
