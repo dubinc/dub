@@ -18,14 +18,18 @@ import { useAnalyticsFilterOption } from "./utils";
 export default function Referer() {
   const { queryParams, searchParams } = useRouterStuff();
 
-  const { selectedTab, saleUnit, utmTag, setUtmTag } =
-    useContext(AnalyticsContext);
+  const { selectedTab, saleUnit } = useContext(AnalyticsContext);
   const dataKey = selectedTab === "sales" ? saleUnit : "count";
 
   const [tab, setTab] = useState<"referers" | "utms" | "referer_urls">(
     "referers",
   );
-  const { data } = useAnalyticsFilterOption(tab);
+  const [utmTag, setUtmTag] = useState<string>("utm_source");
+
+  const { data } = useAnalyticsFilterOption({
+    groupBy: tab,
+    utmTag: tab === "utms" ? utmTag : undefined,
+  });
   const singularTabName = SINGULAR_ANALYTICS_ENDPOINTS[tab];
 
   const { icon: UTMTagIcon } = UTM_PARAMETERS.find((p) => p.key === utmTag)!;
