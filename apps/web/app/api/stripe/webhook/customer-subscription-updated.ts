@@ -77,6 +77,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
           aiLimit: plan.limits.ai!,
           tagsLimit: plan.limits.tags!,
           usersLimit: plan.limits.users!,
+          salesLimit: plan.limits.sales!,
           paymentFailedAt: null,
         },
       }),

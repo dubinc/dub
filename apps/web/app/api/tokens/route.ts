@@ -1,15 +1,15 @@
 import { DubApiError } from "@/lib/api/errors";
 import { scopesToName, validateScopesForRole } from "@/lib/api/tokens/scopes";
-import { parseRequestBody } from "@/lib/api/utils";
+import { createId, parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { createTokenSchema, tokenSchema } from "@/lib/zod/schemas/token";
+import { sendEmail } from "@dub/email";
+import { APIKeyCreated } from "@dub/email/templates/api-key-created";
 import { prisma } from "@dub/prisma";
 import { User } from "@dub/prisma/client";
 import { getCurrentPlan, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { sendEmail } from "emails";
-import APIKeyCreated from "emails/api-key-created";
 import { NextResponse } from "next/server";
 
 // GET /api/tokens - get all tokens for a workspace
@@ -89,6 +89,7 @@ export const POST = withWorkspace(
       const randomName = generateRandomName();
       machineUser = await prisma.user.create({
         data: {
+          id: createId({ prefix: "user_" }),
           name: `${randomName} (Machine User)`,
           isMachine: true,
         },

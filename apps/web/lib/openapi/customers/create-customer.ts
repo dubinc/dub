@@ -9,7 +9,9 @@ export const createCustomer: ZodOpenApiOperationObject = {
   operationId: "createCustomer",
   "x-speakeasy-name-override": "create",
   summary: "Create a customer",
-  description: "Create a customer for the authenticated workspace.",
+  description:
+    "[Deprecated]: Customer creation can only be done via tracking a lead event. Use the /track/lead endpoint instead.",
+  deprecated: true,
   requestBody: {
     content: {
       "application/json": {

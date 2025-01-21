@@ -134,6 +134,8 @@ export const getEvents = async (params: EventsFilters) => {
                 name: "Deleted Customer",
                 email: "deleted@customer.com",
                 avatar: `https://api.dicebear.com/9.x/micah/svg?seed=${evt.customer_id}`,
+                externalId: evt.customer_id,
+                createdAt: new Date("1970-01-01"),
               },
               ...(evt.event === "sale"
                 ? {

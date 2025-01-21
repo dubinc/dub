@@ -22,7 +22,7 @@ export function SetWriteKey({
   const [writeKey, setWriteKey] = useState(credentials?.writeKey);
   const [region, setRegion] = useState(credentials?.region || "us-west-2");
 
-  const { executeAsync, isExecuting } = useAction(installSegmentAction, {
+  const { executeAsync, isPending } = useAction(installSegmentAction, {
     async onSuccess() {
       toast.success("Segment integration enabled successfully.");
     },
@@ -151,7 +151,7 @@ export function SetWriteKey({
               variant="primary"
               text="Save changes"
               className="h-8 w-fit"
-              loading={isExecuting}
+              loading={isPending}
               disabled={installed || !writeKey}
               disabledTooltip={
                 plan === "free" || plan === "pro"
