@@ -169,8 +169,6 @@ export const updateUsage = async () => {
                 email,
                 react: ClicksSummary({
                   email,
-                  appName: process.env.NEXT_PUBLIC_APP_NAME as string,
-                  appDomain: process.env.NEXT_PUBLIC_APP_DOMAIN as string,
                   workspaceName: workspace.name,
                   workspaceSlug: workspace.slug,
                   totalClicks: workspace.usage,

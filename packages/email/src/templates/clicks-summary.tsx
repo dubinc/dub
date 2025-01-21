@@ -20,8 +20,6 @@ import { Footer } from "../components/footer";
 
 export function ClicksSummary({
   email = "panic@thedis.co",
-  appName = "Dub.co",
-  appDomain = "dub.co",
   workspaceName = "Acme",
   workspaceSlug = "acme",
   totalClicks = 63689,
@@ -50,8 +48,6 @@ export function ClicksSummary({
   ],
 }: {
   email: string;
-  appName: string;
-  appDomain: string;
   workspaceName: string;
   workspaceSlug: string;
   totalClicks: number;
@@ -61,14 +57,10 @@ export function ClicksSummary({
     clicks: number;
   }[];
 }) {
-  const notificationSettingsUrl = `https://app.${appDomain}/${workspaceSlug}/settings/notifications`;
-
   return (
     <Html>
       <Head />
-      <Preview>
-        Your 30-day {appName} summary for {workspaceName}
-      </Preview>
+      <Preview>Your 30-day Dub summary for {workspaceName}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
@@ -76,15 +68,15 @@ export function ClicksSummary({
               <Img
                 src={DUB_WORDMARK}
                 height="40"
-                alt={appName}
+                alt="Dub"
                 className="mx-auto my-0"
               />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
-              Your 30-day {appName} summary for {workspaceName}
+              Your 30-day Dub summary for {workspaceName}
             </Heading>
             <Text className="text-sm leading-6 text-black">
-              In the last 30 days, your {appName} workspace,{" "}
+              In the last 30 days, your Dub workspace,{" "}
               <strong>{workspaceName}</strong> received{" "}
               <strong>{nFormatter(totalClicks)} link clicks</strong>. You also
               created <strong>{createdLinks} new links</strong> during that
@@ -165,7 +157,7 @@ export function ClicksSummary({
                 <Section className="my-8 text-center">
                   <Link
                     className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                    href={`https://app.${appDomain}/${workspaceSlug}`}
+                    href={`https://app.dub.co/${workspaceSlug}`}
                   >
                     Start creating links
                   </Link>
@@ -179,7 +171,7 @@ export function ClicksSummary({
                 <Section className="my-8 text-center">
                   <Link
                     className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                    href={`https://app.${appDomain}/${workspaceSlug}/analytics?interval=30d`}
+                    href={`https://app.dub.co/${workspaceSlug}/analytics?interval=30d`}
                   >
                     View my stats
                   </Link>
@@ -188,7 +180,7 @@ export function ClicksSummary({
             )}
             <Footer
               email={email}
-              notificationSettingsUrl={notificationSettingsUrl}
+              notificationSettingsUrl={`https://app.dub.co/${workspaceSlug}/settings/notifications`}
             />
           </Container>
         </Body>
