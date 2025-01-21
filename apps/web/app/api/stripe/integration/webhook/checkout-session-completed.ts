@@ -143,6 +143,9 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
     await recordLead(leadEvent);
     linkId = clickEvent.link_id;
+
+    // if it's not either a regular stripe checkout setup or a stripe checkout link,
+    // we skip the event
   } else {
     return `Customer ID not found in Stripe checkout session metadata and client_reference_id is not a dub_id, skipping...`;
   }
