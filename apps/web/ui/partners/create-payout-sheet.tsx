@@ -171,17 +171,6 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
 
   const selectedPartner = partners?.find((p) => p.id === partnerId);
 
-  const salesSearchParams = useMemo(
-    () =>
-      new URLSearchParams({
-        workspaceId: workspaceId!,
-        partnerId: selectedPartner?.id || "",
-        start: start?.toISOString() || "",
-        end: end?.toISOString() || "",
-      }),
-    [workspaceId, selectedPartner?.id, start, end],
-  );
-
   const { data: totalEvents, isValidating } = useSWR<{
     [key in AnalyticsResponseOptions]: number;
   }>(
@@ -316,8 +305,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium text-gray-900">
                 Partner
-                <span className="font-normal text-neutral-500">
-                  {" "}
+                <span className="ml-1 font-normal text-neutral-500">
                   (required)
                 </span>
               </label>
@@ -359,7 +347,12 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
               htmlFor={dateRangePickerId}
               className="block text-sm font-medium text-gray-900"
             >
-              Payout period {payoutType === "custom" ? "(optional)" : ""}
+              Payout period
+              {payoutType === "custom" && (
+                <span className="ml-1 font-normal text-neutral-500">
+                  (optional)
+                </span>
+              )}
             </label>
             <DateRangePicker
               id={dateRangePickerId}
@@ -498,7 +491,10 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
               htmlFor="description"
               className="flex items-center space-x-2 text-sm font-medium text-gray-900"
             >
-              Description (optional)
+              Description
+              <span className="ml-1 font-normal text-neutral-500">
+                (optional)
+              </span>
             </label>
             <textarea
               {...register("description")}
