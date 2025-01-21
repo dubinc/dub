@@ -233,6 +233,7 @@ export const analyticsFilterTB = z
       refererUrl: true,
       tagIds: true,
       url: true,
+      utmTag: true,
     }),
   );
 
