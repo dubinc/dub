@@ -298,11 +298,8 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
           {!props.partnerId && (
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium text-gray-900">
-                Partner
-                <span className="font-normal text-neutral-500">
-                  {" "}
-                  (required)
-                </span>
+                Partner{" "}
+                <span className="font-normal text-neutral-500">(required)</span>
               </label>
               <Combobox
                 selected={
@@ -342,7 +339,10 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
               htmlFor={dateRangePickerId}
               className="block text-sm font-medium text-gray-900"
             >
-              Payout period {payoutType === "custom" ? "(optional)" : ""}
+              Payout period{" "}
+              {payoutType === "custom" && (
+                <span className="font-normal text-neutral-500">(optional)</span>
+              )}
             </label>
             <DateRangePicker
               id={dateRangePickerId}
@@ -479,7 +479,8 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
               htmlFor="description"
               className="flex items-center space-x-2 text-sm font-medium text-gray-900"
             >
-              Description (optional)
+              Description{" "}
+              <span className="font-normal text-neutral-500">(optional)</span>
             </label>
             <textarea
               {...register("description")}
