@@ -26,6 +26,7 @@ import {
   cn,
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
+  truncate,
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { useAction } from "next-safe-action/hooks";
@@ -45,6 +46,13 @@ interface PayoutInvoiceSheetProps {
 }
 
 const paymentMethodsTypes = Object.freeze({
+  link: {
+    label: "link",
+    type: "link",
+    icon: CreditCard,
+    fee: DUB_PARTNERS_PAYOUT_FEE_CARD,
+    duration: "Instantly",
+  },
   card: {
     label: "card",
     type: "card",
@@ -130,9 +138,11 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
       paymentMethods?.map((pm) => ({
         ...paymentMethodsTypes[pm.type],
         id: pm.id,
-        title: pm.card
-          ? `${capitalize(pm.card?.brand)} **** ${pm.card?.last4}`
-          : `ACH **** ${pm.us_bank_account?.last4}`,
+        title: pm.link
+          ? `Link: ${truncate(pm.link.email, 16)}`
+          : pm.card
+            ? `${capitalize(pm.card?.brand)} **** ${pm.card?.last4}`
+            : `ACH **** ${pm.us_bank_account?.last4}`,
       })),
     [paymentMethods],
   );
