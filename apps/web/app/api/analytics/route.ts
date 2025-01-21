@@ -62,23 +62,29 @@ export const GET = withWorkspace(
       });
     }
 
-    if (link && link.folderId) {
-      await checkFolderPermission({
-        workspaceId: workspace.id,
-        userId: session.user.id,
-        folderId: link.folderId,
-        requiredPermission: "folders.read",
-      });
-    }
+    await Promise.all([
+      ...(link && link.folderId
+        ? [
+            checkFolderPermission({
+              workspaceId: workspace.id,
+              userId: session.user.id,
+              folderId: link.folderId,
+              requiredPermission: "folders.read",
+            }),
+          ]
+        : []),
 
-    if (folderId) {
-      await checkFolderPermission({
-        workspaceId: workspace.id,
-        userId: session.user.id,
-        folderId,
-        requiredPermission: "folders.read",
-      });
-    }
+      ...(folderId
+        ? [
+            checkFolderPermission({
+              workspaceId: workspace.id,
+              userId: session.user.id,
+              folderId,
+              requiredPermission: "folders.read",
+            }),
+          ]
+        : []),
+    ]);
 
     const folders = await getFolders({
       workspaceId: workspace.id,
