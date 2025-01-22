@@ -39,7 +39,7 @@ export default function LinkDisplay() {
   const [openPopover, setOpenPopover] = useState(false);
   const { queryParams } = useRouterStuff();
 
-  useKeyboardShortcut("a", () => setShowArchived((o) => !o));
+  useKeyboardShortcut("a", () => setShowArchived(!showArchived));
 
   return (
     <Popover
@@ -170,7 +170,14 @@ export default function LinkDisplay() {
                     className="h-8 w-auto px-2"
                     variant="primary"
                     text="Set as default"
-                    onClick={persist}
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          "Set this configuration as the default for everyone in this workspace?",
+                        )
+                      )
+                        persist();
+                    }}
                   />
                 </div>
               </motion.div>
