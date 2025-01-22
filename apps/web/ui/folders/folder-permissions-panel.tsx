@@ -1,4 +1,4 @@
-import { updateFolderUserRoleAction } from "@/lib/actions/folders/update-folder-user-role";
+import { updateUserRoleInFolder } from "@/lib/actions/folders/update-folder-user-role";
 import {
   FOLDER_USER_ROLE,
   FOLDER_WORKSPACE_ACCESS,
@@ -243,7 +243,7 @@ const FolderUserRow = ({
     "folders.users.write",
   );
 
-  const { executeAsync, isExecuting } = useAction(updateFolderUserRoleAction, {
+  const { executeAsync, isExecuting } = useAction(updateUserRoleInFolder, {
     onSuccess: () => {
       toast.success("Role updated!");
     },

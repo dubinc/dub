@@ -14,7 +14,7 @@ const schema = z.object({
 });
 
 // Update the folder user role
-export const updateFolderUserRoleAction = authActionClient
+export const updateUserRoleInFolder = authActionClient
   .schema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;

@@ -14,6 +14,7 @@ type FolderWithUser = Pick<Folder, "accessLevel"> & {
   user: Pick<FolderUser, "role"> | null;
 };
 
+// Get the permissions for a folder for a given user role
 export const getFolderPermissions = (
   role: keyof typeof FOLDER_USER_ROLE | null,
 ) => {
@@ -71,9 +72,8 @@ export const checkFolderPermission = async ({
   }
 
   const permissions = getFolderPermissions(folderUserRole);
-  const hasPermission = permissions.includes(requiredPermission);
 
-  if (!hasPermission) {
+  if (!permissions.includes(requiredPermission)) {
     throw new DubApiError({
       code: "forbidden",
       message: "You are not allowed to perform this action on this folder.",

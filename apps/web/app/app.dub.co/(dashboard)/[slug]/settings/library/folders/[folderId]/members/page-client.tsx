@@ -1,6 +1,6 @@
 "use client";
 
-import { updateFolderUserRoleAction } from "@/lib/actions/folders/update-folder-user-role";
+import { updateUserRoleInFolder } from "@/lib/actions/folders/update-folder-user-role";
 import {
   FOLDER_USER_ROLE,
   FOLDER_WORKSPACE_ACCESS,
@@ -11,7 +11,7 @@ import {
   useFolderPermissions,
 } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { FolderAccessIcon } from "@/ui/folders/folder-access-icon";
+import { FolderAccessIcon } from "@/ui/folders/folder-icon";
 import { FolderEditAccessRequestButton } from "@/ui/folders/request-edit-button";
 import { FolderUserRole } from "@dub/prisma/client";
 import { Avatar, BlurImage, Globe } from "@dub/ui";
@@ -197,7 +197,7 @@ const FolderUserRow = ({
     "folders.users.write",
   );
 
-  const { executeAsync, isExecuting } = useAction(updateFolderUserRoleAction, {
+  const { executeAsync, isExecuting } = useAction(updateUserRoleInFolder, {
     onSuccess: () => {
       toast.success("Role updated!");
     },
