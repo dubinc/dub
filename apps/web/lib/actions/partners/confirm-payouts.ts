@@ -23,6 +23,8 @@ const confirmPayoutsSchema = z.object({
   payoutIds: z.array(z.string()).min(1),
 });
 
+const allowedPaymentMethods = ["us_bank_account", "card", "link"];
+
 // Confirm payouts
 export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
@@ -46,9 +48,9 @@ export const confirmPayoutsAction = authActionClient
       throw new Error("Invalid payout method.");
     }
 
-    if (!["card", "us_bank_account"].includes(paymentMethod.type)) {
+    if (!allowedPaymentMethods.includes(paymentMethod.type)) {
       throw new Error(
-        `We only support card and ACH for now. Please update your payout method to one of these.`,
+        `We only support ACH and Card for now. Please update your payout method to one of these.`,
       );
     }
 
@@ -110,9 +112,9 @@ export const confirmPayoutsAction = authActionClient
       );
 
       const fee =
-        paymentMethod.type === "card"
-          ? amount * DUB_PARTNERS_PAYOUT_FEE_CARD
-          : amount * DUB_PARTNERS_PAYOUT_FEE_ACH;
+        paymentMethod.type === "us_bank_account"
+          ? amount * DUB_PARTNERS_PAYOUT_FEE_ACH
+          : amount * DUB_PARTNERS_PAYOUT_FEE_CARD;
 
       const total = amount + fee;
 
@@ -144,7 +146,7 @@ export const confirmPayoutsAction = authActionClient
       await stripe.paymentIntents.create({
         amount: invoice.total,
         customer: workspace.stripeId!,
-        payment_method_types: ["us_bank_account"],
+        payment_method_types: allowedPaymentMethods,
         payment_method: paymentMethod.id,
         currency: "usd",
         confirmation_method: "automatic",
@@ -181,7 +183,7 @@ export const confirmPayoutsAction = authActionClient
             partnerUsers.map((user) =>
               limiter.schedule(() =>
                 sendEmail({
-                  subject: "Payout confirmed!",
+                  subject: "You've got money coming your way!",
                   email: user.email!,
                   from: "Dub Partners <system@dub.co>",
                   react: PartnerPayoutConfirmed({
