@@ -29,13 +29,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     timezone = "UTC",
     isDemo,
     isDeprecatedClicksEndpoint = false,
-    allowedFolderIds,
     folderId,
   } = params;
-
-  if (folderId) {
-    allowedFolderIds = [folderId];
-  }
 
   const tagIds = combineTagIds(params);
 
@@ -102,7 +97,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     eventType: event,
     workspaceId,
     tagIds,
-    folderIds: allowedFolderIds,
+    folderId: folderId || "",
     qr,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
@@ -131,12 +126,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         id: {
           in: topLinksData.map((item) => item.link),
         },
-
-        // This might be unnecessary because links are filtered by folderIds in the Tinybird pipe
-        // Remove after making sure TB works as expected
-        AND: {
-          OR: [{ folderId: { in: allowedFolderIds } }, { folderId: null }],
-        },
+        folderId: folderId || "",
       },
       select: {
         id: true,

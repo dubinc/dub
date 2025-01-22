@@ -86,7 +86,6 @@ export const GET = withWorkspace(
       event,
       ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
-      allowedFolderIds: folders.map((folder) => folder.id),
     });
 
     return NextResponse.json(response);

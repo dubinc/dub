@@ -114,7 +114,6 @@ export const GET = withWorkspace(
       ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
       isDeprecatedClicksEndpoint,
-      allowedFolderIds: folders.map((folder) => folder.id),
     });
 
     return NextResponse.json(response);
