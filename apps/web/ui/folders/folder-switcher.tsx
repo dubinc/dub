@@ -30,7 +30,7 @@ export const FolderSwitcher = () => {
   );
 
   const folderId = searchParams.get("folderId");
-  const isAllLinksFolderSelected = selectedFolder?.id === "unsorted";
+  const isUnsortedFolderSelected = selectedFolder?.id === "unsorted";
 
   // set the selected folder if the folderId is in the search params
   useEffect(() => {
@@ -46,29 +46,32 @@ export const FolderSwitcher = () => {
   }, [folderId, folders]);
 
   // set the folderId in the search params
-  const onFolderSelect = useCallback((folder: FolderSummary) => {
-    setSelectedFolder(folder);
+  const onFolderSelect = useCallback(
+    (folder: FolderSummary) => {
+      setSelectedFolder(folder);
 
-    if (folder.id === "unsorted") {
-      return queryParams({
-        del: "folderId",
+      if (folder.id === "unsorted") {
+        return queryParams({
+          del: "folderId",
+        });
+      }
+
+      queryParams({
+        set: {
+          folderId: folder.id,
+        },
       });
-    }
-
-    queryParams({
-      set: {
-        folderId: folder.id,
-      },
-    });
-  }, []);
+    },
+    [selectedFolder],
+  );
 
   if (loading || !folders) {
     return <FolderSwitcherPlaceholder />;
   }
 
   return (
-    <div className="flex items-center">
-      {!isAllLinksFolderSelected && (
+    <div className="flex w-full items-center">
+      {!isUnsortedFolderSelected && (
         <button
           onClick={() => {
             onFolderSelect(unsortedLinks);
@@ -81,7 +84,7 @@ export const FolderSwitcher = () => {
 
       <FolderDropdown onFolderSelect={onFolderSelect} />
 
-      {selectedFolder && !isAllLinksFolderSelected && (
+      {selectedFolder && !isUnsortedFolderSelected && (
         <FolderActions
           folder={selectedFolder}
           onDelete={() => onFolderSelect(unsortedLinks)}
