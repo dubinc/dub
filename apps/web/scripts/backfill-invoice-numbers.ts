@@ -4,8 +4,8 @@ import "dotenv-flow/config";
 async function main() {
   const workspaces = await prisma.project.findMany({
     where: {
-      payoutMethodId: {
-        not: null,
+      programs: {
+        some: {},
       },
     },
     select: {

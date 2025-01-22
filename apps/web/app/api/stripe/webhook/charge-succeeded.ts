@@ -3,7 +3,6 @@ import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import { PartnerPayoutSent } from "@dub/email/templates/partner-payout-sent";
 import { prisma } from "@dub/prisma";
-import { formatDate } from "@dub/utils";
 import Stripe from "stripe";
 
 export async function chargeSucceeded(event: Stripe.Event) {
@@ -59,6 +58,11 @@ export async function chargeSucceeded(event: Stripe.Event) {
       currency: "usd",
       destination: payout.partner.stripeConnectId!,
       transfer_group: invoice.id,
+      ...(!charge.payment_method_details?.ach_credit_transfer
+        ? {
+            source_transaction: charge.id,
+          }
+        : {}),
       description: `Dub Partners payout (${payout.program.name})`,
     });
 
@@ -100,16 +104,8 @@ export async function chargeSucceeded(event: Stripe.Event) {
               payout: {
                 id: payout.id,
                 amount: payout.amount,
-                startDate: formatDate(payout.periodStart!, {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                }),
-                endDate: formatDate(payout.periodEnd!, {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                }),
+                startDate: payout.periodStart!,
+                endDate: payout.periodEnd!,
               },
             }),
           }),

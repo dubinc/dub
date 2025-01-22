@@ -6,8 +6,8 @@ async function main() {
   const workspaces = await prisma.project.findMany({
     where: {
       invoicePrefix: null,
-      payoutMethodId: {
-        not: null,
+      programs: {
+        some: {},
       },
     },
     select: {

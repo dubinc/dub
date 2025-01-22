@@ -25,7 +25,7 @@ export default function Locations() {
     "countries" | "cities" | "continents" | "regions"
   >("countries");
 
-  const { data, loading } = useAnalyticsFilterOption(tab);
+  const { data } = useAnalyticsFilterOption(tab);
   const singularTabName = SINGULAR_ANALYTICS_ENDPOINTS[tab];
 
   return (
