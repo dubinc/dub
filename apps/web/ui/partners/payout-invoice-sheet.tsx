@@ -140,7 +140,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         ...paymentMethodsTypes[pm.type],
         id: pm.id,
         title: pm.link
-          ? `Link: ${truncate(pm.link.email, 16)}`
+          ? `Link – ${truncate(pm.link.email, 16)}`
           : pm.card
             ? `${capitalize(pm.card?.brand)} **** ${pm.card?.last4}`
             : `ACH **** ${pm.us_bank_account?.last4}`,
@@ -221,13 +221,11 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
       Fee: (
         <Tooltip
           content={
-            <div className="w-28 p-1.5 text-center text-[12px] font-medium text-neutral-600">
-              {selectedPaymentMethod
-                ? `${selectedPaymentMethod.fee * 100}% ${
-                    selectedPaymentMethod?.label
-                  } fees`
-                : "Loading..."}
-            </div>
+            selectedPaymentMethod
+              ? `${selectedPaymentMethod.fee * 100}% ${capitalize(
+                  selectedPaymentMethod.label,
+                )} fees`
+              : "Loading..."
           }
         >
           <span className="underline decoration-dotted underline-offset-2">
@@ -240,30 +238,13 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
       ),
 
       Duration: (
-        <Tooltip
-          content={
-            <div className="w-48 gap-1 p-3">
-              {paymentMethodsWithFee?.map((method) => (
-                <div key={method.id} className="flex justify-between gap-1">
-                  <div className="text-sm text-neutral-500">
-                    {capitalize(method.label)}
-                  </div>
-                  <div className="text-sm text-neutral-500">
-                    {method.duration}
-                  </div>
-                </div>
-              ))}
-            </div>
-          }
-        >
-          <span className="underline decoration-dotted underline-offset-2">
-            {selectedPaymentMethod ? (
-              selectedPaymentMethod?.duration
-            ) : (
-              <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
-            )}
-          </span>
-        </Tooltip>
+        <span className="underline decoration-dotted underline-offset-2">
+          {selectedPaymentMethod ? (
+            selectedPaymentMethod?.duration
+          ) : (
+            <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
+          )}
+        </span>
       ),
 
       Total: currencyFormatter(total / 100, {
