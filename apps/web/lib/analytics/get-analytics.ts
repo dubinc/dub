@@ -1,5 +1,6 @@
 import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { tb } from "@/lib/tinybird";
+import { UTM_TAGS_PLURAL_LIST } from "@/lib/zod/schemas/utm";
 import { prismaEdge } from "@dub/prisma/edge";
 import { linkConstructor, punyEncode } from "@dub/utils";
 import { conn } from "../planetscale";
@@ -7,6 +8,7 @@ import { tbDemo } from "../tinybird/demo-client";
 import z from "../zod";
 import { analyticsFilterTB } from "../zod/schemas/analytics";
 import { analyticsResponse } from "../zod/schemas/analytics-response";
+import { SINGULAR_ANALYTICS_ENDPOINTS } from "./constants";
 import { AnalyticsFilters } from "./types";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
@@ -78,16 +80,19 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   // Create a Tinybird pipe
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
-    pipe: `v2_${groupBy}`,
+    pipe: `v2_${UTM_TAGS_PLURAL_LIST.includes(groupBy) ? "utms" : groupBy}`,
     parameters: analyticsFilterTB,
     data:
-      groupBy === "top_links" || groupBy === "utms"
+      groupBy === "top_links" || UTM_TAGS_PLURAL_LIST.includes(groupBy)
         ? z.any()
         : analyticsResponse[groupBy],
   });
 
   const response = await pipe({
     ...params,
+    ...(UTM_TAGS_PLURAL_LIST.includes(groupBy)
+      ? { groupByUtmTag: SINGULAR_ANALYTICS_ENDPOINTS[groupBy] }
+      : {}),
     eventType: event,
     workspaceId,
     tagIds,
@@ -149,16 +154,15 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         });
       })
       .filter((d) => d !== null);
-  }
 
-  // UTMs
-  else if (groupBy === "utms") {
+    // special case for utm tags
+  } else if (UTM_TAGS_PLURAL_LIST.includes(groupBy)) {
     const schema = analyticsResponse[groupBy];
 
     return response.data.map((item) =>
       schema.parse({
-        utm: item.value,
-        clicks: item.count,
+        ...item,
+        [SINGULAR_ANALYTICS_ENDPOINTS[groupBy]]: item.utm,
       }),
     );
   }

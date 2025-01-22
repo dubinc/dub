@@ -1,7 +1,8 @@
 import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
+import { UTM_TAGS_PLURAL, UTM_TAGS_PLURAL_LIST } from "@/lib/zod/schemas/utm";
 import { BlurImage, useRouterStuff, UTM_PARAMETERS } from "@dub/ui";
 import { Note, ReferredVia } from "@dub/ui/icons";
-import { getApexDomain, GOOGLE_FAVICON_URL } from "@dub/utils";
+import { capitalize, getApexDomain, GOOGLE_FAVICON_URL } from "@dub/utils";
 import { Link2 } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
@@ -17,27 +18,29 @@ export default function Referer() {
   const dataKey = selectedTab === "sales" ? saleUnit : "count";
 
   const [tab, setTab] = useState<"referers" | "utms">("referers");
-  const [utmTag, setUtmTag] = useState<string>("utm_source");
+  const [utmTag, setUtmTag] = useState<UTM_TAGS_PLURAL>("utm_sources");
   const [refererType, setRefererType] = useState<"referers" | "referer_urls">(
     "referers",
   );
 
   const { data } = useAnalyticsFilterOption({
-    groupBy: tab === "referers" ? refererType : tab,
-    utmTag: tab === "utms" ? utmTag : undefined,
+    groupBy: tab === "utms" ? utmTag : refererType,
   });
-  const singularTabName =
-    SINGULAR_ANALYTICS_ENDPOINTS[tab === "referers" ? refererType : tab];
 
-  const { icon: UTMTagIcon } = UTM_PARAMETERS.find((p) => p.key === utmTag)!;
+  const singularTabName =
+    SINGULAR_ANALYTICS_ENDPOINTS[tab === "utms" ? utmTag : refererType];
+
+  const { icon: UTMTagIcon } = UTM_PARAMETERS.find(
+    (p) => p.key === utmTag.slice(0, -1),
+  )!;
 
   const subTabProps = useMemo(() => {
     return (
       {
         utms: {
-          subTabs: UTM_PARAMETERS.filter((p) => p.key !== "ref").map((p) => ({
-            id: p.key,
-            label: p.label,
+          subTabs: UTM_TAGS_PLURAL_LIST.map((u) => ({
+            id: u,
+            label: capitalize(u.replace("utm_", "")) as string,
           })),
           selectedSubTabId: utmTag,
           onSelectSubTab: setUtmTag,
@@ -94,19 +97,16 @@ export default function Referer() {
                           />
                         ),
                       title: d[singularTabName],
-                      href:
-                        tab === "utms"
-                          ? undefined
-                          : (queryParams({
-                              ...(searchParams.has(singularTabName)
-                                ? { del: singularTabName }
-                                : {
-                                    set: {
-                                      [singularTabName]: d[singularTabName],
-                                    },
-                                  }),
-                              getNewPath: true,
-                            }) as string),
+                      href: queryParams({
+                        ...(searchParams.has(singularTabName)
+                          ? { del: singularTabName }
+                          : {
+                              set: {
+                                [singularTabName]: d[singularTabName],
+                              },
+                            }),
+                        getNewPath: true,
+                      }) as string,
                       value: d[dataKey] || 0,
                     }))
                     ?.sort((a, b) => b.value - a.value) || []

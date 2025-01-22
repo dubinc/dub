@@ -339,25 +339,113 @@ export const analyticsResponse = {
     })
     .openapi({ ref: "AnalyticsTopUrls" }),
 
-  utms: z
+  utm_sources: z
     .object({
-      utm: z.string().describe("The name of the UTM parameter"),
+      utm_source: z.string().describe("The UTM source"),
       clicks: z
         .number()
-        .describe("The number of clicks from this UTM parameter")
+        .describe("The number of clicks with this UTM source")
         .default(0),
       leads: z
         .number()
-        .describe("The number of leads from this UTM parameter")
+        .describe("The number of leads with this UTM source")
         .default(0),
       sales: z
         .number()
-        .describe("The number of sales from this UTM parameter")
+        .describe("The number of sales with this UTM source")
         .default(0),
       saleAmount: z
         .number()
-        .describe("The total amount of sales from this UTM parameter, in cents")
+        .describe("The total amount of sales with this UTM source, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsUTMs" }),
+    .openapi({ ref: "AnalyticsUTMSources" }),
+
+  utm_mediums: z
+    .object({
+      utm_medium: z.string().describe("The UTM medium"),
+      clicks: z
+        .number()
+        .describe("The number of clicks with this UTM medium")
+        .default(0),
+      leads: z
+        .number()
+        .describe("The number of leads with this UTM medium")
+        .default(0),
+      sales: z
+        .number()
+        .describe("The number of sales with this UTM medium")
+        .default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales with this UTM medium, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsUTMMediums" }),
+
+  utm_campaigns: z
+    .object({
+      utm_campaign: z.string().describe("The UTM campaign"),
+      clicks: z
+        .number()
+        .describe("The number of clicks with this UTM campaign")
+        .default(0),
+      leads: z
+        .number()
+        .describe("The number of leads with this UTM campaign")
+        .default(0),
+      sales: z
+        .number()
+        .describe("The number of sales with this UTM campaign")
+        .default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales with this UTM campaign, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsUTMCampaigns" }),
+
+  utm_terms: z
+    .object({
+      utm_term: z.string().describe("The UTM term"),
+      clicks: z
+        .number()
+        .describe("The number of clicks with this UTM term")
+        .default(0),
+      leads: z
+        .number()
+        .describe("The number of leads with this UTM term")
+        .default(0),
+      sales: z
+        .number()
+        .describe("The number of sales with this UTM term")
+        .default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales with this UTM term, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsUTMTerms" }),
+
+  utm_contents: z
+    .object({
+      utm_content: z.string().describe("The UTM content"),
+      clicks: z
+        .number()
+        .describe("The number of clicks with this UTM content")
+        .default(0),
+      leads: z
+        .number()
+        .describe("The number of leads with this UTM content")
+        .default(0),
+      sales: z
+        .number()
+        .describe("The number of sales with this UTM content")
+        .default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales with this UTM content, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsUTMContents" }),
 } as const;

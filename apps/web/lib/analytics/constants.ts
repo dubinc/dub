@@ -113,7 +113,11 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "referer_urls",
   "top_links",
   "top_urls",
-  "utms",
+  "utm_sources",
+  "utm_mediums",
+  "utm_campaigns",
+  "utm_terms",
+  "utm_contents",
 ] as const;
 
 export const SINGULAR_ANALYTICS_ENDPOINTS = {
@@ -127,7 +131,11 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
   referer_urls: "refererUrl",
   os: "os",
   triggers: "trigger",
-  utms: "utm",
+  utm_sources: "utm_source",
+  utm_mediums: "utm_medium",
+  utm_campaigns: "utm_campaign",
+  utm_terms: "utm_term",
+  utm_contents: "utm_content",
 };
 
 export const VALID_ANALYTICS_FILTERS = [
@@ -151,6 +159,11 @@ export const VALID_ANALYTICS_FILTERS = [
   "tagIds",
   "qr",
   "root",
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_term",
+  "utm_content",
 ];
 
 export const TRIGGER_DISPLAY = {
