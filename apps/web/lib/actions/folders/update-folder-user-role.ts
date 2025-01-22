@@ -47,4 +47,7 @@ export const updateUserRoleInFolder = authActionClient
         role,
       },
     });
+
+    // TODO:
+    // Remove the folder request if the user has a pending request
   });
