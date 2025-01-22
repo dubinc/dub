@@ -22,7 +22,7 @@ import { toast } from "sonner";
 import { useDeleteFolderModal } from "../modals/delete-folder-modal";
 import { useRenameFolderModal } from "../modals/rename-folder-modal";
 import { Chart, Delete, ThreeDots } from "../shared/icons";
-import { FolderAccessIcon } from "./folder-access-icon";
+import { FolderAccessIcon } from "./folder-icon";
 import { useFolderPermissionsPanel } from "./folder-permissions-panel";
 import { FolderEditAccessRequestButton } from "./request-edit-button";
 

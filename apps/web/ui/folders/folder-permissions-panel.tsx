@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 import { Drawer } from "vaul";
 import { X } from "../shared/icons";
-import { FolderAccessIcon } from "./folder-access-icon";
+import { FolderAccessIcon } from "./folder-icon";
 import { FolderEditAccessRequestButton } from "./request-edit-button";
 
 // TODO

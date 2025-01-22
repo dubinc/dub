@@ -78,7 +78,7 @@ import {
 } from "react";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
-import { FolderSquareIcon } from "../folders/folder-access-icon";
+import { FolderSquareIcon } from "../folders/folder-icon";
 import TagBadge from "../links/tag-badge";
 import AnalyticsOptions from "./analytics-options";
 import { AnalyticsContext } from "./analytics-provider";

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAddFolderModal } from "../modals/add-folder-modal";
-import { FolderSquareIcon } from "./folder-access-icon";
+import { FolderSquareIcon } from "./folder-icon";
 
 interface FolderDropdownProps {
   onFolderSelect: (folder: FolderSummary) => void;
