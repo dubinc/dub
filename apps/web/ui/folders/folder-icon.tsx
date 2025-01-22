@@ -8,6 +8,9 @@ import {
 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 
+// TODO:
+// Cleanup the icons and make them more consistent
+
 const FolderOpen = ({ className }: { className: string }) => {
   return <Folder className={cn("text-blue-800", className)} />;
 };
@@ -110,9 +113,11 @@ const FolderIcon = ({
 export const FolderSquareIcon = ({
   folder,
   className,
+  iconSize = "size-4",
 }: {
   folder: Pick<FolderProps, "id" | "accessLevel">;
   className?: string;
+  iconSize?: string;
 }) => {
   const type =
     accessLevelMap[folder.id] ||
@@ -126,8 +131,8 @@ export const FolderSquareIcon = ({
 
   return (
     <div className={cn("rounded-md border", borderColor, bgColor)}>
-      <div className="p-1.5">
-        <IconComponent className={cn("size-4", className)} />
+      <div className={className}>
+        <IconComponent className={iconSize} />
       </div>
     </div>
   );
