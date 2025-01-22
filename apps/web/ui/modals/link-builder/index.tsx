@@ -120,7 +120,7 @@ function LinkBuilderInner({
   const { slug } = params;
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
-  const { id: workspaceId, plan, nextPlan, logo } = useWorkspace();
+  const { id: workspaceId, plan, nextPlan, logo, flags } = useWorkspace();
 
   const {
     control,
@@ -336,14 +336,17 @@ function LinkBuilderInner({
           >
             <div className="flex items-center justify-between px-6 py-4">
               <div className="flex items-center gap-2">
-                <div className="flex items-center rounded-md border border-neutral-200 p-1 hover:bg-gray-100">
-                  <FolderDropdown
-                    onFolderSelect={(folder) =>
-                      setFolderId(folder.id !== "unsorted" ? folder.id : null)
-                    }
-                    hideViewAll={true}
-                  />
-                </div>
+                {flags?.linkFolders && (
+                  <div className="flex items-center rounded-md border border-neutral-200 p-1 hover:bg-gray-100">
+                    <FolderDropdown
+                      onFolderSelect={(folder) =>
+                        setFolderId(folder.id !== "unsorted" ? folder.id : null)
+                      }
+                      hideViewAll={true}
+                    />
+                  </div>
+                )}
+
                 <ChevronRight className="size-4 text-neutral-500" />
                 <LinkLogo
                   apexDomain={getApexDomain(debouncedUrl)}
