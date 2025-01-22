@@ -79,9 +79,7 @@ export const FolderSwitcher = () => {
         </button>
       )}
 
-      <FolderDropdown
-        onFolderSelect={onFolderSelect}
-      />
+      <FolderDropdown onFolderSelect={onFolderSelect} />
 
       {selectedFolder && !isAllLinksFolderSelected && (
         <FolderActions

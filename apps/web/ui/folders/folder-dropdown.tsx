@@ -18,20 +18,29 @@ export const FolderDropdown = ({ onFolderSelect }: FolderDropdownProps) => {
   const [openPopover, setOpenPopover] = useState(false);
   const { AddFolderModal, setShowAddFolderModal } = useAddFolderModal();
   const [selectedFolder, setSelectedFolder] = useState<FolderSummary | null>(
-    allLinksOverview,
+    null,
   );
 
-  const folderId = searchParams.get("folderId");
-
   useEffect(() => {
-    if (!folderId || !folders || selectedFolder) {
+    if (selectedFolder) {
       return;
     }
 
-    const folder = folders.find((f) => f.id === folderId);
+    const folderId = searchParams.get("folderId");
 
-    setSelectedFolder(folder || allLinksOverview);
-  }, [folderId, folders, onFolderSelect]);
+    if (!folderId) {
+      setSelectedFolder(allLinksOverview);
+      return;
+    }
+
+    if (folderId) {
+      const folder = folders?.find((f) => f.id === folderId);
+
+      if (folder) {
+        setSelectedFolder(folder);
+      }
+    }
+  }, [searchParams, folders, onFolderSelect]);
 
   useEffect(() => {
     onFolderSelect(selectedFolder || allLinksOverview);
