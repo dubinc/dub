@@ -414,23 +414,27 @@ export default function Toggle({
               label: "Folder",
               shouldFilter: !foldersAsync,
               getOptionIcon: (value, props) => {
-                console.log({ value, props });
-
-                // const folderName =
-                //   props.option?.data?.name ??
-                //   folders?.find(({ id }) => id === value)?.name;
-
-                const folderName = props.option?.name;
+                const folderName = props.option?.label;
                 const folder = folders?.find(({ name }) => name === folderName);
 
                 return folder ? (
-                  <FolderSquareIcon folder={folder} className="sm:p-1" />
+                  <FolderSquareIcon
+                    folder={folder}
+                    className="p-1"
+                    iconSize="size-3"
+                  />
                 ) : null;
               },
               options:
                 folders?.map((folder) => ({
                   value: folder.id,
-                  icon: <FolderSquareIcon folder={folder} />,
+                  icon: (
+                    <FolderSquareIcon
+                      folder={folder}
+                      className="p-1"
+                      iconSize="size-3"
+                    />
+                  ),
                   label: folder.name,
                 })) ?? null,
             },
