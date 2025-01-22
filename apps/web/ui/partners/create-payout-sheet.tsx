@@ -2,7 +2,6 @@
 
 import { createManualPayoutAction } from "@/lib/actions/partners/create-manual-payout";
 import { AnalyticsResponseOptions } from "@/lib/analytics/types";
-import { calculateEarnings } from "@/lib/api/sales/calculate-earnings";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
@@ -12,10 +11,10 @@ import { X } from "@/ui/shared/icons";
 import { PayoutType } from "@dub/prisma/client";
 import {
   Button,
+  Combobox,
   DateRangePicker,
   Sheet,
   useEnterSubmit,
-  useRouterStuff,
 } from "@dub/ui";
 import {
   capitalize,
@@ -54,7 +53,7 @@ import { z } from "zod";
 
 interface CreatePayoutSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  partnerId: string;
+  partnerId?: string;
 }
 
 const schema = createManualPayoutSchema
@@ -62,6 +61,7 @@ const schema = createManualPayoutSchema
     type: true,
     amount: true,
     description: true,
+    partnerId: true,
   })
   .and(
     z.object({
@@ -81,15 +81,14 @@ const schema = createManualPayoutSchema
 
 type FormData = z.infer<typeof schema>;
 
-function CreatePayoutSheetContent({
-  setIsOpen,
-  partnerId,
-}: CreatePayoutSheetProps) {
+function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
+  const { setIsOpen } = props;
+
+  const router = useRouter();
   const dateRangePickerId = useId();
   const { program } = useProgram();
   const { data: partners } = usePartners();
   const { id: workspaceId } = useWorkspace();
-  const router = useRouter();
   const { slug, programId } = useParams();
 
   const formRef = useRef<HTMLFormElement>(null);
@@ -105,13 +104,27 @@ function CreatePayoutSheetContent({
   } = useForm<FormData>({
     defaultValues: {
       type: "custom",
+      partnerId: props.partnerId,
     },
   });
 
-  const { type: payoutType, start, end, amount } = watch();
+  const { type: payoutType, start, end, amount, partnerId } = watch();
 
-  const isPercentageBased =
-    payoutType === "sales" && program?.commissionType === "percentage";
+  const partnerOptions = useMemo(() => {
+    return partners?.map((partner) => ({
+      value: partner.id,
+      label: partner.name,
+      icon: (
+        <img
+          src={
+            partner.image ||
+            `https://api.dicebear.com/9.x/micah/svg?seed=${partner.id}`
+          }
+          className="size-4 rounded-full"
+        />
+      ),
+    }));
+  }, [partners]);
 
   const { executeAsync, isPending } = useAction(createManualPayoutAction, {
     onSuccess: async (res) => {
@@ -133,49 +146,35 @@ function CreatePayoutSheetContent({
   });
 
   const onSubmit = async (data: FormData) => {
-    if (workspaceId && program) {
-      const startDate = data.start
-        ? data.start.getTime() - data.start.getTimezoneOffset() * 60000
-        : undefined;
-      const endDate = data.end
-        ? data.end.getTime() - data.end.getTimezoneOffset() * 60000
-        : undefined;
-
-      await executeAsync({
-        ...data,
-        workspaceId,
-        programId: program.id,
-        start: startDate ? new Date(startDate).toISOString() : undefined,
-        end: endDate ? new Date(endDate).toISOString() : undefined,
-        amount: isPercentageBased ? amount : amount * 100,
-        partnerId,
-      });
+    if (!workspaceId || !program || !partnerId || !amount) {
+      toast.error("Please fill all required fields");
+      return;
     }
+
+    const startDate = data.start
+      ? data.start.getTime() - data.start.getTimezoneOffset() * 60000
+      : undefined;
+    const endDate = data.end
+      ? data.end.getTime() - data.end.getTimezoneOffset() * 60000
+      : undefined;
+
+    await executeAsync({
+      ...data,
+      workspaceId,
+      programId: program.id,
+      start: startDate ? new Date(startDate).toISOString() : undefined,
+      end: endDate ? new Date(endDate).toISOString() : undefined,
+      amount: amount * 100,
+      partnerId,
+    });
   };
 
   const selectedPartner = partners?.find((p) => p.id === partnerId);
-
-  const salesSearchParams = useMemo(
-    () =>
-      new URLSearchParams({
-        workspaceId: workspaceId!,
-        partnerId: selectedPartner?.id || "",
-        start: start?.toISOString() || "",
-        end: end?.toISOString() || "",
-      }),
-    [workspaceId, selectedPartner?.id, start, end],
-  );
-
-  const shouldRequestSales = useMemo(
-    () => !!(payoutType === "sales" && start && end && selectedPartner?.link),
-    [payoutType, start, end, selectedPartner?.link],
-  );
 
   const { data: totalEvents, isValidating } = useSWR<{
     [key in AnalyticsResponseOptions]: number;
   }>(
     payoutType !== "custom" &&
-      payoutType !== "sales" &&
       start &&
       end &&
       selectedPartner?.link &&
@@ -190,61 +189,24 @@ function CreatePayoutSheetContent({
     fetcher,
   );
 
-  const { data: salesAmount, isValidating: isValidatingSalesAmount } = useSWR<{
-    amount: number;
-  }>(
-    shouldRequestSales &&
-      `/api/programs/${program?.id}/sales/amount?${salesSearchParams.toString()}`,
-    fetcher,
-  );
-
-  const { data: salesCount, isValidating: isValidatingSalesCount } = useSWR<{
-    pending: number;
-    duplicate: number;
-    fraud: number;
-  }>(
-    shouldRequestSales &&
-      `/api/programs/${program?.id}/sales/count?${salesSearchParams.toString()}`,
-    fetcher,
-  );
-
+  // Calculate payout amount
   const payoutAmount = useMemo(() => {
-    const quantity =
-      payoutType === "sales" ? salesCount?.pending : totalEvents?.[payoutType];
-
     if (payoutType === "custom") {
       return amount;
     }
 
-    if (isPercentageBased && salesAmount?.amount) {
-      return (
-        calculateEarnings({
-          program: {
-            commissionAmount: amount,
-            commissionType: "percentage",
-          },
-          partner: selectedPartner,
-          sales: 1,
-          saleAmount: salesAmount.amount,
-        }) / 100
-      );
+    const quantity = totalEvents?.[payoutType];
+
+    if (!quantity || !amount) {
+      return;
     }
 
-    return quantity && amount ? quantity * amount : undefined;
-  }, [
-    payoutType,
-    salesCount,
-    totalEvents,
-    amount,
-    isPercentageBased,
-    salesAmount,
-    program,
-  ]);
+    return quantity * amount;
+  }, [payoutType, totalEvents, amount]);
 
+  // Invoice summary
   const invoiceData = useMemo(() => {
-    const quantity =
-      payoutType === "sales" ? salesCount?.pending : totalEvents?.[payoutType];
-
+    const quantity = totalEvents?.[payoutType];
     const amountAsNumber = amount ? Number(amount) : undefined;
 
     return {
@@ -277,36 +239,20 @@ function CreatePayoutSheetContent({
         }),
 
       ...(payoutType !== "custom" && {
-        [capitalize(payoutType) as string]:
-          isValidating || isValidatingSalesCount ? (
-            <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
-          ) : (
-            nFormatter(quantity, {
-              full: true,
-            })
-          ),
+        [capitalize(payoutType) as string]: isValidating ? (
+          <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
+        ) : (
+          nFormatter(quantity, {
+            full: true,
+          })
+        ),
 
         [`Reward per ${payoutType.replace(/s$/, "")}`]: amountAsNumber
-          ? !isPercentageBased
-            ? currencyFormatter(amountAsNumber, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })
-            : `${amountAsNumber}%`
+          ? currencyFormatter(amountAsNumber, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })
           : "-",
-      }),
-
-      ...(isPercentageBased && {
-        Revenue: isValidatingSalesAmount ? (
-          <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
-        ) : salesAmount?.amount ? (
-          currencyFormatter(salesAmount.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })
-        ) : (
-          "-"
-        ),
       }),
 
       ...(payoutAmount && {
@@ -329,18 +275,11 @@ function CreatePayoutSheetContent({
     totalEvents,
     amount,
     isValidating,
-    isValidatingSalesAmount,
-    isValidatingSalesCount,
     payoutAmount,
   ]);
 
   const buttonDisabled =
-    isPending ||
-    isValidating ||
-    isValidatingSalesAmount ||
-    isValidatingSalesCount ||
-    !partnerId ||
-    !payoutAmount;
+    isPending || isValidating || !partnerId || !payoutAmount;
 
   return (
     <form
@@ -362,12 +301,58 @@ function CreatePayoutSheetContent({
           </Sheet.Close>
         </div>
         <div className="flex flex-col gap-4 p-6">
+          {!props.partnerId && (
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-gray-900">
+                Partner
+                <span className="ml-1 font-normal text-neutral-500">
+                  (required)
+                </span>
+              </label>
+              <Combobox
+                selected={
+                  partnerOptions?.find((o) => o.value === partnerId) ?? null
+                }
+                setSelected={(option) => {
+                  if (option) {
+                    setValue("partnerId", option.value);
+                    clearErrors("partnerId");
+                  }
+                }}
+                options={partnerOptions}
+                caret={true}
+                placeholder="Select partners"
+                searchPlaceholder="Search..."
+                matchTriggerWidth
+                buttonProps={{
+                  className: cn(
+                    "w-full justify-start border-gray-300 px-3",
+                    "data-[state=open]:ring-1 data-[state=open]:ring-gray-500 data-[state=open]:border-gray-500",
+                    "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
+                    !partnerId && "text-gray-400",
+                    errors.partnerId && "border-red-500",
+                  ),
+                }}
+              />
+              {errors.partnerId && (
+                <p className="text-xs text-red-600">
+                  {errors.partnerId.message}
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="flex flex-col gap-2">
             <label
               htmlFor={dateRangePickerId}
               className="block text-sm font-medium text-gray-900"
             >
-              Payout period {payoutType === "custom" ? "(optional)" : ""}
+              Payout period
+              {payoutType === "custom" && (
+                <span className="ml-1 font-normal text-neutral-500">
+                  (optional)
+                </span>
+              )}
             </label>
             <DateRangePicker
               id={dateRangePickerId}
@@ -445,7 +430,7 @@ function CreatePayoutSheetContent({
               {...register("type", { required: true })}
               className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
               onChange={(e) => {
-                const type = e.target.value as PayoutType;
+                const type = e.target.value as Exclude<PayoutType, "sales">;
 
                 setValue("type", type);
 
@@ -453,24 +438,17 @@ function CreatePayoutSheetContent({
                   clearErrors(["start", "end"]);
                 }
 
-                if (type === "sales" && program?.commissionAmount) {
-                  setValue(
-                    "amount",
-                    program.commissionType === "percentage"
-                      ? program.commissionAmount
-                      : program.commissionAmount / 100,
-                  );
-                } else {
-                  // @ts-ignore
-                  setValue("amount", null);
-                }
+                // @ts-ignore
+                setValue("amount", null);
               }}
             >
-              {Object.values(PayoutType).map((type) => (
-                <option key={type} value={type}>
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </option>
-              ))}
+              {Object.values(PayoutType)
+                .filter((type) => type !== "sales")
+                .map((type) => (
+                  <option key={type} value={type}>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -480,43 +458,28 @@ function CreatePayoutSheetContent({
               className="flex justify-between text-sm font-medium text-neutral-800"
             >
               Reward amount
-              {payoutType === "sales" && (
-                <a
-                  href={`/${slug}/programs/${programId}/settings`}
-                  target="_blank"
-                  className="font-normal text-gray-400 underline-offset-2 transition-all hover:text-gray-600 hover:underline"
-                >
-                  Manage
-                </a>
-              )}
             </label>
             <div className="relative mt-2 rounded-md shadow-sm">
-              {!isPercentageBased && (
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-                  $
-                </span>
-              )}
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                $
+              </span>
               <input
                 className={cn(
                   "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                  "pr-[6.5rem]",
-                  payoutType === "sales" &&
-                    "cursor-not-allowed bg-neutral-100 text-neutral-500",
+                  "pl-6 pr-[6.5rem]",
                   payoutType === "custom" && "pr-12",
-                  !isPercentageBased && "pl-6",
                   errors.amount &&
                     "border-red-600 focus:border-red-500 focus:ring-red-600",
                 )}
                 {...register("amount", {
                   required: true,
                   valueAsNumber: true,
-                  disabled: payoutType === "sales",
                 })}
                 autoComplete="off"
                 placeholder="100"
               />
               <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-                {isPercentageBased ? "%" : "USD"}
+                USD
                 {payoutType !== "custom" &&
                   ` per ${payoutType.replace(/s$/, "")}`}
               </span>
@@ -528,7 +491,10 @@ function CreatePayoutSheetContent({
               htmlFor="description"
               className="flex items-center space-x-2 text-sm font-medium text-gray-900"
             >
-              Description (optional)
+              Description{" "}
+              <span className="ml-1 font-normal text-neutral-500">
+                (optional)
+              </span>
             </label>
             <textarea
               {...register("description")}
@@ -589,8 +555,6 @@ export function CreatePayoutSheet({
   isOpen: boolean;
   nested?: boolean;
 }) {
-  const { queryParams } = useRouterStuff();
-
   return (
     <Sheet open={isOpen} onOpenChange={rest.setIsOpen} nested={nested}>
       <CreatePayoutSheetContent {...rest} />
