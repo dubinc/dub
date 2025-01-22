@@ -14,7 +14,8 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function PartnerPayoutSent({
+// Send this email when the payout is confirmed when payment is send using ACH
+export function PartnerPayoutConfirmed({
   email = "panic@thedis.co",
   program = {
     id: "prog_d8pl69xXCv4AoHNT281pHQdo",
@@ -61,7 +62,7 @@ export function PartnerPayoutSent({
   return (
     <Html>
       <Head />
-      <Preview>You've been paid!</Preview>
+      <Preview>Your payout is being processed</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
@@ -74,18 +75,20 @@ export function PartnerPayoutSent({
             </Section>
 
             <Heading className="mx-0 p-0 text-lg font-medium text-black">
-              You've been paid!
+              Your payout is being processed!
             </Heading>
 
             <Text className="text-sm leading-6 text-gray-600">
-              <strong className="text-black">{program.name}</strong> has sent
-              you <strong className="text-black">{saleAmountInDollars}</strong>{" "}
-              for affiliate sales made from{" "}
+              <strong className="text-black">{program.name}</strong> has
+              initiated a payout of{" "}
+              <strong className="text-black">{saleAmountInDollars}</strong> for
+              affiliate sales made from{" "}
               <strong className="text-black">{startDate}</strong> to{" "}
               <strong className="text-black">{endDate}</strong>.
             </Text>
             <Text className="text-sm leading-6 text-gray-600">
-              The funds are on their way to your account.
+              The payout is currently being processed and is expected to be
+              credited to your account within 5 business days.
             </Text>
 
             <Section className="mb-12 mt-8">
@@ -103,5 +106,3 @@ export function PartnerPayoutSent({
     </Html>
   );
 }
-
-export default PartnerPayoutSent;

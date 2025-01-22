@@ -1,6 +1,6 @@
 "use client";
 
-import useWorkspace from "@/lib/swr/use-workspace";
+import usePrograms from "@/lib/swr/use-programs";
 import { InvoiceProps } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -21,7 +21,7 @@ import useSWR from "swr";
 
 export default function WorkspaceInvoicesClient() {
   const { slug } = useParams();
-  const { payoutMethodId } = useWorkspace();
+  const { programs } = usePrograms();
   const { searchParams, queryParams } = useRouterStuff();
 
   const invoiceType = searchParams.get("type") || "subscription";
@@ -49,7 +49,7 @@ export default function WorkspaceInvoicesClient() {
           </div>
         </div>
       </div>
-      {payoutMethodId && (
+      {programs?.length && (
         <TabSelect
           className="px-4 sm:px-10"
           options={[
