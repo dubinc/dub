@@ -3,6 +3,7 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps } from "@/lib/types";
+import { FolderDropdown } from "@/ui/folders/folder-dropdown";
 import { DestinationUrlInput } from "@/ui/links/destination-url-input";
 import { ShortLinkInput } from "@/ui/links/short-link-input";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
@@ -30,6 +31,7 @@ import {
   isValidUrl,
   linkConstructor,
 } from "@dub/utils";
+import { ChevronRight } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import {
@@ -133,14 +135,16 @@ function LinkBuilderInner({
   const formRef = useRef<HTMLFormElement>(null);
   const { handleKeyDown } = useEnterSubmit(formRef);
 
-  const [url, domain, key, title, description, trackConversion] = watch([
+  const [url, domain, key, title, description] = watch([
     "url",
     "domain",
     "key",
     "title",
     "description",
-    "trackConversion",
   ]);
+
+  const [folderId, setFolderId] = useState<string | null>(null);
+
   const [debouncedUrl] = useDebounce(getUrlWithoutUTMParams(url), 500);
 
   const endpoint = useMemo(
@@ -215,6 +219,8 @@ function LinkBuilderInner({
 
   const [, copyToClipboard] = useCopyToClipboard();
 
+  console.log({ folderId });
+
   return (
     <>
       <PasswordModal />
@@ -246,13 +252,12 @@ function LinkBuilderInner({
             onSubmit={handleSubmit(async (data) => {
               // @ts-ignore – exclude extra attributes from `data` object before sending to API
               const { user, tags, tagId, ...rest } = data;
-              const folderId = searchParams.get("folderId");
+              // const folderId = searchParams.get("folderId");
               const bodyData = {
                 ...rest,
                 // Map tags to tagIds
                 tagIds: tags.map(({ id }) => id),
-                // if folderId is available, add it to the body data
-                ...(folderId ? { folderId } : {}),
+                ...(folderId && { folderId }),
 
                 // Manually reset empty strings to null
                 expiredUrl: rest.expiredUrl || null,
@@ -330,7 +335,15 @@ function LinkBuilderInner({
             })}
           >
             <div className="flex items-center justify-between px-6 py-4">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <div className="flex items-center rounded-md border border-neutral-200 p-1 hover:bg-gray-100">
+                  <FolderDropdown
+                    onFolderSelect={(folder) =>
+                      setFolderId(folder.id !== "unsorted" ? folder.id : null)
+                    }
+                  />
+                </div>
+                <ChevronRight className="size-4 text-neutral-500" />
                 <LinkLogo
                   apexDomain={getApexDomain(debouncedUrl)}
                   className="size-6 sm:size-6 [&>*]:size-3 sm:[&>*]:size-4"

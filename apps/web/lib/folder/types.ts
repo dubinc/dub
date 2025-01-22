@@ -17,3 +17,15 @@ export type FolderWithPermissions = {
   id: string;
   permissions: FolderPermission[];
 };
+
+export type FolderSummary = Pick<
+  Folder,
+  "id" | "name" | "accessLevel" | "linkCount"
+>;
+
+export const allLinksOverview: FolderSummary = {
+  id: "unsorted",
+  name: "Links",
+  accessLevel: "edit",
+  linkCount: -1,
+};
