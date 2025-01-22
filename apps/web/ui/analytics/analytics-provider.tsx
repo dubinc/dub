@@ -22,8 +22,8 @@ import { fetcher } from "@dub/utils";
 import { endOfDay, startOfDay, subDays } from "date-fns";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import {
-  PropsWithChildren,
   createContext,
+  PropsWithChildren,
   useEffect,
   useMemo,
   useState,

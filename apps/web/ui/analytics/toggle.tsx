@@ -28,6 +28,7 @@ import {
   useMediaQuery,
   useRouterStuff,
   useScroll,
+  UTM_PARAMETERS,
 } from "@dub/ui";
 import {
   Cube,
@@ -48,19 +49,19 @@ import {
 } from "@dub/ui/icons";
 import {
   APP_DOMAIN,
+  capitalize,
+  cn,
   CONTINENTS,
   COUNTRIES,
   DUB_DEMO_LINKS,
   DUB_LOGO,
-  GOOGLE_FAVICON_URL,
-  REGIONS,
-  capitalize,
-  cn,
   fetcher,
   getApexDomain,
   getNextPlan,
+  GOOGLE_FAVICON_URL,
   linkConstructor,
   nFormatter,
+  REGIONS,
 } from "@dub/utils";
 import { readStreamableValue } from "ai/rsc";
 import posthog from "posthog-js";
@@ -145,23 +146,11 @@ export default function Toggle({
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
   const activeFilters = useMemo(() => {
-    const {
-      domain,
-      key,
-      continent,
-      country,
-      region,
-      city,
-      device,
-      browser,
-      os,
-      trigger,
-      referer,
-      refererUrl,
-      url,
-      root,
-    } = searchParamsObj;
-    return [
+    const { domain, key, root, ...params } = searchParamsObj;
+
+    // Handle special cases first
+    const filters = [
+      // Handle domain/key special case
       ...(domain && !key ? [{ key: "domain", value: domain }] : []),
       ...(domain && key
         ? [
@@ -171,23 +160,29 @@ export default function Toggle({
             },
           ]
         : []),
+      // Handle tagIds special case
       ...(selectedTagIds.length > 0
         ? [{ key: "tagIds", value: selectedTagIds }]
         : []),
-      ...(continent ? [{ key: "continent", value: continent }] : []),
-      ...(country ? [{ key: "country", value: country }] : []),
-      ...(region ? [{ key: "region", value: region }] : []),
-      ...(city ? [{ key: "city", value: city }] : []),
-      ...(device ? [{ key: "device", value: device }] : []),
-      ...(browser ? [{ key: "browser", value: browser }] : []),
-      ...(os ? [{ key: "os", value: os }] : []),
-      ...(trigger ? [{ key: "trigger", value: trigger }] : []),
-      ...(referer ? [{ key: "referer", value: referer }] : []),
-      ...(refererUrl ? [{ key: "refererUrl", value: refererUrl }] : []),
-      ...(url ? [{ key: "url", value: url }] : []),
+      // Handle root special case - convert string to boolean
       ...(root ? [{ key: "root", value: root === "true" }] : []),
     ];
-  }, [searchParamsObj]);
+
+    // Handle all other filters dynamically
+    VALID_ANALYTICS_FILTERS.forEach((filter) => {
+      // Skip special cases we handled above
+      if (["domain", "key", "tagId", "tagIds", "root"].includes(filter)) return;
+      // also skip date range filters and qr
+      if (["interval", "start", "end", "qr"].includes(filter)) return;
+
+      const value = params[filter];
+      if (value) {
+        filters.push({ key: filter, value });
+      }
+    });
+
+    return filters;
+  }, [searchParamsObj, selectedTagIds]);
 
   const isRequested = useCallback(
     (key: string) =>
@@ -232,6 +227,28 @@ export default function Toggle({
   const { data: urls } = useAnalyticsFilterOption("top_urls", {
     cacheOnly: !isRequested("url"),
   });
+  const { data: utmSources } = useAnalyticsFilterOption("utm_sources", {
+    cacheOnly: !isRequested("utm_source"),
+  });
+  const { data: utmMediums } = useAnalyticsFilterOption("utm_mediums", {
+    cacheOnly: !isRequested("utm_medium"),
+  });
+  const { data: utmCampaigns } = useAnalyticsFilterOption("utm_campaigns", {
+    cacheOnly: !isRequested("utm_campaign"),
+  });
+  const { data: utmTerms } = useAnalyticsFilterOption("utm_terms", {
+    cacheOnly: !isRequested("utm_term"),
+  });
+  const { data: utmContents } = useAnalyticsFilterOption("utm_contents", {
+    cacheOnly: !isRequested("utm_content"),
+  });
+  const utmData = {
+    utm_source: utmSources,
+    utm_medium: utmMediums,
+    utm_campaign: utmCampaigns,
+    utm_term: utmTerms,
+    utm_content: utmContents,
+  };
 
   // Some suggestions will only appear if previously requested (see isRequested above)
   const aiFilterSuggestions = useMemo(
@@ -556,6 +573,22 @@ export default function Toggle({
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },
+      ...(UTM_PARAMETERS.filter(({ key }) => key !== "ref").map(
+        ({ key, label, icon: Icon }) => ({
+          key,
+          icon: Icon,
+          label: `UTM ${label}`,
+          getOptionIcon: (value) => (
+            <Icon display={value} className="h-4 w-4" />
+          ),
+          options:
+            utmData[key]?.map((dt) => ({
+              value: dt[key],
+              label: dt[key],
+              right: nFormatter(dt.count, { full: true }),
+            })) ?? null,
+        }),
+      ) ?? []),
     ],
     [
       dashboardProps,
@@ -571,6 +604,7 @@ export default function Toggle({
       referers,
       refererUrls,
       urls,
+      utmData,
       tagsAsync,
       domainsAsync,
       loadingTags,

@@ -129,8 +129,6 @@ function UTMTemplateOption({
   template: UtmTemplateProps;
   onClick: () => void;
 }) {
-  const [deleting, setDeleting] = useState(false);
-
   return (
     <div className="group relative">
       <button
