@@ -49,13 +49,9 @@ export const authorizeRequestSchema = z.object({
     .string()
     .nullable()
     .transform((scope) => {
-      // decode the scope parameter and split by comma or space
+      // split by comma or space or plus sign
       const scopes = [
-        ...new Set(
-          decodeURIComponent(scope ?? "")
-            .split(/[,\s]/)
-            .filter(Boolean),
-        ),
+        ...new Set((scope ?? "").split(/[,\s+]/).filter(Boolean)),
       ];
 
       if (!scopes.includes("user.read")) {
