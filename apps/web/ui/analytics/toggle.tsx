@@ -418,22 +418,14 @@ export default function Toggle({
                 const folder = folders?.find(({ name }) => name === folderName);
 
                 return folder ? (
-                  <FolderSquareIcon
-                    folder={folder}
-                    className="p-1"
-                    iconSize="size-3"
-                  />
+                  <FolderSquareIcon folder={folder} iconClassName="size-3" />
                 ) : null;
               },
               options:
                 folders?.map((folder) => ({
                   value: folder.id,
                   icon: (
-                    <FolderSquareIcon
-                      folder={folder}
-                      className="p-1"
-                      iconSize="size-3"
-                    />
+                    <FolderSquareIcon folder={folder} iconClassName="size-3" />
                   ),
                   label: folder.name,
                 })) ?? null,

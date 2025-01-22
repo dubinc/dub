@@ -8,9 +8,6 @@ import {
 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 
-// TODO:
-// Cleanup the icons and make them more consistent
-
 const FolderOpen = ({ className }: { className: string }) => {
   return <Folder className={cn("text-blue-800", className)} />;
 };
@@ -51,6 +48,9 @@ const accessLevelMap = {
   edit: "open",
 } as const;
 
+// TODO:
+// Combine with FolderSquareIcon with FolderAccessIcon
+
 export const FolderAccessIcon = ({
   folder,
   circlePadding = "p-2.5",
@@ -70,27 +70,6 @@ export const FolderAccessIcon = ({
     return null;
   }
 
-  return (
-    <FolderIcon
-      type={type}
-      circlePadding={circlePadding}
-      withBorder={withBorder}
-      className={className}
-    />
-  );
-};
-
-const FolderIcon = ({
-  type = "open",
-  circlePadding = "p-2.5",
-  withBorder = true,
-  className = "rounded-full",
-}: {
-  type: "unsorted" | "private" | "restricted" | "open";
-  circlePadding?: string;
-  withBorder?: boolean;
-  className?: string;
-}) => {
   const { borderColor, bgColor, IconComponent } = folderIconsMap[type];
 
   if (!withBorder) {
@@ -112,27 +91,25 @@ const FolderIcon = ({
 
 export const FolderSquareIcon = ({
   folder,
-  className,
-  iconSize = "size-4",
+  iconClassName,
 }: {
   folder: Pick<FolderProps, "id" | "accessLevel">;
-  className?: string;
-  iconSize?: string;
+  iconClassName?: string;
 }) => {
-  const type =
+  const folderType =
     accessLevelMap[folder.id] ||
     accessLevelMap[folder.accessLevel || "private"];
 
-  if (!type) {
+  if (!folderType) {
     return null;
   }
 
-  const { borderColor, bgColor, IconComponent } = folderIconsMap[type];
+  const { borderColor, bgColor, IconComponent } = folderIconsMap[folderType];
 
   return (
     <div className={cn("rounded-md border", borderColor, bgColor)}>
-      <div className={className}>
-        <IconComponent className={iconSize} />
+      <div className="p-1">
+        <IconComponent className={iconClassName} />
       </div>
     </div>
   );

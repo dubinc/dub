@@ -90,7 +90,7 @@ export const FolderDropdown = ({
                     setSelectedFolder(folder);
                   }}
                 >
-                  <FolderSquareIcon folder={folder} />
+                  <FolderSquareIcon folder={folder} iconClassName="size-4" />
                   <span
                     className={`flex items-center justify-start gap-1.5 text-sm sm:max-w-[140px] ${
                       selectedFolder?.id === folder.id
@@ -126,7 +126,10 @@ export const FolderDropdown = ({
                 setShowAddFolderModal(true);
               }}
             >
-              <FolderSquareIcon folder={{ id: "new", accessLevel: null }} />
+              <FolderSquareIcon
+                folder={{ id: "new", accessLevel: null }}
+                iconClassName="size-4"
+              />
               <span className="block truncate">Create new folder</span>
             </button>
           </div>
@@ -137,7 +140,9 @@ export const FolderDropdown = ({
         popoverContentClassName="-ml-1"
       >
         <button className="group flex w-36 min-w-0 items-center gap-2 rounded-lg transition-colors duration-75 hover:bg-gray-100 data-[state=open]:bg-gray-200">
-          {selectedFolder && <FolderSquareIcon folder={selectedFolder} />}
+          {selectedFolder && (
+            <FolderSquareIcon folder={selectedFolder} iconClassName="size-4" />
+          )}
           <h1 className="min-w-0 truncate text-left text-lg font-medium leading-7 text-neutral-900">
             {selectedFolder?.name}
           </h1>

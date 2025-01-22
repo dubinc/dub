@@ -26,6 +26,6 @@ export type FolderSummary = Pick<
 export const unsortedLinks: FolderSummary = {
   id: "unsorted",
   name: "Links",
-  accessLevel: "edit",
+  accessLevel: null,
   linkCount: -1,
 };
