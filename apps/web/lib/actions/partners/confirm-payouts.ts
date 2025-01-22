@@ -2,26 +2,35 @@
 
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { createId } from "@/lib/api/utils";
+import { limiter } from "@/lib/cron/limiter";
 import {
-  DUB_PARTNERS_PAYOUT_FEE,
+  DUB_PARTNERS_PAYOUT_FEE_ACH,
+  DUB_PARTNERS_PAYOUT_FEE_CARD,
   MIN_PAYOUT_AMOUNT,
 } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
+import { sendEmail } from "@dub/email";
+import { PartnerPayoutConfirmed } from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import z from "zod";
 import { authActionClient } from "../safe-action";
 
 const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
   programId: z.string(),
+  paymentMethodId: z.string(),
+  payoutIds: z.array(z.string()).min(1),
 });
+
+const allowedPaymentMethods = ["us_bank_account", "card", "link"];
 
 // Confirm payouts
 export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId } = parsedInput;
+    const { programId, paymentMethodId, payoutIds } = parsedInput;
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -32,13 +41,25 @@ export const confirmPayoutsAction = authActionClient
       throw new Error("Workspace does not have a valid Stripe ID.");
     }
 
-    if (!workspace.payoutMethodId) {
-      throw new Error("Workspace does not have a valid payout method.");
+    // Check the payout method is valid
+    const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+
+    if (paymentMethod.customer !== workspace.stripeId) {
+      throw new Error("Invalid payout method.");
+    }
+
+    if (!allowedPaymentMethods.includes(paymentMethod.type)) {
+      throw new Error(
+        `We only support ACH and Card for now. Please update your payout method to one of these.`,
+      );
     }
 
     const payouts = await prisma.payout.findMany({
       where: {
         programId,
+        id: {
+          in: payoutIds,
+        },
         status: "pending",
         invoiceId: null, // just to be extra safe
         partner: {
@@ -54,6 +75,28 @@ export const confirmPayoutsAction = authActionClient
       select: {
         id: true,
         amount: true,
+        periodStart: true,
+        periodEnd: true,
+        partner: {
+          select: {
+            users: {
+              select: {
+                user: {
+                  select: {
+                    email: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        program: {
+          select: {
+            id: true,
+            name: true,
+            logo: true,
+          },
+        },
       },
     });
 
@@ -62,12 +105,17 @@ export const confirmPayoutsAction = authActionClient
     }
 
     // Create the invoice for the payouts
-    return await prisma.$transaction(async (tx) => {
+    const newInvoice = await prisma.$transaction(async (tx) => {
       const amount = payouts.reduce(
         (total, payout) => total + payout.amount,
         0,
       );
-      const fee = amount * DUB_PARTNERS_PAYOUT_FEE;
+
+      const fee =
+        paymentMethod.type === "us_bank_account"
+          ? amount * DUB_PARTNERS_PAYOUT_FEE_ACH
+          : amount * DUB_PARTNERS_PAYOUT_FEE_CARD;
+
       const total = amount + fee;
 
       // Generate the next invoice number
@@ -98,8 +146,8 @@ export const confirmPayoutsAction = authActionClient
       await stripe.paymentIntents.create({
         amount: invoice.total,
         customer: workspace.stripeId!,
-        payment_method_types: ["us_bank_account"],
-        payment_method: workspace.payoutMethodId!,
+        payment_method_types: allowedPaymentMethods,
+        payment_method: paymentMethod.id,
         currency: "usd",
         confirmation_method: "automatic",
         confirm: true,
@@ -120,8 +168,39 @@ export const confirmPayoutsAction = authActionClient
         },
       });
 
-      return {
-        invoice,
-      };
+      return invoice;
     });
+
+    waitUntil(
+      (async () => {
+        // Send emails to all the partners involved in the payouts if the payout method is ACH
+        // ACH takes 4 business days to process
+        if (newInvoice && paymentMethod.type === "us_bank_account") {
+          for (const payout of payouts) {
+            const { program, partner } = payout;
+            const partnerUsers = partner.users.map(({ user }) => user);
+
+            partnerUsers.map((user) =>
+              limiter.schedule(() =>
+                sendEmail({
+                  subject: "You've got money coming your way!",
+                  email: user.email!,
+                  from: "Dub Partners <system@dub.co>",
+                  react: PartnerPayoutConfirmed({
+                    email: user.email!,
+                    program,
+                    payout: {
+                      id: payout.id,
+                      amount: payout.amount,
+                      startDate: payout.periodStart!,
+                      endDate: payout.periodEnd!,
+                    },
+                  }),
+                }),
+              ),
+            );
+          }
+        }
+      })(),
+    );
   });

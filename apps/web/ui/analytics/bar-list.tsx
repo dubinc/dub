@@ -33,7 +33,7 @@ export default function BarList({
   data: {
     icon: ReactNode;
     title: string;
-    href: string;
+    href?: string;
     value: number;
     linkId?: string;
   }[];
@@ -117,7 +117,7 @@ export function LineItem({
 }: {
   icon: ReactNode;
   title: string;
-  href: string;
+  href?: string;
   value: number;
   maxValue: number;
   tab: string;
@@ -140,12 +140,20 @@ export function LineItem({
 
   const { saleUnit } = useContext(AnalyticsContext);
 
+  const As = href ? Link : "div";
+
   return (
-    <Link
-      href={href}
-      scroll={false}
-      onClick={() => setShowModal(false)}
-      className={`border-l-2 border-transparent px-4 py-1 ${hoverBackground} min-w-0 transition-all`}
+    // @ts-ignore - we know if it's a Link it'll get its href
+    <As
+      {...(href && {
+        href,
+        scroll: false,
+        onClick: () => setShowModal(false),
+      })}
+      className={cn(
+        `min-w-0 border-l-2 border-transparent px-4 py-1 transition-all`,
+        href && hoverBackground,
+      )}
     >
       <div className="group flex items-center justify-between">
         <div className="relative z-10 flex h-8 w-full min-w-0 max-w-[calc(100%-2rem)] items-center">
@@ -198,6 +206,6 @@ export function LineItem({
           }
         />
       </div>
-    </Link>
+    </As>
   );
 }

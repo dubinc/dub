@@ -42,13 +42,6 @@ export const WorkspaceSchema = z
       .string()
       .nullable()
       .describe("The Stripe Connect ID of the workspace."),
-    payoutMethodId: z
-      .string()
-      .nullable()
-      .describe(
-        "[BETA – Dub Partners]: The ID of the payment method for partner payouts.",
-      ),
-
     usage: z.number().describe("The usage of the workspace."),
     usageLimit: z.number().describe("The usage limit of the workspace."),
     linksUsage: z.number().describe("The links usage of the workspace."),

@@ -3,10 +3,8 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { createId } from "@/lib/api/utils";
-import { createSalesPayout } from "@/lib/partners/create-sales-payout";
 import { createManualPayoutSchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
-import { Payout } from "@dub/prisma/client";
 import { authActionClient } from "../safe-action";
 
 const schema = createManualPayoutSchema.refine(
@@ -26,7 +24,7 @@ export const createManualPayoutAction = authActionClient
     const { programId, partnerId, start, end, type, amount, description } =
       parsedInput;
 
-    const [program, programEnrollment] = await Promise.all([
+    const [_program, programEnrollment] = await Promise.all([
       getProgramOrThrow({
         workspaceId: workspace.id,
         programId,
@@ -49,58 +47,41 @@ export const createManualPayoutAction = authActionClient
       throw new Error("No short link found for this partner in this program.");
     }
 
-    let payout: Payout | null = null;
+    let quantity: number | undefined = undefined;
 
-    // Create a payout for sales
-    if (type === "sales") {
-      payout =
-        (await createSalesPayout({
-          programId,
-          partnerId,
-          periodStart: start,
-          periodEnd: end,
-          description: description ?? undefined,
-        })) ?? null;
+    if (type === "clicks" || type === "leads") {
+      const count = await getAnalytics({
+        linkId: programEnrollment.linkId,
+        event: type,
+        groupBy: "count",
+        start,
+        end,
+      });
 
-      if (!payout) {
+      quantity = count[type];
+
+      if (quantity === 0) {
         throw new Error(
-          "No valid sales found for this period. Payout was not created.",
+          `No ${type} found for this period. Payout was not created.`,
         );
       }
     }
 
-    // Create a payout for clicks, leads, and custom events
-    else {
-      let quantity: number | undefined = undefined;
+    const amountInCents = (quantity || 1) * (amount || 0);
 
-      if (type === "clicks" || type === "leads") {
-        const count = await getAnalytics({
-          linkId: programEnrollment.linkId,
-          event: type,
-          groupBy: "count",
-          start,
-          end,
-        });
-
-        quantity = count[type];
-      }
-
-      const amountInCents = (quantity || 1) * (amount || 0);
-
-      payout = await prisma.payout.create({
-        data: {
-          id: createId({ prefix: "po_" }),
-          programId,
-          partnerId,
-          type,
-          quantity,
-          amount: amountInCents,
-          periodStart: start,
-          periodEnd: end,
-          description,
-        },
-      });
-    }
+    const payout = await prisma.payout.create({
+      data: {
+        id: createId({ prefix: "po_" }),
+        programId,
+        partnerId,
+        type,
+        quantity,
+        amount: amountInCents,
+        periodStart: start,
+        periodEnd: end,
+        description,
+      },
+    });
 
     if (!payout) {
       throw new Error("Failed to create payout. Please try again.");
