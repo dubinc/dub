@@ -1,4 +1,4 @@
-import { allLinksOverview, FolderSummary } from "@/lib/folder/types";
+import { FolderSummary, unsortedLinks } from "@/lib/folder/types";
 import useFolders from "@/lib/swr/use-folders";
 import { Popover, Tick } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -29,7 +29,7 @@ export const FolderDropdown = ({ onFolderSelect }: FolderDropdownProps) => {
     const folderId = searchParams.get("folderId");
 
     if (!folderId) {
-      setSelectedFolder(allLinksOverview);
+      setSelectedFolder(unsortedLinks);
       return;
     }
 
@@ -43,14 +43,14 @@ export const FolderDropdown = ({ onFolderSelect }: FolderDropdownProps) => {
   }, [searchParams, folders, onFolderSelect]);
 
   useEffect(() => {
-    onFolderSelect(selectedFolder || allLinksOverview);
+    onFolderSelect(selectedFolder || unsortedLinks);
   }, [selectedFolder, onFolderSelect]);
 
   if (isLoading || !folders) {
     return <FolderSwitcherPlaceholder />;
   }
 
-  const foldersWithAllLinks = [allLinksOverview, ...folders];
+  const foldersWithAllLinks = [unsortedLinks, ...folders];
 
   return (
     <>

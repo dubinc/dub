@@ -23,7 +23,7 @@ export type FolderSummary = Pick<
   "id" | "name" | "accessLevel" | "linkCount"
 >;
 
-export const allLinksOverview: FolderSummary = {
+export const unsortedLinks: FolderSummary = {
   id: "unsorted",
   name: "Links",
   accessLevel: "edit",

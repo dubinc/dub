@@ -1,4 +1,4 @@
-import { allLinksOverview, FolderSummary } from "@/lib/folder/types";
+import { FolderSummary, unsortedLinks } from "@/lib/folder/types";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -26,7 +26,7 @@ export const FolderSwitcher = () => {
   const { folders, isLoading } = useFolders();
 
   const [selectedFolder, setSelectedFolder] = useState<FolderSummary | null>(
-    allLinksOverview,
+    unsortedLinks,
   );
 
   const folderId = searchParams.get("folderId");
@@ -71,7 +71,7 @@ export const FolderSwitcher = () => {
       {!isAllLinksFolderSelected && (
         <button
           onClick={() => {
-            onFolderSelect(allLinksOverview);
+            onFolderSelect(unsortedLinks);
           }}
           className="rounded-md px-1.5 py-2.5 hover:bg-gray-100"
         >
@@ -84,7 +84,7 @@ export const FolderSwitcher = () => {
       {selectedFolder && !isAllLinksFolderSelected && (
         <FolderActions
           folder={selectedFolder}
-          onDelete={() => onFolderSelect(allLinksOverview)}
+          onDelete={() => onFolderSelect(unsortedLinks)}
         />
       )}
     </div>
