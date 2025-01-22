@@ -1,9 +1,6 @@
 // Create a signature for a webhook request
 export const createWebhookSignature = async (secret: string, body: any) => {
-  if (!secret) {
-    throw new Error("A secret must be provided to create a webhook signature.");
-  }
-
+  
   const keyData = new TextEncoder().encode(secret);
   const messageData = new TextEncoder().encode(JSON.stringify(body));
 
