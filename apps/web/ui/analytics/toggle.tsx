@@ -154,7 +154,7 @@ export default function Toggle({
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
   const activeFilters = useMemo(() => {
-    const { domain, key, root, ...params } = searchParamsObj;
+    const { domain, key, root, folderId, ...params } = searchParamsObj;
 
     // Handle special cases first
     const filters = [
@@ -174,6 +174,8 @@ export default function Toggle({
         : []),
       // Handle root special case - convert string to boolean
       ...(root ? [{ key: "root", value: root === "true" }] : []),
+      // Handle folderId special case
+      ...(folderId ? [{ key: "folderId", value: folderId }] : []),
     ];
 
     // Handle all other filters dynamically
@@ -629,6 +631,7 @@ export default function Toggle({
       domains,
       links,
       tags,
+      folders,
       selectedTags,
       countries,
       cities,
@@ -641,7 +644,7 @@ export default function Toggle({
       utmData,
       tagsAsync,
       domainsAsync,
-      folders,
+      foldersAsync,
       loadingTags,
       loadingDomains,
       loadingFolders,
