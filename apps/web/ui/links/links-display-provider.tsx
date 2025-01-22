@@ -83,14 +83,15 @@ function useLinksDisplayOption<T>(
   defaultValue: T,
   parseValue: (value: any) => T,
 ) {
-  const [value, setValue] = useLocalStorage<T>(
+  const [value, setValue, { remove }] = useLocalStorage<T | undefined>(
     `links-display-${key}`,
-    defaultValue,
+    undefined,
   );
 
   return {
-    value: parseValue(value),
+    value: parseValue(value ?? defaultValue),
     setValue,
+    reset: remove,
   };
 }
 
@@ -103,6 +104,7 @@ export const LinksDisplayContext = createContext<{
   setSort: (sort: LinksSortSlug) => void;
   showArchived: boolean;
   setShowArchived: (show: boolean) => void;
+  isLoading: boolean;
   isDirty: boolean;
   persist: () => void;
   reset: () => void;
@@ -115,6 +117,8 @@ export const LinksDisplayContext = createContext<{
   setSort: () => {},
   showArchived: false,
   setShowArchived: () => {},
+  /** Whether the persisted values are being loaded */
+  isLoading: false,
   /** Whether the current values differ from the persisted values */
   isDirty: false,
   /** Updates the persisted values to the current values */
@@ -148,38 +152,53 @@ const parseObject = (object: any): PersistedLinksDisplay | undefined =>
 
 export function LinksDisplayProvider({ children }: PropsWithChildren) {
   // Persisted values to workspace store
-  const [persistedRaw, setPersisted] = useWorkspaceStore<PersistedLinksDisplay>(
-    STORE_KEYS.linksDisplay,
-  );
+  const [persistedRaw, setPersisted, { loading: isLoading }] =
+    useWorkspaceStore<PersistedLinksDisplay>(STORE_KEYS.linksDisplay);
   const persisted = useMemo(() => parseObject(persistedRaw), [persistedRaw]);
 
   // View mode
-  const { value: viewMode, setValue: setViewMode } =
-    useLinksDisplayOption<LinksViewMode>(
-      "view-mode",
-      defaultViewMode,
-      parseViewMode,
-    );
+  const {
+    value: viewMode,
+    setValue: setViewMode,
+    reset: resetViewMode,
+  } = useLinksDisplayOption<LinksViewMode>(
+    "view-mode",
+    persisted?.viewMode ?? defaultViewMode,
+    parseViewMode,
+  );
 
   // Sort
-  const { value: sortBy, setValue: setSort } =
-    useLinksDisplayOption<LinksSortSlug>("sortBy", defaultSortBy, parseSortBy);
+  const {
+    value: sortBy,
+    setValue: setSort,
+    reset: resetSort,
+  } = useLinksDisplayOption<LinksSortSlug>(
+    "sortBy",
+    persisted?.sortBy ?? defaultSortBy,
+    parseSortBy,
+  );
 
   // Show archived
-  const { value: showArchived, setValue: setShowArchived } =
-    useLinksDisplayOption<boolean>(
-      "show-archived",
-      defaultShowArchived,
-      parseShowArchived,
-    );
+  const {
+    value: showArchived,
+    setValue: setShowArchived,
+    reset: resetShowArchived,
+  } = useLinksDisplayOption<boolean>(
+    "show-archived",
+    persisted?.showArchived ?? defaultShowArchived,
+    parseShowArchived,
+  );
 
   // Display properties
-  const { value: displayProperties, setValue: setDisplayProperties } =
-    useLinksDisplayOption<LinkDisplayProperty[]>(
-      "display-properties",
-      defaultDisplayProperties,
-      parseDisplayProperties,
-    );
+  const {
+    value: displayProperties,
+    setValue: setDisplayProperties,
+    reset: resetDisplayProperties,
+  } = useLinksDisplayOption<LinkDisplayProperty[]>(
+    "display-properties",
+    persisted?.displayProperties ?? defaultDisplayProperties,
+    parseDisplayProperties,
+  );
 
   const isDirty = useMemo(() => {
     if (viewMode !== (persisted?.viewMode ?? defaultViewMode)) return true;
@@ -209,6 +228,7 @@ export function LinksDisplayProvider({ children }: PropsWithChildren) {
         setSort,
         showArchived,
         setShowArchived,
+        isLoading,
         isDirty,
         persist: () => {
           setPersisted({
@@ -219,12 +239,10 @@ export function LinksDisplayProvider({ children }: PropsWithChildren) {
           });
         },
         reset: () => {
-          setViewMode(persisted?.viewMode ?? defaultViewMode);
-          setDisplayProperties(
-            persisted?.displayProperties ?? defaultDisplayProperties,
-          );
-          setSort(persisted?.sortBy ?? defaultSortBy);
-          setShowArchived(persisted?.showArchived ?? defaultShowArchived);
+          resetViewMode();
+          resetSort();
+          resetShowArchived();
+          resetDisplayProperties();
         },
       }}
     >
