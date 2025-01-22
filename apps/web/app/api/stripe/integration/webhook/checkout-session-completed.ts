@@ -34,6 +34,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   const invoiceId = charge.invoice as string;
 
   let customer: Customer;
+  let existingCustomer: Customer | null = null;
   let clickEvent: z.infer<typeof clickEventSchemaTB> | null = null;
   let leadEvent: z.infer<typeof leadEventSchemaTB>;
   let linkId: string;
@@ -117,21 +118,50 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       return `Workspace with stripeConnectId ${stripeAccountId} not found, skipping...`;
     }
 
-    customer = await prisma.customer.create({
-      data: {
-        id: createId({ prefix: "cus_" }),
-        name: stripeCustomerName,
-        email: stripeCustomerEmail,
-        externalId: stripeCustomerEmail, // using Stripe customer email as externalId
+    existingCustomer = await prisma.customer.findFirst({
+      where: {
         projectId: workspace.id,
-        projectConnectId: stripeAccountId,
-        stripeCustomerId,
-        clickId: clickEvent.click_id,
-        linkId: clickEvent.link_id,
-        country: clickEvent.country,
-        clickedAt: new Date(clickEvent.timestamp + "Z"),
+        // check for existing customer with the same externalId (via clickId or email)
+        // TODO: should we support checks for email and stripeCustomerId too?
+        OR: [
+          {
+            externalId: clickEvent.click_id,
+          },
+          {
+            externalId: stripeCustomerEmail,
+          },
+        ],
       },
     });
+
+    const payload = {
+      name: stripeCustomerName,
+      email: stripeCustomerEmail,
+      externalId: stripeCustomerEmail, // using Stripe customer email as externalId
+      projectId: workspace.id,
+      projectConnectId: stripeAccountId,
+      stripeCustomerId,
+      clickId: clickEvent.click_id,
+      linkId: clickEvent.link_id,
+      country: clickEvent.country,
+      clickedAt: new Date(clickEvent.timestamp + "Z"),
+    };
+
+    if (existingCustomer) {
+      customer = await prisma.customer.update({
+        where: {
+          id: existingCustomer.id,
+        },
+        data: payload,
+      });
+    } else {
+      customer = await prisma.customer.create({
+        data: {
+          id: createId({ prefix: "cus_" }),
+          ...payload,
+        },
+      });
+    }
 
     leadEvent = {
       ...clickEvent,
@@ -141,7 +171,11 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       metadata: "",
     };
 
-    await recordLead(leadEvent);
+    // hacky way to check if upsert was a create or an update
+    // see if customer.createdAt is within the last 10 seconds
+    if (!existingCustomer) {
+      await recordLead(leadEvent);
+    }
     linkId = clickEvent.link_id;
 
     // if it's not either a regular stripe checkout setup or a stripe checkout link,
@@ -273,8 +307,9 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   waitUntil(
     (async () => {
-      // if the clickEvent variable exists, it means that a new lead was created
-      if (clickEvent) {
+      // if the clickEvent variable exists and there was no existing customer before,
+      // we send a lead.created webhook
+      if (clickEvent && !existingCustomer) {
         await sendWorkspaceWebhook({
           trigger: "lead.created",
           workspace,
