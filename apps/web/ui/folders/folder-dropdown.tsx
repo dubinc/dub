@@ -22,39 +22,20 @@ export const FolderDropdown = ({
   const [openPopover, setOpenPopover] = useState(false);
   const { AddFolderModal, setShowAddFolderModal } = useAddFolderModal();
   const [selectedFolder, setSelectedFolder] = useState<FolderSummary | null>(
-    null,
+    unsortedLinks,
   );
 
   useEffect(() => {
-    if (selectedFolder) {
-      return;
-    }
-
     const folderId = searchParams.get("folderId");
 
     if (!folderId) {
       setSelectedFolder(unsortedLinks);
-      return;
     }
-
-    if (folderId) {
-      const folder = folders?.find((f) => f.id === folderId);
-
-      if (folder) {
-        setSelectedFolder(folder);
-      }
-    }
-  }, [searchParams, folders, onFolderSelect]);
-
-  useEffect(() => {
-    onFolderSelect(selectedFolder || unsortedLinks);
-  }, [selectedFolder, onFolderSelect]);
+  }, [searchParams]);
 
   if (loading || !folders) {
     return <FolderSwitcherPlaceholder />;
   }
-
-  const foldersWithAllLinks = [unsortedLinks, ...folders];
 
   return (
     <>
@@ -75,7 +56,7 @@ export const FolderDropdown = ({
               )}
             </div>
 
-            {foldersWithAllLinks.map((folder) => {
+            {[unsortedLinks, ...folders].map((folder) => {
               return (
                 <button
                   key={folder.id}
@@ -87,6 +68,7 @@ export const FolderDropdown = ({
                   )}
                   onClick={() => {
                     setOpenPopover(false);
+                    onFolderSelect(folder);
                     setSelectedFolder(folder);
                   }}
                 >
@@ -139,7 +121,7 @@ export const FolderDropdown = ({
         align="start"
         popoverContentClassName="-ml-1"
       >
-        <button className="group flex w-36 min-w-0 items-center gap-2 rounded-lg transition-colors duration-75 hover:bg-gray-100 data-[state=open]:bg-gray-200">
+        <button className="group flex w-36 min-w-0 items-center gap-2 rounded-lg transition-colors duration-75 hover:bg-gray-100">
           {selectedFolder && (
             <FolderSquareIcon folder={selectedFolder} iconClassName="size-4" />
           )}
