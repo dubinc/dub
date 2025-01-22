@@ -341,6 +341,7 @@ function LinkBuilderInner({
                     onFolderSelect={(folder) =>
                       setFolderId(folder.id !== "unsorted" ? folder.id : null)
                     }
+                    hideViewAll={true}
                   />
                 </div>
                 <ChevronRight className="size-4 text-neutral-500" />

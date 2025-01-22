@@ -10,9 +10,13 @@ import { FolderSquareIcon } from "./folder-access-icon";
 
 interface FolderDropdownProps {
   onFolderSelect: (folder: FolderSummary) => void;
+  hideViewAll?: boolean;
 }
 
-export const FolderDropdown = ({ onFolderSelect }: FolderDropdownProps) => {
+export const FolderDropdown = ({
+  onFolderSelect,
+  hideViewAll = false,
+}: FolderDropdownProps) => {
   const searchParams = useSearchParams();
   const { folders, isLoading } = useFolders();
   const [openPopover, setOpenPopover] = useState(false);
@@ -57,10 +61,10 @@ export const FolderDropdown = ({ onFolderSelect }: FolderDropdownProps) => {
       <AddFolderModal />
       <Popover
         content={
-          <div className="relative mt-1 max-h-72 w-full space-y-0.5 overflow-auto rounded-md bg-white p-2 text-base sm:w-60 sm:text-sm sm:shadow-lg">
+          <div className="relative mt-1 max-h-80 w-full space-y-0.5 overflow-auto rounded-md bg-white p-2 text-base sm:w-60 sm:text-sm sm:shadow-lg">
             <div className="flex items-center justify-between px-2 pb-1">
               <p className="text-xs font-medium text-gray-500">Folders</p>
-              {folders.length > 0 && (
+              {!hideViewAll && folders.length > 0 && (
                 <Link
                   href="/settings/library/folders"
                   onClick={() => setOpenPopover(false)}
@@ -130,6 +134,7 @@ export const FolderDropdown = ({ onFolderSelect }: FolderDropdownProps) => {
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}
         align="start"
+        popoverContentClassName="-ml-1"
       >
         <button className="group flex w-36 min-w-0 items-center gap-2 rounded-lg transition-colors duration-75 hover:bg-gray-100 data-[state=open]:bg-gray-200">
           {selectedFolder && <FolderSquareIcon folder={selectedFolder} />}
