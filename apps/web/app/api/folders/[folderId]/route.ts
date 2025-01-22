@@ -106,11 +106,18 @@ export const DELETE = withWorkspace(
       (async () => {
         const links = deletedFolder.links;
 
-        if (links.length === 0) {
-          return;
+        // TODO:
+        // Handle this via background job if number of links is huge
+        if (links.length > 0) {
+          recordLink(
+            links.map((link) => {
+              return {
+                ...link,
+                folderId: null,
+              };
+            }),
+          );
         }
-
-        recordLink(links);
       })(),
     );
 

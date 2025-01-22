@@ -103,6 +103,7 @@ const DeleteFolderModal = ({
               text="Cancel"
               className="h-9 w-fit"
               onClick={() => setShowModal(false)}
+              disabled={isDeleting}
             />
             <Button
               type="submit"

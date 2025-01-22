@@ -129,6 +129,7 @@ export const MoveLinkForm = ({
               text="Cancel"
               className="h-9 w-fit"
               onClick={onCancel}
+              disabled={isMoving}
             />
             <Button
               type="submit"

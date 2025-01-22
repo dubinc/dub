@@ -10,6 +10,7 @@ SCHEMA >
     `workspace_id` String,
     `created_at` DateTime64(3),
     `deleted` UInt8,
+    `folder_id` String,
     `program_id` String
 
 ENGINE "ReplacingMergeTree"
