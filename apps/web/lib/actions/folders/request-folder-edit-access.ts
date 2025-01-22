@@ -1,13 +1,12 @@
 "use server";
 
+import { sendEmail } from "@dub/email";
+import { FolderEditAccessRequested } from "@dub/email/templates/folder-edit-access-requested";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { sendEmail } from "emails";
-import FolderEditAccessRequested from "emails/folder-edit-access-requested";
 import { z } from "zod";
 import { checkFolderPermission } from "../../folder/permissions";
 import { authActionClient } from "../safe-action";
-
 const schema = z.object({
   workspaceId: z.string(),
   folderId: z.string(),

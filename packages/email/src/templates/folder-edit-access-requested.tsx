@@ -1,5 +1,3 @@
-import { Folder } from "@/lib/folder/types";
-import { User } from "@dub/prisma/client";
 import { DUB_WORDMARK } from "@dub/utils";
 import {
   Body,
@@ -14,9 +12,9 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import Footer from "./components/footer";
+import { Footer } from "../components/footer";
 
-export default function FolderEditAccessRequested({
+export function FolderEditAccessRequested({
   email = "panic@thedis.co",
   appName = "Dub.co",
   folderUrl = "http://localhost:8888/acme/settings/library/folders/cm1elre430005nf59czif340u/members",
@@ -31,8 +29,13 @@ export default function FolderEditAccessRequested({
   email: string;
   appName: string;
   folderUrl: string;
-  folder: Pick<Folder, "name">;
-  requestor: Pick<User, "name" | "email">;
+  folder: {
+    name: string;
+  };
+  requestor: {
+    name: string;
+    email: string;
+  };
 }) {
   return (
     <Html>
@@ -86,3 +89,5 @@ export default function FolderEditAccessRequested({
     </Html>
   );
 }
+
+export default FolderEditAccessRequested;
