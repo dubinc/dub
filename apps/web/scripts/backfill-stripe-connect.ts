@@ -6,6 +6,9 @@ async function main() {
   const partners = await prisma.partner.findMany({
     where: {
       stripeConnectId: null,
+      email: {
+        not: null,
+      },
     },
     take: 5,
     orderBy: {

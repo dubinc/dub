@@ -24,7 +24,7 @@ export default function PaymentMethods() {
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
-      <div className="flex flex-col items-center justify-between gap-y-4 p-6 md:p-8 xl:flex-row">
+      <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:flex-row md:items-center md:p-8">
         <div>
           <h2 className="text-xl font-medium">Payment methods</h2>
           <p className="text-balance text-sm leading-normal text-neutral-500">
