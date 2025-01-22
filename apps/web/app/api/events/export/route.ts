@@ -4,7 +4,6 @@ import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
-import { getFolders } from "@/lib/folder/get-folders";
 import { checkFolderPermission } from "@/lib/folder/permissions";
 import { ClickEvent, LeadEvent, SaleEvent } from "@/lib/types";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
@@ -84,11 +83,6 @@ export const GET = withWorkspace(
           ]
         : []),
     ]);
-
-    const folders = await getFolders({
-      workspaceId: workspace.id,
-      userId: session.user.id,
-    });
 
     validDateRangeForPlan({
       plan: workspace.plan,

@@ -8,11 +8,14 @@ import {
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import useDomains from "@/lib/swr/use-domains";
 import useDomainsCount from "@/lib/swr/use-domains-count";
+import useFolders from "@/lib/swr/use-folders";
+import useFoldersCount from "@/lib/swr/use-folders-count";
 import useTags from "@/lib/swr/use-tags";
 import useTagsCount from "@/lib/swr/use-tags-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
+import { FOLDERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/folders";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import {
   BlurImage,
@@ -34,6 +37,7 @@ import {
   Cube,
   CursorRays,
   FlagWavy,
+  Folder,
   Globe2,
   Hyperlink,
   LinkBroken,
@@ -74,6 +78,7 @@ import {
 } from "react";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
+import { FolderSquareIcon } from "../folders/folder-access-icon";
 import TagBadge from "../links/tag-badge";
 import AnalyticsOptions from "./analytics-options";
 import { AnalyticsContext } from "./analytics-provider";
@@ -112,14 +117,17 @@ export default function Toggle({
   // Determine whether tags and domains should be fetched async
   const { data: tagsCount } = useTagsCount();
   const { data: domainsCount } = useDomainsCount({ ignoreParams: true });
+  const { data: foldersCount } = useFoldersCount();
   const tagsAsync = Boolean(tagsCount && tagsCount > TAGS_MAX_PAGE_SIZE);
   const domainsAsync = domainsCount && domainsCount > DOMAINS_MAX_PAGE_SIZE;
+  const foldersAsync = foldersCount && foldersCount > FOLDERS_MAX_PAGE_SIZE;
 
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
 
   const { tags, loading: loadingTags } = useTags();
+  const { folders, loading: loadingFolders } = useFolders({});
 
   const {
     allDomains: domains,
@@ -398,6 +406,32 @@ export default function Toggle({
                   data: { color },
                 })) ?? null,
             },
+            {
+              key: "folderId",
+              icon: Folder,
+              label: "Folder",
+              shouldFilter: !foldersAsync,
+              getOptionIcon: (value, props) => {
+                console.log({ value, props });
+
+                // const folderName =
+                //   props.option?.data?.name ??
+                //   folders?.find(({ id }) => id === value)?.name;
+
+                const folderName = props.option?.name;
+                const folder = folders?.find(({ name }) => name === folderName);
+
+                return folder ? (
+                  <FolderSquareIcon folder={folder} className="sm:p-1" />
+                ) : null;
+              },
+              options:
+                folders?.map((folder) => ({
+                  value: folder.id,
+                  icon: <FolderSquareIcon folder={folder} />,
+                  label: folder.name,
+                })) ?? null,
+            },
           ]),
       {
         key: "trigger",
@@ -607,8 +641,10 @@ export default function Toggle({
       utmData,
       tagsAsync,
       domainsAsync,
+      folders,
       loadingTags,
       loadingDomains,
+      loadingFolders,
       searchParamsObj.tagIds,
       searchParamsObj.domain,
     ],

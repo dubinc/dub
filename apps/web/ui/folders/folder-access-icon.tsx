@@ -109,8 +109,10 @@ const FolderIcon = ({
 
 export const FolderSquareIcon = ({
   folder,
+  className,
 }: {
   folder: Pick<FolderProps, "id" | "accessLevel">;
+  className?: string;
 }) => {
   const type =
     accessLevelMap[folder.id] ||
@@ -125,7 +127,7 @@ export const FolderSquareIcon = ({
   return (
     <div className={cn("rounded-md border", borderColor, bgColor)}>
       <div className="p-1.5">
-        <IconComponent className="size-4" />
+        <IconComponent className={cn("size-4", className)} />
       </div>
     </div>
   );

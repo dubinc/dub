@@ -46,3 +46,5 @@ export const listFoldersQuerySchema = z.object({
 });
 
 export const updateFolderSchema = createFolderSchema.partial();
+
+export const FOLDERS_MAX_PAGE_SIZE = 50;

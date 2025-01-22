@@ -18,7 +18,7 @@ export const FolderDropdown = ({
   hideViewAll = false,
 }: FolderDropdownProps) => {
   const searchParams = useSearchParams();
-  const { folders, isLoading } = useFolders();
+  const { folders, loading } = useFolders();
   const [openPopover, setOpenPopover] = useState(false);
   const { AddFolderModal, setShowAddFolderModal } = useAddFolderModal();
   const [selectedFolder, setSelectedFolder] = useState<FolderSummary | null>(
@@ -50,7 +50,7 @@ export const FolderDropdown = ({
     onFolderSelect(selectedFolder || unsortedLinks);
   }, [selectedFolder, onFolderSelect]);
 
-  if (isLoading || !folders) {
+  if (loading || !folders) {
     return <FolderSwitcherPlaceholder />;
   }
 

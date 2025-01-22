@@ -23,7 +23,7 @@ import { useFolderPermissionsPanel } from "./folder-permissions-panel";
 export const FolderSwitcher = () => {
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
-  const { folders, isLoading } = useFolders();
+  const { folders, loading } = useFolders();
 
   const [selectedFolder, setSelectedFolder] = useState<FolderSummary | null>(
     unsortedLinks,
@@ -62,7 +62,7 @@ export const FolderSwitcher = () => {
     });
   }, []);
 
-  if (isLoading || !folders) {
+  if (loading || !folders) {
     return <FolderSwitcherPlaceholder />;
   }
 

@@ -26,7 +26,7 @@ export default function useFolders({
 
   return {
     folders,
-    isLoading,
+    loading: isLoading,
     isValidating,
   };
 }
