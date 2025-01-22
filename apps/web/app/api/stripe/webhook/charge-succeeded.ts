@@ -58,6 +58,11 @@ export async function chargeSucceeded(event: Stripe.Event) {
       currency: "usd",
       destination: payout.partner.stripeConnectId!,
       transfer_group: invoice.id,
+      ...(!charge.payment_method_details?.ach_credit_transfer
+        ? {
+            source_transaction: charge.id,
+          }
+        : {}),
       description: `Dub Partners payout (${payout.program.name})`,
     });
 

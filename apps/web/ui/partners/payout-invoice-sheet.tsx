@@ -238,13 +238,13 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
       ),
 
       Duration: (
-        <span className="underline decoration-dotted underline-offset-2">
+        <div>
           {selectedPaymentMethod ? (
             selectedPaymentMethod?.duration
           ) : (
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
           )}
-        </span>
+        </div>
       ),
 
       Total: currencyFormatter(total / 100, {
