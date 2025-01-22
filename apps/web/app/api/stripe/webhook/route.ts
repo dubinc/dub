@@ -7,11 +7,9 @@ import { checkoutSessionCompleted } from "./checkout-session-completed";
 import { customerSubscriptionDeleted } from "./customer-subscription-deleted";
 import { customerSubscriptionUpdated } from "./customer-subscription-updated";
 import { invoicePaymentFailed } from "./invoice-payment-failed";
-import { paymentMethodAttached } from "./payment-method-attached";
 
 const relevantEvents = new Set([
   "charge.succeeded",
-  "payment_method.attached",
   "checkout.session.completed",
   "customer.subscription.updated",
   "customer.subscription.deleted",
@@ -44,9 +42,6 @@ export const POST = async (req: Request) => {
     switch (event.type) {
       case "charge.succeeded":
         await chargeSucceeded(event);
-        break;
-      case "payment_method.attached":
-        await paymentMethodAttached(event);
         break;
       case "checkout.session.completed":
         await checkoutSessionCompleted(event);

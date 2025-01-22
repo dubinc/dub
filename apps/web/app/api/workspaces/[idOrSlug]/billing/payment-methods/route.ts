@@ -15,7 +15,15 @@ export const GET = withWorkspace(async ({ workspace }) => {
       customer: workspace.stripeId,
     });
 
-    return NextResponse.json(paymentMethods.data);
+    // reorder to put ACH first
+    const ach = paymentMethods.data.find(
+      (method) => method.type === "us_bank_account",
+    );
+
+    return NextResponse.json([
+      ach,
+      ...paymentMethods.data.filter((method) => method.id !== ach?.id),
+    ]);
   } catch (error) {
     console.error(error);
     return NextResponse.json([]);
