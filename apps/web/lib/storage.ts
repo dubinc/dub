@@ -144,15 +144,6 @@ class StorageClient {
     }
     return blob;
   }
-
-  _normalizeInput(input: string) {
-    if (this.isBase64(input)) {
-      return this.base64ToArrayBuffer(input);
-    } else if (this.isUrl(input)) {
-      return this.urlToBlob(input);
-    }
-    return input;
-  }
 }
 
 export const storage = new StorageClient();
