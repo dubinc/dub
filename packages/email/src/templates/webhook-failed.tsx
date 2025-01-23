@@ -1,4 +1,3 @@
-import { WEBHOOK_FAILURE_DISABLE_THRESHOLD } from "@/lib/webhook/constants";
 import { DUB_WORDMARK } from "@dub/utils";
 import {
   Body,
@@ -25,6 +24,7 @@ export default function WebhookFailed({
     id: "wh_tYedrqsWgNJxUwQOaAnupcUJ1",
     url: "https://example.com/webhook",
     consecutiveFailures: 15,
+    disableThreshold: 20,
   },
 }: {
   email: string;
@@ -36,6 +36,7 @@ export default function WebhookFailed({
     id: string;
     url: string;
     consecutiveFailures: number;
+    disableThreshold: number;
   };
 }) {
   return (
@@ -59,7 +60,7 @@ export default function WebhookFailed({
             <Text className="text-sm leading-6 text-black">
               Your webhook <strong>{webhook.url}</strong> has failed to deliver{" "}
               {webhook.consecutiveFailures} times and will be disabled after{" "}
-              {WEBHOOK_FAILURE_DISABLE_THRESHOLD} consecutive failures.
+              {webhook.disableThreshold} consecutive failures.
             </Text>
             <Text className="text-sm leading-6 text-black">
               Please review the webhook details and update the URL if necessary
