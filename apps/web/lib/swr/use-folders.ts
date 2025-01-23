@@ -1,7 +1,7 @@
+import { Folder } from "@/lib/types";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
-import { Folder } from "../folder/types";
 import useWorkspace from "./use-workspace";
 
 export default function useFolders({

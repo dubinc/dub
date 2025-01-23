@@ -1,5 +1,6 @@
 "server-only";
 
+import { Folder, FolderPermission } from "@/lib/types";
 import { FolderUser } from "@dub/prisma/client";
 import { DubApiError } from "../api/errors";
 import {
@@ -8,7 +9,6 @@ import {
   FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE,
 } from "./constants";
 import { getFolderOrThrow } from "./get-folder-or-throw";
-import { Folder, FolderPermission } from "./types";
 
 type FolderWithUser = Pick<Folder, "accessLevel"> & {
   user: Pick<FolderUser, "role"> | null;

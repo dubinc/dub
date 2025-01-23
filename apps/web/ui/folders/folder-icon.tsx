@@ -1,4 +1,4 @@
-import { Folder as FolderProps } from "@/lib/types";
+import { FolderAccessLevel, Folder as FolderProps } from "@/lib/types";
 import {
   Folder,
   FolderBookmark,
@@ -12,41 +12,54 @@ const FolderOpen = ({ className }: { className: string }) => {
   return <Folder className={cn("text-blue-800", className)} />;
 };
 
-const folderIconsMap = {
-  unsorted: {
-    borderColor: "border-green-200",
-    bgColor: "bg-green-100",
-    IconComponent: FolderBookmark,
-  },
-  private: {
-    borderColor: "border-orange-200",
-    bgColor: "bg-orange-100",
-    IconComponent: FolderLock,
-  },
-  restricted: {
-    borderColor: "border-indigo-200",
-    bgColor: "bg-indigo-100",
-    IconComponent: FolderShield,
-  },
-  open: {
-    borderColor: "border-blue-200",
-    bgColor: "bg-blue-100",
-    IconComponent: FolderOpen,
-  },
+const folderIconsMap: Record<
+  FolderAccessLevel | "new" | "unsorted" | "none",
+  {
+    borderColor: string;
+    bgColor: string;
+    IconComponent: React.ElementType;
+  }
+> = {
   new: {
     borderColor: "border-gray-200",
     bgColor: "bg-gray-100",
     IconComponent: FolderPlus,
   },
+  unsorted: {
+    borderColor: "border-green-200",
+    bgColor: "bg-green-100",
+    IconComponent: FolderBookmark,
+  },
+  write: {
+    borderColor: "border-blue-200",
+    bgColor: "bg-blue-100",
+    IconComponent: FolderOpen,
+  },
+  read: {
+    borderColor: "border-indigo-200",
+    bgColor: "bg-indigo-100",
+    IconComponent: FolderShield,
+  },
+  none: {
+    borderColor: "border-orange-200",
+    bgColor: "bg-orange-100",
+    IconComponent: FolderLock,
+  },
 } as const;
 
-const accessLevelMap = {
-  new: "new",
-  unsorted: "unsorted",
-  private: "private",
-  view: "restricted",
-  edit: "open",
-} as const;
+const findIconIdentifier = (
+  folder: Pick<FolderProps, "id" | "accessLevel">,
+) => {
+  if (["new", "unsorted"].includes(folder.id)) {
+    return folder.id;
+  }
+
+  if (folder.accessLevel) {
+    return folder.accessLevel;
+  }
+
+  return "none";
+};
 
 // TODO:
 // Combine with FolderSquareIcon with FolderAccessIcon
@@ -57,20 +70,13 @@ export const FolderAccessIcon = ({
   withBorder = true,
   className,
 }: {
-  folder: Pick<FolderProps, "accessLevel" | "id">;
+  folder: Pick<FolderProps, "id" | "accessLevel">;
   circlePadding?: string;
   withBorder?: boolean;
   className?: string;
 }) => {
-  const type =
-    accessLevelMap[folder.id] ||
-    accessLevelMap[folder.accessLevel || "private"];
-
-  if (!type) {
-    return null;
-  }
-
-  const { borderColor, bgColor, IconComponent } = folderIconsMap[type];
+  const { borderColor, bgColor, IconComponent } =
+    folderIconsMap[findIconIdentifier(folder)];
 
   if (!withBorder) {
     return (
@@ -96,15 +102,8 @@ export const FolderSquareIcon = ({
   folder: Pick<FolderProps, "id" | "accessLevel">;
   iconClassName?: string;
 }) => {
-  const folderType =
-    accessLevelMap[folder.id] ||
-    accessLevelMap[folder.accessLevel || "private"];
-
-  if (!folderType) {
-    return null;
-  }
-
-  const { borderColor, bgColor, IconComponent } = folderIconsMap[folderType];
+  const { borderColor, bgColor, IconComponent } =
+    folderIconsMap[findIconIdentifier(folder)];
 
   return (
     <div className={cn("rounded-md border", borderColor, bgColor)}>

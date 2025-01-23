@@ -4,9 +4,9 @@ enum FolderAccessLevel {
 }
 
 enum FolderUserRole {
-  owner
-  editor
-  viewer
+  owner // full control
+  editor // can move links to the folder
+  viewer // can view the links
 }
 
 model Folder {
