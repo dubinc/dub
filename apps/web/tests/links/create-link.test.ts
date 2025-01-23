@@ -371,6 +371,10 @@ describe.sequential("POST /links", async () => {
   });
 
   test("folders", async () => {
+    onTestFinished(async () => {
+      await Promise.all([h.deleteFolder(folder.id), h.deleteLink(link.id)]);
+    });
+
     const { data: folder } = await http.post<FolderRecord>({
       path: "/folders",
       body: { name: randomId() },
@@ -397,10 +401,6 @@ describe.sequential("POST /links", async () => {
       workspaceId,
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
-    });
-
-    onTestFinished(async () => {
-      await Promise.all([h.deleteFolder(folder.id), h.deleteLink(link.id)]);
     });
   });
 
