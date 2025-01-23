@@ -3,7 +3,6 @@ import { convertToCSV } from "@/lib/analytics/utils";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
-import { getFolders } from "@/lib/folder/get-folders";
 import { checkFolderPermission } from "@/lib/folder/permissions";
 import { linksExportQuerySchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
@@ -41,13 +40,6 @@ export const GET = withWorkspace(
         requiredPermission: "folders.read",
       });
     }
-
-    const folders = await getFolders({
-      workspaceId: workspace.id,
-      userId: session.user.id,
-    });
-
-    const folderIds = folders.map((folder) => folder.id);
 
     const links = await prisma.link.findMany({
       select: {
@@ -99,10 +91,7 @@ export const GET = withWorkspace(
             tags: { some: { tagId: { in: tagIds } } },
           }),
         ...(userId && { userId }),
-        ...(folderId && { folderId }),
-        AND: {
-          OR: [{ folderId: { in: folderIds } }, { folderId: null }],
-        },
+        folderId: folderId ?? "",
       },
 
       // TODO: orderBy is not currently supported
