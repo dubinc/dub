@@ -29,7 +29,7 @@ export const FoldersPageClient = () => {
 
   const { AddFolderButton, AddFolderModal } = useAddFolderModal();
 
-  const { folders, isLoading, isValidating } = useFolders({
+  const { folders, loading, isValidating } = useFolders({
     includeParams: true,
   });
 
@@ -71,7 +71,7 @@ export const FoldersPageClient = () => {
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {isLoading ? (
+          {loading ? (
             Array.from({ length: 6 }).map((_, idx) => (
               <FolderCardPlaceholder key={idx} />
             ))
