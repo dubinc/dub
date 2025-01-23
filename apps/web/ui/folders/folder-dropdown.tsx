@@ -28,8 +28,9 @@ export const FolderDropdown = ({
   useEffect(() => {
     const folderId = searchParams.get("folderId");
 
-    if (!folderId) {
-      setSelectedFolder(unsortedLinks);
+    if (folderId) {
+      const folder = folders?.find((f) => f.id === folderId);
+      setSelectedFolder(folder || unsortedLinks);
     }
   }, [searchParams]);
 

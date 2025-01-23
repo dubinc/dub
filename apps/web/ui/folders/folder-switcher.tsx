@@ -29,21 +29,17 @@ export const FolderSwitcher = () => {
     unsortedLinks,
   );
 
-  const folderId = searchParams.get("folderId");
   const isUnsortedFolderSelected = selectedFolder?.id === "unsorted";
 
   // set the selected folder if the folderId is in the search params
   useEffect(() => {
-    if (!folderId || !folders) {
-      return;
-    }
+    const folderId = searchParams.get("folderId");
 
-    const selectedFolder = folders.find((folder) => folder.id === folderId);
-
-    if (selectedFolder) {
-      setSelectedFolder(selectedFolder);
+    if (folderId && folders) {
+      const selectedFolder = folders.find((folder) => folder.id === folderId);
+      setSelectedFolder(selectedFolder || unsortedLinks);
     }
-  }, [folderId, folders]);
+  }, [searchParams, folders]);
 
   // set the folderId in the search params
   const onFolderSelect = useCallback(

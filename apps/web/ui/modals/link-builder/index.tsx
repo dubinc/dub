@@ -219,8 +219,6 @@ function LinkBuilderInner({
 
   const [, copyToClipboard] = useCopyToClipboard();
 
-  console.log({ folderId });
-
   return (
     <>
       <PasswordModal />
