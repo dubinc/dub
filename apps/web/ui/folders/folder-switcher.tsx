@@ -66,7 +66,7 @@ export const FolderSwitcher = () => {
   }
 
   return (
-    <div className="flex w-full items-center">
+    <div className="flex w-full items-center gap-2">
       {!isUnsortedFolderSelected && (
         <button
           onClick={() => {
@@ -74,11 +74,13 @@ export const FolderSwitcher = () => {
           }}
           className="rounded-md px-1.5 py-2.5 hover:bg-gray-100"
         >
-          <ChevronLeft className="h-5 w-5 text-gray-400" aria-hidden="true" />
+          <ChevronLeft className="size-5 text-gray-400" aria-hidden="true" />
         </button>
       )}
 
-      <FolderDropdown onFolderSelect={onFolderSelect} />
+      <div className="flex h-10 items-center rounded-md px-2 py-1 hover:bg-gray-100">
+        <FolderDropdown onFolderSelect={onFolderSelect} hideFolderIcon={true} />
+      </div>
 
       {selectedFolder && !isUnsortedFolderSelected && (
         <FolderActions

@@ -2,6 +2,7 @@ import { FolderSummary, unsortedLinks } from "@/lib/folder/types";
 import useFolders from "@/lib/swr/use-folders";
 import { Popover, Tick } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -11,11 +12,13 @@ import { FolderSquareIcon } from "./folder-icon";
 interface FolderDropdownProps {
   onFolderSelect: (folder: FolderSummary) => void;
   hideViewAll?: boolean;
+  hideFolderIcon?: boolean;
 }
 
 export const FolderDropdown = ({
   onFolderSelect,
   hideViewAll = false,
+  hideFolderIcon = false,
 }: FolderDropdownProps) => {
   const searchParams = useSearchParams();
   const { folders, loading } = useFolders();
@@ -122,13 +125,16 @@ export const FolderDropdown = ({
         align="start"
         popoverContentClassName="-ml-1"
       >
-        <button className="group flex w-36 min-w-0 items-center gap-2 rounded-lg transition-colors duration-75 hover:bg-gray-100">
-          {selectedFolder && (
+        <button className="group flex w-32 min-w-0 items-center gap-2 rounded-lg transition-colors duration-75">
+          {!hideFolderIcon && selectedFolder && (
             <FolderSquareIcon folder={selectedFolder} iconClassName="size-4" />
           )}
+
           <h1 className="min-w-0 truncate text-left text-lg font-medium leading-7 text-neutral-900">
             {selectedFolder?.name}
           </h1>
+
+          <ChevronsUpDown className="ml-auto size-5 shrink-0 text-neutral-400" />
         </button>
       </Popover>
     </>
@@ -137,6 +143,6 @@ export const FolderDropdown = ({
 
 const FolderSwitcherPlaceholder = () => {
   return (
-    <div className="h-7 w-20 animate-pulse rounded-lg bg-gray-200 sm:w-32 md:h-9" />
+    <div className="h-7 w-20 animate-pulse rounded-lg bg-neutral-200 sm:w-32 md:h-9" />
   );
 };
