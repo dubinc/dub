@@ -74,7 +74,7 @@ export const POST = withWorkspace(
       interval: "30d",
     });
 
-    const response = await prisma.link.update({
+    const updatedLink = await prisma.link.update({
       where: {
         id: link.id,
       },
@@ -91,9 +91,9 @@ export const POST = withWorkspace(
 
     waitUntil(
       Promise.all([
-        linkCache.set({ ...link, projectId: newWorkspaceId }),
+        linkCache.set(updatedLink),
 
-        recordLink({ ...link, projectId: newWorkspaceId }),
+        recordLink(updatedLink),
 
         // increment new workspace usage
         prisma.project.update({
@@ -119,7 +119,7 @@ export const POST = withWorkspace(
       ]),
     );
 
-    return NextResponse.json(response, {
+    return NextResponse.json(updatedLink, {
       headers,
     });
   },
