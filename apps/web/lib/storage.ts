@@ -49,6 +49,7 @@ class StorageClient {
         url: `${R2_URL}/${key}`,
       };
     } catch (error) {
+      console.error("Image upload failed", error);
       throw new Error(`Failed to upload file: ${error.message}`);
     }
   }
@@ -99,10 +100,14 @@ class StorageClient {
     return new Blob([byteArray], blobProps);
   }
 
-  private isBase64(str: string): boolean {
-    const regex =
+  private isBase64(str: string) {
+    const base64Regex =
       /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
-    return regex.test(str);
+
+    const dataImageRegex =
+      /^data:image\/[a-zA-Z0-9.+-]+;base64,(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+
+    return base64Regex.test(str) || dataImageRegex.test(str);
   }
 
   private isUrl(str: string): boolean {
@@ -138,6 +143,15 @@ class StorageClient {
       return new Blob([blob], { type: opts.contentType });
     }
     return blob;
+  }
+
+  _normalizeInput(input: string) {
+    if (this.isBase64(input)) {
+      return this.base64ToArrayBuffer(input);
+    } else if (this.isUrl(input)) {
+      return this.urlToBlob(input);
+    }
+    return input;
   }
 }
 
