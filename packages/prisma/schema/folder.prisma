@@ -1,6 +1,6 @@
 enum FolderAccessLevel {
-  edit
-  view
+  read // can view the links
+  write // can view and move links
 }
 
 enum FolderUserRole {
@@ -39,6 +39,7 @@ model FolderUser {
 
   @@unique([folderId, userId])
   @@index([userId])
+  @@index([folderId])
 }
 
 model FolderAccessRequest {
@@ -52,4 +53,5 @@ model FolderAccessRequest {
 
   @@unique([folderId, userId])
   @@index([userId])
+  @@index([folderId])
 }

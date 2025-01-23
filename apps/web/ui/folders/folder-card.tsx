@@ -1,6 +1,6 @@
 "use client";
 
-import { Folder } from "@/lib/folder/types";
+import { Folder } from "@/lib/types";
 import {
   useCheckFolderPermission,
   useFolderPermissions,

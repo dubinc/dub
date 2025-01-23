@@ -1,12 +1,12 @@
 import { FolderAccessLevel, FolderUserRole } from "@dub/prisma/client";
-import { FolderPermission } from "./types";
+import { FolderPermission, FolderSummary } from "./types";
 
-export const FOLDER_WORKSPACE_ACCESS = {
-  view: "Can view",
-  edit: "Can edit",
+export const FOLDER_WORKSPACE_ACCESS: Record<FolderAccessLevel, string> = {
+  read: "Can view",
+  write: "Can edit",
 } as const;
 
-export const FOLDER_USER_ROLE = {
+export const FOLDER_USER_ROLE: Record<FolderUserRole, string> = {
   owner: "Owner",
   editor: "Editor",
   viewer: "Viewer",
@@ -23,8 +23,8 @@ export const FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE: Record<
   FolderAccessLevel,
   FolderUserRole
 > = {
-  view: "viewer",
-  edit: "editor",
+  read: "viewer",
+  write: "editor",
 } as const;
 
 export const FOLDER_USER_ROLE_TO_PERMISSIONS: Record<
@@ -40,3 +40,10 @@ export const FOLDER_USER_ROLE_TO_PERMISSIONS: Record<
   editor: ["folders.read", "folders.links.write"],
   viewer: ["folders.read"],
 } as const;
+
+export const unsortedLinks: FolderSummary = {
+  id: "unsorted",
+  name: "Links",
+  accessLevel: null,
+  linkCount: -1,
+};

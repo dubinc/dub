@@ -1,5 +1,5 @@
 import { FOLDER_WORKSPACE_ACCESS } from "@/lib/folder/constants";
-import { FolderAccessLevel } from "@/lib/folder/types";
+import { FolderAccessLevel } from "@/lib/types";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BlurImage, Button, useMediaQuery } from "@dub/ui";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";

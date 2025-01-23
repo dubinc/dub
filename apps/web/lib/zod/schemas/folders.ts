@@ -2,7 +2,7 @@ import {
   FOLDER_USER_ROLE,
   FOLDER_WORKSPACE_ACCESS,
 } from "@/lib/folder/constants";
-import { FolderAccessLevel } from "@/lib/folder/types";
+import { FolderAccessLevel } from "@/lib/types";
 import z from "@/lib/zod";
 import { FolderUserRole } from "@dub/prisma/client";
 

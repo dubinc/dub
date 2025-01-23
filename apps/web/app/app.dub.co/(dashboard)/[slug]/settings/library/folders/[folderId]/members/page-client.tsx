@@ -5,7 +5,7 @@ import {
   FOLDER_USER_ROLE,
   FOLDER_WORKSPACE_ACCESS,
 } from "@/lib/folder/constants";
-import { Folder, FolderUser } from "@/lib/folder/types";
+import { Folder, FolderUser } from "@/lib/types";
 import {
   useCheckFolderPermission,
   useFolderPermissions,

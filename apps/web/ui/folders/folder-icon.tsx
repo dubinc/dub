@@ -1,4 +1,4 @@
-import { Folder as FolderProps } from "@/lib/folder/types";
+import { Folder as FolderProps } from "@/lib/types";
 import {
   Folder,
   FolderBookmark,

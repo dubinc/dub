@@ -1,4 +1,4 @@
-import { FolderSummary, unsortedLinks } from "@/lib/folder/types";
+import { FolderSummary, } from "@/lib/types";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -19,6 +19,7 @@ import { useRenameFolderModal } from "../modals/rename-folder-modal";
 import { Chart, Delete, ThreeDots } from "../shared/icons";
 import { FolderDropdown } from "./folder-dropdown";
 import { useFolderPermissionsPanel } from "./folder-permissions-panel";
+import { unsortedLinks } from "@/lib/folder/constants";
 
 export const FolderSwitcher = () => {
   const searchParams = useSearchParams();
