@@ -1,11 +1,11 @@
 "use client";
 
-import { Folder } from "@/lib/types";
 import {
   useCheckFolderPermission,
   useFolderPermissions,
 } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { Folder } from "@/lib/types";
 import {
   Button,
   PenWriting,

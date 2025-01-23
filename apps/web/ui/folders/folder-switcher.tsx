@@ -1,7 +1,8 @@
-import { FolderSummary, } from "@/lib/types";
+import { unsortedLinks } from "@/lib/folder/constants";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { FolderSummary } from "@/lib/types";
 import {
   Button,
   PenWriting,
@@ -19,7 +20,6 @@ import { useRenameFolderModal } from "../modals/rename-folder-modal";
 import { Chart, Delete, ThreeDots } from "../shared/icons";
 import { FolderDropdown } from "./folder-dropdown";
 import { useFolderPermissionsPanel } from "./folder-permissions-panel";
-import { unsortedLinks } from "@/lib/folder/constants";
 
 export const FolderSwitcher = () => {
   const searchParams = useSearchParams();
@@ -79,7 +79,7 @@ export const FolderSwitcher = () => {
         </button>
       )}
 
-      <div className="flex h-10 items-center rounded-md px-2 py-1 hover:bg-gray-100 mr-1">
+      <div className="mr-1 flex h-10 items-center rounded-md px-2 py-1 hover:bg-gray-100">
         <FolderDropdown onFolderSelect={onFolderSelect} hideFolderIcon={true} />
       </div>
 

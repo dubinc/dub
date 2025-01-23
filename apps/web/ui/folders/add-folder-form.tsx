@@ -1,6 +1,6 @@
 import { FOLDER_WORKSPACE_ACCESS } from "@/lib/folder/constants";
-import { FolderAccessLevel } from "@/lib/types";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { FolderAccessLevel } from "@/lib/types";
 import { BlurImage, Button, useMediaQuery } from "@dub/ui";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { FormEvent, useState } from "react";

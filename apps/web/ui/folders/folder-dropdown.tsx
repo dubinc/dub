@@ -1,5 +1,6 @@
-import { FolderSummary } from "@/lib/types";
+import { unsortedLinks } from "@/lib/folder/constants";
 import useFolders from "@/lib/swr/use-folders";
+import { FolderSummary } from "@/lib/types";
 import { Popover, Tick } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
@@ -8,7 +9,6 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAddFolderModal } from "../modals/add-folder-modal";
 import { FolderSquareIcon } from "./folder-icon";
-import { unsortedLinks } from "@/lib/folder/constants";
 
 interface FolderDropdownProps {
   onFolderSelect: (folder: FolderSummary) => void;

@@ -5,12 +5,12 @@ import {
   FOLDER_USER_ROLE,
   FOLDER_WORKSPACE_ACCESS,
 } from "@/lib/folder/constants";
-import { Folder, FolderUser } from "@/lib/types";
 import {
   useCheckFolderPermission,
   useFolderPermissions,
 } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { Folder, FolderUser } from "@/lib/types";
 import { FolderAccessIcon } from "@/ui/folders/folder-icon";
 import { FolderEditAccessRequestButton } from "@/ui/folders/request-edit-button";
 import { FolderUserRole } from "@dub/prisma/client";

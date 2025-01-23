@@ -14,6 +14,10 @@ import {
   Webhook,
   YearInReview,
 } from "@dub/prisma/client";
+import {
+  FOLDER_PERMISSIONS,
+  FOLDER_WORKSPACE_ACCESS,
+} from "./folder/constants";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import { clickEventResponseSchema } from "./zod/schemas/clicks";
 import {
@@ -23,6 +27,7 @@ import {
 } from "./zod/schemas/customers";
 import { dashboardSchema } from "./zod/schemas/dashboard";
 import { DiscountSchema } from "./zod/schemas/discount";
+import { FolderSchema } from "./zod/schemas/folders";
 import { integrationSchema } from "./zod/schemas/integration";
 import { InvoiceSchema } from "./zod/schemas/invoices";
 import {
@@ -60,9 +65,6 @@ import {
   webhookEventSchemaTB,
   WebhookSchema,
 } from "./zod/schemas/webhooks";
-import { FolderSchema } from "./zod/schemas/folders";
-import { FOLDER_PERMISSIONS } from "./folder/constants";
-import { FOLDER_WORKSPACE_ACCESS } from "./folder/constants";
 
 export type LinkProps = Link;
 

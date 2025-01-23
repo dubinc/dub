@@ -3,12 +3,12 @@ import {
   FOLDER_USER_ROLE,
   FOLDER_WORKSPACE_ACCESS,
 } from "@/lib/folder/constants";
-import { Folder, FolderUser } from "@/lib/types";
 import {
   useCheckFolderPermission,
   useFolderPermissions,
 } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { Folder, FolderUser } from "@/lib/types";
 import { FolderUserRole } from "@dub/prisma/client";
 import { Avatar, BlurImage, Button } from "@dub/ui";
 import { Globe } from "@dub/ui/icons";
