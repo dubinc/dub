@@ -33,7 +33,6 @@ export const GET = withWorkspace(
     const count = await getLinksCount({
       searchParams: params,
       workspaceId: workspace.id,
-      allowedFolderIds: folders.map((folder) => folder.id),
     });
 
     return NextResponse.json(count, {
