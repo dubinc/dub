@@ -1,5 +1,5 @@
+import { FolderPermission, FolderSummary } from "@/lib/types";
 import { FolderAccessLevel, FolderUserRole } from "@dub/prisma/client";
-import { FolderPermission, FolderSummary } from "./types";
 
 export const FOLDER_WORKSPACE_ACCESS: Record<FolderAccessLevel, string> = {
   read: "Can view",

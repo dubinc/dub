@@ -18,7 +18,7 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
   const { isMobile } = useMediaQuery();
   const [isCreating, setIsCreating] = useState(false);
   const [name, setName] = useState<string | undefined>(undefined);
-  const [accessLevel, setAccessLevel] = useState<FolderAccessLevel>("view");
+  const [accessLevel, setAccessLevel] = useState<FolderAccessLevel>("read");
 
   // Create new folder
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
