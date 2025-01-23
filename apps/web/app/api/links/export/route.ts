@@ -91,7 +91,7 @@ export const GET = withWorkspace(
             tags: { some: { tagId: { in: tagIds } } },
           }),
         ...(userId && { userId }),
-        folderId: folderId ?? "",
+        folderId: folderId || null,
       },
 
       // TODO: orderBy is not currently supported
