@@ -171,8 +171,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       metadata: "",
     };
 
-    // hacky way to check if upsert was a create or an update
-    // see if customer.createdAt is within the last 10 seconds
     if (!existingCustomer) {
       await recordLead(leadEvent);
     }
