@@ -25,7 +25,9 @@ export async function GET(req: Request) {
     });
 
     if (!pendingSales.length) {
-      return;
+      return NextResponse.json({
+        message: "No pending sales found. Skipping...",
+      });
     }
 
     // TODO: Find a batter way to handle this recursively (e.g. /api/cron/usage)
