@@ -136,9 +136,9 @@ function TagButton({ tag, plus }: { tag: TagProps; plus?: number }) {
 }
 
 function AnalyticsBadge({ link }: { link: ResponseLink }) {
-  const { domain, key } = link;
-
   const { slug } = useWorkspace();
+  const { domain, key, trackConversion, clicks, leads, saleAmount } = link;
+
   const { isMobile } = useMediaQuery();
   const { variant } = useContext(CardList.Context);
 
@@ -147,23 +147,30 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
       {
         id: "clicks",
         icon: CursorRays,
-        value: link.clicks,
+        value: clicks,
         iconClassName: "data-[active=true]:text-blue-500",
       },
-      {
-        id: "leads",
-        icon: UserCheck,
-        value: link.leads,
-        className: "hidden sm:flex",
-        iconClassName: "data-[active=true]:text-purple-500",
-      },
-      {
-        id: "sales",
-        icon: InvoiceDollar,
-        value: link.saleAmount,
-        className: "hidden sm:flex",
-        iconClassName: "data-[active=true]:text-teal-500",
-      },
+      // show leads and sales if:
+      // 1. link has trackConversion enabled
+      // 2. link has leads or sales
+      ...(trackConversion || leads > 0 || saleAmount > 0
+        ? [
+            {
+              id: "leads",
+              icon: UserCheck,
+              value: leads,
+              className: "hidden sm:flex",
+              iconClassName: "data-[active=true]:text-purple-500",
+            },
+            {
+              id: "sales",
+              icon: InvoiceDollar,
+              value: saleAmount,
+              className: "hidden sm:flex",
+              iconClassName: "data-[active=true]:text-teal-500",
+            },
+          ]
+        : []),
     ],
     [link],
   );
@@ -255,6 +262,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                     {tab === "sales"
                       ? currencyFormatter(value / 100)
                       : nFormatter(value)}
+                    {stats.length === 1 && " clicks"}
                   </span>
                 </div>
               ),
