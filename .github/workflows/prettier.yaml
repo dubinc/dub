@@ -24,5 +24,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Fix prettier issues
+        run: pnpm run format
+
       - name: Check prettier format
         run: pnpm run prettier-check
