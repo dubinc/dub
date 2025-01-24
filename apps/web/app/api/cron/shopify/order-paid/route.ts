@@ -38,7 +38,8 @@ export async function POST(req: Request) {
 
     // clickId is empty, order is not from a Dub link
     if (clickId === "") {
-      await redis.del(`shopify:checkout:${checkoutToken}`);
+      // set key to expire in 24 hours
+      await redis.expire(`shopify:checkout:${checkoutToken}`, 60 * 60 * 24);
 
       return new Response(
         `[Shopify] Order is not from a Dub link. Skipping...`,
