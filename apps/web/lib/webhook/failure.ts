@@ -119,6 +119,7 @@ const notifyWebhookFailure = async (
         id: webhook.id,
         url: webhook.url,
         consecutiveFailures: webhook.consecutiveFailures,
+        disableThreshold: WEBHOOK_FAILURE_DISABLE_THRESHOLD,
       },
     }),
   });
@@ -164,6 +165,7 @@ const notifyWebhookDisabled = async (
       webhook: {
         id: webhook.id,
         url: webhook.url,
+        disableThreshold: WEBHOOK_FAILURE_DISABLE_THRESHOLD,
       },
     }),
   });
