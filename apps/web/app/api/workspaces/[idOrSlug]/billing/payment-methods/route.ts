@@ -21,7 +21,7 @@ export const GET = withWorkspace(async ({ workspace }) => {
     );
 
     return NextResponse.json([
-      ach,
+      ...(ach ? [ach] : []),
       ...paymentMethods.data.filter((method) => method.id !== ach?.id),
     ]);
   } catch (error) {
