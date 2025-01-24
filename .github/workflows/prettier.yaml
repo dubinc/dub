@@ -25,7 +25,7 @@ jobs:
         run: pnpm install
 
       - name: Fix prettier issues
-        run: pnpm run prettier --write
+        run: pnpm run format
 
       - name: Check prettier format
         run: pnpm run prettier-check
