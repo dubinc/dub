@@ -13,6 +13,8 @@ import {
   transformLeadEventData,
   transformSaleEventData,
 } from "@/lib/webhook/transform";
+import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
+import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
 import { Customer } from "@dub/prisma/client";
