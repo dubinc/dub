@@ -24,7 +24,7 @@ import type Stripe from "stripe";
 
 // Handle event "checkout.session.completed"
 export async function checkoutSessionCompleted(event: Stripe.Event) {
-  const charge = event.data.object as Stripe.Checkout.Session;
+  let charge = event.data.object as Stripe.Checkout.Session;
   const dubCustomerId = charge.metadata?.dubCustomerId;
   const clientReferenceId = charge.client_reference_id;
   const stripeAccountId = event.account as string;
@@ -184,6 +184,12 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   if (charge.amount_total === 0) {
     return `Checkout session completed for Stripe customer ${stripeCustomerId} with invoice ID ${invoiceId} but amount is 0, skipping...`;
+  }
+
+  // support for Stripe Adaptive Pricing: https://docs.stripe.com/payments/checkout/adaptive-pricing
+  if (charge.currency !== "usd" && charge.currency_conversion) {
+    charge.amount_total = charge.currency_conversion.amount_total;
+    charge.currency = charge.currency_conversion.source_currency;
   }
 
   const saleData = {
