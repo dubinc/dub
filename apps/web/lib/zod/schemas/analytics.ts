@@ -185,7 +185,9 @@ export const analyticsQuerySchema = z
     folderId: z
       .string()
       .optional()
-      .describe("The folder ID to retrieve analytics for."),
+      .describe(
+        "The folder ID to retrieve analytics for. If not provided, return analytics for unsorted links.",
+      ),
     qr: booleanQuerySchema
       .optional()
       .describe(
