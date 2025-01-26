@@ -3,7 +3,6 @@
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import ManageSubscriptionButton from "@/ui/workspaces/manage-subscription-button";
 import { Badge, Button, CreditCard } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useState } from "react";
@@ -11,7 +10,7 @@ import { Stripe } from "stripe";
 import { PaymentMethodTypesList } from "./payment-method-types";
 
 export default function PaymentMethods() {
-  const { stripeId, partnersEnabled } = useWorkspace();
+  const { slug, stripeId, partnersEnabled } = useWorkspace();
   const { paymentMethods } = usePaymentMethods();
 
   const regularPaymentMethods = paymentMethods?.filter(
@@ -21,6 +20,22 @@ export default function PaymentMethods() {
   const achPaymentMethods = paymentMethods?.filter(
     (pm) => pm.type === "us_bank_account",
   );
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const managePaymentMethods = async (method?: string) => {
+    setIsLoading(true);
+    const { url } = await fetch(
+      `/api/workspaces/${slug}/billing/payment-methods`,
+      {
+        method: "POST",
+        body: JSON.stringify({ method }),
+      },
+    ).then((res) => res.json());
+
+    window.open(url, "_blank");
+    setIsLoading(false);
+  };
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
@@ -32,7 +47,13 @@ export default function PaymentMethods() {
           </p>
         </div>
         {stripeId && (
-          <ManageSubscriptionButton text="Manage" className="w-fit" />
+          <Button
+            variant="secondary"
+            text="Manage"
+            className="h-9 w-fit"
+            onClick={() => managePaymentMethods()}
+            loading={isLoading}
+          />
         )}
       </div>
       <div className="grid gap-4 border-t border-neutral-200 p-6">
@@ -143,7 +164,7 @@ const PaymentMethodCard = ({
       {!paymentMethod && (
         <Button
           variant="primary"
-          className="h-8 w-fit"
+          className="h-9 w-fit"
           text="Connect"
           onClick={() => managePaymentMethods(type)}
           loading={isLoading}

@@ -95,7 +95,7 @@ export default function PlanUsage() {
             href={`/${slug}/settings/billing/invoices`}
             className={cn(
               buttonVariants({ variant: "secondary" }),
-              "flex h-8 w-full items-center justify-center rounded-md border px-4 text-sm",
+              "flex h-9 w-full items-center justify-center rounded-md border px-4 text-sm",
             )}
           >
             View invoices
@@ -165,7 +165,7 @@ export default function PlanUsage() {
             href={`/${slug}/upgrade`}
             className={cn(
               buttonVariants(),
-              "flex h-8 w-fit items-center justify-center rounded-md border px-3 text-sm",
+              "flex h-9 w-fit items-center justify-center rounded-md border px-3 text-sm",
             )}
           >
             Upgrade to {nextPlan.name}
