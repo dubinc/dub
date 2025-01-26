@@ -213,9 +213,30 @@ async function sendLinkClickWebhooks({
     return;
   }
 
-  const link = await conn
-    .execute("SELECT * FROM Link WHERE id = ?", [linkId])
-    .then((res) => res.rows[0]);
+  const [link, tagsResult] = await Promise.all([
+    conn
+      .execute(`SELECT * FROM Link WHERE id = ?`, [linkId])
+      .then((res) => res.rows[0]),
+    conn
+      .execute(
+        `
+        SELECT t.id, t.name, t.color
+        FROM LinkTag lt
+        JOIN Tag t ON lt.tagId = t.id
+        WHERE lt.linkId = ?
+        ORDER BY lt.createdAt ASC
+      `,
+        [linkId],
+      )
+      .then((res) => ({
+        tags: res.rows.map((tag) => ({ tag })),
+      })),
+  ]);
+
+  const finalLink = {
+    ...link,
+    ...tagsResult,
+  };
 
   await sendWebhooks({
     trigger: "link.clicked",
@@ -223,7 +244,7 @@ async function sendLinkClickWebhooks({
     // @ts-ignore – bot & qr should be boolean
     data: transformClickEventData({
       ...clickData,
-      link: transformLink(link as ExpandedLink),
+      link: transformLink(finalLink as ExpandedLink),
     }),
   });
 }
