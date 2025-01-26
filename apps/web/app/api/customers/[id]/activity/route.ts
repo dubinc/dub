@@ -72,7 +72,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   activity.push({
     timestamp: customer.createdAt,
     event: "lead",
-    eventName: "Account created",
+    eventName: "Lead created",
     metadata: null,
   });
 

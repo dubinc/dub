@@ -18,7 +18,7 @@ export const onboardPartnerAction = authUserActionClient
   .schema(onboardPartnerSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { user } = ctx;
-    const { name, email, image, country, description } = parsedInput;
+    const { name, image, country, description } = parsedInput;
 
     const partnersPortalEnabled = await userIsInBeta(
       user.email,
@@ -31,20 +31,14 @@ export const onboardPartnerAction = authUserActionClient
 
     const existingPartner = await prisma.partner.findUnique({
       where: {
-        email,
+        email: user.email,
       },
     });
-
-    if (existingPartner && existingPartner.email !== email) {
-      throw new Error(
-        `"${email}" is already in use by another partner. Please use a different email.`,
-      );
-    }
 
     const connectedAccount = CONNECT_SUPPORTED_COUNTRIES.includes(country)
       ? await createConnectedAccount({
           name,
-          email,
+          email: user.email,
           country,
         })
       : null;
@@ -59,7 +53,7 @@ export const onboardPartnerAction = authUserActionClient
 
     const payload = {
       name,
-      email,
+      email: user.email,
       country,
       bio: description,
       image: imageUrl,

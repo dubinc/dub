@@ -194,9 +194,13 @@ export const createPartnerSchema = z.object({
     .describe("A brief description of the partner and their background."),
 });
 
-export const onboardPartnerSchema = createPartnerSchema.merge(
-  z.object({
-    image: z.string(),
-    country: z.enum(COUNTRY_CODES),
-  }),
-);
+export const onboardPartnerSchema = createPartnerSchema
+  .omit({
+    username: true,
+  })
+  .merge(
+    z.object({
+      image: z.string(),
+      country: z.enum(COUNTRY_CODES),
+    }),
+  );

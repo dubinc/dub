@@ -10,6 +10,7 @@ import { X } from "@/ui/shared/icons";
 import {
   Button,
   buttonVariants,
+  CopyButton,
   Sheet,
   StatusBadge,
   Table,
@@ -74,7 +75,7 @@ function PartnerDetailsSheetContent({
         <div className="border-y border-neutral-200 bg-neutral-50 p-6">
           {/* Basic info */}
           <div className="flex items-start justify-between gap-6">
-            <div className="flex flex-col">
+            <div>
               <img
                 src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`}
                 alt={partner.name}
@@ -90,6 +91,19 @@ function PartnerDetailsSheetContent({
                   </StatusBadge>
                 )}
               </div>
+              {partner.email && (
+                <div className="mt-0.5 flex items-center gap-1">
+                  <span className="text-sm text-neutral-500">
+                    {partner.email}
+                  </span>
+                  <CopyButton
+                    value={partner.email}
+                    variant="neutral"
+                    className="p-1 [&>*]:h-3 [&>*]:w-3"
+                    successMessage="Copied email to clipboard!"
+                  />
+                </div>
+              )}
             </div>
             <div className="flex min-w-[40%] shrink grow basis-1/2 flex-col items-end justify-end gap-2">
               {partner.link && (

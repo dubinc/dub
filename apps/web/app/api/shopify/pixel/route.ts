@@ -17,7 +17,7 @@ const CORS_HEADERS = {
 // POST /api/shopify/pixel – Handle the Shopify Pixel events
 export const POST = async (req: Request) => {
   try {
-    const { clickId, checkoutToken } = await parseRequestBody(req);
+    let { clickId, checkoutToken } = await parseRequestBody(req);
 
     if (!checkoutToken) {
       throw new DubApiError({
@@ -42,7 +42,7 @@ export const POST = async (req: Request) => {
       const clickEvent = await getClickEvent({ clickId });
 
       if (!clickEvent || clickEvent.data.length === 0) {
-        return new Response(`Click event not found for clickId: ${clickId}`);
+        clickId = null;
       }
     }
 
