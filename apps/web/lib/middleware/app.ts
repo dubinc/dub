@@ -53,7 +53,7 @@ export default async function AppMiddleware(req: NextRequest) {
     } else if (
       new Date(user.createdAt).getTime() > Date.now() - 60 * 60 * 24 * 1000 &&
       !isWorkspaceInvite &&
-      !path.startsWith("/onboarding") &&
+      !["/onboarding", "/account"].some((p) => path.startsWith(p)) &&
       !(await getDefaultWorkspace(user)) &&
       (await getOnboardingStep(user)) !== "completed"
     ) {
