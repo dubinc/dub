@@ -1,3 +1,4 @@
+import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { createSaleData } from "@/lib/api/sales/create-sale-data";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
@@ -90,6 +91,7 @@ export async function invoicePaid(event: Stripe.Event) {
           increment: invoice.amount_paid,
         },
       },
+      include: includeTags,
     }),
     // update workspace sales usage
     prisma.project.update({

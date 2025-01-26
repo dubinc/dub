@@ -1,3 +1,4 @@
+import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { createSaleData } from "@/lib/api/sales/create-sale-data";
 import { createId } from "@/lib/api/utils";
@@ -234,6 +235,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
             increment: charge.amount_total!,
           },
         },
+        include: includeTags,
       }),
 
     // update workspace sales usage

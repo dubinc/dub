@@ -1,3 +1,5 @@
+import { transformLink } from "@/lib/api/links";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { createId } from "@/lib/api/utils";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -105,6 +107,7 @@ export async function customerCreated(event: Stripe.Event) {
             increment: 1,
           },
         },
+        include: includeTags,
       }),
 
       // update workspace usage
@@ -126,7 +129,7 @@ export async function customerCreated(event: Stripe.Event) {
         workspace,
         data: transformLeadEventData({
           ...leadData,
-          link,
+          link: transformLink(link),
           customerId: customer.id,
           customerExternalId: customer.externalId,
           customerName: customer.name,
