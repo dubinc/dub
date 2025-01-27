@@ -18,7 +18,7 @@ export default function usePartnerProfile() {
     error,
     isLoading,
   } = useSWR<PartnerProps>(
-    isPartnerPage && partnerId && `/api/partners/${partnerId}`,
+    isPartnerPage && partnerId && `/api/partner-profile`,
     fetcher,
     {
       dedupingInterval: 60000,

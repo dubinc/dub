@@ -15,7 +15,7 @@ export default function useProgramEnrollment() {
     isLoading,
   } = useSWR<ProgramEnrollmentProps>(
     partnerId && programSlug
-      ? `/api/partners/${partnerId}/programs/${programSlug}`
+      ? `/api/partner-profile/programs/${programSlug}`
       : undefined,
     fetcher,
     {

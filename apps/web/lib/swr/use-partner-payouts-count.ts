@@ -8,7 +8,7 @@ export default function usePartnerPayoutsCount() {
   const partnerId = session?.user?.["defaultPartnerId"];
 
   const { data: payoutsCount, error } = useSWR<PayoutsCount[]>(
-    partnerId && `/api/partners/${partnerId}/payouts/count`,
+    partnerId && `/api/partner-profile/payouts/count`,
     fetcher,
     {
       keepPreviousData: true,
