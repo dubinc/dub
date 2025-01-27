@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { PartnerSchema } from "@/lib/zod/schemas/partners";
+import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -33,15 +33,24 @@ export const GET = withWorkspace(
       },
       include: {
         partner: true,
+        link: true,
+        program: true,
       },
     });
+
+    const { program, link } = programEnrollment;
 
     const partner = {
       ...programEnrollment.partner,
       ...programEnrollment,
       id: programEnrollment.partnerId,
+      earnings:
+        ((program.commissionType === "percentage"
+          ? link?.saleAmount
+          : link?.sales) ?? 0) *
+        (program.commissionAmount / 100),
     };
 
-    return NextResponse.json(PartnerSchema.parse(partner));
+    return NextResponse.json(EnrolledPartnerSchema.parse(partner));
   },
 );
