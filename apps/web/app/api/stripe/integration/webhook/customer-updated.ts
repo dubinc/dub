@@ -21,14 +21,15 @@ export async function customerUpdated(event: Stripe.Event) {
         id: customerFound.id,
       },
       data: {
-        externalId,
         name: stripeCustomer.name,
         email: stripeCustomer.email,
+        ...(externalId && { externalId }),
       },
     });
 
     return `Dub customer with ID ${customerFound.id} updated.`;
   }
 
+  // otherwise create a new customer
   return await createNewCustomer(event);
 }
