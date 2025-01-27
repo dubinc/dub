@@ -40,7 +40,3 @@ export async function customerCreated(event: Stripe.Event) {
   // otherwise create a new customer
   return await createNewCustomer(event);
 }
-
-// customers.create -> customers.update
-// /track/lead -> customers.create -> customers.update
-// /track/lead -> customers.update
