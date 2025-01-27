@@ -4,9 +4,10 @@ import { enrollPartner } from "@/lib/api/partners/enroll-partner";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { checkIfKeyExists } from "@/lib/planetscale";
-import { createPartnerSchema } from "@/lib/zod/schemas/partners";
+import { createPartnerSchema, PartnerSchema } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 
+// POST /api/partners - add a partner for a program
 export const POST = withWorkspace(async ({ workspace, req }) => {
   const { programId, name, email, image, username } = createPartnerSchema.parse(
     await req.json(),
@@ -19,8 +20,9 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
 
   if (!program.domain || !program.url) {
     throw new DubApiError({
-      code: "unprocessable_entity",
-      message: "Program domain and url are required",
+      code: "bad_request",
+      message:
+        "You need to set a domain and url for this program before creating a partner.",
     });
   }
 
@@ -52,5 +54,7 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
     },
   });
 
-  return NextResponse.json(createdPartner);
+  return NextResponse.json(PartnerSchema.parse(createdPartner), {
+    status: 201,
+  });
 });
