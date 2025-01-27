@@ -1,10 +1,10 @@
-import { withPartner } from "@/lib/auth/partner";
+import { withPartnerProfile } from "@/lib/auth/partner";
 import { prisma } from "@dub/prisma";
 import { PayoutStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 
-// GET /api/partners/[partnerId]/payouts/count – get payouts count for a partner
-export const GET = withPartner(async ({ partner, searchParams }) => {
+// GET /api/partner-profile/payouts/count – get payouts count for a partner
+export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   const payouts = await prisma.payout.groupBy({
     by: ["status"],
     where: {

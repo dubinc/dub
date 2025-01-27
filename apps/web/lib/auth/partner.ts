@@ -5,7 +5,7 @@ import { getSearchParams } from "@dub/utils";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { Session, getSession } from "./utils";
 
-interface WithPartnerHandler {
+interface WithPartnerProfileHandler {
   ({
     req,
     params,
@@ -23,7 +23,10 @@ interface WithPartnerHandler {
   }): Promise<Response>;
 }
 
-export const withPartner = (handler: WithPartnerHandler, {}: {} = {}) => {
+export const withPartnerProfile = (
+  handler: WithPartnerProfileHandler,
+  {}: {} = {},
+) => {
   return withAxiom(
     async (
       req: AxiomRequest,
@@ -40,30 +43,25 @@ export const withPartner = (handler: WithPartnerHandler, {}: {} = {}) => {
         }
 
         const searchParams = getSearchParams(req.url);
-        const partnerId = params.partnerId || searchParams.partnerId;
+        const { defaultPartnerId, id: userId } = session.user;
 
-        if (!partnerId) {
-          throw new DubApiError({
-            code: "bad_request",
-            message: "Partner ID is required.",
-          });
-        }
-
-        const partner = await prisma.partner.findUnique({
+        const partner = await prisma.partner.findFirst({
           where: {
-            id: partnerId,
-          },
-          include: {
+            ...(defaultPartnerId && {
+              id: defaultPartnerId,
+            }),
             users: {
-              where: {
-                userId: session.user.id,
-              },
-              select: {
-                role: true,
+              some: {
+                userId,
               },
             },
           },
+          include: {
+            users: true,
+          },
         });
+
+        console.log("partner-found", partner);
 
         // partner profile doesn't exist
         if (!partner || !partner.users) {

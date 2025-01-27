@@ -1,9 +1,9 @@
-import { withPartner } from "@/lib/auth/partner";
+import { withPartnerProfile } from "@/lib/auth/partner";
 import { stripe } from "@/lib/stripe";
 import { NextResponse } from "next/server";
 
-// GET /api/partners/[partnerId]/payouts/settings
-export const GET = withPartner(async ({ partner }) => {
+// GET /api/partner-profile/payouts/settings
+export const GET = withPartnerProfile(async ({ partner }) => {
   if (!partner.stripeConnectId) {
     return NextResponse.json(null);
   }
