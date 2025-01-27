@@ -52,25 +52,13 @@ export default function SettingsPageClient() {
           type: "email",
           defaultValue: session?.user?.email || undefined,
           placeholder: "panic@thedis.co",
+          readOnly: true,
         }}
         helpText={<UpdateSubscription />}
-        handleSubmit={(data) =>
-          fetch("/api/user", {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-          }).then(async (res) => {
-            if (res.status === 200) {
-              update();
-              toast.success("Successfully updated your email!");
-            } else {
-              const { error } = await res.json();
-              toast.error(error.message);
-            }
-          })
-        }
+        handleSubmit={(data) => {
+          return Promise.resolve();
+        }}
+        disabledTooltip="You can't update your email. Please contact support if you need to change it."
       />
       <UploadAvatar />
       <UserId />
