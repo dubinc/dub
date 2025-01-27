@@ -37,6 +37,7 @@ export async function customerCreated(event: Stripe.Event) {
     }
   }
 
+  // otherwise create a new customer
   return await createNewCustomer(event);
 }
 
