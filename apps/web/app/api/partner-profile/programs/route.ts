@@ -1,11 +1,11 @@
-import { withPartner } from "@/lib/auth/partner";
+import { withPartnerProfile } from "@/lib/auth/partner";
 import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-// GET /api/partners/[partnerId]/programs - get all enrolled programs for a given partnerId
-export const GET = withPartner(async ({ partner }) => {
+// GET /api/partner-profile/programs - get all enrolled programs for a given partnerId
+export const GET = withPartnerProfile(async ({ partner }) => {
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       partnerId: partner.id,

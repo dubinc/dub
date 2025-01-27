@@ -9,7 +9,7 @@ export default function useProgramEnrollments() {
 
   const { data: programEnrollments, isLoading } = useSWR<
     ProgramEnrollmentProps[]
-  >(partnerId && `/api/partners/${partnerId}/programs`, fetcher, {
+  >(partnerId && `/api/partner-profile/programs`, fetcher, {
     dedupingInterval: 60000,
   });
 
