@@ -210,6 +210,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     where: {
       id: linkId,
     },
+    include: includeTags,
   });
 
   const [_sale, _link, workspace] = await Promise.all([
@@ -235,7 +236,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
             increment: charge.amount_total!,
           },
         },
-        include: includeTags,
       }),
 
     // update workspace sales usage
