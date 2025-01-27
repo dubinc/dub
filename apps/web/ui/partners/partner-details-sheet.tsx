@@ -273,7 +273,7 @@ function PartnerApproval({
   const { executeAsync, isPending } = useAction(approvePartnerAction, {
     onSuccess() {
       mutatePrefix(
-        `/api/partners?workspaceId=${workspaceId}&programId=${partner.programId}`,
+        `/api/partners?workspaceId=${workspaceId}&programId=${program!.id}`,
       );
 
       toast.success("Approved the partner successfully.");
@@ -385,11 +385,15 @@ function PartnerApproval({
                 return;
               }
 
+              if (!program) {
+                return;
+              }
+
               // Approve partner
               await executeAsync({
                 workspaceId: workspaceId!,
                 partnerId: partner.id,
-                programId: partner.programId,
+                programId: program.id,
                 linkId: selectedLinkId,
               });
             }}
@@ -408,11 +412,12 @@ function PartnerRejectButton({
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }) {
   const { id: workspaceId } = useWorkspace();
+  const { program } = useProgram();
 
   const { executeAsync, isPending } = useAction(rejectPartnerAction, {
     onSuccess: async () => {
       await mutatePrefix(
-        `/api/partners?workspaceId=${workspaceId}&programId=${partner.programId}`,
+        `/api/partners?workspaceId=${workspaceId}&programId=${program!.id}`,
       );
 
       toast.success("Partner rejected successfully.");
@@ -433,7 +438,7 @@ function PartnerRejectButton({
         await executeAsync({
           workspaceId: workspaceId!,
           partnerId: partner.id,
-          programId: partner.programId,
+          programId: program!.id,
         });
       }}
     />
@@ -442,6 +447,8 @@ function PartnerRejectButton({
 
 function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
   const { slug } = useWorkspace();
+  const { program } = useProgram();
+
   const {
     payouts,
     error: payoutsError,
@@ -485,7 +492,7 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
     ],
     onRowClick: (row) => {
       window.open(
-        `/${slug}/programs/${partner.programId}/payouts?payoutId=${row.original.id}`,
+        `/${slug}/programs/${program!.id}/payouts?payoutId=${row.original.id}`,
         "_blank",
       );
     },
@@ -503,7 +510,7 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
       {payouts && payouts.length === SHEET_MAX_ITEMS && (
         <div className="mt-2 flex justify-end">
           <Link
-            href={`/${slug}/programs/${partner.programId}/payouts?partnerId=${partner.id}`}
+            href={`/${slug}/programs/${program!.id}/payouts?partnerId=${partner.id}`}
             className={cn(
               buttonVariants({ variant: "secondary" }),
               "flex h-7 items-center rounded-lg border px-2 text-sm",
