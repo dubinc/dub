@@ -75,7 +75,7 @@ export async function invoicePaid(event: Stripe.Event) {
     return `Link with ID ${linkId} not found, skipping...`;
   }
 
-  const [_sale, _link, workspace] = await Promise.all([
+  const [_sale, linkUpdated, workspace] = await Promise.all([
     recordSale(saleData),
 
     // update link sales count
@@ -173,7 +173,7 @@ export async function invoicePaid(event: Stripe.Event) {
       workspace,
       data: transformSaleEventData({
         ...saleData,
-        link,
+        link: linkUpdated,
         customerId: customer.id,
         customerExternalId: customer.externalId,
         customerName: customer.name,
