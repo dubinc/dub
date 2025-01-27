@@ -102,7 +102,8 @@ function ExportLinksModal({
       });
 
       if (!response.ok) {
-        throw new Error(response.statusText);
+        const { error } = await response.json();
+        throw new Error(error.message);
       }
 
       const blob = await response.blob();
