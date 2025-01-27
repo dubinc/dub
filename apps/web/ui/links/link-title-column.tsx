@@ -95,7 +95,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
           )}
         </div>
       </div>
-      <div className="h-[24px] min-w-0 overflow-hidden transition-[height] group-data-[variant=loose]/card-list:h-[44px]">
+      <div className="h-[24px] min-w-0 overflow-hidden transition-[height] group-data-[variant=loose]/card-list:h-[46px]">
         <div className="flex items-center gap-2">
           <div className="min-w-0 shrink grow-0 text-gray-950">
             <div className="flex items-center gap-2">
