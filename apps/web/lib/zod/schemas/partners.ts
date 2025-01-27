@@ -63,6 +63,8 @@ export const EnrolledPartnerSchema = PartnerSchema.omit({
   .merge(ProgramEnrollmentSchema)
   .omit({
     program: true,
+    partnerId: true,
+    programId: true,
   })
   .extend({
     earnings: z.number(),

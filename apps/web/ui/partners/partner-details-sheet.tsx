@@ -272,7 +272,9 @@ function PartnerApproval({
 
   const { executeAsync, isPending } = useAction(approvePartnerAction, {
     onSuccess() {
-      mutatePrefix(`/api/programs/${partner.programId}/partners`);
+      mutatePrefix(
+        `/api/partners?workspaceId=${workspaceId}&programId=${partner.programId}`,
+      );
 
       toast.success("Approved the partner successfully.");
       setIsOpen(false);
@@ -409,7 +411,9 @@ function PartnerRejectButton({
 
   const { executeAsync, isPending } = useAction(rejectPartnerAction, {
     onSuccess: async () => {
-      await mutatePrefix(`/api/programs/${partner.programId}/partners`);
+      await mutatePrefix(
+        `/api/partners?workspaceId=${workspaceId}&programId=${partner.programId}`,
+      );
 
       toast.success("Partner rejected successfully.");
       setIsOpen(false);
