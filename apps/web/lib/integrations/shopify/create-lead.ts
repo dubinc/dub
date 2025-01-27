@@ -89,7 +89,7 @@ export async function createShopifyLead({
       workspace,
       data: transformLeadEventData({
         ...leadData,
-        link: transformLink(link),
+        link,
         customerId: customer.id,
         customerExternalId: customer.externalId,
         customerName: customer.name,
