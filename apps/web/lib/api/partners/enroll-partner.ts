@@ -6,6 +6,7 @@ import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { DubApiError } from "../errors";
 
 export const enrollPartner = async ({
   programId,
@@ -20,6 +21,24 @@ export const enrollPartner = async ({
     image?: string | null;
   };
 }) => {
+  if (partner.email) {
+    const programEnrollment = await prisma.programEnrollment.findFirst({
+      where: {
+        programId,
+        partner: {
+          email: partner.email,
+        },
+      },
+    });
+
+    if (programEnrollment) {
+      throw new DubApiError({
+        message: `Partner ${partner.email} already enrolled in this program.`,
+        code: "conflict",
+      });
+    }
+  }
+
   const payload: Pick<Prisma.PartnerUpdateInput, "programs"> = {
     programs: {
       create: {
