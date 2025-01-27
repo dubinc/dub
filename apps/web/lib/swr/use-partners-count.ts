@@ -19,11 +19,13 @@ export default function usePartnersCount<T>(
       `?${new URLSearchParams({
         ...(opts.groupBy && { groupBy: opts.groupBy }),
         workspaceId,
+        programId,
       }).toString()}`
     : getQueryString(
         {
           ...opts,
           workspaceId,
+          programId,
         },
         {
           ignore: ["partnerId"],
@@ -31,7 +33,7 @@ export default function usePartnersCount<T>(
       );
 
   const { data: partnersCount, error } = useSWR<PartnersCount>(
-    `/api/programs/${programId}/partners/count${queryString}`,
+    `/api/partners/count${queryString}`,
     fetcher,
   );
 

@@ -17,7 +17,7 @@ export function TopPartners() {
   const { id: workspaceId } = useWorkspace();
 
   const { data: partners, error } = useSWR<EnrolledPartnerProps[]>(
-    `/api/programs/${programId}/partners?workspaceId=${workspaceId}&sortBy=earnings&sortOrder=desc`,
+    `/api/partners?workspaceId=${workspaceId}&programId=${programId}&sortBy=earnings&sortOrder=desc`,
     fetcher,
   );
 

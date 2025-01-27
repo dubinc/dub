@@ -54,7 +54,6 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
     handleSubmit,
     watch,
     setValue,
-    setError,
     clearErrors,
     formState: { errors },
   } = useForm<AddPartnerFormData>();
@@ -69,7 +68,10 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
         } partner!`,
       );
       setIsOpen(false);
-      program && mutatePrefix(`/api/programs/${program.id}/partners`);
+      program &&
+        mutatePrefix(
+          `/api/partners?workspaceId=${workspaceId}&programId=${program.id}`,
+        );
     },
     onError({ error }) {
       toast.error(error.serverError);

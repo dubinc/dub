@@ -32,7 +32,7 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
 
   const { data: salesCount } = useSWR<{ count: number }>(
     programEnrollment &&
-      `/api/partners/${programEnrollment.partnerId}/programs/${programEnrollment.programId}/sales/count${getQueryString()}`,
+      `/api/partner-profile/programs/${programEnrollment.programId}/sales/count${getQueryString()}`,
     fetcher,
   );
 
@@ -42,7 +42,7 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
     error,
   } = useSWR<PartnerSaleResponse[]>(
     programEnrollment &&
-      `/api/partners/${programEnrollment.partnerId}/programs/${programEnrollment.programId}/sales${getQueryString()}`,
+      `/api/partner-profile/programs/${programEnrollment.programId}/sales${getQueryString()}`,
     fetcher,
   );
 

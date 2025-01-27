@@ -15,7 +15,7 @@ export function PayoutStatsAndSettings() {
   const { payoutsCount } = usePartnerPayoutsCount();
 
   const { data: bankAccount } = useSWR<Stripe.BankAccount | null>(
-    partner && `/api/partners/${partner.id}/payouts/settings`,
+    partner && `/api/partner-profile/payouts/settings`,
     fetcher,
   );
 

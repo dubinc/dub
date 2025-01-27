@@ -63,6 +63,8 @@ export const EnrolledPartnerSchema = PartnerSchema.omit({
   .merge(ProgramEnrollmentSchema)
   .omit({
     program: true,
+    partnerId: true,
+    programId: true,
   })
   .extend({
     earnings: z.number(),
@@ -155,6 +157,9 @@ export const getPartnerSalesCountQuerySchema = getSalesCountQuerySchema.omit({
 });
 
 export const createPartnerSchema = z.object({
+  programId: z
+    .string()
+    .describe("The ID of the program to create a partner for."),
   name: z
     .string()
     .trim()
@@ -196,6 +201,7 @@ export const createPartnerSchema = z.object({
 
 export const onboardPartnerSchema = createPartnerSchema
   .omit({
+    programId: true,
     username: true,
   })
   .merge(

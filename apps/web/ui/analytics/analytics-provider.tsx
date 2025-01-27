@@ -202,9 +202,9 @@ export default function AnalyticsProvider({
       };
     } else if (partner?.id && programSlug) {
       return {
-        basePath: `/api/partners/${partner.id}/programs/${programSlug}/analytics`,
-        baseApiPath: `/api/partners/${partner.id}/programs/${programSlug}/analytics`,
-        eventsApiPath: `/api/partners/${partner.id}/programs/${programSlug}/events`,
+        basePath: `/api/partner-profile/programs/${programSlug}/analytics`,
+        baseApiPath: `/api/partner-profile/programs/${programSlug}/analytics`,
+        eventsApiPath: `/api/partner-profile/programs/${programSlug}/events`,
         domain: domainSlug,
       };
     } else if (dashboardId) {
