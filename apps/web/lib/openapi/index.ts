@@ -11,6 +11,7 @@ import { domainsPaths } from "./domains";
 import { eventsPath } from "./events";
 import { linksPaths } from "./links";
 import { metatagsPath } from "./metatags";
+import { partnersPaths } from "./partners";
 import { qrCodePaths } from "./qr";
 import { tagsPaths } from "./tags";
 import { tokensPaths } from "./tokens";
@@ -48,6 +49,7 @@ export const document = createDocument({
     ...domainsPaths,
     ...trackPaths,
     ...customersPaths,
+    ...partnersPaths,
     ...workspacesPaths,
     ...tokensPaths,
     ...qrCodePaths,
