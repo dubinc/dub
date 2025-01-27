@@ -1,4 +1,10 @@
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import {
+  ReadonlyURLSearchParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 
 export function useRouterStuff() {
   const pathname = usePathname();
@@ -64,9 +70,9 @@ export function useRouterStuff() {
   };
 
   return {
-    pathname,
-    router,
-    searchParams,
+    pathname: pathname as string,
+    router: router as AppRouterInstance,
+    searchParams: searchParams as ReadonlyURLSearchParams,
     searchParamsObj,
     queryParams,
     getQueryString,
