@@ -4,7 +4,7 @@ import { PayoutStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/payouts/count – get payouts count for a partner
-export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
+export const GET = withPartnerProfile(async ({ partner }) => {
   const payouts = await prisma.payout.groupBy({
     by: ["status"],
     where: {

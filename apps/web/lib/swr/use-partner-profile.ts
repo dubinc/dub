@@ -9,6 +9,7 @@ export default function usePartnerProfile() {
   const partnerId = session?.user?.["defaultPartnerId"];
 
   const [isPartnerPage, setIsPartnerPage] = useState(false);
+
   useEffect(() => {
     setIsPartnerPage(window.location.hostname.startsWith("partners"));
   }, []);

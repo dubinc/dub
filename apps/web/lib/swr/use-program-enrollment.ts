@@ -6,8 +6,9 @@ import { ProgramEnrollmentProps } from "../types";
 
 export default function useProgramEnrollment() {
   const { data: session, status } = useSession();
-  const partnerId = session?.user?.["defaultPartnerId"];
   const { programSlug } = useParams();
+
+  const partnerId = session?.user?.["defaultPartnerId"];
 
   const {
     data: programEnrollment,
