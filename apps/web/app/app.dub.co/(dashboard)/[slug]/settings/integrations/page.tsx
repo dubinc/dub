@@ -2,18 +2,25 @@ import IntegrationCard from "@/ui/integrations/integration-card";
 import OAuthAppPlaceholder from "@/ui/oauth-apps/oauth-app-placeholder";
 import { prisma } from "@dub/prisma";
 import { Suspense } from "react";
-import IntegrationsPageHeader from "./page-header";
 
 export const revalidate = 300; // 5 minutes
 
 export default function IntegrationsPage() {
   return (
-    <>
-      <IntegrationsPageHeader />
+    <div className="mx-auto flex w-full max-w-screen-md flex-col gap-12">
+      <div className="">
+        <h1 className="text-2xl font-semibold tracking-tight text-black">
+          Integrations
+        </h1>
+        <p className="mb-2 mt-2 text-base text-neutral-600">
+          Use Dub with your existing favorite tools with our seamless
+          integrations.
+        </p>
+      </div>
       <Suspense fallback={<Loader />}>
         <Integrations />
       </Suspense>
-    </>
+    </div>
   );
 }
 
