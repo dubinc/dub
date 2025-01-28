@@ -67,6 +67,11 @@ export const POST = async (req: Request) => {
       const hostname = sourceUrl?.hostname.replace(/^www\./, "");
 
       if (!hostname || !allowedHostnames.includes(hostname)) {
+        console.error("Hostname not allowed.", {
+          hostname,
+          allowedHostnames,
+        });
+
         return new Response(null, {
           status: 204,
           headers: CORS_HEADERS,
