@@ -51,7 +51,10 @@ const AddHostnameForm = () => {
       return;
     }
 
-    if (!validDomainRegex.test(hostname)) {
+    const isHostnameValid =
+      validDomainRegex.test(hostname) || hostname === "localhost";
+
+    if (!isHostnameValid) {
       toast.error("Enter a valid domain.");
       return;
     }
@@ -80,7 +83,8 @@ const AddHostnameForm = () => {
     setHostname("");
   };
 
-  const isHostnameValid = validDomainRegex.test(hostname);
+  const isHostnameValid =
+    validDomainRegex.test(hostname) || hostname === "localhost";
 
   return (
     <form

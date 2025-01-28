@@ -3,7 +3,7 @@ import { DubApiError } from "./errors";
 
 const MAX_HOSTNAMES_ALLOWED = 10;
 
-export const validateAllowedHostnames = async (
+export const validateAllowedHostnames = (
   allowedHostnames: string[] | undefined,
 ) => {
   if (!allowedHostnames) {
@@ -12,8 +12,8 @@ export const validateAllowedHostnames = async (
 
   allowedHostnames = [...new Set(allowedHostnames)];
 
-  const results = await Promise.all(
-    allowedHostnames.map((hostname) => validDomainRegex.test(hostname)),
+  const results = allowedHostnames.map(
+    (hostname) => validDomainRegex.test(hostname) || hostname === "localhost",
   );
 
   const invalidHostnames = results.filter((result) => !result);

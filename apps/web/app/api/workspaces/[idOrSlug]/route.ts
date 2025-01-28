@@ -1,6 +1,6 @@
-import { validateAllowedHostnames } from "@/lib/api/allowed-hostnames";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
+import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
 import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
@@ -70,7 +70,7 @@ export const PATCH = withWorkspace(
     }
 
     const validHostnames = allowedHostnames
-      ? await validateAllowedHostnames(allowedHostnames)
+      ? validateAllowedHostnames(allowedHostnames)
       : undefined;
 
     const logoUploaded = logo
