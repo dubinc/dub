@@ -141,6 +141,7 @@ export type ExpandedWorkspaceProps = WorkspaceProps & {
     name: string;
   }[];
   yearInReview: YearInReview | null;
+  allowedHostnames: string[];
 };
 
 export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;

@@ -2,7 +2,6 @@
 
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ConversionTrackingToggle } from "@/ui/workspaces/conversion-tracking-toggle";
 import DeleteWorkspace from "@/ui/workspaces/delete-workspace";
 import UploadLogo from "@/ui/workspaces/upload-logo";
 import WorkspaceId from "@/ui/workspaces/workspace-id";
@@ -93,7 +92,6 @@ export default function WorkspaceSettingsClient() {
         }
       />
       <UploadLogo />
-      <ConversionTrackingToggle />
       <WorkspaceId />
       <DeleteWorkspace />
     </>
