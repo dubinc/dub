@@ -1,3 +1,4 @@
+import { includeTags } from "@/lib/api/links/include-tags";
 import { createId } from "@/lib/api/utils";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -62,7 +63,7 @@ export async function createNewCustomer(event: Stripe.Event) {
     customer_id: customer.id,
   };
 
-  const [_lead, _link, workspace] = await Promise.all([
+  const [_lead, linkUpdated, workspace] = await Promise.all([
     // Record lead
     recordLead(leadData),
 
@@ -76,6 +77,7 @@ export async function createNewCustomer(event: Stripe.Event) {
           increment: 1,
         },
       },
+      include: includeTags,
     }),
 
     // update workspace usage
@@ -97,7 +99,7 @@ export async function createNewCustomer(event: Stripe.Event) {
       workspace,
       data: transformLeadEventData({
         ...leadData,
-        link,
+        link: linkUpdated,
         customerId: customer.id,
         customerExternalId: customer.externalId,
         customerName: customer.name,
