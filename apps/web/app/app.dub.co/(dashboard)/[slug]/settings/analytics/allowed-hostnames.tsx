@@ -35,7 +35,7 @@ export const AllowedHostnames = () => {
   const { allowedHostnames, loading } = useWorkspace();
 
   return (
-    <div className="grid gap-5 divide-yellow-200 border-b border-gray-200 py-5 pt-0">
+    <div className="grid gap-5 divide-yellow-200 pt-0">
       <div className="flex flex-col gap-1">
         <h2 className="text-xl font-semibold tracking-tight text-black">
           Allowed Hostnames
@@ -68,7 +68,7 @@ export const AllowedHostnames = () => {
 const AddHostnameForm = () => {
   const [hostname, setHostname] = useState("");
   const [processing, setProcessing] = useState(false);
-  const { id, allowedHostnames, plan, mutate } = useWorkspace();
+  const { id, allowedHostnames, mutate } = useWorkspace();
 
   const addHostname = async () => {
     if (allowedHostnames?.includes(hostname)) {
