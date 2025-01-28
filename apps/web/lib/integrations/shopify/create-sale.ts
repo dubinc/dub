@@ -23,15 +23,17 @@ export async function createShopifySale({
   workspaceId: string;
   leadData: z.infer<typeof leadEventSchemaTB>;
 }) {
-  const orderData = orderSchema.parse(event);
+  const {
+    checkout_token: checkoutToken,
+    confirmation_number: invoiceId,
+    current_total_price_set: { shop_money: shopMoney },
+  } = orderSchema.parse(event);
+
+  const currency = shopMoney.currency_code;
+  const amount = Number(shopMoney.amount) * 100;
+
   const eventId = nanoid(16);
   const paymentProcessor = "shopify";
-
-  const amount = Number(orderData.current_subtotal_price) * 100;
-  const currency = orderData.currency;
-  const invoiceId = orderData.confirmation_number;
-  const checkoutToken = orderData.checkout_token;
-
   const { link_id: linkId, click_id: clickId } = leadData;
 
   const sale = await prisma.sale.findFirst({
