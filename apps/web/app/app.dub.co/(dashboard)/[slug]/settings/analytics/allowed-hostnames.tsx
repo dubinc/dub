@@ -12,6 +12,7 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { CheckCircle, Delete } from "lucide-react";
+import Link from "next/link";
 import {
   createContext,
   Dispatch,
@@ -20,9 +21,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-
-// TODO:
-// Add plan check
 
 export const HostnamesContext = createContext<{
   openMenu: string | null;
@@ -37,16 +35,33 @@ export const AllowedHostnames = () => {
   const { allowedHostnames, loading } = useWorkspace();
 
   return (
-    <>
-      <AddHostnameForm />
-      <HostnamesContext.Provider value={{ openMenu, setOpenMenu }}>
-        <CardList variant="compact" loading={loading}>
-          {allowedHostnames?.map((hostname) => (
-            <AllowedHostnameCard key={hostname} hostname={hostname} />
-          ))}
-        </CardList>
-      </HostnamesContext.Provider>
-    </>
+    <div className="grid gap-5 divide-yellow-200 border-b border-gray-200 pt-0 py-5">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-xl font-semibold tracking-tight text-black">
+          Allowed Hostnames
+        </h2>
+        <p className="text-sm text-gray-500">
+          Allow click tracking from specific hostnames.{" "}
+          <Link
+            href="https://dub.co/help/article/default-dub-domains"
+            target="_blank"
+            className="underline transition-colors hover:text-gray-800"
+          >
+            Learn more.
+          </Link>
+        </p>
+      </div>
+      <div className="grid grid-cols-1 gap-3">
+        <AddHostnameForm />
+        <HostnamesContext.Provider value={{ openMenu, setOpenMenu }}>
+          <CardList variant="compact" loading={loading}>
+            {allowedHostnames?.map((hostname) => (
+              <AllowedHostnameCard key={hostname} hostname={hostname} />
+            ))}
+          </CardList>
+        </HostnamesContext.Provider>
+      </div>
+    </div>
   );
 };
 
