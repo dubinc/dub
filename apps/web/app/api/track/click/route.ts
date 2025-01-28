@@ -44,7 +44,7 @@ export const POST = async (req: Request) => {
       id: string;
       url: string;
       projectId: string;
-      allowedHostnames: string;
+      allowedHostnames: string[];
     }>(
       "SELECT Link.id, Link.url, projectId, allowedHostnames FROM Link LEFT JOIN Project ON Link.projectId = Project.id WHERE domain = ? AND `key` = ?",
       [domain, punyEncode(decodeURIComponent(key))],
@@ -60,8 +60,9 @@ export const POST = async (req: Request) => {
       });
     }
 
-    if (link.allowedHostnames) {
-      const allowedHostnames = link.allowedHostnames.split(" ");
+    const allowedHostnames = link.allowedHostnames;
+
+    if (allowedHostnames && allowedHostnames.length > 0) {
       const source = req.headers.get("referer") || req.headers.get("origin");
       const sourceUrl = source ? new URL(source) : null;
       const hostname = sourceUrl?.hostname.replace(/^www\./, "");

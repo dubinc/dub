@@ -107,7 +107,7 @@ export const WorkspaceSchema = z
       .describe("The miscellaneous key-value store of the workspace."),
     allowedHostnames: z
       .array(z.string())
-      .default([])
+      .nullable()
       .describe("Specifies hostnames permitted for client-side click tracking.")
       .openapi({ example: ["dub.sh"] }),
   })

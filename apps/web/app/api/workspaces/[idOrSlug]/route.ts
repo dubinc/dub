@@ -44,7 +44,6 @@ export const GET = withWorkspace(
           flags: await getFeatureFlags({
             workspaceId: workspace.id,
           }),
-          allowedHostnames: workspace.allowedHostnames?.split(" "),
         }),
         yearInReview: yearInReviews.length > 0 ? yearInReviews[0] : null,
       },
@@ -91,9 +90,7 @@ export const PATCH = withWorkspace(
           ...(slug && { slug }),
           ...(logoUploaded && { logo: logoUploaded.url }),
           ...(conversionEnabled !== undefined && { conversionEnabled }),
-          ...(allowedHostnames && {
-            allowedHostnames: allowedHostnames.join(" "),
-          }),
+          ...(allowedHostnames && { allowedHostnames }),
         },
         include: {
           domains: true,

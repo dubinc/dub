@@ -1,9 +1,17 @@
+"use client";
+
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export const AllowedHostnames = () => {
-  const { id } = useWorkspace();
-  const [hostname, setHostname] = useState("");
+  const { id, allowedHostnames } = useWorkspace();
+  const [hostname, setHostname] = useState<string>("");
+
+  useEffect(() => {
+    if (allowedHostnames) {
+      setHostname(allowedHostnames.join("\n"));
+    }
+  }, [allowedHostnames]);
 
   const handleSave = async () => {
     try {
@@ -39,6 +47,8 @@ export const AllowedHostnames = () => {
         onChange={(e) => setHostname(e.target.value)}
         placeholder="Enter allowed hostname"
         className="w-full rounded border p-2"
+        rows={5}
+        autoFocus
       />
       <button
         onClick={handleSave}
