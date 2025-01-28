@@ -26,7 +26,7 @@ export async function createShopifySale({
   const {
     checkout_token: checkoutToken,
     confirmation_number: invoiceId,
-    current_total_price_set: { shop_money: shopMoney },
+    current_subtotal_price_set: { shop_money: shopMoney },
   } = orderSchema.parse(event);
 
   const currency = shopMoney.currency_code;

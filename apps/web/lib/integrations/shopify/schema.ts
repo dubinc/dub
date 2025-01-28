@@ -9,7 +9,7 @@ export const orderSchema = z.object({
     first_name: z.string().nullish(),
     last_name: z.string().nullish(),
   }),
-  current_total_price_set: z.object({
+  current_subtotal_price_set: z.object({
     shop_money: z
       .object({
         amount: z.string(),
