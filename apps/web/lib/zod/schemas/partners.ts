@@ -199,12 +199,16 @@ export const createPartnerSchema = z.object({
     .describe("A brief description of the partner and their background."),
   linkProps: createLinkBodySchema
     .omit({
+      url: true,
       domain: true,
       key: true,
+      publicStats: true,
+      tagId: true,
+      geo: true,
       projectId: true,
       programId: true,
+      webhookIds: true,
       trackConversion: true,
-      geo: true,
     })
     .partial()
     .optional()
