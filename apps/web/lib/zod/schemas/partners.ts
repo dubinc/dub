@@ -217,6 +217,7 @@ export const onboardPartnerSchema = createPartnerSchema
   .omit({
     programId: true,
     username: true,
+    linkProps: true,
   })
   .merge(
     z.object({
