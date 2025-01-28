@@ -197,7 +197,18 @@ export const createPartnerSchema = z.object({
     .max(5000)
     .nullish()
     .describe("A brief description of the partner and their background."),
-  linkProps: createLinkBodySchema.partial().optional(),
+  linkProps: createLinkBodySchema
+    .omit({
+      domain: true,
+      key: true,
+      projectId: true,
+      programId: true,
+    })
+    .partial()
+    .optional()
+    .describe(
+      "Additional properties that you can pass to the partner's short link. Will be used to override the default link properties for this partner.",
+    ),
 });
 
 export const onboardPartnerSchema = createPartnerSchema
