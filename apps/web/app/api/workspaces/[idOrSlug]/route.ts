@@ -1,3 +1,4 @@
+import { validateAllowedHostnames } from "@/lib/api/allowed-hostnames";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { deleteWorkspace } from "@/lib/api/workspaces";
@@ -58,10 +59,8 @@ export const GET = withWorkspace(
 // PATCH /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
-    const body = await parseRequestBody(req);
-
     const { name, slug, logo, conversionEnabled, allowedHostnames } =
-      await updateWorkspaceSchema.parseAsync(body);
+      await updateWorkspaceSchema.parseAsync(await parseRequestBody(req));
 
     if (
       ["free", "pro"].includes(workspace.plan) &&
@@ -72,6 +71,10 @@ export const PATCH = withWorkspace(
         message: "Conversion tracking is not available on free or pro plans.",
       });
     }
+
+    const validHostnames = allowedHostnames
+      ? await validateAllowedHostnames(allowedHostnames)
+      : [];
 
     const logoUploaded = logo
       ? await storage.upload(
@@ -90,7 +93,7 @@ export const PATCH = withWorkspace(
           ...(slug && { slug }),
           ...(logoUploaded && { logo: logoUploaded.url }),
           ...(conversionEnabled !== undefined && { conversionEnabled }),
-          ...(allowedHostnames && { allowedHostnames }),
+          ...(validHostnames && { validHostnames }),
         },
         include: {
           domains: true,

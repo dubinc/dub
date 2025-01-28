@@ -1,5 +1,11 @@
-import WorkspaceAnalyticsClient from "./page-client";
+import { ConversionTrackingToggle } from "@/ui/workspaces/conversion-tracking-toggle";
+import { AllowedHostnames } from "./allowed-hostnames";
 
 export default function WorkspaceAnalytics() {
-  return <WorkspaceAnalyticsClient />;
+  return (
+    <>
+      <AllowedHostnames />
+      <ConversionTrackingToggle />
+    </>
+  );
 }
