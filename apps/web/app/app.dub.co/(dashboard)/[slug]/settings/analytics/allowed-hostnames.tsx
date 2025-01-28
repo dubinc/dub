@@ -1,6 +1,5 @@
 "use client";
 
-import { isValidDomain } from "@/lib/api/domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
@@ -10,7 +9,7 @@ import {
   LoadingSpinner,
   Popover,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, validDomainRegex } from "@dub/utils";
 import { CheckCircle, Delete } from "lucide-react";
 import Link from "next/link";
 import {
@@ -76,7 +75,7 @@ const AddHostnameForm = () => {
       return;
     }
 
-    if (!isValidDomain(hostname)) {
+    if (!validDomainRegex.test(hostname)) {
       toast.error("Enter a valid domain.");
       return;
     }
@@ -105,7 +104,7 @@ const AddHostnameForm = () => {
     setHostname("");
   };
 
-  const isHostnameValid = isValidDomain(hostname);
+  const isHostnameValid = validDomainRegex.test(hostname);
 
   return (
     <form

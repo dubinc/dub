@@ -1,4 +1,4 @@
-import { isValidDomain } from "./domains";
+import { validDomainRegex } from "@dub/utils";
 import { DubApiError } from "./errors";
 
 const MAX_HOSTNAMES_ALLOWED = 10;
@@ -13,7 +13,7 @@ export const validateAllowedHostnames = async (
   allowedHostnames = [...new Set(allowedHostnames)];
 
   const results = await Promise.all(
-    allowedHostnames.map((hostname) => isValidDomain(hostname)),
+    allowedHostnames.map((hostname) => validDomainRegex.test(hostname)),
   );
 
   const invalidHostnames = results.filter((result) => !result);
