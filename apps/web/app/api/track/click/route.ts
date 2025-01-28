@@ -1,9 +1,9 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
-import { getLinkViaEdge } from "@/lib/planetscale";
+import { conn } from "@/lib/planetscale/connection";
 import { recordClick } from "@/lib/tinybird";
 import { ratelimit, redis } from "@/lib/upstash";
-import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
+import { isValidUrl, LOCALHOST_IP, nanoid, punyEncode } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -32,6 +32,7 @@ export const POST = async (req: Request) => {
     const { success } = await ratelimit().limit(
       `track-click:${domain}-${key}:${ip}`,
     );
+
     if (!success) {
       throw new DubApiError({
         code: "rate_limit_exceeded",
@@ -39,7 +40,18 @@ export const POST = async (req: Request) => {
       });
     }
 
-    const link = await getLinkViaEdge(domain, key);
+    const { rows } = await conn.execute<{
+      id: string;
+      url: string;
+      projectId: string;
+      allowedHostnames: string;
+    }>(
+      "SELECT Link.id, Link.url, projectId, allowedHostnames FROM Link LEFT JOIN Project ON Link.projectId = Project.id WHERE domain = ? AND `key` = ?",
+      [domain, punyEncode(decodeURIComponent(key))],
+    );
+
+    const link =
+      rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
 
     if (!link) {
       return new Response(null, {
@@ -48,14 +60,26 @@ export const POST = async (req: Request) => {
       });
     }
 
-    const finalUrl = isValidUrl(url) ? url : link.url;
+    if (link.allowedHostnames) {
+      const allowedHostnames = link.allowedHostnames.split(" ");
+      const source = req.headers.get("referer") || req.headers.get("origin");
+      const sourceUrl = source ? new URL(source) : null;
+      const hostname = sourceUrl?.hostname.replace(/^www\./, "");
+
+      if (!hostname || !allowedHostnames.includes(hostname)) {
+        return new Response(null, {
+          status: 204,
+          headers: CORS_HEADERS,
+        });
+      }
+    }
 
     const cacheKey = `recordClick:${link.id}:${ip}`;
-
     let clickId = await redis.get<string>(cacheKey);
 
     if (!clickId) {
       clickId = nanoid(16);
+      const finalUrl = isValidUrl(url) ? url : link.url;
 
       waitUntil(
         recordClick({

@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { parseRequestBody } from "@/lib/api/utils";
 import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
@@ -57,8 +58,10 @@ export const GET = withWorkspace(
 // PATCH /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
+    const body = await parseRequestBody(req);
+
     const { name, slug, logo, conversionEnabled, allowedHostnames } =
-      await updateWorkspaceSchema.parseAsync(await req.json());
+      await updateWorkspaceSchema.parseAsync(body);
 
     if (
       ["free", "pro"].includes(workspace.plan) &&
