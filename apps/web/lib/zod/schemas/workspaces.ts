@@ -105,6 +105,11 @@ export const WorkspaceSchema = z
       .record(z.any())
       .nullable()
       .describe("The miscellaneous key-value store of the workspace."),
+    allowedHostnames: z
+      .array(z.string())
+      .nullable()
+      .describe("Specifies hostnames permitted for client-side click tracking.")
+      .openapi({ example: ["dub.sh"] }),
   })
   .openapi({
     title: "Workspace",
@@ -125,4 +130,6 @@ export const createWorkspaceSchema = z.object({
   conversionEnabled: z.boolean().optional(),
 });
 
-export const updateWorkspaceSchema = createWorkspaceSchema.partial();
+export const updateWorkspaceSchema = createWorkspaceSchema.partial().extend({
+  allowedHostnames: z.array(z.string()).optional(),
+});
