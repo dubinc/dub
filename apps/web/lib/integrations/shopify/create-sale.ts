@@ -23,11 +23,13 @@ export async function createShopifySale({
   workspaceId: string;
   leadData: z.infer<typeof leadEventSchemaTB>;
 }) {
+  const order = orderSchema.parse(event);
+
   const {
     checkout_token: checkoutToken,
     confirmation_number: invoiceId,
     current_subtotal_price_set: { shop_money: shopMoney },
-  } = orderSchema.parse(event);
+  } = order;
 
   const currency = shopMoney.currency_code;
   const amount = Number(shopMoney.amount) * 100;
@@ -57,7 +59,7 @@ export async function createShopifySale({
     amount,
     currency,
     invoice_id: invoiceId,
-    metadata: JSON.stringify(event),
+    metadata: JSON.stringify(order),
   };
 
   const [_sale, link, workspace, customer] = await Promise.all([
@@ -157,7 +159,7 @@ export async function createShopifySale({
         eventId,
         paymentProcessor,
       },
-      metadata: event,
+      metadata: order,
     });
 
     waitUntil(
