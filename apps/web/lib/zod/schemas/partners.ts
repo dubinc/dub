@@ -201,7 +201,6 @@ export const createPartnerSchema = z.object({
     .omit({
       domain: true,
       key: true,
-      userId: true,
       projectId: true,
       programId: true,
       trackConversion: true,
