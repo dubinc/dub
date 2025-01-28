@@ -7,7 +7,7 @@ import {
 import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
 import { CustomerSchema } from "./customers";
-import { LinkSchema } from "./links";
+import { createLinkBodySchema, LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { ProgramEnrollmentSchema } from "./programs";
 import { parseDateSchema } from "./utils";
@@ -197,6 +197,7 @@ export const createPartnerSchema = z.object({
     .max(5000)
     .nullish()
     .describe("A brief description of the partner and their background."),
+  linkProps: createLinkBodySchema.partial().optional(),
 });
 
 export const onboardPartnerSchema = createPartnerSchema
