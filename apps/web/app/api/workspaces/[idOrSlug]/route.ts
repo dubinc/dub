@@ -71,7 +71,7 @@ export const PATCH = withWorkspace(
 
     const validHostnames = allowedHostnames
       ? await validateAllowedHostnames(allowedHostnames)
-      : [];
+      : undefined;
 
     const logoUploaded = logo
       ? await storage.upload(
@@ -90,7 +90,9 @@ export const PATCH = withWorkspace(
           ...(slug && { slug }),
           ...(logoUploaded && { logo: logoUploaded.url }),
           ...(conversionEnabled !== undefined && { conversionEnabled }),
-          ...(validHostnames && { allowedHostnames: validHostnames }),
+          ...(validHostnames !== undefined && {
+            allowedHostnames: validHostnames,
+          }),
         },
         include: {
           domains: true,
