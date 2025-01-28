@@ -35,7 +35,7 @@ export const AllowedHostnames = () => {
   const { allowedHostnames, loading } = useWorkspace();
 
   return (
-    <div className="grid gap-5 divide-yellow-200 border-b border-gray-200 pt-0 py-5">
+    <div className="grid gap-5 divide-yellow-200 border-b border-gray-200 py-5 pt-0">
       <div className="flex flex-col gap-1">
         <h2 className="text-xl font-semibold tracking-tight text-black">
           Allowed Hostnames
@@ -105,7 +105,6 @@ const AddHostnameForm = () => {
     setHostname("");
   };
 
-  const canAddHostname = !["free", "pro"].includes(plan!);
   const isHostnameValid = isValidDomain(hostname);
 
   return (
@@ -130,12 +129,8 @@ const AddHostnameForm = () => {
             autoFocus
             autoComplete="off"
             placeholder="example.com"
-            disabled={!canAddHostname}
             className={cn(
               "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
-              {
-                "cursor-not-allowed bg-gray-50": !canAddHostname,
-              },
             )}
           />
         </div>
@@ -145,12 +140,9 @@ const AddHostnameForm = () => {
         text="Add Hostname"
         variant="primary"
         onClick={addHostname}
-        disabled={!canAddHostname || !isHostnameValid || hostname.length === 0}
+        disabled={!isHostnameValid || hostname.length === 0}
         loading={processing}
         className="w-fit"
-        disabledTooltip={
-          !canAddHostname ? "Upgrade to add hostnames" : undefined
-        }
       />
     </form>
   );
