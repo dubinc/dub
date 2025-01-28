@@ -13,17 +13,17 @@ import { waitUntil } from "@vercel/functions";
 import { orderSchema } from "./schema";
 
 export async function createShopifySale({
-  order,
+  event,
   customerId,
   workspaceId,
   leadData,
 }: {
-  order: any;
+  event: any;
   customerId: string;
   workspaceId: string;
   leadData: z.infer<typeof leadEventSchemaTB>;
 }) {
-  const orderData = orderSchema.parse(order);
+  const orderData = orderSchema.parse(event);
   const eventId = nanoid(16);
   const paymentProcessor = "shopify";
 
@@ -55,7 +55,7 @@ export async function createShopifySale({
     amount,
     currency,
     invoice_id: invoiceId,
-    metadata: JSON.stringify(order),
+    metadata: JSON.stringify(event),
   };
 
   const [_sale, link, workspace, customer] = await Promise.all([
@@ -155,9 +155,7 @@ export async function createShopifySale({
         eventId,
         paymentProcessor,
       },
-      metadata: {
-        ...order,
-      },
+      metadata: event,
     });
 
     waitUntil(
