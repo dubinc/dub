@@ -1,3 +1,4 @@
+import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { createSaleData } from "@/lib/api/sales/create-sale-data";
 import { createId } from "@/lib/api/utils";
@@ -211,7 +212,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     },
   });
 
-  const [_sale, _link, workspace] = await Promise.all([
+  const [_sale, linkUpdated, workspace] = await Promise.all([
     recordSale(saleData),
 
     // update link sales count
@@ -234,6 +235,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
             increment: charge.amount_total!,
           },
         },
+        include: includeTags,
       }),
 
     // update workspace sales usage
@@ -319,7 +321,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           workspace,
           data: transformLeadEventData({
             ...clickEvent,
-            link,
+            link: linkUpdated,
             eventName: "Checkout session completed",
             customerId: customer.id,
             customerExternalId: customer.externalId,
@@ -337,7 +339,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         workspace,
         data: transformSaleEventData({
           ...saleData,
-          link,
+          link: linkUpdated,
           customerId: customer.id,
           customerExternalId: customer.externalId,
           customerName: customer.name,
