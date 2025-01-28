@@ -2,7 +2,7 @@
 
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { SquareChart, Switch, TooltipContent } from "@dub/ui";
+import { Switch, TooltipContent } from "@dub/ui";
 import { ComponentProps, useEffect, useId, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -13,9 +13,6 @@ export function ConversionTrackingToggle() {
   return (
     <div className="flex items-center justify-between gap-4 rounded-lg border border-gray-200 bg-white p-5">
       <div className="flex min-w-0 items-center gap-4">
-        <div className="hidden rounded-md border border-gray-200 p-3 sm:block">
-          <SquareChart className="size-5" />
-        </div>
         <div className="overflow-hidden">
           <label
             htmlFor={`${id}-switch`}
