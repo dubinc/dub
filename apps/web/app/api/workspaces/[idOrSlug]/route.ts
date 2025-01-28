@@ -93,7 +93,7 @@ export const PATCH = withWorkspace(
           ...(slug && { slug }),
           ...(logoUploaded && { logo: logoUploaded.url }),
           ...(conversionEnabled !== undefined && { conversionEnabled }),
-          ...(validHostnames && { validHostnames }),
+          ...(validHostnames && { allowedHostnames: validHostnames }),
         },
         include: {
           domains: true,
