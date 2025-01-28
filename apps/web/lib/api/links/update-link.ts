@@ -15,6 +15,7 @@ import { waitUntil } from "@vercel/functions";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { createId } from "../utils";
 import { linkCache } from "./cache";
+import { includeTags } from "./include-tags";
 import { transformLink } from "./utils";
 
 export async function updateLink({
@@ -140,20 +141,7 @@ export async function updateLink({
       }),
     },
     include: {
-      tags: {
-        select: {
-          tag: {
-            select: {
-              id: true,
-              name: true,
-              color: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "asc",
-        },
-      },
+      ...includeTags,
       webhooks: webhookIds ? true : false,
     },
   });
