@@ -125,4 +125,6 @@ export const createWorkspaceSchema = z.object({
   conversionEnabled: z.boolean().optional(),
 });
 
-export const updateWorkspaceSchema = createWorkspaceSchema.partial();
+export const updateWorkspaceSchema = createWorkspaceSchema.partial().extend({
+  allowedHostnames: z.array(z.string()).optional(),
+});

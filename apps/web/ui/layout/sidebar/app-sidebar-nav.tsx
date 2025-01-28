@@ -146,6 +146,11 @@ const NAV_AREAS: SidebarNavAreas<{
             href: `/${slug}/settings/library`,
           },
           {
+            name: "Analytics",
+            icon: LinesY,
+            href: `/${slug}/settings/analytics`,
+          },
+          {
             name: "People",
             icon: Users6,
             href: `/${slug}/settings/people`,

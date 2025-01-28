@@ -57,8 +57,18 @@ export const GET = withWorkspace(
 // PATCH /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
-    const { name, slug, logo, conversionEnabled } =
+    const { name, slug, logo, conversionEnabled, allowedHostnames } =
       await updateWorkspaceSchema.parseAsync(await req.json());
+
+    if (
+      ["free", "pro"].includes(workspace.plan) &&
+      (conversionEnabled || allowedHostnames)
+    ) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Conversion tracking is not available on free or pro plans.",
+      });
+    }
 
     const logoUploaded = logo
       ? await storage.upload(
@@ -77,6 +87,9 @@ export const PATCH = withWorkspace(
           ...(slug && { slug }),
           ...(logoUploaded && { logo: logoUploaded.url }),
           ...(conversionEnabled !== undefined && { conversionEnabled }),
+          ...(allowedHostnames && {
+            allowedHostnames: allowedHostnames.join(" "),
+          }),
         },
         include: {
           domains: true,
