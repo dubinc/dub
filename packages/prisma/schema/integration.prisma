@@ -12,6 +12,7 @@ model Integration {
   screenshots Json?
   verified    Boolean  @default(false)
   installUrl  String?
+  category    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

@@ -4,6 +4,7 @@ import { prisma } from "@dub/prisma";
 import { Integration } from "@prisma/client";
 import { Suspense } from "react";
 import { EnabledIntegrations } from "./enabled-integrations";
+import { FeaturedIntegrations } from "./featured-integrations";
 
 export async function IntegrationsList() {
   return (
@@ -42,26 +43,62 @@ async function IntegrationsListRSC() {
   return (
     <>
       <EnabledIntegrations integrations={integrations} />
+      <FeaturedIntegrations integrations={integrations} />
       <IntegrationsCards integrations={integrations} />
     </>
   );
 }
+
+const CATEGORY_ORDER = [
+  "Payments",
+  "Forms",
+  "Social Scheduling",
+  "Authentication",
+  "CMS",
+  "Automations",
+  "Analytics",
+  "Productivity",
+  "Dub",
+  "Miscellaneous",
+] as const;
 
 async function IntegrationsCards({
   integrations,
 }: {
   integrations: IntegrationsWithInstallations;
 }) {
+  const groupedIntegrations = integrations.reduce(
+    (acc, integration) => {
+      const category = integration.category || "Miscellaneous";
+      acc[category] = acc[category] || [];
+      acc[category].push(integration);
+      return acc;
+    },
+    {} as Record<string, IntegrationsWithInstallations>,
+  );
+
+  const categories = Object.keys(groupedIntegrations).sort(
+    (a, b) =>
+      CATEGORY_ORDER.indexOf(a as any) - CATEGORY_ORDER.indexOf(b as any),
+  );
+
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-      {integrations.map((integration) => (
-        <IntegrationCard
-          key={integration.id}
-          {...integration}
-          installations={integration._count.installations}
-        />
+    <>
+      {categories.map((category) => (
+        <div key={category}>
+          <h2 className="font-medium leading-4 text-neutral-800">{category}</h2>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {groupedIntegrations[category]!.map((integration) => (
+              <IntegrationCard
+                key={integration.id}
+                {...integration}
+                installations={integration._count.installations}
+              />
+            ))}
+          </div>
+        </div>
       ))}
-    </div>
+    </>
   );
 }
 

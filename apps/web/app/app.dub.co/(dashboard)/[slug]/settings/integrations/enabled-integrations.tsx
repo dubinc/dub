@@ -2,7 +2,7 @@
 
 import useIntegrations from "@/lib/swr/use-integrations";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { BlurImage } from "@dub/ui";
+import { IntegrationLogo } from "@/ui/integrations/integration-logo";
 import { cn } from "@dub/utils";
 import { Integration } from "@prisma/client";
 import { ChevronRight } from "lucide-react";
@@ -57,20 +57,10 @@ function IntegrationRow({ integration }: { integration: Integration }) {
       )}
     >
       <div className="flex items-center justify-between gap-3">
-        {integration.logo ? (
-          <div className="relative">
-            <BlurImage
-              src={integration.logo}
-              alt={`Logo for ${integration.name}`}
-              className="relative size-8 rounded-md"
-              width={20}
-              height={20}
-            />
-            <div className="pointer-events-none absolute inset-0 rounded-md border border-black/5" />
-          </div>
-        ) : (
-          <div className="size-8 rounded-md bg-neutral-200" />
-        )}
+        <IntegrationLogo
+          src={integration.logo}
+          alt={`Logo for ${integration.name}`}
+        />
 
         <span className="text-sm font-medium text-neutral-800">
           {integration.name}
