@@ -1,16 +1,19 @@
-import { DubApiError } from "@/lib/api/errors";
-import { createLink } from "@/lib/api/links";
+import { DubApiError, ErrorCodes } from "@/lib/api/errors";
+import { createLink, processLink } from "@/lib/api/links";
 import { enrollPartner } from "@/lib/api/partners/enroll-partner";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { checkIfKeyExists } from "@/lib/planetscale";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
   createPartnerSchema,
   EnrolledPartnerSchema,
   partnersQuerySchema,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -77,7 +80,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 });
 
 // POST /api/partners - add a partner for a program
-export const POST = withWorkspace(async ({ workspace, req }) => {
+export const POST = withWorkspace(async ({ workspace, req, session }) => {
   const { programId, name, email, image, username, linkProps } =
     createPartnerSchema.parse(await parseRequestBody(req));
 
@@ -103,19 +106,39 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
     });
   }
 
-  const link = await createLink({
-    projectId: workspace.id,
-    domain: program.domain,
-    key: username,
-    url: program.url,
-    programId,
-    trackConversion: true,
-    ...linkProps,
+  const { link, error, code } = await processLink({
+    payload: {
+      ...linkProps,
+      domain: program.domain,
+      url: program.url,
+      key: username,
+      programId,
+      trackConversion: true,
+    },
+    workspace,
+    userId: session.user.id,
   });
+
+  if (error != null) {
+    throw new DubApiError({
+      code: code as ErrorCodes,
+      message: error,
+    });
+  }
+
+  const partnerLink = await createLink(link);
+
+  waitUntil(
+    sendWorkspaceWebhook({
+      trigger: "link.created",
+      workspace,
+      data: linkEventSchema.parse(partnerLink),
+    }),
+  );
 
   const createdPartner = await enrollPartner({
     programId,
-    linkId: link.id,
+    linkId: partnerLink.id,
     partner: {
       name,
       email,
@@ -125,7 +148,7 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
 
   const partner = EnrolledPartnerSchema.parse({
     ...createdPartner,
-    link,
+    link: partnerLink,
     status: "approved",
     commissionAmount: null,
     earnings: 0,

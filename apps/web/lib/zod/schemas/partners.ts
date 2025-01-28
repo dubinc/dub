@@ -203,6 +203,8 @@ export const createPartnerSchema = z.object({
       key: true,
       projectId: true,
       programId: true,
+      trackConversion: true,
+      geo: true,
     })
     .partial()
     .optional()
