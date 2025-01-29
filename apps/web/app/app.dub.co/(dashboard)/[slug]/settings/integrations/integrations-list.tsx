@@ -4,7 +4,10 @@ import { prisma } from "@dub/prisma";
 import { Integration } from "@prisma/client";
 import { Suspense } from "react";
 import { EnabledIntegrations } from "./enabled-integrations";
-import { FeaturedIntegrations } from "./featured-integrations";
+import {
+  FeaturedIntegrations,
+  FeaturedIntegrationsLoader,
+} from "./featured-integrations";
 
 export async function IntegrationsList() {
   return (
@@ -12,6 +15,7 @@ export async function IntegrationsList() {
       <Suspense
         fallback={
           <>
+            <FeaturedIntegrationsLoader />
             <IntegrationsCardsLoader />
           </>
         }

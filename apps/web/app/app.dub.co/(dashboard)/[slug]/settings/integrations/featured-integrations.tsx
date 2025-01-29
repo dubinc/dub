@@ -10,7 +10,7 @@ import {
   useCarousel,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { memo, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { IntegrationsWithInstallations } from "./integrations-list";
 
 const FEATURED_SLUGS = ["make", "zapier", "stripe", "shopify"];
@@ -56,7 +56,7 @@ export function FeaturedIntegrations({
                   </div>
 
                   {/* Bottom card */}
-                  <div className="absolute inset-x-4 bottom-4 flex items-start gap-4 rounded-lg bg-white p-2">
+                  <div className="absolute inset-x-4 bottom-4 hidden items-start gap-4 rounded-lg bg-white p-2 sm:flex">
                     <div className="shrink-0">
                       <IntegrationLogo
                         src={integration.logo}
@@ -89,8 +89,7 @@ function CarouselNavBar({
 }: {
   featuredIntegrations: IntegrationsWithInstallations;
 }) {
-  const { scrollNext, scrollPrev, canScrollNext, canScrollPrev, api } =
-    useCarousel();
+  const { api } = useCarousel();
 
   const autoplay = api?.plugins()?.autoplay;
 
@@ -146,4 +145,25 @@ function CarouselNavBar({
   );
 }
 
-const BlurImageMemo = memo(BlurImage);
+export function FeaturedIntegrationsLoader() {
+  return (
+    <div>
+      <div className="overflow-hidden">
+        <div className="-ml-4 flex -translate-x-1/2">
+          {[...Array(3)].map(() => (
+            <div className="min-w-0 shrink-0 grow-0 basis-2/3 pl-4">
+              <div className="border border-transparent">
+                <div className="aspect-[900/580] animate-pulse rounded-lg bg-neutral-200" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="mt-6 flex items-center justify-center gap-4 pb-1">
+        {[...Array(4)].map(() => (
+          <div className="size-8 animate-pulse rounded-lg bg-neutral-200" />
+        ))}
+      </div>
+    </div>
+  );
+}
