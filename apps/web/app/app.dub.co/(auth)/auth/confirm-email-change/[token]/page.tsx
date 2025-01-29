@@ -1,8 +1,10 @@
 import { getSession, hashToken } from "@/lib/auth";
 import { redis } from "@/lib/upstash";
 import EmptyState from "@/ui/shared/empty-state";
+import { sendEmail } from "@dub/email";
 import { subscribe } from "@dub/email/resend/subscribe";
 import { unsubscribe } from "@dub/email/resend/unsubscribe";
+import { EmailUpdated } from "@dub/email/templates/email-updated";
 import { prisma } from "@dub/prisma";
 import { InputPassword, LoadingSpinner } from "@dub/ui";
 import { VerificationToken } from "@prisma/client";
@@ -117,6 +119,14 @@ const VerifyEmailChange = async ({
             subscribe({ email: data.newEmail }),
           ]
         : []),
+
+      sendEmail({
+        subject: "Your email address has been changed",
+        email: data.email,
+        react: EmailUpdated({
+          newEmail: data.newEmail,
+        }),
+      }),
     ]),
   );
 
