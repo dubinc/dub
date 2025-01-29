@@ -19,7 +19,7 @@ export default function IntegrationCard(
   return (
     <Link
       href={`/${slug}/settings/integrations/${integration.slug}`}
-      className="hover:drop-shadow-card-hover relative rounded-xl border border-gray-200 bg-white p-4 transition-[filter]"
+      className="hover:drop-shadow-card-hover relative rounded-lg border border-gray-200 bg-white p-4 transition-[filter]"
     >
       {installed && (
         <div className="absolute right-4 top-4 rounded bg-green-100 px-2 py-1 text-[0.625rem] font-semibold uppercase leading-none text-green-800">

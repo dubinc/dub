@@ -1,5 +1,4 @@
 import IntegrationCard from "@/ui/integrations/integration-card";
-import OAuthAppPlaceholder from "@/ui/oauth-apps/oauth-app-placeholder";
 import { prisma } from "@dub/prisma";
 import { Integration } from "@prisma/client";
 import { Suspense } from "react";
@@ -106,12 +105,18 @@ async function IntegrationsCards({
   );
 }
 
-async function IntegrationsCardsLoader() {
-  return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <OAuthAppPlaceholder key={i} />
-      ))}
+function IntegrationsCardsLoader() {
+  return [...Array(3)].map((_, idx) => (
+    <div key={idx}>
+      <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {[...Array(3)].map((_, idx) => (
+          <div
+            key={idx}
+            className="h-[170px] animate-pulse rounded-lg bg-neutral-200"
+          />
+        ))}
+      </div>
     </div>
-  );
+  ));
 }
