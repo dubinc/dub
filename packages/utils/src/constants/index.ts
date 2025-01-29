@@ -1,4 +1,3 @@
-export * from "./bots";
 export * from "./cctlds";
 export * from "./connect-supported-countries";
 export * from "./continents";

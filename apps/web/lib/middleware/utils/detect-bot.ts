@@ -1,6 +1,6 @@
-import { IP_BOTS, UA_BOTS } from "@dub/utils/src/constants";
 import { ipAddress } from "@vercel/functions";
 import { userAgent } from "next/server";
+import { IP_BOTS, UA_BOTS } from "./bots-list";
 
 export const detectBot = (req: Request) => {
   const searchParams = new URL(req.url).searchParams;

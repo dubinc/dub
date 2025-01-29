@@ -1,21 +1,21 @@
 export const UA_BOTS = [
-  "bot",
+  "bot", // most bots & crawlers
   "metatags", // Dub.co Metatags API (https://api.dub.co/metatags)
-  "chatgpt",
-  "bluesky",
-  "facebookexternalhit",
-  "WhatsApp",
-  "google",
-  "baidu",
-  "bing",
-  "msn",
-  "duckduckbot",
-  "teoma",
-  "slurp",
-  "yandex",
-  "MetaInspector",
-  "Go-http-client",
-  "iframely",
+  "chatgpt", // ChatGPT
+  "bluesky", // Bluesky crawler
+  "facebookexternalhit", // Facebook crawler
+  "WhatsApp", // WhatsApp crawler
+  "google", // Google crawler
+  "baidu", // Baidu crawler
+  "bing", // Bing crawler
+  "msn", // MSN crawler
+  "duckduckbot", // DuckDuckGo crawler
+  "teoma", // Teoma crawler
+  "slurp", // Slurp crawler
+  "yandex", // Yandex crawler
+  "MetaInspector", // metatags.io
+  "Go-http-client", // Go-http-client/1.1 is a bot: https://user-agents.net/string/go-http-client-1-1
+  "iframely", // https://iframely.com/docs/about (used by Notion, Linear)
 
   // new
   "ia_archiver",
