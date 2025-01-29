@@ -1,6 +1,14 @@
 "use client";
 
-import { CreditCard, GreekTemple, StripeLink } from "@dub/ui/icons";
+import {
+  CardAmex,
+  CardDiscover,
+  CardMastercard,
+  CardVisa,
+  CreditCard,
+  GreekTemple,
+  StripeLink,
+} from "@dub/ui/icons";
 import { Stripe } from "stripe";
 
 export const PaymentMethodTypesList = (paymentMethod?: Stripe.PaymentMethod) =>
@@ -8,7 +16,14 @@ export const PaymentMethodTypesList = (paymentMethod?: Stripe.PaymentMethod) =>
     {
       type: "card",
       title: "Card",
-      icon: CreditCard,
+      icon: paymentMethod?.card
+        ? {
+            amex: CardAmex,
+            discover: CardDiscover,
+            mastercard: CardMastercard,
+            visa: CardVisa,
+          }[paymentMethod?.card.brand] ?? CreditCard
+        : CreditCard,
       description: paymentMethod?.card
         ? `Connected ${paymentMethod.card.brand} ***${paymentMethod.card.last4}`
         : "No card connected",
