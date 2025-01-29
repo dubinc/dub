@@ -12,6 +12,7 @@ export const PaymentMethodTypesList = (paymentMethod?: Stripe.PaymentMethod) =>
       description: paymentMethod?.card
         ? `Connected ${paymentMethod.card.brand} ***${paymentMethod.card.last4}`
         : "No card connected",
+      iconBgColor: "bg-neutral-100",
     },
     {
       type: "us_bank_account",
@@ -25,7 +26,6 @@ export const PaymentMethodTypesList = (paymentMethod?: Stripe.PaymentMethod) =>
       type: "link",
       title: "Link",
       icon: StripeLink,
-      iconBgColor: "bg-green-100",
       description: paymentMethod?.link
         ? `Connected Link account ${paymentMethod.link?.email}`
         : "No Link account connected",

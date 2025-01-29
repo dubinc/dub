@@ -10,7 +10,7 @@ import { Stripe } from "stripe";
 import { PaymentMethodTypesList } from "./payment-method-types";
 
 export default function PaymentMethods() {
-  const { slug, stripeId, partnersEnabled } = useWorkspace();
+  const { slug, stripeId, partnersEnabled, plan } = useWorkspace();
   const { paymentMethods } = usePaymentMethods();
 
   const regularPaymentMethods = paymentMethods?.filter(
@@ -37,6 +37,10 @@ export default function PaymentMethods() {
     setIsLoading(false);
   };
 
+  if (plan === "free") {
+    return null;
+  }
+
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
       <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:flex-row md:items-center md:p-8">
@@ -56,7 +60,7 @@ export default function PaymentMethods() {
           />
         )}
       </div>
-      <div className="grid gap-4 border-t border-neutral-200 p-6">
+      <div className="grid gap-4 border-t border-neutral-200 bg-neutral-100 p-6">
         {regularPaymentMethods ? (
           regularPaymentMethods.length > 0 ? (
             regularPaymentMethods.map((paymentMethod) => (
@@ -87,7 +91,7 @@ export default function PaymentMethods() {
         )}
       </div>
       {partnersEnabled && achPaymentMethods && (
-        <div className="grid gap-4 border-t border-neutral-200 p-6">
+        <div className="grid gap-4 bg-neutral-100 border-neutral-200 px-6 pb-6 drop-shadow-sm rounded-br-lg rounded-bl-lg">
           {achPaymentMethods.length > 0 ? (
             achPaymentMethods.map((paymentMethod) => (
               <PaymentMethodCard
@@ -139,7 +143,7 @@ const PaymentMethodCard = ({
   };
 
   return (
-    <div className="flex items-center justify-between rounded-lg border border-neutral-200 p-4">
+    <div className="flex items-center justify-between rounded-lg border border-neutral-200 drop-shadow-sm bg-white p-4">
       <div className="flex items-center gap-4">
         <div
           className={cn(

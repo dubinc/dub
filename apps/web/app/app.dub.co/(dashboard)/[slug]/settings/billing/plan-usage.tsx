@@ -8,6 +8,7 @@ import PlanBadge from "@/ui/workspaces/plan-badge";
 import { buttonVariants, Icon, useRouterStuff } from "@dub/ui";
 import {
   CircleDollar,
+  CrownSmall,
   CursorRays,
   Globe,
   Hyperlink,
@@ -91,15 +92,27 @@ export default function PlanUsage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Link
-            href={`/${slug}/settings/billing/invoices`}
-            className={cn(
-              buttonVariants({ variant: "secondary" }),
-              "flex h-9 w-full items-center justify-center rounded-md border px-4 text-sm",
-            )}
-          >
-            View invoices
-          </Link>
+          {plan === "free" ? (
+            <Link
+              href={`/${slug}/upgrade`}
+              className={cn(
+                buttonVariants({ variant: "primary" }),
+                "flex h-9 w-full items-center justify-center rounded-md border px-4 text-sm",
+              )}
+            >
+              Upgrade Plan
+            </Link>
+          ) : (
+            <Link
+              href={`/${slug}/settings/billing/invoices`}
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "flex h-9 w-full items-center justify-center rounded-md border px-4 text-sm",
+              )}
+            >
+              View invoices
+            </Link>
+          )}
           {stripeId && <ManageSubscriptionButton />}
         </div>
       </div>
@@ -127,6 +140,7 @@ export default function PlanUsage() {
               usage={salesUsage}
               limit={salesLimit}
               unit="$"
+              plan={plan}
             />
           </div>
           <div className="w-full px-2 pb-8 md:px-8">
@@ -154,7 +168,7 @@ export default function PlanUsage() {
           />
         </div>
       </div>
-      {plan !== "enterprise" && (
+      {plan !== "enterprise" && plan !== "free" && (
         <div className="flex flex-col items-center justify-between space-y-3 border-t border-neutral-200 px-6 py-4 text-center md:flex-row md:space-y-0 md:px-8 md:text-left">
           <p className="text-sm text-neutral-500">
             {plan === "business max"
@@ -183,6 +197,7 @@ function UsageTabCard({
   usage: usageProp,
   limit: limitProp,
   unit,
+  plan,
 }: {
   id: string;
   icon: Icon;
@@ -190,6 +205,7 @@ function UsageTabCard({
   usage?: number;
   limit?: number;
   unit?: string;
+  plan: string;
 }) {
   const { searchParams, queryParams } = useRouterStuff();
 
@@ -213,15 +229,25 @@ function UsageTabCard({
   return (
     <button
       className={cn(
-        "rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors duration-75 hover:bg-neutral-50 lg:px-5 lg:py-4",
+        "rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors duration-75",
         "outline-none focus-visible:border-blue-600 focus-visible:ring-1 focus-visible:ring-blue-600",
         isActive && "border-neutral-900 ring-1 ring-neutral-900",
+        plan === "free" || plan === "pro" ? "hover:bg-neutral-100 bg-neutral-100 border-neutral-100" : "hover:bg-neutral-50 lg:px-5 lg:py-4",
       )}
       aria-selected={isActive}
-      onClick={() => queryParams({ set: { tab: id } })}
+      onClick={() => (plan !== "free" && plan !== "pro") && queryParams({ set: { tab: id } })}
+      disabled={plan === "free" || plan === "pro"} 
     >
       <Icon className="size-4 text-neutral-600" />
-      <div className="mt-1.5 text-sm text-neutral-600">{title}</div>
+      <div className="mt-1.5 flex items-center gap-2 text-sm text-neutral-600">
+        {title}
+        {id === "revenue" && (plan === "free" || plan === "pro") && (
+          <span className="rounded-full border border-neutral-300 px-2 py-0.5 text-xs text-neutral-500 flex items-center gap-1">
+            <CrownSmall className="size-" />
+            Business
+          </span>
+        )}
+      </div>
       <div className="mt-2">
         {!loading ? (
           <NumberFlow
@@ -232,7 +258,7 @@ function UsageTabCard({
                 ? {
                     style: "currency",
                     currency: "USD",
-                    // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                    // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
                     trailingZeroDisplay: "stripIfInteger",
                   }
                 : {
@@ -258,7 +284,10 @@ function UsageTabCard({
             >
               <div
                 className={cn(
-                  "size-full rounded-full bg-gradient-to-r from-blue-500/80 to-blue-600",
+                  "size-full rounded-full",
+                  plan === "free" || plan === "pro"
+                    ? "bg-neutral-900/10"
+                    : "bg-gradient-to-r from-blue-500/80 to-blue-600",
                   warning && "from-neutral-900/10 via-red-500 to-red-600",
                 )}
                 style={{
