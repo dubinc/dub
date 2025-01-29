@@ -32,7 +32,7 @@ export const UTM_PARAMETERS = [
     key: "utm_campaign",
     icon: Flag6,
     label: "Campaign",
-    placeholder: "summer_sale",
+    placeholder: "summer sale",
     description: "The name of the campaign",
   },
   {
@@ -46,7 +46,7 @@ export const UTM_PARAMETERS = [
     key: "utm_content",
     icon: Page2,
     label: "Content",
-    placeholder: "logolink",
+    placeholder: "logo link",
     description: "The content of the campaign",
   },
   {

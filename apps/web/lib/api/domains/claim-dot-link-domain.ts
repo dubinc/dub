@@ -11,6 +11,7 @@ import {
   APP_DOMAIN_WITH_NGROK,
   DEFAULT_LINK_PROPS,
 } from "@dub/utils";
+import { get } from "@vercel/edge-config";
 import { waitUntil } from "@vercel/functions";
 import { addDomainToVercel } from "./add-domain-vercel";
 import { markDomainAsDeleted } from "./mark-domain-deleted";
@@ -30,11 +31,26 @@ export async function claimDotLinkDomain({
       message: "Free workspaces cannot register .link domains.",
     });
 
-  if (workspace.id !== ACME_WORKSPACE_ID) {
-    if (workspace.dotLinkClaimed) {
+  if (workspace.id !== ACME_WORKSPACE_ID && workspace.dotLinkClaimed) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "Workspace is limited to one free .link domain.",
+    });
+  }
+
+  const customDomainTerms = await get("customDomainTerms");
+
+  if (customDomainTerms && Array.isArray(customDomainTerms)) {
+    const customDomainTermsRegex = new RegExp(
+      customDomainTerms
+        .map((term: string) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) // replace special characters with escape sequences
+        .join("|"),
+    );
+
+    if (customDomainTermsRegex.test(domain)) {
       throw new DubApiError({
         code: "forbidden",
-        message: "Workspace is limited to one free .link domain.",
+        message: "Domain is not allowed.",
       });
     }
   }

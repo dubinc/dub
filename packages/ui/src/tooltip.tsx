@@ -25,6 +25,7 @@ export interface TooltipProps
     | ((props: { setOpen: (open: boolean) => void }) => ReactNode);
   contentClassName?: string;
   disableHoverableContent?: TooltipPrimitive.TooltipProps["disableHoverableContent"];
+  delayDuration?: TooltipPrimitive.TooltipProps["delayDuration"];
 }
 
 export function Tooltip({
@@ -33,6 +34,7 @@ export function Tooltip({
   contentClassName,
   side = "top",
   disableHoverableContent,
+  delayDuration = 0,
   ...rest
 }: TooltipProps) {
   const [open, setOpen] = useState(false);
@@ -41,7 +43,7 @@ export function Tooltip({
     <TooltipPrimitive.Root
       open={open}
       onOpenChange={setOpen}
-      delayDuration={0}
+      delayDuration={delayDuration}
       disableHoverableContent={disableHoverableContent}
     >
       <TooltipPrimitive.Trigger
