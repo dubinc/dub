@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { partnersCountQuerySchema } from "@/lib/zod/schemas/partners";
@@ -5,18 +6,26 @@ import { prisma } from "@dub/prisma";
 import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
-// GET /api/programs/[programId]/partners/count
+// GET /api/partners/count - get the count of partners for a program
 export const GET = withWorkspace(
-  async ({ workspace, params, searchParams }) => {
-    const { programId } = params;
+  async ({ workspace, searchParams }) => {
+    const { programId } = searchParams;
 
-    const { groupBy, status, country } =
-      partnersCountQuerySchema.parse(searchParams);
+    if (!programId) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "Program ID not found. Did you forget to include a `programId` query parameter?",
+      });
+    }
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
+
+    const { groupBy, status, country } =
+      partnersCountQuerySchema.parse(searchParams);
 
     // Get partner count by country
     if (groupBy === "country") {
@@ -89,5 +98,14 @@ export const GET = withWorkspace(
     });
 
     return NextResponse.json(count);
+  },
+  {
+    requiredPlan: [
+      "business",
+      "business extra",
+      "business max",
+      "business plus",
+      "enterprise",
+    ],
   },
 );

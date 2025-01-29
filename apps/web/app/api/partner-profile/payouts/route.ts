@@ -1,4 +1,4 @@
-import { withPartner } from "@/lib/auth/partner";
+import { withPartnerProfile } from "@/lib/auth/partner";
 import {
   PartnerPayoutResponseSchema,
   payoutsQuerySchema,
@@ -7,8 +7,8 @@ import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import z from "zod";
 
-// GET /api/partners/[partnerId]/payouts - get all payouts for a partner
-export const GET = withPartner(async ({ partner, searchParams }) => {
+// GET /api/partner-profile/payouts - get all payouts for a partner
+export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   const { status, sortBy, sortOrder, page, pageSize } =
     payoutsQuerySchema.parse(searchParams);
 

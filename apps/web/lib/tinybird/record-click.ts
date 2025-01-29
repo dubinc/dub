@@ -214,8 +214,30 @@ async function sendLinkClickWebhooks({
   }
 
   const link = await conn
-    .execute("SELECT * FROM Link WHERE id = ?", [linkId])
-    .then((res) => res.rows[0]);
+    .execute(
+      `
+    SELECT 
+      l.*,
+      JSON_ARRAYAGG(
+        IF(t.id IS NOT NULL,
+          JSON_OBJECT('tag', JSON_OBJECT('id', t.id, 'name', t.name, 'color', t.color)),
+          NULL
+        )
+      ) as tags
+    FROM Link l
+    LEFT JOIN LinkTag lt ON l.id = lt.linkId
+    LEFT JOIN Tag t ON lt.tagId = t.id
+    WHERE l.id = ?
+    GROUP BY l.id
+  `,
+      [linkId],
+    )
+    .then((res) => {
+      const row = res.rows[0] as any;
+      // Handle case where there are no tags (JSON_ARRAYAGG returns [null])
+      row.tags = row.tags?.[0] === null ? [] : row.tags;
+      return row;
+    });
 
   await sendWebhooks({
     trigger: "link.clicked",

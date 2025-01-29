@@ -44,7 +44,7 @@ function PayoutDetailsSheetContent({
     error,
   } = useSWR<PartnerSaleResponse[]>(
     partner
-      ? `/api/partners/${partner.id}/programs/${payout.program.id}/sales?payoutId=${payout.id}&interval=all&pageSize=${SHEET_MAX_ITEMS}`
+      ? `/api/partner-profile/programs/${payout.program.id}/sales?payoutId=${payout.id}&interval=all&pageSize=${SHEET_MAX_ITEMS}`
       : undefined,
     fetcher,
   );

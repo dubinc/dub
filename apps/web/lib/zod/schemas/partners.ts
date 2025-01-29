@@ -7,7 +7,7 @@ import {
 import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
 import { CustomerSchema } from "./customers";
-import { LinkSchema } from "./links";
+import { createLinkBodySchema, LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { ProgramEnrollmentSchema } from "./programs";
 import { parseDateSchema } from "./utils";
@@ -63,6 +63,8 @@ export const EnrolledPartnerSchema = PartnerSchema.omit({
   .merge(ProgramEnrollmentSchema)
   .omit({
     program: true,
+    partnerId: true,
+    programId: true,
   })
   .extend({
     earnings: z.number(),
@@ -155,6 +157,9 @@ export const getPartnerSalesCountQuerySchema = getSalesCountQuerySchema.omit({
 });
 
 export const createPartnerSchema = z.object({
+  programId: z
+    .string()
+    .describe("The ID of the program to create a partner for."),
   name: z
     .string()
     .trim()
@@ -192,11 +197,35 @@ export const createPartnerSchema = z.object({
     .max(5000)
     .nullish()
     .describe("A brief description of the partner and their background."),
+  linkProps: createLinkBodySchema
+    .omit({
+      url: true,
+      domain: true,
+      key: true,
+      publicStats: true,
+      tagId: true,
+      geo: true,
+      projectId: true,
+      programId: true,
+      webhookIds: true,
+      trackConversion: true,
+    })
+    .partial()
+    .optional()
+    .describe(
+      "Additional properties that you can pass to the partner's short link. Will be used to override the default link properties for this partner.",
+    ),
 });
 
-export const onboardPartnerSchema = createPartnerSchema.merge(
-  z.object({
-    image: z.string(),
-    country: z.enum(COUNTRY_CODES),
-  }),
-);
+export const onboardPartnerSchema = createPartnerSchema
+  .omit({
+    programId: true,
+    username: true,
+    linkProps: true,
+  })
+  .merge(
+    z.object({
+      image: z.string(),
+      country: z.enum(COUNTRY_CODES),
+    }),
+  );

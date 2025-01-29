@@ -4,7 +4,9 @@ import { createId } from "@/lib/api/utils";
 import { updateConfig } from "@/lib/edge-config";
 import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { DubApiError } from "../errors";
 
 export const enrollPartner = async ({
   programId,
@@ -20,32 +22,46 @@ export const enrollPartner = async ({
   };
 }) => {
   if (partner.email) {
-    const partnerFound = await prisma.partner.findUnique({
+    const programEnrollment = await prisma.programEnrollment.findFirst({
       where: {
-        email: partner.email,
+        programId,
+        partner: {
+          email: partner.email,
+        },
       },
     });
 
-    if (partnerFound) {
-      throw new Error(`Partner with email ${partner.email} already exists.`);
+    if (programEnrollment) {
+      throw new DubApiError({
+        message: `Partner ${partner.email} already enrolled in this program.`,
+        code: "conflict",
+      });
     }
   }
 
-  const [createdPartner, updatedLink] = await Promise.all([
-    prisma.partner.create({
-      data: {
+  const payload: Pick<Prisma.PartnerUpdateInput, "programs"> = {
+    programs: {
+      create: {
+        programId,
+        linkId,
+        status: "approved",
+      },
+    },
+  };
+
+  const [upsertedPartner, updatedLink] = await Promise.all([
+    prisma.partner.upsert({
+      where: {
+        email: partner.email ?? "",
+      },
+      update: payload,
+      create: {
+        ...payload,
         id: createId({ prefix: "pn_" }),
         name: partner.name,
         email: partner.email,
         image: partner.image,
         country: "US",
-        programs: {
-          create: {
-            programId,
-            linkId,
-            status: "approved",
-          },
-        },
       },
     }),
     prisma.link.update({
@@ -77,5 +93,5 @@ export const enrollPartner = async ({
     ]),
   );
 
-  return createdPartner;
+  return upsertedPartner;
 };

@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { generateRandomName } from "@/lib/names";
@@ -104,6 +105,7 @@ export const POST = withWorkspaceEdge(
                 increment: 1,
               },
             },
+            include: includeTags,
           }),
 
           // update workspace usage

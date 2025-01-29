@@ -44,7 +44,10 @@ export const GET = withSession(async ({ session }) => {
   });
   return NextResponse.json(
     workspaces.map((project) =>
-      WorkspaceSchema.parse({ ...project, id: `ws_${project.id}` }),
+      WorkspaceSchema.parse({
+        ...project,
+        id: `ws_${project.id}`,
+      }),
     ),
   );
 });

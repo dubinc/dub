@@ -10,6 +10,7 @@ import { X } from "@/ui/shared/icons";
 import {
   Button,
   buttonVariants,
+  CopyButton,
   Sheet,
   StatusBadge,
   Table,
@@ -74,7 +75,7 @@ function PartnerDetailsSheetContent({
         <div className="border-y border-neutral-200 bg-neutral-50 p-6">
           {/* Basic info */}
           <div className="flex items-start justify-between gap-6">
-            <div className="flex flex-col">
+            <div>
               <img
                 src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`}
                 alt={partner.name}
@@ -90,6 +91,19 @@ function PartnerDetailsSheetContent({
                   </StatusBadge>
                 )}
               </div>
+              {partner.email && (
+                <div className="mt-0.5 flex items-center gap-1">
+                  <span className="text-sm text-neutral-500">
+                    {partner.email}
+                  </span>
+                  <CopyButton
+                    value={partner.email}
+                    variant="neutral"
+                    className="p-1 [&>*]:h-3 [&>*]:w-3"
+                    successMessage="Copied email to clipboard!"
+                  />
+                </div>
+              )}
             </div>
             <div className="flex min-w-[40%] shrink grow basis-1/2 flex-col items-end justify-end gap-2">
               {partner.link && (
@@ -258,7 +272,9 @@ function PartnerApproval({
 
   const { executeAsync, isPending } = useAction(approvePartnerAction, {
     onSuccess() {
-      mutatePrefix(`/api/programs/${partner.programId}/partners`);
+      mutatePrefix(
+        `/api/partners?workspaceId=${workspaceId}&programId=${program!.id}`,
+      );
 
       toast.success("Approved the partner successfully.");
       setIsOpen(false);
@@ -369,11 +385,15 @@ function PartnerApproval({
                 return;
               }
 
+              if (!program) {
+                return;
+              }
+
               // Approve partner
               await executeAsync({
                 workspaceId: workspaceId!,
                 partnerId: partner.id,
-                programId: partner.programId,
+                programId: program.id,
                 linkId: selectedLinkId,
               });
             }}
@@ -392,10 +412,13 @@ function PartnerRejectButton({
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }) {
   const { id: workspaceId } = useWorkspace();
+  const { program } = useProgram();
 
   const { executeAsync, isPending } = useAction(rejectPartnerAction, {
     onSuccess: async () => {
-      await mutatePrefix(`/api/programs/${partner.programId}/partners`);
+      await mutatePrefix(
+        `/api/partners?workspaceId=${workspaceId}&programId=${program!.id}`,
+      );
 
       toast.success("Partner rejected successfully.");
       setIsOpen(false);
@@ -415,7 +438,7 @@ function PartnerRejectButton({
         await executeAsync({
           workspaceId: workspaceId!,
           partnerId: partner.id,
-          programId: partner.programId,
+          programId: program!.id,
         });
       }}
     />
@@ -424,6 +447,8 @@ function PartnerRejectButton({
 
 function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
   const { slug } = useWorkspace();
+  const { program } = useProgram();
+
   const {
     payouts,
     error: payoutsError,
@@ -467,7 +492,7 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
     ],
     onRowClick: (row) => {
       window.open(
-        `/${slug}/programs/${partner.programId}/payouts?payoutId=${row.original.id}`,
+        `/${slug}/programs/${program!.id}/payouts?payoutId=${row.original.id}`,
         "_blank",
       );
     },
@@ -485,7 +510,7 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
       {payouts && payouts.length === SHEET_MAX_ITEMS && (
         <div className="mt-2 flex justify-end">
           <Link
-            href={`/${slug}/programs/${partner.programId}/payouts?partnerId=${partner.id}`}
+            href={`/${slug}/programs/${program!.id}/payouts?partnerId=${partner.id}`}
             className={cn(
               buttonVariants({ variant: "secondary" }),
               "flex h-7 items-center rounded-lg border px-2 text-sm",
