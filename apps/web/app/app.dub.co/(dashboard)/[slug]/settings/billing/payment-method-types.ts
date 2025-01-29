@@ -1,6 +1,15 @@
 "use client";
 
-import { CreditCard, GreekTemple, StripeLink } from "@dub/ui/icons";
+import {
+  CardAmex,
+  CardDiscover,
+  CardMastercard,
+  CardVisa,
+  CreditCard,
+  GreekTemple,
+  StripeLink,
+} from "@dub/ui/icons";
+import { capitalize } from "@dub/utils";
 import { Stripe } from "stripe";
 
 export const PaymentMethodTypesList = (paymentMethod?: Stripe.PaymentMethod) =>
@@ -8,9 +17,16 @@ export const PaymentMethodTypesList = (paymentMethod?: Stripe.PaymentMethod) =>
     {
       type: "card",
       title: "Card",
-      icon: CreditCard,
+      icon: paymentMethod?.card
+        ? {
+            amex: CardAmex,
+            discover: CardDiscover,
+            mastercard: CardMastercard,
+            visa: CardVisa,
+          }[paymentMethod?.card.brand] ?? CreditCard
+        : CreditCard,
       description: paymentMethod?.card
-        ? `Connected ${paymentMethod.card.brand} ***${paymentMethod.card.last4}`
+        ? `Connected ${capitalize(paymentMethod.card.brand)} ***${paymentMethod.card.last4}`
         : "No card connected",
       iconBgColor: "bg-neutral-100",
     },
@@ -19,15 +35,16 @@ export const PaymentMethodTypesList = (paymentMethod?: Stripe.PaymentMethod) =>
       title: "ACH",
       icon: GreekTemple,
       description: paymentMethod?.us_bank_account
-        ? `Connected ${paymentMethod.us_bank_account.account_holder_type} account ending in ${paymentMethod.us_bank_account.last4}`
-        : "No ACH Debit connected",
+        ? `Account ending in ****${paymentMethod.us_bank_account.last4}`
+        : "Not connected",
     },
     {
       type: "link",
       title: "Link",
       icon: StripeLink,
+      iconBgColor: "bg-green-100",
       description: paymentMethod?.link
-        ? `Connected Link account ${paymentMethod.link?.email}`
+        ? `Account with ${paymentMethod.link?.email}`
         : "No Link account connected",
     },
   ] satisfies {
