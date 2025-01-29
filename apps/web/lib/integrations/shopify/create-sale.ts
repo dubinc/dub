@@ -13,25 +13,29 @@ import { waitUntil } from "@vercel/functions";
 import { orderSchema } from "./schema";
 
 export async function createShopifySale({
-  order,
+  event,
   customerId,
   workspaceId,
   leadData,
 }: {
-  order: any;
+  event: any;
   customerId: string;
   workspaceId: string;
   leadData: z.infer<typeof leadEventSchemaTB>;
 }) {
-  const orderData = orderSchema.parse(order);
+  const order = orderSchema.parse(event);
+
+  const {
+    checkout_token: checkoutToken,
+    confirmation_number: invoiceId,
+    current_subtotal_price_set: { shop_money: shopMoney },
+  } = order;
+
+  const currency = shopMoney.currency_code.toLowerCase();
+  const amount = Number(shopMoney.amount) * 100;
+
   const eventId = nanoid(16);
   const paymentProcessor = "shopify";
-
-  const amount = Number(orderData.current_subtotal_price) * 100;
-  const currency = orderData.currency;
-  const invoiceId = orderData.confirmation_number;
-  const checkoutToken = orderData.checkout_token;
-
   const { link_id: linkId, click_id: clickId } = leadData;
 
   const sale = await prisma.sale.findFirst({
@@ -155,9 +159,7 @@ export async function createShopifySale({
         eventId,
         paymentProcessor,
       },
-      metadata: {
-        ...order,
-      },
+      metadata: order,
     });
 
     waitUntil(

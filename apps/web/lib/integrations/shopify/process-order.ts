@@ -2,7 +2,6 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getLeadEvent } from "@/lib/tinybird";
 import { createShopifyLead } from "./create-lead";
 import { createShopifySale } from "./create-sale";
-import { orderSchema } from "./schema";
 
 // Process the order from Shopify webhook
 export async function processOrder({
@@ -17,8 +16,6 @@ export async function processOrder({
   clickId?: string; // ID of the click event from Shopify pixel
 }) {
   try {
-    const order = orderSchema.parse(event);
-
     // for existing customer
     if (customerId) {
       const leadEvent = await getLeadEvent({ customerId });
@@ -33,7 +30,7 @@ export async function processOrder({
 
       await createShopifySale({
         leadData,
-        order,
+        event,
         workspaceId,
         customerId,
       });
@@ -53,7 +50,7 @@ export async function processOrder({
 
       await createShopifySale({
         leadData,
-        order,
+        event,
         workspaceId,
         customerId,
       });
