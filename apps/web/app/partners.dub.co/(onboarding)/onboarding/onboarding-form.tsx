@@ -93,8 +93,9 @@ export function OnboardingForm() {
         </span>
         <input
           type="text"
+          disabled
           className={cn(
-            "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
+            "mt-2 block w-full rounded-md focus:outline-none disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-500 sm:text-sm",
             errors.email
               ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
               : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",

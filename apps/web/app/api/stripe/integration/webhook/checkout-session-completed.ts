@@ -1,3 +1,4 @@
+import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { createSaleData } from "@/lib/api/sales/create-sale-data";
 import { createId } from "@/lib/api/utils";
@@ -24,7 +25,7 @@ import type Stripe from "stripe";
 
 // Handle event "checkout.session.completed"
 export async function checkoutSessionCompleted(event: Stripe.Event) {
-  const charge = event.data.object as Stripe.Checkout.Session;
+  let charge = event.data.object as Stripe.Checkout.Session;
   const dubCustomerId = charge.metadata?.dubCustomerId;
   const clientReferenceId = charge.client_reference_id;
   const stripeAccountId = event.account as string;
@@ -137,7 +138,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     const payload = {
       name: stripeCustomerName,
       email: stripeCustomerEmail,
-      externalId: stripeCustomerEmail, // using Stripe customer email as externalId
+      externalId: stripeCustomerId, // using Stripe customer ID as externalId
       projectId: workspace.id,
       projectConnectId: stripeAccountId,
       stripeCustomerId,
@@ -186,6 +187,12 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     return `Checkout session completed for Stripe customer ${stripeCustomerId} with invoice ID ${invoiceId} but amount is 0, skipping...`;
   }
 
+  // support for Stripe Adaptive Pricing: https://docs.stripe.com/payments/checkout/adaptive-pricing
+  if (charge.currency !== "usd" && charge.currency_conversion) {
+    charge.amount_total = charge.currency_conversion.amount_total;
+    charge.currency = charge.currency_conversion.source_currency;
+  }
+
   const saleData = {
     ...leadEvent,
     event_id: nanoid(16),
@@ -205,7 +212,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     },
   });
 
-  const [_sale, _link, workspace] = await Promise.all([
+  const [_sale, linkUpdated, workspace] = await Promise.all([
     recordSale(saleData),
 
     // update link sales count
@@ -228,6 +235,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
             increment: charge.amount_total!,
           },
         },
+        include: includeTags,
       }),
 
     // update workspace sales usage
@@ -313,7 +321,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           workspace,
           data: transformLeadEventData({
             ...clickEvent,
-            link,
+            link: linkUpdated,
             eventName: "Checkout session completed",
             customerId: customer.id,
             customerExternalId: customer.externalId,
@@ -331,7 +339,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         workspace,
         data: transformSaleEventData({
           ...saleData,
-          link,
+          link: linkUpdated,
           customerId: customer.id,
           customerExternalId: customer.externalId,
           customerName: customer.name,

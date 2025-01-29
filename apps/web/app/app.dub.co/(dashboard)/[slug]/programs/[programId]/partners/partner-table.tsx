@@ -59,9 +59,10 @@ export function PartnerTable() {
   const { partnersCount, error: countError } = usePartnersCount<number>();
 
   const { data: partners, error } = useSWR<EnrolledPartnerProps[]>(
-    `/api/programs/${programId}/partners${getQueryString(
+    `/api/partners${getQueryString(
       {
         workspaceId,
+        programId,
       },
       { ignore: ["partnerId"] },
     )}`,

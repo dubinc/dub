@@ -16,13 +16,6 @@ import { LOCALHOST_IP, getSearchParamsWithArray } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers":
-    "Content-Type, Authorization, dub-anonymous-link-creation",
-};
-
 // GET /api/links – get all links for a workspace
 export const GET = withWorkspace(
   async ({ req, headers, workspace, session }) => {
@@ -105,10 +98,7 @@ export const POST = withWorkspace(
       }
 
       return NextResponse.json(response, {
-        headers: {
-          ...headers,
-          ...CORS_HEADERS,
-        },
+        headers,
       });
     } catch (error) {
       throw new DubApiError({
@@ -121,10 +111,3 @@ export const POST = withWorkspace(
     requiredPermissions: ["links.write"],
   },
 );
-
-export const OPTIONS = () => {
-  return new Response(null, {
-    status: 204,
-    headers: CORS_HEADERS,
-  });
-};

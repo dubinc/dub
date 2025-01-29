@@ -3,9 +3,10 @@ import { PartnerProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { AxiomRequest, withAxiom } from "next-axiom";
+import { ratelimit } from "../upstash";
 import { Session, getSession } from "./utils";
 
-interface WithPartnerHandler {
+interface WithPartnerProfileHandler {
   ({
     req,
     params,
@@ -23,7 +24,10 @@ interface WithPartnerHandler {
   }): Promise<Response>;
 }
 
-export const withPartner = (handler: WithPartnerHandler, {}: {} = {}) => {
+export const withPartnerProfile = (
+  handler: WithPartnerProfileHandler,
+  {}: {} = {},
+) => {
   return withAxiom(
     async (
       req: AxiomRequest,
@@ -40,28 +44,21 @@ export const withPartner = (handler: WithPartnerHandler, {}: {} = {}) => {
         }
 
         const searchParams = getSearchParams(req.url);
-        const partnerId = params.partnerId || searchParams.partnerId;
+        const { defaultPartnerId, id: userId } = session.user;
 
-        if (!partnerId) {
-          throw new DubApiError({
-            code: "bad_request",
-            message: "Partner ID is required.",
-          });
-        }
-
-        const partner = await prisma.partner.findUnique({
+        const partner = await prisma.partner.findFirst({
           where: {
-            id: partnerId,
-          },
-          include: {
+            ...(defaultPartnerId && {
+              id: defaultPartnerId,
+            }),
             users: {
-              where: {
-                userId: session.user.id,
-              },
-              select: {
-                role: true,
+              some: {
+                userId,
               },
             },
+          },
+          include: {
+            users: true,
           },
         });
 
@@ -78,6 +75,16 @@ export const withPartner = (handler: WithPartnerHandler, {}: {} = {}) => {
           throw new DubApiError({
             code: "not_found",
             message: "Partner profile not found.",
+          });
+        }
+
+        // rate limit
+        const { success } = await ratelimit(600, "1 m").limit(partner.id);
+
+        if (!success) {
+          throw new DubApiError({
+            code: "rate_limit_exceeded",
+            message: "Too many requests.",
           });
         }
 

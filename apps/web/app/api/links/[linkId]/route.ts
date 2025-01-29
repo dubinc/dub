@@ -222,13 +222,13 @@ export const DELETE = withWorkspace(
       });
     }
 
-    await deleteLink(link.id);
+    const response = await deleteLink(link.id);
 
     waitUntil(
       sendWorkspaceWebhook({
         trigger: "link.deleted",
         workspace,
-        data: linkEventSchema.parse(transformLink(link)),
+        data: linkEventSchema.parse(response),
       }),
     );
 

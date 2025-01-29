@@ -322,6 +322,7 @@ export const withWorkspace = (
             permissions,
             requiredPermissions,
             workspaceId: workspace.id,
+            externalRequest: Boolean(apiKey),
           });
         }
 

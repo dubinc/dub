@@ -305,6 +305,7 @@ export const withWorkspaceEdge = (
           permissions,
           requiredPermissions,
           workspaceId: workspace.id,
+          externalRequest: Boolean(apiKey),
         });
 
         // beta feature checks
