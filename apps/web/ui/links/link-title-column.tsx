@@ -95,7 +95,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
           )}
         </div>
       </div>
-      <div className="h-[24px] min-w-0 overflow-hidden transition-[height] group-data-[variant=loose]/card-list:h-[44px]">
+      <div className="h-[24px] min-w-0 overflow-hidden transition-[height] group-data-[variant=loose]/card-list:h-[46px]">
         <div className="flex items-center gap-2">
           <div className="min-w-0 shrink grow-0 text-gray-950">
             <div className="flex items-center gap-2">
@@ -193,7 +193,7 @@ function SettingsBadge({ link }: { link: ResponseLink }) {
   return (
     <div className="hidden sm:block">
       <LinkBuilder />
-      <HoverCard.Root open={open} onOpenChange={setOpen} openDelay={0}>
+      <HoverCard.Root open={open} onOpenChange={setOpen} openDelay={100}>
         <HoverCard.Portal>
           <HoverCard.Content
             side="bottom"
@@ -234,7 +234,7 @@ function SettingsBadge({ link }: { link: ResponseLink }) {
 function CommentsBadge({ comments }: { comments: string }) {
   return (
     <div className="hidden sm:block">
-      <HoverCard.Root openDelay={0}>
+      <HoverCard.Root openDelay={100}>
         <HoverCard.Portal>
           <HoverCard.Content
             side="bottom"
@@ -311,7 +311,7 @@ const Details = memo(
             displayProperties.includes("user") && "sm:block",
           )}
         >
-          <UserAvatar link={link} compact={compact} />
+          <UserAvatar link={link} />
         </div>
         <div
           className={cn(
@@ -319,7 +319,7 @@ const Details = memo(
             displayProperties.includes("createdAt") && "sm:block",
           )}
         >
-          <Tooltip content={formatDateTime(createdAt)}>
+          <Tooltip content={formatDateTime(createdAt)} delayDuration={150}>
             <span className="text-gray-400">{timeAgo(createdAt)}</span>
           </Tooltip>
         </div>
@@ -328,13 +328,7 @@ const Details = memo(
   },
 );
 
-function UserAvatar({
-  link,
-  compact,
-}: {
-  link: ResponseLink;
-  compact?: boolean;
-}) {
+function UserAvatar({ link }: { link: ResponseLink }) {
   const { user } = link;
   const { slug } = useWorkspace();
 
@@ -361,6 +355,7 @@ function UserAvatar({
           </div>
         </div>
       }
+      delayDuration={150}
     >
       <div>
         <Avatar user={user} className="size-4" />

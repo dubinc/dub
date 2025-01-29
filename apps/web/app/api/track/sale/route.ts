@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { createSaleData } from "@/lib/api/sales/create-sale-data";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -103,6 +104,7 @@ export const POST = withWorkspaceEdge(
                 increment: amount,
               },
             },
+            include: includeTags,
           }),
           // update workspace sales usage
           prismaEdge.project.update({

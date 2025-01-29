@@ -36,9 +36,21 @@ export const GET = withAdmin(async ({ searchParams }) => {
               in: DUB_DOMAINS_ARRAY,
             },
           }),
-      ...(search && {
-        shortLink: search,
-      }),
+      ...(search &&
+        (search.startsWith("https://")
+          ? {
+              shortLink: search,
+            }
+          : {
+              OR: [
+                {
+                  shortLink: { contains: search },
+                },
+                {
+                  url: { contains: search },
+                },
+              ],
+            })),
     },
     include: {
       user: true,

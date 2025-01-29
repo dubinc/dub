@@ -156,6 +156,11 @@ const NAV_AREAS: SidebarNavAreas<{
             href: `/${slug}/settings/integrations`,
           },
           {
+            name: "Analytics",
+            icon: LinesY,
+            href: `/${slug}/settings/analytics`,
+          },
+          {
             name: "Security",
             icon: ShieldCheck,
             href: `/${slug}/settings/security`,
