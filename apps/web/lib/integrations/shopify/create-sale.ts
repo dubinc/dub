@@ -31,7 +31,7 @@ export async function createShopifySale({
     current_subtotal_price_set: { shop_money: shopMoney },
   } = order;
 
-  const currency = shopMoney.currency_code;
+  const currency = shopMoney.currency_code.toLowerCase();
   const amount = Number(shopMoney.amount) * 100;
 
   const eventId = nanoid(16);
