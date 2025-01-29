@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, CardList, CircleCheck, LoadingSpinner, Trash } from "@dub/ui";
 import { cn, validDomainRegex } from "@dub/utils";
@@ -43,7 +44,13 @@ export const AllowedHostnames = () => {
 const AddHostnameForm = () => {
   const [hostname, setHostname] = useState("");
   const [processing, setProcessing] = useState(false);
-  const { id, allowedHostnames, mutate } = useWorkspace();
+  const { id, allowedHostnames, mutate, role } = useWorkspace();
+
+  const { error: permissionsError } = clientAccessCheck({
+    action: "workspaces.write",
+    role,
+    customPermissionDescription: "add hostnames",
+  });
 
   const addHostname = async () => {
     if (allowedHostnames?.includes(hostname)) {
@@ -115,14 +122,21 @@ const AddHostnameForm = () => {
         disabled={!isHostnameValid || hostname.length === 0}
         loading={processing}
         className="w-40"
+        disabledTooltip={permissionsError || undefined}
       />
     </form>
   );
 };
 
 const AllowedHostnameCard = ({ hostname }: { hostname: string }) => {
-  const { id, allowedHostnames, mutate } = useWorkspace();
+  const { id, allowedHostnames, mutate, role } = useWorkspace();
   const [processing, setProcessing] = useState(false);
+
+  const { error: permissionsError } = clientAccessCheck({
+    action: "workspaces.write",
+    role,
+    customPermissionDescription: "delete hostnames",
+  });
 
   const deleteHostname = async () => {
     if (!confirm("Are you sure you want to delete this hostname?")) {
@@ -183,6 +197,7 @@ const AllowedHostnameCard = ({ hostname }: { hostname: string }) => {
             )
           }
           onClick={deleteHostname}
+          disabledTooltip={permissionsError || undefined}
         />
       </div>
     </CardList.Card>
