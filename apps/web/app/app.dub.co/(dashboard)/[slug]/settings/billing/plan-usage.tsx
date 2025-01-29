@@ -66,7 +66,7 @@ export default function PlanUsage() {
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
-      <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:p-8 xl:flex-row">
+      <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:p-8 lg:flex-row">
         <div>
           <h2 className="text-xl font-medium">Plan and Usage</h2>
           <p className="mt-1 text-balance text-sm leading-normal text-neutral-500">
