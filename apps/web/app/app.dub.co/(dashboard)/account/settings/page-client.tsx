@@ -46,19 +46,32 @@ export default function SettingsPageClient() {
       />
       <Form
         title="Your Email"
-        description={`This will be the email you use to log in to ${APP_NAME} and receive notifications.`}
+        description={`This will be the email you use to log in to ${APP_NAME} and receive notifications. A confirmation is required for changes.`}
         inputAttrs={{
           name: "email",
           type: "email",
           defaultValue: session?.user?.email || undefined,
           placeholder: "panic@thedis.co",
-          readOnly: true,
         }}
         helpText={<UpdateSubscription />}
-        handleSubmit={(data) => {
-          return Promise.resolve();
-        }}
-        disabledTooltip="You can't update your email. Please contact support if you need to change it."
+        handleSubmit={(data) =>
+          fetch("/api/user", {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          }).then(async (res) => {
+            if (res.status === 200) {
+              toast.success(
+                `A confirmation email has been sent to ${data.email}.`,
+              );
+            } else {
+              const { error } = await res.json();
+              toast.error(error.message);
+            }
+          })
+        }
       />
       <UploadAvatar />
       <UserId />
