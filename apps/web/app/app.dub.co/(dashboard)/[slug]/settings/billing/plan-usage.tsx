@@ -5,7 +5,7 @@ import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
 import PlanBadge from "@/ui/workspaces/plan-badge";
 import SubscriptionMenu from "@/ui/workspaces/subscription-menu";
-import { buttonVariants, Icon, useRouterStuff } from "@dub/ui";
+import { buttonVariants, Icon, Tooltip, useRouterStuff } from "@dub/ui";
 import {
   CircleDollar,
   CrownSmall,
@@ -208,6 +208,7 @@ function UsageTabCard({
   requiresUpgrade?: boolean;
 }) {
   const { searchParams, queryParams } = useRouterStuff();
+  const { slug } = useWorkspace();
 
   const isActive =
     searchParams.get("tab") === id ||
@@ -243,10 +244,24 @@ function UsageTabCard({
       <div className="mt-1.5 flex items-center gap-2 text-sm text-neutral-600">
         {title}
         {requiresUpgrade && (
-          <span className="flex items-center gap-1 rounded-full border border-neutral-300 px-2 py-0.5 text-xs text-neutral-500">
-            <CrownSmall className="size-" />
-            Business
-          </span>
+          <Tooltip
+            content={
+              <div className="max-w-xs px-4 py-2 text-center text-sm text-neutral-600">
+                Upgrade to Business to unlock conversion tracking.{" "}
+                <Link
+                  href={`/${slug}/upgrade`}
+                  className="underline underline-offset-2 hover:text-neutral-800"
+                >
+                  View pricing plans
+                </Link>
+              </div>
+            }
+          >
+            <span className="flex items-center gap-1 rounded-full border border-neutral-300 px-2 py-0.5 text-xs text-neutral-500">
+              <CrownSmall className="size-" />
+              Business
+            </span>
+          </Tooltip>
         )}
       </div>
       <div className="mt-2">
