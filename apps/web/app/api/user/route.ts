@@ -106,7 +106,7 @@ export const PATCH = withSession(async ({ req, session }) => {
       });
     }
 
-    const { success } = await ratelimit(1, "1 h").limit(
+    const { success } = await ratelimit(10, "1 d").limit(
       `email-change-request:${session.user.id}`,
     );
 

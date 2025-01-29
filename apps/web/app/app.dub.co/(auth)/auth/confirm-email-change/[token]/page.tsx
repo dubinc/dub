@@ -124,6 +124,7 @@ const VerifyEmailChange = async ({
         subject: "Your email address has been changed",
         email: data.email,
         react: EmailUpdated({
+          oldEmail: data.email,
           newEmail: data.newEmail,
         }),
       }),

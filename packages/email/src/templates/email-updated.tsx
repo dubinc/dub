@@ -15,8 +15,10 @@ import {
 import { Footer } from "../components/footer";
 
 export function EmailUpdated({
+  oldEmail = "panic@thedis.co",
   newEmail = "panic@thedis.co",
 }: {
+  oldEmail: string;
   newEmail: string;
 }) {
   return (
@@ -38,8 +40,8 @@ export function EmailUpdated({
               Your email address has been changed
             </Heading>
             <Text className="mx-auto text-sm leading-6">
-              The e-mail address for your Dub account has been changed to{" "}
-              <strong>{newEmail}</strong>.
+              The e-mail address for your Dub account has been changed from{" "}
+              <strong>{oldEmail}</strong> to <strong>{newEmail}</strong>.
             </Text>
             <Text className="text-sm leading-6 text-black">
               If you did not make this change, please contact our support team
@@ -52,7 +54,7 @@ export function EmailUpdated({
             <Text className="text-sm leading-6 text-black">
               This message is being sent to your old e-mail address only.
             </Text>
-            <Footer email={newEmail} />
+            <Footer email={oldEmail} />
           </Container>
         </Body>
       </Tailwind>
