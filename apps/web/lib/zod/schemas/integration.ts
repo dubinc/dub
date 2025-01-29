@@ -3,6 +3,7 @@ import { z } from "zod";
 
 export const integrationSchema = z.object({
   id: z.string(),
+  projectId: z.string(),
   name: z.string(),
   slug: z.string(),
   description: z.string().nullish(),
