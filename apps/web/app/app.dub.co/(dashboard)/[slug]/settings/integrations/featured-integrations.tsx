@@ -69,19 +69,19 @@ export function FeaturedIntegrations({
                       </div>
 
                       {/* Bottom card */}
-                      <div className="absolute inset-x-4 bottom-4 hidden items-start gap-4 rounded-lg bg-white p-2 sm:flex">
+                      <div className="absolute inset-x-4 bottom-4 hidden items-center gap-3 rounded-lg bg-white p-3 sm:flex">
                         <div className="shrink-0">
                           <IntegrationLogo
                             src={integration.logo}
                             alt={`Logo for ${integration.name}`}
-                            className="size-10"
+                            className="size-12"
                           />
                         </div>
                         <div className="flex flex-col">
                           <span className="text-base font-medium text-neutral-900">
                             {integration.name}
                           </span>
-                          <p className="text-sm font-medium text-neutral-700">
+                          <p className="line-clamp-2 text-sm font-medium text-neutral-700">
                             {integration.description}
                           </p>
                         </div>
