@@ -3,8 +3,8 @@
 import useTags from "@/lib/swr/use-tags";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
-import ManageSubscriptionButton from "@/ui/workspaces/manage-subscription-button";
 import PlanBadge from "@/ui/workspaces/plan-badge";
+import SubscriptionMenu from "@/ui/workspaces/subscription-menu";
 import { buttonVariants, Icon, useRouterStuff } from "@dub/ui";
 import {
   CircleDollar,
@@ -97,7 +97,7 @@ export default function PlanUsage() {
               href={`/${slug}/upgrade`}
               className={cn(
                 buttonVariants({ variant: "primary" }),
-                "flex h-9 w-full items-center justify-center rounded-md border px-4 text-sm",
+                "flex h-9 w-full items-center justify-center whitespace-nowrap rounded-md border px-4 text-sm",
               )}
             >
               Upgrade Plan
@@ -107,13 +107,13 @@ export default function PlanUsage() {
               href={`/${slug}/settings/billing/invoices`}
               className={cn(
                 buttonVariants({ variant: "secondary" }),
-                "flex h-9 w-full items-center justify-center rounded-md border px-4 text-sm",
+                "flex h-9 w-full items-center justify-center whitespace-nowrap rounded-md border px-4 text-sm",
               )}
             >
               View invoices
             </Link>
           )}
-          {stripeId && <ManageSubscriptionButton />}
+          {stripeId && <SubscriptionMenu />}
         </div>
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)] divide-y divide-neutral-200 border-t border-neutral-200">
@@ -140,7 +140,7 @@ export default function PlanUsage() {
               usage={salesUsage}
               limit={salesLimit}
               unit="$"
-              plan={plan}
+              requiresUpgrade={plan === "free" || plan === "pro"}
             />
           </div>
           <div className="w-full px-2 pb-8 md:px-8">
@@ -197,7 +197,7 @@ function UsageTabCard({
   usage: usageProp,
   limit: limitProp,
   unit,
-  plan,
+  requiresUpgrade,
 }: {
   id: string;
   icon: Icon;
@@ -205,7 +205,7 @@ function UsageTabCard({
   usage?: number;
   limit?: number;
   unit?: string;
-  plan: string;
+  requiresUpgrade?: boolean;
 }) {
   const { searchParams, queryParams } = useRouterStuff();
 
@@ -221,7 +221,6 @@ function UsageTabCard({
   const loading = usage === undefined || limit === undefined;
   const unlimited = limit !== undefined && limit >= INFINITY_NUMBER;
   const warning = !loading && !unlimited && usage >= limit * 0.9;
-  console.log({ warning, usage, limit });
   const remaining = !loading && !unlimited ? Math.max(0, limit - usage) : 0;
 
   const prefix = unit || "";
@@ -232,17 +231,19 @@ function UsageTabCard({
         "rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors duration-75",
         "outline-none focus-visible:border-blue-600 focus-visible:ring-1 focus-visible:ring-blue-600",
         isActive && "border-neutral-900 ring-1 ring-neutral-900",
-        plan === "free" || plan === "pro" ? "hover:bg-neutral-100 bg-neutral-100 border-neutral-100" : "hover:bg-neutral-50 lg:px-5 lg:py-4",
+        requiresUpgrade
+          ? "border-neutral-100 bg-neutral-100 hover:bg-neutral-100"
+          : "hover:bg-neutral-50 lg:px-5 lg:py-4",
       )}
       aria-selected={isActive}
-      onClick={() => (plan !== "free" && plan !== "pro") && queryParams({ set: { tab: id } })}
-      disabled={plan === "free" || plan === "pro"} 
+      onClick={() => !requiresUpgrade && queryParams({ set: { tab: id } })}
+      disabled={requiresUpgrade}
     >
       <Icon className="size-4 text-neutral-600" />
       <div className="mt-1.5 flex items-center gap-2 text-sm text-neutral-600">
         {title}
-        {id === "revenue" && (plan === "free" || plan === "pro") && (
-          <span className="rounded-full border border-neutral-300 px-2 py-0.5 text-xs text-neutral-500 flex items-center gap-1">
+        {requiresUpgrade && (
+          <span className="flex items-center gap-1 rounded-full border border-neutral-300 px-2 py-0.5 text-xs text-neutral-500">
             <CrownSmall className="size-" />
             Business
           </span>
@@ -285,7 +286,7 @@ function UsageTabCard({
               <div
                 className={cn(
                   "size-full rounded-full",
-                  plan === "free" || plan === "pro"
+                  requiresUpgrade
                     ? "bg-neutral-900/10"
                     : "bg-gradient-to-r from-blue-500/80 to-blue-600",
                   warning && "from-neutral-900/10 via-red-500 to-red-600",
