@@ -1,15 +1,20 @@
 import { DubApiError } from "@/lib/api/errors";
-import { withSession } from "@/lib/auth";
+import { hashToken, withSession } from "@/lib/auth";
 import { storage } from "@/lib/storage";
+import { ratelimit, redis } from "@/lib/upstash";
+import { sendEmail } from "@dub/email";
 import { unsubscribe } from "@dub/email/resend/unsubscribe";
+import ConfirmEmailChange from "@dub/email/templates/confirm-email-change";
 import { prisma } from "@dub/prisma";
-import { R2_URL, nanoid, trim } from "@dub/utils";
+import { APP_DOMAIN, R2_URL, nanoid, trim } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 const updateUserSchema = z.object({
   name: z.preprocess(trim, z.string().min(1).max(64)).optional(),
+  email: z.preprocess(trim, z.string().email()).optional(),
   image: z.string().url().optional(),
   source: z.preprocess(trim, z.string().min(1).max(32)).optional(),
   defaultWorkspace: z.preprocess(trim, z.string().min(1)).optional(),
@@ -57,7 +62,7 @@ export const GET = withSession(async ({ session }) => {
 
 // PATCH /api/user – edit a specific user
 export const PATCH = withSession(async ({ req, session }) => {
-  let { name, image, source, defaultWorkspace } =
+  let { name, email, image, source, defaultWorkspace } =
     await updateUserSchema.parseAsync(await req.json());
 
   if (image) {
@@ -86,46 +91,94 @@ export const PATCH = withSession(async ({ req, session }) => {
     }
   }
 
-  // TODO:
-  // Email change should require a verification process before updating the email in the database
-
-  try {
-    const response = await prisma.user.update({
+  // Verify email ownership if the email is being changed
+  if (email && email !== session.user.email) {
+    const userWithEmail = await prisma.user.findUnique({
       where: {
-        id: session.user.id,
-      },
-      data: {
-        ...(name && { name }),
-        ...(image && { image }),
-        ...(source && { source }),
-        ...(defaultWorkspace && { defaultWorkspace }),
+        email,
       },
     });
 
-    waitUntil(
-      (async () => {
-        // Delete only if a new image is uploaded and the old image exists
-        if (
-          image &&
-          session.user.image &&
-          session.user.image.startsWith(`${R2_URL}/avatars/${session.user.id}`)
-        ) {
-          await storage.delete(session.user.image.replace(`${R2_URL}/`, ""));
-        }
-      })(),
-    );
-
-    return NextResponse.json(response);
-  } catch (error) {
-    if (error.code === "P2002") {
+    if (userWithEmail) {
       throw new DubApiError({
         code: "conflict",
         message: "Email is already in use.",
       });
     }
 
-    throw error;
+    const { success } = await ratelimit(1, "1 h").limit(
+      `email-change-request:${session.user.id}`,
+    );
+
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message:
+          "You've requested too many email change requests. Please try again later.",
+      });
+    }
+
+    const token = randomBytes(32).toString("hex");
+    const expiresIn = 15 * 60 * 1000;
+
+    await prisma.verificationToken.create({
+      data: {
+        identifier: session.user.id,
+        token: await hashToken(token, { secret: true }),
+        expires: new Date(Date.now() + expiresIn),
+      },
+    });
+
+    await redis.set(
+      `email-change-request:user:${session.user.id}`,
+      {
+        email: session.user.email,
+        newEmail: email,
+      },
+      {
+        px: expiresIn,
+      },
+    );
+
+    waitUntil(
+      sendEmail({
+        subject: "Confirm your email address change",
+        email,
+        react: ConfirmEmailChange({
+          email: session.user.email,
+          newEmail: email,
+          confirmUrl: `${APP_DOMAIN}/auth/confirm-email-change/${token}`,
+        }),
+      }),
+    );
   }
+
+  const response = await prisma.user.update({
+    where: {
+      id: session.user.id,
+    },
+    data: {
+      ...(name && { name }),
+      ...(image && { image }),
+      ...(source && { source }),
+      ...(defaultWorkspace && { defaultWorkspace }),
+    },
+  });
+
+  waitUntil(
+    (async () => {
+      // Delete only if a new image is uploaded and the old image exists
+      if (
+        image &&
+        session.user.image &&
+        session.user.image.startsWith(`${R2_URL}/avatars/${session.user.id}`)
+      ) {
+        await storage.delete(session.user.image.replace(`${R2_URL}/`, ""));
+      }
+    })(),
+  );
+
+  return NextResponse.json(response);
 });
 
 export const PUT = PATCH;
