@@ -91,7 +91,7 @@ export default function PaymentMethods() {
         )}
       </div>
       {partnersEnabled && achPaymentMethods && (
-        <div className="grid gap-4 bg-neutral-100 border-neutral-200 px-6 pb-6 drop-shadow-sm rounded-br-lg rounded-bl-lg">
+        <div className="grid gap-4 rounded-bl-lg rounded-br-lg border-neutral-200 bg-neutral-100 px-6 pb-6 drop-shadow-sm">
           {achPaymentMethods.length > 0 ? (
             achPaymentMethods.map((paymentMethod) => (
               <PaymentMethodCard
@@ -143,7 +143,7 @@ const PaymentMethodCard = ({
   };
 
   return (
-    <div className="flex items-center justify-between rounded-lg border border-neutral-200 drop-shadow-sm bg-white p-4">
+    <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-4 drop-shadow-sm">
       <div className="flex items-center gap-4">
         <div
           className={cn(
