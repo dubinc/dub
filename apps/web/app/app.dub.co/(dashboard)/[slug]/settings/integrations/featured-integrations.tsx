@@ -10,6 +10,8 @@ import {
   useCarousel,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { AnimatePresence, motion } from "framer-motion";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { IntegrationsWithInstallations } from "./integrations-list";
 
@@ -20,6 +22,9 @@ export function FeaturedIntegrations({
 }: {
   integrations: IntegrationsWithInstallations;
 }) {
+  const searchParams = useSearchParams();
+  const search = searchParams.get("search");
+
   const featuredIntegrations = integrations.filter(
     (i) =>
       FEATURED_SLUGS.includes(i.slug) &&
@@ -28,59 +33,69 @@ export function FeaturedIntegrations({
   );
 
   return (
-    <div>
-      <Carousel
-        autoplay={{ delay: 5000 }}
-        opts={{ loop: true }}
-        className="bg-white"
-      >
-        <div className="[mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]">
-          <CarouselContent>
-            {featuredIntegrations.map((integration, idx) => (
-              <CarouselItem key={idx} className="basis-2/3">
-                <div className="relative">
-                  {/* Image */}
-                  <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
-                    <BlurImage
-                      src={integration.screenshots![0]}
-                      alt={`Screenshot of ${integration.name}`}
-                      width={900}
-                      height={580}
-                      className="aspect-[900/580] w-full overflow-hidden rounded-xl object-cover object-top [mask-image:linear-gradient(black_90%,transparent)]"
-                    />
-                  </div>
+    <AnimatePresence initial={false}>
+      {!search && (
+        <motion.div
+          key="featured-integrations"
+          initial={{ opacity: 0, translateY: 10 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          exit={{ opacity: 0, translateY: 10 }}
+          transition={{ duration: 0.1 }}
+        >
+          <Carousel
+            autoplay={{ delay: 5000 }}
+            opts={{ loop: true }}
+            className="bg-white"
+          >
+            <div className="[mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]">
+              <CarouselContent>
+                {featuredIntegrations.map((integration, idx) => (
+                  <CarouselItem key={idx} className="basis-2/3">
+                    <div className="relative">
+                      {/* Image */}
+                      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+                        <BlurImage
+                          src={integration.screenshots![0]}
+                          alt={`Screenshot of ${integration.name}`}
+                          width={900}
+                          height={580}
+                          className="aspect-[900/580] w-full overflow-hidden rounded-xl object-cover object-top [mask-image:linear-gradient(black_90%,transparent)]"
+                        />
+                      </div>
 
-                  {/* Category badge */}
-                  <div className="absolute left-4 top-4 rounded bg-white px-2 py-1 text-[0.625rem] font-semibold uppercase text-neutral-800 shadow-[0_2px_2px_0_#00000014]">
-                    {integration.category}
-                  </div>
+                      {/* Category badge */}
+                      <div className="absolute left-4 top-4 rounded bg-white px-2 py-1 text-[0.625rem] font-semibold uppercase text-neutral-800 shadow-[0_2px_2px_0_#00000014]">
+                        {integration.category}
+                      </div>
 
-                  {/* Bottom card */}
-                  <div className="absolute inset-x-4 bottom-4 hidden items-start gap-4 rounded-lg bg-white p-2 sm:flex">
-                    <div className="shrink-0">
-                      <IntegrationLogo
-                        src={integration.logo}
-                        alt={`Logo for ${integration.name}`}
-                        className="size-10"
-                      />
+                      {/* Bottom card */}
+                      <div className="absolute inset-x-4 bottom-4 hidden items-start gap-4 rounded-lg bg-white p-2 sm:flex">
+                        <div className="shrink-0">
+                          <IntegrationLogo
+                            src={integration.logo}
+                            alt={`Logo for ${integration.name}`}
+                            className="size-10"
+                          />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-base font-medium text-neutral-900">
+                            {integration.name}
+                          </span>
+                          <p className="text-sm font-medium text-neutral-700">
+                            {integration.description}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-base font-medium text-neutral-900">
-                        {integration.name}
-                      </span>
-                      <p className="text-sm font-medium text-neutral-700">
-                        {integration.description}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-        </div>
-        <CarouselNavBar featuredIntegrations={featuredIntegrations} />
-      </Carousel>
-    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </div>
+            <CarouselNavBar featuredIntegrations={featuredIntegrations} />
+          </Carousel>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 

@@ -5,15 +5,20 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { IntegrationLogo } from "@/ui/integrations/integration-logo";
 import { cn } from "@dub/utils";
 import { Integration } from "@prisma/client";
+import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { IntegrationsWithInstallations } from "./integrations-list";
 
-export async function EnabledIntegrations({
+export function EnabledIntegrations({
   integrations,
 }: {
   integrations: IntegrationsWithInstallations;
 }) {
+  const searchParams = useSearchParams();
+  const search = searchParams.get("search");
+
   const { slug } = useWorkspace();
   const { integrations: activeIntegrations } = useIntegrations();
 
@@ -22,26 +27,36 @@ export async function EnabledIntegrations({
   );
 
   return enabledIntegrations?.length ? (
-    <div>
-      <div className="flex items-center justify-between text-sm">
-        <h2 className="font-medium leading-4 text-neutral-800">
-          Enabled integrations
-        </h2>
-        <Link
-          href={`/${slug}/settings/integrations/enabled`}
-          className="font-medium leading-4 text-neutral-500 transition-colors duration-100 hover:text-neutral-700"
+    <AnimatePresence initial={false}>
+      {!search && (
+        <motion.div
+          key="enabled-integrations"
+          initial={{ opacity: 0, translateY: 10 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          exit={{ opacity: 0, translateY: 10 }}
+          transition={{ duration: 0.1 }}
         >
-          View all
-        </Link>
-      </div>
-      <ul className="mt-4 divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">
-        {enabledIntegrations.slice(0, 3).map((integration) => (
-          <li key={integration.id}>
-            <IntegrationRow integration={integration} />
-          </li>
-        ))}
-      </ul>
-    </div>
+          <div className="flex items-center justify-between text-sm">
+            <h2 className="font-medium leading-4 text-neutral-800">
+              Enabled integrations
+            </h2>
+            <Link
+              href={`/${slug}/settings/integrations/enabled`}
+              className="font-medium leading-4 text-neutral-500 transition-colors duration-100 hover:text-neutral-700"
+            >
+              View all
+            </Link>
+          </div>
+          <ul className="mt-4 divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">
+            {enabledIntegrations.slice(0, 3).map((integration) => (
+              <li key={integration.id}>
+                <IntegrationRow integration={integration} />
+              </li>
+            ))}
+          </ul>
+        </motion.div>
+      )}
+    </AnimatePresence>
   ) : null;
 }
 
