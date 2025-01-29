@@ -77,6 +77,7 @@ export const DUB_DOMAINS = [
             "hubspot.com",
             "savvycal.com",
             "tidycal.com",
+            "you.ashbyhq.com",
             "zcal.co",
           ],
           description:

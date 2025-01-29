@@ -1,3 +1,4 @@
+import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { createSaleData } from "@/lib/api/sales/create-sale-data";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
@@ -74,7 +75,7 @@ export async function invoicePaid(event: Stripe.Event) {
     return `Link with ID ${linkId} not found, skipping...`;
   }
 
-  const [_sale, _link, workspace] = await Promise.all([
+  const [_sale, linkUpdated, workspace] = await Promise.all([
     recordSale(saleData),
 
     // update link sales count
@@ -90,6 +91,7 @@ export async function invoicePaid(event: Stripe.Event) {
           increment: invoice.amount_paid,
         },
       },
+      include: includeTags,
     }),
     // update workspace sales usage
     prisma.project.update({
@@ -171,7 +173,7 @@ export async function invoicePaid(event: Stripe.Event) {
       workspace,
       data: transformSaleEventData({
         ...saleData,
-        link,
+        link: linkUpdated,
         customerId: customer.id,
         customerExternalId: customer.externalId,
         customerName: customer.name,

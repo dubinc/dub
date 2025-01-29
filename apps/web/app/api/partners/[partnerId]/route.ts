@@ -53,4 +53,13 @@ export const GET = withWorkspace(
 
     return NextResponse.json(EnrolledPartnerSchema.parse(partner));
   },
+  {
+    requiredPlan: [
+      "business",
+      "business extra",
+      "business max",
+      "business plus",
+      "enterprise",
+    ],
+  },
 );

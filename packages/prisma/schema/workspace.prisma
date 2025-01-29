@@ -29,7 +29,8 @@ model Project {
   referralLinkId  String? @unique
   referredSignups Int     @default(0)
 
-  store Json? // General key-value store for things like persisting toggles, dismissing popups, etc.
+  store            Json? // General key-value store for things like persisting toggles, dismissing popups, etc.
+  allowedHostnames Json?
 
   conversionEnabled Boolean @default(false) // Whether to enable conversion tracking for links by default
   webhookEnabled    Boolean @default(false)
