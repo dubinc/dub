@@ -35,6 +35,7 @@ export default function NewIntegrationsPage({
           developer: "",
           website: "",
           logo: null,
+          projectId: "",
           screenshots: [],
           createdAt: new Date(),
           updatedAt: new Date(),
