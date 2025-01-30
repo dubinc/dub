@@ -252,7 +252,7 @@ export const POST = withWorkspace(
 
     const partner = EnrolledPartnerSchema.parse({
       ...createdPartner,
-      link: partnerLink,
+      links: [partnerLink],
       status: "approved",
       commissionAmount: null,
       earnings: 0,
