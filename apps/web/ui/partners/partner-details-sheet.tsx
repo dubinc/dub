@@ -14,10 +14,11 @@ import {
   Sheet,
   StatusBadge,
   Table,
+  TabSelect,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CursorRays, GreekTemple, LinesY, Link4 } from "@dub/ui/icons";
+import { GreekTemple, Link4 } from "@dub/ui/icons";
 import {
   cn,
   COUNTRIES,
@@ -43,19 +44,28 @@ type PartnerDetailsSheetProps = {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
+type Tab = "payouts" | "links";
+
 function PartnerDetailsSheetContent({
   partner,
   setIsOpen,
 }: PartnerDetailsSheetProps) {
   const { slug } = useWorkspace();
-
-  const badge = PartnerStatusBadges[partner.status];
-
-  const saleAmount = (partner.link?.saleAmount ?? 0) / 100;
-  // const earnings = (partner.earnings ?? 0) / 100;
+  const [tab, setTab] = useState<Tab>("payouts");
 
   const { createPayoutSheet, setIsOpen: setCreatePayoutSheetOpen } =
     useCreatePayoutSheet({ nested: true, partnerId: partner.id });
+
+  const clicks = partner.links?.reduce((acc, link) => acc + link.clicks, 0);
+  const leads = partner.links?.reduce((acc, link) => acc + link.leads, 0);
+  const sales = partner.links?.reduce((acc, link) => acc + link.sales, 0);
+  // const earnings = (partner.earnings ?? 0) / 100;
+  const saleAmount = partner.links?.reduce(
+    (acc, link) => acc + (link.saleAmount ?? 0) / 100,
+    0,
+  );
+
+  const badge = PartnerStatusBadges[partner.status];
 
   return (
     <>
@@ -106,11 +116,11 @@ function PartnerDetailsSheetContent({
               )}
             </div>
             <div className="flex min-w-[40%] shrink grow basis-1/2 flex-col items-end justify-end gap-2">
-              {partner.link && (
+              {partner.links && (
                 <div className="group flex min-w-0 items-center gap-1 overflow-hidden rounded-full border border-neutral-200 bg-white px-1.5 py-0.5 text-xs text-neutral-700">
                   <Link4 className="size-3.5" />
                   <span className="truncate">
-                    {getPrettyUrl(partner.link.shortLink)}
+                    {getPrettyUrl(partner.links[0].shortLink)}
                   </span>
                 </div>
               )}
@@ -131,27 +141,12 @@ function PartnerDetailsSheetContent({
           {partner.status === "approved" && (
             <div className="xs:grid-cols-4 mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200">
               {[
-                [
-                  "Clicks",
-                  !partner.link
-                    ? "-"
-                    : nFormatter(partner.link?.clicks, { full: true }),
-                ],
-                [
-                  "Leads",
-                  !partner.link
-                    ? "-"
-                    : nFormatter(partner.link?.leads, { full: true }),
-                ],
-                [
-                  "Sales",
-                  !partner.link
-                    ? "-"
-                    : nFormatter(partner.link?.sales, { full: true }),
-                ],
+                ["Clicks", !clicks ? "-" : nFormatter(clicks, { full: true })],
+                ["Leads", !leads ? "-" : nFormatter(leads, { full: true })],
+                ["Sales", !sales ? "-" : nFormatter(sales, { full: true })],
                 [
                   "Revenue",
-                  !partner.link
+                  !saleAmount
                     ? "-"
                     : currencyFormatter(saleAmount, {
                         minimumFractionDigits: saleAmount % 1 === 0 ? 0 : 2,
@@ -174,7 +169,7 @@ function PartnerDetailsSheetContent({
             </div>
           )}
 
-          {partner.link && (
+          {/* {partner.link && (
             <div className="xs:grid-cols-2 mt-4 grid grid-cols-1 gap-3">
               <Link
                 href={`/${slug}/analytics?domain=${partner.link.domain}&key=${partner.link.key}&interval=all`}
@@ -199,12 +194,27 @@ function PartnerDetailsSheetContent({
                 Events
               </Link>
             </div>
-          )}
+          )} */}
         </div>
 
         <div className="grow p-6">
           {partner.status === "approved" ? (
-            <PartnerPayouts partner={partner} />
+            <>
+              <TabSelect
+                variant="accent"
+                options={[
+                  { id: "payouts", label: "Payouts" },
+                  { id: "links", label: "Links" },
+                ]}
+                selected={tab}
+                onSelect={(id: Tab) => {
+                  setTab(id);
+                }}
+              />
+
+              {tab === "payouts" && <PartnerPayouts partner={partner} />}
+              {tab === "links" && <PartnerLinks partner={partner} />}
+            </>
           ) : (
             <div className="flex flex-col gap-6 text-sm text-neutral-500">
               <h3 className="text-base font-semibold text-neutral-900">
@@ -537,6 +547,81 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
     />
   );
 }
+
+const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
+  const { slug } = useWorkspace();
+  const { program } = useProgram();
+
+  const table = useTable({
+    data: partner.links || [],
+    columns: [
+      {
+        id: "shortLink",
+        header: "Short Link",
+        accessorFn: (d) => d.shortLink,
+      },
+      {
+        header: "Clicks",
+        accessorFn: (d) => nFormatter(d.clicks),
+        size: 1,
+        minSize: 1,
+      },
+      {
+        header: "Leads",
+        accessorFn: (d) => nFormatter(d.leads),
+        size: 1,
+        minSize: 1,
+      },
+      {
+        header: "Sales",
+        accessorFn: (d) => nFormatter(d.sales),
+        size: 1,
+        minSize: 1,
+      },
+      {
+        id: "amount",
+        header: "Amount",
+        accessorFn: (d) =>
+          currencyFormatter(d.saleAmount / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
+        size: 1,
+        minSize: 1,
+      },
+    ],
+    onRowClick: (row) => {
+      window.open(
+        `/${slug}/programs/${program!.id}/payouts?payoutId=${row.original.id}`,
+        "_blank",
+      );
+    },
+    resourceName: (p) => `link${p ? "s" : ""}`,
+    thClassName: (id) =>
+      cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
+    tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
+    className: "[&_tr:last-child>td]:border-b-transparent",
+    scrollWrapperClassName: "min-h-[40px]",
+  } as any);
+
+  return partner.links && partner.links.length > 0 ? (
+    <Table {...table} />
+  ) : (
+    <AnimatedEmptyState
+      className="md:min-h-80"
+      title="No links"
+      description="When you or the partner create links, they will appear here."
+      cardContent={() => (
+        <>
+          <div className="flex size-7 items-center justify-center rounded-md border border-neutral-200 bg-neutral-50">
+            <GreekTemple className="size-4 text-neutral-700" />
+          </div>
+          <div className="h-2.5 w-28 min-w-0 rounded-sm bg-neutral-200" />
+        </>
+      )}
+    />
+  );
+};
 
 export function PartnerDetailsSheet({
   isOpen,
