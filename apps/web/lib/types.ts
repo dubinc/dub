@@ -290,6 +290,7 @@ export type InstalledIntegrationProps = Pick<
 export type InstalledIntegrationInfoProps = Pick<
   IntegrationProps,
   | "id"
+  | "projectId"
   | "slug"
   | "logo"
   | "name"
@@ -309,6 +310,7 @@ export type InstalledIntegrationInfoProps = Pick<
     by: {
       id: string;
       name: string | null;
+      email: string | null;
       image: string | null;
     };
   } | null;

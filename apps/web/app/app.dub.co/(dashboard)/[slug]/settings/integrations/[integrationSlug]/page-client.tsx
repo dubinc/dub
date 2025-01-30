@@ -6,7 +6,9 @@ import { SlackSettings } from "@/lib/integrations/slack/ui/settings";
 import { ZapierSettings } from "@/lib/integrations/zapier/ui/settings";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
+import { IntegrationLogo } from "@/ui/integrations/integration-logo";
 import { useUninstallIntegrationModal } from "@/ui/modals/uninstall-integration-modal";
+import { BackLink } from "@/ui/shared/back-link";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
   Avatar,
@@ -17,28 +19,22 @@ import {
   CarouselContent,
   CarouselItem,
   CarouselNavBar,
+  Logo,
   MaxWidthWrapper,
   Popover,
-  TokenAvatar,
-  Tooltip,
   TooltipContent,
 } from "@dub/ui";
-import {
-  CircleWarning,
-  ConnectedDots,
-  Globe,
-  OfficeBuilding,
-  ShieldCheck,
-} from "@dub/ui/icons";
+import { ConnectedDots, Globe, OfficeBuilding } from "@dub/ui/icons";
 import {
   cn,
+  DUB_WORKSPACE_ID,
   formatDate,
   getDomainWithoutWWW,
   SEGMENT_INTEGRATION_ID,
   SLACK_INTEGRATION_ID,
   ZAPIER_INTEGRATION_ID,
 } from "@dub/utils";
-import { BookOpenText, ChevronLeft, Trash } from "lucide-react";
+import { Trash } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useState } from "react";
@@ -80,50 +76,23 @@ export default function IntegrationPageClient({
   const SettingsComponent = integrationSettings[integration.id] || null;
 
   return (
-    <MaxWidthWrapper className="grid max-w-screen-lg gap-8">
+    <MaxWidthWrapper className="grid max-w-screen-lg grid-cols-1 gap-6">
       {integration.installed && <UninstallIntegrationModal />}
-      <Link
-        href={`/${slug}/settings/integrations`}
-        className="flex items-center gap-x-1"
-      >
-        <ChevronLeft className="size-4" />
-        <p className="text-sm font-medium text-gray-500">Integrations</p>
-      </Link>
-      <div className="flex justify-between gap-2">
-        <div className="flex items-center gap-x-3">
-          <div className="flex-none rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
-            {integration.logo ? (
-              <BlurImage
-                src={integration.logo}
-                alt={`Logo for ${integration.name}`}
-                className="size-8 rounded-full border border-gray-200"
-                width={20}
-                height={20}
-              />
-            ) : (
-              <TokenAvatar id={integration.id} className="size-8" />
-            )}
-          </div>
+      <BackLink href={`/${slug}/settings/integrations`}>Integrations</BackLink>
+      <div className="flex justify-between gap-8">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <IntegrationLogo
+            src={integration.logo ?? null}
+            alt={`Logo for ${integration.name}`}
+            className="size-10 sm:size-14 sm:rounded-lg"
+          />
           <div>
-            <div className="flex items-center gap-1">
-              <p className="font-semibold text-gray-700">{integration.name}</p>
-              <Tooltip
-                content={
-                  integration.verified
-                    ? "This is a verified integration."
-                    : "Dub hasn't verified this integration. Install it at your own risk."
-                }
-              >
-                <div>
-                  {integration.verified ? (
-                    <ShieldCheck className="size-5 text-[#E2B719]" invert />
-                  ) : (
-                    <CircleWarning className="size-5 text-gray-500" invert />
-                  )}
-                </div>
-              </Tooltip>
-            </div>
-            <p className="text-sm text-gray-500">{integration.description}</p>
+            <h1 className="text-base font-semibold leading-none text-neutral-800">
+              {integration.name}
+            </h1>
+            <p className="mt-1 text-[0.8125rem] leading-snug text-neutral-600">
+              {integration.description}
+            </p>
           </div>
         </div>
 
@@ -160,55 +129,82 @@ export default function IntegrationPageClient({
               onClick={() => setOpenPopover(!openPopover)}
               className={cn(
                 "flex h-10 items-center rounded-md border px-1.5 outline-none transition-all",
-                "border-gray-200 bg-white text-gray-900 placeholder-gray-400",
-                "focus-visible:border-gray-500 data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
+                "border-neutral-200 bg-white text-neutral-900 placeholder-neutral-400",
+                "focus-visible:border-neutral-500 data-[state=open]:border-neutral-500 data-[state=open]:ring-4 data-[state=open]:ring-neutral-200",
               )}
             >
-              <ThreeDots className="h-5 w-5 text-gray-500" />
+              <ThreeDots className="h-5 w-5 text-neutral-500" />
             </button>
           </Popover>
         )}
       </div>
 
-      <div className="flex flex-col justify-between gap-4 rounded-lg border border-gray-200 bg-white p-4 sm:flex-row sm:gap-0">
-        <div className="flex flex-col gap-4 sm:flex-row sm:gap-12">
-          {integration.installed && (
-            <div className="flex items-center gap-2">
-              <Avatar user={integration.installed.by} className="size-8" />
-              <div className="flex flex-col gap-1">
-                <p className="text-xs text-gray-500">INSTALLED BY</p>
-                <p className="text-sm font-medium text-gray-700">
-                  {integration.installed.by.name}
-                  <span className="ml-1 font-normal text-gray-500">
-                    {formatDate(integration.installed.createdAt, {
-                      year: undefined,
-                    })}
-                  </span>
-                </p>
+      <div className="flex flex-col justify-between gap-4 rounded-lg border border-neutral-200 bg-white p-4 sm:flex-row sm:gap-0">
+        <div className="flex flex-col gap-4 sm:flex-row sm:gap-8">
+          {[
+            ...(integration.installed
+              ? [
+                  {
+                    label: "Enabled by",
+                    content: (
+                      <span className="text-neutral-700">
+                        <Avatar
+                          user={integration.installed.by}
+                          className="inline-block size-3 -translate-y-0.5 border-0"
+                        />{" "}
+                        {integration.installed.by.name}
+                        <span className="ml-1 font-normal text-neutral-600">
+                          {formatDate(integration.installed.createdAt, {
+                            month: "short",
+                            year:
+                              integration.installed.createdAt.getFullYear() ===
+                              new Date().getFullYear()
+                                ? undefined
+                                : "numeric",
+                          })}
+                        </span>
+                      </span>
+                    ),
+                  },
+                  {
+                    label: "Built by",
+                    content: (
+                      <div className="flex items-center gap-1.5 text-sm font-medium text-neutral-700">
+                        {integration.projectId === DUB_WORKSPACE_ID ? (
+                          <Logo className="size-3.5" />
+                        ) : (
+                          <OfficeBuilding className="size-3.5" />
+                        )}
+                        {integration.developer}
+                      </div>
+                    ),
+                  },
+                  {
+                    label: "Website",
+                    content: (
+                      <a
+                        href={integration.website}
+                        className="flex items-center gap-1.5 text-sm text-neutral-700 transition-colors duration-100 hover:text-neutral-900"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Globe className="size-3.5" />
+                        {getDomainWithoutWWW(integration.website)}
+                      </a>
+                    ),
+                  },
+                ]
+              : []),
+          ].map(({ label, content }) => (
+            <div className="flex flex-col gap-1">
+              <span className="text-xs uppercase text-neutral-500">
+                {label}
+              </span>
+              <div className="text-[0.8125rem] font-medium text-neutral-600">
+                {content}
               </div>
             </div>
-          )}
-
-          <div className="flex flex-col gap-1">
-            <p className="text-xs text-gray-500">DEVELOPER</p>
-            <div className="flex items-center gap-x-1 text-sm font-medium text-gray-700">
-              <OfficeBuilding className="size-3" />
-              {integration.developer}
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <p className="text-xs text-gray-500">WEBSITE</p>
-            <a
-              href={integration.website}
-              className="flex items-center gap-x-1 text-sm font-medium text-gray-700"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Globe className="size-3" />
-              {getDomainWithoutWWW(integration.website)}
-            </a>
-          </div>
+          ))}
         </div>
 
         <div className="flex items-center gap-x-2">
@@ -249,14 +245,12 @@ export default function IntegrationPageClient({
         </div>
       </div>
 
-      <div className="w-full rounded-lg border border-gray-200 bg-white">
-        <div className="flex items-center gap-x-2 border-b border-gray-200 px-6 py-4">
-          <BookOpenText className="size-4" />
-          <p className="text-sm font-medium text-gray-700">Overview</p>
-        </div>
-
+      <div className="w-full rounded-lg border border-neutral-200 bg-white">
         {integration.screenshots && integration.screenshots.length > 0 ? (
-          <Carousel autoplay={{ delay: 5000 }} className="bg-white p-8">
+          <Carousel
+            autoplay={{ delay: 5000 }}
+            className="rounded-t-lg bg-white p-4"
+          >
             <CarouselContent>
               {integration.screenshots.map((src, idx) => (
                 <CarouselItem key={idx}>
@@ -265,7 +259,7 @@ export default function IntegrationPageClient({
                     alt={`Screenshot of ${integration.name}`}
                     width={900}
                     height={580}
-                    className="aspect-[900/580] w-[5/6] overflow-hidden rounded-md border border-gray-200 object-cover object-top"
+                    className="aspect-[900/580] w-[5/6] overflow-hidden rounded-md border border-neutral-200 object-cover object-top"
                   />
                 </CarouselItem>
               ))}
@@ -279,7 +273,7 @@ export default function IntegrationPageClient({
             className={cn(
               "prose prose-sm prose-gray max-w-none p-6 transition-all",
               "prose-headings:leading-tight",
-              "prose-a:font-medium prose-a:text-gray-500 prose-a:underline-offset-4 hover:prose-a:text-black",
+              "prose-a:font-medium prose-a:text-neutral-500 prose-a:underline-offset-4 hover:prose-a:text-black",
             )}
             components={{
               a: ({ node, ...props }) => (
