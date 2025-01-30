@@ -42,7 +42,8 @@ export const tokenSchema = z.object({
 });
 
 export const createEmbedTokenSchema = z.object({
-  linkId: z.string().min(1),
+  programId: z.string().min(1),
+  tenantId: z.string().min(1),
 });
 
 export const EmbedTokenSchema = z.object({

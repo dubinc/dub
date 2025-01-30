@@ -7,13 +7,19 @@ import {
 } from "./constants";
 
 class EmbedToken {
-  async create(linkId: string) {
+  async create({
+    programId,
+    tenantId,
+  }: {
+    programId: string;
+    tenantId: string;
+  }) {
     const publicToken = createId({
       prefix: EMBED_PUBLIC_TOKEN_PREFIX,
       length: EMBED_PUBLIC_TOKEN_LENGTH,
     });
 
-    await redis.set(publicToken, linkId, {
+    await redis.set(publicToken, JSON.stringify({ programId, tenantId }), {
       ex: EMBED_PUBLIC_TOKEN_EXPIRY,
       nx: true,
     });
@@ -25,7 +31,7 @@ class EmbedToken {
   }
 
   async get(token: string) {
-    return await redis.get<string>(token);
+    return await redis.get<{ programId: string; tenantId: string }>(token);
   }
 }
 
