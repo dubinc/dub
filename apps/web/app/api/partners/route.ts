@@ -49,6 +49,7 @@ export const GET = withWorkspace(
     } = partnersQuerySchema.parse(searchParams);
 
     const sortColumnsMap = {
+      createdAt: "pe.createdAt",
       clicks: "totalClicks",
       leads: "totalLeads",
       sales: "totalSales",
