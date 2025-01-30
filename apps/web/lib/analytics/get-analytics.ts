@@ -19,6 +19,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     groupBy,
     workspaceId,
     linkId,
+    partnerId,
     interval,
     start,
     end,
@@ -38,20 +39,39 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   // 2. linkId is defined
   // 3. interval is all time
   // 4. call is made from dashboard
-  if (linkId && groupBy === "count" && interval === "all_unfiltered") {
-    const columns =
-      event === "composite"
-        ? `clicks, leads, sales, saleAmount`
-        : event === "sales"
-          ? `sales, saleAmount`
-          : `${event}`;
+  if (groupBy === "count" && interval === "all_unfiltered") {
+    if (linkId) {
+      const columns =
+        event === "composite"
+          ? `clicks, leads, sales, saleAmount`
+          : event === "sales"
+            ? `sales, saleAmount`
+            : `${event}`;
 
-    let response = await conn.execute(
-      `SELECT ${columns} FROM Link WHERE id = ?`,
-      [linkId],
-    );
+      const response = await conn.execute(
+        `SELECT ${columns} FROM Link WHERE id = ?`,
+        [linkId],
+      );
 
-    return response.rows[0];
+      return response.rows[0];
+    }
+
+    if (partnerId) {
+      const columnsMap = {
+        clicks: "SUM(clicks) as clicks",
+        leads: "SUM(leads) as leads",
+        sales: "SUM(sales) as sales, SUM(saleAmount) as saleAmount",
+        composite:
+          "SUM(clicks) as clicks, SUM(leads) as leads, SUM(sales) as sales, SUM(saleAmount) as saleAmount",
+      };
+
+      const response = await conn.execute(
+        `SELECT ${columnsMap[event]} FROM Link WHERE partnerId = ?`,
+        [partnerId],
+      );
+
+      return response.rows[0];
+    }
   }
 
   if (groupBy === "trigger") {
