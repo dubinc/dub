@@ -18,14 +18,13 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { GreekTemple, Link4 } from "@dub/ui/icons";
+import { GreekTemple } from "@dub/ui/icons";
 import {
   cn,
   COUNTRIES,
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
   formatDate,
-  getPrettyUrl,
   nFormatter,
 } from "@dub/utils";
 import { ChevronLeft } from "lucide-react";
@@ -115,14 +114,6 @@ function PartnerDetailsSheetContent({
               )}
             </div>
             <div className="flex min-w-[40%] shrink grow basis-1/2 flex-col items-end justify-end gap-2">
-              {/* {partner.links && (
-                <div className="group flex min-w-0 items-center gap-1 overflow-hidden rounded-full border border-neutral-200 bg-white px-1.5 py-0.5 text-xs text-neutral-700">
-                  <Link4 className="size-3.5" />
-                  <span className="truncate">
-                    {getPrettyUrl(partner.links[0].shortLink)}
-                  </span>
-                </div>
-              )} */}
               {partner.country && (
                 <div className="flex min-w-20 items-center gap-2 rounded-full border border-neutral-200 bg-white px-1.5 py-0.5 text-xs text-neutral-700">
                   <img
