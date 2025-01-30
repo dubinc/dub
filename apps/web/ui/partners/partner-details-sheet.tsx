@@ -26,6 +26,7 @@ import {
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
   formatDate,
+  getPrettyUrl,
   nFormatter,
 } from "@dub/utils";
 import { ChevronLeft } from "lucide-react";
@@ -572,8 +573,12 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
     columns: [
       {
         id: "shortLink",
-        header: "Short Link",
-        accessorFn: (d) => d.shortLink,
+        header: "Link",
+        cell: ({ row }) => (
+          <b className="font-medium text-black">
+            {getPrettyUrl(row.original.shortLink)}
+          </b>
+        ),
       },
       {
         header: "Clicks",
