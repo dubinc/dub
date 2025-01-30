@@ -69,7 +69,7 @@ model Link {
 
   dashboard         Dashboard?
   partnerId         String?
-  programEnrollment ProgramEnrollment? @relation(fields: [partnerId, programId], references: [partnerId, programId])
+  programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId])
   programInvite     ProgramInvite?
 
   program   Program? @relation(fields: [programId], references: [id])
@@ -88,5 +88,5 @@ model Link {
   @@unique([projectId, externalId])
   @@index(tenantId)
   @@index(programId)
-  @@index([partnerId, programId])
+  @@index([programId, partnerId])
 }

@@ -88,7 +88,7 @@ export const GET = withWorkspace(
       INNER JOIN 
         Partner p ON p.id = pe.partnerId 
       LEFT JOIN 
-        Link l ON l.partnerId = pe.partnerId AND l.programId = pe.programId
+        Link l ON l.programId = pe.programId AND l.partnerId = pe.partnerId
       WHERE 
         pe.programId = ${program.id}
         ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : Prisma.sql``}
