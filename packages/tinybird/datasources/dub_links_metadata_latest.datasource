@@ -10,7 +10,8 @@ SCHEMA >
     `workspace_id` String,
     `created_at` DateTime64(3),
     `deleted` UInt8,
-    `program_id` String
+    `program_id` String,
+    `partner_id` String
 
 ENGINE "ReplacingMergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"

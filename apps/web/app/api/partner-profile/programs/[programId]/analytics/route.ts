@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 // GET /api/partner-profile/programs/[programId]/analytics – get analytics for a program enrollment link
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
-    const { link, program } = await getProgramEnrollmentOrThrow({
+    const { program } = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
       programId: params.programId,
     });
@@ -24,7 +24,7 @@ export const GET = withPartnerProfile(
 
     const response = await getAnalytics({
       ...parsedParams,
-      linkId: link.id,
+      partnerId: partner.id,
     });
 
     let data;
