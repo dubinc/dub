@@ -148,7 +148,10 @@ export function PartnerTable() {
         header: "Clicks",
         accessorFn: (d) =>
           d.status !== "pending"
-            ? nFormatter(d.link?.clicks, { full: true })
+            ? nFormatter(
+                d.links?.reduce((acc, curr) => acc + curr.clicks, 0),
+                { full: true },
+              )
             : "-",
       },
       {
@@ -156,7 +159,10 @@ export function PartnerTable() {
         header: "Leads",
         accessorFn: (d) =>
           d.status !== "pending"
-            ? nFormatter(d.link?.leads, { full: true })
+            ? nFormatter(
+                d.links?.reduce((acc, curr) => acc + curr.leads, 0),
+                { full: true },
+              )
             : "-",
       },
       {
@@ -164,7 +170,10 @@ export function PartnerTable() {
         header: "Sales",
         accessorFn: (d) =>
           d.status !== "pending"
-            ? nFormatter(d.link?.sales, { full: true })
+            ? nFormatter(
+                d.links?.reduce((acc, curr) => acc + curr.sales, 0),
+                { full: true },
+              )
             : "-",
       },
       {
