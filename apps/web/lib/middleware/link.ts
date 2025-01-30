@@ -26,6 +26,7 @@ import {
 import { linkCache } from "../api/links/cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
+import { hasEmptySearchParams } from "./utils/has-empty-search-params";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -407,6 +408,19 @@ export default async function LinkMiddleware(
         workspaceId,
       }),
     );
+
+    if (hasEmptySearchParams(url)) {
+      return NextResponse.rewrite(new URL("/api/patch-redirect", req.url), {
+        request: {
+          headers: new Headers({
+            destination: getFinalUrl(url, {
+              req,
+              clickId: trackConversion ? clickId : undefined,
+            }),
+          }),
+        },
+      });
+    }
 
     return createResponseWithCookie(
       NextResponse.redirect(

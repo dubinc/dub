@@ -44,7 +44,7 @@ export function EnabledIntegrations({
               href={`/${slug}/settings/integrations/enabled`}
               className="font-medium leading-4 text-neutral-500 transition-colors duration-100 hover:text-neutral-700"
             >
-              View all
+              View all ({enabledIntegrations.length})
             </Link>
           </div>
           <ul className="mt-4 divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">
