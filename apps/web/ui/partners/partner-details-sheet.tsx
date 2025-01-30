@@ -50,7 +50,6 @@ function PartnerDetailsSheetContent({
   partner,
   setIsOpen,
 }: PartnerDetailsSheetProps) {
-  const { slug } = useWorkspace();
   const [tab, setTab] = useState<Tab>("payouts");
 
   const { createPayoutSheet, setIsOpen: setCreatePayoutSheetOpen } =
@@ -195,23 +194,25 @@ function PartnerDetailsSheetContent({
               </Link>
             </div>
           )} */}
+
+          {partner.status === "approved" && (
+            <TabSelect
+              options={[
+                { id: "payouts", label: "Payouts" },
+                { id: "links", label: "Links" },
+              ]}
+              selected={tab}
+              onSelect={(id: Tab) => {
+                setTab(id);
+              }}
+              className="-mb-6 mt-2"
+            />
+          )}
         </div>
 
         <div className="grow p-6">
           {partner.status === "approved" ? (
             <>
-              <TabSelect
-                variant="accent"
-                options={[
-                  { id: "payouts", label: "Payouts" },
-                  { id: "links", label: "Links" },
-                ]}
-                selected={tab}
-                onSelect={(id: Tab) => {
-                  setTab(id);
-                }}
-              />
-
               {tab === "payouts" && <PartnerPayouts partner={partner} />}
               {tab === "links" && <PartnerLinks partner={partner} />}
             </>
@@ -550,7 +551,6 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
 
 const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
   const { slug } = useWorkspace();
-  const { program } = useProgram();
 
   const table = useTable({
     data: partner.links || [],
@@ -592,7 +592,7 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
     ],
     onRowClick: (row) => {
       window.open(
-        `/${slug}/programs/${program!.id}/payouts?payoutId=${row.original.id}`,
+        `/${slug}/analytics?domain=${row.original.domain}&key=${row.original.key}&interval=all`,
         "_blank",
       );
     },
