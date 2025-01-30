@@ -43,7 +43,7 @@ export const POST = withWorkspaceEdge(
 
     // deduplicate lead events – only record 1 event per hour
     const { success } = await ratelimit(1, "1 h").limit(
-      `recordLead:${customerExternalId}:${eventName.toLowerCase().replace(" ", "-")}`,
+      `recordLead:${workspace.id}:${customerExternalId}:${eventName.toLowerCase().replace(" ", "-")}`,
     );
 
     if (!success) {
