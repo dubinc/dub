@@ -12,12 +12,8 @@ export const detectBot = (req: Request) => {
   // Check ua
   const ua = userAgent(req);
 
-  if (!ua) {
-    return false;
-  }
-
-  if (ua.isBot || UA_BOTS.some((bot) => new RegExp(bot, "i").test(ua.ua))) {
-    return true;
+  if (ua) {
+    return ua.isBot || UA_BOTS.some((bot) => new RegExp(bot, "i").test(ua.ua));
   }
 
   // Check ip
