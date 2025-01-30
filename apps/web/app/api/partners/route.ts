@@ -59,10 +59,10 @@ export const GET = withWorkspace(
       LEFT JOIN 
         Link l ON l.partnerId = pe.partnerId 
       WHERE 
-        pe.programId = ${programId}
+        pe.programId = ${program.id}
         ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql``}
         ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
-        ${search ? Prisma.sql`AND p.name ILIKE ${"%" + search + "%"}` : Prisma.sql``}
+        ${search ? Prisma.sql`AND LOWER(p.name) LIKE LOWER(${`%${search}%`})` : Prisma.sql``}
         ${ids && ids.length > 0 ? Prisma.sql`AND pe.partnerId IN (${Prisma.join(ids)})` : Prisma.sql``}
       GROUP BY 
         p.id, pe.id
@@ -73,7 +73,8 @@ export const GET = withWorkspace(
           WHEN ${sortBy} = 'leads' THEN totalLeads
           WHEN ${sortBy} = 'sales' THEN totalSales
           WHEN ${sortBy} = 'earnings' THEN totalSaleAmount
-        END ${Prisma.raw(sortOrder)}`;
+        END ${Prisma.raw(sortOrder)}
+      LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`;
 
     // @ts-ignore
     const response = partners.map((partner) => ({
