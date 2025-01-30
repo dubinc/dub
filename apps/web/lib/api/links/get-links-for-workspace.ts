@@ -73,7 +73,11 @@ export async function getLinksForWorkspace({
             }
           : {}),
       ...(tenantId && { tenantId }),
-      ...(partnerId && { partnerId }),
+      ...(partnerId && {
+        programEnrollment: {
+          partnerId,
+        },
+      }), // TODO: Should we add a programId filter along with partnerId?
       ...(userId && { userId }),
       ...(linkIds && { id: { in: linkIds } }),
     },
