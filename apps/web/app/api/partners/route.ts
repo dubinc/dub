@@ -90,6 +90,7 @@ export const GET = withWorkspace(
     // @ts-ignore
     const response = partners.map((partner) => ({
       ...partner,
+      createdAt: new Date(partner.enrollmentCreatedAt),
       payoutsEnabled: Boolean(partner.payoutsEnabled),
       clicks: Number(partner.totalClicks),
       leads: Number(partner.totalLeads),
