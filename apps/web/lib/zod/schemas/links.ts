@@ -189,6 +189,10 @@ export const createLinkBodySchema = z.object({
     .string()
     .nullish()
     .describe("The ID of the program the short link is associated with."),
+  partnerId: z
+    .string()
+    .nullish()
+    .describe("The ID of the partner the short link is associated with."),
   prefix: z
     .string()
     .optional()

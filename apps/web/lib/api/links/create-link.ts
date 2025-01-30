@@ -31,7 +31,6 @@ export async function createLink(link: ProcessedLinkProps) {
     proxy,
     geo,
     publicStats,
-    partnerId,
   } = link;
 
   const combinedTagIds = combineTagIds(link);
@@ -39,8 +38,7 @@ export async function createLink(link: ProcessedLinkProps) {
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
-  const { tagId, tagIds, tagNames, webhookIds, programId, tenantId, ...rest } =
-    link;
+  const { tagId, tagIds, tagNames, webhookIds, ...rest } = link;
 
   const response = await prisma.link.create({
     data: {
@@ -59,9 +57,6 @@ export async function createLink(link: ProcessedLinkProps) {
       utm_content,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       geo: geo || Prisma.JsonNull,
-      programId,
-      tenantId,
-      partnerId,
 
       // Associate tags by tagNames
       ...(tagNames?.length &&
