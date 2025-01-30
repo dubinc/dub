@@ -177,11 +177,11 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
     payoutType !== "custom" &&
       start &&
       end &&
-      selectedPartner?.link &&
+      selectedPartner?.id &&
       `/api/analytics?${new URLSearchParams({
         workspaceId: workspaceId!,
         event: payoutType,
-        linkId: selectedPartner.link.id,
+        partnerId: selectedPartner.id,
         start: start?.toISOString(),
         end: end?.toISOString(),
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
