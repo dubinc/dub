@@ -39,6 +39,13 @@ export const GET = withWorkspace(
     const { status, country, search, ids, page, pageSize, sortBy, sortOrder } =
       partnersQuerySchema.parse(searchParams);
 
+    const sortColumnsMap = {
+      clicks: "totalClicks",
+      leads: "totalLeads",
+      sales: "totalSales",
+      earnings: "totalSaleAmount",
+    };
+
     const partners = await prisma.$queryRaw`
       SELECT 
         p.*, 
@@ -66,14 +73,7 @@ export const GET = withWorkspace(
         ${ids && ids.length > 0 ? Prisma.sql`AND pe.partnerId IN (${Prisma.join(ids)})` : Prisma.sql``}
       GROUP BY 
         p.id, pe.id
-      ORDER BY 
-        CASE 
-          WHEN ${sortBy} = 'createdAt' THEN pe.createdAt
-          WHEN ${sortBy} = 'clicks' THEN totalClicks
-          WHEN ${sortBy} = 'leads' THEN totalLeads
-          WHEN ${sortBy} = 'sales' THEN totalSales
-          WHEN ${sortBy} = 'earnings' THEN totalSaleAmount
-        END ${Prisma.raw(sortOrder)}
+      ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)}
       LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`;
 
     // @ts-ignore
