@@ -7,7 +7,7 @@ import {
 import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
 import { CustomerSchema } from "./customers";
-import { createLinkBodySchema, LinkSchema } from "./links";
+import { createLinkBodySchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { ProgramEnrollmentSchema } from "./programs";
 import { parseDateSchema } from "./utils";
@@ -74,23 +74,18 @@ export const EnrolledPartnerSchema = PartnerSchema.omit({
   });
 
 export const LeaderboardPartnerSchema = z.object({
-  partner: z.object({
-    id: z.string(),
-    name: z.string().transform((name) => {
-      const parts = name.trim().split(/\s+/);
-      if (parts.length < 2) return name; // Return original if single word
-      const firstName = parts[0];
-      const lastInitial = parts[parts.length - 1][0];
-      return `${firstName} ${lastInitial}.`;
-    }),
+  id: z.string(),
+  name: z.string().transform((name) => {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length < 2) return name; // Return original if single word
+    const firstName = parts[0];
+    const lastInitial = parts[parts.length - 1][0];
+    return `${firstName} ${lastInitial}.`;
   }),
-  link: LinkSchema.pick({
-    shortLink: true,
-    clicks: true,
-    leads: true,
-    sales: true,
-    saleAmount: true,
-  }),
+  clicks: z.number().default(0),
+  leads: z.number().default(0),
+  sales: z.number().default(0),
+  saleAmount: z.number().default(0),
 });
 
 export const SaleSchema = z.object({
