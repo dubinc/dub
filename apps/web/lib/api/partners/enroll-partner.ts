@@ -11,10 +11,12 @@ import { DubApiError } from "../errors";
 export const enrollPartner = async ({
   programId,
   linkId,
+  tenantId,
   partner,
 }: {
   programId: string;
   linkId: string;
+  tenantId?: string;
   partner: {
     name: string;
     email?: string | null;
@@ -43,6 +45,7 @@ export const enrollPartner = async ({
     programs: {
       create: {
         programId,
+        tenantId,
         links: {
           connect: {
             id: linkId,
@@ -52,6 +55,9 @@ export const enrollPartner = async ({
       },
     },
   };
+
+  // TODO:
+  // Check if the tenantId is already enrolled in the program
 
   const [upsertedPartner, updatedLink] = await Promise.all([
     prisma.partner.upsert({
@@ -68,6 +74,7 @@ export const enrollPartner = async ({
         country: "US",
       },
     }),
+
     prisma.link.update({
       where: {
         id: linkId,

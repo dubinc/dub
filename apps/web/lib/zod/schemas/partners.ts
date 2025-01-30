@@ -197,6 +197,10 @@ export const createPartnerSchema = z.object({
     .max(5000)
     .nullish()
     .describe("A brief description of the partner and their background."),
+  tenantId: z
+    .string()
+    .optional()
+    .describe("The ID of the partner in your system."),
   linkProps: createLinkBodySchema
     .omit({
       url: true,
