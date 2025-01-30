@@ -1,6 +1,9 @@
 "use client";
 
 import IntegrationCard from "@/ui/integrations/integration-card";
+import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { buttonVariants, Plus } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import { IntegrationsWithInstallations } from "./integrations-list";
@@ -17,6 +20,13 @@ const CATEGORY_ORDER = [
   "Dub",
   "Miscellaneous",
 ] as const;
+
+const PRESENCE_ANIMATION = {
+  initial: { opacity: 0, translateY: 10 },
+  animate: { opacity: 1, translateY: 0 },
+  exit: { opacity: 0, translateY: 10 },
+  transition: { duration: 0.1 },
+};
 
 export async function IntegrationsCards({
   integrations,
@@ -47,31 +57,59 @@ export async function IntegrationsCards({
 
   return (
     <AnimatePresence initial={false} mode="wait">
-      <motion.div
-        key={search}
-        initial={{ opacity: 0, translateY: 10 }}
-        animate={{ opacity: 1, translateY: 0 }}
-        exit={{ opacity: 0, translateY: 10 }}
-        transition={{ duration: 0.1 }}
-        className="flex flex-col gap-12"
-      >
-        {categories.map((category) => (
-          <div key={category}>
-            <h2 className="font-medium leading-4 text-neutral-800">
-              {category}
-            </h2>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {groupedIntegrations[category]!.map((integration) => (
-                <IntegrationCard
-                  key={integration.id}
-                  {...integration}
-                  installations={integration._count.installations}
-                />
-              ))}
-            </div>
-          </div>
-        ))}
-      </motion.div>
+      <>
+        {categories.length > 0 && (
+          <motion.div
+            key={search}
+            {...PRESENCE_ANIMATION}
+            className="flex flex-col gap-12"
+          >
+            {categories.map((category) => (
+              <div key={category}>
+                <h2 className="font-medium leading-4 text-neutral-800">
+                  {category}
+                </h2>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {groupedIntegrations[category]!.map((integration) => (
+                    <IntegrationCard
+                      key={integration.id}
+                      {...integration}
+                      installations={integration._count.installations}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </motion.div>
+        )}
+        {!categories.length && (
+          <motion.div key="empty" {...PRESENCE_ANIMATION}>
+            <AnimatedEmptyState
+              className="-mt-2"
+              title="Integration not found"
+              description="Let us know if you'd like to see it in the future."
+              cardContent={() => (
+                <div className="flex h-24 w-full items-center justify-center sm:h-32">
+                  <div className="rounded-xl bg-neutral-100/50 p-4">
+                    <Plus className="size-4 text-neutral-700" />
+                  </div>
+                </div>
+              )}
+              addButton={
+                <a
+                  href="mailto:support@dub.co?subject=Integration%20Request"
+                  className={cn(
+                    buttonVariants({ variant: "primary" }),
+                    "flex h-8 items-center rounded-md border px-2.5 text-sm",
+                  )}
+                >
+                  Request integration
+                </a>
+              }
+            />
+          </motion.div>
+        )}
+      </>
     </AnimatePresence>
   );
 }
