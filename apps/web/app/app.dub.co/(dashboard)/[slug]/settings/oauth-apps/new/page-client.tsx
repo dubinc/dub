@@ -3,9 +3,8 @@
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import AddOAuthAppForm from "@/ui/oauth-apps/add-edit-app-form";
+import { BackLink } from "@/ui/shared/back-link";
 import { MaxWidthWrapper } from "@dub/ui";
-import { ChevronLeft } from "lucide-react";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 export default function NewOAuthAppPageClient() {
@@ -23,15 +22,9 @@ export default function NewOAuthAppPageClient() {
   return (
     <>
       <MaxWidthWrapper className="grid max-w-screen-lg gap-8">
-        <Link
-          href={`/${slug}/settings/oauth-apps`}
-          className="flex items-center gap-x-1"
-        >
-          <ChevronLeft className="size-4" />
-          <p className="text-sm font-medium text-gray-500">
-            Back to OAuth Apps
-          </p>
-        </Link>
+        <BackLink href={`/${slug}/settings/oauth-apps`}>
+          Back to OAuth Apps
+        </BackLink>
       </MaxWidthWrapper>
 
       <MaxWidthWrapper className="max-w-screen-lg space-y-6">
