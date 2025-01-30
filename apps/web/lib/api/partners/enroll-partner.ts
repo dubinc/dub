@@ -41,6 +41,25 @@ export const enrollPartner = async ({
     }
   }
 
+  // Check if the tenantId is already enrolled in the program
+  if (tenantId) {
+    const tenantEnrollment = await prisma.programEnrollment.findUnique({
+      where: {
+        tenantId_programId: {
+          tenantId,
+          programId,
+        },
+      },
+    });
+
+    if (tenantEnrollment) {
+      throw new DubApiError({
+        message: `Tenant ${tenantId} already enrolled in this program.`,
+        code: "conflict",
+      });
+    }
+  }
+
   const payload: Pick<Prisma.PartnerUpdateInput, "programs"> = {
     programs: {
       create: {
@@ -56,45 +75,41 @@ export const enrollPartner = async ({
     },
   };
 
-  // TODO:
-  // Check if the tenantId is already enrolled in the program
-
-  const [upsertedPartner, updatedLink] = await Promise.all([
-    prisma.partner.upsert({
-      where: {
-        email: partner.email ?? "",
-      },
-      update: payload,
-      create: {
-        ...payload,
-        id: createId({ prefix: "pn_" }),
-        name: partner.name,
-        email: partner.email,
-        image: partner.image,
-        country: "US",
-      },
-    }),
-
-    prisma.link.update({
-      where: {
-        id: linkId,
-      },
-      data: {
-        programId,
-      },
-      include: {
-        tags: {
-          select: {
-            tag: true,
-          },
-        },
-      },
-    }),
-  ]);
+  const upsertedPartner = await prisma.partner.upsert({
+    where: {
+      email: partner.email ?? "",
+    },
+    update: payload,
+    create: {
+      ...payload,
+      id: createId({ prefix: "pn_" }),
+      name: partner.name,
+      email: partner.email,
+      image: partner.image,
+      country: "US",
+    },
+  });
 
   waitUntil(
     Promise.all([
-      recordLink(updatedLink),
+      // update and record link
+      prisma.link
+        .update({
+          where: {
+            id: linkId,
+          },
+          data: {
+            partnerId: upsertedPartner.id,
+          },
+          include: {
+            tags: {
+              select: {
+                tag: true,
+              },
+            },
+          },
+        })
+        .then((link) => recordLink(link)),
       // TODO: Remove this once we open up partners.dub.co to everyone
       partner.email &&
         updateConfig({

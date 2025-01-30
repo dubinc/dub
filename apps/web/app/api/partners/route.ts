@@ -162,8 +162,8 @@ export const POST = withWorkspace(
       payload: {
         ...linkProps,
         domain: program.domain,
-        url: program.url,
         key: username,
+        url: program.url,
         programId,
         tenantId,
         trackConversion: true,
