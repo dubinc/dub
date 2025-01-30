@@ -36,8 +36,17 @@ export const GET = withWorkspace(
       programId,
     });
 
-    const { status, country, search, ids, page, pageSize, sortBy, sortOrder } =
-      partnersQuerySchema.parse(searchParams);
+    const {
+      status,
+      country,
+      search,
+      tenantId,
+      ids,
+      page,
+      pageSize,
+      sortBy,
+      sortOrder,
+    } = partnersQuerySchema.parse(searchParams);
 
     const sortColumnsMap = {
       clicks: "totalClicks",
@@ -67,6 +76,7 @@ export const GET = withWorkspace(
         Link l ON l.partnerId = pe.partnerId 
       WHERE 
         pe.programId = ${program.id}
+        ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : Prisma.sql``}
         ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql``}
         ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
         ${search ? Prisma.sql`AND LOWER(p.name) LIKE LOWER(${`%${search}%`})` : Prisma.sql``}

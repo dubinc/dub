@@ -24,6 +24,10 @@ export const partnersQuerySchema = z
       .enum(["createdAt", "clicks", "leads", "sales", "earnings"])
       .default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
+    tenantId: z
+      .string()
+      .optional()
+      .describe("The ID of the partner within your system."),
     ids: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
