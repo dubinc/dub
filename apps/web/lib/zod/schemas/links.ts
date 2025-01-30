@@ -632,6 +632,10 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional()
       .describe("Link IDs to filter by."),
+    partnerId: z
+      .string()
+      .optional()
+      .describe("Partner ID to filter by."),
   }),
 );
 

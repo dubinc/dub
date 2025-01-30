@@ -2,6 +2,7 @@ import { approvePartnerAction } from "@/lib/actions/partners/approve-partner";
 import { rejectPartnerAction } from "@/lib/actions/partners/reject-partner";
 import { SHEET_MAX_ITEMS } from "@/lib/partners/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useLinks from "@/lib/swr/use-links";
 import usePayouts from "@/lib/swr/use-payouts";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -53,15 +54,6 @@ function PartnerDetailsSheetContent({
 
   const { createPayoutSheet, setIsOpen: setCreatePayoutSheetOpen } =
     useCreatePayoutSheet({ nested: true, partnerId: partner.id });
-
-  const clicks = partner.links?.reduce((acc, link) => acc + link.clicks, 0);
-  const leads = partner.links?.reduce((acc, link) => acc + link.leads, 0);
-  const sales = partner.links?.reduce((acc, link) => acc + link.sales, 0);
-  // const earnings = (partner.earnings ?? 0) / 100;
-  const saleAmount = partner.links?.reduce(
-    (acc, link) => acc + (link.saleAmount ?? 0) / 100,
-    0,
-  );
 
   const badge = PartnerStatusBadges[partner.status];
 
@@ -131,15 +123,31 @@ function PartnerDetailsSheetContent({
           {partner.status === "approved" && (
             <div className="xs:grid-cols-4 mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200">
               {[
-                ["Clicks", !clicks ? "-" : nFormatter(clicks, { full: true })],
-                ["Leads", !leads ? "-" : nFormatter(leads, { full: true })],
-                ["Sales", !sales ? "-" : nFormatter(sales, { full: true })],
+                [
+                  "Clicks",
+                  !partner.clicks
+                    ? "-"
+                    : nFormatter(partner.clicks, { full: true }),
+                ],
+                [
+                  "Leads",
+                  !partner.leads
+                    ? "-"
+                    : nFormatter(partner.leads, { full: true }),
+                ],
+                [
+                  "Sales",
+                  !partner.sales
+                    ? "-"
+                    : nFormatter(partner.sales, { full: true }),
+                ],
                 [
                   "Revenue",
-                  !saleAmount
+                  !partner.earnings
                     ? "-"
-                    : currencyFormatter(saleAmount, {
-                        minimumFractionDigits: saleAmount % 1 === 0 ? 0 : 2,
+                    : currencyFormatter(partner.earnings, {
+                        minimumFractionDigits:
+                          partner.earnings % 1 === 0 ? 0 : 2,
                         maximumFractionDigits: 2,
                       }),
                 ],
@@ -543,8 +551,24 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
 const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
   const { slug } = useWorkspace();
 
+  const {
+    links,
+    isValidating: loading,
+    error: linksError,
+  } = useLinks({
+    page: 1,
+    pageSize: SHEET_MAX_ITEMS,
+    partnerId: partner.id,
+    sortBy: "createdAt",
+    includeDashboard: false,
+    includeUser: false,
+    includeWebhooks: false,
+  });
+
   const table = useTable({
-    data: partner.links || [],
+    data: links || [],
+    loading,
+    error: linksError ? "Failed to load links" : undefined,
     columns: [
       {
         id: "shortLink",
@@ -595,13 +619,13 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
     scrollWrapperClassName: "min-h-[40px]",
   } as any);
 
-  return partner.links && partner.links.length > 0 ? (
+  return (links && links.length > 0) || loading ? (
     <Table {...table} />
   ) : (
     <AnimatedEmptyState
       className="md:min-h-80"
-      title="No links"
-      description="When you or the partner create links, they will appear here."
+      title="No payouts"
+      description="When this partner is eligible for or has received payouts, they will appear here."
       cardContent={() => (
         <>
           <div className="flex size-7 items-center justify-center rounded-md border border-neutral-200 bg-neutral-50">

@@ -23,7 +23,11 @@ export default function useLinks(
     }
   }, []);
 
-  const { data: links, isValidating } = useSWR<
+  const {
+    data: links,
+    isValidating,
+    error,
+  } = useSWR<
     (ExpandedLinkProps & {
       user: UserProps;
     })[]
@@ -56,5 +60,6 @@ export default function useLinks(
   return {
     links,
     isValidating,
+    error,
   };
 }
