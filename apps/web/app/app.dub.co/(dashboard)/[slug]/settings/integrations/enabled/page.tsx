@@ -68,9 +68,10 @@ async function EnabledIntegrationsPageRSC({ slug }: { slug: string }) {
                 <IntegrationLogo
                   src={integration.logo}
                   alt={`Logo for ${integration.name}`}
+                  className="size-10"
                 />
 
-                <div className="flex min-w-0 flex-col gap-1">
+                <div className="flex min-w-0 flex-col">
                   <span className="text-sm font-medium text-neutral-800">
                     {integration.name}
                   </span>
