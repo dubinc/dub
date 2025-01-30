@@ -86,6 +86,12 @@ export const analyticsQuerySchema = z
       .describe(
         "This is the ID of the link in the your database. Must be prefixed with 'ext_' when passed as a query parameter.",
       ),
+    tenantId: z
+      .string()
+      .optional()
+      .describe(
+        "The ID of the tenant that created the link inside your system.",
+      ),
     interval: z
       .enum(intervals)
       .optional()
