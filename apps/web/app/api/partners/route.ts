@@ -68,13 +68,27 @@ export const GET = withWorkspace(
         COALESCE(SUM(l.clicks), 0) as totalClicks,
         COALESCE(SUM(l.leads), 0) as totalLeads,
         COALESCE(SUM(l.sales), 0) as totalSales,
-        COALESCE(SUM(l.saleAmount), 0) as totalSaleAmount
+        COALESCE(SUM(l.saleAmount), 0) as totalSaleAmount,
+        JSON_ARRAYAGG(
+          IF(l.id IS NOT NULL,
+            JSON_OBJECT(
+              'id', l.id,
+              'shortLink', l.shortLink,
+              'url', l.url,
+              'clicks', CAST(l.clicks AS SIGNED),
+              'leads', CAST(l.leads AS SIGNED),
+              'sales', CAST(l.sales AS SIGNED),
+              'saleAmount', CAST(l.saleAmount AS SIGNED)
+            ),
+            NULL
+          )
+        ) as links
       FROM 
         ProgramEnrollment pe 
       INNER JOIN 
         Partner p ON p.id = pe.partnerId 
       LEFT JOIN 
-        Link l ON l.partnerId = pe.partnerId 
+        Link l ON l.partnerId = pe.partnerId AND l.programId = pe.programId
       WHERE 
         pe.programId = ${program.id}
         ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : Prisma.sql``}
@@ -100,7 +114,7 @@ export const GET = withWorkspace(
           ? partner.totalSaleAmount
           : partner.totalSales) ?? 0) *
         (program.commissionAmount / 100),
-      links: null,
+      links: partner.links.filter((link: any) => link !== null),
     }));
 
     return NextResponse.json(z.array(EnrolledPartnerSchema).parse(response));

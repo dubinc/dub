@@ -41,7 +41,7 @@ export const createProgramSchema = z.object({
   cookieLength: z.number().min(1).max(180),
   domain: z.string().nullable(),
   url: z.string().nullable(),
-}); 
+});
 
 export const ProgramEnrollmentSchema = z.object({
   partnerId: z.string(),
@@ -53,8 +53,6 @@ export const ProgramEnrollmentSchema = z.object({
       LinkSchema.pick({
         id: true,
         shortLink: true,
-        domain: true,
-        key: true,
         url: true,
         clicks: true,
         leads: true,
