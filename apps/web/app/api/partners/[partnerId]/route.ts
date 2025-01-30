@@ -33,22 +33,25 @@ export const GET = withWorkspace(
       },
       include: {
         partner: true,
-        link: true,
         program: true,
+        links: true,
       },
     });
 
-    const { program, link } = programEnrollment;
+    const { program, links } = programEnrollment;
+
+    const earnings = links?.reduce((acc, link) => {
+      return acc + ((program.commissionType === "percentage"
+        ? link?.saleAmount
+        : link?.sales) ?? 0) *
+        (program.commissionAmount / 100)
+    }, 0)
 
     const partner = {
       ...programEnrollment.partner,
       ...programEnrollment,
       id: programEnrollment.partnerId,
-      earnings:
-        ((program.commissionType === "percentage"
-          ? link?.saleAmount
-          : link?.sales) ?? 0) *
-        (program.commissionAmount / 100),
+      earnings
     };
 
     return NextResponse.json(EnrolledPartnerSchema.parse(partner));

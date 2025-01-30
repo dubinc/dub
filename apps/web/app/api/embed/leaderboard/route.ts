@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import z from "node_modules/zod/lib";
 
 // GET /api/embed/sales – get sales for a link from an embed token
-export const GET = withEmbedToken(async ({ program, searchParams }) => {
+export const GET = withEmbedToken(async ({ program }) => {
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       programId: program.id,
