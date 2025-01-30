@@ -24,7 +24,7 @@ import {
   Popover,
   TooltipContent,
 } from "@dub/ui";
-import { ConnectedDots, Globe, OfficeBuilding } from "@dub/ui/icons";
+import { ConnectedDots, Globe, OfficeBuilding, Trash } from "@dub/ui/icons";
 import {
   cn,
   DUB_WORKSPACE_ID,
@@ -34,7 +34,6 @@ import {
   SLACK_INTEGRATION_ID,
   ZAPIER_INTEGRATION_ID,
 } from "@dub/utils";
-import { Trash } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useState } from "react";
@@ -102,7 +101,7 @@ export default function IntegrationPageClient({
             content={
               <div className="grid w-screen gap-px p-2 sm:w-48">
                 <Button
-                  text="Uninstall Integration"
+                  text="Remove Integration"
                   variant="danger-outline"
                   icon={<Trash className="size-4" />}
                   className="h-9 justify-start px-2"
