@@ -48,17 +48,21 @@ export const ProgramEnrollmentSchema = z.object({
   programId: z.string(),
   program: ProgramSchema,
   status: z.nativeEnum(ProgramEnrollmentStatus),
-  link: LinkSchema.pick({
-    id: true,
-    shortLink: true,
-    domain: true,
-    key: true,
-    url: true,
-    clicks: true,
-    leads: true,
-    sales: true,
-    saleAmount: true,
-  }).nullable(),
+  links: z
+    .array(
+      LinkSchema.pick({
+        id: true,
+        shortLink: true,
+        domain: true,
+        key: true,
+        url: true,
+        clicks: true,
+        leads: true,
+        sales: true,
+        saleAmount: true,
+      }),
+    )
+    .nullable(),
   discount: DiscountSchema.nullish(),
   commissionAmount: z.number().nullable(),
   createdAt: z.date(),

@@ -42,6 +42,8 @@ model Link {
   projectId     String?
   // Relational reference to the project domain
   projectDomain Domain?  @relation(fields: [domain], references: [slug], onUpdate: Cascade, onDelete: Cascade)
+  // Program that the link belongs to
+  programId       String?
 
   // External & tenant IDs (for API usage + multi-tenancy)
   externalId      String?
@@ -66,10 +68,9 @@ model Link {
   comments String? @db.LongText
 
   dashboard         Dashboard?
-  programEnrollment ProgramEnrollment?
+  programEnrollment ProgramEnrollment? @relation(fields: [tenantId, programId], references: [tenantId, programId])
   programInvite     ProgramInvite?
 
-  programId String?
   program   Program? @relation(fields: [programId], references: [id])
   customers Customer[]
 
@@ -82,8 +83,9 @@ model Link {
   @@index(createdAt(sort: Desc))
   @@index(clicks(sort: Desc))
   @@index(lastClicked)
-  @@index(programId)
   @@index(userId)
   @@unique([projectId, externalId])
+  @@index(programId)
   @@index(tenantId)
+  @@index([tenantId, programId])
 }

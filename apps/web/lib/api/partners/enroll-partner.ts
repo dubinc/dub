@@ -43,7 +43,11 @@ export const enrollPartner = async ({
     programs: {
       create: {
         programId,
-        linkId,
+        links: {
+          connect: {
+            id: linkId,
+          },
+        },
         status: "approved",
       },
     },

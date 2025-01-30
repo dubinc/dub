@@ -125,9 +125,13 @@ export const POST = withWorkspaceEdge(
         // for program links
         if (link.programId) {
           const { program, partnerId, commissionAmount } =
-            await prismaEdge.programEnrollment.findUniqueOrThrow({
+            await prismaEdge.programEnrollment.findFirstOrThrow({
               where: {
-                linkId: link.id,
+                links: {
+                  some: {
+                    id: link.id,
+                  },
+                },
               },
               select: {
                 program: true,

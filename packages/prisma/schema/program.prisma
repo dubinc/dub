@@ -70,7 +70,7 @@ model ProgramEnrollment {
   id               String                  @id @default(cuid())
   partnerId        String
   programId        String
-  linkId           String?                 @unique
+  tenantId         String?
   commissionAmount Int?    // custom commission amount for this partner
   discountId       String? // custom discount for this partner
   applicationId    String?                 @unique
@@ -80,11 +80,12 @@ model ProgramEnrollment {
 
   partner     Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   program     Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  link        Link?               @relation(fields: [linkId], references: [id])
+  links       Link[]
   discount    Discount?           @relation(fields: [discountId], references: [id])
   application ProgramApplication? @relation(fields: [applicationId], references: [id])
-  
+
   @@unique([partnerId, programId])
+  @@unique([tenantId, programId])
   @@index([programId])
   @@index([discountId])
 }
