@@ -147,34 +147,19 @@ export function PartnerTable() {
         id: "clicks",
         header: "Clicks",
         accessorFn: (d) =>
-          d.status !== "pending"
-            ? nFormatter(
-                d.links?.reduce((acc, curr) => acc + curr.clicks, 0),
-                { full: true },
-              )
-            : "-",
+          d.status !== "pending" ? nFormatter(d.clicks, { full: true }) : "-",
       },
       {
         id: "leads",
         header: "Leads",
         accessorFn: (d) =>
-          d.status !== "pending"
-            ? nFormatter(
-                d.links?.reduce((acc, curr) => acc + curr.leads, 0),
-                { full: true },
-              )
-            : "-",
+          d.status !== "pending" ? nFormatter(d.leads, { full: true }) : "-",
       },
       {
         id: "sales",
         header: "Sales",
         accessorFn: (d) =>
-          d.status !== "pending"
-            ? nFormatter(
-                d.links?.reduce((acc, curr) => acc + curr.sales, 0),
-                { full: true },
-              )
-            : "-",
+          d.status !== "pending" ? nFormatter(d.sales, { full: true }) : "-",
       },
       {
         id: "earnings",

@@ -5,7 +5,6 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { checkIfKeyExists } from "@/lib/planetscale";
-import { conn } from "@/lib/planetscale/connection";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
@@ -14,6 +13,7 @@ import {
   partnersQuerySchema,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -39,134 +39,59 @@ export const GET = withWorkspace(
     const { status, country, search, ids, page, pageSize, sortBy, sortOrder } =
       partnersQuerySchema.parse(searchParams);
 
-    const partners = await (async () => {
-      if (sortBy === "earnings" || sortBy === "clicks" || sortBy === "sales") {
-        const { rows } = await conn.execute(
-          `SELECT 
-            p.*,
-            pe.id as enrollmentId,
-            pe.commissionAmount,
-            pe.status,
-            pe.programId,
-            pe.partnerId,
-            pe.createdAt as enrollmentCreatedAt,
-            COALESCE(SUM(l.saleAmount), 0) as totalSaleAmount,
-            COALESCE(SUM(l.clicks), 0) as totalClicks,
-            COALESCE(SUM(l.sales), 0) as totalSales
-          FROM Partner p
-          INNER JOIN ProgramEnrollment pe ON p.id = pe.partnerId
-          LEFT JOIN Link l ON pe.tenantId = l.tenantId AND pe.programId = l.programId
-          WHERE pe.programId = ?
-            AND (CASE 
-              WHEN ? IS NOT NULL THEN pe.status = ?
-              ELSE pe.status != 'rejected'
-            END)
-            AND (CASE 
-              WHEN ? IS NOT NULL THEN p.country = ?
-              ELSE TRUE
-            END)
-            AND (CASE 
-              WHEN ? IS NOT NULL THEN p.name LIKE CONCAT('%', ?, '%')
-              ELSE TRUE
-            END)
-          GROUP BY pe.id, p.id
-          ORDER BY 
-            CASE 
-              WHEN ? = 'earnings' AND ? = 'asc' THEN totalSaleAmount
-            END ASC,
-            CASE 
-              WHEN ? = 'earnings' AND ? = 'desc' THEN totalSaleAmount
-            END DESC,
-            CASE 
-              WHEN ? = 'clicks' AND ? = 'asc' THEN totalClicks
-            END ASC,
-            CASE 
-              WHEN ? = 'clicks' AND ? = 'desc' THEN totalClicks
-            END DESC,
-            CASE 
-              WHEN ? = 'sales' AND ? = 'asc' THEN totalSales
-            END ASC,
-            CASE 
-              WHEN ? = 'sales' AND ? = 'desc' THEN totalSales
-            END DESC
-          LIMIT ?
-          OFFSET ?`,
-          [
-            programId,
-            status,
-            status,
-            country,
-            country,
-            search,
-            search,
-            sortBy,
-            sortOrder,
-            sortBy,
-            sortOrder,
-            sortBy,
-            sortOrder,
-            sortBy,
-            sortOrder,
-            sortBy,
-            sortOrder,
-            sortBy,
-            sortOrder,
-            pageSize,
-            (page - 1) * pageSize,
-          ],
-        );
+    const partners = await prisma.$queryRaw`
+      SELECT 
+        p.*, 
+        pe.id as enrollmentId, 
+        pe.commissionAmount, 
+        pe.status, 
+        pe.programId, 
+        pe.partnerId, 
+        pe.createdAt as enrollmentCreatedAt,
+        COALESCE(SUM(l.clicks), 0) as totalClicks,
+        COALESCE(SUM(l.leads), 0) as totalLeads,
+        COALESCE(SUM(l.sales), 0) as totalSales,
+        COALESCE(SUM(l.saleAmount), 0) as totalSaleAmount
+      FROM 
+        ProgramEnrollment pe 
+      INNER JOIN 
+        Partner p ON p.id = pe.partnerId 
+      LEFT JOIN 
+        Link l ON l.partnerId = pe.partnerId 
+      WHERE 
+        pe.programId = ${programId}
+        ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql``}
+        ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
+        ${search ? Prisma.sql`AND p.name ILIKE ${"%" + search + "%"}` : Prisma.sql``}
+        ${ids && ids.length > 0 ? Prisma.sql`AND pe.partnerId IN (${Prisma.join(ids)})` : Prisma.sql``}
+      GROUP BY 
+        p.id, pe.id
+      ORDER BY 
+        CASE 
+          WHEN ${sortBy} = 'createdAt' THEN pe.createdAt
+          WHEN ${sortBy} = 'clicks' THEN totalClicks
+          WHEN ${sortBy} = 'leads' THEN totalLeads
+          WHEN ${sortBy} = 'sales' THEN totalSales
+          WHEN ${sortBy} = 'earnings' THEN totalSaleAmount
+        END ${Prisma.raw(sortOrder)}`;
 
-        return (rows as any[]).map((row) => ({
-          ...row,
-          id: row.partnerId,
-          payoutsEnabled: Boolean(row.payoutsEnabled),
-          createdAt: new Date(row.enrollmentCreatedAt),
-          updatedAt: new Date(row.enrollmentCreatedAt),
-          earnings:
-            ((program.commissionType === "percentage"
-              ? Number(row.totalSaleAmount)
-              : Number(row.totalSales)) ?? 0) *
-            (program.commissionAmount / 100),
-          links: null, // TODO: Add links here
-        }));
-      }
+    // @ts-ignore
+    const response = partners.map((partner) => ({
+      ...partner,
+      id: partner.enrollmentId,
+      payoutsEnabled: Boolean(partner.payoutsEnabled),
+      clicks: Number(partner.totalClicks),
+      leads: Number(partner.totalLeads),
+      sales: Number(partner.totalSales),
+      earnings:
+        ((program.commissionType === "percentage"
+          ? partner.totalSaleAmount
+          : partner.totalSales) ?? 0) *
+        (program.commissionAmount / 100),
+      links: null,
+    }));
 
-      // Original query for non-link related sorting
-      const programEnrollments = await prisma.programEnrollment.findMany({
-        where: {
-          programId,
-          status: status || { not: "rejected" },
-          ...(country && { partner: { country } }),
-          ...(search && { partner: { name: { contains: search } } }),
-          ...(ids && {
-            partnerId: {
-              in: ids,
-            },
-          }),
-        },
-        include: {
-          partner: true,
-          links: true,
-        },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-        orderBy: { [sortBy]: sortOrder },
-      });
-
-      return programEnrollments.map((enrollment) => ({
-        ...enrollment.partner,
-        ...enrollment,
-        id: enrollment.partnerId,
-        earnings:
-          ((program.commissionType === "percentage"
-            ? enrollment.links.reduce((acc, link) => acc + link.saleAmount, 0)
-            : enrollment.links.reduce((acc, link) => acc + link.sales, 0)) ??
-            0) *
-          (program.commissionAmount / 100),
-      }));
-    })();
-
-    return NextResponse.json(z.array(EnrolledPartnerSchema).parse(partners));
+    return NextResponse.json(z.array(EnrolledPartnerSchema).parse(response));
   },
   {
     requiredPlan: [

@@ -67,7 +67,10 @@ export const EnrolledPartnerSchema = PartnerSchema.omit({
     programId: true,
   })
   .extend({
-    earnings: z.number(),
+    earnings: z.number().default(0),
+    clicks: z.number().default(0),
+    leads: z.number().default(0),
+    sales: z.number().default(0),
   });
 
 export const LeaderboardPartnerSchema = z.object({
