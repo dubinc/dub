@@ -68,7 +68,8 @@ model Link {
   comments String? @db.LongText
 
   dashboard         Dashboard?
-  programEnrollment ProgramEnrollment? @relation(fields: [tenantId, programId], references: [tenantId, programId])
+  partnerId         String?
+  programEnrollment ProgramEnrollment? @relation(fields: [partnerId, programId], references: [partnerId, programId])
   programInvite     ProgramInvite?
 
   program   Program? @relation(fields: [programId], references: [id])
@@ -85,7 +86,7 @@ model Link {
   @@index(lastClicked)
   @@index(userId)
   @@unique([projectId, externalId])
-  @@index(programId)
   @@index(tenantId)
-  @@index([tenantId, programId])
+  @@index(programId)
+  @@index([partnerId, programId])
 }
