@@ -12,8 +12,15 @@ export const dubLinksMetadataSchema = z.object({
     .string()
     .nullable()
     .transform((v) => (v === null ? "" : v)),
-  program_id: z.string().default(""),
+  program_id: z
+    .string()
+    .nullable()
+    .transform((v) => (v === null ? "" : v)),
   partner_id: z
+    .string()
+    .nullish()
+    .transform((v) => (v === null ? "" : v)),
+  folder_id: z
     .string()
     .nullish()
     .transform((v) => (v === null ? "" : v)),
