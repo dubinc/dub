@@ -45,6 +45,7 @@ export const GET = withWorkspace(
           `SELECT 
             p.*,
             pe.id as enrollmentId,
+            pe.commissionAmount,
             pe.status,
             pe.programId,
             pe.partnerId,
@@ -116,19 +117,17 @@ export const GET = withWorkspace(
         );
 
         return (rows as any[]).map((row) => ({
+          ...row,
           id: row.partnerId,
-          name: row.name,
-          email: row.email,
-          image: row.image,
-          country: row.country,
-          status: row.status,
-          programId: row.programId,
-          createdAt: row.enrollmentCreatedAt,
+          payoutsEnabled: Boolean(row.payoutsEnabled),
+          createdAt: new Date(row.enrollmentCreatedAt),
+          updatedAt: new Date(row.enrollmentCreatedAt),
           earnings:
             ((program.commissionType === "percentage"
               ? Number(row.totalSaleAmount)
               : Number(row.totalSales)) ?? 0) *
             (program.commissionAmount / 100),
+          links: null, // TODO: Add links here
         }));
       }
 
@@ -166,8 +165,6 @@ export const GET = withWorkspace(
           (program.commissionAmount / 100),
       }));
     })();
-
-    console.log({ partners });
 
     return NextResponse.json(z.array(EnrolledPartnerSchema).parse(partners));
   },
