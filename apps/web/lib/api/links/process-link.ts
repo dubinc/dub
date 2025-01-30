@@ -67,6 +67,7 @@ export async function processLink<T extends Record<string, any>>({
     externalId,
     programId,
     webhookIds,
+    tenantId,
   } = payload;
 
   let expiresAt: string | Date | null | undefined = payload.expiresAt;
@@ -449,6 +450,21 @@ export async function processLink<T extends Record<string, any>>({
     }
   }
 
+  const partner =
+    programId && tenantId
+      ? await prisma.programEnrollment.findUnique({
+          where: {
+            tenantId_programId: {
+              tenantId,
+              programId,
+            },
+          },
+          select: {
+            partnerId: true,
+          },
+        })
+      : null;
+
   // remove polyfill attributes from payload
   delete payload["shortLink"];
   delete payload["qrCode"];
@@ -474,6 +490,9 @@ export async function processLink<T extends Record<string, any>>({
       }),
       ...(webhookIds && {
         webhookIds,
+      }),
+      ...(partner && {
+        partnerId: partner.partnerId,
       }),
     },
     error: null,
