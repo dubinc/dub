@@ -31,6 +31,7 @@ export async function createLink(link: ProcessedLinkProps) {
     proxy,
     geo,
     publicStats,
+    partnerId,
   } = link;
 
   const combinedTagIds = combineTagIds(link);
@@ -40,21 +41,6 @@ export async function createLink(link: ProcessedLinkProps) {
 
   const { tagId, tagIds, tagNames, webhookIds, programId, tenantId, ...rest } =
     link;
-
-  const partner =
-    programId && tenantId
-      ? await prisma.programEnrollment.findUnique({
-          where: {
-            tenantId_programId: {
-              tenantId,
-              programId,
-            },
-          },
-          select: {
-            partnerId: true,
-          },
-        })
-      : null;
 
   const response = await prisma.link.create({
     data: {
@@ -75,6 +61,7 @@ export async function createLink(link: ProcessedLinkProps) {
       geo: geo || Prisma.JsonNull,
       programId,
       tenantId,
+      partnerId,
 
       // Associate tags by tagNames
       ...(tagNames?.length &&
@@ -128,11 +115,6 @@ export async function createLink(link: ProcessedLinkProps) {
             userId: link.userId,
           },
         },
-      }),
-
-      // Partner link
-      ...(partner && {
-        partnerId: partner.partnerId,
       }),
     },
     include: {
