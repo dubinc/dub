@@ -79,7 +79,6 @@ export const GET = withWorkspace(
     // @ts-ignore
     const response = partners.map((partner) => ({
       ...partner,
-      id: partner.enrollmentId,
       payoutsEnabled: Boolean(partner.payoutsEnabled),
       clicks: Number(partner.totalClicks),
       leads: Number(partner.totalLeads),
