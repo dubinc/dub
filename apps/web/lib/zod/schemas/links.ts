@@ -428,6 +428,14 @@ export const LinkSchema = z
       .describe(
         "The ID of the tenant that created the link inside your system. If set, it can be used to fetch all links for a tenant.",
       ),
+    programId: z
+      .string()
+      .nullable()
+      .describe("The ID of the program the short link is associated with."),
+    partnerId: z
+      .string()
+      .nullable()
+      .describe("The ID of the partner the short link is associated with."),
     archived: z
       .boolean()
       .default(false)
@@ -596,10 +604,6 @@ export const LinkSchema = z
         "The project ID of the short link. This field is deprecated – use `workspaceId` instead.",
       )
       .openapi({ deprecated: true }),
-    programId: z
-      .string()
-      .nullable()
-      .describe("The ID of the program the short link is associated with."),
   })
   .openapi({ title: "Link" });
 
