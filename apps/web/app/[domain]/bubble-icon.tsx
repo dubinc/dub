@@ -1,34 +1,49 @@
 "use client";
 
 import { Icon } from "@dub/ui";
-import { CSSProperties, RefObject, useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 export function BubbleIcon({ icon: Icon }: { icon: Icon }) {
   const ref = useRef<HTMLDivElement>(null);
-  const position = useRelativeMousePosition(ref);
+
+  // Pass relative mouse position to the element
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (!ref.current) return;
+
+      const boundingRect = ref.current.getBoundingClientRect();
+      ref.current.style.setProperty(
+        "--mx",
+        ((e.clientX - boundingRect.left) / boundingRect.width).toString(),
+      );
+      ref.current.style.setProperty(
+        "--my",
+        ((e.clientY - boundingRect.top) / boundingRect.height).toString(),
+      );
+    };
+
+    window.addEventListener("mousemove", handler);
+    return () => window.removeEventListener("mousemove", handler);
+  }, [ref]);
 
   return (
     <div
       ref={ref}
       className="rounded-full [perspective:500px]"
-      style={
-        {
-          "--mx": position.x ?? 0.5,
-          "--my": position.y ?? 0.5,
-          filter: `
+      style={{
+        filter: `
             drop-shadow(0 3px 6px #5242511A)
             drop-shadow(0 12px 12px #52425117)
             drop-shadow(0 26px 16px #5242510D)
             drop-shadow(0 47px 19px #52425103)
             drop-shadow(0 73px 20px #52425100)
           `,
-        } as CSSProperties
-      }
+      }}
     >
       <div
         className="relative rounded-full bg-gradient-to-b from-neutral-100 to-neutral-300 p-px transition-[transform] duration-[50ms]"
         style={{
-          transform: `rotateY(clamp(-20deg, calc(var(--mx) * 4deg), 20deg)) rotateX(clamp(-20deg, calc(var(--my) * -4deg), 20deg))`,
+          transform: `rotateY(clamp(-20deg, calc(var(--mx, 0.5) * 4deg), 20deg)) rotateX(clamp(-20deg, calc(var(--my, 0.5) * -4deg), 20deg))`,
         }}
       >
         <div className="rounded-full bg-gradient-to-b from-white to-neutral-100 p-8">
@@ -50,28 +65,4 @@ export function BubbleIcon({ icon: Icon }: { icon: Icon }) {
       </div>
     </div>
   );
-}
-
-function useRelativeMousePosition(ref: RefObject<HTMLElement>) {
-  const [position, setPosition] = useState<{
-    x: number | null;
-    y: number | null;
-  }>({ x: null, y: null });
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (!ref.current) return;
-
-      const boundingRect = ref.current.getBoundingClientRect();
-      setPosition({
-        x: (e.clientX - boundingRect.left) / boundingRect.width,
-        y: (e.clientY - boundingRect.top) / boundingRect.height,
-      });
-    };
-
-    window.addEventListener("mousemove", handler);
-    return () => window.removeEventListener("mousemove", handler);
-  }, []);
-
-  return position;
 }

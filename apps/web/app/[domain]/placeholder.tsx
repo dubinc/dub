@@ -22,10 +22,10 @@ export default function PlaceholderContent() {
       <div className="relative mx-auto mt-4 w-full max-w-screen-lg overflow-hidden rounded-2xl bg-neutral-50 p-6 text-center sm:p-20 sm:px-0">
         <Grid
           cellSize={80}
-          patternOffset={[1, -52.5]}
+          patternOffset={[1, -58]}
           className="inset-[unset] left-1/2 top-0 w-[1200px] -translate-x-1/2 text-neutral-300 [mask-image:linear-gradient(transparent,black_70%)]"
         />
-        <div className="absolute -inset-x-10 -bottom-[10%] h-[60%] opacity-40 blur-[100px] [transform:translate3d(0,0,0)]">
+        <div className="absolute -inset-x-10 bottom-0 h-[60%] opacity-40 blur-[100px] [transform:translate3d(0,0,0)]">
           <div
             className="size-full -scale-y-100 [mask-image:radial-gradient(closest-side,black_100%,transparent_100%)]"
             style={{ backgroundImage: HERO_GRADIENT }}
@@ -86,7 +86,21 @@ export default function PlaceholderContent() {
           </Link>
         </div>
       </div>
-      <div className="h-32" />
+      <div className="mt-20">
+        <div className="mx-auto w-full max-w-xl px-4 text-center">
+          <div className="mx-auto flex h-7 w-fit items-center rounded-full border border-neutral-200 bg-white px-4 text-xs text-neutral-800">
+            What is Dub?
+          </div>
+          <h2 className="font-display mt-2 text-balance text-3xl font-medium text-neutral-900">
+            Powerful features for modern marketing teams
+          </h2>
+          <p className="mt-3 text-pretty text-lg text-neutral-500">
+            Dub is more than just a link shortener. We've built a suite of
+            powerful features that gives you marketing superpowers.
+          </p>
+        </div>
+      </div>
+      <div className="mt-14"></div>
     </div>
   );
 }
