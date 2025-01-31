@@ -11,6 +11,7 @@ export const GET = withEmbedToken(async ({ programId, tenantId }) => {
     programId,
     tenantId,
   });
+  console.log("analytics", analytics);
 
   return NextResponse.json(analytics);
 });
