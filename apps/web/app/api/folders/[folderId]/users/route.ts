@@ -1,7 +1,7 @@
 import { withWorkspace } from "@/lib/auth";
 import {
-  verifyFolderAccess,
   findUserFolderRole,
+  verifyFolderAccess,
 } from "@/lib/folder/permissions";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
