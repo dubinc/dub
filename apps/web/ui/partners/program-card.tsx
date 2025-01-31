@@ -90,6 +90,7 @@ export function ProgramCard({
 function ProgramCardEarnings({ program }: { program: ProgramProps }) {
   const { data: analytics } = usePartnerAnalytics({
     programId: program.id,
+    interval: "1y",
   });
   const { data: timeseries } = usePartnerAnalytics({
     programId: program.id,
