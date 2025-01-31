@@ -372,7 +372,13 @@ export async function processLink<T extends Record<string, any>>({
     // Program validity checks
     if (programId) {
       const program = await prisma.program.findUnique({
-        where: { id: programId },
+        where: {
+          id: programId,
+        },
+        select: {
+          workspaceId: true,
+          defaultFolderId: true,
+        },
       });
 
       if (!program || program.workspaceId !== workspace?.id) {
@@ -381,6 +387,10 @@ export async function processLink<T extends Record<string, any>>({
           error: "Program not found.",
           code: "not_found",
         };
+      }
+
+      if (!folderId && program.defaultFolderId) {
+        folderId = program.defaultFolderId;
       }
     }
 
