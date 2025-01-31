@@ -16,7 +16,6 @@ interface WithEmbedTokenHandler {
     program,
     programId,
     partnerId,
-    tenantId,
     links,
     embedToken,
   }: {
@@ -26,7 +25,6 @@ interface WithEmbedTokenHandler {
     program: Program;
     programId: string;
     partnerId: string;
-    tenantId: string | null;
     links: Link[];
     embedToken: string;
   }): Promise<Response>;
@@ -103,7 +101,6 @@ export const withEmbedToken = (handler: WithEmbedTokenHandler) => {
           program: programEnrollment.program,
           programId,
           partnerId: programEnrollment.partnerId,
-          tenantId: programEnrollment.tenantId,
           links: programEnrollment.links,
           embedToken: tokenFromCookie,
         });
