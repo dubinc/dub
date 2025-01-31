@@ -75,6 +75,7 @@ export const EnrolledPartnerSchema = PartnerSchema.omit({
     clicks: z.number().default(0),
     leads: z.number().default(0),
     sales: z.number().default(0),
+    salesAmount: z.number().default(0),
   });
 
 export const LeaderboardPartnerSchema = z.object({

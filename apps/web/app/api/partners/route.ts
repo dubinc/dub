@@ -109,6 +109,7 @@ export const GET = withWorkspace(
       clicks: Number(partner.totalClicks),
       leads: Number(partner.totalLeads),
       sales: Number(partner.totalSales),
+      salesAmount: Number(partner.totalSaleAmount),
       earnings:
         ((program.commissionType === "percentage"
           ? partner.totalSaleAmount
@@ -204,8 +205,7 @@ export const POST = withWorkspace(
       ...createdPartner,
       links: [partnerLink],
       status: "approved",
-      commissionAmount: null,
-      earnings: 0,
+      commissionAmount: null
     });
 
     return NextResponse.json(partner, {

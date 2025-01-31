@@ -41,7 +41,7 @@ export const GET = withWorkspace(
 
     const { program, links } = programEnrollment;
 
-    const { totalClicks, totalLeads, totalSales, earnings } =
+    const { totalClicks, totalLeads, totalSales, totalSaleAmount, earnings } =
       links?.reduce(
         (acc, link) => {
           const clicks = link?.clicks ?? 0;
@@ -53,13 +53,20 @@ export const GET = withWorkspace(
           acc.totalClicks += clicks;
           acc.totalLeads += leads;
           acc.totalSales += sales;
+          acc.totalSaleAmount += saleAmount;
           acc.earnings +=
             (program.commissionType === "percentage" ? saleAmount : sales) *
             commission;
 
           return acc;
         },
-        { totalClicks: 0, totalLeads: 0, totalSales: 0, earnings: 0 },
+        {
+          totalClicks: 0,
+          totalLeads: 0,
+          totalSales: 0,
+          totalSaleAmount: 0,
+          earnings: 0,
+        },
       ) || {};
 
     const partner = {
@@ -69,6 +76,7 @@ export const GET = withWorkspace(
       clicks: totalClicks,
       leads: totalLeads,
       sales: totalSales,
+      salesAmount: totalSaleAmount,
       earnings,
     };
 
