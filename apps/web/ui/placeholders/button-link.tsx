@@ -14,8 +14,8 @@ export function ButtonLink({
     <Link
       {...rest}
       className={cn(
-        buttonVariants({ variant }),
         "flex h-10 w-fit items-center whitespace-nowrap rounded-lg border px-5 text-base",
+        buttonVariants({ variant }),
         className,
       )}
     />
