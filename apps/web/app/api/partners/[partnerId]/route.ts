@@ -1,5 +1,4 @@
 import { DubApiError } from "@/lib/api/errors";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -19,11 +18,6 @@ export const GET = withWorkspace(
       });
     }
 
-    await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
-
     const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
       where: {
         partnerId_programId: {
@@ -38,7 +32,26 @@ export const GET = withWorkspace(
       },
     });
 
+    if (programEnrollment.program.workspaceId !== workspace.id) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Program not found.",
+      });
+    }
+
     const { program, links } = programEnrollment;
+
+    const totalClicks = links?.reduce((acc, link) => {
+      return acc + (link?.clicks ?? 0);
+    }, 0);
+
+    const totalLeads = links?.reduce((acc, link) => {
+      return acc + (link?.leads ?? 0);
+    }, 0);
+
+    const totalSales = links?.reduce((acc, link) => {
+      return acc + (link?.sales ?? 0);
+    }, 0);
 
     const earnings = links?.reduce((acc, link) => {
       return (
@@ -55,6 +68,9 @@ export const GET = withWorkspace(
       ...programEnrollment,
       id: programEnrollment.partnerId,
       earnings,
+      clicks: totalClicks,
+      leads: totalLeads,
+      sales: totalSales,
     };
 
     return NextResponse.json(EnrolledPartnerSchema.parse(partner));
