@@ -15,10 +15,12 @@ export const GET = withPartnerProfile(
 
     const parsedParams = analyticsQuerySchema
       .omit({
+        workspaceId: true,
         domain: true,
         key: true,
         linkId: true,
         externalId: true,
+        tenantId: true,
       })
       .parse(searchParams);
 
