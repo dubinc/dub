@@ -1,7 +1,7 @@
 import { withWorkspace } from "@/lib/auth";
 import {
   checkFolderPermission,
-  determineFolderUserRole,
+  findUserFolderRole,
 } from "@/lib/folder/permissions";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
@@ -56,11 +56,9 @@ export const GET = withWorkspace(
       const folderUser =
         folderUsers.find((folderUser) => folderUser.userId === user.id) || null;
 
-      const role = determineFolderUserRole({
-        folder: {
-          ...folder,
-          user: folderUser,
-        },
+      const role = findUserFolderRole({
+        folder,
+        user: folderUser,
       });
 
       return {
