@@ -15,12 +15,18 @@ export const getFolders = async ({
     where: {
       projectId: workspaceId,
       OR: [
-        { accessLevel: { not: null } },
+        {
+          accessLevel: {
+            not: null,
+          },
+        },
         {
           users: {
             some: {
               userId,
-              role: { not: null },
+              role: {
+                not: null,
+              },
             },
           },
         },
