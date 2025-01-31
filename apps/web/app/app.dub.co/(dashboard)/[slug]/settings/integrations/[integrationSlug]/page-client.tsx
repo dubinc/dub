@@ -165,35 +165,35 @@ export default function IntegrationPageClient({
                       </span>
                     ),
                   },
-                  {
-                    label: "Built by",
-                    content: (
-                      <div className="flex items-center gap-1.5 text-sm font-medium text-neutral-700">
-                        {integration.projectId === DUB_WORKSPACE_ID ? (
-                          <Logo className="size-3.5" />
-                        ) : (
-                          <OfficeBuilding className="size-3.5" />
-                        )}
-                        {integration.developer}
-                      </div>
-                    ),
-                  },
-                  {
-                    label: "Website",
-                    content: (
-                      <a
-                        href={integration.website}
-                        className="flex items-center gap-1.5 text-sm text-neutral-700 transition-colors duration-100 hover:text-neutral-900"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Globe className="size-3.5" />
-                        {getDomainWithoutWWW(integration.website)}
-                      </a>
-                    ),
-                  },
                 ]
               : []),
+            {
+              label: "Built by",
+              content: (
+                <div className="flex items-center gap-1.5 text-sm font-medium text-neutral-700">
+                  {integration.projectId === DUB_WORKSPACE_ID ? (
+                    <Logo className="size-3.5" />
+                  ) : (
+                    <OfficeBuilding className="size-3.5" />
+                  )}
+                  {integration.developer}
+                </div>
+              ),
+            },
+            {
+              label: "Website",
+              content: (
+                <a
+                  href={integration.website}
+                  className="flex items-center gap-1.5 text-sm text-neutral-700 transition-colors duration-100 hover:text-neutral-900"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Globe className="size-3.5" />
+                  {getDomainWithoutWWW(integration.website)}
+                </a>
+              ),
+            },
           ].map(({ label, content }) => (
             <div className="flex flex-col gap-1">
               <span className="text-xs uppercase text-neutral-500">
