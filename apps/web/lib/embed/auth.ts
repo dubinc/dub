@@ -26,7 +26,7 @@ interface WithEmbedTokenHandler {
     program: Program;
     programId: string;
     partnerId: string;
-    tenantId: string;
+    tenantId: string | null;
     links: Link[];
     embedToken: string;
   }): Promise<Response>;
@@ -56,10 +56,10 @@ export const withEmbedToken = (handler: WithEmbedTokenHandler) => {
           });
         }
 
-        const { programId, tenantId } =
+        const { programId, partnerId, tenantId } =
           (await embedToken.get(tokenFromCookie)) ?? {};
 
-        if (!programId || !tenantId) {
+        if (!programId || (!partnerId && !tenantId)) {
           throw new DubApiError({
             code: "unauthorized",
             message: "Invalid embed public token.",
@@ -87,12 +87,9 @@ export const withEmbedToken = (handler: WithEmbedTokenHandler) => {
 
         const programEnrollment =
           await prisma.programEnrollment.findUniqueOrThrow({
-            where: {
-              tenantId_programId: {
-                tenantId,
-                programId,
-              },
-            },
+            where: tenantId
+              ? { tenantId_programId: { tenantId, programId } }
+              : { partnerId_programId: { partnerId: partnerId!, programId } },
             include: {
               links: true,
               program: true,
@@ -106,7 +103,7 @@ export const withEmbedToken = (handler: WithEmbedTokenHandler) => {
           program: programEnrollment.program,
           programId,
           partnerId: programEnrollment.partnerId,
-          tenantId,
+          tenantId: programEnrollment.tenantId,
           links: programEnrollment.links,
           embedToken: tokenFromCookie,
         });

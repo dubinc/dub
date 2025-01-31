@@ -1,25 +1,23 @@
 import { redis } from "@/lib/upstash";
 import { createId } from "../api/utils";
+import z from "../zod";
+import { createEmbedTokenSchema } from "../zod/schemas/token";
 import {
   EMBED_PUBLIC_TOKEN_EXPIRY,
   EMBED_PUBLIC_TOKEN_LENGTH,
   EMBED_PUBLIC_TOKEN_PREFIX,
 } from "./constants";
 
+type EmbedTokenProps = z.infer<typeof createEmbedTokenSchema>;
+
 class EmbedToken {
-  async create({
-    programId,
-    tenantId,
-  }: {
-    programId: string;
-    tenantId: string;
-  }) {
+  async create(props: EmbedTokenProps) {
     const publicToken = createId({
       prefix: EMBED_PUBLIC_TOKEN_PREFIX,
       length: EMBED_PUBLIC_TOKEN_LENGTH,
     });
 
-    await redis.set(publicToken, JSON.stringify({ programId, tenantId }), {
+    await redis.set(publicToken, JSON.stringify(props), {
       ex: EMBED_PUBLIC_TOKEN_EXPIRY,
       nx: true,
     });
@@ -31,7 +29,7 @@ class EmbedToken {
   }
 
   async get(token: string) {
-    return await redis.get<{ programId: string; tenantId: string }>(token);
+    return await redis.get<EmbedTokenProps>(token);
   }
 }
 

@@ -9,20 +9,24 @@ import {
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
-// POST /api/tokens/embed - create a new embed token for the given link
+// POST /api/tokens/embed - create a new embed token for the given partner/tenant
 export const POST = withWorkspace(
   async ({ workspace, req }) => {
-    const { programId, tenantId } = createEmbedTokenSchema.parse(
+    const { programId, partnerId, tenantId } = createEmbedTokenSchema.parse(
       await parseRequestBody(req),
     );
 
+    if (!partnerId && !tenantId) {
+      throw new DubApiError({
+        message: "Partner ID or tenant ID is required",
+        code: "bad_request",
+      });
+    }
+
     const programEnrollment = await prisma.programEnrollment.findUnique({
-      where: {
-        tenantId_programId: {
-          tenantId,
-          programId,
-        },
-      },
+      where: tenantId
+        ? { tenantId_programId: { tenantId, programId } }
+        : { partnerId_programId: { partnerId: partnerId!, programId } },
       include: {
         program: true,
       },
@@ -39,8 +43,9 @@ export const POST = withWorkspace(
     }
 
     const response = await embedToken.create({
-      tenantId,
       programId,
+      partnerId,
+      tenantId,
     });
 
     return NextResponse.json(EmbedTokenSchema.parse(response), {

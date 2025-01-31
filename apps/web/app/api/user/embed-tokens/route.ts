@@ -6,6 +6,11 @@ export const GET = withSession(async ({ session }) => {
   // const { publicToken } = await dub.embedTokens.create({
   //   tenantId: session.user.id,
   // });
+  const dubPartnerId = session.user.dubPartnerId;
+
+  if (!dubPartnerId) {
+    return NextResponse.json({ publicToken: null }, { status: 200 });
+  }
 
   const { publicToken } = await fetch(`${API_DOMAIN}/tokens/embed`, {
     method: "POST",
@@ -15,7 +20,7 @@ export const GET = withSession(async ({ session }) => {
     },
     body: JSON.stringify({
       programId: "prog_d8pl69xXCv4AoHNT281pHQdo",
-      tenantId: session.user.id,
+      partnerId: dubPartnerId,
     }),
   }).then((res) => res.json());
 
