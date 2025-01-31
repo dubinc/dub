@@ -14,10 +14,11 @@ export function ReferralsPageClient() {
   const dubPartnerId = session?.user?.["dubPartnerId"];
 
   useEffect(() => {
-    if (dubPartnerId) {
+    if (session && !dubPartnerId) {
+      console.log("no dubPartnerId found, updating session...");
       update();
     }
-  }, [dubPartnerId]);
+  }, [session, dubPartnerId]);
 
   const { data: { publicToken } = {}, isLoading } = useSWRImmutable<{
     publicToken: string;
