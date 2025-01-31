@@ -19,7 +19,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     groupBy,
     workspaceId,
     linkId,
-    partnerId,
     interval,
     start,
     end,

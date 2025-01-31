@@ -24,6 +24,7 @@ export const GET = withPartnerProfile(
 
     const response = await getAnalytics({
       ...parsedParams,
+      programId: program.id,
       partnerId: partner.id,
     });
 
