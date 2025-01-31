@@ -2,7 +2,7 @@ import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinksCount } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
 import { getFolders } from "@/lib/folder/get-folders";
-import { checkFolderPermission } from "@/lib/folder/permissions";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { getLinksCountQuerySchema } from "@/lib/zod/schemas/links";
 import { NextResponse } from "next/server";
 
@@ -17,7 +17,7 @@ export const GET = withWorkspace(
     }
 
     if (folderId) {
-      await checkFolderPermission({
+      await verifyFolderAccess({
         workspaceId: workspace.id,
         userId: session.user.id,
         folderId,

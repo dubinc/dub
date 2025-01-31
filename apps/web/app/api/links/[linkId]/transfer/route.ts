@@ -3,7 +3,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { checkFolderPermission } from "@/lib/folder/permissions";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { recordLink } from "@/lib/tinybird";
 import z from "@/lib/zod";
 import { prisma } from "@dub/prisma";
@@ -27,7 +27,7 @@ export const POST = withWorkspace(
     });
 
     if (link.folderId) {
-      await checkFolderPermission({
+      await verifyFolderAccess({
         workspaceId: workspace.id,
         userId: session.user.id,
         folderId: link.folderId,

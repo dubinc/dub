@@ -8,7 +8,7 @@ import {
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { checkFolderPermission } from "@/lib/folder/permissions";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema, updateLinkBodySchema } from "@/lib/zod/schemas/links";
@@ -26,7 +26,7 @@ export const GET = withWorkspace(
     });
 
     if (link.folderId) {
-      await checkFolderPermission({
+      await verifyFolderAccess({
         workspaceId: workspace.id,
         userId: session.user.id,
         folderId: link.folderId,
@@ -76,7 +76,7 @@ export const PATCH = withWorkspace(
     await Promise.all([
       ...(link.folderId
         ? [
-            checkFolderPermission({
+            verifyFolderAccess({
               workspaceId: workspace.id,
               userId: session.user.id,
               folderId: link.folderId,
@@ -87,7 +87,7 @@ export const PATCH = withWorkspace(
 
       ...(body.folderId
         ? [
-            checkFolderPermission({
+            verifyFolderAccess({
               workspaceId: workspace.id,
               userId: session.user.id,
               folderId: body.folderId,
@@ -207,7 +207,7 @@ export const DELETE = withWorkspace(
     });
 
     if (link.folderId) {
-      await checkFolderPermission({
+      await verifyFolderAccess({
         workspaceId: workspace.id,
         userId: session.user.id,
         folderId: link.folderId,

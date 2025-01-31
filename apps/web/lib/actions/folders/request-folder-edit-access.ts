@@ -5,7 +5,7 @@ import { FolderEditAccessRequested } from "@dub/email/templates/folder-edit-acce
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
-import { checkFolderPermission } from "../../folder/permissions";
+import { verifyFolderAccess } from "../../folder/permissions";
 import { authActionClient } from "../safe-action";
 const schema = z.object({
   workspaceId: z.string(),
@@ -19,7 +19,7 @@ export const requestFolderEditAccessAction = authActionClient
     const { workspace, user } = ctx;
     const { folderId } = parsedInput;
 
-    const folder = await checkFolderPermission({
+    const folder = await verifyFolderAccess({
       folderId,
       workspaceId: workspace.id,
       userId: user.id,

@@ -1,5 +1,5 @@
 import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
-import { checkFolderPermission } from "@/lib/folder/permissions";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import { isStored } from "@/lib/storage";
@@ -432,7 +432,7 @@ export async function processLink<T extends Record<string, any>>({
   // Folder checks
   if (folderId && workspace && userId) {
     try {
-      await checkFolderPermission({
+      await verifyFolderAccess({
         workspaceId: workspace.id,
         userId,
         folderId,

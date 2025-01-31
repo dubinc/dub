@@ -3,7 +3,7 @@ import { convertToCSV } from "@/lib/analytics/utils";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
-import { checkFolderPermission } from "@/lib/folder/permissions";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { linksExportQuerySchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import { linkConstructor } from "@dub/utils";
@@ -33,7 +33,7 @@ export const GET = withWorkspace(
     }
 
     if (folderId) {
-      await checkFolderPermission({
+      await verifyFolderAccess({
         workspaceId: workspace.id,
         userId: session.user.id,
         folderId,

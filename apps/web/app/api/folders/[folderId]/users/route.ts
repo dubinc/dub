@@ -1,6 +1,6 @@
 import { withWorkspace } from "@/lib/auth";
 import {
-  checkFolderPermission,
+  verifyFolderAccess,
   findUserFolderRole,
 } from "@/lib/folder/permissions";
 import { prisma } from "@dub/prisma";
@@ -11,7 +11,7 @@ export const GET = withWorkspace(
   async ({ params, workspace, session }) => {
     const { folderId } = params;
 
-    const folder = await checkFolderPermission({
+    const folder = await verifyFolderAccess({
       workspaceId: workspace.id,
       userId: session.user.id,
       folderId,

@@ -10,7 +10,7 @@ import {
 } from "./constants";
 import { getFolderOrThrow } from "./get-folder-or-throw";
 
-export const checkFolderPermission = async ({
+export const verifyFolderAccess = async ({
   workspaceId,
   userId,
   folderId,

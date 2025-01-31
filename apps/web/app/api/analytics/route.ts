@@ -5,7 +5,7 @@ import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
-import { checkFolderPermission } from "@/lib/folder/permissions";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import {
   analyticsPathParamsSchema,
   analyticsQuerySchema,
@@ -64,7 +64,7 @@ export const GET = withWorkspace(
     await Promise.all([
       ...(link && link.folderId
         ? [
-            checkFolderPermission({
+            verifyFolderAccess({
               workspaceId: workspace.id,
               userId: session.user.id,
               folderId: link.folderId,
@@ -75,7 +75,7 @@ export const GET = withWorkspace(
 
       ...(folderId
         ? [
-            checkFolderPermission({
+            verifyFolderAccess({
               workspaceId: workspace.id,
               userId: session.user.id,
               folderId,

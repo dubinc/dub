@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { checkFolderPermission } from "@/lib/folder/permissions";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { recordLink } from "@/lib/tinybird";
 import { FolderSchema, updateFolderSchema } from "@/lib/zod/schemas/folders";
 import { prisma } from "@dub/prisma";
@@ -13,7 +13,7 @@ export const GET = withWorkspace(
   async ({ params, workspace, session }) => {
     const { folderId } = params;
 
-    const folder = await checkFolderPermission({
+    const folder = await verifyFolderAccess({
       folderId,
       workspaceId: workspace.id,
       userId: session.user.id,
@@ -36,7 +36,7 @@ export const PATCH = withWorkspace(
       await parseRequestBody(req),
     );
 
-    await checkFolderPermission({
+    await verifyFolderAccess({
       workspaceId: workspace.id,
       userId: session.user.id,
       folderId,
@@ -77,7 +77,7 @@ export const DELETE = withWorkspace(
   async ({ params, workspace, session }) => {
     const { folderId } = params;
 
-    await checkFolderPermission({
+    await verifyFolderAccess({
       workspaceId: workspace.id,
       userId: session.user.id,
       folderId,
