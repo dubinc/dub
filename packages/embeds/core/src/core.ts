@@ -5,7 +5,7 @@ import { DubEmbedOptions, DubInitResult, IframeMessage } from "./types";
 const CONTAINER_STYLES = {
   position: "relative",
   maxWidth: "1024px",
-  height: "1000px",
+  height: "1020px",
   margin: "0 auto",
 };
 

@@ -92,7 +92,12 @@ const transformSaleEvent = (data: SaleEventWebhookData) => {
   };
 };
 
-const buildCampaignContext = (link: Link) => {
+const buildCampaignContext = (
+  link: Pick<
+    Link,
+    "utm_campaign" | "utm_source" | "utm_medium" | "utm_term" | "utm_content"
+  >,
+) => {
   const campaign = {
     ...(link.utm_campaign && { name: link.utm_campaign }),
     ...(link.utm_source && { source: link.utm_source }),
