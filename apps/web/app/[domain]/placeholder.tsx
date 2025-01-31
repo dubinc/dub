@@ -1,5 +1,7 @@
 "use client";
 
+import { CTA } from "@/ui/placeholders/cta";
+import { FeaturesSection } from "@/ui/placeholders/features-section";
 import { buttonVariants, Grid, Logo } from "@dub/ui";
 import { cn, createHref } from "@dub/utils";
 import Link from "next/link";
@@ -13,6 +15,11 @@ const HERO_GRADIENT = `radial-gradient(77% 116% at 37% 67%, #EEA5BA, rgba(238, 1
   radial-gradient(82% 122% at 3% 29%, #855AFC, rgba(133, 90, 252, 0) 50%),
   radial-gradient(90% 136% at 52% 100%, #FD3A4E, rgba(253, 58, 78, 0) 50%),
   radial-gradient(102% 143% at 92% 7%, #72FE7D, rgba(114, 254, 125, 0) 50%)`;
+
+const UTM_PARAMS = {
+  utm_source: "Custom Domain",
+  utm_medium: "Welcome Page",
+};
 
 export default function PlaceholderContent() {
   const { domain } = useParams() as { domain: string };
@@ -57,7 +64,7 @@ export default function PlaceholderContent() {
 
         <div
           className={cn(
-            "relative mx-auto mt-10 flex max-w-fit space-x-4",
+            "relative mx-auto mt-8 flex max-w-fit space-x-4",
             "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:5px] [animation-delay:300ms] [animation-duration:1s] [animation-fill-mode:both]",
           )}
         >
@@ -72,8 +79,7 @@ export default function PlaceholderContent() {
           </Link>
           <Link
             href={createHref("/home", domain, {
-              utm_source: "Custom Domain",
-              utm_medium: "Welcome Page",
+              ...UTM_PARAMS,
               utm_campaign: domain,
               utm_content: "Learn more",
             })}
@@ -87,20 +93,11 @@ export default function PlaceholderContent() {
         </div>
       </div>
       <div className="mt-20">
-        <div className="mx-auto w-full max-w-xl px-4 text-center">
-          <div className="mx-auto flex h-7 w-fit items-center rounded-full border border-neutral-200 bg-white px-4 text-xs text-neutral-800">
-            What is Dub?
-          </div>
-          <h2 className="font-display mt-2 text-balance text-3xl font-medium text-neutral-900">
-            Powerful features for modern marketing teams
-          </h2>
-          <p className="mt-3 text-pretty text-lg text-neutral-500">
-            Dub is more than just a link shortener. We've built a suite of
-            powerful features that gives you marketing superpowers.
-          </p>
-        </div>
+        <FeaturesSection domain={domain} utmParams={UTM_PARAMS} />
       </div>
-      <div className="mt-14"></div>
+      <div className="mt-32">
+        <CTA domain={domain} utmParams={UTM_PARAMS} />
+      </div>
     </div>
   );
 }
