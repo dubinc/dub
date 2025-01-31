@@ -1,8 +1,8 @@
-import { buttonVariants, Grid } from "@dub/ui";
+import { Grid } from "@dub/ui";
 import { cn, createHref, UTMTags } from "@dub/utils";
 import { Star, StarHalf } from "lucide-react";
-import Link from "next/link";
 import { ReactNode } from "react";
+import { ButtonLink } from "./button-link";
 import Logos from "./logos";
 
 const RATINGS = [
@@ -100,29 +100,20 @@ export function CTA({
       </div>
 
       <div className="relative mx-auto mt-10 flex max-w-fit space-x-4">
-        <Link
-          href="https://d.to/register"
-          className={cn(
-            buttonVariants({ variant: "primary" }),
-            "flex h-10 items-center rounded-lg border px-5 text-base",
-          )}
-        >
+        <ButtonLink variant="primary" href="https://d.to/register">
           Start for free
-        </Link>
-        <Link
+        </ButtonLink>
+        <ButtonLink
+          variant="secondary"
           href={createHref("/enterprise", domain, {
             utm_source: "Custom Domain",
             utm_medium: "Welcome Page",
             utm_campaign: domain,
             utm_content: "Get a demo",
           })}
-          className={cn(
-            buttonVariants({ variant: "secondary" }),
-            "flex h-10 items-center rounded-lg border px-5 text-base",
-          )}
         >
           Get a demo
-        </Link>
+        </ButtonLink>
       </div>
 
       <div className="relative">

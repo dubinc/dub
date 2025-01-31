@@ -1,9 +1,8 @@
 "use client";
 
-import { Icon } from "@dub/ui";
-import { useEffect, useRef } from "react";
+import { PropsWithChildren, useEffect, useRef } from "react";
 
-export function BubbleIcon({ icon: Icon }: { icon: Icon }) {
+export function BubbleIcon({ children }: PropsWithChildren) {
   const ref = useRef<HTMLDivElement>(null);
 
   // Pass relative mouse position to the element
@@ -46,8 +45,8 @@ export function BubbleIcon({ icon: Icon }: { icon: Icon }) {
           transform: `rotateY(clamp(-20deg, calc(var(--mx, 0.5) * 4deg), 20deg)) rotateX(clamp(-20deg, calc(var(--my, 0.5) * -4deg), 20deg))`,
         }}
       >
-        <div className="rounded-full bg-gradient-to-b from-white to-neutral-100 p-8">
-          <Icon className="size-10" />
+        <div className="flex size-[104px] items-center justify-center rounded-full bg-gradient-to-b from-white to-neutral-100">
+          {children}
         </div>
 
         <div className="absolute inset-0 rounded-full bg-gradient-to-t from-[#fff8]" />
