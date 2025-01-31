@@ -28,8 +28,7 @@ SCHEMA >
     `identity_hash` Nullable(String) `json:$.identity_hash`,
     `ip` String `json:$.ip`,
     `qr` UInt8 `json:$.qr`,
-    `continent` LowCardinality(String) `json:$.continent`,
-    `vercel_region` String `json:$.vercel_region`
+    `continent` LowCardinality(String) `json:$.continent`
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
