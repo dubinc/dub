@@ -28,6 +28,7 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["folders.read"],
+    featureFlag: "linkFolders",
   },
 );
 
@@ -88,5 +89,6 @@ export const POST = withWorkspace(
   },
   {
     requiredPermissions: ["folders.write"],
+    featureFlag: "linkFolders",
   },
 );

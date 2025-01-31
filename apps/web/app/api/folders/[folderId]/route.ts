@@ -24,6 +24,7 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["folders.read"],
+    featureFlag: "linkFolders",
   },
 );
 
@@ -69,6 +70,7 @@ export const PATCH = withWorkspace(
   },
   {
     requiredPermissions: ["folders.write"],
+    featureFlag: "linkFolders",
   },
 );
 
@@ -125,5 +127,6 @@ export const DELETE = withWorkspace(
   },
   {
     requiredPermissions: ["folders.write"],
+    featureFlag: "linkFolders",
   },
 );
