@@ -397,7 +397,7 @@ export async function processLink<T extends Record<string, any>>({
 
       if (!partnerId) {
         partnerId =
-          program.partners.length > 0 ? program.partners[0].partnerId : null;
+          program?.partners?.length > 0 ? program.partners[0].partnerId : null;
       }
     }
 
