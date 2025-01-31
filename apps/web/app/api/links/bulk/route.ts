@@ -11,6 +11,7 @@ import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { storage } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
 import {
@@ -199,7 +200,7 @@ export const POST = withWorkspace(
 
 // PATCH /api/links/bulk – bulk update up to 100 links with the same data
 export const PATCH = withWorkspace(
-  async ({ req, workspace, headers }) => {
+  async ({ req, workspace, headers, session }) => {
     const { linkIds, externalIds, data } = bulkUpdateLinksBodySchema.parse(
       await parseRequestBody(req),
     );
@@ -272,6 +273,30 @@ export const PATCH = withWorkspace(
         });
       }
     }
+
+    await Promise.all([
+      // ...(link.folderId
+      //   ? [
+      //       verifyFolderAccess({
+      //         workspaceId: workspace.id,
+      //         userId: session.user.id,
+      //         folderId: link.folderId,
+      //         requiredPermission: "folders.links.write",
+      //       }),
+      //     ]
+      //   : []),
+
+      ...(data.folderId
+        ? [
+            verifyFolderAccess({
+              workspaceId: workspace.id,
+              userId: session.user.id,
+              folderId: data.folderId,
+              requiredPermission: "folders.links.write",
+            }),
+          ]
+        : []),
+    ]);
 
     const processedLinks = await Promise.all(
       links.map(async (link) =>

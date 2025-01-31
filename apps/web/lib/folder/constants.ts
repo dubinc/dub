@@ -15,8 +15,8 @@ export const FOLDER_USER_ROLE: Record<FolderUserRole, string> = {
 export const FOLDER_PERMISSIONS = [
   "folders.read",
   "folders.write",
-  "folders.links.write", // Move links to a folder
-  "folders.users.write", // Add or remove users to a folder
+  "folders.links.write", // Add links to a folder
+  "folders.users.write", // Manage folder users
 ] as const;
 
 export const FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE: Record<

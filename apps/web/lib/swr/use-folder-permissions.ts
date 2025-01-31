@@ -26,7 +26,11 @@ export function useCheckFolderPermission(
   folderId: string | null,
   action: FolderPermission,
 ) {
-  const { folders } = useFolderPermissions();
+  const { folders, isLoading } = useFolderPermissions();
+
+  // if (isLoading) {
+  //   return false;
+  // }
 
   if (!folderId) {
     return true;

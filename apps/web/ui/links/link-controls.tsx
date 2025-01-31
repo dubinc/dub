@@ -1,5 +1,6 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useFolders from "@/lib/swr/use-folders";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
 import {
@@ -26,6 +27,7 @@ import { ThreeDots } from "../shared/icons";
 import { LinksListContext, ResponseLink } from "./links-container";
 
 export function LinkControls({ link }: { link: ResponseLink }) {
+  const { flags } = useWorkspace();
   const { slug } = useParams() as { slug?: string };
   const { folders } = useFolders();
   const { hovered } = useContext(CardList.Card.Context);
@@ -207,7 +209,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
             </div>
             <div className="border-t border-gray-200" />
             <div className="grid gap-px p-2">
-              {folders && folders.length > 0 && (
+              {flags?.linkFolders && folders && folders.length > 0 && (
                 <Button
                   text="Move"
                   variant="outline"
