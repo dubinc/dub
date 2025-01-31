@@ -12,7 +12,6 @@ export default function CustomDomainLayout({
       <Nav />
       {children}
       <Footer />
-      <NewBackground />
     </div>
   );
 }

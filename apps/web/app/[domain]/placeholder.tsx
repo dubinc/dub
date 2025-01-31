@@ -1,90 +1,92 @@
 "use client";
 
-import { InlineSnippet } from "@dub/ui";
-import { createHref, STAGGER_CHILD_VARIANTS } from "@dub/utils";
-import Spline from "@splinetool/react-spline";
-import { motion } from "framer-motion";
+import { buttonVariants, Grid, Logo } from "@dub/ui";
+import { cn, createHref } from "@dub/utils";
+import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
-import { useDebounce } from "use-debounce";
+import { BrowserGraphic } from "./browser-graphic";
+import { BubbleIcon } from "./bubble-icon";
+
+const HERO_GRADIENT = `radial-gradient(77% 116% at 37% 67%, #EEA5BA, rgba(238, 165, 186, 0) 50%),
+  radial-gradient(56% 84% at 34% 56%, #3A8BFD, rgba(58, 139, 253, 0) 50%),
+  radial-gradient(85% 127% at 100% 100%, #E4C795, rgba(228, 199, 149, 0) 50%),
+  radial-gradient(82% 122% at 3% 29%, #855AFC, rgba(133, 90, 252, 0) 50%),
+  radial-gradient(90% 136% at 52% 100%, #FD3A4E, rgba(253, 58, 78, 0) 50%),
+  radial-gradient(102% 143% at 92% 7%, #72FE7D, rgba(114, 254, 125, 0) 50%)`;
 
 export default function PlaceholderContent() {
   const { domain } = useParams() as { domain: string };
-  const [loading, setLoading] = useState(true);
-  const onLoad = () => {
-    setLoading(false);
-  };
-  // workaround to avoid the blinking effect when Spline loads
-  const [opacity] = useDebounce(loading ? 0 : 1, 200);
-
-  const [showText] = useDebounce(loading ? false : true, 800);
 
   return (
-    <motion.div
-      className="z-10 mb-20"
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.5, type: "spring" }}
-    >
-      <div
-        className={`${
-          loading ? "scale-[25%] blur-md" : "scale-100 blur-0"
-        } mt-[7vh] h-[50vh] w-screen object-cover transition-all duration-1000`}
-      >
-        <Spline
-          onLoad={onLoad}
-          style={{ opacity: opacity }}
-          scene="https://assets.dub.co/misc/scene.splinecode"
+    <div>
+      <div className="relative mx-auto mt-4 w-full max-w-screen-lg overflow-hidden rounded-2xl bg-neutral-50 p-6 text-center sm:p-20 sm:px-0">
+        <Grid
+          cellSize={80}
+          patternOffset={[1, -52.5]}
+          className="inset-[unset] left-1/2 top-0 w-[1200px] -translate-x-1/2 text-neutral-300 [mask-image:linear-gradient(transparent,black_70%)]"
         />
-      </div>
-      <motion.div
-        variants={{
-          show: {
-            transition: {
-              staggerChildren: 0.3,
-            },
-          },
-        }}
-        initial="hidden"
-        animate={showText ? "show" : "hidden"}
-        className="mx-5 flex flex-col items-center space-y-10 text-center sm:mx-auto"
-      >
-        <motion.h1
-          className="font-display text-4xl font-bold text-gray-800 transition-colors sm:text-5xl"
-          variants={STAGGER_CHILD_VARIANTS}
+        <div className="absolute -inset-x-10 -bottom-[10%] h-[60%] opacity-40 blur-[100px] [transform:translate3d(0,0,0)]">
+          <div
+            className="size-full -scale-y-100 [mask-image:radial-gradient(closest-side,black_100%,transparent_100%)]"
+            style={{ backgroundImage: HERO_GRADIENT }}
+          />
+        </div>
+        <div className="relative mx-auto flex w-full max-w-xl flex-col items-center">
+          <BubbleIcon icon={Logo} />
+          <div className="mt-16 w-full">
+            <BrowserGraphic domain={domain} />
+          </div>
+          <h1
+            className={cn(
+              "font-display mt-2 text-center text-4xl font-medium text-neutral-900 sm:text-5xl sm:leading-[1.15]",
+              "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:20px] [animation-duration:1s] [animation-fill-mode:both]",
+            )}
+          >
+            Welcome to Dub
+          </h1>
+          <p
+            className={cn(
+              "mt-5 text-balance text-base text-neutral-700 sm:text-xl",
+              "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:200ms] [animation-duration:1s] [animation-fill-mode:both]",
+            )}
+          >
+            This custom domain is powered by Dub.co &ndash; the link management
+            platform designed for modern marketing teams.
+          </p>
+        </div>
+
+        <div
+          className={cn(
+            "relative mx-auto mt-10 flex max-w-fit space-x-4",
+            "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:5px] [animation-delay:300ms] [animation-duration:1s] [animation-fill-mode:both]",
+          )}
         >
-          Welcome to {process.env.NEXT_PUBLIC_APP_NAME}
-        </motion.h1>
-        <motion.p
-          className="max-w-xl text-gray-600 transition-colors sm:text-lg"
-          variants={STAGGER_CHILD_VARIANTS}
-        >
-          <InlineSnippet>{domain}</InlineSnippet> is a custom domain on{" "}
-          <a
-            className="bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text font-semibold text-transparent decoration-rose-600 hover:underline"
-            href={createHref("/", domain, {
+          <Link
+            href="https://d.to/register"
+            className={cn(
+              buttonVariants({ variant: "primary" }),
+              "flex h-10 items-center rounded-lg border px-5 text-base",
+            )}
+          >
+            Try Dub today
+          </Link>
+          <Link
+            href={createHref("/home", domain, {
               utm_source: "Custom Domain",
               utm_medium: "Welcome Page",
               utm_campaign: domain,
-              utm_content: "Dub.co",
+              utm_content: "Learn more",
             })}
+            className={cn(
+              buttonVariants({ variant: "secondary" }),
+              "flex h-10 items-center rounded-lg border px-5 text-base",
+            )}
           >
-            {process.env.NEXT_PUBLIC_APP_NAME}
-          </a>{" "}
-          - the link management platform for modern marketing teams.
-        </motion.p>
-        <motion.a
-          variants={STAGGER_CHILD_VARIANTS}
-          href={createHref("/home", domain, {
-            utm_source: "Custom Domain",
-            utm_medium: "Welcome Page",
-            utm_campaign: domain,
-            utm_content: "Create Your Free Branded Link",
-          })}
-          className="rounded-full bg-gray-800 px-10 py-2 font-medium text-white transition-colors hover:bg-black"
-        >
-          Create Your Free Branded Link
-        </motion.a>
-      </motion.div>
-    </motion.div>
+            Learn more
+          </Link>
+        </div>
+      </div>
+      <div className="h-32" />
+    </div>
   );
 }
