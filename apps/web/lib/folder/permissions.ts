@@ -27,19 +27,19 @@ export const checkFolderPermission = async ({
     userId,
   });
 
-  const folderUserRole = findUserFolderRole({
+  const userFolderRole = findUserFolderRole({
     folder,
     user: folder.user,
   });
 
-  if (!folderUserRole) {
+  if (!userFolderRole) {
     throw new DubApiError({
       code: "forbidden",
       message: "You are not allowed to perform this action on this folder.",
     });
   }
 
-  const permissions = getFolderPermissions(folderUserRole);
+  const permissions = getFolderPermissions(userFolderRole);
 
   if (!permissions.includes(requiredPermission)) {
     throw new DubApiError({
