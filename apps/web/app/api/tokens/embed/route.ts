@@ -44,8 +44,7 @@ export const POST = withWorkspace(
 
     const response = await embedToken.create({
       programId,
-      partnerId,
-      tenantId,
+      partnerId: programEnrollment.partnerId,
     });
 
     return NextResponse.json(EmbedTokenSchema.parse(response), {
