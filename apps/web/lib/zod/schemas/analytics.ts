@@ -217,6 +217,8 @@ export const analyticsFilterTB = z
         }
       }),
     programId: z.string().optional(),
+    partnerId: z.string().optional(),
+    tenantId: z.string().optional(),
     customerId: z.string().optional(),
     root: z.boolean().optional(),
     qr: z.boolean().optional(),
