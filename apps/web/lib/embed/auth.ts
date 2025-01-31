@@ -54,10 +54,10 @@ export const withEmbedToken = (handler: WithEmbedTokenHandler) => {
           });
         }
 
-        const { programId, partnerId, tenantId } =
+        const { programId, partnerId } =
           (await embedToken.get(tokenFromCookie)) ?? {};
 
-        if (!programId || (!partnerId && !tenantId)) {
+        if (!programId || !partnerId) {
           throw new DubApiError({
             code: "unauthorized",
             message: "Invalid embed public token.",
@@ -85,9 +85,9 @@ export const withEmbedToken = (handler: WithEmbedTokenHandler) => {
 
         const programEnrollment =
           await prisma.programEnrollment.findUniqueOrThrow({
-            where: tenantId
-              ? { tenantId_programId: { tenantId, programId } }
-              : { partnerId_programId: { partnerId: partnerId!, programId } },
+            where: {
+              partnerId_programId: { partnerId, programId },
+            },
             include: {
               links: true,
               program: true,

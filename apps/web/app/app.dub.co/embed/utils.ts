@@ -4,17 +4,16 @@ import { prisma } from "@dub/prisma";
 import { notFound } from "next/navigation";
 
 export const getEmbedData = async (token: string) => {
-  const { programId, partnerId, tenantId } =
-    (await embedToken.get(token)) ?? {};
+  const { programId, partnerId } = (await embedToken.get(token)) ?? {};
 
-  if (!programId || (!tenantId && !partnerId)) {
+  if (!programId || !partnerId) {
     notFound();
   }
 
   const programEnrollment = await prisma.programEnrollment.findUnique({
-    where: tenantId
-      ? { tenantId_programId: { tenantId, programId } }
-      : { partnerId_programId: { partnerId: partnerId!, programId } },
+    where: {
+      partnerId_programId: { partnerId, programId },
+    },
     include: {
       links: true,
       program: true,
