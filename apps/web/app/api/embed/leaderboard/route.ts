@@ -4,8 +4,8 @@ import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import z from "node_modules/zod/lib";
 
-// GET /api/embed/sales – get sales for a link from an embed token
-export const GET = withEmbedToken(async ({ program }) => {
+// GET /api/embed/leaderboard – get leaderboard for a program
+export const GET = withEmbedToken(async ({ programId }) => {
   const partners = await prisma.$queryRaw`
     SELECT 
       p.id,
@@ -25,7 +25,7 @@ export const GET = withEmbedToken(async ({ program }) => {
     LEFT JOIN 
       Link l ON l.partnerId = pe.partnerId 
     WHERE 
-      pe.programId = ${program.id}
+      pe.programId = ${programId}
     GROUP BY 
       p.id, pe.id
     ORDER BY 
