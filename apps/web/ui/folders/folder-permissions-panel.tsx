@@ -155,7 +155,7 @@ const FolderPermissionsPanel = ({
               </div>
 
               {/* Workspace-level access */}
-              <div className="mt-10">
+              <div className="mt-6">
                 <span className="text-sm font-medium text-neutral-900">
                   Workspace
                 </span>
@@ -204,7 +204,7 @@ const FolderPermissionsPanel = ({
                 <span className="text-sm font-medium text-neutral-900">
                   Folder Users
                 </span>
-                <div className="grid grid-cols-[minmax(0,1fr)]">
+                <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-3">
                   {isUsersValidating || isUsersLoading || false
                     ? [...Array(3)].map((_, i) => (
                         <FolderUserPlaceholder key={i} />
@@ -256,7 +256,7 @@ const FolderUserRow = ({
   const disableRoleUpdate = !canUpdateRole || isExecuting || isCurrentUser;
 
   return (
-    <div key={user.id} className="flex items-center justify-between gap-3 py-3">
+    <div key={user.id} className="flex items-center justify-between gap-3">
       <div className="flex min-w-12 items-center gap-3">
         <Avatar user={user} className="size-8" />
         <div className="min-w-0">
@@ -272,7 +272,7 @@ const FolderUserRow = ({
       <div className="flex items-center gap-3">
         <select
           className={cn(
-            "appearance-none rounded-md border border-gray-200 bg-white pl-3 pr-8 text-sm text-gray-900 focus:border-gray-300 focus:ring-gray-300",
+            "cursor-pointer appearance-none rounded-md border border-gray-200 bg-white pl-3 pr-8 text-sm text-gray-900 focus:border-gray-300 focus:ring-gray-300",
             disableRoleUpdate && "cursor-not-allowed bg-gray-100",
           )}
           value={role === null ? "" : role}
@@ -310,7 +310,7 @@ const FolderUserRow = ({
 };
 
 const FolderUserPlaceholder = () => (
-  <div className="flex items-center justify-between gap-3 py-3">
+  <div className="flex items-center justify-between gap-3">
     <div className="flex items-center gap-3">
       <div className="size-8 animate-pulse rounded-full bg-gray-200" />
       <div className="flex flex-col">
