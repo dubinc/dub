@@ -65,6 +65,8 @@ export async function processLink<T extends Record<string, any>>({
     doIndex,
     tagNames,
     externalId,
+    tenantId,
+    partnerId,
     programId,
     webhookIds,
   } = payload;
@@ -371,6 +373,18 @@ export async function processLink<T extends Record<string, any>>({
     if (programId) {
       const program = await prisma.program.findUnique({
         where: { id: programId },
+        select: {
+          workspaceId: true,
+          ...(!partnerId && tenantId
+            ? {
+                partners: {
+                  where: {
+                    tenantId,
+                  },
+                },
+              }
+            : {}),
+        },
       });
 
       if (!program || program.workspaceId !== workspace?.id) {
@@ -379,6 +393,11 @@ export async function processLink<T extends Record<string, any>>({
           error: "Program not found.",
           code: "not_found",
         };
+      }
+
+      if (!partnerId) {
+        partnerId =
+          program?.partners?.length > 0 ? program.partners[0].partnerId : null;
       }
     }
 
@@ -466,6 +485,8 @@ export async function processLink<T extends Record<string, any>>({
       url,
       expiresAt,
       expiredUrl,
+      // partnerId derived from payload or program enrollment
+      partnerId: partnerId || null,
       // make sure projectId is set to the current workspace
       projectId: workspace?.id || null,
       // if userId is passed, set it (we don't change the userId if it's already set, e.g. when editing a link)
