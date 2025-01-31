@@ -1,5 +1,6 @@
 "use client";
 
+import useWorkspace from "@/lib/swr/use-workspace";
 import { IntegrationLogo } from "@/ui/integrations/integration-logo";
 import {
   BlurImage,
@@ -11,6 +12,7 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { IntegrationsWithInstallations } from "./integrations-list";
@@ -24,6 +26,8 @@ export function FeaturedIntegrations({
 }) {
   const searchParams = useSearchParams();
   const search = searchParams.get("search");
+
+  const { slug } = useWorkspace();
 
   const featuredIntegrations = integrations.filter(
     (i) =>
@@ -51,7 +55,10 @@ export function FeaturedIntegrations({
               <CarouselContent>
                 {featuredIntegrations.map((integration, idx) => (
                   <CarouselItem key={idx} className="basis-2/3">
-                    <div className="relative">
+                    <Link
+                      href={`/${slug}/settings/integrations/${integration.slug}`}
+                      className="group relative block"
+                    >
                       {/* Image */}
                       <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
                         <BlurImage
@@ -69,7 +76,7 @@ export function FeaturedIntegrations({
                       </div>
 
                       {/* Bottom card */}
-                      <div className="absolute inset-x-4 bottom-4 hidden items-center gap-3 rounded-lg bg-white p-3 sm:flex">
+                      <div className="absolute inset-x-4 bottom-4 hidden items-center gap-3 rounded-lg bg-white p-3 transition-all duration-100 group-hover:drop-shadow-sm sm:flex">
                         <div className="shrink-0">
                           <IntegrationLogo
                             src={integration.logo}
@@ -86,7 +93,7 @@ export function FeaturedIntegrations({
                           </p>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   </CarouselItem>
                 ))}
               </CarouselContent>
