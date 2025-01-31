@@ -73,6 +73,8 @@ export const GET = withWorkspace(
           IF(l.id IS NOT NULL,
             JSON_OBJECT(
               'id', l.id,
+              'domain', l.domain,
+              'key', l.key,
               'shortLink', l.shortLink,
               'url', l.url,
               'clicks', CAST(l.clicks AS SIGNED),
@@ -205,7 +207,7 @@ export const POST = withWorkspace(
       ...createdPartner,
       links: [partnerLink],
       status: "approved",
-      commissionAmount: null
+      commissionAmount: null,
     });
 
     return NextResponse.json(partner, {

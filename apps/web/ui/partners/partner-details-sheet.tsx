@@ -2,7 +2,6 @@ import { approvePartnerAction } from "@/lib/actions/partners/approve-partner";
 import { rejectPartnerAction } from "@/lib/actions/partners/reject-partner";
 import { SHEET_MAX_ITEMS } from "@/lib/partners/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import useLinks from "@/lib/swr/use-links";
 import usePayouts from "@/lib/swr/use-payouts";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -51,7 +50,9 @@ function PartnerDetailsSheetContent({
   partner,
   setIsOpen,
 }: PartnerDetailsSheetProps) {
-  const [tab, setTab] = useState<Tab>("payouts");
+  const { slug } = useWorkspace();
+  const { program } = useProgram();
+  const [tab, setTab] = useState<Tab>("links");
 
   const { createPayoutSheet, setIsOpen: setCreatePayoutSheetOpen } =
     useCreatePayoutSheet({ nested: true, partnerId: partner.id });
@@ -168,38 +169,36 @@ function PartnerDetailsSheetContent({
             </div>
           )}
 
-          {/* {partner.link && (
-            <div className="xs:grid-cols-2 mt-4 grid grid-cols-1 gap-3">
-              <Link
-                href={`/${slug}/analytics?domain=${partner.link.domain}&key=${partner.link.key}&interval=all`}
-                target="_blank"
-                className={cn(
-                  buttonVariants({ variant: "secondary" }),
-                  "flex h-8 items-center justify-center gap-2 rounded-lg border px-2 text-sm",
-                )}
-              >
-                <LinesY className="size-4 text-neutral-900" />
-                Analytics
-              </Link>
-              <Link
-                href={`/${slug}/events?domain=${partner.link.domain}&key=${partner.link.key}&interval=all`}
-                target="_blank"
-                className={cn(
-                  buttonVariants({ variant: "secondary" }),
-                  "flex h-8 items-center justify-center gap-2 rounded-lg border px-2 text-sm",
-                )}
-              >
-                <CursorRays className="size-4 text-neutral-900" />
-                Events
-              </Link>
-            </div>
-          )} */}
+          {/* <div className="xs:grid-cols-2 mt-4 grid grid-cols-1 gap-3">
+            <Link
+              href={`/${slug}/analytics?programId=${program!.id}&partnerId=${partner.id}&interval=all`}
+              target="_blank"
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "flex h-8 items-center justify-center gap-2 rounded-lg border px-2 text-sm",
+              )}
+            >
+              <LinesY className="size-4 text-neutral-900" />
+              Analytics
+            </Link>
+            <Link
+              href={`/${slug}/events?programId=${program!.id}&partnerId=${partner.id}&interval=all`}
+              target="_blank"
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "flex h-8 items-center justify-center gap-2 rounded-lg border px-2 text-sm",
+              )}
+            >
+              <CursorRays className="size-4 text-neutral-900" />
+              Events
+            </Link>
+          </div> */}
 
           {partner.status === "approved" && (
             <TabSelect
               options={[
-                { id: "payouts", label: "Payouts" },
                 { id: "links", label: "Links" },
+                { id: "payouts", label: "Payouts" },
               ]}
               selected={tab}
               onSelect={(id: Tab) => {
@@ -553,24 +552,8 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
 const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
   const { slug } = useWorkspace();
 
-  const {
-    links,
-    isValidating: loading,
-    error: linksError,
-  } = useLinks({
-    page: 1,
-    pageSize: SHEET_MAX_ITEMS,
-    partnerId: partner.id,
-    sortBy: "createdAt",
-    includeDashboard: false,
-    includeUser: false,
-    includeWebhooks: false,
-  });
-
   const table = useTable({
-    data: links || [],
-    loading,
-    error: linksError ? "Failed to load links" : undefined,
+    data: partner.links || [],
     columns: [
       {
         id: "shortLink",
@@ -625,23 +608,7 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
     scrollWrapperClassName: "min-h-[40px]",
   } as any);
 
-  return (links && links.length > 0) || loading ? (
-    <Table {...table} />
-  ) : (
-    <AnimatedEmptyState
-      className="md:min-h-80"
-      title="No payouts"
-      description="When this partner is eligible for or has received payouts, they will appear here."
-      cardContent={() => (
-        <>
-          <div className="flex size-7 items-center justify-center rounded-md border border-neutral-200 bg-neutral-50">
-            <GreekTemple className="size-4 text-neutral-700" />
-          </div>
-          <div className="h-2.5 w-28 min-w-0 rounded-sm bg-neutral-200" />
-        </>
-      )}
-    />
-  );
+  return <Table {...table} />;
 };
 
 export function PartnerDetailsSheet({

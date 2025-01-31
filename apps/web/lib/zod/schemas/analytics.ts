@@ -92,6 +92,14 @@ export const analyticsQuerySchema = z
       .describe(
         "The ID of the tenant that created the link inside your system.",
       ),
+    programId: z
+      .string()
+      .optional()
+      .describe("The ID of the program to retrieve analytics for."),
+    partnerId: z
+      .string()
+      .optional()
+      .describe("The ID of the partner to retrieve analytics for."),
     interval: z
       .enum(intervals)
       .optional()
