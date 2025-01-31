@@ -144,11 +144,11 @@ function PartnerDetailsSheetContent({
                 ],
                 [
                   "Revenue",
-                  !partner.earnings
+                  !partner.salesAmount
                     ? "-"
-                    : currencyFormatter(partner.earnings, {
+                    : currencyFormatter(partner.salesAmount / 100, {
                         minimumFractionDigits:
-                          partner.earnings % 1 === 0 ? 0 : 2,
+                          partner.salesAmount % 1 === 0 ? 0 : 2,
                         maximumFractionDigits: 2,
                       }),
                 ],
@@ -476,7 +476,8 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
       {
         id: "periodEnd",
         header: "Period End",
-        accessorFn: (d) => formatDate(d.periodStart, { month: "short" }),
+        accessorFn: (d) =>
+          d.periodStart ? formatDate(d.periodStart, { month: "short" }) : "-",
       },
       {
         header: "Status",
