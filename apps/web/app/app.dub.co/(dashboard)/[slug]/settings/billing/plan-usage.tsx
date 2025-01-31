@@ -113,7 +113,7 @@ export default function PlanUsage() {
               View invoices
             </Link>
           )}
-          {stripeId && <SubscriptionMenu />}
+          {stripeId && plan !== "free" && <SubscriptionMenu />}
         </div>
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)] divide-y divide-neutral-200 border-t border-neutral-200">

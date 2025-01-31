@@ -36,11 +36,9 @@ export const GET = withWorkspace(
             some: {
               programId,
             },
-            ...(status && {
-              every: {
-                status,
-              },
-            }),
+            every: {
+              status: status || { not: "rejected" },
+            },
           },
         },
         _count: true,
@@ -86,9 +84,7 @@ export const GET = withWorkspace(
     const count = await prisma.programEnrollment.count({
       where: {
         programId,
-        ...(status && {
-          status,
-        }),
+        status: status || { not: "rejected" },
         ...(country && {
           partner: {
             country,

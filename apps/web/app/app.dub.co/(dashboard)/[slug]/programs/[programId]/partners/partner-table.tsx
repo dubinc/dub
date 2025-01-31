@@ -58,7 +58,11 @@ export function PartnerTable() {
 
   const { partnersCount, error: countError } = usePartnersCount<number>();
 
-  const { data: partners, error } = useSWR<EnrolledPartnerProps[]>(
+  const {
+    data: partners,
+    error,
+    isLoading,
+  } = useSWR<EnrolledPartnerProps[]>(
     `/api/partners${getQueryString(
       {
         workspaceId,
@@ -212,7 +216,7 @@ export function PartnerTable() {
     tdClassName: "border-l-0",
     resourceName: (p) => `partner${p ? "s" : ""}`,
     rowCount: partnersCount || 0,
-    loading: !partners && !error && !countError,
+    loading: isLoading,
     error: error || countError ? "Failed to load partners" : undefined,
   });
 
