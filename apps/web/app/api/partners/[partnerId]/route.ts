@@ -41,36 +41,35 @@ export const GET = withWorkspace(
 
     const { program, links } = programEnrollment;
 
-    const totalClicks = links?.reduce((acc, link) => {
-      return acc + (link?.clicks ?? 0);
-    }, 0);
+    const { totalClicks, totalLeads, totalSales, earnings } =
+      links?.reduce(
+        (acc, link) => {
+          const clicks = link?.clicks ?? 0;
+          const leads = link?.leads ?? 0;
+          const sales = link?.sales ?? 0;
+          const saleAmount = link?.saleAmount ?? 0;
+          const commission = program.commissionAmount / 100;
 
-    const totalLeads = links?.reduce((acc, link) => {
-      return acc + (link?.leads ?? 0);
-    }, 0);
+          acc.totalClicks += clicks;
+          acc.totalLeads += leads;
+          acc.totalSales += sales;
+          acc.earnings +=
+            (program.commissionType === "percentage" ? saleAmount : sales) *
+            commission;
 
-    const totalSales = links?.reduce((acc, link) => {
-      return acc + (link?.sales ?? 0);
-    }, 0);
-
-    const earnings = links?.reduce((acc, link) => {
-      return (
-        acc +
-        ((program.commissionType === "percentage"
-          ? link?.saleAmount
-          : link?.sales) ?? 0) *
-          (program.commissionAmount / 100)
-      );
-    }, 0);
+          return acc;
+        },
+        { totalClicks: 0, totalLeads: 0, totalSales: 0, earnings: 0 },
+      ) || {};
 
     const partner = {
       ...programEnrollment.partner,
       ...programEnrollment,
       id: programEnrollment.partnerId,
-      earnings,
       clicks: totalClicks,
       leads: totalLeads,
       sales: totalSales,
+      earnings,
     };
 
     return NextResponse.json(EnrolledPartnerSchema.parse(partner));
