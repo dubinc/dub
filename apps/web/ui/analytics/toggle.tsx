@@ -94,7 +94,7 @@ export default function Toggle({
 }: {
   page?: "analytics" | "events";
 }) {
-  const { slug, plan } = useWorkspace();
+  const { slug, plan, flags } = useWorkspace();
 
   const { router, queryParams, searchParamsObj, getQueryString } =
     useRouterStuff();
@@ -127,7 +127,7 @@ export default function Toggle({
   const [debouncedSearch] = useDebounce(search, 500);
 
   const { tags, loading: loadingTags } = useTags();
-  const { folders, loading: loadingFolders } = useFolders({});
+  const { folders, loading: loadingFolders } = useFolders();
 
   const {
     allDomains: domains,
@@ -408,28 +408,41 @@ export default function Toggle({
                   data: { color },
                 })) ?? null,
             },
-            {
-              key: "folderId",
-              icon: Folder,
-              label: "Folder",
-              shouldFilter: !foldersAsync,
-              getOptionIcon: (value, props) => {
-                const folderName = props.option?.label;
-                const folder = folders?.find(({ name }) => name === folderName);
 
-                return folder ? (
-                  <FolderSquareIcon folder={folder} iconClassName="size-3" />
-                ) : null;
-              },
-              options:
-                folders?.map((folder) => ({
-                  value: folder.id,
-                  icon: (
-                    <FolderSquareIcon folder={folder} iconClassName="size-3" />
-                  ),
-                  label: folder.name,
-                })) ?? null,
-            },
+            ...(flags?.linkFolders
+              ? [
+                  {
+                    key: "folderId",
+                    icon: Folder,
+                    label: "Folder",
+                    shouldFilter: !foldersAsync,
+                    getOptionIcon: (value, props) => {
+                      const folderName = props.option?.label;
+                      const folder = folders?.find(
+                        ({ name }) => name === folderName,
+                      );
+
+                      return folder ? (
+                        <FolderSquareIcon
+                          folder={folder}
+                          iconClassName="size-3"
+                        />
+                      ) : null;
+                    },
+                    options:
+                      folders?.map((folder) => ({
+                        value: folder.id,
+                        icon: (
+                          <FolderSquareIcon
+                            folder={folder}
+                            iconClassName="size-3"
+                          />
+                        ),
+                        label: folder.name,
+                      })) ?? null,
+                  },
+                ]
+              : []),
           ]),
       {
         key: "trigger",

@@ -77,7 +77,7 @@ export async function getLinksForWorkspace({
       ...(partnerId && { partnerId }),
       ...(userId && { userId }),
       ...(linkIds && { id: { in: linkIds } }),
-      folderId: folderId ?? null,
+      folderId: folderId || null,
     },
     include: {
       tags: {
