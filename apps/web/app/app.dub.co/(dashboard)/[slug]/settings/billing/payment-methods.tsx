@@ -6,11 +6,13 @@ import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Badge, Button, CreditCard, MoneyBill2 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Stripe } from "stripe";
 import { PaymentMethodTypesList } from "./payment-method-types";
 
 export default function PaymentMethods() {
+  const router = useRouter();
   const { slug, stripeId, partnersEnabled, plan } = useWorkspace();
   const { paymentMethods } = usePaymentMethods();
 
@@ -24,18 +26,17 @@ export default function PaymentMethods() {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const managePaymentMethods = async (method?: string) => {
+  const managePaymentMethods = async () => {
     setIsLoading(true);
     const { url } = await fetch(
       `/api/workspaces/${slug}/billing/payment-methods`,
       {
         method: "POST",
-        body: JSON.stringify({ method }),
+        body: JSON.stringify({}),
       },
     ).then((res) => res.json());
 
-    window.open(url, "_blank");
-    setIsLoading(false);
+    router.push(url);
   };
 
   if (plan === "free") {
@@ -129,7 +130,7 @@ const PaymentMethodCard = ({
     description,
   } = result.find((method) => method.type === type) || result[0];
 
-  const managePaymentMethods = async (method: string) => {
+  const addPaymentMethod = async (method: string) => {
     setIsLoading(true);
     const { url } = await fetch(
       `/api/workspaces/${slug}/billing/payment-methods`,
@@ -173,7 +174,7 @@ const PaymentMethodCard = ({
             variant="primary"
             className="h-9 w-fit"
             text="Connect"
-            onClick={() => managePaymentMethods(type)}
+            onClick={() => addPaymentMethod(type)}
             loading={isLoading}
           />
         )}
