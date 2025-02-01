@@ -1,8 +1,10 @@
+import { Lock } from "@/ui/shared/icons";
 import { NewBackground } from "@/ui/shared/new-background";
 import { prismaEdge } from "@dub/prisma/edge";
-import { BlurImage, Logo } from "@dub/ui";
-import { constructMetadata, isDubDomain } from "@dub/utils";
+import { BlurImage, Wordmark } from "@dub/ui";
+import { constructMetadata, createHref, isDubDomain } from "@dub/utils";
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import PasswordForm from "./form";
 
@@ -11,7 +13,7 @@ export const runtime = "edge";
 
 const title = "Password Required";
 const description =
-  "This link is password protected. Please enter the password to view it.";
+  "This link is password protected. Enter the password to view it.";
 const image = "https://assets.dub.co/misc/password-protected.png";
 
 export async function generateMetadata({
@@ -91,30 +93,45 @@ export default async function PasswordProtectedLinkPage({
   }
 
   return (
-    <main className="flex h-screen w-screen items-center justify-center">
+    <>
       <NewBackground />
-      <div className="z-10 w-full max-w-md overflow-hidden rounded-2xl border border-gray-100 shadow-xl">
-        <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 py-6 pt-8 text-center sm:px-16">
-          {!isDubDomain(link.domain) &&
-          link.project?.plan !== "free" &&
-          link.project?.logo ? (
-            <BlurImage
-              src={link.project.logo}
-              alt={link.project.name}
-              width={20}
-              height={20}
-              className="h-10 w-10 rounded-full"
-            />
-          ) : (
-            <a href="https://dub.co" target="_blank" rel="noreferrer">
-              <Logo />
-            </a>
-          )}
-          <h3 className="text-xl font-semibold">{title}</h3>
-          <p className="text-sm text-gray-500">{description}</p>
+      <main className="relative mb-10 flex w-screen flex-col items-center">
+        <Wordmark className="mt-6 h-8" />
+        <div className="z-10 mt-8 w-full max-w-[400px] overflow-hidden rounded-2xl border border-neutral-200 shadow-sm md:mt-24">
+          <div className="flex flex-col items-center justify-center gap-3 border-b border-neutral-200 bg-white px-4 py-6 text-center">
+            {link.project?.logo ? (
+              <BlurImage
+                src={link.project.logo}
+                alt={link.project.name}
+                width={48}
+                height={48}
+                className="size-12 rounded-full"
+              />
+            ) : (
+              <div className="flex size-12 items-center justify-center rounded-full bg-neutral-100">
+                <Lock className="size-4 text-neutral-600" />
+              </div>
+            )}
+            <h3 className="mt-1 text-lg font-semibold">Password required</h3>
+            <p className="w-full max-w-xs text-pretty text-sm text-neutral-500">
+              {description}
+            </p>
+          </div>
+          <PasswordForm />
         </div>
-        <PasswordForm />
-      </div>
-    </main>
+        <Link
+          href={createHref("/home", link.domain, {
+            utm_source: "Password Protected Link",
+            utm_medium: "Link Password Page",
+            utm_campaign: link.domain,
+            utm_content: "What is Dub?",
+          })}
+          target="_blank"
+          className="mt-4 block text-sm font-medium text-neutral-600 underline transition-colors duration-75 hover:text-neutral-800"
+        >
+          What is Dub?
+        </Link>
+      </main>
+    </>
   );
 }

@@ -11,7 +11,7 @@ export async function getProgramEnrollmentOrThrow({
 }) {
   const include: Prisma.ProgramEnrollmentInclude = {
     program: true,
-    link: true,
+    links: true,
     discount: true,
   };
 
@@ -43,9 +43,9 @@ export async function getProgramEnrollmentOrThrow({
     });
   }
 
-  const { link } = programEnrollment;
+  const { links } = programEnrollment;
 
-  if (!link) {
+  if (!links) {
     throw new DubApiError({
       code: "not_found",
       message:
@@ -55,6 +55,6 @@ export async function getProgramEnrollmentOrThrow({
 
   return {
     ...programEnrollment,
-    link,
+    links,
   };
 }

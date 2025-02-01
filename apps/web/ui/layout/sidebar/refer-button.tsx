@@ -10,7 +10,7 @@ export function ReferButton() {
   const { data: session } = useSession();
 
   if (
-    !session?.user?.["referralLinkId"] ||
+    !session?.user?.["dubPartnerId"] ||
     pathname === "/account/settings/referrals"
   ) {
     return null;

@@ -16,7 +16,7 @@ export default function useProgramAnalytics(params?: PartnerAnalyticsFilters) {
             start: params.start.toISOString(),
             end: params.end.toISOString(),
           }
-        : { interval: params?.interval ?? "all_unfiltered" }),
+        : { interval: params?.interval ?? "1y" }),
       groupBy: params?.groupBy ?? "count",
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       workspaceId: workspaceId!,

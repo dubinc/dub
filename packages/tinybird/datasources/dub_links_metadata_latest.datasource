@@ -1,4 +1,4 @@
-# Data Source created from Pipe 'dub_links_metadata_pipe'
+# Data Source created from Pipe 'dub_links_metadata_pipe_new'
 
 SCHEMA >
     `timestamp` DateTime,
@@ -10,8 +10,10 @@ SCHEMA >
     `workspace_id` String,
     `created_at` DateTime64(3),
     `deleted` UInt8,
-    `folder_id` String,
-    `program_id` String
+    `program_id` String,
+    `tenant_id` String,
+    `partner_id` String,
+    `folder_id` String
 
 ENGINE "ReplacingMergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"

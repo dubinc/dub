@@ -67,11 +67,14 @@ export async function processLink<T extends Record<string, any>>({
     tagNames,
     folderId,
     externalId,
+    tenantId,
+    partnerId,
     programId,
     webhookIds,
   } = payload;
 
   let expiresAt: string | Date | null | undefined = payload.expiresAt;
+  let defaultProgramFolderId: string | null = null;
   const tagIds = combineTagIds(payload);
 
   // if URL is defined, perform URL checks
@@ -372,12 +375,19 @@ export async function processLink<T extends Record<string, any>>({
     // Program validity checks
     if (programId) {
       const program = await prisma.program.findUnique({
-        where: {
-          id: programId,
-        },
+        where: { id: programId },
         select: {
           workspaceId: true,
           defaultFolderId: true,
+          ...(!partnerId && tenantId
+            ? {
+                partners: {
+                  where: {
+                    tenantId,
+                  },
+                },
+              }
+            : {}),
         },
       });
 
@@ -389,9 +399,12 @@ export async function processLink<T extends Record<string, any>>({
         };
       }
 
-      if (!folderId && program.defaultFolderId) {
-        folderId = program.defaultFolderId;
+      if (!partnerId) {
+        partnerId =
+          program?.partners?.length > 0 ? program.partners[0].partnerId : null;
       }
+
+      defaultProgramFolderId = program.defaultFolderId;
     }
 
     // Webhook validity checks
@@ -496,6 +509,8 @@ export async function processLink<T extends Record<string, any>>({
       url,
       expiresAt,
       expiredUrl,
+      // partnerId derived from payload or program enrollment
+      partnerId: partnerId || null,
       // make sure projectId is set to the current workspace
       projectId: workspace?.id || null,
       // if userId is passed, set it (we don't change the userId if it's already set, e.g. when editing a link)
@@ -505,6 +520,7 @@ export async function processLink<T extends Record<string, any>>({
       ...(webhookIds && {
         webhookIds,
       }),
+      folderId: folderId || defaultProgramFolderId,
     },
     error: null,
   };

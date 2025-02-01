@@ -86,6 +86,20 @@ export const analyticsQuerySchema = z
       .describe(
         "This is the ID of the link in the your database. Must be prefixed with 'ext_' when passed as a query parameter.",
       ),
+    tenantId: z
+      .string()
+      .optional()
+      .describe(
+        "The ID of the tenant that created the link inside your system.",
+      ),
+    programId: z
+      .string()
+      .optional()
+      .describe("The ID of the program to retrieve analytics for."),
+    partnerId: z
+      .string()
+      .optional()
+      .describe("The ID of the partner to retrieve analytics for."),
     interval: z
       .enum(intervals)
       .optional()
@@ -217,6 +231,8 @@ export const analyticsFilterTB = z
         }
       }),
     programId: z.string().optional(),
+    partnerId: z.string().optional(),
+    tenantId: z.string().optional(),
     customerId: z.string().optional(),
     root: z.boolean().optional(),
     qr: z.boolean().optional(),

@@ -146,6 +146,7 @@ export * from "./scribble";
 export * from "./shield-alert";
 export * from "./shield-check";
 export * from "./shield-keyhole";
+export * from "./shield-slash";
 export * from "./shuffle";
 export * from "./sliders";
 export * from "./sparkle3";

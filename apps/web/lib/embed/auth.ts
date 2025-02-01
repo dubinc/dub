@@ -1,7 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
-import { Link, Program, Project } from "@dub/prisma/client";
+import { Link, Program } from "@dub/prisma/client";
 import { getSearchParams } from "@dub/utils";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { cookies } from "next/headers";
@@ -13,18 +13,20 @@ interface WithEmbedTokenHandler {
     req,
     params,
     searchParams,
-    workspace,
-    link,
     program,
-    linkToken,
+    programId,
+    partnerId,
+    links,
+    embedToken,
   }: {
     req: Request;
     params: Record<string, string>;
     searchParams: Record<string, string>;
-    workspace: Project;
-    link: Link;
     program: Program;
-    linkToken: string;
+    programId: string;
+    partnerId: string;
+    links: Link[];
+    embedToken: string;
   }): Promise<Response>;
 }
 
@@ -37,8 +39,6 @@ export const withEmbedToken = (handler: WithEmbedTokenHandler) => {
       let headers = {};
 
       try {
-        let link: Link | undefined = undefined;
-
         const rateLimit = 60;
         const searchParams = getSearchParams(req.url);
 
@@ -54,12 +54,13 @@ export const withEmbedToken = (handler: WithEmbedTokenHandler) => {
           });
         }
 
-        const linkId = await embedToken.get(tokenFromCookie);
+        const { programId, partnerId } =
+          (await embedToken.get(tokenFromCookie)) ?? {};
 
-        if (!linkId) {
+        if (!programId || !partnerId) {
           throw new DubApiError({
             code: "unauthorized",
-            message: "Link token not found or expired.",
+            message: "Invalid embed public token.",
           });
         }
 
@@ -82,41 +83,26 @@ export const withEmbedToken = (handler: WithEmbedTokenHandler) => {
           });
         }
 
-        link = await prisma.link.findUniqueOrThrow({
-          where: {
-            id: linkId,
-          },
-        });
-
-        if (!link.trackConversion) {
-          throw new DubApiError({
-            code: "forbidden",
-            message: "Conversion tracking is not enabled for this link.",
+        const programEnrollment =
+          await prisma.programEnrollment.findUniqueOrThrow({
+            where: {
+              partnerId_programId: { partnerId, programId },
+            },
+            include: {
+              links: true,
+              program: true,
+            },
           });
-        }
-
-        const [workspace, program] = await Promise.all([
-          prisma.project.findUniqueOrThrow({
-            where: {
-              id: link.projectId!,
-            },
-          }),
-
-          prisma.program.findFirstOrThrow({
-            where: {
-              workspaceId: link.projectId!,
-            },
-          }),
-        ]);
 
         return await handler({
           req,
           params,
           searchParams,
-          workspace,
-          link,
-          program,
-          linkToken: tokenFromCookie,
+          program: programEnrollment.program,
+          programId,
+          partnerId: programEnrollment.partnerId,
+          links: programEnrollment.links,
+          embedToken: tokenFromCookie,
         });
       } catch (error) {
         req.log.error(error);

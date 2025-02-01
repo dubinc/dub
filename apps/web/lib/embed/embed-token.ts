@@ -6,14 +6,19 @@ import {
   EMBED_PUBLIC_TOKEN_PREFIX,
 } from "./constants";
 
+interface EmbedTokenProps {
+  programId: string;
+  partnerId: string;
+}
+
 class EmbedToken {
-  async create(linkId: string) {
+  async create(props: EmbedTokenProps) {
     const publicToken = createId({
       prefix: EMBED_PUBLIC_TOKEN_PREFIX,
       length: EMBED_PUBLIC_TOKEN_LENGTH,
     });
 
-    await redis.set(publicToken, linkId, {
+    await redis.set(publicToken, JSON.stringify(props), {
       ex: EMBED_PUBLIC_TOKEN_EXPIRY,
       nx: true,
     });
@@ -25,7 +30,7 @@ class EmbedToken {
   }
 
   async get(token: string) {
-    return await redis.get<string>(token);
+    return await redis.get<EmbedTokenProps>(token);
   }
 }
 
