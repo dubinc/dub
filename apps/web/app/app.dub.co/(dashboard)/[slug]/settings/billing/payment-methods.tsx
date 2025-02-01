@@ -118,6 +118,7 @@ const PaymentMethodCard = ({
   type: Stripe.PaymentMethod.Type;
   paymentMethod?: Stripe.PaymentMethod;
 }) => {
+  const router = useRouter();
   const { slug } = useWorkspace();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -140,8 +141,7 @@ const PaymentMethodCard = ({
       },
     ).then((res) => res.json());
 
-    window.open(url, "_blank");
-    setIsLoading(false);
+    router.push(url);
   };
 
   return (
