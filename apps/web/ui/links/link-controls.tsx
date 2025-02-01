@@ -1,4 +1,5 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
+import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
@@ -16,7 +17,7 @@ import {
 import { BoxArchive, CircleCheck, Copy, QRCode } from "@dub/ui/icons";
 import { cn, isDubDomain, nanoid, punycode } from "@dub/utils";
 import { CopyPlus, Delete, FolderInput } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useContext } from "react";
 import { toast } from "sonner";
 import { useLinkBuilder } from "../modals/link-builder";
@@ -31,6 +32,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
   const { slug } = useParams() as { slug?: string };
   const { folders } = useFolders();
   const { hovered } = useContext(CardList.Card.Context);
+  const searchParams = useSearchParams();
 
   const { openMenuLinkId, setOpenMenuLinkId } = useContext(LinksListContext);
   const openPopover = openMenuLinkId === link.id;
@@ -66,6 +68,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
 
   const isRootLink = link.key === "_root";
   const isProgramLink = link.programId !== null;
+  const folderId = link.folderId || searchParams.get("folderId");
 
   // Duplicate link Modal
   const {
@@ -107,34 +110,44 @@ export function LinkControls({ link }: { link: ResponseLink }) {
       ));
   };
 
+  const canManageLink = useCheckFolderPermission(
+    folderId,
+    "folders.links.write",
+  );
+
   useKeyboardShortcut(
     ["e", "d", "q", "m", "a", "t", "i", "x", "b"],
     (e) => {
       setOpenPopover(false);
       switch (e.key) {
         case "e":
-          setShowLinkBuilder(true);
+          canManageLink && setShowLinkBuilder(true);
           break;
         case "d":
-          setShowDuplicateLinkModal(true);
+          canManageLink && setShowDuplicateLinkModal(true);
           break;
         case "q":
           setShowLinkQRModal(true);
           break;
         case "m":
-          setShowMoveLinkToFolderModal(true);
+          canManageLink && setShowMoveLinkToFolderModal(true);
           break;
         case "a":
-          setShowArchiveLinkModal(true);
+          canManageLink && setShowArchiveLinkModal(true);
           break;
         case "t":
-          if (isDubDomain(link.domain)) setShowTransferLinkModal(true);
+          canManageLink &&
+            isDubDomain(link.domain) &&
+            setShowTransferLinkModal(true);
           break;
         case "i":
           copyLinkId();
           break;
         case "x":
-          if (!isRootLink && !isProgramLink) setShowDeleteLinkModal(true);
+          canManageLink &&
+            !isRootLink &&
+            !isProgramLink &&
+            setShowDeleteLinkModal(true);
           break;
         case "b":
           if (!slug) handleBanLink();
@@ -169,6 +182,11 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                 icon={<PenWriting className="h-4 w-4" />}
                 shortcut="E"
                 className="h-9 px-2 font-medium"
+                disabledTooltip={
+                  !canManageLink
+                    ? "You don't have permission to update this link."
+                    : undefined
+                }
               />
               <Button
                 text="QR Code"
@@ -191,6 +209,11 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                 icon={<CopyPlus className="h-4 w-4" />}
                 shortcut="D"
                 className="h-9 px-2 font-medium"
+                disabledTooltip={
+                  !canManageLink
+                    ? "You don't have permission to duplicate this link."
+                    : undefined
+                }
               />
               <Button
                 text="Copy Link ID"
@@ -220,6 +243,11 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                     setOpenPopover(false);
                     setShowMoveLinkToFolderModal(true);
                   }}
+                  disabledTooltip={
+                    !canManageLink
+                      ? "You don't have permission to move this link to another folder."
+                      : undefined
+                  }
                 />
               )}
 
@@ -233,7 +261,13 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                 icon={<BoxArchive className="h-4 w-4" />}
                 shortcut="A"
                 className="h-9 px-2 font-medium"
+                disabledTooltip={
+                  !canManageLink
+                    ? "You don't have permission to archive this link."
+                    : undefined
+                }
               />
+
               <Button
                 text="Transfer"
                 variant="outline"
@@ -244,15 +278,17 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                 icon={<FolderInput className="h-4 w-4" />}
                 shortcut="T"
                 className="h-9 px-2 font-medium"
-                {...(!isDubDomain(link.domain) && {
-                  disabledTooltip: (
+                disabledTooltip={
+                  !isDubDomain(link.domain) ? (
                     <SimpleTooltipContent
                       title="Since this is a custom domain link, you can only transfer it to another workspace if you transfer the domain as well."
                       cta="Learn more."
                       href="https://dub.co/help/article/how-to-transfer-domains"
                     />
-                  ),
-                })}
+                  ) : !canManageLink ? (
+                    "You don't have permission to transfer this link."
+                  ) : undefined
+                }
               />
 
               <Button
@@ -267,11 +303,13 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                 className="h-9 px-2 font-medium"
                 disabled={isRootLink || isProgramLink}
                 disabledTooltip={
-                  isRootLink
-                    ? "You can't delete a custom domain link. You can delete the domain instead."
-                    : isProgramLink
-                      ? "You can't delete a link that's part of a program."
-                      : undefined
+                  !canManageLink
+                    ? "You don't have permission to delete this link."
+                    : isRootLink
+                      ? "You can't delete a custom domain link. You can delete the domain instead."
+                      : isProgramLink
+                        ? "You can't delete a link that's part of a program."
+                        : undefined
                 }
               />
 
