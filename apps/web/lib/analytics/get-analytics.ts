@@ -125,7 +125,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         id: {
           in: topLinksData.map((item) => item.link),
         },
-        folderId: folderId || "",
+        folderId: folderId || null,
       },
       select: {
         id: true,

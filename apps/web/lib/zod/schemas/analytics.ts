@@ -230,10 +230,6 @@ export const analyticsFilterTB = z
           return v;
         }
       }),
-    programId: z.string().optional(),
-    partnerId: z.string().optional(),
-    tenantId: z.string().optional(),
-    customerId: z.string().optional(),
     root: z.boolean().optional(),
     qr: z.boolean().optional(),
     start: z.string(),
@@ -259,13 +255,17 @@ export const analyticsFilterTB = z
       referer: true,
       refererUrl: true,
       tagIds: true,
-      folderId: true,
       url: true,
       utm_source: true,
       utm_medium: true,
       utm_campaign: true,
       utm_term: true,
       utm_content: true,
+      programId: true,
+      partnerId: true,
+      tenantId: true,
+      customerId: true,
+      folderId: true,
     }),
   );
 

@@ -35,7 +35,6 @@ export const dubLinksMetadataSchema = z.object({
         return v;
       }
     }),
-  folder_id: z.string().default(""),
   created_at: z
     .date()
     .transform((v) => v.toISOString().replace("T", " ").replace("Z", "")),
