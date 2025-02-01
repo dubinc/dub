@@ -6,7 +6,7 @@ import { DubApiError } from "../api/errors";
 import {
   FOLDER_USER_ROLE,
   FOLDER_USER_ROLE_TO_PERMISSIONS,
-  FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE,
+  FOLDER_WORKSPACE_ACCESS_TO_FOLDER_USER_ROLE,
 } from "./constants";
 import { getFolderOrThrow } from "./get-folder-or-throw";
 
@@ -27,19 +27,19 @@ export const verifyFolderAccess = async ({
     userId,
   });
 
-  const userFolderRole = findUserFolderRole({
+  const folderUserRole = findUserFolderRole({
     folder,
     user: folder.user,
   });
 
-  if (!userFolderRole) {
+  if (!folderUserRole) {
     throw new DubApiError({
       code: "forbidden",
       message: "You are not allowed to perform this action on this folder.",
     });
   }
 
-  const permissions = getFolderPermissions(userFolderRole);
+  const permissions = getFolderPermissions(folderUserRole);
 
   if (!permissions.includes(requiredPermission)) {
     throw new DubApiError({
@@ -77,5 +77,5 @@ export const findUserFolderRole = ({
     return null;
   }
 
-  return FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE[folder.accessLevel];
+  return FOLDER_WORKSPACE_ACCESS_TO_FOLDER_USER_ROLE[folder.accessLevel];
 };
