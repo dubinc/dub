@@ -22,9 +22,17 @@ import {
   Logo,
   MaxWidthWrapper,
   Popover,
+  Tooltip,
   TooltipContent,
 } from "@dub/ui";
-import { ConnectedDots, Globe, OfficeBuilding, Trash } from "@dub/ui/icons";
+import {
+  CircleWarning,
+  ConnectedDots,
+  DubCraftedShield,
+  Globe,
+  OfficeBuilding,
+  Trash,
+} from "@dub/ui/icons";
 import {
   cn,
   DUB_WORKSPACE_ID,
@@ -86,9 +94,24 @@ export default function IntegrationPageClient({
             className="size-10 sm:size-14 sm:rounded-lg"
           />
           <div>
-            <h1 className="text-base font-semibold leading-none text-neutral-800">
-              {integration.name}
-            </h1>
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-base font-semibold leading-none text-neutral-800">
+                {integration.name}
+              </h1>
+              {integration.projectId === DUB_WORKSPACE_ID ? (
+                <Tooltip content="This is an official integration built and maintained by Dub">
+                  <div>
+                    <DubCraftedShield className="size-4 -translate-y-px" />
+                  </div>
+                </Tooltip>
+              ) : !integration.verified ? (
+                <Tooltip content="Dub hasn't verified this integration. Install it at your own risk.">
+                  <div>
+                    <CircleWarning className="size-5 text-gray-500" invert />
+                  </div>
+                </Tooltip>
+              ) : null}
+            </div>
             <p className="mt-1 text-[0.8125rem] leading-snug text-neutral-600">
               {integration.description}
             </p>
