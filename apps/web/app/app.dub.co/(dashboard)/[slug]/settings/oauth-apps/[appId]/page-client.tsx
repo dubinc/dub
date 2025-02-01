@@ -8,6 +8,7 @@ import { useRemoveOAuthAppModal } from "@/ui/modals/remove-oauth-app-modal";
 import { useSubmitOAuthAppModal } from "@/ui/modals/submit-oauth-app-modal";
 import AddOAuthAppForm from "@/ui/oauth-apps/add-edit-app-form";
 import OAuthAppCredentials from "@/ui/oauth-apps/oauth-app-credentials";
+import { BackLink } from "@/ui/shared/back-link";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
   BlurImage,
@@ -17,9 +18,8 @@ import {
   TokenAvatar,
 } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { ChevronLeft, RefreshCcw, Trash, Upload } from "lucide-react";
+import { RefreshCcw, Trash, Upload } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import Link from "next/link";
 import { notFound, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -67,15 +67,9 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
       <MaxWidthWrapper className="grid max-w-screen-lg gap-8">
         <RemoveOAuthAppModal />
         <SubmitOAuthAppModal />
-        <Link
-          href={`/${slug}/settings/oauth-apps`}
-          className="flex items-center gap-x-1"
-        >
-          <ChevronLeft className="size-4" />
-          <p className="text-sm font-medium text-gray-500">
-            Back to OAuth Apps
-          </p>
-        </Link>
+        <BackLink href={`/${slug}/settings/oauth-apps`}>
+          Back to OAuth Apps
+        </BackLink>
         <div className="flex justify-between gap-2 sm:items-center">
           {isLoading ? (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

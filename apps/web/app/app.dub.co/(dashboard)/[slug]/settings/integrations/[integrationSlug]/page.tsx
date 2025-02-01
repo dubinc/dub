@@ -30,6 +30,7 @@ export default async function IntegrationPage({
             select: {
               id: true,
               name: true,
+              email: true,
               image: true,
             },
           },
@@ -58,25 +59,28 @@ export default async function IntegrationPage({
     : undefined;
 
   return (
-    <IntegrationPageClient
-      integration={{
-        ...integration,
-        screenshots: integration.screenshots as string[],
-        installations: integration._count.installations,
-        installed: installed
-          ? {
-              id: integration.installations[0].id,
-              by: {
-                id: integration.installations[0].userId,
-                name: integration.installations[0].user.name,
-                image: integration.installations[0].user.image,
-              },
-              createdAt: integration.installations[0].createdAt,
-            }
-          : null,
-        credentials,
-        webhookId,
-      }}
-    />
+    <div className="mx-auto w-full max-w-screen-md">
+      <IntegrationPageClient
+        integration={{
+          ...integration,
+          screenshots: integration.screenshots as string[],
+          installations: integration._count.installations,
+          installed: installed
+            ? {
+                id: integration.installations[0].id,
+                by: {
+                  id: integration.installations[0].userId,
+                  name: integration.installations[0].user.name,
+                  email: integration.installations[0].user.email,
+                  image: integration.installations[0].user.image,
+                },
+                createdAt: integration.installations[0].createdAt,
+              }
+            : null,
+          credentials,
+          webhookId,
+        }}
+      />
+    </div>
   );
 }
