@@ -2,7 +2,7 @@ import { MaxWidthWrapper } from "@dub/ui";
 
 export default function IntegrationPageLoading() {
   return (
-    <MaxWidthWrapper className="grid max-w-screen-lg gap-8">
+    <MaxWidthWrapper className="grid max-w-screen-md gap-8">
       <div className="h-4 w-28 rounded-full bg-gray-100" />
       <div className="flex justify-between gap-2">
         <div className="flex items-center gap-x-3">
