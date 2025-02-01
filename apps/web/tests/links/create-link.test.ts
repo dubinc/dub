@@ -4,7 +4,7 @@ import { describe, expect, onTestFinished, test } from "vitest";
 import { randomId, randomTagName } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK, E2E_WEBHOOK_ID } from "../utils/resource";
-import { LinkSchema, expectedLink } from "../utils/schema";
+import { expectedLink } from "../utils/schema";
 
 const { domain, url } = E2E_LINK;
 
@@ -73,7 +73,7 @@ describe.sequential("POST /links", async () => {
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
     });
-    expect(LinkSchema.strict().parse(link)).toBeTruthy();
+    expect(Link.strict().parse(link)).toBeTruthy();
   });
 
   test("user defined key", async ({ onTestFinished }) => {
@@ -103,7 +103,7 @@ describe.sequential("POST /links", async () => {
       shortLink: `https://${domain}/${key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${key}?qr=1`,
     });
-    expect(LinkSchema.strict().parse(link)).toBeTruthy();
+    expect(Link.strict().parse(link)).toBeTruthy();
   });
 
   test("prefix", async () => {
@@ -136,7 +136,7 @@ describe.sequential("POST /links", async () => {
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
     });
-    expect(LinkSchema.strict().parse(link)).toBeTruthy();
+    expect(Link.strict().parse(link)).toBeTruthy();
   });
 
   test("utm builder", async () => {
@@ -176,7 +176,7 @@ describe.sequential("POST /links", async () => {
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
     });
-    expect(LinkSchema.strict().parse(link)).toBeTruthy();
+    expect(Link.strict().parse(link)).toBeTruthy();
   });
 
   test("password protection", async () => {
@@ -206,7 +206,7 @@ describe.sequential("POST /links", async () => {
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
     });
-    expect(LinkSchema.strict().parse(link)).toBeTruthy();
+    expect(Link.strict().parse(link)).toBeTruthy();
   });
 
   test("link expiration", async () => {
@@ -239,7 +239,7 @@ describe.sequential("POST /links", async () => {
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
     });
-    expect(LinkSchema.strict().parse(link)).toBeTruthy();
+    expect(Link.strict().parse(link)).toBeTruthy();
   });
 
   test("device targeting", async () => {
@@ -273,7 +273,7 @@ describe.sequential("POST /links", async () => {
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
     });
-    expect(LinkSchema.strict().parse(link)).toBeTruthy();
+    expect(Link.strict().parse(link)).toBeTruthy();
   });
 
   test("geo targeting", async () => {
@@ -307,7 +307,7 @@ describe.sequential("POST /links", async () => {
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
     });
-    expect(LinkSchema.strict().parse(link)).toBeTruthy();
+    expect(Link.strict().parse(link)).toBeTruthy();
   });
 
   test("tags", async () => {
@@ -363,7 +363,7 @@ describe.sequential("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: expect.arrayContaining(tags),
     });
-    expect(LinkSchema.strict().parse(link)).toBeTruthy();
+    expect(Link.strict().parse(link)).toBeTruthy();
   });
 
   test("custom social media cards", async () => {
@@ -396,7 +396,7 @@ describe.sequential("POST /links", async () => {
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
     });
-    expect(LinkSchema.strict().parse(link)).toBeTruthy();
+    expect(Link.strict().parse(link)).toBeTruthy();
   });
 
   test("webhooks", async () => {
@@ -424,7 +424,7 @@ describe.sequential("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       webhookIds: [E2E_WEBHOOK_ID],
     });
-    expect(LinkSchema.strict().parse(link)).toBeTruthy();
+    expect(Link.strict().parse(link)).toBeTruthy();
   });
 });
 
@@ -457,6 +457,6 @@ describe.sequential("POST /links?workspaceId=xxx", async () => {
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
     });
-    expect(LinkSchema.strict().parse(link)).toBeTruthy();
+    expect(Link.strict().parse(link)).toBeTruthy();
   });
 });

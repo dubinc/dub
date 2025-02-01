@@ -4,7 +4,7 @@ import { expect, onTestFinished, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK } from "../utils/resource";
-import { LinkSchema, expectedLink } from "../utils/schema";
+import { expectedLink } from "../utils/schema";
 
 const { domain } = E2E_LINK;
 
@@ -51,5 +51,5 @@ test("POST /links/bulk", async (ctx) => {
     shortLink: `https://${domain}/${secondLink?.key}`,
     qrCode: `https://api.dub.co/qr?url=https://${domain}/${secondLink?.key}?qr=1`,
   });
-  expect(z.array(LinkSchema.strict()).parse(links)).toBeTruthy();
+  expect(z.array(Link.strict()).parse(links)).toBeTruthy();
 });
