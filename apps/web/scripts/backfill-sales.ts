@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { getEvents } from "@/lib/analytics/get-events";
 import { createSaleData } from "@/lib/api/sales/create-sale-data";
 import { SaleEvent } from "@/lib/types";

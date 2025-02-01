@@ -33,7 +33,7 @@ export const addPartnerAction = authActionClient
       }),
     ]);
 
-    if (link.programId) {
+    if (link.partnerId) {
       throw new Error("Link is already associated with another partner.");
     }
 

@@ -219,7 +219,7 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: ShieldCheck,
             href: "/account/settings/security",
           },
-          ...(session?.user?.["referralLinkId"]
+          ...(session?.user?.["dubPartnerId"]
             ? [
                 {
                   name: "Referrals",

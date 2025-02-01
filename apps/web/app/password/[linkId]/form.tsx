@@ -22,11 +22,11 @@ export default function PasswordForm() {
     <form
       data-testid="password-form"
       action={formAction}
-      className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 sm:px-16"
+      className="flex flex-col gap-4 bg-neutral-50 p-4 sm:p-8 sm:pt-6"
     >
       <div>
-        <label htmlFor="password" className="block text-xs text-gray-600">
-          PASSWORD
+        <label htmlFor="password" className="block text-sm text-neutral-800">
+          Password
         </label>
         <div className="relative mt-1 rounded-md shadow-sm">
           <input type="hidden" name="linkId" value={linkId} />
@@ -39,7 +39,7 @@ export default function PasswordForm() {
             className={`${
               state.error
                 ? "border-red-300 pr-10 text-red-500 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
+                : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500"
             } block w-full rounded-md focus:outline-none sm:text-sm`}
           />
           {state.error && (
@@ -65,5 +65,5 @@ export default function PasswordForm() {
 
 const FormButton = () => {
   const { pending } = useFormStatus();
-  return <Button text="Log in" loading={pending} />;
+  return <Button text="View page" loading={pending} />;
 };

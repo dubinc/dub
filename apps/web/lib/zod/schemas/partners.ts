@@ -7,7 +7,7 @@ import {
 import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
 import { CustomerSchema } from "./customers";
-import { createLinkBodySchema, LinkSchema } from "./links";
+import { createLinkBodySchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { ProgramEnrollmentSchema } from "./programs";
 import { parseDateSchema } from "./utils";
@@ -24,6 +24,10 @@ export const partnersQuerySchema = z
       .enum(["createdAt", "clicks", "leads", "sales", "earnings"])
       .default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
+    tenantId: z
+      .string()
+      .optional()
+      .describe("The ID of the partner within your system."),
     ids: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
@@ -67,27 +71,26 @@ export const EnrolledPartnerSchema = PartnerSchema.omit({
     programId: true,
   })
   .extend({
-    earnings: z.number(),
+    earnings: z.number().default(0),
+    clicks: z.number().default(0),
+    leads: z.number().default(0),
+    sales: z.number().default(0),
+    salesAmount: z.number().default(0),
   });
 
 export const LeaderboardPartnerSchema = z.object({
-  partner: z.object({
-    id: z.string(),
-    name: z.string().transform((name) => {
-      const parts = name.trim().split(/\s+/);
-      if (parts.length < 2) return name; // Return original if single word
-      const firstName = parts[0];
-      const lastInitial = parts[parts.length - 1][0];
-      return `${firstName} ${lastInitial}.`;
-    }),
+  id: z.string(),
+  name: z.string().transform((name) => {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length < 2) return name; // Return original if single word
+    const firstName = parts[0];
+    const lastInitial = parts[parts.length - 1][0];
+    return `${firstName} ${lastInitial}.`;
   }),
-  link: LinkSchema.pick({
-    shortLink: true,
-    clicks: true,
-    leads: true,
-    sales: true,
-    saleAmount: true,
-  }),
+  clicks: z.number().default(0),
+  leads: z.number().default(0),
+  sales: z.number().default(0),
+  saleAmount: z.number().default(0),
 });
 
 export const SaleSchema = z.object({
@@ -197,6 +200,10 @@ export const createPartnerSchema = z.object({
     .max(5000)
     .nullish()
     .describe("A brief description of the partner and their background."),
+  tenantId: z
+    .string()
+    .optional()
+    .describe("The ID of the partner in your system."),
   linkProps: createLinkBodySchema
     .omit({
       url: true,

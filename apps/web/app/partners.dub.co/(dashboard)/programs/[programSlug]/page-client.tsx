@@ -56,6 +56,7 @@ export default function ProgramPageClient() {
   };
 
   const program = programEnrollment?.program;
+  const masterLink = programEnrollment?.links?.[0];
 
   return (
     <MaxWidthWrapper className="pb-10">
@@ -81,11 +82,11 @@ export default function ProgramPageClient() {
           Referral link
         </span>
         <div className="xs:flex-row relative flex flex-col items-center gap-2">
-          {programEnrollment?.link ? (
+          {masterLink ? (
             <input
               type="text"
               readOnly
-              value={getPrettyUrl(programEnrollment?.link.shortLink)}
+              value={getPrettyUrl(masterLink.shortLink)}
               className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 lg:min-w-64 xl:min-w-72"
             />
           ) : (
@@ -114,11 +115,12 @@ export default function ProgramPageClient() {
             }
             text={copied ? "Copied link" : "Copy link"}
             className="xs:w-fit"
-            disabled={!programEnrollment?.link?.shortLink}
-            onClick={() =>
-              programEnrollment?.link?.shortLink &&
-              copyToClipboard(programEnrollment?.link?.shortLink)
-            }
+            disabled={!masterLink}
+            onClick={() => {
+              if (masterLink) {
+                copyToClipboard(masterLink.shortLink);
+              }
+            }}
           />
         </div>
       </div>

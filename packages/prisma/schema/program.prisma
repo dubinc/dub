@@ -25,23 +25,23 @@ enum ProgramResourceType {
 }
 
 model Program {
-  id                  String              @id @default(cuid())
-  workspaceId         String
-  name                String
-  slug                String              @unique
-  logo                String?
-  wordmark            String?
-  brandColor          String?
-  domain              String?
-  url                 String?
-  type                ProgramType         @default(affiliate)
-  cookieLength        Int                 @default(90)
+  id           String      @id @default(cuid())
+  workspaceId  String
+  name         String
+  slug         String      @unique
+  logo         String?
+  wordmark     String?
+  brandColor   String?
+  domain       String?
+  url          String?
+  type         ProgramType @default(affiliate)
+  cookieLength Int         @default(90)
 
   // Commission details
-  commissionAmount    Int                 @default(0)
-  commissionType      CommissionType      @default(percentage)
-  commissionDuration  Int?
-  commissionInterval  CommissionInterval?
+  commissionAmount   Int                 @default(0)
+  commissionType     CommissionType      @default(percentage)
+  commissionDuration Int?
+  commissionInterval CommissionInterval?
 
   // Discounts (for dual-sided incentives)
   discounts Discount[]
@@ -70,8 +70,9 @@ model ProgramEnrollment {
   id               String                  @id @default(cuid())
   partnerId        String
   programId        String
-  linkId           String?                 @unique
-  commissionAmount Int?    // custom commission amount for this partner
+  tenantId         String?
+  linkId           String?                 @unique // TODO: Remove after the migration
+  commissionAmount Int? // custom commission amount for this partner
   discountId       String? // custom discount for this partner
   applicationId    String?                 @unique
   status           ProgramEnrollmentStatus @default(pending)
@@ -80,11 +81,12 @@ model ProgramEnrollment {
 
   partner     Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   program     Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  link        Link?               @relation(fields: [linkId], references: [id])
+  links       Link[]
   discount    Discount?           @relation(fields: [discountId], references: [id])
   application ProgramApplication? @relation(fields: [applicationId], references: [id])
-  
+
   @@unique([partnerId, programId])
+  @@unique([tenantId, programId])
   @@index([programId])
   @@index([discountId])
 }
