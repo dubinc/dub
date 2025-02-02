@@ -52,7 +52,7 @@ export const RequestFolderEditAccessButton = ({
           ? "Sending..."
           : requestSent || isRequested
             ? "Request sent"
-            : "Request access"
+            : "Ask to edit"
       }
       variant={variant}
       className={cn(
