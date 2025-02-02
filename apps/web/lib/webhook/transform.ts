@@ -98,6 +98,7 @@ export const transformSaleEventData = (data: any) => {
     click: {
       ...sale,
       id: sale.clickId,
+      timestamp: sale.clickedAt,
       qr: sale.qr === 1,
       bot: sale.bot === 1,
     },

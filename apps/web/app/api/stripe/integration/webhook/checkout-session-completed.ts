@@ -343,6 +343,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         workspace,
         data: transformSaleEventData({
           ...saleData,
+          clickedAt: customer.clickedAt || customer.createdAt,
           link: linkUpdated,
           customerId: customer.id,
           customerExternalId: customer.externalId,
