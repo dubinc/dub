@@ -6,7 +6,7 @@ import {
 } from "@/lib/swr/use-folder-permissions";
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { FolderEditAccessRequestButton } from "@/ui/folders/request-edit-button";
+import { RequestFolderEditAccessButton } from "@/ui/folders/request-edit-button";
 import LinkDisplay from "@/ui/links/link-display";
 import LinksContainer from "@/ui/links/links-container";
 import { LinksDisplayProvider } from "@/ui/links/links-display-provider";
@@ -171,7 +171,7 @@ function WorkspaceLinks() {
                 </>
               ) : (
                 <div className="w-fit">
-                  <FolderEditAccessRequestButton
+                  <RequestFolderEditAccessButton
                     folderId={folderId!}
                     workspaceId={workspaceId!}
                     variant="primary"

@@ -21,7 +21,7 @@ import useSWR, { mutate } from "swr";
 import { Drawer } from "vaul";
 import { X } from "../shared/icons";
 import { FolderAccessIcon } from "./folder-icon";
-import { FolderEditAccessRequestButton } from "./request-edit-button";
+import { RequestFolderEditAccessButton } from "./request-edit-button";
 
 // TODO
 // Use the new `<Sheet />` component
@@ -126,7 +126,7 @@ const FolderPermissionsPanel = ({
                 <div className="flex items-start justify-between">
                   <FolderAccessIcon folder={folder} />
                   {!isLoadingPermissions && !canCreateLinks && (
-                    <FolderEditAccessRequestButton
+                    <RequestFolderEditAccessButton
                       folderId={folder.id}
                       workspaceId={workspace.id!}
                     />

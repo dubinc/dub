@@ -12,7 +12,7 @@ import {
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder, FolderUser } from "@/lib/types";
 import { FolderAccessIcon } from "@/ui/folders/folder-icon";
-import { FolderEditAccessRequestButton } from "@/ui/folders/request-edit-button";
+import { RequestFolderEditAccessButton } from "@/ui/folders/request-edit-button";
 import { FolderUserRole } from "@dub/prisma/client";
 import { Avatar, BlurImage, Globe } from "@dub/ui";
 import { cn, DICEBEAR_AVATAR_URL, fetcher, nFormatter } from "@dub/utils";
@@ -155,7 +155,7 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
               )}
 
               {!canMoveLinks && !isLoadingPermissions && (
-                <FolderEditAccessRequestButton
+                <RequestFolderEditAccessButton
                   folderId={folder.id}
                   workspaceId={workspace.id!}
                 />

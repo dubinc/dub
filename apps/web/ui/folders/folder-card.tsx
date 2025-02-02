@@ -24,7 +24,7 @@ import { useRenameFolderModal } from "../modals/rename-folder-modal";
 import { Chart, Delete, ThreeDots } from "../shared/icons";
 import { FolderAccessIcon } from "./folder-icon";
 import { useFolderPermissionsPanel } from "./folder-permissions-panel";
-import { FolderEditAccessRequestButton } from "./request-edit-button";
+import { RequestFolderEditAccessButton } from "./request-edit-button";
 
 export const FolderCard = ({ folder }: { folder: Folder }) => {
   const router = useRouter();
@@ -105,7 +105,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
           {!isAllLinksFolder && (
             <div className="flex items-center justify-end gap-2">
               {!isPermissionsLoading && !canCreateLinks && (
-                <FolderEditAccessRequestButton
+                <RequestFolderEditAccessButton
                   folderId={folder.id}
                   workspaceId={workspaceId!}
                 />

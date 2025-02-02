@@ -9,7 +9,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
-export const FolderEditAccessRequestButton = ({
+export const RequestFolderEditAccessButton = ({
   folderId,
   workspaceId,
   variant = "outline",
