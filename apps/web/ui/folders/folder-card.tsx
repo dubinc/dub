@@ -22,7 +22,7 @@ import { toast } from "sonner";
 import { useDeleteFolderModal } from "../modals/delete-folder-modal";
 import { useRenameFolderModal } from "../modals/rename-folder-modal";
 import { Chart, Delete, ThreeDots } from "../shared/icons";
-import { FolderAccessIcon } from "./folder-icon";
+import { FolderIcon } from "./folder-icon";
 import { useFolderPermissionsPanel } from "./folder-permissions-panel";
 import { RequestFolderEditAccessButton } from "./request-edit-button";
 
@@ -48,7 +48,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
   const { folderPermissionsPanel, setShowFolderPermissionsPanel } =
     useFolderPermissionsPanel(folder);
 
-  const isAllLinksFolder = folder.id === "unsorted";
+  const unsortedLinks = folder.id === "unsorted";
 
   useKeyboardShortcut(
     ["r", "m", "x", "a", "i"],
@@ -77,7 +77,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
       }
     },
     {
-      enabled: openPopover || (isHovering && !isAllLinksFolder),
+      enabled: openPopover || (isHovering && !unsortedLinks),
     },
   );
 
@@ -100,10 +100,10 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
         onMouseLeave={() => setIsHovering(false)}
       >
         <div className="flex items-center justify-between">
-          <FolderAccessIcon folder={folder} />
+          <FolderIcon folder={folder} />
 
-          {!isAllLinksFolder && (
-            <div className="flex items-center justify-end gap-2">
+          {!unsortedLinks && (
+            <div className="flex items-center justify-end gap-1">
               {!isPermissionsLoading && !canCreateLinks && (
                 <RequestFolderEditAccessButton
                   folderId={folder.id}

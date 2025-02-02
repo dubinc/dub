@@ -11,7 +11,7 @@ import {
 } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder, FolderUser } from "@/lib/types";
-import { FolderAccessIcon } from "@/ui/folders/folder-icon";
+import { FolderIcon } from "@/ui/folders/folder-icon";
 import { RequestFolderEditAccessButton } from "@/ui/folders/request-edit-button";
 import { FolderUserRole } from "@dub/prisma/client";
 import { Avatar, BlurImage, Globe } from "@dub/ui";
@@ -106,7 +106,7 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
           {folder ? (
             <>
               <div className="flex items-center gap-x-6">
-                <FolderAccessIcon folder={folder} />
+                <FolderIcon folder={folder} />
                 <div className="flex flex-col gap-2">
                   <span className="text-sm font-semibold leading-none text-gray-900">
                     {folder.name}

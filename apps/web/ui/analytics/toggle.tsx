@@ -78,7 +78,7 @@ import {
 } from "react";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
-import { FolderSquareIcon } from "../folders/folder-icon";
+import { FolderIcon } from "../folders/folder-icon";
 import TagBadge from "../links/tag-badge";
 import AnalyticsOptions from "./analytics-options";
 import { AnalyticsContext } from "./analytics-provider";
@@ -423,21 +423,13 @@ export default function Toggle({
                       );
 
                       return folder ? (
-                        <FolderSquareIcon
-                          folder={folder}
-                          iconClassName="size-3"
-                        />
+                        <FolderIcon folder={folder} shape="square" />
                       ) : null;
                     },
                     options:
                       folders?.map((folder) => ({
                         value: folder.id,
-                        icon: (
-                          <FolderSquareIcon
-                            folder={folder}
-                            iconClassName="size-3"
-                          />
-                        ),
+                        icon: <FolderIcon folder={folder} shape="square" />,
                         label: folder.name,
                       })) ?? null,
                   },

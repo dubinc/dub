@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 import { Drawer } from "vaul";
 import { X } from "../shared/icons";
-import { FolderAccessIcon } from "./folder-icon";
+import { FolderIcon } from "./folder-icon";
 import { RequestFolderEditAccessButton } from "./request-edit-button";
 
 // TODO
@@ -124,7 +124,7 @@ const FolderPermissionsPanel = ({
             <div className="px-8 py-6">
               <div className="flex flex-col justify-between rounded-xl border border-gray-200 bg-white px-5 py-4 sm:h-36">
                 <div className="flex items-start justify-between">
-                  <FolderAccessIcon folder={folder} />
+                  <FolderIcon folder={folder} />
                   {!isLoadingPermissions && !canCreateLinks && (
                     <RequestFolderEditAccessButton
                       folderId={folder.id}

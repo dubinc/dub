@@ -17,37 +17,37 @@ const folderIconsMap: Record<
   {
     borderColor: string;
     bgColor: string;
-    IconComponent: React.ElementType;
+    icon: React.ElementType;
   }
 > = {
-  new: {
-    borderColor: "border-gray-200",
-    bgColor: "bg-gray-100",
-    IconComponent: FolderPlus,
-  },
-  unsorted: {
-    borderColor: "border-green-200",
-    bgColor: "bg-green-100",
-    IconComponent: FolderBookmark,
+  read: {
+    borderColor: "border-indigo-200",
+    bgColor: "bg-indigo-100",
+    icon: FolderShield,
   },
   write: {
     borderColor: "border-blue-200",
     bgColor: "bg-blue-100",
-    IconComponent: FolderOpen,
-  },
-  read: {
-    borderColor: "border-indigo-200",
-    bgColor: "bg-indigo-100",
-    IconComponent: FolderShield,
+    icon: FolderOpen,
   },
   none: {
     borderColor: "border-orange-200",
     bgColor: "bg-orange-100",
-    IconComponent: FolderLock,
+    icon: FolderLock,
+  },
+  new: {
+    borderColor: "border-gray-200",
+    bgColor: "bg-gray-100",
+    icon: FolderPlus,
+  },
+  unsorted: {
+    borderColor: "border-green-200",
+    bgColor: "bg-green-100",
+    icon: FolderBookmark,
   },
 } as const;
 
-const findIconIdentifier = (
+const determineFolderIcon = (
   folder: Pick<FolderProps, "id" | "accessLevel">,
 ) => {
   if (["new", "unsorted"].includes(folder.id)) {
@@ -61,55 +61,44 @@ const findIconIdentifier = (
   return "none";
 };
 
-// TODO:
-// Combine with FolderSquareIcon with FolderAccessIcon
-
-export const FolderAccessIcon = ({
+export const FolderIcon = ({
   folder,
   circlePadding = "p-2.5",
-  withBorder = true,
-  className,
+  shape = "rounded",
 }: {
   folder: Pick<FolderProps, "id" | "accessLevel">;
   circlePadding?: string;
-  withBorder?: boolean;
-  className?: string;
+  shape?: "rounded" | "square";
 }) => {
-  const { borderColor, bgColor, IconComponent } =
-    folderIconsMap[findIconIdentifier(folder)];
+  const iconType = determineFolderIcon(folder);
+  const { borderColor, bgColor, icon: Icon } = folderIconsMap[iconType];
 
-  if (!withBorder) {
-    return (
-      <div className={`${className} p-1.5 ${bgColor}`}>
-        <IconComponent className="size-4" />
-      </div>
-    );
-  }
+  const shapeClasses = shape === "rounded" ? "rounded-full" : "rounded-md";
 
   return (
-    <div className={cn("border", className, borderColor, bgColor)}>
-      <div className={cn(circlePadding)}>
-        <IconComponent className="size-4" />
+    <div className={cn(shapeClasses, "border", borderColor, bgColor)}>
+      <div className={cn(shape === "rounded" ? circlePadding : "p-1")}>
+        <Icon className={"size-4"} />
       </div>
     </div>
   );
 };
 
-export const FolderSquareIcon = ({
-  folder,
-  iconClassName,
-}: {
-  folder: Pick<FolderProps, "id" | "accessLevel">;
-  iconClassName?: string;
-}) => {
-  const { borderColor, bgColor, IconComponent } =
-    folderIconsMap[findIconIdentifier(folder)];
+// export const FolderSquareIcon = ({
+//   folder,
+//   iconClassName,
+// }: {
+//   folder: Pick<FolderProps, "id" | "accessLevel">;
+//   iconClassName?: string;
+// }) => {
+//   const iconType = determineFolderIcon(folder);
+//   const { borderColor, bgColor, icon: Icon } = folderIconsMap[iconType];
 
-  return (
-    <div className={cn("rounded-md border", borderColor, bgColor)}>
-      <div className="p-1">
-        <IconComponent className={iconClassName} />
-      </div>
-    </div>
-  );
-};
+//   return (
+//     <div className={cn("rounded-md border", borderColor, bgColor)}>
+//       <div className="p-1">
+//         <Icon className={iconClassName} />
+//       </div>
+//     </div>
+//   );
+// };

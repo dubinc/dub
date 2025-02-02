@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAddFolderModal } from "../modals/add-folder-modal";
-import { FolderSquareIcon } from "./folder-icon";
+import { FolderIcon } from "./folder-icon";
 
 interface FolderDropdownProps {
   onFolderSelect: (folder: FolderSummary) => void;
@@ -77,7 +77,7 @@ export const FolderDropdown = ({
                     setSelectedFolder(folder);
                   }}
                 >
-                  <FolderSquareIcon folder={folder} iconClassName="size-4" />
+              <FolderIcon folder={folder} shape="square" />
                   <span
                     className={`flex items-center justify-start gap-1.5 text-sm sm:max-w-[140px] ${
                       selectedFolder?.id === folder.id
@@ -113,10 +113,8 @@ export const FolderDropdown = ({
                 setShowAddFolderModal(true);
               }}
             >
-              <FolderSquareIcon
-                folder={{ id: "new", accessLevel: null }}
-                iconClassName="size-4"
-              />
+
+              <FolderIcon folder={{ id: "new", accessLevel: null }} shape="square" />
               <span className="block truncate">Create new folder</span>
             </button>
           </div>
@@ -128,7 +126,7 @@ export const FolderDropdown = ({
       >
         <button className="group flex w-32 min-w-0 items-center gap-2 rounded-lg transition-colors duration-75">
           {!hideFolderIcon && selectedFolder && (
-            <FolderSquareIcon folder={selectedFolder} iconClassName="size-4" />
+            <FolderIcon folder={selectedFolder} shape="square" />
           )}
 
           <h1 className="min-w-0 truncate text-left text-lg font-medium leading-7 text-neutral-900">
