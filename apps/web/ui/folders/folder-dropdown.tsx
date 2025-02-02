@@ -77,7 +77,7 @@ export const FolderDropdown = ({
                     setSelectedFolder(folder);
                   }}
                 >
-              <FolderIcon folder={folder} shape="square" />
+                  <FolderIcon folder={folder} shape="square" />
                   <span
                     className={`flex items-center justify-start gap-1.5 text-sm sm:max-w-[140px] ${
                       selectedFolder?.id === folder.id
@@ -113,8 +113,10 @@ export const FolderDropdown = ({
                 setShowAddFolderModal(true);
               }}
             >
-
-              <FolderIcon folder={{ id: "new", accessLevel: null }} shape="square" />
+              <FolderIcon
+                folder={{ id: "new", accessLevel: null }}
+                shape="square"
+              />
               <span className="block truncate">Create new folder</span>
             </button>
           </div>
