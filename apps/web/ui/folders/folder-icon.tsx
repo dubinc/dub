@@ -83,22 +83,3 @@ export const FolderIcon = ({
     </div>
   );
 };
-
-// export const FolderSquareIcon = ({
-//   folder,
-//   iconClassName,
-// }: {
-//   folder: Pick<FolderProps, "id" | "accessLevel">;
-//   iconClassName?: string;
-// }) => {
-//   const iconType = determineFolderIcon(folder);
-//   const { borderColor, bgColor, icon: Icon } = folderIconsMap[iconType];
-
-//   return (
-//     <div className={cn("rounded-md border", borderColor, bgColor)}>
-//       <div className="p-1">
-//         <Icon className={iconClassName} />
-//       </div>
-//     </div>
-//   );
-// };
