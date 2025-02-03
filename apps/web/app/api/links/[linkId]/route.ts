@@ -215,13 +215,6 @@ export const DELETE = withWorkspace(
       });
     }
 
-    if (link.programId) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "You can't delete a link that's part of a program.",
-      });
-    }
-
     const response = await deleteLink(link.id);
 
     waitUntil(

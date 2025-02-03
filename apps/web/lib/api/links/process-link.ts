@@ -29,6 +29,7 @@ export async function processLink<T extends Record<string, any>>({
   bulk = false,
   skipKeyChecks = false, // only skip when key doesn't change (e.g. when editing a link)
   skipExternalIdChecks = false, // only skip when externalId doesn't change (e.g. when editing a link)
+  skipProgramChecks = false,
 }: {
   payload: NewLinkProps & T;
   workspace?: Pick<WorkspaceProps, "id" | "plan" | "flags">;
@@ -36,6 +37,7 @@ export async function processLink<T extends Record<string, any>>({
   bulk?: boolean;
   skipKeyChecks?: boolean;
   skipExternalIdChecks?: boolean;
+  skipProgramChecks?: boolean;
 }): Promise<
   | {
       link: NewLinkProps & T;
@@ -373,7 +375,7 @@ export async function processLink<T extends Record<string, any>>({
     }
 
     // Program validity checks
-    if (programId) {
+    if (programId && !skipProgramChecks) {
       const program = await prisma.program.findUnique({
         where: { id: programId },
         select: {
