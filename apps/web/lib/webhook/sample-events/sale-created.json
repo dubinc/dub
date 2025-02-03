@@ -6,10 +6,12 @@
     "name": "Rural Red Goldfish",
     "email": "rural.red.goldfish@example.com",
     "avatar": "https://api.dicebear.com/9.x/notionists/png?seed=cus_jTrfVKYN3Buc3F80JoqBiY0g",
+    "country": "US",
     "createdAt": "2024-10-12T04:55:36.007Z"
   },
   "click": {
     "id": "GWGrkftJdYlZD2mq",
+    "timestamp": "2025-02-03T09:35:57.926Z",
     "url": "https://github.com/dubinc/dub",
     "country": "US",
     "city": "San Jose",

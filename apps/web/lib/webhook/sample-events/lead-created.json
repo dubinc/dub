@@ -6,10 +6,12 @@
     "name": "Tiny Beige Badger",
     "email": "tiny.beige.badger@example.com",
     "avatar": "https://api.dicebear.com/9.x/notionists/png?seed=cus_BH6tDUWc9n0Y2pf55tVbk1hc",
+    "country": "US",
     "createdAt": "2025-01-14T04:49:23.385Z"
   },
   "click": {
     "id": "GWGrkftJdYlZD2mq",
+    "timestamp": "2025-02-03T09:35:57.926Z",
     "url": "https://github.com/dubinc/dub",
     "country": "US",
     "city": "San Jose",
