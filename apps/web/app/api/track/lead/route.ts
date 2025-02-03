@@ -125,8 +125,8 @@ export const POST = withWorkspaceEdge(
           trigger: "lead.created",
           data: transformLeadEventData({
             ...clickData,
-            link,
             eventName,
+            link,
             customerId: customer.id,
             customerExternalId: customer.externalId,
             customerName: customer.name,

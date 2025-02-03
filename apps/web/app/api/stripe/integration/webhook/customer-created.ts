@@ -85,10 +85,12 @@ export async function customerCreated(event: Stripe.Event) {
       },
     });
 
+    const eventName = "New customer";
+
     const leadData = {
       ...clickData,
       event_id: nanoid(16),
-      event_name: "New customer",
+      event_name: eventName,
       customer_id: customer.id,
     };
 
@@ -128,6 +130,7 @@ export async function customerCreated(event: Stripe.Event) {
         workspace,
         data: transformLeadEventData({
           ...clickData,
+          eventName,
           link: linkUpdated,
           customerId: customer.id,
           customerExternalId: customer.externalId,
@@ -138,6 +141,7 @@ export async function customerCreated(event: Stripe.Event) {
         }),
       }),
     );
+
     return `New Dub customer created: ${customer.id}. Lead event recorded: ${leadData.event_id}`;
   }
 }

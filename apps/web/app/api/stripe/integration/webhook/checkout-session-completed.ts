@@ -325,8 +325,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           workspace,
           data: transformLeadEventData({
             ...clickEvent,
-            link: linkUpdated,
             eventName: "Checkout session completed",
+            link: linkUpdated,
             customerId: customer.id,
             customerExternalId: customer.externalId,
             customerName: customer.name,
