@@ -58,6 +58,7 @@ export const transformLeadEventData = (data: any) => {
     ...lead,
     customer: {
       ...customer,
+      country: undefined,
       avatar:
         customer.avatar ||
         `https://api.dicebear.com/9.x/micah/svg?seed=${customer.id}`,
@@ -83,6 +84,7 @@ export const transformSaleEventData = (data: any) => {
     ...sale,
     customer: {
       ...customer,
+      country: undefined,
       avatar:
         customer.avatar ||
         `https://api.dicebear.com/9.x/micah/svg?seed=${customer.id}`,
