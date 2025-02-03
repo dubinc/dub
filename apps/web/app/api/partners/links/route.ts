@@ -70,6 +70,7 @@ export const POST = withWorkspace(
       },
       workspace,
       userId: session.user.id,
+      skipProgramChecks: true, // skip this cause we've already validated the program above
     });
 
     if (error != null) {
