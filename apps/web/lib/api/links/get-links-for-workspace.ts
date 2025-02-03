@@ -24,6 +24,7 @@ export async function getLinksForWorkspace({
   includeDashboard,
   linkIds,
   tenantId,
+  partnerId,
 }: z.infer<typeof getLinksQuerySchemaExtended> & {
   workspaceId: string;
 }) {
@@ -72,6 +73,7 @@ export async function getLinksForWorkspace({
             }
           : {}),
       ...(tenantId && { tenantId }),
+      ...(partnerId && { partnerId }),
       ...(userId && { userId }),
       ...(linkIds && { id: { in: linkIds } }),
     },

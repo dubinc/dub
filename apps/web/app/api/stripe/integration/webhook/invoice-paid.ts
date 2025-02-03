@@ -112,9 +112,13 @@ export async function invoicePaid(event: Stripe.Event) {
   // for program links
   if (link.programId) {
     const { program, partnerId, commissionAmount } =
-      await prisma.programEnrollment.findUniqueOrThrow({
+      await prisma.programEnrollment.findFirstOrThrow({
         where: {
-          linkId: link.id,
+          links: {
+            some: {
+              id: link.id,
+            },
+          },
         },
         select: {
           program: true,

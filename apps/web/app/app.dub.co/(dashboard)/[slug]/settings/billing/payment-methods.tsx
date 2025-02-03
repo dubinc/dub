@@ -6,11 +6,13 @@ import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Badge, Button, CreditCard, MoneyBill2 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Stripe } from "stripe";
 import { PaymentMethodTypesList } from "./payment-method-types";
 
 export default function PaymentMethods() {
+  const router = useRouter();
   const { slug, stripeId, partnersEnabled, plan } = useWorkspace();
   const { paymentMethods } = usePaymentMethods();
 
@@ -24,18 +26,17 @@ export default function PaymentMethods() {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const managePaymentMethods = async (method?: string) => {
+  const managePaymentMethods = async () => {
     setIsLoading(true);
     const { url } = await fetch(
       `/api/workspaces/${slug}/billing/payment-methods`,
       {
         method: "POST",
-        body: JSON.stringify({ method }),
+        body: JSON.stringify({}),
       },
     ).then((res) => res.json());
 
-    window.open(url, "_blank");
-    setIsLoading(false);
+    router.push(url);
   };
 
   if (plan === "free") {
@@ -117,6 +118,7 @@ const PaymentMethodCard = ({
   type: Stripe.PaymentMethod.Type;
   paymentMethod?: Stripe.PaymentMethod;
 }) => {
+  const router = useRouter();
   const { slug } = useWorkspace();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -129,7 +131,7 @@ const PaymentMethodCard = ({
     description,
   } = result.find((method) => method.type === type) || result[0];
 
-  const managePaymentMethods = async (method: string) => {
+  const addPaymentMethod = async (method: string) => {
     setIsLoading(true);
     const { url } = await fetch(
       `/api/workspaces/${slug}/billing/payment-methods`,
@@ -139,8 +141,7 @@ const PaymentMethodCard = ({
       },
     ).then((res) => res.json());
 
-    window.open(url, "_blank");
-    setIsLoading(false);
+    router.push(url);
   };
 
   return (
@@ -173,7 +174,7 @@ const PaymentMethodCard = ({
             variant="primary"
             className="h-9 w-fit"
             text="Connect"
-            onClick={() => managePaymentMethods(type)}
+            onClick={() => addPaymentMethod(type)}
             loading={isLoading}
           />
         )}
@@ -197,7 +198,7 @@ const RecommendedForPayoutsWrapper = ({
         <span>
           Recommended for Dub Partner payouts.{" "}
           <Link
-            href="https://dub.co/help/article/partner-payouts"
+            href="https://dub.co/help/article/how-to-set-up-bank-account"
             target="_blank"
             className="underline underline-offset-2 transition-colors duration-75 hover:text-neutral-900"
           >

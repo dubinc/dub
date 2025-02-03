@@ -130,9 +130,13 @@ export async function createShopifySale({
   // for program links
   if (link.programId) {
     const { program, partnerId, commissionAmount } =
-      await prisma.programEnrollment.findUniqueOrThrow({
+      await prisma.programEnrollment.findFirstOrThrow({
         where: {
-          linkId,
+          links: {
+            some: {
+              id: linkId,
+            },
+          },
         },
         select: {
           program: true,

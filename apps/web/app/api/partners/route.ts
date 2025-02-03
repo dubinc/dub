@@ -13,6 +13,7 @@ import {
   partnersQuerySchema,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -35,49 +36,91 @@ export const GET = withWorkspace(
       programId,
     });
 
-    const { status, country, search, ids, page, pageSize, sortBy, sortOrder } =
-      partnersQuerySchema.parse(searchParams);
+    const {
+      status,
+      country,
+      search,
+      tenantId,
+      ids,
+      page,
+      pageSize,
+      sortBy,
+      sortOrder,
+    } = partnersQuerySchema.parse(searchParams);
 
-    const programEnrollments = await prisma.programEnrollment.findMany({
-      where: {
-        programId,
-        ...(status && { status }),
-        ...(country && { partner: { country } }),
-        ...(search && { partner: { name: { contains: search } } }),
-        ...(ids && {
-          partnerId: {
-            in: ids,
-          },
-        }),
-      },
-      include: {
-        partner: true,
-        link: true,
-      },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-      orderBy:
-        sortBy === "createdAt"
-          ? { [sortBy]: sortOrder }
-          : {
-              link: {
-                [sortBy === "earnings" ? "saleAmount" : sortBy]: sortOrder,
-              },
-            },
-    });
+    const sortColumnsMap = {
+      createdAt: "pe.createdAt",
+      clicks: "totalClicks",
+      leads: "totalLeads",
+      sales: "totalSales",
+      earnings: "totalSaleAmount",
+    };
 
-    const partners = programEnrollments.map((enrollment) => ({
-      ...enrollment.partner,
-      ...enrollment,
-      id: enrollment.partnerId,
+    const partners = await prisma.$queryRaw`
+      SELECT 
+        p.*, 
+        pe.id as enrollmentId, 
+        pe.commissionAmount, 
+        pe.status, 
+        pe.programId, 
+        pe.partnerId, 
+        pe.createdAt as enrollmentCreatedAt,
+        COALESCE(SUM(l.clicks), 0) as totalClicks,
+        COALESCE(SUM(l.leads), 0) as totalLeads,
+        COALESCE(SUM(l.sales), 0) as totalSales,
+        COALESCE(SUM(l.saleAmount), 0) as totalSaleAmount,
+        JSON_ARRAYAGG(
+          IF(l.id IS NOT NULL,
+            JSON_OBJECT(
+              'id', l.id,
+              'domain', l.domain,
+              'key', l.key,
+              'shortLink', l.shortLink,
+              'url', l.url,
+              'clicks', CAST(l.clicks AS SIGNED),
+              'leads', CAST(l.leads AS SIGNED),
+              'sales', CAST(l.sales AS SIGNED),
+              'saleAmount', CAST(l.saleAmount AS SIGNED)
+            ),
+            NULL
+          )
+        ) as links
+      FROM 
+        ProgramEnrollment pe 
+      INNER JOIN 
+        Partner p ON p.id = pe.partnerId 
+      LEFT JOIN 
+        Link l ON l.programId = pe.programId AND l.partnerId = pe.partnerId
+      WHERE 
+        pe.programId = ${program.id}
+        ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : Prisma.sql``}
+        ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql``}
+        ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
+        ${search ? Prisma.sql`AND LOWER(p.name) LIKE LOWER(${`%${search}%`})` : Prisma.sql``}
+        ${ids && ids.length > 0 ? Prisma.sql`AND pe.partnerId IN (${Prisma.join(ids)})` : Prisma.sql``}
+      GROUP BY 
+        p.id, pe.id
+      ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)}
+      LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`;
+
+    // @ts-ignore
+    const response = partners.map((partner) => ({
+      ...partner,
+      createdAt: new Date(partner.enrollmentCreatedAt),
+      payoutsEnabled: Boolean(partner.payoutsEnabled),
+      clicks: Number(partner.totalClicks),
+      leads: Number(partner.totalLeads),
+      sales: Number(partner.totalSales),
+      salesAmount: Number(partner.totalSaleAmount),
       earnings:
         ((program.commissionType === "percentage"
-          ? enrollment.link?.saleAmount
-          : enrollment.link?.sales) ?? 0) *
+          ? partner.totalSaleAmount
+          : partner.totalSales) ?? 0) *
         (program.commissionAmount / 100),
+      links: partner.links.filter((link: any) => link !== null),
     }));
 
-    return NextResponse.json(z.array(EnrolledPartnerSchema).parse(partners));
+    return NextResponse.json(z.array(EnrolledPartnerSchema).parse(response));
   },
   {
     requiredPlan: [
@@ -93,7 +136,7 @@ export const GET = withWorkspace(
 // POST /api/partners - add a partner for a program
 export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
-    const { programId, name, email, image, username, linkProps } =
+    const { programId, name, email, image, username, linkProps, tenantId } =
       createPartnerSchema.parse(await parseRequestBody(req));
 
     const program = await getProgramOrThrow({
@@ -122,9 +165,10 @@ export const POST = withWorkspace(
       payload: {
         ...linkProps,
         domain: program.domain,
-        url: program.url,
         key: username,
+        url: program.url,
         programId,
+        tenantId,
         trackConversion: true,
       },
       workspace,
@@ -150,6 +194,7 @@ export const POST = withWorkspace(
 
     const createdPartner = await enrollPartner({
       programId,
+      tenantId,
       linkId: partnerLink.id,
       partner: {
         name,
@@ -160,10 +205,9 @@ export const POST = withWorkspace(
 
     const partner = EnrolledPartnerSchema.parse({
       ...createdPartner,
-      link: partnerLink,
+      links: [partnerLink],
       status: "approved",
       commissionAmount: null,
-      earnings: 0,
     });
 
     return NextResponse.json(partner, {
