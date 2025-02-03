@@ -54,7 +54,7 @@ export const clickEventSchemaTBEndpoint = z.object({
 
 export const clickEventSchema = z.object({
   id: z.string(),
-  timestamp: z.date(),
+  timestamp: z.coerce.date(),
   url: z.string(),
   country: z.string(),
   city: z.string(),
