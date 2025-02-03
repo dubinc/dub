@@ -177,8 +177,8 @@ export async function invoicePaid(event: Stripe.Event) {
       workspace,
       data: transformSaleEventData({
         ...saleData,
-        link: linkUpdated,
         clickedAt: customer.clickedAt || customer.createdAt,
+        link: linkUpdated,
         customerId: customer.id,
         customerExternalId: customer.externalId,
         customerName: customer.name,
