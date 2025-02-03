@@ -423,13 +423,23 @@ export default function Toggle({
                       );
 
                       return folder ? (
-                        <FolderIcon folder={folder} shape="square" />
+                        <FolderIcon
+                          folder={folder}
+                          shape="square"
+                          className="size-3"
+                        />
                       ) : null;
                     },
                     options:
                       folders?.map((folder) => ({
                         value: folder.id,
-                        icon: <FolderIcon folder={folder} shape="square" />,
+                        icon: (
+                          <FolderIcon
+                            folder={folder}
+                            shape="square"
+                            className="size-3"
+                          />
+                        ),
                         label: folder.name,
                       })) ?? null,
                   },

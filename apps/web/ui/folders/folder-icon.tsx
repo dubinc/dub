@@ -63,22 +63,32 @@ const determineFolderIcon = (
 
 export const FolderIcon = ({
   folder,
-  circlePadding = "p-2.5",
   shape = "rounded",
+  className,
 }: {
   folder: Pick<FolderProps, "id" | "accessLevel">;
-  circlePadding?: string;
   shape?: "rounded" | "square";
+  className?: string;
 }) => {
   const iconType = determineFolderIcon(folder);
   const { borderColor, bgColor, icon: Icon } = folderIconsMap[iconType];
 
-  const shapeClasses = shape === "rounded" ? "rounded-full" : "rounded-md";
-
   return (
-    <div className={cn(shapeClasses, "border", borderColor, bgColor)}>
-      <div className={cn(shape === "rounded" ? circlePadding : "p-1")}>
-        <Icon className={"size-4"} />
+    <div
+      className={cn(
+        shape === "rounded" ? "rounded-full bg-white p-0.5" : "rounded-md",
+        borderColor,
+        shape !== "rounded" && bgColor,
+        "border",
+      )}
+    >
+      <div
+        className={cn(
+          shape === "rounded" ? "rounded-full p-2" : "rounded-md p-1",
+          bgColor,
+        )}
+      >
+        <Icon className={cn("size-4", className)} />
       </div>
     </div>
   );
