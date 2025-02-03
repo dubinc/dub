@@ -32,11 +32,12 @@ export const FolderDropdown = ({
   useEffect(() => {
     const folderId = searchParams.get("folderId");
 
-    if (folderId) {
-      const folder = folders?.find((f) => f.id === folderId);
-      setSelectedFolder(folder || unsortedLinks);
+    if (folders) {
+      const folder = folders.find((f) => f.id === folderId) || unsortedLinks;
+      setSelectedFolder(folder);
+      onFolderSelect?.(folder);
     }
-  }, [searchParams]);
+  }, [searchParams, folders]);
 
   if (loading || !folders) {
     return <FolderSwitcherPlaceholder />;
@@ -73,8 +74,8 @@ export const FolderDropdown = ({
                   )}
                   onClick={() => {
                     setOpenPopover(false);
-                    onFolderSelect(folder);
                     setSelectedFolder(folder);
+                    onFolderSelect?.(folder);
                   }}
                 >
                   <FolderIcon folder={folder} shape="square" />

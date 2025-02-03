@@ -143,8 +143,6 @@ function LinkBuilderInner({
     "description",
   ]);
 
-  const [folderId, setFolderId] = useState<string | null>(null);
-
   const [debouncedUrl] = useDebounce(getUrlWithoutUTMParams(url), 500);
 
   const endpoint = useMemo(
@@ -250,13 +248,10 @@ function LinkBuilderInner({
             onSubmit={handleSubmit(async (data) => {
               // @ts-ignore – exclude extra attributes from `data` object before sending to API
               const { user, tags, tagId, ...rest } = data;
-              // const folderId = searchParams.get("folderId");
               const bodyData = {
                 ...rest,
                 // Map tags to tagIds
                 tagIds: tags.map(({ id }) => id),
-                ...(folderId && { folderId }),
-
                 // Manually reset empty strings to null
                 expiredUrl: rest.expiredUrl || null,
                 ios: rest.ios || null,
@@ -337,10 +332,10 @@ function LinkBuilderInner({
                 {flags?.linkFolders && (
                   <div className="flex items-center rounded-md border border-neutral-200 p-1 hover:bg-gray-100">
                     <FolderDropdown
-                      onFolderSelect={(folder) =>
-                        setFolderId(folder.id !== "unsorted" ? folder.id : null)
-                      }
                       hideViewAll={true}
+                      onFolderSelect={(folder) => {
+                        setValue("folderId", folder.id, { shouldDirty: true });
+                      }}
                     />
                   </div>
                 )}
