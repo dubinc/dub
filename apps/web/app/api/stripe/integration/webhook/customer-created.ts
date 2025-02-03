@@ -132,12 +132,7 @@ export async function customerCreated(event: Stripe.Event) {
           ...clickData,
           eventName,
           link: linkUpdated,
-          customerId: customer.id,
-          customerExternalId: customer.externalId,
-          customerName: customer.name,
-          customerEmail: customer.email,
-          customerAvatar: customer.avatar,
-          customerCreatedAt: customer.createdAt,
+          customer,
         }),
       }),
     );

@@ -127,12 +127,7 @@ export const POST = withWorkspaceEdge(
             ...clickData,
             eventName,
             link,
-            customerId: customer.id,
-            customerExternalId: customer.externalId,
-            customerName: customer.name,
-            customerEmail: customer.email,
-            customerAvatar: customer.avatar,
-            customerCreatedAt: customer.createdAt,
+            customer,
           }),
           workspace,
         });

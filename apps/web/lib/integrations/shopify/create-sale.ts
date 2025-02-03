@@ -114,12 +114,7 @@ export async function createShopifySale({
         ...saleData,
         link,
         clickedAt: customer.clickedAt || customer.createdAt,
-        customerId: customer.id,
-        customerExternalId: customer.externalId,
-        customerName: customer.name,
-        customerEmail: customer.email,
-        customerAvatar: customer.avatar,
-        customerCreatedAt: customer.createdAt,
+        customer,
       }),
     }),
   );

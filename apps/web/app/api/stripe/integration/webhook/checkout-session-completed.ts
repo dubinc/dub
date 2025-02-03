@@ -327,12 +327,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
             ...clickEvent,
             eventName: "Checkout session completed",
             link: linkUpdated,
-            customerId: customer.id,
-            customerExternalId: customer.externalId,
-            customerName: customer.name,
-            customerEmail: customer.email,
-            customerAvatar: customer.avatar,
-            customerCreatedAt: customer.createdAt,
+            customer,
           }),
         });
       }
@@ -345,12 +340,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           ...saleData,
           clickedAt: customer.clickedAt || customer.createdAt,
           link: linkUpdated,
-          customerId: customer.id,
-          customerExternalId: customer.externalId,
-          customerName: customer.name,
-          customerEmail: customer.email,
-          customerAvatar: customer.avatar,
-          customerCreatedAt: customer.createdAt,
+          customer,
         }),
       });
     })(),
