@@ -1,3 +1,5 @@
+"use client";
+
 import { LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { CircleXmark, Magnifier } from "@dub/ui/icons";
 import { cn } from "@dub/utils";

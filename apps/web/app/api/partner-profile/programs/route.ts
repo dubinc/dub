@@ -19,7 +19,7 @@ export const GET = withPartnerProfile(async ({ partner }) => {
     z.array(ProgramEnrollmentSchema).parse(
       programEnrollments.map((enrollment) => ({
         ...enrollment,
-        link: null, // hacky way of not having to fetch link
+        links: null, // hacky way of not having to fetch link
       })),
     ),
   );
