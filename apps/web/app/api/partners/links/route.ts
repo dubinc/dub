@@ -89,7 +89,7 @@ export const POST = withWorkspace(
       }),
     );
 
-    return NextResponse.json(partnerLink);
+    return NextResponse.json(partnerLink, { status: 201 });
   },
   {
     requiredPlan: [
