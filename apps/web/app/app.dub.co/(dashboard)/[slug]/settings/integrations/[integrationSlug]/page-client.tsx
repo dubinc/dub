@@ -10,6 +10,7 @@ import { IntegrationLogo } from "@/ui/integrations/integration-logo";
 import { useUninstallIntegrationModal } from "@/ui/modals/uninstall-integration-modal";
 import { BackLink } from "@/ui/shared/back-link";
 import { ThreeDots } from "@/ui/shared/icons";
+import { Markdown } from "@/ui/shared/markdown";
 import {
   Avatar,
   BlurImage,
@@ -45,7 +46,6 @@ import {
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useState } from "react";
-import Markdown from "react-markdown";
 import { toast } from "sonner";
 
 const integrationSettings = {
@@ -290,22 +290,7 @@ export default function IntegrationPageClient({
           </Carousel>
         ) : null}
 
-        {integration.readme && (
-          <Markdown
-            className={cn(
-              "prose prose-sm prose-gray max-w-none p-6 transition-all",
-              "prose-headings:leading-tight",
-              "prose-a:font-medium prose-a:text-neutral-500 prose-a:underline-offset-4 hover:prose-a:text-black",
-            )}
-            components={{
-              a: ({ node, ...props }) => (
-                <a {...props} target="_blank" rel="noopener noreferrer" />
-              ),
-            }}
-          >
-            {integration.readme}
-          </Markdown>
-        )}
+        {integration.readme && <Markdown>{integration.readme}</Markdown>}
       </div>
 
       {SettingsComponent && <SettingsComponent {...integration} />}
