@@ -188,6 +188,7 @@ export const POST = withWorkspaceEdge(
           invoiceId,
           amount,
           currency,
+          clickedAt: customer.clickedAt || customer.createdAt,
           customerId: customer.id,
           customerExternalId: customer.externalId,
           customerName: customer.name,

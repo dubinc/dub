@@ -66,6 +66,7 @@ export const transformLeadEventData = (data: any) => {
     click: {
       ...lead,
       id: lead.clickId,
+      timestamp: new Date(lead.timestamp as string),
     },
     // transformLink -> add shortLink, qrCode, workspaceId, etc.
     link: transformLink(lead.link as ExpandedLink),

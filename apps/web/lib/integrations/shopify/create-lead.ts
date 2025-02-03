@@ -87,7 +87,7 @@ export async function createShopifyLead({
       trigger: "lead.created",
       workspace,
       data: transformLeadEventData({
-        ...leadData,
+        ...clickData,
         link,
         customerId: customer.id,
         customerExternalId: customer.externalId,

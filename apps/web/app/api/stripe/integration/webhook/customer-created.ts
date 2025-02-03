@@ -127,7 +127,7 @@ export async function customerCreated(event: Stripe.Event) {
         trigger: "lead.created",
         workspace,
         data: transformLeadEventData({
-          ...leadData,
+          ...clickData,
           link: linkUpdated,
           customerId: customer.id,
           customerExternalId: customer.externalId,
