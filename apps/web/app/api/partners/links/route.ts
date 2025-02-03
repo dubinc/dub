@@ -11,80 +11,93 @@ import { getApexDomain } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-export const POST = withWorkspace(async ({ workspace, req, session }) => {
-  let { programId, partnerId, tenantId, url, key, linkProps } =
-    createPartnerLinkSchema.parse(await parseRequestBody(req));
+// POST /api/partners/links - create a link for a partner
+export const POST = withWorkspace(
+  async ({ workspace, req, session }) => {
+    const { programId, partnerId, tenantId, url, key, linkProps } =
+      createPartnerLinkSchema.parse(await parseRequestBody(req));
 
-  const program = await getProgramOrThrow({
-    workspaceId: workspace.id,
-    programId,
-  });
-
-  if (!program.domain || !program.url) {
-    throw new DubApiError({
-      code: "bad_request",
-      message:
-        "You need to set a domain and url for this program before creating a partner.",
-    });
-  }
-
-  if (getApexDomain(url) !== getApexDomain(program.url)) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(program.url)}).`,
-    });
-  }
-
-  if (!partnerId && !tenantId) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: "You must provide a partnerId or tenantId.",
-    });
-  }
-
-  const partner = await prisma.programEnrollment.findUnique({
-    where: partnerId
-      ? { partnerId_programId: { partnerId, programId } }
-      : { tenantId_programId: { tenantId: tenantId!, programId } },
-  });
-
-  if (!partner) {
-    throw new DubApiError({
-      code: "not_found",
-      message: "Partner not found.",
-    });
-  }
-
-  const { link, error, code } = await processLink({
-    payload: {
-      ...linkProps,
-      domain: program.domain,
-      key: key || undefined,
-      url,
+    const program = await getProgramOrThrow({
+      workspaceId: workspace.id,
       programId,
-      tenantId,
-      trackConversion: true,
-    },
-    workspace,
-    userId: session.user.id,
-  });
-
-  if (error != null) {
-    throw new DubApiError({
-      code: code as ErrorCodes,
-      message: error,
     });
-  }
 
-  const partnerLink = await createLink(link);
+    if (!program.domain || !program.url) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "You need to set a domain and url for this program before creating a partner.",
+      });
+    }
 
-  waitUntil(
-    sendWorkspaceWebhook({
-      trigger: "link.created",
+    if (getApexDomain(url) !== getApexDomain(program.url)) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(program.url)}).`,
+      });
+    }
+
+    if (!partnerId && !tenantId) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "You must provide a partnerId or tenantId.",
+      });
+    }
+
+    const partner = await prisma.programEnrollment.findUnique({
+      where: partnerId
+        ? { partnerId_programId: { partnerId, programId } }
+        : { tenantId_programId: { tenantId: tenantId!, programId } },
+    });
+
+    if (!partner) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Partner not found.",
+      });
+    }
+
+    const { link, error, code } = await processLink({
+      payload: {
+        ...linkProps,
+        domain: program.domain,
+        key: key || undefined,
+        url,
+        programId,
+        tenantId,
+        partnerId,
+        trackConversion: true,
+      },
       workspace,
-      data: linkEventSchema.parse(partnerLink),
-    }),
-  );
+      userId: session.user.id,
+    });
 
-  return NextResponse.json(partnerLink);
-});
+    if (error != null) {
+      throw new DubApiError({
+        code: code as ErrorCodes,
+        message: error,
+      });
+    }
+
+    const partnerLink = await createLink(link);
+
+    waitUntil(
+      sendWorkspaceWebhook({
+        trigger: "link.created",
+        workspace,
+        data: linkEventSchema.parse(partnerLink),
+      }),
+    );
+
+    return NextResponse.json(partnerLink);
+  },
+  {
+    requiredPlan: [
+      "business",
+      "business extra",
+      "business max",
+      "business plus",
+      "enterprise",
+    ],
+  },
+);
