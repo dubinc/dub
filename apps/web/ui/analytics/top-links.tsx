@@ -15,7 +15,7 @@ export default function TopLinks() {
   const dataKey = selectedTab === "sales" ? saleUnit : "count";
 
   const [tab, setTab] = useState<"links" | "urls">("links");
-  const { data, loading } = useAnalyticsFilterOption({
+  const { data } = useAnalyticsFilterOption({
     groupBy: `top_${tab}`,
   });
 
