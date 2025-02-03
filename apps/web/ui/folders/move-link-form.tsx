@@ -1,3 +1,4 @@
+import { unsortedLinks } from "@/lib/folder/constants";
 import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps } from "@/lib/types";
@@ -30,9 +31,9 @@ export const MoveLinkForm = ({
 
   const selectOptions = useMemo(() => {
     return folders
-      ? folders.map((folder) => ({
+      ? [...folders, unsortedLinks].map((folder) => ({
           id: folder.id,
-          value: folder.name,
+          value: `${folder.name} ${folder.id === "unsorted" ? "(Unsorted)" : ""}`,
           image: workspace.logo || `${DICEBEAR_AVATAR_URL}${workspace.name}`, // TODO: Replace with folder icon
           disabled: folder.id === link.folderId,
           label: folder.id === link.folderId ? "Current" : "",
@@ -48,6 +49,10 @@ export const MoveLinkForm = ({
 
   // Move link to selected folder
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    if (!selectedFolder) {
+      return;
+    }
+
     e.preventDefault();
     setIsMoving(true);
 
@@ -56,7 +61,7 @@ export const MoveLinkForm = ({
       {
         method: "PATCH",
         body: JSON.stringify({
-          folderId: selectedFolder?.id,
+          folderId: selectedFolder.id === "unsorted" ? "" : selectedFolder.id,
         }),
       },
     );
