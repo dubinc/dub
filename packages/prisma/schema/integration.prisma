@@ -13,6 +13,8 @@ model Integration {
   verified    Boolean  @default(false)
   installUrl  String?
   category    String?
+  guideUrl    String?
+  comingSoon  Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
