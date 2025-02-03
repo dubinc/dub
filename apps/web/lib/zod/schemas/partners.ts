@@ -10,7 +10,7 @@ import { CustomerSchema } from "./customers";
 import { createLinkBodySchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { ProgramEnrollmentSchema } from "./programs";
-import { parseDateSchema } from "./utils";
+import { parseDateSchema, parseUrlSchema } from "./utils";
 
 export const PARTNERS_MAX_PAGE_SIZE = 100;
 export const PAYOUTS_MAX_PAGE_SIZE = 100;
@@ -234,5 +234,39 @@ export const onboardPartnerSchema = createPartnerSchema
     z.object({
       image: z.string(),
       country: z.enum(COUNTRY_CODES),
+    }),
+  );
+
+export const createPartnerLinkSchema = z
+  .object({
+    programId: z
+      .string()
+      .describe("The ID of the program that the partner is enrolled in."),
+    partnerId: z
+      .string()
+      .nullish()
+      .describe(
+        "The ID of the partner to create a link for. Will take precedence over `tenantId` if provided.",
+      ),
+    tenantId: z
+      .string()
+      .nullish()
+      .describe(
+        "The ID of the partner in your system. If both `partnerId` and `tenantId` are not provided, an error will be thrown.",
+      ),
+    url: parseUrlSchema.describe(
+      "The URL to shorten. Will throw an error if the domain doesn't match the program's default URL domain.",
+    ),
+    key: z
+      .string()
+      .max(190)
+      .optional()
+      .describe(
+        "The short link slug. If not provided, a random 7-character slug will be generated.",
+      ),
+  })
+  .merge(
+    createPartnerSchema.pick({
+      linkProps: true,
     }),
   );

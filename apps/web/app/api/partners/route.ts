@@ -4,7 +4,6 @@ import { enrollPartner } from "@/lib/api/partners/enroll-partner";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { checkIfKeyExists } from "@/lib/planetscale";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
@@ -149,15 +148,6 @@ export const POST = withWorkspace(
         code: "bad_request",
         message:
           "You need to set a domain and url for this program before creating a partner.",
-      });
-    }
-
-    const linkExists = await checkIfKeyExists(program.domain, username);
-
-    if (linkExists) {
-      throw new DubApiError({
-        code: "conflict",
-        message: "This username is already in use. Choose a different one.",
       });
     }
 
