@@ -295,6 +295,7 @@ export const analyticsResponse = {
       key: z.string().describe("The key of the short link"),
       shortLink: z.string().describe("The short link URL"),
       url: z.string().describe("The destination URL of the short link"),
+      comments: z.string().nullish().describe("The comments of the short link"),
       createdAt: z
         .string()
         .describe("The creation timestamp of the short link"),

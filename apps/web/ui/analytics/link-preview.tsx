@@ -2,9 +2,10 @@ import { LinkProps } from "@/lib/types";
 import { CopyButton, LinkLogo } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
 import { getApexDomain, getPrettyUrl, linkConstructor } from "@dub/utils";
+import { CommentsBadge } from "../links/comments-badge";
 
 export default function LinkPreviewTooltip({ data }: { data: LinkProps }) {
-  const { domain, key, url } = data;
+  const { domain, key, url, comments } = data;
 
   return (
     <div className="relative flex w-[28rem] items-center gap-x-2 px-4 py-2">
@@ -35,6 +36,7 @@ export default function LinkPreviewTooltip({ data }: { data: LinkProps }) {
               variant="neutral"
               className="p-1.5"
             />
+            {comments && <CommentsBadge comments={comments} />}
           </div>
         </div>
         <div className="flex min-w-0 items-center gap-1 text-sm">

@@ -156,7 +156,7 @@ export interface UserProps {
   source: string | null;
   defaultWorkspace?: string;
   defaultPartnerId?: string;
-  referralLinkId?: string;
+  dubPartnerId?: string;
   isMachine: boolean;
   hasPassword: boolean;
   provider: string | null;
@@ -275,7 +275,14 @@ export type NewOrExistingIntegration = Omit<
 
 export type InstalledIntegrationProps = Pick<
   IntegrationProps,
-  "id" | "slug" | "logo" | "name" | "developer" | "description" | "verified"
+  | "id"
+  | "projectId"
+  | "slug"
+  | "logo"
+  | "name"
+  | "developer"
+  | "description"
+  | "verified"
 > & {
   installations: number;
   installed?: boolean;
@@ -284,6 +291,7 @@ export type InstalledIntegrationProps = Pick<
 export type InstalledIntegrationInfoProps = Pick<
   IntegrationProps,
   | "id"
+  | "projectId"
   | "slug"
   | "logo"
   | "name"
@@ -303,6 +311,7 @@ export type InstalledIntegrationInfoProps = Pick<
     by: {
       id: string;
       name: string | null;
+      email: string | null;
       image: string | null;
     };
   } | null;

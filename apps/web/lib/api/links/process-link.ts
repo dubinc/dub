@@ -28,6 +28,7 @@ export async function processLink<T extends Record<string, any>>({
   bulk = false,
   skipKeyChecks = false, // only skip when key doesn't change (e.g. when editing a link)
   skipExternalIdChecks = false, // only skip when externalId doesn't change (e.g. when editing a link)
+  skipProgramChecks = false,
 }: {
   payload: NewLinkProps & T;
   workspace?: Pick<WorkspaceProps, "id" | "plan" | "flags">;
@@ -35,6 +36,7 @@ export async function processLink<T extends Record<string, any>>({
   bulk?: boolean;
   skipKeyChecks?: boolean;
   skipExternalIdChecks?: boolean;
+  skipProgramChecks?: boolean;
 }): Promise<
   | {
       link: NewLinkProps & T;
@@ -65,6 +67,8 @@ export async function processLink<T extends Record<string, any>>({
     doIndex,
     tagNames,
     externalId,
+    tenantId,
+    partnerId,
     programId,
     webhookIds,
   } = payload;
@@ -368,9 +372,21 @@ export async function processLink<T extends Record<string, any>>({
     }
 
     // Program validity checks
-    if (programId) {
+    if (programId && !skipProgramChecks) {
       const program = await prisma.program.findUnique({
         where: { id: programId },
+        select: {
+          workspaceId: true,
+          ...(!partnerId && tenantId
+            ? {
+                partners: {
+                  where: {
+                    tenantId,
+                  },
+                },
+              }
+            : {}),
+        },
       });
 
       if (!program || program.workspaceId !== workspace?.id) {
@@ -379,6 +395,11 @@ export async function processLink<T extends Record<string, any>>({
           error: "Program not found.",
           code: "not_found",
         };
+      }
+
+      if (!partnerId) {
+        partnerId =
+          program?.partners?.length > 0 ? program.partners[0].partnerId : null;
       }
     }
 
@@ -466,6 +487,8 @@ export async function processLink<T extends Record<string, any>>({
       url,
       expiresAt,
       expiredUrl,
+      // partnerId derived from payload or program enrollment
+      partnerId: partnerId || null,
       // make sure projectId is set to the current workspace
       projectId: workspace?.id || null,
       // if userId is passed, set it (we don't change the userId if it's already set, e.g. when editing a link)

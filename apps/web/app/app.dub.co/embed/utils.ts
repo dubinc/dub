@@ -4,32 +4,28 @@ import { prisma } from "@dub/prisma";
 import { notFound } from "next/navigation";
 
 export const getEmbedData = async (token: string) => {
-  const linkId = await embedToken.get(token);
+  const { programId, partnerId } = (await embedToken.get(token)) ?? {};
 
-  if (!linkId) {
+  if (!programId || !partnerId) {
     notFound();
   }
 
-  const referralLink = await prisma.link.findUnique({
+  const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
-      id: linkId,
+      partnerId_programId: { partnerId, programId },
     },
     include: {
+      links: true,
       program: true,
-      programEnrollment: {
-        select: {
-          partnerId: true,
-          discount: true,
-        },
-      },
+      discount: true,
     },
   });
 
-  if (!referralLink?.program || !referralLink?.programEnrollment) {
+  if (!programEnrollment) {
     notFound();
   }
 
-  const { program, programEnrollment, ...link } = referralLink;
+  const { program, links } = programEnrollment;
 
   const payouts = await prisma.payout.groupBy({
     by: ["status"],
@@ -44,7 +40,7 @@ export const getEmbedData = async (token: string) => {
 
   return {
     program,
-    link,
+    links,
     discount: programEnrollment.discount
       ? DiscountSchema.parse(programEnrollment.discount)
       : null,
@@ -52,5 +48,10 @@ export const getEmbedData = async (token: string) => {
       status: payout.status,
       amount: payout._sum.amount ?? 0,
     })),
+    stats: {
+      clicks: links.reduce((acc, link) => acc + link.clicks, 0),
+      leads: links.reduce((acc, link) => acc + link.leads, 0),
+      sales: links.reduce((acc, link) => acc + link.sales, 0),
+    },
   };
 };

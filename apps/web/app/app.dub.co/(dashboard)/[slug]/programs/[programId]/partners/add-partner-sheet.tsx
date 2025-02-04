@@ -97,6 +97,7 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
         key: shortKey,
         url: program?.url,
         trackConversion: true,
+        programId: program?.id,
       }),
     });
 

@@ -31,6 +31,8 @@
     "trackConversion": true,
     "externalId": null,
     "tenantId": null,
+    "partnerId": "pn_cm0lcuvtz000xcutmqw4a7wi3",
+    "programId": "prog_CYCu7IMAapjkRpTnr8F1azjN",
     "archived": false,
     "expiresAt": "1970-01-01T00:00:00.000Z",
     "expiredUrl": null,
@@ -66,7 +68,6 @@
     "saleAmount": 290300,
     "createdAt": "2024-09-02T18:49:56.136Z",
     "updatedAt": "2025-01-14T04:49:23.740Z",
-    "projectId": "clrei1gld0002vs9mzn93p8ik",
-    "programId": "prog_CYCu7IMAapjkRpTnr8F1azjN"
+    "projectId": "clrei1gld0002vs9mzn93p8ik"
   }
 }

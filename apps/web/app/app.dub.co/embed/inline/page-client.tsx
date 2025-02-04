@@ -26,17 +26,23 @@ import { EmbedSales } from "./sales";
 
 export function EmbedInlinePageClient({
   program,
-  link,
+  links,
   discount,
   payouts,
+  stats,
 }: {
   program: Program;
-  link: Link;
+  links: Link[];
   discount?: DiscountProps | null;
   payouts: {
     status: PayoutStatus;
     amount: number;
   }[];
+  stats: {
+    clicks: number;
+    leads: number;
+    sales: number;
+  };
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
 
@@ -70,7 +76,7 @@ export function EmbedInlinePageClient({
             <input
               type="text"
               readOnly
-              value={getPrettyUrl(link.shortLink)}
+              value={getPrettyUrl(links[0].shortLink)}
               className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 lg:min-w-64 xl:min-w-72"
             />
             <Button
@@ -96,7 +102,7 @@ export function EmbedInlinePageClient({
               }
               text={copied ? "Copied link" : "Copy link"}
               className="xs:w-fit"
-              onClick={() => copyToClipboard(link.shortLink)}
+              onClick={() => copyToClipboard(links[0].shortLink)}
             />
           </div>
           <a
@@ -110,9 +116,9 @@ export function EmbedInlinePageClient({
         </div>
         <div className="mt-4 grid gap-2 sm:h-32 sm:grid-cols-3">
           <EmbedActivity
-            clicks={link.clicks}
-            leads={link.leads}
-            sales={link.sales}
+            clicks={stats.clicks}
+            leads={stats.leads}
+            sales={stats.sales}
           />
           <EmbedPayouts payouts={payouts} />
         </div>
@@ -133,9 +139,9 @@ export function EmbedInlinePageClient({
           <div className="my-4">
             <AnimatePresence mode="wait">
               {selectedTab === "Quickstart" ? (
-                <EmbedQuickstart program={program} link={link} />
+                <EmbedQuickstart program={program} link={links[0]} />
               ) : selectedTab === "Sales" ? (
-                <EmbedSales salesCount={link.sales} />
+                <EmbedSales salesCount={stats.sales} />
               ) : selectedTab === "Leaderboard" ? (
                 <EmbedLeaderboard />
               ) : selectedTab === "FAQ" ? (

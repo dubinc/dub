@@ -17,7 +17,7 @@ export function NewBackground(props: { showAnimation?: boolean }) {
   return (
     <div
       className={cn(
-        "fixed inset-0 overflow-hidden bg-white transition-opacity duration-300",
+        "pointer-events-none fixed inset-0 overflow-hidden bg-white transition-opacity duration-300",
         showAnimation ? (isLoaded ? "opacity-100" : "opacity-0") : "opacity-60",
       )}
     >

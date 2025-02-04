@@ -29,6 +29,7 @@ export function constructMetadata({
   url,
   canonicalUrl,
   noIndex = false,
+  manifest,
 }: {
   title?: string;
   fullTitle?: string;
@@ -39,6 +40,7 @@ export function constructMetadata({
   url?: string;
   canonicalUrl?: string;
   noIndex?: boolean;
+  manifest?: string | URL | null;
 } = {}): Metadata {
   return {
     title:
@@ -82,6 +84,9 @@ export function constructMetadata({
         index: false,
         follow: false,
       },
+    }),
+    ...(manifest && {
+      manifest,
     }),
   };
 }

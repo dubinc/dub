@@ -422,12 +422,14 @@ const ADVANCED_OPTIONS: {
     title: "Default expiration URL",
     description: "Where to redirect when shortlinks expire",
     icon: Milestone,
+    proFeature: true,
   },
   {
     id: "notFoundUrl",
     title: "Not found URL",
     description: "Where to redirect when shortlinks don't exist",
     icon: Binoculars,
+    proFeature: true,
   },
   {
     id: "placeholder",

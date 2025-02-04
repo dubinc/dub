@@ -58,7 +58,11 @@ export function PartnerTable() {
 
   const { partnersCount, error: countError } = usePartnersCount<number>();
 
-  const { data: partners, error } = useSWR<EnrolledPartnerProps[]>(
+  const {
+    data: partners,
+    error,
+    isLoading,
+  } = useSWR<EnrolledPartnerProps[]>(
     `/api/partners${getQueryString(
       {
         workspaceId,
@@ -143,25 +147,19 @@ export function PartnerTable() {
         id: "clicks",
         header: "Clicks",
         accessorFn: (d) =>
-          d.status !== "pending"
-            ? nFormatter(d.link?.clicks, { full: true })
-            : "-",
+          d.status !== "pending" ? nFormatter(d.clicks, { full: true }) : "-",
       },
       {
         id: "leads",
         header: "Leads",
         accessorFn: (d) =>
-          d.status !== "pending"
-            ? nFormatter(d.link?.leads, { full: true })
-            : "-",
+          d.status !== "pending" ? nFormatter(d.leads, { full: true }) : "-",
       },
       {
         id: "sales",
         header: "Sales",
         accessorFn: (d) =>
-          d.status !== "pending"
-            ? nFormatter(d.link?.sales, { full: true })
-            : "-",
+          d.status !== "pending" ? nFormatter(d.sales, { full: true }) : "-",
       },
       {
         id: "earnings",
@@ -212,7 +210,7 @@ export function PartnerTable() {
     tdClassName: "border-l-0",
     resourceName: (p) => `partner${p ? "s" : ""}`,
     rowCount: partnersCount || 0,
-    loading: !partners && !error && !countError,
+    loading: isLoading,
     error: error || countError ? "Failed to load partners" : undefined,
   });
 

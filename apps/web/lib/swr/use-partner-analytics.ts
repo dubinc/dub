@@ -36,7 +36,7 @@ export default function usePartnerAnalytics(
                 start: params.start.toISOString(),
                 end: params.end.toISOString(),
               }
-            : { interval: params?.interval ?? "all_unfiltered" }),
+            : { interval: params?.interval ?? "1y" }),
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
       ).toString()}`,
