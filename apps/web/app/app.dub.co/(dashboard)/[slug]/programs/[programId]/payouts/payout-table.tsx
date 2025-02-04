@@ -100,9 +100,9 @@ export function PayoutTable() {
             return "-";
           }
 
-          return `${formatDate(d.periodStart, { month: "short", year: new Date(d.periodStart).getFullYear() === new Date(d.periodEnd).getFullYear() ? undefined : "numeric" })}-${formatDate(
+          return `${formatDate(d.periodStart, { timeZone: "utc", month: "short", year: undefined })}-${formatDate(
             d.periodEnd,
-            { month: "short" },
+            { timeZone: "utc", month: "short" },
           )}`;
         },
       },
