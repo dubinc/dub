@@ -26,8 +26,8 @@ model Earnings {
   type     EventType
   amount   Int?
   quantity Int
-  earnings Int?
-  // currency String
+  earnings Int            @default(0)
+  currency String?
   status   EarningsStatus @default(pending)
 
   createdAt DateTime @default(now())

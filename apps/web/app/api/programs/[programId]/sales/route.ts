@@ -32,9 +32,10 @@ export const GET = withWorkspace(
       programId,
     });
 
-    const sales = await prisma.sale.findMany({
+    const sales = await prisma.earnings.findMany({
       where: {
         programId,
+        type: "sale",
         ...(status && { status }),
         ...(customerId && { customerId }),
         ...(payoutId && { payoutId }),

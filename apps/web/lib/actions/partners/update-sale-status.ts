@@ -18,7 +18,7 @@ export const updateSaleStatusAction = authActionClient
     const { workspace } = ctx;
     const { saleId, status } = parsedInput;
 
-    const sale = await prisma.sale.findUniqueOrThrow({
+    const sale = await prisma.earnings.findUniqueOrThrow({
       where: {
         id: saleId,
         program: {
@@ -50,7 +50,7 @@ export const updateSaleStatusAction = authActionClient
       });
     }
 
-    await prisma.sale.update({
+    await prisma.earnings.update({
       where: {
         id: sale.id,
       },
