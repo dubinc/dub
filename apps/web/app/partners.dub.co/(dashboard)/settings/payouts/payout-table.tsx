@@ -14,7 +14,8 @@ import {
   useTable,
 } from "@dub/ui";
 import { MoneyBill2 } from "@dub/ui/icons";
-import { DICEBEAR_AVATAR_URL, formatDate } from "@dub/utils";
+import { DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
@@ -68,16 +69,7 @@ export function PayoutTable() {
       {
         id: "periodStart",
         header: "Period",
-        accessorFn: (d) => {
-          if (!d.periodStart || !d.periodEnd) {
-            return "-";
-          }
-
-          return `${formatDate(d.periodStart, { month: "short", year: new Date(d.periodStart).getFullYear() === new Date(d.periodEnd).getFullYear() ? undefined : "numeric" })}-${formatDate(
-            d.periodEnd,
-            { month: "short" },
-          )}`;
-        },
+        accessorFn: (d) => formatPeriod(d),
       },
       {
         header: "Program",
