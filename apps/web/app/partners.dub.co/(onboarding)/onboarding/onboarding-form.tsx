@@ -2,6 +2,7 @@
 
 import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
+import { Partner } from "@dub/prisma/client";
 import {
   Button,
   buttonVariants,
@@ -21,7 +22,11 @@ import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { z } from "zod";
 
-export function OnboardingForm() {
+export function OnboardingForm({
+  partner,
+}: {
+  partner: Pick<Partner, "bio" | "country" | "image"> | null;
+}) {
   const router = useRouter();
   const { data: session } = useSession();
   const { isMobile } = useMediaQuery();
@@ -34,7 +39,13 @@ export function OnboardingForm() {
     setValue,
     watch,
     formState: { errors, isSubmitting, isSubmitSuccessful },
-  } = useForm<z.infer<typeof onboardPartnerSchema>>();
+  } = useForm<z.infer<typeof onboardPartnerSchema>>({
+    defaultValues: {
+      description: partner?.bio ?? undefined,
+      country: partner?.country ?? undefined,
+      image: partner?.image ?? undefined,
+    },
+  });
 
   useEffect(() => {
     if (session?.user) {
