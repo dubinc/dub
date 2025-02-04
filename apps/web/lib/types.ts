@@ -282,6 +282,8 @@ export type InstalledIntegrationProps = Pick<
   | "developer"
   | "description"
   | "verified"
+  | "comingSoon"
+  | "guideUrl"
 > & {
   installations: number;
   installed?: boolean;
