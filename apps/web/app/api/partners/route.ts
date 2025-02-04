@@ -159,6 +159,7 @@ export const POST = withWorkspace(
         url: program.url,
         programId,
         tenantId,
+        folderId: program.defaultFolderId,
         trackConversion: true,
       },
       workspace,
