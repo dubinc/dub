@@ -1,4 +1,4 @@
-import { prepareEarnings } from "@/lib/api/earnings/create-earnings";
+import { prepareEarnings } from "@/lib/api/earnings/prepare-earnings";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { createId } from "@/lib/api/utils";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
