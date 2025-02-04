@@ -90,7 +90,6 @@ model ProgramEnrollment {
   @@unique([tenantId, programId])
   @@index([programId])
   @@index([discountId])
-  @@unique([programId, partnerId])
 }
 
 model ProgramApplication {
