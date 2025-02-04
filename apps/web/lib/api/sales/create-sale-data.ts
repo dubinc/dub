@@ -1,7 +1,7 @@
 import { Prisma, Program, SaleStatus } from "@dub/prisma/client";
 import { INFINITY_NUMBER } from "@dub/utils";
 import { createId } from "../utils";
-import { calculateEarnings } from "./calculate-earnings";
+import { calculateSaleEarnings } from "./calculate-earnings";
 
 export const createSaleData = ({
   program,
@@ -29,7 +29,7 @@ export const createSaleData = ({
   };
   metadata: Record<string, any>;
 }) => {
-  const earnings = calculateEarnings({
+  const earnings = calculateSaleEarnings({
     program,
     partner,
     sales: 1,

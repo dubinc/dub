@@ -12,9 +12,12 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     programId,
   });
 
+  // TODO:
+  // Why can we do where {programId} here?
+
   const count = await prisma.customer.count({
     where: {
-      sales: {
+      earnings: {
         some: {
           programId,
         },
