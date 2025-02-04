@@ -110,6 +110,22 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
 
   const { type: payoutType, start, end, amount, partnerId } = watch();
 
+  // get start and end dates in UTC
+  const { startDate, endDate } = useMemo(() => {
+    return {
+      startDate: start
+        ? new Date(
+            start.getTime() - start.getTimezoneOffset() * 60000,
+          ).toISOString()
+        : undefined,
+      endDate: end
+        ? new Date(
+            end.getTime() - end.getTimezoneOffset() * 60000,
+          ).toISOString()
+        : undefined,
+    };
+  }, [start, end]);
+
   const partnerOptions = useMemo(() => {
     return partners?.map((partner) => ({
       value: partner.id,
@@ -151,19 +167,12 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
       return;
     }
 
-    const startDate = data.start
-      ? data.start.getTime() - data.start.getTimezoneOffset() * 60000
-      : undefined;
-    const endDate = data.end
-      ? data.end.getTime() - data.end.getTimezoneOffset() * 60000
-      : undefined;
-
     await executeAsync({
       ...data,
       workspaceId,
       programId: program.id,
-      start: startDate ? new Date(startDate).toISOString() : undefined,
-      end: endDate ? new Date(endDate).toISOString() : undefined,
+      start: startDate,
+      end: endDate,
       amount: amount * 100,
       partnerId,
     });
@@ -175,16 +184,17 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
     [key in AnalyticsResponseOptions]: number;
   }>(
     payoutType !== "custom" &&
-      start &&
-      end &&
-      selectedPartner?.id &&
+      startDate &&
+      endDate &&
+      program &&
+      selectedPartner &&
       `/api/analytics?${new URLSearchParams({
-        workspaceId: workspaceId!,
         event: payoutType,
+        workspaceId: workspaceId!,
+        programId: program.id,
         partnerId: selectedPartner.id,
-        start: start?.toISOString(),
-        end: end?.toISOString(),
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        start: startDate,
+        end: endDate,
       }).toString()}`,
     fetcher,
   );
@@ -234,8 +244,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
               new Date(start).getFullYear() === new Date(end).getFullYear()
                 ? undefined
                 : "numeric",
-            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          })}-${formatDate(end, { month: "short", timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone })}`,
+          })}-${formatDate(end, { month: "short" })}`,
         }),
 
       ...(payoutType !== "custom" && {
