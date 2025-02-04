@@ -1,4 +1,14 @@
+import { z } from "zod";
+import { DubApiError } from "../api/errors";
 import { DYNADOT_API_KEY, DYNADOT_BASE_URL } from "./constants";
+
+const schema = z.object({
+  SetDnsResponse: z.object({
+    ResponseCode: z.string().or(z.number()),
+    Status: z.string(),
+    Error: z.string().optional(),
+  }),
+});
 
 export const configureDNS = async ({ domain }: { domain: string }) => {
   const searchParams = new URLSearchParams({
@@ -9,9 +19,32 @@ export const configureDNS = async ({ domain }: { domain: string }) => {
     main_record0: "76.76.21.21",
   });
 
-  return fetch(`${DYNADOT_BASE_URL}?${searchParams.toString()}`, {
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
+  const response = await fetch(
+    `${DYNADOT_BASE_URL}?${searchParams.toString()}`,
+    {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
     },
-  }).then((res) => res.json());
+  );
+
+  if (!response.ok) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `Failed to configure DNS for domain "${domain}": ${response.statusText}`,
+    });
+  }
+
+  const data = schema.parse(await response.json());
+
+  const { Status, Error } = data.SetDnsResponse;
+
+  if (Status !== "success") {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `Failed to configure DNS for domain "${domain}": ${Error}`,
+    });
+  }
+
+  return data;
 };
