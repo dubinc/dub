@@ -1,4 +1,4 @@
-import { stripe } from "@/lib/stripe";
+  import { stripe } from "@/lib/stripe";
 import { withAxiom } from "next-axiom";
 import Stripe from "stripe";
 import { accountApplicationDeauthorized } from "./account-application-deauthorized";

@@ -39,6 +39,7 @@ model Earnings {
   link     Link      @relation(fields: [linkId], references: [id])
   customer Customer? @relation(fields: [customerId], references: [id])
 
+  @@unique([programId, invoiceId])
   @@index([programId])
   @@index([partnerId])
   @@index([payoutId])

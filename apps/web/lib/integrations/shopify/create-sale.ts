@@ -31,21 +31,20 @@ export async function createShopifySale({
     current_subtotal_price_set: { shop_money: shopMoney },
   } = order;
 
-  const currency = shopMoney.currency_code.toLowerCase();
   const amount = Number(shopMoney.amount) * 100;
+  const { link_id: linkId } = leadData;
 
-  const eventId = nanoid(16);
-  const paymentProcessor = "shopify";
-  const { link_id: linkId, click_id: clickId } = leadData;
-
-  const sale = await prisma.sale.findFirst({
-    where: {
-      invoiceId,
-      clickId,
+  // Skip if invoice id is already processed
+  const ok = await redis.set(
+    `dub_sale_events:linkId:${linkId}:invoiceId:${invoiceId}`,
+    1,
+    {
+      ex: 60 * 60 * 24 * 7,
+      nx: true,
     },
-  });
+  );
 
-  if (sale) {
+  if (!ok) {
     return new Response(
       `[Shopify] Order has been processed already. Skipping...`,
     );
@@ -53,11 +52,11 @@ export async function createShopifySale({
 
   const saleData = {
     ...leadData,
-    event_id: eventId,
+    event_id: nanoid(16),
     event_name: "Purchase",
-    payment_processor: paymentProcessor,
+    payment_processor: "shopify",
     amount,
-    currency,
+    currency: shopMoney.currency_code.toLowerCase(),
     invoice_id: invoiceId,
     metadata: JSON.stringify(order),
   };
@@ -152,7 +151,7 @@ export async function createShopifySale({
       partner,
       event: {
         type: "sale",
-        id: eventId,
+        id: saleData.event_id,
       },
       sale: {
         amount: saleData.amount,
