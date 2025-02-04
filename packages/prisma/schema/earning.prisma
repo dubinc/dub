@@ -23,7 +23,6 @@ model Earnings {
   customerId String? // only for leads and sales
   eventId    String? @unique // only for leads and sales
 
-  // earnings
   type     EventType
   amount   Int
   quantity Int
