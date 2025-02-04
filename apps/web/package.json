@@ -12,7 +12,8 @@
     "generate-openapi": "tsx ./scripts/generate-openapi.ts",
     "prisma:generate": "dotenv-flow -e .env -- pnpm --filter=@dub/prisma generate",
     "prisma:push": "dotenv-flow -e .env -- pnpm --filter=@dub/prisma push",
-    "prisma:studio": "dotenv-flow -e .env -- pnpm --filter=@dub/prisma studio"
+    "prisma:studio": "dotenv-flow -e .env -- pnpm --filter=@dub/prisma studio",
+    "prisma:format": "dotenv-flow -e .env -- pnpm --filter=@dub/prisma format"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.0.7",

@@ -17,8 +17,8 @@ model Earning {
   id         String  @id @default(cuid())
   programId  String
   partnerId  String
-  payoutId   String?
   linkId     String
+  payoutId   String?
   invoiceId  String?
   customerId String? // only for leads and sales
   eventId    String? @unique // only for leads and sales
@@ -29,28 +29,16 @@ model Earning {
   quantity Int
   earnings Int
   currency String
+  status   EarningStatus @default(pending)
 
-  // program commission
-  commissionAmount    Int
-  commissionType      CommissionType
-  recurringCommission Boolean
-  recurringInterval   CommissionInterval?
-  recurringDuration   Int?
-  isLifetimeRecurring Boolean?
-
-  // sale specific
-  paymentProcessor String?
-
-  metadata  Json?
-  status    EarningStatus @default(pending)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   program  Program   @relation(fields: [programId], references: [id])
   partner  Partner   @relation(fields: [partnerId], references: [id])
   payout   Payout?   @relation(fields: [payoutId], references: [id])
-  customer Customer? @relation(fields: [customerId], references: [id])
   link     Link      @relation(fields: [linkId], references: [id])
+  customer Customer? @relation(fields: [customerId], references: [id])
 
   @@index([programId])
   @@index([partnerId])
