@@ -4,7 +4,6 @@ import { DYNADOT_API_KEY, DYNADOT_BASE_URL } from "./constants";
 
 const schema = z.object({
   SetDnsResponse: z.object({
-    ResponseCode: z.string().or(z.number()),
     Status: z.string(),
     Error: z.string().optional(),
   }),
