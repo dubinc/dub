@@ -25,7 +25,7 @@ import { z } from "zod";
 export function OnboardingForm({
   partner,
 }: {
-  partner: Pick<Partner, "bio" | "country" | "image"> | null;
+  partner?: Pick<Partner, "bio" | "country" | "image"> | null;
 }) {
   const router = useRouter();
   const { data: session } = useSession();
