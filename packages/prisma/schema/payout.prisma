@@ -34,7 +34,7 @@ model Payout {
   partner Partner  @relation(fields: [partnerId], references: [id])
   invoice Invoice? @relation(fields: [invoiceId], references: [id])
   sales   Sale[]
-  earnings Earning[]
+  earnings Earnings[]
 
   @@index([programId])
   @@index([partnerId])

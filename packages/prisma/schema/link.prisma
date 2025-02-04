@@ -74,7 +74,7 @@ model Link {
 
   program   Program? @relation(fields: [programId], references: [id])
   customers Customer[]
-  earnings  Earning[]
+  earnings  Earnings[]
 
   @@unique([domain, key])
   @@fulltext([key, url])

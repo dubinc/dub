@@ -19,7 +19,7 @@ model Customer {
   project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   link     Link?     @relation(fields: [linkId], references: [id])
   sales    Sale[]
-  earnings Earning[]
+  earnings Earnings[]
 
   @@unique([projectId, externalId])
   @@unique([projectConnectId, externalId])

@@ -1,4 +1,4 @@
-enum EarningStatus {
+enum EarningsStatus {
   pending
   processed
   paid
@@ -13,7 +13,7 @@ enum EventType {
   sale
 }
 
-model Earning {
+model Earnings {
   id         String  @id @default(cuid())
   programId  String
   partnerId  String
@@ -29,7 +29,7 @@ model Earning {
   quantity Int
   earnings Int
   currency String
-  status   EarningStatus @default(pending)
+  status   EarningsStatus @default(pending)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
