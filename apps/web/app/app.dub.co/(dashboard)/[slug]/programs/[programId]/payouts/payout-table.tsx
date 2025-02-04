@@ -23,7 +23,8 @@ import {
   useTable,
 } from "@dub/ui";
 import { Dots, MoneyBill2, MoneyBills2 } from "@dub/ui/icons";
-import { cn, formatDate } from "@dub/utils";
+import { cn } from "@dub/utils";
+import { formatDate, formatPeriod } from "@dub/utils/src/functions/datetime";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
@@ -95,16 +96,7 @@ export function PayoutTable() {
       {
         id: "periodStart",
         header: "Period",
-        accessorFn: (d) => {
-          if (!d.periodStart || !d.periodEnd) {
-            return "-";
-          }
-
-          return `${formatDate(d.periodStart, { timeZone: "utc", month: "short", year: undefined })}-${formatDate(
-            d.periodEnd,
-            { timeZone: "utc", month: "short" },
-          )}`;
-        },
+        accessorFn: (d) => formatPeriod(d),
       },
       {
         header: "Partner",
