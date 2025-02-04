@@ -12,7 +12,7 @@ export const IntegrationLogo = memo(
     alt: string;
     className?: string;
   }) => (
-    <div className={cn("relative size-8 w-fit shrink-0 rounded-md", className)}>
+    <div className={cn("relative size-8 shrink-0 rounded-md", className)}>
       {src ? (
         <>
           <BlurImage
