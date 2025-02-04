@@ -38,6 +38,7 @@ export const createManualPayoutAction = authActionClient
           },
         },
         select: {
+          programId: true,
           partnerId: true,
           _count: {
             select: {
@@ -56,6 +57,7 @@ export const createManualPayoutAction = authActionClient
 
     if (type === "clicks" || type === "leads") {
       const count = await getAnalytics({
+        programId: programEnrollment.programId,
         partnerId: programEnrollment.partnerId,
         event: type,
         groupBy: "count",

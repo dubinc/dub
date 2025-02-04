@@ -41,6 +41,11 @@ async function EnabledIntegrationsPageRSC({ slug }: { slug: string }) {
     },
     include: {
       installations: {
+        where: {
+          project: {
+            slug,
+          },
+        },
         include: {
           user: true,
         },
