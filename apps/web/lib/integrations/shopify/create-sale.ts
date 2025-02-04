@@ -1,6 +1,6 @@
+import { prepareEarnings } from "@/lib/api/earnings/create-earnings";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { createSaleData } from "@/lib/api/sales/create-sale-data";
 import { recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -97,7 +97,7 @@ export async function createShopifySale({
       },
     }),
 
-    prisma.customer.findUnique({
+    prisma.customer.findUniqueOrThrow({
       where: {
         id: customerId,
       },
@@ -129,7 +129,7 @@ export async function createShopifySale({
 
   // for program links
   if (link.programId) {
-    const { program, partnerId, commissionAmount } =
+    const { program, ...partner } =
       await prisma.programEnrollment.findFirstOrThrow({
         where: {
           links: {
@@ -145,45 +145,38 @@ export async function createShopifySale({
         },
       });
 
-    const saleRecord = createSaleData({
+    const earningsData = prepareEarnings({
+      link,
+      customer,
       program,
-      partner: {
-        id: partnerId,
-        commissionAmount,
-      },
-      customer: {
-        id: customerId,
-        linkId,
-        clickId,
+      partner,
+      event: {
+        type: "sale",
+        id: eventId,
       },
       sale: {
-        amount,
-        currency,
-        invoiceId,
-        eventId,
-        paymentProcessor,
+        amount: saleData.amount,
+        currency: saleData.currency,
+        invoiceId: saleData.invoice_id,
       },
-      metadata: order,
+    });
+
+    await prisma.earnings.create({
+      data: earningsData,
     });
 
     waitUntil(
-      Promise.allSettled([
-        prisma.sale.create({
-          data: saleRecord,
-        }),
-
-        notifyPartnerSale({
-          partner: {
-            id: partnerId,
-            referralLink: link.shortLink,
-          },
-          program,
-          sale: {
-            amount: saleRecord.amount,
-            earnings: saleRecord.earnings,
-          },
-        }),
-      ]),
+      notifyPartnerSale({
+        partner: {
+          id: partner.partnerId,
+          referralLink: link.shortLink,
+        },
+        program,
+        sale: {
+          amount: earningsData.amount!,
+          earnings: earningsData.earnings!,
+        },
+      }),
     );
   }
 }

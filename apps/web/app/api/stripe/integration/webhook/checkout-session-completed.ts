@@ -1,6 +1,6 @@
+import { prepareEarnings } from "@/lib/api/earnings/create-earnings";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { createSaleData } from "@/lib/api/sales/create-sale-data";
 import { createId } from "@/lib/api/utils";
 import {
   getClickEvent,
@@ -193,9 +193,11 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     charge.currency = charge.currency_conversion.source_currency;
   }
 
+  const eventId = nanoid(16);
+
   const saleData = {
     ...leadEvent,
-    event_id: nanoid(16),
+    event_id: eventId,
     event_name: "Subscription creation",
     payment_processor: "stripe",
     amount: charge.amount_total!,
@@ -256,7 +258,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   // for program links
   if (link?.programId) {
-    const { program, partnerId, commissionAmount } =
+    const { program, ...partner } =
       await prisma.programEnrollment.findFirstOrThrow({
         where: {
           links: {
@@ -272,44 +274,36 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         },
       });
 
-    const saleRecord = createSaleData({
+    const earningsData = prepareEarnings({
+      link,
+      customer,
       program,
-      partner: {
-        id: partnerId,
-        commissionAmount,
-      },
-      customer: {
-        id: saleData.customer_id,
-        linkId: saleData.link_id,
-        clickId: saleData.click_id,
+      partner,
+      event: {
+        type: "sale",
+        id: eventId,
       },
       sale: {
         amount: saleData.amount,
         currency: saleData.currency,
         invoiceId: saleData.invoice_id,
-        eventId: saleData.event_id,
-        paymentProcessor: saleData.payment_processor,
-      },
-      metadata: {
-        ...leadEvent,
-        stripeMetadata: charge,
       },
     });
 
-    await prisma.sale.create({
-      data: saleRecord,
+    await prisma.earnings.create({
+      data: earningsData,
     });
 
     waitUntil(
       notifyPartnerSale({
         partner: {
-          id: partnerId,
+          id: partner.partnerId,
           referralLink: link.shortLink,
         },
         program,
         sale: {
-          amount: saleRecord.amount,
-          earnings: saleRecord.earnings,
+          amount: earningsData.amount!,
+          earnings: earningsData.earnings!,
         },
       }),
     );

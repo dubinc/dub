@@ -1,26 +1,29 @@
 import {
+  Customer,
   EventType,
+  Link,
   Prisma,
   Program,
   ProgramEnrollment,
 } from "@dub/prisma/client";
-import { calculateEarnings as calculateSaleEarnings } from "../sales/calculate-earnings";
+import { calculateSaleEarnings } from "../sales/calculate-earnings";
 
 interface CreateEarnings {
-  event: EventType;
-  eventId?: string;
-  linkId: string;
-  customerId?: string;
+  link: Pick<Link, "id">;
+  customer?: Pick<Customer, "id">;
   program: Pick<Program, "id" | "commissionAmount" | "commissionType">;
-  partner: Pick<ProgramEnrollment, "id" | "commissionAmount">;
+  partner: Pick<ProgramEnrollment, "partnerId" | "commissionAmount">;
 
-  // record consolidated clicks
+  event: {
+    type: EventType;
+    id: string;
+  };
+
   click?: {
     quantity: number;
     amount: number;
   };
 
-  // record a sale
   sale?: {
     amount: number;
     currency: string;
@@ -28,19 +31,20 @@ interface CreateEarnings {
   };
 }
 
-export const createEarningsData = ({
+export const prepareEarnings = ({
   event,
-  eventId,
-  linkId,
-  customerId,
+  link,
+  customer,
   program,
   partner,
   click,
   sale,
 }: CreateEarnings) => {
-  const quantity = ["lead", "sale"].includes(event) ? 1 : click?.quantity || 0;
   const amount = click?.amount || sale?.amount;
   const invoiceId = sale?.invoiceId;
+  const quantity = ["lead", "sale"].includes(event.type)
+    ? 1
+    : click?.quantity || 0;
 
   const earnings = sale
     ? calculateSaleEarnings({
@@ -52,19 +56,19 @@ export const createEarningsData = ({
     : null;
 
   const data: Prisma.EarningsUncheckedCreateInput = {
-    eventId,
-    type: event,
-    linkId,
+    eventId: event.id,
+    type: event.type,
+    linkId: link.id,
     programId: program.id,
-    partnerId: partner.id,
+    partnerId: partner.partnerId,
     quantity,
     ...(amount && { amount }),
     ...(earnings && { earnings }),
     ...(invoiceId && { invoiceId }),
-    ...(customerId && { customerId }),
+    ...(customer && { customerId: customer.id }),
   };
 
-  console.log("Earnings created", data);
+  console.info("Earnings", data);
 
   return data;
 };

@@ -1,6 +1,6 @@
+import { prepareEarnings } from "@/lib/api/earnings/create-earnings";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { createSaleData } from "@/lib/api/sales/create-sale-data";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -51,9 +51,11 @@ export async function invoicePaid(event: Stripe.Event) {
     return `Lead event with customer ID ${customer.id} not found, skipping...`;
   }
 
+  const eventId = nanoid(16);
+
   const saleData = {
     ...leadEvent.data[0],
-    event_id: nanoid(16),
+    event_id: eventId,
     event_name: "Subscription update",
     payment_processor: "stripe",
     amount: invoice.amount_paid,
@@ -111,7 +113,7 @@ export async function invoicePaid(event: Stripe.Event) {
 
   // for program links
   if (link.programId) {
-    const { program, partnerId, commissionAmount } =
+    const { program, ...partner } =
       await prisma.programEnrollment.findFirstOrThrow({
         where: {
           links: {
@@ -127,44 +129,36 @@ export async function invoicePaid(event: Stripe.Event) {
         },
       });
 
-    const saleRecord = createSaleData({
+    const earningsData = prepareEarnings({
+      link,
+      customer,
       program,
-      partner: {
-        id: partnerId,
-        commissionAmount,
-      },
-      customer: {
-        id: saleData.customer_id,
-        linkId: saleData.link_id,
-        clickId: saleData.click_id,
+      partner,
+      event: {
+        type: "sale",
+        id: eventId,
       },
       sale: {
-        invoiceId: saleData.invoice_id,
-        eventId: saleData.event_id,
-        paymentProcessor: saleData.payment_processor,
         amount: saleData.amount,
         currency: saleData.currency,
-      },
-      metadata: {
-        ...leadEvent.data[0],
-        stripeMetadata: invoice,
+        invoiceId: saleData.invoice_id,
       },
     });
 
-    await prisma.sale.create({
-      data: saleRecord,
+    await prisma.earnings.create({
+      data: earningsData,
     });
 
     waitUntil(
       notifyPartnerSale({
         partner: {
-          id: partnerId,
+          id: partner.partnerId,
           referralLink: link.shortLink,
         },
         program,
         sale: {
-          amount: saleRecord.amount,
-          earnings: saleRecord.earnings,
+          amount: earningsData.amount!,
+          earnings: earningsData.earnings!,
         },
       }),
     );
