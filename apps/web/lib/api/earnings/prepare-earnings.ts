@@ -42,7 +42,7 @@ export const prepareEarnings = ({
 }: CreateEarnings) => {
   const amount = click?.amount || sale?.amount;
   const invoiceId = sale?.invoiceId;
-  const currency = sale?.currency || "usd";
+  const currency = sale?.currency || null;
   const quantity = ["lead", "sale"].includes(event.type)
     ? 1
     : click?.quantity || 0;

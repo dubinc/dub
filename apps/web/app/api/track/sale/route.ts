@@ -1,4 +1,4 @@
-import { prepareEarnings } from "@/lib/api/earnings/create-earnings";
+import { prepareEarnings } from "@/lib/api/earnings/prepare-earnings";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
