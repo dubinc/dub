@@ -9,7 +9,10 @@ import {
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
-// GET /api/partner-profile/programs/[programId]/sales – get sales for a partner in a program enrollment
+// TODO:
+// Move to /earnings
+
+// GET /api/partner-profile/programs/[programId]/earnings – get earnings for a partner in a program enrollment
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
     const { program } = await getProgramEnrollmentOrThrow({
@@ -17,13 +20,26 @@ export const GET = withPartnerProfile(
       programId: params.programId,
     });
 
-    const parsed = getPartnerSalesQuerySchema.parse(searchParams);
-    const { page, pageSize, status, sortBy, sortOrder, customerId, payoutId } =
-      parsed;
+    const {
+      page,
+      pageSize,
+      status,
+      sortBy,
+      sortOrder,
+      customerId,
+      payoutId,
+      interval,
+      start,
+      end,
+    } = getPartnerSalesQuerySchema.parse(searchParams);
 
-    const { startDate, endDate } = getStartEndDates(parsed);
+    const { startDate, endDate } = getStartEndDates({
+      interval,
+      start,
+      end,
+    });
 
-    const sales = await prisma.sale.findMany({
+    const earnings = await prisma.earnings.findMany({
       where: {
         programId: program.id,
         partnerId: partner.id,
@@ -50,6 +66,8 @@ export const GET = withPartnerProfile(
       orderBy: { [sortBy]: sortOrder },
     });
 
-    return NextResponse.json(z.array(PartnerSaleResponseSchema).parse(sales));
+    return NextResponse.json(
+      z.array(PartnerSaleResponseSchema).parse(earnings),
+    );
   },
 );

@@ -5,7 +5,10 @@ import { getPartnerSalesCountQuerySchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
-// GET /api/partner-profile/programs/[programId]/sales/count – get sales count for a partner in a program enrollment
+// TODO
+// Move to /earnings/count
+
+// GET /api/partner-profile/programs/[programId]/earnings/count – get earnings count for a partner in a program enrollment
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
     const { program } = await getProgramEnrollmentOrThrow({
@@ -13,12 +16,16 @@ export const GET = withPartnerProfile(
       programId: params.programId,
     });
 
-    const parsed = getPartnerSalesCountQuerySchema.parse(searchParams);
-    const { status, customerId, payoutId } = parsed;
+    const { status, customerId, payoutId, interval, start, end } =
+      getPartnerSalesCountQuerySchema.parse(searchParams);
 
-    const { startDate, endDate } = getStartEndDates(parsed);
+    const { startDate, endDate } = getStartEndDates({
+      interval,
+      start,
+      end,
+    });
 
-    const salesCount = await prisma.sale.count({
+    const count = await prisma.earnings.count({
       where: {
         programId: program.id,
         partnerId: partner.id,
@@ -32,6 +39,6 @@ export const GET = withPartnerProfile(
       },
     });
 
-    return NextResponse.json({ count: salesCount });
+    return NextResponse.json({ count });
   },
 );
