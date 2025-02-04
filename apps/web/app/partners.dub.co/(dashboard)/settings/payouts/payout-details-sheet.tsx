@@ -20,9 +20,11 @@ import {
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
   fetcher,
-  formatDate,
-  formatDateTime,
 } from "@dub/utils";
+import {
+  formatDateTime,
+  formatPeriod,
+} from "@dub/utils/src/functions/datetime";
 import Link from "next/link";
 import { Dispatch, Fragment, SetStateAction, useMemo } from "react";
 import useSWR from "swr";
@@ -71,17 +73,7 @@ function PayoutDetailsSheetContent({
           <ExpandingArrow className="size-3" />
         </a>
       ),
-      Period:
-        !payout.periodStart || !payout.periodEnd
-          ? "-"
-          : `${formatDate(payout.periodStart, {
-              month: "short",
-              year:
-                new Date(payout.periodStart).getFullYear() ===
-                new Date(payout.periodEnd).getFullYear()
-                  ? undefined
-                  : "numeric",
-            })}-${formatDate(payout.periodEnd, { month: "short" })}`,
+      Period: formatPeriod(payout),
 
       Type: <PayoutTypeBadge type={payout.type} />,
 
