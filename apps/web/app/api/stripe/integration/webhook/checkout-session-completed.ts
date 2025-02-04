@@ -175,6 +175,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     if (!existingCustomer) {
       await recordLead(leadEvent);
     }
+
     linkId = clickEvent.link_id;
 
     // if it's not either a regular stripe checkout setup or a stripe checkout link,
@@ -274,7 +275,18 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         },
       });
 
-    const earningsData = prepareEarnings({
+    const leadEarnings = prepareEarnings({
+      link,
+      customer,
+      program,
+      partner,
+      event: {
+        type: "lead",
+        id: eventId,
+      },
+    });
+
+    const saleEarnings = prepareEarnings({
       link,
       customer,
       program,
@@ -290,8 +302,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       },
     });
 
-    await prisma.earnings.create({
-      data: earningsData,
+    await prisma.earnings.createMany({
+      data: [leadEarnings, saleEarnings],
     });
 
     waitUntil(
@@ -302,8 +314,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         },
         program,
         sale: {
-          amount: earningsData.amount!,
-          earnings: earningsData.earnings!,
+          amount: saleEarnings.amount!,
+          earnings: saleEarnings.earnings!,
         },
       }),
     );

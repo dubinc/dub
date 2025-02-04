@@ -1,3 +1,4 @@
+import { prepareEarnings } from "@/lib/api/earnings/create-earnings";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { createId } from "@/lib/api/utils";
 import { generateRandomName } from "@/lib/names";
@@ -81,6 +82,37 @@ export async function createShopifyLead({
       },
     }),
   ]);
+
+  if (link.programId) {
+    const { program, ...partner } =
+      await prisma.programEnrollment.findFirstOrThrow({
+        where: {
+          links: {
+            some: {
+              id: link.id,
+            },
+          },
+        },
+        select: {
+          program: true,
+          partnerId: true,
+          commissionAmount: true,
+        },
+      });
+
+    await prisma.earnings.create({
+      data: prepareEarnings({
+        link,
+        customer,
+        program,
+        partner,
+        event: {
+          type: "lead",
+          id: leadData.event_id,
+        },
+      }),
+    });
+  }
 
   waitUntil(
     sendWorkspaceWebhook({
