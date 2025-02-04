@@ -1,3 +1,4 @@
+import { createEarningsData } from "@/lib/api/earnings/create-earnings";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { createId, parseRequestBody } from "@/lib/api/utils";
@@ -86,10 +87,12 @@ export const POST = withWorkspaceEdge(
           },
         });
 
+        const eventId = nanoid(16);
+
         const [_lead, link, _project] = await Promise.all([
           recordLead({
             ...clickData,
-            event_id: nanoid(16),
+            event_id: eventId,
             event_name: eventName,
             customer_id: customer.id,
             metadata: metadata ? JSON.stringify(metadata) : "",
@@ -120,6 +123,38 @@ export const POST = withWorkspaceEdge(
             },
           }),
         ]);
+
+        if (link.programId && link.partnerId) {
+          const { program, partnerId, commissionAmount } =
+            await prismaEdge.programEnrollment.findFirstOrThrow({
+              where: {
+                links: {
+                  some: {
+                    id: link.id,
+                  },
+                },
+              },
+              select: {
+                program: true,
+                partnerId: true,
+                commissionAmount: true,
+              },
+            });
+
+          await prismaEdge.earnings.create({
+            data: createEarningsData({
+              eventId,
+              event: "lead",
+              linkId: link.id,
+              customerId: customer.id,
+              program,
+              partner: {
+                id: partnerId,
+                commissionAmount,
+              },
+            }),
+          });
+        }
 
         const lead = transformLeadEventData({
           ...clickData,

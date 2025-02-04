@@ -24,10 +24,10 @@ model Earnings {
   eventId    String? @unique // only for leads and sales
 
   type     EventType
-  amount   Int
+  amount   Int?
   quantity Int
-  earnings Int
-  currency String
+  earnings Int?
+  // currency String
   status   EarningsStatus @default(pending)
 
   createdAt DateTime @default(now())

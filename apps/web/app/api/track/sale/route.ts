@@ -1,7 +1,7 @@
+import { createEarningsData } from "@/lib/api/earnings/create-earnings";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { createSaleData } from "@/lib/api/sales/create-sale-data";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
@@ -140,31 +140,28 @@ export const POST = withWorkspaceEdge(
               },
             });
 
-          const saleRecord = createSaleData({
+          const earningsData = createEarningsData({
+            eventId,
+            event: "sale",
+            linkId: link.id,
+            customerId: customer.id,
             program,
             partner: {
               id: partnerId,
               commissionAmount,
             },
-            customer: {
-              id: customer.id,
-              linkId: link.id,
-              clickId: clickData.click_id,
-            },
             sale: {
               amount,
               currency,
               invoiceId,
-              eventId,
-              paymentProcessor,
             },
-            metadata: clickData,
           });
 
           await Promise.allSettled([
-            prismaEdge.sale.create({
-              data: saleRecord,
+            prismaEdge.earnings.create({
+              data: earningsData,
             }),
+
             notifyPartnerSale({
               partner: {
                 id: partnerId,
@@ -172,8 +169,8 @@ export const POST = withWorkspaceEdge(
               },
               program,
               sale: {
-                amount: saleRecord.amount,
-                earnings: saleRecord.earnings,
+                amount: earningsData.amount!,
+                earnings: earningsData.earnings!,
               },
             }),
           ]);
