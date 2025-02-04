@@ -61,6 +61,7 @@ model Program {
   applications  ProgramApplication[]
   invites       ProgramInvite[]
   links         Link[]
+  earnings      Earning[]
 
   @@index([workspaceId])
   @@index([domain])
@@ -89,6 +90,7 @@ model ProgramEnrollment {
   @@unique([tenantId, programId])
   @@index([programId])
   @@index([discountId])
+  @@unique([programId, partnerId])
 }
 
 model ProgramApplication {

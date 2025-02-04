@@ -27,4 +27,5 @@ model Customer {
   @@index([projectConnectId])
   @@index([externalId])
   @@index([linkId])
+  Earning Earning[]
 }
