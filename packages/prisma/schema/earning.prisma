@@ -1,0 +1,65 @@
+enum EarningStatus {
+  pending
+  processed
+  paid
+  refunded
+  duplicate
+  fraud
+}
+
+enum EarningType {
+  click
+  lead
+  sale
+}
+
+model Earning {
+  id         String      @id @default(cuid())
+  programId  String
+  partnerId  String
+  payoutId   String?
+  linkId     String
+  invoiceId  String?
+  customerId String? // only for leads and sales
+  eventId    String?     @unique // only for leads and sales
+
+  // earnings
+  type       EarningType
+  amount   Int
+  quantity Int
+  earnings Int
+  currency String
+
+  // paymentProcessor String
+  // earnings         Int        @default(0)
+  // status           SaleStatus @default(pending)
+  // // additional attributes from Tinybird
+  // metadata         Json?
+
+  // program commission
+  commissionAmount    Int
+  commissionType      CommissionType
+  recurringCommission Boolean
+  recurringInterval   CommissionInterval?
+  recurringDuration   Int?
+  isLifetimeRecurring Boolean?
+
+  // sale specific
+  paymentProcessor String?
+
+  metadata         Json?
+  status EarningStatus @default(pending)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  program  Program  @relation(fields: [programId], references: [id])
+  partner  Partner  @relation(fields: [partnerId], references: [id])
+  payout   Payout?  @relation(fields: [payoutId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@index([programId])
+  @@index([partnerId])
+  @@index([payoutId])
+  @@index([customerId])
+  @@index([status])
+}
