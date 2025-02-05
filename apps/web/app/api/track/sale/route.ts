@@ -3,7 +3,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { createSaleData } from "@/lib/api/sales/create-sale-data";
 import { parseRequestBody } from "@/lib/api/utils";
-import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
+import { withWorkspace } from "@/lib/auth";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
 import { transformSaleEventData } from "@/lib/webhook/transform";
@@ -17,10 +17,8 @@ import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 // POST /api/track/sale – Track a sale conversion event
-export const POST = withWorkspaceEdge(
+export const POST = withWorkspace(
   async ({ req, workspace }) => {
     const {
       externalId,

@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { createId, parseRequestBody } from "@/lib/api/utils";
-import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
+import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { ratelimit } from "@/lib/upstash";
@@ -16,10 +16,8 @@ import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 // POST /api/track/lead – Track a lead conversion event
-export const POST = withWorkspaceEdge(
+export const POST = withWorkspace(
   async ({ req, workspace }) => {
     const {
       clickId,
