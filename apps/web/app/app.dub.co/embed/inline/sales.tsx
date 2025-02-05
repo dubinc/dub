@@ -11,10 +11,10 @@ import {
 import { motion } from "framer-motion";
 import useSWR from "swr";
 
-export function EmbedSales({ salesCount }: { salesCount: number }) {
+export function EmbedEarnings({ salesCount }: { salesCount: number }) {
   const { pagination, setPagination } = usePagination(SALES_PAGE_SIZE);
-  const { data: sales, isLoading } = useSWR<PartnerEarningsResponse[]>(
-    `/api/embed/sales?page=${pagination.pageIndex}`,
+  const { data: earnings, isLoading } = useSWR<PartnerEarningsResponse[]>(
+    `/api/embed/earnings?page=${pagination.pageIndex}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -22,7 +22,7 @@ export function EmbedSales({ salesCount }: { salesCount: number }) {
   );
 
   const { table, ...tableProps } = useTable({
-    data: sales || [],
+    data: earnings || [],
     loading: isLoading,
     columns: [
       {
@@ -45,10 +45,12 @@ export function EmbedSales({ salesCount }: { salesCount: number }) {
         id: "saleAmount",
         header: "Amount",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          });
+          row.original.amount
+            ? currencyFormatter(row.original.amount / 100, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })
+            : "-";
         },
       },
       {
@@ -70,7 +72,7 @@ export function EmbedSales({ salesCount }: { salesCount: number }) {
       <div className="flex w-full flex-col items-center justify-center gap-2">
         <Gift className="size-6 text-neutral-400" />
         <p className="max-w-sm text-balance text-center text-xs text-neutral-400">
-          No sales yet. When you refer a friend and they make a purchase,
+          No earnings yet. When you refer a friend and they make a purchase,
           they'll show up here.
         </p>
       </div>

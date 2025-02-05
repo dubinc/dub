@@ -22,7 +22,7 @@ import { HeroBackground } from "./hero-background";
 import { EmbedLeaderboard } from "./leaderboard";
 import { EmbedPayouts } from "./payouts";
 import { EmbedQuickstart } from "./quickstart";
-import { EmbedSales } from "./sales";
+import { EmbedEarnings } from "./sales";
 
 export function EmbedInlinePageClient({
   program,
@@ -141,7 +141,7 @@ export function EmbedInlinePageClient({
               {selectedTab === "Quickstart" ? (
                 <EmbedQuickstart program={program} link={links[0]} />
               ) : selectedTab === "Sales" ? (
-                <EmbedSales salesCount={stats.sales} />
+                <EmbedEarnings salesCount={stats.sales} />
               ) : selectedTab === "Leaderboard" ? (
                 <EmbedLeaderboard />
               ) : selectedTab === "FAQ" ? (
