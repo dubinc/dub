@@ -10,6 +10,8 @@ export const dynamic = "force-dynamic";
     This route is used to calculate payouts for partners.
     Runs once every hour (0 * * * *)
 */
+
+// GET /cron/payouts/sales
 export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);

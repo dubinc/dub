@@ -17,7 +17,15 @@
       "schedule": "0 12 * * 1"
     },
     {
-      "path": "/api/cron/process-payouts",
+      "path": "/cron/payouts/clicks",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/cron/payouts/leads",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/cron/payouts/sales",
       "schedule": "0 * * * *"
     },
     {
