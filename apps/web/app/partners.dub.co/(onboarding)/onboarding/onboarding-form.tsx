@@ -25,7 +25,10 @@ import { z } from "zod";
 export function OnboardingForm({
   partner,
 }: {
-  partner?: Pick<Partner, "bio" | "country" | "image"> | null;
+  partner?: Pick<
+    Partner,
+    "name" | "email" | "bio" | "country" | "image"
+  > | null;
 }) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -41,18 +44,23 @@ export function OnboardingForm({
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<z.infer<typeof onboardPartnerSchema>>({
     defaultValues: {
+      name: partner?.name ?? undefined,
+      email: partner?.email ?? undefined,
       description: partner?.bio ?? undefined,
       country: partner?.country ?? undefined,
       image: partner?.image ?? undefined,
     },
   });
 
+  const { name, email, image } = watch();
+
   useEffect(() => {
     if (session?.user) {
-      setValue("name", session.user.name ?? "");
-      setValue("email", session.user.email ?? "");
+      !name && setValue("name", session.user.name ?? "");
+      !email && setValue("email", session.user.email ?? "");
+      !image && setValue("image", session.user.image ?? "");
     }
-  }, [session?.user]);
+  }, [session?.user, name, email, image]);
 
   const { executeAsync, isPending } = useAction(onboardPartnerAction, {
     onSuccess: () => {
