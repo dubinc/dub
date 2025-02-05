@@ -1,20 +1,31 @@
 import { getEvents } from "@/lib/analytics/get-events";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { createSaleData } from "@/lib/api/sales/create-sale-data";
+import { recordLink } from "@/lib/tinybird";
 import { SaleEvent } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 
 export const backfillLinkData = async ({
-  programEnrollmentId,
+  programId,
+  partnerId,
   linkId,
 }: {
-  programEnrollmentId: string;
+  programId: string;
+  partnerId: string;
   linkId: string;
 }) => {
-  const link = await prisma.link.findUniqueOrThrow({
+  const link = await prisma.link.update({
     where: {
       id: linkId,
     },
+    data: {
+      partnerId,
+    },
+    include: includeTags,
   });
+
+  // update in tinybird
+  await recordLink(link);
 
   if (link.sales === 0) {
     console.log(`Link ${linkId} has no sales, skipping backfill`);
@@ -23,7 +34,10 @@ export const backfillLinkData = async ({
 
   const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
     where: {
-      id: programEnrollmentId,
+      partnerId_programId: {
+        partnerId,
+        programId,
+      },
     },
     include: {
       program: {
