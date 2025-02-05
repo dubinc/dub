@@ -72,9 +72,9 @@ const NAV_AREAS: SidebarNavAreas<{
             href: `/programs/${programSlug}/analytics${queryString}`,
           },
           {
-            name: "Sales",
+            name: "Earnings",
             icon: CircleDollar,
-            href: `/programs/${programSlug}/sales${queryString}`,
+            href: `/programs/${programSlug}/earnings${queryString}`,
           },
           {
             name: "Links",

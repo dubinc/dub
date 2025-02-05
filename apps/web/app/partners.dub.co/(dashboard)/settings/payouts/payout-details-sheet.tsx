@@ -1,6 +1,6 @@
 import { SHEET_MAX_ITEMS } from "@/lib/partners/constants";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { PartnerPayoutResponse, PartnerSaleResponse } from "@/lib/types";
+import { PartnerPayoutResponse, PartnerEarningsResponse } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { PayoutTypeBadge } from "@/ui/partners/payout-type-badge";
 import { X } from "@/ui/shared/icons";
@@ -44,9 +44,9 @@ function PayoutDetailsSheetContent({
     data: sales,
     isLoading,
     error,
-  } = useSWR<PartnerSaleResponse[]>(
+  } = useSWR<PartnerEarningsResponse[]>(
     partner
-      ? `/api/partner-profile/programs/${payout.program.id}/sales?payoutId=${payout.id}&interval=all&pageSize=${SHEET_MAX_ITEMS}`
+      ? `/api/partner-profile/programs/${payout.program.id}/earnings?payoutId=${payout.id}&interval=all&pageSize=${SHEET_MAX_ITEMS}`
       : undefined,
     fetcher,
   );

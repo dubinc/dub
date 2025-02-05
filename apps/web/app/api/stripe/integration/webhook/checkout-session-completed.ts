@@ -275,16 +275,18 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         },
       });
 
-    const leadEarnings = prepareEarnings({
-      link,
-      customer,
-      program,
-      partner,
-      event: {
-        type: "lead",
-        id: eventId,
-      },
-    });
+    const leadEarnings = clickEvent
+      ? prepareEarnings({
+          link,
+          customer,
+          program,
+          partner,
+          event: {
+            type: "lead",
+            id: eventId,
+          },
+        })
+      : null;
 
     const saleEarnings = prepareEarnings({
       link,
@@ -303,7 +305,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     });
 
     await prisma.earnings.createMany({
-      data: [leadEarnings, saleEarnings],
+      data: [...(leadEarnings ? [leadEarnings] : []), saleEarnings],
     });
 
     waitUntil(

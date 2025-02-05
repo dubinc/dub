@@ -40,9 +40,9 @@ export const prepareEarnings = ({
   click,
   sale,
 }: CreateEarnings) => {
-  const amount = click?.amount || sale?.amount;
+  const amount = click?.amount || sale?.amount || 0;
   const invoiceId = sale?.invoiceId;
-  const currency = sale?.currency || null;
+  const currency = sale?.currency;
   const quantity = ["lead", "sale"].includes(event.type)
     ? 1
     : click?.quantity || 0;
@@ -63,8 +63,8 @@ export const prepareEarnings = ({
     programId: program.id,
     partnerId: partner.partnerId,
     quantity,
-    currency,
-    ...(amount && { amount }),
+    amount,
+    ...(currency && { currency: currency.toLowerCase() }),
     ...(earnings && { earnings }),
     ...(invoiceId && { invoiceId }),
     ...(customer && { customerId: customer.id }),

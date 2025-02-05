@@ -1,5 +1,5 @@
 import { SALES_PAGE_SIZE } from "@/lib/partners/constants";
-import { PartnerSaleResponse } from "@/lib/types";
+import { PartnerEarningsResponse } from "@/lib/types";
 import { Gift, Table, usePagination, useTable } from "@dub/ui";
 import {
   currencyFormatter,
@@ -8,12 +8,12 @@ import {
   formatDateTime,
   TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/utils";
-
 import { motion } from "framer-motion";
 import useSWR from "swr";
+
 export function EmbedSales({ salesCount }: { salesCount: number }) {
   const { pagination, setPagination } = usePagination(SALES_PAGE_SIZE);
-  const { data: sales, isLoading } = useSWR<PartnerSaleResponse[]>(
+  const { data: sales, isLoading } = useSWR<PartnerEarningsResponse[]>(
     `/api/embed/sales?page=${pagination.pageIndex}`,
     fetcher,
     {

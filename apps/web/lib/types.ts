@@ -31,7 +31,7 @@ import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   EnrolledPartnerSchema,
-  PartnerSaleResponseSchema,
+  PartnerEarningsSchema,
   PartnerSchema,
   SaleResponseSchema,
   SaleSchema,
@@ -349,7 +349,7 @@ export type SalesCount = Record<SaleStatus | "all", number>;
 
 export type SaleResponse = z.infer<typeof SaleResponseSchema>;
 
-export type PartnerSaleResponse = z.infer<typeof PartnerSaleResponseSchema>;
+export type PartnerEarningsResponse = z.infer<typeof PartnerEarningsSchema>;
 
 export type CustomerProps = z.infer<typeof CustomerSchema>;
 

@@ -1,7 +1,8 @@
 "use client";
 
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { PartnerSaleResponse } from "@/lib/types";
+import { PartnerEarningsResponse } from "@/lib/types";
+import { EarningsTypeBadge } from "@/ui/partners/earnings-type-badge";
 import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
@@ -21,7 +22,7 @@ import {
 } from "@dub/utils";
 import useSWR from "swr";
 
-export function SaleTablePartner({ limit }: { limit?: number }) {
+export function EarningsTablePartner({ limit }: { limit?: number }) {
   const { programEnrollment } = useProgramEnrollment();
   const { queryParams, searchParamsObj, getQueryString } = useRouterStuff();
 
@@ -30,28 +31,28 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
     sortOrder?: "asc" | "desc";
   };
 
-  const { data: salesCount } = useSWR<{ count: number }>(
+  const { data: earningsCount } = useSWR<{ count: number }>(
     programEnrollment &&
-      `/api/partner-profile/programs/${programEnrollment.programId}/sales/count${getQueryString()}`,
+      `/api/partner-profile/programs/${programEnrollment.programId}/earnings/count${getQueryString()}`,
     fetcher,
   );
 
   const {
-    data: sales,
+    data: earnings,
     isLoading,
     error,
-  } = useSWR<PartnerSaleResponse[]>(
+  } = useSWR<PartnerEarningsResponse[]>(
     programEnrollment &&
-      `/api/partner-profile/programs/${programEnrollment.programId}/sales${getQueryString()}`,
+      `/api/partner-profile/programs/${programEnrollment.programId}/earnings${getQueryString()}`,
     fetcher,
   );
 
   const { pagination, setPagination } = usePagination(limit);
 
   const { table, ...tableProps } = useTable({
-    data: sales?.slice(0, limit) || [],
+    data: earnings?.slice(0, limit) || [],
     loading: isLoading,
-    error: error ? "Failed to fetch sales events." : undefined,
+    error: error ? "Failed to fetch earnings events." : undefined,
     columns: [
       {
         id: "createdAt",
@@ -72,14 +73,22 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
         },
       },
       {
+        id: "type",
+        header: "Type",
+        accessorKey: "type",
+        cell: ({ row }) => <EarningsTypeBadge type={row.original.type} />,
+      },
+      {
         id: "saleAmount",
         header: "Sale Amount",
         accessorKey: "sale",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          });
+          return row.original.amount
+            ? currencyFormatter(row.original.amount / 100, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })
+            : "-";
         },
       },
       {
@@ -120,11 +129,11 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
           },
         }),
     }),
-    rowCount: salesCount?.count || 0,
+    rowCount: earningsCount?.count || 0,
     emptyState: (
       <AnimatedEmptyState
-        title="No sales found"
-        description="No sales have been made for this program yet."
+        title="No earnings found"
+        description="No earnings have been made for this program yet."
         cardContent={() => (
           <>
             <CircleDollar className="size-4 text-neutral-700" />
@@ -133,7 +142,7 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
         )}
       />
     ),
-    resourceName: (plural) => `sale${plural ? "s" : ""}`,
+    resourceName: (plural) => `earning${plural ? "s" : ""}`,
   });
 
   return (
@@ -143,7 +152,7 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
           <SimpleDateRangePicker className="w-full sm:min-w-[200px] md:w-fit" />
         </div>
       )}
-      {isLoading || sales?.length ? (
+      {isLoading || earnings?.length ? (
         <Table
           {...tableProps}
           table={table}
@@ -151,8 +160,8 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
         />
       ) : (
         <AnimatedEmptyState
-          title="No sales found"
-          description="No sales have been made for this program yet."
+          title="No earnings found"
+          description="No earnings have been made for this program yet."
           cardContent={() => (
             <>
               <CircleDollar className="size-4 text-neutral-700" />

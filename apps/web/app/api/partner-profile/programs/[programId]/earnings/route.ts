@@ -1,14 +1,15 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { getPartnerSalesCountQuerySchema } from "@/lib/zod/schemas/partners";
+import z from "@/lib/zod";
+import {
+  getPartnerSalesQuerySchema,
+  PartnerEarningsSchema,
+} from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
-// TODO
-// Move to /earnings/count
-
-// GET /api/partner-profile/programs/[programId]/earnings/count – get earnings count for a partner in a program enrollment
+// GET /api/partner-profile/programs/[programId]/earnings – get earnings for a partner in a program enrollment
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
     const { program } = await getProgramEnrollmentOrThrow({
@@ -16,8 +17,18 @@ export const GET = withPartnerProfile(
       programId: params.programId,
     });
 
-    const { status, customerId, payoutId, interval, start, end } =
-      getPartnerSalesCountQuerySchema.parse(searchParams);
+    const {
+      page,
+      pageSize,
+      status,
+      sortBy,
+      sortOrder,
+      customerId,
+      payoutId,
+      interval,
+      start,
+      end,
+    } = getPartnerSalesQuerySchema.parse(searchParams);
 
     const { startDate, endDate } = getStartEndDates({
       interval,
@@ -25,7 +36,7 @@ export const GET = withPartnerProfile(
       end,
     });
 
-    const count = await prisma.earnings.count({
+    const earnings = await prisma.earnings.findMany({
       where: {
         programId: program.id,
         partnerId: partner.id,
@@ -37,8 +48,22 @@ export const GET = withPartnerProfile(
           lte: endDate.toISOString(),
         },
       },
+      select: {
+        id: true,
+        amount: true,
+        earnings: true,
+        currency: true,
+        status: true,
+        type: true,
+        createdAt: true,
+        updatedAt: true,
+        customer: true,
+      },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      orderBy: { [sortBy]: sortOrder },
     });
 
-    return NextResponse.json({ count });
+    return NextResponse.json(z.array(PartnerEarningsSchema).parse(earnings));
   },
 );

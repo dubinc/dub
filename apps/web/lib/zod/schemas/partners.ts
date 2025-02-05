@@ -141,11 +141,12 @@ export const getPartnerSalesQuerySchema = getSalesQuerySchema.omit({
   partnerId: true,
 });
 
-export const PartnerSaleResponseSchema = SaleResponseSchema.omit({
+export const PartnerEarningsSchema = SaleResponseSchema.omit({
   partner: true,
   customer: true,
 }).merge(
   z.object({
+    type: z.string(),
     customer: z.object({
       email: z
         .string()
