@@ -41,6 +41,7 @@ export const transformClickEventData = (
     ...click,
     click: clickEventSchema.parse({
       ...click,
+      timestamp: new Date(click.timestamp),
       id: click.clickId,
     }),
   });
@@ -51,21 +52,21 @@ export const transformLeadEventData = (data: any) => {
     Object.entries(data).map(([key, value]) => [toCamelCase(key), value]),
   );
 
+  const { customer } = data;
+
   return leadWebhookEventSchema.parse({
     ...lead,
     customer: {
-      id: lead.customerId,
-      externalId: lead.customerExternalId,
-      name: lead.customerName,
-      email: lead.customerEmail,
+      ...customer,
+      country: undefined,
       avatar:
-        lead.customerAvatar ||
-        `https://api.dicebear.com/9.x/micah/svg?seed=${lead.customerId}`,
-      createdAt: lead.customerCreatedAt,
+        customer.avatar ||
+        `https://api.dicebear.com/9.x/micah/svg?seed=${customer.id}`,
     },
     click: {
       ...lead,
       id: lead.clickId,
+      timestamp: new Date(lead.timestamp + "Z"),
     },
     // transformLink -> add shortLink, qrCode, workspaceId, etc.
     link: transformLink(lead.link as ExpandedLink),
@@ -77,17 +78,16 @@ export const transformSaleEventData = (data: any) => {
     Object.entries(data).map(([key, value]) => [toCamelCase(key), value]),
   );
 
+  const { customer } = data;
+
   return saleWebhookEventSchema.parse({
     ...sale,
     customer: {
-      id: sale.customerId,
-      name: sale.customerName,
-      email: sale.customerEmail,
+      ...customer,
+      country: undefined,
       avatar:
-        sale.customerAvatar ||
-        `https://api.dicebear.com/9.x/micah/svg?seed=${sale.customerId}`,
-      externalId: sale.customerExternalId,
-      createdAt: sale.customerCreatedAt,
+        customer.avatar ||
+        `https://api.dicebear.com/9.x/micah/svg?seed=${customer.id}`,
     },
     sale: {
       amount: sale.amount,
@@ -98,6 +98,7 @@ export const transformSaleEventData = (data: any) => {
     click: {
       ...sale,
       id: sale.clickId,
+      timestamp: sale.clickedAt,
       qr: sale.qr === 1,
       bot: sale.bot === 1,
     },
