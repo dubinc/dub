@@ -14,6 +14,8 @@ export const integrationSchema = z.object({
   screenshots: z.array(z.string()).nullish(),
   installUrl: z.string().nullish(),
   verified: z.boolean(),
+  guideUrl: z.string().nullish(),
+  comingSoon: z.boolean().nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
   installations: z.number().default(0),
