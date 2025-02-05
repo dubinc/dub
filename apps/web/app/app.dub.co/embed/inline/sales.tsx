@@ -29,7 +29,7 @@ export function EmbedSales({ salesCount }: { salesCount: number }) {
         id: "customer",
         header: "Customer",
         cell: ({ row }) => {
-          return row.original.customer.email;
+          return row.original.customer ? row.original.customer.email : "-";
         },
       },
       {

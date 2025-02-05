@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 
 // TODO:
 // Let's use a cron job (similar to how we do it for usage cron) to account for the future where we have a lot of links to process
+// Check if CPC is enabled for the link
 
 // This route is used aggregate clicks events on daily basis for Program links and add to the Earnings table
 // Runs every day at 00:00 (0 0 * * *)
@@ -72,8 +73,8 @@ export async function GET(req: Request) {
           programId: programId!,
           partnerId: partnerId!,
           type: EventType.click,
-          quantity: 4,
-          amount: 1000,
+          quantity,
+          amount: 0,
         };
       }),
     );
