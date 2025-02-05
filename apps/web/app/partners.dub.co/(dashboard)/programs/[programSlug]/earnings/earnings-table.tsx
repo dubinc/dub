@@ -52,7 +52,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
   const { table, ...tableProps } = useTable({
     data: earnings?.slice(0, limit) || [],
     loading: isLoading,
-    error: error ? "Failed to fetch earnings events." : undefined,
+    error: error ? "Failed to fetch earnings." : undefined,
     columns: [
       {
         id: "createdAt",
@@ -68,9 +68,8 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         id: "customer",
         header: "Customer",
         accessorKey: "customer",
-        cell: ({ row }) => {
-          return row.original.customer.email;
-        },
+        cell: ({ row }) =>
+          row.original.customer ? row.original.customer.email : "-",
       },
       {
         id: "type",
@@ -82,25 +81,23 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         id: "saleAmount",
         header: "Sale Amount",
         accessorKey: "sale",
-        cell: ({ row }) => {
-          return row.original.amount
+        cell: ({ row }) =>
+          row.original.amount
             ? currencyFormatter(row.original.amount / 100, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })
-            : "-";
-        },
+            : "-",
       },
       {
         id: "earnings",
         header: "Earnings",
         accessorKey: "earnings",
-        cell: ({ row }) => {
-          return currencyFormatter(row.original.earnings / 100, {
+        cell: ({ row }) =>
+          currencyFormatter(row.original.earnings / 100, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
-          });
-        },
+          }),
       },
       {
         header: "Status",

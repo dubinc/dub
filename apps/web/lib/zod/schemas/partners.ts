@@ -147,12 +147,14 @@ export const PartnerEarningsSchema = SaleResponseSchema.omit({
 }).merge(
   z.object({
     type: z.string(),
-    customer: z.object({
-      email: z
-        .string()
-        .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
-      avatar: z.string().nullable(),
-    }),
+    customer: z
+      .object({
+        email: z
+          .string()
+          .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
+        avatar: z.string().nullable(),
+      })
+      .nullable(),
   }),
 );
 

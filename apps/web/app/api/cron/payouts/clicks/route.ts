@@ -1,83 +1,168 @@
-import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { createId } from "@/lib/api/utils";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@dub/prisma";
-import { EventType, Prisma } from "@prisma/client";
+import { Payout } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-/*
-    This route is used aggregate clicks events on daily basis for Program links
-    Runs once every day at 00:00 (0 0 * * *)
-*/
-
-// GET /cron/payouts/clicks
+// This route is used to calculate payouts for clicks.
+// Runs once every day at 00:00 (0 0 * * *)
+// GET /api/cron/payouts/clicks
 export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
 
-    const links = await prisma.link.findMany({
+    let clicks = await prisma.earnings.groupBy({
+      by: ["programId", "partnerId"],
       where: {
-        programId: {
-          not: null,
-        },
-        partnerId: {
-          not: null,
-        },
-        clicks: {
-          gt: 0,
-        },
+        type: "click",
+        status: "pending",
+        payoutId: null,
       },
-      select: {
-        id: true,
-        programId: true,
-        partnerId: true,
+      _sum: {
+        quantity: true,
       },
-      take: 10,
     });
 
-    if (!links.length) {
+    if (!clicks.length) {
       return NextResponse.json({
-        message: "No program links found. Skipping...",
+        message: "No pending clicks found. Skipping...",
       });
     }
 
-    // Find the start of the today and end current time
-    // TODO: Fix this
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date();
+    for (const { programId, partnerId } of clicks) {
+      const payout = await createClickPayout({
+        programId,
+        partnerId,
+      });
 
-    // TODO:
-    // Use queue to process clicks
-    const clicksData: Prisma.EarningsUncheckedCreateInput[] = await Promise.all(
-      links.map(async ({ id: linkId, programId, partnerId }) => {
-        const { clicks } = await getAnalytics({
-          start,
-          end,
-          linkId,
-          groupBy: "count",
-          event: "clicks",
-        });
+      console.log({
+        programId,
+        payout,
+      });
+    }
 
-        return {
-          linkId,
-          quantity: clicks,
-          programId: programId!,
-          partnerId: partnerId!,
-          type: EventType.click,
-          amount: 0,
-        };
-      }),
-    );
-
-    await prisma.earnings.createMany({
-      data: clicksData,
+    return NextResponse.json({
+      message: "Clicks payout created.",
     });
-
-    return NextResponse.json(clicksData);
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
 }
+
+const createClickPayout = async ({
+  programId,
+  partnerId,
+}: {
+  programId: string;
+  partnerId: string;
+}) => {
+  const earnings = await prisma.$transaction(async (tx) => {
+    const earnings = await tx.earnings.findMany({
+      where: {
+        programId,
+        partnerId,
+        payoutId: null,
+        type: "click",
+        status: "pending",
+      },
+      select: {
+        id: true,
+        createdAt: true,
+        earnings: true,
+        quantity: true,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+
+    if (!earnings.length) {
+      return;
+    }
+
+    // earliest click date
+    const periodStart = earnings[0].createdAt;
+
+    // end of the month of the latest click
+    let periodEnd = earnings[earnings.length - 1].createdAt;
+    periodEnd = new Date(periodEnd.getFullYear(), periodEnd.getMonth() + 1);
+
+    const totalQuantity = earnings.reduce(
+      (total, click) => total + click.quantity,
+      0,
+    );
+
+    const totalAmount = earnings.reduce(
+      (total, click) => total + click.earnings,
+      0,
+    );
+
+    let payout: Payout | null = null;
+
+    // check if the partner has another pending payout
+    const existingPayout = await tx.payout.findFirst({
+      where: {
+        programId,
+        partnerId,
+        status: "pending",
+        type: "clicks",
+      },
+    });
+
+    if (existingPayout) {
+      payout = await tx.payout.update({
+        where: {
+          id: existingPayout.id,
+        },
+        data: {
+          amount: {
+            increment: totalAmount,
+          },
+          quantity: {
+            increment: totalQuantity,
+          },
+          periodEnd,
+          description: existingPayout.description ?? "Dub Partners payout",
+        },
+      });
+    } else {
+      payout = await tx.payout.create({
+        data: {
+          id: createId({ prefix: "po_" }),
+          programId,
+          partnerId,
+          periodStart,
+          periodEnd,
+          amount: totalAmount,
+          quantity: totalQuantity,
+          description: "Dub Partners payout",
+          type: "clicks",
+        },
+      });
+    }
+
+    console.info("Payout created", payout);
+
+    if (!payout) {
+      throw new Error("Payout not created.");
+    }
+
+    // update the sales records
+    await tx.earnings.updateMany({
+      where: {
+        id: {
+          in: earnings.map(({ id }) => id),
+        },
+      },
+      data: {
+        status: "processed",
+        payoutId: payout.id,
+      },
+    });
+
+    return payout;
+  });
+};
