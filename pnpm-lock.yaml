@@ -190,8 +190,8 @@ importers:
         specifier: ^3.6.0
         version: 3.6.0
       dub:
-        specifier: ^0.46.19
-        version: 0.46.19(zod@3.22.4)
+        specifier: ^0.46.25
+        version: 0.46.25(zod@3.22.4)
       framer-motion:
         specifier: ^10.16.16
         version: 10.18.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -6594,8 +6594,8 @@ packages:
     peerDependencies:
       zod: '>= 3'
 
-  dub@0.46.19:
-    resolution: {integrity: sha512-JWQ3rJAEFvg4TN/SoOvcCjUvH1tLn+JFGX594C4Z18kJSvNjKOPe7sH1QBTNeoeV+T/xSqK1ZUdS8reb3b4Nxw==}
+  dub@0.46.25:
+    resolution: {integrity: sha512-biiTBGX0w/RpiKfyEt/4JJGE0EC98wQlPiKilbJWWM2UYwsOZG8JLhB8IXYXtUHKLNNhl71aG/1X/OP9vcJh3Q==}
     peerDependencies:
       zod: '>= 3'
 
@@ -18535,7 +18535,7 @@ snapshots:
     dependencies:
       zod: 3.23.8
 
-  dub@0.46.19(zod@3.22.4):
+  dub@0.46.25(zod@3.22.4):
     dependencies:
       zod: 3.22.4
 
