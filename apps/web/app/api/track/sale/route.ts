@@ -74,22 +74,24 @@ export const POST = withWorkspaceEdge(
       .omit({ timestamp: true })
       .parse(leadEvent.data[0]);
 
+    const eventId = nanoid(16);
+
+    const saleData = {
+      ...clickData,
+      event_id: eventId,
+      event_name: eventName,
+      customer_id: customer.id,
+      payment_processor: paymentProcessor,
+      amount,
+      currency,
+      invoice_id: invoiceId || "",
+      metadata: metadata ? JSON.stringify(metadata) : "",
+    };
+
     waitUntil(
       (async () => {
-        const eventId = nanoid(16);
-
         const [_sale, link, _project] = await Promise.all([
-          recordSale({
-            ...clickData,
-            event_id: eventId,
-            event_name: eventName,
-            customer_id: customer.id,
-            payment_processor: paymentProcessor,
-            amount,
-            currency,
-            invoice_id: invoiceId || "",
-            metadata: metadata ? JSON.stringify(metadata) : "",
-          }),
+          recordSale(saleData),
 
           // update link sales count
           prismaEdge.link.update({
@@ -181,19 +183,10 @@ export const POST = withWorkspaceEdge(
 
         // Send workspace webhook
         const sale = transformSaleEventData({
-          ...clickData,
+          ...saleData,
+          clickedAt: customer.clickedAt || customer.createdAt,
           link,
-          eventName,
-          paymentProcessor,
-          invoiceId,
-          amount,
-          currency,
-          customerId: customer.id,
-          customerExternalId: customer.externalId,
-          customerName: customer.name,
-          customerEmail: customer.email,
-          customerAvatar: customer.avatar,
-          customerCreatedAt: customer.createdAt,
+          customer,
         });
 
         await sendWorkspaceWebhookOnEdge({

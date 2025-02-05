@@ -20,11 +20,14 @@ import {
   CarouselContent,
   CarouselItem,
   CarouselNavBar,
+  CarouselThumbnail,
+  CarouselThumbnails,
   Logo,
   MaxWidthWrapper,
   Popover,
   Tooltip,
   TooltipContent,
+  useMediaQuery,
 } from "@dub/ui";
 import {
   CircleWarning,
@@ -45,7 +48,7 @@ import {
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { toast } from "sonner";
 
 const integrationSettings = {
@@ -60,6 +63,7 @@ export default function IntegrationPageClient({
   integration: InstalledIntegrationInfoProps;
 }) {
   const { slug, id: workspaceId } = useWorkspace();
+  const { isMobile } = useMediaQuery();
 
   const [openPopover, setOpenPopover] = useState(false);
   const { execute, isPending } = useAction(getIntegrationInstallUrl, {
@@ -218,7 +222,7 @@ export default function IntegrationPageClient({
               ),
             },
           ].map(({ label, content }) => (
-            <div className="flex flex-col gap-1">
+            <div key={label} className="flex flex-col gap-1">
               <span className="text-xs uppercase text-neutral-500">
                 {label}
               </span>
@@ -269,24 +273,58 @@ export default function IntegrationPageClient({
 
       <div className="w-full rounded-lg border border-neutral-200 bg-white">
         {integration.screenshots && integration.screenshots.length > 0 ? (
-          <Carousel
-            autoplay={{ delay: 5000 }}
-            className="rounded-t-lg bg-white p-4"
-          >
-            <CarouselContent>
-              {integration.screenshots.map((src, idx) => (
-                <CarouselItem key={idx}>
-                  <BlurImage
-                    src={src}
-                    alt={`Screenshot of ${integration.name}`}
-                    width={900}
-                    height={580}
-                    className="aspect-[900/580] w-[5/6] overflow-hidden rounded-md border border-neutral-200 object-cover object-top"
-                  />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselNavBar variant="floating" />
+          <Carousel autoplay={{ delay: 5000 }}>
+            <div className="relative rounded-t-lg bg-white p-4">
+              <CarouselContent>
+                {integration.screenshots.map((src, idx) => (
+                  <CarouselItem key={idx}>
+                    <BlurImageMemo
+                      src={src}
+                      alt={`Screenshot ${idx + 1} of ${integration.name}`}
+                      width={900}
+                      height={580}
+                      className="aspect-[900/580] w-[5/6] overflow-hidden rounded-md border border-neutral-200 object-cover object-top"
+                    />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselNavBar
+                variant="simple"
+                className="absolute bottom-6 left-1/2 -translate-x-1/2"
+              />
+            </div>
+            {!isMobile && (
+              <div className="relative">
+                <CarouselThumbnails className="py-0.5">
+                  {integration.screenshots.map((src, idx) => (
+                    <CarouselThumbnail
+                      key={idx}
+                      index={idx}
+                      className={({ active }) =>
+                        cn(
+                          "aspect-[900/580] h-[100px] shrink-0 select-none overflow-hidden rounded-[6px] border",
+                          "border-neutral-200 ring-2 ring-transparent transition-all duration-100",
+                          active
+                            ? "border-neutral-300 ring-black/10"
+                            : "hover:ring-black/5",
+                        )
+                      }
+                    >
+                      <BlurImageMemo
+                        src={src}
+                        alt={`Screenshot ${idx + 1} thumbnail`}
+                        width={900}
+                        height={580}
+                        className="overflow-hidden rounded-[5px] object-cover object-top"
+                      />
+                    </CarouselThumbnail>
+                  ))}
+                </CarouselThumbnails>
+
+                <div className="absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-white" />
+                <div className="absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-white" />
+              </div>
+            )}
           </Carousel>
         ) : null}
 
@@ -297,3 +335,5 @@ export default function IntegrationPageClient({
     </MaxWidthWrapper>
   );
 }
+
+const BlurImageMemo = memo(BlurImage);
