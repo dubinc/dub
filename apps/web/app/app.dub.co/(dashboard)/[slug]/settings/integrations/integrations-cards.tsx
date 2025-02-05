@@ -50,6 +50,17 @@ export async function IntegrationsCards({
       {} as Record<string, IntegrationsWithInstallations>,
     );
 
+  // Sort integrations within each category
+  Object.keys(groupedIntegrations).forEach((category) => {
+    groupedIntegrations[category].sort((a, b) => {
+      // Put "coming soon" integrations at the end
+      if (a.comingSoon && !b.comingSoon) return 1;
+      if (!a.comingSoon && b.comingSoon) return -1;
+      // Sort by installation count in descending order
+      return (b._count.installations || 0) - (a._count.installations || 0);
+    });
+  });
+
   const categories = Object.keys(groupedIntegrations).sort(
     (a, b) =>
       CATEGORY_ORDER.indexOf(a as any) - CATEGORY_ORDER.indexOf(b as any),
