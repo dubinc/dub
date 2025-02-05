@@ -30,6 +30,8 @@ async function OnboardingFormRSC() {
       email: user.email,
     },
     select: {
+      name: true,
+      email: true,
       bio: true,
       country: true,
       image: true,
