@@ -7,7 +7,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
 import { Badge, Button } from "@dub/ui";
 import { CircleCheckFill, LoadingSpinner } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { cn, getDomainWithoutWWW } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -15,24 +15,6 @@ import { mutate } from "swr";
 import { SettingsRow } from "./settings-row";
 
 type FormData = Pick<ProgramProps, "domain" | "url" | "cookieLength">;
-
-const linkStructures = [
-  {
-    label: "Short link",
-    example: "refer.dub.co/steven",
-    comingSoon: false,
-  },
-  {
-    label: "Query parameter",
-    example: "dub.co?via=steven",
-    comingSoon: true,
-  },
-  {
-    label: "Dynamic path",
-    example: "dub.co/refer/steven",
-    comingSoon: true,
-  },
-];
 
 export function TrackingSettings() {
   const { program } = useProgram();
@@ -52,6 +34,29 @@ export function TrackingSettings() {
 
 function TrackingSettingsForm({ program }: { program: ProgramProps }) {
   const { id: workspaceId } = useWorkspace();
+
+  const shortDomain = program.domain || "refer.dub.co";
+  const websiteDomain = program.url
+    ? getDomainWithoutWWW(program.url)
+    : "dub.co";
+
+  const linkStructures = [
+    {
+      label: "Short link",
+      example: `${shortDomain}/steven`,
+      comingSoon: false,
+    },
+    {
+      label: "Query parameter",
+      example: `${websiteDomain}?via=steven`,
+      comingSoon: true,
+    },
+    {
+      label: "Dynamic path",
+      example: `${websiteDomain}/refer/steven`,
+      comingSoon: true,
+    },
+  ];
 
   const { activeWorkspaceDomains: domains, loading: loadingDomains } =
     useDomains();

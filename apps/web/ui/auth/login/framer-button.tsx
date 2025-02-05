@@ -4,12 +4,9 @@ import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Framer } from "lucide-react";
 import { signIn } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 export const FramerButton = () => {
-  const searchParams = useSearchParams();
-  const next = searchParams?.get("next");
   const [clicked, setClicked] = useState(false);
 
   return (
@@ -19,7 +16,7 @@ export const FramerButton = () => {
       onClick={() => {
         setClicked(true);
         signIn("framer", {
-          ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+          callbackUrl: "/programs/framer",
         });
       }}
       icon={<Framer className="size-4 fill-white text-white" />}

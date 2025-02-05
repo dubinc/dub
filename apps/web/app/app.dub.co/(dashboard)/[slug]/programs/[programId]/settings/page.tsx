@@ -12,7 +12,7 @@ export default async function ProgramSettingsPage({
   const { programId } = params;
 
   return (
-    <PageContent title="Program Settings">
+    <PageContent title="Configuration">
       <MaxWidthWrapper>
         <div className="mb-10 grid grid-cols-1 gap-8">
           <ProgramSettings />
