@@ -7,9 +7,12 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-// This route is used aggregate clicks events on daily basis for Program links
-// Runs once every day at 00:00 (0 0 * * *)
-// GET /api/cron/process-clicks
+// TODO:
+// Let's use a cron job (similar to how we do it for usage cron) to account for the future where we have a lot of links to process
+
+// This route is used aggregate clicks events on daily basis for Program links and add to the Earnings table
+// Runs every day at 00:00 (0 0 * * *)
+// GET /api/cron/aggregate-clicks
 export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
@@ -25,13 +28,15 @@ export async function GET(req: Request) {
         clicks: {
           gt: 0,
         },
+        lastClicked: {
+          gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // find links that were clicked in the last 24 hours
+        },
       },
       select: {
         id: true,
         programId: true,
         partnerId: true,
       },
-      take: 10,
     });
 
     if (!links.length) {
@@ -40,17 +45,21 @@ export async function GET(req: Request) {
       });
     }
 
-    // Find the start of the today and end current time
-    // TODO: Fix this
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date();
+    const now = new Date();
 
-    // TODO:
-    // Use queue to process clicks
-    const clicksData: Prisma.EarningsUncheckedCreateInput[] = await Promise.all(
+    // Set 'start' to the beginning of the previous day (00:00:00)
+    const start = new Date(now);
+    start.setDate(start.getDate() - 1);
+    start.setHours(0, 0, 0, 0);
+
+    // Set 'end' to the end of the previous day (23:59:59)
+    const end = new Date(now);
+    end.setDate(end.getDate() - 1);
+    end.setHours(23, 59, 59, 999);
+
+    let earnings: Prisma.EarningsUncheckedCreateInput[] = await Promise.all(
       links.map(async ({ id: linkId, programId, partnerId }) => {
-        const { clicks } = await getAnalytics({
+        const { clicks: quantity } = await getAnalytics({
           start,
           end,
           linkId,
@@ -60,20 +69,30 @@ export async function GET(req: Request) {
 
         return {
           linkId,
-          quantity: clicks,
           programId: programId!,
           partnerId: partnerId!,
           type: EventType.click,
-          amount: 0,
+          quantity: 4,
+          amount: 1000,
         };
       }),
     );
 
-    await prisma.earnings.createMany({
-      data: clicksData,
-    });
+    earnings = earnings.filter((earning) => earning.amount > 0);
 
-    return NextResponse.json(clicksData);
+    console.log({ start, end, earnings });
+
+    if (earnings.length) {
+      await prisma.earnings.createMany({
+        data: earnings,
+      });
+    }
+
+    return NextResponse.json({
+      start,
+      end,
+      earnings,
+    });
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
