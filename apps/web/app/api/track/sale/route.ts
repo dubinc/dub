@@ -143,8 +143,8 @@ export const POST = withWorkspaceEdge(
             });
 
           const earningsData = prepareEarnings({
-            link,
-            customer,
+            linkId: link.id,
+            customerId: customer.id,
             program,
             partner,
             event: {

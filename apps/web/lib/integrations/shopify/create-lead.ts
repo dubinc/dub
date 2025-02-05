@@ -104,8 +104,8 @@ export async function createShopifyLead({
 
     await prisma.earnings.create({
       data: prepareEarnings({
-        link,
-        customer,
+        linkId: link.id,
+        customerId: customer.id,
         program,
         partner,
         event: {

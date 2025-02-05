@@ -1,7 +1,5 @@
 import {
-  Customer,
   EventType,
-  Link,
   Prisma,
   Program,
   ProgramEnrollment,
@@ -9,10 +7,11 @@ import {
 import { calculateSaleEarnings } from "../sales/calculate-earnings";
 
 interface CreateEarnings {
-  link: Pick<Link, "id">;
-  customer?: Pick<Customer, "id">;
   program: Pick<Program, "id" | "commissionAmount" | "commissionType">;
   partner: Pick<ProgramEnrollment, "partnerId" | "commissionAmount">;
+
+  linkId: string;
+  customerId?: string;
 
   event: {
     type: EventType;
@@ -33,13 +32,13 @@ interface CreateEarnings {
 
 export const prepareEarnings = ({
   event,
-  link,
-  customer,
+  linkId,
+  customerId,
   program,
   partner,
   click,
   sale,
-}: CreateEarnings) => {
+}: CreateEarnings): Prisma.EarningsUncheckedCreateInput => {
   const amount = click?.amount || sale?.amount || 0;
   const invoiceId = sale?.invoiceId;
   const currency = sale?.currency;
@@ -56,10 +55,10 @@ export const prepareEarnings = ({
       })
     : null;
 
-  const data: Prisma.EarningsUncheckedCreateInput = {
+  return {
     eventId: event.id,
     type: event.type,
-    linkId: link.id,
+    linkId,
     programId: program.id,
     partnerId: partner.partnerId,
     quantity,
@@ -67,10 +66,6 @@ export const prepareEarnings = ({
     ...(currency && { currency: currency.toLowerCase() }),
     ...(earnings && { earnings }),
     ...(invoiceId && { invoiceId }),
-    ...(customer && { customerId: customer.id }),
+    ...(customerId && { customerId }),
   };
-
-  console.info("Earnings", data);
-
-  return data;
 };

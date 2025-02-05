@@ -277,8 +277,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
     const leadEarnings = clickEvent
       ? prepareEarnings({
-          link,
-          customer,
+          linkId: link.id,
+          customerId: customer.id,
           program,
           partner,
           event: {
@@ -289,8 +289,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       : null;
 
     const saleEarnings = prepareEarnings({
-      link,
-      customer,
+      linkId: link.id,
+      customerId: customer.id,
       program,
       partner,
       event: {
