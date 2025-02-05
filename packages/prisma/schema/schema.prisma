@@ -27,7 +27,6 @@ model User {
   source           String? // where the user came from
   defaultWorkspace String? // slug of the user's default workspace
   defaultPartnerId String? // the user's default partner ID
-  referralLinkId   String? // TODO: remove this
   dubPartnerId     String? // this user's dub partner ID
 
   // relational data
