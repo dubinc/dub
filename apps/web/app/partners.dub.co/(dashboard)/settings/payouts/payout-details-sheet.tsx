@@ -1,6 +1,6 @@
 import { SHEET_MAX_ITEMS } from "@/lib/partners/constants";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { PartnerPayoutResponse, PartnerEarningsResponse } from "@/lib/types";
+import { PartnerEarningsResponse, PartnerPayoutResponse } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { PayoutTypeBadge } from "@/ui/partners/payout-type-badge";
 import { X } from "@/ui/shared/icons";
