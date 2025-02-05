@@ -46,10 +46,12 @@ export async function createShopifyLead({
     },
   });
 
+  const eventName = "Account created";
+
   const leadData = leadEventSchemaTB.parse({
     ...clickData,
     event_id: nanoid(16),
-    event_name: "Account created",
+    event_name: eventName,
     customer_id: customer.id,
   });
 
@@ -119,14 +121,10 @@ export async function createShopifyLead({
       trigger: "lead.created",
       workspace,
       data: transformLeadEventData({
-        ...leadData,
+        ...clickData,
+        eventName,
         link,
-        customerId: customer.id,
-        customerExternalId: customer.externalId,
-        customerName: customer.name,
-        customerEmail: customer.email,
-        customerAvatar: customer.avatar,
-        customerCreatedAt: customer.createdAt,
+        customer,
       }),
     }),
   );

@@ -331,14 +331,9 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           workspace,
           data: transformLeadEventData({
             ...clickEvent,
-            link: linkUpdated,
             eventName: "Checkout session completed",
-            customerId: customer.id,
-            customerExternalId: customer.externalId,
-            customerName: customer.name,
-            customerEmail: customer.email,
-            customerAvatar: customer.avatar,
-            customerCreatedAt: customer.createdAt,
+            link: linkUpdated,
+            customer,
           }),
         });
       }
@@ -349,13 +344,9 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         workspace,
         data: transformSaleEventData({
           ...saleData,
+          clickedAt: customer.clickedAt || customer.createdAt,
           link: linkUpdated,
-          customerId: customer.id,
-          customerExternalId: customer.externalId,
-          customerName: customer.name,
-          customerEmail: customer.email,
-          customerAvatar: customer.avatar,
-          customerCreatedAt: customer.createdAt,
+          customer,
         }),
       });
     })(),

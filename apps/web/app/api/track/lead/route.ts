@@ -155,21 +155,14 @@ export const POST = withWorkspaceEdge(
           });
         }
 
-        const lead = transformLeadEventData({
-          ...clickData,
-          link,
-          eventName,
-          customerId: customer.id,
-          customerExternalId: customer.externalId,
-          customerName: customer.name,
-          customerEmail: customer.email,
-          customerAvatar: customer.avatar,
-          customerCreatedAt: customer.createdAt,
-        });
-
         await sendWorkspaceWebhookOnEdge({
           trigger: "lead.created",
-          data: lead,
+          data: transformLeadEventData({
+            ...clickData,
+            eventName,
+            link,
+            customer,
+          }),
           workspace,
         });
       })(),

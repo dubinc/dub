@@ -112,16 +112,8 @@ export async function createShopifySale({
       data: transformSaleEventData({
         ...saleData,
         link,
-        ...(customer
-          ? {
-              customerId: customer.id,
-              customerExternalId: customer.externalId,
-              customerName: customer.name,
-              customerEmail: customer.email,
-              customerAvatar: customer.avatar,
-              customerCreatedAt: customer.createdAt,
-            }
-          : {}),
+        clickedAt: customer.clickedAt || customer.createdAt,
+        customer,
       }),
     }),
   );

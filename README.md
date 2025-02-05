@@ -5,7 +5,7 @@
 <h3 align="center">Dub.co</h3>
 
 <p align="center">
-    The open-source Bitly successor.
+    The open-source link attribution platform.
     <br />
     <a href="https://dub.co"><strong>Learn more »</strong></a>
     <br />
@@ -31,7 +31,7 @@
 
 ## Introduction
 
-Dub.co is the open-source link management infrastructure for modern marketing teams.
+Dub.co is the open-source link attribution platform for modern marketing teams.
 
 ## Features
 
