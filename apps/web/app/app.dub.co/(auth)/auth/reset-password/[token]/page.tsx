@@ -3,8 +3,6 @@ import EmptyState from "@/ui/shared/empty-state";
 import { prisma } from "@dub/prisma";
 import { InputPassword } from "@dub/ui";
 
-export const runtime = "nodejs";
-
 interface Props {
   params: {
     token: string;
