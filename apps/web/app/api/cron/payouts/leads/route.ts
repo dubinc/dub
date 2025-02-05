@@ -6,17 +6,17 @@ import { createPayout } from "../create-payout";
 
 export const dynamic = "force-dynamic";
 
-// This route is used to calculate payouts for clicks.
+// This route is used to calculate payouts for leads.
 // Runs once every day at 00:00 (0 0 * * *)
-// GET /api/cron/payouts/clicks
+// GET /api/cron/payouts/leads
 export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
 
-    const clicks = await prisma.earnings.groupBy({
+    const leads = await prisma.earnings.groupBy({
       by: ["programId", "partnerId"],
       where: {
-        type: "click",
+        type: "lead",
         status: "pending",
         payoutId: null,
       },
@@ -25,23 +25,23 @@ export async function GET(req: Request) {
       },
     });
 
-    if (!clicks.length) {
+    if (!leads.length) {
       return NextResponse.json({
-        message: "No pending clicks found. Skipping...",
+        message: "No pending leads found. Skipping...",
       });
     }
 
-    for (const { programId, partnerId } of clicks) {
+    for (const { programId, partnerId } of leads) {
       await createPayout({
         programId,
         partnerId,
-        type: "click",
+        type: "lead",
       });
     }
 
     return NextResponse.json({
-      message: "Clicks payout created.",
-      clicks,
+      message: "Leads payout created.",
+      leads,
     });
   } catch (error) {
     return handleAndReturnErrorResponse(error);
