@@ -1,6 +1,6 @@
-import { prepareEarnings } from "@/lib/api/earnings/prepare-earnings";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
+import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -129,24 +129,25 @@ export async function invoicePaid(event: Stripe.Event) {
         },
       });
 
-    const earningsData = prepareEarnings({
-      linkId: link.id,
-      customerId: customer.id,
+    const saleEarnings = calculateSaleEarnings({
       program,
       partner,
-      event: {
-        type: "sale",
-        id: eventId,
-      },
-      sale: {
-        amount: saleData.amount,
-        currency: saleData.currency,
-        invoiceId: saleData.invoice_id,
-      },
+      sales: 1,
+      saleAmount: saleData.amount,
     });
 
     await prisma.earnings.create({
-      data: earningsData,
+      data: {
+        programId: program.id,
+        linkId: link.id,
+        partnerId: partner.partnerId,
+        eventId,
+        customerId: customer.id,
+        quantity: 1,
+        type: "sale",
+        amount: saleData.amount,
+        earnings: saleEarnings,
+      },
     });
 
     waitUntil(
@@ -157,8 +158,8 @@ export async function invoicePaid(event: Stripe.Event) {
         },
         program,
         sale: {
-          amount: earningsData.amount!,
-          earnings: earningsData.earnings!,
+          amount: saleData.amount,
+          earnings: saleEarnings,
         },
       }),
     );

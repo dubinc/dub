@@ -1,6 +1,6 @@
-import { prepareEarnings } from "@/lib/api/earnings/prepare-earnings";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
+import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
 import { createId } from "@/lib/api/utils";
 import {
   getClickEvent,
@@ -18,7 +18,7 @@ import z from "@/lib/zod";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
-import { Customer } from "@dub/prisma/client";
+import { Customer, EventType } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
@@ -275,37 +275,41 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         },
       });
 
-    const leadEarnings = clickEvent
-      ? prepareEarnings({
-          linkId: link.id,
-          customerId: customer.id,
-          program,
-          partner,
-          event: {
-            type: "lead",
-            id: eventId,
-          },
-        })
-      : null;
-
-    const saleEarnings = prepareEarnings({
+    const earnings = {
+      programId: program.id,
       linkId: link.id,
+      partnerId: partner.partnerId,
+      eventId,
       customerId: customer.id,
+      quantity: 1,
+    };
+
+    const saleEarnings = calculateSaleEarnings({
       program,
       partner,
-      event: {
-        type: "sale",
-        id: eventId,
-      },
-      sale: {
-        amount: saleData.amount,
-        currency: saleData.currency,
-        invoiceId: saleData.invoice_id,
-      },
+      sales: 1,
+      saleAmount: saleData.amount,
     });
 
     await prisma.earnings.createMany({
-      data: [...(leadEarnings ? [leadEarnings] : []), saleEarnings],
+      data: [
+        ...(clickEvent
+          ? [
+              {
+                ...earnings,
+                type: EventType.lead,
+                amount: 0,
+              },
+            ]
+          : []),
+
+        {
+          ...earnings,
+          type: EventType.sale,
+          amount: saleData.amount,
+          earnings: saleEarnings,
+        },
+      ],
     });
 
     waitUntil(
@@ -316,8 +320,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         },
         program,
         sale: {
-          amount: saleEarnings.amount!,
-          earnings: saleEarnings.earnings!,
+          amount: saleData.amount,
+          earnings: saleEarnings,
         },
       }),
     );

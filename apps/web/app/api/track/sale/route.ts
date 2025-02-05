@@ -1,7 +1,7 @@
-import { prepareEarnings } from "@/lib/api/earnings/prepare-earnings";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
+import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
@@ -142,25 +142,26 @@ export const POST = withWorkspaceEdge(
               },
             });
 
-          const earningsData = prepareEarnings({
-            linkId: link.id,
-            customerId: customer.id,
+          const saleEarnings = calculateSaleEarnings({
             program,
             partner,
-            event: {
-              type: "sale",
-              id: eventId,
-            },
-            sale: {
-              amount,
-              currency,
-              invoiceId,
-            },
+            sales: 1,
+            saleAmount: saleData.amount,
           });
 
           await Promise.allSettled([
             prismaEdge.earnings.create({
-              data: earningsData,
+              data: {
+                programId: program.id,
+                linkId: link.id,
+                partnerId: partner.partnerId,
+                eventId,
+                customerId: customer.id,
+                quantity: 1,
+                type: "sale",
+                amount: saleData.amount,
+                earnings: saleEarnings,
+              },
             }),
 
             notifyPartnerSale({
@@ -170,8 +171,8 @@ export const POST = withWorkspaceEdge(
               },
               program,
               sale: {
-                amount: earningsData.amount!,
-                earnings: earningsData.earnings!,
+                amount: saleData.amount,
+                earnings: saleEarnings,
               },
             }),
           ]);

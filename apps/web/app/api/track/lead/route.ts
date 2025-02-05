@@ -1,4 +1,3 @@
-import { prepareEarnings } from "@/lib/api/earnings/prepare-earnings";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { createId, parseRequestBody } from "@/lib/api/utils";
@@ -124,34 +123,18 @@ export const POST = withWorkspaceEdge(
           }),
         ]);
 
-        if (link.programId) {
-          const { program, ...partner } =
-            await prismaEdge.programEnrollment.findFirstOrThrow({
-              where: {
-                links: {
-                  some: {
-                    id: link.id,
-                  },
-                },
-              },
-              select: {
-                program: true,
-                partnerId: true,
-                commissionAmount: true,
-              },
-            });
-
+        if (link.programId && link.partnerId) {
           await prismaEdge.earnings.create({
-            data: prepareEarnings({
+            data: {
+              programId: link.programId,
               linkId: link.id,
+              partnerId: link.partnerId,
+              eventId,
               customerId: customer.id,
-              program,
-              partner,
-              event: {
-                type: "lead",
-                id: eventId,
-              },
-            }),
+              type: "lead",
+              amount: 0,
+              quantity: 1,
+            },
           });
         }
 
