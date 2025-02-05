@@ -56,7 +56,7 @@ export function PayoutStatsAndSettings() {
           {bankAccount && (
             <div className="text-sm">
               <p className="text-neutral-600">{bankAccount.bank_name}</p>
-              <div className="flex items-center gap-1.5 font-mono text-gray-400">
+              <div className="flex items-center gap-1.5 font-mono text-neutral-400">
                 <MatrixLines className="size-3" />
                 {bankAccount.routing_number}
                 <MatrixLines className="size-3" />
