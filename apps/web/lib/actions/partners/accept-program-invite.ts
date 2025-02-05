@@ -35,17 +35,12 @@ export const acceptProgramInviteAction = authPartnerActionClient
       prisma.programInvite.delete({
         where: { id: programInvite.id },
       }),
-      prisma.link.update({
-        where: { id: programInvite.linkId },
-        data: {
-          partnerId: partner.id,
-        },
-      }),
     ]);
 
     waitUntil(
       backfillLinkData({
-        programEnrollmentId: programEnrollment.id,
+        programId: programInvite.programId,
+        partnerId: partner.id,
         linkId: programInvite.linkId,
       }),
     );

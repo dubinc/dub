@@ -28,7 +28,7 @@ const PRESENCE_ANIMATION = {
   transition: { duration: 0.1 },
 };
 
-export async function IntegrationsCards({
+export function IntegrationsCards({
   integrations,
 }: {
   integrations: IntegrationsWithInstallations;
