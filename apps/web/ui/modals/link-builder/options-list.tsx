@@ -1,3 +1,4 @@
+import useWorkspace from "@/lib/swr/use-workspace";
 import { AlertCircleFill, CheckCircleFill, X } from "@/ui/shared/icons";
 import { SimpleTooltipContent, Tooltip, useMediaQuery } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/icons";
@@ -99,6 +100,7 @@ function LinkCloakingToggleBadge({
   toggle: (typeof TOGGLES)[number];
   onRemove: () => void;
 }) {
+  const { id: workspaceId } = useWorkspace();
   const { watch } = useFormContext<LinkFormData>();
   const [url, domain] = watch(["url", "domain"]);
   const [debouncedUrl] = useDebounce(url, 500);
@@ -109,7 +111,7 @@ function LinkCloakingToggleBadge({
 
   const { data, isLoading } = useSWR<{ iframeable: boolean }>(
     domain && isValidUrl
-      ? `/api/links/iframeable?domain=${domain}&url=${debouncedUrl}`
+      ? `/api/links/iframeable?domain=${domain}&url=${debouncedUrl}&workspaceId=${workspaceId}`
       : null,
     fetcher,
   );

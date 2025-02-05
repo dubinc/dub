@@ -4,8 +4,6 @@ import { getUrlQuerySchema } from "@/lib/zod/schemas/links";
 import { fetchWithTimeout } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 export async function GET(req: NextRequest) {
   try {
     const { url } = getUrlQuerySchema.parse({

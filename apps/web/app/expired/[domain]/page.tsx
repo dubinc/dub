@@ -1,14 +1,12 @@
-import { getDomainViaEdge } from "@/lib/planetscale/get-domain-via-edge";
 import { BubbleIcon } from "@/ui/placeholders/bubble-icon";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { CTA } from "@/ui/placeholders/cta";
 import { FeaturesSection } from "@/ui/placeholders/features-section";
 import { Hero } from "@/ui/placeholders/hero";
+import { prisma } from "@dub/prisma";
 import { CircleHalfDottedClock, Footer, Nav, NavMobile } from "@dub/ui";
 import { cn, constructMetadata, createHref } from "@dub/utils";
 import { redirect } from "next/navigation";
-
-export const runtime = "edge";
 
 export const metadata = constructMetadata({
   title: "Expired Link",
@@ -27,10 +25,14 @@ export default async function ExpiredLinkPage({
 }: {
   params: { domain: string };
 }) {
-  const domainEdge = await getDomainViaEdge(params.domain);
+  const domain = await prisma.domain.findUnique({
+    where: {
+      slug: params.domain,
+    },
+  });
 
-  if (domainEdge?.expiredUrl) {
-    redirect(domainEdge.expiredUrl);
+  if (domain?.expiredUrl) {
+    redirect(domain.expiredUrl);
   }
 
   return (

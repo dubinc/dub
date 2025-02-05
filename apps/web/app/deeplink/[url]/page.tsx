@@ -1,5 +1,3 @@
-export const runtime = "edge";
-
 export default function DeepLinkPage({ params }: { params: { url: string } }) {
   // First decode the full URL parameter from the route
   const url = decodeURIComponent(params.url);

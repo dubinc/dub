@@ -1,21 +1,17 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { ratelimitOrThrow } from "@/lib/api/utils";
+import { withWorkspace } from "@/lib/auth";
 import {
   getDomainQuerySchema,
   getUrlQuerySchema,
 } from "@/lib/zod/schemas/links";
 import { getSearchParams, isIframeable } from "@dub/utils";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-export const runtime = "edge";
-
-export async function GET(req: NextRequest) {
+export const GET = withWorkspace(async ({ req, workspace }) => {
   try {
     const { url, domain } = getUrlQuerySchema
       .and(getDomainQuerySchema)
       .parse(getSearchParams(req.url));
-
-    await ratelimitOrThrow(req, "iframeable");
 
     const iframeable = await isIframeable({ url, requestDomain: domain });
 
@@ -23,4 +19,4 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
-}
+});
