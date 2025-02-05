@@ -1,6 +1,8 @@
-import { SVGProps } from "react";
+import { SVGProps, useId } from "react";
 
 export function CardDiscover(props: SVGProps<SVGSVGElement>) {
+  const id = useId();
+
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -10,25 +12,20 @@ export function CardDiscover(props: SVGProps<SVGSVGElement>) {
       viewBox="0 0 22 22"
       {...props}
     >
-      <g filter="url(#filter0_i_3233_2334)">
-        <circle
-          cx="11"
-          cy="11"
-          r="10.1145"
-          fill="url(#paint0_linear_3233_2334)"
-        />
+      <g filter={`url(#${id}-filter)`}>
+        <circle cx="11" cy="11" r="10.1145" fill={`url(#${id}-gradient)`} />
       </g>
       <defs>
         <filter
-          id="filter0_i_3233_2334"
+          id={`${id}-filter`}
           x="0.885498"
           y="0.885483"
           width="22.229"
           height="22.229"
           filterUnits="userSpaceOnUse"
-          color-interpolation-filters="sRGB"
+          colorInterpolationFilters="sRGB"
         >
-          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
           <feBlend
             mode="normal"
             in="SourceGraphic"
@@ -55,15 +52,15 @@ export function CardDiscover(props: SVGProps<SVGSVGElement>) {
           />
         </filter>
         <linearGradient
-          id="paint0_linear_3233_2334"
+          id={`${id}-gradient`}
           x1="0.885498"
           y1="0.885483"
           x2="21.1145"
           y2="21.1145"
           gradientUnits="userSpaceOnUse"
         >
-          <stop offset="0.28" stop-color="#E0481E" />
-          <stop offset="0.765" stop-color="#F59214" />
+          <stop offset="0.28" stopColor="#E0481E" />
+          <stop offset="0.765" stopColor="#F59214" />
         </linearGradient>
       </defs>
     </svg>
