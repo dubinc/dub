@@ -1,0 +1,18 @@
+model Reward {
+  id        String @id @default(cuid())
+  programId String
+
+  type       EventType
+  rewardType CommissionType      @default(percentage) // TODO: Can we do something better here?
+  amount     Int                 @default(0)
+  duration   Int?
+  interval   CommissionInterval?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  program           Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  ProgramEnrollment ProgramEnrollment[]
+
+  @@index([programId])
+}
