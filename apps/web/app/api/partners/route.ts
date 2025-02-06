@@ -135,8 +135,17 @@ export const GET = withWorkspace(
 // POST /api/partners - add a partner for a program
 export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
-    const { programId, name, email, image, username, linkProps, tenantId } =
-      createPartnerSchema.parse(await parseRequestBody(req));
+    const {
+      programId,
+      name,
+      email,
+      image,
+      username,
+      country,
+      description,
+      linkProps,
+      tenantId,
+    } = createPartnerSchema.parse(await parseRequestBody(req));
 
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -186,10 +195,13 @@ export const POST = withWorkspace(
       programId,
       tenantId,
       linkId: partnerLink.id,
+      workspace,
       partner: {
         name,
         email,
         image,
+        // country,
+        // description,
       },
     });
 

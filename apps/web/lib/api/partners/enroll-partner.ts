@@ -3,6 +3,9 @@
 import { createId } from "@/lib/api/utils";
 import { updateConfig } from "@/lib/edge-config";
 import { recordLink } from "@/lib/tinybird";
+import { WorkspaceProps } from "@/lib/types";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { partnerWebhookEventSchema } from "@/lib/webhook/schemas";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -13,11 +16,13 @@ export const enrollPartner = async ({
   programId,
   linkId,
   tenantId,
+  workspace,
   partner,
 }: {
   programId: string;
   linkId: string;
   tenantId?: string;
+  workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
   partner: {
     name: string;
     email?: string | null;
@@ -111,6 +116,12 @@ export const enrollPartner = async ({
           key: "partnersPortal",
           value: partner.email,
         }),
+
+      sendWorkspaceWebhook({
+        trigger: "partner.created",
+        workspace,
+        data: partnerWebhookEventSchema.parse(upsertedPartner),
+      }),
     ]),
   );
 
