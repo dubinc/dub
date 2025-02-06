@@ -6,7 +6,7 @@ import { webhookPayloadSchema } from "../../webhook/schemas";
 import {
   ClickEventWebhookData,
   LeadEventWebhookData,
-  PartnerEventWebhookData,
+  PartnerEventDataProps,
   SaleEventWebhookData,
 } from "../../webhook/types";
 
@@ -200,7 +200,7 @@ const createSaleTemplate = ({ data }: { data: SaleEventWebhookData }) => {
   };
 };
 
-const createPartnerTemplate = ({ data }: { data: PartnerEventWebhookData }) => {
+const createPartnerTemplate = ({ data }: { data: PartnerEventDataProps }) => {
   const { name, email, country } = data;
 
   return {

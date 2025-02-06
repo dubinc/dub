@@ -35,5 +35,3 @@ export type ClickEventWebhookData = z.infer<typeof clickWebhookEventSchema>;
 export type LeadEventWebhookData = z.infer<typeof leadWebhookEventSchema>;
 
 export type SaleEventWebhookData = z.infer<typeof saleWebhookEventSchema>;
-
-export type PartnerEventWebhookData = z.infer<typeof PartnerSchema>;
