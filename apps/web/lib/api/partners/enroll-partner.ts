@@ -5,7 +5,7 @@ import { updateConfig } from "@/lib/edge-config";
 import { recordLink } from "@/lib/tinybird";
 import { WorkspaceProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { partnerWebhookEventSchema } from "@/lib/webhook/schemas";
+import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -120,7 +120,7 @@ export const enrollPartner = async ({
       sendWorkspaceWebhook({
         workspace,
         trigger: "partner.created",
-        data: partnerWebhookEventSchema.parse(upsertedPartner),
+        data: PartnerSchema.parse(upsertedPartner),
       }),
     ]),
   );

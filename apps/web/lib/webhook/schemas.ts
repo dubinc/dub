@@ -32,11 +32,6 @@ export const saleWebhookEventSchema = z.object({
   sale: saleSchema,
 });
 
-export const partnerWebhookEventSchema = z.object({
-  eventName: z.string(),
-  partner: PartnerSchema,
-});
-
 // Schema of the payload sent to the webhook endpoint by Dub
 export const webhookPayloadSchema = z.object({
   id: z.string().describe("Unique identifier for the event."),
@@ -109,7 +104,7 @@ export const webhookEventSchema = z
         id: z.string(),
         event: z.literal("partner.created"),
         createdAt: z.string(),
-        data: partnerWebhookEventSchema,
+        data: PartnerSchema,
       })
       .openapi({
         ref: "PartnerCreatedEvent",
