@@ -8,14 +8,14 @@ export default function ProgramSettingsLayout({
   params,
 }: PropsWithChildren<{ params: { slug: string; programId: string } }>) {
   return (
-    <MaxWidthWrapper>
-      <PageContent title="Configuration">
+    <PageContent title="Configuration">
+      <MaxWidthWrapper>
         <ProgramSettingsHeader
           slug={params.slug}
           programId={params.programId}
         />
         <div className="mt-8">{children}</div>
-      </PageContent>
-    </MaxWidthWrapper>
+      </MaxWidthWrapper>
+    </PageContent>
   );
 }
