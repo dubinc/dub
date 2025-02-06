@@ -1,1 +1,18 @@
-{}
+{
+  "id": "evt_77QXrD9J1hfu1wyLKzfTH6omZ",
+  "event": "partner.created",
+  "createdAt": "2025-02-06T17:16:00.021Z",
+  "data": {
+    "id": "pn_BlBxRjQW7pC2MreIvtCcCROr",
+    "name": "Matthew Hayden",
+    "email": "matthew@example.com",
+    "image": null,
+    "country": "US",
+    "bio": "I'm a content creator who works with brands to grow their business.",
+    "status": "approved",
+    "stripeConnectId": null,
+    "payoutsEnabled": false,
+    "createdAt": "2025-02-06T17:15:59.658Z",
+    "updatedAt": "2025-02-06T17:15:59.658Z"
+  }
+}
