@@ -3,6 +3,7 @@ import linkClicked from "./link-clicked.json";
 import linkCreated from "./link-created.json";
 import linkDeleted from "./link-deleted.json";
 import linkUpdated from "./link-updated.json";
+import partnerCreated from "./partner-created.json";
 import saleCreated from "./sale-created.json";
 
 // TODO:
@@ -14,4 +15,5 @@ export const samplePayload = {
   "link.clicked": linkClicked,
   "lead.created": leadCreated,
   "sale.created": saleCreated,
+  "partner.created": partnerCreated,
 } as any;

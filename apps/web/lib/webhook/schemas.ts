@@ -2,6 +2,7 @@ import z from "@/lib/zod";
 import { clickEventSchema } from "../zod/schemas/clicks";
 import { CustomerSchema } from "../zod/schemas/customers";
 import { linkEventSchema } from "../zod/schemas/links";
+import { PartnerSchema } from "../zod/schemas/partners";
 import { WEBHOOK_TRIGGERS } from "./constants";
 
 const saleSchema = z.object({
@@ -29,6 +30,11 @@ export const saleWebhookEventSchema = z.object({
   click: clickEventSchema,
   link: linkEventSchema,
   sale: saleSchema,
+});
+
+export const partnerWebhookEventSchema = z.object({
+  eventName: z.string(),
+  partner: PartnerSchema,
 });
 
 // Schema of the payload sent to the webhook endpoint by Dub
@@ -96,6 +102,18 @@ export const webhookEventSchema = z
       .openapi({
         ref: "SaleCreatedEvent",
         description: "Triggered when a sale is created.",
+      }),
+
+    z
+      .object({
+        id: z.string(),
+        event: z.literal("partner.created"),
+        createdAt: z.string(),
+        data: partnerWebhookEventSchema,
+      })
+      .openapi({
+        ref: "PartnerCreatedEvent",
+        description: "Triggered when a partner is created.",
       }),
   ])
   .openapi({

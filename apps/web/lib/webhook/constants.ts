@@ -14,6 +14,7 @@ export const WORKSPACE_LEVEL_WEBHOOK_TRIGGERS = [
   "link.deleted",
   "lead.created",
   "sale.created",
+  "partner.created",
 ] as const;
 
 export const LINK_LEVEL_WEBHOOK_TRIGGERS = ["link.clicked"] as const;
@@ -30,6 +31,7 @@ export const WEBHOOK_TRIGGER_DESCRIPTIONS = {
   "link.clicked": "Link clicked",
   "lead.created": "Lead created",
   "sale.created": "Sale created",
+  "partner.created": "Partner created",
 } as const;
 
 export const WEBHOOK_FAILURE_NOTIFY_THRESHOLDS = [5, 10, 15] as const;
