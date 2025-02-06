@@ -85,18 +85,19 @@ export async function createShopifyLead({
   ]);
 
   if (link.programId && link.partnerId) {
-    await prisma.commission.create({
-      data: {
-        programId: link.programId,
-        linkId: link.id,
-        partnerId: link.partnerId,
-        eventId: leadData.event_id,
-        customerId: customer.id,
-        type: "lead",
-        amount: 0,
-        quantity: 1,
-      },
-    });
+    // TODO: check if there is a Lead Reward Rule for this partner and if yes, create a lead commission
+    // await prisma.commission.create({
+    //   data: {
+    //     programId: link.programId,
+    //     linkId: link.id,
+    //     partnerId: link.partnerId,
+    //     eventId: leadData.event_id,
+    //     customerId: customer.id,
+    //     type: "lead",
+    //     amount: 0,
+    //     quantity: 1,
+    //   },
+    // });
   }
 
   waitUntil(
