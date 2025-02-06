@@ -7,6 +7,7 @@ import {
   PartnerCommissionSchema,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { CommissionStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId]/commissions – get commissions for a partner in a program enrollment
@@ -40,7 +41,18 @@ export const GET = withPartnerProfile(
       where: {
         programId: program.id,
         partnerId: partner.id,
-        ...(status && { status }),
+        AND: [
+          {
+            status: {
+              notIn: [
+                CommissionStatus.refunded,
+                CommissionStatus.duplicate,
+                CommissionStatus.fraud,
+              ],
+            },
+          },
+          ...(status ? [{ status }] : []),
+        ],
         ...(customerId && { customerId }),
         ...(payoutId && { payoutId }),
         createdAt: {
