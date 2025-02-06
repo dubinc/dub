@@ -140,7 +140,7 @@ export async function createShopifySale({
       program,
       partner,
       sales: 1,
-      saleAmount: saleData.amount,
+      saleAmount: amount,
     });
 
     await prisma.commission.create({
@@ -152,7 +152,7 @@ export async function createShopifySale({
         customerId: customer.id,
         quantity: 1,
         type: "sale",
-        amount: saleData.amount,
+        amount,
         earnings: saleEarnings,
         invoiceId,
       },
@@ -166,7 +166,7 @@ export async function createShopifySale({
         },
         program,
         sale: {
-          amount: saleData.amount,
+          amount,
           earnings: saleEarnings,
         },
       }),
