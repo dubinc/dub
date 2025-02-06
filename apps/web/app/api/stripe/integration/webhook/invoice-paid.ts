@@ -147,6 +147,7 @@ export async function invoicePaid(event: Stripe.Event) {
         type: "sale",
         amount: saleData.amount,
         earnings: saleEarnings,
+        invoiceId
       },
     });
 

@@ -154,6 +154,7 @@ export async function createShopifySale({
         type: "sale",
         amount: saleData.amount,
         earnings: saleEarnings,
+        invoiceId,
       },
     });
 

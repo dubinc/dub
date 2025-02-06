@@ -161,6 +161,7 @@ export const POST = withWorkspaceEdge(
                 type: "sale",
                 amount: saleData.amount,
                 earnings: saleEarnings,
+                invoiceId,
               },
             }),
 

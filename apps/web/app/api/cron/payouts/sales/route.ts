@@ -20,9 +20,6 @@ export async function GET(req: Request) {
         status: "pending",
         payoutId: null,
       },
-      _sum: {
-        quantity: true,
-      },
     });
 
     if (!sales.length) {

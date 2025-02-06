@@ -20,10 +20,9 @@ export async function GET(req: Request) {
         status: "pending",
         payoutId: null,
       },
-      _sum: {
-        quantity: true,
-      },
     });
+
+    console.log(leads)
 
     if (!leads.length) {
       return NextResponse.json({
