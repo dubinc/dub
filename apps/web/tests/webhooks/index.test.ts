@@ -11,6 +11,7 @@ import {
 import z from "@/lib/zod";
 import { CustomerSchema } from "@/lib/zod/schemas/customers";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
+import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import { WebhookEvent } from "dub/models/components";
 import { describe, expect, test } from "vitest";
 
@@ -39,6 +40,7 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "link.clicked": clickWebhookEventSchema,
   "lead.created": leadWebhookEventSchemaExtended,
   "sale.created": saleWebhookEventSchemaExtended,
+  "partner.created": PartnerSchema,
 };
 
 describe("Webhooks", () => {
