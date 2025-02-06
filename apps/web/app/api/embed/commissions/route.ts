@@ -27,6 +27,7 @@ export const GET = withEmbedToken(
       },
       select: {
         id: true,
+        type: true,
         amount: true,
         earnings: true,
         currency: true,
