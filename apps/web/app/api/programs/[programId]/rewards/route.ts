@@ -69,7 +69,5 @@ export const POST = withWorkspace(async ({ workspace, params, req }) => {
     },
   });
 
-  console.log("POST /api/programs/[programId]/rewards", reward);
-
   return NextResponse.json(RewardSchema.parse(reward));
 });
