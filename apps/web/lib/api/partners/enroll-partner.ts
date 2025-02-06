@@ -118,8 +118,8 @@ export const enrollPartner = async ({
         }),
 
       sendWorkspaceWebhook({
-        trigger: "partner.created",
         workspace,
+        trigger: "partner.created",
         data: partnerWebhookEventSchema.parse(upsertedPartner),
       }),
     ]),
