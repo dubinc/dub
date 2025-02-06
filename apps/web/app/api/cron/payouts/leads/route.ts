@@ -22,8 +22,6 @@ export async function GET(req: Request) {
       },
     });
 
-    console.log(leads)
-
     if (!leads.length) {
       return NextResponse.json({
         message: "No pending leads found. Skipping...",
