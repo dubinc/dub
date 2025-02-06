@@ -8,7 +8,7 @@ export default function ProgramSettingsLayout({
   params,
 }: PropsWithChildren<{ params: { slug: string; programId: string } }>) {
   return (
-    <PageContent title="Configuration">
+    <PageContent title="Program Configuration">
       <MaxWidthWrapper>
         <ProgramSettingsHeader
           slug={params.slug}
