@@ -49,7 +49,11 @@ export const updateCustomerBodySchema = createCustomerBodySchema.partial();
 
 // customer object schema
 export const CustomerSchema = z.object({
-  id: z.string().describe("The unique identifier of the customer in Dub."),
+  id: z
+    .string()
+    .describe(
+      "The unique ID of the customer to update. You may use either the customer's `id` on Dub (obtained via `/customers` endpoint) or their `externalId` (unique ID within your system, prefixed with `ext_`, e.g. `ext_123`).",
+    ),
   externalId: z
     .string()
     .describe("Unique identifier for the customer in the client's app."),
