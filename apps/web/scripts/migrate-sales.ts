@@ -20,7 +20,7 @@ async function main() {
       createdAt: true,
       updatedAt: true,
     },
-    take: 10,
+    take: 1000,
     skip: 0,
   });
 
@@ -35,6 +35,7 @@ async function main() {
       type: EventType.sale,
       quantity: 1,
     })),
+    skipDuplicates: true,
   });
 
   console.log(`Migrated ${sales.length} sales.`);
