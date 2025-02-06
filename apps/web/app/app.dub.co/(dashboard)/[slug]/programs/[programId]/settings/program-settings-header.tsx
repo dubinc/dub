@@ -24,6 +24,7 @@ export function ProgramSettingsHeader({
           { id: "discounts", label: "Discounts" },
           { id: "links", label: "Links" },
           { id: "branding", label: "Branding" },
+          { id: "advanced", label: "Advanced" },
         ]}
         selected={page}
         onSelect={(id) => {

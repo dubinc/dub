@@ -14,7 +14,7 @@ export default function ProgramSettingsLayout({
           slug={params.slug}
           programId={params.programId}
         />
-        <div className="mt-8">{children}</div>
+        <div className="mb-10 mt-8 grid grid-cols-1 gap-8">{children}</div>
       </MaxWidthWrapper>
     </PageContent>
   );
