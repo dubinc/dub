@@ -19,7 +19,7 @@ model Commission {
   partnerId  String
   linkId     String
   payoutId   String?
-  invoiceId  String? @unique
+  invoiceId  String?
   customerId String? // only for leads and sales
   eventId    String? @unique // only for leads and sales
 
