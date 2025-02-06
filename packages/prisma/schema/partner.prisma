@@ -29,7 +29,7 @@ model Partner {
   invites      PartnerInvite[]
   payouts      Payout[]
   sales        Sale[]
-  earnings     Earnings[]
+  commissions Commission[]
 }
 
 model PartnerUser {

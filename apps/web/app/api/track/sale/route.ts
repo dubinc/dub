@@ -150,7 +150,7 @@ export const POST = withWorkspaceEdge(
           });
 
           await Promise.allSettled([
-            prismaEdge.earnings.create({
+            prismaEdge.commission.create({
               data: {
                 programId: program.id,
                 linkId: link.id,

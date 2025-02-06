@@ -83,7 +83,7 @@ export async function chargeSucceeded(event: Stripe.Event) {
           },
         });
 
-        await tx.earnings.updateMany({
+        await tx.commission.updateMany({
           where: {
             payoutId: payout.id,
           },

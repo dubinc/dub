@@ -32,7 +32,7 @@ export const GET = withWorkspace(
       programId,
     });
 
-    const sales = await prisma.earnings.findMany({
+    const sales = await prisma.commission.findMany({
       where: {
         programId,
         type: "sale",

@@ -12,7 +12,7 @@ export const createPayout = async ({
   type: EventType;
 }) => {
   await prisma.$transaction(async (tx) => {
-    const earnings = await tx.earnings.findMany({
+    const commissions = await tx.commission.findMany({
       where: {
         programId,
         partnerId,
@@ -31,8 +31,8 @@ export const createPayout = async ({
       },
     });
 
-    if (!earnings.length) {
-      console.log("No pending earnings found for processing payout.", {
+    if (!commissions.length) {
+      console.log("No pending commissions found for processing payout.", {
         programId,
         partnerId,
         type,
@@ -47,20 +47,20 @@ export const createPayout = async ({
     //   sales[0].createdAt,
     // );
 
-    // earliest earnings date
-    const periodStart = earnings[0].createdAt;
+    // earliest commission date
+    const periodStart = commissions[0].createdAt;
 
-    // end of the month of the latest earnings date
+    // end of the month of the latest commission date
     // e.g. if the latest sale is 2024-12-16, the periodEnd should be 2024-12-31
-    let periodEnd = earnings[earnings.length - 1].createdAt;
+    let periodEnd = commissions[commissions.length - 1].createdAt;
     periodEnd = new Date(periodEnd.getFullYear(), periodEnd.getMonth() + 1);
 
-    const totalQuantity = earnings.reduce(
+    const totalQuantity = commissions.reduce(
       (total, { quantity }) => total + quantity,
       0,
     );
 
-    const totalAmount = earnings.reduce(
+    const totalAmount = commissions.reduce(
       (total, { earnings }) => total + earnings,
       0,
     );
@@ -125,10 +125,10 @@ export const createPayout = async ({
       throw new Error("Payout not created.");
     }
 
-    await tx.earnings.updateMany({
+    await tx.commission.updateMany({
       where: {
         id: {
-          in: earnings.map(({ id }) => id),
+          in: commissions.map(({ id }) => id),
         },
       },
       data: {

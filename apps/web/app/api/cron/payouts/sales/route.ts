@@ -13,7 +13,7 @@ export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
 
-    const sales = await prisma.earnings.groupBy({
+    const sales = await prisma.commission.groupBy({
       by: ["programId", "partnerId"],
       where: {
         type: "sale",

@@ -61,7 +61,7 @@ model Program {
   applications  ProgramApplication[]
   invites       ProgramInvite[]
   links         Link[]
-  earnings      Earnings[]
+  commissions Commission[]
 
   @@index([workspaceId])
   @@index([domain])

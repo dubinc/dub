@@ -85,7 +85,7 @@ export async function createShopifyLead({
   ]);
 
   if (link.programId && link.partnerId) {
-    await prisma.earnings.create({
+    await prisma.commission.create({
       data: {
         programId: link.programId,
         linkId: link.id,

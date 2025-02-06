@@ -21,7 +21,7 @@ export const GET = withWorkspace(
 
     const { partnerId } = parsed;
 
-    const salesAmount = await prisma.earnings.aggregate({
+    const salesAmount = await prisma.commission.aggregate({
       where: {
         type: "sale",
         programId,

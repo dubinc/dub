@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 // Let's use a cron job (similar to how we do it for usage cron) to account for the future where we have a lot of links to process
 // Check if CPC is enabled for the link
 
-// This route is used aggregate clicks events on daily basis for Program links and add to the Earnings table
+// This route is used aggregate clicks events on daily basis for Program links and add to the Commission table
 // Runs every day at 00:00 (0 0 * * *)
 // GET /api/cron/aggregate-clicks
 export async function GET(req: Request) {
@@ -58,41 +58,42 @@ export async function GET(req: Request) {
     end.setDate(end.getDate() - 1);
     end.setHours(23, 59, 59, 999);
 
-    let earnings: Prisma.EarningsUncheckedCreateInput[] = await Promise.all(
-      links.map(async ({ id: linkId, programId, partnerId }) => {
-        const { clicks: quantity } = await getAnalytics({
-          start,
-          end,
-          linkId,
-          groupBy: "count",
-          event: "clicks",
-        });
+    let commissions: Prisma.CommissionUncheckedCreateInput[] =
+      await Promise.all(
+        links.map(async ({ id: linkId, programId, partnerId }) => {
+          const { clicks: quantity } = await getAnalytics({
+            start,
+            end,
+            linkId,
+            groupBy: "count",
+            event: "clicks",
+          });
 
-        return {
-          linkId,
-          programId: programId!,
-          partnerId: partnerId!,
-          type: EventType.click,
-          quantity,
-          amount: 0,
-        };
-      }),
-    );
+          return {
+            linkId,
+            programId: programId!,
+            partnerId: partnerId!,
+            type: EventType.click,
+            quantity,
+            amount: 0,
+          };
+        }),
+      );
 
-    earnings = earnings.filter((earning) => earning.amount > 0);
+    commissions = commissions.filter((earning) => earning.amount > 0);
 
-    console.log({ start, end, earnings });
+    console.log({ start, end, commissions });
 
-    if (earnings.length) {
-      await prisma.earnings.createMany({
-        data: earnings,
+    if (commissions.length) {
+      await prisma.commission.createMany({
+        data: commissions,
       });
     }
 
     return NextResponse.json({
       start,
       end,
-      earnings,
+      commissions,
     });
   } catch (error) {
     return handleAndReturnErrorResponse(error);

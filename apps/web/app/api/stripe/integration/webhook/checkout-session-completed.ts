@@ -275,7 +275,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         },
       });
 
-    const earnings = {
+    const commission = {
       programId: program.id,
       linkId: link.id,
       partnerId: partner.partnerId,
@@ -291,12 +291,12 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       saleAmount: saleData.amount,
     });
 
-    await prisma.earnings.createMany({
+    await prisma.commission.createMany({
       data: [
         ...(clickEvent
           ? [
               {
-                ...earnings,
+                ...commission,
                 type: EventType.lead,
                 amount: 0,
               },
@@ -304,7 +304,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           : []),
 
         {
-          ...earnings,
+          ...commission,
           type: EventType.sale,
           amount: saleData.amount,
           earnings: saleEarnings,

@@ -141,7 +141,7 @@ export const getPartnerSalesQuerySchema = getSalesQuerySchema.omit({
   partnerId: true,
 });
 
-export const PartnerEarningsSchema = SaleResponseSchema.omit({
+export const PartnerCommissionSchema = SaleResponseSchema.omit({
   partner: true,
   customer: true,
 }).merge(

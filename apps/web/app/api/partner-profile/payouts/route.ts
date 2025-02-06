@@ -21,7 +21,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       program: true,
       _count: {
         select: {
-          earnings: true,
+          commissions: true,
         },
       },
     },

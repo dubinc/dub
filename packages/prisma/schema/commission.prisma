@@ -1,4 +1,4 @@
-enum EarningsStatus {
+enum CommissionStatus {
   pending
   processed
   paid
@@ -13,13 +13,13 @@ enum EventType {
   sale
 }
 
-model Earnings {
+model Commission {
   id         String  @id @default(cuid())
   programId  String
   partnerId  String
   linkId     String
   payoutId   String?
-  invoiceId  String?
+  invoiceId  String? @unique
   customerId String? // only for leads and sales
   eventId    String? @unique // only for leads and sales
 
@@ -28,7 +28,7 @@ model Earnings {
   quantity Int
   earnings Int            @default(0)
   currency String         @default("usd")
-  status   EarningsStatus @default(pending)
+  status   CommissionStatus @default(pending)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -40,10 +40,10 @@ model Earnings {
   customer Customer? @relation(fields: [customerId], references: [id])
 
   @@unique([programId, invoiceId])
-  @@index([programId])
-  @@index([partnerId])
-  @@index([payoutId])
-  @@index([customerId])
-  @@index([linkId])
-  @@index([status])
+  @@index(programId)
+  @@index(partnerId)
+  @@index(payoutId)
+  @@index(customerId)
+  @@index(linkId)
+  @@index(status)
 }

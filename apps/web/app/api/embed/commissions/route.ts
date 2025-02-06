@@ -1,18 +1,18 @@
 import { withEmbedToken } from "@/lib/embed/auth";
 import { SALES_PAGE_SIZE } from "@/lib/partners/constants";
 import z from "@/lib/zod";
-import { PartnerEarningsSchema } from "@/lib/zod/schemas/partners";
+import { PartnerCommissionSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
-// GET /api/embed/earnings – get sales for a link from an embed token
+// GET /api/embed/commissions – get commissions for a partner from an embed token
 export const GET = withEmbedToken(
   async ({ programId, partnerId, searchParams }) => {
     const { page } = z
       .object({ page: z.coerce.number().optional().default(1) })
       .parse(searchParams);
 
-    const earnings = await prisma.earnings.findMany({
+    const commissions = await prisma.commission.findMany({
       where: {
         programId,
         partnerId,
@@ -39,6 +39,8 @@ export const GET = withEmbedToken(
       },
     });
 
-    return NextResponse.json(z.array(PartnerEarningsSchema).parse(earnings));
+    return NextResponse.json(
+      z.array(PartnerCommissionSchema).parse(commissions),
+    );
   },
 );

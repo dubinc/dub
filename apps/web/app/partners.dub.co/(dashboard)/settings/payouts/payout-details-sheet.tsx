@@ -46,7 +46,7 @@ function PayoutDetailsSheetContent({
     error,
   } = useSWR<PartnerEarningsResponse[]>(
     partner
-      ? `/api/partner-profile/programs/${payout.program.id}/earnings?payoutId=${payout.id}&interval=all&pageSize=${SHEET_MAX_ITEMS}`
+      ? `/api/partner-profile/programs/${payout.program.id}/commissions?payoutId=${payout.id}&interval=all&pageSize=${SHEET_MAX_ITEMS}`
       : undefined,
     fetcher,
   );

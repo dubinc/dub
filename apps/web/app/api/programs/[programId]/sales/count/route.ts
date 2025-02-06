@@ -21,7 +21,7 @@ export const GET = withWorkspace(
 
     const { startDate, endDate } = getStartEndDates(parsed);
 
-    const salesCount = await prisma.earnings.groupBy({
+    const salesCount = await prisma.commission.groupBy({
       by: ["status"],
       where: {
         type: "sale",

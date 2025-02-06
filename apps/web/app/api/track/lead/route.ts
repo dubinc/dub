@@ -124,7 +124,7 @@ export const POST = withWorkspaceEdge(
         ]);
 
         if (link.programId && link.partnerId) {
-          await prismaEdge.earnings.create({
+          await prismaEdge.commission.create({
             data: {
               programId: link.programId,
               linkId: link.id,

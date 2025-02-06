@@ -33,8 +33,8 @@ model Payout {
   program Program  @relation(fields: [programId], references: [id])
   partner Partner  @relation(fields: [partnerId], references: [id])
   invoice Invoice? @relation(fields: [invoiceId], references: [id])
-  sales   Sale[]
-  earnings Earnings[]
+  sales        Sale[]
+  commissions  Commission[]
 
   @@index([programId])
   @@index([partnerId])

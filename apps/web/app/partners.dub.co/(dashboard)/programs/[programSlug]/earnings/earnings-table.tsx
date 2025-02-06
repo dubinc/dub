@@ -33,7 +33,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
 
   const { data: earningsCount } = useSWR<{ count: number }>(
     programEnrollment &&
-      `/api/partner-profile/programs/${programEnrollment.programId}/earnings/count${getQueryString()}`,
+      `/api/partner-profile/programs/${programEnrollment.programId}/commissions/count${getQueryString()}`,
     fetcher,
   );
 
@@ -43,7 +43,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
     error,
   } = useSWR<PartnerEarningsResponse[]>(
     programEnrollment &&
-      `/api/partner-profile/programs/${programEnrollment.programId}/earnings${getQueryString()}`,
+      `/api/partner-profile/programs/${programEnrollment.programId}/commissions${getQueryString()}`,
     fetcher,
   );
 

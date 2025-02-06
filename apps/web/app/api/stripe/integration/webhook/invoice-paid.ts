@@ -136,7 +136,7 @@ export async function invoicePaid(event: Stripe.Event) {
       saleAmount: saleData.amount,
     });
 
-    await prisma.earnings.create({
+    await prisma.commission.create({
       data: {
         programId: program.id,
         linkId: link.id,

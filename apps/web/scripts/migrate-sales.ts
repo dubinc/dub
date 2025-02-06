@@ -29,7 +29,7 @@ async function main() {
     return;
   }
 
-  await prisma.earnings.createMany({
+  await prisma.commission.createMany({
     data: sales.map((sale) => ({
       ...sale,
       type: EventType.sale,
