@@ -20,7 +20,6 @@ import {
 } from "../utils/oauth";
 import { deleteSecret, setSecret } from "../utils/secrets";
 import { stripe } from "../utils/stripe";
-import { Workspace } from "../utils/types";
 
 const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
   const credentialsUsed = useRef(false);
@@ -34,19 +33,19 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
   const verifier = oauthContext?.verifier;
 
   // Disconnect workspace
-  const disconnectWorkspace = async ({
-    workspace,
-  }: {
-    workspace: Workspace;
-  }) => {
+  const disconnectWorkspace = async () => {
     setDisconnecting(true);
 
-    const token = await getValidToken({ stripe });
+    try {
+      const token = await getValidToken({ stripe });
 
-    await updateWorkspace({
-      token,
-      accountId: null,
-    });
+      await updateWorkspace({
+        token,
+        accountId: null,
+      });
+    } catch (error) {
+      console.error(error);
+    }
 
     await Promise.all([
       deleteSecret({
@@ -149,9 +148,7 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
               onPress={async () => {
                 setDisconnecting(true);
 
-                await disconnectWorkspace({
-                  workspace,
-                });
+                await disconnectWorkspace();
 
                 mutate();
                 setDisconnecting(false);
