@@ -64,7 +64,7 @@ export const POST = withWorkspace(async ({ workspace, params, req }) => {
       });
     }
 
-    if (data.type !== "sale") {
+    if (data.event !== "sale") {
       throw new DubApiError({
         code: "bad_request",
         message: "Default reward must be of type `sale`.",
@@ -112,6 +112,9 @@ export const POST = withWorkspace(async ({ workspace, params, req }) => {
       },
     });
   }
+
+  // TODO:
+  // Send an email to the partners about the reward being created.
 
   return NextResponse.json(rewardSchema.parse(reward));
 });
