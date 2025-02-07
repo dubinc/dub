@@ -34,7 +34,7 @@ export const GET = withWorkspace(
       programId,
     });
 
-    const { start, end, interval, timezone } =
+    const { start, end, interval } =
       programAnalyticsQuerySchema.parse(searchParams);
 
     const { startDate, endDate, granularity } = getStartEndDates({
@@ -55,14 +55,13 @@ export const GET = withWorkspace(
         SUM(CASE WHEN type = 'sale' THEN amount ELSE 0 END) AS saleAmount
       FROM Commission
       WHERE 
-        createdAt BETWEEN ${startDate} AND ${endDate} 
+        createdAt >= ${startDate}
+        AND createdAt < ${endDate}
         AND programId = ${program.id}
       GROUP BY start
       ORDER BY start ASC;
     `;
 
-    let currentDate = startFunction(startDate);
-    const result: CommissionData[] = [];
     const dataMap = new Map<string, CommissionData>();
 
     commissions.forEach((item) => {
@@ -74,6 +73,9 @@ export const GET = withWorkspace(
         saleAmount: Number(item.saleAmount),
       });
     });
+
+    let currentDate = startFunction(startDate);
+    const result: CommissionData[] = [];
 
     while (currentDate < endDate) {
       const periodKey = format(currentDate, formatString);
