@@ -1,6 +1,6 @@
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { createSaleData } from "@/lib/api/sales/create-sale-data";
+import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
 import { createId } from "@/lib/api/utils";
 import {
   getClickEvent,
@@ -18,7 +18,7 @@ import z from "@/lib/zod";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
-import { Customer } from "@dub/prisma/client";
+import { Customer, EventType } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
@@ -161,6 +161,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     if (!existingCustomer) {
       await recordLead(leadEvent);
     }
+
     linkId = clickEvent.link_id;
 
     // if it's not either a regular stripe checkout setup or a stripe checkout link,
@@ -195,9 +196,11 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     charge.currency = charge.currency_conversion.source_currency;
   }
 
+  const eventId = nanoid(16);
+
   const saleData = {
     ...leadEvent,
-    event_id: nanoid(16),
+    event_id: eventId,
     event_name: "Subscription creation",
     payment_processor: "stripe",
     amount: charge.amount_total!,
@@ -258,7 +261,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   // for program links
   if (link?.programId) {
-    const { program, partnerId, commissionAmount } =
+    const { program, ...partner } =
       await prisma.programEnrollment.findFirstOrThrow({
         where: {
           links: {
@@ -274,44 +277,39 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         },
       });
 
-    const saleRecord = createSaleData({
+    const saleEarnings = calculateSaleEarnings({
       program,
-      partner: {
-        id: partnerId,
-        commissionAmount,
-      },
-      customer: {
-        id: saleData.customer_id,
-        linkId: saleData.link_id,
-        clickId: saleData.click_id,
-      },
-      sale: {
-        amount: saleData.amount,
-        currency: saleData.currency,
-        invoiceId: saleData.invoice_id,
-        eventId: saleData.event_id,
-        paymentProcessor: saleData.payment_processor,
-      },
-      metadata: {
-        ...leadEvent,
-        stripeMetadata: charge,
-      },
+      partner,
+      sales: 1,
+      saleAmount: saleData.amount,
     });
 
-    await prisma.sale.create({
-      data: saleRecord,
+    await prisma.commission.create({
+      data: {
+        id: createId({ prefix: "cm_" }),
+        linkId: link.id,
+        programId: program.id,
+        partnerId: partner.partnerId,
+        customerId: customer.id,
+        eventId,
+        quantity: 1,
+        type: EventType.sale,
+        amount: saleData.amount,
+        earnings: saleEarnings,
+        invoiceId,
+      },
     });
 
     waitUntil(
       notifyPartnerSale({
         partner: {
-          id: partnerId,
+          id: partner.partnerId,
           referralLink: link.shortLink,
         },
         program,
         sale: {
-          amount: saleRecord.amount,
-          earnings: saleRecord.earnings,
+          amount: saleData.amount,
+          earnings: saleEarnings,
         },
       }),
     );

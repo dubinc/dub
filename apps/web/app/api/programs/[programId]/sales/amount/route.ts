@@ -21,8 +21,9 @@ export const GET = withWorkspace(
 
     const { partnerId } = parsed;
 
-    const salesAmount = await prisma.sale.aggregate({
+    const salesAmount = await prisma.commission.aggregate({
       where: {
+        type: "sale",
         programId,
         partnerId,
         createdAt: {

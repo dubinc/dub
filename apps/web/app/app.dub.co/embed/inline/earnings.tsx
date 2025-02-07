@@ -1,5 +1,5 @@
 import { SALES_PAGE_SIZE } from "@/lib/partners/constants";
-import { PartnerSaleResponse } from "@/lib/types";
+import { PartnerEarningsResponse } from "@/lib/types";
 import { Gift, Table, usePagination, useTable } from "@dub/ui";
 import {
   currencyFormatter,
@@ -8,13 +8,13 @@ import {
   formatDateTime,
   TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/utils";
-
 import { motion } from "framer-motion";
 import useSWR from "swr";
-export function EmbedSales({ salesCount }: { salesCount: number }) {
+
+export function EmbedEarnings({ salesCount }: { salesCount: number }) {
   const { pagination, setPagination } = usePagination(SALES_PAGE_SIZE);
-  const { data: sales, isLoading } = useSWR<PartnerSaleResponse[]>(
-    `/api/embed/sales?page=${pagination.pageIndex}`,
+  const { data: earnings, isLoading } = useSWR<PartnerEarningsResponse[]>(
+    `/api/embed/commissions?page=${pagination.pageIndex}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -22,14 +22,14 @@ export function EmbedSales({ salesCount }: { salesCount: number }) {
   );
 
   const { table, ...tableProps } = useTable({
-    data: sales || [],
+    data: earnings || [],
     loading: isLoading,
     columns: [
       {
         id: "customer",
         header: "Customer",
         cell: ({ row }) => {
-          return row.original.customer.email;
+          return row.original.customer ? row.original.customer.email : "-";
         },
       },
       {
@@ -42,7 +42,7 @@ export function EmbedSales({ salesCount }: { salesCount: number }) {
         ),
       },
       {
-        id: "saleAmount",
+        id: "amount",
         header: "Amount",
         cell: ({ row }) => {
           return currencyFormatter(row.original.amount / 100, {
@@ -70,7 +70,7 @@ export function EmbedSales({ salesCount }: { salesCount: number }) {
       <div className="flex w-full flex-col items-center justify-center gap-2">
         <Gift className="size-6 text-neutral-400" />
         <p className="max-w-sm text-balance text-center text-xs text-neutral-400">
-          No sales yet. When you refer a friend and they make a purchase,
+          No earnings yet. When you refer a friend and they make a purchase,
           they'll show up here.
         </p>
       </div>

@@ -1,8 +1,8 @@
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { createSaleData } from "@/lib/api/sales/create-sale-data";
-import { parseRequestBody } from "@/lib/api/utils";
+import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
+import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
@@ -125,8 +125,9 @@ export const POST = withWorkspaceEdge(
         ]);
 
         // for program links
+        // TODO: check if link.partnerId as well, so we can just do findUnique partnerId_programId
         if (link.programId) {
-          const { program, partnerId, commissionAmount } =
+          const { program, ...partner } =
             await prismaEdge.programEnrollment.findFirstOrThrow({
               where: {
                 links: {
@@ -142,40 +143,39 @@ export const POST = withWorkspaceEdge(
               },
             });
 
-          const saleRecord = createSaleData({
+          const saleEarnings = calculateSaleEarnings({
             program,
-            partner: {
-              id: partnerId,
-              commissionAmount,
-            },
-            customer: {
-              id: customer.id,
-              linkId: link.id,
-              clickId: clickData.click_id,
-            },
-            sale: {
-              amount,
-              currency,
-              invoiceId,
-              eventId,
-              paymentProcessor,
-            },
-            metadata: clickData,
+            partner,
+            sales: 1,
+            saleAmount: saleData.amount,
           });
 
           await Promise.allSettled([
-            prismaEdge.sale.create({
-              data: saleRecord,
+            prismaEdge.commission.create({
+              data: {
+                id: createId({ prefix: "cm_" }),
+                programId: program.id,
+                linkId: link.id,
+                partnerId: partner.partnerId,
+                eventId,
+                customerId: customer.id,
+                quantity: 1,
+                type: "sale",
+                amount: saleData.amount,
+                earnings: saleEarnings,
+                invoiceId,
+              },
             }),
+
             notifyPartnerSale({
               partner: {
-                id: partnerId,
+                id: partner.partnerId,
                 referralLink: link.shortLink,
               },
               program,
               sale: {
-                amount: saleRecord.amount,
-                earnings: saleRecord.earnings,
+                amount: saleData.amount,
+                earnings: saleEarnings,
               },
             }),
           ]);
