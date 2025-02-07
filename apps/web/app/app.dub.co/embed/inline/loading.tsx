@@ -1,4 +1,4 @@
-import { Button, Copy, MoneyBill2, Wordmark } from "@dub/ui";
+import { Button, Copy, MoneyBill, Wordmark } from "@dub/ui";
 import { HeroBackground } from "./hero-background";
 
 export default function EmbedInlineLoading() {
@@ -9,7 +9,7 @@ export default function EmbedInlineLoading() {
         <div className="relative flex flex-col overflow-hidden rounded-lg border border-neutral-300 p-4 md:p-6">
           <HeroBackground />
           <span className="flex items-center gap-2 text-sm text-neutral-500">
-            <MoneyBill2 className="size-4" />
+            <MoneyBill className="size-4" />
             Refer and earn
           </span>
           <div className="relative mt-16 flex flex-col gap-2">
