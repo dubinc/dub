@@ -50,8 +50,6 @@ function PartnerDetailsSheetContent({
   partner,
   setIsOpen,
 }: PartnerDetailsSheetProps) {
-  const { slug } = useWorkspace();
-  const { program } = useProgram();
   const [tab, setTab] = useState<Tab>("links");
 
   const { createPayoutSheet, setIsOpen: setCreatePayoutSheetOpen } =
