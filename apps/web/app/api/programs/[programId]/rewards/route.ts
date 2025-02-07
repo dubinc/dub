@@ -20,7 +20,12 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     where: {
       programId,
     },
+    // include: {
+    //   partners: true,
+    // },
   });
+
+  console.log(rewards);
 
   return NextResponse.json(z.array(rewardSchema).parse(rewards));
 });
