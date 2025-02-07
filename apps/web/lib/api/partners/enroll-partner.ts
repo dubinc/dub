@@ -104,7 +104,7 @@ export const enrollPartner = async ({
 
   const enrolledPartner = EnrolledPartnerSchema.parse({
     ...upsertedPartner,
-    ...upsertedPartner.programs[0]!,
+    ...upsertedPartner.programs[0],
     links: [link],
   });
 
