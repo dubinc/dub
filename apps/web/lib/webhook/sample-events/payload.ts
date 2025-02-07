@@ -1,3 +1,4 @@
+import { WebhookTrigger } from "@/lib/types";
 import leadCreated from "./lead-created.json";
 import linkClicked from "./link-clicked.json";
 import linkCreated from "./link-created.json";
@@ -6,9 +7,7 @@ import linkUpdated from "./link-updated.json";
 import partnerCreated from "./partner-created.json";
 import saleCreated from "./sale-created.json";
 
-// TODO:
-// Make this more typesafe
-export const samplePayload = {
+export const samplePayload: Record<WebhookTrigger, any> = {
   "link.created": linkCreated,
   "link.updated": linkUpdated,
   "link.deleted": linkDeleted,
@@ -16,4 +15,4 @@ export const samplePayload = {
   "lead.created": leadCreated,
   "sale.created": saleCreated,
   "partner.created": partnerCreated,
-} as any;
+};
