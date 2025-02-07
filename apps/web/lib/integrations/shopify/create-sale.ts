@@ -1,6 +1,7 @@
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
+import { createId } from "@/lib/api/utils";
 import { recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -145,6 +146,7 @@ export async function createShopifySale({
 
     await prisma.commission.create({
       data: {
+        id: createId({ prefix: "cm_" }),
         programId: program.id,
         linkId: link.id,
         partnerId: partner.partnerId,

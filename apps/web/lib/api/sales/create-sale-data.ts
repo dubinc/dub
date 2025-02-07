@@ -34,7 +34,7 @@ export const createSaleData = ({
   });
 
   return {
-    id: createId({ prefix: "sale_" }),
+    id: createId({ prefix: "cm_" }),
     type: EventType.sale,
     quantity: 1,
     customerId: customer.id,

@@ -1,5 +1,6 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { createId } from "@/lib/api/utils";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@dub/prisma";
 import { EventType, Prisma } from "@prisma/client";
@@ -77,6 +78,7 @@ export async function GET(req: Request) {
           });
 
           return {
+            id: createId({ prefix: "cm_" }),
             linkId,
             programId: programId!,
             partnerId: partnerId!,

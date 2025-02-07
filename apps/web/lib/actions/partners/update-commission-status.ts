@@ -7,7 +7,7 @@ import { authActionClient } from "../safe-action";
 
 const updateCommissionStatusSchema = z.object({
   workspaceId: z.string(),
-  saleId: z.string(),
+  commissionId: z.string(),
   status: z.enum([
     CommissionStatus.duplicate,
     CommissionStatus.fraud,
@@ -16,15 +16,15 @@ const updateCommissionStatusSchema = z.object({
 });
 
 // Mark a sale as duplicate or fraud or pending
-export const updateSaleStatusAction = authActionClient
+export const updateCommissionStatusAction = authActionClient
   .schema(updateCommissionStatusSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { saleId, status } = parsedInput;
+    const { commissionId, status } = parsedInput;
 
     const sale = await prisma.commission.findUniqueOrThrow({
       where: {
-        id: saleId,
+        id: commissionId,
         program: {
           workspaceId: workspace.id,
         },

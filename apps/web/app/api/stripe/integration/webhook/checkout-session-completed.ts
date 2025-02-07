@@ -284,35 +284,20 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       saleAmount: saleData.amount,
     });
 
-    const commission = {
-      linkId: link.id,
-      programId: program.id,
-      partnerId: partner.partnerId,
-      customerId: customer.id,
-      eventId,
-      quantity: 1,
-    };
-
-    await prisma.commission.createMany({
-      data: [
-        ...(clickEvent
-          ? [
-              {
-                ...commission,
-                type: EventType.lead,
-                amount: 0,
-              },
-            ]
-          : []),
-
-        {
-          ...commission,
-          type: EventType.sale,
-          amount: saleData.amount,
-          earnings: saleEarnings,
-          invoiceId,
-        },
-      ],
+    await prisma.commission.create({
+      data: {
+        id: createId({ prefix: "cm_" }),
+        linkId: link.id,
+        programId: program.id,
+        partnerId: partner.partnerId,
+        customerId: customer.id,
+        eventId,
+        quantity: 1,
+        type: EventType.sale,
+        amount: saleData.amount,
+        earnings: saleEarnings,
+        invoiceId,
+      },
     });
 
     waitUntil(

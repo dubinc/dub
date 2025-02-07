@@ -21,7 +21,7 @@ model Commission {
   payoutId   String?
   invoiceId  String?
   customerId String? // only for leads and sales
-  eventId    String? @unique // only for leads and sales
+  eventId    String? @unique
 
   type     EventType
   amount   Int

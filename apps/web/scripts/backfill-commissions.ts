@@ -1,4 +1,5 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
+import { createId } from "@/lib/api/utils";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
@@ -18,6 +19,7 @@ async function main() {
 
   const commissions = clicks
     .map(({ clicks, start }) => ({
+      id: createId({ prefix: "cm_" }),
       programId,
       partnerId,
       linkId,
