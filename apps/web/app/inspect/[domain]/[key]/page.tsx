@@ -1,4 +1,4 @@
-import { getLinkViaEdge } from "@/lib/planetscale";
+import { getLink } from "@/lib/fetchers/get-link";
 import {
   Background,
   Footer,
@@ -17,8 +17,6 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import LinkInspectorCard from "./card";
 
-export const runtime = "edge";
-
 export async function generateMetadata({
   params,
 }: {
@@ -27,7 +25,9 @@ export async function generateMetadata({
   const domain = params.domain;
   const key = decodeURIComponent(params.key).slice(0, -1);
 
-  const data = await getLinkViaEdge(domain, key);
+  const data = await getLink({
+    where: { domain_key: { domain, key } },
+  });
 
   if (!data) {
     return;
@@ -52,7 +52,9 @@ export default async function InspectPage({
   const domain = params.domain;
   const key = decodeURIComponent(params.key).slice(0, -1);
 
-  const data = await getLinkViaEdge(domain, key);
+  const data = await getLink({
+    where: { domain_key: { domain, key } },
+  });
 
   // if the link doesn't exist
   if (!data) {

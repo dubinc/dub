@@ -1,21 +1,16 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { keyChecks, processKey } from "@/lib/api/links/utils";
-import { getWorkspaceViaEdge } from "@/lib/planetscale";
+import { withWorkspace } from "@/lib/auth";
 import { domainKeySchema } from "@/lib/zod/schemas/links";
-import { workspaceIdSchema } from "@/lib/zod/schemas/workspaces";
 import { getSearchParams } from "@dub/utils";
-import { NextRequest, NextResponse } from "next/server";
-
-export const runtime = "edge";
+import { NextResponse } from "next/server";
 
 // GET /api/links/exists – run keyChecks on the key
-export const GET = async (req: NextRequest) => {
+export const GET = withWorkspace(async ({ req, workspace }) => {
   try {
     const searchParams = getSearchParams(req.url);
 
-    let { domain, key, workspaceId } = domainKeySchema
-      .and(workspaceIdSchema)
-      .parse(searchParams);
+    let { domain, key } = domainKeySchema.parse(searchParams);
 
     const processedKey = processKey({ domain, key });
     if (processedKey === null) {
@@ -25,15 +20,6 @@ export const GET = async (req: NextRequest) => {
       });
     }
     key = processedKey;
-
-    const workspace = await getWorkspaceViaEdge(workspaceId);
-
-    if (!workspace) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Workspace not found.",
-      });
-    }
 
     const response = await keyChecks({
       domain,
@@ -52,4 +38,4 @@ export const GET = async (req: NextRequest) => {
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
-};
+});

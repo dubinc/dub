@@ -1,40 +1,47 @@
 import { Lock } from "@/ui/shared/icons";
 import { NewBackground } from "@/ui/shared/new-background";
-import { prismaEdge } from "@dub/prisma/edge";
+import { prisma } from "@dub/prisma";
 import { BlurImage, Wordmark } from "@dub/ui";
 import { constructMetadata, createHref, isDubDomain } from "@dub/utils";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { cache } from "react";
 import PasswordForm from "./form";
 
 export const dynamic = "force-dynamic";
-export const runtime = "edge";
 
 const title = "Password Required";
 const description =
   "This link is password protected. Enter the password to view it.";
 const image = "https://assets.dub.co/misc/password-protected.png";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { linkId: string };
-}) {
-  const link = await prismaEdge.link.findUnique({
-    where: {
-      id: params.linkId,
-    },
+const getLink = cache(async ({ id }: { id: string }) => {
+  return await prisma.link.findUnique({
+    where: { id },
     select: {
+      id: true,
       domain: true,
+      key: true,
+      password: true,
+      shortLink: true,
       project: {
         select: {
+          name: true,
           logo: true,
           plan: true,
         },
       },
     },
   });
+});
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { linkId: string };
+}) {
+  const link = await getLink({ id: params.linkId });
 
   if (!link) {
     notFound();
@@ -61,25 +68,7 @@ export default async function PasswordProtectedLinkPage({
 }: {
   params: { linkId: string };
 }) {
-  const link = await prismaEdge.link.findUnique({
-    where: {
-      id: params.linkId,
-    },
-    select: {
-      id: true,
-      domain: true,
-      key: true,
-      password: true,
-      shortLink: true,
-      project: {
-        select: {
-          name: true,
-          logo: true,
-          plan: true,
-        },
-      },
-    },
-  });
+  const link = await getLink({ id: params.linkId });
 
   if (!link) {
     notFound();

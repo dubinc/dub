@@ -1,4 +1,4 @@
-import { getLinkViaEdge } from "@/lib/planetscale";
+import { getLink } from "@/lib/fetchers/get-link";
 import { BlurImage } from "@dub/ui";
 import {
   GOOGLE_FAVICON_URL,
@@ -8,8 +8,6 @@ import {
 import { unescape } from "html-escaper";
 import { notFound, redirect } from "next/navigation";
 
-export const runtime = "edge";
-
 export async function generateMetadata({
   params,
 }: {
@@ -18,7 +16,9 @@ export async function generateMetadata({
   const domain = params.domain;
   const key = decodeURIComponent(params.key); // key can potentially be encoded
 
-  const data = await getLinkViaEdge(domain, key);
+  const data = await getLink({
+    where: { domain_key: { domain, key } },
+  });
 
   if (!data?.proxy) {
     return;
@@ -44,7 +44,9 @@ export default async function ProxyPage({
   const domain = params.domain;
   const key = decodeURIComponent(params.key);
 
-  const data = await getLinkViaEdge(domain, key);
+  const data = await getLink({
+    where: { domain_key: { domain, key } },
+  });
 
   // if the link doesn't exist
   if (!data) {
@@ -60,11 +62,13 @@ export default async function ProxyPage({
   return (
     <main className="flex h-screen w-screen items-center justify-center">
       <div className="mx-5 w-full max-w-lg overflow-hidden rounded-lg border border-gray-200 sm:mx-0">
-        <img
-          src={data.image}
-          alt={unescape(data.title || "")}
-          className="w-full object-cover"
-        />
+        {data.image && (
+          <img
+            src={data.image}
+            alt={unescape(data.title || "")}
+            className="w-full object-cover"
+          />
+        )}
         <div className="flex space-x-3 bg-gray-100 p-5">
           <BlurImage
             width={20}

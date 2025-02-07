@@ -3,8 +3,6 @@ import { ipAddress } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { unsplash } from "../utils";
 
-export const runtime = "edge";
-
 export async function GET(req: Request) {
   const searchParams = new URL(req.url).searchParams;
   const query = searchParams.get("query");

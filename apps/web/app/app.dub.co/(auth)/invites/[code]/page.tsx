@@ -7,8 +7,6 @@ import { APP_NAME } from "@dub/utils";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-export const runtime = "nodejs";
-
 export default function InvitesPage({
   params,
 }: {

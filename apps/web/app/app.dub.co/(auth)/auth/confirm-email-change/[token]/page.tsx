@@ -13,8 +13,6 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import ConfirmEmailChangePageClient from "./page-client";
 
-export const runtime = "nodejs";
-
 interface PageProps {
   params: { token: string };
   searchParams: { cancel?: string };
