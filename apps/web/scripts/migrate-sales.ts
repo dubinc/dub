@@ -1,6 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { EventType } from "@dub/prisma/client";
 import "dotenv-flow/config";
+import { createId } from "../lib/api/utils";
 
 async function main() {
   const sales = await prisma.sale.findMany({
@@ -20,8 +21,8 @@ async function main() {
       createdAt: true,
       updatedAt: true,
     },
-    take: 10,
-    skip: 0,
+    take: 1000,
+    skip: 2500,
   });
 
   if (!sales.length) {
@@ -32,9 +33,11 @@ async function main() {
   await prisma.commission.createMany({
     data: sales.map((sale) => ({
       ...sale,
+      id: createId({ prefix: "cm_" }),
       type: EventType.sale,
       quantity: 1,
     })),
+    skipDuplicates: true,
   });
 
   console.log(`Migrated ${sales.length} sales.`);

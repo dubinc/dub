@@ -66,22 +66,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       return `Customer with dubCustomerId ${dubCustomerId} not found, skipping...`;
     }
 
-    if (invoiceId) {
-      // Skip if invoice id is already processed
-      const ok = await redis.set(`dub_sale_events:invoiceId:${invoiceId}`, 1, {
-        ex: 60 * 60 * 24 * 7,
-        nx: true,
-      });
-
-      if (!ok) {
-        console.info(
-          "[Stripe Webhook] Skipping already processed invoice.",
-          invoiceId,
-        );
-        return `Invoice with ID ${invoiceId} already processed, skipping...`;
-      }
-    }
-
     // Find lead
     leadEvent = await getLeadEvent({ customerId: customer.id }).then(
       (res) => res.data[0],
@@ -164,8 +148,10 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       });
     }
 
+    // remove timestamp from clickEvent
+    const { timestamp, ...rest } = clickEvent;
     leadEvent = {
-      ...clickEvent,
+      ...rest,
       event_id: nanoid(16),
       event_name: "Checkout session completed",
       customer_id: customer.id,
@@ -186,6 +172,22 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   if (charge.amount_total === 0) {
     return `Checkout session completed for Stripe customer ${stripeCustomerId} with invoice ID ${invoiceId} but amount is 0, skipping...`;
+  }
+
+  if (invoiceId) {
+    // Skip if invoice id is already processed
+    const ok = await redis.set(`dub_sale_events:invoiceId:${invoiceId}`, 1, {
+      ex: 60 * 60 * 24 * 7,
+      nx: true,
+    });
+
+    if (!ok) {
+      console.info(
+        "[Stripe Webhook] Skipping already processed invoice.",
+        invoiceId,
+      );
+      return `Invoice with ID ${invoiceId} already processed, skipping...`;
+    }
   }
 
   // support for Stripe Adaptive Pricing: https://docs.stripe.com/payments/checkout/adaptive-pricing
@@ -282,35 +284,20 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       saleAmount: saleData.amount,
     });
 
-    const commission = {
-      linkId: link.id,
-      programId: program.id,
-      partnerId: partner.partnerId,
-      customerId: customer.id,
-      eventId,
-      quantity: 1,
-    };
-
-    await prisma.commission.createMany({
-      data: [
-        ...(clickEvent
-          ? [
-              {
-                ...commission,
-                type: EventType.lead,
-                amount: 0,
-              },
-            ]
-          : []),
-
-        {
-          ...commission,
-          type: EventType.sale,
-          amount: saleData.amount,
-          earnings: saleEarnings,
-          invoiceId,
-        },
-      ],
+    await prisma.commission.create({
+      data: {
+        id: createId({ prefix: "cm_" }),
+        linkId: link.id,
+        programId: program.id,
+        partnerId: partner.partnerId,
+        customerId: customer.id,
+        eventId,
+        quantity: 1,
+        type: EventType.sale,
+        amount: saleData.amount,
+        earnings: saleEarnings,
+        invoiceId,
+      },
     });
 
     waitUntil(

@@ -201,7 +201,7 @@ export function OnboardingForm({
 
       <Button
         type="submit"
-        text="Create partner account"
+        text={`${partner ? "Update" : "Create"} partner account`}
         className="mt-2"
         loading={isPending || isSubmitting || isSubmitSuccessful}
       />

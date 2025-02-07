@@ -3,7 +3,7 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { getSalesCountQuerySchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { SaleStatus } from "@dub/prisma/client";
+import { CommissionStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/programs/[programId]/sales/count
@@ -26,7 +26,13 @@ export const GET = withWorkspace(
       where: {
         type: "sale",
         programId,
-        status,
+        status: status || {
+          notIn: [
+            CommissionStatus.refunded,
+            CommissionStatus.duplicate,
+            CommissionStatus.fraud,
+          ],
+        },
         partnerId,
         payoutId,
         createdAt: {
@@ -42,11 +48,11 @@ export const GET = withWorkspace(
         acc[p.status] = p._count;
         return acc;
       },
-      {} as Record<SaleStatus | "all", number>,
+      {} as Record<CommissionStatus | "all", number>,
     );
 
     // fill in missing statuses with 0
-    Object.values(SaleStatus).forEach((status) => {
+    Object.values(CommissionStatus).forEach((status) => {
       if (!(status in counts)) {
         counts[status] = 0;
       }

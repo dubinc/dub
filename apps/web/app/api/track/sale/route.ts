@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
-import { parseRequestBody } from "@/lib/api/utils";
+import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
@@ -125,6 +125,7 @@ export const POST = withWorkspaceEdge(
         ]);
 
         // for program links
+        // TODO: check if link.partnerId as well, so we can just do findUnique partnerId_programId
         if (link.programId) {
           const { program, ...partner } =
             await prismaEdge.programEnrollment.findFirstOrThrow({
@@ -152,6 +153,7 @@ export const POST = withWorkspaceEdge(
           await Promise.allSettled([
             prismaEdge.commission.create({
               data: {
+                id: createId({ prefix: "cm_" }),
                 programId: program.id,
                 linkId: link.id,
                 partnerId: partner.partnerId,

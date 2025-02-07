@@ -2,7 +2,7 @@
 
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerEarningsResponse } from "@/lib/types";
-import { EarningsTypeBadge } from "@/ui/partners/earnings-type-badge";
+import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
@@ -75,7 +75,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         id: "type",
         header: "Type",
         accessorKey: "type",
-        cell: ({ row }) => <EarningsTypeBadge type={row.original.type} />,
+        cell: ({ row }) => <CommissionTypeBadge type={row.original.type} />,
       },
       {
         id: "saleAmount",

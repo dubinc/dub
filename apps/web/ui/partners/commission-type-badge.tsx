@@ -9,7 +9,7 @@ const iconsMap = {
   sale: InvoiceDollar,
 };
 
-export const EarningsTypeBadge = ({
+export const CommissionTypeBadge = ({
   type,
 }: {
   type: z.infer<typeof PartnerCommissionSchema>["type"];

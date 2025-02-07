@@ -67,14 +67,14 @@ const NAV_AREAS: SidebarNavAreas<{
             exact: true,
           },
           {
-            name: "Analytics",
-            icon: ChartActivity2,
-            href: `/programs/${programSlug}/analytics${queryString}`,
-          },
-          {
             name: "Earnings",
             icon: CircleDollar,
             href: `/programs/${programSlug}/earnings${queryString}`,
+          },
+          {
+            name: "Analytics",
+            icon: ChartActivity2,
+            href: `/programs/${programSlug}/analytics${queryString}`,
           },
           {
             name: "Links",

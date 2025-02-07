@@ -128,8 +128,12 @@ export function OverviewChart() {
                 />
               )}
             </ChartContext.Consumer>
-            <XAxis />
-            <YAxis showGridLines />
+            <XAxis
+              tickFormat={(date) =>
+                formatDateTooltip(date, { interval, start, end })
+              }
+            />
+            <YAxis showGridLines tickFormat={currencyFormatter} />
             <Areas
               seriesStyles={[
                 {

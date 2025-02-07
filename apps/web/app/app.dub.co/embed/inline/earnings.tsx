@@ -42,15 +42,13 @@ export function EmbedEarnings({ salesCount }: { salesCount: number }) {
         ),
       },
       {
-        id: "saleAmount",
+        id: "amount",
         header: "Amount",
         cell: ({ row }) => {
-          row.original.amount
-            ? currencyFormatter(row.original.amount / 100, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })
-            : "-";
+          return currencyFormatter(row.original.amount / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
         },
       },
       {

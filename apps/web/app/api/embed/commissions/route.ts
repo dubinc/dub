@@ -3,6 +3,7 @@ import { SALES_PAGE_SIZE } from "@/lib/partners/constants";
 import z from "@/lib/zod";
 import { PartnerCommissionSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { CommissionStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/embed/commissions – get commissions for a partner from an embed token
@@ -16,9 +17,17 @@ export const GET = withEmbedToken(
       where: {
         programId,
         partnerId,
+        status: {
+          notIn: [
+            CommissionStatus.refunded,
+            CommissionStatus.duplicate,
+            CommissionStatus.fraud,
+          ],
+        },
       },
       select: {
         id: true,
+        type: true,
         amount: true,
         earnings: true,
         currency: true,

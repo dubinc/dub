@@ -124,18 +124,20 @@ export const POST = withWorkspaceEdge(
         ]);
 
         if (link.programId && link.partnerId) {
-          await prismaEdge.commission.create({
-            data: {
-              programId: link.programId,
-              linkId: link.id,
-              partnerId: link.partnerId,
-              eventId,
-              customerId: customer.id,
-              type: "lead",
-              amount: 0,
-              quantity: 1,
-            },
-          });
+          // TODO: check if there is a Lead Reward Rule for this partner and if yes, create a lead commission
+          // await prismaEdge.commission.create({
+          //   data: {
+          //     id: createId({ prefix: "cm_" }),
+          //     programId: link.programId,
+          //     linkId: link.id,
+          //     partnerId: link.partnerId,
+          //     eventId,
+          //     customerId: customer.id,
+          //     type: "lead",
+          //     amount: 0,
+          //     quantity: 1,
+          //   },
+          // });
         }
 
         await sendWorkspaceWebhookOnEdge({

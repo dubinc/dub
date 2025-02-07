@@ -1,6 +1,7 @@
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
+import { createId } from "@/lib/api/utils";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -112,6 +113,7 @@ export async function invoicePaid(event: Stripe.Event) {
   ]);
 
   // for program links
+  // TODO: check if link.partnerId as well, so we can just do findUnique partnerId_programId
   if (link.programId) {
     const { program, ...partner } =
       await prisma.programEnrollment.findFirstOrThrow({
@@ -138,6 +140,7 @@ export async function invoicePaid(event: Stripe.Event) {
 
     await prisma.commission.create({
       data: {
+        id: createId({ prefix: "cm_" }),
         programId: program.id,
         linkId: link.id,
         partnerId: partner.partnerId,
@@ -147,7 +150,7 @@ export async function invoicePaid(event: Stripe.Event) {
         type: "sale",
         amount: saleData.amount,
         earnings: saleEarnings,
-        invoiceId
+        invoiceId,
       },
     });
 

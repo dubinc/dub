@@ -1,6 +1,7 @@
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
+import { createId } from "@/lib/api/utils";
 import { recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -33,6 +34,7 @@ export async function createShopifySale({
 
   const amount = Number(shopMoney.amount) * 100;
   const { link_id: linkId } = leadData;
+  const currency = shopMoney.currency_code.toLowerCase();
 
   // Skip if invoice id is already processed
   const ok = await redis.set(
@@ -56,7 +58,7 @@ export async function createShopifySale({
     event_name: "Purchase",
     payment_processor: "shopify",
     amount,
-    currency: shopMoney.currency_code.toLowerCase(),
+    currency,
     invoice_id: invoiceId,
     metadata: JSON.stringify(order),
   };
@@ -119,6 +121,7 @@ export async function createShopifySale({
   );
 
   // for program links
+  // TODO: check if link.partnerId as well, so we can just do findUnique partnerId_programId
   if (link.programId) {
     const { program, ...partner } =
       await prisma.programEnrollment.findFirstOrThrow({
@@ -145,6 +148,7 @@ export async function createShopifySale({
 
     await prisma.commission.create({
       data: {
+        id: createId({ prefix: "cm_" }),
         programId: program.id,
         linkId: link.id,
         partnerId: partner.partnerId,
@@ -155,6 +159,7 @@ export async function createShopifySale({
         amount,
         earnings: saleEarnings,
         invoiceId,
+        currency,
       },
     });
 
