@@ -34,6 +34,7 @@ export async function createShopifySale({
 
   const amount = Number(shopMoney.amount) * 100;
   const { link_id: linkId } = leadData;
+  const currency = shopMoney.currency_code.toLowerCase();
 
   // Skip if invoice id is already processed
   const ok = await redis.set(
@@ -57,7 +58,7 @@ export async function createShopifySale({
     event_name: "Purchase",
     payment_processor: "shopify",
     amount,
-    currency: shopMoney.currency_code.toLowerCase(),
+    currency,
     invoice_id: invoiceId,
     metadata: JSON.stringify(order),
   };
@@ -158,6 +159,7 @@ export async function createShopifySale({
         amount,
         earnings: saleEarnings,
         invoiceId,
+        currency,
       },
     });
 
