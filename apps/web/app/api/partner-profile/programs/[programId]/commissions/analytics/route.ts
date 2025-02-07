@@ -64,8 +64,10 @@ export const GET = withPartnerProfile(
           SUM(earnings) AS earnings
         FROM Commission
         WHERE
-          createdAt BETWEEN ${startDate} AND ${endDate}
+          createdAt >= ${startDate}
+          AND createdAt < ${endDate}
           AND programId = ${program.id}
+          AND partnerId = ${partner.id}
           ${event !== "composite" ? Prisma.sql`AND type = ${eventMap[event]}` : Prisma.sql``};`;
 
       return NextResponse.json({
