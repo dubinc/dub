@@ -65,7 +65,6 @@ export async function invoicePaymentFailed(event: Stripe.Event) {
     ...workspace.users.map(({ user }) =>
       sendEmail({
         email: user.email as string,
-        from: "steven@dub.co",
         subject: `${
           attemptCount == 2
             ? "2nd notice: "
