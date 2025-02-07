@@ -40,11 +40,7 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "link.clicked": clickWebhookEventSchema,
   "lead.created": leadWebhookEventSchemaExtended,
   "sale.created": saleWebhookEventSchemaExtended,
-
-  "partner.created": EnrolledPartnerSchema.extend({
-    createdAt: z.string().transform((str) => new Date(str)),
-    updatedAt: z.string().transform((str) => new Date(str)),
-  }),
+  "partner.created": EnrolledPartnerSchema,
 };
 
 describe("Webhooks", () => {
@@ -100,16 +96,16 @@ const assertQstashMessage = async (
   expect(receivedBody.event).toEqual(trigger);
   expect(receivedBody.data).toEqual(body);
 
-  // if (trigger === "partner.created") {
-  //   PartnerSchema.extend({
-  //     createdAt: z.string().transform((str) => new Date(str)),
-  //     updatedAt: z.string().transform((str) => new Date(str)),
-  //   });
-  // } else {
-  //   expect(eventSchemas[trigger].safeParse(receivedBody.data).success).toBe(
-  //     true,
-  //   );
-  // }
+  if (trigger === "partner.created") {
+    EnrolledPartnerSchema.extend({
+      createdAt: z.string().transform((str) => new Date(str)),
+      updatedAt: z.string().transform((str) => new Date(str)),
+    });
+  } else {
+    expect(eventSchemas[trigger].safeParse(receivedBody.data).success).toBe(
+      true,
+    );
+  }
 
   expect(eventSchemas[trigger].safeParse(receivedBody.data).success).toBe(true);
 };
