@@ -1,14 +1,12 @@
-import { Prisma, Program, SaleStatus } from "@dub/prisma/client";
-import { INFINITY_NUMBER } from "@dub/utils";
+import { CommissionStatus, EventType, Program } from "@dub/prisma/client";
 import { createId } from "../utils";
-import { calculateEarnings } from "./calculate-earnings";
+import { calculateSaleEarnings } from "./calculate-earnings";
 
 export const createSaleData = ({
   program,
   partner,
   customer,
   sale,
-  metadata,
 }: {
   program: Program;
   partner: {
@@ -27,22 +25,18 @@ export const createSaleData = ({
     eventId: string;
     paymentProcessor: string;
   };
-  metadata: Record<string, any>;
 }) => {
-  const earnings = calculateEarnings({
+  const earnings = calculateSaleEarnings({
     program,
     partner,
     sales: 1,
     saleAmount: sale.amount,
   });
 
-  const commissionAmount =
-    partner.commissionAmount !== null
-      ? partner.commissionAmount
-      : program.commissionAmount;
-
   return {
-    id: createId({ prefix: "sale_" }),
+    id: createId({ prefix: "cm_" }),
+    type: EventType.sale,
+    quantity: 1,
     customerId: customer.id,
     linkId: customer.linkId,
     clickId: customer.clickId,
@@ -53,18 +47,7 @@ export const createSaleData = ({
     currency: sale.currency,
     partnerId: partner.id,
     programId: program.id,
-    status: SaleStatus.pending,
+    status: CommissionStatus.pending,
     earnings,
-    metadata: metadata || Prisma.JsonNull,
-    // TODO: remove these
-    commissionAmount,
-    commissionType: program.commissionType,
-    recurringCommission:
-      program.commissionDuration && program.commissionDuration > 1
-        ? true
-        : false,
-    recurringDuration: program.commissionDuration,
-    recurringInterval: program.commissionInterval,
-    isLifetimeRecurring: program.commissionDuration === INFINITY_NUMBER,
   };
 };

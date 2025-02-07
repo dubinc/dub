@@ -2,7 +2,10 @@ export * from "@prisma/client";
 
 export {
   CommissionInterval,
+  CommissionStatus,
   CommissionType,
+  EventType,
+  FolderUserRole,
   InvoiceStatus,
   PartnerRole,
   PartnerStatus,
@@ -13,6 +16,5 @@ export {
   ProgramResourceType,
   ProgramType,
   Role,
-  SaleStatus,
   WebhookReceiver,
 } from "@prisma/client";

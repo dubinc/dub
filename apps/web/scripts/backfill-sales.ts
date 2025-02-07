@@ -66,14 +66,13 @@ async function main() {
         amount: e.sale.amount,
         currency: "usd",
       },
-      metadata: e.click,
     }),
     createdAt: new Date(e.timestamp),
   }));
 
   console.table(data.slice(0, 10));
 
-  const response = await prisma.sale.createMany({
+  const response = await prisma.commission.createMany({
     data,
     skipDuplicates: true,
   });

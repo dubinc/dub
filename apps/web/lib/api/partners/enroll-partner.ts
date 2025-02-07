@@ -22,6 +22,8 @@ export const enrollPartner = async ({
     name: string;
     email?: string | null;
     image?: string | null;
+    country?: string | null;
+    description?: string | null;
   };
 }) => {
   if (partner.email) {
@@ -87,7 +89,8 @@ export const enrollPartner = async ({
       name: partner.name,
       email: partner.email,
       image: partner.image,
-      country: "US",
+      country: partner.country ?? "US",
+      bio: partner.description,
     },
   });
 

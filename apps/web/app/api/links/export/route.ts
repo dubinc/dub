@@ -67,7 +67,11 @@ export const GET = withWorkspace(
         projectId: workspace.id,
         archived: showArchived ? undefined : false,
         createdAt: {
-          gte: start ?? INTERVAL_DATA[interval ?? "all"].startDate,
+          gte:
+            start ??
+            (interval && interval !== "all"
+              ? INTERVAL_DATA[interval].startDate
+              : undefined),
           lte: end ?? new Date(),
         },
         ...(domain && { domain }),

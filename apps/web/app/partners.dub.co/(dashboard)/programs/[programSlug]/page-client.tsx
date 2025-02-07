@@ -29,7 +29,7 @@ import { LinearGradient } from "@visx/gradient";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { createContext, useContext, useId, useMemo } from "react";
-import { SaleTablePartner } from "./sales/sale-table";
+import { EarningsTablePartner } from "./earnings/earnings-table";
 
 const ProgramOverviewContext = createContext<{
   start?: Date;
@@ -147,10 +147,10 @@ export default function ProgramPageClient() {
         <div className="mt-6">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-medium text-neutral-900">
-              Recent sales
+              Recent earnings
             </h2>
             <Link
-              href={`/programs/${programSlug}/sales${getQueryString()}`}
+              href={`/programs/${programSlug}/earnings${getQueryString()}`}
               className={cn(
                 buttonVariants({ variant: "secondary" }),
                 "flex h-8 items-center rounded-lg border px-2 text-sm",
@@ -160,7 +160,7 @@ export default function ProgramPageClient() {
             </Link>
           </div>
           <div className="mt-4">
-            <SaleTablePartner limit={10} />
+            <EarningsTablePartner limit={10} />
           </div>
         </div>
       </ProgramOverviewContext.Provider>

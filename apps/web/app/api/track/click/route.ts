@@ -56,9 +56,9 @@ export const POST = withAxiom(
         rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
 
       if (!link) {
-        return new Response(null, {
-          status: 204,
-          headers: CORS_HEADERS,
+        throw new DubApiError({
+          code: "not_found",
+          message: `Link not found for domain: ${domain} and key: ${key}.`,
         });
       }
 
@@ -74,10 +74,11 @@ export const POST = withAxiom(
             hostname,
             allowedHostnames,
           });
-
-          return new Response(null, {
-            status: 204,
-            headers: CORS_HEADERS,
+          throw new DubApiError({
+            code: "forbidden",
+            message: `Hostname ${hostname} not included in allowed hostnames (${allowedHostnames.join(
+              ", ",
+            )}).`,
           });
         }
       }

@@ -67,7 +67,7 @@ const prefixes = [
   "pgi_",
   "pge_",
   "pn_",
-  "sale_",
+  "cm_",
   "pga_",
   "dub_embed_",
   "inv_",

@@ -82,13 +82,12 @@ export const backfillLinkData = async ({
         amount: e.sale.amount,
         currency: "usd",
       },
-      metadata: e.click,
     }),
     createdAt: new Date(e.timestamp),
   }));
 
   if (data.length > 0) {
-    await prisma.sale.createMany({
+    await prisma.commission.createMany({
       data,
       skipDuplicates: true,
     });
