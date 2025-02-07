@@ -101,13 +101,9 @@ const assertQstashMessage = async (
   expect(receivedBody.event).toEqual(trigger);
   expect(receivedBody.data).toEqual(body);
 
-  console.log({ trigger, receivedBody });
+  console.log({ trigger, schema: eventSchemas[trigger] || "no schema" });
 
-  // console.log(eventSchemas)
-
-  // eventSchemas[trigger].parse(receivedBody.data)
-
-  // expect(eventSchemas[trigger].safeParse(receivedBody.data).success).toBe(true);
+  expect(eventSchemas[trigger].safeParse(receivedBody.data).success).toBe(true);
 };
 
 // TODO:
