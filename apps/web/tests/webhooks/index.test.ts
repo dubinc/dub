@@ -12,7 +12,6 @@ import z from "@/lib/zod";
 import { CustomerSchema } from "@/lib/zod/schemas/customers";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
-import { WebhookEvent } from "dub/models/components";
 import { describe, expect, test } from "vitest";
 
 const webhook = {
@@ -97,12 +96,15 @@ const assertQstashMessage = async (
   expect(receivedBody.data).toEqual(body);
 
   if (trigger === "partner.created") {
-    expect(
-      EnrolledPartnerSchema.extend({
-        createdAt: z.string().transform((str) => new Date(str)),
-        updatedAt: z.string().transform((str) => new Date(str)),
-      }).safeParse(receivedBody.data).success,
-    ).toBe(true);
+    const partnerSchema = EnrolledPartnerSchema.extend({
+      createdAt: z.string().transform((str) => new Date(str)),
+      updatedAt: z.string().transform((str) => new Date(str)),
+    });
+
+    console.log(receivedBody.data);
+
+    const result = partnerSchema.safeParse(receivedBody.data);
+    expect(result.success).toBe(true);
   } else {
     expect(eventSchemas[trigger].safeParse(receivedBody.data).success).toBe(
       true,
