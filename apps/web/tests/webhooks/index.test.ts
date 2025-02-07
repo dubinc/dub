@@ -11,7 +11,7 @@ import {
 import z from "@/lib/zod";
 import { CustomerSchema } from "@/lib/zod/schemas/customers";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
-import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
+import { EnrolledPartnerResponseSchema } from "@/lib/zod/schemas/partners";
 import { describe, expect, test } from "vitest";
 
 const webhook = {
@@ -32,9 +32,7 @@ const saleWebhookEventSchemaExtended = saleWebhookEventSchema.extend({
   customer: customerSchemaExtended,
 });
 
-const schema = EnrolledPartnerSchema;
-
-const enrolledPartnerSchemaExtended = schema.extend({
+const enrolledPartnerSchemaExtended = EnrolledPartnerResponseSchema.extend({
   createdAt: z.string().transform((str) => new Date(str)),
   updatedAt: z.string().transform((str) => new Date(str)),
 });

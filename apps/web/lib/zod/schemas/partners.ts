@@ -78,6 +78,29 @@ export const EnrolledPartnerSchema = PartnerSchema.omit({
     salesAmount: z.number().default(0),
   });
 
+// Used by POST /api/partners and webhook (partner.created)
+export const EnrolledPartnerResponseSchema = EnrolledPartnerSchema.pick({
+  id: true,
+  name: true,
+  email: true,
+  image: true,
+  country: true,
+  bio: true,
+  tenantId: true,
+  programId: true,
+  status: true,
+  clicks: true,
+  leads: true,
+  sales: true,
+  salesAmount: true,
+  earnings: true,
+  createdAt: true,
+  links: true,
+}).extend({
+  tenantId: z.string(),
+  programId: z.string(),
+});
+
 export const LeaderboardPartnerSchema = z.object({
   id: z.string(),
   name: z.string().transform((name) => {
