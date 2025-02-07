@@ -7,9 +7,16 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-// TODO:
-// Let's use a cron job (similar to how we do it for usage cron) to account for the future where we have a lot of links to process
-// Check if CPC is enabled for the link
+/**
+ * TODO:
+ * - Use a cron job (similar to how we do it for usage cron) to account for the future where we have a lot of links to process
+ * - Might be better to read directly from the Reward table and fetch relevant links from there
+ * - Once these are ready, we'll add back the cron job in vercel.json
+    {
+      "path": "/api/cron/aggregate-clicks",
+      "schedule": "0 0 * * *"
+    },
+ */
 
 // This route is used aggregate clicks events on daily basis for Program links and add to the Commission table
 // Runs every day at 00:00 (0 0 * * *)
