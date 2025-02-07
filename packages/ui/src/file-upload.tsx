@@ -2,7 +2,7 @@ import { cn, resizeImage } from "@dub/utils";
 import { VariantProps, cva } from "class-variance-authority";
 import { DragEvent, ReactNode, useState } from "react";
 import { toast } from "sonner";
-import { CloudUpload, LoadingCircle } from "./icons";
+import { CloudUpload, Icon, LoadingCircle } from "./icons";
 
 type AcceptedFileFormats = "any" | "images" | "csv";
 
@@ -57,6 +57,9 @@ export type FileUploadProps = FileUploadReadFileProps & {
   className?: string;
   iconClassName?: string;
   previewClassName?: string;
+
+  icon?: Icon;
+
   /**
    * Custom preview component to display instead of the default
    */
@@ -111,6 +114,7 @@ export function FileUpload({
   className,
   iconClassName,
   previewClassName,
+  icon: Icon = CloudUpload,
   customPreview,
   accept = "any",
   imageSrc,
@@ -231,7 +235,7 @@ export function FileUpload({
             : cn(!disabled && "group-hover:bg-gray-50"),
         )}
       >
-        <CloudUpload
+        <Icon
           className={cn(
             "size-7 transition-all duration-75",
             !disabled

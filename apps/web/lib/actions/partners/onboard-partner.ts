@@ -48,7 +48,7 @@ export const onboardPartnerAction = authUserActionClient
       : createId({ prefix: "pn_" });
 
     const imageUrl = await storage
-      .upload(`partners/${partnerId}/image_${nanoid(7)}`, image)
+      .upload(`programs/${partnerId}/image_${nanoid(7)}`, image)
       .then(({ url }) => url);
 
     const payload = {

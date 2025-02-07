@@ -1,6 +1,9 @@
 "use server";
 
+import { isStored, storage } from "@/lib/storage";
 import { prisma } from "@dub/prisma";
+import { nanoid, R2_URL } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { createProgramSchema } from "../../zod/schemas/programs";
@@ -9,6 +12,8 @@ import { authActionClient } from "../safe-action";
 const schema = createProgramSchema.partial().extend({
   workspaceId: z.string(),
   programId: z.string(),
+  logo: z.string().nullish(),
+  wordmark: z.string().nullish(),
 });
 
 export const updateProgramAction = authActionClient
@@ -25,28 +30,62 @@ export const updateProgramAction = authActionClient
       cookieLength,
       domain,
       url,
+      logo,
+      wordmark,
     } = parsedInput;
 
-    await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
+    try {
+      const program = await getProgramOrThrow({
+        workspaceId: workspace.id,
+        programId,
+      });
 
-    const program = await prisma.program.update({
-      where: {
-        id: programId,
-      },
-      data: {
-        name,
-        commissionType,
-        commissionAmount,
-        commissionDuration,
-        commissionInterval,
-        cookieLength,
-        domain,
-        url,
-      },
-    });
+      const [logoUrl, wordmarkUrl] = await Promise.all([
+        logo && !isStored(logo)
+          ? storage
+              .upload(`programs/${programId}/logo_${nanoid(7)}`, logo)
+              .then(({ url }) => url)
+          : null,
+        wordmark && !isStored(wordmark)
+          ? storage
+              .upload(`programs/${programId}/wordmark_${nanoid(7)}`, wordmark)
+              .then(({ url }) => url)
+          : null,
+      ]);
 
-    return program;
+      await prisma.program.update({
+        where: {
+          id: programId,
+        },
+        data: {
+          name,
+          commissionType,
+          commissionAmount,
+          commissionDuration,
+          commissionInterval,
+          cookieLength,
+          domain,
+          url,
+          logo: logoUrl ?? undefined,
+          wordmark: wordmarkUrl ?? undefined,
+        },
+      });
+
+      // Delete old logo/wordmark if they were updated
+      waitUntil(
+        Promise.all([
+          ...(logoUrl && program.logo
+            ? [storage.delete(program.logo.replace(`${R2_URL}/`, ""))]
+            : []),
+          ...(wordmarkUrl && program.wordmark
+            ? [storage.delete(program.wordmark.replace(`${R2_URL}/`, ""))]
+            : []),
+        ]),
+      );
+
+      return { ok: true, program };
+    } catch (e) {
+      console.error("Failed to update program", e);
+      return { ok: false };
+    }
   });

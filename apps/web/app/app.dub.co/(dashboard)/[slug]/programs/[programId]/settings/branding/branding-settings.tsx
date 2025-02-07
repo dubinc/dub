@@ -4,11 +4,12 @@ import { updateProgramAction } from "@/lib/actions/partners/update-program";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
-import { Button } from "@dub/ui";
-import { LoadingSpinner } from "@dub/ui/icons";
+import { Button, FileUpload } from "@dub/ui";
+import { LoadingSpinner, Plus } from "@dub/ui/icons";
 import { useAction } from "next-safe-action/hooks";
+import { flightRouterStateSchema } from "next/dist/server/app-render/types";
 import { PropsWithChildren, useId } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
@@ -54,15 +55,21 @@ function BrandingSettingsForm({ program }: { program: ProgramProps }) {
   });
 
   const {
+    control,
     handleSubmit,
     reset,
     formState: { isDirty, isValid, isSubmitting, errors },
   } = form;
 
   const { executeAsync } = useAction(updateProgramAction, {
-    async onSuccess() {
-      toast.success("Program updated successfully.");
-      mutate(`/api/programs/${program.id}?workspaceId=${workspaceId}`);
+    async onSuccess(res) {
+      if (res.data?.ok) {
+        toast.success("Program updated successfully.");
+        mutate(`/api/programs/${program.id}?workspaceId=${workspaceId}`);
+      } else {
+        toast.error("Failed to update program.");
+        return false;
+      }
     },
     onError({ error }) {
       console.error(error);
@@ -101,14 +108,54 @@ function BrandingSettingsForm({ program }: { program: ProgramProps }) {
           <FormRow
             label="Logo"
             description="A square logo that will be used in various parts of your program"
-          ></FormRow>
+          >
+            <Controller
+              control={control}
+              name="logo"
+              rules={{ required: flightRouterStateSchema }}
+              render={({ field }) => (
+                <FileUpload
+                  accept="images"
+                  className="size-14 rounded-lg border border-neutral-300"
+                  iconClassName="size-4 text-neutral-800"
+                  icon={Plus}
+                  variant="plain"
+                  imageSrc={field.value}
+                  readFile
+                  onChange={({ src }) => field.onChange(src)}
+                  content={null}
+                  maxFileSizeMB={2}
+                />
+              )}
+            />
+          </FormRow>
 
           <Divider />
 
           <FormRow
             label="Wordmark"
             description="A full-sized logo used on the program application form"
-          ></FormRow>
+          >
+            <Controller
+              control={control}
+              name="wordmark"
+              rules={{ required: false }}
+              render={({ field }) => (
+                <FileUpload
+                  accept="images"
+                  className="h-14 w-36 rounded-lg border border-neutral-300"
+                  iconClassName="size-4 text-neutral-800"
+                  icon={Plus}
+                  variant="plain"
+                  imageSrc={field.value}
+                  readFile
+                  onChange={({ src }) => field.onChange(src)}
+                  content={null}
+                  maxFileSizeMB={2}
+                />
+              )}
+            />
+          </FormRow>
 
           <Divider />
 
@@ -147,7 +194,7 @@ function FormRow({
   children,
 }: PropsWithChildren<{ label: string; description: string }>) {
   return (
-    <div className="flex items-center">
+    <div className="flex items-center gap-6">
       <div>
         <label className="text-sm font-medium text-neutral-800">{label}</label>
         <p className="mt-2 text-xs text-neutral-500">{description}</p>
