@@ -13,6 +13,5 @@ export {
   ProgramResourceType,
   ProgramType,
   Role,
-  SaleStatus,
   WebhookReceiver,
 } from "@prisma/client";

@@ -1,4 +1,4 @@
-import { Prisma, Program, SaleStatus } from "@dub/prisma/client";
+import { CommissionStatus, Prisma, Program } from "@dub/prisma/client";
 import { INFINITY_NUMBER } from "@dub/utils";
 import { createId } from "../utils";
 import { calculateSaleEarnings } from "./calculate-earnings";
@@ -53,7 +53,7 @@ export const createSaleData = ({
     currency: sale.currency,
     partnerId: partner.id,
     programId: program.id,
-    status: SaleStatus.pending,
+    status: CommissionStatus.pending,
     earnings,
     metadata: metadata || Prisma.JsonNull,
     // TODO: remove these

@@ -1,19 +1,23 @@
 "use server";
 
 import { prisma } from "@dub/prisma";
-import { SaleStatus } from "@dub/prisma/client";
+import { CommissionStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
-const updateSaleStatusSchema = z.object({
+const updateCommissionStatusSchema = z.object({
   workspaceId: z.string(),
   saleId: z.string(),
-  status: z.enum([SaleStatus.duplicate, SaleStatus.fraud, SaleStatus.pending]), // We might want to support other statuses in the future
+  status: z.enum([
+    CommissionStatus.duplicate,
+    CommissionStatus.fraud,
+    CommissionStatus.pending,
+  ]), // We might want to support other statuses in the future
 });
 
 // Mark a sale as duplicate or fraud or pending
-export const updateSaleStatusAction = authActionClient
-  .schema(updateSaleStatusSchema)
+export const updateCommissionStatusAction = authActionClient
+  .schema(updateCommissionStatusSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { saleId, status } = parsedInput;
