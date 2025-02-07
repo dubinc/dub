@@ -111,7 +111,7 @@ export const GET = withWorkspace(
       clicks: Number(partner.totalClicks),
       leads: Number(partner.totalLeads),
       sales: Number(partner.totalSales),
-      salesAmount: Number(partner.totalSaleAmount),
+      saleAmount: Number(partner.totalSaleAmount),
       earnings:
         ((program.commissionType === "percentage"
           ? partner.totalSaleAmount

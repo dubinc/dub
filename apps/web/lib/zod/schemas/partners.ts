@@ -75,7 +75,7 @@ export const EnrolledPartnerSchema = PartnerSchema.omit({
     clicks: z.number().default(0),
     leads: z.number().default(0),
     sales: z.number().default(0),
-    salesAmount: z.number().default(0),
+    saleAmount: z.number().default(0),
   });
 
 // Used by POST /api/partners and webhook (partner.created)
@@ -92,7 +92,7 @@ export const EnrolledPartnerResponseSchema = EnrolledPartnerSchema.pick({
   clicks: true,
   leads: true,
   sales: true,
-  salesAmount: true,
+  saleAmount: true,
   earnings: true,
   createdAt: true,
   links: true,
