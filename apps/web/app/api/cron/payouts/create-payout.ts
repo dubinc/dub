@@ -41,12 +41,6 @@ export const createPayout = async ({
       return;
     }
 
-    // get the earliest sale date
-    // const periodStart = sales.reduce(
-    //   (min, sale) => (sale.createdAt < min ? sale.createdAt : min),
-    //   sales[0].createdAt,
-    // );
-
     // earliest commission date
     const periodStart = commissions[0].createdAt;
 
