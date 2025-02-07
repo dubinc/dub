@@ -24,10 +24,6 @@ const programAnalyticsQuerySchema = analyticsQuerySchema.pick({
   timezone: true,
 });
 
-// TODO:
-// groupBy should be `timeseries`
-// What should be the event?
-
 interface CommissionData {
   start: string;
   clicks: number;
@@ -74,7 +70,7 @@ export const GET = withWorkspace(
       programId,
     });
 
-    const { event, start, end, interval, timezone } =
+    const { start, end, interval, timezone } =
       programAnalyticsQuerySchema.parse(searchParams);
 
     const { startDate, endDate, granularity } = getStartEndDates({
@@ -88,7 +84,7 @@ export const GET = withWorkspace(
 
     const commissions = await prisma.$queryRaw<CommissionData[]>`
       SELECT 
-        DATE_FORMAT(createdAt, ${dateFormat}) AS start, -- Renamed from period to start
+        DATE_FORMAT(createdAt, ${dateFormat}) AS start, 
         COUNT(CASE WHEN type = 'click' THEN 1 END) AS clicks,
         COUNT(CASE WHEN type = 'lead' THEN 1 END) AS leads,
         COUNT(CASE WHEN type = 'sale' THEN 1 END) AS sales,
@@ -101,28 +97,32 @@ export const GET = withWorkspace(
       ORDER BY start ASC;
     `;
 
-    const dataMap = new Map();
-    const result: CommissionData[] = [];
     let currentDate = startFunction(startDate);
+    const result: CommissionData[] = [];
+    const dataMap = new Map<string, CommissionData>();
 
     commissions.forEach((item) => {
       dataMap.set(item.start, {
-        clicks: Number(item.clicks) || 0,
-        leads: Number(item.leads) || 0,
-        sales: Number(item.sales) || 0,
-        saleAmount: Number(item.saleAmount) || 0,
+        start: item.start,
+        clicks: Number(item.clicks),
+        leads: Number(item.leads),
+        sales: Number(item.sales),
+        saleAmount: Number(item.saleAmount),
       });
     });
 
-    while (currentDate <= endDate) {
+    while (currentDate < endDate) {
       const periodKey = format(currentDate, formatString);
+      const data = dataMap.get(periodKey) || {
+        clicks: 0,
+        leads: 0,
+        sales: 0,
+        saleAmount: 0,
+      };
 
       result.push({
         start: format(currentDate, "yyyy-MM-dd'T'HH:mm:ssxxx"),
-        clicks: dataMap.get(periodKey)?.clicks || 0,
-        leads: dataMap.get(periodKey)?.leads || 0,
-        sales: dataMap.get(periodKey)?.sales || 0,
-        saleAmount: dataMap.get(periodKey)?.saleAmount || 0,
+        ...data,
       });
 
       currentDate = dateIncrement(currentDate);
