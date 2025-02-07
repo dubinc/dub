@@ -191,10 +191,10 @@ export const POST = withWorkspace(
       }),
     );
 
-    const createdPartner = await enrollPartner({
+    const partner = await enrollPartner({
       programId,
       tenantId,
-      linkId: partnerLink.id,
+      link: partnerLink,
       workspace,
       partner: {
         name,
@@ -203,13 +203,6 @@ export const POST = withWorkspace(
         country,
         description,
       },
-    });
-
-    const partner = EnrolledPartnerSchema.parse({
-      ...createdPartner,
-      links: [partnerLink],
-      status: "approved",
-      commissionAmount: null,
     });
 
     return NextResponse.json(partner, {

@@ -42,6 +42,7 @@ import {
   PayoutSchema,
 } from "./zod/schemas/payouts";
 import {
+  PartnerLinkSchema,
   PartnerProgramInviteSchema,
   ProgramEnrollmentSchema,
   ProgramInviteSchema,
@@ -354,6 +355,8 @@ export type PartnerEarningsResponse = z.infer<typeof PartnerCommissionSchema>;
 export type CustomerProps = z.infer<typeof CustomerSchema>;
 
 export type PartnerProps = z.infer<typeof PartnerSchema>;
+
+export type PartnerLinkProps = z.infer<typeof PartnerLinkSchema>;
 
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
 

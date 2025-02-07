@@ -16,7 +16,11 @@ export const sendWorkspaceWebhook = async ({
 }: {
   trigger: WebhookTrigger;
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
-  data: LinkEventDataProps | LeadEventDataProps | SaleEventDataProps | PartnerEventDataProps;
+  data:
+    | LinkEventDataProps
+    | LeadEventDataProps
+    | SaleEventDataProps
+    | PartnerEventDataProps;
 }) => {
   if (!workspace.webhookEnabled) {
     return;

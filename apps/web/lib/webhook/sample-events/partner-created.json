@@ -1,13 +1,33 @@
 {
-  "id": "pn_BlBxRjQW7pC2MreIvtCcCROr",
+  "id": "pn_23fH8O3WxdwvfxP6ULuv6O1e",
+  "tenantId": "eaed0599-9da4-4ca2-b3b0-41b014b519cc",
   "name": "Matthew Hayden",
   "email": "matthew@example.com",
   "image": null,
   "country": "US",
   "bio": "I'm a content creator who works with brands to grow their business.",
-  "status": "default",
   "stripeConnectId": null,
   "payoutsEnabled": false,
-  "createdAt": "2025-02-06T17:15:59.658Z",
-  "updatedAt": "2025-02-06T17:15:59.658Z"
+  "createdAt": "2025-02-07T08:36:02.169Z",
+  "updatedAt": "2025-02-07T08:36:02.169Z",
+  "status": "approved",
+  "commissionAmount": null,
+  "earnings": 1000,
+  "clicks": 100,
+  "leads": 70,
+  "sales": 25,
+  "salesAmount": 2500,
+  "links": [
+    {
+      "id": "link_5myDHLqhIQvUmUPjchVygF9R",
+      "domain": "refer.dub.co",
+      "key": "track-test",
+      "shortLink": "https://refer.dub.co/track-test",
+      "url": "https://refer.dub.co",
+      "clicks": 100,
+      "leads": 70,
+      "sales": 25,
+      "saleAmount": 2500
+    }
+  ]
 }

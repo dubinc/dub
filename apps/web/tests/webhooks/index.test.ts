@@ -101,16 +101,18 @@ const assertQstashMessage = async (
   expect(receivedBody.event).toEqual(trigger);
   expect(receivedBody.data).toEqual(body);
 
-  if (trigger === "partner.created") {
-    PartnerSchema.extend({
-      createdAt: z.string().transform((str) => new Date(str)),
-      updatedAt: z.string().transform((str) => new Date(str)),
-    });
-  } else {
-    expect(eventSchemas[trigger].safeParse(receivedBody.data).success).toBe(
-      true,
-    );
-  }
+  // if (trigger === "partner.created") {
+  //   PartnerSchema.extend({
+  //     createdAt: z.string().transform((str) => new Date(str)),
+  //     updatedAt: z.string().transform((str) => new Date(str)),
+  //   });
+  // } else {
+  //   expect(eventSchemas[trigger].safeParse(receivedBody.data).success).toBe(
+  //     true,
+  //   );
+  // }
+
+  expect(eventSchemas[trigger].safeParse(receivedBody.data).success).toBe(true);
 };
 
 // TODO:
