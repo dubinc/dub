@@ -91,6 +91,5 @@ model Link {
   @@index(userId)
   @@index(folderId)
   @@index(tenantId)
-  @@index(programId)
   @@index([programId, partnerId])
 }
