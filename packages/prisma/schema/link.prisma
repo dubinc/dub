@@ -89,7 +89,7 @@ model Link {
   @@index(clicks(sort: Desc))
   @@index(lastClicked)
   @@index(userId)
-  @@index([folderId])
+  @@index(folderId)
   @@index(tenantId)
   @@index(programId)
   @@index([programId, partnerId])

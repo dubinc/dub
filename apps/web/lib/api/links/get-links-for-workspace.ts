@@ -39,6 +39,7 @@ export async function getLinksForWorkspace({
   const links = await prisma.link.findMany({
     where: {
       projectId: workspaceId,
+      folderId: folderId || null,
       archived: showArchived ? undefined : false,
       ...(domain && { domain }),
       ...(search && {
@@ -77,7 +78,6 @@ export async function getLinksForWorkspace({
       ...(partnerId && { partnerId }),
       ...(userId && { userId }),
       ...(linkIds && { id: { in: linkIds } }),
-      folderId: folderId || null,
     },
     include: {
       tags: {
