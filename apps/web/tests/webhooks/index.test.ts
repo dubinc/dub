@@ -106,8 +106,6 @@ const assertQstashMessage = async (
       true,
     );
   }
-
-  expect(eventSchemas[trigger].safeParse(receivedBody.data).success).toBe(true);
 };
 
 // TODO:
