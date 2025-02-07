@@ -14,6 +14,7 @@ const schema = createProgramSchema.partial().extend({
   programId: z.string(),
   logo: z.string().nullish(),
   wordmark: z.string().nullish(),
+  brandColor: z.string().nullish(),
 });
 
 export const updateProgramAction = authActionClient
@@ -32,6 +33,7 @@ export const updateProgramAction = authActionClient
       url,
       logo,
       wordmark,
+      brandColor,
     } = parsedInput;
 
     try {
@@ -66,6 +68,7 @@ export const updateProgramAction = authActionClient
           cookieLength,
           domain,
           url,
+          brandColor,
           logo: logoUrl ?? undefined,
           wordmark: wordmarkUrl ?? undefined,
         },
