@@ -113,6 +113,7 @@ export async function invoicePaid(event: Stripe.Event) {
   ]);
 
   // for program links
+  // TODO: check if link.partnerId as well, so we can just do findUnique partnerId_programId
   if (link.programId) {
     const { program, ...partner } =
       await prisma.programEnrollment.findFirstOrThrow({

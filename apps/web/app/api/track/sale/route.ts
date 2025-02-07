@@ -125,6 +125,7 @@ export const POST = withWorkspaceEdge(
         ]);
 
         // for program links
+        // TODO: check if link.partnerId as well, so we can just do findUnique partnerId_programId
         if (link.programId) {
           const { program, ...partner } =
             await prismaEdge.programEnrollment.findFirstOrThrow({
