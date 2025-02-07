@@ -82,7 +82,6 @@ export const backfillLinkData = async ({
         amount: e.sale.amount,
         currency: "usd",
       },
-      metadata: e.click,
     }),
     createdAt: new Date(e.timestamp),
   }));
