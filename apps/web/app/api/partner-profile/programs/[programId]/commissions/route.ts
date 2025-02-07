@@ -7,7 +7,7 @@ import {
   PartnerCommissionSchema,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { CommissionStatus } from "@prisma/client";
+import { CommissionStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId]/commissions – get commissions for a partner in a program enrollment

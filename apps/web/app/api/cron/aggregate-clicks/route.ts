@@ -3,7 +3,7 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { createId } from "@/lib/api/utils";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@dub/prisma";
-import { EventType, Prisma } from "@prisma/client";
+import { EventType, Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
