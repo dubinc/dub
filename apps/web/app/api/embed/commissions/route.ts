@@ -1,24 +1,33 @@
 import { withEmbedToken } from "@/lib/embed/auth";
 import { SALES_PAGE_SIZE } from "@/lib/partners/constants";
 import z from "@/lib/zod";
-import { PartnerSaleResponseSchema } from "@/lib/zod/schemas/partners";
+import { PartnerCommissionSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { CommissionStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 
-// GET /api/embed/sales – get sales for a link from an embed token
+// GET /api/embed/commissions – get commissions for a partner from an embed token
 export const GET = withEmbedToken(
   async ({ programId, partnerId, searchParams }) => {
     const { page } = z
       .object({ page: z.coerce.number().optional().default(1) })
       .parse(searchParams);
 
-    const sales = await prisma.sale.findMany({
+    const commissions = await prisma.commission.findMany({
       where: {
         programId,
         partnerId,
+        status: {
+          notIn: [
+            CommissionStatus.refunded,
+            CommissionStatus.duplicate,
+            CommissionStatus.fraud,
+          ],
+        },
       },
       select: {
         id: true,
+        type: true,
         amount: true,
         earnings: true,
         currency: true,
@@ -39,6 +48,8 @@ export const GET = withEmbedToken(
       },
     });
 
-    return NextResponse.json(z.array(PartnerSaleResponseSchema).parse(sales));
+    return NextResponse.json(
+      z.array(PartnerCommissionSchema).parse(commissions),
+    );
   },
 );

@@ -1,8 +1,8 @@
 import { intervals } from "@/lib/analytics/constants";
 import {
+  CommissionStatus,
   PartnerStatus,
   ProgramEnrollmentStatus,
-  SaleStatus,
 } from "@dub/prisma/client";
 import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
@@ -98,14 +98,14 @@ export const SaleSchema = z.object({
   amount: z.number(),
   earnings: z.number(),
   currency: z.string(),
-  status: z.nativeEnum(SaleStatus),
+  status: z.nativeEnum(CommissionStatus),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
 
 export const getSalesQuerySchema = z
   .object({
-    status: z.nativeEnum(SaleStatus).optional(),
+    status: z.nativeEnum(CommissionStatus).optional(),
     sortBy: z.enum(["createdAt", "amount"]).default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     interval: z.enum(intervals).default("1y"),
@@ -141,17 +141,20 @@ export const getPartnerSalesQuerySchema = getSalesQuerySchema.omit({
   partnerId: true,
 });
 
-export const PartnerSaleResponseSchema = SaleResponseSchema.omit({
+export const PartnerCommissionSchema = SaleResponseSchema.omit({
   partner: true,
   customer: true,
 }).merge(
   z.object({
-    customer: z.object({
-      email: z
-        .string()
-        .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
-      avatar: z.string().nullable(),
-    }),
+    type: z.string(),
+    customer: z
+      .object({
+        email: z
+          .string()
+          .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
+        avatar: z.string().nullable(),
+      })
+      .nullable(),
   }),
 );
 

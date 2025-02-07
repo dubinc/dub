@@ -1,7 +1,8 @@
 "use client";
 
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { PartnerSaleResponse } from "@/lib/types";
+import { PartnerEarningsResponse } from "@/lib/types";
+import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
@@ -21,7 +22,7 @@ import {
 } from "@dub/utils";
 import useSWR from "swr";
 
-export function SaleTablePartner({ limit }: { limit?: number }) {
+export function EarningsTablePartner({ limit }: { limit?: number }) {
   const { programEnrollment } = useProgramEnrollment();
   const { queryParams, searchParamsObj, getQueryString } = useRouterStuff();
 
@@ -30,28 +31,28 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
     sortOrder?: "asc" | "desc";
   };
 
-  const { data: salesCount } = useSWR<{ count: number }>(
+  const { data: earningsCount } = useSWR<{ count: number }>(
     programEnrollment &&
-      `/api/partner-profile/programs/${programEnrollment.programId}/sales/count${getQueryString()}`,
+      `/api/partner-profile/programs/${programEnrollment.programId}/commissions/count${getQueryString()}`,
     fetcher,
   );
 
   const {
-    data: sales,
+    data: earnings,
     isLoading,
     error,
-  } = useSWR<PartnerSaleResponse[]>(
+  } = useSWR<PartnerEarningsResponse[]>(
     programEnrollment &&
-      `/api/partner-profile/programs/${programEnrollment.programId}/sales${getQueryString()}`,
+      `/api/partner-profile/programs/${programEnrollment.programId}/commissions${getQueryString()}`,
     fetcher,
   );
 
   const { pagination, setPagination } = usePagination(limit);
 
   const { table, ...tableProps } = useTable({
-    data: sales?.slice(0, limit) || [],
+    data: earnings?.slice(0, limit) || [],
     loading: isLoading,
-    error: error ? "Failed to fetch sales events." : undefined,
+    error: error ? "Failed to fetch earnings." : undefined,
     columns: [
       {
         id: "createdAt",
@@ -67,31 +68,36 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
         id: "customer",
         header: "Customer",
         accessorKey: "customer",
-        cell: ({ row }) => {
-          return row.original.customer.email;
-        },
+        cell: ({ row }) =>
+          row.original.customer ? row.original.customer.email : "-",
+      },
+      {
+        id: "type",
+        header: "Type",
+        accessorKey: "type",
+        cell: ({ row }) => <CommissionTypeBadge type={row.original.type} />,
       },
       {
         id: "saleAmount",
         header: "Sale Amount",
         accessorKey: "sale",
-        cell: ({ row }) => {
-          return currencyFormatter(row.original.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          });
-        },
+        cell: ({ row }) =>
+          row.original.amount
+            ? currencyFormatter(row.original.amount / 100, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })
+            : "-",
       },
       {
         id: "earnings",
         header: "Earnings",
         accessorKey: "earnings",
-        cell: ({ row }) => {
-          return currencyFormatter(row.original.earnings / 100, {
+        cell: ({ row }) =>
+          currencyFormatter(row.original.earnings / 100, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
-          });
-        },
+          }),
       },
       {
         header: "Status",
@@ -120,11 +126,11 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
           },
         }),
     }),
-    rowCount: salesCount?.count || 0,
+    rowCount: earningsCount?.count || 0,
     emptyState: (
       <AnimatedEmptyState
-        title="No sales found"
-        description="No sales have been made for this program yet."
+        title="No earnings found"
+        description="No earnings have been made for this program yet."
         cardContent={() => (
           <>
             <CircleDollar className="size-4 text-neutral-700" />
@@ -133,7 +139,7 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
         )}
       />
     ),
-    resourceName: (plural) => `sale${plural ? "s" : ""}`,
+    resourceName: (plural) => `earning${plural ? "s" : ""}`,
   });
 
   return (
@@ -143,7 +149,7 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
           <SimpleDateRangePicker className="w-full sm:min-w-[200px] md:w-fit" />
         </div>
       )}
-      {isLoading || sales?.length ? (
+      {isLoading || earnings?.length ? (
         <Table
           {...tableProps}
           table={table}
@@ -151,8 +157,8 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
         />
       ) : (
         <AnimatedEmptyState
-          title="No sales found"
-          description="No sales have been made for this program yet."
+          title="No earnings found"
+          description="No earnings have been made for this program yet."
           cardContent={() => (
             <>
               <CircleDollar className="size-4 text-neutral-700" />

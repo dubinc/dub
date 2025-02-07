@@ -37,7 +37,7 @@ async function main() {
     });
     console.log("Deleted links", deleteLinks);
 
-    const deleteSales = await prisma.sale.deleteMany({
+    const deleteSales = await prisma.commission.deleteMany({
       where: {
         partnerId: partner.id,
       },

@@ -1,12 +1,12 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { MaxWidthWrapper } from "@dub/ui";
-import { SaleTablePartner } from "./sale-table";
+import { EarningsTablePartner } from "./earnings-table";
 
-export default function ProgramSales() {
+export default function ProgramEarning() {
   return (
-    <PageContent title="Sales" hideReferButton>
+    <PageContent title="Earnings" hideReferButton>
       <MaxWidthWrapper>
-        <SaleTablePartner />
+        <EarningsTablePartner />
       </MaxWidthWrapper>
     </PageContent>
   );

@@ -4,12 +4,13 @@ import { withPartnerProfile } from "@/lib/auth/partner";
 import z from "@/lib/zod";
 import {
   getPartnerSalesQuerySchema,
-  PartnerSaleResponseSchema,
+  PartnerCommissionSchema,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { CommissionStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 
-// GET /api/partner-profile/programs/[programId]/sales – get sales for a partner in a program enrollment
+// GET /api/partner-profile/programs/[programId]/commissions – get commissions for a partner in a program enrollment
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
     const { program } = await getProgramEnrollmentOrThrow({
@@ -17,17 +18,41 @@ export const GET = withPartnerProfile(
       programId: params.programId,
     });
 
-    const parsed = getPartnerSalesQuerySchema.parse(searchParams);
-    const { page, pageSize, status, sortBy, sortOrder, customerId, payoutId } =
-      parsed;
+    const {
+      page,
+      pageSize,
+      status,
+      sortBy,
+      sortOrder,
+      customerId,
+      payoutId,
+      interval,
+      start,
+      end,
+    } = getPartnerSalesQuerySchema.parse(searchParams);
 
-    const { startDate, endDate } = getStartEndDates(parsed);
+    const { startDate, endDate } = getStartEndDates({
+      interval,
+      start,
+      end,
+    });
 
-    const sales = await prisma.sale.findMany({
+    const commissions = await prisma.commission.findMany({
       where: {
         programId: program.id,
         partnerId: partner.id,
-        ...(status && { status }),
+        AND: [
+          {
+            status: {
+              notIn: [
+                CommissionStatus.refunded,
+                CommissionStatus.duplicate,
+                CommissionStatus.fraud,
+              ],
+            },
+          },
+          ...(status ? [{ status }] : []),
+        ],
         ...(customerId && { customerId }),
         ...(payoutId && { payoutId }),
         createdAt: {
@@ -41,6 +66,7 @@ export const GET = withPartnerProfile(
         earnings: true,
         currency: true,
         status: true,
+        type: true,
         createdAt: true,
         updatedAt: true,
         customer: true,
@@ -50,6 +76,8 @@ export const GET = withPartnerProfile(
       orderBy: { [sortBy]: sortOrder },
     });
 
-    return NextResponse.json(z.array(PartnerSaleResponseSchema).parse(sales));
+    return NextResponse.json(
+      z.array(PartnerCommissionSchema).parse(commissions),
+    );
   },
 );
