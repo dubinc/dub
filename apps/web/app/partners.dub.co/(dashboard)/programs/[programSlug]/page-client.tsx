@@ -183,6 +183,7 @@ function EarningsChart() {
   });
 
   const { data: timeseries, error } = usePartnerCommissionsAnalytics({
+    event: "sales",
     groupBy: "timeseries",
     interval,
     start,
