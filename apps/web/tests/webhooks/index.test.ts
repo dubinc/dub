@@ -32,6 +32,13 @@ const saleWebhookEventSchemaExtended = saleWebhookEventSchema.extend({
   customer: customerSchemaExtended,
 });
 
+const schema = EnrolledPartnerSchema;
+
+const enrolledPartnerSchemaExtended = schema.extend({
+  createdAt: z.string().transform((str) => new Date(str)),
+  updatedAt: z.string().transform((str) => new Date(str)),
+});
+
 const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "link.created": linkEventSchema,
   "link.updated": linkEventSchema,
@@ -39,7 +46,7 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "link.clicked": clickWebhookEventSchema,
   "lead.created": leadWebhookEventSchemaExtended,
   "sale.created": saleWebhookEventSchemaExtended,
-  "partner.created": EnrolledPartnerSchema,
+  "partner.created": enrolledPartnerSchemaExtended,
 };
 
 describe("Webhooks", () => {
@@ -95,21 +102,23 @@ const assertQstashMessage = async (
   expect(receivedBody.event).toEqual(trigger);
   expect(receivedBody.data).toEqual(body);
 
-  if (trigger === "partner.created") {
-    const partnerSchema = EnrolledPartnerSchema.extend({
-      createdAt: z.string().transform((str) => new Date(str)),
-      updatedAt: z.string().transform((str) => new Date(str)),
-    });
+  expect(eventSchemas[trigger].safeParse(receivedBody.data).success).toBe(true);
 
-    console.log(receivedBody.data);
+  // if (trigger === "partner.created") {
+  //   const partnerSchema = EnrolledPartnerSchema.extend({
+  //     createdAt: z.string().transform((str) => new Date(str)),
+  //     updatedAt: z.string().transform((str) => new Date(str)),
+  //   });
 
-    const result = partnerSchema.safeParse(receivedBody.data);
-    expect(result.success).toBe(true);
-  } else {
-    expect(eventSchemas[trigger].safeParse(receivedBody.data).success).toBe(
-      true,
-    );
-  }
+  //   console.log(receivedBody.data);
+
+  //   const result = partnerSchema.safeParse(receivedBody.data);
+  //   expect(result.success).toBe(true);
+  // } else {
+  //   expect(eventSchemas[trigger].safeParse(receivedBody.data).success).toBe(
+  //     true,
+  //   );
+  // }
 };
 
 // TODO:
