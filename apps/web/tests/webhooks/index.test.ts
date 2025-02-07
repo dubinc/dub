@@ -76,7 +76,7 @@ const assertQstashMessage = async (
 
   const callbackUrl = new URL(qstashMessage.callback!);
   const failureCallbackUrl = new URL(qstashMessage.failureCallback!);
-  const receivedBody = JSON.parse(qstashMessage.body!) as WebhookEvent;
+  const receivedBody = JSON.parse(qstashMessage.body!);
 
   expect(qstashMessage.url).toEqual(webhook.url);
   expect(qstashMessage.method).toEqual("POST");
