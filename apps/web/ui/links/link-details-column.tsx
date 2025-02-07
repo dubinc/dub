@@ -136,7 +136,7 @@ function TagButton({ tag, plus }: { tag: TagProps; plus?: number }) {
 }
 
 function AnalyticsBadge({ link }: { link: ResponseLink }) {
-  const { slug } = useWorkspace();
+  const { slug, plan } = useWorkspace();
   const { domain, key, trackConversion, clicks, leads, saleAmount } = link;
 
   const { isMobile } = useMediaQuery();
@@ -183,7 +183,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
 
   return isMobile ? (
     <Link
-      href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=all`}
+      href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
       className="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-sm text-gray-800"
     >
       <CursorRays className="h-4 w-4 text-gray-600" />
@@ -238,7 +238,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
         }
       >
         <Link
-          href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=all`}
+          href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
           className={cn(
             "overflow-hidden rounded-md border border-gray-200 bg-gray-50 p-0.5 text-sm text-gray-600 transition-colors",
             variant === "loose" ? "hover:bg-gray-100" : "hover:bg-white",
