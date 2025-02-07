@@ -175,7 +175,7 @@ function EarningsChart() {
 
   const { start, end, interval, color } = useContext(ProgramOverviewContext);
 
-  const { data: { earnings: total } = {} } = usePartnerAnalytics({
+  const { data: { earnings: total } = {} } = usePartnerCommissionsAnalytics({
     event: "composite",
     interval,
     start,

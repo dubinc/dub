@@ -69,6 +69,7 @@ export function usePartnerCommissionsAnalytics(
       programIdToUse &&
       `/api/partner-profile/programs/${programIdToUse}/commissions/analytics?${new URLSearchParams(
         {
+          event: params?.event ?? "composite",
           groupBy: params?.groupBy ?? "count",
           ...VALID_ANALYTICS_FILTERS.reduce(
             (acc, filter) => ({

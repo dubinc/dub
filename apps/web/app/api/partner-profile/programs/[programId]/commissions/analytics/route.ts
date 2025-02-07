@@ -21,6 +21,14 @@ interface CommissionData {
   earnings: number;
 }
 
+interface CommissionResult {
+  clicks: number;
+  leads: number;
+  sales: number;
+  saleAmount: number;
+  earnings: number;
+}
+
 // GET /api/partner-profile/programs/[programId]/commissions/analytics - get analytics for a program
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
@@ -29,7 +37,7 @@ export const GET = withPartnerProfile(
       programId: params.programId,
     });
 
-    const { start, end, interval, timezone, groupBy } =
+    const { start, end, interval, timezone, groupBy, event } =
       partnerAnalyticsQuerySchema.parse(searchParams);
 
     const { startDate, endDate, granularity } = getStartEndDates({
@@ -37,6 +45,36 @@ export const GET = withPartnerProfile(
       start,
       end,
     });
+
+    // if (groupBy === "count") {
+    //   const eventMap = {
+    //     clicks: "click",
+    //     leads: "lead",
+    //     sales: "sale",
+    //     composite: "click, lead, sale",
+    //   };
+
+    //   const commissions = await prisma.$queryRaw<CommissionResult>`
+    //     SELECT
+    //       COUNT(CASE WHEN type = 'click' THEN 1 END) AS clicks,
+    //       COUNT(CASE WHEN type = 'lead' THEN 1 END) AS leads,
+    //       COUNT(CASE WHEN type = 'sale' THEN 1 END) AS sales,
+    //       SUM(CASE WHEN type = 'sale' THEN amount ELSE 0 END) AS saleAmount,
+    //       SUM(earnings) AS earnings
+    //     FROM Commission
+    //     WHERE
+    //       createdAt BETWEEN ${startDate} AND ${endDate}
+    //       AND programId = ${program.id}
+    //       ${event !== "composite" ? Prisma.sql`AND type = ${eventMap[event]}` : Prisma.sql``};`;
+
+    //   return NextResponse.json({
+    //     clicks: Number(commissions[0].clicks) || 0,
+    //     leads: Number(commissions[0].leads) || 0,
+    //     sales: Number(commissions[0].sales) || 0,
+    //     saleAmount: Number(commissions[0].saleAmount) || 0,
+    //     earnings: Number(commissions[0].earnings) || 0,
+    //   });
+    // }
 
     const { dateFormat, dateIncrement, startFunction, formatString } =
       sqlGranularityMap[granularity];
