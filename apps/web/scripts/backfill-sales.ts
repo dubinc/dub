@@ -73,7 +73,7 @@ async function main() {
 
   console.table(data.slice(0, 10));
 
-  const response = await prisma.sale.createMany({
+  const response = await prisma.commission.createMany({
     data,
     skipDuplicates: true,
   });

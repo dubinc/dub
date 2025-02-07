@@ -88,7 +88,7 @@ export const backfillLinkData = async ({
   }));
 
   if (data.length > 0) {
-    await prisma.sale.createMany({
+    await prisma.commission.createMany({
       data,
       skipDuplicates: true,
     });
