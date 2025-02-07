@@ -1,18 +1,10 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { prisma } from "@dub/prisma";
-import {
-  addDays,
-  addHours,
-  addMinutes,
-  addMonths,
-  format,
-  startOfDay,
-  startOfHour,
-  startOfMinute,
-} from "date-fns";
+import { format } from "date-fns";
 import { NextResponse } from "next/server";
 
 const partnerAnalyticsQuerySchema = analyticsQuerySchema.pick({
@@ -28,34 +20,6 @@ interface CommissionData {
   start: string;
   earnings: number;
 }
-
-const granularityMap = {
-  month: {
-    dateFormat: "%Y-%m",
-    dateIncrement: (date: Date) => addMonths(date, 1),
-    startFunction: (date: Date) =>
-      new Date(date.getFullYear(), date.getMonth(), 1),
-    formatString: "yyyy-MM",
-  },
-  day: {
-    dateFormat: "%Y-%m-%d",
-    dateIncrement: (date: Date) => addDays(date, 1),
-    startFunction: startOfDay,
-    formatString: "yyyy-MM-dd",
-  },
-  hour: {
-    dateFormat: "%Y-%m-%d %H:00",
-    dateIncrement: (date: Date) => addHours(date, 1),
-    startFunction: startOfHour,
-    formatString: "yyyy-MM-dd HH:00",
-  },
-  minute: {
-    dateFormat: "%Y-%m-%d %H:%i",
-    dateIncrement: (date: Date) => addMinutes(date, 1),
-    startFunction: startOfMinute,
-    formatString: "yyyy-MM-dd HH:mm",
-  },
-} as const;
 
 // GET /api/partner-profile/programs/[programId]/commissions/analytics - get analytics for a program
 export const GET = withPartnerProfile(
@@ -75,7 +39,7 @@ export const GET = withPartnerProfile(
     });
 
     const { dateFormat, dateIncrement, startFunction, formatString } =
-      granularityMap[granularity];
+      sqlGranularityMap[granularity];
 
     const commissions = await prisma.$queryRaw<CommissionData[]>`
       SELECT 
@@ -102,16 +66,7 @@ export const GET = withPartnerProfile(
       });
     });
 
-    console.log("Kiran", {
-      commissions,
-      dataMap,
-      startDate,
-      endDate,
-      granularity,
-      currentDate,
-    });
-
-    while (currentDate <= endDate) {
+    while (currentDate < endDate) {
       const periodKey = format(currentDate, formatString);
 
       result.push({

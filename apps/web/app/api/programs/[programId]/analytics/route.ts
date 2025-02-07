@@ -1,18 +1,10 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { prisma } from "@dub/prisma";
-import {
-  addDays,
-  addHours,
-  addMinutes,
-  addMonths,
-  format,
-  startOfDay,
-  startOfHour,
-  startOfMinute,
-} from "date-fns";
+import { format } from "date-fns";
 import { NextResponse } from "next/server";
 
 const programAnalyticsQuerySchema = analyticsQuerySchema.pick({
@@ -31,34 +23,6 @@ interface CommissionData {
   sales: number;
   saleAmount: number;
 }
-
-const MySQLGranularity = {
-  month: {
-    dateFormat: "%Y-%m",
-    dateIncrement: (date: Date) => addMonths(date, 1),
-    startFunction: (date: Date) =>
-      new Date(date.getFullYear(), date.getMonth(), 1),
-    formatString: "yyyy-MM",
-  },
-  day: {
-    dateFormat: "%Y-%m-%d",
-    dateIncrement: (date: Date) => addDays(date, 1),
-    startFunction: startOfDay,
-    formatString: "yyyy-MM-dd",
-  },
-  hour: {
-    dateFormat: "%Y-%m-%d %H:00",
-    dateIncrement: (date: Date) => addHours(date, 1),
-    startFunction: startOfHour,
-    formatString: "yyyy-MM-dd HH:00",
-  },
-  minute: {
-    dateFormat: "%Y-%m-%d %H:%i",
-    dateIncrement: (date: Date) => addMinutes(date, 1),
-    startFunction: startOfMinute,
-    formatString: "yyyy-MM-dd HH:mm",
-  },
-} as const;
 
 // GET /api/programs/[programId]/analytics - get analytics for a program
 export const GET = withWorkspace(
@@ -80,7 +44,7 @@ export const GET = withWorkspace(
     });
 
     const { dateFormat, dateIncrement, startFunction, formatString } =
-      MySQLGranularity[granularity];
+      sqlGranularityMap[granularity];
 
     const commissions = await prisma.$queryRaw<CommissionData[]>`
       SELECT 
