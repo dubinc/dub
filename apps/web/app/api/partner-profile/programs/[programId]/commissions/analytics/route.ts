@@ -4,6 +4,7 @@ import { withPartnerProfile } from "@/lib/auth/partner";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@prisma/client";
 import { format } from "date-fns";
 import { NextResponse } from "next/server";
 
@@ -46,35 +47,35 @@ export const GET = withPartnerProfile(
       end,
     });
 
-    // if (groupBy === "count") {
-    //   const eventMap = {
-    //     clicks: "click",
-    //     leads: "lead",
-    //     sales: "sale",
-    //     composite: "click, lead, sale",
-    //   };
+    if (groupBy === "count") {
+      const eventMap = {
+        clicks: "click",
+        leads: "lead",
+        sales: "sale",
+        composite: "click, lead, sale",
+      };
 
-    //   const commissions = await prisma.$queryRaw<CommissionResult>`
-    //     SELECT
-    //       COUNT(CASE WHEN type = 'click' THEN 1 END) AS clicks,
-    //       COUNT(CASE WHEN type = 'lead' THEN 1 END) AS leads,
-    //       COUNT(CASE WHEN type = 'sale' THEN 1 END) AS sales,
-    //       SUM(CASE WHEN type = 'sale' THEN amount ELSE 0 END) AS saleAmount,
-    //       SUM(earnings) AS earnings
-    //     FROM Commission
-    //     WHERE
-    //       createdAt BETWEEN ${startDate} AND ${endDate}
-    //       AND programId = ${program.id}
-    //       ${event !== "composite" ? Prisma.sql`AND type = ${eventMap[event]}` : Prisma.sql``};`;
+      const commissions = await prisma.$queryRaw<CommissionResult>`
+        SELECT
+          COUNT(CASE WHEN type = 'click' THEN 1 END) AS clicks,
+          COUNT(CASE WHEN type = 'lead' THEN 1 END) AS leads,
+          COUNT(CASE WHEN type = 'sale' THEN 1 END) AS sales,
+          SUM(CASE WHEN type = 'sale' THEN amount ELSE 0 END) AS saleAmount,
+          SUM(earnings) AS earnings
+        FROM Commission
+        WHERE
+          createdAt BETWEEN ${startDate} AND ${endDate}
+          AND programId = ${program.id}
+          ${event !== "composite" ? Prisma.sql`AND type = ${eventMap[event]}` : Prisma.sql``};`;
 
-    //   return NextResponse.json({
-    //     clicks: Number(commissions[0].clicks) || 0,
-    //     leads: Number(commissions[0].leads) || 0,
-    //     sales: Number(commissions[0].sales) || 0,
-    //     saleAmount: Number(commissions[0].saleAmount) || 0,
-    //     earnings: Number(commissions[0].earnings) || 0,
-    //   });
-    // }
+      return NextResponse.json({
+        clicks: Number(commissions[0].clicks) || 0,
+        leads: Number(commissions[0].leads) || 0,
+        sales: Number(commissions[0].sales) || 0,
+        saleAmount: Number(commissions[0].saleAmount) || 0,
+        earnings: Number(commissions[0].earnings) || 0,
+      });
+    }
 
     const { dateFormat, dateIncrement, startFunction, formatString } =
       sqlGranularityMap[granularity];
