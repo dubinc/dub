@@ -24,7 +24,7 @@ interface CommissionData {
   saleAmount: number;
 }
 
-// GET /api/programs/[programId]/analytics - get analytics for a program
+// GET /api/programs/[programId]/revenue - get revenue timeseries for a program
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
