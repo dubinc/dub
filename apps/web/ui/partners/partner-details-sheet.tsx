@@ -143,11 +143,11 @@ function PartnerDetailsSheetContent({
                 ],
                 [
                   "Revenue",
-                  !partner.salesAmount
+                  !partner.saleAmount
                     ? "-"
-                    : currencyFormatter(partner.salesAmount / 100, {
+                    : currencyFormatter(partner.saleAmount / 100, {
                         minimumFractionDigits:
-                          partner.salesAmount % 1 === 0 ? 0 : 2,
+                          partner.saleAmount % 1 === 0 ? 0 : 2,
                         maximumFractionDigits: 2,
                       }),
                 ],

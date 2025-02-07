@@ -21,7 +21,7 @@ export const partnersQuerySchema = z
     country: z.string().optional(),
     search: z.string().optional(),
     sortBy: z
-      .enum(["createdAt", "clicks", "leads", "sales", "earnings"])
+      .enum(["createdAt", "clicks", "leads", "sales", "saleAmount", "earnings"])
       .default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     tenantId: z
@@ -75,7 +75,7 @@ export const EnrolledPartnerSchema = PartnerSchema.omit({
     clicks: z.number().default(0),
     leads: z.number().default(0),
     sales: z.number().default(0),
-    salesAmount: z.number().default(0),
+    saleAmount: z.number().default(0),
   });
 
 export const LeaderboardPartnerSchema = z.object({
@@ -131,7 +131,7 @@ export const getSalesCountQuerySchema = getSalesQuerySchema.omit({
   sortBy: true,
 });
 
-export const getSalesAmountQuerySchema = getSalesQuerySchema.pick({
+export const getSaleAmountQuerySchema = getSalesQuerySchema.pick({
   start: true,
   end: true,
   partnerId: true,

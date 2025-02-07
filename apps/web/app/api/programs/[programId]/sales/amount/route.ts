@@ -1,7 +1,7 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { getSalesAmountQuerySchema } from "@/lib/zod/schemas/partners";
+import { getSaleAmountQuerySchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -15,13 +15,13 @@ export const GET = withWorkspace(
       programId,
     });
 
-    const parsed = getSalesAmountQuerySchema.parse(searchParams);
+    const parsed = getSaleAmountQuerySchema.parse(searchParams);
 
     const { startDate, endDate } = getStartEndDates(parsed);
 
     const { partnerId } = parsed;
 
-    const salesAmount = await prisma.commission.aggregate({
+    const saleAmount = await prisma.commission.aggregate({
       where: {
         type: "sale",
         programId,
@@ -38,7 +38,7 @@ export const GET = withWorkspace(
     });
 
     return NextResponse.json({
-      amount: salesAmount._sum.amount,
+      amount: saleAmount._sum.amount,
     });
   },
 );
