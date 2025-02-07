@@ -1,8 +1,8 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
-import { parseRequestBody } from "@/lib/api/utils";
+import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { createRewardSchema, RewardSchema } from "@/lib/zod/schemas/rewards";
+import { createRewardSchema, rewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -20,24 +20,21 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     where: {
       programId,
     },
-    include: {
-      programEnrollments: true,
-    },
   });
 
-  return NextResponse.json(z.array(RewardSchema).parse(rewards));
+  return NextResponse.json(z.array(rewardSchema).parse(rewards));
 });
 
 // POST /api/programs/[programId]/rewards - create a new reward
 export const POST = withWorkspace(async ({ workspace, params, req }) => {
   const { programId } = params;
 
-  await getProgramOrThrow({
+  const program = await getProgramOrThrow({
     workspaceId: workspace.id,
     programId,
   });
 
-  const { partnerIds, ...data } = createRewardSchema.parse(
+  const { partnerIds, isDefault, ...data } = createRewardSchema.parse(
     await parseRequestBody(req),
   );
 
@@ -45,7 +42,7 @@ export const POST = withWorkspace(async ({ workspace, params, req }) => {
     const partners = await prisma.programEnrollment.findMany({
       where: {
         programId,
-        id: {
+        partnerId: {
           in: partnerIds,
         },
       },
@@ -59,15 +56,62 @@ export const POST = withWorkspace(async ({ workspace, params, req }) => {
     }
   }
 
+  if (isDefault) {
+    if (program.defaultRewardId) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `A program can only have one default reward and you've already set one with id ${program.defaultRewardId}.`,
+      });
+    }
+
+    if (data.type !== "sale") {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Default reward must be of type `sale`.",
+      });
+    }
+
+    if (partnerIds && partnerIds.length > 0) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Default reward should not be partner specific.",
+      });
+    }
+  }
+
+  // TODO:
+  // Partners can't be more than one reward of the same type.
+
+  const hasPartners = partnerIds && partnerIds.length > 0;
+
   const reward = await prisma.reward.create({
     data: {
       ...data,
+      id: createId({ prefix: "rew_" }),
       programId,
-      programEnrollments: {
-        connect: partnerIds?.map((id) => ({ id })),
-      },
+      ...(hasPartners && {
+        partners: {
+          createMany: {
+            data: partnerIds.map((partnerId) => ({
+              partnerId,
+              programId,
+            })),
+          },
+        },
+      }),
     },
   });
 
-  return NextResponse.json(RewardSchema.parse(reward));
+  if (isDefault) {
+    await prisma.program.update({
+      where: {
+        id: programId,
+      },
+      data: {
+        defaultRewardId: reward.id,
+      },
+    });
+  }
+
+  return NextResponse.json(rewardSchema.parse(reward));
 });

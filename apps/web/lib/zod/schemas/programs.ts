@@ -20,6 +20,7 @@ export const ProgramSchema = z.object({
   url: z.string().nullable(),
   type: z.nativeEnum(ProgramType),
   cookieLength: z.number(),
+  defaultRewardId: z.string().nullable(),
   // Commission details
   commissionAmount: z.number(),
   commissionType: z.nativeEnum(CommissionType),

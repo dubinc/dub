@@ -77,7 +77,6 @@ model ProgramEnrollment {
   linkId           String?                 @unique // TODO: Remove after the migration
   commissionAmount Int? // custom commission amount for this partner // TODO: Remove after the migration
   discountId       String? // custom discount for this partner
-  rewardId         String? // custom reward for this partner
   applicationId    String?                 @unique
   status           ProgramEnrollmentStatus @default(pending)
   createdAt        DateTime                @default(now())
@@ -87,14 +86,12 @@ model ProgramEnrollment {
   program     Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   links       Link[]
   discount    Discount?           @relation(fields: [discountId], references: [id])
-  reward      Reward?             @relation(fields: [rewardId], references: [id])
   application ProgramApplication? @relation(fields: [applicationId], references: [id])
 
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])
   @@index([programId])
   @@index([discountId])
-  @@index([rewardId])
 }
 
 model ProgramApplication {
