@@ -97,10 +97,12 @@ const assertQstashMessage = async (
   expect(receivedBody.data).toEqual(body);
 
   if (trigger === "partner.created") {
-    EnrolledPartnerSchema.extend({
-      createdAt: z.string().transform((str) => new Date(str)),
-      updatedAt: z.string().transform((str) => new Date(str)),
-    });
+    expect(
+      EnrolledPartnerSchema.extend({
+        createdAt: z.string().transform((str) => new Date(str)),
+        updatedAt: z.string().transform((str) => new Date(str)),
+      }).safeParse(receivedBody.data).success,
+    ).toBe(true);
   } else {
     expect(eventSchemas[trigger].safeParse(receivedBody.data).success).toBe(
       true,
