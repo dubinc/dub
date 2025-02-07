@@ -53,6 +53,7 @@ type FileUploadReadFileProps =
     };
 
 export type FileUploadProps = FileUploadReadFileProps & {
+  id?: string;
   accept: AcceptedFileFormats;
   className?: string;
   iconClassName?: string;
@@ -108,6 +109,7 @@ export type FileUploadProps = FileUploadReadFileProps & {
 } & VariantProps<typeof imageUploadVariants>;
 
 export function FileUpload({
+  id,
   readFile,
   onChange,
   variant,
@@ -277,6 +279,7 @@ export function FileUpload({
       {clickToUpload && (
         <div className="sr-only mt-1 flex shadow-sm">
           <input
+            id={id}
             key={fileName} // Gets us a fresh input every time a file is uploaded
             type="file"
             accept={acceptFileTypes[accept].types.join(",")}

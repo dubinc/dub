@@ -4,11 +4,12 @@ import { updateProgramAction } from "@/lib/actions/partners/update-program";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
+import { ProgramColorPicker } from "@/ui/partners/program-color-picker";
 import { Button, FileUpload } from "@dub/ui";
 import { LoadingSpinner, Plus } from "@dub/ui/icons";
 import { useAction } from "next-safe-action/hooks";
 import { flightRouterStateSchema } from "next/dist/server/app-render/types";
-import { PropsWithChildren, useId } from "react";
+import { ReactNode, useId } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -45,8 +46,6 @@ export function BrandingSettings() {
 type FormData = Pick<ProgramProps, "logo" | "wordmark" | "brandColor">;
 
 function BrandingSettingsForm({ program }: { program: ProgramProps }) {
-  const id = useId();
-
   const { id: workspaceId } = useWorkspace();
 
   const form = useForm<FormData>({
@@ -109,25 +108,28 @@ function BrandingSettingsForm({ program }: { program: ProgramProps }) {
             label="Logo"
             description="A square logo that will be used in various parts of your program"
           >
-            <Controller
-              control={control}
-              name="logo"
-              rules={{ required: flightRouterStateSchema }}
-              render={({ field }) => (
-                <FileUpload
-                  accept="images"
-                  className="size-14 rounded-lg border border-neutral-300"
-                  iconClassName="size-4 text-neutral-800"
-                  icon={Plus}
-                  variant="plain"
-                  imageSrc={field.value}
-                  readFile
-                  onChange={({ src }) => field.onChange(src)}
-                  content={null}
-                  maxFileSizeMB={2}
-                />
-              )}
-            />
+            {(id) => (
+              <Controller
+                control={control}
+                name="logo"
+                rules={{ required: flightRouterStateSchema }}
+                render={({ field }) => (
+                  <FileUpload
+                    id={id}
+                    accept="images"
+                    className="size-14 rounded-lg border border-neutral-300"
+                    iconClassName="size-4 text-neutral-800"
+                    icon={Plus}
+                    variant="plain"
+                    imageSrc={field.value}
+                    readFile
+                    onChange={({ src }) => field.onChange(src)}
+                    content={null}
+                    maxFileSizeMB={2}
+                  />
+                )}
+              />
+            )}
           </FormRow>
 
           <Divider />
@@ -136,25 +138,28 @@ function BrandingSettingsForm({ program }: { program: ProgramProps }) {
             label="Wordmark"
             description="A full-sized logo used on the program application form"
           >
-            <Controller
-              control={control}
-              name="wordmark"
-              rules={{ required: false }}
-              render={({ field }) => (
-                <FileUpload
-                  accept="images"
-                  className="h-14 w-36 rounded-lg border border-neutral-300"
-                  iconClassName="size-4 text-neutral-800"
-                  icon={Plus}
-                  variant="plain"
-                  imageSrc={field.value}
-                  readFile
-                  onChange={({ src }) => field.onChange(src)}
-                  content={null}
-                  maxFileSizeMB={2}
-                />
-              )}
-            />
+            {(id) => (
+              <Controller
+                control={control}
+                name="wordmark"
+                rules={{ required: false }}
+                render={({ field }) => (
+                  <FileUpload
+                    id={id}
+                    accept="images"
+                    className="h-14 w-36 rounded-lg border border-neutral-300"
+                    iconClassName="size-4 text-neutral-800"
+                    icon={Plus}
+                    variant="plain"
+                    imageSrc={field.value}
+                    readFile
+                    onChange={({ src }) => field.onChange(src)}
+                    content={null}
+                    maxFileSizeMB={2}
+                  />
+                )}
+              />
+            )}
           </FormRow>
 
           <Divider />
@@ -162,7 +167,21 @@ function BrandingSettingsForm({ program }: { program: ProgramProps }) {
           <FormRow
             label="Theme color"
             description="Select the color to match your brand"
-          ></FormRow>
+          >
+            {(id) => (
+              <Controller
+                control={control}
+                name="brandColor"
+                render={({ field }) => (
+                  <ProgramColorPicker
+                    color={field.value}
+                    onChange={field.onChange}
+                    id={id}
+                  />
+                )}
+              />
+            )}
+          </FormRow>
 
           <Divider />
         </div>
@@ -192,15 +211,23 @@ function FormRow({
   label,
   description,
   children,
-}: PropsWithChildren<{ label: string; description: string }>) {
+}: {
+  label: string;
+  description: string;
+  children: (id: string) => ReactNode;
+}) {
+  const id = useId();
+
   return (
-    <div className="flex items-center gap-6">
+    <div className="flex items-center justify-between gap-6">
       <div>
-        <label className="text-sm font-medium text-neutral-800">{label}</label>
+        <label className="text-sm font-medium text-neutral-800" htmlFor={id}>
+          {label}
+        </label>
         <p className="mt-2 text-xs text-neutral-500">{description}</p>
       </div>
 
-      <div>{children}</div>
+      <div>{children(id)}</div>
     </div>
   );
 }
