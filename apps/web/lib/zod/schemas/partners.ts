@@ -97,7 +97,7 @@ export const EnrolledPartnerResponseSchema = EnrolledPartnerSchema.pick({
   createdAt: true,
   links: true,
 }).extend({
-  tenantId: z.string(),
+  tenantId: z.string().nullable(),
   programId: z.string(),
 });
 
