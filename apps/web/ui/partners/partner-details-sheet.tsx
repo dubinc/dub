@@ -151,13 +151,6 @@ function PartnerDetailsSheetContent({
                         maximumFractionDigits: 2,
                       }),
                 ],
-                // [
-                //   "Earnings",
-                //   currencyFormatter(earnings, {
-                //     minimumFractionDigits: earnings % 1 === 0 ? 0 : 2,
-                //     maximumFractionDigits: 2,
-                //   }),
-                // ],
               ].map(([label, value]) => (
                 <div key={label} className="flex flex-col bg-neutral-50 p-3">
                   <span className="text-xs text-neutral-500">{label}</span>
@@ -579,8 +572,7 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
         minSize: 1,
       },
       {
-        id: "amount",
-        header: "Amount",
+        header: "Revenue",
         accessorFn: (d) =>
           currencyFormatter(d.saleAmount / 100, {
             minimumFractionDigits: 2,
