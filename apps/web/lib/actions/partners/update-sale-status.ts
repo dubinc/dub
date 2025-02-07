@@ -16,7 +16,7 @@ const updateCommissionStatusSchema = z.object({
 });
 
 // Mark a sale as duplicate or fraud or pending
-export const updateCommissionStatusAction = authActionClient
+export const updateSaleStatusAction = authActionClient
   .schema(updateCommissionStatusSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
