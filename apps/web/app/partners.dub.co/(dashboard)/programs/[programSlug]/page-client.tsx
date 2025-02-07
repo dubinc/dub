@@ -2,7 +2,9 @@
 
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
-import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
+import usePartnerAnalytics, {
+  usePartnerCommissionsAnalytics,
+} from "@/lib/swr/use-partner-analytics";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
@@ -180,8 +182,7 @@ function EarningsChart() {
     end,
   });
 
-  const { data: timeseries, error } = usePartnerAnalytics({
-    event: "sales",
+  const { data: timeseries, error } = usePartnerCommissionsAnalytics({
     groupBy: "timeseries",
     interval,
     start,
