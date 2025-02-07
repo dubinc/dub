@@ -44,7 +44,7 @@ export function ProgramCard({
       )}
     >
       <div className="flex items-center gap-4">
-        <div className="flex size-10 items-center justify-center rounded-full border border-gray-200 bg-gradient-to-t from-gray-100">
+        <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-gradient-to-t from-neutral-100">
           <BlurImage
             width={96}
             height={96}

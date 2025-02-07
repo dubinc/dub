@@ -65,7 +65,7 @@ export function PartnerPayoutConfirmed({
       <Preview>Your payout is being processed</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
+          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-neutral-200 px-10 py-5">
             <Section className="my-8">
               <Img
                 src={program.logo || "https://assets.dub.co/logo.png"}
@@ -78,7 +78,7 @@ export function PartnerPayoutConfirmed({
               Your payout is being processed!
             </Heading>
 
-            <Text className="text-sm leading-6 text-gray-600">
+            <Text className="text-sm leading-6 text-neutral-600">
               <strong className="text-black">{program.name}</strong> has
               initiated a payout of{" "}
               <strong className="text-black">{saleAmountInDollars}</strong> for
@@ -86,7 +86,7 @@ export function PartnerPayoutConfirmed({
               <strong className="text-black">{startDate}</strong> to{" "}
               <strong className="text-black">{endDate}</strong>.
             </Text>
-            <Text className="text-sm leading-6 text-gray-600">
+            <Text className="text-sm leading-6 text-neutral-600">
               The payout is currently being processed and is expected to be
               credited to your account within 5 business days.
             </Text>

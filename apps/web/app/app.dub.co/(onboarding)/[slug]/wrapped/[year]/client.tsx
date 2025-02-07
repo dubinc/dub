@@ -177,7 +177,7 @@ const StatTable = ({
             <motion.div
               key={index}
               variants={STAGGER_CHILD_VARIANTS}
-              className="text-sm text-gray-500"
+              className="text-sm text-neutral-500"
             >
               <a
                 href={`/${slug}/analytics?${new URLSearchParams({

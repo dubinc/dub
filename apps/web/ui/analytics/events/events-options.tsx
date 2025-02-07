@@ -24,7 +24,7 @@ export default function EventsOptions() {
         variant="secondary"
         className="w-auto px-1.5"
         disabled={!exportQueryString}
-        icon={<ThreeDots className="h-5 w-5 text-gray-500" />}
+        icon={<ThreeDots className="h-5 w-5 text-neutral-500" />}
       />
     </Popover>
   );

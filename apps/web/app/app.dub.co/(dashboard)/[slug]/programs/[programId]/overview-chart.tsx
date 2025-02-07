@@ -97,15 +97,15 @@ export function OverviewChart() {
             tooltipContent={(d) => {
               return (
                 <>
-                  <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
+                  <p className="border-b border-neutral-200 px-4 py-3 text-sm text-neutral-900">
                     {formatDateTooltip(d.date, { interval, start, end })}
                   </p>
                   <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-sm bg-violet-500 shadow-[inset_0_0_0_1px_#0003]" />
-                      <p className="capitalize text-gray-600">Revenue</p>
+                      <p className="capitalize text-neutral-600">Revenue</p>
                     </div>
-                    <p className="text-right font-medium text-gray-900">
+                    <p className="text-right font-medium text-neutral-900">
                       {currencyFormatter(d.values.saleAmount, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
