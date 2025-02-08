@@ -2,9 +2,8 @@
 
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
-import usePartnerAnalytics, {
-  usePartnerCommissions,
-} from "@/lib/swr/use-partner-commissions";
+import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
+import { usePartnerEarnings } from "@/lib/swr/use-partner-earnings";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
@@ -175,14 +174,14 @@ function EarningsChart() {
 
   const { start, end, interval, color } = useContext(ProgramOverviewContext);
 
-  const { data: { earnings: total } = {} } = usePartnerCommissions({
+  const { data: { earnings: total } = {} } = usePartnerEarnings({
     event: "composite",
     interval,
     start,
     end,
   });
 
-  const { data: timeseries, error } = usePartnerCommissions({
+  const { data: timeseries, error } = usePartnerEarnings({
     event: "sales",
     groupBy: "timeseries",
     interval,
