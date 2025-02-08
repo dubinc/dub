@@ -40,8 +40,6 @@ export const GET = withEmbedToken(
       },
     });
 
-    return NextResponse.json(
-      z.array(PartnerEarningsSchema).parse(commissions),
-    );
+    return NextResponse.json(z.array(PartnerEarningsSchema).parse(commissions));
   },
 );
