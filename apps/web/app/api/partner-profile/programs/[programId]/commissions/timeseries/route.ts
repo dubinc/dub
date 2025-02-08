@@ -30,7 +30,7 @@ interface CommissionResult {
   earnings: number;
 }
 
-// GET /api/partner-profile/programs/[programId]/commissions/analytics - get analytics for a program
+// GET /api/partner-profile/programs/[programId]/commissions/timeseries - get timeseries chart for a partner's commissions
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
     const { program } = await getProgramEnrollmentOrThrow({

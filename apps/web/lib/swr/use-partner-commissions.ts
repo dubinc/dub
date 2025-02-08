@@ -54,7 +54,7 @@ export default function usePartnerAnalytics(
   };
 }
 
-export function usePartnerCommissionsAnalytics(
+export function usePartnerCommissions(
   params?: PartnerAnalyticsFilters & { programId?: string },
 ) {
   const { data: session } = useSession();
@@ -67,7 +67,7 @@ export function usePartnerCommissionsAnalytics(
   const { data, error } = useSWR<any>(
     partnerId &&
       programIdToUse &&
-      `/api/partner-profile/programs/${programIdToUse}/commissions/analytics?${new URLSearchParams(
+      `/api/partner-profile/programs/${programIdToUse}/commissions/timeseries?${new URLSearchParams(
         {
           event: params?.event ?? "composite",
           groupBy: params?.groupBy ?? "count",

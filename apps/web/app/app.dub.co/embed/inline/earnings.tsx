@@ -1,6 +1,7 @@
 import { SALES_PAGE_SIZE } from "@/lib/partners/constants";
 import { PartnerEarningsResponse } from "@/lib/types";
-import { Gift, Table, usePagination, useTable } from "@dub/ui";
+import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
+import { Gift, StatusBadge, Table, usePagination, useTable } from "@dub/ui";
 import {
   currencyFormatter,
   fetcher,
@@ -20,6 +21,8 @@ export function EmbedEarnings({ salesCount }: { salesCount: number }) {
       keepPreviousData: true,
     },
   );
+
+  console.log({ earnings });
 
   const { table, ...tableProps } = useTable({
     data: earnings || [],
@@ -60,6 +63,18 @@ export function EmbedEarnings({ salesCount }: { salesCount: number }) {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           });
+        },
+      },
+      {
+        header: "Status",
+        cell: ({ row }) => {
+          const badge = SaleStatusBadges[row.original.status];
+
+          return (
+            <StatusBadge icon={null} variant={badge.variant}>
+              {badge.label}
+            </StatusBadge>
+          );
         },
       },
     ],

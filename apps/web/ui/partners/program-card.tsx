@@ -1,6 +1,4 @@
-import usePartnerAnalytics, {
-  usePartnerCommissionsAnalytics,
-} from "@/lib/swr/use-partner-analytics";
+import { usePartnerCommissions } from "@/lib/swr/use-partner-commissions";
 import { ProgramEnrollmentProps, ProgramProps } from "@/lib/types";
 import { BlurImage, MiniAreaChart, StatusBadge } from "@dub/ui";
 import {
@@ -90,12 +88,12 @@ export function ProgramCard({
 }
 
 function ProgramCardEarnings({ program }: { program: ProgramProps }) {
-  const { data: analytics } = usePartnerCommissionsAnalytics({
+  const { data: analytics } = usePartnerCommissions({
     programId: program.id,
     interval: "1y",
   });
 
-  const { data: timeseries } = usePartnerCommissionsAnalytics({
+  const { data: timeseries } = usePartnerCommissions({
     programId: program.id,
     groupBy: "timeseries",
     interval: "1y",
