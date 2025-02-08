@@ -22,7 +22,7 @@ import {
   XAxis,
   YAxis,
 } from "@dub/ui/charts";
-import { Check, Copy, LoadingSpinner, MoneyBill2 } from "@dub/ui/icons";
+import { Check, Copy, LoadingSpinner, MoneyBill } from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
@@ -65,7 +65,7 @@ export default function ProgramPageClient() {
           <HeroBackground logo={program.logo} color={program.brandColor} />
         )}
         <span className="flex items-center gap-2 text-sm text-neutral-500">
-          <MoneyBill2 className="size-4" />
+          <MoneyBill className="size-4" />
           Refer and earn
         </span>
         <div className="relative mt-24 text-lg text-neutral-900 sm:max-w-[50%]">
