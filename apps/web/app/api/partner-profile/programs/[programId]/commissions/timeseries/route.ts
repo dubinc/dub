@@ -17,16 +17,16 @@ const partnerAnalyticsQuerySchema = analyticsQuerySchema.pick({
   timezone: true,
 });
 
-interface CommissionData {
-  start: string;
-  earnings: number;
-}
-
 interface CommissionResult {
   clicks: number;
   leads: number;
   sales: number;
   saleAmount: number;
+  earnings: number;
+}
+
+interface Commission {
+  start: string;
   earnings: number;
 }
 
@@ -38,7 +38,7 @@ export const GET = withPartnerProfile(
       programId: params.programId,
     });
 
-    const { start, end, interval, timezone, groupBy, event } =
+    const { start, end, interval, groupBy, event } =
       partnerAnalyticsQuerySchema.parse(searchParams);
 
     const { startDate, endDate, granularity } = getStartEndDates({
@@ -82,7 +82,7 @@ export const GET = withPartnerProfile(
     const { dateFormat, dateIncrement, startFunction, formatString } =
       sqlGranularityMap[granularity];
 
-    const commissions = await prisma.$queryRaw<CommissionData[]>`
+    const commissions = await prisma.$queryRaw<Commission[]>`
       SELECT 
         DATE_FORMAT(createdAt, ${dateFormat}) AS start, 
         SUM(earnings) AS earnings
@@ -96,28 +96,29 @@ export const GET = withPartnerProfile(
       ORDER BY start ASC;
     `;
 
+    const timeseries: Commission[] = [];
     let currentDate = startFunction(startDate);
-    const result: CommissionData[] = [];
-    const dataMap = new Map<string, CommissionData>();
 
-    commissions.forEach((item) => {
-      dataMap.set(item.start, {
-        start: item.start,
-        earnings: Number(item.earnings),
-      });
-    });
+    const commissionLookup = Object.fromEntries(
+      commissions.map((item) => [
+        item.start,
+        {
+          earnings: Number(item.earnings),
+        },
+      ]),
+    );
 
     while (currentDate < endDate) {
       const periodKey = format(currentDate, formatString);
 
-      result.push({
+      timeseries.push({
         start: format(currentDate, "yyyy-MM-dd'T'HH:mm:ssxxx"),
-        earnings: dataMap.get(periodKey)?.earnings || 0,
+        earnings: commissionLookup[periodKey]?.earnings || 0,
       });
 
       currentDate = dateIncrement(currentDate);
     }
 
-    return NextResponse.json(result);
+    return NextResponse.json(timeseries);
   },
 );
