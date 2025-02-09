@@ -5,7 +5,7 @@ import useSWR from "swr";
 import { VALID_ANALYTICS_FILTERS } from "../analytics/constants";
 import { PartnerAnalyticsFilters } from "../analytics/types";
 
-export default function usePartnerAnalytics(
+export function usePartnerEarnings(
   params?: PartnerAnalyticsFilters & { programId?: string },
 ) {
   const { data: session } = useSession();
@@ -18,7 +18,7 @@ export default function usePartnerAnalytics(
   const { data, error } = useSWR<any>(
     partnerId &&
       programIdToUse &&
-      `/api/partner-profile/programs/${programIdToUse}/analytics?${new URLSearchParams(
+      `/api/partner-profile/programs/${programIdToUse}/earnings/timeseries?${new URLSearchParams(
         {
           event: params?.event ?? "composite",
           groupBy: params?.groupBy ?? "count",

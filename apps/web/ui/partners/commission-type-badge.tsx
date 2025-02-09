@@ -1,4 +1,4 @@
-import { PartnerCommissionSchema } from "@/lib/zod/schemas/partners";
+import { PartnerEarningsSchema } from "@/lib/zod/schemas/partners";
 import { CursorRays, InvoiceDollar, UserCheck } from "@dub/ui/icons";
 import { capitalize } from "@dub/utils/src/functions";
 import { z } from "zod";
@@ -12,7 +12,7 @@ const iconsMap = {
 export const CommissionTypeBadge = ({
   type,
 }: {
-  type: z.infer<typeof PartnerCommissionSchema>["type"];
+  type: z.infer<typeof PartnerEarningsSchema>["type"];
 }) => {
   const Icon = iconsMap[type];
 

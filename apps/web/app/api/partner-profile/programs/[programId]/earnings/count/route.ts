@@ -5,7 +5,7 @@ import { getPartnerSalesCountQuerySchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
-// GET /api/partner-profile/programs/[programId]/commissions/count – get commissions count for a partner in a program enrollment
+// GET /api/partner-profile/programs/[programId]/earnings/count – get earnings count for a partner in a program enrollment
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
     const { program } = await getProgramEnrollmentOrThrow({

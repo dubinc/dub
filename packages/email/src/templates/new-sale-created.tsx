@@ -21,7 +21,7 @@ export function NewSaleCreated({
     referralLink: "https://refer.dub.co/steven",
   },
   program = {
-    id: "prog_d8pl69xXCv4AoHNT281pHQdo",
+    id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
     name: "Acme",
     logo: DUB_WORDMARK,
   },
