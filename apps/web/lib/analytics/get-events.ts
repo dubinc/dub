@@ -37,12 +37,14 @@ export const getEvents = async (params: EventsFilters) => {
     isDemo,
     order,
     sortOrder,
+    dataAvailableFrom,
   } = params;
 
   const { startDate, endDate } = getStartEndDates({
     interval,
     start,
     end,
+    dataAvailableFrom,
   });
 
   if (trigger) {

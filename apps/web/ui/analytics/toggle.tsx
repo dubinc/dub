@@ -1,6 +1,5 @@
 import { generateFilters } from "@/lib/ai/generate-filters";
 import {
-  INTERVAL_DATA,
   INTERVAL_DISPLAYS,
   TRIGGER_DISPLAY,
   VALID_ANALYTICS_FILTERS,
@@ -89,7 +88,7 @@ export default function Toggle({
 }: {
   page?: "analytics" | "events";
 }) {
-  const { slug, plan } = useWorkspace();
+  const { slug, plan, createdAt } = useWorkspace();
 
   const { router, queryParams, searchParamsObj, getQueryString } =
     useRouterStuff();
@@ -729,15 +728,14 @@ export default function Toggle({
         });
       }}
       presets={INTERVAL_DISPLAYS.map(({ display, value, shortcut }) => {
-        const start = INTERVAL_DATA[value].startDate;
-        const end = new Date();
-
         const requiresUpgrade = DUB_DEMO_LINKS.find(
           (l) => l.domain === domain && l.key === key,
         )
           ? false
           : !validDateRangeForPlan({
               plan: plan || dashboardProps?.workspacePlan,
+              dataAvailableFrom: createdAt,
+              interval: value,
               start,
               end,
             });
