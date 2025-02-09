@@ -42,7 +42,6 @@ export default function EventsTabs() {
       `${baseApiPath}?${editQueryString(queryString, {
         groupBy: "timeseries",
         event: "composite",
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       })}`,
       fetcher,
       {

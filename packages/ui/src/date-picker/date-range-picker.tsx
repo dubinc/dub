@@ -143,6 +143,7 @@ const DateRangePickerInner = ({
                 >
                   <div className="absolute px-3 sm:inset-0 sm:left-0 sm:p-3">
                     <Presets
+                      currentPresetId={presetId}
                       currentValue={range}
                       presets={presets}
                       onSelect={onPresetSelected}
