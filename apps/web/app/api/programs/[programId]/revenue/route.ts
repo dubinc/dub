@@ -16,7 +16,7 @@ const programAnalyticsQuerySchema = analyticsQuerySchema.pick({
   timezone: true,
 });
 
-interface CommissionData {
+interface Revenue {
   start: string;
   clicks: number;
   leads: number;
@@ -46,7 +46,7 @@ export const GET = withWorkspace(
     const { dateFormat, dateIncrement, startFunction, formatString } =
       sqlGranularityMap[granularity];
 
-    const commissions = await prisma.$queryRaw<CommissionData[]>`
+    const commissions = await prisma.$queryRaw<Revenue[]>`
       SELECT 
         DATE_FORMAT(createdAt, ${dateFormat}) AS start, 
         COUNT(CASE WHEN type = 'click' THEN 1 END) AS clicks,
@@ -62,38 +62,37 @@ export const GET = withWorkspace(
       ORDER BY start ASC;
     `;
 
-    const dataMap = new Map<string, CommissionData>();
-
-    commissions.forEach((item) => {
-      dataMap.set(item.start, {
-        start: item.start,
-        clicks: Number(item.clicks),
-        leads: Number(item.leads),
-        sales: Number(item.sales),
-        saleAmount: Number(item.saleAmount),
-      });
-    });
-
+    const timeseries: Revenue[] = [];
     let currentDate = startFunction(startDate);
-    const result: CommissionData[] = [];
+
+    const revenueLookup = Object.fromEntries(
+      commissions.map((item) => [
+        item.start,
+        {
+          clicks: Number(item.clicks),
+          leads: Number(item.leads),
+          sales: Number(item.sales),
+          saleAmount: Number(item.saleAmount),
+        },
+      ]),
+    );
 
     while (currentDate < endDate) {
       const periodKey = format(currentDate, formatString);
-      const data = dataMap.get(periodKey) || {
-        clicks: 0,
-        leads: 0,
-        sales: 0,
-        saleAmount: 0,
-      };
 
-      result.push({
+      timeseries.push({
         start: format(currentDate, "yyyy-MM-dd'T'HH:mm:ssxxx"),
-        ...data,
+        ...(revenueLookup[periodKey] || {
+          clicks: 0,
+          leads: 0,
+          sales: 0,
+          saleAmount: 0,
+        }),
       });
 
       currentDate = dateIncrement(currentDate);
     }
 
-    return NextResponse.json(result);
+    return NextResponse.json(timeseries);
   },
 );

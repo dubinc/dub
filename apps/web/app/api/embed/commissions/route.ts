@@ -1,7 +1,7 @@
 import { withEmbedToken } from "@/lib/embed/auth";
 import { SALES_PAGE_SIZE } from "@/lib/partners/constants";
 import z from "@/lib/zod";
-import { PartnerCommissionSchema } from "@/lib/zod/schemas/partners";
+import { PartnerEarningsSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -40,8 +40,6 @@ export const GET = withEmbedToken(
       },
     });
 
-    return NextResponse.json(
-      z.array(PartnerCommissionSchema).parse(commissions),
-    );
+    return NextResponse.json(z.array(PartnerEarningsSchema).parse(commissions));
   },
 );

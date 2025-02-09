@@ -17,12 +17,7 @@ const partnerAnalyticsQuerySchema = analyticsQuerySchema.pick({
   timezone: true,
 });
 
-interface CommissionData {
-  start: string;
-  earnings: number;
-}
-
-interface CommissionResult {
+interface EarningsResult {
   clicks: number;
   leads: number;
   sales: number;
@@ -30,7 +25,12 @@ interface CommissionResult {
   earnings: number;
 }
 
-// GET /api/partner-profile/programs/[programId]/commissions/timeseries - get timeseries chart for a partner's commissions
+interface Earnings {
+  start: string;
+  earnings: number;
+}
+
+// GET /api/partner-profile/programs/[programId]/earnings/timeseries - get timeseries chart for a partner's earnings
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
     const { program } = await getProgramEnrollmentOrThrow({
@@ -38,7 +38,7 @@ export const GET = withPartnerProfile(
       programId: params.programId,
     });
 
-    const { start, end, interval, timezone, groupBy, event } =
+    const { start, end, interval, groupBy, event } =
       partnerAnalyticsQuerySchema.parse(searchParams);
 
     const { startDate, endDate, granularity } = getStartEndDates({
@@ -55,7 +55,7 @@ export const GET = withPartnerProfile(
         composite: "click, lead, sale",
       };
 
-      const commissions = await prisma.$queryRaw<CommissionResult>`
+      const earnings = await prisma.$queryRaw<EarningsResult>`
         SELECT
           COUNT(CASE WHEN type = 'click' THEN 1 END) AS clicks,
           COUNT(CASE WHEN type = 'lead' THEN 1 END) AS leads,
@@ -71,18 +71,18 @@ export const GET = withPartnerProfile(
           ${event !== "composite" ? Prisma.sql`AND type = ${eventMap[event]}` : Prisma.sql``};`;
 
       return NextResponse.json({
-        clicks: Number(commissions[0].clicks) || 0,
-        leads: Number(commissions[0].leads) || 0,
-        sales: Number(commissions[0].sales) || 0,
-        saleAmount: Number(commissions[0].saleAmount) || 0,
-        earnings: Number(commissions[0].earnings) || 0,
+        clicks: Number(earnings[0].clicks) || 0,
+        leads: Number(earnings[0].leads) || 0,
+        sales: Number(earnings[0].sales) || 0,
+        saleAmount: Number(earnings[0].saleAmount) || 0,
+        earnings: Number(earnings[0].earnings) || 0,
       });
     }
 
     const { dateFormat, dateIncrement, startFunction, formatString } =
       sqlGranularityMap[granularity];
 
-    const commissions = await prisma.$queryRaw<CommissionData[]>`
+    const earnings = await prisma.$queryRaw<Earnings[]>`
       SELECT 
         DATE_FORMAT(createdAt, ${dateFormat}) AS start, 
         SUM(earnings) AS earnings
@@ -96,28 +96,29 @@ export const GET = withPartnerProfile(
       ORDER BY start ASC;
     `;
 
+    const timeseries: Earnings[] = [];
     let currentDate = startFunction(startDate);
-    const result: CommissionData[] = [];
-    const dataMap = new Map<string, CommissionData>();
 
-    commissions.forEach((item) => {
-      dataMap.set(item.start, {
-        start: item.start,
-        earnings: Number(item.earnings),
-      });
-    });
+    const commissionLookup = Object.fromEntries(
+      earnings.map((item) => [
+        item.start,
+        {
+          earnings: Number(item.earnings),
+        },
+      ]),
+    );
 
     while (currentDate < endDate) {
       const periodKey = format(currentDate, formatString);
 
-      result.push({
+      timeseries.push({
         start: format(currentDate, "yyyy-MM-dd'T'HH:mm:ssxxx"),
-        earnings: dataMap.get(periodKey)?.earnings || 0,
+        earnings: commissionLookup[periodKey]?.earnings || 0,
       });
 
       currentDate = dateIncrement(currentDate);
     }
 
-    return NextResponse.json(result);
+    return NextResponse.json(timeseries);
   },
 );
