@@ -57,7 +57,8 @@ export async function invoicePaid(event: Stripe.Event) {
   const saleData = {
     ...leadEvent.data[0],
     event_id: eventId,
-    event_name: "Invoice paid",
+    // if the invoice has no subscription, it's a one-time payment
+    event_name: !invoice.subscription ? "Purchase" : "Invoice paid",
     payment_processor: "stripe",
     amount: invoice.amount_paid,
     currency: invoice.currency,
