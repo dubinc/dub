@@ -28,22 +28,44 @@ export async function chargeRefunded(event: Stripe.Event) {
     return `Workspace ${workspace.id} for stripe account ${stripeAccountId} has no programs, skipping...`;
   }
 
-  try {
-    const commission = await prisma.commission.update({
-      where: {
-        programId_invoiceId: {
-          programId: workspace.programs[0].id,
-          invoiceId: charge.invoice as string,
-        },
+  const commission = await prisma.commission.findUnique({
+    where: {
+      programId_invoiceId: {
+        programId: workspace.programs[0].id,
+        invoiceId: charge.invoice as string,
       },
-      data: {
-        status: "refunded",
+    },
+  });
+
+  if (!commission) {
+    return `Commission not found for invoice ${charge.invoice}`;
+  }
+
+  if (commission.status === "paid") {
+    return `Commission ${commission.id} is already paid, skipping...`;
+  }
+
+  // if the commission is processed and has a payout, we need to update the payout total
+  if (commission.status === "processed" && commission.payoutId) {
+    const payout = await prisma.payout.findUnique({
+      where: {
+        id: commission.payoutId,
       },
     });
 
-    return `Commission ${commission.id} updated to status "refunded"`;
-  } catch (error) {
-    console.error(error);
-    return `Error updating commission ${charge.invoice} for workspace ${workspace.id}: ${error}`;
+    if (payout) {
+      await prisma.payout.update({
+        where: { id: payout.id },
+        data: {
+          amount: payout.amount - commission.earnings,
+        },
+      });
+    }
   }
+
+  // update the commission status to refunded
+  await prisma.commission.update({
+    where: { id: commission.id },
+    data: { status: "refunded", payoutId: null },
+  });
 }
