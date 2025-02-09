@@ -1,12 +1,10 @@
-// @ts-nocheck
-
-import { getEvents } from "@/lib/analytics/get-events";
-import { createSaleData } from "@/lib/api/sales/create-sale-data";
-import { SaleEvent } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
+import { getEvents } from "../lib/analytics/get-events";
+import { createSaleData } from "../lib/api/sales/create-sale-data";
+import { SaleEvent } from "../lib/types";
 
-const linkId = "cm032y2660009ygp4l1y1vc89";
+const linkId = "cm11kukmw002cv1mbz2pv4bvi";
 
 async function main() {
   const programEnrollment = await prisma.programEnrollment.findUnique({
@@ -15,30 +13,19 @@ async function main() {
     },
     select: {
       partnerId: true,
+      programId: true,
       program: true,
-      link: {
-        select: {
-          id: true,
-          domain: true,
-          key: true,
-          url: true,
-          projectId: true,
-          createdAt: true,
-          tags: true,
-        },
-      },
     },
   });
-  if (!programEnrollment?.link) {
+  if (!programEnrollment) {
     throw new Error("program enrollment not found");
   }
 
-  const { partnerId, program, link } = programEnrollment;
-  const { workspaceId } = program;
+  const { partnerId, programId, program } = programEnrollment;
 
   const saleEvents = await getEvents({
-    workspaceId,
-    linkId: link.id,
+    programId,
+    partnerId,
     event: "sales",
     interval: "all",
     page: 1,
@@ -52,7 +39,7 @@ async function main() {
       program,
       partner: {
         id: partnerId,
-        commissionAmount: 0,
+        commissionAmount: null,
       },
       customer: {
         id: e.customer.id,
