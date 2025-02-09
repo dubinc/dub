@@ -26,13 +26,7 @@ export const GET = withWorkspace(
       where: {
         type: "sale",
         programId,
-        status: status || {
-          notIn: [
-            CommissionStatus.refunded,
-            CommissionStatus.duplicate,
-            CommissionStatus.fraud,
-          ],
-        },
+        status,
         partnerId,
         payoutId,
         createdAt: {
