@@ -68,4 +68,6 @@ export async function chargeRefunded(event: Stripe.Event) {
     where: { id: commission.id },
     data: { status: "refunded", payoutId: null },
   });
+
+  return `Commission ${commission.id} updated to status "refunded"`;
 }
