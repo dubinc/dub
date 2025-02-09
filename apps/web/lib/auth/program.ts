@@ -2,12 +2,14 @@ import { DubApiError } from "@/lib/api/errors";
 import { ProgramProps, WorkspaceWithUsers } from "@/lib/types";
 import { getProgramOrThrow } from "../api/programs/get-program-or-throw";
 import { PermissionAction } from "../api/rbac/permissions";
+import { parseRequestBody } from "../api/utils";
 import { Session } from "./utils";
 import { withWorkspace } from "./workspace";
 
 export interface WithProgramHandler {
   (args: {
     req: Request;
+    body: any;
     params: Record<string, string>;
     searchParams: Record<string, string>;
     headers?: Record<string, string>;
@@ -46,7 +48,10 @@ export const withProgram = (
       workspace,
       permissions,
     }) => {
-      const programId = params.programId || searchParams.programId;
+      const body = req.body ? await parseRequestBody(req) : undefined;
+
+      const programId =
+        params.programId || searchParams.programId || body?.programId;
 
       if (!programId) {
         throw new DubApiError({
@@ -68,6 +73,7 @@ export const withProgram = (
 
       return await handler({
         req,
+        body,
         params,
         searchParams,
         headers,
