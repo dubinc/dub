@@ -3,17 +3,10 @@ import {
   DUB_API_HOST,
   DUB_CLIENT_ID,
   DUB_HOST,
-  STRIPE_MODE,
+  STRIPE_REDIRECT_URL,
 } from "./constants";
-import { getSecret } from "./secrets";
+import { getSecret, setSecret } from "./secrets";
 import { Token, Workspace } from "./types";
-
-// Get the redirect URL for the OAuth flow based on the mode
-function getRedirectURL() {
-  return `https://dashboard.stripe.com/${
-    STRIPE_MODE === "test" ? "test/" : ""
-  }apps-oauth/dub.co`;
-}
 
 // Returns the authorization URL
 export function getOAuthUrl({
@@ -23,7 +16,7 @@ export function getOAuthUrl({
   state: string;
   challenge: string;
 }) {
-  return `${DUB_HOST}/oauth/authorize?client_id=${DUB_CLIENT_ID}&redirect_uri=${getRedirectURL()}&response_type=code&scope=workspaces.write&state=${state}&code_challenge=${challenge}&code_challenge_method=S256`;
+  return `${DUB_HOST}/oauth/authorize?client_id=${DUB_CLIENT_ID}&redirect_uri=${STRIPE_REDIRECT_URL}&response_type=code&scope=workspaces.write&state=${state}&code_challenge=${challenge}&code_challenge_method=S256`;
 }
 
 // Exchanges the authorization code for an access token
@@ -44,7 +37,7 @@ export async function getToken({
       },
       body: new URLSearchParams({
         client_id: DUB_CLIENT_ID,
-        redirect_uri: getRedirectURL(),
+        redirect_uri: STRIPE_REDIRECT_URL,
         grant_type: "authorization_code",
         code_verifier: verifier,
         code,
@@ -99,9 +92,17 @@ export async function getValidToken({ stripe }: { stripe: Stripe }) {
     await getUserInfo({ token });
   } catch (e) {
     const refreshedToken = await refreshToken({ token });
+
     if (!refreshedToken) {
-      throw new Error("Failed to refresh access token.");
+      console.error("Failed to refresh access token.");
+      return null;
     }
+
+    await setSecret({
+      stripe,
+      name: "dub_token",
+      payload: JSON.stringify(refreshedToken),
+    });
 
     return refreshedToken;
   }
