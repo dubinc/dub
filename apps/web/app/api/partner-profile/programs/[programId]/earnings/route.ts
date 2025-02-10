@@ -4,13 +4,12 @@ import { withPartnerProfile } from "@/lib/auth/partner";
 import z from "@/lib/zod";
 import {
   getPartnerSalesQuerySchema,
-  PartnerCommissionSchema,
+  PartnerEarningsSchema,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { CommissionStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
-// GET /api/partner-profile/programs/[programId]/commissions – get commissions for a partner in a program enrollment
+// GET /api/partner-profile/programs/[programId]/earnings – get earnings for a partner in a program enrollment
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
     const { program } = await getProgramEnrollmentOrThrow({
@@ -37,24 +36,13 @@ export const GET = withPartnerProfile(
       end,
     });
 
-    const commissions = await prisma.commission.findMany({
+    const earnings = await prisma.commission.findMany({
       where: {
         programId: program.id,
         partnerId: partner.id,
-        AND: [
-          {
-            status: {
-              notIn: [
-                CommissionStatus.refunded,
-                CommissionStatus.duplicate,
-                CommissionStatus.fraud,
-              ],
-            },
-          },
-          ...(status ? [{ status }] : []),
-        ],
-        ...(customerId && { customerId }),
-        ...(payoutId && { payoutId }),
+        status,
+        customerId,
+        payoutId,
         createdAt: {
           gte: startDate.toISOString(),
           lte: endDate.toISOString(),
@@ -76,8 +64,6 @@ export const GET = withPartnerProfile(
       orderBy: { [sortBy]: sortOrder },
     });
 
-    return NextResponse.json(
-      z.array(PartnerCommissionSchema).parse(commissions),
-    );
+    return NextResponse.json(z.array(PartnerEarningsSchema).parse(earnings));
   },
 );

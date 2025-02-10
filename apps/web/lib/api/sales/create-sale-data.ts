@@ -1,4 +1,9 @@
-import { CommissionStatus, EventType, Program } from "@dub/prisma/client";
+import {
+  Commission,
+  CommissionStatus,
+  EventType,
+  Program,
+} from "@dub/prisma/client";
 import { createId } from "../utils";
 import { calculateSaleEarnings } from "./calculate-earnings";
 
@@ -35,19 +40,17 @@ export const createSaleData = ({
 
   return {
     id: createId({ prefix: "cm_" }),
-    type: EventType.sale,
-    quantity: 1,
-    customerId: customer.id,
-    linkId: customer.linkId,
-    clickId: customer.clickId,
-    invoiceId: sale.invoiceId,
-    eventId: sale.eventId,
-    paymentProcessor: sale.paymentProcessor,
-    amount: sale.amount,
-    currency: sale.currency,
-    partnerId: partner.id,
     programId: program.id,
-    status: CommissionStatus.pending,
+    partnerId: partner.id,
+    linkId: customer.linkId,
+    invoiceId: sale.invoiceId || null,
+    customerId: customer.id,
+    eventId: sale.eventId,
+    type: EventType.sale,
+    amount: sale.amount,
+    quantity: 1,
     earnings,
-  };
+    currency: sale.currency,
+    status: CommissionStatus.pending,
+  } as Commission;
 };

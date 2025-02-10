@@ -76,7 +76,7 @@ export const GET = withWorkspace(
       clicks: totalClicks,
       leads: totalLeads,
       sales: totalSales,
-      salesAmount: totalSaleAmount,
+      saleAmount: totalSaleAmount,
       earnings,
     };
 

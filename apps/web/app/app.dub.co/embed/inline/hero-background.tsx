@@ -1,7 +1,8 @@
 "use client";
 
 import { BlurImage } from "@dub/ui";
-import { useId } from "react";
+import { cn } from "@dub/utils";
+import { CSSProperties, useId } from "react";
 
 export function HeroBackground({
   logo,
@@ -12,20 +13,22 @@ export function HeroBackground({
 }) {
   const id = useId();
 
-  const backgroundColor = color || "#737373";
-
   return (
-    <div className="absolute inset-0 -z-[1]" style={{ color: backgroundColor }}>
-      <div className="absolute inset-0 -z-[1] bg-current opacity-10" />
-
-      <div className="absolute right-4 top-4 block size-6 min-[300px]:size-10 md:hidden">
-        {logo && (
-          <BlurImage
-            src={logo}
-            alt="Program Logo"
-            fill
-            className="absolute object-cover object-center"
-          />
+    <div
+      className="absolute inset-0 isolate -z-[1] overflow-hidden bg-neutral-50 [container-type:size]"
+      style={
+        {
+          color: color || "#737373",
+          "--brand": color || "#737373",
+          "--brand-dark": "oklch(from var(--brand) 0.38 min(c, 0.17) h)",
+        } as CSSProperties
+      }
+    >
+      <div className="absolute inset-0 [mask-image:linear-gradient(90deg,transparent_40%,black)]">
+        {color ? (
+          <div className="absolute inset-0 bg-current opacity-10" />
+        ) : (
+          <RainbowGradient className="opacity-15" />
         )}
       </div>
 
@@ -35,7 +38,7 @@ export function HeroBackground({
         height="258"
         fill="none"
         viewBox="0 0 718 258"
-        className="absolute right-0 top-0 hidden h-full w-auto md:block"
+        className="pointer-events-none absolute right-0 top-0 hidden h-full w-auto md:block"
       >
         <mask
           id={`${id}-grid-mask`}
@@ -55,16 +58,6 @@ export function HeroBackground({
           height="100%"
         />
         <g clipPath={`url(#${id}-a)`}>
-          <g filter={`url(#${id}-b)`} opacity="0.1">
-            <circle
-              cx="450"
-              cy="450"
-              r="450"
-              fill="currentColor"
-              opacity="0.5"
-              transform="matrix(-1 0 0 1 1228 -445)"
-            />
-          </g>
           <g filter={`url(#${id}-d)`}>
             <path
               fill={`url(#${id}-e)`}
@@ -77,16 +70,6 @@ export function HeroBackground({
             strokeWidth="0.75"
             d="M478 65c0-8.837 7.163-16 16-16h128c8.837 0 16 7.163 16 16v128c0 8.837-7.163 16-16 16H494c-8.837 0-16-7.163-16-16z"
           />
-          <g filter={`url(#${id}-f)`}>
-            <rect
-              width="80"
-              height="80"
-              x="518"
-              y="87"
-              fill={`url(#${id}-logo)`}
-              rx="40"
-            />
-          </g>
           <mask
             id={`${id}-h`}
             width="319"
@@ -163,26 +146,6 @@ export function HeroBackground({
         </g>
         <defs>
           <filter
-            id={`${id}-b`}
-            width="1140"
-            height="1140"
-            x="208"
-            y="-565"
-            colorInterpolationFilters="sRGB"
-            filterUnits="userSpaceOnUse"
-          >
-            <feFlood floodOpacity="0" result="BackgroundImageFix" />
-            <feBlend
-              in="SourceGraphic"
-              in2="BackgroundImageFix"
-              result="shape"
-            />
-            <feGaussianBlur
-              result="effect1_foregroundBlur_21_5513"
-              stdDeviation="60"
-            />
-          </filter>
-          <filter
             id={`${id}-d`}
             width="160.75"
             height="160.75"
@@ -207,34 +170,6 @@ export function HeroBackground({
             <feComposite in2="hardAlpha" k2="-1" k3="1" operator="arithmetic" />
             <feColorMatrix values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.5 0" />
             <feBlend in2="shape" result="effect1_innerShadow_21_5513" />
-          </filter>
-          <filter
-            id={`${id}-f`}
-            width="100"
-            height="100"
-            x="508"
-            y="77"
-            colorInterpolationFilters="sRGB"
-            filterUnits="userSpaceOnUse"
-          >
-            <feFlood floodOpacity="0" result="BackgroundImageFix" />
-            <feColorMatrix
-              in="SourceAlpha"
-              result="hardAlpha"
-              values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
-            />
-            <feOffset />
-            <feGaussianBlur stdDeviation="5" />
-            <feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
-            <feBlend
-              in2="BackgroundImageFix"
-              result="effect1_dropShadow_21_5513"
-            />
-            <feBlend
-              in="SourceGraphic"
-              in2="effect1_dropShadow_21_5513"
-              result="shape"
-            />
           </filter>
           <filter
             id={`${id}-i`}
@@ -355,22 +290,44 @@ export function HeroBackground({
               strokeWidth={1}
             />
           </pattern>
-          <pattern
-            id={`${id}-logo`}
-            patternContentUnits="objectBoundingBox"
-            width="1"
-            height="1"
-          >
-            <use xlinkHref={`#${id}-logo-image`} transform="scale(0.0025)" />
-          </pattern>
-          <image
-            id={`${id}-logo-image`}
-            width="400"
-            height="400"
-            xlinkHref={logo || ""}
-          />
         </defs>
       </svg>
+
+      <div className="absolute inset-0 mix-blend-soft-light [mask-image:linear-gradient(90deg,transparent_40%,black)]">
+        {color ? (
+          <div className="absolute inset-0 bg-current" />
+        ) : (
+          <RainbowGradient />
+        )}
+      </div>
+
+      <div
+        className={cn(
+          "absolute right-4 top-4 block size-6 min-[300px]:size-8",
+
+          // Position based on cqh to adjust for container height
+          "md:right-[62cqh] md:top-1/2 md:size-[32cqh] md:-translate-y-1/2 md:translate-x-1/2",
+
+          "drop-shadow-[0_0_15px_rgb(from_var(--brand-dark,#000)_r_g_b/0.4)]",
+        )}
+      >
+        {logo && (
+          <BlurImage
+            src={logo}
+            alt="Program Logo"
+            fill
+            className="absolute object-cover object-center"
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function RainbowGradient({ className }: { className?: string }) {
+  return (
+    <div className={cn("absolute inset-0 saturate-[1.5]", className)}>
+      <div className="absolute right-[62cqh] top-1/2 aspect-square h-[200%] -translate-y-1/2 translate-x-1/2 rounded-full bg-[conic-gradient(from_-66deg_at_50%_50%,#855AFC_-32deg,#f00_63deg,#EAB308_158deg,#5CFF80_240deg,#855AFC_328deg,#f00_423deg)] blur-[50px]" />
     </div>
   );
 }
