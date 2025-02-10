@@ -278,6 +278,14 @@ export const createPartnerLinkSchema = z
     }),
   );
 
+export const upsertPartnerLinkSchema = createPartnerLinkSchema.merge(
+  z.object({
+    url: parseUrlSchema.describe(
+      "The URL to upsert for. Will throw an error if the domain doesn't match the program's default URL domain.",
+    ),
+  }),
+);
+
 // For /api/partners/analytics
 export const partnerAnalyticsQuerySchema = analyticsQuerySchema
   .pick({
@@ -304,6 +312,9 @@ const earningsSchema = z.object({
   earnings: z.number().default(0),
 });
 
+export const partnersTopLinksSchema =
+  analyticsResponse["top_links"].merge(earningsSchema);
+
 export const partnerAnalyticsResponseSchema = {
   count: analyticsResponse["count"]
     .merge(earningsSchema)
@@ -314,7 +325,7 @@ export const partnerAnalyticsResponseSchema = {
     title: "PartnerAnalyticsTimeseries",
   }),
 
-  top_links: analyticsResponse["top_links"].merge(earningsSchema).openapi({
+  top_links: partnersTopLinksSchema.openapi({
     ref: "PartnerAnalyticsTopLinks",
     title: "PartnerAnalyticsTopLinks",
   }),

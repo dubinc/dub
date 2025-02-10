@@ -3,7 +3,10 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
-import { partnerAnalyticsQuerySchema } from "@/lib/zod/schemas/partners";
+import {
+  partnerAnalyticsQuerySchema,
+  partnersTopLinksSchema,
+} from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { format } from "date-fns";
 import { NextResponse } from "next/server";
@@ -55,6 +58,13 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
         },
     include: {
       program: true,
+      ...(groupBy === "top_links" && {
+        links: {
+          orderBy: {
+            clicks: "desc",
+          },
+        },
+      }),
     },
   });
 
@@ -76,8 +86,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     timezone,
     event: "composite",
   });
-
-  console.log({ analytics });
 
   const { startDate, endDate, granularity } = getStartEndDates({
     interval,
@@ -172,13 +180,17 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     },
   });
 
-  const topLinksWithEarnings = analytics.map((item) => {
-    const link = topLinkEarnings.find((link) => link.linkId === item.id);
+  const topLinksWithEarnings = programEnrollment.links.map((link) => {
+    const analyticsData = analytics.find((a) => a.id === link.id);
+    const earnings = topLinkEarnings.find((t) => t.linkId === link.id);
 
-    return {
-      ...item,
-      earnings: Number(link?._sum.earnings ?? 0),
-    };
+    return partnersTopLinksSchema.parse({
+      ...link,
+      ...analyticsData,
+      link: link.id,
+      createdAt: link.createdAt.toISOString(),
+      earnings: Number(earnings?._sum.earnings ?? 0),
+    });
   });
 
   return NextResponse.json(topLinksWithEarnings);
