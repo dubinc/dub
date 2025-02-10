@@ -14,31 +14,14 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
-const commissionTypes = [
-  {
-    label: "One-off",
-    description: "Pay a one-time payout",
-    recurring: false,
-  },
-  {
-    label: "Recurring",
-    description: "Pay an ongoing payout",
-    recurring: true,
-  },
-];
-
 export function BrandingSettings() {
   const { program } = useProgram();
 
-  return (
-    <div className="flex flex-col gap-10">
-      {program ? (
-        <BrandingSettingsForm program={program} />
-      ) : (
-        <div className="flex h-32 items-center justify-center">
-          <LoadingSpinner />
-        </div>
-      )}
+  return program ? (
+    <BrandingSettingsForm program={program} />
+  ) : (
+    <div className="flex h-32 items-center justify-center">
+      <LoadingSpinner />
     </div>
   );
 }
