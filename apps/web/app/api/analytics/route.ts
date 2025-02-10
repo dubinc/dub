@@ -60,6 +60,7 @@ export const GET = withWorkspace(
 
     validDateRangeForPlan({
       plan: workspace.plan,
+      dataAvailableFrom: workspace.createdAt,
       interval,
       start,
       end,
@@ -81,6 +82,7 @@ export const GET = withWorkspace(
       ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
       isDeprecatedClicksEndpoint,
+      dataAvailableFrom: workspace.createdAt,
     });
 
     return NextResponse.json(response);
