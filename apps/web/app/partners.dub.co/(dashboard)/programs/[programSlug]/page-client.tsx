@@ -60,7 +60,7 @@ export default function ProgramPageClient() {
 
   return (
     <MaxWidthWrapper className="pb-10">
-      <div className="relative flex flex-col rounded-lg border border-neutral-300 bg-gradient-to-r from-neutral-50 p-4 md:p-6">
+      <div className="relative z-0 flex flex-col overflow-hidden rounded-lg border border-neutral-300 p-4 md:p-6">
         {program && (
           <HeroBackground logo={program.logo} color={program.brandColor} />
         )}

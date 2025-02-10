@@ -1,6 +1,7 @@
 "use client";
 
 import { DiscountProps } from "@/lib/types";
+import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
 import { Link, PayoutStatus, Program } from "@dub/prisma/client";
 import {
@@ -18,7 +19,6 @@ import { CSSProperties, useState } from "react";
 import { LinkToken } from "../token";
 import { EmbedActivity } from "./activity";
 import { EmbedFAQ } from "./faq";
-import { HeroBackground } from "./hero-background";
 import { EmbedLeaderboard } from "./leaderboard";
 import { EmbedPayouts } from "./payouts";
 import { EmbedQuickstart } from "./quickstart";
