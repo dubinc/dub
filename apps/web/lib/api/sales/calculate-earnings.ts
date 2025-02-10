@@ -1,9 +1,14 @@
-import { Program, ProgramEnrollment } from "@dub/prisma/client";
+import {
+  Commission,
+  Program,
+  ProgramEnrollment,
+  Reward,
+} from "@dub/prisma/client";
 
 /* 
   Calculate the commission earned for a sale
 */
-export const calculateSaleEarnings = ({
+export const calculateSaleEarningsOld = ({
   program,
   partner,
   sales,
@@ -32,4 +37,26 @@ export const calculateSaleEarnings = ({
   }
 
   throw new Error("Invalid commissionType");
+};
+
+export const calculateSaleEarnings = ({
+  reward,
+  sale,
+}: {
+  reward: Pick<Reward, "amount" | "type">;
+  sale: Pick<Commission, "quantity" | "amount">;
+}) => {
+  if (!reward.amount) {
+    return 0;
+  }
+
+  if (reward.type === "percentage") {
+    return sale.amount * (reward.amount / 100);
+  }
+
+  if (reward.type === "flat") {
+    return sale.quantity * reward.amount;
+  }
+
+  throw new Error("Invalid reward type");
 };

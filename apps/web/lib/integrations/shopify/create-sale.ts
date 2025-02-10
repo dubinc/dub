@@ -1,6 +1,6 @@
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
+import { calculateSaleEarningsOld } from "@/lib/api/sales/calculate-earnings";
 import { createId } from "@/lib/api/utils";
 import { recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
@@ -139,7 +139,7 @@ export async function createShopifySale({
         },
       });
 
-    const saleEarnings = calculateSaleEarnings({
+    const saleEarnings = calculateSaleEarningsOld({
       program,
       partner,
       sales: 1,

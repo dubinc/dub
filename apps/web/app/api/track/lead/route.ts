@@ -15,6 +15,7 @@ import { prismaEdge } from "@dub/prisma/edge";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { determinePartnerReward } from "../rewards";
 
 export const runtime = "edge";
 
@@ -124,20 +125,29 @@ export const POST = withWorkspaceEdge(
         ]);
 
         if (link.programId && link.partnerId) {
-          // TODO: check if there is a Lead Reward Rule for this partner and if yes, create a lead commission
-          // await prismaEdge.commission.create({
-          //   data: {
-          //     id: createId({ prefix: "cm_" }),
-          //     programId: link.programId,
-          //     linkId: link.id,
-          //     partnerId: link.partnerId,
-          //     eventId,
-          //     customerId: customer.id,
-          //     type: "lead",
-          //     amount: 0,
-          //     quantity: 1,
-          //   },
-          // });
+          const reward = await determinePartnerReward({
+            event: "lead",
+            partnerId: link.partnerId,
+            programId: link.programId,
+          });
+
+          if (!reward) {
+            return;
+          }
+
+          await prismaEdge.commission.create({
+            data: {
+              id: createId({ prefix: "cm_" }),
+              programId: link.programId,
+              linkId: link.id,
+              partnerId: link.partnerId,
+              eventId,
+              customerId: customer.id,
+              type: "lead",
+              amount: reward.amount,
+              quantity: 1,
+            },
+          });
         }
 
         await sendWorkspaceWebhookOnEdge({

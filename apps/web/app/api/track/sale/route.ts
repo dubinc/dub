@@ -16,6 +16,7 @@ import { prismaEdge } from "@dub/prisma/edge";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { determinePartnerReward } from "../rewards";
 
 export const runtime = "edge";
 
@@ -143,11 +144,22 @@ export const POST = withWorkspaceEdge(
               },
             });
 
+          const reward = await determinePartnerReward({
+            event: "sale",
+            partnerId: partner.partnerId,
+            programId: program.id,
+          });
+
+          if (!reward) {
+            return;
+          }
+
           const saleEarnings = calculateSaleEarnings({
-            program,
-            partner,
-            sales: 1,
-            saleAmount: saleData.amount,
+            reward,
+            sale: {
+              quantity: 1,
+              amount: saleData.amount,
+            },
           });
 
           await Promise.allSettled([

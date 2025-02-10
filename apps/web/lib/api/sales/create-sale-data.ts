@@ -5,7 +5,7 @@ import {
   Program,
 } from "@dub/prisma/client";
 import { createId } from "../utils";
-import { calculateSaleEarnings } from "./calculate-earnings";
+import { calculateSaleEarningsOld } from "./calculate-earnings";
 
 export const createSaleData = ({
   program,
@@ -31,7 +31,7 @@ export const createSaleData = ({
     paymentProcessor: string;
   };
 }) => {
-  const earnings = calculateSaleEarnings({
+  const earnings = calculateSaleEarningsOld({
     program,
     partner,
     sales: 1,
