@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import IntegrationPageClient from "./page-client";
 
 export const revalidate = 0;
@@ -46,6 +46,14 @@ export default async function IntegrationPage({
 
   if (!integration) {
     notFound();
+  }
+
+  if (integration.comingSoon) {
+    redirect(`/${params.slug}/settings/integrations`);
+  }
+
+  if (integration.guideUrl) {
+    redirect(integration.guideUrl);
   }
 
   const installed = integration.installations.length > 0;

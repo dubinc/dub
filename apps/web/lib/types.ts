@@ -2,12 +2,12 @@ import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
+  CommissionStatus,
   Link,
   PayoutStatus,
   Prisma,
   ProgramEnrollmentStatus,
   Project,
-  SaleStatus,
   UtmTemplate,
   Webhook,
   YearInReview,
@@ -31,7 +31,7 @@ import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   EnrolledPartnerSchema,
-  PartnerSaleResponseSchema,
+  PartnerEarningsSchema,
   PartnerSchema,
   SaleResponseSchema,
   SaleSchema,
@@ -282,6 +282,8 @@ export type InstalledIntegrationProps = Pick<
   | "developer"
   | "description"
   | "verified"
+  | "comingSoon"
+  | "guideUrl"
 > & {
   installations: number;
   installed?: boolean;
@@ -343,11 +345,11 @@ export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
 
 export type SaleProps = z.infer<typeof SaleSchema>;
 
-export type SalesCount = Record<SaleStatus | "all", number>;
+export type SalesCount = Record<CommissionStatus | "all", number>;
 
 export type SaleResponse = z.infer<typeof SaleResponseSchema>;
 
-export type PartnerSaleResponse = z.infer<typeof PartnerSaleResponseSchema>;
+export type PartnerEarningsResponse = z.infer<typeof PartnerEarningsSchema>;
 
 export type CustomerProps = z.infer<typeof CustomerSchema>;
 

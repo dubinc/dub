@@ -8,7 +8,7 @@ export const createPartnerLink: ZodOpenApiOperationObject = {
   "x-speakeasy-name-override": "createLink",
   summary: "Create a link for a partner",
   description:
-    "Create a new link for a partner that is enrolled in your program",
+    "Create a new link for a partner that is enrolled in your program.",
   requestBody: {
     content: {
       "application/json": {
@@ -18,7 +18,7 @@ export const createPartnerLink: ZodOpenApiOperationObject = {
   },
   responses: {
     "201": {
-      description: "The created partner",
+      description: "The created partner link",
       content: {
         "application/json": {
           schema: LinkSchema,

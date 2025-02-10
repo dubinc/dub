@@ -72,8 +72,6 @@ const assertQstashMessage = async (
 ) => {
   const qstashMessage = await qstash.messages.get(messageId);
 
-  console.log(`Got qstash message for ${trigger}`, qstashMessage.messageId);
-
   const callbackUrl = new URL(qstashMessage.callback!);
   const failureCallbackUrl = new URL(qstashMessage.failureCallback!);
   const receivedBody = JSON.parse(qstashMessage.body!) as WebhookEvent;

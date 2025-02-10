@@ -1,6 +1,6 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
-import useProgramAnalytics from "@/lib/swr/use-program-analytics";
+import useProgramRevenue from "@/lib/swr/use-program-analytics";
 import useProgramMetrics from "@/lib/swr/use-program-metrics";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { useRouterStuff } from "@dub/ui";
@@ -33,7 +33,7 @@ export function OverviewChart() {
 
   const { metrics } = useProgramMetrics();
 
-  const { data: timeseries, error } = useProgramAnalytics({
+  const { data: timeseries, error } = useProgramRevenue({
     event: "sales",
     groupBy: "timeseries",
     interval,
@@ -128,8 +128,12 @@ export function OverviewChart() {
                 />
               )}
             </ChartContext.Consumer>
-            <XAxis />
-            <YAxis showGridLines />
+            <XAxis
+              tickFormat={(date) =>
+                formatDateTooltip(date, { interval, start, end })
+              }
+            />
+            <YAxis showGridLines tickFormat={currencyFormatter} />
             <Areas
               seriesStyles={[
                 {

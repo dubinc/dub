@@ -1,6 +1,6 @@
 import { SHEET_MAX_ITEMS } from "@/lib/partners/constants";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { PartnerPayoutResponse, PartnerSaleResponse } from "@/lib/types";
+import { PartnerEarningsResponse, PartnerPayoutResponse } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { PayoutTypeBadge } from "@/ui/partners/payout-type-badge";
 import { X } from "@/ui/shared/icons";
@@ -20,9 +20,11 @@ import {
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
   fetcher,
-  formatDate,
-  formatDateTime,
 } from "@dub/utils";
+import {
+  formatDateTime,
+  formatPeriod,
+} from "@dub/utils/src/functions/datetime";
 import Link from "next/link";
 import { Dispatch, Fragment, SetStateAction, useMemo } from "react";
 import useSWR from "swr";
@@ -42,9 +44,9 @@ function PayoutDetailsSheetContent({
     data: sales,
     isLoading,
     error,
-  } = useSWR<PartnerSaleResponse[]>(
+  } = useSWR<PartnerEarningsResponse[]>(
     partner
-      ? `/api/partner-profile/programs/${payout.program.id}/sales?payoutId=${payout.id}&interval=all&pageSize=${SHEET_MAX_ITEMS}`
+      ? `/api/partner-profile/programs/${payout.program.id}/earnings?payoutId=${payout.id}&interval=all&pageSize=${SHEET_MAX_ITEMS}`
       : undefined,
     fetcher,
   );
@@ -71,17 +73,7 @@ function PayoutDetailsSheetContent({
           <ExpandingArrow className="size-3" />
         </a>
       ),
-      Period:
-        !payout.periodStart || !payout.periodEnd
-          ? "-"
-          : `${formatDate(payout.periodStart, {
-              month: "short",
-              year:
-                new Date(payout.periodStart).getFullYear() ===
-                new Date(payout.periodEnd).getFullYear()
-                  ? undefined
-                  : "numeric",
-            })}-${formatDate(payout.periodEnd, { month: "short" })}`,
+      Period: formatPeriod(payout),
 
       Type: <PayoutTypeBadge type={payout.type} />,
 

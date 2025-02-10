@@ -7,6 +7,7 @@ import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
+import { includeTags } from "../links/include-tags";
 
 export const enrollPartner = async ({
   programId,
@@ -21,6 +22,8 @@ export const enrollPartner = async ({
     name: string;
     email?: string | null;
     image?: string | null;
+    country?: string | null;
+    description?: string | null;
   };
 }) => {
   if (partner.email) {
@@ -86,7 +89,8 @@ export const enrollPartner = async ({
       name: partner.name,
       email: partner.email,
       image: partner.image,
-      country: "US",
+      country: partner.country ?? "US",
+      bio: partner.description,
     },
   });
 
@@ -99,15 +103,10 @@ export const enrollPartner = async ({
             id: linkId,
           },
           data: {
+            programId,
             partnerId: upsertedPartner.id,
           },
-          include: {
-            tags: {
-              select: {
-                tag: true,
-              },
-            },
-          },
+          include: includeTags,
         })
         .then((link) => recordLink(link)),
       // TODO: Remove this once we open up partners.dub.co to everyone

@@ -18,7 +18,7 @@ import { Footer } from "../components/footer";
 export function PartnerPayoutConfirmed({
   email = "panic@thedis.co",
   program = {
-    id: "prog_d8pl69xXCv4AoHNT281pHQdo",
+    id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
     name: "Acme",
     logo: DUB_WORDMARK,
   },
