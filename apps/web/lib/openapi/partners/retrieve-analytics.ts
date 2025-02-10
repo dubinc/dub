@@ -8,7 +8,7 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const retrievePartnerAnalytics: ZodOpenApiOperationObject = {
   operationId: "retrievePartnerAnalytics",
-  "x-speakeasy-name-override": "retrieve",
+  "x-speakeasy-name-override": "analytics",
   summary: "Retrieve analytics for a partner within a program.",
   description:
     "Retrieve analytics for a partner within a program. The response type vary based on the `groupBy` query parameter.",
