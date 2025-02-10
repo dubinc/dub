@@ -18,7 +18,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     programId,
     partnerId,
     tenantId,
-    interval,
+    interval = "all",
     start,
     end,
     timezone,
@@ -77,6 +77,8 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     event: "composite",
   });
 
+  console.log({ analytics });
+
   const { startDate, endDate, granularity } = getStartEndDates({
     interval,
     start,
@@ -92,6 +94,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       where: {
         programId: programEnrollment.programId,
         partnerId: programEnrollment.partnerId,
+        type: "sale",
         createdAt: {
           gte: startDate,
           lt: endDate,
@@ -117,10 +120,11 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       SUM(earnings) AS earnings
     FROM Commission
     WHERE 
-      createdAt >= ${startDate}
-      AND createdAt < ${endDate}
-      AND programId = ${programEnrollment.programId}
+      programId = ${programEnrollment.programId}
       AND partnerId = ${programEnrollment.partnerId}
+      AND type = 'sale'
+      AND createdAt >= ${startDate}
+      AND createdAt < ${endDate}
     GROUP BY start
     ORDER BY start ASC;`;
 
@@ -155,11 +159,9 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const topLinkEarnings = await prisma.commission.groupBy({
     by: ["linkId"],
     where: {
-      linkId: {
-        in: analytics.map((item) => item.id),
-      },
       programId: programEnrollment.programId,
       partnerId: programEnrollment.partnerId,
+      type: "sale",
       createdAt: {
         gte: startDate,
         lt: endDate,
