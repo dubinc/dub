@@ -1,7 +1,12 @@
 "use client";
 
 import { LinkProps } from "@/lib/types";
-import { LinkifyTooltipContent, Tooltip, useMediaQuery } from "@dub/ui";
+import {
+  LinkifyTooltipContent,
+  Tooltip,
+  useIntersectionObserver,
+  useMediaQuery,
+} from "@dub/ui";
 import { cn, getPrettyUrl } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { motion } from "framer-motion";
@@ -9,10 +14,12 @@ import { Search } from "lucide-react";
 import Link from "next/link";
 import {
   Dispatch,
+  PropsWithChildren,
   ReactNode,
   SetStateAction,
   useContext,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { AnalyticsContext } from "./analytics-provider";
@@ -73,6 +80,7 @@ export default function BarList({
             setShowModal={setShowModal}
             barBackground={barBackground}
             hoverBackground={hoverBackground}
+            virtualize={filteredData.length > 100 && !limit}
           />
         ))}
       </div>
@@ -114,6 +122,7 @@ export function LineItem({
   barBackground,
   hoverBackground,
   linkData,
+  virtualize,
 }: {
   icon: ReactNode;
   title: string;
@@ -126,6 +135,7 @@ export function LineItem({
   barBackground: string;
   hoverBackground: string;
   linkData?: LinkProps;
+  virtualize?: boolean;
 }) {
   const lineItem = useMemo(() => {
     return (
@@ -142,70 +152,87 @@ export function LineItem({
 
   const As = href ? Link : "div";
 
+  const Wrapper = virtualize ? VirtualizedItem : "div";
+
   return (
-    // @ts-ignore - we know if it's a Link it'll get its href
-    <As
-      {...(href && {
-        href,
-        scroll: false,
-        onClick: () => setShowModal(false),
-      })}
-      className={cn(
-        `min-w-0 border-l-2 border-transparent px-4 py-1 transition-all`,
-        href && hoverBackground,
-      )}
-    >
-      <div className="group flex items-center justify-between">
-        <div className="relative z-10 flex h-8 w-full min-w-0 max-w-[calc(100%-2rem)] items-center">
-          {tab === "links" && linkData ? (
-            <Tooltip content={<LinkPreviewTooltip data={linkData} />}>
-              {lineItem}
-            </Tooltip>
-          ) : tab === "urls" ? (
-            <Tooltip
-              content={
-                <div className="overflow-auto px-4 py-2">
-                  <LinkifyTooltipContent>{title}</LinkifyTooltipContent>
-                </div>
-              }
-            >
-              {lineItem}
-            </Tooltip>
-          ) : (
-            lineItem
-          )}
-          <motion.div
-            style={{
-              width: `${(value / (maxValue || 0)) * 100}%`,
-            }}
-            className={cn(
-              "absolute h-full origin-left rounded-md",
-              barBackground,
+    <Wrapper>
+      {/* @ts-ignore - we know if it's a Link it'll get its href */}
+      <As
+        {...(href && {
+          href,
+          scroll: false,
+          onClick: () => setShowModal(false),
+        })}
+        className={cn(
+          `block min-w-0 border-l-2 border-transparent px-4 py-1 transition-all`,
+          href && hoverBackground,
+        )}
+      >
+        <div className="group flex items-center justify-between">
+          <div className="relative z-10 flex h-8 w-full min-w-0 max-w-[calc(100%-2rem)] items-center">
+            {tab === "links" && linkData ? (
+              <Tooltip content={<LinkPreviewTooltip data={linkData} />}>
+                {lineItem}
+              </Tooltip>
+            ) : tab === "urls" ? (
+              <Tooltip
+                content={
+                  <div className="overflow-auto px-4 py-2">
+                    <LinkifyTooltipContent>{title}</LinkifyTooltipContent>
+                  </div>
+                }
+              >
+                {lineItem}
+              </Tooltip>
+            ) : (
+              lineItem
             )}
-            transition={{ ease: "easeOut", duration: 0.3 }}
-            initial={{ transform: "scaleX(0)" }}
-            animate={{ transform: "scaleX(1)" }}
+            <motion.div
+              style={{
+                width: `${(value / (maxValue || 0)) * 100}%`,
+              }}
+              className={cn(
+                "absolute h-full origin-left rounded-md",
+                barBackground,
+              )}
+              transition={{ ease: "easeOut", duration: 0.3 }}
+              initial={{ transform: "scaleX(0)" }}
+              animate={{ transform: "scaleX(1)" }}
+            />
+          </div>
+          <NumberFlow
+            value={
+              unit === "sales" && saleUnit === "saleAmount"
+                ? value / 100
+                : value
+            }
+            className="z-10 px-2 text-sm text-gray-600"
+            format={
+              unit === "sales" && saleUnit === "saleAmount"
+                ? {
+                    style: "currency",
+                    currency: "USD",
+                    // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                    trailingZeroDisplay: "stripIfInteger",
+                  }
+                : {
+                    notation: value > 999999 ? "compact" : "standard",
+                  }
+            }
           />
         </div>
-        <NumberFlow
-          value={
-            unit === "sales" && saleUnit === "saleAmount" ? value / 100 : value
-          }
-          className="z-10 px-2 text-sm text-gray-600"
-          format={
-            unit === "sales" && saleUnit === "saleAmount"
-              ? {
-                  style: "currency",
-                  currency: "USD",
-                  // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-                  trailingZeroDisplay: "stripIfInteger",
-                }
-              : {
-                  notation: value > 999999 ? "compact" : "standard",
-                }
-          }
-        />
-      </div>
-    </As>
+      </As>
+    </Wrapper>
+  );
+}
+
+function VirtualizedItem({ children }: PropsWithChildren) {
+  const ref = useRef<HTMLDivElement>(null);
+  const entry = useIntersectionObserver(ref);
+
+  return (
+    <div ref={ref} className="h-10">
+      {entry?.isIntersecting && children}
+    </div>
   );
 }
