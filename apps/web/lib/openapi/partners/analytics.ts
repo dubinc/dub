@@ -6,8 +6,8 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
-export const retrieveAnalytics: ZodOpenApiOperationObject = {
-  operationId: "retrieveAnalytics",
+export const retrievePartnerAnalytics: ZodOpenApiOperationObject = {
+  operationId: "retrievePartnerAnalytics",
   "x-speakeasy-name-override": "retrieve",
   summary: "Retrieve analytics for a partner within a program.",
   description:
