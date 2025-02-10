@@ -150,47 +150,45 @@ export const POST = withWorkspaceEdge(
             programId: program.id,
           });
 
-          if (!reward || reward.amount === 0) {
-            return;
-          }
-
-          const earnings = calculateSaleEarnings({
-            reward,
-            sale: {
-              quantity: 1,
-              amount: saleData.amount,
-            },
-          });
-
-          await Promise.allSettled([
-            prismaEdge.commission.create({
-              data: {
-                id: createId({ prefix: "cm_" }),
-                programId: program.id,
-                linkId: link.id,
-                partnerId: partner.partnerId,
-                eventId,
-                customerId: customer.id,
-                quantity: 1,
-                type: "sale",
-                amount: saleData.amount,
-                earnings,
-                invoiceId,
-              },
-            }),
-
-            notifyPartnerSale({
-              partner: {
-                id: partner.partnerId,
-                referralLink: link.shortLink,
-              },
-              program,
+          if (reward) {
+            const earnings = calculateSaleEarnings({
+              reward,
               sale: {
+                quantity: 1,
                 amount: saleData.amount,
-                earnings,
               },
-            }),
-          ]);
+            });
+
+            await Promise.allSettled([
+              prismaEdge.commission.create({
+                data: {
+                  id: createId({ prefix: "cm_" }),
+                  programId: program.id,
+                  linkId: link.id,
+                  partnerId: partner.partnerId,
+                  eventId,
+                  customerId: customer.id,
+                  quantity: 1,
+                  type: "sale",
+                  amount: saleData.amount,
+                  earnings,
+                  invoiceId,
+                },
+              }),
+
+              notifyPartnerSale({
+                partner: {
+                  id: partner.partnerId,
+                  referralLink: link.shortLink,
+                },
+                program,
+                sale: {
+                  amount: saleData.amount,
+                  earnings,
+                },
+              }),
+            ]);
+          }
         }
 
         // Send workspace webhook

@@ -131,24 +131,22 @@ export const POST = withWorkspaceEdge(
             programId: link.programId,
           });
 
-          if (!reward || reward.amount === 0) {
-            return;
+          if (reward) {
+            await prismaEdge.commission.create({
+              data: {
+                id: createId({ prefix: "cm_" }),
+                programId: link.programId,
+                linkId: link.id,
+                partnerId: link.partnerId,
+                eventId,
+                customerId: customer.id,
+                type: "lead",
+                amount: 0,
+                quantity: 1,
+                earnings: reward.amount,
+              },
+            });
           }
-
-          await prismaEdge.commission.create({
-            data: {
-              id: createId({ prefix: "cm_" }),
-              programId: link.programId,
-              linkId: link.id,
-              partnerId: link.partnerId,
-              eventId,
-              customerId: customer.id,
-              type: "lead",
-              amount: 0,
-              quantity: 1,
-              earnings: reward.amount,
-            },
-          });
         }
 
         await sendWorkspaceWebhookOnEdge({

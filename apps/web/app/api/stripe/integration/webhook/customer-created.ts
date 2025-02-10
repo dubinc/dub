@@ -132,24 +132,22 @@ export async function customerCreated(event: Stripe.Event) {
         programId: link.programId,
       });
 
-      if (!reward || reward.amount === 0) {
-        return;
+      if (reward) {
+        await prisma.commission.create({
+          data: {
+            id: createId({ prefix: "cm_" }),
+            programId: link.programId,
+            linkId: link.id,
+            partnerId: link.partnerId,
+            eventId: leadData.event_id,
+            customerId: customer.id,
+            type: "lead",
+            amount: 0,
+            quantity: 1,
+            earnings: reward.amount,
+          },
+        });
       }
-
-      await prisma.commission.create({
-        data: {
-          id: createId({ prefix: "cm_" }),
-          programId: link.programId,
-          linkId: link.id,
-          partnerId: link.partnerId,
-          eventId: leadData.event_id,
-          customerId: customer.id,
-          type: "lead",
-          amount: 0,
-          quantity: 1,
-          earnings: reward.amount,
-        },
-      });
     }
 
     waitUntil(
