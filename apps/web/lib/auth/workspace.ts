@@ -145,6 +145,7 @@ export const withWorkspace = (
                 rateLimit: true,
                 projectId: true,
                 expires: true,
+                installationId: true,
               }),
               user: {
                 select: {
@@ -314,6 +315,15 @@ export const withWorkspace = (
           permissions = mapScopesToPermissions(tokenScopes).filter((p) =>
             permissions.includes(p),
           );
+
+          // Prevent integration tokens from accessing API endpoints without explicit permissions
+          if (token.installationId && requiredPermissions.length === 0) {
+            throw new DubApiError({
+              code: "forbidden",
+              message:
+                "You don't have the necessary permissions to complete this request.",
+            });
+          }
         }
 
         // Check user has permission to make the action
