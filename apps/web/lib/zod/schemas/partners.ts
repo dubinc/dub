@@ -6,6 +6,8 @@ import {
 } from "@dub/prisma/client";
 import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
+import { analyticsQuerySchema } from "./analytics";
+import { analyticsResponse } from "./analytics-response";
 import { CustomerSchema } from "./customers";
 import { createLinkBodySchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
@@ -257,9 +259,11 @@ export const createPartnerLinkSchema = z
       .describe(
         "The ID of the partner in your system. If both `partnerId` and `tenantId` are not provided, an error will be thrown.",
       ),
-    url: parseUrlSchema.describe(
-      "The URL to shorten. Will throw an error if the domain doesn't match the program's default URL domain.",
-    ),
+    url: parseUrlSchema
+      .describe(
+        "The URL to shorten (if not provided, the program's default URL will be used). Will throw an error if the domain doesn't match the program's default URL domain.",
+      )
+      .nullish(),
     key: z
       .string()
       .max(190)
@@ -273,3 +277,56 @@ export const createPartnerLinkSchema = z
       linkProps: true,
     }),
   );
+
+export const upsertPartnerLinkSchema = createPartnerLinkSchema.merge(
+  z.object({
+    url: parseUrlSchema.describe(
+      "The URL to upsert for. Will throw an error if the domain doesn't match the program's default URL domain.",
+    ),
+  }),
+);
+
+// For /api/partners/analytics
+export const partnerAnalyticsQuerySchema = analyticsQuerySchema
+  .pick({
+    programId: true,
+    partnerId: true,
+    tenantId: true,
+    interval: true,
+    start: true,
+    end: true,
+    timezone: true,
+  })
+  .merge(
+    z.object({
+      groupBy: z
+        .enum(["top_links", "timeseries", "count"])
+        .default("count")
+        .describe(
+          "The parameter to group the analytics data points by. Defaults to `count` if undefined.",
+        ),
+    }),
+  );
+
+const earningsSchema = z.object({
+  earnings: z.number().default(0),
+});
+
+export const partnersTopLinksSchema =
+  analyticsResponse["top_links"].merge(earningsSchema);
+
+export const partnerAnalyticsResponseSchema = {
+  count: analyticsResponse["count"]
+    .merge(earningsSchema)
+    .openapi({ ref: "PartnerAnalyticsCount", title: "PartnerAnalyticsCount" }),
+
+  timeseries: analyticsResponse["timeseries"].merge(earningsSchema).openapi({
+    ref: "PartnerAnalyticsTimeseries",
+    title: "PartnerAnalyticsTimeseries",
+  }),
+
+  top_links: partnersTopLinksSchema.openapi({
+    ref: "PartnerAnalyticsTopLinks",
+    title: "PartnerAnalyticsTopLinks",
+  }),
+} as const;
