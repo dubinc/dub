@@ -1,7 +1,8 @@
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { calculateSaleEarningsOld } from "@/lib/api/sales/calculate-earnings";
+import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
 import { createId } from "@/lib/api/utils";
+import { determinePartnerReward } from "@/lib/partners/rewards";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -132,11 +133,22 @@ export async function invoicePaid(event: Stripe.Event) {
         },
       });
 
-    const saleEarnings = calculateSaleEarningsOld({
-      program,
-      partner,
-      sales: 1,
-      saleAmount: saleData.amount,
+    const reward = await determinePartnerReward({
+      event: "sale",
+      partnerId: partner.partnerId,
+      programId: program.id,
+    });
+
+    if (!reward || reward.amount === 0) {
+      return;
+    }
+
+    const earnings = calculateSaleEarnings({
+      reward,
+      sale: {
+        quantity: 1,
+        amount: saleData.amount,
+      },
     });
 
     await prisma.commission.create({
@@ -150,7 +162,7 @@ export async function invoicePaid(event: Stripe.Event) {
         quantity: 1,
         type: "sale",
         amount: saleData.amount,
-        earnings: saleEarnings,
+        earnings,
         invoiceId,
       },
     });
@@ -164,7 +176,7 @@ export async function invoicePaid(event: Stripe.Event) {
         program,
         sale: {
           amount: saleData.amount,
-          earnings: saleEarnings,
+          earnings,
         },
       }),
     );

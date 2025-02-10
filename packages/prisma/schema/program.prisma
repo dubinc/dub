@@ -38,11 +38,13 @@ model Program {
   cookieLength Int         @default(90)
 
   // Commission details
+  // TODO: Remove this after merging Rewards
   commissionAmount   Int                 @default(0)
   commissionType     CommissionType      @default(percentage)
   commissionDuration Int?
   commissionInterval CommissionInterval?
-  defaultRewardId    String? // default reward for the program
+
+  defaultRewardId String? // default reward for the program
 
   // Discounts (for dual-sided incentives)
   discounts Discount[]

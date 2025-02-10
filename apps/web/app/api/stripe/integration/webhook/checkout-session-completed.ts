@@ -1,7 +1,8 @@
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { calculateSaleEarningsOld } from "@/lib/api/sales/calculate-earnings";
+import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
 import { createId } from "@/lib/api/utils";
+import { determinePartnerReward } from "@/lib/partners/rewards";
 import {
   getClickEvent,
   getLeadEvent,
@@ -217,7 +218,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     }),
   };
 
-  const link = await prisma.link.findUnique({
+  const link = await prisma.link.findUniqueOrThrow({
     where: {
       id: linkId,
     },
@@ -266,7 +267,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   ]);
 
   // for program links
-  if (link?.programId) {
+  if (link.programId && link.partnerId) {
     const { program, ...partner } =
       await prisma.programEnrollment.findFirstOrThrow({
         where: {
@@ -283,11 +284,22 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         },
       });
 
-    const saleEarnings = calculateSaleEarningsOld({
-      program,
-      partner,
-      sales: 1,
-      saleAmount: saleData.amount,
+    const reward = await determinePartnerReward({
+      event: "sale",
+      partnerId: partner.partnerId,
+      programId: program.id,
+    });
+
+    if (!reward || reward.amount === 0) {
+      return;
+    }
+
+    const earnings = calculateSaleEarnings({
+      reward,
+      sale: {
+        quantity: 1,
+        amount: saleData.amount,
+      },
     });
 
     await prisma.commission.create({
@@ -301,7 +313,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         quantity: 1,
         type: EventType.sale,
         amount: saleData.amount,
-        earnings: saleEarnings,
+        earnings,
         invoiceId,
       },
     });
@@ -315,7 +327,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         program,
         sale: {
           amount: saleData.amount,
-          earnings: saleEarnings,
+          earnings,
         },
       }),
     );

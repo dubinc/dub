@@ -150,11 +150,11 @@ export const POST = withWorkspaceEdge(
             programId: program.id,
           });
 
-          if (!reward) {
+          if (!reward || reward.amount === 0) {
             return;
           }
 
-          const saleEarnings = calculateSaleEarnings({
+          const earnings = calculateSaleEarnings({
             reward,
             sale: {
               quantity: 1,
@@ -174,7 +174,7 @@ export const POST = withWorkspaceEdge(
                 quantity: 1,
                 type: "sale",
                 amount: saleData.amount,
-                earnings: saleEarnings,
+                earnings,
                 invoiceId,
               },
             }),
@@ -187,7 +187,7 @@ export const POST = withWorkspaceEdge(
               program,
               sale: {
                 amount: saleData.amount,
-                earnings: saleEarnings,
+                earnings,
               },
             }),
           ]);

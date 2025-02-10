@@ -131,7 +131,7 @@ export const POST = withWorkspaceEdge(
             programId: link.programId,
           });
 
-          if (!reward) {
+          if (!reward || reward.amount === 0) {
             return;
           }
 
@@ -144,8 +144,9 @@ export const POST = withWorkspaceEdge(
               eventId,
               customerId: customer.id,
               type: "lead",
-              amount: reward.amount,
+              amount: 0,
               quantity: 1,
+              earnings: reward.amount,
             },
           });
         }
