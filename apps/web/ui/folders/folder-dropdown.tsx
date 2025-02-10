@@ -127,7 +127,7 @@ export const FolderDropdown = ({
         align="start"
         popoverContentClassName="-ml-1"
       >
-        <button className="group flex w-32 min-w-0 items-center gap-2 rounded-lg transition-colors -ml-2 -mt-1 px-2 py-1 hover:bg-neutral-100 active:bg-neutral-200 data-[state=open]:bg-neutral-100">
+        <button className="group -ml-2 -mt-1 flex min-w-0 max-w-60 items-center gap-2 rounded-lg px-2 py-1 transition-colors hover:bg-neutral-100 active:bg-neutral-200 data-[state=open]:bg-neutral-100">
           {!hideFolderIcon && selectedFolder && (
             <FolderIcon folder={selectedFolder} shape="square" />
           )}
