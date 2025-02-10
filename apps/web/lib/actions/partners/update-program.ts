@@ -1,5 +1,6 @@
 "use server";
 
+import { getFolderOrThrow } from "@/lib/folder/get-folder-or-throw";
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
@@ -17,6 +18,7 @@ export const updateProgramAction = authActionClient
     const { workspace } = ctx;
     const {
       programId,
+      defaultFolderId,
       name,
       commissionType,
       commissionAmount,
@@ -32,7 +34,15 @@ export const updateProgramAction = authActionClient
       programId,
     });
 
-    const program = await prisma.program.update({
+    if (defaultFolderId) {
+      await getFolderOrThrow({
+        workspaceId: workspace.id,
+        userId: ctx.user.id,
+        folderId: defaultFolderId,
+      });
+    }
+
+    await prisma.program.update({
       where: {
         id: programId,
       },
@@ -45,8 +55,7 @@ export const updateProgramAction = authActionClient
         cookieLength,
         domain,
         url,
+        defaultFolderId,
       },
     });
-
-    return program;
   });

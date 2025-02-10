@@ -3,6 +3,7 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps } from "@/lib/types";
+import { FolderDropdown } from "@/ui/folders/folder-dropdown";
 import { DestinationUrlInput } from "@/ui/links/destination-url-input";
 import { ShortLinkInput } from "@/ui/links/short-link-input";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
@@ -30,6 +31,7 @@ import {
   isValidUrl,
   linkConstructor,
 } from "@dub/utils";
+import { ChevronRight } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import {
@@ -118,7 +120,7 @@ function LinkBuilderInner({
   const { slug } = params;
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
-  const { id: workspaceId, plan, nextPlan, logo } = useWorkspace();
+  const { id: workspaceId, plan, nextPlan, logo, flags } = useWorkspace();
 
   const {
     control,
@@ -133,14 +135,14 @@ function LinkBuilderInner({
   const formRef = useRef<HTMLFormElement>(null);
   const { handleKeyDown } = useEnterSubmit(formRef);
 
-  const [url, domain, key, title, description, trackConversion] = watch([
+  const [url, domain, key, title, description] = watch([
     "url",
     "domain",
     "key",
     "title",
     "description",
-    "trackConversion",
   ]);
+
   const [debouncedUrl] = useDebounce(getUrlWithoutUTMParams(url), 500);
 
   const endpoint = useMemo(
@@ -250,7 +252,6 @@ function LinkBuilderInner({
                 ...rest,
                 // Map tags to tagIds
                 tagIds: tags.map(({ id }) => id),
-
                 // Manually reset empty strings to null
                 expiredUrl: rest.expiredUrl || null,
                 ios: rest.ios || null,
@@ -327,7 +328,19 @@ function LinkBuilderInner({
             })}
           >
             <div className="flex items-center justify-between px-6 py-4">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                {flags?.linkFolders && (
+                  <div className="flex items-center rounded-md border border-neutral-200 p-1 hover:bg-gray-100">
+                    <FolderDropdown
+                      hideViewAll={true}
+                      onFolderSelect={(folder) => {
+                        setValue("folderId", folder.id, { shouldDirty: true });
+                      }}
+                    />
+                  </div>
+                )}
+
+                <ChevronRight className="size-4 text-neutral-500" />
                 <LinkLogo
                   apexDomain={getApexDomain(debouncedUrl)}
                   className="size-6 sm:size-6 [&>*]:size-3 sm:[&>*]:size-4"

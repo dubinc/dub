@@ -57,6 +57,7 @@ export const transformLinkTB = (link: ExpandedLink) => {
     key: link.key,
     url: link.url,
     tag_ids: link.tags?.map(({ tag }) => tag.id),
+    folder_id: link.folderId ?? "",
     tenant_id: link.tenantId ?? "",
     program_id: link.programId ?? "",
     partner_id: link.partnerId ?? "",

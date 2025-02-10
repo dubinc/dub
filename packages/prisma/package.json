@@ -10,7 +10,8 @@
     "push": "npx prisma db push --schema=./schema",
     "studio": "npx prisma studio --schema=./schema --browser none",
     "prebuild": "pnpm run generate",
-    "predev": "pnpm run generate"
+    "predev": "pnpm run generate",
+    "format": "npx prisma format --schema=./schema"
   },
   "dependencies": {
     "@planetscale/database": "^1.18.0",

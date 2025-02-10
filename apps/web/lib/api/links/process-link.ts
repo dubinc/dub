@@ -1,4 +1,5 @@
 import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import { isStored } from "@/lib/storage";
@@ -66,6 +67,7 @@ export async function processLink<T extends Record<string, any>>({
     geo,
     doIndex,
     tagNames,
+    folderId,
     externalId,
     tenantId,
     partnerId,
@@ -74,6 +76,7 @@ export async function processLink<T extends Record<string, any>>({
   } = payload;
 
   let expiresAt: string | Date | null | undefined = payload.expiresAt;
+  let defaultProgramFolderId: string | null = null;
   const tagIds = combineTagIds(payload);
 
   // if URL is defined, perform URL checks
@@ -377,6 +380,7 @@ export async function processLink<T extends Record<string, any>>({
         where: { id: programId },
         select: {
           workspaceId: true,
+          defaultFolderId: true,
           ...(!partnerId && tenantId
             ? {
                 partners: {
@@ -401,6 +405,8 @@ export async function processLink<T extends Record<string, any>>({
         partnerId =
           program?.partners?.length > 0 ? program.partners[0].partnerId : null;
       }
+
+      defaultProgramFolderId = program.defaultFolderId;
     }
 
     // Webhook validity checks
@@ -435,6 +441,24 @@ export async function processLink<T extends Record<string, any>>({
           code: "unprocessable_entity",
         };
       }
+    }
+  }
+
+  // Folder checks
+  if (folderId && workspace && userId) {
+    try {
+      await verifyFolderAccess({
+        workspaceId: workspace.id,
+        userId,
+        folderId,
+        requiredPermission: "folders.links.write",
+      });
+    } catch (error) {
+      return {
+        link: payload,
+        error: error.message,
+        code: error.code,
+      };
     }
   }
 
@@ -498,6 +522,7 @@ export async function processLink<T extends Record<string, any>>({
       ...(webhookIds && {
         webhookIds,
       }),
+      folderId: folderId || defaultProgramFolderId,
     },
     error: null,
   };

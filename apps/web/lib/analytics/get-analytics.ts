@@ -29,6 +29,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     timezone = "UTC",
     isDemo,
     isDeprecatedClicksEndpoint = false,
+    folderId,
   } = params;
 
   const tagIds = combineTagIds(params);
@@ -95,6 +96,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     eventType: event,
     workspaceId,
     tagIds,
+    folderId: folderId || "",
     qr,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
@@ -123,6 +125,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         id: {
           in: topLinksData.map((item) => item.link),
         },
+        folderId: folderId || null,
       },
       select: {
         id: true,

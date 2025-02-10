@@ -1,3 +1,4 @@
+import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TagProps } from "@/lib/types";
 import {
@@ -136,7 +137,7 @@ function TagButton({ tag, plus }: { tag: TagProps; plus?: number }) {
 }
 
 function AnalyticsBadge({ link }: { link: ResponseLink }) {
-  const { slug } = useWorkspace();
+  const { slug, plan } = useWorkspace();
   const { domain, key, trackConversion, clicks, leads, saleAmount } = link;
 
   const { isMobile } = useMediaQuery();
@@ -181,10 +182,15 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
   // Hacky fix for making sure the tooltip closes (by rerendering) when the modal opens
   const [modalShowCount, setModalShowCount] = useState(0);
 
+  const canManageLink = useCheckFolderPermission(
+    link.folderId,
+    "folders.links.write",
+  );
+
   return isMobile ? (
     <Link
-      href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=all`}
-      className="flex items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-sm text-neutral-800"
+      href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
+      className="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-sm text-gray-800"
     >
       <CursorRays className="h-4 w-4 text-neutral-600" />
       {nFormatter(link.clicks)}
@@ -224,6 +230,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                   setShowShareDashboardModal(true);
                   setModalShowCount((c) => c + 1);
                 }}
+                disabled={!canManageLink}
               />
 
               {link.dashboardId && (
@@ -238,7 +245,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
         }
       >
         <Link
-          href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=all`}
+          href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
           className={cn(
             "overflow-hidden rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600 transition-colors",
             variant === "loose" ? "hover:bg-neutral-100" : "hover:bg-white",

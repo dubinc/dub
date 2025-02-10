@@ -6,7 +6,7 @@ import { useRouter, useSelectedLayoutSegment } from "next/navigation";
 
 export default function LibraryHeader() {
   const router = useRouter();
-  const { slug } = useWorkspace();
+  const { slug, flags } = useWorkspace();
 
   const selectedLayoutSegment = useSelectedLayoutSegment();
   const page = selectedLayoutSegment === null ? "" : selectedLayoutSegment;
@@ -17,11 +17,20 @@ export default function LibraryHeader() {
         Library
       </h1>
       <p className="mb-2 mt-2 text-base text-neutral-600">
-        Manage and organize your links with customizable tags and UTM templates.
+        Manage and organize your links with customizable folders, tags, and UTM
+        templates.
       </p>
       <TabSelect
         variant="accent"
         options={[
+          ...(flags?.linkFolders
+            ? [
+                {
+                  id: "folders",
+                  label: "Folders",
+                },
+              ]
+            : []),
           { id: "tags", label: "Tags" },
           { id: "utm", label: "UTM Templates" },
         ]}

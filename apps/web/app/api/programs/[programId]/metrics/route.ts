@@ -33,15 +33,21 @@ export const GET = withWorkspace(
         },
       }),
 
-      prisma.sale.aggregate({
-        where,
+      prisma.commission.aggregate({
+        where: {
+          ...where,
+          type: "sale",
+        },
         _sum: {
           amount: true,
         },
       }),
 
-      prisma.sale.count({
-        where,
+      prisma.commission.count({
+        where: {
+          ...where,
+          type: "sale",
+        },
       }),
 
       prisma.programEnrollment.count({

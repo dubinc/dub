@@ -25,17 +25,18 @@ enum ProgramResourceType {
 }
 
 model Program {
-  id           String      @id @default(cuid())
-  workspaceId  String
-  name         String
-  slug         String      @unique
-  logo         String?
-  wordmark     String?
-  brandColor   String?
-  domain       String?
-  url          String?
-  type         ProgramType @default(affiliate)
-  cookieLength Int         @default(90)
+  id              String      @id @default(cuid())
+  workspaceId     String
+  defaultFolderId String?
+  name            String
+  slug            String      @unique
+  logo            String?
+  wordmark        String?
+  brandColor      String?
+  domain          String?
+  url             String?
+  type            ProgramType @default(affiliate)
+  cookieLength    Int         @default(90)
 
   // Commission details
   commissionAmount   Int                 @default(0)
@@ -61,6 +62,7 @@ model Program {
   applications  ProgramApplication[]
   invites       ProgramInvite[]
   links         Link[]
+  commissions Commission[]
 
   @@index([workspaceId])
   @@index([domain])

@@ -7,7 +7,7 @@ import {
   Button,
   Check,
   Copy,
-  MoneyBill2,
+  MoneyBill,
   ToggleGroup,
   useCopyToClipboard,
   Wordmark,
@@ -17,12 +17,12 @@ import { AnimatePresence } from "framer-motion";
 import { CSSProperties, useState } from "react";
 import { LinkToken } from "../token";
 import { EmbedActivity } from "./activity";
+import { EmbedEarnings } from "./earnings";
 import { EmbedFAQ } from "./faq";
 import { HeroBackground } from "./hero-background";
 import { EmbedLeaderboard } from "./leaderboard";
 import { EmbedPayouts } from "./payouts";
 import { EmbedQuickstart } from "./quickstart";
-import { EmbedSales } from "./sales";
 
 export function EmbedInlinePageClient({
   program,
@@ -46,7 +46,7 @@ export function EmbedInlinePageClient({
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
 
-  const tabs = ["Quickstart", "Sales", "Leaderboard", "FAQ"];
+  const tabs = ["Quickstart", "Earnings", "Leaderboard", "FAQ"];
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
 
   return (
@@ -60,7 +60,7 @@ export function EmbedInlinePageClient({
         <div className="relative flex flex-col overflow-hidden rounded-lg border border-neutral-300 p-4 md:p-6">
           <HeroBackground logo={program.logo} color={program.brandColor} />
           <span className="flex items-center gap-2 text-sm text-neutral-500">
-            <MoneyBill2 className="size-4" />
+            <MoneyBill className="size-4" />
             Refer and earn
           </span>
           <div className="relative mt-16 text-lg text-neutral-900 sm:max-w-[50%]">
@@ -105,14 +105,18 @@ export function EmbedInlinePageClient({
               onClick={() => copyToClipboard(links[0].shortLink)}
             />
           </div>
-          <a
-            href="https://dub.partners"
-            target="_blank"
-            className="mt-4 flex items-center justify-center gap-1.5 text-neutral-500 transition-colors duration-75 hover:text-neutral-700 md:absolute md:bottom-3 md:right-3 md:mt-0 md:translate-x-0"
-          >
-            <p className="text-xs font-medium">Powered by</p>
-            <Wordmark className="h-3.5 text-neutral-900" />
-          </a>
+          <div className="mt-4 flex justify-center md:absolute md:bottom-3 md:right-3 md:mt-0">
+            <a
+              href="https://dub.partners"
+              target="_blank"
+              className="flex w-fit items-center gap-1.5 rounded-md border border-black/10 bg-white px-2 py-1 text-neutral-500 transition-colors duration-75 hover:text-neutral-700"
+            >
+              <p className="whitespace-nowrap text-xs font-medium leading-none">
+                Powered by
+              </p>
+              <Wordmark className="h-3.5 text-neutral-900" />
+            </a>
+          </div>
         </div>
         <div className="mt-4 grid gap-2 sm:h-32 sm:grid-cols-3">
           <EmbedActivity
@@ -140,8 +144,8 @@ export function EmbedInlinePageClient({
             <AnimatePresence mode="wait">
               {selectedTab === "Quickstart" ? (
                 <EmbedQuickstart program={program} link={links[0]} />
-              ) : selectedTab === "Sales" ? (
-                <EmbedSales salesCount={stats.sales} />
+              ) : selectedTab === "Earnings" ? (
+                <EmbedEarnings salesCount={stats.sales} />
               ) : selectedTab === "Leaderboard" ? (
                 <EmbedLeaderboard />
               ) : selectedTab === "FAQ" ? (

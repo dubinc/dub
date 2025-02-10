@@ -37,6 +37,7 @@ export const getEvents = async (params: EventsFilters) => {
     isDemo,
     order,
     sortOrder,
+    folderId,
   } = params;
 
   const { startDate, endDate } = getStartEndDates({
@@ -86,6 +87,7 @@ export const getEvents = async (params: EventsFilters) => {
     offset: (params.page - 1) * params.limit,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
+    folderId: folderId || "",
   });
 
   const [linksMap, customersMap] = await Promise.all([

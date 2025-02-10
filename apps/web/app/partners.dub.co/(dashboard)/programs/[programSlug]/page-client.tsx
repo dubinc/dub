@@ -3,6 +3,7 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
+import { usePartnerEarnings } from "@/lib/swr/use-partner-earnings";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
@@ -22,14 +23,14 @@ import {
   XAxis,
   YAxis,
 } from "@dub/ui/charts";
-import { Check, Copy, LoadingSpinner, MoneyBill2 } from "@dub/ui/icons";
+import { Check, Copy, LoadingSpinner, MoneyBill } from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { createContext, useContext, useId, useMemo } from "react";
-import { SaleTablePartner } from "./sales/sale-table";
+import { EarningsTablePartner } from "./earnings/earnings-table";
 
 const ProgramOverviewContext = createContext<{
   start?: Date;
@@ -65,7 +66,7 @@ export default function ProgramPageClient() {
           <HeroBackground logo={program.logo} color={program.brandColor} />
         )}
         <span className="flex items-center gap-2 text-sm text-neutral-500">
-          <MoneyBill2 className="size-4" />
+          <MoneyBill className="size-4" />
           Refer and earn
         </span>
         <div className="relative mt-24 text-lg text-neutral-900 sm:max-w-[50%]">
@@ -147,10 +148,10 @@ export default function ProgramPageClient() {
         <div className="mt-6">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-medium text-neutral-900">
-              Recent sales
+              Recent earnings
             </h2>
             <Link
-              href={`/programs/${programSlug}/sales${getQueryString()}`}
+              href={`/programs/${programSlug}/earnings${getQueryString()}`}
               className={cn(
                 buttonVariants({ variant: "secondary" }),
                 "flex h-8 items-center rounded-lg border px-2 text-sm",
@@ -160,7 +161,7 @@ export default function ProgramPageClient() {
             </Link>
           </div>
           <div className="mt-4">
-            <SaleTablePartner limit={10} />
+            <EarningsTablePartner limit={10} />
           </div>
         </div>
       </ProgramOverviewContext.Provider>
@@ -173,14 +174,14 @@ function EarningsChart() {
 
   const { start, end, interval, color } = useContext(ProgramOverviewContext);
 
-  const { data: { earnings: total } = {} } = usePartnerAnalytics({
+  const { data: { earnings: total } = {} } = usePartnerEarnings({
     event: "composite",
     interval,
     start,
     end,
   });
 
-  const { data: timeseries, error } = usePartnerAnalytics({
+  const { data: timeseries, error } = usePartnerEarnings({
     event: "sales",
     groupBy: "timeseries",
     interval,

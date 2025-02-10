@@ -1,4 +1,4 @@
-import { updateSaleStatusAction } from "@/lib/actions/partners/update-sale-status";
+import { updateCommissionStatusAction } from "@/lib/actions/partners/update-commission-status";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { SaleResponse } from "@/lib/types";
@@ -22,7 +22,7 @@ export function SaleRowMenu({ row }: { row: Row<SaleResponse> }) {
   const { programId } = useParams() as { programId: string };
   const [isOpen, setIsOpen] = useState(false);
 
-  const { executeAsync } = useAction(updateSaleStatusAction, {
+  const { executeAsync } = useAction(updateCommissionStatusAction, {
     onSuccess: async () => {
       await mutatePrefix([
         `/api/programs/${programId}/payouts`,
@@ -35,7 +35,7 @@ export function SaleRowMenu({ row }: { row: Row<SaleResponse> }) {
     toast.promise(
       executeAsync({
         workspaceId: workspaceId!,
-        saleId: row.original.id,
+        commissionId: row.original.id,
         status,
       }),
       {
