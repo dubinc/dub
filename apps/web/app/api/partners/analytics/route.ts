@@ -88,18 +88,19 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     end,
   });
 
+  // Group by count
   if (groupBy === "count") {
     const earnings = await prisma.commission.aggregate({
       _sum: {
         earnings: true,
       },
       where: {
+        programId: programEnrollment.programId,
+        partnerId: programEnrollment.partnerId,
         createdAt: {
           gte: startDate,
           lt: endDate,
         },
-        programId: programEnrollment.programId,
-        partnerId: programEnrollment.partnerId,
         ...(event !== "composite" && { type: eventMap[event] }),
       },
     });
@@ -112,7 +113,11 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const { dateFormat } = sqlGranularityMap[granularity];
 
-  const revenue = await prisma.$queryRaw<{ start: string; earnings: number }[]>`
+  // Group by timeseries
+  if (groupBy === "timeseries") {
+    const earnings = await prisma.$queryRaw<
+      { start: string; earnings: number }[]
+    >`
     SELECT 
       DATE_FORMAT(CONVERT_TZ(createdAt, '+00:00', ${timezone || "+00:00"}),  ${dateFormat}) AS start, 
       SUM(earnings) AS earnings
@@ -126,34 +131,63 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     GROUP BY start
     ORDER BY start ASC;`;
 
-  const revenueLookup = Object.fromEntries(
-    revenue.map((item) => [
-      format(
+    const earningsLookup = Object.fromEntries(
+      earnings.map((item) => [
+        format(
+          new Date(item.start),
+          granularity === "hour" ? "yyyy-MM-dd'T'HH:00" : "yyyy-MM-dd'T'00:00",
+        ),
+        {
+          earnings: item.earnings,
+        },
+      ]),
+    );
+
+    const analyticsWithRevenue = analytics.map((item) => {
+      const formattedDateTime = format(
         new Date(item.start),
         granularity === "hour" ? "yyyy-MM-dd'T'HH:00" : "yyyy-MM-dd'T'00:00",
-      ),
-      {
-        earnings: item.earnings,
-      },
-    ]),
-  );
+      );
 
-  console.log({
-    revenue,
-    revenueLookup,
+      return {
+        ...item,
+        earnings: earningsLookup[formattedDateTime]?.earnings ?? 0,
+      };
+    });
+
+    return NextResponse.json(analyticsWithRevenue);
+  }
+
+  // Group by top_links
+  const linkIds = analytics.map((item) => item.id);
+
+  const topLinkEarnings = await prisma.commission.groupBy({
+    by: ["linkId"],
+    where: {
+      linkId: {
+        in: linkIds,
+      },
+      programId: programEnrollment.programId,
+      partnerId: programEnrollment.partnerId,
+      ...(event !== "composite" && { type: eventMap[event] }),
+      createdAt: {
+        gte: startDate,
+        lt: endDate,
+      },
+    },
+    _sum: {
+      earnings: true,
+    },
   });
 
-  const analyticsWithRevenue = analytics.map((item) => {
-    const formattedDateTime = format(
-      new Date(item.start),
-      granularity === "hour" ? "yyyy-MM-dd'T'HH:00" : "yyyy-MM-dd'T'00:00",
-    );
+  const topLinksWithEarnings = analytics.map((item) => {
+    const link = topLinkEarnings.find((link) => link.linkId === item.id);
 
     return {
       ...item,
-      earnings: revenueLookup[formattedDateTime]?.earnings ?? 0,
+      earnings: link?._sum.earnings ?? 0,
     };
   });
 
-  return NextResponse.json(analyticsWithRevenue);
+  return NextResponse.json(topLinksWithEarnings);
 });
