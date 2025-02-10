@@ -3,6 +3,7 @@
 import { sendEmail } from "@dub/email";
 import { FolderEditAccessRequested } from "@dub/email/templates/folder-edit-access-requested";
 import { prisma } from "@dub/prisma";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { verifyFolderAccess } from "../../folder/permissions";
@@ -72,8 +73,7 @@ export const requestFolderEditAccessAction = authActionClient
           email: folderOwnerEmail,
           react: FolderEditAccessRequested({
             email: folderOwnerEmail,
-            appName: process.env.NEXT_PUBLIC_APP_NAME as string,
-            folderUrl: `${process.env.NEXT_PUBLIC_APP_URL}/${workspace.slug}/settings/library/folders/${folder.id}/members`,
+            folderUrl: `${APP_DOMAIN_WITH_NGROK}/${workspace.slug}/settings/library/folders/${folder.id}/members`,
             folder: {
               name: folder.name,
             },

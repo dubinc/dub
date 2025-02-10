@@ -16,7 +16,6 @@ import { Footer } from "../components/footer";
 
 export function FolderEditAccessRequested({
   email = "panic@thedis.co",
-  appName = "Dub.co",
   folderUrl = "http://localhost:8888/acme/settings/library/folders/cm1elre430005nf59czif340u/members",
   folder = {
     name: "Social Media",
@@ -27,7 +26,6 @@ export function FolderEditAccessRequested({
   },
 }: {
   email: string;
-  appName: string;
   folderUrl: string;
   folder: {
     name: string;
@@ -40,9 +38,7 @@ export function FolderEditAccessRequested({
   return (
     <Html>
       <Head />
-      <Preview>
-        Request to edit folder {folder.name} on {appName}
-      </Preview>
+      <Preview>Request to edit folder {folder.name} on Dub</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
@@ -50,7 +46,7 @@ export function FolderEditAccessRequested({
               <Img
                 src={DUB_WORDMARK}
                 height="40"
-                alt={appName}
+                alt="Dub"
                 className="mx-auto my-0"
               />
             </Section>
