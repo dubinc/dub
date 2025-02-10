@@ -6,6 +6,7 @@ import {
 } from "@dub/prisma/client";
 import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
+import { analyticsQuerySchema } from "./analytics";
 import { CustomerSchema } from "./customers";
 import { createLinkBodySchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
@@ -271,5 +272,27 @@ export const createPartnerLinkSchema = z
   .merge(
     createPartnerSchema.pick({
       linkProps: true,
+    }),
+  );
+
+export const getPartnerAnalyticsSchema = analyticsQuerySchema
+  .pick({
+    event: true,
+    programId: true,
+    partnerId: true,
+    tenantId: true,
+    interval: true,
+    start: true,
+    end: true,
+    timezone: true,
+  })
+  .merge(
+    z.object({
+      groupBy: z
+        .enum(["top_links", "timeseries", "count"])
+        .default("count")
+        .describe(
+          "The parameter to group the analytics data points by. Defaults to `count` if undefined.",
+        ),
     }),
   );
