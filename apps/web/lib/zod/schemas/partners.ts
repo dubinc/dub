@@ -289,7 +289,6 @@ export const upsertPartnerLinkSchema = createPartnerLinkSchema.merge(
 // For /api/partners/analytics
 export const partnerAnalyticsQuerySchema = analyticsQuerySchema
   .pick({
-    programId: true,
     partnerId: true,
     tenantId: true,
     interval: true,
@@ -305,6 +304,9 @@ export const partnerAnalyticsQuerySchema = analyticsQuerySchema
         .describe(
           "The parameter to group the analytics data points by. Defaults to `count` if undefined.",
         ),
+      programId: z
+        .string()
+        .describe("The ID of the program to retrieve analytics for."),
     }),
   );
 

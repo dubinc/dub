@@ -27,14 +27,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     timezone,
   } = partnerAnalyticsQuerySchema.parse(searchParams);
 
-  if (!programId) {
-    throw new DubApiError({
-      code: "bad_request",
-      message:
-        "Program ID not found. Did you forget to include a `programId` query parameter?",
-    });
-  }
-
   if (!partnerId && !tenantId) {
     throw new DubApiError({
       code: "bad_request",
