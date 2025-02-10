@@ -117,6 +117,7 @@ export const enrollPartner = async ({
             id: link.id,
           },
           data: {
+            programId,
             partnerId: upsertedPartner.id,
           },
           include: includeTags,
