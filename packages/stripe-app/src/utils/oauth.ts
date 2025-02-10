@@ -16,7 +16,17 @@ export function getOAuthUrl({
   state: string;
   challenge: string;
 }) {
-  return `${DUB_HOST}/oauth/authorize?client_id=${DUB_CLIENT_ID}&redirect_uri=${STRIPE_REDIRECT_URL}&response_type=code&scope=workspaces.write&state=${state}&code_challenge=${challenge}&code_challenge_method=S256`;
+  const searchParams = {
+    client_id: DUB_CLIENT_ID,
+    redirect_uri: STRIPE_REDIRECT_URL,
+    response_type: "code",
+    code_challenge: challenge,
+    code_challenge_method: "S256",
+    scope: "workspaces.write",
+    state,
+  };
+
+  return `${DUB_HOST}/oauth/authorize?${new URLSearchParams(searchParams).toString()}`;
 }
 
 // Exchanges the authorization code for an access token
