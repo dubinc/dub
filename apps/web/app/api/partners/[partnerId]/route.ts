@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
+import { EnrolledPartnerResponseSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -18,7 +18,7 @@ export const GET = withWorkspace(
       });
     }
 
-    const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
+    const programEnrollment = await prisma.programEnrollment.findUnique({
       where: {
         partnerId_programId: {
           partnerId,
@@ -32,7 +32,10 @@ export const GET = withWorkspace(
       },
     });
 
-    if (programEnrollment.program.workspaceId !== workspace.id) {
+    if (
+      !programEnrollment ||
+      programEnrollment.program.workspaceId !== workspace.id
+    ) {
       throw new DubApiError({
         code: "not_found",
         message: "Program not found.",
@@ -80,7 +83,7 @@ export const GET = withWorkspace(
       earnings,
     };
 
-    return NextResponse.json(EnrolledPartnerSchema.parse(partner));
+    return NextResponse.json(EnrolledPartnerResponseSchema.parse(partner));
   },
   {
     requiredPlan: [

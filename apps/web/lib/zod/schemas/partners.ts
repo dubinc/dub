@@ -69,8 +69,6 @@ export const EnrolledPartnerSchema = PartnerSchema.omit({
   .merge(ProgramEnrollmentSchema)
   .omit({
     program: true,
-    partnerId: true,
-    programId: true,
   })
   .extend({
     earnings: z.number().default(0),
@@ -80,17 +78,16 @@ export const EnrolledPartnerSchema = PartnerSchema.omit({
     saleAmount: z.number().default(0),
   });
 
-// Used by POST /api/partners and webhook (partner.created)
+// Used by GET+POST /api/partners and partner.created webhook
 export const EnrolledPartnerResponseSchema = EnrolledPartnerSchema.pick({
   id: true,
   name: true,
   email: true,
   image: true,
   country: true,
-  bio: true,
-  tenantId: true,
-  programId: true,
   status: true,
+  programId: true,
+  tenantId: true,
   clicks: true,
   leads: true,
   sales: true,
@@ -98,9 +95,6 @@ export const EnrolledPartnerResponseSchema = EnrolledPartnerSchema.pick({
   earnings: true,
   createdAt: true,
   links: true,
-}).extend({
-  tenantId: z.string().nullable(),
-  programId: z.string(),
 });
 
 export const LeaderboardPartnerSchema = z.object({

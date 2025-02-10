@@ -8,7 +8,7 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
   createPartnerSchema,
-  EnrolledPartnerSchema,
+  EnrolledPartnerResponseSchema,
   partnersQuerySchema,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -94,8 +94,8 @@ export const GET = withWorkspace(
         Link l ON l.programId = pe.programId AND l.partnerId = pe.partnerId
       WHERE 
         pe.programId = ${program.id}
+        ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status != 'rejected'`}
         ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : Prisma.sql``}
-        ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql``}
         ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
         ${search ? Prisma.sql`AND LOWER(p.name) LIKE LOWER(${`%${search}%`})` : Prisma.sql``}
         ${ids && ids.length > 0 ? Prisma.sql`AND pe.partnerId IN (${Prisma.join(ids)})` : Prisma.sql``}
@@ -121,7 +121,9 @@ export const GET = withWorkspace(
       links: partner.links.filter((link: any) => link !== null),
     }));
 
-    return NextResponse.json(z.array(EnrolledPartnerSchema).parse(response));
+    return NextResponse.json(
+      z.array(EnrolledPartnerResponseSchema).parse(response),
+    );
   },
   {
     requiredPlan: [
