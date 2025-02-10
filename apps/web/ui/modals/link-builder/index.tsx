@@ -299,6 +299,11 @@ function LinkBuilderInner({
 
                   // Mutate workspace to update usage stats
                   mutate(`/api/workspaces/${slug}`);
+
+                  // Navigate to the link's folder
+                  if (data.folderId)
+                    queryParams({ set: { folderId: data.folderId } });
+                  else queryParams({ del: ["folderId"] });
                 } else {
                   const { error } = await res.json();
 
