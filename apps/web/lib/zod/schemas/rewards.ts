@@ -1,11 +1,9 @@
 import { CommissionInterval, CommissionType, EventType } from "@prisma/client";
 import { z } from "zod";
-import { PartnerSchema } from "./partners";
 
 export const rewardSchema = z.object({
   id: z.string(),
   programId: z.string(),
-  name: z.string().nullable(),
   event: z.nativeEnum(EventType),
   type: z.nativeEnum(CommissionType),
   amount: z.number(),
@@ -13,14 +11,6 @@ export const rewardSchema = z.object({
   interval: z.nativeEnum(CommissionInterval).nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
-  // partners: z.array(
-  //   PartnerSchema.pick({
-  //     id: true,
-  //     name: true,
-  //     image: true,
-  //     email: true,
-  //   }),
-  // ).nullable(),
 });
 
 export const createOrUpdateRewardSchema = z.object({

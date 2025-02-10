@@ -87,6 +87,7 @@ model ProgramEnrollment {
   links       Link[]
   discount    Discount?           @relation(fields: [discountId], references: [id])
   application ProgramApplication? @relation(fields: [applicationId], references: [id])
+  rewards     PartnerReward[]
 
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])

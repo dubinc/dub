@@ -20,12 +20,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     where: {
       programId,
     },
-    // include: {
-    //   partners: true,
-    // },
   });
-
-  console.log(rewards);
 
   return NextResponse.json(z.array(rewardSchema).parse(rewards));
 });
@@ -43,17 +38,22 @@ export const POST = withWorkspace(async ({ workspace, params, req }) => {
     await parseRequestBody(req),
   );
 
+  let programEnrollments: { id: string }[] = [];
+
   if (partnerIds) {
-    const partners = await prisma.programEnrollment.findMany({
+    programEnrollments = await prisma.programEnrollment.findMany({
       where: {
         programId,
         partnerId: {
           in: partnerIds,
         },
       },
+      select: {
+        id: true,
+      },
     });
 
-    if (partners.length !== partnerIds.length) {
+    if (programEnrollments.length !== partnerIds.length) {
       throw new DubApiError({
         code: "bad_request",
         message: "Invalid partner IDs provided.",
@@ -87,19 +87,16 @@ export const POST = withWorkspace(async ({ workspace, params, req }) => {
   // TODO:
   // Partners can't be more than one reward of the same type.
 
-  const hasPartners = partnerIds && partnerIds.length > 0;
-
   const reward = await prisma.reward.create({
     data: {
       ...data,
       id: createId({ prefix: "rew_" }),
       programId,
-      ...(hasPartners && {
+      ...(programEnrollments && {
         partners: {
           createMany: {
-            data: partnerIds.map((partnerId) => ({
-              partnerId,
-              programId,
+            data: programEnrollments.map(({ id }) => ({
+              programEnrollmentId: id,
             })),
           },
         },

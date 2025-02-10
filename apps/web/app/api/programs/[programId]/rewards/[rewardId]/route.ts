@@ -26,17 +26,22 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
     await parseRequestBody(req),
   );
 
+  let programEnrollments: { id: string }[] = [];
+
   if (partnerIds) {
-    const partners = await prisma.programEnrollment.findMany({
+    programEnrollments = await prisma.programEnrollment.findMany({
       where: {
         programId,
         partnerId: {
           in: partnerIds,
         },
       },
+      select: {
+        id: true,
+      },
     });
 
-    if (partners.length !== partnerIds.length) {
+    if (programEnrollments.length !== partnerIds.length) {
       throw new DubApiError({
         code: "bad_request",
         message: "Invalid partner IDs provided.",
@@ -50,13 +55,12 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
     },
     data: {
       ...data,
-      ...(partnerIds && {
+      ...(programEnrollments && {
         partners: {
           deleteMany: {},
           createMany: {
-            data: partnerIds.map((partnerId) => ({
-              partnerId,
-              programId,
+            data: programEnrollments.map(({ id }) => ({
+              programEnrollmentId: id,
             })),
           },
         },
