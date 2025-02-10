@@ -26,8 +26,8 @@ model Commission {
   type     EventType
   amount   Int
   quantity Int
-  earnings Int            @default(0)
-  currency String         @default("usd")
+  earnings Int              @default(0)
+  currency String           @default("usd")
   status   CommissionStatus @default(pending)
 
   createdAt DateTime @default(now())

@@ -30,7 +30,7 @@ export const POST = withWorkspace(
       });
     }
 
-    if (getApexDomain(url) !== getApexDomain(program.url)) {
+    if (url && getApexDomain(url) !== getApexDomain(program.url)) {
       throw new DubApiError({
         code: "bad_request",
         message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(program.url)}).`,
@@ -62,7 +62,7 @@ export const POST = withWorkspace(
         ...linkProps,
         domain: program.domain,
         key: key || undefined,
-        url,
+        url: url || program.url,
         programId: program.id,
         tenantId: partner.tenantId,
         partnerId: partner.partnerId,
