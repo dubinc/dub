@@ -63,6 +63,7 @@ export function ProgramColorPicker({
           </div>
           {COLORS.map(({ color, name }) => (
             <Swatch
+              key={color}
               color={color}
               name={name}
               onSelect={() => onSelect(color)}
