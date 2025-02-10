@@ -105,7 +105,7 @@ export const MoveLinkForm = ({
         </p>
       </div>
 
-      <div className="bg-gray-50">
+      <div className="bg-gray-50 sm:rounded-b-2xl">
         <form onSubmit={onSubmit}>
           <div className="flex flex-col gap-y-6 px-4 text-left sm:px-6">
             <div className="mt-6">
