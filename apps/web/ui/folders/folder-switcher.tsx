@@ -79,9 +79,7 @@ export const FolderSwitcher = () => {
         </button>
       )}
 
-      <div className="mr-1 flex h-10 items-center rounded-md px-2 py-1 hover:bg-gray-100">
-        <FolderDropdown onFolderSelect={onFolderSelect} hideFolderIcon={true} />
-      </div>
+      <FolderDropdown onFolderSelect={onFolderSelect} hideFolderIcon={true} />
 
       {selectedFolder && !isUnsorted && (
         <FolderActions

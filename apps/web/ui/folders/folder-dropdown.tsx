@@ -127,16 +127,16 @@ export const FolderDropdown = ({
         align="start"
         popoverContentClassName="-ml-1"
       >
-        <button className="group flex w-32 min-w-0 items-center gap-2 rounded-lg transition-colors duration-75">
+        <button className="group flex w-32 min-w-0 items-center gap-2 rounded-lg transition-colors -ml-2 -mt-1 px-2 py-1 hover:bg-neutral-100 active:bg-neutral-200 data-[state=open]:bg-neutral-100">
           {!hideFolderIcon && selectedFolder && (
             <FolderIcon folder={selectedFolder} shape="square" />
           )}
 
-          <h1 className="min-w-0 truncate text-left text-lg font-medium leading-7 text-neutral-900">
+          <h1 className="min-w-0 truncate text-left text-xl font-semibold leading-7 text-neutral-900 md:text-2xl">
             {selectedFolder?.name}
           </h1>
 
-          <ChevronsUpDown className="ml-auto size-5 shrink-0 text-neutral-400" />
+          <ChevronsUpDown className="ml-auto size-4 shrink-0 text-neutral-400" />
         </button>
       </Popover>
     </>

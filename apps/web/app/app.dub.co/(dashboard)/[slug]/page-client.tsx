@@ -60,7 +60,7 @@ function WorkspaceLinks() {
   const router = useRouter();
   const { isValidating } = useLinks();
   const searchParams = useSearchParams();
-  const { id: workspaceId, slug, flags } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
   const { LinkBuilder, CreateLinkButton } = useLinkBuilder();
   const { AddEditTagModal, setShowAddEditTagModal } = useAddEditTagModal();
 
@@ -202,7 +202,7 @@ const MoreLinkOptions = () => {
   const router = useRouter();
   const { slug } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
-  const [state, setState] = useState<"default" | "import">("default");
+  const [_state, setState] = useState<"default" | "import">("default");
   const { ExportLinksModal, setShowExportLinksModal } = useExportLinksModal();
 
   useEffect(() => {
