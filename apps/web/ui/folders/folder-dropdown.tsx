@@ -1,5 +1,6 @@
 import { unsortedLinks } from "@/lib/folder/constants";
 import useFolders from "@/lib/swr/use-folders";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderSummary } from "@/lib/types";
 import { Popover, Tick } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -23,6 +24,8 @@ export const FolderDropdown = ({
   hideFolderIcon = false,
   textClassName,
 }: FolderDropdownProps) => {
+  const { slug: workspaceSlug } = useWorkspace();
+
   const searchParams = useSearchParams();
   const { folders, loading } = useFolders();
   const [openPopover, setOpenPopover] = useState(false);
@@ -63,7 +66,7 @@ export const FolderDropdown = ({
                 <p className="text-xs font-medium text-gray-500">Folders</p>
                 {!hideViewAll && folders.length > 0 && (
                   <Link
-                    href="/settings/library/folders"
+                    href={`/${workspaceSlug}/settings/library/folders`}
                     onClick={() => setOpenPopover(false)}
                     className="rounded-md border border-gray-200 px-2 py-1 text-xs transition-colors hover:bg-gray-100"
                   >
