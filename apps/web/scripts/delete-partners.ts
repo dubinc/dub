@@ -5,7 +5,7 @@ import { bulkDeleteLinks } from "../lib/api/links/bulk-delete-links";
 async function main() {
   const partner = await prisma.partner.findUniqueOrThrow({
     where: {
-      id: "pn_R8ODoO99Ku0MWCYtmzsIEW3a",
+      id: "pn_IPuZmH1ZtKGGisITTVsxAQHA",
     },
     include: {
       programs: {

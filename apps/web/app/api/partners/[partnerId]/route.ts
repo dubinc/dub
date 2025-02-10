@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import { EnrolledPartnerResponseSchema } from "@/lib/zod/schemas/partners";
+import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -83,7 +83,7 @@ export const GET = withWorkspace(
       earnings,
     };
 
-    return NextResponse.json(EnrolledPartnerResponseSchema.parse(partner));
+    return NextResponse.json(EnrolledPartnerSchema.parse(partner));
   },
   {
     requiredPlan: [

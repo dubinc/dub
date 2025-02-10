@@ -2,7 +2,7 @@ import z from "@/lib/zod";
 import { clickEventSchema } from "../zod/schemas/clicks";
 import { CustomerSchema } from "../zod/schemas/customers";
 import { linkEventSchema } from "../zod/schemas/links";
-import { EnrolledPartnerResponseSchema } from "../zod/schemas/partners";
+import { EnrolledPartnerSchema } from "../zod/schemas/partners";
 import { WEBHOOK_TRIGGERS } from "./constants";
 
 const saleSchema = z.object({
@@ -104,7 +104,7 @@ export const webhookEventSchema = z
         id: z.string(),
         event: z.literal("partner.created"),
         createdAt: z.string(),
-        data: EnrolledPartnerResponseSchema,
+        data: EnrolledPartnerSchema,
       })
       .openapi({
         ref: "PartnerCreatedEvent",

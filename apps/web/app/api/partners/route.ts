@@ -8,7 +8,7 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
   createPartnerSchema,
-  EnrolledPartnerResponseSchema,
+  EnrolledPartnerSchema,
   partnersQuerySchema,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -121,9 +121,7 @@ export const GET = withWorkspace(
       links: partner.links.filter((link: any) => link !== null),
     }));
 
-    return NextResponse.json(
-      z.array(EnrolledPartnerResponseSchema).parse(response),
-    );
+    return NextResponse.json(z.array(EnrolledPartnerSchema).parse(response));
   },
   {
     requiredPlan: [

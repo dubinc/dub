@@ -5,7 +5,7 @@ import { updateConfig } from "@/lib/edge-config";
 import { recordLink } from "@/lib/tinybird";
 import { PartnerLinkProps, WorkspaceProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { EnrolledPartnerResponseSchema } from "@/lib/zod/schemas/partners";
+import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -102,7 +102,7 @@ export const enrollPartner = async ({
     },
   });
 
-  const enrolledPartner = EnrolledPartnerResponseSchema.parse({
+  const enrolledPartner = EnrolledPartnerSchema.parse({
     ...upsertedPartner,
     ...upsertedPartner.programs[0],
     id: upsertedPartner.id,
