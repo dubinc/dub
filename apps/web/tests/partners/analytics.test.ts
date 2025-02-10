@@ -6,7 +6,7 @@ import { IntegrationHarness } from "../utils/integration";
 
 const allowedGroupBy = ["count", "timeseries", "top_links"];
 const programId = "prog_CYCu7IMAapjkRpTnr8F1azjN";
-const partnerId = "pn_mark_zuckerberg";
+const partnerId = "pn_H4TB2V5hDIjpqB7PwrxESoY3";
 
 describe.runIf(env.CI).sequential("GET /partners/analytics", async () => {
   const h = new IntegrationHarness();
