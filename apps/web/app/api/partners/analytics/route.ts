@@ -5,21 +5,13 @@ import { withWorkspace } from "@/lib/auth";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { partnerAnalyticsQuerySchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import { format } from "date-fns";
 import { NextResponse } from "next/server";
-
-const eventMap = {
-  clicks: "click",
-  leads: "lead",
-  sales: "sale",
-} as const;
 
 // GET /api/partners/analytics – get analytics for a partner
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const {
     groupBy,
-    event,
     programId,
     partnerId,
     tenantId,
@@ -75,11 +67,11 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     partnerId,
     tenantId,
     groupBy,
-    event,
     interval,
     start,
     end,
     timezone,
+    event: "composite",
   });
 
   const { startDate, endDate, granularity } = getStartEndDates({
@@ -101,7 +93,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
           gte: startDate,
           lt: endDate,
         },
-        ...(event !== "composite" && { type: eventMap[event] }),
       },
     });
 
@@ -127,7 +118,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       AND createdAt < ${endDate}
       AND programId = ${programEnrollment.programId}
       AND partnerId = ${programEnrollment.partnerId}
-      ${event !== "composite" ? Prisma.sql`AND type = ${eventMap[event]}` : Prisma.sql``}
     GROUP BY start
     ORDER BY start ASC;`;
 
@@ -159,17 +149,14 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   }
 
   // Group by top_links
-  const linkIds = analytics.map((item) => item.id);
-
   const topLinkEarnings = await prisma.commission.groupBy({
     by: ["linkId"],
     where: {
       linkId: {
-        in: linkIds,
+        in: analytics.map((item) => item.id),
       },
       programId: programEnrollment.programId,
       partnerId: programEnrollment.partnerId,
-      ...(event !== "composite" && { type: eventMap[event] }),
       createdAt: {
         gte: startDate,
         lt: endDate,

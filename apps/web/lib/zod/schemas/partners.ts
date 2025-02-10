@@ -282,7 +282,6 @@ export const partnerAnalyticsQuerySchema = analyticsQuerySchema
     programId: true,
     partnerId: true,
     tenantId: true,
-    event: true,
     interval: true,
     start: true,
     end: true,
@@ -308,17 +307,13 @@ export const partnerAnalyticsResponseSchema = {
     .merge(earningsSchema)
     .openapi({ ref: "PartnerAnalyticsCount", title: "PartnerAnalyticsCount" }),
 
-  timeseries: analyticsResponse["timeseries"]
-    .merge(earningsSchema)
-    .openapi({
-      ref: "PartnerAnalyticsTimeseries",
-      title: "PartnerAnalyticsTimeseries",
-    }),
+  timeseries: analyticsResponse["timeseries"].merge(earningsSchema).openapi({
+    ref: "PartnerAnalyticsTimeseries",
+    title: "PartnerAnalyticsTimeseries",
+  }),
 
-  top_links: analyticsResponse["top_links"]
-    .merge(earningsSchema)
-    .openapi({
-      ref: "PartnerAnalyticsTopLinks",
-      title: "PartnerAnalyticsTopLinks",
-    }),
+  top_links: analyticsResponse["top_links"].merge(earningsSchema).openapi({
+    ref: "PartnerAnalyticsTopLinks",
+    title: "PartnerAnalyticsTopLinks",
+  }),
 } as const;
