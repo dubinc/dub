@@ -38,12 +38,14 @@ export const getEvents = async (params: EventsFilters) => {
     order,
     sortOrder,
     folderId,
+    dataAvailableFrom,
   } = params;
 
   const { startDate, endDate } = getStartEndDates({
     interval,
     start,
     end,
+    dataAvailableFrom,
   });
 
   if (trigger) {

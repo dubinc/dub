@@ -30,6 +30,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     isDemo,
     isDeprecatedClicksEndpoint = false,
     folderId,
+    dataAvailableFrom,
   } = params;
 
   const tagIds = combineTagIds(params);
@@ -62,6 +63,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     interval,
     start,
     end,
+    dataAvailableFrom,
   });
 
   if (trigger) {
