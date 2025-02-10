@@ -3,7 +3,7 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
-import { getPartnerAnalyticsSchema } from "@/lib/zod/schemas/partners";
+import { partnerAnalyticsQuerySchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { format } from "date-fns";
@@ -27,7 +27,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     start,
     end,
     timezone,
-  } = getPartnerAnalyticsSchema.parse(searchParams);
+  } = partnerAnalyticsQuerySchema.parse(searchParams);
 
   if (!programId) {
     throw new DubApiError({

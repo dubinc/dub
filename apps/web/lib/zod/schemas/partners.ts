@@ -7,6 +7,7 @@ import {
 import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
 import { analyticsQuerySchema } from "./analytics";
+import { analyticsResponse } from "./analytics-response";
 import { CustomerSchema } from "./customers";
 import { createLinkBodySchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
@@ -276,7 +277,7 @@ export const createPartnerLinkSchema = z
   );
 
 // For /api/partners/analytics
-export const getPartnerAnalyticsSchema = analyticsQuerySchema
+export const partnerAnalyticsQuerySchema = analyticsQuerySchema
   .pick({
     programId: true,
     partnerId: true,
@@ -297,3 +298,27 @@ export const getPartnerAnalyticsSchema = analyticsQuerySchema
         ),
     }),
   );
+
+const earningsSchema = z.object({
+  earnings: z.number().default(0),
+});
+
+export const partnerAnalyticsResponseSchema = {
+  count: analyticsResponse["count"]
+    .merge(earningsSchema)
+    .openapi({ ref: "PartnerAnalyticsCount", title: "PartnerAnalyticsCount" }),
+
+  timeseries: analyticsResponse["timeseries"]
+    .merge(earningsSchema)
+    .openapi({
+      ref: "PartnerAnalyticsTimeseries",
+      title: "PartnerAnalyticsTimeseries",
+    }),
+
+  top_links: analyticsResponse["top_links"]
+    .merge(earningsSchema)
+    .openapi({
+      ref: "PartnerAnalyticsTopLinks",
+      title: "PartnerAnalyticsTopLinks",
+    }),
+} as const;
