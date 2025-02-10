@@ -12,7 +12,6 @@ import {
   Users,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { ChevronLeft } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useDeleteFolderModal } from "../modals/delete-folder-modal";
@@ -67,18 +66,7 @@ export const FolderSwitcher = () => {
   }
 
   return (
-    <div className="flex w-full items-center gap-1">
-      {!isUnsorted && (
-        <button
-          onClick={() => {
-            onFolderSelect(unsortedLinks);
-          }}
-          className="rounded-md px-1.5 py-2.5 hover:bg-gray-100"
-        >
-          <ChevronLeft className="size-5 text-gray-400" aria-hidden="true" />
-        </button>
-      )}
-
+    <div className="-ml-2 -mt-1 flex w-full items-center gap-1">
       <FolderDropdown onFolderSelect={onFolderSelect} hideFolderIcon={true} />
 
       {selectedFolder && !isUnsorted && (
@@ -114,27 +102,33 @@ const FolderActions = ({
   const { folderPermissionsPanel, setShowFolderPermissionsPanel } =
     useFolderPermissionsPanel(folder);
 
-  useKeyboardShortcut(["r", "m", "x", "a"], (e) => {
-    setOpenPopover(false);
-    switch (e.key) {
-      case "a":
-        router.push(`/${workspaceSlug}/analytics?folderId=${folder.id}`);
-        break;
-      case "r":
-        if (canUpdateFolder) {
-          setShowRenameFolderModal(true);
-        }
-        break;
-      case "m":
-        setShowFolderPermissionsPanel(true);
-        break;
-      case "x":
-        if (canUpdateFolder) {
-          setShowDeleteFolderModal(true);
-        }
-        break;
-    }
-  });
+  useKeyboardShortcut(
+    ["r", "m", "x", "a"],
+    (e) => {
+      setOpenPopover(false);
+      switch (e.key) {
+        case "a":
+          router.push(`/${workspaceSlug}/analytics?folderId=${folder.id}`);
+          break;
+        case "r":
+          if (canUpdateFolder) {
+            setShowRenameFolderModal(true);
+          }
+          break;
+        case "m":
+          setShowFolderPermissionsPanel(true);
+          break;
+        case "x":
+          if (canUpdateFolder) {
+            setShowDeleteFolderModal(true);
+          }
+          break;
+      }
+    },
+    {
+      enabled: openPopover,
+    },
+  );
 
   return (
     <>
@@ -143,59 +137,59 @@ const FolderActions = ({
       {folderPermissionsPanel}
       <Popover
         content={
-          <div className="grid w-full gap-px p-2 sm:w-48">
-            <Button
-              text="Analytics"
-              variant="outline"
-              onClick={() => {
-                setOpenPopover(false);
-                router.push(
-                  `/${workspaceSlug}/analytics?folderId=${folder.id}`,
-                );
-              }}
-              icon={<Chart className="h-4 w-4" />}
-              shortcut="A"
-              className="h-9 px-2 font-medium"
-            />
-
-            {canUpdateFolder && (
+          <div className="grid w-full divide-y divide-gray-200 sm:w-48">
+            <div className="grid gap-px p-2">
               <Button
-                text="Rename"
+                text="Analytics"
                 variant="outline"
                 onClick={() => {
                   setOpenPopover(false);
-                  setShowRenameFolderModal(true);
+                  router.push(
+                    `/${workspaceSlug}/analytics?folderId=${folder.id}`,
+                  );
                 }}
-                icon={<PenWriting className="h-4 w-4" />}
-                shortcut="R"
+                icon={<Chart className="h-4 w-4" />}
+                shortcut="A"
                 className="h-9 px-2 font-medium"
               />
-            )}
-
-            <Button
-              text="Members"
-              variant="outline"
-              onClick={() => {
-                setOpenPopover(false);
-                setShowFolderPermissionsPanel(true);
-              }}
-              icon={<Users className="h-4 w-4" />}
-              shortcut="M"
-              className="h-9 px-2 font-medium"
-            />
-
-            {canUpdateFolder && (
               <Button
-                text="Delete"
-                variant="danger-outline"
+                text="Members"
+                variant="outline"
                 onClick={() => {
                   setOpenPopover(false);
-                  setShowDeleteFolderModal(true);
+                  setShowFolderPermissionsPanel(true);
                 }}
-                icon={<Delete className="h-4 w-4" />}
-                shortcut="X"
+                icon={<Users className="h-4 w-4" />}
+                shortcut="M"
                 className="h-9 px-2 font-medium"
               />
+            </div>
+
+            {canUpdateFolder && (
+              <div className="grid gap-px p-2">
+                <Button
+                  text="Rename"
+                  variant="outline"
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowRenameFolderModal(true);
+                  }}
+                  icon={<PenWriting className="h-4 w-4" />}
+                  shortcut="R"
+                  className="h-9 px-2 font-medium"
+                />
+                <Button
+                  text="Delete"
+                  variant="danger-outline"
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowDeleteFolderModal(true);
+                  }}
+                  icon={<Delete className="h-4 w-4" />}
+                  shortcut="X"
+                  className="h-9 px-2 font-medium"
+                />
+              </div>
             )}
           </div>
         }
@@ -206,7 +200,7 @@ const FolderActions = ({
         <Button
           variant="secondary"
           className={cn(
-            "w-fit bg-transparent px-1.5 outline-none transition-all duration-200 hover:bg-gray-100",
+            "h-9 w-fit bg-transparent px-1.5 outline-none transition-all duration-200 hover:bg-gray-100",
             "border-transparent data-[state=open]:border-gray-500 sm:group-hover/card:data-[state=closed]:border-gray-200",
           )}
           onClick={() => setOpenPopover(true)}
