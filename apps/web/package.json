@@ -101,6 +101,8 @@
     "react-spring": "^9.5.5",
     "react-textarea-autosize": "^8.4.0",
     "react-tweet": "^3.1.1",
+    "react-virtualized-auto-sizer": "^1.0.25",
+    "react-window": "^1.8.11",
     "rehype-autolink-headings": "^6.1.1",
     "rehype-pretty-code": "^0.9.5",
     "rehype-slug": "^5.1.0",
