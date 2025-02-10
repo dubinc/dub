@@ -129,7 +129,7 @@ export async function recordClick({
 
   const hasWebhooks = webhookIds && webhookIds.length > 0;
 
-  const [, , , , workspaceRows] = await Promise.all([
+  const [, , , workspaceRows] = await Promise.all([
     fetch(
       `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
       {
@@ -152,14 +152,6 @@ export async function recordClick({
       "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
       [linkId],
     ),
-    // if the link has a destination URL, increment the usage count for the workspace
-    // and then we have a cron that will reset it at the start of new billing cycle
-    url &&
-      conn.execute(
-        "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1 WHERE l.id = ?",
-        [linkId],
-      ),
-
     // fetch the workspace usage for the workspace
     workspaceId && hasWebhooks
       ? conn.execute(
