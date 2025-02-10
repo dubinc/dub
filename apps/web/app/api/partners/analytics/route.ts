@@ -151,7 +151,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
       return {
         ...item,
-        earnings: earningsLookup[formattedDateTime]?.earnings ?? 0,
+        earnings: Number(earningsLookup[formattedDateTime]?.earnings ?? 0),
       };
     });
 
@@ -185,7 +185,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
     return {
       ...item,
-      earnings: link?._sum.earnings ?? 0,
+      earnings: Number(link?._sum.earnings ?? 0),
     };
   });
 
