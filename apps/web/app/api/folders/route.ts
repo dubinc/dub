@@ -59,7 +59,7 @@ export const POST = withWorkspace(
     try {
       const newFolder = await prisma.folder.create({
         data: {
-          id: createId({ prefix: "fd_" }),
+          id: createId({ prefix: "fold_" }),
           projectId: workspace.id,
           name,
           accessLevel,
