@@ -1,6 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { conn } from "@/lib/planetscale";
 import { tb } from "@/lib/tinybird";
 import z from "@/lib/zod";
 import { log } from "@dub/utils";
@@ -25,7 +26,6 @@ async function handler(req: Request) {
 
     const pipe = tb.buildPipe({
       pipe: "v2_usage_sync",
-      parameters: z.any(),
       data: z.object({
         workspaceId: z.string(),
         clicks: z.number(),
@@ -33,6 +33,23 @@ async function handler(req: Request) {
     });
 
     const response = await pipe({});
+    const data = response.data;
+
+    // Process in batches of 100, since this can be >1000 rows to update
+    const BATCH_SIZE = 100;
+    for (let i = 0; i < data.length; i += BATCH_SIZE) {
+      const batch = data.slice(i, i + BATCH_SIZE);
+      await Promise.all(
+        batch.map(async (data) => {
+          await conn.execute(
+            `UPDATE Project SET usage = usage + ? WHERE id = ?`,
+            [data.clicks, data.workspaceId],
+          );
+        }),
+      );
+      // Add a 1 second delay between batches
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
 
     return NextResponse.json(response.data);
   } catch (error) {
