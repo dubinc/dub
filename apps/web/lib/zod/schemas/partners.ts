@@ -69,6 +69,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   name: true,
   email: true,
   image: true,
+  bio: true,
   country: true,
   createdAt: true,
 })
