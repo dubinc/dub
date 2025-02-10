@@ -5,6 +5,7 @@ import {
   VALID_ANALYTICS_FILTERS,
 } from "@/lib/analytics/constants";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
+import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import useDomains from "@/lib/swr/use-domains";
 import useDomainsCount from "@/lib/swr/use-domains-count";
 import useTags from "@/lib/swr/use-tags";
@@ -701,7 +702,7 @@ export default function Toggle({
             }
           : undefined
       }
-      presetId={!start || !end ? interval ?? "24h" : undefined}
+      presetId={start && end ? undefined : interval ?? "30d"}
       onChange={(range, preset) => {
         if (preset) {
           queryParams({
@@ -740,12 +741,17 @@ export default function Toggle({
               end,
             });
 
+        const { startDate, endDate } = getStartEndDates({
+          interval: value,
+          dataAvailableFrom: createdAt,
+        });
+
         return {
           id: value,
           label: display,
           dateRange: {
-            from: start,
-            to: end,
+            from: startDate,
+            to: endDate,
           },
           requiresUpgrade,
           tooltipContent: requiresUpgrade ? (

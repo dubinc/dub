@@ -35,7 +35,7 @@ const NavigationButton = forwardRef<HTMLButtonElement, NavigationButtonProps>(
         type="button"
         disabled={disabled}
         className={cn(
-          "flex h-7 w-7 shrink-0 select-none items-center justify-center rounded border p-1 outline-none transition",
+          "flex size-7 shrink-0 select-none items-center justify-center rounded border p-1 outline-none transition",
           "border-gray-200 text-gray-600 hover:text-gray-800",
           "hover:bg-gray-50 active:bg-gray-100",
           "disabled:pointer-events-none disabled:text-gray-400",
@@ -99,7 +99,7 @@ function Calendar({
         row: "w-full",
         cell: "relative p-0 text-center focus-within:relative text-gray-900",
         day: cn(
-          "relative h-10 w-full sm:h-9 sm:w-9 rounded-md text-sm text-gray-900",
+          "relative size-10 rounded-md text-sm text-gray-900",
           "hover:bg-gray-100 active:bg-gray-200 outline outline-offset-2 outline-0 focus-visible:outline-2 outline-blue-500",
         ),
         day_today: "font-semibold",
