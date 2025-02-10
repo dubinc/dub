@@ -5,13 +5,15 @@ import { withWorkspace } from "@/lib/auth";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { getPartnerAnalyticsSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { format } from "date-fns";
 import { NextResponse } from "next/server";
 
-// TODO:
-// Limit the event to clicks and composite for now
-// Consider timezone for Prisma query
-// Test timezone
+const eventMap = {
+  clicks: "click",
+  leads: "lead",
+  sales: "sale",
+} as const;
 
 // GET /api/partners/analytics – get analytics for a partner
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
@@ -87,64 +89,69 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   });
 
   if (groupBy === "count") {
-    const revenue = await prisma.commission.aggregate({
+    const earnings = await prisma.commission.aggregate({
+      _sum: {
+        earnings: true,
+      },
       where: {
-        programId: programEnrollment.programId,
-        partnerId: programEnrollment.partnerId,
-        type: "sale",
-        status: {
-          notIn: ["duplicate", "fraud", "refunded"],
-        },
         createdAt: {
           gte: startDate,
-          lte: endDate,
+          lt: endDate,
         },
-      },
-      _sum: {
-        amount: true,
+        programId: programEnrollment.programId,
+        partnerId: programEnrollment.partnerId,
+        ...(event !== "composite" && { type: eventMap[event] }),
       },
     });
 
     return NextResponse.json({
       ...analytics,
-      revenue: revenue._sum.amount,
+      earnings: earnings._sum.earnings || 0,
     });
   }
 
   const { dateFormat } = sqlGranularityMap[granularity];
 
-  const revenue = await prisma.$queryRaw<{ start: string; amount: number }[]>`
+  const revenue = await prisma.$queryRaw<{ start: string; earnings: number }[]>`
     SELECT 
       DATE_FORMAT(CONVERT_TZ(createdAt, '+00:00', ${timezone || "+00:00"}),  ${dateFormat}) AS start, 
-      SUM(amount) AS amount
+      SUM(earnings) AS earnings
     FROM Commission
     WHERE 
       createdAt >= ${startDate}
       AND createdAt < ${endDate}
       AND programId = ${programEnrollment.programId}
       AND partnerId = ${programEnrollment.partnerId}
+      ${event !== "composite" ? Prisma.sql`AND type = ${eventMap[event]}` : Prisma.sql``}
     GROUP BY start
-    ORDER BY start ASC;
-  `;
+    ORDER BY start ASC;`;
 
   const revenueLookup = Object.fromEntries(
     revenue.map((item) => [
-      format(item.start, "yyyy-MM-dd'T'HH:mm"),
+      format(
+        new Date(item.start),
+        granularity === "hour" ? "yyyy-MM-dd'T'HH:00" : "yyyy-MM-dd'T'00:00",
+      ),
       {
-        amount: item.amount,
+        earnings: item.earnings,
       },
     ]),
   );
 
+  console.log({
+    revenue,
+    revenueLookup,
+  });
+
   const analyticsWithRevenue = analytics.map((item) => {
     const formattedDateTime = format(
       new Date(item.start),
-      "yyyy-MM-dd'T'HH:00",
+      granularity === "hour" ? "yyyy-MM-dd'T'HH:00" : "yyyy-MM-dd'T'00:00",
     );
 
     return {
       ...item,
-      revenue: revenueLookup[formattedDateTime]?.amount ?? 0,
+      earnings: revenueLookup[formattedDateTime]?.earnings ?? 0,
     };
   });
 
