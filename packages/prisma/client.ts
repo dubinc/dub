@@ -5,6 +5,7 @@ export {
   CommissionStatus,
   CommissionType,
   EventType,
+  InvoiceStatus,
   PartnerRole,
   PartnerStatus,
   PayoutStatus,

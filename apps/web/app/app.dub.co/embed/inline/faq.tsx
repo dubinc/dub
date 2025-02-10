@@ -1,4 +1,5 @@
 import { BlockMarkdown } from "@/ui/partners/lander-blocks/BlockMarkdown";
+import { Program } from "@dub/prisma/client";
 import {
   Accordion,
   AccordionContent,
@@ -6,7 +7,6 @@ import {
   AccordionTrigger,
 } from "@dub/ui";
 import { TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
-import { Program } from "@prisma/client";
 import { motion } from "framer-motion";
 
 export function EmbedFAQ({ program }: { program: Program }) {

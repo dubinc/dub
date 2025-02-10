@@ -1,4 +1,8 @@
-import { CommissionInterval, CommissionType, EventType } from "@prisma/client";
+import {
+  CommissionInterval,
+  CommissionType,
+  EventType,
+} from "@dub/prisma/client";
 import { z } from "zod";
 
 export const rewardSchema = z.object({
