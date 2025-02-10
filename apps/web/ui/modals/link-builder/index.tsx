@@ -247,11 +247,16 @@ function LinkBuilderInner({
             ref={formRef}
             onSubmit={handleSubmit(async (data) => {
               // @ts-ignore – exclude extra attributes from `data` object before sending to API
-              const { user, tags, tagId, ...rest } = data;
+              const { user, tags, tagId, folderId, ...rest } = data;
               const bodyData = {
                 ...rest,
+
                 // Map tags to tagIds
                 tagIds: tags.map(({ id }) => id),
+
+                // Replace "unsorted" folder ID w/ null
+                folderId: folderId === "unsorted" ? null : folderId,
+
                 // Manually reset empty strings to null
                 expiredUrl: rest.expiredUrl || null,
                 ios: rest.ios || null,
@@ -330,14 +335,13 @@ function LinkBuilderInner({
             <div className="flex items-center justify-between px-6 py-4">
               <div className="flex items-center gap-2">
                 {flags?.linkFolders && (
-                  <div className="flex items-center rounded-md border border-neutral-200 p-1 hover:bg-neutral-100">
-                    <FolderDropdown
-                      hideViewAll={true}
-                      onFolderSelect={(folder) => {
-                        setValue("folderId", folder.id, { shouldDirty: true });
-                      }}
-                    />
-                  </div>
+                  <FolderDropdown
+                    hideViewAll={true}
+                    onFolderSelect={(folder) => {
+                      setValue("folderId", folder.id, { shouldDirty: true });
+                    }}
+                    textClassName="text-lg md:text-lg font-medium"
+                  />
                 )}
 
                 <ChevronRight className="size-4 text-neutral-500" />

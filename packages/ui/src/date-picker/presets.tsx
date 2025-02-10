@@ -8,6 +8,7 @@ type PresetsProps<TPreset extends Preset, TValue> = {
   presets: TPreset[];
   onSelect: (preset: TPreset) => void;
   currentValue?: TValue;
+  currentPresetId?: string;
 };
 
 const Presets = <TPreset extends Preset, TValue>({
@@ -15,8 +16,10 @@ const Presets = <TPreset extends Preset, TValue>({
   presets,
   // Event handler when a preset is selected
   onSelect,
-  // Currently selected preset
+  // Currently selected preset range value
   currentValue,
+  // Currently selected preset id
+  currentPresetId,
 }: PresetsProps<TPreset, TValue>) => {
   const isDateRangePresets = (preset: any): preset is DateRangePreset =>
     "dateRange" in preset;
@@ -55,6 +58,10 @@ const Presets = <TPreset extends Preset, TValue>({
   };
 
   const matchesCurrent = (preset: TPreset) => {
+    if (currentPresetId) {
+      return currentPresetId === preset.id;
+    }
+
     if (isDateRangePresets(preset)) {
       const value = currentValue as DateRange | undefined;
 

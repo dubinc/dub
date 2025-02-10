@@ -8,13 +8,17 @@ import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import Link from "next/link";
 import {
+  ComponentProps,
   Dispatch,
+  memo,
   ReactNode,
   SetStateAction,
   useContext,
   useMemo,
   useState,
 } from "react";
+import AutoSizer from "react-virtualized-auto-sizer";
+import { areEqual, FixedSizeList } from "react-window";
 import { AnalyticsContext } from "./analytics-provider";
 import LinkPreviewTooltip from "./link-preview";
 
@@ -60,21 +64,40 @@ export default function BarList({
 
   const { isMobile } = useMediaQuery();
 
+  const virtualize = filteredData.length > 100;
+
+  const itemProps = filteredData.map((data) => ({
+    ...data,
+    maxValue,
+    tab,
+    unit,
+    setShowModal,
+    barBackground,
+    hoverBackground,
+  }));
+
   const bars = (
     <NumberFlowGroup>
-      <div className="grid">
-        {filteredData.map((data, idx) => (
-          <LineItem
-            key={idx}
-            {...data}
-            maxValue={maxValue}
-            tab={tab}
-            unit={unit}
-            setShowModal={setShowModal}
-            barBackground={barBackground}
-            hoverBackground={hoverBackground}
-          />
-        ))}
+      <div className="relative grid h-full grid-cols-1">
+        {virtualize ? (
+          <AutoSizer>
+            {({ width, height }) => (
+              <FixedSizeList
+                width={width}
+                height={height}
+                itemCount={filteredData.length}
+                itemSize={40}
+                itemData={itemProps}
+              >
+                {VirtualLineItem}
+              </FixedSizeList>
+            )}
+          </AutoSizer>
+        ) : (
+          filteredData.map((data, idx) => (
+            <LineItem key={idx} {...itemProps[idx]} />
+          ))
+        )}
       </div>
     </NumberFlowGroup>
   );
@@ -151,7 +174,7 @@ export function LineItem({
         onClick: () => setShowModal(false),
       })}
       className={cn(
-        `min-w-0 border-l-2 border-transparent px-4 py-1 transition-all`,
+        `block min-w-0 border-l-2 border-transparent px-4 py-1 transition-all`,
         href && hoverBackground,
       )}
     >
@@ -209,3 +232,24 @@ export function LineItem({
     </As>
   );
 }
+
+const VirtualLineItem = memo(
+  ({
+    data,
+    index,
+    style,
+  }: {
+    data: ComponentProps<typeof LineItem>[];
+    index: number;
+    style: any;
+  }) => {
+    const props = data[index];
+
+    return (
+      <div style={style}>
+        <LineItem {...props} />
+      </div>
+    );
+  },
+  areEqual,
+);

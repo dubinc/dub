@@ -15,7 +15,11 @@ const MoveLinkToFolderModal = ({
   setShowModal,
 }: MoveLinkToFolderModalProps) => {
   return (
-    <Modal showModal={showModal} setShowModal={setShowModal}>
+    <Modal
+      showModal={showModal}
+      setShowModal={setShowModal}
+      className="overflow-y-visible"
+    >
       <MoveLinkForm
         link={link}
         onSuccess={() => setShowModal(false)}

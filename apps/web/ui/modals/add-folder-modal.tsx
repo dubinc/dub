@@ -1,3 +1,4 @@
+import { FolderSummary } from "@/lib/types";
 import { Button, Modal } from "@dub/ui";
 import {
   Dispatch,
@@ -12,13 +13,21 @@ import { AddFolderForm } from "../folders/add-folder-form";
 interface AddFolderModalProps {
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
+  onSuccess?: (folder: FolderSummary) => void;
 }
 
-const AddFolderModal = ({ showModal, setShowModal }: AddFolderModalProps) => {
+const AddFolderModal = ({
+  showModal,
+  setShowModal,
+  onSuccess,
+}: AddFolderModalProps) => {
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
       <AddFolderForm
-        onSuccess={() => setShowModal(false)}
+        onSuccess={(folder) => {
+          onSuccess?.(folder);
+          setShowModal(false);
+        }}
         onCancel={() => setShowModal(false)}
       />
     </Modal>
@@ -56,7 +65,9 @@ function AddFolderButton({
   );
 }
 
-export function useAddFolderModal() {
+export function useAddFolderModal({
+  onSuccess,
+}: { onSuccess?: (folder: FolderSummary) => void } = {}) {
   const [showAddFolderModal, setShowAddFolderModal] = useState(false);
 
   const AddFolderModalCallback = useCallback(() => {
@@ -64,6 +75,7 @@ export function useAddFolderModal() {
       <AddFolderModal
         showModal={showAddFolderModal}
         setShowModal={setShowAddFolderModal}
+        onSuccess={onSuccess}
       />
     );
   }, [showAddFolderModal, setShowAddFolderModal]);

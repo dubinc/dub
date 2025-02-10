@@ -1,6 +1,6 @@
 import { FOLDER_WORKSPACE_ACCESS } from "@/lib/folder/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { FolderAccessLevel } from "@/lib/types";
+import { FolderAccessLevel, FolderSummary } from "@/lib/types";
 import { BlurImage, Button, useMediaQuery } from "@dub/ui";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { FormEvent, useState } from "react";
@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 
 interface AddFolderFormProps {
-  onSuccess: () => void;
+  onSuccess: (folder: FolderSummary) => void;
   onCancel: () => void;
 }
 
@@ -40,10 +40,12 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
       return;
     }
 
+    const folder = (await response.json()) as FolderSummary;
+
     await mutate(`/api/folders?workspaceId=${workspace.id}`);
     await mutate(`/api/folders/permissions?workspaceId=${workspace.id}`);
     toast.success("Folder created successfully!");
-    onSuccess();
+    onSuccess(folder);
   };
 
   return (

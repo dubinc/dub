@@ -69,6 +69,7 @@ export const GET = withWorkspace(
 
     validDateRangeForPlan({
       plan: workspace.plan,
+      dataAvailableFrom: workspace.createdAt,
       interval,
       start,
       end,

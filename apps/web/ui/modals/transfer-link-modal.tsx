@@ -36,6 +36,7 @@ function TransferLinkModal(props: TransferLinkModalProps) {
     <Modal
       showModal={props.showTransferLinkModal}
       setShowModal={props.setShowTransferLinkModal}
+      className="overflow-y-visible"
     >
       <TransferLinkModalInner {...props} />
     </Modal>

@@ -14,21 +14,29 @@ interface FolderDropdownProps {
   onFolderSelect: (folder: FolderSummary) => void;
   hideViewAll?: boolean;
   hideFolderIcon?: boolean;
+  textClassName?: string;
 }
 
 export const FolderDropdown = ({
   onFolderSelect,
   hideViewAll = false,
   hideFolderIcon = false,
+  textClassName,
 }: FolderDropdownProps) => {
   const searchParams = useSearchParams();
   const { folders, loading } = useFolders();
   const [openPopover, setOpenPopover] = useState(false);
-  const { AddFolderModal, setShowAddFolderModal } = useAddFolderModal();
   const [selectedFolder, setSelectedFolder] = useState<FolderSummary | null>(
     unsortedLinks,
   );
   const folderId = searchParams.get("folderId");
+
+  const { AddFolderModal, setShowAddFolderModal } = useAddFolderModal({
+    onSuccess: (folder) => {
+      setSelectedFolder(folder);
+      onFolderSelect?.(folder);
+    },
+  });
 
   useEffect(() => {
     if (folders) {
@@ -143,7 +151,12 @@ export const FolderDropdown = ({
             <FolderIcon folder={selectedFolder} shape="square" />
           )}
 
-          <h1 className="min-w-0 truncate text-left text-xl font-semibold leading-7 text-neutral-900 md:text-2xl">
+          <h1
+            className={cn(
+              "min-w-0 truncate text-left text-xl font-semibold leading-7 text-neutral-900 md:text-2xl",
+              textClassName,
+            )}
+          >
             {selectedFolder ? selectedFolder.name : "Links"}
           </h1>
 

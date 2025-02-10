@@ -1,15 +1,24 @@
 import z from "@/lib/zod";
 import { FolderSchema } from "@/lib/zod/schemas/folders";
+import { randomId } from "tests/utils/helpers";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
 type FolderRecord = z.infer<typeof FolderSchema>;
+
+const expectedFolder = {
+  id: expect.any(String),
+  linkCount: expect.any(Number),
+  createdAt: expect.any(String),
+  updatedAt: expect.any(String),
+};
 
 describe.sequential("/folders/**", async () => {
   const h = new IntegrationHarness();
   const { workspace, http } = await h.init();
 
   let folderCreated: FolderRecord | undefined;
+  const folderName = randomId();
 
   test("POST /folders", async () => {
     const { status, data } = await http.post<FolderRecord>({
@@ -18,7 +27,8 @@ describe.sequential("/folders/**", async () => {
         workspaceId: workspace.id,
       },
       body: {
-        name: "Documents",
+        name: folderName,
+        accessLevel: "write",
       },
     });
 
@@ -26,8 +36,9 @@ describe.sequential("/folders/**", async () => {
 
     expect(status).toEqual(201);
     expect(data).toStrictEqual({
-      id: expect.any(String),
-      name: "Documents",
+      ...expectedFolder,
+      name: folderName,
+      accessLevel: "write",
     });
   });
 
@@ -50,14 +61,16 @@ describe.sequential("/folders/**", async () => {
         workspaceId: workspace.id,
       },
       body: {
-        name: "Documents-1",
+        name: `${folderName}-1`,
+        accessLevel: "read",
       },
     });
 
     expect(status).toEqual(200);
     expect(data).toStrictEqual({
-      id: expect.any(String),
-      name: "Documents-1",
+      ...expectedFolder,
+      name: `${folderName}-1`,
+      accessLevel: "read",
     });
   });
 
