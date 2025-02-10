@@ -67,7 +67,6 @@
     "concurrently": "^8.0.1",
     "csv-parse": "^5.5.6",
     "date-fns": "^3.6.0",
-    "date-fns-tz": "^3.2.0",
     "dub": "^0.46.25",
     "framer-motion": "^10.16.16",
     "fuse.js": "^6.6.2",
