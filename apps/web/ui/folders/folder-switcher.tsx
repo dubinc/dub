@@ -11,7 +11,6 @@ import {
   useRouterStuff,
   Users,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useDeleteFolderModal } from "../modals/delete-folder-modal";
@@ -60,10 +59,6 @@ export const FolderSwitcher = () => {
   );
 
   const isUnsorted = selectedFolder?.id === "unsorted";
-
-  if (loading || !folders) {
-    return <FolderSwitcherPlaceholder />;
-  }
 
   return (
     <div className="-ml-2 -mt-1 flex w-full items-center gap-1">
@@ -198,11 +193,8 @@ const FolderActions = ({
         setOpenPopover={setOpenPopover}
       >
         <Button
-          variant="secondary"
-          className={cn(
-            "h-9 w-fit bg-transparent px-1.5 outline-none transition-all duration-200 hover:bg-gray-100",
-            "border-transparent data-[state=open]:border-gray-500 sm:group-hover/card:data-[state=closed]:border-gray-200",
-          )}
+          variant="outline"
+          className="px-1.5 active:bg-gray-200 data-[state=open]:bg-gray-100"
           onClick={() => setOpenPopover(true)}
           icon={<ThreeDots className="h-5 w-5 shrink-0 text-gray-400" />}
         />
