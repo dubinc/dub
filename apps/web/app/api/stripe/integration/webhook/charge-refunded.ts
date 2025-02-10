@@ -35,6 +35,12 @@ export async function chargeRefunded(event: Stripe.Event) {
         invoiceId: charge.invoice as string,
       },
     },
+    select: {
+      id: true,
+      status: true,
+      payoutId: true,
+      earnings: true,
+    },
   });
 
   if (!commission) {
@@ -55,7 +61,9 @@ export async function chargeRefunded(event: Stripe.Event) {
 
     if (payout) {
       await prisma.payout.update({
-        where: { id: payout.id },
+        where: {
+          id: payout.id,
+        },
         data: {
           amount: payout.amount - commission.earnings,
         },
@@ -65,8 +73,13 @@ export async function chargeRefunded(event: Stripe.Event) {
 
   // update the commission status to refunded
   await prisma.commission.update({
-    where: { id: commission.id },
-    data: { status: "refunded", payoutId: null },
+    where: {
+      id: commission.id,
+    },
+    data: {
+      status: "refunded",
+      payoutId: null,
+    },
   });
 
   return `Commission ${commission.id} updated to status "refunded"`;
