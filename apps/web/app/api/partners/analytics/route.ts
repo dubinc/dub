@@ -8,6 +8,9 @@ import { prisma } from "@dub/prisma";
 import { format } from "date-fns";
 import { NextResponse } from "next/server";
 
+// TODO:
+// - When interval=all we might not even need to pull from tinybird (get the aggregated data from planetscale)
+
 // GET /api/partners/analytics – get analytics for a partner
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const {
