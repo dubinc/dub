@@ -138,7 +138,7 @@ export default function AnalyticsProvider({
     };
   }, [searchParams?.get("start"), searchParams?.get("end")]);
 
-  const defaultInterval = partnerPage ? "1y" : "24h";
+  const defaultInterval = partnerPage ? "1y" : "30d";
 
   // Only set interval if start and end are not provided
   const interval =
@@ -271,6 +271,7 @@ export default function AnalyticsProvider({
       ...(tagIds && { tagIds }),
       ...(root && { root: root.toString() }),
       event: selectedTab,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     }).toString();
   }, [workspaceId, domain, key, searchParams, start, end, tagIds, selectedTab]);
 

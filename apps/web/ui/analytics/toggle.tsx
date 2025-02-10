@@ -1,11 +1,11 @@
 import { generateFilters } from "@/lib/ai/generate-filters";
 import {
-  INTERVAL_DATA,
   INTERVAL_DISPLAYS,
   TRIGGER_DISPLAY,
   VALID_ANALYTICS_FILTERS,
 } from "@/lib/analytics/constants";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
+import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import useDomains from "@/lib/swr/use-domains";
 import useDomainsCount from "@/lib/swr/use-domains-count";
 import useTags from "@/lib/swr/use-tags";
@@ -89,7 +89,7 @@ export default function Toggle({
 }: {
   page?: "analytics" | "events";
 }) {
-  const { slug, plan } = useWorkspace();
+  const { slug, plan, createdAt } = useWorkspace();
 
   const { router, queryParams, searchParamsObj, getQueryString } =
     useRouterStuff();
@@ -702,7 +702,7 @@ export default function Toggle({
             }
           : undefined
       }
-      presetId={!start || !end ? interval ?? "24h" : undefined}
+      presetId={start && end ? undefined : interval ?? "30d"}
       onChange={(range, preset) => {
         if (preset) {
           queryParams({
@@ -729,25 +729,29 @@ export default function Toggle({
         });
       }}
       presets={INTERVAL_DISPLAYS.map(({ display, value, shortcut }) => {
-        const start = INTERVAL_DATA[value].startDate;
-        const end = new Date();
-
         const requiresUpgrade = DUB_DEMO_LINKS.find(
           (l) => l.domain === domain && l.key === key,
         )
           ? false
           : !validDateRangeForPlan({
               plan: plan || dashboardProps?.workspacePlan,
+              dataAvailableFrom: createdAt,
+              interval: value,
               start,
               end,
             });
+
+        const { startDate, endDate } = getStartEndDates({
+          interval: value,
+          dataAvailableFrom: createdAt,
+        });
 
         return {
           id: value,
           label: display,
           dateRange: {
-            from: start,
-            to: end,
+            from: startDate,
+            to: endDate,
           },
           requiresUpgrade,
           tooltipContent: requiresUpgrade ? (

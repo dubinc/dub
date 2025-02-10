@@ -70,6 +70,7 @@ export const GET = async (req: Request) => {
 
       validDateRangeForPlan({
         plan: workspace?.plan || "free",
+        dataAvailableFrom: workspace?.createdAt,
         interval,
         start,
         end,
