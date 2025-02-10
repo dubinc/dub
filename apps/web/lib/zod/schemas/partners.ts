@@ -275,12 +275,13 @@ export const createPartnerLinkSchema = z
     }),
   );
 
+// For /api/partners/analytics
 export const getPartnerAnalyticsSchema = analyticsQuerySchema
   .pick({
-    event: true,
     programId: true,
     partnerId: true,
     tenantId: true,
+    event: true,
     interval: true,
     start: true,
     end: true,
