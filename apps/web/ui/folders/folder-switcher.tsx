@@ -132,7 +132,7 @@ const FolderActions = ({
       {folderPermissionsPanel}
       <Popover
         content={
-          <div className="grid w-full divide-y divide-gray-200 sm:w-48">
+          <div className="grid w-full divide-y divide-neutral-200 sm:w-48">
             <div className="grid gap-px p-2">
               <Button
                 text="Analytics"
@@ -194,9 +194,9 @@ const FolderActions = ({
       >
         <Button
           variant="outline"
-          className="px-1.5 active:bg-gray-200 data-[state=open]:bg-gray-100"
+          className="px-1.5 active:bg-neutral-200 data-[state=open]:bg-neutral-100"
           onClick={() => setOpenPopover(true)}
-          icon={<ThreeDots className="h-5 w-5 shrink-0 text-gray-400" />}
+          icon={<ThreeDots className="h-5 w-5 shrink-0 text-neutral-400" />}
         />
       </Popover>
     </>
@@ -205,6 +205,6 @@ const FolderActions = ({
 
 const FolderSwitcherPlaceholder = () => {
   return (
-    <div className="h-7 w-20 animate-pulse rounded-lg bg-gray-200 sm:w-32 md:h-9" />
+    <div className="h-7 w-20 animate-pulse rounded-lg bg-neutral-200 sm:w-32 md:h-9" />
   );
 };

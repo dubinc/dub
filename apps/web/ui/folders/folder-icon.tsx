@@ -36,8 +36,8 @@ const folderIconsMap: Record<
     icon: FolderLock,
   },
   new: {
-    borderColor: "border-gray-200",
-    bgColor: "bg-gray-100",
+    borderColor: "border-neutral-200",
+    bgColor: "bg-neutral-100",
     icon: FolderPlus,
   },
   unsorted: {

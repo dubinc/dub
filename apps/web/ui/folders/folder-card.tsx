@@ -95,7 +95,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
       <DeleteFolderModal />
       {folderPermissionsPanel}
       <div
-        className="hover:drop-shadow-card-hover flex flex-col justify-between rounded-xl border border-gray-200 bg-white px-5 py-4 sm:h-36"
+        className="hover:drop-shadow-card-hover flex flex-col justify-between rounded-xl border border-neutral-200 bg-white px-5 py-4 sm:h-36"
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       >
@@ -192,7 +192,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
                   variant="secondary"
                   className={cn(
                     "h-8 px-1 outline-none transition-all duration-200",
-                    "border-transparent data-[state=open]:border-gray-500 sm:group-hover/card:data-[state=closed]:border-gray-200",
+                    "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
                   )}
                   icon={<ThreeDots className="h-4 w-4 shrink-0" />}
                 />
@@ -202,17 +202,17 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
         </div>
 
         <div>
-          <span className="flex items-center justify-start gap-1.5 truncate text-sm font-medium text-gray-900">
+          <span className="flex items-center justify-start gap-1.5 truncate text-sm font-medium text-neutral-900">
             <span className="truncate">{folder.name}</span>
 
             {folder.id === "unsorted" && (
-              <div className="rounded bg-gray-100 p-1">
+              <div className="rounded bg-neutral-100 p-1">
                 <div className="text-xs font-normal text-black">Unsorted</div>
               </div>
             )}
           </span>
 
-          <div className="mt-1.5 flex items-center gap-1 text-gray-500">
+          <div className="mt-1.5 flex items-center gap-1 text-neutral-500">
             <Globe className="size-3.5" />
             <span className="text-sm font-normal">
               {nFormatter(folder.linkCount)} link{folder.linkCount !== 1 && "s"}

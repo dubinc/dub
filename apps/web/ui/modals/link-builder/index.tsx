@@ -330,7 +330,7 @@ function LinkBuilderInner({
             <div className="flex items-center justify-between px-6 py-4">
               <div className="flex items-center gap-2">
                 {flags?.linkFolders && (
-                  <div className="flex items-center rounded-md border border-neutral-200 p-1 hover:bg-gray-100">
+                  <div className="flex items-center rounded-md border border-neutral-200 p-1 hover:bg-neutral-100">
                     <FolderDropdown
                       hideViewAll={true}
                       onFolderSelect={(folder) => {

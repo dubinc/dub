@@ -16,7 +16,7 @@ const RenameFolderModal = ({
 }: RenameFolderModalProps) => {
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
-      <h3 className="border-b border-gray-200 px-4 py-4 text-lg font-medium sm:px-6">
+      <h3 className="border-b border-neutral-200 px-4 py-4 text-lg font-medium sm:px-6">
         Rename folder
       </h3>
       <div>
