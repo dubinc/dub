@@ -1,23 +1,11 @@
 import { unsortedLinks } from "@/lib/folder/constants";
-import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useFolders from "@/lib/swr/use-folders";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderSummary } from "@/lib/types";
-import {
-  Button,
-  PenWriting,
-  Popover,
-  useKeyboardShortcut,
-  useRouterStuff,
-  Users,
-} from "@dub/ui";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouterStuff } from "@dub/ui";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { useDeleteFolderModal } from "../modals/delete-folder-modal";
-import { useRenameFolderModal } from "../modals/rename-folder-modal";
-import { Chart, Delete, ThreeDots } from "../shared/icons";
+import { FolderActions } from "./folder-actions";
 import { FolderDropdown } from "./folder-dropdown";
-import { useFolderPermissionsPanel } from "./folder-permissions-panel";
 
 export const FolderSwitcher = () => {
   const searchParams = useSearchParams();
@@ -71,140 +59,5 @@ export const FolderSwitcher = () => {
         />
       )}
     </div>
-  );
-};
-
-const FolderActions = ({
-  folder,
-  onDelete,
-}: {
-  folder: FolderSummary;
-  onDelete: () => void;
-}) => {
-  const router = useRouter();
-  const { slug: workspaceSlug } = useWorkspace();
-  const [openPopover, setOpenPopover] = useState(false);
-  const canUpdateFolder = useCheckFolderPermission(folder.id, "folders.write");
-
-  const { RenameFolderModal, setShowRenameFolderModal } =
-    useRenameFolderModal(folder);
-
-  const { DeleteFolderModal, setShowDeleteFolderModal } = useDeleteFolderModal(
-    folder,
-    onDelete,
-  );
-
-  const { folderPermissionsPanel, setShowFolderPermissionsPanel } =
-    useFolderPermissionsPanel(folder);
-
-  useKeyboardShortcut(
-    ["r", "m", "x", "a"],
-    (e) => {
-      setOpenPopover(false);
-      switch (e.key) {
-        case "a":
-          router.push(`/${workspaceSlug}/analytics?folderId=${folder.id}`);
-          break;
-        case "r":
-          if (canUpdateFolder) {
-            setShowRenameFolderModal(true);
-          }
-          break;
-        case "m":
-          setShowFolderPermissionsPanel(true);
-          break;
-        case "x":
-          if (canUpdateFolder) {
-            setShowDeleteFolderModal(true);
-          }
-          break;
-      }
-    },
-    {
-      enabled: openPopover,
-    },
-  );
-
-  return (
-    <>
-      <RenameFolderModal />
-      <DeleteFolderModal />
-      {folderPermissionsPanel}
-      <Popover
-        content={
-          <div className="grid w-full divide-y divide-gray-200 sm:w-48">
-            <div className="grid gap-px p-2">
-              <Button
-                text="Analytics"
-                variant="outline"
-                onClick={() => {
-                  setOpenPopover(false);
-                  router.push(
-                    `/${workspaceSlug}/analytics?folderId=${folder.id}`,
-                  );
-                }}
-                icon={<Chart className="h-4 w-4" />}
-                shortcut="A"
-                className="h-9 px-2 font-medium"
-              />
-              <Button
-                text="Members"
-                variant="outline"
-                onClick={() => {
-                  setOpenPopover(false);
-                  setShowFolderPermissionsPanel(true);
-                }}
-                icon={<Users className="h-4 w-4" />}
-                shortcut="M"
-                className="h-9 px-2 font-medium"
-              />
-            </div>
-
-            {canUpdateFolder && (
-              <div className="grid gap-px p-2">
-                <Button
-                  text="Rename"
-                  variant="outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowRenameFolderModal(true);
-                  }}
-                  icon={<PenWriting className="h-4 w-4" />}
-                  shortcut="R"
-                  className="h-9 px-2 font-medium"
-                />
-                <Button
-                  text="Delete"
-                  variant="danger-outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowDeleteFolderModal(true);
-                  }}
-                  icon={<Delete className="h-4 w-4" />}
-                  shortcut="X"
-                  className="h-9 px-2 font-medium"
-                />
-              </div>
-            )}
-          </div>
-        }
-        align="start"
-        openPopover={openPopover}
-        setOpenPopover={setOpenPopover}
-      >
-        <Button
-          variant="outline"
-          className="px-1.5 active:bg-gray-200 data-[state=open]:bg-gray-100"
-          onClick={() => setOpenPopover(true)}
-          icon={<ThreeDots className="h-5 w-5 shrink-0 text-gray-400" />}
-        />
-      </Popover>
-    </>
-  );
-};
-
-const FolderSwitcherPlaceholder = () => {
-  return (
-    <div className="h-7 w-20 animate-pulse rounded-lg bg-gray-200 sm:w-32 md:h-9" />
   );
 };

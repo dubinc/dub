@@ -6,22 +6,13 @@ import {
 } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder } from "@/lib/types";
-import {
-  Button,
-  PenWriting,
-  Popover,
-  useCopyToClipboard,
-  useKeyboardShortcut,
-  Users,
-} from "@dub/ui";
-import { CircleCheck, Copy, Globe } from "@dub/ui/icons";
-import { cn, nFormatter } from "@dub/utils";
+import { Globe } from "@dub/ui/icons";
+import { nFormatter } from "@dub/utils";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
 import { useDeleteFolderModal } from "../modals/delete-folder-modal";
 import { useRenameFolderModal } from "../modals/rename-folder-modal";
-import { Chart, Delete, ThreeDots } from "../shared/icons";
+import { FolderActions } from "./folder-actions";
 import { FolderIcon } from "./folder-icon";
 import { useFolderPermissionsPanel } from "./folder-permissions-panel";
 import { RequestFolderEditAccessButton } from "./request-edit-button";
@@ -50,45 +41,6 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
 
   const unsortedLinks = folder.id === "unsorted";
 
-  useKeyboardShortcut(
-    ["r", "m", "x", "a", "i"],
-    (e) => {
-      setOpenPopover(false);
-      switch (e.key) {
-        case "a":
-          router.push(`/${workspaceSlug}/analytics?folderId=${folder.id}`);
-          break;
-        case "r":
-          if (canUpdateFolder) {
-            setShowRenameFolderModal(true);
-          }
-          break;
-        case "m":
-          setShowFolderPermissionsPanel(true);
-          break;
-        case "x":
-          if (canUpdateFolder) {
-            setShowDeleteFolderModal(true);
-          }
-          break;
-        case "i":
-          copyFolderId();
-          break;
-      }
-    },
-    {
-      enabled: openPopover || (isHovering && !unsortedLinks),
-    },
-  );
-
-  const [copiedFolderId, copyToClipboard] = useCopyToClipboard();
-
-  const copyFolderId = () => {
-    toast.promise(copyToClipboard(folder.id), {
-      success: "Folder ID copied!",
-    });
-  };
-
   return (
     <>
       <RenameFolderModal />
@@ -111,92 +63,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
                 />
               )}
 
-              <Popover
-                content={
-                  <div className="grid w-full gap-px p-2 sm:w-48">
-                    <Button
-                      text="Analytics"
-                      variant="outline"
-                      onClick={() => {
-                        setOpenPopover(false);
-                        router.push(
-                          `/${workspaceSlug}/analytics?folderId=${folder.id}`,
-                        );
-                      }}
-                      icon={<Chart className="h-4 w-4" />}
-                      shortcut="A"
-                      className="h-9 px-2 font-medium"
-                    />
-
-                    {canUpdateFolder && (
-                      <Button
-                        text="Rename"
-                        variant="outline"
-                        onClick={() => {
-                          setOpenPopover(false);
-                          setShowRenameFolderModal(true);
-                        }}
-                        icon={<PenWriting className="h-4 w-4" />}
-                        shortcut="R"
-                        className="h-9 px-2 font-medium"
-                      />
-                    )}
-
-                    <Button
-                      text="Copy Folder ID"
-                      variant="outline"
-                      onClick={() => copyFolderId()}
-                      icon={
-                        copiedFolderId ? (
-                          <CircleCheck className="h-4 w-4" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )
-                      }
-                      shortcut="I"
-                      className="h-9 px-2 font-medium"
-                    />
-
-                    <Button
-                      text="Members"
-                      variant="outline"
-                      onClick={() => {
-                        setOpenPopover(false);
-                        setShowFolderPermissionsPanel(true);
-                      }}
-                      icon={<Users className="h-4 w-4" />}
-                      shortcut="M"
-                      className="h-9 px-2 font-medium"
-                    />
-
-                    {canUpdateFolder && (
-                      <Button
-                        text="Delete"
-                        variant="danger-outline"
-                        onClick={() => {
-                          setOpenPopover(false);
-                          setShowDeleteFolderModal(true);
-                        }}
-                        icon={<Delete className="h-4 w-4" />}
-                        shortcut="X"
-                        className="h-9 px-2 font-medium"
-                      />
-                    )}
-                  </div>
-                }
-                align="end"
-                openPopover={openPopover}
-                setOpenPopover={setOpenPopover}
-              >
-                <Button
-                  variant="secondary"
-                  className={cn(
-                    "h-8 px-1 outline-none transition-all duration-200",
-                    "border-transparent data-[state=open]:border-gray-500 sm:group-hover/card:data-[state=closed]:border-gray-200",
-                  )}
-                  icon={<ThreeDots className="h-4 w-4 shrink-0" />}
-                />
-              </Popover>
+              <FolderActions folder={folder} />
             </div>
           )}
         </div>
