@@ -194,7 +194,7 @@ export const POST = withWorkspace(
     );
 
     const partner = await enrollPartner({
-      programId,
+      program,
       tenantId,
       link: partnerLink,
       workspace,
