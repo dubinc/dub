@@ -88,7 +88,7 @@ export default function ProgramPageClient() {
               type="text"
               readOnly
               value={getPrettyUrl(masterLink.shortLink)}
-              className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 lg:min-w-64 xl:min-w-72"
+              className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 lg:min-w-64 xl:min-w-72"
             />
           ) : (
             <div className="h-10 w-16 animate-pulse rounded-md bg-neutral-200 lg:w-72" />
@@ -240,7 +240,7 @@ function EarningsChart() {
             tooltipContent={(d) => {
               return (
                 <>
-                  <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
+                  <p className="border-b border-neutral-200 px-4 py-3 text-sm text-neutral-900">
                     {formatDateTooltip(d.date, {
                       interval,
                       start,
@@ -255,9 +255,9 @@ function EarningsChart() {
                           color ? `bg-[${color}]` : "bg-violet-500",
                         )}
                       />
-                      <p className="capitalize text-gray-600">Earnings</p>
+                      <p className="capitalize text-neutral-600">Earnings</p>
                     </div>
-                    <p className="text-right font-medium text-gray-900">
+                    <p className="text-right font-medium text-neutral-900">
                       {currencyFormatter(d.values.earnings, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,

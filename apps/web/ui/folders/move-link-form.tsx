@@ -97,19 +97,19 @@ export const MoveLinkForm = ({
 
   return (
     <>
-      <div className="space-y-2 border-b border-gray-200 px-4 py-4 sm:px-6">
+      <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
         <LinkLogo apexDomain={apexDomain} />
         <h3 className="text-lg font-medium">Move {shortlink}</h3>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-neutral-500">
           Select a folder below to move the link to.
         </p>
       </div>
 
-      <div className="bg-gray-50 sm:rounded-b-2xl">
+      <div className="bg-neutral-50 sm:rounded-b-2xl">
         <form onSubmit={onSubmit}>
           <div className="flex flex-col gap-y-6 px-4 text-left sm:px-6">
             <div className="mt-6">
-              <label className="text-sm font-normal text-gray-500">
+              <label className="text-sm font-normal text-neutral-500">
                 Folders
               </label>
               <div className="mt-2">
@@ -127,7 +127,7 @@ export const MoveLinkForm = ({
             </div>
           </div>
 
-          <div className="mt-8 flex justify-end gap-2 border-t border-gray-200 px-4 py-4 sm:px-6">
+          <div className="mt-8 flex justify-end gap-2 border-t border-neutral-200 px-4 py-4 sm:px-6">
             <Button
               type="button"
               variant="secondary"

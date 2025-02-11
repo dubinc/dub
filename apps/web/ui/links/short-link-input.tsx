@@ -204,13 +204,13 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
         <div className="flex items-center justify-between">
           <label
             htmlFor={inputId}
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-neutral-700"
           >
             Short Link
           </label>
           {lockKey ? (
             <button
-              className="flex h-6 items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
+              className="flex h-6 items-center space-x-2 text-sm text-neutral-500 transition-all duration-75 hover:text-black active:scale-95"
               type="button"
               onClick={() => {
                 window.confirm(
@@ -291,14 +291,14 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
             autoComplete="off"
             autoCapitalize="none"
             className={cn(
-              "block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+              "block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
               "z-0 focus:z-[1]",
               {
                 "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500":
                   error,
                 "border-amber-300 pr-10 text-amber-900 placeholder-amber-300 focus:border-amber-500 focus:ring-amber-500":
                   shortLink.length > 25,
-                "cursor-not-allowed border border-gray-300 bg-gray-100 text-gray-500":
+                "cursor-not-allowed border border-neutral-300 bg-neutral-100 text-neutral-500":
                   lockKey,
               },
             )}
@@ -320,7 +320,7 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
                   <div className="flex max-w-xs items-start space-x-2 bg-white p-4">
                     <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-amber-500" />
                     <div>
-                      <p className="text-sm text-gray-700">
+                      <p className="text-sm text-neutral-700">
                         Short links longer than 25 characters will show up
                         differently on some platforms.
                       </p>
@@ -427,7 +427,7 @@ function DefaultDomainPrompt({
 
   return (
     <button
-      className="flex items-center gap-1 p-2 text-xs text-gray-500 transition-all duration-75 hover:text-gray-700 active:scale-[0.98]"
+      className="flex items-center gap-1 p-2 text-xs text-neutral-500 transition-all duration-75 hover:text-neutral-700 active:scale-[0.98]"
       onClick={() => onChange(domainSlug)}
       type="button"
     >
@@ -504,15 +504,15 @@ function DomainCombobox({
       options={options}
       caret={true}
       placeholder={
-        <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200" />
+        <div className="h-4 w-3/4 animate-pulse rounded bg-neutral-200" />
       }
       searchPlaceholder="Search domains..."
       shortcutHint="D"
       buttonProps={{
         className: cn(
           "w-32 sm:w-40 h-full rounded-r-none border-r-transparent justify-start px-2.5",
-          "data-[state=open]:ring-1 data-[state=open]:ring-gray-500 data-[state=open]:border-gray-500",
-          "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
+          "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
+          "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
         ),
       }}
       optionClassName="sm:max-w-[225px]"

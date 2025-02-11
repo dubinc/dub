@@ -76,7 +76,6 @@ export const GET = withWorkspace(
       ...programEnrollment.partner,
       ...programEnrollment,
       id: programEnrollment.partnerId,
-      description: programEnrollment.partner.bio ?? null, // TODO: Remove after bio->description migration
       clicks: totalClicks,
       leads: totalLeads,
       sales: totalSales,

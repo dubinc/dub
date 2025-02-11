@@ -327,7 +327,7 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
                   </label>
                   <div className="relative mt-2 rounded-md shadow-sm">
                     {loadingFolders ? (
-                      <div className="h-10 w-full animate-pulse rounded-md bg-gray-200" />
+                      <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200" />
                     ) : (
                       <select
                         className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"

@@ -89,7 +89,7 @@ export default function DomainConfiguration({
 
   return (
     <div className="pt-2">
-      <div className="-ml-1.5 border-b border-gray-200">
+      <div className="-ml-1.5 border-b border-neutral-200">
         <TabSelect
           options={[
             { id: "A", label: `A Record${!subdomain ? " (recommended)" : ""}` },
@@ -125,7 +125,7 @@ export default function DomainConfiguration({
 const MarkdownText = ({ text }: { text: string }) => {
   return (
     <p
-      className="prose-sm prose-code:rounded-md prose-code:bg-gray-100 prose-code:p-1 prose-code:text-[.8125rem] prose-code:font-medium prose-code:font-mono prose-code:text-gray-900 max-w-none"
+      className="prose-sm prose-code:rounded-md prose-code:bg-neutral-100 prose-code:p-1 prose-code:text-[.8125rem] prose-code:font-medium prose-code:font-mono prose-code:text-neutral-900 max-w-none"
       dangerouslySetInnerHTML={{ __html: text }}
     />
   );
@@ -143,20 +143,20 @@ const DnsRecord = ({
   const hasTtl = records.some((x) => x.ttl);
 
   return (
-    <div className="mt-3 text-left text-gray-600">
+    <div className="mt-3 text-left text-neutral-600">
       <div className="my-5">
         <MarkdownText text={instructions} />
       </div>
       <div
         className={cn(
-          "scrollbar-hide grid items-end gap-x-10 gap-y-1 overflow-x-auto rounded-lg bg-gray-100/80 p-4 text-sm",
+          "scrollbar-hide grid items-end gap-x-10 gap-y-1 overflow-x-auto rounded-lg bg-neutral-100/80 p-4 text-sm",
           hasTtl
             ? "grid-cols-[repeat(4,min-content)]"
             : "grid-cols-[repeat(3,min-content)]",
         )}
       >
         {["Type", "Name", "Value"].concat(hasTtl ? "TTL" : []).map((s) => (
-          <p key={s} className="font-medium text-gray-950">
+          <p key={s} className="font-medium text-neutral-950">
             {s}
           </p>
         ))}

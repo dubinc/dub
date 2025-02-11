@@ -84,12 +84,12 @@ export default function EventsTabs() {
             "flex justify-between gap-4 rounded-xl border bg-white px-5 py-4 text-left transition-[box-shadow] focus:outline-none",
             tab === event
               ? "border-black shadow-[0_0_0_1px_black_inset]"
-              : "border-gray-200 focus-visible:border-black",
+              : "border-neutral-200 focus-visible:border-black",
           )}
           onClick={() => onEventTabClick(event)}
         >
           <div>
-            <p className="text-sm text-gray-600">{capitalize(event)}</p>
+            <p className="text-sm text-neutral-600">{capitalize(event)}</p>
             <div className="mt-2">
               {totalEvents ? (
                 <NumberFlow
@@ -119,7 +119,7 @@ export default function EventsTabs() {
                   }
                 />
               ) : (
-                <div className="h-8 w-12 animate-pulse rounded-md bg-gray-200" />
+                <div className="h-8 w-12 animate-pulse rounded-md bg-neutral-200" />
               )}
             </div>
           </div>

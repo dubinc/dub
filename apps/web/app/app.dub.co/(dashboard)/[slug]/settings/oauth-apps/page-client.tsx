@@ -62,7 +62,7 @@ export default function OAuthAppsPageClient() {
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center gap-4 rounded-xl border border-gray-200 py-10">
+            <div className="flex flex-col items-center gap-4 rounded-xl border border-neutral-200 py-10">
               <EmptyState icon={Cube} title={"No OAuth applications found"} />
             </div>
           )

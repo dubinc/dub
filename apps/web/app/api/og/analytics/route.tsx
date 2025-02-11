@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
             </svg>
           </div>
 
-          <div tw="flex items-center rounded-md border border-gray-200 bg-white shadow-sm h-12 px-6">
+          <div tw="flex items-center rounded-md border border-neutral-200 bg-white shadow-sm h-12 px-6">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
@@ -81,10 +81,10 @@ export async function GET(req: NextRequest) {
               <rect width="18" height="18" x="3" y="4" rx="2" />
               <path d="M3 10h18" />
             </svg>
-            <p tw="text-gray-700 ml-2 mt-4">Last 24 hours</p>
+            <p tw="text-neutral-700 ml-2 mt-4">Last 24 hours</p>
           </div>
         </div>
-        <div tw="flex flex-col h-full w-full rounded-lg border border-gray-200 bg-white shadow-lg overflow-hidden">
+        <div tw="flex flex-col h-full w-full rounded-lg border border-neutral-200 bg-white shadow-lg overflow-hidden">
           <div tw="flex flex-col px-12 py-4">
             <div tw="flex items-center">
               <h1 tw="font-bold text-5xl leading-none">{nFormatter(clicks)}</h1>
@@ -104,7 +104,7 @@ export async function GET(req: NextRequest) {
                 <path d="M6 20v-4" />
               </svg>
             </div>
-            <p tw="text-lg font-medium uppercase -mt-4 text-gray-600">
+            <p tw="text-lg font-medium uppercase -mt-4 text-neutral-600">
               Total Clicks
             </p>
           </div>

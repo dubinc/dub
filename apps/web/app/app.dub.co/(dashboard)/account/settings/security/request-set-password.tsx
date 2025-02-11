@@ -36,10 +36,10 @@ export const RequestSetPassword = () => {
   };
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white">
-      <div className="flex flex-col gap-3 border-b border-gray-200 p-5 sm:p-10">
+    <div className="rounded-lg border border-neutral-200 bg-white">
+      <div className="flex flex-col gap-3 border-b border-neutral-200 p-5 sm:p-10">
         <h2 className="text-xl font-medium">Password</h2>
-        <p className="pb-2 text-sm text-gray-500">
+        <p className="pb-2 text-sm text-neutral-500">
           {user?.provider && (
             <>
               Your account is managed by{" "}

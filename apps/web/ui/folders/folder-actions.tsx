@@ -89,7 +89,7 @@ export const FolderActions = ({
       {folderPermissionsPanel}
       <Popover
         content={
-          <div className="grid w-full divide-y divide-gray-200 sm:w-52">
+          <div className="grid w-full divide-y divide-neutral-200 sm:w-52">
             <div className="grid gap-px p-2">
               <Button
                 text="Analytics"
@@ -169,10 +169,10 @@ export const FolderActions = ({
           variant="secondary"
           className={cn(
             "h-8 px-1 outline-none transition-all duration-200",
-            "border-transparent data-[state=open]:border-gray-500 sm:group-hover/card:data-[state=closed]:border-gray-200",
+            "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
           )}
           onClick={() => setOpenPopover(true)}
-          icon={<ThreeDots className="size-4 shrink-0 text-gray-500" />}
+          icon={<ThreeDots className="size-4 shrink-0 text-neutral-500" />}
         />
       </Popover>
     </>

@@ -22,7 +22,7 @@ export default function UpgradePage({ params }: { params: { slug: string } }) {
             <a
               href="https://dub.co/enterprise"
               target="_blank"
-              className="w-full text-center text-sm text-gray-500 transition-colors hover:text-gray-700"
+              className="w-full text-center text-sm text-neutral-500 transition-colors hover:text-neutral-700"
             >
               Looking for enterprise?
             </a>

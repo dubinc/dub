@@ -39,7 +39,7 @@ export const ResendOtp = ({ email }: { email: string }) => {
   }, [delaySeconds]);
 
   return (
-    <div className="relative mt-4 text-center text-sm text-gray-500">
+    <div className="relative mt-4 text-center text-sm text-neutral-500">
       {state === "default" && (
         <>
           {isPending && (
@@ -53,7 +53,7 @@ export const ResendOtp = ({ email }: { email: string }) => {
             <button
               onClick={() => executeAsync({ email })}
               className={cn(
-                "font-semibold text-gray-500 underline underline-offset-2 transition-colors hover:text-black",
+                "font-semibold text-neutral-500 underline underline-offset-2 transition-colors hover:text-black",
                 isPending && "pointer-events-none",
               )}
             >
@@ -64,13 +64,13 @@ export const ResendOtp = ({ email }: { email: string }) => {
       )}
 
       {state === "success" && (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-neutral-500">
           Code sent successfully. <Delay seconds={delaySeconds} />
         </p>
       )}
 
       {state === "error" && (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-neutral-500">
           Failed to send code. <Delay seconds={delaySeconds} />
         </p>
       )}
@@ -80,6 +80,8 @@ export const ResendOtp = ({ email }: { email: string }) => {
 
 const Delay = ({ seconds }: { seconds: number }) => {
   return (
-    <span className="ml-1 text-sm tabular-nums text-gray-400">{seconds}s</span>
+    <span className="ml-1 text-sm tabular-nums text-neutral-400">
+      {seconds}s
+    </span>
   );
 };

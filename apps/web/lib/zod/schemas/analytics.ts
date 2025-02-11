@@ -230,6 +230,7 @@ export const analyticsFilterTB = z
           return v;
         }
       }),
+    customerId: z.string().optional(),
     root: z.boolean().optional(),
     qr: z.boolean().optional(),
     start: z.string(),

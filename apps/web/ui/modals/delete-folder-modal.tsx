@@ -52,26 +52,26 @@ const DeleteFolderModal = ({
 
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
-      <div className="space-y-2 border-b border-gray-200 px-4 py-4 sm:px-6">
+      <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
         <h3 className="text-lg font-medium">Delete {folder.name}</h3>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-neutral-500">
           All links within this folder will return to the main folder and will
           not be deleted.{" "}
-          <strong className="font-semibold text-gray-700">
+          <strong className="font-semibold text-neutral-700">
             This action cannot be undone
           </strong>{" "}
           - proceed with caution.
         </p>
       </div>
 
-      <div className="bg-gray-50">
+      <div className="bg-neutral-50">
         <form onSubmit={onSubmit}>
           <div className="flex flex-col gap-y-6 px-4 text-left sm:px-6">
             <div className="mt-6">
               <div className="flex items-center gap-2">
-                <p className="block text-sm text-gray-500">
+                <p className="block text-sm text-neutral-500">
                   To verify, type{" "}
-                  <span className="font-medium text-gray-700">
+                  <span className="font-medium text-neutral-700">
                     {folder.name}
                   </span>{" "}
                   below
@@ -80,12 +80,12 @@ const DeleteFolderModal = ({
 
               <div className="mt-2">
                 <div className="-m-1 rounded-[0.625rem] p-1">
-                  <div className="flex rounded-md border border-gray-300 bg-white">
+                  <div className="flex rounded-md border border-neutral-300 bg-white">
                     <input
                       type="text"
                       required
                       autoComplete="off"
-                      className="block w-full rounded-md border-0 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
+                      className="block w-full rounded-md border-0 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
                       aria-invalid="true"
                       autoFocus={!isMobile}
                       pattern={folder.name}
@@ -96,7 +96,7 @@ const DeleteFolderModal = ({
             </div>
           </div>
 
-          <div className="mt-8 flex justify-end gap-2 border-t border-gray-200 px-4 py-4 sm:px-6">
+          <div className="mt-8 flex justify-end gap-2 border-t border-neutral-200 px-4 py-4 sm:px-6">
             <Button
               type="button"
               variant="secondary"

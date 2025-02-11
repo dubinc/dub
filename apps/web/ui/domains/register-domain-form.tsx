@@ -142,7 +142,7 @@ export function RegisterDomainForm({
       >
         <div>
           <div className="flex items-center gap-2">
-            <p className="block text-sm font-medium text-gray-800">
+            <p className="block text-sm font-medium text-neutral-800">
               Search domains
             </p>
 
@@ -167,17 +167,17 @@ export function RegisterDomainForm({
                   ? searchedDomain.available
                     ? "bg-[#def5c6]"
                     : "bg-orange-100"
-                  : "bg-gray-100",
+                  : "bg-neutral-100",
               )}
             >
-              <div className="flex rounded-md border border-gray-300 bg-white">
+              <div className="flex rounded-md border border-neutral-300 bg-white">
                 <input
                   name="domain"
                   id="domain"
                   type="text"
                   required
                   autoComplete="off"
-                  className="block w-full rounded-md rounded-r-none border-0 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
+                  className="block w-full rounded-md rounded-r-none border-0 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
                   aria-invalid="true"
                   autoFocus={!isMobile}
                   placeholder={workspace.slug}
@@ -191,7 +191,7 @@ export function RegisterDomainForm({
                     }
                   }}
                 />
-                <span className="inline-flex items-center rounded-md rounded-l-none bg-white pr-3 font-medium text-gray-500 sm:text-sm">
+                <span className="inline-flex items-center rounded-md rounded-l-none bg-white pr-3 font-medium text-neutral-500 sm:text-sm">
                   .link
                 </span>
               </div>
@@ -200,19 +200,19 @@ export function RegisterDomainForm({
                 height
                 transition={{ ease: "easeInOut", duration: 0.1 }}
               >
-                <div className="flex justify-between gap-3 px-2 pb-2 pt-3 text-sm text-gray-700">
+                <div className="flex justify-between gap-3 px-2 pb-2 pt-3 text-sm text-neutral-700">
                   <p>
                     {searchedDomain ? (
                       searchedDomain.available ? (
                         <>
-                          <span className="font-semibold text-gray-800">
+                          <span className="font-semibold text-neutral-800">
                             {searchedDomain.domain}
                           </span>{" "}
                           is available. Claim your free domain before it's gone!
                         </>
                       ) : (
                         <>
-                          <span className="font-semibold text-gray-800">
+                          <span className="font-semibold text-neutral-800">
                             {searchedDomain.domain}
                           </span>{" "}
                           is{" "}
@@ -256,11 +256,11 @@ export function RegisterDomainForm({
           !searchedDomain.available &&
           availableDomains.length > 0 && (
             <div>
-              <h2 className="text-sm font-medium text-gray-800">
+              <h2 className="text-sm font-medium text-neutral-800">
                 Available alternatives
               </h2>
-              <div className="mt-2 overflow-hidden rounded-lg border border-gray-200">
-                <div className="flex flex-col divide-y divide-gray-200">
+              <div className="mt-2 overflow-hidden rounded-lg border border-neutral-200">
+                <div className="flex flex-col divide-y divide-neutral-200">
                   {availableDomains.map((alternative) => (
                     <div
                       key={alternative.domain}
@@ -294,12 +294,12 @@ export function RegisterDomainForm({
           )}
 
         {searchedDomain && (
-          <p className="-my-2 text-pretty text-left text-sm text-gray-400">
+          <p className="-my-2 text-pretty text-left text-sm text-neutral-400">
             By claiming your .link domain, you agree to our{" "}
             <a
               href="https://dub.co/help/article/free-dot-link-domain#terms-and-conditions"
               target="_blank"
-              className="underline transition-colors hover:text-gray-700"
+              className="underline transition-colors hover:text-neutral-700"
             >
               terms
             </a>
@@ -310,7 +310,8 @@ export function RegisterDomainForm({
       <div
         className={cn(
           "mt-8 flex justify-end gap-2",
-          variant === "modal" && "border-t border-gray-200 px-4 py-4 sm:px-6",
+          variant === "modal" &&
+            "border-t border-neutral-200 px-4 py-4 sm:px-6",
         )}
       >
         {onCancel && variant === "modal" && (
@@ -373,12 +374,12 @@ function DomainSavedToast() {
   return (
     <div className="flex items-center gap-1.5 rounded-lg bg-white p-4 text-sm shadow-[0_4px_12px_#0000001a]">
       <CheckCircleFill className="size-5 shrink-0 text-black" />
-      <p className="text-[13px] font-medium text-gray-900">
+      <p className="text-[13px] font-medium text-neutral-900">
         Domain saved. You'll need a pro plan to complete the registration.{" "}
         <a
           href="https://dub.co/help/article/free-dot-link-domain"
           target="_blank"
-          className="text-gray-500 underline transition-colors hover:text-gray-800"
+          className="text-neutral-500 underline transition-colors hover:text-neutral-800"
         >
           Learn more
         </a>

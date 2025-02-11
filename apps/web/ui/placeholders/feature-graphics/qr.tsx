@@ -26,7 +26,7 @@ export function QR() {
         <div className="flex items-center justify-between">
           <h3 className="text-base font-medium">QR Code Design</h3>
           <div className="max-md:hidden" aria-hidden>
-            <kbd className="flex size-6 cursor-default items-center justify-center rounded-md border border-gray-200 font-sans text-xs text-gray-950">
+            <kbd className="flex size-6 cursor-default items-center justify-center rounded-md border border-neutral-200 font-sans text-xs text-neutral-950">
               Q
             </kbd>
           </div>
@@ -35,17 +35,17 @@ export function QR() {
         <div>
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-neutral-700">
                 QR Code Preview
               </span>
-              <HelpCircle className="size-4 text-gray-500" />
+              <HelpCircle className="size-4 text-neutral-500" />
             </div>
             <div className="flex h-6 items-center gap-3 px-1">
-              <Download className="size-4 text-gray-500" />
-              <Copy className="size-4 text-gray-500" />
+              <Download className="size-4 text-neutral-500" />
+              <Copy className="size-4 text-neutral-500" />
             </div>
           </div>
-          <div className="relative mt-2 flex h-40 items-center justify-center overflow-hidden rounded-md border border-gray-300">
+          <div className="relative mt-2 flex h-40 items-center justify-center overflow-hidden rounded-md border border-neutral-300">
             <ClientOnly>
               {!isMobile && (
                 <ShimmerDots className="opacity-30 [mask-image:radial-gradient(40%_80%,transparent_50%,black)]" />
@@ -60,8 +60,8 @@ export function QR() {
         {/* Logo toggle */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-700">Logo</span>
-            <HelpCircle className="size-4 text-gray-500" />
+            <span className="text-sm font-medium text-neutral-700">Logo</span>
+            <HelpCircle className="size-4 text-neutral-500" />
           </div>
           <Switch
             checked={!hideLogo}

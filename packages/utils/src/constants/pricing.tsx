@@ -145,7 +145,7 @@ export const PLANS = [
       text: "Start for free",
       href: "https://app.dub.co/register",
       color:
-        "bg-white hover:bg-gray-50 border border-gray-200 hover:ring-gray-100 text-neutral-800",
+        "bg-white hover:bg-neutral-50 border border-neutral-200 hover:ring-neutral-100 text-neutral-800",
     },
     featureTitle: "What's included:",
     features: [
@@ -215,7 +215,7 @@ export const PLANS = [
       text: "Get started with Pro",
       shortText: "Get Pro",
       href: "https://app.dub.co/register",
-      color: "bg-black hover:bg-neutral-800 hover:ring-gray-200",
+      color: "bg-black hover:bg-neutral-800 hover:ring-neutral-200",
     },
     featureTitle: "Everything in Free, plus:",
     features: [
@@ -360,7 +360,7 @@ export const PLANS = [
       text: "Contact us",
       href: "/enterprise",
       color:
-        "bg-white hover:bg-gray-50 border border-gray-200 hover:ring-gray-100 text-neutral-800",
+        "bg-white hover:bg-neutral-50 border border-neutral-200 hover:ring-neutral-100 text-neutral-800",
     },
     featureTitle: "Everything in Business, plus:",
     features: [

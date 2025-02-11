@@ -32,7 +32,7 @@ export function PlanFeatures({
         <motion.div
           key="business-plan-feature"
           variants={STAGGER_CHILD_VARIANTS}
-          className="text-sm text-gray-500"
+          className="text-sm text-neutral-500"
         >
           Everything in Pro, plus:
         </motion.div>
@@ -41,7 +41,7 @@ export function PlanFeatures({
         <motion.div
           key={i}
           variants={STAGGER_CHILD_VARIANTS}
-          className="flex items-center space-x-2 text-sm text-gray-500"
+          className="flex items-center space-x-2 text-sm text-neutral-500"
         >
           <CheckCircleFill className="h-5 w-5 text-green-500" />
 
@@ -55,12 +55,12 @@ export function PlanFeatures({
                 )
               }
             >
-              <p className="cursor-help text-gray-600 underline decoration-dotted underline-offset-2">
+              <p className="cursor-help text-neutral-600 underline decoration-dotted underline-offset-2">
                 {text}
               </p>
             </Tooltip>
           ) : (
-            <p className="text-gray-600">{text}</p>
+            <p className="text-neutral-600">{text}</p>
           )}
         </motion.div>
       ))}

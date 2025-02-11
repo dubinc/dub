@@ -77,7 +77,7 @@ const Presets = <TPreset extends Preset, TValue>({
 
   return (
     <Command
-      className="w-full rounded ring-gray-200 ring-offset-2 focus:outline-none"
+      className="w-full rounded ring-neutral-200 ring-offset-2 focus:outline-none"
       tabIndex={0}
       autoFocus
       loop
@@ -92,18 +92,18 @@ const Presets = <TPreset extends Preset, TValue>({
               title={preset.label}
               value={preset.id}
               className={cn(
-                "group relative flex cursor-pointer items-center justify-between overflow-hidden text-ellipsis whitespace-nowrap rounded border border-gray-200",
-                "px-2.5 py-1.5 text-left text-sm text-gray-700 shadow-sm outline-none sm:w-full sm:border-none sm:py-2 sm:shadow-none",
+                "group relative flex cursor-pointer items-center justify-between overflow-hidden text-ellipsis whitespace-nowrap rounded border border-neutral-200",
+                "px-2.5 py-1.5 text-left text-sm text-neutral-700 shadow-sm outline-none sm:w-full sm:border-none sm:py-2 sm:shadow-none",
                 "disabled:pointer-events-none disabled:opacity-50",
-                "sm:data-[selected=true]:bg-gray-100",
-                matchesCurrent(preset) && "font-semibold text-gray-800",
+                "sm:data-[selected=true]:bg-neutral-100",
+                matchesCurrent(preset) && "font-semibold text-neutral-800",
               )}
             >
               <span>{preset.label}</span>
               {preset.requiresUpgrade ? (
                 <Lock className="h-3.5 w-3.5" aria-hidden="true" />
               ) : preset.shortcut ? (
-                <kbd className="text-gray-4000 hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light group-data-[selected=true]:bg-gray-200 md:block">
+                <kbd className="text-neutral-4000 hidden rounded bg-neutral-100 px-2 py-0.5 text-xs font-light group-data-[selected=true]:bg-neutral-200 md:block">
                   {preset.shortcut.toUpperCase()}
                 </kbd>
               ) : null}
