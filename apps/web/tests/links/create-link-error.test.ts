@@ -83,7 +83,7 @@ const cases = [
     body: {
       domain,
       url,
-      folderId: "fold_ftco6wsIwww96iWv7yJig8w2", // Kiran's folder
+      folderId: "fold_0lo6YZoVBvAyFg62SKTgDXTT",
     },
     expected: {
       status: 403,
