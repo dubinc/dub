@@ -3,6 +3,9 @@
 import { createId } from "@/lib/api/utils";
 import { updateConfig } from "@/lib/edge-config";
 import { recordLink } from "@/lib/tinybird";
+import { PartnerLinkProps, WorkspaceProps } from "@/lib/types";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -11,13 +14,14 @@ import { includeTags } from "../links/include-tags";
 
 export const enrollPartner = async ({
   programId,
-  linkId,
   tenantId,
+  workspace,
+  link,
   partner,
 }: {
   programId: string;
-  linkId: string;
   tenantId?: string;
+  workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
   partner: {
     name: string;
     email?: string | null;
@@ -25,6 +29,7 @@ export const enrollPartner = async ({
     country?: string | null;
     description?: string | null;
   };
+  link: PartnerLinkProps;
 }) => {
   if (partner.email) {
     const programEnrollment = await prisma.programEnrollment.findFirst({
@@ -70,7 +75,7 @@ export const enrollPartner = async ({
         tenantId,
         links: {
           connect: {
-            id: linkId,
+            id: link.id,
           },
         },
         status: "approved",
@@ -92,6 +97,17 @@ export const enrollPartner = async ({
       country: partner.country ?? "US",
       bio: partner.description,
     },
+    include: {
+      programs: true,
+    },
+  });
+
+  const enrolledPartner = EnrolledPartnerSchema.parse({
+    ...upsertedPartner,
+    ...upsertedPartner.programs[0],
+    id: upsertedPartner.id,
+    description: upsertedPartner.bio, // TODO: Remove after bio->description migration
+    links: [link],
   });
 
   waitUntil(
@@ -100,7 +116,7 @@ export const enrollPartner = async ({
       prisma.link
         .update({
           where: {
-            id: linkId,
+            id: link.id,
           },
           data: {
             programId,
@@ -109,14 +125,21 @@ export const enrollPartner = async ({
           include: includeTags,
         })
         .then((link) => recordLink(link)),
+
       // TODO: Remove this once we open up partners.dub.co to everyone
       partner.email &&
         updateConfig({
           key: "partnersPortal",
           value: partner.email,
         }),
+
+      sendWorkspaceWebhook({
+        workspace,
+        trigger: "partner.created",
+        data: enrolledPartner,
+      }),
     ]),
   );
 
-  return upsertedPartner;
+  return enrolledPartner;
 };

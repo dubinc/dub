@@ -18,7 +18,7 @@ export const GET = withWorkspace(
       });
     }
 
-    const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
+    const programEnrollment = await prisma.programEnrollment.findUnique({
       where: {
         partnerId_programId: {
           partnerId,
@@ -32,7 +32,10 @@ export const GET = withWorkspace(
       },
     });
 
-    if (programEnrollment.program.workspaceId !== workspace.id) {
+    if (
+      !programEnrollment ||
+      programEnrollment.program.workspaceId !== workspace.id
+    ) {
       throw new DubApiError({
         code: "not_found",
         message: "Program not found.",
@@ -73,6 +76,7 @@ export const GET = withWorkspace(
       ...programEnrollment.partner,
       ...programEnrollment,
       id: programEnrollment.partnerId,
+      description: programEnrollment.partner.bio ?? null, // TODO: Remove after bio->description migration
       clicks: totalClicks,
       leads: totalLeads,
       sales: totalSales,
