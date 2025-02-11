@@ -8,6 +8,7 @@ import {
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { bulkUpdateLinks } from "@/lib/api/links/bulk-update-links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
+import { checkIfLinksHaveFolders } from "@/lib/api/links/utils/check-if-links-have-folders";
 import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -147,6 +148,53 @@ export const POST = withWorkspace(
             code: "unprocessable_entity",
             link,
           });
+        }
+      });
+    }
+
+    if (checkIfLinksHaveFolders(validLinks)) {
+      const folderIds = validLinks
+        .map((link) => link.folderId)
+        .filter(Boolean) as string[];
+      const folders = await prisma.folder.findMany({
+        where: { id: { in: folderIds }, projectId: workspace.id },
+        select: {
+          id: true,
+          users: {
+            select: {
+              userId: true,
+              role: true,
+            },
+          },
+        },
+      });
+      validLinks.forEach((link, index) => {
+        if (link.folderId) {
+          const validFolder = folders.find(
+            (folder) => folder.id === link.folderId,
+          );
+          if (!validFolder) {
+            validLinks = validLinks.filter((_, i) => i !== index);
+            errorLinks.push({
+              error: `Invalid folderId detected: ${link.folderId}`,
+              code: "unprocessable_entity",
+              link,
+            });
+            // if user doesn't have write access to the folder, remove the link from validLinks and add error to errorLinks
+          } else if (
+            !validFolder.users.some(
+              (user) =>
+                user.userId === session.user.id &&
+                (user.role === "owner" || user.role === "editor"),
+            )
+          ) {
+            validLinks = validLinks.filter((_, i) => i !== index);
+            errorLinks.push({
+              error: `You don't have write access to this folder`,
+              code: "forbidden",
+              link,
+            });
+          }
         }
       });
     }
