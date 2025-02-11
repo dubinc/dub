@@ -3,15 +3,21 @@ import { redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, nanoid } from "@dub/utils";
 import { Program, Project } from "@prisma/client";
+import { z } from "zod";
+import { createLink } from "../api/links/create-link";
+import { processLink } from "../api/links/process-link";
 import { createId } from "../api/utils";
 import { recordClick } from "../tinybird/record-click";
 import { recordLead } from "../tinybird/record-lead";
+import { WorkspaceProps } from "../types";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
-import { RewardfulReferral } from "./types";
+import { RewardfulAffiliate, RewardfulReferral } from "./types";
 
 const MAX_BATCHES = 5;
 const CACHE_EXPIRY = 60 * 60 * 24;
+
+export const ImportSteps = z.enum(["import-affiliates", "import-referrals"]);
 
 export function createRewardfulApi(programId: string) {
   return new RewardfulApi({ programId });
@@ -28,16 +34,21 @@ export async function startRewardfulImport({
 }) {
   await redis.set(
     `rewardful:import:${programId}`,
-    { apiKey, campaignId },
-    { ex: CACHE_EXPIRY },
+    {
+      apiKey,
+      campaignId,
+    },
+    {
+      ex: CACHE_EXPIRY,
+    },
   );
 
   return queueNextImport({ programId });
 }
 
-export async function queueNextImport(body: {
+async function queueNextImport(body: {
   programId: string;
-  action?: string;
+  action?: z.infer<typeof ImportSteps>;
   page?: number;
 }) {
   return await qstash.publishJSON({
@@ -79,29 +90,17 @@ export async function importAffiliates({
       break;
     }
 
-    const partners = affiliates
-      .filter((affiliate) => affiliate.state === "active")
-      .map((affiliate) => ({
-        name: `${affiliate.first_name} ${affiliate.last_name}`,
-        email: affiliate.email,
-      }));
+    const activeAffiliates = affiliates.filter(
+      (affiliate) => affiliate.state === "active",
+    );
 
-    if (partners.length > 0) {
+    if (activeAffiliates.length > 0) {
       await Promise.all(
-        partners.map((partner) =>
-          prisma.partner.create({
-            data: {
-              id: createId({ prefix: "pn_" }),
-              name: partner.name,
-              email: partner.email,
-              showOnLeaderboard: false,
-              programs: {
-                create: {
-                  programId: program.id,
-                  status: "approved",
-                },
-              },
-            },
+        activeAffiliates.map((affiliate) =>
+          createPartnerAndLinks({
+            workspace,
+            program,
+            affiliate,
           }),
         ),
       );
@@ -113,12 +112,82 @@ export async function importAffiliates({
   }
 
   await queueNextImport({
-    action: hasMoreAffiliates ? "import-affiliates" : "import-affiliates-links",
     programId: program.id,
-    page: currentPage,
+    action: hasMoreAffiliates ? "import-affiliates" : "import-referrals",
+    ...(hasMoreAffiliates ? { page: currentPage } : {}),
   });
 
   return { lastProcessedPage: currentPage - 1 };
+}
+
+// Create partner and their links
+async function createPartnerAndLinks({
+  workspace,
+  program,
+  affiliate,
+}: {
+  workspace: Project;
+  program: Program;
+  affiliate: RewardfulAffiliate;
+}) {
+  const partner = await prisma.partner.create({
+    data: {
+      id: createId({ prefix: "pn_" }),
+      name: `${affiliate.first_name} ${affiliate.last_name}`,
+      email: affiliate.email,
+      bio: "Rewardful affiliate",
+      programs: {
+        create: {
+          programId: program.id,
+          status: "approved",
+        },
+      },
+    },
+  });
+
+  if (!program.domain || !program.url) {
+    console.error("Program domain or url not found", program.id);
+    return;
+  }
+
+  const session = {
+    user: {
+      id: "cm1ypncqa0000tc44pfgxp6qs",
+    },
+  };
+
+  const links = affiliate.links;
+
+  await Promise.all(
+    links.map(async (link) => {
+      try {
+        const { link: newLink, error } = await processLink({
+          payload: {
+            url: link.url || program.url!,
+            key: link.token || undefined,
+            domain: program.domain!,
+            programId: program.id,
+            partnerId: partner.id,
+            trackConversion: true,
+            folderId: program.defaultFolderId,
+          },
+          userId: session.user.id,
+          skipProgramChecks: true,
+          workspace: workspace as WorkspaceProps,
+        });
+
+        if (error != null) {
+          console.error("Error creating link", error);
+          return;
+        }
+
+        const partnerLink = await createLink(newLink);
+        console.log("Partner link created", partnerLink);
+      } catch (error) {
+        console.error("Error processing link:", error);
+      }
+    }),
+  );
 }
 
 export async function importReferrals({
@@ -177,7 +246,7 @@ export async function importReferrals({
 }
 
 // Create individual referral entries
-export async function createReferral({
+async function createReferral({
   referral,
   workspace,
   program,

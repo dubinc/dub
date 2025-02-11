@@ -1,7 +1,10 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { importAffiliates, importReferrals } from "@/lib/rewardful/importer";
-import { prisma } from "@dub/prisma";
+import {
+  importAffiliates,
+  importReferrals,
+  ImportSteps,
+} from "@/lib/rewardful/importer";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -9,9 +12,7 @@ export const dynamic = "force-dynamic";
 
 const schema = z.object({
   programId: z.string(),
-  action: z
-    .enum(["import-affiliates", "import-referrals"])
-    .default("import-referrals"),
+  action: ImportSteps.default("import-affiliates"),
   page: z.number().optional().default(1),
 });
 
@@ -21,15 +22,6 @@ export async function POST(req: Request) {
     await verifyQstashSignature({ req, rawBody });
 
     const { programId, action, page } = schema.parse(JSON.parse(rawBody));
-
-    // const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
-    //   where: {
-    //     id: programId,
-    //   },
-    //   include: {
-    //     workspace: true,
-    //   },
-    // });
 
     if (action === "import-affiliates") {
       await importAffiliates({
