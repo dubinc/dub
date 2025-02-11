@@ -1,6 +1,7 @@
 "server-only";
 
 import { Folder, FolderPermission } from "@/lib/types";
+import { prisma } from "@dub/prisma";
 import { FolderUser } from "@dub/prisma/client";
 import { DubApiError } from "../api/errors";
 import {
@@ -80,28 +81,52 @@ export const findUserFolderRole = ({
   return FOLDER_WORKSPACE_ACCESS_TO_FOLDER_USER_ROLE[folder.accessLevel];
 };
 
-// A version of verifyFolderAccess that does not throw an error if the user does not have access
-export const hasFolderPermission = async ({
+export const checkFolderPermissions = async ({
   workspaceId,
   userId,
-  folderId,
+  folderIds,
   requiredPermission,
 }: {
   workspaceId: string;
   userId: string;
-  folderId: string;
+  folderIds: string[];
   requiredPermission: FolderPermission;
 }) => {
-  try {
-    await verifyFolderAccess({
-      workspaceId,
-      userId,
-      folderId,
-      requiredPermission,
+  const folders = await prisma.folder.findMany({
+    where: {
+      projectId: workspaceId,
+      id: {
+        in: folderIds,
+      },
+    },
+    include: {
+      users: {
+        where: {
+          userId,
+        },
+        take: 1,
+      },
+    },
+  });
+
+  return folders.map((folder) => {
+    const folderUserRole = findUserFolderRole({
+      folder,
+      user: folder.users[0],
     });
 
-    return true;
-  } catch (error) {
-    return false;
-  }
+    if (!folderUserRole) {
+      return {
+        folderId: folder.id,
+        hasPermission: false,
+      };
+    }
+
+    const permissions = getFolderPermissions(folderUserRole);
+
+    return {
+      folderId: folder.id,
+      hasPermission: permissions.includes(requiredPermission),
+    };
+  });
 };

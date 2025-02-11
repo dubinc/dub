@@ -13,7 +13,7 @@ import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
-  hasFolderPermission,
+  checkFolderPermissions,
   verifyFolderAccess,
 } from "@/lib/folder/permissions";
 import { storage } from "@/lib/storage";
@@ -156,55 +156,49 @@ export const POST = withWorkspace(
     }
 
     if (checkIfLinksHaveFolders(validLinks)) {
-      const folderIds = validLinks
-        .map((link) => link.folderId)
-        .filter(Boolean) as string[];
-      const folders = await prisma.folder.findMany({
-        where: {
-          id: { in: folderIds },
-          projectId: workspace.id,
-        },
-        select: {
-          id: true,
-          accessLevel: true,
-          users: {
-            select: {
-              userId: true,
-              role: true,
-            },
-          },
-        },
+      const folderIds = [
+        ...new Set(
+          validLinks.map((link) => link.folderId).filter(Boolean) as string[],
+        ),
+      ];
+
+      const folderPermissions = await checkFolderPermissions({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        folderIds,
+        requiredPermission: "folders.links.write",
       });
-      validLinks.forEach((link, index) => {
-        if (link.folderId) {
-          const validFolder = folders.find(
-            (folder) => folder.id === link.folderId,
-          );
-          if (!validFolder) {
-            validLinks = validLinks.filter((_, i) => i !== index);
-            errorLinks.push({
-              error: `Invalid folderId detected: ${link.folderId}`,
-              code: "unprocessable_entity",
-              link,
-            });
-            // if user doesn't have write access to the folder
-            // remove the link from validLinks and add error to errorLinks
-          } else if (
-            validFolder.accessLevel !== "write" &&
-            !validFolder.users.some(
-              (user) =>
-                user.userId === session.user.id &&
-                (user.role === "owner" || user.role === "editor"),
-            )
-          ) {
-            validLinks = validLinks.filter((_, i) => i !== index);
-            errorLinks.push({
-              error: `You don't have write access to this folder`,
-              code: "forbidden",
-              link,
-            });
-          }
+
+      validLinks = validLinks.filter((link) => {
+        if (!link.folderId) {
+          return true;
         }
+
+        const validFolder = folderPermissions.find(
+          (folder) => folder.folderId === link.folderId,
+        );
+
+        if (!validFolder) {
+          errorLinks.push({
+            error: `Invalid folderId detected: ${link.folderId}`,
+            code: "unprocessable_entity",
+            link,
+          });
+
+          return false;
+        }
+
+        if (!validFolder.hasPermission) {
+          errorLinks.push({
+            error: `You don't have write access to the folder: ${link.folderId}`,
+            code: "forbidden",
+            link,
+          });
+
+          return false;
+        }
+
+        return true;
       });
     }
 
@@ -266,7 +260,7 @@ export const PATCH = withWorkspace(
       return NextResponse.json("No links to update", { headers });
     }
 
-    const links = await prisma.link.findMany({
+    let links = await prisma.link.findMany({
       where: {
         projectId: workspace.id,
         ...(linkIds.length > 0
@@ -337,6 +331,43 @@ export const PATCH = withWorkspace(
         userId: session.user.id,
         folderId: data.folderId,
         requiredPermission: "folders.links.write",
+      });
+    }
+
+    if (checkIfLinksHaveFolders(links)) {
+      const folderIds = [
+        ...new Set(
+          links.map((link) => link.folderId).filter(Boolean) as string[],
+        ),
+      ];
+
+      const folderPermissions = await checkFolderPermissions({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        folderIds,
+        requiredPermission: "folders.links.write",
+      });
+
+      links = links.filter((link) => {
+        if (!link.folderId) {
+          return true;
+        }
+
+        const validFolder = folderPermissions.find(
+          (folder) => folder.folderId === link.folderId,
+        );
+
+        if (!validFolder?.hasPermission) {
+          errorLinks.push({
+            error: `You don't have permission to move this link to the folder: ${link.folderId}`,
+            code: "forbidden",
+            link,
+          });
+
+          return false;
+        }
+
+        return true;
       });
     }
 
@@ -470,36 +501,32 @@ export const DELETE = withWorkspace(
       },
     });
 
-    const uniqueFolderIds = [
-      ...new Set(
-        links
-          .map((link) => link.folderId)
-          .filter((folderId): folderId is string => folderId !== null),
-      ),
-    ];
-
-    let folderAccess: Record<string, boolean> = {};
-
-    if (uniqueFolderIds.length > 0) {
-      folderAccess = Object.fromEntries(
-        await Promise.all(
-          uniqueFolderIds.map(async (folderId) => [
-            folderId,
-            await hasFolderPermission({
-              workspaceId: workspace.id,
-              userId: session.user.id,
-              folderId,
-              requiredPermission: "folders.links.write",
-            }),
-          ]),
+    if (checkIfLinksHaveFolders(links)) {
+      const folderIds = [
+        ...new Set(
+          links.map((link) => link.folderId).filter(Boolean) as string[],
         ),
-      );
-    }
+      ];
 
-    // filter links that the user has access to
-    links = links.filter((link) => {
-      return link.folderId ? folderAccess[link.folderId] : true;
-    });
+      const folderPermissions = await checkFolderPermissions({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        folderIds,
+        requiredPermission: "folders.links.write",
+      });
+
+      links = links.filter((link) => {
+        if (!link.folderId) {
+          return true;
+        }
+
+        const validFolder = folderPermissions.find(
+          (folder) => folder.folderId === link.folderId,
+        );
+
+        return validFolder?.hasPermission ?? false;
+      });
+    }
 
     const { count: deletedCount } = await prisma.link.deleteMany({
       where: {

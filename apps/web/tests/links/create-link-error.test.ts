@@ -60,6 +60,42 @@ const cases = [
       },
     },
   },
+  {
+    name: "create link in folder that doesn't exist",
+    body: {
+      domain,
+      url,
+      folderId: "fold_xxx",
+    },
+    expected: {
+      status: 404,
+      data: {
+        error: {
+          code: "not_found",
+          message: "Folder not found.",
+          doc_url: "https://dub.co/docs/api-reference/errors#not-found",
+        },
+      },
+    },
+  },
+  {
+    name: "create link in folder without write access",
+    body: {
+      domain,
+      url,
+      folderId: "fold_0lo6YZoVBvAyFg62SKTgDXTT",
+    },
+    expected: {
+      status: 403,
+      data: {
+        error: {
+          code: "forbidden",
+          message: "You are not allowed to perform this action on this folder.",
+          doc_url: "https://dub.co/docs/api-reference/errors#forbidden",
+        },
+      },
+    },
+  },
 ];
 
 cases.forEach(({ name, body, expected }) => {
