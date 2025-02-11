@@ -153,6 +153,7 @@ export const PATCH = withWorkspace(
       workspace,
       skipKeyChecks,
       skipExternalIdChecks,
+      skipFolderChecks: true,
     });
 
     if (error) {

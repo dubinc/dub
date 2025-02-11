@@ -30,14 +30,29 @@ export const PUT = withWorkspace(
     });
 
     if (link) {
-      if (link.folderId) {
-        await verifyFolderAccess({
-          workspaceId: workspace.id,
-          userId: session.user.id,
-          folderId: link.folderId,
-          requiredPermission: "folders.links.write",
-        });
-      }
+      await Promise.all([
+        ...(link.folderId
+          ? [
+              verifyFolderAccess({
+                workspaceId: workspace.id,
+                userId: session.user.id,
+                folderId: link.folderId,
+                requiredPermission: "folders.links.write",
+              }),
+            ]
+          : []),
+
+        ...(body.folderId
+          ? [
+              verifyFolderAccess({
+                workspaceId: workspace.id,
+                userId: session.user.id,
+                folderId: body.folderId,
+                requiredPermission: "folders.links.write",
+              }),
+            ]
+          : []),
+      ]);
 
       // proceed with /api/links/[linkId] PATCH logic
       const updatedLink = {
@@ -106,6 +121,7 @@ export const PUT = withWorkspace(
         workspace,
         skipKeyChecks,
         skipExternalIdChecks,
+        skipFolderChecks: true,
       });
 
       if (error) {
