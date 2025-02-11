@@ -60,29 +60,15 @@ export const GET = withWorkspace(
         ? await getLinkOrThrow({ workspaceId: workspace.id, domain, key })
         : null;
 
-    await Promise.all([
-      ...(link && link.folderId
-        ? [
-            verifyFolderAccess({
-              workspaceId: workspace.id,
-              userId: session.user.id,
-              folderId: link.folderId,
-              requiredPermission: "folders.read",
-            }),
-          ]
-        : []),
-
-      ...(folderId
-        ? [
-            verifyFolderAccess({
-              workspaceId: workspace.id,
-              userId: session.user.id,
-              folderId,
-              requiredPermission: "folders.read",
-            }),
-          ]
-        : []),
-    ]);
+    const folderIdToVerify = link?.folderId || folderId;
+    if (folderIdToVerify) {
+      await verifyFolderAccess({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        folderId: folderIdToVerify,
+        requiredPermission: "folders.read",
+      });
+    }
 
     validDateRangeForPlan({
       plan: workspace.plan,

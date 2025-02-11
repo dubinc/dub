@@ -274,29 +274,14 @@ export const PATCH = withWorkspace(
       }
     }
 
-    await Promise.all([
-      // ...(link.folderId
-      //   ? [
-      //       verifyFolderAccess({
-      //         workspaceId: workspace.id,
-      //         userId: session.user.id,
-      //         folderId: link.folderId,
-      //         requiredPermission: "folders.links.write",
-      //       }),
-      //     ]
-      //   : []),
-
-      ...(data.folderId
-        ? [
-            verifyFolderAccess({
-              workspaceId: workspace.id,
-              userId: session.user.id,
-              folderId: data.folderId,
-              requiredPermission: "folders.links.write",
-            }),
-          ]
-        : []),
-    ]);
+    if (data.folderId) {
+      await verifyFolderAccess({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        folderId: data.folderId,
+        requiredPermission: "folders.links.write",
+      });
+    }
 
     const processedLinks = await Promise.all(
       links.map(async (link) =>

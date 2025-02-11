@@ -101,7 +101,10 @@ export const withWorkspace = (
         */
         if (!idOrSlug && !isRestrictedToken) {
           // special case for anonymous link creation
-          if (req.headers.has("dub-anonymous-link-creation")) {
+          if (
+            req.headers.has("dub-anonymous-link-creation") &&
+            req.nextUrl.pathname === "/links"
+          ) {
             // @ts-expect-error
             return await handler({
               req,
