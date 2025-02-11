@@ -145,7 +145,7 @@ export default function ProgramPageClient() {
         </div>
         <div className="mt-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-medium text-neutral-900">
+            <h2 className="text-base font-semibold text-neutral-900">
               Recent earnings
             </h2>
             <Link
@@ -200,11 +200,13 @@ function EarningsChart() {
     <div>
       <div className="flex flex-col-reverse items-start justify-between gap-4 md:flex-row">
         <div>
-          <span className="block text-sm text-neutral-500">Earnings</span>
+          <span className="block text-base font-semibold text-neutral-800">
+            Earnings
+          </span>
           <div className="mt-1.5">
             {total !== undefined ? (
               <NumberFlow
-                className="text-2xl leading-none text-neutral-800"
+                className="text-lg font-medium leading-none text-neutral-600"
                 value={total / 100}
                 format={{
                   style: "currency",
@@ -214,7 +216,7 @@ function EarningsChart() {
                 }}
               />
             ) : (
-              <div className="h-7 w-24 animate-pulse rounded-md bg-neutral-200" />
+              <div className="h-[27px] w-24 animate-pulse rounded-md bg-neutral-200" />
             )}
           </div>
         </div>
@@ -339,30 +341,20 @@ function StatCard({
       href={`/programs/${programSlug}/analytics?event=${event}${getQueryString()?.replace("?", "&")}`}
       className="hover:drop-shadow-card-hover block rounded-md border border-neutral-300 bg-white p-5 pb-3 transition-[filter]"
     >
-      <span className="block text-sm text-neutral-500">{title}</span>
+      <span className="block text-base font-semibold text-neutral-800">
+        {title}
+      </span>
       {total !== undefined ? (
-        <div className="flex items-center gap-1 text-2xl text-neutral-800">
+        <div className="flex items-center gap-1 text-lg font-medium text-neutral-600">
           <NumberFlow
             value={total[event]}
             format={{
               notation: total[event] > 999999 ? "compact" : "standard",
             }}
           />
-          {event === "sales" && (
-            <NumberFlow
-              className="text-base text-neutral-500"
-              value={total.saleAmount / 100}
-              format={{
-                style: "currency",
-                currency: "USD",
-                // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-                trailingZeroDisplay: "stripIfInteger",
-              }}
-            />
-          )}
         </div>
       ) : (
-        <div className="h-8 w-16 animate-pulse rounded-md bg-neutral-200" />
+        <div className="h-[27px] w-16 animate-pulse rounded-md bg-neutral-200" />
       )}
       <div className="mt-2 h-16 w-full">
         {timeseries ? (
