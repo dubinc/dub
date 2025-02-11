@@ -1,7 +1,8 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { RewardfulApi } from "@/lib/rewardful/api";
+import { RewardfulImporter } from "@/lib/rewardful/importer";
 import { prisma } from "@dub/prisma";
-import { RewardfulApi } from "app/api/programs/[programId]/rewardful/importer";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -9,7 +10,10 @@ export const dynamic = "force-dynamic";
 
 const schema = z.object({
   programId: z.string(),
-  action: z.enum(["import-affiliates"]),
+  action: z
+    .enum(["import-affiliates", "import-referrals"])
+    .default("import-referrals"),
+  page: z.number().optional().default(1),
 });
 
 export async function POST(req: Request) {
@@ -17,14 +21,14 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const { programId } = schema.parse(JSON.parse(rawBody));
+    const { programId, action, page } = schema.parse(JSON.parse(rawBody));
 
-    await prisma.program.findUniqueOrThrow({
+    const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
       where: {
         id: programId,
       },
-      select: {
-        id: true,
+      include: {
+        workspace: true,
       },
     });
 
@@ -32,9 +36,22 @@ export async function POST(req: Request) {
       programId,
     });
 
-    const affiliates = await rewardfulApi.listAffiliates();
+    const importer = new RewardfulImporter({
+      programId,
+    });
 
-    console.log(affiliates);
+    // Import affiliates
+    if (action === "import-affiliates") {
+      await importer.importAffiliates({
+        workspace,
+        page,
+      });
+    } else if (action === "import-referrals") {
+      await importer.importReferrals({
+        workspace,
+        page,
+      });
+    }
 
     return NextResponse.json({
       programId,

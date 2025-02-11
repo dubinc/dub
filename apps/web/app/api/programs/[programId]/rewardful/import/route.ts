@@ -1,9 +1,9 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { RewardfulImporter } from "@/lib/rewardful/importer";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { RewardfulImporter } from "../importer";
 
 const schema = z.object({
   apiKey: z.string(),
@@ -22,7 +22,7 @@ export const POST = withWorkspace(async ({ workspace, params, req }) => {
   });
 
   // Start a background job to import
-  await new RewardfulImporter(programId).start({
+  await new RewardfulImporter({ programId }).start({
     apiKey,
     campaignId,
   });
