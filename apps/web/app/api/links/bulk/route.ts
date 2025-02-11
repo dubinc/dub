@@ -14,7 +14,6 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
   checkFolderPermissions,
-  hasFolderPermission,
   verifyFolderAccess,
 } from "@/lib/folder/permissions";
 import { storage } from "@/lib/storage";
@@ -465,36 +464,32 @@ export const DELETE = withWorkspace(
       },
     });
 
-    const uniqueFolderIds = [
-      ...new Set(
-        links
-          .map((link) => link.folderId)
-          .filter((folderId): folderId is string => folderId !== null),
-      ),
-    ];
-
-    let folderAccess: Record<string, boolean> = {};
-
-    if (uniqueFolderIds.length > 0) {
-      folderAccess = Object.fromEntries(
-        await Promise.all(
-          uniqueFolderIds.map(async (folderId) => [
-            folderId,
-            await hasFolderPermission({
-              workspaceId: workspace.id,
-              userId: session.user.id,
-              folderId,
-              requiredPermission: "folders.links.write",
-            }),
-          ]),
+    if (checkIfLinksHaveFolders(links)) {
+      const folderIds = [
+        ...new Set(
+          links.map((link) => link.folderId).filter(Boolean) as string[],
         ),
-      );
-    }
+      ];
 
-    // filter links that the user has access to
-    links = links.filter((link) => {
-      return link.folderId ? folderAccess[link.folderId] : true;
-    });
+      const folderPermissions = await checkFolderPermissions({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        folderIds,
+        requiredPermission: "folders.links.write",
+      });
+
+      links = links.filter((link) => {
+        if (!link.folderId) {
+          return true;
+        }
+
+        const validFolder = folderPermissions.find(
+          (folder) => folder.folderId === link.folderId,
+        );
+
+        return validFolder?.hasPermission ?? false;
+      });
+    }
 
     const { count: deletedCount } = await prisma.link.deleteMany({
       where: {

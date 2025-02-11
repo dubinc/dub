@@ -1,4 +1,3 @@
-import { ProcessedLinkProps } from "../../../types";
-
-export const checkIfLinksHaveFolders = (links: ProcessedLinkProps[]) =>
-  links.some((link) => link.folderId);
+export const checkIfLinksHaveFolders = (
+  links: { folderId?: string | null }[],
+) => links.some((link) => link.folderId);
