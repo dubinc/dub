@@ -106,6 +106,7 @@ export const enrollPartner = async ({
     ...upsertedPartner,
     ...upsertedPartner.programs[0],
     id: upsertedPartner.id,
+    description: upsertedPartner.bio, // TODO: Remove after bio->description migration
     links: [link],
   });
 

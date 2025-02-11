@@ -56,7 +56,7 @@ export const GET = withWorkspace(
       earnings: "totalSaleAmount",
     };
 
-    const partners = await prisma.$queryRaw`
+    const partners = (await prisma.$queryRaw`
       SELECT 
         p.*, 
         pe.id as enrollmentId, 
@@ -102,11 +102,11 @@ export const GET = withWorkspace(
       GROUP BY 
         p.id, pe.id
       ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)}
-      LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`;
+      LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
 
-    // @ts-ignore
     const response = partners.map((partner) => ({
       ...partner,
+      description: partner.bio ?? null, // TODO: Remove after bio->description migration
       createdAt: new Date(partner.enrollmentCreatedAt),
       payoutsEnabled: Boolean(partner.payoutsEnabled),
       clicks: Number(partner.totalClicks),

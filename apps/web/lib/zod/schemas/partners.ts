@@ -54,7 +54,7 @@ export const PartnerSchema = z.object({
   email: z.string().nullable(),
   image: z.string().nullable(),
   country: z.string(),
-  bio: z.string().nullable(),
+  description: z.string().nullable(),
   status: z.nativeEnum(PartnerStatus),
   stripeConnectId: z.string().nullable(),
   couponId: z.string().nullish(),
@@ -69,7 +69,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   name: true,
   email: true,
   image: true,
-  bio: true,
+  description: true,
   country: true,
   createdAt: true,
 })
