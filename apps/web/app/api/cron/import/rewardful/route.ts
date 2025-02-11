@@ -1,7 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { RewardfulApi } from "@/lib/rewardful/api";
-import { RewardfulImporter } from "@/lib/rewardful/importer";
+import { importAffiliates, importReferrals } from "@/lib/rewardful/importer";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -23,32 +22,23 @@ export async function POST(req: Request) {
 
     const { programId, action, page } = schema.parse(JSON.parse(rawBody));
 
-    const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
-      where: {
-        id: programId,
-      },
-      include: {
-        workspace: true,
-      },
-    });
+    // const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
+    //   where: {
+    //     id: programId,
+    //   },
+    //   include: {
+    //     workspace: true,
+    //   },
+    // });
 
-    const rewardfulApi = new RewardfulApi({
-      programId,
-    });
-
-    const importer = new RewardfulImporter({
-      programId,
-    });
-
-    // Import affiliates
     if (action === "import-affiliates") {
-      await importer.importAffiliates({
-        workspace,
+      await importAffiliates({
+        programId,
         page,
       });
     } else if (action === "import-referrals") {
-      await importer.importReferrals({
-        workspace,
+      await importReferrals({
+        programId,
         page,
       });
     }

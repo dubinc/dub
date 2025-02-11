@@ -1,7 +1,7 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { RewardfulImporter } from "@/lib/rewardful/importer";
+import { startRewardfulImport } from "@/lib/rewardful/importer";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -22,9 +22,10 @@ export const POST = withWorkspace(async ({ workspace, params, req }) => {
   });
 
   // Start a background job to import
-  await new RewardfulImporter({ programId }).start({
-    apiKey,
+  await startRewardfulImport({
+    programId,
     campaignId,
+    apiKey,
   });
 
   return NextResponse.json(program);
