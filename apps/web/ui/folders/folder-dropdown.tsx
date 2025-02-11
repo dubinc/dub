@@ -13,12 +13,14 @@ import { FolderIcon } from "./folder-icon";
 
 interface FolderDropdownProps {
   onFolderSelect: (folder: FolderSummary) => void;
+  hideViewAll?: boolean;
   hideFolderIcon?: boolean;
   textClassName?: string;
 }
 
 export const FolderDropdown = ({
   onFolderSelect,
+  hideViewAll = false,
   hideFolderIcon = false,
   textClassName,
 }: FolderDropdownProps) => {
@@ -57,16 +59,18 @@ export const FolderDropdown = ({
       <Popover
         content={
           <div className="relative mt-1 max-h-80 w-full space-y-0.5 overflow-auto rounded-md bg-white p-2 text-base sm:w-60 sm:text-sm sm:shadow-lg">
-            <div className="flex items-center justify-between px-2 pb-1">
-              <p className="text-xs font-medium text-neutral-500">Folders</p>
-              <Link
-                href={`/${slug}/settings/library/folders`}
-                onClick={() => setOpenPopover(false)}
-                className="rounded-md border border-neutral-200 px-2 py-1 text-xs transition-colors hover:bg-neutral-100"
-              >
-                View All
-              </Link>
-            </div>
+            {!hideViewAll && (
+              <div className="flex items-center justify-between px-2 pb-1">
+                <p className="text-xs font-medium text-neutral-500">Folders</p>
+                <Link
+                  href={`/${slug}/settings/library/folders`}
+                  onClick={() => setOpenPopover(false)}
+                  className="rounded-md border border-neutral-200 px-2 py-1 text-xs transition-colors hover:bg-neutral-100"
+                >
+                  View All
+                </Link>
+              </div>
+            )}
 
             {[unsortedLinks, ...(folders || [])].map((folder) => {
               return (
