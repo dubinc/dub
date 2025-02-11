@@ -1,6 +1,7 @@
 "use client";
 
-import useTags from "@/lib/swr/use-tags";
+import useFoldersCount from "@/lib/swr/use-folders-count";
+import useTagsCount from "@/lib/swr/use-tags-count";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
 import PlanBadge from "@/ui/workspaces/plan-badge";
@@ -10,6 +11,7 @@ import {
   CircleDollar,
   CrownSmall,
   CursorRays,
+  Folder5,
   Globe,
   Hyperlink,
   Tag,
@@ -40,12 +42,15 @@ export default function PlanUsage() {
     linksLimit,
     domains,
     domainsLimit,
+    foldersLimit,
     tagsLimit,
     usersLimit,
     billingCycleStart,
+    flags,
   } = useWorkspace();
 
-  const { tags } = useTags();
+  const { data: folders } = useFoldersCount();
+  const { data: tags } = useTagsCount();
   const { users } = useUsers();
 
   const [billingStart, billingEnd] = useMemo(() => {
@@ -147,17 +152,30 @@ export default function PlanUsage() {
             <UsageChart />
           </div>
         </div>
-        <div className="grid grid-cols-1 divide-y divide-neutral-200 sm:divide-x sm:divide-y-0 md:grid-cols-3">
+        <div
+          className={cn(
+            "grid grid-cols-1 divide-y divide-neutral-200 sm:divide-x sm:divide-y-0 md:grid-cols-3",
+            flags?.linkFolders && "md:grid-cols-4",
+          )}
+        >
           <UsageCategory
             title="Custom Domains"
             icon={Globe}
             usage={domains?.length}
             usageLimit={domainsLimit}
           />
+          {flags?.linkFolders && (
+            <UsageCategory
+              title="Folders"
+              icon={Folder5}
+              usage={folders}
+              usageLimit={foldersLimit}
+            />
+          )}
           <UsageCategory
             title="Tags"
             icon={Tag}
-            usage={tags?.length}
+            usage={tags}
             usageLimit={tagsLimit}
           />
           <UsageCategory

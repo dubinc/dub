@@ -7,7 +7,7 @@ async function main() {
       plan: "free",
     },
     data: {
-      foldersLimit: 3,
+      foldersLimit: 0,
     },
   });
 

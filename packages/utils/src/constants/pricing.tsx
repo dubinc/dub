@@ -132,7 +132,7 @@ export const PLANS = [
       sales: 0,
       domains: 3,
       tags: 5,
-      folders: 3,
+      folders: 0,
       users: 1,
       ai: 10,
       api: 60,
