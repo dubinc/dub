@@ -260,7 +260,7 @@ export const PATCH = withWorkspace(
       return NextResponse.json("No links to update", { headers });
     }
 
-    const links = await prisma.link.findMany({
+    let links = await prisma.link.findMany({
       where: {
         projectId: workspace.id,
         ...(linkIds.length > 0
@@ -331,6 +331,43 @@ export const PATCH = withWorkspace(
         userId: session.user.id,
         folderId: data.folderId,
         requiredPermission: "folders.links.write",
+      });
+    }
+
+    if (checkIfLinksHaveFolders(links)) {
+      const folderIds = [
+        ...new Set(
+          links.map((link) => link.folderId).filter(Boolean) as string[],
+        ),
+      ];
+
+      const folderPermissions = await checkFolderPermissions({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        folderIds,
+        requiredPermission: "folders.links.write",
+      });
+
+      links = links.filter((link) => {
+        if (!link.folderId) {
+          return true;
+        }
+
+        const validFolder = folderPermissions.find(
+          (folder) => folder.folderId === link.folderId,
+        );
+
+        if (!validFolder?.hasPermission) {
+          errorLinks.push({
+            error: `You don't have permission to move this link to the folder: ${link.folderId}`,
+            code: "forbidden",
+            link,
+          });
+
+          return false;
+        }
+
+        return true;
       });
     }
 
