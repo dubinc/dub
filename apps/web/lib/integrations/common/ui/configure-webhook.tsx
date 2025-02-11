@@ -92,19 +92,19 @@ export function ConfigureWebhook({
 
   return (
     <form onSubmit={onSubmit}>
-      <div className="w-full rounded-lg border border-gray-200 bg-white">
-        <div className="flex items-center gap-x-2 border-b border-gray-200 px-6 py-4">
+      <div className="w-full rounded-lg border border-neutral-200 bg-white">
+        <div className="flex items-center gap-x-2 border-b border-neutral-200 px-6 py-4">
           <Link className="size-4" />
-          <p className="text-sm font-medium text-gray-700">Webhook events</p>
+          <p className="text-sm font-medium text-neutral-700">Webhook events</p>
         </div>
 
         <div className="p-4">
           <div>
             <label htmlFor="triggers" className="flex flex-col gap-1">
-              <h2 className="text-sm font-medium text-gray-900">
+              <h2 className="text-sm font-medium text-neutral-900">
                 Workspace level events
               </h2>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-neutral-500">
                 These events are triggered at the workspace level.
               </span>
             </label>
@@ -138,9 +138,9 @@ export function ConfigureWebhook({
                   <label
                     htmlFor={trigger}
                     className={cn(
-                      "select-none text-sm text-gray-600",
+                      "select-none text-sm text-neutral-600",
                       supportedEvents.includes(trigger)
-                        ? "group-hover:text-gray-800"
+                        ? "group-hover:text-neutral-800"
                         : "opacity-50",
                     )}
                   >
@@ -153,13 +153,13 @@ export function ConfigureWebhook({
 
           <div className="mt-6">
             <label htmlFor="triggers" className="flex flex-col gap-1">
-              <h2 className="text-sm font-medium text-gray-900">
+              <h2 className="text-sm font-medium text-neutral-900">
                 Link level events{" "}
                 <span className="rounded bg-yellow-100 px-1 py-0.5 text-xs font-medium text-yellow-800">
                   High traffic
                 </span>
               </h2>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-neutral-500">
                 These events are triggered at the link level.
               </span>
             </label>
@@ -182,7 +182,7 @@ export function ConfigureWebhook({
                   />
                   <label
                     htmlFor={trigger}
-                    className="flex select-none items-center gap-2 text-sm text-gray-600 group-hover:text-gray-800"
+                    className="flex select-none items-center gap-2 text-sm text-neutral-600 group-hover:text-neutral-800"
                   >
                     {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
                   </label>
@@ -192,7 +192,7 @@ export function ConfigureWebhook({
 
             {enableLinkSelection || linkIds.length ? (
               <div className="mt-4">
-                <h2 className="text-sm font-medium text-gray-900">
+                <h2 className="text-sm font-medium text-neutral-900">
                   Choose links we should send events for
                 </h2>
                 <div className="mt-3">
@@ -212,7 +212,7 @@ export function ConfigureWebhook({
           </div>
         </div>
 
-        <div className="flex items-center justify-end rounded-b-lg border-t border-gray-200 bg-gray-50 px-4 py-3">
+        <div className="flex items-center justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-4 py-3">
           <div className="shrink-0">
             <Button
               text="Save changes"

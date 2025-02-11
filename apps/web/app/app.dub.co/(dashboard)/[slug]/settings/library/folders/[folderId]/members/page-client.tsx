@@ -98,22 +98,22 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
         className="flex items-center gap-x-1"
       >
         <ChevronLeft className="size-4" />
-        <p className="text-sm font-medium text-gray-500">Folders</p>
+        <p className="text-sm font-medium text-neutral-500">Folders</p>
       </Link>
 
-      <div className="rounded-lg border border-gray-200 bg-white">
+      <div className="rounded-lg border border-neutral-200 bg-white">
         <div className="flex items-center justify-between border-b px-5 py-6 sm:flex-row sm:space-y-0">
           {folder ? (
             <>
               <div className="flex items-center gap-x-6">
                 <FolderIcon folder={folder} />
                 <div className="flex flex-col gap-2">
-                  <span className="text-sm font-semibold leading-none text-gray-900">
+                  <span className="text-sm font-semibold leading-none text-neutral-900">
                     {folder.name}
                   </span>
                   <div className="flex items-center gap-1">
-                    <Globe className="size-3.5 text-gray-500" />
-                    <span className="text-[13px] font-normal leading-[14.30px] text-gray-500">
+                    <Globe className="size-3.5 text-neutral-500" />
+                    <span className="text-[13px] font-normal leading-[14.30px] text-neutral-500">
                       {nFormatter(folder.linkCount)} link
                       {folder.linkCount !== 1 && "s"}
                     </span>
@@ -135,7 +135,7 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
                   />
 
                   <select
-                    className="appearance-none rounded-md border border-gray-200 bg-white pl-10 pr-8 text-sm text-gray-900 focus:border-gray-300 focus:ring-gray-300"
+                    className="appearance-none rounded-md border border-neutral-200 bg-white pl-10 pr-8 text-sm text-neutral-900 focus:border-neutral-300 focus:ring-neutral-300"
                     value={workspaceAccessLevel || folder?.accessLevel || ""}
                     disabled={isUpdating}
                     onChange={(e) => {
@@ -166,7 +166,7 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
           )}
         </div>
 
-        <div className="grid divide-y divide-gray-200">
+        <div className="grid divide-y divide-neutral-200">
           {isUsersValidating || isUsersLoading
             ? Array.from({ length: 5 }).map((_, i) => (
                 <FolderUserPlaceholder key={i} />
@@ -218,10 +218,10 @@ const FolderUserRow = ({
         <div className="flex items-center space-x-3">
           <Avatar user={user} />
           <div className="flex flex-col">
-            <h3 className="text-xs font-medium text-gray-800">
+            <h3 className="text-xs font-medium text-neutral-800">
               {user.name || user.email}
             </h3>
-            <p className="text-xs font-normal text-gray-400">{user.email}</p>
+            <p className="text-xs font-normal text-neutral-400">{user.email}</p>
           </div>
         </div>
       </div>
@@ -229,9 +229,9 @@ const FolderUserRow = ({
       <div className="flex items-center gap-x-3">
         <select
           className={cn(
-            "rounded-md border border-gray-200 text-xs text-gray-900 focus:border-gray-600 focus:ring-gray-600",
+            "rounded-md border border-neutral-200 text-xs text-neutral-900 focus:border-neutral-600 focus:ring-neutral-600",
             {
-              "cursor-not-allowed bg-gray-100": disableRoleUpdate,
+              "cursor-not-allowed bg-neutral-100": disableRoleUpdate,
             },
           )}
           value={role === null ? "" : role}
@@ -271,28 +271,28 @@ const FolderUserRow = ({
 const FolderPlaceholder = () => (
   <>
     <div className="flex items-center gap-x-4">
-      <div className="h-10 w-10 animate-pulse rounded-full bg-gray-200" />
+      <div className="h-10 w-10 animate-pulse rounded-full bg-neutral-200" />
       <div className="flex flex-col gap-2">
-        <div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
+        <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
         <div className="flex items-center gap-1">
-          <div className="h-3.5 w-3.5 animate-pulse rounded bg-gray-200" />
-          <div className="h-3 w-24 animate-pulse rounded bg-gray-200" />
+          <div className="h-3.5 w-3.5 animate-pulse rounded bg-neutral-200" />
+          <div className="h-3 w-24 animate-pulse rounded bg-neutral-200" />
         </div>
       </div>
     </div>
-    <div className="h-6 w-24 animate-pulse rounded bg-gray-200" />
+    <div className="h-6 w-24 animate-pulse rounded bg-neutral-200" />
   </>
 );
 
 const FolderUserPlaceholder = () => (
   <div className="flex items-center justify-between space-x-3 px-5 py-3">
     <div className="flex items-center space-x-3">
-      <div className="h-10 w-10 animate-pulse rounded-full bg-gray-200" />
+      <div className="h-10 w-10 animate-pulse rounded-full bg-neutral-200" />
       <div className="flex flex-col">
-        <div className="h-4 w-24 animate-pulse rounded bg-gray-200" />
-        <div className="mt-1 h-3 w-32 animate-pulse rounded bg-gray-200" />
+        <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
+        <div className="mt-1 h-3 w-32 animate-pulse rounded bg-neutral-200" />
       </div>
     </div>
-    <div className="h-3 w-24 animate-pulse rounded bg-gray-200" />
+    <div className="h-3 w-24 animate-pulse rounded bg-neutral-200" />
   </div>
 );

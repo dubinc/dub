@@ -63,12 +63,12 @@ export const FolderDropdown = ({
           folders && (
             <div className="relative mt-1 max-h-80 w-full space-y-0.5 overflow-auto rounded-md bg-white p-2 text-base sm:w-60 sm:text-sm sm:shadow-lg">
               <div className="flex items-center justify-between px-2 pb-1">
-                <p className="text-xs font-medium text-gray-500">Folders</p>
+                <p className="text-xs font-medium text-neutral-500">Folders</p>
                 {!hideViewAll && folders.length > 0 && (
                   <Link
                     href={`/${workspaceSlug}/settings/library/folders`}
                     onClick={() => setOpenPopover(false)}
-                    className="rounded-md border border-gray-200 px-2 py-1 text-xs transition-colors hover:bg-gray-100"
+                    className="rounded-md border border-neutral-200 px-2 py-1 text-xs transition-colors hover:bg-neutral-100"
                   >
                     View All
                   </Link>
@@ -80,7 +80,7 @@ export const FolderDropdown = ({
                   <button
                     key={folder.id}
                     className={cn(
-                      "relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200",
+                      "relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75 hover:bg-neutral-100 active:bg-neutral-200",
                       {
                         "font-medium": selectedFolder?.id === folder.id,
                       },
@@ -102,7 +102,7 @@ export const FolderDropdown = ({
                       <span className="truncate">{folder.name}</span>
 
                       {folder.id === "unsorted" && (
-                        <div className="rounded bg-gray-100 p-1">
+                        <div className="rounded bg-neutral-100 p-1">
                           <div className="text-xs font-normal text-black">
                             Unsorted
                           </div>
@@ -121,7 +121,7 @@ export const FolderDropdown = ({
 
               <button
                 key="add-folder"
-                className="relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
+                className="relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75 hover:bg-neutral-100 active:bg-neutral-200"
                 onClick={() => {
                   setOpenPopover(false);
                   setShowAddFolderModal(true);

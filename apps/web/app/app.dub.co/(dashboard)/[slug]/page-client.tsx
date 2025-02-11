@@ -102,13 +102,13 @@ function WorkspaceLinks() {
                   emptyState={{
                     tagIds: (
                       <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
-                        <div className="flex items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 p-3">
-                          <Tag className="size-6 text-gray-700" />
+                        <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+                          <Tag className="size-6 text-neutral-700" />
                         </div>
-                        <p className="mt-2 font-medium text-gray-950">
+                        <p className="mt-2 font-medium text-neutral-950">
                           No tags found
                         </p>
-                        <p className="mx-auto mt-1 w-full max-w-[180px] text-gray-700">
+                        <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">
                           Add tags to organize your links
                         </p>
                         <div>
@@ -122,13 +122,13 @@ function WorkspaceLinks() {
                     ),
                     domain: (
                       <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
-                        <div className="flex items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 p-3">
-                          <Globe className="size-6 text-gray-700" />
+                        <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+                          <Globe className="size-6 text-neutral-700" />
                         </div>
-                        <p className="mt-2 font-medium text-gray-950">
+                        <p className="mt-2 font-medium text-neutral-950">
                           No domains found
                         </p>
-                        <p className="mx-auto mt-1 w-full max-w-[180px] text-gray-700">
+                        <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">
                           Add a custom domain to match your brand
                         </p>
                         <div>
@@ -159,8 +159,8 @@ function WorkspaceLinks() {
 
               {isLoading ? (
                 <div className="flex grow-0 animate-pulse items-center space-x-2">
-                  <div className="h-10 w-24 rounded-md bg-gray-200" />
-                  <div className="h-10 w-10 rounded-md bg-gray-200" />
+                  <div className="h-10 w-24 rounded-md bg-neutral-200" />
+                  <div className="h-10 w-10 rounded-md bg-neutral-200" />
                 </div>
               ) : canCreateLinks ? (
                 <>
@@ -216,7 +216,7 @@ const MoreLinkOptions = () => {
         content={
           <div className="w-full md:w-52">
             <div className="grid gap-px p-2">
-              <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-gray-500">
+              <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-neutral-500">
                 Import Links
               </p>
               <ImportOption
@@ -286,9 +286,9 @@ const MoreLinkOptions = () => {
                 />
               </ImportOption>
             </div>
-            <div className="border-t border-gray-200" />
+            <div className="border-t border-neutral-200" />
             <div className="grid gap-px p-2">
-              <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-gray-500">
+              <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-neutral-500">
                 Export Links
               </p>
               <button
@@ -296,7 +296,7 @@ const MoreLinkOptions = () => {
                   setOpenPopover(false);
                   setShowExportLinksModal(true);
                 }}
-                className="w-full rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
+                className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200"
               >
                 <IconMenu
                   text="Export as CSV"
@@ -314,7 +314,7 @@ const MoreLinkOptions = () => {
           onClick={() => setOpenPopover(!openPopover)}
           variant="secondary"
           className="w-auto px-1.5"
-          icon={<ThreeDots className="h-5 w-5 text-gray-500" />}
+          icon={<ThreeDots className="h-5 w-5 text-neutral-500" />}
         />
       </Popover>
     </>
@@ -342,14 +342,14 @@ function ImportOption({
         />
       }
     >
-      <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-gray-400 [&_img]:grayscale">
+      <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-neutral-400 [&_img]:grayscale">
         {children}
       </div>
     </Tooltip>
   ) : (
     <button
       onClick={onClick}
-      className="w-full rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
+      className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200"
     >
       {children}
     </button>

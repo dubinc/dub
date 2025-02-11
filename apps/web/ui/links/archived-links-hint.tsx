@@ -26,11 +26,11 @@ function ArchivedLinksHintHelper() {
       <Tooltip
         side="top"
         content={
-          <div className="px-3 py-2 text-sm text-gray-500">
+          <div className="px-3 py-2 text-sm text-neutral-500">
             <div className="flex items-center gap-4">
               <span>
                 You have{" "}
-                <span className="font-medium text-gray-950">
+                <span className="font-medium text-neutral-950">
                   {archivedCount}
                 </span>{" "}
                 archived {pluralize("link", archivedCount)} that match
@@ -48,7 +48,7 @@ function ArchivedLinksHintHelper() {
           </div>
         }
       >
-        <div className="flex cursor-default items-center gap-1.5 rounded-md bg-gray-100 px-2 py-0.5 text-sm font-medium text-gray-950 hover:bg-gray-200">
+        <div className="flex cursor-default items-center gap-1.5 rounded-md bg-neutral-100 px-2 py-0.5 text-sm font-medium text-neutral-950 hover:bg-neutral-200">
           <BoxArchive className="h-3 w-3" />
           {archivedCount}
         </div>

@@ -23,7 +23,7 @@ export default function ProgramOverviewPageClient() {
 
   return (
     <div className="mb-10">
-      <div className="rounded-lg border border-neutral-200 bg-gray-50 p-3">
+      <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,3fr)] lg:gap-10">
           <OverviewChart />
           <div className="relative flex flex-col overflow-hidden rounded-lg bg-neutral-800">

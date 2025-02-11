@@ -6,7 +6,7 @@ export default function CustomDomainLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col justify-between bg-gray-50/80">
+    <div className="flex min-h-screen flex-col justify-between bg-neutral-50/80">
       <NavMobile />
       <Nav maxWidthWrapperClassName="max-w-screen-lg lg:px-4 xl:px-0" />
       {children}

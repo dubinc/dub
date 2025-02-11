@@ -115,7 +115,7 @@ export default function AnalyticsAreaChart({
           tooltipContent={(d) => {
             return (
               <>
-                <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
+                <p className="border-b border-neutral-200 px-4 py-3 text-sm text-neutral-900">
                   {formatDateTooltip(d.date, {
                     interval: demo ? "day" : interval,
                     start,
@@ -134,9 +134,9 @@ export default function AnalyticsAreaChart({
                           )}
                         />
                       )}
-                      <p className="capitalize text-gray-600">{resource}</p>
+                      <p className="capitalize text-neutral-600">{resource}</p>
                     </div>
-                    <p className="text-right font-medium text-gray-900">
+                    <p className="text-right font-medium text-neutral-900">
                       {resource === "sales" && saleUnit === "saleAmount"
                         ? currencyFormatter(d.values.saleAmount)
                         : nFormatter(d.values[resource], { full: true })}

@@ -3,7 +3,7 @@ import EmptyState from "../shared/empty-state";
 
 export const NoEventsPlaceholder = () => {
   return (
-    <div className="rounded-xl border border-gray-200 py-10">
+    <div className="rounded-xl border border-neutral-200 py-10">
       <EmptyState
         icon={Webhook}
         title="No events"

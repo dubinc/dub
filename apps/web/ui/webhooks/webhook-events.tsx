@@ -74,7 +74,7 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="flex items-center justify-between gap-5 px-3.5 py-3 hover:bg-gray-50 focus:outline-none"
+        className="flex items-center justify-between gap-5 px-3.5 py-3 hover:bg-neutral-50 focus:outline-none"
       >
         <div className="flex items-center gap-5">
           <div className="flex items-center gap-2.5">
@@ -93,12 +93,12 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
                 )}
               </div>
             </Tooltip>
-            <div className="text-sm text-gray-500">{event.http_status}</div>
+            <div className="text-sm text-neutral-500">{event.http_status}</div>
           </div>
-          <div className="text-sm text-gray-500">{event.event}</div>
+          <div className="text-sm text-neutral-500">{event.event}</div>
         </div>
 
-        <div className="text-xs text-gray-400">
+        <div className="text-xs text-neutral-400">
           {(() => {
             const date = new Date(event.timestamp);
             const localDate = new Date(
@@ -129,7 +129,9 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
             </Sheet.Close>
           </div>
           <div className="group flex items-center gap-2">
-            <p className="font-mono text-sm text-gray-500">{event.event_id}</p>
+            <p className="font-mono text-sm text-neutral-500">
+              {event.event_id}
+            </p>
             <ButtonTooltip
               tooltipProps={{
                 content: "Copy event ID",
@@ -144,18 +146,18 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
             </ButtonTooltip>
           </div>
         </div>
-        <div className="grid gap-4 border-t border-gray-200 bg-white p-6">
+        <div className="grid gap-4 border-t border-neutral-200 bg-white p-6">
           <h4 className="font-semibold">Response</h4>
           <div className="flex items-center gap-8">
-            <p className="text-sm text-gray-500">HTTP status code</p>
-            <p className="text-sm text-gray-700">{event.http_status}</p>
+            <p className="text-sm text-neutral-500">HTTP status code</p>
+            <p className="text-sm text-neutral-700">{event.http_status}</p>
           </div>
           <div
             className="shiki-wrapper overflow-y-scroll text-sm"
             dangerouslySetInnerHTML={{ __html: responseBody }}
           />
         </div>
-        <div className="grid gap-4 border-t border-gray-200 bg-white p-6">
+        <div className="grid gap-4 border-t border-neutral-200 bg-white p-6">
           <h4 className="font-semibold">Request</h4>
           <div
             className="shiki-wrapper overflow-y-scroll text-sm"
@@ -169,8 +171,8 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
 
 export const WebhookEventList = ({ events }: EventListProps) => {
   return (
-    <div className="overflow-hidden rounded-md border border-gray-200">
-      <div className="flex flex-col divide-y divide-gray-200">
+    <div className="overflow-hidden rounded-md border border-neutral-200">
+      <div className="flex flex-col divide-y divide-neutral-200">
         {events.map((event, index) => (
           <WebhookEvent key={index} event={event} />
         ))}

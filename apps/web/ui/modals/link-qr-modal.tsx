@@ -166,14 +166,15 @@ function LinkQRModalInner({
         <div className="max-md:hidden">
           <Tooltip
             content={
-              <div className="px-2 py-1 text-xs text-gray-700">
-                Press <strong className="font-medium text-gray-950">Q</strong>{" "}
-                to open this quickly
+              <div className="px-2 py-1 text-xs text-neutral-700">
+                Press{" "}
+                <strong className="font-medium text-neutral-950">Q</strong> to
+                open this quickly
               </div>
             }
             side="right"
           >
-            <kbd className="flex size-6 cursor-default items-center justify-center rounded-md border border-gray-200 font-sans text-xs text-gray-950">
+            <kbd className="flex size-6 cursor-default items-center justify-center rounded-md border border-neutral-200 font-sans text-xs text-neutral-950">
               Q
             </kbd>
           </Tooltip>
@@ -183,7 +184,7 @@ function LinkQRModalInner({
       <div>
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-neutral-700">
               QR Code Preview
             </span>
             <InfoTooltip
@@ -205,7 +206,7 @@ function LinkQRModalInner({
                       content: "Download QR code",
                     }}
                   >
-                    <Download className="h-4 w-4 text-gray-500" />
+                    <Download className="h-4 w-4 text-neutral-500" />
                   </ButtonTooltip>
                 </div>
               </DownloadPopover>
@@ -216,14 +217,14 @@ function LinkQRModalInner({
                       content: "Copy QR code",
                     }}
                   >
-                    <Copy className="h-4 w-4 text-gray-500" />
+                    <Copy className="h-4 w-4 text-neutral-500" />
                   </ButtonTooltip>
                 </div>
               </CopyPopover>
             </div>
           )}
         </div>
-        <div className="relative mt-2 flex h-44 items-center justify-center overflow-hidden rounded-md border border-gray-300">
+        <div className="relative mt-2 flex h-44 items-center justify-center overflow-hidden rounded-md border border-neutral-300">
           {!isMobile && (
             <ShimmerDots className="opacity-30 [mask-image:radial-gradient(40%_80%,transparent_50%,black)]" />
           )}
@@ -254,7 +255,7 @@ function LinkQRModalInner({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <label
-            className="text-sm font-medium text-gray-700"
+            className="text-sm font-medium text-neutral-700"
             htmlFor={`${id}-show-logo`}
           >
             Logo
@@ -299,7 +300,7 @@ function LinkQRModalInner({
 
       {/* Color selector */}
       <div>
-        <span className="block text-sm font-medium text-gray-700">
+        <span className="block text-sm font-medium text-neutral-700">
           QR Code Color
         </span>
         <div className="mt-2 flex gap-6">
@@ -329,7 +330,7 @@ function LinkQRModalInner({
               onChange={onColorChange}
               prefixed
               style={{ borderColor: data.fgColor }}
-              className="block w-full rounded-r-md border-2 border-l-0 pl-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-black sm:text-sm"
+              className="block w-full rounded-r-md border-2 border-l-0 pl-3 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-black sm:text-sm"
             />
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-3">
@@ -408,7 +409,7 @@ function DownloadPopover({
               onClick={async () => {
                 download(await getQRAsSVGDataUri(qrData), "svg");
               }}
-              className="rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+              className="rounded-md p-2 text-left text-sm font-medium text-neutral-500 transition-all duration-75 hover:bg-neutral-100"
             >
               <IconMenu
                 text="Download SVG"
@@ -423,7 +424,7 @@ function DownloadPopover({
                   "png",
                 );
               }}
-              className="rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+              className="rounded-md p-2 text-left text-sm font-medium text-neutral-500 transition-all duration-75 hover:bg-neutral-100"
             >
               <IconMenu
                 text="Download PNG"
@@ -438,7 +439,7 @@ function DownloadPopover({
                   "jpg",
                 );
               }}
-              className="rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+              className="rounded-md p-2 text-left text-sm font-medium text-neutral-500 transition-all duration-75 hover:bg-neutral-100"
             >
               <IconMenu
                 text="Download JPEG"
@@ -501,7 +502,7 @@ function CopyPopover({
                 error: "Failed to copy",
               });
             }}
-            className="rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+            className="rounded-md p-2 text-left text-sm font-medium text-neutral-500 transition-all duration-75 hover:bg-neutral-100"
           >
             <IconMenu
               text="Copy Image"
@@ -529,7 +530,7 @@ function CopyPopover({
               });
               setOpenPopover(false);
             }}
-            className="rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+            className="rounded-md p-2 text-left text-sm font-medium text-neutral-500 transition-all duration-75 hover:bg-neutral-100"
           >
             <IconMenu
               text="Copy URL"

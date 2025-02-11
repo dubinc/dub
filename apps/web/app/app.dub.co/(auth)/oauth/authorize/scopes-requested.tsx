@@ -35,7 +35,7 @@ export const ScopesRequested = ({ scopes }: ScopesProps) => {
 
   return (
     <>
-      <span className="text-gray-600">Grant permissions:</span>
+      <span className="text-neutral-600">Grant permissions:</span>
       <ul className="text-md space-y-1">
         {scopeWithDescriptions.map((scope) => {
           return (

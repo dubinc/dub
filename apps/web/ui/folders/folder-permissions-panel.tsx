@@ -122,7 +122,7 @@ const FolderPermissionsPanel = ({
               </Drawer.Close>
             </div>
             <div className="px-8 py-6">
-              <div className="flex flex-col justify-between rounded-xl border border-gray-200 bg-white px-5 py-4 sm:h-36">
+              <div className="flex flex-col justify-between rounded-xl border border-neutral-200 bg-white px-5 py-4 sm:h-36">
                 <div className="flex items-start justify-between">
                   <FolderIcon folder={folder} />
                   {!isLoadingPermissions && !canCreateLinks && (
@@ -133,10 +133,10 @@ const FolderPermissionsPanel = ({
                   )}
                 </div>
                 <div>
-                  <span className="flex items-center justify-start gap-1.5 text-sm font-medium text-gray-900">
+                  <span className="flex items-center justify-start gap-1.5 text-sm font-medium text-neutral-900">
                     <span className="truncate">{folder.name}</span>
                     {folder.id === "unsorted" && (
-                      <div className="rounded bg-gray-100 p-1">
+                      <div className="rounded bg-neutral-100 p-1">
                         <div className="text-xs font-normal text-black">
                           Unsorted
                         </div>
@@ -144,7 +144,7 @@ const FolderPermissionsPanel = ({
                     )}
                   </span>
 
-                  <div className="mt-1.5 flex items-center gap-1 text-gray-500">
+                  <div className="mt-1.5 flex items-center gap-1 text-neutral-500">
                     <Globe className="size-3.5" />
                     <span className="text-sm font-normal">
                       {nFormatter(folder.linkCount)} link
@@ -178,8 +178,8 @@ const FolderPermissionsPanel = ({
 
                   <select
                     className={cn(
-                      "appearance-none rounded-md border border-gray-200 bg-white pl-3 pr-8 text-sm text-gray-900 focus:border-gray-300 focus:ring-gray-300",
-                      !canUpdateFolder && "cursor-not-allowed bg-gray-100",
+                      "appearance-none rounded-md border border-neutral-200 bg-white pl-3 pr-8 text-sm text-neutral-900 focus:border-neutral-300 focus:ring-neutral-300",
+                      !canUpdateFolder && "cursor-not-allowed bg-neutral-100",
                     )}
                     value={workspaceAccessLevel || folder?.accessLevel || ""}
                     disabled={
@@ -260,10 +260,10 @@ const FolderUserRow = ({
       <div className="flex min-w-12 items-center gap-3">
         <Avatar user={user} className="size-8" />
         <div className="min-w-0">
-          <h3 className="truncate text-xs font-medium text-gray-800">
+          <h3 className="truncate text-xs font-medium text-neutral-800">
             {user.name || user.email}
           </h3>
-          <p className="truncate text-xs font-normal text-gray-400">
+          <p className="truncate text-xs font-normal text-neutral-400">
             {user.email}
           </p>
         </div>
@@ -272,8 +272,8 @@ const FolderUserRow = ({
       <div className="flex items-center gap-3">
         <select
           className={cn(
-            "cursor-pointer appearance-none rounded-md border border-gray-200 bg-white pl-3 pr-8 text-sm text-gray-900 focus:border-gray-300 focus:ring-gray-300",
-            disableRoleUpdate && "cursor-not-allowed bg-gray-100",
+            "cursor-pointer appearance-none rounded-md border border-neutral-200 bg-white pl-3 pr-8 text-sm text-neutral-900 focus:border-neutral-300 focus:ring-neutral-300",
+            disableRoleUpdate && "cursor-not-allowed bg-neutral-100",
           )}
           value={role === null ? "" : role}
           disabled={disableRoleUpdate}
@@ -312,13 +312,13 @@ const FolderUserRow = ({
 const FolderUserPlaceholder = () => (
   <div className="flex items-center justify-between gap-3">
     <div className="flex items-center gap-3">
-      <div className="size-8 animate-pulse rounded-full bg-gray-200" />
+      <div className="size-8 animate-pulse rounded-full bg-neutral-200" />
       <div className="flex flex-col">
-        <div className="h-4 w-24 animate-pulse rounded bg-gray-200" />
-        <div className="mt-1 h-3 w-32 animate-pulse rounded bg-gray-200" />
+        <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
+        <div className="mt-1 h-3 w-32 animate-pulse rounded bg-neutral-200" />
       </div>
     </div>
-    <div className="my-px h-9 w-24 animate-pulse rounded bg-gray-200" />
+    <div className="my-px h-9 w-24 animate-pulse rounded bg-neutral-200" />
   </div>
 );
 

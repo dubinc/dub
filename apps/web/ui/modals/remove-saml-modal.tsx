@@ -27,7 +27,7 @@ function RemoveSAMLModal({
       showModal={showRemoveSAMLModal}
       setShowModal={setShowRemoveSAMLModal}
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
+      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 sm:px-16">
         {logo ? (
           <BlurImage
             src={logo}
@@ -40,14 +40,14 @@ function RemoveSAMLModal({
           <Logo />
         )}
         <h3 className="text-lg font-medium">Remove SAML</h3>
-        <p className="text-center text-sm text-gray-500">
+        <p className="text-center text-sm text-neutral-500">
           This will remove SAML from your workspace. Are you sure you want to
           continue?
         </p>
       </div>
 
-      <div className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:px-16">
-        <div className="flex items-center space-x-3 rounded-md border border-gray-300 bg-white p-3">
+      <div className="flex flex-col space-y-4 bg-neutral-50 px-4 py-8 text-left sm:px-16">
+        <div className="flex items-center space-x-3 rounded-md border border-neutral-300 bg-white p-3">
           <img
             src={SAML_PROVIDERS.find((p) => p.name === provider)!.logo}
             alt={provider + " logo"}
@@ -55,7 +55,7 @@ function RemoveSAMLModal({
           />
           <div className="flex flex-col">
             <h3 className="text-sm font-medium">{provider} SAML</h3>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-neutral-500">
               {provider} SAML is configured
             </p>
           </div>

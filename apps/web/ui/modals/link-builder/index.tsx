@@ -378,7 +378,7 @@ function LinkBuilderInner({
                       }
                       draftControlsRef.current?.onClose();
                     }}
-                    className="group hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 md:block"
+                    className="group hidden rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200 md:block"
                   >
                     <X className="h-5 w-5" />
                   </button>
@@ -457,7 +457,7 @@ function LinkBuilderInner({
                     <div className="flex items-center gap-2">
                       <label
                         htmlFor="comments"
-                        className="block text-sm font-medium text-gray-700"
+                        className="block text-sm font-medium text-neutral-700"
                       >
                         Comments
                       </label>
@@ -479,7 +479,7 @@ function LinkBuilderInner({
                           id="comments"
                           name="comments"
                           minRows={3}
-                          className="mt-2 block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                          className="mt-2 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                           placeholder="Add comments"
                           value={field.value ?? ""}
                           onChange={(e) => field.onChange(e.target.value)}
@@ -498,7 +498,7 @@ function LinkBuilderInner({
               </div>
               <div className="scrollbar-hide px-6 md:overflow-auto md:pl-0 md:pr-4">
                 <div className="relative">
-                  <div className="absolute inset-0 rounded-xl border border-gray-200 bg-gray-50 [mask-image:linear-gradient(to_bottom,black,transparent)]"></div>
+                  <div className="absolute inset-0 rounded-xl border border-neutral-200 bg-neutral-50 [mask-image:linear-gradient(to_bottom,black,transparent)]"></div>
                   <div className="relative flex flex-col gap-6 p-4">
                     <QRCodePreview />
                     <LinkPreview />
@@ -506,7 +506,7 @@ function LinkBuilderInner({
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-between gap-2 border-t border-gray-100 bg-gray-50 p-4">
+            <div className="flex items-center justify-between gap-2 border-t border-neutral-100 bg-neutral-50 p-4">
               <div className="flex min-w-0 items-center gap-2">
                 <UTMButton />
                 <div className="flex items-center gap-2 max-sm:hidden">
