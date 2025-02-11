@@ -13,6 +13,7 @@ import { ReactNode, useId } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { BrandingPreview } from "./branding-preview";
 
 export function BrandingSettings() {
   const { program } = useProgram();
@@ -73,7 +74,7 @@ function BrandingSettingsForm({ program }: { program: ProgramProps }) {
         reset(data);
       })}
     >
-      <div className="grid grid-cols-1 gap-10 px-6 py-8 md:grid-cols-[340px_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-10 px-6 py-8 min-[1200px]:grid-cols-[340px_minmax(0,1fr)]">
         <div className="flex flex-col gap-6">
           <div>
             <h2 className="text-lg font-semibold text-neutral-900">
@@ -169,9 +170,7 @@ function BrandingSettingsForm({ program }: { program: ProgramProps }) {
           <Divider />
         </div>
 
-        <div className="rounded-xl bg-neutral-50 px-8 py-6">
-          <span className="text-sm font-semibold text-black">Preview</span>
-        </div>
+        <BrandingPreview />
       </div>
 
       <div className="flex items-center justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-6 py-5">

@@ -43,6 +43,7 @@ export function ToggleGroup({
           <button
             key={option.value}
             type="button"
+            data-selected={option.value === selected}
             className={cn(
               "relative z-10 flex items-center gap-2 px-3 py-1 text-sm font-medium capitalize",
               {
