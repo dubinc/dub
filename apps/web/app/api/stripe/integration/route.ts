@@ -19,7 +19,6 @@ const updateWorkspaceSchema = z.object({
 });
 
 // PATCH /api/stripe/integration - update a workspace with a stripe connect account id
-// TODO: Move this to /api/stripe/integration/callback after the new version of Stripe app published
 export const PATCH = withWorkspace(
   async ({ req, workspace, session }) => {
     const body = await parseRequestBody(req);

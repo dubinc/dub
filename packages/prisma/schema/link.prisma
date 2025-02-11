@@ -43,11 +43,14 @@ model Link {
   // Relational reference to the project domain
   projectDomain Domain?  @relation(fields: [domain], references: [slug], onUpdate: Cascade, onDelete: Cascade)
   // Program that the link belongs to
-  programId       String?
+  programId     String?
+
+  folderId String?
+  folder   Folder? @relation(fields: [folderId], references: [id], onUpdate: Cascade, onDelete: SetNull)
 
   // External & tenant IDs (for API usage + multi-tenancy)
-  externalId      String?
-  tenantId        String?
+  externalId String?
+  tenantId   String?
 
   publicStats Boolean   @default(false) // whether to show public stats or not
   clicks      Int       @default(0) // number of clicks
@@ -72,12 +75,12 @@ model Link {
   programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId])
   programInvite     ProgramInvite?
 
-  program   Program? @relation(fields: [programId], references: [id])
+  program   Program?   @relation(fields: [programId], references: [id])
   customers Customer[]
   commissions Commission[]
 
   @@unique([domain, key])
-  @@fulltext([key, url])
+  @@unique([projectId, externalId])
   @@index(trackConversion)
   @@index(proxy)
   @@index(password)
@@ -86,8 +89,7 @@ model Link {
   @@index(clicks(sort: Desc))
   @@index(lastClicked)
   @@index(userId)
-  @@unique([projectId, externalId])
+  @@index(folderId)
   @@index(tenantId)
-  @@index(programId)
   @@index([programId, partnerId])
 }

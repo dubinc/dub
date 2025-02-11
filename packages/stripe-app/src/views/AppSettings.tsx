@@ -20,7 +20,6 @@ import {
 } from "../utils/oauth";
 import { deleteSecret, setSecret } from "../utils/secrets";
 import { stripe } from "../utils/stripe";
-import { Workspace } from "../utils/types";
 
 const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
   const credentialsUsed = useRef(false);
@@ -34,19 +33,10 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
   const verifier = oauthContext?.verifier;
 
   // Disconnect workspace
-  const disconnectWorkspace = async ({
-    workspace,
-  }: {
-    workspace: Workspace;
-  }) => {
+  const disconnectWorkspace = async () => {
     setDisconnecting(true);
 
     const token = await getValidToken({ stripe });
-
-    await updateWorkspace({
-      token,
-      accountId: null,
-    });
 
     await Promise.all([
       deleteSecret({
@@ -54,13 +44,20 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
         name: "dub_workspace",
       }),
 
-      await deleteSecret({
+      deleteSecret({
         stripe,
         name: "dub_token",
       }),
     ]);
 
-    mutate();
+    if (token) {
+      await updateWorkspace({
+        token,
+        accountId: null,
+      });
+    }
+
+    await mutate();
     setDisconnecting(false);
   };
 
@@ -104,7 +101,7 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
       payload: JSON.stringify(workspace),
     });
 
-    mutate();
+    await mutate();
     credentialsUsed.current = true;
     setConnecting(false);
   };
@@ -148,12 +145,8 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
               disabled={disconnecting}
               onPress={async () => {
                 setDisconnecting(true);
-
-                await disconnectWorkspace({
-                  workspace,
-                });
-
-                mutate();
+                await disconnectWorkspace();
+                await mutate();
                 setDisconnecting(false);
               }}
             >

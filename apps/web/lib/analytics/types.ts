@@ -31,14 +31,14 @@ export type DeviceTabs = "devices" | "browsers" | "os" | "triggers";
 
 export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
   workspaceId?: string;
+  dataAvailableFrom?: Date;
   isDemo?: boolean;
   isDeprecatedClicksEndpoint?: boolean;
-  programId?: string;
-  partnerId?: string;
 };
 
 export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
   workspaceId?: string;
+  dataAvailableFrom?: Date;
   isDemo?: boolean;
   customerId?: string;
 };

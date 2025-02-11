@@ -1,18 +1,21 @@
 import { generateFilters } from "@/lib/ai/generate-filters";
 import {
-  INTERVAL_DATA,
   INTERVAL_DISPLAYS,
   TRIGGER_DISPLAY,
   VALID_ANALYTICS_FILTERS,
 } from "@/lib/analytics/constants";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
+import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import useDomains from "@/lib/swr/use-domains";
 import useDomainsCount from "@/lib/swr/use-domains-count";
+import useFolders from "@/lib/swr/use-folders";
+import useFoldersCount from "@/lib/swr/use-folders-count";
 import useTags from "@/lib/swr/use-tags";
 import useTagsCount from "@/lib/swr/use-tags-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
+import { FOLDERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/folders";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import {
   BlurImage,
@@ -34,6 +37,7 @@ import {
   Cube,
   CursorRays,
   FlagWavy,
+  Folder,
   Globe2,
   Hyperlink,
   LinkBroken,
@@ -74,6 +78,7 @@ import {
 } from "react";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
+import { FolderIcon } from "../folders/folder-icon";
 import TagBadge from "../links/tag-badge";
 import AnalyticsOptions from "./analytics-options";
 import { AnalyticsContext } from "./analytics-provider";
@@ -89,7 +94,7 @@ export default function Toggle({
 }: {
   page?: "analytics" | "events";
 }) {
-  const { slug, plan } = useWorkspace();
+  const { slug, plan, flags, createdAt } = useWorkspace();
 
   const { router, queryParams, searchParamsObj, getQueryString } =
     useRouterStuff();
@@ -112,14 +117,17 @@ export default function Toggle({
   // Determine whether tags and domains should be fetched async
   const { data: tagsCount } = useTagsCount();
   const { data: domainsCount } = useDomainsCount({ ignoreParams: true });
+  const { data: foldersCount } = useFoldersCount();
   const tagsAsync = Boolean(tagsCount && tagsCount > TAGS_MAX_PAGE_SIZE);
   const domainsAsync = domainsCount && domainsCount > DOMAINS_MAX_PAGE_SIZE;
+  const foldersAsync = foldersCount && foldersCount > FOLDERS_MAX_PAGE_SIZE;
 
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
 
   const { tags, loading: loadingTags } = useTags();
+  const { folders, loading: loadingFolders } = useFolders();
 
   const {
     allDomains: domains,
@@ -146,7 +154,7 @@ export default function Toggle({
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
   const activeFilters = useMemo(() => {
-    const { domain, key, root, ...params } = searchParamsObj;
+    const { domain, key, root, folderId, ...params } = searchParamsObj;
 
     // Handle special cases first
     const filters = [
@@ -166,6 +174,8 @@ export default function Toggle({
         : []),
       // Handle root special case - convert string to boolean
       ...(root ? [{ key: "root", value: root === "true" }] : []),
+      // Handle folderId special case
+      ...(folderId ? [{ key: "folderId", value: folderId }] : []),
     ];
 
     // Handle all other filters dynamically
@@ -398,6 +408,43 @@ export default function Toggle({
                   data: { color },
                 })) ?? null,
             },
+
+            ...(flags?.linkFolders
+              ? [
+                  {
+                    key: "folderId",
+                    icon: Folder,
+                    label: "Folder",
+                    shouldFilter: !foldersAsync,
+                    getOptionIcon: (value, props) => {
+                      const folderName = props.option?.label;
+                      const folder = folders?.find(
+                        ({ name }) => name === folderName,
+                      );
+
+                      return folder ? (
+                        <FolderIcon
+                          folder={folder}
+                          shape="square"
+                          className="size-3"
+                        />
+                      ) : null;
+                    },
+                    options:
+                      folders?.map((folder) => ({
+                        value: folder.id,
+                        icon: (
+                          <FolderIcon
+                            folder={folder}
+                            shape="square"
+                            className="size-3"
+                          />
+                        ),
+                        label: folder.name,
+                      })) ?? null,
+                  },
+                ]
+              : []),
           ]),
       {
         key: "trigger",
@@ -595,6 +642,7 @@ export default function Toggle({
       domains,
       links,
       tags,
+      folders,
       selectedTags,
       countries,
       cities,
@@ -607,8 +655,10 @@ export default function Toggle({
       utmData,
       tagsAsync,
       domainsAsync,
+      foldersAsync,
       loadingTags,
       loadingDomains,
+      loadingFolders,
       searchParamsObj.tagIds,
       searchParamsObj.domain,
     ],
@@ -702,7 +752,7 @@ export default function Toggle({
             }
           : undefined
       }
-      presetId={!start || !end ? interval ?? "24h" : undefined}
+      presetId={start && end ? undefined : interval ?? "30d"}
       onChange={(range, preset) => {
         if (preset) {
           queryParams({
@@ -729,25 +779,29 @@ export default function Toggle({
         });
       }}
       presets={INTERVAL_DISPLAYS.map(({ display, value, shortcut }) => {
-        const start = INTERVAL_DATA[value].startDate;
-        const end = new Date();
-
         const requiresUpgrade = DUB_DEMO_LINKS.find(
           (l) => l.domain === domain && l.key === key,
         )
           ? false
           : !validDateRangeForPlan({
               plan: plan || dashboardProps?.workspacePlan,
+              dataAvailableFrom: createdAt,
+              interval: value,
               start,
               end,
             });
+
+        const { startDate, endDate } = getStartEndDates({
+          interval: value,
+          dataAvailableFrom: createdAt,
+        });
 
         return {
           id: value,
           label: display,
           dateRange: {
-            from: start,
-            to: end,
+            from: startDate,
+            to: endDate,
           },
           requiresUpgrade,
           tooltipContent: requiresUpgrade ? (
@@ -763,8 +817,8 @@ export default function Toggle({
     <>
       <div
         className={cn("py-3 md:py-3", {
-          "sticky top-14 z-10 bg-gray-50": dashboardProps,
-          "sticky top-16 z-10 bg-gray-50": adminPage || demoPage,
+          "sticky top-14 z-10 bg-neutral-50": dashboardProps,
+          "sticky top-16 z-10 bg-neutral-50": adminPage || demoPage,
           "shadow-md": scrolled && dashboardProps,
         })}
       >
@@ -787,7 +841,7 @@ export default function Toggle({
           >
             {dashboardProps && (
               <a
-                className="group flex items-center text-lg font-semibold text-gray-800"
+                className="group flex items-center text-lg font-semibold text-neutral-800"
                 href={linkConstructor({ domain, key })}
                 target="_blank"
                 rel="noreferrer"
@@ -835,7 +889,7 @@ export default function Toggle({
                           variant="secondary"
                           className="w-fit"
                           icon={
-                            <SquareLayoutGrid6 className="h-4 w-4 text-gray-600" />
+                            <SquareLayoutGrid6 className="h-4 w-4 text-neutral-600" />
                           }
                           text={isMobile ? undefined : "Switch to Events"}
                           onClick={() => {
@@ -856,7 +910,9 @@ export default function Toggle({
                         <Button
                           variant="secondary"
                           className="w-fit"
-                          icon={<ChartLine className="h-4 w-4 text-gray-600" />}
+                          icon={
+                            <ChartLine className="h-4 w-4 text-neutral-600" />
+                          }
                           text={isMobile ? undefined : "Switch to Analytics"}
                           onClick={() =>
                             router.push(`/${slug}/analytics${getQueryString()}`)

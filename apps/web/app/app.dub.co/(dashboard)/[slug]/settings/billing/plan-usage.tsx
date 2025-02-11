@@ -1,6 +1,7 @@
 "use client";
 
-import useTags from "@/lib/swr/use-tags";
+import useFoldersCount from "@/lib/swr/use-folders-count";
+import useTagsCount from "@/lib/swr/use-tags-count";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
 import PlanBadge from "@/ui/workspaces/plan-badge";
@@ -10,6 +11,7 @@ import {
   CircleDollar,
   CrownSmall,
   CursorRays,
+  Folder5,
   Globe,
   Hyperlink,
   Tag,
@@ -40,12 +42,15 @@ export default function PlanUsage() {
     linksLimit,
     domains,
     domainsLimit,
+    foldersLimit,
     tagsLimit,
     usersLimit,
     billingCycleStart,
+    flags,
   } = useWorkspace();
 
-  const { tags } = useTags();
+  const { data: folders } = useFoldersCount();
+  const { data: tags } = useTagsCount();
   const { users } = useUsers();
 
   const [billingStart, billingEnd] = useMemo(() => {
@@ -147,17 +152,31 @@ export default function PlanUsage() {
             <UsageChart />
           </div>
         </div>
-        <div className="grid grid-cols-1 divide-y divide-neutral-200 sm:divide-x sm:divide-y-0 md:grid-cols-3">
+        <div
+          className={cn(
+            "grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3",
+            flags?.linkFolders &&
+              "md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4",
+          )}
+        >
           <UsageCategory
             title="Custom Domains"
             icon={Globe}
             usage={domains?.length}
             usageLimit={domainsLimit}
           />
+          {flags?.linkFolders && (
+            <UsageCategory
+              title="Folders"
+              icon={Folder5}
+              usage={folders}
+              usageLimit={foldersLimit}
+            />
+          )}
           <UsageCategory
             title="Tags"
             icon={Tag}
-            usage={tags?.length}
+            usage={tags}
             usageLimit={tagsLimit}
           />
           <UsageCategory
@@ -338,7 +357,7 @@ function UsageCategory(data: {
   let { title, icon: Icon, usage, usageLimit } = data;
 
   return (
-    <div className="flex items-center justify-between p-6 md:p-8">
+    <div className="flex items-center justify-between bg-white p-6 md:p-8">
       <div className="flex cursor-default items-center space-x-2">
         <Icon className="size-4 text-neutral-600" />
         <h3 className="text-sm font-medium">{title}</h3>

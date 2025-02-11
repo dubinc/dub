@@ -8,9 +8,14 @@ import {
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { bulkUpdateLinks } from "@/lib/api/links/bulk-update-links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
+import { checkIfLinksHaveFolders } from "@/lib/api/links/utils/check-if-links-have-folders";
 import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import {
+  checkFolderPermissions,
+  verifyFolderAccess,
+} from "@/lib/folder/permissions";
 import { storage } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
 import {
@@ -150,6 +155,53 @@ export const POST = withWorkspace(
       });
     }
 
+    if (checkIfLinksHaveFolders(validLinks)) {
+      const folderIds = [
+        ...new Set(
+          validLinks.map((link) => link.folderId).filter(Boolean) as string[],
+        ),
+      ];
+
+      const folderPermissions = await checkFolderPermissions({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        folderIds,
+        requiredPermission: "folders.links.write",
+      });
+
+      validLinks = validLinks.filter((link) => {
+        if (!link.folderId) {
+          return true;
+        }
+
+        const validFolder = folderPermissions.find(
+          (folder) => folder.folderId === link.folderId,
+        );
+
+        if (!validFolder) {
+          errorLinks.push({
+            error: `Invalid folderId detected: ${link.folderId}`,
+            code: "unprocessable_entity",
+            link,
+          });
+
+          return false;
+        }
+
+        if (!validFolder.hasPermission) {
+          errorLinks.push({
+            error: `You don't have write access to the folder: ${link.folderId}`,
+            code: "forbidden",
+            link,
+          });
+
+          return false;
+        }
+
+        return true;
+      });
+    }
+
     if (checkIfLinksHaveWebhooks(validLinks)) {
       if (workspace.plan === "free" || workspace.plan === "pro") {
         throw new DubApiError({
@@ -199,7 +251,7 @@ export const POST = withWorkspace(
 
 // PATCH /api/links/bulk – bulk update up to 100 links with the same data
 export const PATCH = withWorkspace(
-  async ({ req, workspace, headers }) => {
+  async ({ req, workspace, headers, session }) => {
     const { linkIds, externalIds, data } = bulkUpdateLinksBodySchema.parse(
       await parseRequestBody(req),
     );
@@ -208,7 +260,7 @@ export const PATCH = withWorkspace(
       return NextResponse.json("No links to update", { headers });
     }
 
-    const links = await prisma.link.findMany({
+    let links = await prisma.link.findMany({
       where: {
         projectId: workspace.id,
         ...(linkIds.length > 0
@@ -271,6 +323,52 @@ export const PATCH = withWorkspace(
           message: `Invalid tagNames detected: ${tagNames.filter((tagName) => tags.find(({ name }) => tagName === name) === undefined).join(", ")}`,
         });
       }
+    }
+
+    if (data.folderId) {
+      await verifyFolderAccess({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        folderId: data.folderId,
+        requiredPermission: "folders.links.write",
+      });
+    }
+
+    if (checkIfLinksHaveFolders(links)) {
+      const folderIds = [
+        ...new Set(
+          links.map((link) => link.folderId).filter(Boolean) as string[],
+        ),
+      ];
+
+      const folderPermissions = await checkFolderPermissions({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        folderIds,
+        requiredPermission: "folders.links.write",
+      });
+
+      links = links.filter((link) => {
+        if (!link.folderId) {
+          return true;
+        }
+
+        const validFolder = folderPermissions.find(
+          (folder) => folder.folderId === link.folderId,
+        );
+
+        if (!validFolder?.hasPermission) {
+          errorLinks.push({
+            error: `You don't have permission to move this link to the folder: ${link.folderId}`,
+            code: "forbidden",
+            link,
+          });
+
+          return false;
+        }
+
+        return true;
+      });
     }
 
     const processedLinks = await Promise.all(
@@ -349,7 +447,7 @@ export const PATCH = withWorkspace(
 
 // DELETE /api/links/bulk – bulk delete up to 100 links
 export const DELETE = withWorkspace(
-  async ({ workspace, headers, searchParams }) => {
+  async ({ workspace, headers, searchParams, session }) => {
     const searchParamsLinkIds = searchParams["linkIds"]
       ? searchParams["linkIds"].split(",")
       : [];
@@ -383,7 +481,7 @@ export const DELETE = withWorkspace(
       });
     }
 
-    const links = await prisma.link.findMany({
+    let links = await prisma.link.findMany({
       where: {
         projectId: workspace.id,
         programId: null,
@@ -402,6 +500,33 @@ export const DELETE = withWorkspace(
         },
       },
     });
+
+    if (checkIfLinksHaveFolders(links)) {
+      const folderIds = [
+        ...new Set(
+          links.map((link) => link.folderId).filter(Boolean) as string[],
+        ),
+      ];
+
+      const folderPermissions = await checkFolderPermissions({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        folderIds,
+        requiredPermission: "folders.links.write",
+      });
+
+      links = links.filter((link) => {
+        if (!link.folderId) {
+          return true;
+        }
+
+        const validFolder = folderPermissions.find(
+          (folder) => folder.folderId === link.folderId,
+        );
+
+        return validFolder?.hasPermission ?? false;
+      });
+    }
 
     const { count: deletedCount } = await prisma.link.deleteMany({
       where: {

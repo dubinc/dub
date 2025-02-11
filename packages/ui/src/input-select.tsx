@@ -173,11 +173,11 @@ export function InputSelect({
             >
               <div
                 className={cn(
-                  "group relative rounded-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500 md:min-w-[140px]",
+                  "group relative rounded-md border border-neutral-300 bg-white px-1 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500 md:min-w-[140px]",
                   className,
                 )}
               >
-                <div className="absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-gray-400">
+                <div className="absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-neutral-400">
                   {selectedItem && selectedItem.image ? (
                     <img
                       src={selectedItem.image}
@@ -185,7 +185,7 @@ export function InputSelect({
                       className="h-4 w-4 rounded-full"
                     />
                   ) : (
-                    icon || <Search className="h-4 w-4 text-gray-400" />
+                    icon || <Search className="h-4 w-4 text-neutral-400" />
                   )}
                 </div>
                 <div className="flex h-10 px-8">
@@ -195,10 +195,10 @@ export function InputSelect({
               </div>
             </Command>
           </Drawer.Trigger>
-          <Drawer.Overlay className="fixed inset-0 z-40 bg-gray-100 bg-opacity-10 backdrop-blur" />
+          <Drawer.Overlay className="fixed inset-0 z-40 bg-neutral-100 bg-opacity-10 backdrop-blur" />
           <Drawer.Portal>
             <Drawer.Content
-              className="fixed bottom-0 left-0 right-0 z-50 mt-24 rounded-t-lg border-t border-gray-200 bg-white"
+              className="fixed bottom-0 left-0 right-0 z-50 mt-24 rounded-t-lg border-t border-neutral-200 bg-white"
               onPointerDownOutside={(e) => {
                 // Prevent dismissal when clicking inside a toast
                 if (
@@ -217,11 +217,11 @@ export function InputSelect({
               >
                 <div
                   className={cn(
-                    "group relative mb-2 rounded-t-md border-b border-gray-300 bg-white p-1 sm:border sm:py-0 sm:focus-within:border-gray-500 sm:focus-within:ring-1 sm:focus-within:ring-gray-200",
+                    "group relative mb-2 rounded-t-md border-b border-neutral-300 bg-white p-1 sm:border sm:py-0 sm:focus-within:border-neutral-500 sm:focus-within:ring-1 sm:focus-within:ring-neutral-200",
                     className,
                   )}
                 >
-                  <div className="absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-gray-400">
+                  <div className="absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-neutral-400">
                     {selectedItem && selectedItem.image ? (
                       <img
                         src={selectedItem.image}
@@ -229,7 +229,7 @@ export function InputSelect({
                         className="h-4 w-4 rounded-full"
                       />
                     ) : (
-                      icon || <Search className="h-4 w-4 text-gray-400" />
+                      icon || <Search className="h-4 w-4 text-neutral-400" />
                     )}
                   </div>
                   <div className="flex h-10 px-8">
@@ -244,12 +244,12 @@ export function InputSelect({
                       (noItemsElement ? (
                         <div>{noItemsElement}</div>
                       ) : (
-                        <p className="px-4 py-2 text-sm text-gray-600">
+                        <p className="px-4 py-2 text-sm text-neutral-600">
                           No items found.
                         </p>
                       ))}
                     {inputValue !== "" && (
-                      <Command.Empty className="px-4 py-2 text-sm text-gray-600">
+                      <Command.Empty className="px-4 py-2 text-sm text-neutral-600">
                         No results found.
                       </Command.Empty>
                     )}
@@ -270,13 +270,13 @@ export function InputSelect({
         >
           <div
             className={cn(
-              "group rounded-md border border-gray-200 bg-white px-1 transition-all focus-within:border-gray-500 focus-within:ring-4 focus-within:ring-gray-200",
+              "group rounded-md border border-neutral-200 bg-white px-1 transition-all focus-within:border-neutral-500 focus-within:ring-4 focus-within:ring-neutral-200",
               className,
             )}
           >
             <div
               onClick={() => setOpenCommandList((prev) => !prev)}
-              className="absolute inset-y-0 left-0 flex cursor-pointer items-center justify-center pl-3 text-gray-400"
+              className="absolute inset-y-0 left-0 flex cursor-pointer items-center justify-center pl-3 text-neutral-400"
             >
               {selectedItem && selectedItem.image ? (
                 <img
@@ -285,7 +285,7 @@ export function InputSelect({
                   className="h-4 w-4 rounded-full"
                 />
               ) : (
-                icon || <Search className="h-4 w-4 text-gray-400" />
+                icon || <Search className="h-4 w-4 text-neutral-400" />
               )}
             </div>
             <div className="flex h-10 px-8">
@@ -301,7 +301,7 @@ export function InputSelect({
               ref={floatingRefs.setFloating}
               style={floatingStyles}
               {...getFloatingProps()}
-              className="z-20 flex w-full min-w-[160px] flex-col overflow-hidden rounded-md border border-gray-200 bg-white shadow-md"
+              className="z-20 flex w-full min-w-[160px] flex-col overflow-hidden rounded-md border border-neutral-200 bg-white shadow-md"
             >
               <div
                 ref={scrollRef}
@@ -314,12 +314,12 @@ export function InputSelect({
                     (noItemsElement ? (
                       <div>{noItemsElement}</div>
                     ) : (
-                      <p className="px-4 py-2 text-sm text-gray-600">
+                      <p className="px-4 py-2 text-sm text-neutral-600">
                         No items found.
                       </p>
                     ))}
                   {inputValue !== "" && (
-                    <Command.Empty className="px-4 py-2 text-sm text-gray-600">
+                    <Command.Empty className="px-4 py-2 text-sm text-neutral-600">
                       No results found.
                     </Command.Empty>
                   )}
@@ -374,7 +374,7 @@ const CommandInput = forwardRef<HTMLInputElement>((_, ref) => {
         }
       }}
       disabled={disabled}
-      className="block w-full truncate rounded-md border-none px-0 text-base text-gray-900 placeholder-gray-400 outline-none outline-0 transition-all duration-300 focus:ring-0 md:text-sm"
+      className="block w-full truncate rounded-md border-none px-0 text-base text-neutral-900 placeholder-neutral-400 outline-none outline-0 transition-all duration-300 focus:ring-0 md:text-sm"
       autoCapitalize="none"
     />
   );
@@ -400,11 +400,11 @@ function CloseChevron() {
       className="absolute inset-y-0 right-0 my-auto pr-3"
     >
       {inputValue.length > 0 ? (
-        <X className="h-4 w-4 text-gray-400 transition-all hover:text-gray-700" />
+        <X className="h-4 w-4 text-neutral-400 transition-all hover:text-neutral-700" />
       ) : (
         <ChevronDown
           className={cn(
-            "h-4 w-4 text-gray-400 transition-all hover:text-gray-700",
+            "h-4 w-4 text-neutral-400 transition-all hover:text-neutral-700",
             {
               "rotate-180 transform": openCommandList,
             },
@@ -429,7 +429,7 @@ function SelectorList({ items }: { items: InputSelectItemProps[] }) {
         setInputValue(item.value);
         setOpenCommandList(false);
       }}
-      className="group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 aria-disabled:cursor-not-allowed aria-disabled:opacity-75 aria-disabled:hover:bg-white aria-selected:bg-gray-100 aria-selected:text-gray-900"
+      className="group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-neutral-900 hover:bg-neutral-100 hover:text-neutral-900 active:bg-neutral-200 aria-disabled:cursor-not-allowed aria-disabled:opacity-75 aria-disabled:hover:bg-white aria-selected:bg-neutral-100 aria-selected:text-neutral-900"
     >
       <div className="flex items-center space-x-2">
         {item.image && (
@@ -462,7 +462,7 @@ function SelectorList({ items }: { items: InputSelectItemProps[] }) {
         )}
       </div>
 
-      <Check className="invisible h-5 w-5 text-gray-500 aria-selected:visible" />
+      <Check className="invisible h-5 w-5 text-neutral-500 aria-selected:visible" />
     </Command.Item>
   ));
 }

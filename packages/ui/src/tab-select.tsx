@@ -7,7 +7,7 @@ const tabSelectButtonVariants = cva("p-4 transition-colors duration-75", {
   variants: {
     variant: {
       default:
-        "text-gray-400 data-[selected=true]:text-black data-[selected=false]:hover:text-gray-500",
+        "text-neutral-400 data-[selected=true]:text-black data-[selected=false]:hover:text-neutral-500",
       accent:
         "text-neutral-500 transition-[color,font-weight] data-[selected=true]:text-blue-600 data-[selected=false]:hover:text-neutral-700 data-[selected=true]:font-medium",
     },

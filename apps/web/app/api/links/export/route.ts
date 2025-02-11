@@ -3,13 +3,14 @@ import { convertToCSV } from "@/lib/analytics/utils";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { linksExportQuerySchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import { linkConstructor } from "@dub/utils";
 
 // GET /api/links/export – export links to CSV
 export const GET = withWorkspace(
-  async ({ searchParams, workspace }) => {
+  async ({ searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
 
     const {
@@ -24,10 +25,20 @@ export const GET = withWorkspace(
       end,
       interval,
       columns,
+      folderId,
     } = linksExportQuerySchema.parse(searchParams);
 
     if (domain) {
       await getDomainOrThrow({ workspace, domain });
+    }
+
+    if (folderId) {
+      await verifyFolderAccess({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        folderId,
+        requiredPermission: "folders.read",
+      });
     }
 
     const links = await prisma.link.findMany({
@@ -84,6 +95,7 @@ export const GET = withWorkspace(
             tags: { some: { tagId: { in: tagIds } } },
           }),
         ...(userId && { userId }),
+        folderId: folderId || null,
       },
 
       // TODO: orderBy is not currently supported

@@ -21,7 +21,7 @@ export function ProgramStatsFilter({
   return (
     <Link
       href={href}
-      className="flex items-center gap-4 p-3 text-left transition-colors duration-75 hover:bg-gray-50 active:bg-gray-100"
+      className="flex items-center gap-4 p-3 text-left transition-colors duration-75 hover:bg-neutral-50 active:bg-neutral-100"
     >
       <div
         className={cn(

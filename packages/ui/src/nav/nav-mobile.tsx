@@ -44,14 +44,14 @@ export function NavMobile({
       <button
         onClick={() => setOpen(!open)}
         className={cn(
-          "fixed right-3 top-3 z-40 rounded-full p-2 transition-colors duration-200 hover:bg-gray-200 focus:outline-none active:bg-gray-300 lg:hidden dark:hover:bg-white/20 dark:active:bg-white/30",
-          open && "hover:bg-gray-100 active:bg-gray-200",
+          "fixed right-3 top-3 z-40 rounded-full p-2 transition-colors duration-200 hover:bg-neutral-200 focus:outline-none active:bg-neutral-300 lg:hidden dark:hover:bg-white/20 dark:active:bg-white/30",
+          open && "hover:bg-neutral-100 active:bg-neutral-200",
         )}
       >
         {open ? (
-          <X className="h-5 w-5 text-gray-600 dark:text-white/70" />
+          <X className="h-5 w-5 text-neutral-600 dark:text-white/70" />
         ) : (
-          <Menu className="h-5 w-5 text-gray-600 dark:text-white/70" />
+          <Menu className="h-5 w-5 text-neutral-600 dark:text-white/70" />
         )}
       </button>
       <nav
@@ -60,7 +60,7 @@ export function NavMobile({
           open && "block",
         )}
       >
-        <ul className="grid divide-y divide-gray-200 dark:divide-white/[0.15]">
+        <ul className="grid divide-y divide-neutral-200 dark:divide-white/[0.15]">
           {navItems.map(({ name, href, childItems }, idx) => (
             <MobileNavItem
               key={idx}
@@ -138,7 +138,7 @@ const MobileNavItem = ({
             <p className="font-semibold">{name}</p>
             <ChevronDown
               className={cn(
-                "h-5 w-5 text-gray-500 transition-all dark:text-white/50",
+                "h-5 w-5 text-neutral-500 transition-all dark:text-white/50",
                 expanded && "rotate-180",
               )}
             />
