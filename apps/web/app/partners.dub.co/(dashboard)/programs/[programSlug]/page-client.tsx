@@ -15,20 +15,20 @@ import {
   useCopyToClipboard,
   useRouterStuff,
 } from "@dub/ui";
-import {
-  Areas,
-  ChartContext,
-  TimeSeriesChart,
-  XAxis,
-  YAxis,
-} from "@dub/ui/charts";
+import { Areas, ChartContext, TimeSeriesChart, XAxis } from "@dub/ui/charts";
 import { Check, Copy, LoadingSpinner, MoneyBill } from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { createContext, useContext, useId, useMemo } from "react";
+import {
+  createContext,
+  CSSProperties,
+  useContext,
+  useId,
+  useMemo,
+} from "react";
 import { SaleTablePartner } from "./sales/sale-table";
 
 const ProgramOverviewContext = createContext<{
@@ -224,7 +224,10 @@ function EarningsChart() {
           <SimpleDateRangePicker className="h-8 w-full md:w-fit" align="end" />
         </div>
       </div>
-      <div className="relative mt-4 h-32 w-full">
+      <div
+        className="relative mt-4 h-32 w-full"
+        style={{ "--color": color || "#DA2778" } as CSSProperties}
+      >
         {data ? (
           <TimeSeriesChart
             data={data}
@@ -232,7 +235,7 @@ function EarningsChart() {
               {
                 id: "earnings",
                 valueAccessor: (d) => d.values.earnings,
-                colorClassName: color ? `text-[${color}]` : "text-violet-500",
+                colorClassName: "text-[var(--color)]",
                 isActive: true,
               },
             ]}
@@ -252,7 +255,7 @@ function EarningsChart() {
                       <div
                         className={cn(
                           "h-2 w-2 rounded-sm shadow-[inset_0_0_0_1px_#0003]",
-                          color ? `bg-[${color}]` : "bg-violet-500",
+                          "bg-[var(--color)]",
                         )}
                       />
                       <p className="capitalize text-gray-600">Earnings</p>
@@ -282,14 +285,13 @@ function EarningsChart() {
             </ChartContext.Consumer>
 
             <XAxis />
-            <YAxis showGridLines />
             <Areas
               seriesStyles={[
                 {
                   id: "earnings",
                   areaFill: `url(#${id}-color-gradient)`,
                   lineStroke: `url(#${id}-color-gradient)`,
-                  lineClassName: `text-[${color}]`,
+                  lineClassName: "text-[var(--color)]",
                 },
               ]}
             />
