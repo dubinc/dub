@@ -2,7 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TabSelect } from "@dub/ui";
-import { useRouter, useSelectedLayoutSegment } from "next/navigation";
+import { redirect, useRouter, useSelectedLayoutSegment } from "next/navigation";
 
 export default function LibraryHeader() {
   const router = useRouter();
@@ -10,6 +10,12 @@ export default function LibraryHeader() {
 
   const selectedLayoutSegment = useSelectedLayoutSegment();
   const page = selectedLayoutSegment === null ? "" : selectedLayoutSegment;
+
+  if (selectedLayoutSegment === null) {
+    redirect(
+      `/${slug}/settings/library/${flags?.linkFolders ? "folders" : "tags"}`,
+    );
+  }
 
   return (
     <div className="border-b border-gray-200">
