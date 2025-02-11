@@ -1,3 +1,4 @@
+import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TagProps } from "@/lib/types";
 import {
@@ -181,6 +182,11 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
   // Hacky fix for making sure the tooltip closes (by rerendering) when the modal opens
   const [modalShowCount, setModalShowCount] = useState(0);
 
+  const canManageLink = useCheckFolderPermission(
+    link.folderId,
+    "folders.links.write",
+  );
+
   return isMobile ? (
     <Link
       href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
@@ -224,6 +230,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                   setShowShareDashboardModal(true);
                   setModalShowCount((c) => c + 1);
                 }}
+                disabled={!canManageLink}
               />
 
               {link.dashboardId && (

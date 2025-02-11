@@ -1,6 +1,7 @@
 "use client";
 
 import { updateProgramAction } from "@/lib/actions/partners/update-program";
+import useFolders from "@/lib/swr/use-folders";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
@@ -56,10 +57,12 @@ type FormData = Pick<
   | "commissionType"
   | "commissionDuration"
   | "commissionInterval"
+  | "defaultFolderId"
 >;
 
 function ProgramSettingsForm({ program }: { program: ProgramProps }) {
-  const { id: workspaceId } = useWorkspace();
+  const { folders, loading: loadingFolders } = useFolders();
+  const { id: workspaceId, flags } = useWorkspace();
   const [isEmbedDocsOpen, setIsEmbedDocsOpen] = useState(false);
 
   const form = useForm<FormData>({
@@ -308,6 +311,40 @@ function ProgramSettingsForm({ program }: { program: ProgramProps }) {
               </div>
             </div>
           </SettingsRow>
+
+          {flags?.linkFolders && (
+            <SettingsRow
+              heading="Folder"
+              description="All links created for this program will be added to this folder."
+            >
+              <div className="flex flex-col gap-6">
+                <div>
+                  <label
+                    htmlFor="folder"
+                    className="text-sm font-medium text-neutral-800"
+                  >
+                    Folder
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    {loadingFolders ? (
+                      <div className="h-10 w-full animate-pulse rounded-md bg-gray-200" />
+                    ) : (
+                      <select
+                        className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                        {...register("defaultFolderId")}
+                        defaultValue={program.defaultFolderId || ""}
+                      >
+                        <option value="">None</option>
+                        {folders?.map((folder) => (
+                          <option value={folder.id}>{folder.name}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </SettingsRow>
+          )}
         </div>
 
         <div className="flex items-center justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-6 py-5">

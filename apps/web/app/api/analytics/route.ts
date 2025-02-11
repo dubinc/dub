@@ -5,6 +5,7 @@ import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import {
   analyticsPathParamsSchema,
   analyticsQuerySchema,
@@ -14,7 +15,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/analytics – get analytics
 export const GET = withWorkspace(
-  async ({ params, searchParams, workspace }) => {
+  async ({ params, searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
 
     let { eventType: oldEvent, endpoint: oldType } =
@@ -38,8 +39,13 @@ export const GET = withWorkspace(
       externalId,
       domain,
       key,
+      folderId,
     } = parsedParams;
+
     let link: Link | null = null;
+
+    event = oldEvent || event;
+    groupBy = oldType || groupBy;
 
     if (domain) {
       await getDomainOrThrow({ workspace, domain });
@@ -55,8 +61,15 @@ export const GET = withWorkspace(
       });
     }
 
-    event = oldEvent || event;
-    groupBy = oldType || groupBy;
+    const folderIdToVerify = link?.folderId || folderId;
+    if (folderIdToVerify) {
+      await verifyFolderAccess({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        folderId: folderIdToVerify,
+        requiredPermission: "folders.read",
+      });
+    }
 
     validDateRangeForPlan({
       plan: workspace.plan,

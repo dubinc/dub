@@ -2,7 +2,6 @@ import useWebhooks from "@/lib/swr/use-webhooks";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Combobox, useKeyboardShortcut, Webhook } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { LinkFormData } from ".";
@@ -75,7 +74,6 @@ export function WebhookSelect() {
 }
 
 const NoWebhooksFound = () => {
-  const router = useRouter();
   const { slug } = useWorkspace();
 
   return (

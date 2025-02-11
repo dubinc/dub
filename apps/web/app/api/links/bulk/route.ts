@@ -8,9 +8,11 @@ import {
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { bulkUpdateLinks } from "@/lib/api/links/bulk-update-links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
+import { checkIfLinksHaveFolders } from "@/lib/api/links/utils/check-if-links-have-folders";
 import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { storage } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
 import {
@@ -150,6 +152,59 @@ export const POST = withWorkspace(
       });
     }
 
+    if (checkIfLinksHaveFolders(validLinks)) {
+      const folderIds = validLinks
+        .map((link) => link.folderId)
+        .filter(Boolean) as string[];
+      const folders = await prisma.folder.findMany({
+        where: {
+          id: { in: folderIds },
+          projectId: workspace.id,
+        },
+        select: {
+          id: true,
+          accessLevel: true,
+          users: {
+            select: {
+              userId: true,
+              role: true,
+            },
+          },
+        },
+      });
+      validLinks.forEach((link, index) => {
+        if (link.folderId) {
+          const validFolder = folders.find(
+            (folder) => folder.id === link.folderId,
+          );
+          if (!validFolder) {
+            validLinks = validLinks.filter((_, i) => i !== index);
+            errorLinks.push({
+              error: `Invalid folderId detected: ${link.folderId}`,
+              code: "unprocessable_entity",
+              link,
+            });
+            // if user doesn't have write access to the folder
+            // remove the link from validLinks and add error to errorLinks
+          } else if (
+            validFolder.accessLevel !== "write" &&
+            !validFolder.users.some(
+              (user) =>
+                user.userId === session.user.id &&
+                (user.role === "owner" || user.role === "editor"),
+            )
+          ) {
+            validLinks = validLinks.filter((_, i) => i !== index);
+            errorLinks.push({
+              error: `You don't have write access to this folder`,
+              code: "forbidden",
+              link,
+            });
+          }
+        }
+      });
+    }
+
     if (checkIfLinksHaveWebhooks(validLinks)) {
       if (workspace.plan === "free" || workspace.plan === "pro") {
         throw new DubApiError({
@@ -199,7 +254,7 @@ export const POST = withWorkspace(
 
 // PATCH /api/links/bulk – bulk update up to 100 links with the same data
 export const PATCH = withWorkspace(
-  async ({ req, workspace, headers }) => {
+  async ({ req, workspace, headers, session }) => {
     const { linkIds, externalIds, data } = bulkUpdateLinksBodySchema.parse(
       await parseRequestBody(req),
     );
@@ -271,6 +326,15 @@ export const PATCH = withWorkspace(
           message: `Invalid tagNames detected: ${tagNames.filter((tagName) => tags.find(({ name }) => tagName === name) === undefined).join(", ")}`,
         });
       }
+    }
+
+    if (data.folderId) {
+      await verifyFolderAccess({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        folderId: data.folderId,
+        requiredPermission: "folders.links.write",
+      });
     }
 
     const processedLinks = await Promise.all(

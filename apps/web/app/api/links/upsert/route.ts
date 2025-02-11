@@ -7,6 +7,7 @@ import {
 } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { createLinkBodySchema, linkEventSchema } from "@/lib/zod/schemas/links";
@@ -29,6 +30,15 @@ export const PUT = withWorkspace(
     });
 
     if (link) {
+      if (link.folderId) {
+        await verifyFolderAccess({
+          workspaceId: workspace.id,
+          userId: session.user.id,
+          folderId: link.folderId,
+          requiredPermission: "folders.links.write",
+        });
+      }
+
       // proceed with /api/links/[linkId] PATCH logic
       const updatedLink = {
         ...link,
