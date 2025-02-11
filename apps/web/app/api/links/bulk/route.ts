@@ -12,7 +12,10 @@ import { checkIfLinksHaveFolders } from "@/lib/api/links/utils/check-if-links-ha
 import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { verifyFolderAccess } from "@/lib/folder/permissions";
+import {
+  hasFolderPermission,
+  verifyFolderAccess,
+} from "@/lib/folder/permissions";
 import { storage } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
 import {
@@ -413,7 +416,7 @@ export const PATCH = withWorkspace(
 
 // DELETE /api/links/bulk – bulk delete up to 100 links
 export const DELETE = withWorkspace(
-  async ({ workspace, headers, searchParams }) => {
+  async ({ workspace, headers, searchParams, session }) => {
     const searchParamsLinkIds = searchParams["linkIds"]
       ? searchParams["linkIds"].split(",")
       : [];
@@ -447,7 +450,7 @@ export const DELETE = withWorkspace(
       });
     }
 
-    const links = await prisma.link.findMany({
+    let links = await prisma.link.findMany({
       where: {
         projectId: workspace.id,
         programId: null,
@@ -465,6 +468,37 @@ export const DELETE = withWorkspace(
           },
         },
       },
+    });
+
+    const uniqueFolderIds = [
+      ...new Set(
+        links
+          .map((link) => link.folderId)
+          .filter((folderId): folderId is string => folderId !== null),
+      ),
+    ];
+
+    let folderAccess: Record<string, boolean> = {};
+
+    if (uniqueFolderIds.length > 0) {
+      folderAccess = Object.fromEntries(
+        await Promise.all(
+          uniqueFolderIds.map(async (folderId) => [
+            folderId,
+            await hasFolderPermission({
+              workspaceId: workspace.id,
+              userId: session.user.id,
+              folderId,
+              requiredPermission: "folders.links.write",
+            }),
+          ]),
+        ),
+      );
+    }
+
+    // filter links that the user has access to
+    links = links.filter((link) => {
+      return link.folderId ? folderAccess[link.folderId] : true;
     });
 
     const { count: deletedCount } = await prisma.link.deleteMany({

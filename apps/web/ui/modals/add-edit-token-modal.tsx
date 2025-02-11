@@ -60,7 +60,7 @@ function AddEditTokenModal({
   setSelectedToken: Dispatch<SetStateAction<null>>;
 }) {
   const [saving, setSaving] = useState(false);
-  const { id: workspaceId, role, isOwner } = useWorkspace();
+  const { id: workspaceId, role, isOwner, flags } = useWorkspace();
   const [data, setData] = useState<APIKeyProps>(token || newToken);
   const [preset, setPreset] = useState<ScopePreset>("all_access");
 
@@ -134,13 +134,17 @@ function AddEditTokenModal({
   const buttonDisabled =
     (!name || token?.name === name) && token?.scopes === scopes;
 
-  const scopesByResources = useMemo(
-    () =>
-      transformScopesForUI(getScopesByResourceForRole(role)).filter(
-        ({ name }) => name,
-      ),
-    [role],
-  );
+  const scopesByResources = useMemo(() => {
+    let scopes = transformScopesForUI(getScopesByResourceForRole(role)).filter(
+      ({ name }) => name,
+    );
+
+    if (!flags?.linkFolders) {
+      scopes = scopes.filter(({ key }) => key !== "folders");
+    }
+
+    return scopes;
+  }, [role, flags?.linkFolders]);
 
   return (
     <>

@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { verifyFolderAccess } from "../../folder/permissions";
 import { folderUserRoleSchema } from "../../zod/schemas/folders";
@@ -48,6 +49,22 @@ export const updateUserRoleInFolder = authActionClient
       },
     });
 
-    // TODO:
-    // Remove the folder request if the user has a pending request
+    waitUntil(
+      (async () => {
+        try {
+          await prisma.folderAccessRequest.delete({
+            where: {
+              folderId_userId: {
+                folderId,
+                userId,
+              },
+            },
+          });
+        } catch (error) {
+          if (error.code !== "P2025") {
+            console.error("Error deleting folder access request", error);
+          }
+        }
+      })(),
+    );
   });
