@@ -60,7 +60,7 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
     defaultValues: {
       name: partner.name,
       image: partner.image,
-      description: partner.bio,
+      description: partner.description ?? null,
     },
   });
 

@@ -54,7 +54,7 @@ export const PartnerSchema = z.object({
   email: z.string().nullable(),
   image: z.string().nullable(),
   country: z.string(),
-  bio: z.string().nullable(),
+  description: z.string().nullable(),
   status: z.nativeEnum(PartnerStatus),
   stripeConnectId: z.string().nullable(),
   couponId: z.string().nullish(),
@@ -63,21 +63,30 @@ export const PartnerSchema = z.object({
   updatedAt: z.date(),
 });
 
-export const EnrolledPartnerSchema = PartnerSchema.omit({
-  status: true,
+// Used by GET+POST /api/partners and partner.created webhook
+export const EnrolledPartnerSchema = PartnerSchema.pick({
+  id: true,
+  name: true,
+  email: true,
+  image: true,
+  description: true,
+  country: true,
+  createdAt: true,
 })
-  .merge(ProgramEnrollmentSchema)
-  .omit({
-    program: true,
-    partnerId: true,
-    programId: true,
-  })
+  .merge(
+    ProgramEnrollmentSchema.pick({
+      status: true,
+      programId: true,
+      tenantId: true,
+      links: true,
+    }),
+  )
   .extend({
-    earnings: z.number().default(0),
     clicks: z.number().default(0),
     leads: z.number().default(0),
     sales: z.number().default(0),
     saleAmount: z.number().default(0),
+    earnings: z.number().default(0),
   });
 
 export const LeaderboardPartnerSchema = z.object({
