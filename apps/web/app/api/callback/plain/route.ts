@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
         components: [
           ...plainCopySection({
             label: "Workspace ID",
-            value: id,
+            value: `ws_${id}`,
           }),
           ...plainCopySection({
             label: "Workspace Name",
