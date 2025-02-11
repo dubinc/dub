@@ -184,7 +184,8 @@ export const POST = withWorkspace(
               code: "unprocessable_entity",
               link,
             });
-            // if user doesn't have write access to the folder, remove the link from validLinks and add error to errorLinks
+            // if user doesn't have write access to the folder
+            // remove the link from validLinks and add error to errorLinks
           } else if (
             validFolder.accessLevel !== "write" &&
             !validFolder.users.some(
