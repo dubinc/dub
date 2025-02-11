@@ -132,12 +132,11 @@ export default function ProgramPageClient() {
           color: program?.brandColor ?? undefined,
         }}
       >
-        <div className="mt-6 rounded-lg border border-neutral-300">
-          <div className="p-4 md:p-6 md:pb-4">
+        <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="rounded-lg border border-neutral-300 p-5 pb-3 lg:col-span-2">
             <EarningsChart />
           </div>
-        </div>
-        <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-3">
+          <div>{/* Payouts */}</div>
           <NumberFlowGroup>
             <StatCard title="Clicks" event="clicks" />
             <StatCard title="Leads" event="leads" />
@@ -147,21 +146,21 @@ export default function ProgramPageClient() {
         <div className="mt-6">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-medium text-neutral-900">
-              Recent sales
+              Recent earnings
             </h2>
             <Link
               href={`/programs/${programSlug}/sales${getQueryString()}`}
               className={cn(
                 buttonVariants({ variant: "secondary" }),
-                "flex h-8 items-center rounded-lg border px-2 text-sm",
+                "flex h-7 items-center rounded-lg border px-2 text-sm",
               )}
             >
               View all
             </Link>
           </div>
-          <div className="mt-4">
-            <SaleTablePartner limit={10} />
-          </div>
+        </div>
+        <div className="mt-4">
+          <SaleTablePartner limit={10} />
         </div>
       </ProgramOverviewContext.Provider>
     </MaxWidthWrapper>
@@ -223,7 +222,7 @@ function EarningsChart() {
           <SimpleDateRangePicker className="h-8 w-full md:w-fit" align="end" />
         </div>
       </div>
-      <div className="relative mt-4 h-64 w-full">
+      <div className="relative mt-4 h-32 w-full">
         {data ? (
           <TimeSeriesChart
             data={data}
@@ -338,7 +337,7 @@ function StatCard({
   return (
     <Link
       href={`/programs/${programSlug}/analytics?event=${event}${getQueryString()?.replace("?", "&")}`}
-      className="hover:drop-shadow-card-hover block rounded-md border border-neutral-300 bg-white p-5 transition-[filter]"
+      className="hover:drop-shadow-card-hover block rounded-md border border-neutral-300 bg-white p-5 pb-3 transition-[filter]"
     >
       <span className="block text-sm text-neutral-500">{title}</span>
       {total !== undefined ? (

@@ -123,8 +123,8 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
     rowCount: salesCount?.count || 0,
     emptyState: (
       <AnimatedEmptyState
-        title="No sales found"
-        description="No sales have been made for this program yet."
+        title="No earnings found"
+        description="No earnings have been made for this program yet."
         cardContent={() => (
           <>
             <CircleDollar className="size-4 text-neutral-700" />
@@ -133,7 +133,7 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
         )}
       />
     ),
-    resourceName: (plural) => `sale${plural ? "s" : ""}`,
+    resourceName: (plural) => `earning${plural ? "s" : ""}`,
   });
 
   return (
@@ -151,8 +151,8 @@ export function SaleTablePartner({ limit }: { limit?: number }) {
         />
       ) : (
         <AnimatedEmptyState
-          title="No sales found"
-          description="No sales have been made for this program yet."
+          title="No earnings found"
+          description="No earnings have been made for this program yet."
           cardContent={() => (
             <>
               <CircleDollar className="size-4 text-neutral-700" />
