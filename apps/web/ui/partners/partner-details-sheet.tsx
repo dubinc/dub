@@ -215,7 +215,7 @@ function PartnerDetailsSheetContent({
               <div>
                 <h4 className="font-semibold text-neutral-900">Description</h4>
                 <p className="mt-1.5">
-                  {partner.bio || (
+                  {partner.description || (
                     <span className="italic text-neutral-400">
                       No description provided
                     </span>
