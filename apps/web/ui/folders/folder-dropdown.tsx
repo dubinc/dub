@@ -152,6 +152,10 @@ export const FolderDropdown = ({
         setOpenPopover={setOpenPopover}
         align="start"
         popoverContentClassName="-ml-1"
+        onWheel={(e) => {
+          // Allows scrolling to work when the popover's in a modal
+          e.stopPropagation();
+        }}
       >
         <button
           className={cn(
