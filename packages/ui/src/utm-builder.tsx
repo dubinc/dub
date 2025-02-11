@@ -102,8 +102,8 @@ export function UTMBuilder({
                 <Tooltip
                   content={
                     <div className="p-3 text-center text-xs">
-                      <p className="text-gray-600">{description}</p>
-                      <span className="font-mono text-gray-400">{key}</span>
+                      <p className="text-neutral-600">{description}</p>
+                      <span className="font-mono text-neutral-400">{key}</span>
                     </div>
                   }
                   sideOffset={4}
@@ -111,7 +111,7 @@ export function UTMBuilder({
                 >
                   <div
                     className={cn(
-                      "flex items-center gap-1.5 rounded-l-md border-y border-l border-gray-300 bg-gray-50 px-3 py-1.5 text-gray-700",
+                      "flex items-center gap-1.5 rounded-l-md border-y border-l border-neutral-300 bg-neutral-50 px-3 py-1.5 text-neutral-700",
                       showParams ? "sm:min-w-36" : "sm:min-w-28",
                     )}
                     onClick={() => setShowParams((s) => !s)}
@@ -137,7 +137,7 @@ export function UTMBuilder({
                       ref={idx === 0 ? inputRef : undefined}
                       placeholder={placeholder}
                       disabled={disabled || Boolean(disabledTooltip)}
-                      className="size-full rounded-r-md border border-gray-300 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500 disabled:cursor-not-allowed sm:text-sm"
+                      className="size-full rounded-r-md border border-neutral-300 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500 disabled:cursor-not-allowed sm:text-sm"
                       value={values[key] || ""}
                       onChange={(e) => onChange(key, e.target.value)}
                     />

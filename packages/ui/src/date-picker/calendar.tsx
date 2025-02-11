@@ -36,9 +36,9 @@ const NavigationButton = forwardRef<HTMLButtonElement, NavigationButtonProps>(
         disabled={disabled}
         className={cn(
           "flex size-7 shrink-0 select-none items-center justify-center rounded border p-1 outline-none transition",
-          "border-gray-200 text-gray-600 hover:text-gray-800",
-          "hover:bg-gray-50 active:bg-gray-100",
-          "disabled:pointer-events-none disabled:text-gray-400",
+          "border-neutral-200 text-neutral-600 hover:text-neutral-800",
+          "hover:bg-neutral-50 active:bg-neutral-100",
+          "disabled:pointer-events-none disabled:text-neutral-400",
         )}
         onClick={onClick}
         {...props}
@@ -95,19 +95,19 @@ function Calendar({
         month: "space-y-4 p-3 w-full",
         nav: "gap-1 flex items-center rounded-full w-full h-full justify-between p-4",
         table: "w-full border-separate border-spacing-y-1",
-        head_cell: "w-9 font-medium text-xs text-center text-gray-400 pb-2",
+        head_cell: "w-9 font-medium text-xs text-center text-neutral-400 pb-2",
         row: "w-full",
-        cell: "relative p-0 text-center focus-within:relative text-gray-900",
+        cell: "relative p-0 text-center focus-within:relative text-neutral-900",
         day: cn(
-          "relative size-10 rounded-md text-sm text-gray-900",
-          "hover:bg-gray-100 active:bg-gray-200 outline outline-offset-2 outline-0 focus-visible:outline-2 outline-blue-500",
+          "relative size-10 rounded-md text-sm text-neutral-900",
+          "hover:bg-neutral-100 active:bg-neutral-200 outline outline-offset-2 outline-0 focus-visible:outline-2 outline-blue-500",
         ),
         day_today: "font-semibold",
         day_selected:
           "rounded aria-selected:bg-blue-500 aria-selected:text-white",
         day_disabled:
-          "!text-gray-300 line-through disabled:hover:bg-transparent",
-        day_outside: "text-gray-400",
+          "!text-neutral-300 line-through disabled:hover:bg-transparent",
+        day_outside: "text-neutral-400",
         day_range_middle:
           "!rounded-none aria-selected:!bg-blue-100 aria-selected:!text-blue-900",
         day_range_start: "rounded-r-none !rounded-l",
@@ -187,7 +187,7 @@ function Calendar({
               <div
                 role="presentation"
                 aria-live="polite"
-                className="text-sm font-medium capitalize tabular-nums text-gray-900"
+                className="text-sm font-medium capitalize tabular-nums text-neutral-900"
               >
                 {format(props.displayMonth, "LLLL yyy", { locale })}
               </div>
@@ -252,7 +252,7 @@ function Calendar({
                       "bg-blue-500": !selected,
                       "!bg-white": selected,
                       "!bg-blue-400": selected && range_middle,
-                      "text-gray-400": disabled,
+                      "text-neutral-400": disabled,
                     },
                   )}
                 />

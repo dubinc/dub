@@ -66,7 +66,7 @@ export function NewSaleCreated({
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
+          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-neutral-200 px-10 py-5">
             <Section className="my-8">
               <Img
                 src={program.logo || "https://assets.dub.co/logo.png"}
@@ -79,7 +79,7 @@ export function NewSaleCreated({
               You just made a {earningsInDollars} referral sale!
             </Heading>
 
-            <Text className="text-sm leading-6 text-gray-600">
+            <Text className="text-sm leading-6 text-neutral-600">
               Congratulations! Someone made a{" "}
               <strong className="text-black">{saleAmountInDollars}</strong>{" "}
               purchase on <strong className="text-black">{program.name}</strong>{" "}
@@ -92,7 +92,7 @@ export function NewSaleCreated({
               </a>
               ).
             </Text>
-            <Text className="text-sm leading-6 text-gray-600">
+            <Text className="text-sm leading-6 text-neutral-600">
               Your received{" "}
               <strong className="text-black">{earningsInDollars}</strong> in
               commission for this sale and it will be included in your next

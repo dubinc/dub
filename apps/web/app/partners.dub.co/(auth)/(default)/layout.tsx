@@ -20,28 +20,28 @@ export default function PartnerAuthLayout({
       </div>
       <div className="flex grow flex-col justify-end">
         <div className="relative flex w-full flex-col items-center justify-center gap-2 py-10 pb-6">
-          <p className="text-xs text-gray-600">
+          <p className="text-xs text-neutral-600">
             © {new Date().getFullYear()} Dub Technologies, Inc.
           </p>
-          <div className="flex gap-3 text-center text-xs text-gray-500 underline underline-offset-2">
+          <div className="flex gap-3 text-center text-xs text-neutral-500 underline underline-offset-2">
             <a
               href="https://dub.co/legal/privacy"
               target="_blank"
-              className="hover:text-gray-800"
+              className="hover:text-neutral-800"
             >
               Privacy Policy
             </a>
             <a
               href="https://dub.co/legal/terms"
               target="_blank"
-              className="hover:text-gray-800"
+              className="hover:text-neutral-800"
             >
               Terms of Service
             </a>
             <a
               href="https://app.dub.co"
               target="_blank"
-              className="hover:text-gray-800"
+              className="hover:text-neutral-800"
             >
               app.dub.co
             </a>

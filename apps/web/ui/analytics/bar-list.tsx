@@ -109,12 +109,12 @@ export default function BarList({
       <>
         <div className="relative px-4 py-3">
           <div className="pointer-events-none absolute inset-y-0 left-7 flex items-center">
-            <Search className="h-4 w-4 text-gray-400" />
+            <Search className="h-4 w-4 text-neutral-400" />
           </div>
           <input
             type="text"
             autoFocus={!isMobile}
-            className="w-full rounded-md border border-gray-300 py-2 pl-10 text-black placeholder:text-gray-400 focus:border-gray-500 focus:outline-none focus:ring-4 focus:ring-gray-200 sm:text-sm"
+            className="w-full rounded-md border border-neutral-300 py-2 pl-10 text-black placeholder:text-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-4 focus:ring-neutral-200 sm:text-sm"
             placeholder={`Search ${tab}...`}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -154,7 +154,7 @@ export function LineItem({
     return (
       <div className="z-10 flex items-center space-x-4 overflow-hidden px-3">
         {icon}
-        <div className="truncate text-sm text-gray-800">
+        <div className="truncate text-sm text-neutral-800">
           {getPrettyUrl(title)}
         </div>
       </div>
@@ -214,7 +214,7 @@ export function LineItem({
           value={
             unit === "sales" && saleUnit === "saleAmount" ? value / 100 : value
           }
-          className="z-10 px-2 text-sm text-gray-600"
+          className="z-10 px-2 text-sm text-neutral-600"
           format={
             unit === "sales" && saleUnit === "saleAmount"
               ? {

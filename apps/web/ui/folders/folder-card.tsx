@@ -25,7 +25,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
   const unsortedLinks = folder.id === "unsorted";
 
   return (
-    <div className="hover:drop-shadow-card-hover relative flex flex-col justify-between rounded-xl border border-gray-200 bg-white px-5 py-4 transition-all duration-200 sm:h-36">
+    <div className="hover:drop-shadow-card-hover relative flex flex-col justify-between rounded-xl border border-neutral-200 bg-white px-5 py-4 transition-all duration-200 sm:h-36">
       <Link
         href={`/${workspaceSlug}?folderId=${folder.id}`}
         className="absolute inset-0 h-full w-full"
@@ -47,17 +47,17 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
       </div>
 
       <div>
-        <span className="flex items-center justify-start gap-1.5 truncate text-sm font-medium text-gray-900">
+        <span className="flex items-center justify-start gap-1.5 truncate text-sm font-medium text-neutral-900">
           <span className="truncate">{folder.name}</span>
 
           {folder.id === "unsorted" && (
-            <div className="rounded bg-gray-100 p-1">
+            <div className="rounded bg-neutral-100 p-1">
               <div className="text-xs font-normal text-black">Unsorted</div>
             </div>
           )}
         </span>
 
-        <div className="mt-1.5 flex items-center gap-1 text-gray-500">
+        <div className="mt-1.5 flex items-center gap-1 text-neutral-500">
           <Globe className="size-3.5" />
           <span className="text-sm font-normal">
             {nFormatter(folder.linkCount)} link{folder.linkCount !== 1 && "s"}

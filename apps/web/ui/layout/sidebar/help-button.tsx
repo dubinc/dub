@@ -35,7 +35,7 @@ export function HelpButton({
             setIsOpen((o) => !o);
           }}
           className={cn(
-            "font-lg relative size-4 shrink-0 overflow-hidden rounded-full active:bg-gray-50",
+            "font-lg relative size-4 shrink-0 overflow-hidden rounded-full active:bg-neutral-50",
             "outline-none ring-offset-2 ring-offset-neutral-100 focus-visible:ring-2 focus-visible:ring-black/50",
           )}
         >

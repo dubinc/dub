@@ -230,7 +230,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                 className="h-9 px-2 font-medium"
               />
             </div>
-            <div className="border-t border-gray-200" />
+            <div className="border-t border-neutral-200" />
             <div className="grid gap-px p-2">
               {flags?.linkFolders && folders && folders.length > 0 && (
                 <Button
@@ -335,7 +335,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
           variant="secondary"
           className={cn(
             "h-8 px-1.5 outline-none transition-all duration-200",
-            "border-transparent data-[state=open]:border-gray-500 sm:group-hover/card:data-[state=closed]:border-gray-200",
+            "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
           )}
           icon={<ThreeDots className="h-5 w-5 shrink-0" />}
           onClick={() => {

@@ -77,10 +77,10 @@ export const VerifyEmailForm = () => {
                       key={idx}
                       className={cn(
                         "relative flex h-14 w-10 items-center justify-center text-xl",
-                        "border-y border-r border-gray-200 bg-white first:rounded-l-lg first:border-l last:rounded-r-lg",
+                        "border-y border-r border-neutral-200 bg-white first:rounded-l-lg first:border-l last:rounded-r-lg",
                         "ring-0 transition-all",
                         isActive &&
-                          "z-10 border border-gray-500 ring-2 ring-gray-200",
+                          "z-10 border border-neutral-500 ring-2 ring-neutral-200",
                         isInvalidCode && "border-red-500 ring-red-200",
                       )}
                     >

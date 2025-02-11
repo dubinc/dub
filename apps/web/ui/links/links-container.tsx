@@ -121,7 +121,7 @@ function LinksList({
             <>
               <Hyperlink className="size-4 text-neutral-700" />
               <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-              <div className="xs:flex hidden grow items-center justify-end gap-1.5 text-gray-500">
+              <div className="xs:flex hidden grow items-center justify-end gap-1.5 text-neutral-500">
                 <CursorRays className="size-3.5" />
               </div>
             </>
@@ -147,7 +147,7 @@ function LinksList({
                 "max-[1330px]:left-0 max-[1330px]:translate-x-0",
               )}
             >
-              <div className="rounded-xl border border-gray-200 bg-white px-4 py-3.5 [filter:drop-shadow(0_5px_8px_#222A351d)]">
+              <div className="rounded-xl border border-neutral-200 bg-white px-4 py-3.5 [filter:drop-shadow(0_5px_8px_#222A351d)]">
                 <PaginationControls
                   pagination={pagination}
                   setPagination={setPagination}

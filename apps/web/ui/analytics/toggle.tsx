@@ -817,8 +817,8 @@ export default function Toggle({
     <>
       <div
         className={cn("py-3 md:py-3", {
-          "sticky top-14 z-10 bg-gray-50": dashboardProps,
-          "sticky top-16 z-10 bg-gray-50": adminPage || demoPage,
+          "sticky top-14 z-10 bg-neutral-50": dashboardProps,
+          "sticky top-16 z-10 bg-neutral-50": adminPage || demoPage,
           "shadow-md": scrolled && dashboardProps,
         })}
       >
@@ -841,7 +841,7 @@ export default function Toggle({
           >
             {dashboardProps && (
               <a
-                className="group flex items-center text-lg font-semibold text-gray-800"
+                className="group flex items-center text-lg font-semibold text-neutral-800"
                 href={linkConstructor({ domain, key })}
                 target="_blank"
                 rel="noreferrer"
@@ -889,7 +889,7 @@ export default function Toggle({
                           variant="secondary"
                           className="w-fit"
                           icon={
-                            <SquareLayoutGrid6 className="h-4 w-4 text-gray-600" />
+                            <SquareLayoutGrid6 className="h-4 w-4 text-neutral-600" />
                           }
                           text={isMobile ? undefined : "Switch to Events"}
                           onClick={() => {
@@ -910,7 +910,9 @@ export default function Toggle({
                         <Button
                           variant="secondary"
                           className="w-fit"
-                          icon={<ChartLine className="h-4 w-4 text-gray-600" />}
+                          icon={
+                            <ChartLine className="h-4 w-4 text-neutral-600" />
+                          }
                           text={isMobile ? undefined : "Switch to Analytics"}
                           onClick={() =>
                             router.push(`/${slug}/analytics${getQueryString()}`)
