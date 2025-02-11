@@ -11,6 +11,7 @@ import { RewardfulApi } from "./api";
 import { RewardfulReferral } from "./types";
 
 const MAX_BATCHES = 5;
+const CACHE_EXPIRY = 60 * 60 * 24;
 
 export class RewardfulImporter {
   private readonly programId: string;
@@ -29,25 +30,23 @@ export class RewardfulImporter {
         campaignId,
       },
       {
-        ex: 60 * 60 * 24,
+        ex: CACHE_EXPIRY,
       },
     );
 
-    return this.scheduleNextRun({
+    return this.queueNextImport({
       programId: this.programId,
-      action: "import",
     });
   }
 
-  async scheduleNextRun(body: {
+  async queueNextImport(body: {
     programId: string;
-    action: string;
+    action?: string;
     page?: number;
   }) {
     return await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/rewardful`,
       body,
-      delay: 2000,
     });
   }
 
@@ -119,7 +118,7 @@ export class RewardfulImporter {
       processedBatches++;
     }
 
-    await this.scheduleNextRun({
+    await this.queueNextImport({
       action: hasMoreAffiliates
         ? "import-affiliates"
         : "import-affiliates-links",
@@ -177,7 +176,7 @@ export class RewardfulImporter {
     }
 
     if (hasMoreReferrals) {
-      await this.scheduleNextRun({
+      await this.queueNextImport({
         action: "import-referrals",
         programId: program.id,
         page: currentPage,
@@ -200,10 +199,10 @@ export class RewardfulImporter {
   }) {
     const link = await prisma.link.findFirst({
       where: {
-        programId: program.id,
-        domain: program.domain!,
-        key: referral.link.token,
-        // id: "link_0ntBrVm4VqPSpcLaLTbNAV5y",
+        // programId: program.id,
+        // domain: program.domain!,
+        // key: referral.link.token,
+        id: "link_0ntBrVm4VqPSpcLaLTbNAV5y",
       },
     });
 
