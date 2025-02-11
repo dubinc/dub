@@ -103,7 +103,7 @@ export const withWorkspace = (
           // special case for anonymous link creation
           if (
             req.headers.has("dub-anonymous-link-creation") &&
-            req.nextUrl.pathname === "/links"
+            ["/links", "/api/links"].includes(req.nextUrl.pathname)
           ) {
             // @ts-expect-error
             return await handler({
