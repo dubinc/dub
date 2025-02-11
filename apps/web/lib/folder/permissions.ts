@@ -1,6 +1,7 @@
 "server-only";
 
 import { Folder, FolderPermission } from "@/lib/types";
+import { prisma } from "@dub/prisma";
 import { FolderUser } from "@dub/prisma/client";
 import { DubApiError } from "../api/errors";
 import {
@@ -104,4 +105,54 @@ export const hasFolderPermission = async ({
   } catch (error) {
     return false;
   }
+};
+
+export const checkFolderPermissions = async ({
+  workspaceId,
+  userId,
+  folderIds,
+  requiredPermission,
+}: {
+  workspaceId: string;
+  userId: string;
+  folderIds: string[];
+  requiredPermission: FolderPermission;
+}) => {
+  const folders = await prisma.folder.findMany({
+    where: {
+      projectId: workspaceId,
+      id: {
+        in: folderIds,
+      },
+    },
+    include: {
+      users: {
+        where: {
+          userId,
+        },
+        take: 1,
+      },
+    },
+  });
+
+  return folders.map((folder) => {
+    const folderUserRole = findUserFolderRole({
+      folder,
+      user: folder.users[0],
+    });
+
+    if (!folderUserRole) {
+      return {
+        folderId: folder.id,
+        hasPermission: false,
+      };
+    }
+
+    const permissions = getFolderPermissions(folderUserRole);
+
+    return {
+      folderId: folder.id,
+      hasPermission: permissions.includes(requiredPermission),
+    };
+  });
 };

@@ -13,6 +13,7 @@ import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
+  checkFolderPermissions,
   hasFolderPermission,
   verifyFolderAccess,
 } from "@/lib/folder/permissions";
@@ -156,55 +157,49 @@ export const POST = withWorkspace(
     }
 
     if (checkIfLinksHaveFolders(validLinks)) {
-      const folderIds = validLinks
-        .map((link) => link.folderId)
-        .filter(Boolean) as string[];
-      const folders = await prisma.folder.findMany({
-        where: {
-          id: { in: folderIds },
-          projectId: workspace.id,
-        },
-        select: {
-          id: true,
-          accessLevel: true,
-          users: {
-            select: {
-              userId: true,
-              role: true,
-            },
-          },
-        },
+      const folderIds = [
+        ...new Set(
+          validLinks.map((link) => link.folderId).filter(Boolean) as string[],
+        ),
+      ];
+
+      const folderPermissions = await checkFolderPermissions({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        folderIds,
+        requiredPermission: "folders.links.write",
       });
-      validLinks.forEach((link, index) => {
-        if (link.folderId) {
-          const validFolder = folders.find(
-            (folder) => folder.id === link.folderId,
-          );
-          if (!validFolder) {
-            validLinks = validLinks.filter((_, i) => i !== index);
-            errorLinks.push({
-              error: `Invalid folderId detected: ${link.folderId}`,
-              code: "unprocessable_entity",
-              link,
-            });
-            // if user doesn't have write access to the folder
-            // remove the link from validLinks and add error to errorLinks
-          } else if (
-            validFolder.accessLevel !== "write" &&
-            !validFolder.users.some(
-              (user) =>
-                user.userId === session.user.id &&
-                (user.role === "owner" || user.role === "editor"),
-            )
-          ) {
-            validLinks = validLinks.filter((_, i) => i !== index);
-            errorLinks.push({
-              error: `You don't have write access to this folder`,
-              code: "forbidden",
-              link,
-            });
-          }
+
+      validLinks = validLinks.filter((link) => {
+        if (!link.folderId) {
+          return true;
         }
+
+        const validFolder = folderPermissions.find(
+          (folder) => folder.folderId === link.folderId,
+        );
+
+        if (!validFolder) {
+          errorLinks.push({
+            error: `Invalid folderId detected: ${link.folderId}`,
+            code: "unprocessable_entity",
+            link,
+          });
+
+          return false;
+        }
+
+        if (!validFolder.hasPermission) {
+          errorLinks.push({
+            error: `You don't have write access to the folder: ${link.folderId}`,
+            code: "forbidden",
+            link,
+          });
+
+          return false;
+        }
+
+        return true;
       });
     }
 
