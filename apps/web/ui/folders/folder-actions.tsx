@@ -59,16 +59,16 @@ export const FolderActions = ({
         case "a":
           router.push(`/${workspaceSlug}/analytics?folderId=${folder.id}`);
           break;
-        case "r":
-          if (canUpdateFolder) {
-            setShowRenameFolderModal(true);
-          }
+        case "m":
+          setShowFolderPermissionsPanel(true);
           break;
         case "i":
           copyFolderId();
           break;
-        case "m":
-          setShowFolderPermissionsPanel(true);
+        case "r":
+          if (canUpdateFolder) {
+            setShowRenameFolderModal(true);
+          }
           break;
         case "x":
           if (canUpdateFolder) {
