@@ -27,7 +27,7 @@ export function OnboardingForm({
 }: {
   partner?: Pick<
     Partner,
-    "name" | "email" | "bio" | "country" | "image"
+    "name" | "email" | "description" | "country" | "image"
   > | null;
 }) {
   const router = useRouter();
@@ -46,7 +46,7 @@ export function OnboardingForm({
     defaultValues: {
       name: partner?.name ?? undefined,
       email: partner?.email ?? undefined,
-      description: partner?.bio ?? undefined,
+      description: partner?.description ?? undefined,
       country: partner?.country ?? undefined,
       image: partner?.image ?? undefined,
     },

@@ -95,7 +95,7 @@ export const enrollPartner = async ({
       email: partner.email,
       image: partner.image,
       country: partner.country ?? "US",
-      bio: partner.description,
+      description: partner.description,
     },
     include: {
       programs: true,
@@ -106,7 +106,6 @@ export const enrollPartner = async ({
     ...upsertedPartner,
     ...upsertedPartner.programs[0],
     id: upsertedPartner.id,
-    description: upsertedPartner.bio, // TODO: Remove after bio->description migration
     links: [link],
   });
 
