@@ -403,6 +403,14 @@ export async function processLink<T extends Record<string, any>>({
         };
       }
 
+      if (workspace.plan === "free") {
+        return {
+          link: payload,
+          error: "You can't add a folder to a link on a free plan.",
+          code: "forbidden",
+        };
+      }
+
       try {
         await verifyFolderAccess({
           workspaceId: workspace.id,

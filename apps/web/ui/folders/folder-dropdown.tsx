@@ -2,7 +2,7 @@ import { unsortedLinks } from "@/lib/folder/constants";
 import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderSummary } from "@/lib/types";
-import { Popover, Tick } from "@dub/ui";
+import { Button, Popover, Tick, TooltipContent } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
@@ -24,7 +24,7 @@ export const FolderDropdown = ({
   hideFolderIcon = false,
   textClassName,
 }: FolderDropdownProps) => {
-  const { slug: workspaceSlug } = useWorkspace();
+  const { slug, plan } = useWorkspace();
 
   const searchParams = useSearchParams();
   const { folders, loading } = useFolders();
@@ -66,7 +66,7 @@ export const FolderDropdown = ({
                 <p className="text-xs font-medium text-neutral-500">Folders</p>
                 {!hideViewAll && folders.length > 0 && (
                   <Link
-                    href={`/${workspaceSlug}/settings/library/folders`}
+                    href={`/${slug}/settings/library/folders`}
                     onClick={() => setOpenPopover(false)}
                     className="rounded-md border border-neutral-200 px-2 py-1 text-xs transition-colors hover:bg-neutral-100"
                   >
@@ -77,8 +77,9 @@ export const FolderDropdown = ({
 
               {[unsortedLinks, ...folders].map((folder) => {
                 return (
-                  <button
+                  <Link
                     key={folder.id}
+                    href={`/${slug}?folderId=${folder.id}`}
                     className={cn(
                       "relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75 hover:bg-neutral-100 active:bg-neutral-200",
                       {
@@ -115,24 +116,35 @@ export const FolderDropdown = ({
                         <Tick className="size-5" aria-hidden="true" />
                       </span>
                     )}
-                  </button>
+                  </Link>
                 );
               })}
 
-              <button
+              <Button
                 key="add-folder"
-                className="relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75 hover:bg-neutral-100 active:bg-neutral-200"
+                variant="outline"
+                icon={
+                  <FolderIcon
+                    folder={{ id: "new", accessLevel: null }}
+                    shape="square"
+                  />
+                }
+                text="Create new folder"
+                className="justify-start px-2"
                 onClick={() => {
                   setOpenPopover(false);
                   setShowAddFolderModal(true);
                 }}
-              >
-                <FolderIcon
-                  folder={{ id: "new", accessLevel: null }}
-                  shape="square"
-                />
-                <span className="block truncate">Create new folder</span>
-              </button>
+                disabledTooltip={
+                  plan === "free" && (
+                    <TooltipContent
+                      title="You can only use Link Folders on a Pro plan and above. Upgrade to Pro to continue."
+                      cta="Upgrade to Pro"
+                      href={`/${slug}/upgrade`}
+                    />
+                  )
+                }
+              />
             </div>
           )
         }
