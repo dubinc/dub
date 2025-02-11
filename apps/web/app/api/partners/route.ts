@@ -106,7 +106,6 @@ export const GET = withWorkspace(
 
     const response = partners.map((partner) => ({
       ...partner,
-      description: partner.bio ?? null, // TODO: Remove after bio->description migration
       createdAt: new Date(partner.enrollmentCreatedAt),
       payoutsEnabled: Boolean(partner.payoutsEnabled),
       clicks: Number(partner.totalClicks),

@@ -55,7 +55,7 @@ export const onboardPartnerAction = authUserActionClient
       name,
       email: user.email,
       country,
-      bio: description,
+      ...(description && { description }),
       image: imageUrl,
       ...(connectedAccount && { stripeConnectId: connectedAccount.id }),
       users: {

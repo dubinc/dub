@@ -93,10 +93,7 @@ export const withPartnerProfile = (
           params,
           searchParams,
           session,
-          partner: {
-            ...partner,
-            description: partner.bio || null,
-          },
+          partner,
         });
       } catch (error) {
         req.log.error(error);
