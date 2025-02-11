@@ -36,7 +36,7 @@ export function ConversionTrackingToggle() {
             New
           </div>
         )}
-        <span className="flex select-none items-center gap-1 text-sm font-medium text-gray-700">
+        <span className="flex select-none items-center gap-1 text-sm font-medium text-neutral-700">
           Conversion Tracking
           <InfoTooltip
             content={

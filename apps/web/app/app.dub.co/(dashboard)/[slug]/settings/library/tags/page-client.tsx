@@ -92,7 +92,7 @@ export default function WorkspaceTagsClient() {
                     ))}
               </CardList>
             </TagsListContext.Provider>
-            <div className="sticky bottom-0 rounded-b-[inherit] border-t border-gray-200 bg-white px-3.5 py-2">
+            <div className="sticky bottom-0 rounded-b-[inherit] border-t border-neutral-200 bg-white px-3.5 py-2">
               <PaginationControls
                 pagination={pagination}
                 setPagination={setPagination}

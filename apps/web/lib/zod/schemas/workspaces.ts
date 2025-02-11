@@ -58,6 +58,7 @@ export const WorkspaceSchema = z
       ),
     domainsLimit: z.number().describe("The domains limit of the workspace."),
     tagsLimit: z.number().describe("The tags limit of the workspace."),
+    foldersLimit: z.number().describe("The folders limit of the workspace."),
     usersLimit: z.number().describe("The users limit of the workspace."),
     aiUsage: z.number().describe("The AI usage of the workspace."),
     aiLimit: z.number().describe("The AI limit of the workspace."),

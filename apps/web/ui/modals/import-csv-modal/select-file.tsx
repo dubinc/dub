@@ -75,7 +75,7 @@ export function SelectFile() {
       {error ? (
         <p className="text-center text-sm text-red-600">{error}</p>
       ) : fileColumns ? (
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-neutral-600">
           Columns found: {listColumns(fileColumns)}
         </p>
       ) : file ? (

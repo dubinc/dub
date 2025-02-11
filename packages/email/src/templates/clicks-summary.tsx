@@ -63,7 +63,7 @@ export function ClicksSummary({
       <Preview>Your 30-day Dub summary for {workspaceName}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
+          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-neutral-200 px-10 py-5">
             <Section className="mt-8">
               <Img
                 src={DUB_WORDMARK}
@@ -109,10 +109,10 @@ export function ClicksSummary({
                 </Text>
                 <Section>
                   <Row className="pb-2">
-                    <Column align="left" className="text-sm text-gray-500">
+                    <Column align="left" className="text-sm text-neutral-500">
                       Link
                     </Column>
-                    <Column align="right" className="text-sm text-gray-500">
+                    <Column align="right" className="text-sm text-neutral-500">
                       Clicks
                     </Column>
                   </Row>
@@ -132,13 +132,13 @@ export function ClicksSummary({
                           </Column>
                           <Column
                             align="right"
-                            className="text-sm text-gray-600"
+                            className="text-sm text-neutral-600"
                           >
                             {nFormatter(clicks, { full: clicks < 99999 })}
                           </Column>
                         </Row>
                         {index !== topLinks.length - 1 && (
-                          <Hr className="my-2 w-full border border-gray-200" />
+                          <Hr className="my-2 w-full border border-neutral-200" />
                         )}
                       </div>
                     );

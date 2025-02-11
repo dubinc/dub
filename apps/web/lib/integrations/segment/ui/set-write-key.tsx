@@ -56,21 +56,21 @@ export function SetWriteKey({
 
   return (
     <form className="mt-4 flex items-end gap-2" onSubmit={onSubmit}>
-      <div className="w-full rounded-lg border border-gray-200 bg-white">
-        <div className="flex items-center gap-x-2 border-b border-gray-200 px-6 py-4">
+      <div className="w-full rounded-lg border border-neutral-200 bg-white">
+        <div className="flex items-center gap-x-2 border-b border-neutral-200 px-6 py-4">
           <Lock className="size-4" />
-          <p className="text-sm font-medium text-gray-700">Write key</p>
+          <p className="text-sm font-medium text-neutral-700">Write key</p>
         </div>
 
         <div className="p-4">
-          <p className="text-sm leading-normal text-gray-600">
+          <p className="text-sm leading-normal text-neutral-600">
             To send click events to Segment, you need to add your Segment write
             key below.{" "}
             <a
               href="https://segment.com/docs/connections/find-writekey/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-500 underline underline-offset-4 hover:text-gray-700"
+              className="text-neutral-500 underline underline-offset-4 hover:text-neutral-700"
             >
               Learn about
             </a>{" "}
@@ -79,14 +79,14 @@ export function SetWriteKey({
 
           {plan === "free" || plan === "pro" ? (
             <Tooltip content={planDisabledTooltip}>
-              <div className="mt-4 cursor-not-allowed rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-400">
+              <div className="mt-4 cursor-not-allowed rounded-md border border-neutral-300 bg-neutral-50 px-3 py-2 text-sm text-neutral-400">
                 Enter your write key
               </div>
             </Tooltip>
           ) : (
             <div className="relative mt-4 rounded-md shadow-sm">
               <input
-                className="w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                className="w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 placeholder="Enter your write key"
                 required
                 type="text"
@@ -100,7 +100,7 @@ export function SetWriteKey({
           )}
         </div>
 
-        <div className="flex items-center justify-end rounded-b-lg border-t border-gray-200 bg-gray-50 px-4 py-3">
+        <div className="flex items-center justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-4 py-3">
           <div className="shrink-0">
             <Button
               type="submit"

@@ -1,5 +1,6 @@
 "use server";
 
+import { getFolderOrThrow } from "@/lib/folder/get-folder-or-throw";
 import { isStored, storage } from "@/lib/storage";
 import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
@@ -23,6 +24,7 @@ export const updateProgramAction = authActionClient
     const { workspace } = ctx;
     const {
       programId,
+      defaultFolderId,
       name,
       commissionType,
       commissionAmount,
@@ -41,6 +43,14 @@ export const updateProgramAction = authActionClient
         workspaceId: workspace.id,
         programId,
       });
+
+      if (defaultFolderId) {
+        await getFolderOrThrow({
+          workspaceId: workspace.id,
+          userId: ctx.user.id,
+          folderId: defaultFolderId,
+        });
+      }
 
       const [logoUrl, wordmarkUrl] = await Promise.all([
         logo && !isStored(logo)

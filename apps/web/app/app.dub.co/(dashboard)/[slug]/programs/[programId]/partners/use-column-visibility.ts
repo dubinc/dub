@@ -10,6 +10,7 @@ export const partnersColumns = {
     "clicks",
     "leads",
     "sales",
+    "saleAmount",
     "earnings",
   ],
   defaultVisible: [
@@ -20,7 +21,7 @@ export const partnersColumns = {
     "clicks",
     "leads",
     "sales",
-    "earnings",
+    "saleAmount",
   ],
 };
 

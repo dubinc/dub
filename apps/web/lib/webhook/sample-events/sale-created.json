@@ -49,6 +49,7 @@
     "android": null,
     "geo": null,
     "publicStats": false,
+    "folderId": null,
     "tagId": null,
     "tags": [],
     "webhookIds": [],

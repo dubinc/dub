@@ -69,12 +69,12 @@ function MenuItem({
   return (
     <Command.Item
       className={cn(
-        "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md px-3.5 py-2 text-sm text-gray-950",
-        "data-[selected=true]:bg-gray-100",
+        "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md px-3.5 py-2 text-sm text-neutral-950",
+        "data-[selected=true]:bg-neutral-100",
       )}
       onSelect={onSelect}
     >
-      <IconComp className="h-4 w-4 shrink-0 text-gray-600" />
+      <IconComp className="h-4 w-4 shrink-0 text-neutral-600" />
       {label}
     </Command.Item>
   );

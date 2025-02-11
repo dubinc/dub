@@ -233,15 +233,15 @@ function OGModalInner({
             <div className="max-md:hidden">
               <Tooltip
                 content={
-                  <div className="px-2 py-1 text-xs text-gray-700">
+                  <div className="px-2 py-1 text-xs text-neutral-700">
                     Press{" "}
-                    <strong className="font-medium text-gray-950">L</strong> to
-                    open this quickly
+                    <strong className="font-medium text-neutral-950">L</strong>{" "}
+                    to open this quickly
                   </div>
                 }
                 side="right"
               >
-                <kbd className="flex size-6 cursor-default items-center justify-center rounded-md border border-gray-200 font-sans text-xs text-gray-950">
+                <kbd className="flex size-6 cursor-default items-center justify-center rounded-md border border-neutral-200 font-sans text-xs text-neutral-950">
                   L
                 </kbd>
               </Tooltip>
@@ -251,14 +251,14 @@ function OGModalInner({
           <div className="scrollbar-hide -m-1 mt-6 flex max-h-[calc(100dvh-250px)] flex-col gap-6 overflow-y-auto p-1">
             <div>
               <div className="flex items-center justify-between">
-                <span className="block text-sm font-medium text-gray-700">
+                <span className="block text-sm font-medium text-neutral-700">
                   Image
                 </span>
                 <div className="flex items-center gap-2">
                   {image && (
                     <button
                       type="button"
-                      className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
+                      className="text-xs font-medium text-neutral-700 transition-colors hover:text-neutral-950"
                       onClick={() => {
                         setValue("image", null, { shouldDirty: true });
                         setValue("proxy", false, { shouldDirty: true });
@@ -297,7 +297,7 @@ function OGModalInner({
                           content: "Choose an image from Unsplash",
                         }}
                       >
-                        <Unsplash className="size-3 text-gray-500" />
+                        <Unsplash className="size-3 text-neutral-500" />
                       </ButtonTooltip>
                     </div>
                   </Popover>
@@ -336,9 +336,11 @@ function OGModalInner({
             {/* Title */}
             <div>
               <div className="flex items-center justify-between">
-                <p className="block text-sm font-medium text-gray-700">Title</p>
+                <p className="block text-sm font-medium text-neutral-700">
+                  Title
+                </p>
                 <div className="flex items-center gap-2">
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-neutral-500">
                     {title?.length || 0}/120
                   </p>
                   <ButtonTooltip
@@ -362,7 +364,7 @@ function OGModalInner({
               </div>
               <div className="relative mt-1 flex rounded-md shadow-sm">
                 {generatingMetatags && (
-                  <div className="absolute flex h-full w-full items-center justify-center rounded-md border border-gray-300 bg-white">
+                  <div className="absolute flex h-full w-full items-center justify-center rounded-md border border-neutral-300 bg-white">
                     <LoadingCircle />
                   </div>
                 )}
@@ -371,7 +373,7 @@ function OGModalInner({
                   id="title"
                   minRows={2}
                   maxLength={120}
-                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                  className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                   placeholder="Add a title..."
                   value={title || ""}
                   onChange={(e) => {
@@ -388,11 +390,11 @@ function OGModalInner({
             {/* Description */}
             <div>
               <div className="flex items-center justify-between">
-                <p className="block text-sm font-medium text-gray-700">
+                <p className="block text-sm font-medium text-neutral-700">
                   Description
                 </p>
                 <div className="flex items-center gap-2">
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-neutral-500">
                     {description?.length || 0}/240
                   </p>
                   <ButtonTooltip
@@ -418,7 +420,7 @@ function OGModalInner({
               </div>
               <div className="relative mt-1 flex rounded-md shadow-sm">
                 {generatingMetatags && (
-                  <div className="absolute flex h-full w-full items-center justify-center rounded-md border border-gray-300 bg-white">
+                  <div className="absolute flex h-full w-full items-center justify-center rounded-md border border-neutral-300 bg-white">
                     <LoadingCircle />
                   </div>
                 )}
@@ -427,7 +429,7 @@ function OGModalInner({
                   id="description"
                   minRows={3}
                   maxLength={240}
-                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                  className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                   placeholder="Add a description..."
                   value={description || ""}
                   onChange={(e) => {
@@ -447,7 +449,7 @@ function OGModalInner({
           <div className="mt-6 flex items-center justify-between">
             <button
               type="button"
-              className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
+              className="text-xs font-medium text-neutral-700 transition-colors hover:text-neutral-950"
               onClick={() => {
                 setValueParent("proxy", false, { shouldDirty: true });
                 ["title", "description", "image"].forEach(

@@ -1,7 +1,7 @@
 import { MIN_PAYOUT_AMOUNT } from "@/lib/partners/constants";
+import { PayoutStatus } from "@dub/prisma/client";
 import { Tooltip } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
-import { PayoutStatus } from "@prisma/client";
 
 export function AmountRowItem({
   amount,
