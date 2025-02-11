@@ -154,8 +154,9 @@ export default function PlanUsage() {
         </div>
         <div
           className={cn(
-            "grid grid-cols-1 divide-y divide-neutral-200 sm:divide-x sm:divide-y-0 md:grid-cols-3",
-            flags?.linkFolders && "md:grid-cols-4",
+            "grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3",
+            flags?.linkFolders &&
+              "md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4",
           )}
         >
           <UsageCategory
@@ -356,7 +357,7 @@ function UsageCategory(data: {
   let { title, icon: Icon, usage, usageLimit } = data;
 
   return (
-    <div className="flex items-center justify-between p-6 md:p-8">
+    <div className="flex items-center justify-between bg-white p-6 md:p-8">
       <div className="flex cursor-default items-center space-x-2">
         <Icon className="size-4 text-neutral-600" />
         <h3 className="text-sm font-medium">{title}</h3>
