@@ -29,6 +29,7 @@ export const payoutsQuerySchema = z
   .object({
     status: z.nativeEnum(PayoutStatus).optional(),
     partnerId: z.string().optional(),
+    programId: z.string().optional(),
     invoiceId: z.string().optional(),
     sortBy: z.enum(["periodStart", "amount", "paidAt"]).default("periodStart"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),

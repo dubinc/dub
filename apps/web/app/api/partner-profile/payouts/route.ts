@@ -9,12 +9,13 @@ import z from "zod";
 
 // GET /api/partner-profile/payouts - get all payouts for a partner
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  const { status, sortBy, sortOrder, page, pageSize } =
+  const { programId, status, sortBy, sortOrder, page, pageSize } =
     payoutsQuerySchema.parse(searchParams);
 
   const payouts = await prisma.payout.findMany({
     where: {
       partnerId: partner.id,
+      ...(programId && { programId }),
       ...(status && { status }),
     },
     include: {

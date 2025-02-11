@@ -29,6 +29,7 @@ import {
   useId,
   useMemo,
 } from "react";
+import { PayoutsCard } from "./payouts-card";
 import { SaleTablePartner } from "./sales/sale-table";
 
 const ProgramOverviewContext = createContext<{
@@ -136,7 +137,8 @@ export default function ProgramPageClient() {
           <div className="rounded-lg border border-neutral-300 p-5 pb-3 lg:col-span-2">
             <EarningsChart />
           </div>
-          <div>{/* Payouts */}</div>
+
+          <PayoutsCard programId={program?.id} />
           <NumberFlowGroup>
             <StatCard title="Clicks" event="clicks" />
             <StatCard title="Leads" event="leads" />
@@ -200,10 +202,10 @@ function EarningsChart() {
     <div>
       <div className="flex flex-col-reverse items-start justify-between gap-4 md:flex-row">
         <div>
-          <span className="block text-base font-semibold text-neutral-800">
+          <span className="block text-base font-semibold leading-none text-neutral-800">
             Earnings
           </span>
-          <div className="mt-1.5">
+          <div className="mt-1">
             {total !== undefined ? (
               <NumberFlow
                 className="text-lg font-medium leading-none text-neutral-600"
@@ -225,7 +227,7 @@ function EarningsChart() {
         </div>
       </div>
       <div
-        className="relative mt-4 h-32 w-full"
+        className="relative mt-4 h-40 w-full"
         style={{ "--color": color || "#DA2778" } as CSSProperties}
       >
         {data ? (
@@ -343,7 +345,7 @@ function StatCard({
       href={`/programs/${programSlug}/analytics?event=${event}${getQueryString()?.replace("?", "&")}`}
       className="hover:drop-shadow-card-hover block rounded-md border border-neutral-300 bg-white p-5 pb-3 transition-[filter]"
     >
-      <span className="block text-base font-semibold text-neutral-800">
+      <span className="mb-1 block text-base font-semibold leading-none text-neutral-800">
         {title}
       </span>
       {total !== undefined ? (
