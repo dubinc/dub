@@ -47,6 +47,14 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["folders.read"],
+    requiredPlan: [
+      "pro",
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "enterprise",
+    ],
     featureFlag: "linkFolders",
   },
 );

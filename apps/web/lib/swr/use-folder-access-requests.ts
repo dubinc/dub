@@ -4,13 +4,19 @@ import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
 export function useFolderAccessRequests() {
-  const { id } = useWorkspace();
+  const { id, plan, flags } = useWorkspace();
 
   const { data, error, isLoading, isValidating, mutate } = useSWR<
     FolderAccessRequest[]
-  >(id && `/api/folders/access-requests?workspaceId=${id}`, fetcher, {
-    dedupingInterval: 60000,
-  });
+  >(
+    id && flags?.linkFolders && plan !== "free"
+      ? `/api/folders/access-requests?workspaceId=${id}`
+      : null,
+    fetcher,
+    {
+      dedupingInterval: 60000,
+    },
+  );
 
   return {
     accessRequests: data,
