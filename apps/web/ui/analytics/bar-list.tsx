@@ -86,12 +86,12 @@ export default function BarList({
                 width={width}
                 height={height}
                 itemCount={filteredData.length}
-                itemSize={40}
+                itemSize={40}-neutral-
                 itemData={itemProps}
               >
                 {VirtualLineItem}
               </FixedSizeList>
-            )}
+            )}-neutral--neutral--neutral--neutral-
           </AutoSizer>
         ) : (
           filteredData.map((data, idx) => (
@@ -131,7 +131,7 @@ export function LineItem({
   href,
   value,
   maxValue,
-  tab,
+  tab,-neutral-
   unit,
   setShowModal,
   barBackground,
@@ -191,7 +191,7 @@ export function LineItem({
                   <LinkifyTooltipContent>{title}</LinkifyTooltipContent>
                 </div>
               }
-            >
+            >-neutral-
               {lineItem}
             </Tooltip>
           ) : (

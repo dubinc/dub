@@ -29,7 +29,7 @@ import { LoadingSpinner, SortOrder } from "../icons";
 
 const tableCellClassName = (columnId: string, clickable?: boolean) =>
   cn([
-    "py-2.5 text-left text-sm leading-6 whitespace-nowrap border-gray-200 px-4 relative",
+    "py-2.5 text-left text-sm leading-6 whitespace-nowrap border-neutral-200 px-4 relative",
     "border-l border-b",
     columnId === "menu" && "bg-white border-l-transparent py-0 px-1",
     clickable && "group-hover/row:bg-neutral-50 transition-colors duration-75",
@@ -180,7 +180,7 @@ export function Table<T>({
   return (
     <div
       className={cn(
-        "relative rounded-xl border border-gray-200 bg-white",
+        "relative rounded-xl border border-neutral-200 bg-white",
         containerClassName,
       )}
     >
@@ -304,7 +304,7 @@ export function Table<T>({
                       key={cell.id}
                       className={cn(
                         tableCellClassName(cell.column.id, !!onRowClick),
-                        "group text-gray-600",
+                        "group text-neutral-600",
                         getCommonPinningClassNames(
                           cell.column,
                           row.index === table.getRowModel().rows.length - 1,
@@ -338,14 +338,14 @@ export function Table<T>({
           {children}
         </div>
       ) : (
-        <div className="flex h-96 w-full items-center justify-center text-sm text-gray-500">
+        <div className="flex h-96 w-full items-center justify-center text-sm text-neutral-500">
           {error ||
             emptyState ||
             `No ${resourceName?.(true) || "items"} found.`}
         </div>
       )}
       {pagination && !error && !!data?.length && !!rowCount && (
-        <div className="sticky bottom-0 mx-auto -mt-px flex w-full max-w-full items-center justify-between rounded-b-[inherit] border-t border-gray-200 bg-white px-4 py-3.5 text-sm leading-6 text-gray-600">
+        <div className="sticky bottom-0 mx-auto -mt-px flex w-full max-w-full items-center justify-between rounded-b-[inherit] border-t border-neutral-200 bg-white px-4 py-3.5 text-sm leading-6 text-neutral-600">
           <div>
             <span className="hidden sm:inline-block">Viewing</span>{" "}
             <span className="font-medium">

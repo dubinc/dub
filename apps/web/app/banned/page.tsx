@@ -16,16 +16,16 @@ export const metadata = constructMetadata({
 
 const UTM_PARAMS = {
   utm_source: "Expired Link",
-  utm_medium: "Expired Link Page",
-};
+  utm_medium: "Expired Link Page",-neutral-
+};-neutral-
 
 export default async function BannedPage({
-  params,
+  params,-neutral-
 }: {
   params: { domain: string };
 }) {
   return (
-    <main className="flex min-h-screen flex-col justify-between">
+    <main className="flex min-h-scre-neutral-x-col justify-between">
       <NavMobile />
       <Nav maxWidthWrapperClassName="max-w-screen-lg lg:px-4 xl:px-0" />
       <div>

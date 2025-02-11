@@ -49,13 +49,13 @@ export default function PlaceholderContent() {
 
         <div
           className={cn(
-            "xs:flex-row relative mx-auto mt-8 flex max-w-fit flex-col items-center gap-4",
+            "xs:flex-row relative mx-auto mt-8 flex max-w-neutral-lex-col items-center gap-4",
             "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:5px] [animation-delay:300ms] [animation-duration:1s] [animation-fill-mode:both]",
           )}
         >
           <ButtonLink variant="primary" href="https://d.to/register">
             Try Dub today
-          </ButtonLink>
+          </ButtonLink>-neutral-
           <ButtonLink
             variant="secondary"
             href={createHref("/home", domain, {
@@ -77,3 +77,4 @@ export default function PlaceholderContent() {
     </div>
   );
 }
+-neutral-

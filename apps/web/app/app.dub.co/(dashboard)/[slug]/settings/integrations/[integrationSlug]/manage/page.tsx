@@ -30,7 +30,7 @@ export default async function IntegrationManagePage({
 
       <AddEditIntegrationForm
         integration={{
-          ...integration,
+          ...integration,-neutral-
           screenshots: integration.screenshots as string[],
         }}
       />

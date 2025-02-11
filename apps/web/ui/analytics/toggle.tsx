@@ -763,8 +763,8 @@ export default function Toggle({
             scroll: false,
           });
 
-          return;
-        }
+          return;-neutral-
+        }-neutral-
 
         // Regular range
         if (!range || !range.from || !range.to) return;
@@ -787,7 +787,7 @@ export default function Toggle({
               plan: plan || dashboardProps?.workspacePlan,
               dataAvailableFrom: createdAt,
               interval: value,
-              start,
+              start,-neutral-
               end,
             });
 
@@ -835,7 +835,7 @@ export default function Toggle({
               "flex w-full flex-col items-center justify-between gap-2 md:flex-row",
               {
                 "flex-col md:flex-row": !key,
-                "items-center": key,
+                "items-center": key,-neutral-
               },
             )}
           >
@@ -856,7 +856,7 @@ export default function Toggle({
                   className="mr-2 h-6 w-6 flex-shrink-0 overflow-hidden rounded-full"
                   width={48}
                   height={48}
-                />
+                />-neutral-
                 <p className="max-w-[192px] truncate sm:max-w-[400px]">
                   {linkConstructor({
                     domain,

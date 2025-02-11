@@ -78,7 +78,7 @@ export function LinksSelector({
       buttonProps={{
         disabled,
         className: cn(
-          "h-auto py-1.5 px-2.5 w-full max-w-full text-gray-700 border-gray-300 items-start",
+          "h-auto py-1.5 px-2.5 w-full max-w-full text-neutral-700 border-neutral-300 items-start",
         ),
       }}
     >
@@ -89,7 +89,7 @@ export function LinksSelector({
           {selectedOptions.slice(0, 10).map((option) => (
             <span
               key={option.value}
-              className="animate-fade-in flex min-w-0 items-center gap-1 rounded-md bg-gray-100 px-1.5 py-1 text-xs text-gray-600"
+              className="animate-fade-in flex min-w-0 items-center gap-1 rounded-md bg-neutral-100 px-1.5 py-1 text-xs text-neutral-600"
             >
               <LinkLogo
                 apexDomain={getApexDomain(option.meta.url)}
@@ -102,7 +102,7 @@ export function LinksSelector({
           ))}
         </div>
       ) : (
-        <div className="my-0.5 h-5 w-1/3 animate-pulse rounded bg-gray-200" />
+        <div className="my-0.5 h-5 w-1/3 animate-pulse rounded bg-neutral-200" />
       )}
     </Combobox>
   );

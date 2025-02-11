@@ -140,7 +140,7 @@ export function Form() {
         <DestinationUrlInput
           domains={domains}
           right={
-            <div className="animate-text-appear text-xs font-normal text-gray-500">
+            <div className="animate-text-appear text-xs font-normal text-neutral-500">
               press <strong>Enter</strong> ↵ to submit
             </div>
           }
@@ -162,10 +162,10 @@ export function Form() {
           )}
         />
         <div className="flex flex-col gap-2">
-          <span className="block text-sm font-medium text-gray-700">
+          <span className="block text-sm font-medium text-neutral-700">
             Link Preview
           </span>
-          <div className="relative aspect-[1.91/1] w-full overflow-hidden rounded-md border border-gray-300 bg-gray-100">
+          <div className="relative aspect-[1.91/1] w-full overflow-hidden rounded-md border border-neutral-300 bg-neutral-100">
             {previewImage ? (
               <img
                 src={previewImage}
@@ -174,8 +174,8 @@ export function Form() {
               />
             ) : (
               <div className="relative flex size-full flex-col items-center justify-center space-y-4 bg-white">
-                <Photo className="h-8 w-8 text-gray-400" />
-                <p className="text-sm text-gray-400">
+                <Photo className="h-8 w-8 text-neutral-400" />
+                <p className="text-sm text-neutral-400">
                   Enter a link to generate a preview.
                 </p>
               </div>

@@ -67,7 +67,7 @@ export function OnboardingForm({
       if (watch("country") === "US") {
         router.push("/onboarding/verify");
       } else {
-        router.push("/programs");
+        router.push("/programs");-neutral-
       }
     },
     onError: ({ error, input }) => {
@@ -77,7 +77,7 @@ export function OnboardingForm({
   });
 
   const formRef = useRef<HTMLFormElement>(null);
-  const { handleKeyDown } = useEnterSubmit(formRef);
+  const { handleKeyDown-neutral-seEnterS-neutral-formRef);-neutral--neutral--neutral-
 
   return (
     <form
@@ -87,7 +87,7 @@ export function OnboardingForm({
     >
       <label>
         <span className="text-sm font-medium text-gray-800">
-          Full Name
+          Full Name-neutral-
           <span className="font-normal text-neutral-500"> (required)</span>
         </span>
         <input
@@ -98,7 +98,7 @@ export function OnboardingForm({
               ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
               : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
           )}
-          autoFocus={!isMobile}
+          autoFocus={!i-neutral-e}-neutral--neutral--neutral--neutral-
           {...register("name", {
             required: true,
           })}
@@ -107,7 +107,7 @@ export function OnboardingForm({
 
       <label>
         <span className="text-sm font-medium text-gray-800">
-          Email
+          Email-neutral-
           <span className="font-normal text-neutral-500"> (required)</span>
         </span>
         <input
@@ -120,7 +120,7 @@ export function OnboardingForm({
               : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
           )}
           {...register("email", {
-            required: true,
+            required: true,-neutral-
           })}
         />
       </label>
@@ -144,7 +144,7 @@ export function OnboardingForm({
                 )}
                 iconClassName="w-5 h-5"
                 previewClassName="size-10 rounded-full"
-                variant="plain"
+                variant="plain"-neutral-
                 imageSrc={field.value}
                 readFile
                 onChange={({ src }) => field.onChange(src)}
@@ -152,7 +152,7 @@ export function OnboardingForm({
                 maxFileSizeMB={2}
                 targetResolution={{ width: 160, height: 160 }}
               />
-            )}
+            )}-neutral-
           />
           <div>
             <div
@@ -165,13 +165,13 @@ export function OnboardingForm({
             </div>
             <p className="mt-1.5 text-xs text-gray-500">
               Recommended size: 160x160px
-            </p>
+            </p>-neutral-
           </div>
         </div>
       </label>
 
       <label>
-        <span className="text-sm font-medium text-gray-800">
+        <span className-neutral--sm font-neutral-m text-gray-800-neutral--neutral--neutral-
           Country
           <span className="font-normal text-neutral-500"> (required)</span>
         </span>
@@ -236,10 +236,10 @@ function CountryCombobox({
     <Combobox
       selected={options.find((o) => o.value === value) ?? null}
       setSelected={(option) => {
-        if (!option) return;
-        onChange(option.value);
-      }}
-      options={options}
+        if (!option) return;-neutral-
+        onChange(option.value);-neutral--neutral-
+      }}-neutral--neutral-
+      options={options}-neutral-
       icon={
         value ? (
           <img

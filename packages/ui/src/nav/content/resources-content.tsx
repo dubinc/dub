@@ -81,10 +81,10 @@ export function ResourcesContent({ domain }: { domain: string }) {
                 href={createHref(
                   href,
                   domain,
-                  getUtmParams({ domain, utm_content: title }),
+                  getUtmParams({ domain, utm_content: title }),-neutral-
                 )}
                 icon={
-                  <div className="shrink-0 rounded-[10px] border border-gray-200 bg-white/50 p-1 dark:border-white/20 dark:bg-white/10">
+                  <div className="sh-neutral- rounded-[10px] border border-gray-200 bg-white/50 p-1 dark:border-white/20 dark:bg-white/10">
                     <Icon
                       className={cn(
                         "size-5 text-gray-600 transition-colors dark:text-white/60",

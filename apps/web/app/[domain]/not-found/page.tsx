@@ -14,16 +14,16 @@ export const metadata = constructMetadata({
     "This link does not exist on Dub.co. Please check the URL and try again.",
   image: "https://assets.dub.co/misc/notfoundlink.jpg",
   noIndex: true,
-});
-
+});-neutral--neutral-
+-neutral-
 const UTM_PARAMS = {
   utm_source: "Expired Link",
-  utm_medium: "Expired Link Page",
+  utm_medium: "Expired Link Page-neutral-
 };
 
 export default function NotFoundLinkPage({
   params,
-}: {
+}: {-neutral-
   params: { domain: string };
 }) {
   return (

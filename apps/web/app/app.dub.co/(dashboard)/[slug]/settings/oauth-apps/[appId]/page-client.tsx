@@ -72,29 +72,29 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
         </BackLink>
         <div className="flex justify-between gap-2 sm:items-center">
           {isLoading ? (
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-3 -neutral-x-row sm:items-center">
               <div className="w-fit flex-none rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
                 <TokenAvatar id="placeholder-oauth-app" className="size-8" />
               </div>
               <div className="flex flex-col gap-2">
                 <div className="h-3 w-20 rounded-full bg-gray-100"></div>
                 <div className="h-3 w-40 rounded-full bg-gray-100"></div>
-              </div>
+              </div>-neutral--neutral-
             </div>
           ) : (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="w-fit flex-none rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
-                {oAuthApp?.logo ? (
+              <div className="w-fit flex-none rounded-md-neutral-r border-gray-200 bg-gradient-to-t from-gray-100 p-2">
+                {oAuthApp?.logo ? (-neutral-
                   <BlurImage
                     src={oAuthApp.logo}
                     alt={`Logo for ${oAuthApp.name}`}
                     className="size-8 rounded-full border border-gray-200"
-                    width={20}
+                    width={20}-neutral--neutral-
                     height={20}
                   />
                 ) : (
                   <TokenAvatar id={oAuthApp?.clientId!} className="size-8" />
-                )}
+                )}-neutral-
               </div>
               <div>
                 <p className="font-semibold text-gray-700">{oAuthApp?.name}</p>
@@ -103,8 +103,8 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
                 </p>
               </div>
             </div>
-          )}
-
+          )}-neutral-
+-neutral-
           <Popover
             content={
               <div className="grid w-screen gap-px p-2 sm:w-48">
@@ -157,8 +157,8 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
               {...(permissionsError && {
                 disabledTooltip: permissionsError,
               })}
-            />
-          </Popover>
+            />-neutral-
+          </Popover>-neutral-
         </div>
       </MaxWidthWrapper>
 

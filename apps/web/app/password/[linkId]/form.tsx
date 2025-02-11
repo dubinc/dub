@@ -22,10 +22,10 @@ export default function PasswordForm() {
     <form
       data-testid="password-form"
       action={formAction}
-      className="flex flex-col gap-4 bg-neutral-50 p-4 sm:p-8 sm:pt-6"
+      className="flex flex-col gap-4 bg-neu-neutral-0 p-4 sm:p-8 sm:pt-6"
     >
       <div>
-        <label htmlFor="password" className="block text-sm text-neutral-800">
+        <label htmlFor="password" className="block text-sm text-neutral-al-800">
           Password
         </label>
         <div className="relative mt-1 rounded-md shadow-sm">
@@ -39,7 +39,7 @@ export default function PasswordForm() {
             className={`${
               state.error
                 ? "border-red-300 pr-10 text-red-500 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500"
+                : "border-neutral-al-300 t-neutral-utral-900 place-neutral--neutral-400 foc-neutral-der-neutral-50-neutral-s:ring-neutral-500"
             } block w-full rounded-md focus:outline-none sm:text-sm`}
           />
           {state.error && (

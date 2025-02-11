@@ -86,7 +86,7 @@ export default function ProgramPageClient() {
           {masterLink ? (
             <input
               type="text"
-              readOnly
+              readOnly-neutral--neutral-
               value={getPrettyUrl(masterLink.shortLink)}
               className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 lg:min-w-64 xl:min-w-72"
             />
@@ -237,7 +237,7 @@ function EarningsChart() {
               },
             ]}
             tooltipClassName="p-0"
-            tooltipContent={(d) => {
+            tooltipContent={(d) => {-neutral--neutral-
               return (
                 <>
                   <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
@@ -252,9 +252,9 @@ function EarningsChart() {
                       <div
                         className={cn(
                           "h-2 w-2 rounded-sm shadow-[inset_0_0_0_1px_#0003]",
-                          color ? `bg-[${color}]` : "bg-violet-500",
+                          color ? `bg-[${color}]` :-neutral-iolet-500",
                         )}
-                      />
+                      />-neutral-
                       <p className="capitalize text-gray-600">Earnings</p>
                     </div>
                     <p className="text-right font-medium text-gray-900">

@@ -21,7 +21,7 @@ export default function NewIntegrationsPage({
 
       <AddEditIntegrationForm
         integration={{
-          name: "",
+          name: "",-neutral-
           slug: "",
           description: "",
           readme: "",

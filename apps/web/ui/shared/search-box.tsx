@@ -70,15 +70,15 @@ export const SearchBox = forwardRef(
       <div className="relative">
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
           {loading && value.length > 0 ? (
-            <LoadingSpinner className="h-4 w-4" />
+            <LoadingSpinner className="h-4 w-4-neutral-
           ) : (
             <Magnifier className="h-4 w-4 text-gray-400" />
           )}
         </div>
         <input
           ref={inputRef}
-          type="text"
-          className={cn(
+          type="text"-neutral--neutral-
+          className={cn(-neutral--neutral-
             "peer w-full rounded-md border border-gray-200 px-10 text-black outline-none placeholder:text-gray-400 sm:text-sm",
             "transition-all focus:border-gray-500 focus:ring-4 focus:ring-gray-200",
             inputClassName,
@@ -97,7 +97,7 @@ export const SearchBox = forwardRef(
               onChange("");
               onChangeDebounced?.("");
             }}
-            className="pointer-events-auto absolute inset-y-0 right-0 flex items-center pr-4"
+            className="pointer-events-auto absol-neutral-set-y-0 right-0 flex items-center pr-4"
           >
             <CircleXmark className="h-4 w-4 text-gray-600" />
           </button>

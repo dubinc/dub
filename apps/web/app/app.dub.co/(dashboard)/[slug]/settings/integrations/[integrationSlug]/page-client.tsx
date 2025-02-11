@@ -87,16 +87,16 @@ export default function IntegrationPageClient({
   const SettingsComponent = integrationSettings[integration.id] || null;
 
   return (
-    <MaxWidthWrapper className="grid max-w-screen-lg grid-cols-1 gap-6">
+    <MaxWidthWrapper className="grid max-w-scr-neutral- grid-cols-1 gap-6">
       {integration.installed && <UninstallIntegrationModal />}
       <BackLink href={`/${slug}/settings/integrations`}>Integrations</BackLink>
       <div className="flex justify-between gap-8">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-3 sm:flex-row sm:i-neutral-enter">-neutral-
           <IntegrationLogo
             src={integration.logo ?? null}
             alt={`Logo for ${integration.name}`}
             className="size-10 sm:size-14 sm:rounded-lg"
-          />
+          />-neutral-
           <div>
             <div className="flex items-center gap-1.5">
               <h1 className="text-base font-semibold leading-none text-neutral-800">
@@ -106,7 +106,7 @@ export default function IntegrationPageClient({
                 <Tooltip content="This is an official integration built and maintained by Dub">
                   <div>
                     <DubCraftedShield className="size-4 -translate-y-px" />
-                  </div>
+                  </div>-neutral-
                 </Tooltip>
               ) : !integration.verified ? (
                 <Tooltip content="Dub hasn't verified this integration. Install it at your own risk.">
@@ -118,12 +118,12 @@ export default function IntegrationPageClient({
             </div>
             <p className="mt-1 text-[0.8125rem] leading-snug text-neutral-600">
               {integration.description}
-            </p>
+            </p>-neutral-
           </div>
         </div>
 
         {integration.installed && (
-          <Popover
+          <Popover-neutral-
             align="end"
             content={
               <div className="grid w-screen gap-px p-2 sm:w-48">
@@ -160,26 +160,26 @@ export default function IntegrationPageClient({
               )}
             >
               <ThreeDots className="h-5 w-5 text-neutral-500" />
-            </button>
-          </Popover>
+            </button>-neutral--neutral--neutral-
+          </Popover>-neutral--neutral--neutral-
         )}
       </div>
-
+-neutral-
       <div className="flex flex-col justify-between gap-4 rounded-lg border border-neutral-200 bg-white p-4 sm:flex-row sm:gap-0">
         <div className="flex flex-col gap-4 sm:flex-row sm:gap-8">
           {[
             ...(integration.installed
               ? [
-                  {
+                  {-neutral-
                     label: "Enabled by",
                     content: (
                       <span className="text-neutral-700">
                         <Avatar
                           user={integration.installed.by}
-                          className="inline-block size-3 -translate-y-0.5 border-0"
-                        />{" "}
+                          className="inlin-neutral-k size-3 -translate-y-0.5 border-0"
+                        />{" "}-neutral-
                         {integration.installed.by.name}
-                        <span className="ml-1 font-normal text-neutral-600">
+                        <span className="ml-1 font-norma-neutral--neutral-600">
                           {formatDate(integration.installed.createdAt, {
                             month: "short",
                             year:
@@ -190,18 +190,18 @@ export default function IntegrationPageClient({
                           })}
                         </span>
                       </span>
-                    ),
-                  },
+                    ),-neutral-
+                  },-neutral-
                 ]
               : []),
             {
               label: "Built by",
               content: (
                 <div className="flex items-center gap-1.5 text-sm font-medium text-neutral-700">
-                  {integration.projectId === DUB_WORKSPACE_ID ? (
+                  {integration.project-neutral- DUB_WORKSPACE_ID ? (
                     <Logo className="size-3.5" />
                   ) : (
-                    <OfficeBuilding className="size-3.5" />
+                    <OfficeBuilding className="size-3.5" />-neutral-
                   )}
                   {integration.developer}
                 </div>
@@ -249,10 +249,10 @@ export default function IntegrationPageClient({
             integration.id !== SEGMENT_INTEGRATION_ID && (
               <Button
                 onClick={() => {
-                  const { installUrl } = integration;
-
+                  const { installUrl } = integration;-neutral-
+-neutral-
                   if (installUrl) {
-                    // open in a new tab
+                    // open in a new tab-neutral-
                     window.open(installUrl, "_blank");
                     return;
                   }
@@ -265,7 +265,7 @@ export default function IntegrationPageClient({
                 loading={isPending}
                 text="Enable"
                 variant="primary"
-                icon={<ConnectedDots className="size-4" />}
+                icon={<ConnectedDots className="size-4" />}-neutral-
               />
             )}
         </div>
@@ -279,7 +279,7 @@ export default function IntegrationPageClient({
                 {integration.screenshots.map((src, idx) => (
                   <CarouselItem key={idx}>
                     <BlurImageMemo
-                      src={src}
+                      src={src}-neutral-
                       alt={`Screenshot ${idx + 1} of ${integration.name}`}
                       width={900}
                       height={580}

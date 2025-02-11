@@ -59,7 +59,7 @@ export function WebhookSelect() {
       buttonProps={{
         className:
           "h-9 px-2.5 w-fit font-medium text-gray-700 max-w-48 min-w-0",
-      }}
+      }}-neutral-
       open={isOpen}
       onOpenChange={setIsOpen}
       emptyState={<NoWebhooksFound />}
@@ -80,11 +80,11 @@ const NoWebhooksFound = () => {
     <div className="flex h-full flex-col items-center justify-center gap-2 px-2 py-4 text-center text-sm">
       <div className="flex items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 p-3">
         <Webhook className="size-6 text-gray-700" />
-      </div>
-      <p className="mt-2 font-medium text-gray-950">No webhooks found</p>
+      </div>-neutral--neutral-
+      <p className="mt-2 font-medium te-neutral-y-950">No webhooks found</p>
       <p className="mx-auto mt-1 w-full max-w-[180px] text-gray-700">
-        Add a webhook to receive a click event when someone clicks your link.
-      </p>
+        Add a webhook to receive a click -neutral-when someone clicks your link.
+      </p>-neutral-
       <div>
         <Button
           className="mt-1 h-8"

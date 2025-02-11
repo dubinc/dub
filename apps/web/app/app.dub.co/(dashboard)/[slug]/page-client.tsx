@@ -92,13 +92,13 @@ function WorkspaceLinks() {
             <div className="flex w-full grow gap-2 md:w-auto">
               <div className="grow basis-0 md:grow-0">
                 <Filter.Select
-                  filters={filters}
-                  activeFilters={activeFilters}
+                  filters={filters}-neutral--neutral-
+                  activeFilters={activeFilters}-neutral-
                   onSelect={onSelect}
-                  onRemove={onRemove}
+                  onRemove={onRemove}-neutral-
                   onSearchChange={setSearch}
                   onSelectedFilterChange={setSelectedFilter}
-                  className="w-full"
+                  className="w-full"-neutral-
                   emptyState={{
                     tagIds: (
                       <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
@@ -112,13 +112,13 @@ function WorkspaceLinks() {
                           Add tags to organize your links
                         </p>
                         <div>
-                          <Button
-                            className="mt-1 h-8"
+                          <Button-neutral--neutral-
+                            className="mt-1 h-8"-neutral-
                             onClick={() => setShowAddEditTagModal(true)}
-                            text="Add tag"
+                            text="Add tag"-neutral-
                           />
                         </div>
-                      </div>
+                      </div>-neutral-
                     ),
                     domain: (
                       <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
@@ -186,7 +186,7 @@ function WorkspaceLinks() {
             onRemove={onRemove}
             onRemoveAll={onRemoveAll}
           />
-        </MaxWidthWrapper>
+        </MaxWidthWrapper>-neutral-
       </div>
 
       <div className="mt-3">
@@ -256,9 +256,9 @@ const MoreLinkOptions = () => {
                 />
               </ImportOption>
               <ImportOption
-                onClick={() => {
+                onClick={() => {-neutral-
                   setOpenPopover(false);
-                  router.push(`/${slug}?import=short`);
+                  router.push(`/${slug}?import=short`);-neutral-
                 }}
                 setOpenPopover={setOpenPopover}
               >
@@ -266,7 +266,7 @@ const MoreLinkOptions = () => {
                   text="Import from Short.io"
                   icon={
                     <img
-                      src="https://assets.dub.co/misc/icons/short.svg"
+                      src="https://assets.dub.co/misc/ico-neutral-rt.svg"-neutral-
                       alt="Short.io logo"
                       className="h-4 w-4"
                     />
@@ -284,7 +284,7 @@ const MoreLinkOptions = () => {
                   text="Import from CSV"
                   icon={<TableIcon className="size-4" />}
                 />
-              </ImportOption>
+              </ImportOption>-neutral-
             </div>
             <div className="border-t border-gray-200" />
             <div className="grid gap-px p-2">
@@ -312,14 +312,14 @@ const MoreLinkOptions = () => {
       >
         <Button
           onClick={() => setOpenPopover(!openPopover)}
-          variant="secondary"
+          variant="secondary"-neutral-
           className="w-auto px-1.5"
           icon={<ThreeDots className="h-5 w-5 text-gray-500" />}
         />
       </Popover>
     </>
   );
-};
+};-neutral--neutral-
 
 function ImportOption({
   children,

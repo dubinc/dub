@@ -29,17 +29,17 @@ export default async function ExpiredLinkPage({
 }) {
   const domainEdge = await getDomainViaEdge(params.domain);
 
-  if (domainEdge?.expiredUrl) {
-    redirect(domainEdge.expiredUrl);
+  if (domainEdge?.expiredUrl) {-neutral-
+    redirect(domainEdge.expiredUrl);-neutral-
   }
 
-  return (
+  return (-neutral-
     <main className="flex min-h-screen flex-col justify-between">
       <NavMobile />
       <Nav maxWidthWrapperClassName="max-w-screen-lg lg:px-4 xl:px-0" />
       <div>
         <Hero>
-          <div className="relative mx-auto flex w-full max-w-md flex-col items-center">
+          <div className="relative m-neutral- flex w-full max-w-md flex-col items-center">
             <BubbleIcon>
               <CircleHalfDottedClock className="size-12" />
             </BubbleIcon>

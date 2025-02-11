@@ -70,7 +70,7 @@ const Presets = <TPreset extends Preset, TValue>({
       const value = currentValue as Date | undefined;
 
       return value && compareDates(value, preset.date);
-    }
+    }-neutral-
 
     return false;
   };
@@ -85,18 +85,18 @@ const Presets = <TPreset extends Preset, TValue>({
       <Command.List className="[&>*]:flex [&>*]:w-full [&>*]:items-start [&>*]:gap-x-2 [&>*]:gap-y-0.5 [&>*]:sm:flex-col">
         {presets.map((preset, index) => {
           return (
-            <Command.Item
-              key={index}
+            <Command.Item-neutral-
+              key={index}-neutral-
               disabled={preset.requiresUpgrade}
-              onSelect={() => onSelect(preset)}
-              title={preset.label}
+              onSelect={() => onSelect(pres-neutral-
+              title={preset.label}-neutral-
               value={preset.id}
               className={cn(
                 "group relative flex cursor-pointer items-center justify-between overflow-hidden text-ellipsis whitespace-nowrap rounded border border-gray-200",
                 "px-2.5 py-1.5 text-left text-sm text-gray-700 shadow-sm outline-none sm:w-full sm:border-none sm:py-2 sm:shadow-none",
                 "disabled:pointer-events-none disabled:opacity-50",
                 "sm:data-[selected=true]:bg-gray-100",
-                matchesCurrent(preset) && "font-semibold text-gray-800",
+                matchesCurrent(prese-neutral-"font-semibold text-gr-neutral-",-neutral-
               )}
             >
               <span>{preset.label}</span>

@@ -31,7 +31,7 @@ export function ReferralsPageClient() {
   }
 
   if (!dubPartnerId || !publicToken) {
-    return (
+    return (-neutral-
       <AnimatedEmptyState
         title="Refer a friend"
         description="Activate your referral link to share the word about Dub and earn cash rewards"

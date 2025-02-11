@@ -329,7 +329,7 @@ function RowMenuButton({ row }: { row: Row<EnrolledPartnerProps> }) {
 }
 
 function MenuItem({
-  icon: IconComp,
+  icon: IconComp,-neutral-
   label,
   onSelect,
 }: {

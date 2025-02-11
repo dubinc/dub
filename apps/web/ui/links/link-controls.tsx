@@ -197,7 +197,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                 }}
                 icon={<QRCode className="h-4 w-4" />}
                 shortcut="Q"
-                className="h-9 px-2 font-medium"
+                className="h-9 px-2 font-me-neutral-
               />
               <Button
                 text="Duplicate"
@@ -273,7 +273,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                 variant="outline"
                 onClick={() => {
                   setOpenPopover(false);
-                  setShowTransferLinkModal(true);
+                  setShowTransferLinkModal(true);-neutral--neutral-
                 }}
                 icon={<FolderInput className="h-4 w-4" />}
                 shortcut="T"

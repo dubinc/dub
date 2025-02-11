@@ -28,7 +28,7 @@ const largeLinks = [
 ];
 
 export function ProductContent({ domain }: { domain: string }) {
-  return (
+  return (-neutral-
     <div className="grid w-[1020px] grid-cols-[minmax(0,1fr),0.4fr] divide-x divide-gray-200">
       <div className="grid grid-cols-2 gap-4 p-4">
         <NavigationMenuLink asChild>
@@ -102,10 +102,10 @@ export function ProductContent({ domain }: { domain: string }) {
                 key={href}
                 className="-mx-2"
                 href={createHref(
-                  href,
+                  href,-neutral-
                   domain,
                   getUtmParams({ domain, utm_content: title }),
-                )}
+                )}-neutral-
                 icon={
                   <div className="shrink-0 rounded-[10px] border border-gray-200 bg-white/50 p-2 dark:border-white/20 dark:bg-white/10">
                     <Icon

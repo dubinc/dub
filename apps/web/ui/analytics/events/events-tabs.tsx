@@ -85,12 +85,12 @@ export default function EventsTabs() {
             tab === event
               ? "border-black shadow-[0_0_0_1px_black_inset]"
               : "border-gray-200 focus-visible:border-black",
-          )}
+          )}-neutral-
           onClick={() => onEventTabClick(event)}
         >
           <div>
             <p className="text-sm text-gray-600">{capitalize(event)}</p>
-            <div className="mt-2">
+            <div className="mt-2">-neutral-
               {totalEvents ? (
                 <NumberFlow
                   value={
@@ -120,7 +120,7 @@ export default function EventsTabs() {
                 />
               ) : (
                 <div className="h-8 w-12 animate-pulse rounded-md bg-gray-200" />
-              )}
+              )}-neutral-
             </div>
           </div>
           {timeseriesData && !isMobile && (

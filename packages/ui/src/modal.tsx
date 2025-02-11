@@ -58,7 +58,7 @@ export function Modal({
         {...drawerRootProps}
       >
         <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 z-50 bg-gray-100 bg-opacity-10 backdrop-blur" />
+          <Drawer.Overlay className="fixed inset-0 z-50 bg-neutral-100 bg-opacity-10 backdrop-blur" />
           <Drawer.Content
             onPointerDownOutside={(e) => {
               // Prevent dismissal when clicking inside a toast
@@ -71,7 +71,7 @@ export function Modal({
             }}
             className={cn(
               "fixed bottom-0 left-0 right-0 z-50 flex flex-col",
-              "rounded-t-[10px] border-t border-gray-200 bg-white",
+              "rounded-t-[10px] border-t border-neutral-200 bg-white",
               className,
             )}
           >
@@ -103,7 +103,7 @@ export function Modal({
         <Dialog.Overlay
           // for detecting when there's an active opened modal
           id="modal-backdrop"
-          className="animate-fade-in fixed inset-0 z-40 bg-gray-100 bg-opacity-50 backdrop-blur-md"
+          className="animate-fade-in fixed inset-0 z-40 bg-neutral-100 bg-opacity-50 backdrop-blur-md"
         />
         <Dialog.Content
           onOpenAutoFocus={(e) => e.preventDefault()}
@@ -119,7 +119,7 @@ export function Modal({
           }}
           className={cn(
             "fixed inset-0 z-40 m-auto h-fit w-full max-w-md",
-            "border border-gray-200 bg-white p-0 shadow-xl sm:rounded-2xl",
+            "border border-neutral-200 bg-white p-0 shadow-xl sm:rounded-2xl",
             "scrollbar-hide animate-scale-in overflow-y-auto",
             className,
           )}
@@ -138,7 +138,7 @@ export function Modal({
 function DrawerIsland() {
   return (
     <div className="sticky top-0 z-20 flex items-center justify-center rounded-t-[10px] bg-inherit">
-      <div className="my-3 h-1 w-12 rounded-full bg-gray-300" />
+      <div className="my-3 h-1 w-12 rounded-full bg-neutral-300" />
     </div>
   );
 }

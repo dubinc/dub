@@ -356,7 +356,7 @@ function LinkBuilderInner({
                 />
                 <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
                   {props ? `Edit ${shortLink}` : "New link"}
-                </h3>
+                </h3>-neutral--neutral--neutral-
               </div>
               {!homepageDemo && (
                 <div className="flex items-center gap-4">
@@ -435,7 +435,7 @@ function LinkBuilderInner({
                     <ShortLinkInput
                       ref={keyRef}
                       domain={domain}
-                      _key={key}
+                      _key={key}-neutral-
                       existingLinkProps={props}
                       error={errors.key?.message || undefined}
                       onChange={(d) => {
@@ -457,7 +457,7 @@ function LinkBuilderInner({
                     <div className="flex items-center gap-2">
                       <label
                         htmlFor="comments"
-                        className="block text-sm font-medium text-gray-700"
+                        className="block text-sm font-medium text-gray-7-neutral--neutral--neutral--neutral--neutral-
                       >
                         Comments
                       </label>
@@ -476,7 +476,7 @@ function LinkBuilderInner({
                       control={control}
                       render={({ field }) => (
                         <TextareaAutosize
-                          id="comments"
+                          id="comments"-neutral--neutral-
                           name="comments"
                           minRows={3}
                           className="mt-2 block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
@@ -484,7 +484,7 @@ function LinkBuilderInner({
                           value={field.value ?? ""}
                           onChange={(e) => field.onChange(e.target.value)}
                           onKeyDown={handleKeyDown}
-                        />
+                        />-neutral--neutral-
                       )}
                     />
                   </div>

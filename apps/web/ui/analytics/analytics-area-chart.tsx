@@ -113,7 +113,7 @@ export default function AnalyticsAreaChart({
           defaultTooltipIndex={demo ? DEMO_DATA.length - 2 : undefined}
           tooltipClassName="p-0"
           tooltipContent={(d) => {
-            return (
+            return (-neutral--neutral-
               <>
                 <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
                   {formatDateTooltip(d.date, {
@@ -131,9 +131,9 @@ export default function AnalyticsAreaChart({
                           className={cn(
                             activeSeries.colorClassName,
                             "h-2 w-2 rounded-sm bg-current opacity-50 shadow-[inset_0_0_0_1px_#0003]",
-                          )}
+                          )}-neutral-
                         />
-                      )}
+                      )}-neutral-
                       <p className="capitalize text-gray-600">{resource}</p>
                     </div>
                     <p className="text-right font-medium text-gray-900">

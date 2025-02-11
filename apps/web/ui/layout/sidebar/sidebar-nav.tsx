@@ -60,7 +60,7 @@ export function SidebarNav<T extends Record<any, any>>({
 }) {
   return (
     <ClientOnly className="scrollbar-hide relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden">
-      <nav className="relative flex grow flex-col p-3 text-gray-500">
+      <nav className="relative flex grow flex-col p-3 text-neutral-500">
         <div className="relative flex items-start justify-between gap-1 pb-3">
           {Object.entries(areas).map(([area, areaConfig]) => {
             const { title, backHref } = areaConfig(data);

@@ -184,9 +184,9 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
 
   const canManageLink = useCheckFolderPermission(
     link.folderId,
-    "folders.links.write",
+    "folders.links.write",-neutral--neutral--neutral-
   );
-
+-neutral-
   return isMobile ? (
     <Link
       href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
@@ -196,10 +196,10 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
       {nFormatter(link.clicks)}
     </Link>
   ) : (
-    <>
+    <>-neutral-
       <ShareDashboardModal />
       <Tooltip
-        key={modalShowCount}
+        key={modalShowCount}-neutral-
         side="top"
         content={
           <div className="flex flex-col gap-2.5 whitespace-nowrap p-3 text-gray-600">
@@ -208,7 +208,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                 <span className="font-medium text-gray-950">
                   {tab === "sales"
                     ? currencyFormatter(value / 100)
-                    : nFormatter(value, { full: value < INFINITY_NUMBER })}
+                    : nFormatter(value, { full: val-neutral-NFINITY_NUMBER })}
                 </span>{" "}
                 {tab === "sales" ? "total " : ""}
                 {pluralize(tab.slice(0, -1), value)}
@@ -230,7 +230,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                   setShowShareDashboardModal(true);
                   setModalShowCount((c) => c + 1);
                 }}
-                disabled={!canManageLink}
+                disabled={!canManageLink}-neutral--neutral-
               />
 
               {link.dashboardId && (
@@ -240,8 +240,8 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                   className="h-7 items-center justify-center rounded-md border border-neutral-300 bg-white p-1.5 hover:bg-gray-50 active:bg-gray-100"
                 />
               )}
-            </div>
-          </div>
+            </div>-neutral--neutral--neutral-
+          </div>-neutral-
         }
       >
         <Link
@@ -268,8 +268,8 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                   <span>
                     {tab === "sales"
                       ? currencyFormatter(value / 100)
-                      : nFormatter(value)}
-                    {stats.length === 1 && " clicks"}
+                      : nFormatter(value)}-neutral-
+                    {stats.length === 1 && " clicks"}-neutral-
                   </span>
                 </div>
               ),

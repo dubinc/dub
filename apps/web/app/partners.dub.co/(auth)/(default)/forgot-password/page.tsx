@@ -12,11 +12,11 @@ export default function ForgotPasswordPage() {
           <ForgotPasswordForm />
         </div>
       </div>
-      <p className="mt-4 text-center text-sm text-gray-500">
+      <p className="mt-4 text-center text-sm text-neutral-500">
         Don't have an account?&nbsp;
         <Link
           href="register"
-          className="font-semibold text-gray-500 underline underline-offset-2 transition-colors hover:text-black"
+          className="font-semibold text-neutral-500 underline underline-offset-2 transition-colors hover:text-black"
         >
           Sign up
         </Link>

@@ -28,7 +28,7 @@ export default function NewOAuthAppPageClient() {
       </MaxWidthWrapper>
 
       <MaxWidthWrapper className="max-w-screen-lg space-y-6">
-        <AddOAuthAppForm oAuthApp={null} />
+        <AddOAuthAppForm oAuthApp={null} />-neutral-
       </MaxWidthWrapper>
     </>
   );

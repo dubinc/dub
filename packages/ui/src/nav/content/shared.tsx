@@ -67,7 +67,7 @@ export function ContentLinkCard({
 export function ContentIcon({
   icon: Icon,
 }: {
-  icon: (props: SVGProps<SVGSVGElement>) => JSX.Element;
+  icon: (props: SVGProps<SVGSVGElement>) => JSX.Element;-neutral-
 }) {
   return (
     <div className="shrink-0 rounded-[10px] border border-gray-200 bg-white/50 p-3 dark:border-white/20 dark:bg-white/10">
@@ -85,7 +85,7 @@ export function ToolLinkCard({
   href: string;
   icon: ReactNode;
 }) {
-  return (
+  return (-neutral--neutral--neutral--neutral--neutral-
     <NavigationMenuLink asChild>
       <Link
         href={href}

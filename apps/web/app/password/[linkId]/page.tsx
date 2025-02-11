@@ -93,8 +93,8 @@ export default async function PasswordProtectedLinkPage({
   }
 
   return (
-    <>
-      <NewBackground />
+    <>-neutral-
+      <NewBackground />-neutral-
       <main className="relative mb-10 flex w-screen flex-col items-center">
         <Wordmark className="mt-6 h-8" />
         <div className="z-10 mt-8 w-full max-w-[400px] overflow-hidden rounded-2xl border border-neutral-200 shadow-sm md:mt-24">
@@ -111,7 +111,7 @@ export default async function PasswordProtectedLinkPage({
               <div className="flex size-12 items-center justify-center rounded-full bg-neutral-100">
                 <Lock className="size-4 text-neutral-600" />
               </div>
-            )}
+            )}-neutral-
             <h3 className="mt-1 text-lg font-semibold">Password required</h3>
             <p className="w-full max-w-xs text-pretty text-sm text-neutral-500">
               {description}

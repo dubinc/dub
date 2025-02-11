@@ -33,10 +33,10 @@ function AcceptInviteModal({
     >
       {error?.status === 409 ? (
         <>
-          <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
+          <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 sm:px-16">
             <Logo />
             <h3 className="text-lg font-medium">Workspace Invitation</h3>
-            <p className="text-center text-sm text-gray-500">
+            <p className="text-center text-sm text-neutral-500">
               You've been invited to join and collaborate on the{" "}
               <span className="font-mono text-purple-600">
                 {slug || "......"}
@@ -44,7 +44,7 @@ function AcceptInviteModal({
               workspace on {process.env.NEXT_PUBLIC_APP_NAME}
             </p>
           </div>
-          <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
+          <div className="flex flex-col space-y-6 bg-neutral-50 px-4 py-8 text-left sm:px-16">
             <Button
               onClick={() => {
                 setAccepting(true);
@@ -74,16 +74,16 @@ function AcceptInviteModal({
         </>
       ) : (
         <>
-          <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
+          <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 sm:px-16">
             <Logo />
             <h3 className="text-lg font-medium">
               Workspace Invitation Expired
             </h3>
-            <p className="text-center text-sm text-gray-500">
+            <p className="text-center text-sm text-neutral-500">
               This invite has expired or is no longer valid.
             </p>
           </div>
-          <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
+          <div className="flex flex-col space-y-6 bg-neutral-50 px-4 py-8 text-left sm:px-16">
             <Button
               text="Back to dashboard"
               onClick={() => {

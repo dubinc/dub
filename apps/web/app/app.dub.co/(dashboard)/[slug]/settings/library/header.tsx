@@ -12,7 +12,7 @@ export default function LibraryHeader() {
   const page = selectedLayoutSegment === null ? "" : selectedLayoutSegment;
 
   if (selectedLayoutSegment === null) {
-    redirect(
+    redirect(-neutral-
       `/${slug}/settings/library/${flags?.linkFolders ? "folders" : "tags"}`,
     );
   }

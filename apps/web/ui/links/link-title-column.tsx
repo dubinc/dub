@@ -74,14 +74,14 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
         )}
       >
         {/* Link logo background circle */}
-        <div className="absolute inset-0 shrink-0 rounded-full border border-gray-200 opacity-0 transition-opacity group-data-[variant=loose]/card-list:sm:opacity-100">
-          <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-gray-100" />
+        <div className="absolute inset-0 shrink-0 rounded-full border border-neutral-200 opacity-0 transition-opacity group-data-[variant=loose]/card-list:sm:opacity-100">
+          <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
         </div>
         <div className="relative pr-0.5 transition-[padding] group-data-[variant=loose]/card-list:sm:p-2">
           {link.archived ? (
             <Tooltip content="Archived">
               <div>
-                <BoxArchive className="size-4 shrink-0 p-0.5 text-gray-600 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5" />
+                <BoxArchive className="size-4 shrink-0 p-0.5 text-neutral-600 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5" />
               </div>
             </Tooltip>
           ) : (
@@ -97,13 +97,13 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
       </div>
       <div className="h-[24px] min-w-0 overflow-hidden transition-[height] group-data-[variant=loose]/card-list:h-[46px]">
         <div className="flex items-center gap-2">
-          <div className="min-w-0 shrink grow-0 text-gray-950">
+          <div className="min-w-0 shrink grow-0 text-neutral-950">
             <div className="flex items-center gap-2">
               {displayProperties.includes("title") && link.title ? (
                 <span
                   className={cn(
-                    "truncate font-semibold leading-6 text-gray-800",
-                    link.archived && "text-gray-600",
+                    "truncate font-semibold leading-6 text-neutral-800",
+                    link.archived && "text-neutral-600",
                   )}
                 >
                   {link.title}
@@ -116,8 +116,8 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
                     rel="noopener noreferrer"
                     title={linkConstructor({ domain, key, pretty: true })}
                     className={cn(
-                      "truncate font-semibold leading-6 text-gray-800 transition-colors hover:text-black",
-                      link.archived && "text-gray-600",
+                      "truncate font-semibold leading-6 text-neutral-800 transition-colors hover:text-black",
+                      link.archived && "text-neutral-600",
                     )}
                   >
                     {linkConstructor({ domain, key, pretty: true })}
@@ -170,7 +170,7 @@ function UnverifiedTooltip({
             />
           }
         >
-          <p className="cursor-default truncate font-semibold leading-6 text-gray-500 line-through">
+          <p className="cursor-default truncate font-semibold leading-6 text-neutral-500 line-through">
             {linkConstructor({ domain, key: _key, pretty: true })}
           </p>
         </Tooltip>
@@ -198,7 +198,7 @@ function SettingsBadge({ link }: { link: ResponseLink }) {
           <HoverCard.Content
             side="bottom"
             sideOffset={8}
-            className="animate-slide-up-fade z-[99] items-center overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+            className="animate-slide-up-fade z-[99] items-center overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm"
           >
             <div className="flex w-[340px] flex-col p-3 text-sm">
               {settings.map(({ label, icon: Icon }) => (
@@ -209,11 +209,11 @@ function SettingsBadge({ link }: { link: ResponseLink }) {
                     setOpen(false);
                     setShowLinkBuilder(true);
                   }}
-                  className="flex items-center justify-between gap-4 rounded-lg p-3 transition-colors hover:bg-gray-100"
+                  className="flex items-center justify-between gap-4 rounded-lg p-3 transition-colors hover:bg-neutral-100"
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className="size-4 text-gray-600" />
-                    <span className="text-gray-950">{label}</span>
+                    <Icon className="size-4 text-neutral-600" />
+                    <span className="text-neutral-950">{label}</span>
                   </div>
                   <Switch checked />
                 </button>
@@ -222,7 +222,7 @@ function SettingsBadge({ link }: { link: ResponseLink }) {
           </HoverCard.Content>
         </HoverCard.Portal>
         <HoverCard.Trigger asChild>
-          <div className="rounded-full p-1.5 hover:bg-gray-100">
+          <div className="rounded-full p-1.5 hover:bg-neutral-100">
             <Bolt className="size-3.5" />
           </div>
         </HoverCard.Trigger>
@@ -239,21 +239,21 @@ const Details = memo(
 
     return (
       <div
-        className={cn(
+        className={cn(-neutral-
           "min-w-0 items-center whitespace-nowrap text-sm transition-[opacity,display] delay-[0s,150ms] duration-[150ms,0s]",
-          compact
+          compact-neutral-
             ? [
                 "hidden gap-2.5 opacity-0 group-data-[variant=compact]/card-list:flex group-data-[variant=compact]/card-list:opacity-100",
-                "xs:min-w-[40px] xs:basis-[40px] min-w-0 shrink-0 grow basis-0 sm:min-w-[120px] sm:basis-[120px]",
+                "xs:min-w-[40px] xs:b-neutral-40px] min-w-0 shrink-0 grow basis-0 sm:min-w-[120px] sm:basis-[120px]",
               ]
-            : "hidden gap-1.5 opacity-0 group-data-[variant=loose]/card-list:flex group-data-[variant=loose]/card-list:opacity-100 md:gap-3",
+            : "hidden gap-1.5 opacity-0 group-data-[vari-neutral-ose]/card-list:flex group-data-[variant=loose]/card-list:opacity-100 md:gap-3",
         )}
       >
         <div className="flex min-w-0 items-center gap-1">
           {displayProperties.includes("url") &&
             (compact ? (
               <ArrowRight className="mr-1 h-3 w-3 shrink-0 text-gray-400" />
-            ) : (
+            ) : (-neutral-
               <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-gray-400" />
             ))}
           {displayProperties.includes("url") ? (
@@ -283,9 +283,9 @@ const Details = memo(
           <UserAvatar link={link} />
         </div>
         <div
-          className={cn(
+          className={cn(-neutral-
             "hidden shrink-0",
-            displayProperties.includes("createdAt") && "sm:block",
+            displayProperties.includes("createdAt") && "sm:bloc-neutral-
           )}
         >
           <Tooltip content={formatDateTime(createdAt)} delayDuration={150}>
@@ -294,15 +294,15 @@ const Details = memo(
         </div>
       </div>
     );
-  },
+  },-neutral--neutral-
 );
 
 function UserAvatar({ link }: { link: ResponseLink }) {
   const { user } = link;
-  const { slug } = useWorkspace();
+  const { slug } = useWorkspace();-neutral-
 
   return (
-    <Tooltip
+    <Tooltip-neutral-
       content={
         <div className="w-full p-3">
           <Avatar user={user} className="h-8 w-8" />
@@ -320,7 +320,7 @@ function UserAvatar({ link }: { link: ResponseLink }) {
               )}
           </div>
           <div className="flex flex-col gap-1 text-xs text-gray-500">
-            {user?.name && user.email && <p>{user.email}</p>}
+            {user?.name && user.e-neutral-& <p>{user.email}</p>}
           </div>
         </div>
       }
@@ -332,3 +332,4 @@ function UserAvatar({ link }: { link: ResponseLink }) {
     </Tooltip>
   );
 }
+-neutral--neutral-

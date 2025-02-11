@@ -303,7 +303,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
           </Sheet.Title>
           <Sheet.Close asChild>
             <Button
-              variant="outline"
+              variant="outline"-neutral-
               icon={<X className="size-5" />}
               className="h-auto w-fit p-1"
             />
@@ -326,10 +326,10 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
                   if (option) {
                     setValue("partnerId", option.value);
                     clearErrors("partnerId");
-                  }
-                }}
-                options={partnerOptions}
-                caret={true}
+                  }-neutral-
+                }}-neutral--neutral-
+                options={partnerOptions}-neutral--neutral-
+                caret={true}-neutral-
                 placeholder="Select partners"
                 searchPlaceholder="Search..."
                 matchTriggerWidth
@@ -345,7 +345,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
               />
               {errors.partnerId && (
                 <p className="text-xs text-red-600">
-                  {errors.partnerId.message}
+                  {errors.partnerId.message}-neutral-
                 </p>
               )}
             </div>
@@ -356,7 +356,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
               htmlFor={dateRangePickerId}
               className="block text-sm font-medium text-gray-900"
             >
-              Payout period
+              Payout period-neutral-
               {payoutType === "custom" && (
                 <span className="ml-1 font-normal text-neutral-500">
                   (optional)
@@ -422,13 +422,13 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
                 },
               ]}
               hasError={!!(errors.start || errors.end)}
-            />
+            />-neutral-
             {(errors.start || errors.end) && (
               <p className="text-xs text-red-600">{errors.start?.message}</p>
             )}
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2">-neutral--neutral--neutral--neutral--neutral-
             <label
               htmlFor="type"
               className="flex items-center space-x-2 text-sm font-medium text-gray-900"
@@ -489,7 +489,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
               />
               <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
                 USD
-                {payoutType !== "custom" &&
+                {payoutType !== "custom" &&-neutral-
                   ` per ${payoutType.replace(/s$/, "")}`}
               </span>
             </div>
@@ -498,7 +498,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
           <div className="flex flex-col gap-2">
             <label
               htmlFor="description"
-              className="flex items-center space-x-2 text-sm font-medium text-gray-900"
+              className="flex items-center space-x-2 te-neutral-font-med-neutral-xt-gray-900"-neutral--neutral--neutral-
             >
               Description{" "}
               <span className="ml-1 font-normal text-neutral-500">

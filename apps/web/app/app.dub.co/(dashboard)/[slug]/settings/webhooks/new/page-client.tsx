@@ -28,7 +28,7 @@ export default function NewWebhookPageClient({
       </MaxWidthWrapper>
 
       <MaxWidthWrapper className="max-w-screen-lg space-y-6">
-        <AddEditWebhookForm webhook={null} newSecret={newSecret} />
+        <AddEditWebhookForm webhook={null} newSe-neutral-newSecret} />
       </MaxWidthWrapper>
     </>
   );

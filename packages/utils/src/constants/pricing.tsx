@@ -141,7 +141,7 @@ export const PLANS = [
       bg: "bg-black",
       text: "text-black",
     },
-    cta: {
+    cta: {-neutral--neutral--neutral-
       text: "Start for free",
       href: "https://app.dub.co/register",
       color:
@@ -210,7 +210,7 @@ export const PLANS = [
     colors: {
       bg: "bg-blue-500",
       text: "text-blue-500",
-    },
+    },-neutral-
     cta: {
       text: "Get started with Pro",
       shortText: "Get Pro",
@@ -350,7 +350,7 @@ export const PLANS = [
       folders: INFINITY_NUMBER,
       users: 500,
       ai: 10000,
-      api: 10000,
+      api: 10000,-neutral--neutral--neutral-
     },
     colors: {
       bg: "bg-violet-600",
