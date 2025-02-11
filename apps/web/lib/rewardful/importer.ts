@@ -11,7 +11,7 @@ import { recordClick } from "../tinybird/record-click";
 import { recordLead } from "../tinybird/record-lead";
 import { WorkspaceProps } from "../types";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
-import { RewardfulApi } from "./api";
+import { getImportConfig, RewardfulApi } from "./api";
 import { RewardfulAffiliate, RewardfulReferral } from "./types";
 
 const MAX_BATCHES = 5;
@@ -27,16 +27,19 @@ export async function startRewardfulImport({
   programId,
   apiKey,
   campaignId,
+  userId,
 }: {
   programId: string;
   apiKey: string;
   campaignId: string;
+  userId: string;
 }) {
   await redis.set(
     `rewardful:import:${programId}`,
     {
       apiKey,
       campaignId,
+      userId,
     },
     {
       ex: CACHE_EXPIRY,
@@ -150,11 +153,7 @@ async function createPartnerAndLinks({
     return;
   }
 
-  const session = {
-    user: {
-      id: "cm1ypncqa0000tc44pfgxp6qs",
-    },
-  };
+  const { userId } = await getImportConfig(program.id);
 
   const links = affiliate.links;
 
@@ -171,7 +170,7 @@ async function createPartnerAndLinks({
             trackConversion: true,
             folderId: program.defaultFolderId,
           },
-          userId: session.user.id,
+          userId,
           skipProgramChecks: true,
           workspace: workspace as WorkspaceProps,
         });
@@ -257,10 +256,10 @@ async function createReferral({
 }) {
   const link = await prisma.link.findFirst({
     where: {
-      id: "link_0ntBrVm4VqPSpcLaLTbNAV5y", // TODO: Update with proper query
-      // key: referral.link.token,
-      // domain: program.domain!,
-      // programId: program.id,
+      // id: "link_0ntBrVm4VqPSpcLaLTbNAV5y", // TODO: Update with proper query
+      key: referral.link.token,
+      domain: program.domain!,
+      programId: program.id,
     },
   });
 

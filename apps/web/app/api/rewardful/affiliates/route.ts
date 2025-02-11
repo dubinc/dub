@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
         {
           id: "eb844960-6c42-4a3b-8009-f588a42d8506",
           url: "http://www.example.com/?via=adam",
-          token: "adam",
+          token: "ref1",
           visitors: 100,
           leads: 42,
           conversions: 18,
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
         {
           id: "cd123456-7890-4def-b123-456789abcdef",
           url: "http://www.example.com/?via=sarah",
-          token: "sarah",
+          token: "ref2",
           visitors: 250,
           leads: 85,
           conversions: 30,
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       first_name: "Michael",
       last_name: "Brown",
       email: "michael.brown@example.com",
-      state: "inactive",
+      state: "active",
       visitors: 150,
       leads: 35,
       conversions: 12,
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
         {
           id: "ef123456-7890-4abc-def1-23456789abcd",
           url: "http://www.example.com/?via=michael",
-          token: "michael",
+          token: "ref3",
           visitors: 150,
           leads: 35,
           conversions: 12,
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
         {
           id: "gh123456-7890-4ijk-lmno-pqrstuvwxyz1",
           url: "http://www.example.com/?via=emily",
-          token: "emily",
+          token: "ref4",
           visitors: 300,
           leads: 120,
           conversions: 45,
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
         {
           id: "ij123456-7890-4klm-nopq-rstuvwxyz123",
           url: "http://www.example.com/?via=david",
-          token: "david",
+          token: "ref5",
           visitors: 180,
           leads: 60,
           conversions: 25,
@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
         {
           id: "kl123456-7890-4mno-pqrs-tuvwxyz12345",
           url: "http://www.example.com/?via=lisa",
-          token: "lisa",
+          token: "ref6",
           visitors: 220,
           leads: 75,
           conversions: 28,
@@ -145,7 +145,7 @@ export async function GET(request: NextRequest) {
       first_name: "James",
       last_name: "Anderson",
       email: "james.anderson@example.com",
-      state: "inactive",
+      state: "active",
       visitors: 90,
       leads: 20,
       conversions: 8,
@@ -153,7 +153,7 @@ export async function GET(request: NextRequest) {
         {
           id: "mn123456-7890-4opq-rstu-vwxyz123456",
           url: "http://www.example.com/?via=james",
-          token: "james",
+          token: "ref7",
           visitors: 90,
           leads: 20,
           conversions: 8,
@@ -175,7 +175,7 @@ export async function GET(request: NextRequest) {
         {
           id: "op123456-7890-4qrs-tuv-wxyz1234567",
           url: "http://www.example.com/?via=emma",
-          token: "emma",
+          token: "ref8",
           visitors: 280,
           leads: 95,
           conversions: 40,
@@ -197,7 +197,7 @@ export async function GET(request: NextRequest) {
         {
           id: "qr123456-7890-4stu-vwxy-z123456789",
           url: "http://www.example.com/?via=robert",
-          token: "robert",
+          token: "ref9",
           visitors: 160,
           leads: 55,
           conversions: 22,
@@ -219,7 +219,7 @@ export async function GET(request: NextRequest) {
         {
           id: "st123456-7890-4uvw-xyz1-234567890ab",
           url: "http://www.example.com/?via=olivia",
-          token: "olivia",
+          token: "ref10",
           visitors: 200,
           leads: 70,
           conversions: 32,

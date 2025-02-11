@@ -11,6 +11,26 @@ class RewardfulApiError extends DubApiError {
   }
 }
 
+interface ImportConfig {
+  apiKey: string;
+  campaignId: string;
+  userId: string;
+}
+
+export async function getImportConfig(programId: string) {
+  const config = await redis.get(`rewardful:import:${programId}`);
+
+  if (!config) {
+    throw new Error("Rewardful import data not found.", {
+      cause: {
+        programId,
+      },
+    });
+  }
+
+  return config as ImportConfig;
+}
+
 export class RewardfulApi {
   private readonly programId: string; // Dub program id
   // private readonly baseUrl = "https://api.getrewardful.com/v1";
@@ -20,22 +40,8 @@ export class RewardfulApi {
     this.programId = programId;
   }
 
-  private async fetchApiKey() {
-    const apiKey = await redis.get(`rewardful:import:${this.programId}`);
-
-    if (!apiKey) {
-      throw new Error("Rewardful API key not found.", {
-        cause: {
-          programId: this.programId,
-        },
-      });
-    }
-
-    return apiKey;
-  }
-
   private async getAuthHeader() {
-    const apiKey = await this.fetchApiKey();
+    const { apiKey } = await getImportConfig(this.programId);
 
     return {
       Authorization: `Basic ${Buffer.from(`${apiKey}:`).toString("base64")}`,
