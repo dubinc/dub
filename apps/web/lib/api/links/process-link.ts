@@ -320,18 +320,24 @@ export async function processLink<T extends Record<string, any>>({
         code: "unprocessable_entity",
       };
     }
-
+  } else {
     // only perform tag validity checks if:
     // - not bulk creation (we do that check separately in the route itself)
     // - tagIds are present
-  } else {
-    // Tag validity checks
     if (tagIds && tagIds.length > 0) {
+      if (!workspace) {
+        return {
+          link: payload,
+          error:
+            "Workspace not found. You can't add tags to a link without a workspace.",
+          code: "not_found",
+        };
+      }
       const tags = await prisma.tag.findMany({
         select: {
           id: true,
         },
-        where: { projectId: workspace?.id, id: { in: tagIds } },
+        where: { projectId: workspace.id, id: { in: tagIds } },
       });
 
       if (tags.length !== tagIds.length) {
@@ -348,12 +354,20 @@ export async function processLink<T extends Record<string, any>>({
         };
       }
     } else if (tagNames && tagNames.length > 0) {
+      if (!workspace) {
+        return {
+          link: payload,
+          error:
+            "Workspace not found. You can't add tags to a link without a workspace.",
+          code: "not_found",
+        };
+      }
       const tags = await prisma.tag.findMany({
         select: {
           name: true,
         },
         where: {
-          projectId: workspace?.id,
+          projectId: workspace.id,
           name: { in: tagNames },
         },
       });
@@ -370,6 +384,35 @@ export async function processLink<T extends Record<string, any>>({
               )
               .join(", "),
           code: "unprocessable_entity",
+        };
+      }
+    }
+
+    // only perform folder validity checks if:
+    // - not bulk creation (we do that check separately in the route itself)
+    // - folderId is present
+    if (folderId) {
+      if (!workspace || !userId) {
+        return {
+          link: payload,
+          error:
+            "Workspace or user ID not found. You can't add a folder to a link without a workspace or user ID.",
+          code: "not_found",
+        };
+      }
+
+      try {
+        await verifyFolderAccess({
+          workspaceId: workspace.id,
+          userId,
+          folderId,
+          requiredPermission: "folders.links.write",
+        });
+      } catch (error) {
+        return {
+          link: payload,
+          error: error.message,
+          code: error.code,
         };
       }
     }
@@ -441,24 +484,6 @@ export async function processLink<T extends Record<string, any>>({
           code: "unprocessable_entity",
         };
       }
-    }
-  }
-
-  // Folder checks
-  if (folderId && workspace && userId) {
-    try {
-      await verifyFolderAccess({
-        workspaceId: workspace.id,
-        userId,
-        folderId,
-        requiredPermission: "folders.links.write",
-      });
-    } catch (error) {
-      return {
-        link: payload,
-        error: error.message,
-        code: error.code,
-      };
     }
   }
 
