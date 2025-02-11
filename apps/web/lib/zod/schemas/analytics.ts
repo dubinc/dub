@@ -265,7 +265,6 @@ export const analyticsFilterTB = z
       programId: true,
       partnerId: true,
       tenantId: true,
-
       folderId: true,
     }),
   );
