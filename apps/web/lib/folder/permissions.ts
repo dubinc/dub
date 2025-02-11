@@ -79,3 +79,29 @@ export const findUserFolderRole = ({
 
   return FOLDER_WORKSPACE_ACCESS_TO_FOLDER_USER_ROLE[folder.accessLevel];
 };
+
+// A version of verifyFolderAccess that does not throw an error if the user does not have access
+export const hasFolderPermission = async ({
+  workspaceId,
+  userId,
+  folderId,
+  requiredPermission,
+}: {
+  workspaceId: string;
+  userId: string;
+  folderId: string;
+  requiredPermission: FolderPermission;
+}) => {
+  try {
+    await verifyFolderAccess({
+      workspaceId,
+      userId,
+      folderId,
+      requiredPermission,
+    });
+
+    return true;
+  } catch (error) {
+    return false;
+  }
+};

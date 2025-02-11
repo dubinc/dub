@@ -340,16 +340,19 @@ function LinkBuilderInner({
             <div className="flex items-center justify-between px-6 py-4">
               <div className="flex items-center gap-2">
                 {flags?.linkFolders && (
-                  <FolderDropdown
-                    hideViewAll={true}
-                    onFolderSelect={(folder) => {
-                      setValue("folderId", folder.id, { shouldDirty: true });
-                    }}
-                    textClassName="text-lg md:text-lg font-medium"
-                  />
+                  <>
+                    <FolderDropdown
+                      hideViewAll={true}
+                      onFolderSelect={(folder) => {
+                        setValue("folderId", folder.id, { shouldDirty: true });
+                      }}
+                      textClassName="text-lg md:text-lg font-medium"
+                    />
+
+                    <ChevronRight className="size-4 text-neutral-500" />
+                  </>
                 )}
 
-                <ChevronRight className="size-4 text-neutral-500" />
                 <LinkLogo
                   apexDomain={getApexDomain(debouncedUrl)}
                   className="size-6 sm:size-6 [&>*]:size-3 sm:[&>*]:size-4"
