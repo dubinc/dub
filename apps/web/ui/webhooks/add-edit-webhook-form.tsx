@@ -33,7 +33,12 @@ export default function AddEditWebhookForm({
 }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
-  const { slug: workspaceSlug, id: workspaceId, role } = useWorkspace();
+  const {
+    id: workspaceId,
+    slug: workspaceSlug,
+    role,
+    partnersEnabled,
+  } = useWorkspace();
 
   const [data, setData] = useState<NewWebhook | WebhookProps>(
     webhook || {
@@ -191,7 +196,10 @@ export default function AddEditWebhookForm({
             </span>
           </label>
           <div className="mt-3 flex flex-col gap-2">
-            {WORKSPACE_LEVEL_WEBHOOK_TRIGGERS.map((trigger) => (
+            {WORKSPACE_LEVEL_WEBHOOK_TRIGGERS.filter(
+              // if partners are not enabled, don't show partner.created
+              (trigger) => partnersEnabled || trigger !== "partner.created",
+            ).map((trigger) => (
               <div key={trigger} className="group flex gap-2">
                 <Checkbox
                   value={trigger}
