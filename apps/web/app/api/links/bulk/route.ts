@@ -157,9 +157,13 @@ export const POST = withWorkspace(
         .map((link) => link.folderId)
         .filter(Boolean) as string[];
       const folders = await prisma.folder.findMany({
-        where: { id: { in: folderIds }, projectId: workspace.id },
+        where: {
+          id: { in: folderIds },
+          projectId: workspace.id,
+        },
         select: {
           id: true,
+          accessLevel: true,
           users: {
             select: {
               userId: true,
@@ -182,6 +186,7 @@ export const POST = withWorkspace(
             });
             // if user doesn't have write access to the folder, remove the link from validLinks and add error to errorLinks
           } else if (
+            validFolder.accessLevel !== "write" &&
             !validFolder.users.some(
               (user) =>
                 user.userId === session.user.id &&
