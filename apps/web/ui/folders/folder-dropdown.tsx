@@ -47,9 +47,7 @@ export const FolderDropdown = ({
     }
   }, [folderId, folders]);
 
-  const isLoading = loading || !folders;
-
-  if (folderId && isLoading) {
+  if (folderId && loading) {
     return <FolderSwitcherPlaceholder />;
   }
 
@@ -114,6 +112,11 @@ export const FolderDropdown = ({
               );
             })}
 
+            {loading &&
+              Array.from({ length: 3 }).map((_, index) => (
+                <FolderItemPlaceholder key={index} />
+              ))}
+
             <Button
               key="add-folder"
               variant="outline"
@@ -169,6 +172,15 @@ export const FolderDropdown = ({
         </button>
       </Popover>
     </>
+  );
+};
+
+const FolderItemPlaceholder = () => {
+  return (
+    <div className="flex items-center gap-2 px-2 py-1.5">
+      <div className="size-6 animate-pulse rounded-md bg-neutral-200" />
+      <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
+    </div>
   );
 };
 
