@@ -52,12 +52,14 @@ const FolderPermissionsPanel = ({
     "folders.links.write",
   );
 
+  const { canManageFolderPermissions } = getPlanCapabilities(plan);
+
   const {
     data: users,
     isLoading: isUsersLoading,
     isValidating: isUsersValidating,
   } = useSWR<FolderUser[]>(
-    showPanel && plan !== "free" && plan !== "pro"
+    showPanel && canManageFolderPermissions
       ? `/api/folders/${folder.id}/users?workspaceId=${workspaceId}`
       : undefined,
     fetcher,
@@ -95,8 +97,6 @@ const FolderPermissionsPanel = ({
       (key) => typeof key === "string" && key.startsWith(`/api/folders`),
     );
   };
-
-  const { canManageFolderPermissions } = getPlanCapabilities(plan);
 
   return (
     <Drawer.Root open={showPanel} onOpenChange={setShowPanel} direction="right">
