@@ -1,5 +1,7 @@
 "use server";
 
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { PlanProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
@@ -25,10 +27,18 @@ export const updateUserRoleInFolder = authActionClient
       throw new Error("You cannot update your own role.");
     }
 
-    // throw error if plan is free or pro
+    const { canManageFolderPermissions } = getPlanCapabilities(
+      workspace.plan as PlanProps,
+    );
+
+    if (!canManageFolderPermissions) {
+      throw new Error(
+        "Folder permission management requires a Business plan or higher.",
+      );
+    }
 
     await verifyFolderAccess({
-      workspaceId: workspace.id,
+      workspace,
       userId: user.id,
       folderId,
       requiredPermission: "folders.users.write",

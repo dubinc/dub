@@ -2,8 +2,9 @@
 
 import { Folder, FolderPermission } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { FolderUser } from "@dub/prisma/client";
+import { FolderUser, Project } from "@dub/prisma/client";
 import { DubApiError } from "../api/errors";
+import { getPlanCapabilities } from "../plan-capabilities";
 import {
   FOLDER_USER_ROLE,
   FOLDER_USER_ROLE_TO_PERMISSIONS,
@@ -12,21 +13,27 @@ import {
 import { getFolderOrThrow } from "./get-folder-or-throw";
 
 export const verifyFolderAccess = async ({
-  workspaceId,
+  workspace,
   userId,
   folderId,
   requiredPermission,
 }: {
-  workspaceId: string;
+  workspace: Pick<Project, "id" | "plan">;
   userId: string;
   folderId: string;
   requiredPermission: FolderPermission;
 }) => {
   const folder = await getFolderOrThrow({
+    workspaceId: workspace.id,
     folderId,
-    workspaceId,
     userId,
   });
+
+  const { canManageFolderPermissions } = getPlanCapabilities(workspace.plan);
+
+  if (!canManageFolderPermissions) {
+    return folder;
+  }
 
   const folderUserRole = findUserFolderRole({
     folder,

@@ -1,4 +1,5 @@
 import { FOLDER_WORKSPACE_ACCESS } from "@/lib/folder/constants";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderAccessLevel, FolderSummary } from "@/lib/types";
 import { BlurImage, Button, useMediaQuery } from "@dub/ui";
@@ -18,7 +19,7 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
   const { isMobile } = useMediaQuery();
   const [isCreating, setIsCreating] = useState(false);
   const [name, setName] = useState<string | undefined>(undefined);
-  const [accessLevel, setAccessLevel] = useState<FolderAccessLevel>("read");
+  const [accessLevel, setAccessLevel] = useState<FolderAccessLevel>("write");
 
   // Create new folder
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -47,6 +48,8 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
     toast.success("Folder created successfully!");
     onSuccess(folder);
   };
+
+  const { canManageFolderPermissions } = getPlanCapabilities(workspace.plan);
 
   return (
     <>
@@ -109,12 +112,14 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
                       {workspace.name}
                     </span>
                   </div>
+
                   <select
                     className="rounded-md rounded-l-none border-0 border-l border-neutral-300 bg-white py-2 pl-2 pr-8 text-xs text-neutral-500 focus:border-neutral-300 focus:outline-none focus:ring-0"
                     value={accessLevel}
                     onChange={(e) =>
                       setAccessLevel(e.target.value as FolderAccessLevel)
                     }
+                    disabled={!canManageFolderPermissions}
                   >
                     {Object.keys(FOLDER_WORKSPACE_ACCESS).map((access) => (
                       <option value={access} key={access}>

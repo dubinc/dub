@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { recordLink } from "@/lib/tinybird";
 import { FolderSchema, updateFolderSchema } from "@/lib/zod/schemas/folders";
 import { prisma } from "@dub/prisma";
@@ -14,9 +15,9 @@ export const GET = withWorkspace(
     const { folderId } = params;
 
     const folder = await verifyFolderAccess({
-      folderId,
-      workspaceId: workspace.id,
+      workspace,
       userId: session.user.id,
+      folderId,
       requiredPermission: "folders.read",
     });
 
@@ -45,10 +46,17 @@ export const PATCH = withWorkspace(
       await parseRequestBody(req),
     );
 
-    // TODO: throw error if plan is free or pro and accessLevel is not "write"
+    const { canManageFolderPermissions } = getPlanCapabilities(workspace.plan);
+
+    if (!canManageFolderPermissions && accessLevel !== "write") {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You are not allowed to manage permissions for this folder.",
+      });
+    }
 
     await verifyFolderAccess({
-      workspaceId: workspace.id,
+      workspace,
       userId: session.user.id,
       folderId,
       requiredPermission: "folders.write",
@@ -98,7 +106,7 @@ export const DELETE = withWorkspace(
     const { folderId } = params;
 
     await verifyFolderAccess({
-      workspaceId: workspace.id,
+      workspace,
       userId: session.user.id,
       folderId,
       requiredPermission: "folders.write",

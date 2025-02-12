@@ -3,6 +3,7 @@ import {
   FOLDER_USER_ROLE,
   FOLDER_WORKSPACE_ACCESS,
 } from "@/lib/folder/constants";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
   useCheckFolderPermission,
   useFolderPermissions,
@@ -94,6 +95,8 @@ const FolderPermissionsPanel = ({
       (key) => typeof key === "string" && key.startsWith(`/api/folders`),
     );
   };
+
+  const { canManageFolderPermissions } = getPlanCapabilities(plan);
 
   return (
     <Drawer.Root open={showPanel} onOpenChange={setShowPanel} direction="right">
@@ -202,7 +205,7 @@ const FolderPermissionsPanel = ({
                 <span className="text-sm font-medium text-neutral-900">
                   Folder Users
                 </span>
-                {plan === "free" || plan === "pro" ? (
+                {!canManageFolderPermissions ? (
                   <AnimatedEmptyState
                     title="Folder permissions"
                     description="Add and manage users permissions to this folder"

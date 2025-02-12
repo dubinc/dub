@@ -413,7 +413,7 @@ export async function processLink<T extends Record<string, any>>({
 
       try {
         await verifyFolderAccess({
-          workspaceId: workspace.id,
+          workspace,
           userId,
           folderId,
           requiredPermission: "folders.links.write",

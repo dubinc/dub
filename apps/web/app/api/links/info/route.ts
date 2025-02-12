@@ -32,7 +32,7 @@ export const GET = withWorkspace(
 
     if (link.folderId) {
       await verifyFolderAccess({
-        workspaceId: workspace.id,
+        workspace,
         userId: session.user.id,
         folderId: link.folderId,
         requiredPermission: "folders.read",

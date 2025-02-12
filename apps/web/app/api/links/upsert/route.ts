@@ -34,7 +34,7 @@ export const PUT = withWorkspace(
         ...(link.folderId
           ? [
               verifyFolderAccess({
-                workspaceId: workspace.id,
+                workspace,
                 userId: session.user.id,
                 folderId: link.folderId,
                 requiredPermission: "folders.links.write",
@@ -45,7 +45,7 @@ export const PUT = withWorkspace(
         ...(body.folderId
           ? [
               verifyFolderAccess({
-                workspaceId: workspace.id,
+                workspace,
                 userId: session.user.id,
                 folderId: body.folderId,
                 requiredPermission: "folders.links.write",
