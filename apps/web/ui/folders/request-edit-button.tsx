@@ -1,6 +1,7 @@
 "use client";
 
 import { requestFolderEditAccessAction } from "@/lib/actions/folders/request-folder-edit-access";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { useFolderAccessRequests } from "@/lib/swr/use-folder-access-requests";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button } from "@dub/ui";
@@ -43,7 +44,9 @@ export const RequestFolderEditAccessButton = ({
     (accessRequest) => accessRequest.folderId === folderId,
   );
 
-  if (plan === "free" || plan === "pro" || isLoading) {
+  const { canManageFolderPermissions } = getPlanCapabilities(plan);
+
+  if (!canManageFolderPermissions || isLoading) {
     return null;
   }
 
