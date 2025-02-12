@@ -58,7 +58,7 @@ export const getFolders = async ({
       }),
     },
     orderBy: {
-      createdAt: "desc",
+      createdAt: "asc",
     },
     take: 100,
 
