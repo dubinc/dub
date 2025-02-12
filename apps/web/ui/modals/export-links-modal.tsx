@@ -90,7 +90,7 @@ function ExportLinksModal({
 
       const queryString = data.useFilters
         ? getQueryString(params, {
-            ignore: ["import", "upgrade", "newLink"],
+            exclude: ["import", "upgrade", "newLink"],
           })
         : "?" + new URLSearchParams(params).toString();
 
