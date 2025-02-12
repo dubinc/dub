@@ -10,7 +10,6 @@ import { useAddFolderModal } from "@/ui/modals/add-folder-modal";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { useRouterStuff } from "@dub/ui";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
 
 const allLinkFolder: Folder = {
   id: "unsorted",
@@ -36,12 +35,6 @@ export const FoldersPageClient = () => {
   const { data: allLinksCount } = useLinksCount({
     showArchived: true,
   });
-
-  useEffect(() => {
-    if (allLinksCount) {
-      allLinkFolder.linkCount = allLinksCount;
-    }
-  }, [allLinksCount]);
 
   const showAllLinkFolder =
     !searchParams.get("search") || folders?.length === 0;
@@ -77,7 +70,11 @@ export const FoldersPageClient = () => {
             ))
           ) : (
             <>
-              {showAllLinkFolder && <FolderCard folder={allLinkFolder} />}
+              {showAllLinkFolder && (
+                <FolderCard
+                  folder={{ ...allLinkFolder, linkCount: allLinksCount }}
+                />
+              )}
               {folders?.map((folder) => (
                 <FolderCard key={folder.id} folder={folder} />
               ))}

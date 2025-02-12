@@ -8,16 +8,16 @@ async function main() {
   const workspaceId = "xxx";
   const folderId = "fold_xxx";
 
-  const condition = {
-    programId: {
-      not: null,
-    },
-  };
-
   const links = await prisma.link.findMany({
     where: {
       projectId: workspaceId,
-      ...condition,
+      programId: {
+        not: null,
+      },
+      folderId: null,
+    },
+    select: {
+      id: true,
     },
   });
 
@@ -30,16 +30,18 @@ async function main() {
 
   await prisma.link.updateMany({
     where: {
-      projectId: workspaceId,
-      ...condition,
+      id: {
+        in: links.map((link) => link.id),
+      },
     },
     data: { folderId },
   });
 
   const updatedLinks = await prisma.link.findMany({
     where: {
-      projectId: workspaceId,
-      ...condition,
+      id: {
+        in: links.map((link) => link.id),
+      },
     },
     include: includeTags,
   });

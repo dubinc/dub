@@ -48,7 +48,7 @@ export async function getLinksCount({
       groupBy !== "userId" && {
         userId,
       }),
-
+    // when filtering by folder, only filter by folder if the filter group is not "Folders"
     ...(folderId &&
       groupBy !== "folderId" && {
         folderId,
