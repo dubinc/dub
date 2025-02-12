@@ -9,7 +9,7 @@ export default function useFolders({
 }: {
   includeParams?: boolean;
 } = {}) {
-  const { id: workspaceId, flags } = useWorkspace();
+  const { id: workspaceId, plan, flags } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
   const qs = includeParams
@@ -21,7 +21,9 @@ export default function useFolders({
     isValidating,
     isLoading,
   } = useSWR<Folder[]>(
-    workspaceId && flags?.linkFolders ? `/api/folders${qs}` : null,
+    workspaceId && flags?.linkFolders && plan !== "free"
+      ? `/api/folders${qs}`
+      : null,
     fetcher,
     {
       dedupingInterval: 60000,

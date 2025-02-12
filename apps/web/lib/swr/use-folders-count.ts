@@ -3,10 +3,10 @@ import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
 export default function useFoldersCount() {
-  const { id, flags } = useWorkspace();
+  const { id, plan, flags } = useWorkspace();
 
   const { data, error } = useSWR<number>(
-    id && flags?.linkFolders
+    id && flags?.linkFolders && plan !== "free"
       ? `/api/folders/count?${new URLSearchParams({ workspaceId: id }).toString()}`
       : null,
     fetcher,

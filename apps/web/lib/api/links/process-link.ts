@@ -29,7 +29,8 @@ export async function processLink<T extends Record<string, any>>({
   bulk = false,
   skipKeyChecks = false, // only skip when key doesn't change (e.g. when editing a link)
   skipExternalIdChecks = false, // only skip when externalId doesn't change (e.g. when editing a link)
-  skipProgramChecks = false,
+  skipFolderChecks = false, // only skip for update / upsert links
+  skipProgramChecks = false, // only skip for when program is already validated
 }: {
   payload: NewLinkProps & T;
   workspace?: Pick<WorkspaceProps, "id" | "plan" | "flags">;
@@ -37,6 +38,7 @@ export async function processLink<T extends Record<string, any>>({
   bulk?: boolean;
   skipKeyChecks?: boolean;
   skipExternalIdChecks?: boolean;
+  skipFolderChecks?: boolean;
   skipProgramChecks?: boolean;
 }): Promise<
   | {
@@ -390,14 +392,22 @@ export async function processLink<T extends Record<string, any>>({
 
     // only perform folder validity checks if:
     // - not bulk creation (we do that check separately in the route itself)
-    // - folderId is present
-    if (folderId) {
+    // - folderId is present and we're not skipping folder checks
+    if (folderId && !skipFolderChecks) {
       if (!workspace || !userId) {
         return {
           link: payload,
           error:
             "Workspace or user ID not found. You can't add a folder to a link without a workspace or user ID.",
           code: "not_found",
+        };
+      }
+
+      if (workspace.plan === "free") {
+        return {
+          link: payload,
+          error: "You can't add a folder to a link on a free plan.",
+          code: "forbidden",
         };
       }
 

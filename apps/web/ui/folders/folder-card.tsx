@@ -27,7 +27,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
   return (
     <div className="hover:drop-shadow-card-hover relative flex flex-col justify-between rounded-xl border border-neutral-200 bg-white px-5 py-4 transition-all duration-200 sm:h-36">
       <Link
-        href={`/${workspaceSlug}?folderId=${folder.id}`}
+        href={`/${workspaceSlug}${unsortedLinks ? "" : `?folderId=${folder.id}`}`}
         className="absolute inset-0 h-full w-full"
       />
       <div className="flex items-center justify-between">

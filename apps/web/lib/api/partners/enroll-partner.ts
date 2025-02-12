@@ -3,7 +3,7 @@
 import { createId } from "@/lib/api/utils";
 import { updateConfig } from "@/lib/edge-config";
 import { recordLink } from "@/lib/tinybird";
-import { PartnerLinkProps, WorkspaceProps } from "@/lib/types";
+import { PartnerLinkProps, ProgramProps, WorkspaceProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -13,13 +13,13 @@ import { DubApiError } from "../errors";
 import { includeTags } from "../links/include-tags";
 
 export const enrollPartner = async ({
-  programId,
+  program,
   tenantId,
   workspace,
   link,
   partner,
 }: {
-  programId: string;
+  program: Pick<ProgramProps, "id" | "defaultFolderId">;
   tenantId?: string;
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
   partner: {
@@ -34,7 +34,7 @@ export const enrollPartner = async ({
   if (partner.email) {
     const programEnrollment = await prisma.programEnrollment.findFirst({
       where: {
-        programId,
+        programId: program.id,
         partner: {
           email: partner.email,
         },
@@ -55,7 +55,7 @@ export const enrollPartner = async ({
       where: {
         tenantId_programId: {
           tenantId,
-          programId,
+          programId: program.id,
         },
       },
     });
@@ -71,7 +71,7 @@ export const enrollPartner = async ({
   const payload: Pick<Prisma.PartnerUpdateInput, "programs"> = {
     programs: {
       create: {
-        programId,
+        programId: program.id,
         tenantId,
         links: {
           connect: {
@@ -98,7 +98,11 @@ export const enrollPartner = async ({
       description: partner.description,
     },
     include: {
-      programs: true,
+      programs: {
+        where: {
+          programId: program.id,
+        },
+      },
     },
   });
 
@@ -118,8 +122,9 @@ export const enrollPartner = async ({
             id: link.id,
           },
           data: {
-            programId,
+            programId: program.id,
             partnerId: upsertedPartner.id,
+            folderId: program.defaultFolderId,
           },
           include: includeTags,
         })
