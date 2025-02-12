@@ -35,7 +35,9 @@ export const MoveLinkForm = ({
           id: folder.id,
           value: `${folder.name} ${folder.id === "unsorted" ? "(Unsorted)" : ""}`,
           image: workspace.logo || `${DICEBEAR_AVATAR_URL}${workspace.name}`, // TODO: Replace with folder icon
-          disabled: folder.id === link.folderId,
+          disabled:
+            folder.id === link.folderId ||
+            (link.folderId === null && folder.id === "unsorted"),
           label: folder.id === link.folderId ? "Current" : "",
         }))
       : [];
