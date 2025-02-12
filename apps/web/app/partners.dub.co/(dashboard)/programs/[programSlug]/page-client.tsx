@@ -272,7 +272,7 @@ function StatCard({
   return (
     <div
       // href={`/programs/${programSlug}/analytics?event=${event}${getQueryString()?.replace("?", "&")}`}
-      className="block rounded-md border border-neutral-300 bg-white p-5 pb-3"
+      className="block rounded-lg border border-neutral-300 bg-white p-5 pb-3"
     >
       <span className="mb-1 block text-base font-semibold leading-none text-neutral-800">
         {title}
@@ -353,24 +353,15 @@ function BrandedChart({
         tooltipContent={(d) => {
           return (
             <>
-              <p className="border-b border-neutral-200 px-4 py-3 text-sm text-neutral-900">
-                {formatDateTooltip(d.date, {
-                  interval,
-                  start,
-                  end,
-                })}
-              </p>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <div
-                    className={cn(
-                      "h-2 w-2 rounded-sm shadow-[inset_0_0_0_1px_#0003]",
-                      "bg-[var(--color)]",
-                    )}
-                  />
-                  <p className="capitalize text-neutral-600">{label}</p>
-                </div>
-                <p className="text-right font-medium text-neutral-900">
+              <div className="flex justify-between gap-6 whitespace-nowrap p-2 text-xs leading-none">
+                <span className="font-medium text-neutral-700">
+                  {formatDateTooltip(d.date, {
+                    interval,
+                    start,
+                    end,
+                  })}
+                </span>
+                <p className="text-right text-neutral-500">
                   {currency
                     ? currencyFormatter(d.values.main, {
                         minimumFractionDigits: 2,

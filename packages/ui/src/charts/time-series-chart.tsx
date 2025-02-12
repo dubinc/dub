@@ -185,7 +185,8 @@ function TimeSeriesChartInner<T extends Datum>({
                     y1={height}
                     y2={0}
                     stroke="black"
-                    strokeWidth={1.5}
+                    strokeOpacity={0.5}
+                    strokeWidth={1}
                   />
 
                   {series
