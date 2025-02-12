@@ -41,7 +41,7 @@ function BrandingSettingsForm({ program }: { program: ProgramProps }) {
     control,
     handleSubmit,
     reset,
-    formState: { isDirty, isValid, isSubmitting, errors },
+    formState: { isDirty, isValid, isSubmitting },
   } = form;
 
   const { executeAsync } = useAction(updateProgramAction, {
