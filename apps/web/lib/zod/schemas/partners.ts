@@ -38,11 +38,14 @@ export const partnersQuerySchema = z
   })
   .merge(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
 
-export const partnersCountQuerySchema = z.object({
-  status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
-  country: z.string().optional(),
-  groupBy: z.enum(["status", "country"]).optional(),
-});
+export const partnersCountQuerySchema = partnersQuerySchema
+  .omit({
+    sortBy: true,
+    sortOrder: true,
+  })
+  .extend({
+    groupBy: z.enum(["status", "country"]).optional(),
+  });
 
 export const partnerInvitesQuerySchema = getPaginationQuerySchema({
   pageSize: 100,
@@ -53,11 +56,10 @@ export const PartnerSchema = z.object({
   name: z.string(),
   email: z.string().nullable(),
   image: z.string().nullable(),
-  country: z.string(),
   description: z.string().nullish(),
+  country: z.string(),
   status: z.nativeEnum(PartnerStatus),
   stripeConnectId: z.string().nullable(),
-  couponId: z.string().nullish(),
   payoutsEnabled: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -71,6 +73,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   image: true,
   description: true,
   country: true,
+  payoutsEnabled: true,
   createdAt: true,
 })
   .merge(
