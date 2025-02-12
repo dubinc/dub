@@ -31,6 +31,7 @@ export const verifyFolderAccess = async ({
 
   const { canManageFolderPermissions } = getPlanCapabilities(workspace.plan);
 
+  // If the plan doesn't support folder permissions, we can skip the check
   if (!canManageFolderPermissions) {
     return folder;
   }
