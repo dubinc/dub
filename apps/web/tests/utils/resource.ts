@@ -11,4 +11,6 @@ export const E2E_WEBHOOK_ID = "wh_MHR7sZXXtZ7keBaNYZ30rQ0v";
 // Folders specific
 export const E2E_READ_ONLY_FOLDER_ID = "fold_XgAYzHjSq6z0X5R60cXymphU"; // Folder without write access
 export const E2E_NO_ACCESS_FOLDER_ID = "fold_CPXCwj8wBWd222NuQ2zEGZHj"; // Folder with no access
-export const E2E_READ_ONLY_FOLDER_LINK_ID = "link_9pBo2gl0gIKIjOSDZRcVK6lH"; // Link in folder without write access
+
+export const E2E_READ_ONLY_FOLDER_LINK_ID = "link_9pBo2gl0gIKIjOSDZRcVK6lH"; // Link in folder read-only
+export const E2E_NO_ACCESS_FOLDER_LINK_ID = "link_NwJLTVICb1rDgKHJcN4OJ7pT"; // Link in folder no access
