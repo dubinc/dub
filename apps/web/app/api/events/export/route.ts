@@ -4,6 +4,7 @@ import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { ClickEvent, LeadEvent, SaleEvent } from "@/lib/types";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { COUNTRIES, capitalize } from "@dub/utils";
@@ -33,7 +34,7 @@ const columnAccessors = {
 
 // GET /api/events/export – get export data for analytics
 export const GET = withWorkspace(
-  async ({ searchParams, workspace }) => {
+  async ({ searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
 
     const parsedParams = eventsQuerySchema
@@ -47,7 +48,8 @@ export const GET = withWorkspace(
       )
       .parse(searchParams);
 
-    const { event, domain, interval, start, end, columns, key } = parsedParams;
+    const { event, domain, interval, start, end, columns, key, folderId } =
+      parsedParams;
 
     if (domain) {
       await getDomainOrThrow({ workspace, domain });
@@ -58,8 +60,19 @@ export const GET = withWorkspace(
         ? await getLinkOrThrow({ workspaceId: workspace.id, domain, key })
         : null;
 
+    const folderIdToVerify = link?.folderId || folderId;
+    if (folderIdToVerify) {
+      await verifyFolderAccess({
+        workspace,
+        userId: session.user.id,
+        folderId: folderIdToVerify,
+        requiredPermission: "folders.read",
+      });
+    }
+
     validDateRangeForPlan({
       plan: workspace.plan,
+      dataAvailableFrom: workspace.createdAt,
       interval,
       start,
       end,

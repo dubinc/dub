@@ -83,6 +83,7 @@ export const invitePartner = async ({
           },
           data: {
             programId: program.id,
+            folderId: program.defaultFolderId,
           },
         })
         .then((link) => recordLink(link)),

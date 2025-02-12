@@ -51,6 +51,10 @@ const LinksQuerySchema = z.object({
     .describe(
       "The unique name of the tags assigned to the short link (case insensitive).",
     ),
+  folderId: z
+    .string()
+    .optional()
+    .describe("The folder ID to filter the links by."),
   search: z
     .string()
     .optional()
@@ -102,7 +106,12 @@ export const getLinksQuerySchemaBase = LinksQuerySchema.merge(
 export const getLinksCountQuerySchema = LinksQuerySchema.merge(
   z.object({
     groupBy: z
-      .union([z.literal("domain"), z.literal("tagId"), z.literal("userId")])
+      .union([
+        z.literal("domain"),
+        z.literal("tagId"),
+        z.literal("userId"),
+        z.literal("folderId"),
+      ])
       .optional()
       .describe("The field to group the links by."),
   }),
@@ -238,6 +247,10 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The unique name of the tags assigned to the short link (case insensitive).",
     ),
+  folderId: z
+    .string()
+    .nullish()
+    .describe("The unique ID existing folder to assign the short link to."),
   comments: z.string().nullish().describe("The comments for the short link."),
   expiresAt: z
     .string()
@@ -527,6 +540,10 @@ export const LinkSchema = z
     tags: TagSchema.array()
       .nullable()
       .describe("The tags assigned to the short link."),
+    folderId: z
+      .string()
+      .nullable()
+      .describe("The unique ID of the folder assigned to the short link."),
     webhookIds: z
       .array(z.string())
       .describe(

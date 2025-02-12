@@ -48,7 +48,7 @@ const NAV_AREAS: SidebarNavAreas<{
           {
             name: "Links",
             icon: Hyperlink,
-            href: `/${slug}`,
+            href: `/${slug}${queryString}`,
             exact: true,
           },
           {
@@ -94,10 +94,6 @@ const NAV_AREAS: SidebarNavAreas<{
                     {
                       name: "Payouts",
                       href: `/${slug}/programs/${programs[0].id}/payouts`,
-                    },
-                    {
-                      name: "Branding",
-                      href: `/${slug}/programs/${programs[0].id}/branding`,
                     },
                     {
                       name: "Resources",
@@ -262,7 +258,7 @@ export function AppSidebarNav({
       data={{
         slug: slug || "",
         queryString: getQueryString(undefined, {
-          ignore: ["sortBy", "sortOrder"],
+          include: ["folderId", "tagIds", "domain"],
         }),
         programs,
         session: session || undefined,

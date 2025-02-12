@@ -85,10 +85,10 @@ export function PartnerLinkSelector({
         onSearchChange={setSearch}
         buttonProps={{
           className: cn(
-            "w-full justify-start border-gray-300 px-3 shadow-sm",
-            "data-[state=open]:ring-1 data-[state=open]:ring-gray-500 data-[state=open]:border-gray-500",
-            "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
-            !selectedLinkId && "text-gray-400",
+            "w-full justify-start border-neutral-300 px-3 shadow-sm",
+            "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
+            "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+            !selectedLinkId && "text-neutral-400",
             error &&
               "border-red-500 focus:border-red-500 focus:ring-red-500 data-[state=open]:ring-red-500 data-[state=open]:border-red-500",
           ),
@@ -100,7 +100,7 @@ export function PartnerLinkSelector({
         }
       />
       {selectedLink?.url && showDestinationUrl && (
-        <div className="ml-2 mt-2 flex items-center gap-1 text-xs text-gray-500">
+        <div className="ml-2 mt-2 flex items-center gap-1 text-xs text-neutral-500">
           <ArrowTurnRight2 className="size-3 shrink-0" />
           <span className="min-w-0 truncate">
             Destination URL:{" "}

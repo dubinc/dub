@@ -77,7 +77,7 @@ export function QRCodePreview() {
       <LinkQRModal />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-medium text-gray-700">QR Code</h2>
+          <h2 className="text-sm font-medium text-neutral-700">QR Code</h2>
           <InfoTooltip
             content={
               <SimpleTooltipContent
@@ -89,7 +89,7 @@ export function QRCodePreview() {
           />
         </div>
       </div>
-      <div className="relative mt-2 h-24 overflow-hidden rounded-md border border-gray-300">
+      <div className="relative mt-2 h-24 overflow-hidden rounded-md border border-neutral-300">
         <Button
           type="button"
           variant="secondary"
@@ -121,8 +121,8 @@ export function QRCodePreview() {
           </AnimatePresence>
         ) : (
           <div className="flex size-full flex-col items-center justify-center gap-2">
-            <QRCodeIcon className="size-5 text-gray-700" />
-            <p className="max-w-32 text-center text-xs text-gray-700">
+            <QRCodeIcon className="size-5 text-neutral-700" />
+            <p className="max-w-32 text-center text-xs text-neutral-700">
               Enter a short link to generate a QR code
             </p>
           </div>

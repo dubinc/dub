@@ -90,22 +90,22 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
         <div className="flex justify-between gap-8 sm:items-center">
           {isLoading || !webhook ? (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="w-fit flex-none rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
-                <div className="size-8 rounded-full bg-gray-100" />
+              <div className="w-fit flex-none rounded-md border border-neutral-200 bg-gradient-to-t from-neutral-100 p-2">
+                <div className="size-8 rounded-full bg-neutral-100" />
               </div>
               <div className="flex flex-col gap-2">
-                <div className="h-5 w-28 rounded-full bg-gray-100"></div>
-                <div className="h-3 w-48 rounded-full bg-gray-100"></div>
+                <div className="h-5 w-28 rounded-full bg-neutral-100"></div>
+                <div className="h-3 w-48 rounded-full bg-neutral-100"></div>
               </div>
             </div>
           ) : (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="w-fit flex-none rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
+              <div className="w-fit flex-none rounded-md border border-neutral-200 bg-gradient-to-t from-neutral-100 p-2">
                 <TokenAvatar id={webhook.id} className="size-8" />
               </div>
               <div>
                 <div className="flex items-center gap-1">
-                  <span className="font-semibold text-gray-700">
+                  <span className="font-semibold text-neutral-700">
                     {webhook.name}
                   </span>
                   <WebhookStatus webhook={webhook} />
@@ -113,7 +113,7 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
                 <a
                   href={webhook.url}
                   target="_blank"
-                  className="line-clamp-1 text-pretty break-all text-sm text-gray-500 underline-offset-4 hover:text-gray-700 hover:underline"
+                  className="line-clamp-1 text-pretty break-all text-sm text-neutral-500 underline-offset-4 hover:text-neutral-700 hover:underline"
                 >
                   {webhook.url}
                 </a>
@@ -151,7 +151,7 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
                   />
                 </div>
 
-                <div className="h-px w-full bg-gray-200" />
+                <div className="h-px w-full bg-neutral-200" />
 
                 <div className="grid gap-px p-2">
                   <Button
@@ -208,13 +208,13 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
           >
             <Button
               variant="outline"
-              className="flex w-8 rounded-md border border-gray-200 px-2 transition-[border-color] duration-200"
-              icon={<ThreeDots className="h-5 w-5 shrink-0 text-gray-500" />}
+              className="flex w-8 rounded-md border border-neutral-200 px-2 transition-[border-color] duration-200"
+              icon={<ThreeDots className="h-5 w-5 shrink-0 text-neutral-500" />}
               onClick={() => setOpenPopover(!openPopover)}
             />
           </Popover>
         </div>
-        <div className="-ml-1.5 border-b border-gray-200">
+        <div className="-ml-1.5 border-b border-neutral-200">
           <TabSelect
             options={[
               { id: "", label: "Event Logs" },

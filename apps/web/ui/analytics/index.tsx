@@ -33,7 +33,9 @@ export default function Analytics({
       <AnalyticsContext.Consumer>
         {({ dashboardProps }) => {
           return (
-            <div className={cn("pb-10", dashboardProps && "bg-gray-50 pt-10")}>
+            <div
+              className={cn("pb-10", dashboardProps && "bg-neutral-50 pt-10")}
+            >
               <Toggle />
               <div className="mx-auto grid max-w-screen-xl gap-5 px-3 lg:px-10">
                 <Main />
@@ -58,7 +60,7 @@ function StatsGrid() {
 
   return hide ? null : (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-      {!dashboardProps && !partnerPage && <TopLinks />}
+      {!dashboardProps && <TopLinks />}
       <Locations />
       <Devices />
       <Referer />

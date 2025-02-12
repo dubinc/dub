@@ -32,18 +32,18 @@ export default function CustomPartnerAuthLayout({
             <Wordmark className="h-3.5 text-neutral-900" />
           </a>
 
-          <div className="flex gap-3 text-center text-xs text-gray-500 underline underline-offset-2">
+          <div className="flex gap-3 text-center text-xs text-neutral-500 underline underline-offset-2">
             <a
               href="https://dub.co/legal/privacy"
               target="_blank"
-              className="hover:text-gray-800"
+              className="hover:text-neutral-800"
             >
               Privacy Policy
             </a>
             <a
               href="https://dub.co/legal/terms"
               target="_blank"
-              className="hover:text-gray-800"
+              className="hover:text-neutral-800"
             >
               Terms of Service
             </a>

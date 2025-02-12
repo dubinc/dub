@@ -120,7 +120,7 @@ function MenuItem({
     <Command.Item
       className={cn(
         "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-600",
-        "data-[selected=true]:bg-gray-100",
+        "data-[selected=true]:bg-neutral-100",
         disabled && "cursor-not-allowed opacity-50",
       )}
       onSelect={onSelect}

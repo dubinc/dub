@@ -5,18 +5,20 @@ export const getStartEndDates = ({
   interval,
   start,
   end,
+  dataAvailableFrom,
 }: {
   interval?: string;
   start?: string | Date | null;
   end?: string | Date | null;
+  dataAvailableFrom?: Date;
 }) => {
   let startDate: Date;
   let endDate: Date;
   let granularity: "minute" | "hour" | "day" | "month" = "day";
 
-  if (start) {
-    startDate = new Date(start);
-    endDate = end ? new Date(end) : new Date(Date.now());
+  if (start || (interval === "all" && dataAvailableFrom)) {
+    startDate = new Date(start ?? dataAvailableFrom ?? Date.now());
+    endDate = new Date(end ?? Date.now());
 
     const daysDifference = getDaysDifference(startDate, endDate);
 
@@ -31,7 +33,7 @@ export const getStartEndDates = ({
       [startDate, endDate] = [endDate, startDate];
     }
   } else {
-    interval = interval ?? "24h";
+    interval = interval ?? "30d";
     startDate = INTERVAL_DATA[interval].startDate;
     endDate = new Date(Date.now());
     granularity = INTERVAL_DATA[interval].granularity;

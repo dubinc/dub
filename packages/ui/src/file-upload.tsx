@@ -2,7 +2,7 @@ import { cn, resizeImage } from "@dub/utils";
 import { VariantProps, cva } from "class-variance-authority";
 import { DragEvent, ReactNode, useState } from "react";
 import { toast } from "sonner";
-import { CloudUpload, LoadingCircle } from "./icons";
+import { CloudUpload, Icon, LoadingCircle } from "./icons";
 
 type AcceptedFileFormats = "any" | "images" | "csv";
 
@@ -22,11 +22,11 @@ const acceptFileTypes: Record<
 };
 
 const imageUploadVariants = cva(
-  "group relative isolate flex aspect-[1200/630] w-full flex-col items-center justify-center overflow-hidden bg-white transition-all hover:bg-gray-50",
+  "group relative isolate flex aspect-[1200/630] w-full flex-col items-center justify-center overflow-hidden bg-white transition-all hover:bg-neutral-50",
   {
     variants: {
       variant: {
-        default: "rounded-md border border-gray-300 shadow-sm",
+        default: "rounded-md border border-neutral-300 shadow-sm",
         plain: "",
       },
     },
@@ -53,10 +53,14 @@ type FileUploadReadFileProps =
     };
 
 export type FileUploadProps = FileUploadReadFileProps & {
+  id?: string;
   accept: AcceptedFileFormats;
   className?: string;
   iconClassName?: string;
   previewClassName?: string;
+
+  icon?: Icon;
+
   /**
    * Custom preview component to display instead of the default
    */
@@ -105,12 +109,14 @@ export type FileUploadProps = FileUploadReadFileProps & {
 } & VariantProps<typeof imageUploadVariants>;
 
 export function FileUpload({
+  id,
   readFile,
   onChange,
   variant,
   className,
   iconClassName,
   previewClassName,
+  icon: Icon = CloudUpload,
   customPreview,
   accept = "any",
   imageSrc,
@@ -219,35 +225,35 @@ export function FileUpload({
       <div
         className={cn(
           "absolute inset-0 z-[3] flex flex-col items-center justify-center rounded-[inherit] border-2 border-transparent bg-white transition-all",
-          disabled && "bg-gray-50",
+          disabled && "bg-neutral-50",
           dragActive &&
             !disabled &&
-            "cursor-copy border-black bg-gray-50 opacity-100",
+            "cursor-copy border-black bg-neutral-50 opacity-100",
           imageSrc
             ? cn(
                 "opacity-0",
                 showHoverOverlay && !disabled && "group-hover:opacity-100",
               )
-            : cn(!disabled && "group-hover:bg-gray-50"),
+            : cn(!disabled && "group-hover:bg-neutral-50"),
         )}
       >
-        <CloudUpload
+        <Icon
           className={cn(
             "size-7 transition-all duration-75",
             !disabled
               ? cn(
-                  "text-gray-500 group-hover:scale-110 group-active:scale-95",
+                  "text-neutral-500 group-hover:scale-110 group-active:scale-95",
                   dragActive ? "scale-110" : "scale-100",
                 )
-              : "text-gray-400",
+              : "text-neutral-400",
             iconClassName,
           )}
         />
         {content !== null && (
           <div
             className={cn(
-              "mt-2 text-center text-sm text-gray-500",
-              disabled && "text-gray-400",
+              "mt-2 text-center text-sm text-neutral-500",
+              disabled && "text-neutral-400",
             )}
           >
             {content ?? (
@@ -273,6 +279,7 @@ export function FileUpload({
       {clickToUpload && (
         <div className="sr-only mt-1 flex shadow-sm">
           <input
+            id={id}
             key={fileName} // Gets us a fresh input every time a file is uploaded
             type="file"
             accept={acceptFileTypes[accept].types.join(",")}

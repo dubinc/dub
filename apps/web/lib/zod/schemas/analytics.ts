@@ -196,6 +196,12 @@ export const analyticsQuerySchema = z
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional()
       .describe("The tag IDs to retrieve analytics for."),
+    folderId: z
+      .string()
+      .optional()
+      .describe(
+        "The folder ID to retrieve analytics for. If not provided, return analytics for unsorted links.",
+      ),
     qr: booleanQuerySchema
       .optional()
       .describe(
@@ -224,9 +230,6 @@ export const analyticsFilterTB = z
           return v;
         }
       }),
-    programId: z.string().optional(),
-    partnerId: z.string().optional(),
-    tenantId: z.string().optional(),
     customerId: z.string().optional(),
     root: z.boolean().optional(),
     qr: z.boolean().optional(),
@@ -259,6 +262,10 @@ export const analyticsFilterTB = z
       utm_campaign: true,
       utm_term: true,
       utm_content: true,
+      programId: true,
+      partnerId: true,
+      tenantId: true,
+      folderId: true,
     }),
   );
 

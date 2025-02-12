@@ -4,12 +4,12 @@ import useSWR from "swr";
 import { PartnerAnalyticsFilters } from "../analytics/types";
 import useWorkspace from "./use-workspace";
 
-export default function useProgramAnalytics(params?: PartnerAnalyticsFilters) {
+export default function useProgramRevenue(params?: PartnerAnalyticsFilters) {
   const { programId } = useParams();
   const { id: workspaceId } = useWorkspace();
 
   const { data, error } = useSWR<any>(
-    `/api/programs/${programId}/analytics?${new URLSearchParams({
+    `/api/programs/${programId}/revenue?${new URLSearchParams({
       event: params?.event ?? "composite",
       ...(params?.start && params?.end
         ? {

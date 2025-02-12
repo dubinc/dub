@@ -70,7 +70,7 @@ export default function WorkspaceUtmTemplatesClient() {
               <>
                 <DiamondTurnRight className="size-4 text-neutral-700" />
                 <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-                <div className="hidden grow items-center justify-end gap-1.5 text-gray-500 sm:flex">
+                <div className="hidden grow items-center justify-end gap-1.5 text-neutral-500 sm:flex">
                   <GlobePointer className="size-3.5" />
                   <Flag6 className="size-3.5" />
                 </div>

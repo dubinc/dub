@@ -30,7 +30,7 @@ export default function UpdateSubscription() {
           update(() => subscribe(checked), { subscribed: checked });
         }}
       />
-      <p className="text-sm text-gray-500">Subscribed to product updates</p>
+      <p className="text-sm text-neutral-500">Subscribed to product updates</p>
     </div>
   );
 }

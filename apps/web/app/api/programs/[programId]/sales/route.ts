@@ -6,7 +6,6 @@ import {
   SaleResponseSchema,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { CommissionStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -37,16 +36,10 @@ export const GET = withWorkspace(
       where: {
         programId,
         type: "sale",
-        status: status || {
-          notIn: [
-            CommissionStatus.refunded,
-            CommissionStatus.duplicate,
-            CommissionStatus.fraud,
-          ],
-        },
-        ...(customerId && { customerId }),
-        ...(payoutId && { payoutId }),
-        ...(partnerId && { partnerId }),
+        status,
+        customerId,
+        payoutId,
+        partnerId,
         createdAt: {
           gte: startDate.toISOString(),
           lte: endDate.toISOString(),
