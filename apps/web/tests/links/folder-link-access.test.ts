@@ -1,4 +1,5 @@
 import { Link } from "@dub/prisma/client";
+import { env } from "tests/utils/env";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 import {
@@ -10,7 +11,9 @@ import {
 
 const { domain, url } = E2E_LINK;
 
-describe.sequential("Folder Access Tests", async () => {
+// Most of the below tests would only run if you have write values set in the resource.ts file
+
+describe.runIf(env.CI).sequential("Folder access", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
