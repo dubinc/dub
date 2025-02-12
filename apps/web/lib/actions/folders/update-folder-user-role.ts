@@ -25,6 +25,8 @@ export const updateUserRoleInFolder = authActionClient
       throw new Error("You cannot update your own role.");
     }
 
+    // throw error if plan is free or pro
+
     await verifyFolderAccess({
       workspaceId: workspace.id,
       userId: user.id,
