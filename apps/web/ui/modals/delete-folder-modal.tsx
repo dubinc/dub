@@ -9,14 +9,14 @@ interface DeleteFolderModalProps {
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
   folder: Pick<Folder, "id" | "name">;
-  onSuccess?: () => void;
+  onDelete?: () => void;
 }
 
 const DeleteFolderModal = ({
   showModal,
   setShowModal,
   folder,
-  onSuccess,
+  onDelete,
 }: DeleteFolderModalProps) => {
   const workspace = useWorkspace();
   const { isMobile } = useMediaQuery();
@@ -46,7 +46,7 @@ const DeleteFolderModal = ({
     ]);
 
     setShowModal(false);
-    onSuccess?.();
+    onDelete?.();
     toast.success("Folder deleted successfully!");
   };
 
@@ -121,7 +121,7 @@ const DeleteFolderModal = ({
 
 export function useDeleteFolderModal(
   folder: Pick<Folder, "id" | "name">,
-  onSuccess?: () => void,
+  onDelete?: () => void,
 ) {
   const [showDeleteFolderModal, setShowDeleteFolderModal] = useState(false);
 
@@ -131,10 +131,10 @@ export function useDeleteFolderModal(
         showModal={showDeleteFolderModal}
         setShowModal={setShowDeleteFolderModal}
         folder={folder}
-        onSuccess={onSuccess}
+        onDelete={onDelete}
       />
     );
-  }, [showDeleteFolderModal, setShowDeleteFolderModal, onSuccess]);
+  }, [showDeleteFolderModal, setShowDeleteFolderModal, onDelete]);
 
   return useMemo(
     () => ({
