@@ -223,7 +223,7 @@ function TokenStep({
           required
         />
         <p className="mt-1.5 text-xs text-neutral-500">
-          You can find your Rewardful API Key in your{" "}
+          You can find your Rewardful API Key on your{" "}
           <a
             href="https://app.getrewardful.com/company/edit"
             target="_blank"
