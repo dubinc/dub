@@ -101,7 +101,7 @@ function BrandingSettingsForm({ program }: { program: ProgramProps }) {
                   <FileUpload
                     id={id}
                     accept="images"
-                    className="size-14 rounded-lg border border-neutral-300"
+                    className="size-14 rounded-lg border border-neutral-300 p-1"
                     iconClassName="size-4 text-neutral-800"
                     icon={Plus}
                     variant="plain"
@@ -131,7 +131,7 @@ function BrandingSettingsForm({ program }: { program: ProgramProps }) {
                   <FileUpload
                     id={id}
                     accept="images"
-                    className="h-14 w-36 rounded-lg border border-neutral-300"
+                    className="h-14 rounded-lg border border-neutral-300 p-1"
                     iconClassName="size-4 text-neutral-800"
                     icon={Plus}
                     variant="plain"
