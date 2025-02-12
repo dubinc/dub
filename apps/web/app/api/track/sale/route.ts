@@ -42,9 +42,10 @@ export const POST = withWorkspaceEdge(
       });
 
       if (!ok) {
-        throw new DubApiError({
-          code: "conflict",
-          message: `Invoice with ID ${invoiceId} already processed, skipping...`,
+        return NextResponse.json({
+          eventName,
+          customer: null,
+          sale: null,
         });
       }
     }
