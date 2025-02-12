@@ -12,13 +12,12 @@ import {
   Button,
   buttonVariants,
   MaxWidthWrapper,
-  MiniAreaChart,
   useCopyToClipboard,
   useRouterStuff,
 } from "@dub/ui";
 import { Areas, ChartContext, TimeSeriesChart, XAxis } from "@dub/ui/charts";
 import { Check, Copy, LoadingSpinner, MoneyBill } from "@dub/ui/icons";
-import { cn, currencyFormatter, getPrettyUrl } from "@dub/utils";
+import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
 import Link from "next/link";
@@ -171,8 +170,6 @@ export default function ProgramPageClient() {
 }
 
 function EarningsChart() {
-  const id = useId();
-
   const { start, end, interval, color } = useContext(ProgramOverviewContext);
 
   const { data: { earnings: total } = {} } = usePartnerEarnings({
@@ -194,7 +191,7 @@ function EarningsChart() {
     () =>
       timeseries?.map(({ start, earnings }) => ({
         date: new Date(start),
-        values: { earnings: earnings / 100 },
+        value: earnings / 100,
       })),
     [timeseries],
   );
@@ -227,78 +224,9 @@ function EarningsChart() {
           <SimpleDateRangePicker className="h-8 w-full md:w-fit" align="end" />
         </div>
       </div>
-      <div
-        className="relative mt-4 h-40 w-full"
-        style={{ "--color": color || "#DA2778" } as CSSProperties}
-      >
+      <div className="relative mt-2 h-44 w-full">
         {data ? (
-          <TimeSeriesChart
-            data={data}
-            series={[
-              {
-                id: "earnings",
-                valueAccessor: (d) => d.values.earnings,
-                colorClassName: "text-[var(--color)]",
-                isActive: true,
-              },
-            ]}
-            tooltipClassName="p-0"
-            tooltipContent={(d) => {
-              return (
-                <>
-                  <p className="border-b border-neutral-200 px-4 py-3 text-sm text-neutral-900">
-                    {formatDateTooltip(d.date, {
-                      interval,
-                      start,
-                      end,
-                    })}
-                  </p>
-                  <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={cn(
-                          "h-2 w-2 rounded-sm shadow-[inset_0_0_0_1px_#0003]",
-                          "bg-[var(--color)]",
-                        )}
-                      />
-                      <p className="capitalize text-neutral-600">Earnings</p>
-                    </div>
-                    <p className="text-right font-medium text-neutral-900">
-                      {currencyFormatter(d.values.earnings, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </p>
-                  </div>
-                </>
-              );
-            }}
-          >
-            <ChartContext.Consumer>
-              {(context) => (
-                <LinearGradient
-                  id={`${id}-color-gradient`}
-                  from={color || "#7D3AEC"}
-                  to={color || "#DA2778"}
-                  x1={0}
-                  x2={context?.width ?? 1}
-                  gradientUnits="userSpaceOnUse"
-                />
-              )}
-            </ChartContext.Consumer>
-
-            <XAxis />
-            <Areas
-              seriesStyles={[
-                {
-                  id: "earnings",
-                  areaFill: `url(#${id}-color-gradient)`,
-                  lineStroke: `url(#${id}-color-gradient)`,
-                  lineClassName: "text-[var(--color)]",
-                },
-              ]}
-            />
-          </TimeSeriesChart>
+          <BrandedChart data={data} label="Earnings" currency />
         ) : (
           <div className="flex size-full items-center justify-center">
             {error ? (
@@ -322,8 +250,8 @@ function StatCard({
   title: string;
   event: "clicks" | "leads" | "sales";
 }) {
-  const { programSlug } = useParams();
-  const { getQueryString } = useRouterStuff();
+  // const { programSlug } = useParams();
+  // const { getQueryString } = useRouterStuff();
   const { start, end, interval, color } = useContext(ProgramOverviewContext);
 
   const { data: total } = usePartnerAnalytics({
@@ -342,9 +270,9 @@ function StatCard({
   });
 
   return (
-    <Link
-      href={`/programs/${programSlug}/analytics?event=${event}${getQueryString()?.replace("?", "&")}`}
-      className="hover:drop-shadow-card-hover block rounded-md border border-neutral-300 bg-white p-5 pb-3 transition-[filter]"
+    <div
+      // href={`/programs/${programSlug}/analytics?event=${event}${getQueryString()?.replace("?", "&")}`}
+      className="block rounded-md border border-neutral-300 bg-white p-5 pb-3"
     >
       <span className="mb-1 block text-base font-semibold leading-none text-neutral-800">
         {title}
@@ -361,15 +289,14 @@ function StatCard({
       ) : (
         <div className="h-[27px] w-16 animate-pulse rounded-md bg-neutral-200" />
       )}
-      <div className="mt-2 h-16 w-full">
+      <div className="mt-2 h-44 w-full">
         {timeseries ? (
-          <MiniAreaChart
+          <BrandedChart
             data={timeseries.map((d) => ({
               date: new Date(d.start),
               value: d[event],
             }))}
-            curve={false}
-            color={color}
+            label={title}
           />
         ) : (
           <div className="flex size-full items-center justify-center">
@@ -383,6 +310,104 @@ function StatCard({
           </div>
         )}
       </div>
-    </Link>
+    </div>
+  );
+}
+
+function BrandedChart({
+  data: dataProp,
+  label,
+  currency,
+}: {
+  data: { date: Date; value: number }[];
+  label: string;
+  currency?: boolean;
+}) {
+  const id = useId();
+
+  const { start, end, interval, color } = useContext(ProgramOverviewContext);
+
+  const data = useMemo(() => {
+    return dataProp.map((d) => ({
+      date: new Date(d.date),
+      values: { main: d.value },
+    }));
+  }, [dataProp]);
+
+  return (
+    <div
+      className="relative size-full"
+      style={{ "--color": color || "#DA2778" } as CSSProperties}
+    >
+      <TimeSeriesChart
+        data={data}
+        series={[
+          {
+            id: "main",
+            valueAccessor: (d) => d.values.main,
+            colorClassName: "text-[var(--color)]",
+            isActive: true,
+          },
+        ]}
+        tooltipClassName="p-0"
+        tooltipContent={(d) => {
+          return (
+            <>
+              <p className="border-b border-neutral-200 px-4 py-3 text-sm text-neutral-900">
+                {formatDateTooltip(d.date, {
+                  interval,
+                  start,
+                  end,
+                })}
+              </p>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <div
+                    className={cn(
+                      "h-2 w-2 rounded-sm shadow-[inset_0_0_0_1px_#0003]",
+                      "bg-[var(--color)]",
+                    )}
+                  />
+                  <p className="capitalize text-neutral-600">{label}</p>
+                </div>
+                <p className="text-right font-medium text-neutral-900">
+                  {currency
+                    ? currencyFormatter(d.values.main, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })
+                    : nFormatter(d.values.main)}
+                </p>
+              </div>
+            </>
+          );
+        }}
+      >
+        <ChartContext.Consumer>
+          {(context) => (
+            <LinearGradient
+              id={`${id}-color-gradient`}
+              from={color || "#7D3AEC"}
+              to={color || "#DA2778"}
+              x1={0}
+              x2={context?.width ?? 1}
+              gradientUnits="userSpaceOnUse"
+            />
+          )}
+        </ChartContext.Consumer>
+
+        <XAxis showAxisLine={false} />
+        <Areas
+          seriesStyles={[
+            {
+              id: "main",
+              areaFill: `url(#${id}-color-gradient)`,
+              lineStroke: `url(#${id}-color-gradient)`,
+              lineClassName: "text-[var(--color)]",
+            },
+          ]}
+        />
+      </TimeSeriesChart>
+    </div>
   );
 }

@@ -43,9 +43,9 @@ function TimeSeriesChartInner<T extends Datum>({
   defaultTooltipIndex = null,
   margin: marginProp = {
     top: 12,
-    right: 4,
+    right: 5,
     bottom: 32,
-    left: 4,
+    left: 5,
   },
   padding: paddingProp,
 }: {
