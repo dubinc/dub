@@ -13,10 +13,8 @@ export function ImportPartnersButton() {
   const { slug } = useWorkspace();
   const { program } = useProgram();
   const [openPopover, setOpenPopover] = useState(false);
+  const { ImportRewardfulModal } = useImportRewardfulModal();
   const [_state, setState] = useState<"default" | "import">("default");
-
-  const { ImportRewardfulModal, setShowImportRewardfulModal } =
-    useImportRewardfulModal();
 
   useEffect(() => {
     if (!openPopover) {
@@ -46,7 +44,7 @@ export function ImportPartnersButton() {
                   text="Import from Rewardful"
                   icon={
                     <img
-                      src="https://assets.dub.co/misc/icons/bitly.svg" // TODO: Add rewardful logo
+                      src="https://assets.dub.co/misc/icons/rewardful.svg"
                       alt="Rewardful logo"
                       className="h-4 w-4"
                     />
