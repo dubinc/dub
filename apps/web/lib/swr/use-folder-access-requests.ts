@@ -9,7 +9,7 @@ export function useFolderAccessRequests() {
   const { data, error, isLoading, isValidating, mutate } = useSWR<
     FolderAccessRequest[]
   >(
-    id && flags?.linkFolders && plan !== "free"
+    id && flags?.linkFolders && plan !== "free" && plan !== "pro"
       ? `/api/folders/access-requests?workspaceId=${id}`
       : null,
     fetcher,

@@ -62,7 +62,7 @@ export function PayoutTable() {
     `/api/programs/${programId}/payouts${getQueryString(
       { workspaceId },
       {
-        ignore: ["payoutId"],
+        exclude: ["payoutId"],
       },
     )}`,
     fetcher,

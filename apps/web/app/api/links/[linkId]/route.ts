@@ -27,7 +27,7 @@ export const GET = withWorkspace(
 
     if (link.folderId) {
       await verifyFolderAccess({
-        workspaceId: workspace.id,
+        workspace,
         userId: session.user.id,
         folderId: link.folderId,
         requiredPermission: "folders.read",
@@ -77,7 +77,7 @@ export const PATCH = withWorkspace(
       ...(link.folderId
         ? [
             verifyFolderAccess({
-              workspaceId: workspace.id,
+              workspace,
               userId: session.user.id,
               folderId: link.folderId,
               requiredPermission: "folders.links.write",
@@ -88,7 +88,7 @@ export const PATCH = withWorkspace(
       ...(body.folderId
         ? [
             verifyFolderAccess({
-              workspaceId: workspace.id,
+              workspace,
               userId: session.user.id,
               folderId: body.folderId,
               requiredPermission: "folders.links.write",
@@ -209,7 +209,7 @@ export const DELETE = withWorkspace(
 
     if (link.folderId) {
       await verifyFolderAccess({
-        workspaceId: workspace.id,
+        workspace,
         userId: session.user.id,
         folderId: link.folderId,
         requiredPermission: "folders.links.write",

@@ -8,6 +8,7 @@ import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { verifyFolderAccess } from "../../folder/permissions";
 import { authActionClient } from "../safe-action";
+
 const schema = z.object({
   workspaceId: z.string(),
   folderId: z.string(),
@@ -21,9 +22,9 @@ export const requestFolderEditAccessAction = authActionClient
     const { folderId } = parsedInput;
 
     const folder = await verifyFolderAccess({
-      folderId,
-      workspaceId: workspace.id,
+      workspace,
       userId: user.id,
+      folderId,
       requiredPermission: "folders.read",
     });
 

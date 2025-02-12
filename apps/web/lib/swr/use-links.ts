@@ -42,7 +42,7 @@ export default function useLinks(
             ...opts,
           },
           {
-            ignore: ["import", "upgrade", "newLink"],
+            exclude: ["import", "upgrade", "newLink"],
           },
         )}`
       : admin

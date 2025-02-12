@@ -11,6 +11,7 @@ import { Command, useCommandState } from "cmdk";
 import { Check, ChevronDown, Search, X } from "lucide-react";
 import {
   Dispatch,
+  HTMLAttributes,
   InputHTMLAttributes,
   ReactNode,
   SetStateAction,
@@ -52,6 +53,7 @@ export interface InputSelectItemProps {
   id: string;
   value: string;
   color?: string;
+  icon?: ReactNode;
   image?: string;
   disabled?: boolean;
   label?: string;
@@ -148,6 +150,21 @@ export function InputSelect({
 
   const { isMobile } = useMediaQuery();
 
+  const iconElement = useMemo(() => {
+    if (selectedItem && selectedItem.icon) return selectedItem.icon;
+    if (selectedItem && selectedItem.image)
+      return (
+        <BlurImage
+          src={selectedItem.image}
+          alt={selectedItem.value}
+          className="size-4 rounded-full"
+          width={16}
+          height={16}
+        />
+      );
+    return icon || <Search className="size-4 text-neutral-400" />;
+  }, [selectedItem, icon]);
+
   return (
     <InputSelectContext.Provider
       value={{
@@ -171,28 +188,7 @@ export function InputSelect({
               shouldFilter={false}
               loop
             >
-              <div
-                className={cn(
-                  "group relative rounded-md border border-neutral-300 bg-white px-1 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500 md:min-w-[140px]",
-                  className,
-                )}
-              >
-                <div className="absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-neutral-400">
-                  {selectedItem && selectedItem.image ? (
-                    <img
-                      src={selectedItem.image}
-                      alt={selectedItem.value}
-                      className="h-4 w-4 rounded-full"
-                    />
-                  ) : (
-                    icon || <Search className="h-4 w-4 text-neutral-400" />
-                  )}
-                </div>
-                <div className="flex h-10 px-8">
-                  <CommandInput />
-                  <CloseChevron />
-                </div>
-              </div>
+              <InputGroup className={className} iconElement={iconElement} />
             </Command>
           </Drawer.Trigger>
           <Drawer.Overlay className="fixed inset-0 z-40 bg-neutral-100 bg-opacity-10 backdrop-blur" />
@@ -215,28 +211,7 @@ export function InputSelect({
                 shouldFilter={false}
                 loop
               >
-                <div
-                  className={cn(
-                    "group relative mb-2 rounded-t-md border-b border-neutral-300 bg-white p-1 sm:border sm:py-0 sm:focus-within:border-neutral-500 sm:focus-within:ring-1 sm:focus-within:ring-neutral-200",
-                    className,
-                  )}
-                >
-                  <div className="absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-neutral-400">
-                    {selectedItem && selectedItem.image ? (
-                      <img
-                        src={selectedItem.image}
-                        alt={selectedItem.value}
-                        className="h-4 w-4 rounded-full"
-                      />
-                    ) : (
-                      icon || <Search className="h-4 w-4 text-neutral-400" />
-                    )}
-                  </div>
-                  <div className="flex h-10 px-8">
-                    <CommandInput />
-                    <CloseChevron />
-                  </div>
-                </div>
+                <InputGroup className={className} iconElement={iconElement} />
                 {openCommandList && (
                   <Command.List className="dub-scrollbar h-[70vh] overflow-y-auto p-2">
                     {items.length === 0 &&
@@ -268,34 +243,12 @@ export function InputSelect({
           shouldFilter={false}
           loop
         >
-          <div
-            className={cn(
-              "group rounded-md border border-neutral-200 bg-white px-1 transition-all focus-within:border-neutral-500 focus-within:ring-4 focus-within:ring-neutral-200",
-              className,
-            )}
-          >
-            <div
-              onClick={() => setOpenCommandList((prev) => !prev)}
-              className="absolute inset-y-0 left-0 flex cursor-pointer items-center justify-center pl-3 text-neutral-400"
-            >
-              {selectedItem && selectedItem.image ? (
-                <img
-                  src={selectedItem.image}
-                  alt={selectedItem.value}
-                  className="h-4 w-4 rounded-full"
-                />
-              ) : (
-                icon || <Search className="h-4 w-4 text-neutral-400" />
-              )}
-            </div>
-            <div className="flex h-10 px-8">
-              <CommandInput
-                ref={floatingRefs.setReference}
-                {...getReferenceProps()}
-              />
-              <CloseChevron />
-            </div>
-          </div>
+          <InputGroup
+            className={className}
+            iconElement={iconElement}
+            ref={floatingRefs.setReference}
+            {...getReferenceProps()}
+          />
           {openCommandList && (
             <div
               ref={floatingRefs.setFloating}
@@ -339,6 +292,33 @@ export function InputSelect({
     </InputSelectContext.Provider>
   );
 }
+
+type InputGroupProps = {
+  iconElement: ReactNode;
+} & HTMLAttributes<HTMLLabelElement>;
+
+const InputGroup = forwardRef<HTMLLabelElement, InputGroupProps>(
+  ({ iconElement, className, ...rest }: InputGroupProps, ref) => {
+    return (
+      <label
+        ref={ref}
+        className={cn(
+          "group relative flex cursor-pointer gap-2 rounded-md border border-neutral-200 bg-white px-1 pl-3 transition-all focus-within:border-neutral-500 focus-within:ring-4 focus-within:ring-neutral-200",
+          className,
+        )}
+        {...rest}
+      >
+        <div className="flex shrink-0 items-center justify-center text-neutral-400">
+          {iconElement}
+        </div>
+        <div className="flex h-10 grow">
+          <CommandInput />
+          <CloseChevron />
+        </div>
+      </label>
+    );
+  },
+);
 
 const CommandInput = forwardRef<HTMLInputElement>((_, ref) => {
   const isEmpty = useCommandState((state: any) => state.filtered.count === 0);
@@ -400,11 +380,11 @@ function CloseChevron() {
       className="absolute inset-y-0 right-0 my-auto pr-3"
     >
       {inputValue.length > 0 ? (
-        <X className="h-4 w-4 text-neutral-400 transition-all hover:text-neutral-700" />
+        <X className="size-4 text-neutral-400 transition-all hover:text-neutral-700" />
       ) : (
         <ChevronDown
           className={cn(
-            "h-4 w-4 text-neutral-400 transition-all hover:text-neutral-700",
+            "size-4 text-neutral-400 transition-all hover:text-neutral-700",
             {
               "rotate-180 transform": openCommandList,
             },
@@ -432,15 +412,16 @@ function SelectorList({ items }: { items: InputSelectItemProps[] }) {
       className="group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-neutral-900 hover:bg-neutral-100 hover:text-neutral-900 active:bg-neutral-200 aria-disabled:cursor-not-allowed aria-disabled:opacity-75 aria-disabled:hover:bg-white aria-selected:bg-neutral-100 aria-selected:text-neutral-900"
     >
       <div className="flex items-center space-x-2">
-        {item.image && (
-          <BlurImage
-            src={item.image}
-            alt={item.value}
-            className="h-4 w-4 rounded-full"
-            width={16}
-            height={16}
-          />
-        )}
+        {item.icon ||
+          (item.image && (
+            <BlurImage
+              src={item.image}
+              alt={item.value}
+              className="size-4 rounded-full"
+              width={16}
+              height={16}
+            />
+          ))}
         <p
           className={cn(
             "whitespace-nowrap py-0.5 text-sm",
