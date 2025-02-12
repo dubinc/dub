@@ -1,13 +1,12 @@
+import { HeroBackground } from "@/ui/partners/hero-background";
 import { Button, Copy, MoneyBill, Wordmark } from "@dub/ui";
-import { HeroBackground } from "./hero-background";
 
 export default function EmbedInlineLoading() {
-  const tabs = ["Quickstart", "Sales", "Leaderboard", "FAQ"];
   return (
     <div className="flex min-h-screen flex-col">
       <div className="p-5">
         <div className="relative flex flex-col overflow-hidden rounded-lg border border-neutral-300 p-4 md:p-6">
-          <HeroBackground />
+          <HeroBackground color="#737373" />
           <span className="flex items-center gap-2 text-sm text-neutral-500">
             <MoneyBill className="size-4" />
             Refer and earn

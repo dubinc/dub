@@ -3,7 +3,7 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { partnersCountQuerySchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/partners/count - get the count of partners for a program
@@ -24,8 +24,17 @@ export const GET = withWorkspace(
       programId,
     });
 
-    const { groupBy, status, country } =
+    const { groupBy, status, country, search, ids } =
       partnersCountQuerySchema.parse(searchParams);
+
+    const commonWhere: Prisma.PartnerWhereInput = {
+      ...(search && {
+        OR: [{ name: { contains: search } }, { email: { contains: search } }],
+      }),
+      ...(ids && {
+        id: { in: ids },
+      }),
+    };
 
     // Get partner count by country
     if (groupBy === "country") {
@@ -40,6 +49,7 @@ export const GET = withWorkspace(
               status: status || { not: "rejected" },
             },
           },
+          ...commonWhere,
         },
         _count: true,
         orderBy: {
@@ -58,11 +68,12 @@ export const GET = withWorkspace(
         by: ["status"],
         where: {
           programId,
-          ...(country && {
-            partner: {
+          partner: {
+            ...(country && {
               country,
-            },
-          }),
+            }),
+            ...commonWhere,
+          },
         },
         _count: true,
       });
@@ -85,11 +96,12 @@ export const GET = withWorkspace(
       where: {
         programId,
         status: status || { not: "rejected" },
-        ...(country && {
-          partner: {
+        partner: {
+          ...(country && {
             country,
-          },
-        }),
+          }),
+          ...commonWhere,
+        },
       },
     });
 
