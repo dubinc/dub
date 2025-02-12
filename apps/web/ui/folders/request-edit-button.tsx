@@ -2,6 +2,7 @@
 
 import { requestFolderEditAccessAction } from "@/lib/actions/folders/request-folder-edit-access";
 import { useFolderAccessRequests } from "@/lib/swr/use-folder-access-requests";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -18,6 +19,7 @@ export const RequestFolderEditAccessButton = ({
   workspaceId: string;
   variant?: "outline" | "primary";
 }) => {
+  const { plan } = useWorkspace();
   const [requestSent, setRequestSent] = useState(false);
   const { accessRequests, isLoading } = useFolderAccessRequests();
 
@@ -41,7 +43,7 @@ export const RequestFolderEditAccessButton = ({
     (accessRequest) => accessRequest.folderId === folderId,
   );
 
-  if (isLoading) {
+  if (plan === "free" || plan === "pro" || isLoading) {
     return null;
   }
 

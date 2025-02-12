@@ -11,7 +11,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder, FolderUser } from "@/lib/types";
 import { FolderUserRole } from "@dub/prisma/client";
 import { Avatar, BlurImage, Button } from "@dub/ui";
-import { Globe } from "@dub/ui/icons";
+import { Globe, UserCheck } from "@dub/ui/icons";
 import { cn, DICEBEAR_AVATAR_URL, fetcher, nFormatter } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
@@ -19,6 +19,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 import { Drawer } from "vaul";
+import { AnimatedEmptyState } from "../shared/animated-empty-state";
 import { X } from "../shared/icons";
 import { FolderIcon } from "./folder-icon";
 import { RequestFolderEditAccessButton } from "./request-edit-button";
@@ -38,7 +39,7 @@ const FolderPermissionsPanel = ({
   setShowPanel,
   folder,
 }: FolderPermissionsPanelProps) => {
-  const workspace = useWorkspace();
+  const { id: workspaceId, slug, logo, name, plan } = useWorkspace();
 
   const [isUpdating, setIsUpdating] = useState(false);
   const [workspaceAccessLevel, setWorkspaceAccessLevel] = useState<string>();
@@ -55,8 +56,8 @@ const FolderPermissionsPanel = ({
     isLoading: isUsersLoading,
     isValidating: isUsersValidating,
   } = useSWR<FolderUser[]>(
-    showPanel
-      ? `/api/folders/${folder.id}/users?workspaceId=${workspace.id}`
+    showPanel && plan !== "free" && plan !== "pro"
+      ? `/api/folders/${folder.id}/users?workspaceId=${workspaceId}`
       : undefined,
     fetcher,
     {
@@ -70,7 +71,7 @@ const FolderPermissionsPanel = ({
     setWorkspaceAccessLevel(accessLevel);
 
     const response = await fetch(
-      `/api/folders/${folder.id}?workspaceId=${workspace.id}`,
+      `/api/folders/${folder.id}?workspaceId=${workspaceId}`,
       {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -128,7 +129,7 @@ const FolderPermissionsPanel = ({
                   {!isLoadingPermissions && !canCreateLinks && (
                     <RequestFolderEditAccessButton
                       folderId={folder.id}
-                      workspaceId={workspace.id!}
+                      workspaceId={workspaceId!}
                     />
                   )}
                 </div>
@@ -162,17 +163,14 @@ const FolderPermissionsPanel = ({
                 <div className="relative mt-3 flex items-center justify-between gap-4">
                   <div className="flex min-w-12 items-center gap-2">
                     <BlurImage
-                      src={
-                        workspace.logo ||
-                        `${DICEBEAR_AVATAR_URL}${workspace.name}`
-                      }
-                      alt={workspace.name || "Workspace logo"}
+                      src={logo || `${DICEBEAR_AVATAR_URL}${name}`}
+                      alt={name || "Workspace logo"}
                       className="size-8 shrink-0 overflow-hidden rounded-full"
                       width={32}
                       height={32}
                     />
                     <span className="truncate whitespace-nowrap text-sm text-neutral-800">
-                      {workspace.name}
+                      {name}
                     </span>
                   </div>
 
@@ -204,20 +202,36 @@ const FolderPermissionsPanel = ({
                 <span className="text-sm font-medium text-neutral-900">
                   Folder Users
                 </span>
-                <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-3">
-                  {isUsersValidating || isUsersLoading || false
-                    ? [...Array(3)].map((_, i) => (
-                        <FolderUserPlaceholder key={i} />
-                      ))
-                    : folder &&
-                      users?.map((user) => (
-                        <FolderUserRow
-                          key={user.id}
-                          user={user}
-                          folder={folder}
-                        />
-                      ))}
-                </div>
+                {plan === "free" || plan === "pro" ? (
+                  <AnimatedEmptyState
+                    title="Folder permissions"
+                    description="Add and manage users permissions to this folder"
+                    cardContent={
+                      <>
+                        <UserCheck className="size-4 text-neutral-700" />
+                        <div className="h-2.5 w-28 min-w-0 rounded-sm bg-neutral-200" />
+                      </>
+                    }
+                    className="border-none"
+                    learnMoreHref={`/${slug}/upgrade`}
+                    learnMoreText="Upgrade to Business"
+                  />
+                ) : (
+                  <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-3">
+                    {isUsersValidating || isUsersLoading || false
+                      ? [...Array(3)].map((_, i) => (
+                          <FolderUserPlaceholder key={i} />
+                        ))
+                      : folder &&
+                        users?.map((user) => (
+                          <FolderUserRow
+                            key={user.id}
+                            user={user}
+                            folder={folder}
+                          />
+                        ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

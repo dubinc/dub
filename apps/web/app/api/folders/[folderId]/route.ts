@@ -45,6 +45,8 @@ export const PATCH = withWorkspace(
       await parseRequestBody(req),
     );
 
+    // TODO: throw error if plan is free or pro and accessLevel is not "write"
+
     await verifyFolderAccess({
       workspaceId: workspace.id,
       userId: session.user.id,
