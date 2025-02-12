@@ -15,7 +15,13 @@ import {
   useCopyToClipboard,
   useRouterStuff,
 } from "@dub/ui";
-import { Areas, ChartContext, TimeSeriesChart, XAxis } from "@dub/ui/charts";
+import {
+  Areas,
+  ChartContext,
+  ChartTooltipSync,
+  TimeSeriesChart,
+  XAxis,
+} from "@dub/ui/charts";
 import { Check, Copy, LoadingSpinner, MoneyBill } from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
@@ -133,18 +139,20 @@ export default function ProgramPageClient() {
           color: program?.brandColor ?? undefined,
         }}
       >
-        <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="rounded-lg border border-neutral-300 p-5 pb-3 lg:col-span-2">
-            <EarningsChart />
-          </div>
+        <ChartTooltipSync>
+          <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="rounded-lg border border-neutral-300 p-5 pb-3 lg:col-span-2">
+              <EarningsChart />
+            </div>
 
-          <PayoutsCard programId={program?.id} />
-          <NumberFlowGroup>
-            <StatCard title="Clicks" event="clicks" />
-            <StatCard title="Leads" event="leads" />
-            <StatCard title="Sales" event="sales" />
-          </NumberFlowGroup>
-        </div>
+            <PayoutsCard programId={program?.id} />
+            <NumberFlowGroup>
+              <StatCard title="Clicks" event="clicks" />
+              <StatCard title="Leads" event="leads" />
+              <StatCard title="Sales" event="sales" />
+            </NumberFlowGroup>
+          </div>
+        </ChartTooltipSync>
         <div className="mt-6">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold text-neutral-900">
@@ -226,7 +234,7 @@ function EarningsChart() {
       </div>
       <div className="relative mt-2 h-44 w-full">
         {data ? (
-          <BrandedChart data={data} label="Earnings" currency />
+          <BrandedChart data={data} currency />
         ) : (
           <div className="flex size-full items-center justify-center">
             {error ? (
@@ -296,7 +304,6 @@ function StatCard({
               date: new Date(d.start),
               value: d[event],
             }))}
-            label={title}
           />
         ) : (
           <div className="flex size-full items-center justify-center">
@@ -316,11 +323,9 @@ function StatCard({
 
 function BrandedChart({
   data: dataProp,
-  label,
   currency,
 }: {
   data: { date: Date; value: number }[];
-  label: string;
   currency?: boolean;
 }) {
   const id = useId();
