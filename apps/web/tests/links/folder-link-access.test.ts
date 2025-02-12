@@ -3,6 +3,7 @@ import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 import {
   E2E_LINK,
+  E2E_NO_ACCESS_FOLDER_ID,
   E2E_READ_ONLY_FOLDER_ID,
   E2E_READ_ONLY_FOLDER_LINK_ID,
 } from "../utils/resource";
@@ -196,6 +197,42 @@ describe.sequential("Folder Access Tests", async () => {
         code: "forbidden",
         doc_url: "https://dub.co/docs/api-reference/errors#forbidden",
         message: "You are not allowed to perform this action on this folder.",
+      },
+    });
+  });
+
+  test("access links within an invalid folder", async () => {
+    const { status, data } = await http.get({
+      path: "/links",
+      query: {
+        folderId: "fold_invalid",
+      },
+    });
+
+    expect(status).toEqual(404);
+    expect(data).toEqual({
+      error: {
+        code: "not_found",
+        message: "Folder not found.",
+        doc_url: "https://dub.co/docs/api-reference/errors#not-found",
+      },
+    });
+  });
+
+  test("access links within a folder with no access", async () => {
+    const { status, data } = await http.get({
+      path: "/links",
+      query: {
+        folderId: E2E_NO_ACCESS_FOLDER_ID,
+      },
+    });
+
+    expect(status).toEqual(403);
+    expect(data).toEqual({
+      error: {
+        code: "forbidden",
+        message: "You are not allowed to perform this action on this folder.",
+        doc_url: "https://dub.co/docs/api-reference/errors#forbidden",
       },
     });
   });
