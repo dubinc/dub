@@ -779,17 +779,17 @@ export default function Toggle({
         });
       }}
       presets={INTERVAL_DISPLAYS.map(({ display, value, shortcut }) => {
-        const requiresUpgrade = DUB_DEMO_LINKS.find(
-          (l) => l.domain === domain && l.key === key,
-        )
-          ? false
-          : !validDateRangeForPlan({
-              plan: plan || dashboardProps?.workspacePlan,
-              dataAvailableFrom: createdAt,
-              interval: value,
-              start,
-              end,
-            });
+        const requiresUpgrade =
+          partnerPage ||
+          DUB_DEMO_LINKS.find((l) => l.domain === domain && l.key === key)
+            ? false
+            : !validDateRangeForPlan({
+                plan: plan || dashboardProps?.workspacePlan,
+                dataAvailableFrom: createdAt,
+                interval: value,
+                start,
+                end,
+              });
 
         const { startDate, endDate } = getStartEndDates({
           interval: value,
