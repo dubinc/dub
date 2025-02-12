@@ -98,7 +98,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     eventType: event,
     workspaceId,
     tagIds,
-    folderId: folderId || "",
+    folderId: folderId || (workspaceId ? "" : undefined),
     qr,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
@@ -127,7 +127,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         id: {
           in: topLinksData.map((item) => item.link),
         },
-        folderId: folderId || null,
       },
       select: {
         id: true,
