@@ -12,17 +12,17 @@ import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { SettingsRow } from "./settings-row";
+import { SettingsRow } from "../settings-row";
 
 type FormData = Pick<ProgramProps, "domain" | "url" | "cookieLength">;
 
-export function TrackingSettings() {
+export function LinksSettings() {
   const { program } = useProgram();
 
   return (
     <div className="flex flex-col gap-10">
       {program ? (
-        <TrackingSettingsForm program={program} />
+        <LinksSettingsForm program={program} />
       ) : (
         <div className="flex h-32 items-center justify-center">
           <LoadingSpinner />
@@ -32,7 +32,7 @@ export function TrackingSettings() {
   );
 }
 
-function TrackingSettingsForm({ program }: { program: ProgramProps }) {
+function LinksSettingsForm({ program }: { program: ProgramProps }) {
   const { id: workspaceId } = useWorkspace();
 
   const shortDomain = program.domain || "refer.dub.co";
@@ -102,10 +102,6 @@ function TrackingSettingsForm({ program }: { program: ProgramProps }) {
         reset({}, { keepValues: true });
       })}
     >
-      <div className="flex items-center border-b border-neutral-200 p-6">
-        <h2 className="text-xl font-medium text-neutral-900">Tracking</h2>
-      </div>
-
       <div className="divide-y divide-neutral-200 px-6">
         <SettingsRow heading="Default Referral Link">
           <div className="flex flex-col gap-6">

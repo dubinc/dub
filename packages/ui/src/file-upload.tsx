@@ -2,7 +2,7 @@ import { cn, resizeImage } from "@dub/utils";
 import { VariantProps, cva } from "class-variance-authority";
 import { DragEvent, ReactNode, useState } from "react";
 import { toast } from "sonner";
-import { CloudUpload, LoadingCircle } from "./icons";
+import { CloudUpload, Icon, LoadingCircle } from "./icons";
 
 type AcceptedFileFormats = "any" | "images" | "csv";
 
@@ -53,10 +53,14 @@ type FileUploadReadFileProps =
     };
 
 export type FileUploadProps = FileUploadReadFileProps & {
+  id?: string;
   accept: AcceptedFileFormats;
   className?: string;
   iconClassName?: string;
   previewClassName?: string;
+
+  icon?: Icon;
+
   /**
    * Custom preview component to display instead of the default
    */
@@ -105,12 +109,14 @@ export type FileUploadProps = FileUploadReadFileProps & {
 } & VariantProps<typeof imageUploadVariants>;
 
 export function FileUpload({
+  id,
   readFile,
   onChange,
   variant,
   className,
   iconClassName,
   previewClassName,
+  icon: Icon = CloudUpload,
   customPreview,
   accept = "any",
   imageSrc,
@@ -231,7 +237,7 @@ export function FileUpload({
             : cn(!disabled && "group-hover:bg-neutral-50"),
         )}
       >
-        <CloudUpload
+        <Icon
           className={cn(
             "size-7 transition-all duration-75",
             !disabled
@@ -273,6 +279,7 @@ export function FileUpload({
       {clickToUpload && (
         <div className="sr-only mt-1 flex shadow-sm">
           <input
+            id={id}
             key={fileName} // Gets us a fresh input every time a file is uploaded
             type="file"
             accept={acceptFileTypes[accept].types.join(",")}
