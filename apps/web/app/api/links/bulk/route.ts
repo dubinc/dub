@@ -327,7 +327,7 @@ export const PATCH = withWorkspace(
 
     if (data.folderId) {
       await verifyFolderAccess({
-        workspaceId: workspace.id,
+        workspace,
         userId: session.user.id,
         folderId: data.folderId,
         requiredPermission: "folders.links.write",

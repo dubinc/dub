@@ -5,6 +5,7 @@ import {
   FOLDER_USER_ROLE,
   FOLDER_WORKSPACE_ACCESS,
 } from "@/lib/folder/constants";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
   useCheckFolderPermission,
   useFolderPermissions,
@@ -20,7 +21,7 @@ import { ChevronLeft } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -28,6 +29,8 @@ import useSWR from "swr";
 export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const workspace = useWorkspace();
+  const { canManageFolderPermissions } = getPlanCapabilities(workspace.plan);
+
   const [workspaceAccessLevel, setWorkspaceAccessLevel] = useState<string>();
 
   const { isLoading: isLoadingPermissions } = useFolderPermissions();
@@ -60,10 +63,6 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
     },
   );
 
-  if (!isFolderLoading && !folder) {
-    notFound();
-  }
-
   const updateWorkspaceAccessLevel = async (accessLevel: string) => {
     setIsUpdating(true);
     setWorkspaceAccessLevel(accessLevel);
@@ -91,6 +90,13 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
     await Promise.all([mutateFolder(), mutateUsers()]);
   };
 
+  if (!isFolderLoading && !folder) {
+    notFound();
+  }
+
+  if (!canManageFolderPermissions) {
+    redirect(`/${workspace.slug}/settings/library/folders`);
+  }
   return (
     <>
       <Link

@@ -10,7 +10,7 @@ import { FolderDropdown } from "./folder-dropdown";
 export const FolderSwitcher = () => {
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
-  const { folders, loading } = useFolders();
+  const { folders } = useFolders();
 
   const [selectedFolder, setSelectedFolder] = useState<FolderSummary | null>(
     unsortedLinks,
