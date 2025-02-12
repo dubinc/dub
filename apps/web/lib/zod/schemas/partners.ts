@@ -42,6 +42,8 @@ export const partnersCountQuerySchema = partnersQuerySchema
   .omit({
     sortBy: true,
     sortOrder: true,
+    page: true,
+    pageSize: true,
   })
   .extend({
     groupBy: z.enum(["status", "country"]).optional(),
