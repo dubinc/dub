@@ -11,7 +11,7 @@ import {
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder, FolderUser } from "@/lib/types";
 import { FolderUserRole } from "@dub/prisma/client";
-import { Avatar, BlurImage, Button } from "@dub/ui";
+import { Avatar, BlurImage, Button, Tooltip, TooltipContent } from "@dub/ui";
 import { Globe, UserCheck } from "@dub/ui/icons";
 import { cn, DICEBEAR_AVATAR_URL, fetcher, nFormatter } from "@dub/utils";
 import { useSession } from "next-auth/react";
@@ -98,6 +98,27 @@ const FolderPermissionsPanel = ({
     );
   };
 
+  const selectDropdown = (
+    <select
+      className={cn(
+        "appearance-none rounded-md border border-neutral-200 bg-white pl-3 pr-8 text-sm text-neutral-900 focus:border-neutral-300 focus:ring-neutral-300",
+        !canUpdateFolder && "cursor-not-allowed bg-neutral-100",
+      )}
+      value={workspaceAccessLevel || folder?.accessLevel || ""}
+      disabled={isUpdating || !canUpdateFolder || isLoadingPermissions}
+      onChange={(e) => updateWorkspaceAccessLevel(e.target.value)}
+    >
+      {Object.keys(FOLDER_WORKSPACE_ACCESS).map((access) => (
+        <option value={access} key={access}>
+          {FOLDER_WORKSPACE_ACCESS[access]}
+        </option>
+      ))}
+      <option value="" key="no-access">
+        No access
+      </option>
+    </select>
+  );
+
   return (
     <Drawer.Root open={showPanel} onOpenChange={setShowPanel} direction="right">
       <Drawer.Portal>
@@ -177,26 +198,23 @@ const FolderPermissionsPanel = ({
                     </span>
                   </div>
 
-                  <select
-                    className={cn(
-                      "appearance-none rounded-md border border-neutral-200 bg-white pl-3 pr-8 text-sm text-neutral-900 focus:border-neutral-300 focus:ring-neutral-300",
-                      !canUpdateFolder && "cursor-not-allowed bg-neutral-100",
-                    )}
-                    value={workspaceAccessLevel || folder?.accessLevel || ""}
-                    disabled={
-                      isUpdating || !canUpdateFolder || isLoadingPermissions
-                    }
-                    onChange={(e) => updateWorkspaceAccessLevel(e.target.value)}
-                  >
-                    {Object.keys(FOLDER_WORKSPACE_ACCESS).map((access) => (
-                      <option value={access} key={access}>
-                        {FOLDER_WORKSPACE_ACCESS[access]}
-                      </option>
-                    ))}
-                    <option value="" key="no-access">
-                      No access
-                    </option>
-                  </select>
+                  {canManageFolderPermissions ? (
+                    selectDropdown
+                  ) : (
+                    <Tooltip
+                      content={
+                        <TooltipContent
+                          title="You can only set custom folder permissions on a Business plan and above."
+                          cta="Upgrade to Business"
+                          href={`/${slug}/upgrade?exit=close`}
+                          target="_blank"
+                        />
+                      }
+                      align="end"
+                    >
+                      {selectDropdown}
+                    </Tooltip>
+                  )}
                 </div>
               </div>
 

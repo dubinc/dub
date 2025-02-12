@@ -2,7 +2,13 @@ import { FOLDER_WORKSPACE_ACCESS } from "@/lib/folder/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderAccessLevel, FolderSummary } from "@/lib/types";
-import { BlurImage, Button, useMediaQuery } from "@dub/ui";
+import {
+  BlurImage,
+  Button,
+  Tooltip,
+  TooltipContent,
+  useMediaQuery,
+} from "@dub/ui";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { FormEvent, useState } from "react";
 import { toast } from "sonner";
@@ -50,6 +56,24 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
   };
 
   const { canManageFolderPermissions } = getPlanCapabilities(workspace.plan);
+
+  const selectDropdown = (
+    <select
+      className="h-full rounded-md rounded-l-none border-0 border-l border-neutral-300 bg-white py-2 pl-2 pr-8 text-xs text-neutral-500 focus:border-neutral-300 focus:outline-none focus:ring-0"
+      value={accessLevel}
+      onChange={(e) => setAccessLevel(e.target.value as FolderAccessLevel)}
+      disabled={!canManageFolderPermissions}
+    >
+      {Object.keys(FOLDER_WORKSPACE_ACCESS).map((access) => (
+        <option value={access} key={access}>
+          {FOLDER_WORKSPACE_ACCESS[access]}
+        </option>
+      ))}
+      <option value="" key="no-access">
+        No access
+      </option>
+    </select>
+  );
 
   return (
     <>
@@ -112,24 +136,22 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
                       {workspace.name}
                     </span>
                   </div>
-
-                  <select
-                    className="rounded-md rounded-l-none border-0 border-l border-neutral-300 bg-white py-2 pl-2 pr-8 text-xs text-neutral-500 focus:border-neutral-300 focus:outline-none focus:ring-0"
-                    value={accessLevel}
-                    onChange={(e) =>
-                      setAccessLevel(e.target.value as FolderAccessLevel)
-                    }
-                    disabled={!canManageFolderPermissions}
-                  >
-                    {Object.keys(FOLDER_WORKSPACE_ACCESS).map((access) => (
-                      <option value={access} key={access}>
-                        {FOLDER_WORKSPACE_ACCESS[access]}
-                      </option>
-                    ))}
-                    <option value="" key="no-access">
-                      No access
-                    </option>
-                  </select>
+                  {canManageFolderPermissions ? (
+                    selectDropdown
+                  ) : (
+                    <Tooltip
+                      content={
+                        <TooltipContent
+                          title="You can only set custom folder permissions on a Business plan and above."
+                          cta="Upgrade to Business"
+                          href={`/${workspace.slug}/upgrade?exit=close`}
+                          target="_blank"
+                        />
+                      }
+                    >
+                      {selectDropdown}
+                    </Tooltip>
+                  )}
                 </div>
               </div>
             )}

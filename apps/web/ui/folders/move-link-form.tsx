@@ -3,14 +3,11 @@ import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps } from "@/lib/types";
 import { Button, InputSelect, InputSelectItemProps, LinkLogo } from "@dub/ui";
-import {
-  DICEBEAR_AVATAR_URL,
-  getApexDomain,
-  linkConstructor,
-} from "@dub/utils";
+import { getApexDomain, linkConstructor } from "@dub/utils";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { FolderIcon } from "./folder-icon";
 
 interface MoveLinkFormProps {
   link: ExpandedLinkProps;
@@ -31,15 +28,18 @@ export const MoveLinkForm = ({
 
   const selectOptions = useMemo(() => {
     return folders
-      ? [...folders, unsortedLinks].map((folder) => ({
-          id: folder.id,
-          value: `${folder.name} ${folder.id === "unsorted" ? "(Unsorted)" : ""}`,
-          image: workspace.logo || `${DICEBEAR_AVATAR_URL}${workspace.name}`, // TODO: Replace with folder icon
-          disabled:
+      ? [...folders, unsortedLinks].map((folder) => {
+          const isCurrent =
             folder.id === link.folderId ||
-            (link.folderId === null && folder.id === "unsorted"),
-          label: folder.id === link.folderId ? "Current" : "",
-        }))
+            (link.folderId === null && folder.id === "unsorted");
+          return {
+            id: folder.id,
+            value: `${folder.name} ${folder.id === "unsorted" ? "(Unsorted)" : ""}`,
+            icon: <FolderIcon folder={folder} shape="square" />,
+            disabled: isCurrent,
+            label: isCurrent ? "Current" : "",
+          };
+        })
       : [];
   }, [folders, link.folderId, workspace.logo, workspace.name]);
 
