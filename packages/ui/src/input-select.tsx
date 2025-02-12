@@ -52,6 +52,7 @@ export interface InputSelectItemProps {
   id: string;
   value: string;
   color?: string;
+  icon?: ReactNode;
   image?: string;
   disabled?: boolean;
   label?: string;
@@ -148,6 +149,21 @@ export function InputSelect({
 
   const { isMobile } = useMediaQuery();
 
+  const iconElement = useMemo(() => {
+    if (selectedItem && selectedItem.icon) return selectedItem.icon;
+    if (selectedItem && selectedItem.image)
+      return (
+        <BlurImage
+          src={selectedItem.image}
+          alt={selectedItem.value}
+          className="size-4 rounded-full"
+          width={16}
+          height={16}
+        />
+      );
+    return icon || <Search className="size-4 text-neutral-400" />;
+  }, [selectedItem, icon]);
+
   return (
     <InputSelectContext.Provider
       value={{
@@ -178,15 +194,7 @@ export function InputSelect({
                 )}
               >
                 <div className="absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-neutral-400">
-                  {selectedItem && selectedItem.image ? (
-                    <img
-                      src={selectedItem.image}
-                      alt={selectedItem.value}
-                      className="h-4 w-4 rounded-full"
-                    />
-                  ) : (
-                    icon || <Search className="h-4 w-4 text-neutral-400" />
-                  )}
+                  {iconElement}
                 </div>
                 <div className="flex h-10 px-8">
                   <CommandInput />
@@ -222,15 +230,7 @@ export function InputSelect({
                   )}
                 >
                   <div className="absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-neutral-400">
-                    {selectedItem && selectedItem.image ? (
-                      <img
-                        src={selectedItem.image}
-                        alt={selectedItem.value}
-                        className="h-4 w-4 rounded-full"
-                      />
-                    ) : (
-                      icon || <Search className="h-4 w-4 text-neutral-400" />
-                    )}
+                    {iconElement}
                   </div>
                   <div className="flex h-10 px-8">
                     <CommandInput />
@@ -278,15 +278,7 @@ export function InputSelect({
               onClick={() => setOpenCommandList((prev) => !prev)}
               className="absolute inset-y-0 left-0 flex cursor-pointer items-center justify-center pl-3 text-neutral-400"
             >
-              {selectedItem && selectedItem.image ? (
-                <img
-                  src={selectedItem.image}
-                  alt={selectedItem.value}
-                  className="h-4 w-4 rounded-full"
-                />
-              ) : (
-                icon || <Search className="h-4 w-4 text-neutral-400" />
-              )}
+              {iconElement}
             </div>
             <div className="flex h-10 px-8">
               <CommandInput
@@ -400,11 +392,11 @@ function CloseChevron() {
       className="absolute inset-y-0 right-0 my-auto pr-3"
     >
       {inputValue.length > 0 ? (
-        <X className="h-4 w-4 text-neutral-400 transition-all hover:text-neutral-700" />
+        <X className="size-4 text-neutral-400 transition-all hover:text-neutral-700" />
       ) : (
         <ChevronDown
           className={cn(
-            "h-4 w-4 text-neutral-400 transition-all hover:text-neutral-700",
+            "size-4 text-neutral-400 transition-all hover:text-neutral-700",
             {
               "rotate-180 transform": openCommandList,
             },
@@ -432,15 +424,16 @@ function SelectorList({ items }: { items: InputSelectItemProps[] }) {
       className="group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-neutral-900 hover:bg-neutral-100 hover:text-neutral-900 active:bg-neutral-200 aria-disabled:cursor-not-allowed aria-disabled:opacity-75 aria-disabled:hover:bg-white aria-selected:bg-neutral-100 aria-selected:text-neutral-900"
     >
       <div className="flex items-center space-x-2">
-        {item.image && (
-          <BlurImage
-            src={item.image}
-            alt={item.value}
-            className="h-4 w-4 rounded-full"
-            width={16}
-            height={16}
-          />
-        )}
+        {item.icon ||
+          (item.image && (
+            <BlurImage
+              src={item.image}
+              alt={item.value}
+              className="size-4 rounded-full"
+              width={16}
+              height={16}
+            />
+          ))}
         <p
           className={cn(
             "whitespace-nowrap py-0.5 text-sm",

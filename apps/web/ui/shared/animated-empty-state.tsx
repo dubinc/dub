@@ -13,6 +13,7 @@ export function AnimatedEmptyState({
   pillContent,
   learnMoreHref,
   learnMoreClassName,
+  learnMoreText,
   className,
 }: {
   title: string;
@@ -22,6 +23,7 @@ export function AnimatedEmptyState({
   pillContent?: string;
   learnMoreHref?: string;
   learnMoreClassName?: string;
+  learnMoreText?: string;
   className?: string;
 }) {
   return (
@@ -64,7 +66,7 @@ export function AnimatedEmptyState({
               learnMoreClassName,
             )}
           >
-            Learn more
+            {learnMoreText || "Learn more"}
           </Link>
         )}
       </div>

@@ -310,6 +310,64 @@ export default function Toggle({
       ...(dashboardProps
         ? []
         : [
+            ...(flags?.linkFolders
+              ? [
+                  {
+                    key: "folderId",
+                    icon: Folder,
+                    label: "Folder",
+                    shouldFilter: !foldersAsync,
+                    getOptionIcon: (value, props) => {
+                      const folderName = props.option?.label;
+                      const folder = folders?.find(
+                        ({ name }) => name === folderName,
+                      );
+
+                      return folder ? (
+                        <FolderIcon
+                          folder={folder}
+                          shape="square"
+                          className="size-3"
+                        />
+                      ) : null;
+                    },
+                    options:
+                      folders?.map((folder) => ({
+                        value: folder.id,
+                        icon: (
+                          <FolderIcon
+                            folder={folder}
+                            shape="square"
+                            className="size-3"
+                          />
+                        ),
+                        label: folder.name,
+                      })) ?? null,
+                  },
+                ]
+              : []),
+            {
+              key: "tagIds",
+              icon: Tag,
+              label: "Tag",
+              multiple: true,
+              shouldFilter: !tagsAsync,
+              getOptionIcon: (value, props) => {
+                const tagColor =
+                  props.option?.data?.color ??
+                  tags?.find(({ id }) => id === value)?.color;
+                return tagColor ? (
+                  <TagBadge color={tagColor} withIcon className="sm:p-1" />
+                ) : null;
+              },
+              options:
+                tags?.map(({ id, name, color }) => ({
+                  value: id,
+                  icon: <TagBadge color={color} withIcon className="sm:p-1" />,
+                  label: name,
+                  data: { color },
+                })) ?? null,
+            },
             {
               key: "domain",
               icon: Globe2,
@@ -386,65 +444,6 @@ export default function Toggle({
                 },
               ],
             },
-            {
-              key: "tagIds",
-              icon: Tag,
-              label: "Tag",
-              multiple: true,
-              shouldFilter: !tagsAsync,
-              getOptionIcon: (value, props) => {
-                const tagColor =
-                  props.option?.data?.color ??
-                  tags?.find(({ id }) => id === value)?.color;
-                return tagColor ? (
-                  <TagBadge color={tagColor} withIcon className="sm:p-1" />
-                ) : null;
-              },
-              options:
-                tags?.map(({ id, name, color }) => ({
-                  value: id,
-                  icon: <TagBadge color={color} withIcon className="sm:p-1" />,
-                  label: name,
-                  data: { color },
-                })) ?? null,
-            },
-
-            ...(flags?.linkFolders
-              ? [
-                  {
-                    key: "folderId",
-                    icon: Folder,
-                    label: "Folder",
-                    shouldFilter: !foldersAsync,
-                    getOptionIcon: (value, props) => {
-                      const folderName = props.option?.label;
-                      const folder = folders?.find(
-                        ({ name }) => name === folderName,
-                      );
-
-                      return folder ? (
-                        <FolderIcon
-                          folder={folder}
-                          shape="square"
-                          className="size-3"
-                        />
-                      ) : null;
-                    },
-                    options:
-                      folders?.map((folder) => ({
-                        value: folder.id,
-                        icon: (
-                          <FolderIcon
-                            folder={folder}
-                            shape="square"
-                            className="size-3"
-                          />
-                        ),
-                        label: folder.name,
-                      })) ?? null,
-                  },
-                ]
-              : []),
           ]),
       {
         key: "trigger",
@@ -897,7 +896,7 @@ export default function Toggle({
                               window.open("https://d.to/events");
                             } else {
                               router.push(
-                                `/${slug}/events${getQueryString({}, { ignore: ["view"] })}`,
+                                `/${slug}/events${getQueryString({}, { exclude: ["view"] })}`,
                               );
                             }
                           }}
