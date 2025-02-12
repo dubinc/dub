@@ -98,7 +98,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     eventType: event,
     workspaceId,
     tagIds,
-    folderId: folderId || workspaceId ? "" : undefined,
+    folderId: folderId || (workspaceId ? "" : undefined),
     qr,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
