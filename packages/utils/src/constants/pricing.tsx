@@ -19,7 +19,7 @@ const BUSINESS_PLAN_MODIFIER = ({
   clicks = 150000,
   sales = 5000_00,
   domains = 40,
-  folders = 25,
+  folders = 10,
   users = 15,
   ids = [],
 }: {
@@ -202,7 +202,7 @@ export const PLANS = [
       sales: 0,
       domains: 10,
       tags: 25,
-      folders: 10,
+      folders: 3,
       users: 5,
       ai: 1000,
       api: 600,
@@ -270,7 +270,7 @@ export const PLANS = [
     clicks: 150000,
     sales: 5000_00,
     domains: 40,
-    folders: 25,
+    folders: 10,
     users: 15,
     ids: [
       "price_1LodLoAlJJEpqkPV9rD0rlNL", // old monthly
@@ -290,7 +290,7 @@ export const PLANS = [
     clicks: 400000,
     sales: 15000_00,
     domains: 100,
-    folders: 50,
+    folders: 25,
     users: 30,
     ids: [
       "price_1OnWu0AlJJEpqkPVWk4144ZG", // monthly (test)
@@ -307,7 +307,7 @@ export const PLANS = [
     clicks: 1000000,
     sales: 40000_00,
     domains: 250,
-    folders: 75,
+    folders: 50,
     users: 50,
     ids: [
       "price_1OnWvCAlJJEpqkPVLzLHx5QD", // monthly (test)
