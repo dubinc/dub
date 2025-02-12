@@ -78,7 +78,7 @@ export default function BarList({
 
   const bars = (
     <NumberFlowGroup>
-      <div className="relative grid h-full grid-cols-1">
+      <div className="relative grid h-full auto-rows-min grid-cols-1">
         {virtualize ? (
           <AutoSizer>
             {({ width, height }) => (
