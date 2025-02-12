@@ -27,10 +27,6 @@ export class RewardfulApi {
   private async getAuthHeader() {
     const config = await fetchRewardfulConfig(this.programId);
 
-    if (!config || !config.token) {
-      throw new Error("Rewardful config not found.");
-    }
-
     return {
       Authorization: `Basic ${Buffer.from(`${config.token}:`).toString("base64")}`,
     };

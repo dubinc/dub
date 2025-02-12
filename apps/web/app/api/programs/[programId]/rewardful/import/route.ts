@@ -1,4 +1,3 @@
-import { DubApiError } from "@/lib/api/errors";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -25,14 +24,8 @@ export const POST = withWorkspace(
 
     const { campaignId } = schema.parse(await parseRequestBody(req));
 
-    const config = await fetchRewardfulConfig(programId);
-
-    if (!config) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "Rewardful token not found. Please try again.",
-      });
-    }
+    // check the Rewardful token exists before queueing the import
+    await fetchRewardfulConfig(programId);
 
     await queueRewardfulImport({
       programId,
