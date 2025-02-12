@@ -1,3 +1,22 @@
+export interface RewardfulConfig {
+  token: string;
+  userId: string;
+  campaignId: string;
+}
+
+export interface RewardfulCampaign {
+  id: string;
+  name: string;
+  affiliates: number;
+  commission_amount_cents: number;
+  max_commission_period_months: number;
+  reward_type: string;
+  commission_percent: number;
+  // stripe_coupon_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface RewardfulLink {
   id: string;
   url: string;
@@ -12,14 +31,6 @@ export interface RewardfulCustomer {
   name: string;
   email: string;
   platform: string;
-}
-
-export interface Campaign {
-  id: string;
-  name: string;
-  affiliates: number;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface RewardfulAffiliate {

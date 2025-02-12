@@ -1,6 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
-import { redis } from "@/lib/upstash";
-import { Campaign, RewardfulAffiliate, RewardfulReferral } from "./types";
+import { fetchRewardfulConfig } from "./importer";
+import {
+  RewardfulAffiliate,
+  RewardfulCampaign,
+  RewardfulReferral,
+} from "./types";
 
 class RewardfulApiError extends DubApiError {
   constructor(message: string) {
@@ -9,26 +13,6 @@ class RewardfulApiError extends DubApiError {
       message: `[Rewardful API] ${message}`,
     });
   }
-}
-
-interface ImportConfig {
-  apiKey: string;
-  campaignId: string;
-  userId: string;
-}
-
-export async function getImportConfig(programId: string) {
-  const config = await redis.get(`rewardful:import:${programId}`);
-
-  if (!config) {
-    throw new Error("Rewardful import data not found.", {
-      cause: {
-        programId,
-      },
-    });
-  }
-
-  return config as ImportConfig;
 }
 
 export class RewardfulApi {
@@ -41,10 +25,14 @@ export class RewardfulApi {
   }
 
   private async getAuthHeader() {
-    const { apiKey } = await getImportConfig(this.programId);
+    const config = await fetchRewardfulConfig(this.programId);
+
+    if (!config || !config.token) {
+      throw new Error("Rewardful config not found.");
+    }
 
     return {
-      Authorization: `Basic ${Buffer.from(`${apiKey}:`).toString("base64")}`,
+      Authorization: `Basic ${Buffer.from(`${config.token}:`).toString("base64")}`,
     };
   }
 
@@ -66,12 +54,14 @@ export class RewardfulApi {
 
   // List all campaigns
   async listCampaigns() {
-    return this.fetch<Campaign[]>(`${this.baseUrl}/campaigns`);
+    return this.fetch<RewardfulCampaign[]>(`${this.baseUrl}/campaigns`);
   }
 
   // Retrieve campaign
   async retrieveCampaign(campaignId: string) {
-    return this.fetch<Campaign>(`${this.baseUrl}/campaigns/${campaignId}`);
+    return this.fetch<RewardfulCampaign>(
+      `${this.baseUrl}/campaigns/${campaignId}`,
+    );
   }
 
   // List all affiliates

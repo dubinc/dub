@@ -11,16 +11,46 @@ import { recordClick } from "../tinybird/record-click";
 import { recordLead } from "../tinybird/record-lead";
 import { WorkspaceProps } from "../types";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
-import { getImportConfig, RewardfulApi } from "./api";
-import { RewardfulAffiliate, RewardfulReferral } from "./types";
+import { RewardfulApi } from "./api";
+import {
+  RewardfulAffiliate,
+  RewardfulConfig,
+  RewardfulReferral,
+} from "./types";
 
 const MAX_BATCHES = 5;
 const CACHE_EXPIRY = 60 * 60 * 24;
+const CACHE_KEY_PREFIX = "rewardful:import";
 
 export const ImportSteps = z.enum(["import-affiliates", "import-referrals"]);
 
 export function createRewardfulApi(programId: string) {
   return new RewardfulApi({ programId });
+}
+
+export async function setRewardfulConfig({
+  programId,
+  userId,
+  token,
+}: {
+  programId: string;
+  userId: string;
+  token: string;
+}) {
+  await redis.set(
+    `${CACHE_KEY_PREFIX}:${programId}`,
+    {
+      token,
+      userId,
+    },
+    {
+      ex: CACHE_EXPIRY,
+    },
+  );
+}
+
+export async function fetchRewardfulConfig(programId: string) {
+  return await redis.get<RewardfulConfig>(`${CACHE_KEY_PREFIX}:${programId}`);
 }
 
 export async function startRewardfulImport({
@@ -153,7 +183,7 @@ async function createPartnerAndLinks({
     return;
   }
 
-  const { userId } = await getImportConfig(program.id);
+  const { userId } = await fetchRewardfulConfig(program.id);
 
   const links = affiliate.links;
 
