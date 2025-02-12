@@ -117,7 +117,7 @@ function ImportRewardfulModal({
       ).then(async (res) => {
         if (res.ok) {
           await mutate();
-          router.push(`/${slug}`);
+          router.push(`/${slug}/programs/${program?.id}/partners`);
         } else {
           setImporting(false);
           throw new Error();

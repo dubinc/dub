@@ -53,34 +53,9 @@ export async function fetchRewardfulConfig(programId: string) {
   return await redis.get<RewardfulConfig>(`${CACHE_KEY_PREFIX}:${programId}`);
 }
 
-export async function startRewardfulImport({
-  programId,
-  apiKey,
-  campaignId,
-  userId,
-}: {
+export async function queueRewardfulImport(body: {
   programId: string;
-  apiKey: string;
   campaignId: string;
-  userId: string;
-}) {
-  await redis.set(
-    `rewardful:import:${programId}`,
-    {
-      apiKey,
-      campaignId,
-      userId,
-    },
-    {
-      ex: CACHE_EXPIRY,
-    },
-  );
-
-  return queueNextImport({ programId });
-}
-
-async function queueNextImport(body: {
-  programId: string;
   action?: z.infer<typeof ImportSteps>;
   page?: number;
 }) {
@@ -144,7 +119,7 @@ export async function importAffiliates({
     processedBatches++;
   }
 
-  await queueNextImport({
+  await queueRewardfulImport({
     programId: program.id,
     action: hasMoreAffiliates ? "import-affiliates" : "import-referrals",
     ...(hasMoreAffiliates ? { page: currentPage } : {}),
@@ -266,7 +241,7 @@ export async function importReferrals({
   }
 
   if (hasMoreReferrals) {
-    await queueNextImport({
+    await queueRewardfulImport({
       action: "import-referrals",
       programId: program.id,
       page: currentPage,

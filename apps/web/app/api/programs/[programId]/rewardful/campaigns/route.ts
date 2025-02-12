@@ -13,7 +13,6 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   });
 
   const rewardfulApi = new RewardfulApi({ programId });
-  const campaigns = await rewardfulApi.listCampaigns();
 
-  return NextResponse.json(campaigns);
+  return NextResponse.json(await rewardfulApi.listCampaigns());
 });

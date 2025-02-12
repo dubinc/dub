@@ -1,35 +1,44 @@
+import { DubApiError } from "@/lib/api/errors";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { startRewardfulImport } from "@/lib/rewardful/importer";
+import {
+  fetchRewardfulConfig,
+  queueRewardfulImport,
+} from "@/lib/rewardful/importer";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 const schema = z.object({
-  apiKey: z.string(),
-  campaignId: z.string(),
+  campaignId: z.string().describe("Rewardful campaign ID to import."),
 });
 
 // POST /api/programs/[programId]/rewardful/import - import a rewardful program
-// This is entrypoint for the rewardful importer
 export const POST = withWorkspace(
   async ({ workspace, session, params, req }) => {
     const { programId } = params;
-    const { apiKey, campaignId } = schema.parse(await parseRequestBody(req));
 
-    const program = await getProgramOrThrow({
+    await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
 
-    // Start a background job to import
-    await startRewardfulImport({
+    const { campaignId } = schema.parse(await parseRequestBody(req));
+
+    const config = await fetchRewardfulConfig(programId);
+
+    if (!config) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Rewardful token not found. Please try again.",
+      });
+    }
+
+    await queueRewardfulImport({
       programId,
       campaignId,
-      apiKey,
-      userId: session.user.id,
     });
 
-    return NextResponse.json(program);
+    return NextResponse.json("OK");
   },
 );
