@@ -27,3 +27,56 @@ export const transformLink = (link: ExpandedLink) => {
     ...(dashboard && { dashboardId: dashboard.id || null }),
   };
 };
+
+export const basicLink = (link: Link) => {
+  // remove everything but the required data for link resolution
+  // TODO: see about a more restricted Link query
+  const { 
+    id,
+    domain,
+    key,
+    //url,
+    //shortLink,
+    archived,
+    expiresAt,
+    expiredUrl,
+    password,
+    trackConversion,
+    proxy,
+    title,
+    description,
+    image,
+    video,
+    utm_source,
+    utm_medium,
+    utm_campaign,
+    utm_term,
+    utm_content,
+    rewrite,
+    doIndex,
+    ios,
+    android,
+    geo,
+    userId,
+    projectId,
+    programId,
+    externalId,
+    tenantId,
+    publicStats,
+    clicks,
+    lastClicked,
+    leads,
+    sales,
+    saleAmount,
+    createdAt,
+    updatedAt,
+    comments,
+    partnerId,
+    //qrCode,
+    ...rest 
+  } = link;
+
+  return {
+    ...rest
+  };
+}
