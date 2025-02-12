@@ -42,11 +42,10 @@ export const POST = withWorkspaceEdge(
       });
 
       if (!ok) {
-        console.info(
-          "[Stripe Webhook] Skipping already processed invoice.",
-          invoiceId,
-        );
-        return `Invoice with ID ${invoiceId} already processed, skipping...`;
+        throw new DubApiError({
+          code: "conflict",
+          message: `Invoice with ID ${invoiceId} already processed, skipping...`,
+        });
       }
     }
 
