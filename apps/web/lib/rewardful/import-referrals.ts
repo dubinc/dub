@@ -5,27 +5,24 @@ import { createId } from "../api/utils";
 import { recordClick } from "../tinybird/record-click";
 import { recordLead } from "../tinybird/record-lead";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
-import {
-  createRewardfulApi,
-  MAX_BATCHES,
-  queueRewardfulImport,
-} from "./importer";
+import { RewardfulApi } from "./api";
+import { MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulReferral } from "./types";
 
 export async function importReferrals({
   programId,
-  campaignId,
   page,
 }: {
   programId: string;
-  campaignId: string;
   page: number;
 }) {
+  const { token } = await rewardfulImporter.getCredentials(programId);
+  
+  const rewardfulApi = new RewardfulApi({ token });
+
   let currentPage = page;
   let hasMoreReferrals = true;
   let processedBatches = 0;
-
-  const rewardfulApi = createRewardfulApi(programId);
 
   const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
     where: {
@@ -62,13 +59,17 @@ export async function importReferrals({
   }
 
   if (hasMoreReferrals) {
-    await queueRewardfulImport({
+    return await rewardfulImporter.queue({
       programId: program.id,
-      campaignId,
       action: "import-referrals",
       page: currentPage,
     });
   }
+
+  // Imports finished
+  // TODO:
+  // - Send an email to the user
+  // - Clear the redis cache
 }
 
 // Create individual referral entries

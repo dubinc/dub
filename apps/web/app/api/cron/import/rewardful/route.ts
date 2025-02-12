@@ -10,7 +10,6 @@ export const dynamic = "force-dynamic";
 
 const schema = z.object({
   programId: z.string(),
-  campaignId: z.string(),
   action: ImportSteps.default("import-affiliates"),
   page: z.number().optional().default(1),
 });
@@ -20,20 +19,16 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const { programId, campaignId, action, page } = schema.parse(
-      JSON.parse(rawBody),
-    );
+    const { programId, action, page } = schema.parse(JSON.parse(rawBody));
 
     if (action === "import-affiliates") {
       await importAffiliates({
         programId,
-        campaignId,
         page,
       });
     } else if (action === "import-referrals") {
       await importReferrals({
         programId,
-        campaignId,
         page,
       });
     }

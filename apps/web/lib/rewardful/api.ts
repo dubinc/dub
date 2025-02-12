@@ -1,5 +1,4 @@
 import { DubApiError } from "@/lib/api/errors";
-import { fetchRewardfulConfig } from "./importer";
 import {
   RewardfulAffiliate,
   RewardfulCampaign,
@@ -16,25 +15,19 @@ class RewardfulApiError extends DubApiError {
 }
 
 export class RewardfulApi {
-  private readonly programId: string; // Dub program id
   // private readonly baseUrl = "https://api.getrewardful.com/v1";
   private readonly baseUrl = "http://api.localhost:8888/api/rewardful";
+  private readonly token: string;
 
-  constructor({ programId }: { programId: string }) {
-    this.programId = programId;
-  }
-
-  private async getAuthHeader() {
-    const config = await fetchRewardfulConfig(this.programId);
-
-    return {
-      Authorization: `Basic ${Buffer.from(`${config.token}:`).toString("base64")}`,
-    };
+  constructor({ token }: { token: string }) {
+    this.token = token;
   }
 
   private async fetch<T>(url: string): Promise<T> {
     const response = await fetch(url, {
-      headers: await this.getAuthHeader(),
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+      },
     });
 
     const data = await response.json();
@@ -61,9 +54,15 @@ export class RewardfulApi {
   }
 
   // List all affiliates
-  async listAffiliates({ page = 1 }: { page?: number }) {
+  async listAffiliates({
+    page = 1,
+    campaignId,
+  }: {
+    page?: number;
+    campaignId: string;
+  }) {
     return this.fetch<RewardfulAffiliate[]>(
-      `${this.baseUrl}/affiliates?expand[]=links&page=${page}&limit=100`,
+      `${this.baseUrl}/affiliates?expand[]=links&page=${page}&limit=100&campaign_id=${campaignId}`,
     );
   }
 

@@ -4,25 +4,22 @@ import { createLink } from "../api/links/create-link";
 import { processLink } from "../api/links/process-link";
 import { createId } from "../api/utils";
 import { WorkspaceProps } from "../types";
-import {
-  createRewardfulApi,
-  fetchRewardfulConfig,
-  MAX_BATCHES,
-  queueRewardfulImport,
-} from "./importer";
+import { RewardfulApi } from "./api";
+import { MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulAffiliate } from "./types";
 
 // Import Rewardful affiliates
 export async function importAffiliates({
   programId,
-  campaignId,
   page,
 }: {
   programId: string;
-  campaignId: string;
   page: number;
 }) {
-  const rewardfulApi = createRewardfulApi(programId);
+  const { token, userId, campaignId } =
+    await rewardfulImporter.getCredentials(programId);
+
+  const rewardfulApi = new RewardfulApi({ token });
 
   let currentPage = page;
   let hasMoreAffiliates = true;
@@ -37,10 +34,9 @@ export async function importAffiliates({
     },
   });
 
-  const { userId } = await fetchRewardfulConfig(program.id);
-
   while (hasMoreAffiliates && processedBatches < MAX_BATCHES) {
     const affiliates = await rewardfulApi.listAffiliates({
+      campaignId,
       page: currentPage,
     });
 
@@ -71,9 +67,8 @@ export async function importAffiliates({
     processedBatches++;
   }
 
-  await queueRewardfulImport({
+  await rewardfulImporter.queue({
     programId: program.id,
-    campaignId,
     action: hasMoreAffiliates ? "import-affiliates" : "import-referrals",
     ...(hasMoreAffiliates ? { page: currentPage } : {}),
   });

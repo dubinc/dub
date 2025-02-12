@@ -241,7 +241,6 @@ export const analyticsFilterTB = z
       .string()
       .optional()
       .describe("The UTM tag to group by. Defaults to `utm_source`."),
-    customerId: z.string().optional(),
   })
   .merge(
     analyticsQuerySchema.pick({
