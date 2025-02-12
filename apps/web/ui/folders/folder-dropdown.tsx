@@ -1,4 +1,5 @@
 import { unsortedLinks } from "@/lib/folder/constants";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderSummary } from "@/lib/types";
@@ -52,6 +53,8 @@ export const FolderDropdown = ({
   if (folderId && loading) {
     return <FolderSwitcherPlaceholder />;
   }
+
+  const { canAddFolder } = getPlanCapabilities(plan);
 
   return (
     <>
@@ -137,7 +140,7 @@ export const FolderDropdown = ({
                 setShowAddFolderModal(true);
               }}
               disabledTooltip={
-                plan === "free" && (
+                !canAddFolder && (
                   <TooltipContent
                     title="You can only use Link Folders on a Pro plan and above. Upgrade to Pro to continue."
                     cta="Upgrade to Pro"
