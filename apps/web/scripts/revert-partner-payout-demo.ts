@@ -13,7 +13,7 @@ async function main() {
         status: "pending",
       },
     }),
-    prisma.sale.updateMany({
+    prisma.commission.updateMany({
       where: {
         payoutId,
       },

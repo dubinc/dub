@@ -1,6 +1,6 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
-import useProgramAnalytics from "@/lib/swr/use-program-analytics";
+import useProgramRevenue from "@/lib/swr/use-program-analytics";
 import useProgramMetrics from "@/lib/swr/use-program-metrics";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { useRouterStuff } from "@dub/ui";
@@ -33,7 +33,7 @@ export function OverviewChart() {
 
   const { metrics } = useProgramMetrics();
 
-  const { data: timeseries, error } = useProgramAnalytics({
+  const { data: timeseries, error } = useProgramRevenue({
     event: "sales",
     groupBy: "timeseries",
     interval,
@@ -97,15 +97,15 @@ export function OverviewChart() {
             tooltipContent={(d) => {
               return (
                 <>
-                  <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
+                  <p className="border-b border-neutral-200 px-4 py-3 text-sm text-neutral-900">
                     {formatDateTooltip(d.date, { interval, start, end })}
                   </p>
                   <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-sm bg-violet-500 shadow-[inset_0_0_0_1px_#0003]" />
-                      <p className="capitalize text-gray-600">Revenue</p>
+                      <p className="capitalize text-neutral-600">Revenue</p>
                     </div>
-                    <p className="text-right font-medium text-gray-900">
+                    <p className="text-right font-medium text-neutral-900">
                       {currencyFormatter(d.values.saleAmount, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
@@ -128,8 +128,12 @@ export function OverviewChart() {
                 />
               )}
             </ChartContext.Consumer>
-            <XAxis />
-            <YAxis showGridLines />
+            <XAxis
+              tickFormat={(date) =>
+                formatDateTooltip(date, { interval, start, end })
+              }
+            />
+            <YAxis showGridLines tickFormat={currencyFormatter} />
             <Areas
               seriesStyles={[
                 {

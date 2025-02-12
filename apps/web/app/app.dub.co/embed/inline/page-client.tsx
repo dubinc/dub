@@ -18,11 +18,11 @@ import { AnimatePresence } from "framer-motion";
 import { CSSProperties, useState } from "react";
 import { LinkToken } from "../token";
 import { EmbedActivity } from "./activity";
+import { EmbedEarnings } from "./earnings";
 import { EmbedFAQ } from "./faq";
 import { EmbedLeaderboard } from "./leaderboard";
 import { EmbedPayouts } from "./payouts";
 import { EmbedQuickstart } from "./quickstart";
-import { EmbedSales } from "./sales";
 
 export function EmbedInlinePageClient({
   program,
@@ -46,7 +46,7 @@ export function EmbedInlinePageClient({
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
 
-  const tabs = ["Quickstart", "Sales", "Leaderboard", "FAQ"];
+  const tabs = ["Quickstart", "Earnings", "Leaderboard", "FAQ"];
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
 
   return (
@@ -144,8 +144,8 @@ export function EmbedInlinePageClient({
             <AnimatePresence mode="wait">
               {selectedTab === "Quickstart" ? (
                 <EmbedQuickstart program={program} link={links[0]} />
-              ) : selectedTab === "Sales" ? (
-                <EmbedSales salesCount={stats.sales} />
+              ) : selectedTab === "Earnings" ? (
+                <EmbedEarnings salesCount={stats.sales} />
               ) : selectedTab === "Leaderboard" ? (
                 <EmbedLeaderboard />
               ) : selectedTab === "FAQ" ? (

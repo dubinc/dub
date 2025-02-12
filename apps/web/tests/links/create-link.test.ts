@@ -1,3 +1,5 @@
+import z from "@/lib/zod";
+import { FolderSchema } from "@/lib/zod/schemas/folders";
 import { Link, Tag } from "@dub/prisma/client";
 import { IntegrationHarnessOld } from "tests/utils/integration-old";
 import { describe, expect, onTestFinished, test } from "vitest";
@@ -5,6 +7,8 @@ import { randomId, randomTagName } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK, E2E_WEBHOOK_ID } from "../utils/resource";
 import { LinkSchema, expectedLink } from "../utils/schema";
+
+type FolderRecord = z.infer<typeof FolderSchema>;
 
 const { domain, url } = E2E_LINK;
 
@@ -364,6 +368,40 @@ describe.sequential("POST /links", async () => {
       tags: expect.arrayContaining(tags),
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
+  });
+
+  test("folders", async () => {
+    onTestFinished(async () => {
+      await Promise.all([h.deleteFolder(folder.id), h.deleteLink(link.id)]);
+    });
+
+    const { data: folder } = await http.post<FolderRecord>({
+      path: "/folders",
+      body: { name: randomId() },
+    });
+
+    const { status, data: link } = await http.post<Link>({
+      path: "/links",
+      body: {
+        url,
+        domain,
+        folderId: folder.id,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(link.folderId).toEqual(folder.id);
+    expect(LinkSchema.strict().parse(link)).toBeTruthy();
+    expect(link).toStrictEqual({
+      ...expectedLink,
+      url,
+      folderId: folder.id,
+      userId: user.id,
+      projectId,
+      workspaceId,
+      shortLink: `https://${domain}/${link.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
+    });
   });
 
   test("custom social media cards", async () => {

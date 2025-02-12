@@ -9,7 +9,6 @@ export async function getLinksCount({
 }: {
   searchParams: z.infer<typeof getLinksCountQuerySchema>;
   workspaceId: string;
-  userId?: string | null;
 }) {
   const {
     groupBy,
@@ -21,6 +20,7 @@ export async function getLinksCount({
     userId,
     showArchived,
     withTags,
+    folderId,
   } = searchParams;
 
   const combinedTagIds = combineTagIds({ tagId, tagIds });
@@ -47,6 +47,11 @@ export async function getLinksCount({
     ...(userId &&
       groupBy !== "userId" && {
         userId,
+      }),
+    // when filtering by folder, only filter by folder if the filter group is not "Folders"
+    ...(folderId &&
+      groupBy !== "folderId" && {
+        folderId,
       }),
   };
 
@@ -90,7 +95,11 @@ export async function getLinksCount({
           : {}),
     };
 
-    if (groupBy === "domain" || groupBy === "userId") {
+    if (
+      groupBy === "domain" ||
+      groupBy === "userId" ||
+      groupBy === "folderId"
+    ) {
       return await prisma.link.groupBy({
         by: [groupBy],
         where,

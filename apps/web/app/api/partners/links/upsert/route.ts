@@ -12,7 +12,7 @@ import { withWorkspace } from "@/lib/auth";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
-import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
+import { upsertPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { deepEqual, getApexDomain } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -22,7 +22,7 @@ import { NextResponse } from "next/server";
 export const PUT = withWorkspace(
   async ({ req, headers, workspace, session }) => {
     const { programId, partnerId, tenantId, url, key, linkProps } =
-      createPartnerLinkSchema.parse(await parseRequestBody(req));
+      upsertPartnerLinkSchema.parse(await parseRequestBody(req));
 
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,

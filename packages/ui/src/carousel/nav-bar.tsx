@@ -12,7 +12,7 @@ const CarouselNavBarVariants = cva(
       variant: {
         simple: "relative",
         floating:
-          "absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-gray-800/10 bg-white sm:bottom-6 ",
+          "absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-neutral-800/10 bg-white sm:bottom-6 ",
       },
     },
   },
@@ -58,7 +58,7 @@ export const CarouselNavBar = ({
     <div className={cn(CarouselNavBarVariants({ variant }), className)}>
       {variant !== "simple" && (
         <button
-          className="cursor-pointer rounded-full p-2 hover:bg-gray-50 active:bg-gray-100"
+          className="cursor-pointer rounded-full p-2 hover:bg-neutral-50 active:bg-neutral-100"
           disabled={!canScrollPrev}
           onClick={stopAutoplayAnd(scrollPrev)}
         >
@@ -73,7 +73,7 @@ export const CarouselNavBar = ({
             <button
               key={idx}
               onClick={stopAutoplayAnd(() => api.scrollTo(idx))}
-              className="rounded-full p-0.5 hover:bg-gray-100 active:bg-gray-200 sm:p-1.5"
+              className="rounded-full p-0.5 hover:bg-neutral-100 active:bg-neutral-200 sm:p-1.5"
             >
               <div
                 className={cn(
@@ -104,7 +104,7 @@ export const CarouselNavBar = ({
 
       {variant !== "simple" && (
         <button
-          className="cursor-pointer rounded-full p-2 hover:bg-gray-50 active:bg-gray-100"
+          className="cursor-pointer rounded-full p-2 hover:bg-neutral-50 active:bg-neutral-100"
           disabled={!canScrollNext}
           onClick={stopAutoplayAnd(scrollNext)}
         >

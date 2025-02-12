@@ -22,7 +22,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       program: true,
       _count: {
         select: {
-          sales: true,
+          commissions: true,
         },
       },
     },

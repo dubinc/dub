@@ -37,12 +37,15 @@ export const getEvents = async (params: EventsFilters) => {
     isDemo,
     order,
     sortOrder,
+    folderId,
+    dataAvailableFrom,
   } = params;
 
   const { startDate, endDate } = getStartEndDates({
     interval,
     start,
     end,
+    dataAvailableFrom,
   });
 
   if (trigger) {
@@ -86,6 +89,7 @@ export const getEvents = async (params: EventsFilters) => {
     offset: (params.page - 1) * params.limit,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
+    folderId: folderId || "",
   });
 
   const [linksMap, customersMap] = await Promise.all([

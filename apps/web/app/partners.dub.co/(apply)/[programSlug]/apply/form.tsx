@@ -91,14 +91,14 @@ export function ProgramApplicationForm({
       className="flex flex-col gap-6"
     >
       <label>
-        <span className="text-sm font-medium text-gray-800">Name</span>
+        <span className="text-sm font-medium text-neutral-800">Name</span>
         <input
           type="text"
           className={cn(
             "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
             errors.name
               ? "border-red-400 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
+              : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
           )}
           placeholder="Acme, Inc."
           autoFocus={!isMobile}
@@ -109,14 +109,14 @@ export function ProgramApplicationForm({
       </label>
 
       <label>
-        <span className="text-sm font-medium text-gray-800">Email</span>
+        <span className="text-sm font-medium text-neutral-800">Email</span>
         <input
           type="email"
           className={cn(
             "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
             errors.email
               ? "border-red-400 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
+              : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
           )}
           placeholder="panic@thedis.co"
           {...register("email", {
@@ -126,7 +126,7 @@ export function ProgramApplicationForm({
       </label>
 
       <label>
-        <span className="text-sm font-medium text-gray-800">
+        <span className="text-sm font-medium text-neutral-800">
           Website / Social media channel
           <span className="font-normal text-neutral-500"> (optional)</span>
         </span>
@@ -136,7 +136,7 @@ export function ProgramApplicationForm({
             "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
             errors.website
               ? "border-red-400 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
+              : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
           )}
           placeholder="https://example.com"
           {...register("website")}
@@ -144,7 +144,7 @@ export function ProgramApplicationForm({
       </label>
 
       <label>
-        <span className="text-sm font-medium text-gray-800">
+        <span className="text-sm font-medium text-neutral-800">
           How do you plan to promote {program.name}?
         </span>
         <ReactTextareaAutosize
@@ -152,7 +152,7 @@ export function ProgramApplicationForm({
             "mt-2 block max-h-48 min-h-12 w-full rounded-md focus:outline-none sm:text-sm",
             errors.proposal
               ? "border-red-400 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
+              : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
           )}
           placeholder=""
           minRows={3}
@@ -161,7 +161,7 @@ export function ProgramApplicationForm({
       </label>
 
       <label>
-        <span className="text-sm font-medium text-gray-800">
+        <span className="text-sm font-medium text-neutral-800">
           Any additional questions or comments?
           <span className="font-normal text-neutral-500"> (optional)</span>
         </span>
@@ -170,7 +170,7 @@ export function ProgramApplicationForm({
             "mt-2 block max-h-48 min-h-12 w-full rounded-md focus:outline-none sm:text-sm",
             errors.comments
               ? "border-red-400 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
+              : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
           )}
           placeholder=""
           minRows={3}

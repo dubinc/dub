@@ -15,6 +15,7 @@ model Partner {
   email               String?        @unique
   image               String?
   bio                 String?       @db.LongText
+  description         String?       @db.LongText
   country             String        @default("US")
   status              PartnerStatus @default(default)
   stripeConnectId     String?       @unique
@@ -29,6 +30,7 @@ model Partner {
   invites      PartnerInvite[]
   payouts      Payout[]
   sales        Sale[]
+  commissions Commission[]
 }
 
 model PartnerUser {

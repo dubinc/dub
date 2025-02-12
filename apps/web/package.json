@@ -12,7 +12,8 @@
     "generate-openapi": "tsx ./scripts/generate-openapi.ts",
     "prisma:generate": "dotenv-flow -e .env -- pnpm --filter=@dub/prisma generate",
     "prisma:push": "dotenv-flow -e .env -- pnpm --filter=@dub/prisma push",
-    "prisma:studio": "dotenv-flow -e .env -- pnpm --filter=@dub/prisma studio"
+    "prisma:studio": "dotenv-flow -e .env -- pnpm --filter=@dub/prisma studio",
+    "prisma:format": "dotenv-flow -e .env -- pnpm --filter=@dub/prisma format"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.0.7",
@@ -100,6 +101,8 @@
     "react-spring": "^9.5.5",
     "react-textarea-autosize": "^8.4.0",
     "react-tweet": "^3.1.1",
+    "react-virtualized-auto-sizer": "^1.0.25",
+    "react-window": "^1.8.11",
     "rehype-autolink-headings": "^6.1.1",
     "rehype-pretty-code": "^0.9.5",
     "rehype-slug": "^5.1.0",

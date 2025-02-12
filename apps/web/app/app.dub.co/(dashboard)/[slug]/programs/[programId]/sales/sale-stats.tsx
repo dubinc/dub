@@ -20,7 +20,7 @@ export function SaleStats() {
         href={`/${slug}/programs/${programId}/sales`}
         count={salesCount?.all}
         icon={Users}
-        iconClassName="text-gray-600 bg-gray-100"
+        iconClassName="text-neutral-600 bg-neutral-100"
         error={!!error}
       />
       <ProgramStatsFilter

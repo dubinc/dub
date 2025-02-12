@@ -3,7 +3,7 @@ import { Program, ProgramEnrollment } from "@dub/prisma/client";
 /* 
   Calculate the commission earned for a sale
 */
-export const calculateEarnings = ({
+export const calculateSaleEarnings = ({
   program,
   partner,
   sales,

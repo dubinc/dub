@@ -1,14 +1,17 @@
-import { Prisma, Program, SaleStatus } from "@dub/prisma/client";
-import { INFINITY_NUMBER } from "@dub/utils";
+import {
+  Commission,
+  CommissionStatus,
+  EventType,
+  Program,
+} from "@dub/prisma/client";
 import { createId } from "../utils";
-import { calculateEarnings } from "./calculate-earnings";
+import { calculateSaleEarnings } from "./calculate-earnings";
 
 export const createSaleData = ({
   program,
   partner,
   customer,
   sale,
-  metadata,
 }: {
   program: Program;
   partner: {
@@ -27,44 +30,27 @@ export const createSaleData = ({
     eventId: string;
     paymentProcessor: string;
   };
-  metadata: Record<string, any>;
 }) => {
-  const earnings = calculateEarnings({
+  const earnings = calculateSaleEarnings({
     program,
     partner,
     sales: 1,
     saleAmount: sale.amount,
   });
 
-  const commissionAmount =
-    partner.commissionAmount !== null
-      ? partner.commissionAmount
-      : program.commissionAmount;
-
   return {
-    id: createId({ prefix: "sale_" }),
-    customerId: customer.id,
-    linkId: customer.linkId,
-    clickId: customer.clickId,
-    invoiceId: sale.invoiceId,
-    eventId: sale.eventId,
-    paymentProcessor: sale.paymentProcessor,
-    amount: sale.amount,
-    currency: sale.currency,
-    partnerId: partner.id,
+    id: createId({ prefix: "cm_" }),
     programId: program.id,
-    status: SaleStatus.pending,
+    partnerId: partner.id,
+    linkId: customer.linkId,
+    invoiceId: sale.invoiceId || null,
+    customerId: customer.id,
+    eventId: sale.eventId,
+    type: EventType.sale,
+    amount: sale.amount,
+    quantity: 1,
     earnings,
-    metadata: metadata || Prisma.JsonNull,
-    // TODO: remove these
-    commissionAmount,
-    commissionType: program.commissionType,
-    recurringCommission:
-      program.commissionDuration && program.commissionDuration > 1
-        ? true
-        : false,
-    recurringDuration: program.commissionDuration,
-    recurringInterval: program.commissionInterval,
-    isLifetimeRecurring: program.commissionDuration === INFINITY_NUMBER,
-  };
+    currency: sale.currency,
+    status: CommissionStatus.pending,
+  } as Commission;
 };

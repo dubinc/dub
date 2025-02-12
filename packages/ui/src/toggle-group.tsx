@@ -34,7 +34,7 @@ export function ToggleGroup({
       <motion.div
         layout
         className={cn(
-          "relative inline-flex items-center gap-1 rounded-xl border border-gray-200 bg-white p-1",
+          "relative inline-flex items-center gap-1 rounded-xl border border-neutral-200 bg-white p-1",
           className,
         )}
         style={style}
@@ -47,7 +47,7 @@ export function ToggleGroup({
             className={cn(
               "relative z-10 flex items-center gap-2 px-3 py-1 text-sm font-medium capitalize",
               {
-                "z-[11] transition-colors hover:text-gray-500":
+                "z-[11] transition-colors hover:text-neutral-500":
                   option.value !== selected,
               },
               optionClassName,
@@ -64,7 +64,7 @@ export function ToggleGroup({
               <motion.div
                 layoutId={layoutGroupId}
                 className={cn(
-                  "absolute left-0 top-0 -z-[1] h-full w-full rounded-lg border border-gray-200 bg-gray-50",
+                  "absolute left-0 top-0 -z-[1] h-full w-full rounded-lg border border-neutral-200 bg-neutral-50",
                   indicatorClassName,
                 )}
                 transition={{ duration: 0.25 }}

@@ -38,7 +38,7 @@ export function PartnerStats() {
         href={`/${slug}/programs/${programId}/partners`}
         count={all}
         icon={Users}
-        iconClassName="text-gray-600 bg-gray-100"
+        iconClassName="text-neutral-600 bg-neutral-100"
         error={!!error}
       />
       <ProgramStatsFilter
@@ -46,7 +46,7 @@ export function PartnerStats() {
         href={
           queryParams({
             set: {
-              sortBy: "earnings",
+              sortBy: "saleAmount",
               sortOrder: "desc",
             },
             getNewPath: true,

@@ -30,7 +30,7 @@ export function UpgradeEmail({
       <Preview>Thank you for upgrading to Dub.co {plan}!</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
+          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-neutral-200 px-10 py-5">
             <Section className="my-8">
               <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
@@ -86,7 +86,7 @@ export function UpgradeEmail({
               If you have any questions or feedback about Dub, please don't
               hesitate to reach out – I'm always happy to help!
             </Text>
-            <Text className="text-sm font-light leading-6 text-gray-400">
+            <Text className="text-sm font-light leading-6 text-neutral-400">
               Steven from Dub
             </Text>
             <Footer email={email} marketing />

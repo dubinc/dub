@@ -93,7 +93,9 @@ export function ContactForm({
         onClick={() => setScreen("main")}
       >
         <ChevronLeft className="h-5 w-5" />
-        <h3 className="text-lg font-semibold text-gray-700">Contact support</h3>
+        <h3 className="text-lg font-semibold text-neutral-700">
+          Contact support
+        </h3>
       </button>
 
       <AnimatePresence>
@@ -104,7 +106,7 @@ export function ContactForm({
             animate={{ opacity: 1, y: 0 }}
           >
             <CheckCircleFill className="h-8 w-8 text-green-500" />
-            <p className="text-gray-500">
+            <p className="text-neutral-500">
               Thanks for reaching out! <br /> We'll get back to you as soon as
               possible.
             </p>
@@ -132,7 +134,7 @@ export function ContactForm({
             exit={{ opacity: 0, y: -10 }}
           >
             <label>
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-neutral-700">
                 Describe the issue
               </span>
               <TextareaAutosize
@@ -150,7 +152,7 @@ export function ContactForm({
                 className={`${
                   false
                     ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                    : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
+                    : "border-neutral-300 text-neutral-900 placeholder-neutral-300 focus:border-neutral-500 focus:ring-neutral-500"
                 } mt-1 block w-full resize-none rounded-md focus:outline-none sm:text-sm`}
               />
             </label>
@@ -159,20 +161,20 @@ export function ContactForm({
               {uploads.map((upload) => (
                 <div
                   key={upload.attachmentId}
-                  className="flex w-full items-center justify-between rounded-md border border-gray-200"
+                  className="flex w-full items-center justify-between rounded-md border border-neutral-200"
                 >
                   <div className="flex flex-1 items-center space-x-2 p-2">
                     {upload.uploading ? (
                       <LoadingSpinner className="h-4 w-4" />
                     ) : (
-                      <Paperclip className="h-4 w-4 text-gray-500" />
+                      <Paperclip className="h-4 w-4 text-neutral-500" />
                     )}
-                    <p className="text-center text-sm text-gray-500">
+                    <p className="text-center text-sm text-neutral-500">
                       {upload.file.name}
                     </p>
                   </div>
                   <button
-                    className="h-full rounded-r-md border-l border-gray-200 p-2"
+                    className="h-full rounded-r-md border-l border-neutral-200 p-2"
                     onClick={() => {
                       setUploads((prev) =>
                         prev.filter((i) => i.file.name !== upload.file.name),
@@ -185,14 +187,14 @@ export function ContactForm({
                       }));
                     }}
                   >
-                    <Trash2 className="h-4 w-4 text-gray-500" />
+                    <Trash2 className="h-4 w-4 text-neutral-500" />
                   </button>
                 </div>
               ))}
             </div>
             <FileUpload
               accept="any"
-              className="aspect-[5/1] w-full rounded-md border border-dashed border-gray-300"
+              className="aspect-[5/1] w-full rounded-md border border-dashed border-neutral-300"
               iconClassName="w-5 h-5"
               variant="plain"
               onChange={async ({ file }) => await handleUpload(file)}

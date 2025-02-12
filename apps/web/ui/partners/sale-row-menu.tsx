@@ -1,4 +1,4 @@
-import { updateSaleStatusAction } from "@/lib/actions/partners/update-sale-status";
+import { updateCommissionStatusAction } from "@/lib/actions/partners/update-commission-status";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { SaleResponse } from "@/lib/types";
@@ -22,7 +22,7 @@ export function SaleRowMenu({ row }: { row: Row<SaleResponse> }) {
   const { programId } = useParams() as { programId: string };
   const [isOpen, setIsOpen] = useState(false);
 
-  const { executeAsync } = useAction(updateSaleStatusAction, {
+  const { executeAsync } = useAction(updateCommissionStatusAction, {
     onSuccess: async () => {
       await mutatePrefix([
         `/api/programs/${programId}/payouts`,
@@ -35,7 +35,7 @@ export function SaleRowMenu({ row }: { row: Row<SaleResponse> }) {
     toast.promise(
       executeAsync({
         workspaceId: workspaceId!,
-        saleId: row.original.id,
+        commissionId: row.original.id,
         status,
       }),
       {
@@ -120,7 +120,7 @@ function MenuItem({
     <Command.Item
       className={cn(
         "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-600",
-        "data-[selected=true]:bg-gray-100",
+        "data-[selected=true]:bg-neutral-100",
         disabled && "cursor-not-allowed opacity-50",
       )}
       onSelect={onSelect}

@@ -3,6 +3,7 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
+import { usePartnerEarnings } from "@/lib/swr/use-partner-earnings";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
@@ -29,8 +30,8 @@ import {
   useId,
   useMemo,
 } from "react";
+import { EarningsTablePartner } from "./earnings/earnings-table";
 import { PayoutsCard } from "./payouts-card";
-import { SaleTablePartner } from "./sales/sale-table";
 
 const ProgramOverviewContext = createContext<{
   start?: Date;
@@ -88,7 +89,7 @@ export default function ProgramPageClient() {
               type="text"
               readOnly
               value={getPrettyUrl(masterLink.shortLink)}
-              className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 lg:min-w-64 xl:min-w-72"
+              className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 lg:min-w-64 xl:min-w-72"
             />
           ) : (
             <div className="h-10 w-16 animate-pulse rounded-md bg-neutral-200 lg:w-72" />
@@ -151,7 +152,7 @@ export default function ProgramPageClient() {
               Recent earnings
             </h2>
             <Link
-              href={`/programs/${programSlug}/sales${getQueryString()}`}
+              href={`/programs/${programSlug}/earnings${getQueryString()}`}
               className={cn(
                 buttonVariants({ variant: "secondary" }),
                 "flex h-7 items-center rounded-lg border px-2 text-sm",
@@ -162,7 +163,7 @@ export default function ProgramPageClient() {
           </div>
         </div>
         <div className="mt-4">
-          <SaleTablePartner limit={10} />
+          <EarningsTablePartner limit={10} />
         </div>
       </ProgramOverviewContext.Provider>
     </MaxWidthWrapper>
@@ -174,14 +175,14 @@ function EarningsChart() {
 
   const { start, end, interval, color } = useContext(ProgramOverviewContext);
 
-  const { data: { earnings: total } = {} } = usePartnerAnalytics({
+  const { data: { earnings: total } = {} } = usePartnerEarnings({
     event: "composite",
     interval,
     start,
     end,
   });
 
-  const { data: timeseries, error } = usePartnerAnalytics({
+  const { data: timeseries, error } = usePartnerEarnings({
     event: "sales",
     groupBy: "timeseries",
     interval,
@@ -245,7 +246,7 @@ function EarningsChart() {
             tooltipContent={(d) => {
               return (
                 <>
-                  <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
+                  <p className="border-b border-neutral-200 px-4 py-3 text-sm text-neutral-900">
                     {formatDateTooltip(d.date, {
                       interval,
                       start,
@@ -260,9 +261,9 @@ function EarningsChart() {
                           "bg-[var(--color)]",
                         )}
                       />
-                      <p className="capitalize text-gray-600">Earnings</p>
+                      <p className="capitalize text-neutral-600">Earnings</p>
                     </div>
-                    <p className="text-right font-medium text-gray-900">
+                    <p className="text-right font-medium text-neutral-900">
                       {currencyFormatter(d.values.earnings, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,

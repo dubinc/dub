@@ -4,6 +4,7 @@ import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -17,12 +18,21 @@ import { NextResponse } from "next/server";
 
 // GET /api/links – get all links for a workspace
 export const GET = withWorkspace(
-  async ({ req, headers, workspace }) => {
+  async ({ req, headers, workspace, session }) => {
     const searchParams = getSearchParamsWithArray(req.url);
     const params = getLinksQuerySchemaExtended.parse(searchParams);
 
     if (params.domain) {
       await getDomainOrThrow({ workspace, domain: params.domain });
+    }
+
+    if (params.folderId) {
+      await verifyFolderAccess({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        folderId: params.folderId,
+        requiredPermission: "folders.read",
+      });
     }
 
     const response = await getLinksForWorkspace({

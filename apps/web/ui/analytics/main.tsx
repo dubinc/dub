@@ -16,6 +16,7 @@ import { useContext, useMemo } from "react";
 import AnalyticsAreaChart from "./analytics-area-chart";
 import { AnalyticsFunnelChart } from "./analytics-funnel-chart";
 import { AnalyticsContext } from "./analytics-provider";
+
 type Tab = {
   id: EventType;
   label: string;

@@ -18,11 +18,6 @@ export const isBlacklistedDomain = async (
       whitelistedDomains,
     } = await getAll(["domains", "terms", "whitelistedDomains"]);
 
-    if (whitelistedDomains.includes(domain)) {
-      console.log("Domain is whitelisted", domain);
-      return "whitelisted";
-    }
-
     const blacklistedTermsRegex = new RegExp(
       blacklistedTerms
         .map((term: string) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) // replace special characters with escape sequences
@@ -34,6 +29,11 @@ export const isBlacklistedDomain = async (
 
     if (isBlacklisted) {
       return true;
+    }
+
+    if (whitelistedDomains.includes(domain)) {
+      console.log("Domain is whitelisted", domain);
+      return "whitelisted";
     }
 
     return false;

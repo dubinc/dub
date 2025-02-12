@@ -48,14 +48,14 @@ export const onboardPartnerAction = authUserActionClient
       : createId({ prefix: "pn_" });
 
     const imageUrl = await storage
-      .upload(`programs/${partnerId}/image_${nanoid(7)}`, image)
+      .upload(`partners/${partnerId}/image_${nanoid(7)}`, image)
       .then(({ url }) => url);
 
     const payload = {
       name,
       email: user.email,
       country,
-      bio: description,
+      ...(description && { description }),
       image: imageUrl,
       ...(connectedAccount && { stripeConnectId: connectedAccount.id }),
       users: {

@@ -50,8 +50,6 @@ function PartnerDetailsSheetContent({
   partner,
   setIsOpen,
 }: PartnerDetailsSheetProps) {
-  const { slug } = useWorkspace();
-  const { program } = useProgram();
   const [tab, setTab] = useState<Tab>("links");
 
   const { createPayoutSheet, setIsOpen: setCreatePayoutSheetOpen } =
@@ -145,21 +143,14 @@ function PartnerDetailsSheetContent({
                 ],
                 [
                   "Revenue",
-                  !partner.salesAmount
+                  !partner.saleAmount
                     ? "-"
-                    : currencyFormatter(partner.salesAmount / 100, {
+                    : currencyFormatter(partner.saleAmount / 100, {
                         minimumFractionDigits:
-                          partner.salesAmount % 1 === 0 ? 0 : 2,
+                          partner.saleAmount % 1 === 0 ? 0 : 2,
                         maximumFractionDigits: 2,
                       }),
                 ],
-                // [
-                //   "Earnings",
-                //   currencyFormatter(earnings, {
-                //     minimumFractionDigits: earnings % 1 === 0 ? 0 : 2,
-                //     maximumFractionDigits: 2,
-                //   }),
-                // ],
               ].map(([label, value]) => (
                 <div key={label} className="flex flex-col bg-neutral-50 p-3">
                   <span className="text-xs text-neutral-500">{label}</span>
@@ -224,7 +215,7 @@ function PartnerDetailsSheetContent({
               <div>
                 <h4 className="font-semibold text-neutral-900">Description</h4>
                 <p className="mt-1.5">
-                  {partner.bio || (
+                  {partner.description || (
                     <span className="italic text-neutral-400">
                       No description provided
                     </span>
@@ -581,8 +572,7 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
         minSize: 1,
       },
       {
-        id: "amount",
-        header: "Amount",
+        header: "Revenue",
         accessorFn: (d) =>
           currencyFormatter(d.saleAmount / 100, {
             minimumFractionDigits: 2,

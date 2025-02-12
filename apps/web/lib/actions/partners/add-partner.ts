@@ -57,8 +57,9 @@ export const addPartnerAction = authActionClient
       }
 
       return await enrollPartner({
-        programId,
-        linkId,
+        program,
+        link,
+        workspace,
         partner: {
           name,
           email,

@@ -44,7 +44,7 @@ export default function LinkDisplay() {
   return (
     <Popover
       content={
-        <div className="w-full divide-y divide-gray-200 text-sm md:w-80">
+        <div className="w-full divide-y divide-neutral-200 text-sm md:w-80">
           <div className="grid grid-cols-2 gap-2 p-3">
             {[
               { id: "cards", label: "Cards", icon: GridLayoutRows },
@@ -57,16 +57,16 @@ export default function LinkDisplay() {
                   className={cn(
                     "flex h-16 flex-col items-center justify-center gap-1 rounded-md border border-transparent transition-colors",
                     selected
-                      ? "border-gray-300 bg-gray-100 text-gray-950"
-                      : "text-gray-800 hover:bg-gray-100 hover:text-gray-950",
+                      ? "border-neutral-300 bg-neutral-100 text-neutral-950"
+                      : "text-neutral-800 hover:bg-neutral-100 hover:text-neutral-950",
                   )}
                   onClick={() => setViewMode(id as LinksViewMode)}
                   aria-pressed={selected}
                 >
                   <Icon
                     className={cn(
-                      "h-5 w-5 text-gray-600",
-                      selected && "text-gray-800",
+                      "h-5 w-5 text-neutral-600",
+                      selected && "text-neutral-800",
                     )}
                   />
                   {label}
@@ -76,7 +76,7 @@ export default function LinkDisplay() {
           </div>
           <div className="flex h-16 items-center justify-between gap-2 px-4">
             <span className="flex items-center gap-2">
-              <ArrowsOppositeDirectionY className="h-4 w-4 text-gray-800" />
+              <ArrowsOppositeDirectionY className="h-4 w-4 text-neutral-800" />
               Ordering
             </span>
             <div>
@@ -86,8 +86,8 @@ export default function LinkDisplay() {
           <div className="group flex h-16 items-center justify-between gap-2 px-4">
             <div className="flex items-center gap-2">
               <div className="flex w-6 items-center justify-center">
-                <BoxArchive className="size-4 text-gray-800 group-hover:hidden" />
-                <kbd className="hidden rounded border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 group-hover:block">
+                <BoxArchive className="size-4 text-neutral-800 group-hover:hidden" />
+                <kbd className="hidden rounded border border-neutral-200 bg-neutral-100 px-2 py-0.5 text-xs font-light text-neutral-500 group-hover:block">
                   A
                 </kbd>
               </div>
@@ -109,7 +109,7 @@ export default function LinkDisplay() {
             </div>
           </div>
           <div className="p-4">
-            <span className="text-xs uppercase text-gray-500">
+            <span className="text-xs uppercase text-neutral-500">
               Display Properties
             </span>
             <div className="mt-4 flex flex-wrap gap-2">
@@ -140,8 +140,8 @@ export default function LinkDisplay() {
                       "rounded-md border px-2 py-0.5 text-sm",
                       property.mobile === false && "hidden sm:block",
                       active
-                        ? "border-gray-300 bg-gray-100 text-gray-950"
-                        : "border-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-950",
+                        ? "border-neutral-300 bg-neutral-100 text-neutral-950"
+                        : "border-transparent text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950",
                     )}
                   >
                     {property.label}
@@ -197,7 +197,7 @@ export default function LinkDisplay() {
             </div>
             <span className="grow text-left">Display</span>
             <ChevronDown
-              className={cn("h-4 w-4 text-gray-400 transition-transform", {
+              className={cn("h-4 w-4 text-neutral-400 transition-transform", {
                 "rotate-180": openPopover,
               })}
             />

@@ -162,6 +162,17 @@ export function PartnerTable() {
           d.status !== "pending" ? nFormatter(d.sales, { full: true }) : "-",
       },
       {
+        id: "saleAmount",
+        header: "Revenue",
+        accessorFn: (d) =>
+          d.status !== "pending"
+            ? currencyFormatter(d.saleAmount / 100, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })
+            : "-",
+      },
+      {
         id: "earnings",
         header: "Earnings",
         accessorFn: (d) =>
@@ -195,7 +206,14 @@ export function PartnerTable() {
     onPaginationChange: setPagination,
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
-    sortableColumns: ["createdAt", "clicks", "leads", "sales", "earnings"],
+    sortableColumns: [
+      "createdAt",
+      "clicks",
+      "leads",
+      "sales",
+      "saleAmount",
+      "earnings",
+    ],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
@@ -323,7 +341,7 @@ function MenuItem({
     <Command.Item
       className={cn(
         "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-600",
-        "data-[selected=true]:bg-gray-100",
+        "data-[selected=true]:bg-neutral-100",
       )}
       onSelect={onSelect}
     >
