@@ -5,7 +5,7 @@ import { bulkDeleteLinks } from "../lib/api/links/bulk-delete-links";
 async function main() {
   const partner = await prisma.partner.findUniqueOrThrow({
     where: {
-      id: "pn_ut9bjqXAHTsMq7WzFAW6v4TU",
+      id: "pn_d43H73P1HU58aDq7Ty30qFyW",
     },
     include: {
       programs: {
@@ -21,6 +21,15 @@ async function main() {
 
   const deleteLinkCaches = await bulkDeleteLinks(links);
   console.log("Deleted link caches", deleteLinkCaches);
+
+  const deleteCustomers = await prisma.customer.deleteMany({
+    where: {
+      linkId: {
+        in: links.map((link) => link.id),
+      },
+    },
+  });
+  console.log("Deleted customers", deleteCustomers);
 
   const deleteLinks = await prisma.link.deleteMany({
     where: {

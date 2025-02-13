@@ -123,7 +123,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "noDubLink" | "linkFolders";
+export type BetaFeatures = "noDubLink" | "linkFolders" | "rewardfulImporter";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
