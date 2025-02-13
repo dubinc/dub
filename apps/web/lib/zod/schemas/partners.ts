@@ -153,9 +153,14 @@ export const getSaleAmountQuerySchema = getSalesQuerySchema.pick({
   partnerId: true,
 });
 
-export const getPartnerSalesQuerySchema = getSalesQuerySchema.omit({
-  partnerId: true,
-});
+export const getPartnerSalesQuerySchema = getSalesQuerySchema
+  .omit({
+    partnerId: true,
+    sortBy: true,
+  })
+  .extend({
+    sortBy: z.enum(["createdAt", "amount", "earnings"]).default("createdAt"),
+  });
 
 export const PartnerEarningsSchema = SaleResponseSchema.omit({
   partner: true,

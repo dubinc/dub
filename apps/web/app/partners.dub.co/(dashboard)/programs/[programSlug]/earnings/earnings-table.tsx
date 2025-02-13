@@ -104,9 +104,9 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
           row.original.customer ? row.original.customer.email : "-",
       },
       {
-        id: "saleAmount",
+        id: "amount",
         header: "Sale Amount",
-        accessorKey: "sale",
+        accessorKey: "amount",
         cell: ({ row }) =>
           row.original.amount
             ? currencyFormatter(row.original.amount / 100, {
@@ -141,7 +141,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
     ...(!limit && {
       pagination,
       onPaginationChange: setPagination,
-      sortableColumns: ["createdAt"],
+      sortableColumns: ["createdAt", "amount", "earnings"],
       sortBy,
       sortOrder,
       onSortChange: ({ sortBy, sortOrder }) =>
