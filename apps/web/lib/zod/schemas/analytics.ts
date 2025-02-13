@@ -282,6 +282,11 @@ export const eventsFilterTB = analyticsFilterTB
       limit: z.coerce.number().default(PAGINATION_LIMIT),
       order: z.enum(["asc", "desc"]).default("desc"),
       sortBy: z.enum(["timestamp"]).default("timestamp"),
+      folderIds: z
+        .union([z.string(), z.array(z.string())])
+        .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+        .optional()
+        .describe("The folder IDs to retrieve events for."),
     }),
   );
 

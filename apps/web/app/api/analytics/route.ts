@@ -5,7 +5,9 @@ import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
+import { getFolders } from "@/lib/folder/get-folders";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
   analyticsPathParamsSchema,
   analyticsQuerySchema,
@@ -62,6 +64,7 @@ export const GET = withWorkspace(
     }
 
     const folderIdToVerify = link?.folderId || folderId;
+
     if (folderIdToVerify) {
       await verifyFolderAccess({
         workspace,
@@ -80,6 +83,24 @@ export const GET = withWorkspace(
       throwError: true,
     });
 
+    // If the request is not for a specific folder, find folders the user has access to + unsorted folder
+    let folderIds: string[] | undefined = undefined;
+
+    if (!folderIdToVerify) {
+      const { canManageFolderPermissions } = getPlanCapabilities(
+        workspace.plan,
+      );
+
+      if (canManageFolderPermissions) {
+        const folders = await getFolders({
+          workspaceId: workspace.id,
+          userId: session.user.id,
+        });
+
+        folderIds = folders.map((folder) => folder.id).concat("");
+      }
+    }
+
     // Identify the request is from deprecated clicks endpoint
     // (/api/analytics/clicks)
     // (/api/analytics/count)
@@ -96,6 +117,7 @@ export const GET = withWorkspace(
       workspaceId: workspace.id,
       isDeprecatedClicksEndpoint,
       dataAvailableFrom: workspace.createdAt,
+      folderIds,
     });
 
     return NextResponse.json(response);
