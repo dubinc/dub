@@ -14,38 +14,38 @@ const folderIconsMap: Record<
     borderColor: string;
     bgColor: string;
     icon: React.ElementType;
-    iconClassName: string;
+    defaultIconClassName: string;
   }
 > = {
   read: {
     borderColor: "border-indigo-200",
     bgColor: "bg-indigo-100",
     icon: FolderShield,
-    iconClassName: "text-[#3730A3]",
+    defaultIconClassName: "text-[#3730A3]",
   },
   write: {
     borderColor: "border-blue-200",
     bgColor: "bg-blue-100",
     icon: Folder,
-    iconClassName: "text-blue-800",
+    defaultIconClassName: "text-blue-800",
   },
   none: {
     borderColor: "border-orange-200",
     bgColor: "bg-orange-100",
     icon: FolderLock,
-    iconClassName: "text-[#9A3412]",
+    defaultIconClassName: "text-[#9A3412]",
   },
   new: {
     borderColor: "border-neutral-200",
     bgColor: "bg-neutral-100",
     icon: FolderPlus,
-    iconClassName: "text-[#1F2937]",
+    defaultIconClassName: "text-[#1F2937]",
   },
   unsorted: {
     borderColor: "border-green-200",
     bgColor: "bg-green-100",
     icon: FolderBookmark,
-    iconClassName: "text-[#166534]",
+    defaultIconClassName: "text-[#166534]",
   },
 } as const;
 
@@ -67,17 +67,19 @@ export const FolderIcon = ({
   folder,
   shape = "rounded",
   className,
+  iconClassName,
 }: {
   folder: Pick<FolderProps, "id" | "accessLevel">;
   shape?: "rounded" | "square";
   className?: string;
+  iconClassName?: string;
 }) => {
   const iconType = determineFolderIcon(folder);
   const {
     borderColor,
     bgColor,
     icon: Icon,
-    iconClassName,
+    defaultIconClassName,
   } = folderIconsMap[iconType];
 
   return (
@@ -96,7 +98,7 @@ export const FolderIcon = ({
           bgColor,
         )}
       >
-        <Icon className={cn("size-4", iconClassName)} />
+        <Icon className={cn("size-4", defaultIconClassName, iconClassName)} />
       </div>
     </div>
   );
