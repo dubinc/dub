@@ -327,7 +327,7 @@ export default function Toggle({
                         <FolderIcon
                           folder={folder}
                           shape="square"
-                          className="size-3"
+                          iconClassName="size-3"
                         />
                       ) : null;
                     },
@@ -338,7 +338,7 @@ export default function Toggle({
                           <FolderIcon
                             folder={folder}
                             shape="square"
-                            className="size-3"
+                            iconClassName="size-3"
                           />
                         ),
                         label: folder.name,

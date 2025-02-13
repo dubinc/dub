@@ -8,11 +8,12 @@ export function FolderBookmark(props: SVGProps<SVGSVGElement>) {
       height="16"
       fill="none"
       viewBox="0 0 16 16"
-      {...props}
+      className={props.className}
     >
       <g clipPath="url(#clip0_430_4502)">
         <g
-          stroke="#166534"
+          fill="none"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"

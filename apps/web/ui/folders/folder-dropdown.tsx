@@ -171,9 +171,10 @@ export const FolderDropdown = ({
             "transition-colors hover:bg-neutral-100 active:bg-neutral-200 data-[state=open]:bg-neutral-100",
           )}
         >
-          {!hideFolderIcon && selectedFolder && (
-            <FolderIcon folder={selectedFolder} shape="square" />
-          )}
+          {!(selectedFolder?.id === "unsorted" && hideFolderIcon) &&
+            selectedFolder && (
+              <FolderIcon folder={selectedFolder} shape="square" />
+            )}
 
           <h1
             className={cn(

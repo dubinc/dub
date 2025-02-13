@@ -38,8 +38,7 @@ export default function IntegrationCard(
       <h3 className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-neutral-800">
         {integration.name}
         {dubCrafted && (
-          <Tooltip content="Dub Crafted">
-            {/* TODO: Add "Learn more" link ^ */}
+          <Tooltip content="This is an official integration built and maintained by Dub">
             <div>
               <DubCraftedShield className="size-4 -translate-y-px" />
             </div>
