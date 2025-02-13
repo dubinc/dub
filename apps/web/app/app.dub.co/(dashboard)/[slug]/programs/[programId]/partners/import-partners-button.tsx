@@ -6,21 +6,18 @@ import { useImportRewardfulModal } from "@/ui/modals/import-rewardful-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, IconMenu, Popover } from "@dub/ui";
 import { useRouter } from "next/navigation";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useState } from "react";
 
 export function ImportPartnersButton() {
   const router = useRouter();
-  const { slug } = useWorkspace();
+  const { slug, flags } = useWorkspace();
   const { program } = useProgram();
   const [openPopover, setOpenPopover] = useState(false);
   const { ImportRewardfulModal } = useImportRewardfulModal();
-  const [_state, setState] = useState<"default" | "import">("default");
 
-  useEffect(() => {
-    if (!openPopover) {
-      setState("default");
-    }
-  }, [openPopover]);
+  if (!flags?.rewardfulImporter) {
+    return null;
+  }
 
   return (
     <>
