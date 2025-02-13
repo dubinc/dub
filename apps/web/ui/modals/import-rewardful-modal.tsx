@@ -71,10 +71,11 @@ function ImportRewardfulModal({
     isLoading: isLoadingCampaigns,
     mutate,
   } = useSWRImmutable<RewardfulCampaign[]>(
-    workspaceId &&
-      showImportRewardfulModal &&
+    showImportRewardfulModal &&
+      program?.id &&
+      workspaceId &&
       step === "campaigns" &&
-      `/api/mock/rewardful/campaigns?workspaceId=${workspaceId}`,
+      `/api/programs/${program.id}/rewardful/campaigns?workspaceId=${workspaceId}`,
     fetcher,
   );
 
@@ -200,7 +201,7 @@ function TokenStep({
           htmlFor="apiToken"
           className="block text-sm font-medium text-neutral-700"
         >
-          Rewardful API key
+          Rewardful API Secret
         </label>
         <input
           type="password"
@@ -212,7 +213,7 @@ function TokenStep({
           required
         />
         <p className="mt-1.5 text-xs text-neutral-500">
-          You can find your Rewardful API Key on your{" "}
+          You can find your Rewardful API Secret on your{" "}
           <a
             href="https://app.getrewardful.com/company/edit"
             target="_blank"
