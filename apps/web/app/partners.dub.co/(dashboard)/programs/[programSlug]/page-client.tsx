@@ -258,9 +258,7 @@ function StatCard({
   title: string;
   event: "clicks" | "leads" | "sales";
 }) {
-  // const { programSlug } = useParams();
-  // const { getQueryString } = useRouterStuff();
-  const { start, end, interval, color } = useContext(ProgramOverviewContext);
+  const { start, end, interval } = useContext(ProgramOverviewContext);
 
   const { data: total } = usePartnerAnalytics({
     event: "composite",
@@ -278,10 +276,7 @@ function StatCard({
   });
 
   return (
-    <div
-      // href={`/programs/${programSlug}/analytics?event=${event}${getQueryString()?.replace("?", "&")}`}
-      className="block rounded-lg border border-neutral-300 bg-white p-5 pb-3"
-    >
+    <div className="block rounded-lg border border-neutral-300 bg-white p-5 pb-3">
       <span className="mb-1 block text-base font-semibold leading-none text-neutral-800">
         {title}
       </span>
