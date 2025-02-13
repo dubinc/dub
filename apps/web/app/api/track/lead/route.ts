@@ -68,23 +68,34 @@ export const POST = withWorkspaceEdge(
 
     waitUntil(
       (async () => {
-        const clickData = clickEvent.data[0];
-
-        const customer = await prismaEdge.customer.create({
-          data: {
-            id: createId({ prefix: "cus_" }),
-            name: finalCustomerName,
-            email: customerEmail,
-            avatar: customerAvatar,
-            externalId: customerExternalId,
-            projectId: workspace.id,
-            projectConnectId: workspace.stripeConnectId,
-            clickId: clickData.click_id,
-            linkId: clickData.link_id,
-            country: clickData.country,
-            clickedAt: new Date(clickData.timestamp + "Z"),
+        let customer = await prismaEdge.customer.findUnique({
+          where: {
+            projectId_externalId: {
+              projectId: workspace.id,
+              externalId: customerExternalId,
+            },
           },
         });
+
+        const clickData = clickEvent.data[0];
+
+        if (!customer) {
+          customer = await prismaEdge.customer.create({
+            data: {
+              id: createId({ prefix: "cus_" }),
+              name: finalCustomerName,
+              email: customerEmail,
+              avatar: customerAvatar,
+              externalId: customerExternalId,
+              projectId: workspace.id,
+              projectConnectId: workspace.stripeConnectId,
+              clickId: clickData.click_id,
+              linkId: clickData.link_id,
+              country: clickData.country,
+              clickedAt: new Date(clickData.timestamp + "Z"),
+            },
+          });
+        }
 
         const eventId = nanoid(16);
 
