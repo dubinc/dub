@@ -10,6 +10,12 @@ import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
 import { parseDateSchema } from "./utils";
 
+const HOLDING_PERIOD_DAYS = z
+  .number()
+  .refine((val) => [0, 30, 60, 90].includes(val), {
+    message: "Holding period must be 0, 30, 60, or 90 days",
+  });
+
 export const ProgramSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -39,6 +45,7 @@ export const createProgramSchema = z.object({
   commissionAmount: z.number(),
   commissionDuration: z.number().nullable(),
   commissionInterval: z.nativeEnum(CommissionInterval).nullable(),
+  holdingPeriodDays: HOLDING_PERIOD_DAYS,
   cookieLength: z.number().min(1).max(180),
   domain: z.string().nullable(),
   url: z.string().nullable(),
