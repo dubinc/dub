@@ -10,8 +10,8 @@ export default function LinkNotFound() {
         Link Not Found
       </h1>
       <p className="z-10 max-w-sm text-center text-sm text-neutral-600">
-        Bummer! The link you are looking for does not exist. You either typed in
-        the wrong URL or don't have access to this link.
+        Bummer! The link you are looking for does not exist. Adjust your filters
+        to yield more results.
       </p>
       <img
         src="https://assets.dub.co/misc/not-found.svg"

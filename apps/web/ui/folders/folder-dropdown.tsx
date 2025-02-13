@@ -13,7 +13,7 @@ import { useAddFolderModal } from "../modals/add-folder-modal";
 import { FolderIcon } from "./folder-icon";
 
 interface FolderDropdownProps {
-  onFolderSelect: (folder: FolderSummary) => void;
+  onFolderSelect?: (folder: FolderSummary) => void;
   hideViewAll?: boolean;
   hideFolderIcon?: boolean;
   textClassName?: string;
@@ -38,7 +38,6 @@ export const FolderDropdown = ({
   const { AddFolderModal, setShowAddFolderModal } = useAddFolderModal({
     onSuccess: (folder) => {
       setSelectedFolder(folder);
-      onFolderSelect?.(folder);
     },
   });
 
@@ -46,7 +45,6 @@ export const FolderDropdown = ({
     if (folders) {
       const folder = folders.find((f) => f.id === folderId) || unsortedLinks;
       setSelectedFolder(folder);
-      onFolderSelect?.(folder);
     }
   }, [folderId, folders]);
 
@@ -55,6 +53,8 @@ export const FolderDropdown = ({
   }
 
   const { canAddFolder } = getPlanCapabilities(plan);
+
+  const As = onFolderSelect ? "button" : Link;
 
   return (
     <>
@@ -77,9 +77,13 @@ export const FolderDropdown = ({
 
             {[unsortedLinks, ...(folders || [])].map((folder) => {
               return (
-                <Link
+                <As
                   key={folder.id}
-                  href={`/${slug}?folderId=${folder.id}`}
+                  href={
+                    onFolderSelect
+                      ? "#"
+                      : `/${slug}${folder.id === "unsorted" ? "" : `?folderId=${folder.id}`}`
+                  }
                   className={cn(
                     "relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75 hover:bg-neutral-100 active:bg-neutral-200",
                     {
@@ -88,6 +92,7 @@ export const FolderDropdown = ({
                   )}
                   onClick={() => {
                     setOpenPopover(false);
+                    setSelectedFolder(folder);
                     onFolderSelect?.(folder);
                   }}
                 >
@@ -115,7 +120,7 @@ export const FolderDropdown = ({
                       <Tick className="size-5" aria-hidden="true" />
                     </span>
                   )}
-                </Link>
+                </As>
               );
             })}
 
@@ -166,9 +171,10 @@ export const FolderDropdown = ({
             "transition-colors hover:bg-neutral-100 active:bg-neutral-200 data-[state=open]:bg-neutral-100",
           )}
         >
-          {!hideFolderIcon && selectedFolder && (
-            <FolderIcon folder={selectedFolder} shape="square" />
-          )}
+          {!(selectedFolder?.id === "unsorted" && hideFolderIcon) &&
+            selectedFolder && (
+              <FolderIcon folder={selectedFolder} shape="square" />
+            )}
 
           <h1
             className={cn(

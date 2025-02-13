@@ -15,15 +15,25 @@ export function useRouterStuff() {
   const getQueryString = (
     kv?: Record<string, any>,
     opts?: {
-      ignore?: string[];
+      include?: string[];
+      exclude?: string[];
     },
   ) => {
-    const newParams = new URLSearchParams(searchParams);
+    let newParams = new URLSearchParams(searchParams);
     if (kv) {
       Object.entries(kv).forEach(([k, v]) => newParams.set(k, v));
     }
-    if (opts?.ignore) {
-      opts.ignore.forEach((k) => newParams.delete(k));
+    if (opts?.include && Array.isArray(opts.include)) {
+      const filteredParams = new URLSearchParams();
+      searchParams.forEach((value, key) => {
+        if (opts.include?.includes(key)) {
+          filteredParams.set(key, value);
+        }
+      });
+      newParams = filteredParams;
+    }
+    if (opts?.exclude && Array.isArray(opts.exclude)) {
+      opts.exclude.forEach((k) => newParams.delete(k));
     }
     const queryString = newParams.toString();
     return queryString.length > 0 ? `?${queryString}` : "";
