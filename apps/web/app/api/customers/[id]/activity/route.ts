@@ -1,5 +1,6 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
+import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { CustomerActivity, SaleEvent } from "@/lib/types";
@@ -124,7 +125,7 @@ export const GET = withWorkspace(async ({ workspace, params, session }) => {
       ltv,
       timeToLead,
       timeToSale,
-      customer,
+      customer: transformCustomer(customer),
       activity,
       link,
     }),
