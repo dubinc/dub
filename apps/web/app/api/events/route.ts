@@ -89,6 +89,7 @@ export const GET = withWorkspace(
       ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
       folderIds,
+      folderId: folderId || "",
     });
 
     return NextResponse.json(response);

@@ -72,6 +72,7 @@ export const GET = withWorkspace(
           ...(link && { linkId: link.id }),
           event: "clicks",
           groupBy: endpoint,
+          folderId: folderId || "",
         });
 
         if (!response || response.length === 0) return;
