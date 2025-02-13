@@ -1,6 +1,7 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { CustomerActivity, SaleEvent } from "@/lib/types";
 import { customerActivityResponseSchema } from "@/lib/zod/schemas/customers";
 import { prisma } from "@dub/prisma";
@@ -8,7 +9,7 @@ import { currencyFormatter, getPrettyUrl } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/customers/[id]/activity - get a customer's activity
-export const GET = withWorkspace(async ({ workspace, params }) => {
+export const GET = withWorkspace(async ({ workspace, params, session }) => {
   const { id: customerId } = params;
 
   const customer = await getCustomerOrThrow({
@@ -40,7 +41,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
       limit: 50,
     }),
 
-    prisma.link.findUnique({
+    prisma.link.findUniqueOrThrow({
       where: {
         id: customer.linkId!,
       },
@@ -49,9 +50,19 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
         domain: true,
         key: true,
         shortLink: true,
+        folderId: true,
       },
     }),
   ]);
+
+  if (link.folderId) {
+    await verifyFolderAccess({
+      workspace,
+      userId: session.user.id,
+      folderId: link.folderId,
+      requiredPermission: "folders.read",
+    });
+  }
 
   const activity: CustomerActivity[] = events.map((event: SaleEvent) => {
     return {
