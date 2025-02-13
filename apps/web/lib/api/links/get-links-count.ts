@@ -49,10 +49,7 @@ export async function getLinksCount({
         userId,
       }),
     // when filtering by folder, only filter by folder if the filter group is not "Folders"
-    ...(folderId &&
-      groupBy !== "folderId" && {
-        folderId,
-      }),
+    folderId: folderId && groupBy !== "folderId" ? folderId : null,
   };
 
   if (groupBy === "tagId") {
