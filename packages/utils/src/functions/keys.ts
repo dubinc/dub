@@ -4,11 +4,7 @@ export const validKeyRegex = new RegExp(
 );
 
 export const isUnsupportedKey = (key: string) => {
-  // special case for root domain links
-  if (key === "_root") {
-    return false;
-  }
-  const excludedPrefix = [".well-known", "_"];
+  const excludedPrefix = [".well-known"];
   const excludedSuffix = [".php", ".php7"];
   return (
     excludedPrefix.some((prefix) => key.startsWith(prefix)) ||
