@@ -1,3 +1,4 @@
+import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
@@ -6,14 +7,26 @@ import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
-import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
+import {
+  analyticsPathParamsSchema,
+  analyticsQuerySchema,
+} from "@/lib/zod/schemas/analytics";
 import { Link } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/analytics – get analytics
 export const GET = withWorkspace(
-  async ({ searchParams, workspace, session }) => {
+  async ({ params, searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
+
+    let { eventType: oldEvent, endpoint: oldType } =
+      analyticsPathParamsSchema.parse(params);
+
+    // for backwards compatibility (we used to support /analytics/[endpoint] as well)
+    if (!oldType && oldEvent && VALID_ANALYTICS_ENDPOINTS.includes(oldEvent)) {
+      oldType = oldEvent;
+      oldEvent = undefined;
+    }
 
     const parsedParams = analyticsQuerySchema.parse(searchParams);
 
@@ -31,6 +44,9 @@ export const GET = withWorkspace(
     } = parsedParams;
 
     let link: Link | null = null;
+
+    event = oldEvent || event;
+    groupBy = oldType || groupBy;
 
     if (domain) {
       await getDomainOrThrow({ workspace, domain });
@@ -72,12 +88,21 @@ export const GET = withWorkspace(
       folderIdToVerify,
     });
 
+    // Identify the request is from deprecated clicks endpoint
+    // (/api/analytics/clicks)
+    // (/api/analytics/count)
+    // (/api/analytics/clicks/clicks)
+    // (/api/analytics/clicks/count)
+    const isDeprecatedClicksEndpoint =
+      oldEvent === "clicks" || oldType === "count";
+
     const response = await getAnalytics({
       ...parsedParams,
       event,
       groupBy,
       ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
+      isDeprecatedClicksEndpoint,
       dataAvailableFrom: workspace.createdAt,
       folderIds,
     });

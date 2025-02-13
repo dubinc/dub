@@ -33,6 +33,7 @@ export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
   workspaceId?: string;
   dataAvailableFrom?: Date;
   isDemo?: boolean;
+  isDeprecatedClicksEndpoint?: boolean;
   folderIds?: string[];
 };
 

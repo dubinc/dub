@@ -28,6 +28,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     country,
     timezone = "UTC",
     isDemo,
+    isDeprecatedClicksEndpoint = false,
     dataAvailableFrom,
   } = params;
 
@@ -106,7 +107,13 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   });
 
   if (groupBy === "count") {
-    return response.data[0];
+    // Return the count value for deprecated endpoints
+    if (isDeprecatedClicksEndpoint) {
+      return response.data[0][event];
+      // Return the object for count endpoints
+    } else {
+      return response.data[0];
+    }
   } else if (groupBy === "top_links") {
     const topLinksData = response.data as {
       link: string;
