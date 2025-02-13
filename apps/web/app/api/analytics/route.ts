@@ -1,5 +1,6 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
+import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
@@ -62,6 +63,7 @@ export const GET = withWorkspace(
     }
 
     const folderIdToVerify = link?.folderId || folderId;
+
     if (folderIdToVerify) {
       await verifyFolderAccess({
         workspace,
@@ -80,6 +82,12 @@ export const GET = withWorkspace(
       throwError: true,
     });
 
+    const folderIds = await getFolderIdsToFilter({
+      workspace,
+      userId: session.user.id,
+      folderIdToVerify,
+    });
+
     // Identify the request is from deprecated clicks endpoint
     // (/api/analytics/clicks)
     // (/api/analytics/count)
@@ -96,6 +104,7 @@ export const GET = withWorkspace(
       workspaceId: workspace.id,
       isDeprecatedClicksEndpoint,
       dataAvailableFrom: workspace.createdAt,
+      folderIds,
     });
 
     return NextResponse.json(response);

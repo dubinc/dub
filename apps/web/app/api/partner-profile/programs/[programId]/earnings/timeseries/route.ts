@@ -30,6 +30,13 @@ interface Earnings {
   earnings: number;
 }
 
+const eventMap = {
+  clicks: "click",
+  leads: "lead",
+  sales: "sale",
+  composite: "click, lead, sale",
+};
+
 // GET /api/partner-profile/programs/[programId]/earnings/timeseries - get timeseries chart for a partner's earnings
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
@@ -48,13 +55,6 @@ export const GET = withPartnerProfile(
     });
 
     if (groupBy === "count") {
-      const eventMap = {
-        clicks: "click",
-        leads: "lead",
-        sales: "sale",
-        composite: "click, lead, sale",
-      };
-
       const earnings = await prisma.$queryRaw<EarningsResult>`
         SELECT
           COUNT(CASE WHEN type = 'click' THEN 1 END) AS clicks,
