@@ -1,3 +1,4 @@
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { FolderPermission, FolderWithPermissions } from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
@@ -28,11 +29,13 @@ export function useCheckFolderPermission(
   folderId: string | null,
   action: FolderPermission,
 ) {
-  const { folders, isLoading } = useFolderPermissions();
+  const { plan } = useWorkspace();
+  const { folders } = useFolderPermissions();
+  const { canManageFolderPermissions } = getPlanCapabilities(plan);
 
-  // if (isLoading) {
-  //   return false;
-  // }
+  if (!canManageFolderPermissions) {
+    return true;
+  }
 
   if (!folderId) {
     return true;
