@@ -4,6 +4,7 @@ import { sendViaNodeMailer } from "./send-via-nodemailer";
 
 export const sendEmail = async ({
   email,
+  replyTo,
   subject,
   from,
   bcc,
@@ -19,6 +20,7 @@ export const sendEmail = async ({
   if (resend) {
     return await sendEmailViaResend({
       email,
+      replyTo,
       subject,
       from,
       bcc,
