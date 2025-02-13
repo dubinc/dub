@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
       id: `32a19d65-2b68-434d-a401-e72ca7f24d8${i}`,
       url: `http://www.example.com/?via=ref${i}`,
       leads: 3 + i,
-      token: `ref${i}`,
+      token: `ref${i + 1}`,
       visitors: 5 + i,
       conversions: 2 + i,
     },
@@ -93,6 +93,7 @@ export async function GET(request: NextRequest) {
 
   const startIndex = (page - 1) * limit;
   const endIndex = startIndex + limit;
+  const slicedReferrals = referrals.slice(startIndex, endIndex);
 
-  return NextResponse.json(referrals.slice(startIndex, endIndex));
+  return NextResponse.json(slicedReferrals.length > 0 ? slicedReferrals : []);
 }

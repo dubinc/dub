@@ -1,8 +1,9 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { importAffiliates } from "@/lib/rewardful/import-affiliates";
+import { importCampaign } from "@/lib/rewardful/import-campaign";
 import { importReferrals } from "@/lib/rewardful/import-referrals";
-import { ImportSteps } from "@/lib/rewardful/importer";
+import { importSteps } from "@/lib/rewardful/importer";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 const schema = z.object({
   programId: z.string(),
-  action: ImportSteps.default("import-affiliates"),
+  action: importSteps,
   page: z.number().optional().default(1),
 });
 
@@ -21,16 +22,24 @@ export async function POST(req: Request) {
 
     const { programId, action, page } = schema.parse(JSON.parse(rawBody));
 
-    if (action === "import-affiliates") {
-      await importAffiliates({
-        programId,
-        page,
-      });
-    } else if (action === "import-referrals") {
-      await importReferrals({
-        programId,
-        page,
-      });
+    switch (action) {
+      case "import-campaign":
+        await importCampaign({
+          programId,
+        });
+        break;
+      case "import-affiliates":
+        await importAffiliates({
+          programId,
+          page,
+        });
+        break;
+      case "import-referrals":
+        await importReferrals({
+          programId,
+          page,
+        });
+        break;
     }
 
     return NextResponse.json("OK");

@@ -7,24 +7,18 @@ import { RewardfulConfig } from "./types";
 export const MAX_BATCHES = 5;
 export const CACHE_EXPIRY = 60 * 60 * 24;
 export const CACHE_KEY_PREFIX = "rewardful:import";
-export const ImportSteps = z.enum(["import-affiliates", "import-referrals"]);
+
+export const importSteps = z.enum([
+  "import-campaign",
+  "import-affiliates",
+  "import-referrals",
+]);
 
 class RewardfulImporter {
-  async setCredentials({
-    programId,
-    userId,
-    token,
-  }: RewardfulConfig & { programId: string }) {
-    await redis.set(
-      `${CACHE_KEY_PREFIX}:${programId}`,
-      {
-        token,
-        userId,
-      },
-      {
-        ex: CACHE_EXPIRY,
-      },
-    );
+  async setCredentials(programId: string, payload: RewardfulConfig) {
+    await redis.set(`${CACHE_KEY_PREFIX}:${programId}`, payload, {
+      ex: CACHE_EXPIRY,
+    });
   }
 
   async getCredentials(programId: string): Promise<RewardfulConfig> {
@@ -40,12 +34,12 @@ class RewardfulImporter {
   }
 
   async deleteCredentials(programId: string) {
-    await redis.del(`${CACHE_KEY_PREFIX}:${programId}`);
+    return await redis.del(`${CACHE_KEY_PREFIX}:${programId}`);
   }
 
   async queue(body: {
     programId: string;
-    action?: z.infer<typeof ImportSteps>;
+    action?: z.infer<typeof importSteps>;
     page?: number;
   }) {
     return await qstash.publishJSON({

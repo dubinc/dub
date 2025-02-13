@@ -1,9 +1,12 @@
+import { setRewardfulTokenAction } from "@/lib/actions/partners/set-rewardful-token";
+import { startRewardfulImportAction } from "@/lib/actions/partners/start-rewardful-import";
 import { RewardfulCampaign } from "@/lib/rewardful/types";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, LoadingSpinner, Logo, Modal, useRouterStuff } from "@dub/ui";
 import { capitalize, fetcher } from "@dub/utils";
 import { ArrowRight, ServerOff } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   Dispatch,
@@ -29,13 +32,39 @@ function ImportRewardfulModal({
   const { queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
   const [apiToken, setApiToken] = useState("");
-  const [importing, setImporting] = useState(false);
   const { slug } = useParams() as { slug?: string };
   const [step, setStep] = useState<"token" | "campaigns">("token");
-  const [isSubmittingToken, setIsSubmittingToken] = useState(false);
 
   const [selectedCampaign, setSelectedCampaign] =
     useState<RewardfulCampaign | null>(null);
+
+  const {
+    executeAsync: setRewardfulToken,
+    isExecuting: isSettingRewardfulToken,
+  } = useAction(setRewardfulTokenAction, {
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+    onSuccess: () => {
+      setStep("campaigns");
+      mutate();
+    },
+  });
+
+  const {
+    executeAsync: startRewardfulImport,
+    isExecuting: isStartingRewardfulImport,
+  } = useAction(startRewardfulImportAction, {
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+    onSuccess: () => {
+      toast.success(
+        "Successfully added campaigns to import queue! We will send you an email when your campaigns have been fully imported.",
+      );
+      router.push(`/${slug}/programs/${program?.id}/partners`);
+    },
+  });
 
   const {
     data: campaigns,
@@ -45,7 +74,7 @@ function ImportRewardfulModal({
     workspaceId &&
       showImportRewardfulModal &&
       step === "campaigns" &&
-      `/api/rewardful/campaigns?workspaceId=${workspaceId}`,
+      `/api/mock/rewardful/campaigns?workspaceId=${workspaceId}`,
     fetcher,
   );
 
@@ -60,76 +89,36 @@ function ImportRewardfulModal({
   // submit the api token to get the campaigns
   const handleTokenSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmittingToken(true);
 
-    try {
-      const response = await fetch(
-        `/api/programs/${program?.id}/rewardful/token?workspaceId=${workspaceId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            token: apiToken,
-          }),
-        },
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error.message);
-      }
-
-      setStep("campaigns");
-      await mutate();
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setIsSubmittingToken(false);
+    if (!workspaceId || !program?.id) {
+      return;
     }
+
+    await setRewardfulToken({
+      workspaceId,
+      programId: program.id,
+      token: apiToken,
+    });
   };
 
   // submit the campaigns to import
   const handleCampaignsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setImporting(true);
 
-    if (!selectedCampaign) {
-      toast.error("Please select a campaign to import.");
-      setImporting(false);
+    if (!workspaceId || !program?.id) {
       return;
     }
 
-    toast.promise(
-      fetch(
-        `/api/programs/${program?.id}/rewardful/import?workspaceId=${workspaceId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            campaignId: selectedCampaign.id,
-          }),
-        },
-      ).then(async (res) => {
-        if (res.ok) {
-          await mutate();
-          router.push(`/${slug}/programs/${program?.id}/partners`);
-        } else {
-          setImporting(false);
-          throw new Error();
-        }
-      }),
-      {
-        loading: "Adding campaigns to import queue...",
-        success:
-          "Successfully added campaigns to import queue! We will send you an email when your campaigns have been fully imported.",
-        error: "Error adding campaigns to import queue",
-      },
-    );
+    if (!selectedCampaign) {
+      toast.error("Please select a campaign to import.");
+      return;
+    }
+
+    await startRewardfulImport({
+      workspaceId,
+      programId: program.id,
+      campaignId: selectedCampaign?.id,
+    });
   };
 
   return (
@@ -164,7 +153,7 @@ function ImportRewardfulModal({
           <TokenStep
             apiToken={apiToken}
             setApiToken={setApiToken}
-            isSubmittingToken={isSubmittingToken}
+            isSubmittingToken={isSettingRewardfulToken}
             onSubmit={handleTokenSubmit}
           />
         ) : isLoadingCampaigns || !workspaceId ? (
@@ -177,7 +166,7 @@ function ImportRewardfulModal({
             campaigns={campaigns}
             selectedCampaign={selectedCampaign}
             setSelectedCampaign={setSelectedCampaign}
-            importing={importing}
+            importing={isStartingRewardfulImport}
             onSubmit={handleCampaignsSubmit}
           />
         ) : (

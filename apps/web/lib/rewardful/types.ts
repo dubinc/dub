@@ -7,10 +7,11 @@ export interface RewardfulConfig {
 export interface RewardfulCampaign {
   id: string;
   name: string;
+  url: string;
   affiliates: number;
   commission_amount_cents: number;
   max_commission_period_months: number;
-  reward_type: string;
+  reward_type: "amount" | "percent";
   commission_percent: number;
   // stripe_coupon_id: string;
   created_at: string;

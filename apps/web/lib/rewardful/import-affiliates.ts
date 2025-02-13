@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { Program, Project } from "@prisma/client";
+import { Program, Project } from "@dub/prisma/client";
 import { createLink } from "../api/links/create-link";
 import { processLink } from "../api/links/process-link";
 import { createId } from "../api/utils";
@@ -86,18 +86,34 @@ async function createPartnerAndLinks({
   affiliate: RewardfulAffiliate;
   userId: string;
 }) {
-  const partner = await prisma.partner.create({
-    data: {
+  const partner = await prisma.partner.upsert({
+    where: {
+      email: affiliate.email,
+    },
+    create: {
       id: createId({ prefix: "pn_" }),
       name: `${affiliate.first_name} ${affiliate.last_name}`,
       email: affiliate.email,
-      bio: "Rewardful affiliate",
-      programs: {
-        create: {
-          programId: program.id,
-          status: "approved",
-        },
+    },
+    update: {
+      //
+    },
+  });
+
+  await prisma.programEnrollment.upsert({
+    where: {
+      partnerId_programId: {
+        partnerId: partner.id,
+        programId: program.id,
       },
+    },
+    create: {
+      programId: program.id,
+      partnerId: partner.id,
+      status: "approved",
+    },
+    update: {
+      status: "approved",
     },
   });
 

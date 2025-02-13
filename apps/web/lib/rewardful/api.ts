@@ -6,6 +6,8 @@ import {
   RewardfulReferral,
 } from "./types";
 
+const PAGE_LIMIT = 100;
+
 class RewardfulApiError extends DubApiError {
   constructor(message: string) {
     super({
@@ -20,6 +22,7 @@ export class RewardfulApi {
     process.env.NODE_ENV === "production"
       ? "https://api.getrewardful.com"
       : `${APP_DOMAIN}/api/mock/rewardful`;
+
   private readonly token: string;
 
   constructor({ token }: { token: string }) {
@@ -44,39 +47,35 @@ export class RewardfulApi {
     return data as T;
   }
 
-  // List all campaigns
-  async listCampaigns() {
-    return this.fetch<RewardfulCampaign[]>(`${this.baseUrl}/campaigns`);
-  }
-
-  // Retrieve campaign
   async retrieveCampaign(campaignId: string) {
     return this.fetch<RewardfulCampaign>(
       `${this.baseUrl}/campaigns/${campaignId}`,
     );
   }
 
-  // List all affiliates
+  async listCampaigns() {
+    return this.fetch<RewardfulCampaign[]>(`${this.baseUrl}/campaigns`);
+  }
+
   async listAffiliates({
-    page = 1,
     campaignId,
+    page = 1,
   }: {
-    page?: number;
     campaignId: string;
+    page?: number;
   }) {
     return this.fetch<RewardfulAffiliate[]>(
-      `${this.baseUrl}/affiliates?expand[]=links&page=${page}&limit=100&campaign_id=${campaignId}`,
+      `${this.baseUrl}/affiliates?expand[]=links&page=${page}&limit=${PAGE_LIMIT}&campaign_id=${campaignId}`,
     );
   }
 
-  // List all referrals
   async listReferrals({ page = 1 }: { page?: number }) {
     const searchParams = new URLSearchParams();
     searchParams.append("expand[]", "affiliate");
     searchParams.append("conversion_state[]", "lead");
     searchParams.append("conversion_state[]", "conversion");
     searchParams.append("page", page.toString());
-    searchParams.append("limit", "1");
+    searchParams.append("limit", PAGE_LIMIT.toString());
 
     return this.fetch<RewardfulReferral[]>(
       `${this.baseUrl}/referrals?${searchParams.toString()}`,

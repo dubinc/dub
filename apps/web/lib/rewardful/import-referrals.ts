@@ -140,6 +140,19 @@ async function createReferral({
     qr: 0,
   });
 
+  const customerFound = await prisma.customer.findUnique({
+    where: {
+      stripeCustomerId: referral.stripe_customer_id,
+    },
+  });
+
+  if (customerFound) {
+    console.log(
+      `A customer already exists with Stripe customer ID ${referral.stripe_customer_id}`,
+    );
+    return;
+  }
+
   const customerId = createId({ prefix: "cus_" });
 
   await Promise.all([
