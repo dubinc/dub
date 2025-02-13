@@ -19,8 +19,6 @@ export function PayoutStatsAndSettings() {
     fetcher,
   );
 
-  console.log({ partner });
-
   return (
     <div className="grid grid-cols-1 divide-neutral-200 rounded-lg border border-neutral-200 bg-neutral-50 max-sm:divide-y sm:grid-cols-2 sm:divide-x">
       <div className="flex flex-col gap-1.5 p-4">

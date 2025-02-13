@@ -34,7 +34,7 @@ export function PayoutTable() {
     isLoading,
   } = useSWR<PartnerPayoutResponse[]>(
     partner
-      ? `/api/partner-profile/payouts?${getQueryString(undefined, {
+      ? `/api/partner-profile/payouts${getQueryString(undefined, {
           exclude: ["payoutId"],
         })}`
       : undefined,

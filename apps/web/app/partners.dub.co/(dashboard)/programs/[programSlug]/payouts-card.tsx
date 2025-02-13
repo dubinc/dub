@@ -49,7 +49,7 @@ export function PayoutsCard({ programId }: { programId?: string }) {
           </span>
           {Boolean(payouts?.length) && (
             <Link
-              href={`/settings/payouts`}
+              href={`/settings/payouts?programId=${programId}`}
               className="text-sm font-medium leading-none text-neutral-500 hover:text-neutral-600"
             >
               View all
