@@ -39,7 +39,7 @@ export async function createNewCustomer(event: Stripe.Event) {
     return `Link with ID ${linkId} not found or does not have a project, skipping...`;
   }
 
-  // else create a new customer
+  // Create a new customer
   const customer = await prisma.customer.create({
     data: {
       id: createId({ prefix: "cus_" }),
@@ -56,10 +56,12 @@ export async function createNewCustomer(event: Stripe.Event) {
     },
   });
 
+  const eventName = "New customer";
+
   const leadData = {
     ...clickData,
     event_id: nanoid(16),
-    event_name: "New customer",
+    event_name: eventName,
     customer_id: customer.id,
   };
 
@@ -93,19 +95,32 @@ export async function createNewCustomer(event: Stripe.Event) {
     }),
   ]);
 
+  if (link.programId && link.partnerId) {
+    // TODO: check if there is a Lead Reward Rule for this partner and if yes, create a lead commission
+    // await prisma.commission.create({
+    //   data: {
+    //     id: createId({ prefix: "cm_" }),
+    //     programId: link.programId,
+    //     linkId: link.id,
+    //     partnerId: link.partnerId,
+    //     eventId: leadData.event_id,
+    //     customerId: customer.id,
+    //     type: "lead",
+    //     amount: 0,
+    //     quantity: 1,
+    //   },
+    // });
+  }
+
   waitUntil(
     sendWorkspaceWebhook({
       trigger: "lead.created",
       workspace,
       data: transformLeadEventData({
-        ...leadData,
+        ...clickData,
+        eventName,
         link: linkUpdated,
-        customerId: customer.id,
-        customerExternalId: customer.externalId,
-        customerName: customer.name,
-        customerEmail: customer.email,
-        customerAvatar: customer.avatar,
-        customerCreatedAt: customer.createdAt,
+        customer,
       }),
     }),
   );
