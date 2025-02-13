@@ -71,10 +71,11 @@ function ImportRewardfulModal({
     isLoading: isLoadingCampaigns,
     mutate,
   } = useSWRImmutable<RewardfulCampaign[]>(
-    workspaceId &&
-      showImportRewardfulModal &&
+    showImportRewardfulModal &&
+      program?.id &&
+      workspaceId &&
       step === "campaigns" &&
-      `/api/mock/rewardful/campaigns?workspaceId=${workspaceId}`,
+      `/api/programs/${program.id}/rewardful/campaigns?workspaceId=${workspaceId}`,
     fetcher,
   );
 

@@ -46,7 +46,13 @@ export async function importAffiliates({
     }
 
     const activeAffiliates = affiliates.filter(
-      (affiliate) => affiliate.state === "active",
+      (affiliate) =>
+        // only active affiliates
+        affiliate.state === "active" &&
+        // have more than 1 lead or joined in the last 6 months
+        (affiliate.leads > 0 ||
+          new Date(affiliate.created_at) >
+            new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000)),
     );
 
     if (activeAffiliates.length > 0) {
@@ -95,9 +101,7 @@ async function createPartnerAndLinks({
       name: `${affiliate.first_name} ${affiliate.last_name}`,
       email: affiliate.email,
     },
-    update: {
-      //
-    },
+    update: {},
   });
 
   await prisma.programEnrollment.upsert({
