@@ -1,6 +1,8 @@
 import { ZodOpenApiPathsObject } from "zod-openapi";
 import { createPartner } from "./create-partner";
 import { createPartnerLink } from "./create-partner-link";
+import { retrievePartnerAnalytics } from "./retrieve-analytics";
+import { upsertPartnerLink } from "./upsert-partner-link";
 
 export const partnersPaths: ZodOpenApiPathsObject = {
   "/partners": {
@@ -8,5 +10,11 @@ export const partnersPaths: ZodOpenApiPathsObject = {
   },
   "/partners/links": {
     post: createPartnerLink,
+  },
+  "/partners/links/upsert": {
+    put: upsertPartnerLink,
+  },
+  "/partners/analytics": {
+    get: retrievePartnerAnalytics,
   },
 };

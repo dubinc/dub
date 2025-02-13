@@ -11,8 +11,10 @@ model Integration {
   logo        String?
   screenshots Json?
   verified    Boolean  @default(false)
-  installUrl  String?
+  installUrl  String?  @db.LongText
+  guideUrl    String?  @db.LongText
   category    String?
+  comingSoon  Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

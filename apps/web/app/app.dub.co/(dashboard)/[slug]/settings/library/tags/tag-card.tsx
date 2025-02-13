@@ -90,7 +90,7 @@ export function TagCard({
       >
         <div className="flex min-w-0 grow items-center gap-3">
           <TagBadge color={tag.color} withIcon className="sm:p-1.5" />
-          <span className="min-w-0 truncate whitespace-nowrap text-gray-800">
+          <span className="min-w-0 truncate whitespace-nowrap text-neutral-800">
             {tag.name}
           </span>
         </div>
@@ -99,7 +99,7 @@ export function TagCard({
           {linksCount !== undefined && (
             <Link
               href={`/${slug}?tagIds=${tag.id}`}
-              className="whitespace-nowrap rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-sm text-gray-800 transition-colors hover:bg-gray-100"
+              className="whitespace-nowrap rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-sm text-neutral-800 transition-colors hover:bg-neutral-100"
             >
               {nFormatter(linksCount || 0)} {pluralize("link", linksCount || 0)}
             </Link>
@@ -150,7 +150,7 @@ export function TagCard({
               variant="secondary"
               className={cn(
                 "h-8 px-1.5 outline-none transition-all duration-200",
-                "border-transparent data-[state=open]:border-gray-500 sm:group-hover/card:data-[state=closed]:border-gray-200",
+                "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
               )}
               icon={
                 processing ? (

@@ -1,4 +1,5 @@
 import { updateConfig } from "@/lib/edge-config";
+import { recordLink } from "@/lib/tinybird";
 import { ProgramProps } from "@/lib/types";
 import { sendEmail } from "@dub/email";
 import { PartnerInvite } from "@dub/email/templates/partner-invite";
@@ -62,18 +63,31 @@ export const invitePartner = async ({
   ]);
 
   waitUntil(
-    sendEmail({
-      subject: `${program.name} invited you to join Dub Partners`,
-      email,
-      react: PartnerInvite({
+    Promise.allSettled([
+      sendEmail({
+        subject: `${program.name} invited you to join Dub Partners`,
         email,
-        appName: `${process.env.NEXT_PUBLIC_APP_NAME}`,
-        program: {
-          name: program.name,
-          logo: program.logo,
-        },
+        react: PartnerInvite({
+          email,
+          appName: `${process.env.NEXT_PUBLIC_APP_NAME}`,
+          program: {
+            name: program.name,
+            logo: program.logo,
+          },
+        }),
       }),
-    }),
+      prisma.link
+        .update({
+          where: {
+            id: link.id,
+          },
+          data: {
+            programId: program.id,
+            folderId: program.defaultFolderId,
+          },
+        })
+        .then((link) => recordLink(link)),
+    ]),
   );
 
   return programInvited;

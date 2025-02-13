@@ -86,10 +86,12 @@ export const POST = withWorkspaceEdge(
           },
         });
 
+        const eventId = nanoid(16);
+
         const [_lead, link, _project] = await Promise.all([
           recordLead({
             ...clickData,
-            event_id: nanoid(16),
+            event_id: eventId,
             event_name: eventName,
             customer_id: customer.id,
             metadata: metadata ? JSON.stringify(metadata) : "",
@@ -121,21 +123,31 @@ export const POST = withWorkspaceEdge(
           }),
         ]);
 
-        const lead = transformLeadEventData({
-          ...clickData,
-          link,
-          eventName,
-          customerId: customer.id,
-          customerExternalId: customer.externalId,
-          customerName: customer.name,
-          customerEmail: customer.email,
-          customerAvatar: customer.avatar,
-          customerCreatedAt: customer.createdAt,
-        });
+        if (link.programId && link.partnerId) {
+          // TODO: check if there is a Lead Reward Rule for this partner and if yes, create a lead commission
+          // await prismaEdge.commission.create({
+          //   data: {
+          //     id: createId({ prefix: "cm_" }),
+          //     programId: link.programId,
+          //     linkId: link.id,
+          //     partnerId: link.partnerId,
+          //     eventId,
+          //     customerId: customer.id,
+          //     type: "lead",
+          //     amount: 0,
+          //     quantity: 1,
+          //   },
+          // });
+        }
 
         await sendWorkspaceWebhookOnEdge({
           trigger: "lead.created",
-          data: lead,
+          data: transformLeadEventData({
+            ...clickData,
+            eventName,
+            link,
+            customer,
+          }),
           workspace,
         });
       })(),

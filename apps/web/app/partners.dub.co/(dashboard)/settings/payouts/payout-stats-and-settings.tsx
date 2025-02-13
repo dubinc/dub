@@ -3,10 +3,10 @@
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import StripeConnectButton from "@/ui/partners/stripe-connect-button";
+import { PayoutStatus } from "@dub/prisma/client";
 import { MatrixLines } from "@dub/ui";
 import { CONNECT_SUPPORTED_COUNTRIES, COUNTRIES, fetcher } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { PayoutStatus } from "@prisma/client";
 import { Stripe } from "stripe";
 import useSWR from "swr";
 
@@ -56,7 +56,7 @@ export function PayoutStatsAndSettings() {
           {bankAccount && (
             <div className="text-sm">
               <p className="text-neutral-600">{bankAccount.bank_name}</p>
-              <div className="flex items-center gap-1.5 font-mono text-gray-400">
+              <div className="flex items-center gap-1.5 font-mono text-neutral-400">
                 <MatrixLines className="size-3" />
                 {bankAccount.routing_number}
                 <MatrixLines className="size-3" />

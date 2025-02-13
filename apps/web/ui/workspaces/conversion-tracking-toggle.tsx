@@ -11,7 +11,7 @@ export function ConversionTrackingToggle() {
   const id = useId();
 
   return (
-    <div className="flex items-center justify-between gap-4 rounded-lg border border-gray-200 bg-white p-5">
+    <div className="flex items-center justify-between gap-4 rounded-lg border border-neutral-200 bg-white p-5">
       <div className="flex min-w-0 items-center gap-4">
         <div className="overflow-hidden">
           <label
@@ -20,7 +20,7 @@ export function ConversionTrackingToggle() {
           >
             Workspace-level conversion tracking
           </label>
-          <p className="mt-1 flex items-center gap-1 text-sm text-gray-500">
+          <p className="mt-1 flex items-center gap-1 text-sm text-neutral-500">
             Enable conversion tracking for all future links in this workspace.
             This only affects links made with the link builder.
           </p>

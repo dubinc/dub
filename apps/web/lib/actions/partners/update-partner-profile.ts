@@ -42,7 +42,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
       where: { id: partner.id },
       data: {
         name,
-        bio: description,
+        description,
         image: imageUrl,
       },
     });

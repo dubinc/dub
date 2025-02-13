@@ -70,7 +70,7 @@ export function ContentIcon({
   icon: (props: SVGProps<SVGSVGElement>) => JSX.Element;
 }) {
   return (
-    <div className="shrink-0 rounded-[10px] border border-gray-200 bg-white/50 p-3 dark:border-white/20 dark:bg-white/10">
+    <div className="shrink-0 rounded-[10px] border border-neutral-200 bg-white/50 p-3 dark:border-white/20 dark:bg-white/10">
       <Icon className="h-4 w-4 text-black transition-transform group-hover:scale-110 dark:text-white/80" />
     </div>
   );
@@ -89,7 +89,7 @@ export function ToolLinkCard({
     <NavigationMenuLink asChild>
       <Link
         href={href}
-        className="group relative isolate overflow-hidden rounded-[8px] border border-gray-100 p-3 text-sm font-medium text-gray-800 transition-colors hover:border-gray-200 hover:bg-gray-100 active:bg-gray-200 dark:border-white/20 dark:text-white/80 dark:hover:bg-white/[0.15] dark:active:bg-white/20"
+        className="group relative isolate overflow-hidden rounded-[8px] border border-neutral-100 p-3 text-sm font-medium text-neutral-800 transition-colors hover:border-neutral-200 hover:bg-neutral-100 active:bg-neutral-200 dark:border-white/20 dark:text-white/80 dark:hover:bg-white/[0.15] dark:active:bg-white/20"
       >
         <div className="absolute -bottom-5 -right-3 -z-[1] w-14">{icon}</div>
         {name}

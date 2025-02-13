@@ -13,11 +13,11 @@ export const SignUpForm = ({
       {methods.includes("email") && <SignUpEmail />}
       {methods.length && (
         <div className="my-2 flex flex-shrink items-center justify-center gap-2">
-          <div className="grow basis-0 border-b border-gray-300" />
-          <span className="text-xs font-normal uppercase leading-none text-gray-500">
+          <div className="grow basis-0 border-b border-neutral-300" />
+          <span className="text-xs font-normal uppercase leading-none text-neutral-500">
             or
           </span>
-          <div className="grow basis-0 border-b border-gray-300" />
+          <div className="grow basis-0 border-b border-neutral-300" />
         </div>
       )}
       <SignUpOAuth methods={methods} />

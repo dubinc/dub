@@ -1,6 +1,7 @@
 {
   "click": {
     "id": "yNrYm0F6r1KMnq6N",
+    "timestamp": "2025-02-03T09:35:57.926Z",
     "url": "https://github.com/dubinc/dub",
     "country": "US",
     "city": "San Jose",
@@ -39,6 +40,7 @@
     "android": null,
     "geo": null,
     "publicStats": false,
+    "folderId": null,
     "tagId": null,
     "tags": [],
     "webhookIds": [],

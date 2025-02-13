@@ -27,7 +27,6 @@ model User {
   source           String? // where the user came from
   defaultWorkspace String? // slug of the user's default workspace
   defaultPartnerId String? // the user's default partner ID
-  referralLinkId   String? // TODO: remove this
   dubPartnerId     String? // this user's dub partner ID
 
   // relational data
@@ -42,6 +41,8 @@ model User {
   oAuthCodes            OAuthCode[]
   integrations          Integration[] // Integrations user created in their workspace
   installedIntegrations InstalledIntegration[] // Integrations user installed in their workspace
+  folders               FolderUser[]
+  folderAccessRequests  FolderAccessRequest[]
   utmTemplates          UtmTemplate[]
 
   @@index(source)

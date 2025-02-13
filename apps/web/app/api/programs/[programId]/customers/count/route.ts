@@ -14,7 +14,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
 
   const count = await prisma.customer.count({
     where: {
-      sales: {
+      commissions: {
         some: {
           programId,
         },

@@ -44,7 +44,7 @@ export default function UnsplashSearch({
           autoComplete="off"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="block w-full rounded-md border-gray-300 py-1 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+          className="block w-full rounded-md border-neutral-300 py-1 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
         />
       </div>
       {data ? (
@@ -67,7 +67,7 @@ export default function UnsplashSearch({
                     }),
                   });
                 }}
-                className="relative flex h-24 w-full items-center justify-center overflow-hidden rounded-md bg-gray-100 transition-all hover:brightness-75"
+                className="relative flex h-24 w-full items-center justify-center overflow-hidden rounded-md bg-neutral-100 transition-all hover:brightness-75"
               >
                 <img
                   src={photo.urls.small}
@@ -90,7 +90,7 @@ export default function UnsplashSearch({
           </div>
         ) : (
           <div className="flex h-[90%] items-center justify-center">
-            <p className="text-center text-sm text-gray-500">
+            <p className="text-center text-sm text-neutral-500">
               No results found. <br /> Maybe try tweaking your search query?
             </p>
           </div>
