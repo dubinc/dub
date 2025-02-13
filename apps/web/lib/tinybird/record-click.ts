@@ -32,6 +32,7 @@ export async function recordClick({
   webhookIds,
   skipRatelimit,
   workspaceId,
+  timestamp,
 }: {
   req: Request;
   linkId: string;
@@ -40,6 +41,7 @@ export async function recordClick({
   webhookIds?: string[];
   skipRatelimit?: boolean;
   workspaceId: string | undefined;
+  timestamp?: string;
 }) {
   const searchParams = new URL(req.url).searchParams;
 
@@ -94,7 +96,7 @@ export async function recordClick({
   const finalUrl = url ? getFinalUrlForRecordClick({ req, url }) : "";
 
   const clickData = {
-    timestamp: new Date(Date.now()).toISOString(),
+    timestamp: timestamp || new Date(Date.now()).toISOString(),
     identity_hash,
     click_id: clickId,
     link_id: linkId,
@@ -181,6 +183,8 @@ export async function recordClick({
   if (hasWebhooks && !hasExceededUsageLimit) {
     await sendLinkClickWebhooks({ webhookIds, linkId, clickData });
   }
+
+  return clickData;
 }
 
 async function sendLinkClickWebhooks({
