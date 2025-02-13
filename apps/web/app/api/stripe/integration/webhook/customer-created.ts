@@ -6,9 +6,9 @@ import { createNewCustomer } from "./utils";
 export async function customerCreated(event: Stripe.Event) {
   const stripeCustomer = event.data.object as Stripe.Customer;
   const stripeAccountId = event.account as string;
-  const externalId = stripeCustomer.metadata?.dubCustomerId;
+  const dubCustomerExternalId = stripeCustomer.metadata?.dubCustomerId;
 
-  if (!externalId) {
+  if (!dubCustomerExternalId) {
     return "External ID not found in Stripe customer metadata, skipping...";
   }
 
@@ -18,7 +18,7 @@ export async function customerCreated(event: Stripe.Event) {
     where: {
       projectConnectId_externalId: {
         projectConnectId: stripeAccountId,
-        externalId,
+        externalId: dubCustomerExternalId,
       },
     },
   });

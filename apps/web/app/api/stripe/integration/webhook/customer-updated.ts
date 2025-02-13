@@ -6,18 +6,23 @@ import { createNewCustomer } from "./utils";
 export async function customerUpdated(event: Stripe.Event) {
   const stripeCustomer = event.data.object as Stripe.Customer;
   const stripeAccountId = event.account as string;
-  const externalId = stripeCustomer.metadata?.dubCustomerId;
+  const dubCustomerExternalId = stripeCustomer.metadata?.dubCustomerId;
 
-  if (!externalId) {
+  if (!dubCustomerExternalId) {
     return "External ID not found in Stripe customer metadata, skipping...";
   }
 
-  const customer = await prisma.customer.findUnique({
+  const customer = await prisma.customer.findFirst({
     where: {
-      projectConnectId_externalId: {
-        projectConnectId: stripeAccountId,
-        externalId,
-      },
+      OR: [
+        {
+          projectConnectId: stripeAccountId,
+          externalId: dubCustomerExternalId,
+        },
+        {
+          stripeCustomerId: stripeCustomer.id,
+        },
+      ],
     },
   });
 
@@ -27,7 +32,8 @@ export async function customerUpdated(event: Stripe.Event) {
         id: customer.id,
       },
       data: {
-        externalId,
+        externalId: dubCustomerExternalId,
+        stripeCustomerId: stripeCustomer.id,
         name: stripeCustomer.name,
         email: stripeCustomer.email,
       },
