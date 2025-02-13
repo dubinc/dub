@@ -12,7 +12,7 @@ export function FolderPlus(props: SVGProps<SVGSVGElement>) {
     >
       <g clipPath="url(#clip0_791_85)">
         <g
-          stroke="#1F2937"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
