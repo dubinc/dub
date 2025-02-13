@@ -32,7 +32,6 @@ export async function customerCreated(event: Stripe.Event) {
       },
       data: {
         stripeCustomerId: stripeCustomer.id,
-        projectConnectId: stripeAccountId,
       },
     });
 
