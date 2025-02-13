@@ -14,7 +14,13 @@ import {
   useCopyToClipboard,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { BoxArchive, CircleCheck, Copy, QRCode } from "@dub/ui/icons";
+import {
+  BoxArchive,
+  CircleCheck,
+  Copy,
+  FolderBookmark,
+  QRCode,
+} from "@dub/ui/icons";
 import { cn, isDubDomain, nanoid, punycode } from "@dub/utils";
 import { CopyPlus, Delete, FolderInput } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
@@ -179,7 +185,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                   setOpenPopover(false);
                   setShowLinkBuilder(true);
                 }}
-                icon={<PenWriting className="h-4 w-4" />}
+                icon={<PenWriting className="size-4" />}
                 shortcut="E"
                 className="h-9 px-2 font-medium"
                 disabledTooltip={
@@ -195,7 +201,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                   setOpenPopover(false);
                   setShowLinkQRModal(true);
                 }}
-                icon={<QRCode className="h-4 w-4" />}
+                icon={<QRCode className="size-4" />}
                 shortcut="Q"
                 className="h-9 px-2 font-medium"
               />
@@ -206,7 +212,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                   setOpenPopover(false);
                   setShowDuplicateLinkModal(true);
                 }}
-                icon={<CopyPlus className="h-4 w-4" />}
+                icon={<CopyPlus className="size-4" />}
                 shortcut="D"
                 className="h-9 px-2 font-medium"
                 disabledTooltip={
@@ -221,9 +227,9 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                 onClick={() => copyLinkId()}
                 icon={
                   copiedLinkId ? (
-                    <CircleCheck className="h-4 w-4" />
+                    <CircleCheck className="size-4" />
                   ) : (
-                    <Copy className="h-4 w-4" />
+                    <Copy className="size-4" />
                   )
                 }
                 shortcut="I"
@@ -238,7 +244,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                   variant="outline"
                   shortcut="M"
                   className="h-9 px-2 font-medium"
-                  icon={<BoxArchive className="h-4 w-4" />}
+                  icon={<FolderBookmark className="size-4 text-neutral-600" />}
                   onClick={() => {
                     setOpenPopover(false);
                     setShowMoveLinkToFolderModal(true);
@@ -258,7 +264,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                   setOpenPopover(false);
                   setShowArchiveLinkModal(true);
                 }}
-                icon={<BoxArchive className="h-4 w-4" />}
+                icon={<BoxArchive className="size-4" />}
                 shortcut="A"
                 className="h-9 px-2 font-medium"
                 disabledTooltip={
@@ -275,7 +281,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                   setOpenPopover(false);
                   setShowTransferLinkModal(true);
                 }}
-                icon={<FolderInput className="h-4 w-4" />}
+                icon={<FolderInput className="size-4" />}
                 shortcut="T"
                 className="h-9 px-2 font-medium"
                 disabledTooltip={
@@ -298,7 +304,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                   setOpenPopover(false);
                   setShowDeleteLinkModal(true);
                 }}
-                icon={<Delete className="h-4 w-4" />}
+                icon={<Delete className="size-4" />}
                 shortcut="X"
                 className="h-9 px-2 font-medium"
                 disabled={isRootLink || isProgramLink}
@@ -318,7 +324,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                   onClick={() => handleBanLink()}
                   className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
                 >
-                  <IconMenu text="Ban" icon={<Delete className="h-4 w-4" />} />
+                  <IconMenu text="Ban" icon={<Delete className="size-4" />} />
                   <kbd className="hidden rounded bg-red-100 px-2 py-0.5 text-xs font-light text-red-600 transition-all duration-75 group-hover:bg-red-500 group-hover:text-white sm:inline-block">
                     B
                   </kbd>

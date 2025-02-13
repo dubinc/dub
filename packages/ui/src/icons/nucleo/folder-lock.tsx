@@ -12,7 +12,7 @@ export function FolderLock(props: SVGProps<SVGSVGElement>) {
     >
       <g clipPath="url(#clip0_714_1369)">
         <g
-          stroke="#9A3412"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"

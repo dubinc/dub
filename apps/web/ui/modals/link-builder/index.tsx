@@ -183,6 +183,12 @@ function LinkBuilderInner({
   useEffect(() => {
     if (key?.endsWith("-copy")) keyRef.current?.select();
   }, []);
+  const searchParamsFolderId = searchParams.get("folderId");
+  useEffect(() => {
+    if (searchParamsFolderId) {
+      setValue("folderId", searchParamsFolderId);
+    }
+  }, [searchParamsFolderId]);
 
   const { domains, loading, primaryDomain } = useAvailableDomains({
     currentDomain: domain,

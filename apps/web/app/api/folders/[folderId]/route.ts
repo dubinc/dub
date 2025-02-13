@@ -51,7 +51,8 @@ export const PATCH = withWorkspace(
     if (!canManageFolderPermissions && accessLevel !== "write") {
       throw new DubApiError({
         code: "forbidden",
-        message: "You are not allowed to manage permissions for this folder.",
+        message:
+          "You can only set access levels for folders on Business plans and above. Upgrade to Business to continue.",
       });
     }
 
