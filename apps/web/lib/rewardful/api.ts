@@ -27,7 +27,7 @@ export class RewardfulApi {
   private async fetch<T>(url: string): Promise<T> {
     const response = await fetch(url, {
       headers: {
-        Authorization: `Bearer ${this.token}`,
+        Authorization: `Basic ${Buffer.from(`${this.token}:`).toString("base64")}`,
       },
     });
 
