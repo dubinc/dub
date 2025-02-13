@@ -1,5 +1,6 @@
 "use server";
 
+import { RewardfulApi } from "@/lib/rewardful/api";
 import { rewardfulImporter } from "@/lib/rewardful/importer";
 import { z } from "zod";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
@@ -21,6 +22,14 @@ export const setRewardfulTokenAction = authActionClient
       workspaceId: workspace.id,
       programId,
     });
+
+    const rewardfulApi = new RewardfulApi({ token });
+    try {
+      await rewardfulApi.listCampaigns();
+    } catch (error) {
+      console.error(error);
+      throw new Error("Invalid Rewardful token");
+    }
 
     await rewardfulImporter.setCredentials(programId, {
       userId: user.id,

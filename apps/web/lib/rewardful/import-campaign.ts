@@ -4,11 +4,12 @@ import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 
 export async function importCampaign({ programId }: { programId: string }) {
-  const { token } = await rewardfulImporter.getCredentials(programId);
+  const { token, campaignId } =
+    await rewardfulImporter.getCredentials(programId);
 
   const rewardfulApi = new RewardfulApi({ token });
 
-  const campaign = await rewardfulApi.retrieveCampaign(programId);
+  const campaign = await rewardfulApi.retrieveCampaign(campaignId);
 
   const {
     url,
