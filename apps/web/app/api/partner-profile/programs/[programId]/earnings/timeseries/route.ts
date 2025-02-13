@@ -38,7 +38,7 @@ export const GET = withPartnerProfile(
       programId: params.programId,
     });
 
-    const { start, end, interval, groupBy, event } =
+    const { start, end, interval, groupBy, event, timezone } =
       partnerAnalyticsQuerySchema.parse(searchParams);
 
     const { startDate, endDate, granularity } = getStartEndDates({
@@ -84,7 +84,7 @@ export const GET = withPartnerProfile(
 
     const earnings = await prisma.$queryRaw<Earnings[]>`
       SELECT 
-        DATE_FORMAT(createdAt, ${dateFormat}) AS start, 
+        DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone || "UTC"}), ${dateFormat}) AS start, 
         SUM(earnings) AS earnings
       FROM Commission
       WHERE 
