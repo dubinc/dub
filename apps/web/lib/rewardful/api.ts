@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { APP_DOMAIN } from "@dub/utils";
 import {
   RewardfulAffiliate,
   RewardfulCampaign,
@@ -15,8 +16,10 @@ class RewardfulApiError extends DubApiError {
 }
 
 export class RewardfulApi {
-  // private readonly baseUrl = "https://api.getrewardful.com/v1";
-  private readonly baseUrl = "http://api.localhost:8888/api/rewardful";
+  private readonly baseUrl =
+    process.env.NODE_ENV === "production"
+      ? "https://api.getrewardful.com"
+      : `${APP_DOMAIN}/api/mock/rewardful`;
   private readonly token: string;
 
   constructor({ token }: { token: string }) {

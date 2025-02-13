@@ -9,7 +9,7 @@ const schema = z.object({
   token: z.string(),
 });
 
-// POST /api/programs/[programId]/rewardful/token - set the rewardful token in the Redis
+// POST /api/programs/[programId]/rewardful/token - set the rewardful token in Redis
 export const POST = withWorkspace(
   async ({ workspace, session, params, req }) => {
     const { programId } = params;
