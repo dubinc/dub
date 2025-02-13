@@ -68,7 +68,7 @@ export function PartnerTable() {
         workspaceId,
         programId,
       },
-      { ignore: ["partnerId"] },
+      { exclude: ["partnerId"] },
     )}`,
     fetcher,
     {

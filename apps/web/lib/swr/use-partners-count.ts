@@ -28,7 +28,7 @@ export default function usePartnersCount<T>(
           programId,
         },
         {
-          ignore: ["partnerId"],
+          exclude: ["partnerId"],
         },
       );
 

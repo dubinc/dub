@@ -81,8 +81,9 @@ function LinksList({
   const [openMenuLinkId, setOpenMenuLinkId] = useState<string | null>(null);
 
   const isFiltered = [
+    "folderId",
+    "tagIds",
     "domain",
-    "tagId",
     "userId",
     "search",
     "showArchived",

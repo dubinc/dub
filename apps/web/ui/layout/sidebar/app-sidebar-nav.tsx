@@ -32,13 +32,14 @@ import { WorkspaceDropdown } from "./workspace-dropdown";
 
 const NAV_AREAS: SidebarNavAreas<{
   slug: string;
+  pathname: string;
   queryString: string;
   programs?: { id: string }[];
   session?: Session | null;
   showNews?: boolean;
 }> = {
   // Top-level
-  default: ({ slug, queryString, programs, showNews }) => ({
+  default: ({ slug, pathname, queryString, programs, showNews }) => ({
     showSwitcher: true,
     showNews,
     direction: "left",
@@ -48,18 +49,18 @@ const NAV_AREAS: SidebarNavAreas<{
           {
             name: "Links",
             icon: Hyperlink,
-            href: `/${slug}`,
+            href: `/${slug}${pathname === `/${slug}` ? "" : queryString}`,
             exact: true,
           },
           {
             name: "Analytics",
             icon: LinesY,
-            href: `/${slug}/analytics${queryString}`,
+            href: `/${slug}/analytics${pathname === `/${slug}/analytics` ? "" : queryString}`,
           },
           {
             name: "Events",
             icon: CursorRays,
-            href: `/${slug}/events${queryString}`,
+            href: `/${slug}/events${pathname === `/${slug}/events` ? "" : queryString}`,
           },
           {
             name: "Settings",
@@ -257,8 +258,9 @@ export function AppSidebarNav({
       currentArea={currentArea}
       data={{
         slug: slug || "",
+        pathname,
         queryString: getQueryString(undefined, {
-          ignore: ["sortBy", "sortOrder"],
+          include: ["folderId", "tagIds", "domain"],
         }),
         programs,
         session: session || undefined,
