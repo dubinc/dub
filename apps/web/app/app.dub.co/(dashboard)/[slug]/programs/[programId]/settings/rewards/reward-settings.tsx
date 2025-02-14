@@ -4,6 +4,7 @@ import { updateProgramAction } from "@/lib/actions/partners/update-program";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
+import { HOLDING_PERIOD_DAYS } from "@/lib/zod/schemas/programs";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
 import { AnimatedSizeContainer, Button } from "@dub/ui";
 import { CircleCheckFill, LoadingSpinner } from "@dub/ui/icons";
@@ -54,6 +55,7 @@ type FormData = Pick<
   | "commissionType"
   | "commissionDuration"
   | "commissionInterval"
+  | "holdingPeriodDays"
 >;
 
 function RewardSettingsForm({ program }: { program: ProgramProps }) {
@@ -89,6 +91,7 @@ function RewardSettingsForm({ program }: { program: ProgramProps }) {
     "commissionType",
     "commissionDuration",
     "commissionInterval",
+    "holdingPeriodDays",
   ]);
 
   const { executeAsync } = useAction(updateProgramAction, {
@@ -114,6 +117,7 @@ function RewardSettingsForm({ program }: { program: ProgramProps }) {
             data.commissionType === "flat"
               ? data.commissionAmount * 100
               : data.commissionAmount,
+          holdingPeriodDays: Number(data.holdingPeriodDays),
         });
 
         // Reset isDirty state
@@ -286,6 +290,32 @@ function RewardSettingsForm({ program }: { program: ProgramProps }) {
                   {commissionType === "flat" ? "USD" : "%"}
                 </span>
               </div>
+            </div>
+          </div>
+        </SettingsRow>
+
+        <SettingsRow
+          heading="Holding period"
+          description="Set the holding period before payouts are released"
+        >
+          <div>
+            <label
+              htmlFor="holdingPeriodDays"
+              className="text-sm font-medium text-neutral-800"
+            >
+              Hold period
+            </label>
+            <div className="relative mt-2 rounded-md shadow-sm">
+              <select
+                className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                {...register("holdingPeriodDays", { required: true })}
+              >
+                {HOLDING_PERIOD_DAYS.map((v) => (
+                  <option value={v} key={v}>
+                    {v} days
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </SettingsRow>
