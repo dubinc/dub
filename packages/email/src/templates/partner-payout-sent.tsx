@@ -17,7 +17,7 @@ import { Footer } from "../components/footer";
 export function PartnerPayoutSent({
   email = "panic@thedis.co",
   program = {
-    id: "prog_d8pl69xXCv4AoHNT281pHQdo",
+    id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
     name: "Acme",
     logo: DUB_WORDMARK,
   },
@@ -64,7 +64,7 @@ export function PartnerPayoutSent({
       <Preview>You've been paid!</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
+          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-neutral-200 px-10 py-5">
             <Section className="my-8">
               <Img
                 src={program.logo || "https://assets.dub.co/logo.png"}
@@ -77,14 +77,14 @@ export function PartnerPayoutSent({
               You've been paid!
             </Heading>
 
-            <Text className="text-sm leading-6 text-gray-600">
+            <Text className="text-sm leading-6 text-neutral-600">
               <strong className="text-black">{program.name}</strong> has sent
               you <strong className="text-black">{saleAmountInDollars}</strong>{" "}
               for affiliate sales made from{" "}
               <strong className="text-black">{startDate}</strong> to{" "}
               <strong className="text-black">{endDate}</strong>.
             </Text>
-            <Text className="text-sm leading-6 text-gray-600">
+            <Text className="text-sm leading-6 text-neutral-600">
               The funds are on their way to your account.
             </Text>
 

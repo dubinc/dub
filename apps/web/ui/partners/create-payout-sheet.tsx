@@ -110,6 +110,22 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
 
   const { type: payoutType, start, end, amount, partnerId } = watch();
 
+  // get start and end dates in UTC
+  const { startDate, endDate } = useMemo(() => {
+    return {
+      startDate: start
+        ? new Date(
+            start.getTime() - start.getTimezoneOffset() * 60000,
+          ).toISOString()
+        : undefined,
+      endDate: end
+        ? new Date(
+            end.getTime() - end.getTimezoneOffset() * 60000,
+          ).toISOString()
+        : undefined,
+    };
+  }, [start, end]);
+
   const partnerOptions = useMemo(() => {
     return partners?.map((partner) => ({
       value: partner.id,
@@ -151,19 +167,12 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
       return;
     }
 
-    const startDate = data.start
-      ? data.start.getTime() - data.start.getTimezoneOffset() * 60000
-      : undefined;
-    const endDate = data.end
-      ? data.end.getTime() - data.end.getTimezoneOffset() * 60000
-      : undefined;
-
     await executeAsync({
       ...data,
       workspaceId,
       programId: program.id,
-      start: startDate ? new Date(startDate).toISOString() : undefined,
-      end: endDate ? new Date(endDate).toISOString() : undefined,
+      start: startDate,
+      end: endDate,
       amount: amount * 100,
       partnerId,
     });
@@ -175,16 +184,17 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
     [key in AnalyticsResponseOptions]: number;
   }>(
     payoutType !== "custom" &&
-      start &&
-      end &&
-      selectedPartner?.link &&
+      startDate &&
+      endDate &&
+      program &&
+      selectedPartner &&
       `/api/analytics?${new URLSearchParams({
-        workspaceId: workspaceId!,
         event: payoutType,
-        linkId: selectedPartner.link.id,
-        start: start?.toISOString(),
-        end: end?.toISOString(),
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        workspaceId: workspaceId!,
+        programId: program.id,
+        partnerId: selectedPartner.id,
+        start: startDate,
+        end: endDate,
       }).toString()}`,
     fetcher,
   );
@@ -234,8 +244,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
               new Date(start).getFullYear() === new Date(end).getFullYear()
                 ? undefined
                 : "numeric",
-            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          })}-${formatDate(end, { month: "short", timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone })}`,
+          })}-${formatDate(end, { month: "short" })}`,
         }),
 
       ...(payoutType !== "custom" && {
@@ -303,7 +312,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
         <div className="flex flex-col gap-4 p-6">
           {!props.partnerId && (
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-gray-900">
+              <label className="text-sm font-medium text-neutral-900">
                 Partner
                 <span className="ml-1 font-normal text-neutral-500">
                   (required)
@@ -326,10 +335,10 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
                 matchTriggerWidth
                 buttonProps={{
                   className: cn(
-                    "w-full justify-start border-gray-300 px-3",
-                    "data-[state=open]:ring-1 data-[state=open]:ring-gray-500 data-[state=open]:border-gray-500",
-                    "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
-                    !partnerId && "text-gray-400",
+                    "w-full justify-start border-neutral-300 px-3",
+                    "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
+                    "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+                    !partnerId && "text-neutral-400",
                     errors.partnerId && "border-red-500",
                   ),
                 }}
@@ -345,7 +354,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
           <div className="flex flex-col gap-2">
             <label
               htmlFor={dateRangePickerId}
-              className="block text-sm font-medium text-gray-900"
+              className="block text-sm font-medium text-neutral-900"
             >
               Payout period
               {payoutType === "custom" && (
@@ -356,7 +365,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
             </label>
             <DateRangePicker
               id={dateRangePickerId}
-              className="border-gray-300"
+              className="border-neutral-300"
               value={
                 start && end
                   ? {
@@ -422,13 +431,13 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
           <div className="flex flex-col gap-2">
             <label
               htmlFor="type"
-              className="flex items-center space-x-2 text-sm font-medium text-gray-900"
+              className="flex items-center space-x-2 text-sm font-medium text-neutral-900"
             >
               Reward type
             </label>
             <select
               {...register("type", { required: true })}
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
               onChange={(e) => {
                 const type = e.target.value as Exclude<PayoutType, "sales">;
 
@@ -489,7 +498,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
           <div className="flex flex-col gap-2">
             <label
               htmlFor="description"
-              className="flex items-center space-x-2 text-sm font-medium text-gray-900"
+              className="flex items-center space-x-2 text-sm font-medium text-neutral-900"
             >
               Description{" "}
               <span className="ml-1 font-normal text-neutral-500">
@@ -498,7 +507,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
             </label>
             <textarea
               {...register("description")}
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
               placeholder="A note to partner about this payout. Max 190 characters."
               maxLength={190}
               onKeyDown={handleKeyDown}

@@ -4,6 +4,7 @@ import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -15,21 +16,23 @@ import { LOCALHOST_IP, getSearchParamsWithArray } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers":
-    "Content-Type, Authorization, dub-anonymous-link-creation",
-};
-
 // GET /api/links – get all links for a workspace
 export const GET = withWorkspace(
-  async ({ req, headers, workspace }) => {
+  async ({ req, headers, workspace, session }) => {
     const searchParams = getSearchParamsWithArray(req.url);
     const params = getLinksQuerySchemaExtended.parse(searchParams);
 
     if (params.domain) {
       await getDomainOrThrow({ workspace, domain: params.domain });
+    }
+
+    if (params.folderId) {
+      await verifyFolderAccess({
+        workspace,
+        userId: session.user.id,
+        folderId: params.folderId,
+        requiredPermission: "folders.read",
+      });
     }
 
     const response = await getLinksForWorkspace({
@@ -95,10 +98,7 @@ export const POST = withWorkspace(
       }
 
       return NextResponse.json(response, {
-        headers: {
-          ...headers,
-          ...CORS_HEADERS,
-        },
+        headers,
       });
     } catch (error) {
       throw new DubApiError({
@@ -111,10 +111,3 @@ export const POST = withWorkspace(
     requiredPermissions: ["links.write"],
   },
 );
-
-export const OPTIONS = () => {
-  return new Response(null, {
-    status: 204,
-    headers: CORS_HEADERS,
-  });
-};

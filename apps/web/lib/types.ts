@@ -2,16 +2,22 @@ import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
+  CommissionStatus,
+  FolderUserRole,
   Link,
   PayoutStatus,
   Prisma,
   ProgramEnrollmentStatus,
   Project,
-  SaleStatus,
+  User,
   UtmTemplate,
   Webhook,
   YearInReview,
 } from "@dub/prisma/client";
+import {
+  FOLDER_PERMISSIONS,
+  FOLDER_WORKSPACE_ACCESS,
+} from "./folder/constants";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import { clickEventResponseSchema } from "./zod/schemas/clicks";
 import {
@@ -21,6 +27,7 @@ import {
 } from "./zod/schemas/customers";
 import { dashboardSchema } from "./zod/schemas/dashboard";
 import { DiscountSchema } from "./zod/schemas/discount";
+import { FolderSchema } from "./zod/schemas/folders";
 import { integrationSchema } from "./zod/schemas/integration";
 import { InvoiceSchema } from "./zod/schemas/invoices";
 import {
@@ -31,7 +38,7 @@ import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   EnrolledPartnerSchema,
-  PartnerSaleResponseSchema,
+  PartnerEarningsSchema,
   PartnerSchema,
   SaleResponseSchema,
   SaleSchema,
@@ -42,6 +49,7 @@ import {
   PayoutSchema,
 } from "./zod/schemas/payouts";
 import {
+  PartnerLinkSchema,
   PartnerProgramInviteSchema,
   ProgramEnrollmentSchema,
   ProgramInviteSchema,
@@ -115,7 +123,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "noDubLink";
+export type BetaFeatures = "noDubLink" | "linkFolders" | "rewardfulImporter";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
@@ -141,6 +149,7 @@ export type ExpandedWorkspaceProps = WorkspaceProps & {
     name: string;
   }[];
   yearInReview: YearInReview | null;
+  allowedHostnames: string[];
 };
 
 export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;
@@ -154,7 +163,7 @@ export interface UserProps {
   source: string | null;
   defaultWorkspace?: string;
   defaultPartnerId?: string;
-  referralLinkId?: string;
+  dubPartnerId?: string;
   isMachine: boolean;
   hasPassword: boolean;
   provider: string | null;
@@ -273,7 +282,16 @@ export type NewOrExistingIntegration = Omit<
 
 export type InstalledIntegrationProps = Pick<
   IntegrationProps,
-  "id" | "slug" | "logo" | "name" | "developer" | "description" | "verified"
+  | "id"
+  | "projectId"
+  | "slug"
+  | "logo"
+  | "name"
+  | "developer"
+  | "description"
+  | "verified"
+  | "comingSoon"
+  | "guideUrl"
 > & {
   installations: number;
   installed?: boolean;
@@ -282,6 +300,7 @@ export type InstalledIntegrationProps = Pick<
 export type InstalledIntegrationInfoProps = Pick<
   IntegrationProps,
   | "id"
+  | "projectId"
   | "slug"
   | "logo"
   | "name"
@@ -301,6 +320,7 @@ export type InstalledIntegrationInfoProps = Pick<
     by: {
       id: string;
       name: string | null;
+      email: string | null;
       image: string | null;
     };
   } | null;
@@ -333,15 +353,17 @@ export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
 
 export type SaleProps = z.infer<typeof SaleSchema>;
 
-export type SalesCount = Record<SaleStatus | "all", number>;
+export type SalesCount = Record<CommissionStatus | "all", number>;
 
 export type SaleResponse = z.infer<typeof SaleResponseSchema>;
 
-export type PartnerSaleResponse = z.infer<typeof PartnerSaleResponseSchema>;
+export type PartnerEarningsResponse = z.infer<typeof PartnerEarningsSchema>;
 
 export type CustomerProps = z.infer<typeof CustomerSchema>;
 
 export type PartnerProps = z.infer<typeof PartnerSchema>;
+
+export type PartnerLinkProps = z.infer<typeof PartnerLinkSchema>;
 
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
 
@@ -385,3 +407,25 @@ export type ClickEvent = z.infer<typeof clickEventResponseSchema>;
 export type SaleEvent = z.infer<typeof saleEventResponseSchema>;
 
 export type LeadEvent = z.infer<typeof leadEventResponseSchema>;
+
+// Folders
+
+export type Folder = z.infer<typeof FolderSchema>;
+
+export type FolderAccessLevel = keyof typeof FOLDER_WORKSPACE_ACCESS;
+
+export type FolderPermission = (typeof FOLDER_PERMISSIONS)[number];
+
+export type FolderUser = Pick<User, "id" | "name" | "email" | "image"> & {
+  role: FolderUserRole;
+};
+
+export type FolderWithPermissions = {
+  id: string;
+  permissions: FolderPermission[];
+};
+
+export type FolderSummary = Pick<
+  Folder,
+  "id" | "name" | "accessLevel" | "linkCount"
+>;

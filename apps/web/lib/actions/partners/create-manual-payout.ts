@@ -38,12 +38,18 @@ export const createManualPayoutAction = authActionClient
           },
         },
         select: {
-          linkId: true,
+          programId: true,
+          partnerId: true,
+          _count: {
+            select: {
+              links: true,
+            },
+          },
         },
       }),
     ]);
 
-    if (!programEnrollment.linkId) {
+    if (!programEnrollment._count.links) {
       throw new Error("No short link found for this partner in this program.");
     }
 
@@ -51,7 +57,8 @@ export const createManualPayoutAction = authActionClient
 
     if (type === "clicks" || type === "leads") {
       const count = await getAnalytics({
-        linkId: programEnrollment.linkId,
+        programId: programEnrollment.programId,
+        partnerId: programEnrollment.partnerId,
         event: type,
         groupBy: "count",
         start,

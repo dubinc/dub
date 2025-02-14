@@ -10,22 +10,24 @@ import { X } from "@/ui/shared/icons";
 import {
   Button,
   buttonVariants,
+  CopyButton,
   Sheet,
   StatusBadge,
   Table,
+  TabSelect,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CursorRays, GreekTemple, LinesY, Link4 } from "@dub/ui/icons";
+import { GreekTemple } from "@dub/ui/icons";
 import {
   cn,
   COUNTRIES,
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
-  formatDate,
   getPrettyUrl,
   nFormatter,
 } from "@dub/utils";
+import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import { ChevronLeft } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
@@ -42,19 +44,18 @@ type PartnerDetailsSheetProps = {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
+type Tab = "payouts" | "links";
+
 function PartnerDetailsSheetContent({
   partner,
   setIsOpen,
 }: PartnerDetailsSheetProps) {
-  const { slug } = useWorkspace();
-
-  const badge = PartnerStatusBadges[partner.status];
-
-  const saleAmount = (partner.link?.saleAmount ?? 0) / 100;
-  // const earnings = (partner.earnings ?? 0) / 100;
+  const [tab, setTab] = useState<Tab>("links");
 
   const { createPayoutSheet, setIsOpen: setCreatePayoutSheetOpen } =
     useCreatePayoutSheet({ nested: true, partnerId: partner.id });
+
+  const badge = PartnerStatusBadges[partner.status];
 
   return (
     <>
@@ -74,7 +75,7 @@ function PartnerDetailsSheetContent({
         <div className="border-y border-neutral-200 bg-neutral-50 p-6">
           {/* Basic info */}
           <div className="flex items-start justify-between gap-6">
-            <div className="flex flex-col">
+            <div>
               <img
                 src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`}
                 alt={partner.name}
@@ -90,16 +91,21 @@ function PartnerDetailsSheetContent({
                   </StatusBadge>
                 )}
               </div>
-            </div>
-            <div className="flex min-w-[40%] shrink grow basis-1/2 flex-col items-end justify-end gap-2">
-              {partner.link && (
-                <div className="group flex min-w-0 items-center gap-1 overflow-hidden rounded-full border border-neutral-200 bg-white px-1.5 py-0.5 text-xs text-neutral-700">
-                  <Link4 className="size-3.5" />
-                  <span className="truncate">
-                    {getPrettyUrl(partner.link.shortLink)}
+              {partner.email && (
+                <div className="mt-0.5 flex items-center gap-1">
+                  <span className="text-sm text-neutral-500">
+                    {partner.email}
                   </span>
+                  <CopyButton
+                    value={partner.email}
+                    variant="neutral"
+                    className="p-1 [&>*]:h-3 [&>*]:w-3"
+                    successMessage="Copied email to clipboard!"
+                  />
                 </div>
               )}
+            </div>
+            <div className="flex min-w-[40%] shrink grow basis-1/2 flex-col items-end justify-end gap-2">
               {partner.country && (
                 <div className="flex min-w-20 items-center gap-2 rounded-full border border-neutral-200 bg-white px-1.5 py-0.5 text-xs text-neutral-700">
                   <img
@@ -119,38 +125,32 @@ function PartnerDetailsSheetContent({
               {[
                 [
                   "Clicks",
-                  !partner.link
+                  !partner.clicks
                     ? "-"
-                    : nFormatter(partner.link?.clicks, { full: true }),
+                    : nFormatter(partner.clicks, { full: true }),
                 ],
                 [
                   "Leads",
-                  !partner.link
+                  !partner.leads
                     ? "-"
-                    : nFormatter(partner.link?.leads, { full: true }),
+                    : nFormatter(partner.leads, { full: true }),
                 ],
                 [
                   "Sales",
-                  !partner.link
+                  !partner.sales
                     ? "-"
-                    : nFormatter(partner.link?.sales, { full: true }),
+                    : nFormatter(partner.sales, { full: true }),
                 ],
                 [
                   "Revenue",
-                  !partner.link
+                  !partner.saleAmount
                     ? "-"
-                    : currencyFormatter(saleAmount, {
-                        minimumFractionDigits: saleAmount % 1 === 0 ? 0 : 2,
+                    : currencyFormatter(partner.saleAmount / 100, {
+                        minimumFractionDigits:
+                          partner.saleAmount % 1 === 0 ? 0 : 2,
                         maximumFractionDigits: 2,
                       }),
                 ],
-                // [
-                //   "Earnings",
-                //   currencyFormatter(earnings, {
-                //     minimumFractionDigits: earnings % 1 === 0 ? 0 : 2,
-                //     maximumFractionDigits: 2,
-                //   }),
-                // ],
               ].map(([label, value]) => (
                 <div key={label} className="flex flex-col bg-neutral-50 p-3">
                   <span className="text-xs text-neutral-500">{label}</span>
@@ -160,37 +160,52 @@ function PartnerDetailsSheetContent({
             </div>
           )}
 
-          {partner.link && (
-            <div className="xs:grid-cols-2 mt-4 grid grid-cols-1 gap-3">
-              <Link
-                href={`/${slug}/analytics?domain=${partner.link.domain}&key=${partner.link.key}&interval=all`}
-                target="_blank"
-                className={cn(
-                  buttonVariants({ variant: "secondary" }),
-                  "flex h-8 items-center justify-center gap-2 rounded-lg border px-2 text-sm",
-                )}
-              >
-                <LinesY className="size-4 text-neutral-900" />
-                Analytics
-              </Link>
-              <Link
-                href={`/${slug}/events?domain=${partner.link.domain}&key=${partner.link.key}&interval=all`}
-                target="_blank"
-                className={cn(
-                  buttonVariants({ variant: "secondary" }),
-                  "flex h-8 items-center justify-center gap-2 rounded-lg border px-2 text-sm",
-                )}
-              >
-                <CursorRays className="size-4 text-neutral-900" />
-                Events
-              </Link>
-            </div>
+          {/* <div className="xs:grid-cols-2 mt-4 grid grid-cols-1 gap-3">
+            <Link
+              href={`/${slug}/analytics?programId=${program!.id}&partnerId=${partner.id}&interval=all`}
+              target="_blank"
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "flex h-8 items-center justify-center gap-2 rounded-lg border px-2 text-sm",
+              )}
+            >
+              <LinesY className="size-4 text-neutral-900" />
+              Analytics
+            </Link>
+            <Link
+              href={`/${slug}/events?programId=${program!.id}&partnerId=${partner.id}&interval=all`}
+              target="_blank"
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "flex h-8 items-center justify-center gap-2 rounded-lg border px-2 text-sm",
+              )}
+            >
+              <CursorRays className="size-4 text-neutral-900" />
+              Events
+            </Link>
+          </div> */}
+
+          {partner.status === "approved" && (
+            <TabSelect
+              options={[
+                { id: "links", label: "Links" },
+                { id: "payouts", label: "Payouts" },
+              ]}
+              selected={tab}
+              onSelect={(id: Tab) => {
+                setTab(id);
+              }}
+              className="-mb-6 mt-2"
+            />
           )}
         </div>
 
         <div className="grow p-6">
           {partner.status === "approved" ? (
-            <PartnerPayouts partner={partner} />
+            <>
+              {tab === "payouts" && <PartnerPayouts partner={partner} />}
+              {tab === "links" && <PartnerLinks partner={partner} />}
+            </>
           ) : (
             <div className="flex flex-col gap-6 text-sm text-neutral-500">
               <h3 className="text-base font-semibold text-neutral-900">
@@ -200,7 +215,7 @@ function PartnerDetailsSheetContent({
               <div>
                 <h4 className="font-semibold text-neutral-900">Description</h4>
                 <p className="mt-1.5">
-                  {partner.bio || (
+                  {partner.description || (
                     <span className="italic text-neutral-400">
                       No description provided
                     </span>
@@ -258,7 +273,9 @@ function PartnerApproval({
 
   const { executeAsync, isPending } = useAction(approvePartnerAction, {
     onSuccess() {
-      mutatePrefix(`/api/programs/${partner.programId}/partners`);
+      mutatePrefix(
+        `/api/partners?workspaceId=${workspaceId}&programId=${program!.id}`,
+      );
 
       toast.success("Approved the partner successfully.");
       setIsOpen(false);
@@ -369,11 +386,15 @@ function PartnerApproval({
                 return;
               }
 
+              if (!program) {
+                return;
+              }
+
               // Approve partner
               await executeAsync({
                 workspaceId: workspaceId!,
                 partnerId: partner.id,
-                programId: partner.programId,
+                programId: program.id,
                 linkId: selectedLinkId,
               });
             }}
@@ -392,10 +413,13 @@ function PartnerRejectButton({
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }) {
   const { id: workspaceId } = useWorkspace();
+  const { program } = useProgram();
 
   const { executeAsync, isPending } = useAction(rejectPartnerAction, {
     onSuccess: async () => {
-      await mutatePrefix(`/api/programs/${partner.programId}/partners`);
+      await mutatePrefix(
+        `/api/partners?workspaceId=${workspaceId}&programId=${program!.id}`,
+      );
 
       toast.success("Partner rejected successfully.");
       setIsOpen(false);
@@ -415,7 +439,7 @@ function PartnerRejectButton({
         await executeAsync({
           workspaceId: workspaceId!,
           partnerId: partner.id,
-          programId: partner.programId,
+          programId: program!.id,
         });
       }}
     />
@@ -424,6 +448,8 @@ function PartnerRejectButton({
 
 function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
   const { slug } = useWorkspace();
+  const { program } = useProgram();
+
   const {
     payouts,
     error: payoutsError,
@@ -438,9 +464,8 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
     error: payoutsError ? "Failed to load payouts" : undefined,
     columns: [
       {
-        id: "periodEnd",
-        header: "Period End",
-        accessorFn: (d) => formatDate(d.periodStart, { month: "short" }),
+        header: "Period",
+        accessorFn: (d) => formatPeriod(d),
       },
       {
         header: "Status",
@@ -467,7 +492,7 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
     ],
     onRowClick: (row) => {
       window.open(
-        `/${slug}/programs/${partner.programId}/payouts?payoutId=${row.original.id}`,
+        `/${slug}/programs/${program!.id}/payouts?payoutId=${row.original.id}`,
         "_blank",
       );
     },
@@ -485,7 +510,7 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
       {payouts && payouts.length === SHEET_MAX_ITEMS && (
         <div className="mt-2 flex justify-end">
           <Link
-            href={`/${slug}/programs/${partner.programId}/payouts?partnerId=${partner.id}`}
+            href={`/${slug}/programs/${program!.id}/payouts?partnerId=${partner.id}`}
             className={cn(
               buttonVariants({ variant: "secondary" }),
               "flex h-7 items-center rounded-lg border px-2 text-sm",
@@ -512,6 +537,67 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
     />
   );
 }
+
+const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
+  const { slug } = useWorkspace();
+
+  const table = useTable({
+    data: partner.links || [],
+    columns: [
+      {
+        id: "shortLink",
+        header: "Link",
+        cell: ({ row }) => (
+          <b className="font-medium text-black">
+            {getPrettyUrl(row.original.shortLink)}
+          </b>
+        ),
+      },
+      {
+        header: "Clicks",
+        accessorFn: (d) => nFormatter(d.clicks),
+        size: 1,
+        minSize: 1,
+      },
+      {
+        header: "Leads",
+        accessorFn: (d) => nFormatter(d.leads),
+        size: 1,
+        minSize: 1,
+      },
+      {
+        header: "Sales",
+        accessorFn: (d) => nFormatter(d.sales),
+        size: 1,
+        minSize: 1,
+      },
+      {
+        header: "Revenue",
+        accessorFn: (d) =>
+          currencyFormatter(d.saleAmount / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
+        size: 1,
+        minSize: 1,
+      },
+    ],
+    onRowClick: (row) => {
+      window.open(
+        `/${slug}/analytics?domain=${row.original.domain}&key=${row.original.key}&interval=all`,
+        "_blank",
+      );
+    },
+    resourceName: (p) => `link${p ? "s" : ""}`,
+    thClassName: (id) =>
+      cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
+    tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
+    className: "[&_tr:last-child>td]:border-b-transparent",
+    scrollWrapperClassName: "min-h-[40px]",
+  } as any);
+
+  return <Table {...table} />;
+};
 
 export function PartnerDetailsSheet({
   isOpen,

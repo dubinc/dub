@@ -29,15 +29,15 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     timezone = "UTC",
     isDemo,
     isDeprecatedClicksEndpoint = false,
+    dataAvailableFrom,
   } = params;
 
   const tagIds = combineTagIds(params);
 
   // get all-time clicks count if:
-  // 1. type is count
-  // 2. linkId is defined
-  // 3. interval is all time
-  // 4. call is made from dashboard
+  // 1. linkId is defined
+  // 2. type is count
+  // 3. interval is all_unfiltered
   if (linkId && groupBy === "count" && interval === "all_unfiltered") {
     const columns =
       event === "composite"
@@ -46,7 +46,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
           ? `sales, saleAmount`
           : `${event}`;
 
-    let response = await conn.execute(
+    const response = await conn.execute(
       `SELECT ${columns} FROM Link WHERE id = ?`,
       [linkId],
     );
@@ -62,6 +62,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     interval,
     start,
     end,
+    dataAvailableFrom,
   });
 
   if (trigger) {
@@ -130,6 +131,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         domain: true,
         key: true,
         url: true,
+        comments: true,
         createdAt: true,
       },
     });
@@ -149,6 +151,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
             domain: link.domain,
             key: punyEncode(link.key),
           }),
+          comments: link.comments,
           createdAt: link.createdAt.toISOString(),
           ...topLink,
         });

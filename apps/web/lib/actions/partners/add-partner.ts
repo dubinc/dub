@@ -33,7 +33,7 @@ export const addPartnerAction = authActionClient
       }),
     ]);
 
-    if (link.programId) {
+    if (link.partnerId) {
       throw new Error("Link is already associated with another partner.");
     }
 
@@ -57,8 +57,9 @@ export const addPartnerAction = authActionClient
       }
 
       return await enrollPartner({
-        programId,
-        linkId,
+        program,
+        link,
+        workspace,
         partner: {
           name,
           email,

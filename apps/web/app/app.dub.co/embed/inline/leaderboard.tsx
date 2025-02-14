@@ -46,14 +46,14 @@ export function EmbedLeaderboard() {
         id: "name",
         header: "Name",
         cell: ({ row }) => {
-          return row.original.partner.name;
+          return row.original.name;
         },
       },
       {
         id: "sales",
         header: "Sales",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.link?.saleAmount / 100 ?? 0, {
+          return currencyFormatter(row.original.saleAmount / 100 ?? 0, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           });

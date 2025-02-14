@@ -1,14 +1,17 @@
 "use client";
 
-import useTags from "@/lib/swr/use-tags";
+import useFoldersCount from "@/lib/swr/use-folders-count";
+import useTagsCount from "@/lib/swr/use-tags-count";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
-import ManageSubscriptionButton from "@/ui/workspaces/manage-subscription-button";
 import PlanBadge from "@/ui/workspaces/plan-badge";
-import { buttonVariants, Icon, useRouterStuff } from "@dub/ui";
+import SubscriptionMenu from "@/ui/workspaces/subscription-menu";
+import { buttonVariants, Icon, Tooltip, useRouterStuff } from "@dub/ui";
 import {
   CircleDollar,
+  CrownSmall,
   CursorRays,
+  Folder5,
   Globe,
   Hyperlink,
   Tag,
@@ -39,12 +42,15 @@ export default function PlanUsage() {
     linksLimit,
     domains,
     domainsLimit,
+    foldersLimit,
     tagsLimit,
     usersLimit,
     billingCycleStart,
+    flags,
   } = useWorkspace();
 
-  const { tags } = useTags();
+  const { data: folders } = useFoldersCount();
+  const { data: tags } = useTagsCount();
   const { users } = useUsers();
 
   const [billingStart, billingEnd] = useMemo(() => {
@@ -65,7 +71,7 @@ export default function PlanUsage() {
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
-      <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:p-8 xl:flex-row">
+      <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:p-8 lg:flex-row">
         <div>
           <h2 className="text-xl font-medium">Plan and Usage</h2>
           <p className="mt-1 text-balance text-sm leading-normal text-neutral-500">
@@ -91,16 +97,28 @@ export default function PlanUsage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Link
-            href={`/${slug}/settings/billing/invoices`}
-            className={cn(
-              buttonVariants({ variant: "secondary" }),
-              "flex h-8 w-full items-center justify-center rounded-md border px-4 text-sm",
-            )}
-          >
-            View invoices
-          </Link>
-          {stripeId && <ManageSubscriptionButton />}
+          {plan === "free" ? (
+            <Link
+              href={`/${slug}/upgrade`}
+              className={cn(
+                buttonVariants({ variant: "primary" }),
+                "flex h-9 w-full items-center justify-center whitespace-nowrap rounded-md border px-4 text-sm",
+              )}
+            >
+              Upgrade Plan
+            </Link>
+          ) : (
+            <Link
+              href={`/${slug}/settings/billing/invoices`}
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "flex h-9 w-full items-center justify-center whitespace-nowrap rounded-md border px-4 text-sm",
+              )}
+            >
+              View invoices
+            </Link>
+          )}
+          {stripeId && plan !== "free" && <SubscriptionMenu />}
         </div>
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)] divide-y divide-neutral-200 border-t border-neutral-200">
@@ -127,23 +145,38 @@ export default function PlanUsage() {
               usage={salesUsage}
               limit={salesLimit}
               unit="$"
+              requiresUpgrade={plan === "free" || plan === "pro"}
             />
           </div>
           <div className="w-full px-2 pb-8 md:px-8">
             <UsageChart />
           </div>
         </div>
-        <div className="grid grid-cols-1 divide-y divide-neutral-200 sm:divide-x sm:divide-y-0 md:grid-cols-3">
+        <div
+          className={cn(
+            "grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3",
+            flags?.linkFolders &&
+              "md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4",
+          )}
+        >
           <UsageCategory
             title="Custom Domains"
             icon={Globe}
             usage={domains?.length}
             usageLimit={domainsLimit}
           />
+          {flags?.linkFolders && (
+            <UsageCategory
+              title="Folders"
+              icon={Folder5}
+              usage={folders}
+              usageLimit={foldersLimit}
+            />
+          )}
           <UsageCategory
             title="Tags"
             icon={Tag}
-            usage={tags?.length}
+            usage={tags}
             usageLimit={tagsLimit}
           />
           <UsageCategory
@@ -154,7 +187,7 @@ export default function PlanUsage() {
           />
         </div>
       </div>
-      {plan !== "enterprise" && (
+      {plan !== "enterprise" && plan !== "free" && (
         <div className="flex flex-col items-center justify-between space-y-3 border-t border-neutral-200 px-6 py-4 text-center md:flex-row md:space-y-0 md:px-8 md:text-left">
           <p className="text-sm text-neutral-500">
             {plan === "business max"
@@ -165,7 +198,7 @@ export default function PlanUsage() {
             href={`/${slug}/upgrade`}
             className={cn(
               buttonVariants(),
-              "flex h-8 w-fit items-center justify-center rounded-md border px-3 text-sm",
+              "flex h-9 w-fit items-center justify-center rounded-md border px-3 text-sm",
             )}
           >
             Upgrade to {nextPlan.name}
@@ -183,6 +216,7 @@ function UsageTabCard({
   usage: usageProp,
   limit: limitProp,
   unit,
+  requiresUpgrade,
 }: {
   id: string;
   icon: Icon;
@@ -190,8 +224,10 @@ function UsageTabCard({
   usage?: number;
   limit?: number;
   unit?: string;
+  requiresUpgrade?: boolean;
 }) {
   const { searchParams, queryParams } = useRouterStuff();
+  const { slug } = useWorkspace();
 
   const isActive =
     searchParams.get("tab") === id ||
@@ -205,7 +241,6 @@ function UsageTabCard({
   const loading = usage === undefined || limit === undefined;
   const unlimited = limit !== undefined && limit >= INFINITY_NUMBER;
   const warning = !loading && !unlimited && usage >= limit * 0.9;
-  console.log({ warning, usage, limit });
   const remaining = !loading && !unlimited ? Math.max(0, limit - usage) : 0;
 
   const prefix = unit || "";
@@ -213,15 +248,41 @@ function UsageTabCard({
   return (
     <button
       className={cn(
-        "rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors duration-75 hover:bg-neutral-50 lg:px-5 lg:py-4",
+        "rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors duration-75",
         "outline-none focus-visible:border-blue-600 focus-visible:ring-1 focus-visible:ring-blue-600",
         isActive && "border-neutral-900 ring-1 ring-neutral-900",
+        requiresUpgrade
+          ? "border-neutral-100 bg-neutral-100 hover:bg-neutral-100"
+          : "hover:bg-neutral-50 lg:px-5 lg:py-4",
       )}
       aria-selected={isActive}
-      onClick={() => queryParams({ set: { tab: id } })}
+      onClick={() => !requiresUpgrade && queryParams({ set: { tab: id } })}
+      disabled={requiresUpgrade}
     >
       <Icon className="size-4 text-neutral-600" />
-      <div className="mt-1.5 text-sm text-neutral-600">{title}</div>
+      <div className="mt-1.5 flex items-center gap-2 text-sm text-neutral-600">
+        {title}
+        {requiresUpgrade && (
+          <Tooltip
+            content={
+              <div className="max-w-xs px-4 py-2 text-center text-sm text-neutral-600">
+                Upgrade to Business to unlock conversion tracking.{" "}
+                <Link
+                  href={`/${slug}/upgrade`}
+                  className="underline underline-offset-2 hover:text-neutral-800"
+                >
+                  View pricing plans
+                </Link>
+              </div>
+            }
+          >
+            <span className="flex items-center gap-1 rounded-full border border-neutral-300 px-2 py-0.5 text-xs text-neutral-500">
+              <CrownSmall className="size-" />
+              Business
+            </span>
+          </Tooltip>
+        )}
+      </div>
       <div className="mt-2">
         {!loading ? (
           <NumberFlow
@@ -232,7 +293,7 @@ function UsageTabCard({
                 ? {
                     style: "currency",
                     currency: "USD",
-                    // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                    // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
                     trailingZeroDisplay: "stripIfInteger",
                   }
                 : {
@@ -258,7 +319,10 @@ function UsageTabCard({
             >
               <div
                 className={cn(
-                  "size-full rounded-full bg-gradient-to-r from-blue-500/80 to-blue-600",
+                  "size-full rounded-full",
+                  requiresUpgrade
+                    ? "bg-neutral-900/10"
+                    : "bg-gradient-to-r from-blue-500/80 to-blue-600",
                   warning && "from-neutral-900/10 via-red-500 to-red-600",
                 )}
                 style={{
@@ -293,7 +357,7 @@ function UsageCategory(data: {
   let { title, icon: Icon, usage, usageLimit } = data;
 
   return (
-    <div className="flex items-center justify-between p-6 md:p-8">
+    <div className="flex items-center justify-between bg-white p-6 md:p-8">
       <div className="flex cursor-default items-center space-x-2">
         <Icon className="size-4 text-neutral-600" />
         <h3 className="text-sm font-medium">{title}</h3>

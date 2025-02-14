@@ -51,10 +51,10 @@ function DeleteLinkModalInner({
 
   return (
     <>
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
+      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 text-center sm:px-16">
         <LinkLogo apexDomain={apexDomain} />
         <h3 className="text-lg font-medium">Delete {shortlink}</h3>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-neutral-500">
           Warning: Deleting this link will remove all of its analytics. This
           action cannot be undone – proceed with caution.
         </p>
@@ -78,10 +78,13 @@ function DeleteLinkModalInner({
             setDeleting(false);
           });
         }}
-        className="flex flex-col space-y-3 bg-gray-50 px-4 py-8 text-left sm:px-16"
+        className="flex flex-col space-y-3 bg-neutral-50 px-4 py-8 text-left sm:px-16"
       >
         <div>
-          <label htmlFor="verification" className="block text-sm text-gray-700">
+          <label
+            htmlFor="verification"
+            className="block text-sm text-neutral-700"
+          >
             To verify, type <span className="font-semibold">{shortlink}</span>{" "}
             below
           </label>
@@ -94,7 +97,7 @@ function DeleteLinkModalInner({
               required
               autoFocus={!isMobile}
               autoComplete="off"
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
             />
           </div>
         </div>

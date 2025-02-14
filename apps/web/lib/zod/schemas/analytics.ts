@@ -86,6 +86,20 @@ export const analyticsQuerySchema = z
       .describe(
         "This is the ID of the link in the your database. Must be prefixed with 'ext_' when passed as a query parameter.",
       ),
+    tenantId: z
+      .string()
+      .optional()
+      .describe(
+        "The ID of the tenant that created the link inside your system.",
+      ),
+    programId: z
+      .string()
+      .optional()
+      .describe("The ID of the program to retrieve analytics for."),
+    partnerId: z
+      .string()
+      .optional()
+      .describe("The ID of the partner to retrieve analytics for."),
     interval: z
       .enum(intervals)
       .optional()
@@ -182,6 +196,12 @@ export const analyticsQuerySchema = z
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional()
       .describe("The tag IDs to retrieve analytics for."),
+    folderId: z
+      .string()
+      .optional()
+      .describe(
+        "The folder ID to retrieve analytics for. If not provided, return analytics for unsorted links.",
+      ),
     qr: booleanQuerySchema
       .optional()
       .describe(
@@ -210,7 +230,6 @@ export const analyticsFilterTB = z
           return v;
         }
       }),
-    programId: z.string().optional(),
     customerId: z.string().optional(),
     root: z.boolean().optional(),
     qr: z.boolean().optional(),
@@ -222,6 +241,11 @@ export const analyticsFilterTB = z
       .string()
       .optional()
       .describe("The UTM tag to group by. Defaults to `utm_source`."),
+    folderIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .optional()
+      .describe("The folder IDs to retrieve analytics for."),
   })
   .merge(
     analyticsQuerySchema.pick({
@@ -243,6 +267,10 @@ export const analyticsFilterTB = z
       utm_campaign: true,
       utm_term: true,
       utm_content: true,
+      programId: true,
+      partnerId: true,
+      tenantId: true,
+      folderId: true,
     }),
   );
 

@@ -17,7 +17,7 @@ export function ProgramInviteCard({
   const { executeAsync, isPending } = useAction(acceptProgramInviteAction, {
     onSuccess: () => {
       toast.success("Program invite accepted!");
-      partner && mutatePrefix(`/api/partners/${partner.id}/programs`);
+      partner && mutatePrefix(`/api/partner-profile/programs`);
     },
     onError: ({ error }) => {
       toast.error(error.serverError);

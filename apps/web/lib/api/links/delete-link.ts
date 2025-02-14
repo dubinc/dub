@@ -4,6 +4,8 @@ import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { linkCache } from "./cache";
+import { includeTags } from "./include-tags";
+import { transformLink } from "./utils";
 
 export async function deleteLink(linkId: string) {
   const link = await prisma.link.delete({
@@ -11,11 +13,7 @@ export async function deleteLink(linkId: string) {
       id: linkId,
     },
     include: {
-      tags: {
-        select: {
-          tag: true,
-        },
-      },
+      ...includeTags,
     },
   });
 
@@ -37,5 +35,5 @@ export async function deleteLink(linkId: string) {
     ]),
   );
 
-  return link;
+  return transformLink(link);
 }

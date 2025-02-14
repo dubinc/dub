@@ -32,6 +32,7 @@ export async function recordClick({
   webhookIds,
   skipRatelimit,
   workspaceId,
+  timestamp,
 }: {
   req: Request;
   linkId: string;
@@ -40,6 +41,7 @@ export async function recordClick({
   webhookIds?: string[];
   skipRatelimit?: boolean;
   workspaceId: string | undefined;
+  timestamp?: string;
 }) {
   const searchParams = new URL(req.url).searchParams;
 
@@ -94,7 +96,7 @@ export async function recordClick({
   const finalUrl = url ? getFinalUrlForRecordClick({ req, url }) : "";
 
   const clickData = {
-    timestamp: new Date(Date.now()).toISOString(),
+    timestamp: timestamp || new Date(Date.now()).toISOString(),
     identity_hash,
     click_id: clickId,
     link_id: linkId,
@@ -181,6 +183,8 @@ export async function recordClick({
   if (hasWebhooks && !hasExceededUsageLimit) {
     await sendLinkClickWebhooks({ webhookIds, linkId, clickData });
   }
+
+  return clickData;
 }
 
 async function sendLinkClickWebhooks({
@@ -214,8 +218,30 @@ async function sendLinkClickWebhooks({
   }
 
   const link = await conn
-    .execute("SELECT * FROM Link WHERE id = ?", [linkId])
-    .then((res) => res.rows[0]);
+    .execute(
+      `
+    SELECT 
+      l.*,
+      JSON_ARRAYAGG(
+        IF(t.id IS NOT NULL,
+          JSON_OBJECT('tag', JSON_OBJECT('id', t.id, 'name', t.name, 'color', t.color)),
+          NULL
+        )
+      ) as tags
+    FROM Link l
+    LEFT JOIN LinkTag lt ON l.id = lt.linkId
+    LEFT JOIN Tag t ON lt.tagId = t.id
+    WHERE l.id = ?
+    GROUP BY l.id
+  `,
+      [linkId],
+    )
+    .then((res) => {
+      const row = res.rows[0] as any;
+      // Handle case where there are no tags (JSON_ARRAYAGG returns [null])
+      row.tags = row.tags?.[0] === null ? [] : row.tags;
+      return row;
+    });
 
   await sendWebhooks({
     trigger: "link.clicked",

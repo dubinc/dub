@@ -1,4 +1,3 @@
-import { NewBackground } from "@/ui/shared/new-background";
 import { Footer, Nav, NavMobile } from "@dub/ui";
 
 export default function CustomDomainLayout({
@@ -7,12 +6,11 @@ export default function CustomDomainLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col justify-between bg-gray-50/80">
+    <div className="flex min-h-screen flex-col justify-between bg-neutral-50/80">
       <NavMobile />
-      <Nav />
+      <Nav maxWidthWrapperClassName="max-w-screen-lg lg:px-4 xl:px-0" />
       {children}
-      <Footer />
-      <NewBackground />
+      <Footer className="max-w-screen-lg border-0 bg-transparent lg:px-4 xl:px-0" />
     </div>
   );
 }

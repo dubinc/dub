@@ -26,8 +26,10 @@ export function constructMetadata({
       url: "https://assets.dub.co/favicons/favicon-16x16.png",
     },
   ],
+  url,
   canonicalUrl,
   noIndex = false,
+  manifest,
 }: {
   title?: string;
   fullTitle?: string;
@@ -35,8 +37,10 @@ export function constructMetadata({
   image?: string | null;
   video?: string | null;
   icons?: Metadata["icons"];
+  url?: string;
   canonicalUrl?: string;
   noIndex?: boolean;
+  manifest?: string | URL | null;
 } = {}): Metadata {
   return {
     title:
@@ -51,6 +55,7 @@ export function constructMetadata({
       ...(image && {
         images: image,
       }),
+      url,
       ...(video && {
         videos: video,
       }),
@@ -69,9 +74,9 @@ export function constructMetadata({
     },
     icons,
     metadataBase: new URL(HOME_DOMAIN),
-    ...(canonicalUrl && {
+    ...((url || canonicalUrl) && {
       alternates: {
-        canonical: canonicalUrl,
+        canonical: url || canonicalUrl,
       },
     }),
     ...(noIndex && {
@@ -79,6 +84,9 @@ export function constructMetadata({
         index: false,
         follow: false,
       },
+    }),
+    ...(manifest && {
+      manifest,
     }),
   };
 }

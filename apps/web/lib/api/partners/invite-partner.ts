@@ -45,30 +45,13 @@ export const invitePartner = async ({
     throw new Error(`Partner ${email} already invited to this program.`);
   }
 
-  const [programInvited, updatedLink] = await Promise.all([
+  const [programInvited] = await Promise.all([
     prisma.programInvite.create({
       data: {
         id: createId({ prefix: "pgi_" }),
         email,
         linkId: link.id,
         programId: program.id,
-      },
-    }),
-
-    // update link to have programId
-    prisma.link.update({
-      where: {
-        id: link.id,
-      },
-      data: {
-        programId: program.id,
-      },
-      include: {
-        tags: {
-          select: {
-            tag: true,
-          },
-        },
       },
     }),
 
@@ -80,8 +63,7 @@ export const invitePartner = async ({
   ]);
 
   waitUntil(
-    Promise.all([
-      recordLink(updatedLink),
+    Promise.allSettled([
       sendEmail({
         subject: `${program.name} invited you to join Dub Partners`,
         email,
@@ -94,6 +76,17 @@ export const invitePartner = async ({
           },
         }),
       }),
+      prisma.link
+        .update({
+          where: {
+            id: link.id,
+          },
+          data: {
+            programId: program.id,
+            folderId: program.defaultFolderId,
+          },
+        })
+        .then((link) => recordLink(link)),
     ]),
   );
 

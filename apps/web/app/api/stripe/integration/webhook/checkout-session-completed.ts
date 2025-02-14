@@ -1,5 +1,6 @@
+import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { createSaleData } from "@/lib/api/sales/create-sale-data";
+import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
 import { createId } from "@/lib/api/utils";
 import {
   getClickEvent,
@@ -17,14 +18,14 @@ import z from "@/lib/zod";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
-import { Customer } from "@dub/prisma/client";
+import { Customer, EventType } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 
 // Handle event "checkout.session.completed"
 export async function checkoutSessionCompleted(event: Stripe.Event) {
-  const charge = event.data.object as Stripe.Checkout.Session;
+  let charge = event.data.object as Stripe.Checkout.Session;
   const dubCustomerId = charge.metadata?.dubCustomerId;
   const clientReferenceId = charge.client_reference_id;
   const stripeAccountId = event.account as string;
@@ -63,22 +64,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       // Skip if customer not found
       console.log(error);
       return `Customer with dubCustomerId ${dubCustomerId} not found, skipping...`;
-    }
-
-    if (invoiceId) {
-      // Skip if invoice id is already processed
-      const ok = await redis.set(`dub_sale_events:invoiceId:${invoiceId}`, 1, {
-        ex: 60 * 60 * 24 * 7,
-        nx: true,
-      });
-
-      if (!ok) {
-        console.info(
-          "[Stripe Webhook] Skipping already processed invoice.",
-          invoiceId,
-        );
-        return `Invoice with ID ${invoiceId} already processed, skipping...`;
-      }
     }
 
     // Find lead
@@ -137,7 +122,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     const payload = {
       name: stripeCustomerName,
       email: stripeCustomerEmail,
-      externalId: stripeCustomerEmail, // using Stripe customer email as externalId
+      externalId: stripeCustomerId, // using Stripe customer ID as externalId
       projectId: workspace.id,
       projectConnectId: stripeAccountId,
       stripeCustomerId,
@@ -163,10 +148,12 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       });
     }
 
+    // remove timestamp from clickEvent
+    const { timestamp, ...rest } = clickEvent;
     leadEvent = {
-      ...clickEvent,
+      ...rest,
       event_id: nanoid(16),
-      event_name: "Checkout session completed",
+      event_name: "Sign up",
       customer_id: customer.id,
       metadata: "",
     };
@@ -174,6 +161,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     if (!existingCustomer) {
       await recordLead(leadEvent);
     }
+
     linkId = clickEvent.link_id;
 
     // if it's not either a regular stripe checkout setup or a stripe checkout link,
@@ -186,10 +174,40 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     return `Checkout session completed for Stripe customer ${stripeCustomerId} with invoice ID ${invoiceId} but amount is 0, skipping...`;
   }
 
+  if (charge.mode === "setup") {
+    return `Checkout session completed for Stripe customer ${stripeCustomerId} but mode is setup, skipping...`;
+  }
+
+  if (invoiceId) {
+    // Skip if invoice id is already processed
+    const ok = await redis.set(`dub_sale_events:invoiceId:${invoiceId}`, 1, {
+      ex: 60 * 60 * 24 * 7,
+      nx: true,
+    });
+
+    if (!ok) {
+      console.info(
+        "[Stripe Webhook] Skipping already processed invoice.",
+        invoiceId,
+      );
+      return `Invoice with ID ${invoiceId} already processed, skipping...`;
+    }
+  }
+
+  // support for Stripe Adaptive Pricing: https://docs.stripe.com/payments/checkout/adaptive-pricing
+  if (charge.currency !== "usd" && charge.currency_conversion) {
+    charge.amount_total = charge.currency_conversion.amount_total;
+    charge.currency = charge.currency_conversion.source_currency;
+  }
+
+  const eventId = nanoid(16);
+
   const saleData = {
     ...leadEvent,
-    event_id: nanoid(16),
-    event_name: "Subscription creation",
+    event_id: eventId,
+    // if the charge is a one-time payment, we set the event name to "Purchase"
+    event_name:
+      charge.mode === "payment" ? "Purchase" : "Subscription creation",
     payment_processor: "stripe",
     amount: charge.amount_total!,
     currency: charge.currency!,
@@ -205,7 +223,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     },
   });
 
-  const [_sale, _link, workspace] = await Promise.all([
+  const [_sale, linkUpdated, workspace] = await Promise.all([
     recordSale(saleData),
 
     // update link sales count
@@ -228,6 +246,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
             increment: charge.amount_total!,
           },
         },
+        include: includeTags,
       }),
 
     // update workspace sales usage
@@ -248,10 +267,14 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   // for program links
   if (link?.programId) {
-    const { program, partnerId, commissionAmount } =
-      await prisma.programEnrollment.findUniqueOrThrow({
+    const { program, ...partner } =
+      await prisma.programEnrollment.findFirstOrThrow({
         where: {
-          linkId: link.id,
+          links: {
+            some: {
+              id: link.id,
+            },
+          },
         },
         select: {
           program: true,
@@ -260,44 +283,39 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         },
       });
 
-    const saleRecord = createSaleData({
+    const saleEarnings = calculateSaleEarnings({
       program,
-      partner: {
-        id: partnerId,
-        commissionAmount,
-      },
-      customer: {
-        id: saleData.customer_id,
-        linkId: saleData.link_id,
-        clickId: saleData.click_id,
-      },
-      sale: {
-        amount: saleData.amount,
-        currency: saleData.currency,
-        invoiceId: saleData.invoice_id,
-        eventId: saleData.event_id,
-        paymentProcessor: saleData.payment_processor,
-      },
-      metadata: {
-        ...leadEvent,
-        stripeMetadata: charge,
-      },
+      partner,
+      sales: 1,
+      saleAmount: saleData.amount,
     });
 
-    await prisma.sale.create({
-      data: saleRecord,
+    await prisma.commission.create({
+      data: {
+        id: createId({ prefix: "cm_" }),
+        linkId: link.id,
+        programId: program.id,
+        partnerId: partner.partnerId,
+        customerId: customer.id,
+        eventId,
+        quantity: 1,
+        type: EventType.sale,
+        amount: saleData.amount,
+        earnings: saleEarnings,
+        invoiceId,
+      },
     });
 
     waitUntil(
       notifyPartnerSale({
         partner: {
-          id: partnerId,
+          id: partner.partnerId,
           referralLink: link.shortLink,
         },
         program,
         sale: {
-          amount: saleRecord.amount,
-          earnings: saleRecord.earnings,
+          amount: saleData.amount,
+          earnings: saleEarnings,
         },
       }),
     );
@@ -313,14 +331,9 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           workspace,
           data: transformLeadEventData({
             ...clickEvent,
-            link,
             eventName: "Checkout session completed",
-            customerId: customer.id,
-            customerExternalId: customer.externalId,
-            customerName: customer.name,
-            customerEmail: customer.email,
-            customerAvatar: customer.avatar,
-            customerCreatedAt: customer.createdAt,
+            link: linkUpdated,
+            customer,
           }),
         });
       }
@@ -331,13 +344,9 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         workspace,
         data: transformSaleEventData({
           ...saleData,
-          link,
-          customerId: customer.id,
-          customerExternalId: customer.externalId,
-          customerName: customer.name,
-          customerEmail: customer.email,
-          customerAvatar: customer.avatar,
-          customerCreatedAt: customer.createdAt,
+          clickedAt: customer.clickedAt || customer.createdAt,
+          link: linkUpdated,
+          customer,
         }),
       });
     })(),

@@ -58,6 +58,7 @@ export const WorkspaceSchema = z
       ),
     domainsLimit: z.number().describe("The domains limit of the workspace."),
     tagsLimit: z.number().describe("The tags limit of the workspace."),
+    foldersLimit: z.number().describe("The folders limit of the workspace."),
     usersLimit: z.number().describe("The users limit of the workspace."),
     aiUsage: z.number().describe("The AI usage of the workspace."),
     aiLimit: z.number().describe("The AI limit of the workspace."),
@@ -105,6 +106,11 @@ export const WorkspaceSchema = z
       .record(z.any())
       .nullable()
       .describe("The miscellaneous key-value store of the workspace."),
+    allowedHostnames: z
+      .array(z.string())
+      .nullable()
+      .describe("Specifies hostnames permitted for client-side click tracking.")
+      .openapi({ example: ["dub.sh"] }),
   })
   .openapi({
     title: "Workspace",
@@ -125,4 +131,6 @@ export const createWorkspaceSchema = z.object({
   conversionEnabled: z.boolean().optional(),
 });
 
-export const updateWorkspaceSchema = createWorkspaceSchema.partial();
+export const updateWorkspaceSchema = createWorkspaceSchema.partial().extend({
+  allowedHostnames: z.array(z.string()).optional(),
+});

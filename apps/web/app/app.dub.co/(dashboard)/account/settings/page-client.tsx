@@ -46,7 +46,7 @@ export default function SettingsPageClient() {
       />
       <Form
         title="Your Email"
-        description={`This will be the email you use to log in to ${APP_NAME} and receive notifications.`}
+        description={`This will be the email you use to log in to ${APP_NAME} and receive notifications. A confirmation is required for changes.`}
         inputAttrs={{
           name: "email",
           type: "email",
@@ -63,8 +63,9 @@ export default function SettingsPageClient() {
             body: JSON.stringify(data),
           }).then(async (res) => {
             if (res.status === 200) {
-              update();
-              toast.success("Successfully updated your email!");
+              toast.success(
+                `A confirmation email has been sent to ${data.email}.`,
+              );
             } else {
               const { error } = await res.json();
               toast.error(error.message);

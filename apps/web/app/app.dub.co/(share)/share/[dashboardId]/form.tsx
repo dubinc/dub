@@ -19,10 +19,10 @@ export default function DashboardPasswordForm() {
   return (
     <form
       action={formAction}
-      className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 sm:px-16"
+      className="flex flex-col space-y-4 bg-neutral-50 px-4 py-8 sm:px-16"
     >
       <div>
-        <label htmlFor="password" className="block text-xs text-gray-600">
+        <label htmlFor="password" className="block text-xs text-neutral-600">
           PASSWORD
         </label>
         <div className="relative mt-1 rounded-md shadow-sm">
@@ -36,7 +36,7 @@ export default function DashboardPasswordForm() {
             className={`${
               state.error
                 ? "border-red-300 pr-10 text-red-500 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
+                : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500"
             } block w-full rounded-md focus:outline-none sm:text-sm`}
           />
           {state.error && (

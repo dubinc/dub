@@ -103,7 +103,7 @@ export function Footer({
                 <span className="sr-only">
                   {process.env.NEXT_PUBLIC_APP_NAME} Logo
                 </span>
-                <NavWordmark className="h-8 text-gray-800" />
+                <NavWordmark className="h-8 text-neutral-800" />
               </Link>
             </div>
             <div className="flex items-center gap-3">

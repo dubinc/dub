@@ -9,16 +9,16 @@ export default function usePartnerAnalytics(
   params?: PartnerAnalyticsFilters & { programId?: string },
 ) {
   const { data: session } = useSession();
-  const partnerId = session?.user?.["defaultPartnerId"];
   const { programSlug } = useParams();
   const searchParams = useSearchParams();
 
+  const partnerId = session?.user?.["defaultPartnerId"];
   const programIdToUse = params?.programId ?? programSlug;
 
   const { data, error } = useSWR<any>(
     partnerId &&
       programIdToUse &&
-      `/api/partners/${partnerId}/programs/${programIdToUse}/analytics?${new URLSearchParams(
+      `/api/partner-profile/programs/${programIdToUse}/analytics?${new URLSearchParams(
         {
           event: params?.event ?? "composite",
           groupBy: params?.groupBy ?? "count",
@@ -36,7 +36,7 @@ export default function usePartnerAnalytics(
                 start: params.start.toISOString(),
                 end: params.end.toISOString(),
               }
-            : { interval: params?.interval ?? "all_unfiltered" }),
+            : { interval: params?.interval ?? "1y" }),
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
       ).toString()}`,

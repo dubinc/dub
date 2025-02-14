@@ -70,6 +70,7 @@ export const approvePartnerAction = authActionClient
       }),
     ]);
 
+    // TODO: send partner.created webhook
     waitUntil(recordLink(updatedLink));
 
     // TODO: [partners] Notify partner of approval?

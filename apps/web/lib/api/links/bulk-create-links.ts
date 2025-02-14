@@ -148,6 +148,7 @@ export async function bulkCreateLinks({
           geo: link.geo || undefined,
         };
       }),
+      skipDuplicates: true,
     });
 
     createdLinks = await prisma.link.findMany({

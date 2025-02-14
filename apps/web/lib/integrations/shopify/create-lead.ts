@@ -1,9 +1,13 @@
+import { includeTags } from "@/lib/api/links/include-tags";
 import { createId } from "@/lib/api/utils";
 import { generateRandomName } from "@/lib/names";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { transformLeadEventData } from "@/lib/webhook/transform";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { orderSchema } from "./schema";
 
 export async function createShopifyLead({
@@ -41,14 +45,16 @@ export async function createShopifyLead({
     },
   });
 
+  const eventName = "Account created";
+
   const leadData = leadEventSchemaTB.parse({
     ...clickData,
     event_id: nanoid(16),
-    event_name: "Account created",
+    event_name: eventName,
     customer_id: customer.id,
   });
 
-  await Promise.all([
+  const [_lead, link, workspace] = await Promise.all([
     // record lead
     recordLead(leadData),
 
@@ -62,6 +68,7 @@ export async function createShopifyLead({
           increment: 1,
         },
       },
+      include: includeTags,
     }),
 
     // update workspace usage
@@ -76,6 +83,36 @@ export async function createShopifyLead({
       },
     }),
   ]);
+
+  if (link.programId && link.partnerId) {
+    // TODO: check if there is a Lead Reward Rule for this partner and if yes, create a lead commission
+    // await prisma.commission.create({
+    //   data: {
+    //     id: createId({ prefix: "cm_" }),
+    //     programId: link.programId,
+    //     linkId: link.id,
+    //     partnerId: link.partnerId,
+    //     eventId: leadData.event_id,
+    //     customerId: customer.id,
+    //     type: "lead",
+    //     amount: 0,
+    //     quantity: 1,
+    //   },
+    // });
+  }
+
+  waitUntil(
+    sendWorkspaceWebhook({
+      trigger: "lead.created",
+      workspace,
+      data: transformLeadEventData({
+        ...clickData,
+        eventName,
+        link,
+        customer,
+      }),
+    }),
+  );
 
   return leadData;
 }

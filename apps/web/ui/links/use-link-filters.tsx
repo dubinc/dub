@@ -16,35 +16,16 @@ export function useLinkFilters() {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
 
-  const domains = useDomainFilterOptions();
   const { tags, tagsAsync } = useTagFilterOptions(
     selectedFilter === "tagIds" ? debouncedSearch : "",
   );
+  const domains = useDomainFilterOptions();
   const users = useUserFilterOptions();
 
   const { queryParams, searchParamsObj } = useRouterStuff();
 
   const filters = useMemo(() => {
     return [
-      {
-        key: "domain",
-        icon: Globe,
-        label: "Domain",
-        getOptionIcon: (value) => (
-          <BlurImage
-            src={`${GOOGLE_FAVICON_URL}${value}`}
-            alt={value}
-            className="h-4 w-4 rounded-full"
-            width={16}
-            height={16}
-          />
-        ),
-        options: domains.map(({ slug, count }) => ({
-          value: slug,
-          label: slug,
-          right: nFormatter(count, { full: true }),
-        })),
-      },
       {
         key: "tagIds",
         icon: Tag,
@@ -68,6 +49,25 @@ export function useLinkFilters() {
             right: count,
             hideDuringSearch,
           })) ?? null,
+      },
+      {
+        key: "domain",
+        icon: Globe,
+        label: "Domain",
+        getOptionIcon: (value) => (
+          <BlurImage
+            src={`${GOOGLE_FAVICON_URL}${value}`}
+            alt={value}
+            className="h-4 w-4 rounded-full"
+            width={16}
+            height={16}
+          />
+        ),
+        options: domains.map(({ slug, count }) => ({
+          value: slug,
+          label: slug,
+          right: nFormatter(count, { full: true }),
+        })),
       },
       {
         key: "userId",
@@ -161,31 +161,6 @@ export function useLinkFilters() {
   };
 }
 
-function useDomainFilterOptions() {
-  const { showArchived } = useContext(LinksDisplayContext);
-
-  const { data: domainsCount } = useLinksCount<
-    {
-      domain: string;
-      _count: number;
-    }[]
-  >({
-    groupBy: "domain",
-    showArchived,
-  });
-
-  return useMemo(() => {
-    if (!domainsCount || domainsCount.length === 0) return [];
-
-    return domainsCount
-      .map(({ domain, _count }) => ({
-        slug: domain,
-        count: _count,
-      }))
-      .sort((a, b) => b.count - a.count);
-  }, [domainsCount]);
-}
-
 function useTagFilterOptions(search: string) {
   const { searchParamsObj } = useRouterStuff();
 
@@ -242,6 +217,31 @@ function useTagFilterOptions(search: string) {
   }, [loadingTags, tags, selectedTags, tagLinksCount, tagIds]);
 
   return { tags: tagsResult, tagsAsync };
+}
+
+function useDomainFilterOptions() {
+  const { showArchived } = useContext(LinksDisplayContext);
+
+  const { data: domainsCount } = useLinksCount<
+    {
+      domain: string;
+      _count: number;
+    }[]
+  >({
+    groupBy: "domain",
+    showArchived,
+  });
+
+  return useMemo(() => {
+    if (!domainsCount || domainsCount.length === 0) return [];
+
+    return domainsCount
+      .map(({ domain, _count }) => ({
+        slug: domain,
+        count: _count,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [domainsCount]);
 }
 
 function useUserFilterOptions() {

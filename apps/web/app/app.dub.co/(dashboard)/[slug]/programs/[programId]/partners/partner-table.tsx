@@ -58,12 +58,17 @@ export function PartnerTable() {
 
   const { partnersCount, error: countError } = usePartnersCount<number>();
 
-  const { data: partners, error } = useSWR<EnrolledPartnerProps[]>(
-    `/api/programs/${programId}/partners${getQueryString(
+  const {
+    data: partners,
+    error,
+    isLoading,
+  } = useSWR<EnrolledPartnerProps[]>(
+    `/api/partners${getQueryString(
       {
         workspaceId,
+        programId,
       },
-      { ignore: ["partnerId"] },
+      { exclude: ["partnerId"] },
     )}`,
     fetcher,
     {
@@ -142,24 +147,29 @@ export function PartnerTable() {
         id: "clicks",
         header: "Clicks",
         accessorFn: (d) =>
-          d.status !== "pending"
-            ? nFormatter(d.link?.clicks, { full: true })
-            : "-",
+          d.status !== "pending" ? nFormatter(d.clicks, { full: true }) : "-",
       },
       {
         id: "leads",
         header: "Leads",
         accessorFn: (d) =>
-          d.status !== "pending"
-            ? nFormatter(d.link?.leads, { full: true })
-            : "-",
+          d.status !== "pending" ? nFormatter(d.leads, { full: true }) : "-",
       },
       {
         id: "sales",
         header: "Sales",
         accessorFn: (d) =>
+          d.status !== "pending" ? nFormatter(d.sales, { full: true }) : "-",
+      },
+      {
+        id: "saleAmount",
+        header: "Revenue",
+        accessorFn: (d) =>
           d.status !== "pending"
-            ? nFormatter(d.link?.sales, { full: true })
+            ? currencyFormatter(d.saleAmount / 100, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })
             : "-",
       },
       {
@@ -196,7 +206,14 @@ export function PartnerTable() {
     onPaginationChange: setPagination,
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
-    sortableColumns: ["createdAt", "clicks", "leads", "sales", "earnings"],
+    sortableColumns: [
+      "createdAt",
+      "clicks",
+      "leads",
+      "sales",
+      "saleAmount",
+      "earnings",
+    ],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
@@ -211,7 +228,7 @@ export function PartnerTable() {
     tdClassName: "border-l-0",
     resourceName: (p) => `partner${p ? "s" : ""}`,
     rowCount: partnersCount || 0,
-    loading: !partners && !error && !countError,
+    loading: isLoading,
     error: error || countError ? "Failed to load partners" : undefined,
   });
 
@@ -324,7 +341,7 @@ function MenuItem({
     <Command.Item
       className={cn(
         "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-600",
-        "data-[selected=true]:bg-gray-100",
+        "data-[selected=true]:bg-neutral-100",
       )}
       onSelect={onSelect}
     >

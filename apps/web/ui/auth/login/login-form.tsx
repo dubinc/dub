@@ -162,7 +162,7 @@ export default function LoginForm({
                 {!showEmailPasswordOnly &&
                   authMethod === lastUsedAuthMethod && (
                     <div className="text-center text-xs">
-                      <span className="text-gray-500">
+                      <span className="text-neutral-500">
                         You signed in with{" "}
                         {lastUsedAuthMethod.charAt(0).toUpperCase() +
                           lastUsedAuthMethod.slice(1)}{" "}
@@ -171,21 +171,21 @@ export default function LoginForm({
                     </div>
                   )}
                 <div className="my-2 flex flex-shrink items-center justify-center gap-2">
-                  <div className="grow basis-0 border-b border-gray-300" />
-                  <span className="text-xs font-normal uppercase leading-none text-gray-500">
+                  <div className="grow basis-0 border-b border-neutral-300" />
+                  <span className="text-xs font-normal uppercase leading-none text-neutral-500">
                     or
                   </span>
-                  <div className="grow basis-0 border-b border-gray-300" />
+                  <div className="grow basis-0 border-b border-neutral-300" />
                 </div>
               </div>
             )}
 
             {showEmailPasswordOnly ? (
-              <div className="mt-2 text-center text-sm text-gray-500">
+              <div className="mt-2 text-center text-sm text-neutral-500">
                 <button
                   type="button"
                   onClick={() => setShowPasswordField(false)}
-                  className="font-semibold text-gray-500 transition-colors hover:text-black"
+                  className="font-semibold text-neutral-500 transition-colors hover:text-black"
                 >
                   Continue with another method
                 </button>

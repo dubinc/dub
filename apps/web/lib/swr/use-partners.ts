@@ -20,8 +20,9 @@ export default function usePartners({
 
   const { data, error } = useSWR<EnrolledPartnerProps[]>(
     enabled && workspaceId
-      ? `/api/programs/${programId}/partners?${new URLSearchParams({
+      ? `/api/partners?${new URLSearchParams({
           workspaceId: workspaceId,
+          programId: programId,
           ...query,
         } as Record<string, any>).toString()}`
       : undefined,

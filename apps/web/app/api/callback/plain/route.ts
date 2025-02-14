@@ -110,6 +110,7 @@ export async function POST(req: NextRequest) {
   }
 
   const {
+    id,
     name,
     slug,
     plan,
@@ -139,6 +140,10 @@ export async function POST(req: NextRequest) {
       {
         key: "workspace",
         components: [
+          ...plainCopySection({
+            label: "Workspace ID",
+            value: `ws_${id}`,
+          }),
           ...plainCopySection({
             label: "Workspace Name",
             value: name,

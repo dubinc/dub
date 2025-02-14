@@ -344,7 +344,7 @@ export function AddEditDomainForm({
                     >
                       <div className="relative mt-2 rounded-md shadow-sm">
                         {id === "logo" ? (
-                          <div className="flex h-24 items-center justify-center overflow-hidden rounded-md border border-gray-300">
+                          <div className="flex h-24 items-center justify-center overflow-hidden rounded-md border border-neutral-300">
                             {!isMobile && (
                               <ShimmerDots className="pointer-events-none z-10 opacity-30 [mask-image:radial-gradient(40%_80%,transparent_50%,black)]" />
                             )}
@@ -422,12 +422,14 @@ const ADVANCED_OPTIONS: {
     title: "Default expiration URL",
     description: "Where to redirect when shortlinks expire",
     icon: Milestone,
+    proFeature: true,
   },
   {
     id: "notFoundUrl",
     title: "Not found URL",
     description: "Where to redirect when shortlinks don't exist",
     icon: Binoculars,
+    proFeature: true,
   },
   {
     id: "placeholder",
