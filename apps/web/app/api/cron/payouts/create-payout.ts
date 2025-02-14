@@ -28,6 +28,7 @@ export const createPayout = async ({
         payoutId: null,
         type,
         status: "pending",
+        // Only process commissions that were created before the holding period
         ...(holdingPeriodDays > 0 && {
           createdAt: {
             lt: new Date(Date.now() - holdingPeriodDays * 24 * 60 * 60 * 1000),

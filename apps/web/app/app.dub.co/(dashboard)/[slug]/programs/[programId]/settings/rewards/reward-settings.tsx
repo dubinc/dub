@@ -312,7 +312,7 @@ function RewardSettingsForm({ program }: { program: ProgramProps }) {
               >
                 {HOLDING_PERIOD_DAYS.map((v) => (
                   <option value={v} key={v}>
-                    {v} days
+                    {v} days {v === 30 && " (recommended)"}
                   </option>
                 ))}
               </select>
