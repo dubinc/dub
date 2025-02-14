@@ -5,7 +5,7 @@ import useSWR from "swr";
 import { VALID_ANALYTICS_FILTERS } from "../analytics/constants";
 import { PartnerAnalyticsFilters } from "../analytics/types";
 
-export function usePartnerEarnings(
+export function usePartnerEarningsTimeseries(
   params?: PartnerAnalyticsFilters & { programId?: string },
 ) {
   const { data: session } = useSession();

@@ -1,6 +1,6 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
-import { usePartnerEarnings } from "@/lib/swr/use-partner-earnings";
+import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import { LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { currencyFormatter } from "@dub/utils";
@@ -19,7 +19,7 @@ export function EarningsChart() {
     interval?: IntervalOptions;
   };
 
-  const { data: timeseries } = usePartnerEarnings({
+  const { data: timeseries } = usePartnerEarningsTimeseries({
     interval,
     start: start ? new Date(start) : undefined,
     end: end ? new Date(end) : undefined,

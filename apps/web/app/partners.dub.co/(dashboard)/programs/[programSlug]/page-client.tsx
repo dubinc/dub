@@ -3,7 +3,7 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
-import { usePartnerEarnings } from "@/lib/swr/use-partner-earnings";
+import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
@@ -180,7 +180,7 @@ export default function ProgramPageClient() {
 function EarningsChart() {
   const { start, end, interval } = useContext(ProgramOverviewContext);
 
-  const { data: timeseries, error } = usePartnerEarnings({
+  const { data: timeseries, error } = usePartnerEarningsTimeseries({
     interval,
     start,
     end,
