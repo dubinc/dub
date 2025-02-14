@@ -1,36 +1,37 @@
-import { DateTime } from "luxon";
+import {
+  addDays,
+  addHours,
+  addMinutes,
+  addMonths,
+  startOfDay,
+  startOfHour,
+  startOfMinute,
+} from "date-fns";
 
-export const sqlGranularityMap: Record<
-  string,
-  {
-    dateFormat: string;
-    dateIncrement: (dt: DateTime) => DateTime;
-    startFunction: (dt: DateTime) => DateTime;
-    formatString: string;
-  }
-> = {
+export const sqlGranularityMap = {
   month: {
     dateFormat: "%Y-%m",
-    dateIncrement: (dt) => dt.plus({ month: 1 }),
-    startFunction: (dt) => dt.startOf("month"),
+    dateIncrement: (date: Date) => addMonths(date, 1),
+    startFunction: (date: Date) =>
+      new Date(date.getFullYear(), date.getMonth(), 1),
     formatString: "yyyy-MM",
   },
   day: {
     dateFormat: "%Y-%m-%d",
-    dateIncrement: (dt) => dt.plus({ day: 1 }),
-    startFunction: (dt) => dt.startOf("day"),
+    dateIncrement: (date: Date) => addDays(date, 1),
+    startFunction: startOfDay,
     formatString: "yyyy-MM-dd",
   },
   hour: {
     dateFormat: "%Y-%m-%d %H:00",
-    dateIncrement: (dt) => dt.plus({ hour: 1 }),
-    startFunction: (dt) => dt.startOf("hour"),
+    dateIncrement: (date: Date) => addHours(date, 1),
+    startFunction: startOfHour,
     formatString: "yyyy-MM-dd HH:00",
   },
   minute: {
     dateFormat: "%Y-%m-%d %H:%i",
-    dateIncrement: (dt) => dt.plus({ minute: 1 }),
-    startFunction: (dt) => dt.startOf("minute"),
+    dateIncrement: (date: Date) => addMinutes(date, 1),
+    startFunction: startOfMinute,
     formatString: "yyyy-MM-dd HH:mm",
   },
 } as const;
