@@ -43,6 +43,7 @@ export const payoutsQuerySchema = z
 export const payoutsCountQuerySchema = payoutsQuerySchema
   .pick({
     status: true,
+    programId: true,
     partnerId: true,
     interval: true,
     start: true,

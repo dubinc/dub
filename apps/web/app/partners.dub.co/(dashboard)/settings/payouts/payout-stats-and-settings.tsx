@@ -2,6 +2,7 @@
 
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { PayoutsCount } from "@/lib/types";
 import StripeConnectButton from "@/ui/partners/stripe-connect-button";
 import { PayoutStatus } from "@dub/prisma/client";
 import { MatrixLines } from "@dub/ui";
@@ -12,7 +13,9 @@ import useSWR from "swr";
 
 export function PayoutStatsAndSettings() {
   const { partner } = usePartnerProfile();
-  const { payoutsCount } = usePartnerPayoutsCount();
+  const { payoutsCount } = usePartnerPayoutsCount<PayoutsCount[]>({
+    groupBy: "status",
+  });
 
   const { data: bankAccount } = useSWR<Stripe.BankAccount | null>(
     partner && `/api/partner-profile/payouts/settings`,
