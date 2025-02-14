@@ -16,7 +16,8 @@ interface FolderDropdownProps {
   onFolderSelect?: (folder: FolderSummary) => void;
   hideViewAll?: boolean;
   hideFolderIcon?: boolean;
-  textClassName?: string;
+  buttonClassName?: string;
+  buttonTextClassName?: string;
   disableAutoRedirect?: boolean; // decide if we should auto redirect to the folder after it's created
 }
 
@@ -24,7 +25,8 @@ export const FolderDropdown = ({
   onFolderSelect,
   hideViewAll = false,
   hideFolderIcon = false,
-  textClassName,
+  buttonClassName,
+  buttonTextClassName,
   disableAutoRedirect = false,
 }: FolderDropdownProps) => {
   const router = useRouter();
@@ -75,7 +77,7 @@ export const FolderDropdown = ({
       <AddFolderModal />
       <Popover
         content={
-          <div className="relative mt-1 max-h-80 w-full space-y-0.5 overflow-auto rounded-md bg-white p-2 text-base sm:w-60 sm:text-sm sm:shadow-lg">
+          <div className="relative mt-1 max-h-80 w-full space-y-0.5 overflow-auto rounded-md bg-white p-2 text-base sm:w-60 sm:text-sm sm:shadow-lg md:w-80">
             {!hideViewAll && (
               <div className="flex items-center justify-between px-2 pb-1">
                 <p className="text-xs font-medium text-neutral-500">Folders</p>
@@ -112,7 +114,7 @@ export const FolderDropdown = ({
                 >
                   <FolderIcon folder={folder} shape="square" />
                   <span
-                    className={`flex items-center justify-start gap-1.5 text-sm sm:max-w-[140px] ${
+                    className={`flex items-center justify-start gap-1.5 text-sm sm:max-w-36 md:max-w-52 ${
                       selectedFolder?.id === folder.id
                         ? "font-medium"
                         : "font-normal"
@@ -181,19 +183,24 @@ export const FolderDropdown = ({
       >
         <button
           className={cn(
-            "group flex max-w-60 items-center gap-2 rounded-lg px-2 py-1",
+            "group flex max-w-40 items-center gap-2 rounded-lg px-2 py-1 md:max-w-fit",
             "transition-colors hover:bg-neutral-100 active:bg-neutral-200 data-[state=open]:bg-neutral-100",
+            buttonClassName,
           )}
         >
           {!(selectedFolder?.id === "unsorted" && hideFolderIcon) &&
             selectedFolder && (
-              <FolderIcon folder={selectedFolder} shape="square" />
+              <FolderIcon
+                folder={selectedFolder}
+                shape="square"
+                className="hidden md:block"
+              />
             )}
 
           <h1
             className={cn(
               "min-w-0 truncate text-left text-xl font-semibold leading-7 text-neutral-900 md:text-2xl",
-              textClassName,
+              buttonTextClassName,
             )}
           >
             {selectedFolder ? selectedFolder.name : "Links"}
