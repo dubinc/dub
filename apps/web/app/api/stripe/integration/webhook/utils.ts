@@ -1,5 +1,6 @@
 import { includeTags } from "@/lib/api/links/include-tags";
 import { createId } from "@/lib/api/utils";
+import { generateRandomName } from "@/lib/names";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
@@ -11,7 +12,7 @@ import type Stripe from "stripe";
 export async function createNewCustomer(event: Stripe.Event) {
   const stripeCustomer = event.data.object as Stripe.Customer;
   const stripeAccountId = event.account as string;
-  const externalId = stripeCustomer.metadata?.dubCustomerId;
+  const dubCustomerExternalId = stripeCustomer.metadata?.dubCustomerId;
   const clickId = stripeCustomer.metadata?.dubClickId;
 
   // The client app should always send dubClickId (dub_id) via metadata
@@ -43,11 +44,11 @@ export async function createNewCustomer(event: Stripe.Event) {
   const customer = await prisma.customer.create({
     data: {
       id: createId({ prefix: "cus_" }),
-      name: stripeCustomer.name,
+      name: stripeCustomer.name || generateRandomName(),
       email: stripeCustomer.email,
       stripeCustomerId: stripeCustomer.id,
       projectConnectId: stripeAccountId,
-      externalId,
+      externalId: dubCustomerExternalId,
       projectId: link.projectId,
       linkId,
       clickId,
