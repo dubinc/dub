@@ -7,10 +7,13 @@ export const getFolderIdsToFilter = async ({
   userId,
   folderIdToVerify,
 }: {
-  workspace: Pick<Project, "id" | "plan">;
+  workspace: Pick<Project, "id" | "plan" | "foldersUsage">;
   userId: string;
   folderIdToVerify?: string;
 }) => {
+  if (workspace.foldersUsage === 0) {
+    return [];
+  }
   // If the request is not for a specific folder, find folders the user has access to + unsorted folder
   let folderIds: string[] | undefined = undefined;
 
