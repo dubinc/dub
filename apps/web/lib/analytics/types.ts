@@ -34,6 +34,7 @@ export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
   dataAvailableFrom?: Date;
   isDemo?: boolean;
   isDeprecatedClicksEndpoint?: boolean;
+  folderIds?: string[];
 };
 
 export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
@@ -41,6 +42,7 @@ export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
   dataAvailableFrom?: Date;
   isDemo?: boolean;
   customerId?: string;
+  folderIds?: string[];
 };
 
 const partnerAnalyticsSchema = analyticsQuerySchema
