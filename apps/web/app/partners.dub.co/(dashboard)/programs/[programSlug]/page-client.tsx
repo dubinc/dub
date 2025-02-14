@@ -178,22 +178,18 @@ export default function ProgramPageClient() {
 }
 
 function EarningsChart() {
-  const { start, end, interval, color } = useContext(ProgramOverviewContext);
-
-  const { data: { earnings: total } = {} } = usePartnerEarnings({
-    event: "composite",
-    interval,
-    start,
-    end,
-  });
+  const { start, end, interval } = useContext(ProgramOverviewContext);
 
   const { data: timeseries, error } = usePartnerEarnings({
-    event: "sales",
-    groupBy: "timeseries",
     interval,
     start,
     end,
   });
+
+  const total = useMemo(
+    () => timeseries?.reduce((acc, { earnings }) => acc + earnings, 0),
+    [timeseries],
+  );
 
   const data = useMemo(
     () =>

@@ -1,15 +1,13 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
 import { usePartnerEarnings } from "@/lib/swr/use-partner-earnings";
-import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { currencyFormatter } from "@dub/utils";
 import { useMemo } from "react";
 
 export function EarningsChart() {
-  const { programEnrollment } = useProgramEnrollment();
-  const { queryParams, searchParamsObj, getQueryString } = useRouterStuff();
+  const { searchParamsObj } = useRouterStuff();
 
   const {
     start,
@@ -21,9 +19,7 @@ export function EarningsChart() {
     interval?: IntervalOptions;
   };
 
-  const { data: timeseries, error } = usePartnerEarnings({
-    event: "composite",
-    groupBy: "timeseries",
+  const { data: timeseries } = usePartnerEarnings({
     interval,
     start: start ? new Date(start) : undefined,
     end: end ? new Date(end) : undefined,

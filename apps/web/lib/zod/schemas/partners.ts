@@ -371,3 +371,14 @@ export const partnerAnalyticsResponseSchema = {
     title: "PartnerAnalyticsTopLinks",
   }),
 } as const;
+
+export const partnerProfileAnalyticsQuerySchema = analyticsQuerySchema
+  .pick({
+    start: true,
+    end: true,
+    interval: true,
+    timezone: true,
+  })
+  .extend({
+    groupBy: z.enum(["type", "linkId"]).optional(),
+  });
