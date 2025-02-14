@@ -7,7 +7,7 @@ import { Button, Popover, Tick, TooltipContent } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAddFolderModal } from "../modals/add-folder-modal";
 import { FolderIcon } from "./folder-icon";
@@ -17,6 +17,7 @@ interface FolderDropdownProps {
   hideViewAll?: boolean;
   hideFolderIcon?: boolean;
   textClassName?: string;
+  disableAutoRedirect?: boolean; // decide if we should auto redirect to the folder after it's created
 }
 
 export const FolderDropdown = ({
@@ -24,20 +25,32 @@ export const FolderDropdown = ({
   hideViewAll = false,
   hideFolderIcon = false,
   textClassName,
+  disableAutoRedirect = false,
 }: FolderDropdownProps) => {
+  const router = useRouter();
   const { slug, plan } = useWorkspace();
-
   const searchParams = useSearchParams();
   const { folders, loading } = useFolders();
   const [openPopover, setOpenPopover] = useState(false);
+
   const [selectedFolder, setSelectedFolder] = useState<FolderSummary | null>(
     unsortedLinks,
   );
+
   const folderId = searchParams.get("folderId");
 
   const { AddFolderModal, setShowAddFolderModal } = useAddFolderModal({
     onSuccess: (folder) => {
       setSelectedFolder(folder);
+      onFolderSelect?.(folder);
+
+      if (!disableAutoRedirect) {
+        if (folder.id !== "unsorted") {
+          router.push(`/${slug}?folderId=${folder.id}`);
+        } else {
+          router.push(`/${slug}`);
+        }
+      }
     },
   });
 
@@ -45,6 +58,7 @@ export const FolderDropdown = ({
     if (folders) {
       const folder = folders.find((f) => f.id === folderId) || unsortedLinks;
       setSelectedFolder(folder);
+      onFolderSelect?.(folder);
     }
   }, [folderId, folders]);
 

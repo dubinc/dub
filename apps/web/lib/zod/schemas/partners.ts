@@ -9,7 +9,7 @@ import { z } from "zod";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
 import { CustomerSchema } from "./customers";
-import { createLinkBodySchema } from "./links";
+import { createLinkBodySchema, LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { ProgramEnrollmentSchema } from "./programs";
 import { parseDateSchema, parseUrlSchema } from "./utils";
@@ -171,6 +171,10 @@ export const PartnerEarningsSchema = SaleResponseSchema.omit({
         avatar: z.string().nullable(),
       })
       .nullable(),
+    link: LinkSchema.pick({
+      shortLink: true,
+      url: true,
+    }),
   }),
 );
 

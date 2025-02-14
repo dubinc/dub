@@ -20,9 +20,6 @@ export function useRouterStuff() {
     },
   ) => {
     let newParams = new URLSearchParams(searchParams);
-    if (kv) {
-      Object.entries(kv).forEach(([k, v]) => newParams.set(k, v));
-    }
     if (opts?.include && Array.isArray(opts.include)) {
       const filteredParams = new URLSearchParams();
       searchParams.forEach((value, key) => {
@@ -34,6 +31,9 @@ export function useRouterStuff() {
     }
     if (opts?.exclude && Array.isArray(opts.exclude)) {
       opts.exclude.forEach((k) => newParams.delete(k));
+    }
+    if (kv) {
+      Object.entries(kv).forEach(([k, v]) => newParams.set(k, v));
     }
     const queryString = newParams.toString();
     return queryString.length > 0 ? `?${queryString}` : "";

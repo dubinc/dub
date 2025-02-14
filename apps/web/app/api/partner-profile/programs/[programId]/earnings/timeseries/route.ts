@@ -5,9 +5,8 @@ import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
-import { format } from "date-fns";
+import { DateTime } from "luxon";
 import { NextResponse } from "next/server";
-
 const partnerAnalyticsQuerySchema = analyticsQuerySchema.pick({
   event: true,
   start: true,
@@ -30,6 +29,13 @@ interface Earnings {
   earnings: number;
 }
 
+const eventMap = {
+  clicks: "click",
+  leads: "lead",
+  sales: "sale",
+  composite: "click, lead, sale",
+};
+
 // GET /api/partner-profile/programs/[programId]/earnings/timeseries - get timeseries chart for a partner's earnings
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
@@ -38,7 +44,7 @@ export const GET = withPartnerProfile(
       programId: params.programId,
     });
 
-    const { start, end, interval, groupBy, event } =
+    const { start, end, interval, groupBy, event, timezone } =
       partnerAnalyticsQuerySchema.parse(searchParams);
 
     const { startDate, endDate, granularity } = getStartEndDates({
@@ -48,13 +54,6 @@ export const GET = withPartnerProfile(
     });
 
     if (groupBy === "count") {
-      const eventMap = {
-        clicks: "click",
-        leads: "lead",
-        sales: "sale",
-        composite: "click, lead, sale",
-      };
-
       const earnings = await prisma.$queryRaw<EarningsResult>`
         SELECT
           COUNT(CASE WHEN type = 'click' THEN 1 END) AS clicks,
@@ -84,7 +83,7 @@ export const GET = withPartnerProfile(
 
     const earnings = await prisma.$queryRaw<Earnings[]>`
       SELECT 
-        DATE_FORMAT(createdAt, ${dateFormat}) AS start, 
+        DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone || "UTC"}), ${dateFormat}) AS start, 
         SUM(earnings) AS earnings
       FROM Commission
       WHERE 
@@ -97,7 +96,9 @@ export const GET = withPartnerProfile(
     `;
 
     const timeseries: Earnings[] = [];
-    let currentDate = startFunction(startDate);
+    let currentDate = startFunction(
+      DateTime.fromJSDate(startDate).setZone(timezone || "UTC"),
+    );
 
     const commissionLookup = Object.fromEntries(
       earnings.map((item) => [
@@ -109,10 +110,10 @@ export const GET = withPartnerProfile(
     );
 
     while (currentDate < endDate) {
-      const periodKey = format(currentDate, formatString);
+      const periodKey = currentDate.toFormat(formatString);
 
       timeseries.push({
-        start: format(currentDate, "yyyy-MM-dd'T'HH:mm:ssxxx"),
+        start: currentDate.toISO(),
         earnings: commissionLookup[periodKey]?.earnings || 0,
       });
 
