@@ -18,7 +18,8 @@ export async function importReferrals({
   programId: string;
   page: number;
 }) {
-  const { token, userId } = await rewardfulImporter.getCredentials(programId);
+  const { token, userId, campaignId } =
+    await rewardfulImporter.getCredentials(programId);
 
   const rewardfulApi = new RewardfulApi({ token });
 
@@ -51,6 +52,7 @@ export async function importReferrals({
           referral,
           workspace,
           program,
+          campaignId,
         }),
       ),
     );
@@ -96,11 +98,25 @@ async function createReferral({
   referral,
   workspace,
   program,
+  campaignId,
 }: {
   referral: RewardfulReferral;
   workspace: Project;
   program: Program;
+  campaignId: string;
 }) {
+  if (
+    referral.affiliate?.campaign &&
+    referral.affiliate.campaign.id !== campaignId
+  ) {
+    console.log(
+      "Referral not in campaign",
+      referral.affiliate?.campaign?.id,
+      campaignId,
+    );
+    return;
+  }
+
   const link = await prisma.link.findUnique({
     where: {
       domain_key: {
@@ -112,6 +128,11 @@ async function createReferral({
 
   if (!link) {
     console.log("Link not found", referral.link.token);
+    return;
+  }
+
+  if (!referral.stripe_customer_id) {
+    console.log("No Stripe customer ID provided for referral");
     return;
   }
 
