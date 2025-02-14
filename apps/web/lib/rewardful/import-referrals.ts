@@ -5,7 +5,7 @@ import { nanoid } from "@dub/utils";
 import { Program, Project } from "@prisma/client";
 import { createId } from "../api/utils";
 import { recordClick } from "../tinybird/record-click";
-import { recordLead } from "../tinybird/record-lead";
+import { recordLeadWithTimestamp } from "../tinybird/record-lead";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
@@ -173,11 +173,12 @@ async function createReferral({
       },
     }),
 
-    recordLead({
+    recordLeadWithTimestamp({
       ...clickEvent,
       event_id: nanoid(16),
       event_name: "Sign up",
       customer_id: customerId,
+      timestamp: new Date(referral.became_lead_at).toISOString(),
     }),
 
     prisma.link.update({
