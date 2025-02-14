@@ -11,6 +11,15 @@ export const createPayout = async ({
   partnerId: string;
   type: EventType;
 }) => {
+  const { holdingPeriodDays } = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: programId,
+    },
+    select: {
+      holdingPeriodDays: true,
+    },
+  });
+
   await prisma.$transaction(async (tx) => {
     const commissions = await tx.commission.findMany({
       where: {
@@ -19,6 +28,12 @@ export const createPayout = async ({
         payoutId: null,
         type,
         status: "pending",
+        // Only process commissions that were created before the holding period
+        ...(holdingPeriodDays > 0 && {
+          createdAt: {
+            lt: new Date(Date.now() - holdingPeriodDays * 24 * 60 * 60 * 1000),
+          },
+        }),
       },
       select: {
         id: true,
@@ -36,6 +51,7 @@ export const createPayout = async ({
         programId,
         partnerId,
         type,
+        holdingPeriodDays,
       });
 
       return;

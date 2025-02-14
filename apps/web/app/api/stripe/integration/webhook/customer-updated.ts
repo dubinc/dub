@@ -27,19 +27,24 @@ export async function customerUpdated(event: Stripe.Event) {
   });
 
   if (customer) {
-    await prisma.customer.update({
-      where: {
-        id: customer.id,
-      },
-      data: {
-        externalId: dubCustomerExternalId,
-        stripeCustomerId: stripeCustomer.id,
-        name: stripeCustomer.name,
-        email: stripeCustomer.email,
-      },
-    });
+    try {
+      await prisma.customer.update({
+        where: {
+          id: customer.id,
+        },
+        data: {
+          externalId: dubCustomerExternalId,
+          stripeCustomerId: stripeCustomer.id,
+          name: stripeCustomer.name,
+          email: stripeCustomer.email,
+        },
+      });
 
-    return `Dub customer with ID ${customer.id} updated.`;
+      return `Dub customer with ID ${customer.id} updated.`;
+    } catch (error) {
+      console.error(error);
+      return `Error updating Dub customer with ID ${customer.id}: ${error}`;
+    }
   }
 
   // otherwise create a new customer
