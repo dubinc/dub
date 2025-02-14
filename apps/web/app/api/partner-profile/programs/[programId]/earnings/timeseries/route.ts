@@ -81,9 +81,12 @@ export const GET = withPartnerProfile(
     const { dateFormat, dateIncrement, startFunction, formatString } =
       sqlGranularityMap[granularity];
 
-    const earnings = await prisma.$queryRaw<Earnings[]>`
+    const earnings = await prisma.$queryRaw<
+      { start: string; type: string; earnings: number }[]
+    >`
       SELECT 
         DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone || "UTC"}), ${dateFormat}) AS start, 
+        ${event === "composite" ? Prisma.sql`type,` : Prisma.sql``}
         SUM(earnings) AS earnings
       FROM Commission
       WHERE 
@@ -91,7 +94,7 @@ export const GET = withPartnerProfile(
         AND createdAt < ${endDate}
         AND programId = ${program.id}
         AND partnerId = ${partner.id}
-      GROUP BY start
+      GROUP BY start ${event === "composite" ? Prisma.sql`, type` : Prisma.sql``}
       ORDER BY start ASC;
     `;
 
@@ -100,21 +103,24 @@ export const GET = withPartnerProfile(
       DateTime.fromJSDate(startDate).setZone(timezone || "UTC"),
     );
 
-    const commissionLookup = Object.fromEntries(
-      earnings.map((item) => [
-        item.start,
-        {
-          earnings: Number(item.earnings),
-        },
-      ]),
-    );
+    const commissionLookup = earnings.reduce((acc, item) => {
+      if (!(item.start in acc)) acc[item.start] = { earnings: 0 };
+
+      acc[item.start].earnings += Number(item.earnings);
+      acc[item.start][item.type] = Number(item.earnings);
+      return acc;
+    }, {});
 
     while (currentDate < endDate) {
       const periodKey = currentDate.toFormat(formatString);
 
       timeseries.push({
         start: currentDate.toISO(),
-        earnings: commissionLookup[periodKey]?.earnings || 0,
+        earnings: 0,
+        sale: 0,
+        lead: 0,
+        click: 0,
+        ...commissionLookup[periodKey],
       });
 
       currentDate = dateIncrement(currentDate);

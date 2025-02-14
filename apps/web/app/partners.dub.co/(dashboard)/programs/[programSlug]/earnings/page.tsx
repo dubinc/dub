@@ -6,7 +6,7 @@ export default function ProgramEarning() {
   return (
     <PageContent title="Earnings" hideReferButton>
       <MaxWidthWrapper>
-        <EarningsTablePartner />
+        <EarningsTablePartner withChart />
       </MaxWidthWrapper>
     </PageContent>
   );

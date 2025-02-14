@@ -32,8 +32,15 @@ import {
 } from "@dub/utils";
 import { useMemo } from "react";
 import useSWR from "swr";
+import { EarningsChart } from "./earnings-chart";
 
-export function EarningsTablePartner({ limit }: { limit?: number }) {
+export function EarningsTablePartner({
+  limit,
+  withChart,
+}: {
+  limit?: number;
+  withChart?: boolean;
+}) {
   const { programEnrollment } = useProgramEnrollment();
   const { queryParams, searchParamsObj, getQueryString } = useRouterStuff();
 
@@ -176,8 +183,9 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
   });
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-6">
       {!limit && <EarningsTableControls />}
+      {withChart && <EarningsChart />}
       {isLoading || earnings?.length ? (
         <Table
           {...tableProps}
