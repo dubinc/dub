@@ -1,6 +1,5 @@
 import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
-import { userIsInBeta } from "../edge-config";
 import { getDefaultPartner } from "./utils/get-default-partner";
 import { getUserViaToken } from "./utils/get-user-via-token";
 
@@ -39,26 +38,18 @@ export default async function PartnersMiddleware(req: NextRequest) {
       ),
     );
   } else if (user) {
-    const partnersEnabled = await userIsInBeta(user.email, "partnersPortal");
+    const defaultPartner = await getDefaultPartner(user);
 
-    if (!partnersEnabled) {
-      if (path !== "/waitlist") {
-        return NextResponse.redirect(new URL("/waitlist", req.url));
-      }
-    } else {
-      const defaultPartner = await getDefaultPartner(user);
-
-      if (!defaultPartner && !path.startsWith("/onboarding")) {
-        return NextResponse.redirect(new URL("/onboarding", req.url));
-      } else if (path === "/" || path.startsWith("/pn_")) {
-        return NextResponse.redirect(new URL("/programs", req.url));
-      } else if (
-        ["/login", "/register"].some(
-          (p) => path.startsWith(p) || path.endsWith(p),
-        )
-      ) {
-        return NextResponse.redirect(new URL("/", req.url)); // Redirect authenticated users to dashboard
-      }
+    if (!defaultPartner && !path.startsWith("/onboarding")) {
+      return NextResponse.redirect(new URL("/onboarding", req.url));
+    } else if (path === "/" || path.startsWith("/pn_")) {
+      return NextResponse.redirect(new URL("/programs", req.url));
+    } else if (
+      ["/login", "/register"].some(
+        (p) => path.startsWith(p) || path.endsWith(p),
+      )
+    ) {
+      return NextResponse.redirect(new URL("/", req.url)); // Redirect authenticated users to dashboard
     }
   }
 
