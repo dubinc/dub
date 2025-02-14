@@ -230,16 +230,14 @@ function EarningsChart() {
             )}
           </div>
         </div>
-        <div className="flex w-full items-center md:w-auto">
+        <div className="flex w-full items-center gap-2 md:w-auto">
+          <ViewMoreButton
+            href={`/programs/${programSlug}/earnings${getQueryString()}`}
+          />
           <SimpleDateRangePicker
             className="h-7 w-full px-2.5 text-xs font-medium md:w-fit"
             align="end"
           />
-          <div className="pl-0 transition-[padding] duration-200 group-hover:pl-2">
-            <ViewMoreButton
-              href={`/programs/${programSlug}/earnings${getQueryString()}`}
-            />
-          </div>
         </div>
       </div>
       <div className="relative mt-2 h-44 w-full">
@@ -424,7 +422,7 @@ function BrandedChart({
 
 function ViewMoreButton({ href }: { href: string }) {
   return (
-    <div className="-mr-5 pr-5 [mask-image:linear-gradient(270deg,transparent,black_20px)] [mask-origin:padding-box]">
+    <div className="-mr-2 pr-2 [mask-image:linear-gradient(270deg,transparent,black_8px)] [mask-origin:padding-box]">
       <div className="overflow-visible transition-all duration-200 focus-within:w-[82px] focus-within:opacity-100 group-hover:w-[82px] group-hover:opacity-100 sm:w-0 sm:opacity-0">
         <Link
           href={href}
