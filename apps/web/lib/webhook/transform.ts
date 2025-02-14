@@ -5,6 +5,7 @@ import {
 import { Webhook } from "@dub/prisma/client";
 import { nanoid, toCamelCase } from "@dub/utils";
 import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
+import { generateRandomName } from "../names";
 import { WebhookTrigger } from "../types";
 import z from "../zod";
 import { clickEventSchema, clickEventSchemaTB } from "../zod/schemas/clicks";
@@ -47,6 +48,17 @@ export const transformClickEventData = (
   });
 };
 
+const transformWebhookCustomer = (customer: any) => {
+  return {
+    ...customer,
+    name: customer.name || customer.email || generateRandomName(),
+    country: undefined,
+    avatar:
+      customer.avatar ||
+      `https://api.dicebear.com/9.x/notionists/svg?seed=${customer.id}`,
+  };
+};
+
 export const transformLeadEventData = (data: any) => {
   const lead = Object.fromEntries(
     Object.entries(data).map(([key, value]) => [toCamelCase(key), value]),
@@ -56,13 +68,7 @@ export const transformLeadEventData = (data: any) => {
 
   return leadWebhookEventSchema.parse({
     ...lead,
-    customer: {
-      ...customer,
-      country: undefined,
-      avatar:
-        customer.avatar ||
-        `https://api.dicebear.com/9.x/micah/svg?seed=${customer.id}`,
-    },
+    customer: transformWebhookCustomer(customer),
     click: {
       ...lead,
       id: lead.clickId,
@@ -82,13 +88,7 @@ export const transformSaleEventData = (data: any) => {
 
   return saleWebhookEventSchema.parse({
     ...sale,
-    customer: {
-      ...customer,
-      country: undefined,
-      avatar:
-        customer.avatar ||
-        `https://api.dicebear.com/9.x/micah/svg?seed=${customer.id}`,
-    },
+    customer: transformWebhookCustomer(customer),
     sale: {
       amount: sale.amount,
       currency: sale.currency,

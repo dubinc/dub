@@ -30,6 +30,13 @@ interface Earnings {
   earnings: number;
 }
 
+const eventMap = {
+  clicks: "click",
+  leads: "lead",
+  sales: "sale",
+  composite: "click, lead, sale",
+};
+
 // GET /api/partner-profile/programs/[programId]/earnings/timeseries - get timeseries chart for a partner's earnings
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
@@ -38,7 +45,7 @@ export const GET = withPartnerProfile(
       programId: params.programId,
     });
 
-    const { start, end, interval, groupBy, event } =
+    const { start, end, interval, groupBy, event, timezone } =
       partnerAnalyticsQuerySchema.parse(searchParams);
 
     const { startDate, endDate, granularity } = getStartEndDates({
@@ -48,13 +55,6 @@ export const GET = withPartnerProfile(
     });
 
     if (groupBy === "count") {
-      const eventMap = {
-        clicks: "click",
-        leads: "lead",
-        sales: "sale",
-        composite: "click, lead, sale",
-      };
-
       const earnings = await prisma.$queryRaw<EarningsResult>`
         SELECT
           COUNT(CASE WHEN type = 'click' THEN 1 END) AS clicks,
@@ -84,7 +84,7 @@ export const GET = withPartnerProfile(
 
     const earnings = await prisma.$queryRaw<Earnings[]>`
       SELECT 
-        DATE_FORMAT(createdAt, ${dateFormat}) AS start, 
+        DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone || "UTC"}), ${dateFormat}) AS start, 
         SUM(earnings) AS earnings
       FROM Commission
       WHERE 

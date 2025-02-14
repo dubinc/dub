@@ -58,6 +58,12 @@ export const GET = withPartnerProfile(
         createdAt: true,
         updatedAt: true,
         customer: true,
+        link: {
+          select: {
+            shortLink: true,
+            url: true,
+          },
+        },
       },
       skip: (page - 1) * pageSize,
       take: pageSize,

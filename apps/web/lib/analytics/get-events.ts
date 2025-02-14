@@ -2,6 +2,7 @@ import { tb } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
 import { transformLink } from "../api/links";
+import { generateRandomName } from "../names";
 import { tbDemo } from "../tinybird/demo-client";
 import z from "../zod";
 import { eventsFilterTB } from "../zod/schemas/analytics";
@@ -37,7 +38,6 @@ export const getEvents = async (params: EventsFilters) => {
     isDemo,
     order,
     sortOrder,
-    folderId,
     dataAvailableFrom,
   } = params;
 
@@ -89,7 +89,6 @@ export const getEvents = async (params: EventsFilters) => {
     offset: (params.page - 1) * params.limit,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
-    folderId: folderId || "",
   });
 
   const [linksMap, customersMap] = await Promise.all([
@@ -202,16 +201,14 @@ const getCustomersMap = async (customerIds: string[]) => {
 
   return customers.reduce(
     (acc, customer) => {
-      // TODO:
-      // Can we do CustomerSchema.parse(customer) instead?
       acc[customer.id] = CustomerSchema.parse({
         id: customer.id,
         externalId: customer.externalId,
-        name: customer.name || "",
+        name: customer.name || customer.email || generateRandomName(),
         email: customer.email || "",
         avatar:
           customer.avatar ||
-          `https://api.dicebear.com/9.x/notionists/png?seed=${customer.id}`,
+          `https://api.dicebear.com/9.x/notionists/svg?seed=${customer.id}`,
         country: customer.country || "",
         createdAt: customer.createdAt,
       });

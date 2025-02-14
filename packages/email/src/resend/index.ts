@@ -7,10 +7,10 @@ export const resend = process.env.RESEND_API_KEY
 // Send email using Resend (Recommended for production)
 export const sendEmailViaResend = async ({
   email,
+  replyTo,
   subject,
   from,
   bcc,
-  replyTo,
   text,
   react,
   scheduledAt,
@@ -18,7 +18,6 @@ export const sendEmailViaResend = async ({
 }: Omit<CreateEmailOptions, "to" | "from"> & {
   email: string;
   from?: string;
-  replyTo?: string;
   marketing?: boolean;
 }) => {
   if (!resend) {
