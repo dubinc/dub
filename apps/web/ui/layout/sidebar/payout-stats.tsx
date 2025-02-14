@@ -2,6 +2,7 @@
 
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { PayoutsCount } from "@/lib/types";
 import StripeConnectButton from "@/ui/partners/stripe-connect-button";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
@@ -12,7 +13,9 @@ import Link from "next/link";
 
 export function PayoutStats() {
   const { partner } = usePartnerProfile();
-  const { payoutsCount } = usePartnerPayoutsCount();
+  const { payoutsCount } = usePartnerPayoutsCount<PayoutsCount[]>({
+    groupBy: "status",
+  });
 
   return (
     <AnimatedSizeContainer height>
@@ -43,7 +46,7 @@ export function PayoutStats() {
               {payoutsCount ? (
                 <p className="text-black">
                   {currencyFormatter(
-                    (payoutsCount.find(
+                    (payoutsCount?.find(
                       (payout) => payout.status === PayoutStatus.pending,
                     )?.amount || 0) / 100,
                     {

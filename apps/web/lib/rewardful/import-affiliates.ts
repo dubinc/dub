@@ -1,9 +1,8 @@
 import { prisma } from "@dub/prisma";
 import { Program, Project } from "@dub/prisma/client";
-import { createLink } from "../api/links/create-link";
-import { processLink } from "../api/links/process-link";
+import { nanoid } from "@dub/utils";
+import { bulkCreateLinks } from "../api/links";
 import { createId } from "../api/utils";
-import { WorkspaceProps } from "../types";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulAffiliate } from "./types";
@@ -46,7 +45,13 @@ export async function importAffiliates({
     }
 
     const activeAffiliates = affiliates.filter(
-      (affiliate) => affiliate.state === "active",
+      (affiliate) =>
+        // only active affiliates
+        affiliate.state === "active" &&
+        // have more than 1 lead or joined in the last 6 months
+        (affiliate.leads > 0 ||
+          new Date(affiliate.created_at) >
+            new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000)),
     );
 
     if (activeAffiliates.length > 0) {
@@ -95,12 +100,10 @@ async function createPartnerAndLinks({
       name: `${affiliate.first_name} ${affiliate.last_name}`,
       email: affiliate.email,
     },
-    update: {
-      //
-    },
+    update: {},
   });
 
-  await prisma.programEnrollment.upsert({
+  const programEnrollment = await prisma.programEnrollment.upsert({
     where: {
       partnerId_programId: {
         partnerId: partner.id,
@@ -115,6 +118,9 @@ async function createPartnerAndLinks({
     update: {
       status: "approved",
     },
+    include: {
+      links: true,
+    },
   });
 
   if (!program.domain || !program.url) {
@@ -122,35 +128,22 @@ async function createPartnerAndLinks({
     return;
   }
 
-  await Promise.all(
-    affiliate.links.map(async (link) => {
-      try {
-        const { link: newLink, error } = await processLink({
-          payload: {
-            url: link.url || program.url!,
-            key: link.token || undefined,
-            domain: program.domain!,
-            programId: program.id,
-            partnerId: partner.id,
-            trackConversion: true,
-            folderId: program.defaultFolderId,
-          },
-          userId,
-          skipProgramChecks: true,
-          workspace: workspace as WorkspaceProps,
-        });
+  if (programEnrollment.links.length > 0) {
+    console.log("Partner already has links", partner.id);
+    return;
+  }
 
-        if (error != null) {
-          console.error("Error creating link", error);
-          return;
-        }
-
-        const partnerLink = await createLink(newLink);
-
-        console.log("Partner link created", partnerLink);
-      } catch (error) {
-        console.error("Error processing link:", error);
-      }
-    }),
-  );
+  await bulkCreateLinks({
+    links: affiliate.links.map((link) => ({
+      domain: program.domain!,
+      key: link.token || nanoid(),
+      url: program.url!,
+      trackConversion: true,
+      programId: program.id,
+      partnerId: partner.id,
+      folderId: program.defaultFolderId,
+      userId,
+      projectId: workspace.id,
+    })),
+  });
 }

@@ -1,5 +1,4 @@
 import { DubApiError } from "@/lib/api/errors";
-import { APP_DOMAIN } from "@dub/utils";
 import {
   RewardfulAffiliate,
   RewardfulCampaign,
@@ -18,11 +17,7 @@ class RewardfulApiError extends DubApiError {
 }
 
 export class RewardfulApi {
-  private readonly baseUrl =
-    process.env.NODE_ENV === "production"
-      ? "https://api.getrewardful.com"
-      : `${APP_DOMAIN}/api/mock/rewardful`;
-
+  private readonly baseUrl = "https://api.getrewardful.com/v1";
   private readonly token: string;
 
   constructor({ token }: { token: string }) {
@@ -32,17 +27,19 @@ export class RewardfulApi {
   private async fetch<T>(url: string): Promise<T> {
     const response = await fetch(url, {
       headers: {
-        Authorization: `Bearer ${this.token}`,
+        Authorization: `Basic ${Buffer.from(`${this.token}:`).toString("base64")}`,
       },
     });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.log("Rewardful API Error:", error);
+      throw new RewardfulApiError(error);
+    }
 
     const data = await response.json();
 
     console.debug("Rewardful API Response:", { url, data });
-
-    if (!response.ok) {
-      throw new RewardfulApiError(data.error);
-    }
 
     return data as T;
   }
@@ -54,7 +51,11 @@ export class RewardfulApi {
   }
 
   async listCampaigns() {
-    return this.fetch<RewardfulCampaign[]>(`${this.baseUrl}/campaigns`);
+    const { data } = await this.fetch<{ data: RewardfulCampaign[] }>(
+      `${this.baseUrl}/campaigns`,
+    );
+
+    return data;
   }
 
   async listAffiliates({
@@ -64,9 +65,11 @@ export class RewardfulApi {
     campaignId: string;
     page?: number;
   }) {
-    return this.fetch<RewardfulAffiliate[]>(
+    const { data } = await this.fetch<{ data: RewardfulAffiliate[] }>(
       `${this.baseUrl}/affiliates?expand[]=links&page=${page}&limit=${PAGE_LIMIT}&campaign_id=${campaignId}`,
     );
+
+    return data;
   }
 
   async listReferrals({ page = 1 }: { page?: number }) {
@@ -77,8 +80,10 @@ export class RewardfulApi {
     searchParams.append("page", page.toString());
     searchParams.append("limit", PAGE_LIMIT.toString());
 
-    return this.fetch<RewardfulReferral[]>(
+    const { data } = await this.fetch<{ data: RewardfulReferral[] }>(
       `${this.baseUrl}/referrals?${searchParams.toString()}`,
     );
+
+    return data;
   }
 }

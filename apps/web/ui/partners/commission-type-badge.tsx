@@ -1,6 +1,6 @@
 import { PartnerEarningsSchema } from "@/lib/zod/schemas/partners";
 import { CursorRays, InvoiceDollar, UserCheck } from "@dub/ui/icons";
-import { capitalize } from "@dub/utils/src/functions";
+import { capitalize, cn } from "@dub/utils";
 import { z } from "zod";
 
 const iconsMap = {
@@ -18,7 +18,7 @@ export const CommissionTypeBadge = ({
 
   return (
     <div className="flex items-center gap-1.5">
-      <Icon className="size-4" />
+      <Icon className={cn("size-4", type === "sale" && "text-teal-500")} />
       {capitalize(type)}
     </div>
   );

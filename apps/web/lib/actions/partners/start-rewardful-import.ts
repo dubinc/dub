@@ -17,10 +17,18 @@ export const startRewardfulImportAction = authActionClient
     const { workspace } = ctx;
     const { campaignId, programId } = parsedInput;
 
-    await getProgramOrThrow({
+    const program = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
+
+    if (!program.domain) {
+      throw new Error("Program domain is not set.");
+    }
+
+    if (!program.url) {
+      throw new Error("Program URL is not set.");
+    }
 
     const credentials = await rewardfulImporter.getCredentials(programId);
 

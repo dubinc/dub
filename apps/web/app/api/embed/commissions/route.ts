@@ -32,6 +32,12 @@ export const GET = withEmbedToken(
             avatar: true,
           },
         },
+        link: {
+          select: {
+            shortLink: true,
+            url: true,
+          },
+        },
       },
       take: SALES_PAGE_SIZE,
       skip: (page - 1) * SALES_PAGE_SIZE,
