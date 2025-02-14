@@ -96,6 +96,9 @@ export async function createNewCustomer(event: Stripe.Event) {
     }),
   ]);
 
+  // TODO:
+  // Use the partner reward rule here
+
   if (link.programId && link.partnerId) {
     // TODO: check if there is a Lead Reward Rule for this partner and if yes, create a lead commission
     // await prisma.commission.create({
