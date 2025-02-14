@@ -17,6 +17,11 @@ export type XAxisProps = {
   showGridLines?: boolean;
 
   /**
+   * Whether to render a line for the axis
+   */
+  showAxisLine?: boolean;
+
+  /**
    * Whether to highlight the latest tick label when no other area is hovered
    */
   highlightLast?: boolean;
@@ -31,6 +36,7 @@ export function XAxis({
   maxTicks: maxTicksProp,
   showGridLines = false,
   highlightLast = true,
+  showAxisLine = true,
   tickFormat = (date) =>
     date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
 }: XAxisProps) {
@@ -66,6 +72,7 @@ export function XAxis({
         scale={xScale}
         tickValues={tickValues}
         hideTicks
+        hideAxisLine={!showAxisLine}
         stroke="#00000026"
         tickFormat={(date) => tickFormat(date as Date)}
         tickLabelProps={(date, idx, { length }) => ({

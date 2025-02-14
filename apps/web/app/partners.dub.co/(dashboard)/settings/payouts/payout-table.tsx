@@ -1,5 +1,7 @@
 "use client";
 
+import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
+import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerPayoutResponse } from "@/lib/types";
 import { AmountRowItem } from "@/ui/partners/amount-row-item";
@@ -16,33 +18,18 @@ import {
 import { MoneyBill2 } from "@dub/ui/icons";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
-import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { useEffect, useState } from "react";
-import useSWR from "swr";
 import { PayoutDetailsSheet } from "./payout-details-sheet";
 
 export function PayoutTable() {
   const { partner } = usePartnerProfile();
-  const { queryParams, searchParams, getQueryString } = useRouterStuff();
+  const { queryParams, searchParams } = useRouterStuff();
 
   const sortBy = searchParams.get("sortBy") || "periodStart";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
-  const {
-    data: payouts,
-    error,
-    isLoading,
-  } = useSWR<PartnerPayoutResponse[]>(
-    partner
-      ? `/api/partner-profile/payouts?${getQueryString(undefined, {
-          exclude: ["payoutId"],
-        })}`
-      : undefined,
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
+  const { payouts, error, loading } = usePartnerPayouts();
+  const { payoutsCount } = usePartnerPayoutsCount<number>();
 
   const [detailsSheetState, setDetailsSheetState] = useState<
     | { open: false; payout: PartnerPayoutResponse | null }
@@ -63,7 +50,7 @@ export function PayoutTable() {
 
   const table = useTable({
     data: payouts || [],
-    loading: isLoading,
+    loading,
     error: error ? "Failed to load payouts" : undefined,
     columns: [
       {
@@ -137,7 +124,7 @@ export function PayoutTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `payout${p ? "s" : ""}`,
-    rowCount: payouts?.length || 0,
+    rowCount: payoutsCount,
   });
 
   return (
