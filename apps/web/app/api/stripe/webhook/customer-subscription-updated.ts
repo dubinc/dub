@@ -61,6 +61,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
 
   const newPlan = plan.name.toLowerCase();
   const shouldDisableWebhooks = newPlan === "free" || newPlan === "pro";
+  const shouldDeleteFolders = newPlan === "free";
 
   // If a workspace upgrades/downgrades their subscription, update their usage limit in the database.
   if (workspace.plan !== newPlan) {
@@ -130,6 +131,19 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
       });
 
       await webhookCache.mset(webhooks);
+    }
+
+    // Delete the folders if the new plan is free
+    // For downgrade from Business → Pro, it should be fine since we're accounting that to make sure all folders get write access.
+    if (shouldDeleteFolders) {
+      await prisma.folder.deleteMany({
+        where: {
+          projectId: workspace.id,
+        },
+      });
+
+      // TODO
+      // call recordLink to update the Links in TB
     }
   } else if (workspace.paymentFailedAt) {
     await prisma.project.update({

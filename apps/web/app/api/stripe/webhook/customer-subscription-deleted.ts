@@ -177,6 +177,13 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         webhookEnabled: false,
       },
     }),
+
+    // Remove all folders for the workspace
+    prisma.folder.deleteMany({
+      where: {
+        projectId: workspace.id,
+      },
+    }),
   ]);
 
   // Update the webhooks cache
