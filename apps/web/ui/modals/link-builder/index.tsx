@@ -349,6 +349,7 @@ function LinkBuilderInner({
                   <>
                     <FolderDropdown
                       hideViewAll={true}
+                      disableAutoRedirect={true}
                       onFolderSelect={(folder) => {
                         setValue("folderId", folder.id, { shouldDirty: true });
                       }}

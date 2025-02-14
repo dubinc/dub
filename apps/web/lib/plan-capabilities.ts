@@ -1,6 +1,6 @@
 import { WorkspaceProps } from "@/lib/types";
 
-// Get the capabilities of the folder based on the workspace plan
+// Get the capabilities of a workspace based on the plan
 export const getPlanCapabilities = (
   plan: WorkspaceProps["plan"] | undefined | string,
 ) => {
