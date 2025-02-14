@@ -172,7 +172,10 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
     <div className="flex flex-col gap-3">
       {!limit && (
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <SimpleDateRangePicker className="w-full sm:min-w-[200px] md:w-fit" />
+          <SimpleDateRangePicker
+            className="w-full sm:min-w-[200px] md:w-fit"
+            align="start"
+          />
         </div>
       )}
       {isLoading || earnings?.length ? (
