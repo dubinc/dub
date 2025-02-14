@@ -6,7 +6,7 @@ import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { currencyFormatter } from "@dub/utils";
 import { useMemo } from "react";
 
-export function EarningsChart() {
+export function EarningsCompositeChart() {
   const { searchParamsObj } = useRouterStuff();
 
   const {

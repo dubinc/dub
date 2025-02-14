@@ -32,7 +32,7 @@ import {
 } from "@dub/utils";
 import { useMemo } from "react";
 import useSWR from "swr";
-import { EarningsChart } from "./earnings-chart";
+import { EarningsCompositeChart } from "./earnings-composite-chart";
 
 export function EarningsTablePartner({
   limit,
@@ -185,7 +185,7 @@ export function EarningsTablePartner({
   return (
     <div className="flex flex-col gap-6">
       {!limit && <EarningsTableControls />}
-      {withChart && <EarningsChart />}
+      {withChart && <EarningsCompositeChart />}
       {isLoading || earnings?.length ? (
         <Table
           {...tableProps}
