@@ -1,4 +1,4 @@
-import { isBlacklistedEmail, updateConfig } from "@/lib/edge-config";
+import { isBlacklistedEmail } from "@/lib/edge-config";
 import jackson from "@/lib/jackson";
 import { isStored, storage } from "@/lib/storage";
 import { UserProps } from "@/lib/types";
@@ -432,11 +432,6 @@ export const authOptions: NextAuthOptions = {
 
         // account doesn't exist, let the user sign in
         if (!userFound) {
-          // TODO: Remove this once we open up partners.dub.co to everyone
-          await updateConfig({
-            key: "partnersPortal",
-            value: user.email,
-          });
           return true;
         }
 
