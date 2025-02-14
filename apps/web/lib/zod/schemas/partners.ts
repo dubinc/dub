@@ -163,6 +163,16 @@ export const getPartnerSalesQuerySchema = getSalesQuerySchema
     sortBy: z.enum(["createdAt", "amount", "earnings"]).default("createdAt"),
   });
 
+export const PARTNER_CUSTOMERS_MAX_PAGE_SIZE = 100;
+
+export const getPartnerCustomersQuerySchema = z
+  .object({
+    search: z.string().optional(),
+  })
+  .merge(
+    getPaginationQuerySchema({ pageSize: PARTNER_CUSTOMERS_MAX_PAGE_SIZE }),
+  );
+
 export const PartnerEarningsSchema = SaleResponseSchema.omit({
   partner: true,
   customer: true,
@@ -190,6 +200,7 @@ export const getPartnerSalesCountQuerySchema = getSalesCountQuerySchema
   })
   .extend({
     type: z.enum(["click", "lead", "sale"]).optional(),
+    groupBy: z.enum(["customer"]).optional(),
   });
 
 export const createPartnerSchema = z.object({

@@ -1,7 +1,8 @@
 "use client";
 
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { PartnerEarningsResponse } from "@/lib/types";
+import { CustomerProps, LinkProps, PartnerEarningsResponse } from "@/lib/types";
+import { LinkIcon } from "@/ui/links/link-icon";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
@@ -17,7 +18,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CircleDollar, Sliders } from "@dub/ui/icons";
+import { CircleDollar, Hyperlink, Sliders, User } from "@dub/ui/icons";
 import {
   capitalize,
   cn,
@@ -27,6 +28,7 @@ import {
   formatDateTime,
   getApexDomain,
   getPrettyUrl,
+  linkConstructor,
 } from "@dub/utils";
 import { useMemo } from "react";
 import useSWR from "swr";
@@ -201,6 +203,10 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
 function EarningsTableControls() {
   const { queryParams, searchParamsObj } = useRouterStuff();
 
+  // TODO: Fetch links and customers
+  const links = [] as LinkProps[];
+  const customers = [] as CustomerProps[];
+
   const filters = useMemo(
     () => [
       {
@@ -211,8 +217,33 @@ function EarningsTableControls() {
           value: slug,
           label: capitalize(slug) as string,
           icon: <CommissionTypeIcon type={slug} />,
-          // right: nFormatter(count, { full: true }),
         })),
+      },
+      {
+        key: "linkId",
+        icon: Hyperlink,
+        label: "Link",
+        getOptionIcon: (value, props) => {
+          const url = props.option?.data?.url;
+          const [domain, key] = value.split("/");
+
+          return <LinkIcon url={url} domain={domain} linkKey={key} />;
+        },
+        options:
+          links?.map(({ id, domain, key }) => ({
+            value: id,
+            label: linkConstructor({ domain, key, pretty: true }),
+          })) ?? null,
+      },
+      {
+        key: "customerId",
+        icon: User,
+        label: "Customer",
+        options:
+          customers?.map(({ id, name, email }) => ({
+            value: id,
+            label: name || email || "-",
+          })) ?? null,
       },
     ],
     [],
@@ -279,6 +310,7 @@ function EarningsTableControls() {
           align="start"
         />
       </div>
+
       <div
         className={cn(
           "transition-[height] duration-[300ms]",
