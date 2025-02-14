@@ -101,16 +101,30 @@ async function createReferral({
   workspace: Project;
   program: Program;
 }) {
-  const link = await prisma.link.findFirst({
+  const link = await prisma.link.findUnique({
     where: {
-      key: referral.link.token,
-      domain: program.domain!,
-      programId: program.id,
+      domain_key: {
+        domain: program.domain!,
+        key: referral.link.token,
+      },
     },
   });
 
   if (!link) {
     console.log("Link not found", referral.link.token);
+    return;
+  }
+
+  const customerFound = await prisma.customer.findUnique({
+    where: {
+      stripeCustomerId: referral.stripe_customer_id,
+    },
+  });
+
+  if (customerFound) {
+    console.log(
+      `A customer already exists with Stripe customer ID ${referral.stripe_customer_id}`,
+    );
     return;
   }
 
@@ -140,26 +154,17 @@ async function createReferral({
     qr: 0,
   });
 
-  const customerFound = await prisma.customer.findUnique({
-    where: {
-      stripeCustomerId: referral.stripe_customer_id,
-    },
-  });
-
-  if (customerFound) {
-    console.log(
-      `A customer already exists with Stripe customer ID ${referral.stripe_customer_id}`,
-    );
-    return;
-  }
-
   const customerId = createId({ prefix: "cus_" });
 
   await Promise.all([
     prisma.customer.create({
       data: {
         id: customerId,
-        name: referral.customer.name,
+        name:
+          // if name is null/undefined or starts with cus_, use email as name
+          !referral.customer.name || referral.customer.name.startsWith("cus_")
+            ? referral.customer.email
+            : referral.customer.name,
         email: referral.customer.email,
         projectId: workspace.id,
         projectConnectId: workspace.stripeConnectId,
