@@ -50,9 +50,9 @@ export function EarningsCompositeChart() {
     return timeseries?.map((item) => ({
       date: new Date(item.start),
       values: {
-        clicks: item.click,
-        leads: item.lead,
-        sales: item.sale,
+        clicks: item.clicks,
+        leads: item.leads,
+        sales: item.sales,
       },
     }));
   }, [timeseries]);
