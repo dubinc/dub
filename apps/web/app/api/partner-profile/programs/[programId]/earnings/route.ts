@@ -20,6 +20,7 @@ export const GET = withPartnerProfile(
     const {
       page,
       pageSize,
+      type,
       status,
       sortBy,
       sortOrder,
@@ -40,6 +41,7 @@ export const GET = withPartnerProfile(
       where: {
         programId: program.id,
         partnerId: partner.id,
+        type,
         status,
         customerId,
         payoutId,

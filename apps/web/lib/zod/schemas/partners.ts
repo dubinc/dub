@@ -159,6 +159,7 @@ export const getPartnerSalesQuerySchema = getSalesQuerySchema
     sortBy: true,
   })
   .extend({
+    type: z.enum(["click", "lead", "sale"]).optional(),
     sortBy: z.enum(["createdAt", "amount", "earnings"]).default("createdAt"),
   });
 
@@ -183,9 +184,13 @@ export const PartnerEarningsSchema = SaleResponseSchema.omit({
   }),
 );
 
-export const getPartnerSalesCountQuerySchema = getSalesCountQuerySchema.omit({
-  partnerId: true,
-});
+export const getPartnerSalesCountQuerySchema = getSalesCountQuerySchema
+  .omit({
+    partnerId: true,
+  })
+  .extend({
+    type: z.enum(["click", "lead", "sale"]).optional(),
+  });
 
 export const createPartnerSchema = z.object({
   programId: z

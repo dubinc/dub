@@ -2,12 +2,14 @@
 
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerEarningsResponse } from "@/lib/types";
+import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   CopyText,
+  Filter,
   LinkLogo,
   StatusBadge,
   Table,
@@ -15,8 +17,10 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CircleDollar } from "@dub/ui/icons";
+import { CircleDollar, Sliders } from "@dub/ui/icons";
 import {
+  capitalize,
+  cn,
   currencyFormatter,
   fetcher,
   formatDate,
@@ -24,6 +28,7 @@ import {
   getApexDomain,
   getPrettyUrl,
 } from "@dub/utils";
+import { useMemo } from "react";
 import useSWR from "swr";
 
 export function EarningsTablePartner({ limit }: { limit?: number }) {
@@ -170,14 +175,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
 
   return (
     <div className="flex flex-col gap-3">
-      {!limit && (
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <SimpleDateRangePicker
-            className="w-full sm:min-w-[200px] md:w-fit"
-            align="start"
-          />
-        </div>
-      )}
+      {!limit && <EarningsTableControls />}
       {isLoading || earnings?.length ? (
         <Table
           {...tableProps}
@@ -196,6 +194,103 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
           )}
         />
       )}
+    </div>
+  );
+}
+
+function EarningsTableControls() {
+  const { queryParams, searchParamsObj } = useRouterStuff();
+
+  const filters = useMemo(
+    () => [
+      {
+        key: "type",
+        icon: Sliders,
+        label: "Type",
+        options: ["click", "lead", "sale"].map((slug) => ({
+          value: slug,
+          label: capitalize(slug) as string,
+          icon: <CommissionTypeIcon type={slug} />,
+          // right: nFormatter(count, { full: true }),
+        })),
+      },
+    ],
+    [],
+  );
+
+  const activeFilters = useMemo(() => {
+    const { type } = searchParamsObj;
+    return [...(type ? [{ key: "type", value: type }] : [])];
+  }, [searchParamsObj]);
+
+  const onSelect = (key: string, value: any) =>
+    queryParams({
+      set: {
+        [key]: value,
+      },
+      del: "page",
+    });
+
+  const onRemove = (key: string, value: any) =>
+    queryParams({
+      del: [key, "page"],
+    });
+
+  const onRemoveAll = () =>
+    queryParams({
+      del: ["type"],
+    });
+
+  return (
+    <div>
+      <div className="flex flex-col gap-3 md:flex-row">
+        <Filter.Select
+          filters={filters}
+          activeFilters={activeFilters}
+          onSelect={onSelect}
+          onRemove={onRemove}
+          // onSearchChange={setSearch}
+          // onSelectedFilterChange={setSelectedFilter}
+          // emptyState={{
+          //   domain: (
+          //     <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
+          //       <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+          //         <Globe className="size-6 text-neutral-700" />
+          //       </div>
+          //       <p className="mt-2 font-medium text-neutral-950">
+          //         No domains found
+          //       </p>
+          //       <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">
+          //         Add a custom domain to match your brand
+          //       </p>
+          //       <div>
+          //         <Button
+          //           className="mt-1 h-8"
+          //           onClick={() => router.push(`/${slug}/settings/domains`)}
+          //           text="Add domain"
+          //         />
+          //       </div>
+          //     </div>
+          //   ),
+          // }}
+        />
+        <SimpleDateRangePicker
+          className="w-full sm:min-w-[200px] md:w-fit"
+          align="start"
+        />
+      </div>
+      <div
+        className={cn(
+          "transition-[height] duration-[300ms]",
+          activeFilters.length ? "h-3" : "h-0",
+        )}
+      />
+      <Filter.List
+        filters={filters}
+        activeFilters={activeFilters}
+        onRemove={onRemove}
+        onRemoveAll={onRemoveAll}
+      />
     </div>
   );
 }
