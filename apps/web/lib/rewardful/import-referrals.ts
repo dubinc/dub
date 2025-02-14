@@ -131,8 +131,11 @@ async function createReferral({
     return;
   }
 
-  if (!referral.stripe_customer_id) {
-    console.log("No Stripe customer ID provided for referral");
+  if (
+    !referral.stripe_customer_id ||
+    !referral.stripe_customer_id.startsWith("cus_")
+  ) {
+    console.log("No Stripe customer ID provided for referral", referral);
     return;
   }
 
