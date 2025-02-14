@@ -160,7 +160,11 @@ async function createReferral({
     prisma.customer.create({
       data: {
         id: customerId,
-        name: referral.customer.name,
+        name:
+          // if name is null/undefined or starts with cus_, use email as name
+          !referral.customer.name || referral.customer.name.startsWith("cus_")
+            ? referral.customer.email
+            : referral.customer.name,
         email: referral.customer.email,
         projectId: workspace.id,
         projectConnectId: workspace.stripeConnectId,
