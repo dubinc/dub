@@ -20,6 +20,7 @@ export async function getLinksForWorkspace({
   showArchived,
   withTags,
   folderId,
+  folderIds,
   linkIds,
   includeUser,
   includeWebhooks,
@@ -28,6 +29,7 @@ export async function getLinksForWorkspace({
   partnerId,
 }: z.infer<typeof getLinksQuerySchemaExtended> & {
   workspaceId: string;
+  folderIds?: string[];
 }) {
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
@@ -39,9 +41,24 @@ export async function getLinksForWorkspace({
   const links = await prisma.link.findMany({
     where: {
       projectId: workspaceId,
-      folderId: folderId || null,
       archived: showArchived ? undefined : false,
       ...(domain && { domain }),
+      ...(folderIds
+        ? {
+            OR: [
+              {
+                folderId: {
+                  in: folderIds.filter((id) => id !== ""),
+                },
+              },
+              {
+                folderId: null,
+              },
+            ],
+          }
+        : {
+            folderId: folderId || null,
+          }),
       ...(search && {
         OR: [
           {

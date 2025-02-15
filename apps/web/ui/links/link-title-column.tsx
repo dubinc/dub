@@ -1,10 +1,12 @@
 "use client";
 
 import useDomain from "@/lib/swr/use-domain";
+import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   ArrowTurnRight2,
   Avatar,
+  CardList,
   CopyButton,
   LinkLogo,
   Switch,
@@ -36,7 +38,10 @@ import {
 } from "@dub/utils";
 import * as HoverCard from "@radix-ui/react-hover-card";
 import { Mail } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { memo, PropsWithChildren, useContext, useRef, useState } from "react";
+import { FolderIcon } from "../folders/folder-icon";
 import { useLinkBuilder } from "../modals/link-builder";
 import { CommentsBadge } from "./comments-badge";
 import { ResponseLink } from "./links-container";
@@ -56,17 +61,38 @@ const quickViewSettings = [
 export function LinkTitleColumn({ link }: { link: ResponseLink }) {
   const { url, domain, key } = link;
 
+  const { variant } = useContext(CardList.Context);
   const { displayProperties } = useContext(LinksDisplayContext);
 
   const ref = useRef<HTMLDivElement>(null);
 
   const hasQuickViewSettings = quickViewSettings.some(({ key }) => link?.[key]);
 
+  const searchParams = useSearchParams();
+  const { slug } = useWorkspace();
+  const { folders } = useFolders();
+  const folder = folders?.find((folder) => folder.id === link.folderId);
+
   return (
     <div
       ref={ref}
       className="flex h-[32px] items-center gap-3 transition-[height] group-data-[variant=loose]/card-list:h-[60px]"
     >
+      {variant === "compact" &&
+        link.folderId &&
+        searchParams.get("folderId") !== link.folderId && (
+          <Link href={`/${slug}?folderId=${link.folderId}`}>
+            {folder ? (
+              <FolderIcon
+                folder={folder}
+                shape="square"
+                innerClassName="p-1.5"
+              />
+            ) : (
+              <div className="size-4 rounded-md bg-neutral-200" />
+            )}
+          </Link>
+        )}
       <div
         className={cn(
           "relative hidden shrink-0 items-center justify-center",

@@ -49,8 +49,8 @@ export const POST = withWorkspaceEdge(
 
     if (!success) {
       throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: `Rate limit exceeded for customer ${customerExternalId}: ${eventName}`,
+        code: "conflict",
+        message: `Customer with externalId ${customerExternalId} and event name: ${eventName} has already been recorded in the last hour.`,
       });
     }
 

@@ -1,7 +1,6 @@
 "use server";
 
 import { createId } from "@/lib/api/utils";
-import { userIsInBeta } from "@/lib/edge-config";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { storage } from "@/lib/storage";
 import { createConnectedAccount } from "@/lib/stripe/create-connected-account";
@@ -19,15 +18,6 @@ export const onboardPartnerAction = authUserActionClient
   .action(async ({ ctx, parsedInput }) => {
     const { user } = ctx;
     const { name, image, country, description } = parsedInput;
-
-    const partnersPortalEnabled = await userIsInBeta(
-      user.email,
-      "partnersPortal",
-    );
-
-    if (!partnersPortalEnabled) {
-      throw new Error("Partners portal feature flag disabled.");
-    }
 
     const existingPartner = await prisma.partner.findUnique({
       where: {

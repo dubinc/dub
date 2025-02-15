@@ -44,6 +44,7 @@ model Program {
   commissionType     CommissionType      @default(percentage)
   commissionDuration Int?
   commissionInterval CommissionInterval?
+  holdingPeriodDays  Int                 @default(0) // number of days to wait before earnings are added to a payout
 
   defaultRewardId String? // default reward for the program
 

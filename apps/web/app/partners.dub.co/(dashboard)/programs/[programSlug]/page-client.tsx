@@ -141,7 +141,7 @@ export default function ProgramPageClient() {
       >
         <ChartTooltipSync>
           <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="rounded-lg border border-neutral-300 p-5 pb-3 lg:col-span-2">
+            <div className="group rounded-lg border border-neutral-300 p-5 pb-3 lg:col-span-2">
               <EarningsChart />
             </div>
 
@@ -178,6 +178,8 @@ export default function ProgramPageClient() {
 }
 
 function EarningsChart() {
+  const { programSlug } = useParams();
+  const { getQueryString } = useRouterStuff();
   const { start, end, interval, color } = useContext(ProgramOverviewContext);
 
   const { data: { earnings: total } = {} } = usePartnerEarnings({
@@ -228,8 +230,14 @@ function EarningsChart() {
             )}
           </div>
         </div>
-        <div className="w-full md:w-auto">
-          <SimpleDateRangePicker className="h-8 w-full md:w-fit" align="end" />
+        <div className="flex w-full items-center gap-2 md:w-auto">
+          <ViewMoreButton
+            href={`/programs/${programSlug}/earnings${getQueryString()}`}
+          />
+          <SimpleDateRangePicker
+            className="h-7 w-full px-2.5 text-xs font-medium md:w-fit"
+            align="end"
+          />
         </div>
       </div>
       <div className="relative mt-2 h-44 w-full">
@@ -258,6 +266,8 @@ function StatCard({
   title: string;
   event: "clicks" | "leads" | "sales";
 }) {
+  const { programSlug } = useParams();
+  const { getQueryString } = useRouterStuff();
   const { start, end, interval } = useContext(ProgramOverviewContext);
 
   const { data: total } = usePartnerAnalytics({
@@ -276,22 +286,29 @@ function StatCard({
   });
 
   return (
-    <div className="block rounded-lg border border-neutral-300 bg-white p-5 pb-3">
-      <span className="mb-1 block text-base font-semibold leading-none text-neutral-800">
-        {title}
-      </span>
-      {total !== undefined ? (
-        <div className="flex items-center gap-1 text-lg font-medium text-neutral-600">
-          <NumberFlow
-            value={total[event]}
-            format={{
-              notation: total[event] > 999999 ? "compact" : "standard",
-            }}
-          />
+    <div className="group block rounded-lg border border-neutral-300 bg-white p-5 pb-3">
+      <div className="flex justify-between">
+        <div>
+          <span className="mb-1 block text-base font-semibold leading-none text-neutral-800">
+            {title}
+          </span>
+          {total !== undefined ? (
+            <div className="flex items-center gap-1 text-lg font-medium text-neutral-600">
+              <NumberFlow
+                value={total[event]}
+                format={{
+                  notation: total[event] > 999999 ? "compact" : "standard",
+                }}
+              />
+            </div>
+          ) : (
+            <div className="h-[27px] w-16 animate-pulse rounded-md bg-neutral-200" />
+          )}
         </div>
-      ) : (
-        <div className="h-[27px] w-16 animate-pulse rounded-md bg-neutral-200" />
-      )}
+        <ViewMoreButton
+          href={`/programs/${programSlug}/analytics?event=${event}${getQueryString()?.replace("?", "&")}`}
+        />
+      </div>
       <div className="mt-2 h-44 w-full">
         {timeseries ? (
           <BrandedChart
@@ -399,6 +416,24 @@ function BrandedChart({
           ]}
         />
       </TimeSeriesChart>
+    </div>
+  );
+}
+
+function ViewMoreButton({ href }: { href: string }) {
+  return (
+    <div className="-mr-2 pr-2 [mask-image:linear-gradient(270deg,transparent,black_8px)] [mask-origin:padding-box]">
+      <div className="overflow-visible transition-all duration-200 focus-within:w-[82px] focus-within:opacity-100 group-hover:w-[82px] group-hover:opacity-100 sm:w-0 sm:opacity-0">
+        <Link
+          href={href}
+          className={cn(
+            "flex h-7 w-[82px] items-center justify-center whitespace-nowrap rounded-md border px-0 text-xs font-medium",
+            buttonVariants({ variant: "secondary" }),
+          )}
+        >
+          View more
+        </Link>
+      </div>
     </div>
   );
 }
