@@ -13,16 +13,15 @@ import {
   getLinksQuerySchemaExtended,
   linkEventSchema,
 } from "@/lib/zod/schemas/links";
-import { LOCALHOST_IP, getSearchParamsWithArray } from "@dub/utils";
+import { LOCALHOST_IP } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/links – get all links for a workspace
 export const GET = withWorkspace(
-  async ({ req, headers, workspace, session }) => {
-    const searchParams = getSearchParamsWithArray(req.url);
+  async ({ headers, searchParams, workspace, session }) => {
     const params = getLinksQuerySchemaExtended.parse(searchParams);
-    const { domain, folderId, search } = params;
+    const { domain, folderId, search, tagId, tagIds, tagNames } = params;
 
     if (domain) {
       await getDomainOrThrow({ workspace, domain });
@@ -37,8 +36,9 @@ export const GET = withWorkspace(
       });
     }
 
+    // we only need to get the folder ids if we are filtering by domain, tag, or search (and not )
     const folderIds =
-      search || domain || !folderId
+      !folderId && (search || domain || tagId || tagIds || tagNames)
         ? await getFolderIdsToFilter({
             workspace,
             userId: session.user.id,
