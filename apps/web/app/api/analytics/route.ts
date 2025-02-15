@@ -82,11 +82,12 @@ export const GET = withWorkspace(
       throwError: true,
     });
 
-    const folderIds = await getFolderIdsToFilter({
-      workspace,
-      userId: session.user.id,
-      folderIdToVerify,
-    });
+    const folderIds = folderIdToVerify
+      ? undefined
+      : await getFolderIdsToFilter({
+          workspace,
+          userId: session.user.id,
+        });
 
     // Identify the request is from deprecated clicks endpoint
     // (/api/analytics/clicks)

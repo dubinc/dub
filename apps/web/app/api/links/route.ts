@@ -1,3 +1,4 @@
+import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
@@ -12,32 +13,45 @@ import {
   getLinksQuerySchemaExtended,
   linkEventSchema,
 } from "@/lib/zod/schemas/links";
-import { LOCALHOST_IP, getSearchParamsWithArray } from "@dub/utils";
+import { LOCALHOST_IP } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/links – get all links for a workspace
 export const GET = withWorkspace(
-  async ({ req, headers, workspace, session }) => {
-    const searchParams = getSearchParamsWithArray(req.url);
+  async ({ headers, searchParams, workspace, session }) => {
     const params = getLinksQuerySchemaExtended.parse(searchParams);
+    const { domain, folderId, search, tagId, tagIds, tagNames } = params;
 
-    if (params.domain) {
-      await getDomainOrThrow({ workspace, domain: params.domain });
+    if (domain) {
+      await getDomainOrThrow({ workspace, domain });
     }
 
-    if (params.folderId) {
+    if (folderId) {
       await verifyFolderAccess({
         workspace,
         userId: session.user.id,
-        folderId: params.folderId,
+        folderId,
         requiredPermission: "folders.read",
       });
     }
 
+    /* we only need to get the folder ids if we are:
+      - not filtering by folder
+      - filtering by search, domain, or tags
+    */
+    const folderIds =
+      !folderId && (search || domain || tagId || tagIds || tagNames)
+        ? await getFolderIdsToFilter({
+            workspace,
+            userId: session.user.id,
+          })
+        : undefined;
+
     const response = await getLinksForWorkspace({
       ...params,
       workspaceId: workspace.id,
+      folderIds,
     });
 
     return NextResponse.json(response, {

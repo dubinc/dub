@@ -22,6 +22,7 @@ model Project {
   salesLimit   Int @default(0)
   domainsLimit Int @default(3)
   tagsLimit    Int @default(5)
+  foldersUsage Int @default(0)
   foldersLimit Int @default(0)
   usersLimit   Int @default(1)
   aiUsage      Int @default(0)
