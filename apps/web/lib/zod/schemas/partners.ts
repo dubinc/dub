@@ -372,7 +372,7 @@ export const partnerAnalyticsResponseSchema = {
   }),
 } as const;
 
-export const partnerProfileAnalyticsQuerySchema = analyticsQuerySchema
+export const partnerEarningsTimeseriesSchema = analyticsQuerySchema
   .pick({
     start: true,
     end: true,

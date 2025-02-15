@@ -21,6 +21,7 @@ export function EarningsCompositeChart() {
 
   const { data: timeseries } = usePartnerEarningsTimeseries({
     interval,
+    groupBy: "type",
     start: start ? new Date(start) : undefined,
     end: end ? new Date(end) : undefined,
   });
@@ -47,12 +48,12 @@ export function EarningsCompositeChart() {
   ];
 
   const chartData = useMemo(() => {
-    return timeseries?.map((item) => ({
-      date: new Date(item.start),
+    return timeseries?.map(({ start, data }) => ({
+      date: new Date(start),
       values: {
-        clicks: item.clicks,
-        leads: item.leads,
-        sales: item.sales,
+        clicks: data.click,
+        leads: data.lead,
+        sales: data.sale,
       },
     }));
   }, [timeseries]);

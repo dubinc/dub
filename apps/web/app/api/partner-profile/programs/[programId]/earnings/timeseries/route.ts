@@ -2,7 +2,7 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
-import { partnerProfileAnalyticsQuerySchema } from "@/lib/zod/schemas/partners";
+import { partnerEarningsTimeseriesSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
 import { DateTime } from "luxon";
@@ -17,7 +17,7 @@ export const GET = withPartnerProfile(
     });
 
     const { start, end, interval, groupBy, timezone } =
-      partnerProfileAnalyticsQuerySchema.parse(searchParams);
+      partnerEarningsTimeseriesSchema.parse(searchParams);
 
     const { startDate, endDate, granularity } = getStartEndDates({
       interval,
@@ -79,9 +79,9 @@ export const GET = withPartnerProfile(
           ? {
               ...(groupBy === "type"
                 ? {
-                    sales: 0,
-                    leads: 0,
-                    clicks: 0,
+                    sale: 0,
+                    lead: 0,
+                    click: 0,
                   }
                 : Object.fromEntries(links.map((link) => [link.id, 0]))),
               ...rest,

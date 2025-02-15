@@ -2,11 +2,10 @@ import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useParams, useSearchParams } from "next/navigation";
 import useSWR from "swr";
-import { VALID_ANALYTICS_FILTERS } from "../analytics/constants";
-import { PartnerAnalyticsFilters } from "../analytics/types";
+import { PartnerEarningsTimeseriesFilters } from "../analytics/types";
 
 export function usePartnerEarningsTimeseries(
-  params?: PartnerAnalyticsFilters & { programId?: string },
+  params?: PartnerEarningsTimeseriesFilters & { programId?: string },
 ) {
   const { data: session } = useSession();
   const { programSlug } = useParams();
@@ -20,15 +19,7 @@ export function usePartnerEarningsTimeseries(
       programIdToUse &&
       `/api/partner-profile/programs/${programIdToUse}/earnings/timeseries?${new URLSearchParams(
         {
-          ...VALID_ANALYTICS_FILTERS.reduce(
-            (acc, filter) => ({
-              ...acc,
-              ...(searchParams?.get(filter) && {
-                [filter]: searchParams.get(filter),
-              }),
-            }),
-            {},
-          ),
+          ...(params?.groupBy && { groupBy: params.groupBy }),
           ...(params?.start && params?.end
             ? {
                 start: params.start.toISOString(),
