@@ -46,6 +46,7 @@ export interface RewardfulAffiliate {
   created_at: string;
   updated_at: string;
   links: RewardfulLink[];
+  campaign?: RewardfulCampaign;
 }
 
 export interface RewardfulReferral {
