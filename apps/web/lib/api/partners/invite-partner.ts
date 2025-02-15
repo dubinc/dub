@@ -1,4 +1,3 @@
-import { updateConfig } from "@/lib/edge-config";
 import { recordLink } from "@/lib/tinybird";
 import { ProgramProps } from "@/lib/types";
 import { sendEmail } from "@dub/email";
@@ -45,22 +44,14 @@ export const invitePartner = async ({
     throw new Error(`Partner ${email} already invited to this program.`);
   }
 
-  const [programInvited] = await Promise.all([
-    prisma.programInvite.create({
-      data: {
-        id: createId({ prefix: "pgi_" }),
-        email,
-        linkId: link.id,
-        programId: program.id,
-      },
-    }),
-
-    // TODO: Remove this once we open up partners.dub.co to everyone
-    updateConfig({
-      key: "partnersPortal",
-      value: email,
-    }),
-  ]);
+  const programInvited = await prisma.programInvite.create({
+    data: {
+      id: createId({ prefix: "pgi_" }),
+      email,
+      linkId: link.id,
+      programId: program.id,
+    },
+  });
 
   waitUntil(
     Promise.allSettled([

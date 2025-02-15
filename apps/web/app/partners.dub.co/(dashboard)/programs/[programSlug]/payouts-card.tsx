@@ -1,30 +1,23 @@
 "use client";
 
-import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
+import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerPayoutResponse } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { CircleWarning, MoneyBills2, StatusBadge } from "@dub/ui";
-import { currencyFormatter, fetcher, formatDate } from "@dub/utils";
+import { currencyFormatter, formatDate } from "@dub/utils";
 import Link from "next/link";
 import { useState } from "react";
-import useSWR from "swr";
 import { PayoutDetailsSheet } from "../../settings/payouts/payout-details-sheet";
 
 export function PayoutsCard({ programId }: { programId?: string }) {
-  const { partner } = usePartnerProfile();
-
-  const { data: payouts, error } = useSWR<PartnerPayoutResponse[]>(
-    partner && programId
-      ? `/api/partner-profile/payouts?${new URLSearchParams({
-          programId,
-          pageSize: "4",
-        })}`
-      : undefined,
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
+  const { payouts, error } = usePartnerPayouts({
+    ...(programId && { programId }),
+    pageSize: "4",
+  });
+  const { payoutsCount } = usePartnerPayoutsCount<number>({
+    ...(programId && { programId }),
+  });
 
   const [detailsSheetState, setDetailsSheetState] = useState<
     | { open: false; payout: PartnerPayoutResponse | null }
@@ -47,12 +40,12 @@ export function PayoutsCard({ programId }: { programId?: string }) {
           <span className="block text-base font-semibold leading-none text-neutral-800">
             Payouts
           </span>
-          {Boolean(payouts?.length) && (
+          {payouts?.length && (
             <Link
-              href={`/settings/payouts`}
+              href={`/settings/payouts?programId=${programId}`}
               className="text-sm font-medium leading-none text-neutral-500 hover:text-neutral-600"
             >
-              View all
+              {payouts.length} of {payoutsCount} results
             </Link>
           )}
         </div>

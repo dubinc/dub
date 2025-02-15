@@ -44,13 +44,7 @@ export const GET = withWorkspace(
 // POST /api/folders - create a folder for a workspace
 export const POST = withWorkspace(
   async ({ req, workspace, headers, session }) => {
-    const foldersCount = await prisma.folder.count({
-      where: {
-        projectId: workspace.id,
-      },
-    });
-
-    if (foldersCount >= workspace.foldersLimit) {
+    if (workspace.foldersUsage >= workspace.foldersLimit) {
       throw new DubApiError({
         code: "exceeded_limit",
         message: exceededLimitError({
@@ -76,20 +70,26 @@ export const POST = withWorkspace(
     }
 
     try {
-      const newFolder = await prisma.folder.create({
-        data: {
-          id: createId({ prefix: "fold_" }),
-          projectId: workspace.id,
-          name,
-          accessLevel,
-          users: {
-            create: {
-              userId: session.user.id,
-              role: "owner",
+      const [newFolder] = await prisma.$transaction([
+        prisma.folder.create({
+          data: {
+            id: createId({ prefix: "fold_" }),
+            projectId: workspace.id,
+            name,
+            accessLevel,
+            users: {
+              create: {
+                userId: session.user.id,
+                role: "owner",
+              },
             },
           },
-        },
-      });
+        }),
+        prisma.project.update({
+          where: { id: workspace.id },
+          data: { foldersUsage: { increment: 1 } },
+        }),
+      ]);
 
       return NextResponse.json(FolderSchema.parse(newFolder), {
         headers,

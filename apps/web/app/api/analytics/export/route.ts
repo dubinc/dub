@@ -1,5 +1,6 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
+import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { convertToCSV, validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
@@ -56,6 +57,13 @@ export const GET = withWorkspace(
       throwError: true,
     });
 
+    const folderIds = folderIdToVerify
+      ? undefined
+      : await getFolderIdsToFilter({
+          workspace,
+          userId: session.user.id,
+        });
+
     const zip = new JSZip();
 
     await Promise.all(
@@ -72,6 +80,8 @@ export const GET = withWorkspace(
           ...(link && { linkId: link.id }),
           event: "clicks",
           groupBy: endpoint,
+          folderIds,
+          folderId: folderId || "",
         });
 
         if (!response || response.length === 0) return;

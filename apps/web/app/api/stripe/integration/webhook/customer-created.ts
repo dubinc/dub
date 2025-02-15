@@ -26,16 +26,21 @@ export async function customerCreated(event: Stripe.Event) {
   if (customer) {
     // if customer exists (created via /track/lead)
     // update it with the Stripe customer ID (for future reference by invoice.paid)
-    await prisma.customer.update({
-      where: {
-        id: customer.id,
-      },
-      data: {
-        stripeCustomerId: stripeCustomer.id,
-      },
-    });
+    try {
+      await prisma.customer.update({
+        where: {
+          id: customer.id,
+        },
+        data: {
+          stripeCustomerId: stripeCustomer.id,
+        },
+      });
 
-    return `Dub customer with ID ${customer.id} updated with Stripe customer ID ${stripeCustomer.id}`;
+      return `Dub customer with ID ${customer.id} updated with Stripe customer ID ${stripeCustomer.id}`;
+    } catch (error) {
+      console.error(error);
+      return `Error updating Dub customer with ID ${customer.id}: ${error}`;
+    }
   }
 
   // otherwise create a new customer

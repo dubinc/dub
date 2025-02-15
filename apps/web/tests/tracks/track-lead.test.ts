@@ -50,12 +50,12 @@ describe("POST /track/lead", async () => {
       },
     });
 
-    expect(response.status).toEqual(429);
+    expect(response.status).toEqual(409);
     expect(response.data).toStrictEqual({
       error: {
-        code: "rate_limit_exceeded",
-        doc_url: "https://dub.co/docs/api-reference/errors#rate-limit_exceeded",
-        message: `Rate limit exceeded for customer ${customer.id}: Signup`,
+        code: "conflict",
+        doc_url: "https://dub.co/docs/api-reference/errors#conflict",
+        message: `Customer with externalId ${customer.id} and event name: Signup has already been recorded in the last hour.`,
       },
     });
   });

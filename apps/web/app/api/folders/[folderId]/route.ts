@@ -113,23 +113,29 @@ export const DELETE = withWorkspace(
       requiredPermission: "folders.write",
     });
 
-    const deletedFolder = await prisma.folder.delete({
-      where: {
-        id: folderId,
-        projectId: workspace.id,
-      },
-      include: {
-        links: {
-          include: {
-            tags: {
-              include: {
-                tag: true,
+    const [deletedFolder] = await prisma.$transaction([
+      prisma.folder.delete({
+        where: {
+          id: folderId,
+          projectId: workspace.id,
+        },
+        include: {
+          links: {
+            include: {
+              tags: {
+                include: {
+                  tag: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      }),
+      prisma.project.update({
+        where: { id: workspace.id },
+        data: { foldersUsage: { decrement: 1 } },
+      }),
+    ]);
 
     waitUntil(
       (async () => {

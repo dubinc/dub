@@ -80,6 +80,8 @@ export function InputSelect({
   inputAttrs?: InputHTMLAttributes<HTMLInputElement>;
   noItemsElement?: ReactNode;
 }) {
+  const { isMobile } = useMediaQuery();
+
   const commandRef = useRef<HTMLDivElement | null>(null);
   const [openCommandList, setOpenCommandList] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -141,14 +143,15 @@ export function InputSelect({
     ],
   });
 
-  const dismiss = useDismiss(context);
+  const dismiss = useDismiss(context, {
+    // useDismiss seems to break the mobile drawer for some reason
+    enabled: !isMobile || !adjustForMobile,
+  });
 
   const { getReferenceProps, getFloatingProps } = useInteractions([dismiss]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
-
-  const { isMobile } = useMediaQuery();
 
   const iconElement = useMemo(() => {
     if (selectedItem && selectedItem.icon) return selectedItem.icon;
@@ -211,7 +214,9 @@ export function InputSelect({
                 shouldFilter={false}
                 loop
               >
-                <InputGroup className={className} iconElement={iconElement} />
+                <div className="p-2">
+                  <InputGroup className={className} iconElement={iconElement} />
+                </div>
                 {openCommandList && (
                   <Command.List className="dub-scrollbar h-[70vh] overflow-y-auto p-2">
                     {items.length === 0 &&

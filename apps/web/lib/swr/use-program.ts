@@ -9,7 +9,9 @@ export default function useProgram() {
   const { programId } = useParams();
 
   const { data: program, error } = useSWR<ProgramProps>(
-    `/api/programs/${programId}?workspaceId=${workspaceId}`,
+    programId &&
+      workspaceId &&
+      `/api/programs/${programId}?workspaceId=${workspaceId}`,
     fetcher,
     {
       dedupingInterval: 60000,

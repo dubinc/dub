@@ -343,56 +343,60 @@ function LinkBuilderInner({
               }
             })}
           >
-            <div className="flex items-center justify-between px-6 py-4">
-              <div className="flex items-center gap-2">
-                {flags?.linkFolders && (
-                  <>
-                    <FolderDropdown
-                      hideViewAll={true}
-                      onFolderSelect={(folder) => {
-                        setValue("folderId", folder.id, { shouldDirty: true });
-                      }}
-                      textClassName="text-lg md:text-lg font-medium"
-                    />
-
-                    <ChevronRight className="size-4 text-neutral-500" />
-                  </>
-                )}
-
-                <LinkLogo
-                  apexDomain={getApexDomain(debouncedUrl)}
-                  className="size-6 sm:size-6 [&>*]:size-3 sm:[&>*]:size-4"
-                />
-                <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
-                  {props ? `Edit ${shortLink}` : "New link"}
-                </h3>
-              </div>
-              {!homepageDemo && (
-                <div className="flex items-center gap-4">
-                  {!homepageDemo && workspaceId && (
-                    <DraftControls
-                      ref={draftControlsRef}
-                      props={props}
-                      workspaceId={workspaceId}
-                    />
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowLinkBuilder(false);
-                      if (searchParams.has("newLink")) {
-                        queryParams({
-                          del: ["newLink"],
-                        });
-                      }
-                      draftControlsRef.current?.onClose();
+            <div className="flex flex-col items-start gap-2 px-6 py-4 md:flex-row md:items-center md:justify-between">
+              {flags?.linkFolders && (
+                <div className="flex items-center gap-2">
+                  <FolderDropdown
+                    hideViewAll={true}
+                    disableAutoRedirect={true}
+                    onFolderSelect={(folder) => {
+                      setValue("folderId", folder.id, { shouldDirty: true });
                     }}
-                    className="group hidden rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200 md:block"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
+                    buttonClassName="max-w-60 md:max-w-[24rem]"
+                    buttonTextClassName="text-lg md:text-lg font-medium"
+                  />
+
+                  <ChevronRight className="hidden size-4 text-neutral-500 md:block" />
                 </div>
               )}
+
+              <div className="flex w-full items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <LinkLogo
+                    apexDomain={getApexDomain(debouncedUrl)}
+                    className="size-6 sm:size-6 [&>*]:size-3 sm:[&>*]:size-4"
+                  />
+                  <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
+                    {props ? `Edit ${shortLink}` : "New link"}
+                  </h3>
+                </div>
+                {!homepageDemo && (
+                  <div className="flex items-center gap-4">
+                    {!homepageDemo && workspaceId && (
+                      <DraftControls
+                        ref={draftControlsRef}
+                        props={props}
+                        workspaceId={workspaceId}
+                      />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowLinkBuilder(false);
+                        if (searchParams.has("newLink")) {
+                          queryParams({
+                            del: ["newLink"],
+                          });
+                        }
+                        draftControlsRef.current?.onClose();
+                      }}
+                      className="group hidden rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200 md:block"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div

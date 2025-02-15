@@ -1,4 +1,5 @@
 import { getEvents } from "@/lib/analytics/get-events";
+import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { convertToCSV, validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
@@ -79,11 +80,20 @@ export const GET = withWorkspace(
       throwError: true,
     });
 
+    const folderIds = folderIdToVerify
+      ? undefined
+      : await getFolderIdsToFilter({
+          workspace,
+          userId: session.user.id,
+        });
+
     const response = await getEvents({
       ...parsedParams,
       ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
       limit: 100000,
+      folderIds,
+      folderId: folderId || "",
     });
 
     const data = response.map((row) =>

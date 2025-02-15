@@ -1,5 +1,6 @@
 import useLink from "@/lib/swr/use-link";
 import useLinks from "@/lib/swr/use-links";
+import useProgram from "@/lib/swr/use-program";
 import { LinkProps } from "@/lib/types";
 import { Combobox, LinkLogo } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
@@ -22,28 +23,26 @@ const getLinkOption = (link: LinkProps) => ({
 });
 
 export function PartnerLinkSelector({
-  programDomain,
   selectedLinkId,
   setSelectedLinkId,
   showDestinationUrl = true,
   onCreate,
-  domain,
   error,
 }: {
-  programDomain?: string;
   selectedLinkId: string | null;
   setSelectedLinkId: (id: string) => void;
   showDestinationUrl?: boolean;
   onCreate?: (search: string) => Promise<boolean>;
-  domain?: string;
   error?: boolean;
 }) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
+  const { program } = useProgram();
 
   const { links } = useLinks(
     {
-      domain: programDomain,
+      domain: program?.domain ?? undefined,
+      folderId: program?.defaultFolderId ?? undefined,
       search: debouncedSearch,
       sort: "clicks", // need to specify this to avoid the ?sort= param in the URL overriding the default
     },
@@ -96,7 +95,7 @@ export function PartnerLinkSelector({
         shouldFilter={false}
         onCreate={onCreate}
         createLabel={(search) =>
-          `Create "${search.startsWith(domain + "/") ? search : domain + "/" + search}"`
+          `Create "${search.startsWith(program?.domain + "/") ? search : program?.domain + "/" + search}"`
         }
       />
       {selectedLink?.url && showDestinationUrl && (
