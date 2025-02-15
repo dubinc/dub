@@ -3,6 +3,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { CardList, useMediaQuery } from "@dub/ui";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useContext } from "react";
 import { FolderIcon } from "../folders/folder-icon";
 import { useLinkBuilder } from "../modals/link-builder";
 import { LinkDetailsColumn } from "./link-details-column";
@@ -10,6 +11,7 @@ import { LinkTitleColumn } from "./link-title-column";
 import { ResponseLink } from "./links-container";
 
 export function LinkCard({ link }: { link: ResponseLink }) {
+  const { variant } = useContext(CardList.Context);
   const { isMobile } = useMediaQuery();
 
   const { setShowLinkBuilder, LinkBuilder } = useLinkBuilder({
@@ -28,7 +30,8 @@ export function LinkCard({ link }: { link: ResponseLink }) {
         key={link.id}
         onClick={isMobile ? undefined : () => setShowLinkBuilder(true)}
         innerClassName="flex items-center gap-5 sm:gap-8 md:gap-12 text-sm"
-        {...(link.folderId &&
+        {...(variant === "loose" &&
+          link.folderId &&
           searchParams.get("folderId") !== link.folderId && {
             banner: (
               <div className="flex items-center justify-between gap-2 rounded-t-xl border-b border-neutral-100 bg-neutral-50 px-5 py-2 text-xs">
