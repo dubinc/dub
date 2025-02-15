@@ -38,8 +38,6 @@ export async function getLinksForWorkspace({
     sortBy = sort;
   }
 
-  console.log({ folderIds, folderId });
-
   const links = await prisma.link.findMany({
     where: {
       projectId: workspaceId,
