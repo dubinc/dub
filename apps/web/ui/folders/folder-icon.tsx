@@ -67,11 +67,13 @@ export const FolderIcon = ({
   folder,
   shape = "rounded",
   className,
+  innerClassName,
   iconClassName,
 }: {
   folder: Pick<FolderProps, "id" | "accessLevel">;
   shape?: "rounded" | "square";
   className?: string;
+  innerClassName?: string;
   iconClassName?: string;
 }) => {
   const iconType = determineFolderIcon(folder);
@@ -96,6 +98,7 @@ export const FolderIcon = ({
         className={cn(
           shape === "rounded" ? "rounded-full p-2" : "rounded-md p-1",
           bgColor,
+          innerClassName,
         )}
       >
         <Icon className={cn("size-4", defaultIconClassName, iconClassName)} />

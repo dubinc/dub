@@ -6,9 +6,11 @@ import { prisma } from "@dub/prisma";
 export async function getLinksCount({
   searchParams,
   workspaceId,
+  folderIds,
 }: {
   searchParams: z.infer<typeof getLinksCountQuerySchema>;
   workspaceId: string;
+  folderIds?: string[];
 }) {
   const {
     groupBy,
@@ -48,8 +50,24 @@ export async function getLinksCount({
       groupBy !== "userId" && {
         userId,
       }),
-    // when filtering by folder, only filter by folder if the filter group is not "Folders"
-    folderId: folderId && groupBy !== "folderId" ? folderId : null,
+    // if there are folderIds, we filter by folderIds
+    // else we filter by folderId
+    ...(folderIds
+      ? {
+          OR: [
+            {
+              folderId: {
+                in: folderIds.filter((id) => id !== ""),
+              },
+            },
+            {
+              folderId: null,
+            },
+          ],
+        }
+      : {
+          folderId: folderId || null,
+        }),
   };
 
   if (groupBy === "tagId") {
