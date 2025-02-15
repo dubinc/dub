@@ -36,7 +36,10 @@ export const GET = withWorkspace(
       });
     }
 
-    // we only need to get the folder ids if we are filtering by domain, tag, or search (and not )
+    /* we only need to get the folder ids if we are:
+      - not filtering by folder
+      - filtering by search, domain, or tags
+    */
     const folderIds =
       !folderId && (search || domain || tagId || tagIds || tagNames)
         ? await getFolderIdsToFilter({
