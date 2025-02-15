@@ -1,6 +1,5 @@
 "use server";
 
-import { userIsInBeta } from "@/lib/edge-config";
 import { storage } from "@/lib/storage";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
@@ -17,17 +16,8 @@ const updatePartnerProfileSchema = z.object({
 export const updatePartnerProfileAction = authPartnerActionClient
   .schema(updatePartnerProfileSchema)
   .action(async ({ ctx, parsedInput }) => {
-    const { user, partner } = ctx;
+    const { partner } = ctx;
     const { name, image, description } = parsedInput;
-
-    const partnersPortalEnabled = await userIsInBeta(
-      user.email,
-      "partnersPortal",
-    );
-
-    if (!partnersPortalEnabled) {
-      throw new Error("Partners portal feature flag disabled.");
-    }
 
     const imageUrl = image
       ? (

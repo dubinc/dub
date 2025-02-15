@@ -36,11 +36,13 @@ export function CardListCard({
   children,
   onClick,
   hoverStateEnabled = true,
+  banner,
 }: PropsWithChildren<{
   outerClassName?: string;
   innerClassName?: string;
   onClick?: () => void;
   hoverStateEnabled?: boolean;
+  banner?: React.ReactNode;
 }>) {
   const { variant } = useContext(CardListContext);
 
@@ -68,6 +70,7 @@ export function CardListCard({
       onPointerLeave={() => setHovered(false)}
       data-hover-state-enabled={hoverStateEnabled}
     >
+      {banner}
       <div
         className={cn(cardListCardInnerClassName, innerClassName)}
         onClick={
