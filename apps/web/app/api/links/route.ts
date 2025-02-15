@@ -1,3 +1,4 @@
+import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
@@ -21,23 +22,33 @@ export const GET = withWorkspace(
   async ({ req, headers, workspace, session }) => {
     const searchParams = getSearchParamsWithArray(req.url);
     const params = getLinksQuerySchemaExtended.parse(searchParams);
+    const { domain, folderId, search } = params;
 
-    if (params.domain) {
-      await getDomainOrThrow({ workspace, domain: params.domain });
+    if (domain) {
+      await getDomainOrThrow({ workspace, domain });
     }
 
-    if (params.folderId) {
+    if (folderId) {
       await verifyFolderAccess({
         workspace,
         userId: session.user.id,
-        folderId: params.folderId,
+        folderId,
         requiredPermission: "folders.read",
       });
     }
 
+    const folderIds =
+      search || domain || !folderId
+        ? await getFolderIdsToFilter({
+            workspace,
+            userId: session.user.id,
+          })
+        : undefined;
+
     const response = await getLinksForWorkspace({
       ...params,
       workspaceId: workspace.id,
+      folderIds,
     });
 
     return NextResponse.json(response, {
