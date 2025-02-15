@@ -106,13 +106,11 @@ async function createReferral({
   campaignId: string;
 }) {
   if (
-    referral.affiliate?.campaign &&
+    referral.affiliate?.campaign?.id &&
     referral.affiliate.campaign.id !== campaignId
   ) {
     console.log(
-      "Referral not in campaign",
-      referral.affiliate?.campaign?.id,
-      campaignId,
+      `Referral ${referral.customer.email} not in campaign ${campaignId} (they're in ${referral.affiliate.campaign.id}). Skipping...`,
     );
     return;
   }
@@ -127,7 +125,9 @@ async function createReferral({
   });
 
   if (!link) {
-    console.log("Link not found", referral.link.token);
+    console.log(
+      `Link not found for referral ${referral.customer.email} (token: ${referral.link.token}), skipping...`,
+    );
     return;
   }
 
@@ -135,7 +135,9 @@ async function createReferral({
     !referral.stripe_customer_id ||
     !referral.stripe_customer_id.startsWith("cus_")
   ) {
-    console.log("No Stripe customer ID provided for referral", referral);
+    console.log(
+      `No Stripe customer ID provided for referral ${referral.customer.email}, skipping...`,
+    );
     return;
   }
 
