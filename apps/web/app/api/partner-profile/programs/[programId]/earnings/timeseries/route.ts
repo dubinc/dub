@@ -5,9 +5,8 @@ import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
-import { format } from "date-fns";
+import { DateTime } from "luxon";
 import { NextResponse } from "next/server";
-
 const partnerAnalyticsQuerySchema = analyticsQuerySchema.pick({
   event: true,
   start: true,
@@ -97,7 +96,9 @@ export const GET = withPartnerProfile(
     `;
 
     const timeseries: Earnings[] = [];
-    let currentDate = startFunction(startDate);
+    let currentDate = startFunction(
+      DateTime.fromJSDate(startDate).setZone(timezone || "UTC"),
+    );
 
     const commissionLookup = Object.fromEntries(
       earnings.map((item) => [
@@ -109,10 +110,10 @@ export const GET = withPartnerProfile(
     );
 
     while (currentDate < endDate) {
-      const periodKey = format(currentDate, formatString);
+      const periodKey = currentDate.toFormat(formatString);
 
       timeseries.push({
-        start: format(currentDate, "yyyy-MM-dd'T'HH:mm:ssxxx"),
+        start: currentDate.toISO(),
         earnings: commissionLookup[periodKey]?.earnings || 0,
       });
 

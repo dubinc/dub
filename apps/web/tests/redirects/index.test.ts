@@ -69,6 +69,19 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     expect(response.status).toBe(302);
   });
 
+  test("query params with no value", async () => {
+    const response = await fetch(
+      `${h.baseUrl}/query-params-no-value`,
+      fetchOptions,
+    );
+
+    expect(response.headers.get("location")).toBe(
+      "https://dub.co/blog?emptyquery",
+    );
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
   test("with password", async () => {
     const response = await fetch(
       `${h.baseUrl}/password/check?pw=dub`,

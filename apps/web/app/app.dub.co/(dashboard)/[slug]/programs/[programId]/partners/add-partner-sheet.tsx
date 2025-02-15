@@ -257,7 +257,6 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
               >
                 <div className="p-1">
                   <PartnerLinkSelector
-                    programDomain={program?.domain ?? undefined}
                     selectedLinkId={selectedLinkId}
                     setSelectedLinkId={(id) => {
                       clearErrors("linkId");
@@ -272,7 +271,6 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
                       }
                       return false;
                     }}
-                    domain={program?.domain ?? undefined}
                     error={!!errors.linkId}
                   />
                   {errors.linkId && (
