@@ -1,6 +1,6 @@
 import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CardList, useMediaQuery } from "@dub/ui";
+import { CardList, ExpandingArrow, useMediaQuery } from "@dub/ui";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useContext } from "react";
@@ -34,7 +34,10 @@ export function LinkCard({ link }: { link: ResponseLink }) {
           link.folderId &&
           searchParams.get("folderId") !== link.folderId && {
             banner: (
-              <div className="flex items-center justify-between gap-2 rounded-t-xl border-b border-neutral-100 bg-neutral-50 px-5 py-2 text-xs">
+              <Link
+                href={`/${slug}?folderId=${folder?.id}`}
+                className="group flex items-center justify-between gap-2 rounded-t-xl border-b border-neutral-100 bg-neutral-50 px-5 py-2 text-xs"
+              >
                 <div className="flex items-center gap-1.5">
                   {folder ? (
                     <FolderIcon
@@ -54,14 +57,12 @@ export function LinkCard({ link }: { link: ResponseLink }) {
                   ) : (
                     <div className="h-4 w-20 rounded-md bg-neutral-200" />
                   )}
+                  <ExpandingArrow className="invisible -ml-1.5 size-3.5 text-neutral-500 group-hover:visible" />
                 </div>
-                <Link
-                  href={`/${slug}?folderId=${folder?.id}`}
-                  className="text-neutral-500 underline transition-colors hover:text-neutral-800"
-                >
+                <p className="text-neutral-500 underline transition-colors group-hover:text-neutral-800">
                   Open folder
-                </Link>
-              </div>
+                </p>
+              </Link>
             ),
           })}
       >
