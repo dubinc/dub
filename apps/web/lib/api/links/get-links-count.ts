@@ -30,44 +30,46 @@ export async function getLinksCount({
   const linksWhere = {
     projectId: workspaceId,
     archived: showArchived ? undefined : false,
-    ...(search && {
-      OR: [
-        {
-          shortLink: { contains: search },
-        },
-        {
-          url: { contains: search },
-        },
-      ],
-    }),
-    // when filtering by domain, only filter by domain if the filter group is not "Domains"
+    AND: [
+      ...(search
+        ? [
+            {
+              OR: [
+                { shortLink: { contains: search } },
+                { url: { contains: search } },
+              ],
+            },
+          ]
+        : []),
+      ...(folderIds
+        ? [
+            {
+              OR: [
+                {
+                  folderId: {
+                    in: folderIds.filter((id) => id !== ""),
+                  },
+                },
+                {
+                  folderId: null,
+                },
+              ],
+            },
+          ]
+        : [
+            {
+              folderId: folderId || null,
+            },
+          ]),
+    ],
     ...(domain &&
       groupBy !== "domain" && {
         domain,
       }),
-    // when filtering by user, only filter by user if the filter group is not "Users"
     ...(userId &&
       groupBy !== "userId" && {
         userId,
       }),
-    // if there are folderIds, we filter by folderIds
-    // else we filter by folderId
-    ...(folderIds
-      ? {
-          OR: [
-            {
-              folderId: {
-                in: folderIds.filter((id) => id !== ""),
-              },
-            },
-            {
-              folderId: null,
-            },
-          ],
-        }
-      : {
-          folderId: folderId || null,
-        }),
   };
 
   if (groupBy === "tagId") {
