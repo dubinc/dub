@@ -109,11 +109,13 @@ export default function EventsTable({
           accessorKey: "eventName",
           enableHiding: false,
           cell: ({ getValue }) =>
-            (
+            getValue() ? (
               <span className="truncate" title={getValue()}>
                 {getValue()}
               </span>
-            ) || <span className="text-neutral-400">-</span>,
+            ) : (
+              <span className="text-neutral-400">-</span>
+            ),
         },
         {
           id: "link",
@@ -381,11 +383,13 @@ export default function EventsTable({
           accessorKey: "sale.invoiceId",
           maxSize: 200,
           cell: ({ getValue }) =>
-            (
+            getValue() ? (
               <span className="truncate" title={getValue()}>
                 {getValue()}
               </span>
-            ) || <span className="text-neutral-400">-</span>,
+            ) : (
+              <span className="text-neutral-400">-</span>
+            ),
         },
         // Date
         {
