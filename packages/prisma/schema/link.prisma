@@ -83,4 +83,5 @@ model Link {
   @@index([programId, partnerId])
   @@unique([domain, key])
   @@unique([projectId, externalId])
+  @@index(folderId)
 }
