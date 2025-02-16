@@ -25,13 +25,17 @@ export const onboardPartnerAction = authUserActionClient
       },
     });
 
-    const connectedAccount = CONNECT_SUPPORTED_COUNTRIES.includes(country)
-      ? await createConnectedAccount({
-          name,
-          email: user.email,
-          country,
-        })
-      : null;
+    // only create a connected account if the partner doesn't already have one
+    // and the country is supported
+    const connectedAccount =
+      !existingPartner?.stripeConnectId &&
+      CONNECT_SUPPORTED_COUNTRIES.includes(country)
+        ? await createConnectedAccount({
+            name,
+            email: user.email,
+            country,
+          })
+        : null;
 
     const partnerId = existingPartner
       ? existingPartner.id
