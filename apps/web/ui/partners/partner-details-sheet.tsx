@@ -582,7 +582,7 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
     ],
     onRowClick: (row) => {
       window.open(
-        `/${slug}/analytics?domain=${row.original.domain}&key=${row.original.key}&interval=all`,
+        `/${slug}/events?domain=${row.original.domain}&key=${row.original.key}&interval=all`,
         "_blank",
       );
     },
