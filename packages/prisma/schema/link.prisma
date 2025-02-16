@@ -79,17 +79,8 @@ model Link {
   customers Customer[]
   commissions Commission[]
 
+  @@index([projectId, archived, folderId, createdAt(sort: Desc)])
+  @@index([programId, partnerId])
   @@unique([domain, key])
   @@unique([projectId, externalId])
-  @@index(trackConversion)
-  @@index(proxy)
-  @@index(password)
-  @@index(archived)
-  @@index(createdAt(sort: Desc))
-  @@index(clicks(sort: Desc))
-  @@index(lastClicked)
-  @@index(userId)
-  @@index(folderId)
-  @@index(tenantId)
-  @@index([programId, partnerId])
 }
