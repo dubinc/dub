@@ -41,8 +41,9 @@ export const POST = withWorkspaceEdge(
       });
     }
 
-    // deduplicate lead events – only record 1 event per hour
-    const { success } = await ratelimit(1, "1 h").limit(
+    // deduplicate lead events – only record 1 unique event per 7 days
+    // TODO: maybe convert to redis.set nx like how we're doing it for invoice deduplication?
+    const { success } = await ratelimit(1, "7 d").limit(
       `recordLead:${workspace.id}:${customerExternalId}:${eventName.toLowerCase().replace(" ", "-")}`,
     );
 

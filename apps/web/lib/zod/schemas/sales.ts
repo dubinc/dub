@@ -55,6 +55,11 @@ export const trackSaleRequestSchema = z.object({
     .nullish()
     .default(null)
     .describe("Additional metadata to be stored with the sale event."),
+  leadEventName: z
+    .string()
+    .nullish()
+    .default(null)
+    .describe("The name of the lead event that occurred before the sale."),
 });
 
 export const trackSaleResponseSchema = z.object({
