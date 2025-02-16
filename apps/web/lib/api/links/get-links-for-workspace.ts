@@ -42,7 +42,6 @@ export async function getLinksForWorkspace({
     where: {
       projectId: workspaceId,
       archived: showArchived ? undefined : false,
-      ...(domain && { domain }),
       ...(folderIds
         ? {
             OR: [
@@ -59,6 +58,7 @@ export async function getLinksForWorkspace({
         : {
             folderId: folderId || null,
           }),
+      ...(domain && { domain }),
       ...(search && {
         OR: [
           {
