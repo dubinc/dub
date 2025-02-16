@@ -129,6 +129,8 @@ export function RegisterDomainForm({
     <form
       onSubmit={async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        // prevent the submission event from propagating to the parent form (in the link builder)
+        e.stopPropagation();
         if (searchedDomain && searchedDomain.available) {
           await registerDomain(searchedDomain.domain);
         }
