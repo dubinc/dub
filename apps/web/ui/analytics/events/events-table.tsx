@@ -439,11 +439,9 @@ export default function EventsTable({
         .map((col) => ({
           ...col,
           enableResizing: true,
-          size:
-            col.size ||
-            (col.id === "menu" ? 43 : Math.max(200, col.minSize || 100)),
-          minSize: col.minSize || (col.id === "menu" ? 43 : 100),
-          maxSize: col.maxSize || (col.id === "menu" ? 43 : 1000),
+          size: col.size || Math.max(200, col.minSize || 100),
+          minSize: col.minSize || 100,
+          maxSize: col.maxSize || 1000,
         })),
     [tab],
   );
