@@ -4,9 +4,9 @@ import { EnrolledPartnerProps } from "@/lib/types";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet, Table, usePagination, useTable } from "@dub/ui";
-import { Search } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
+import { Search } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -40,7 +40,7 @@ export function SelectEligiblePartnersSheet({
   });
 
   const { partnersCount } = usePartnersCount<number>({
-    ignoreParams: true,
+    search: debouncedSearch,
   });
 
   const [selectedPartners, setSelectedPartners] = useState<
@@ -54,7 +54,6 @@ export function SelectEligiblePartnersSheet({
     }
   }, [isOpen, setPagination]);
 
-  // Reset pagination when search changes
   useEffect(() => {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [debouncedSearch, setPagination]);
@@ -149,7 +148,7 @@ export function SelectEligiblePartnersSheet({
               placeholder="Search partners"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="block w-full rounded-full border-neutral-200 bg-neutral-50 pl-10 text-sm text-neutral-900 placeholder-neutral-500 focus:border-neutral-300 focus:outline-none focus:ring-0"
+              className="block w-full rounded-lg border-neutral-300 pl-10 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
             />
           </div>
           <Table {...table} />
