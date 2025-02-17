@@ -2,9 +2,11 @@
 
 import useProgram from "@/lib/swr/use-program";
 import useRewards from "@/lib/swr/use-rewards";
-import { Reward as RewardType } from "@dub/prisma/client";
+import { useRewardSheet } from "@/ui/partners/add-edit-reward-sheet";
+import { EventType, Reward as RewardType } from "@dub/prisma/client";
 import { Badge, Button, IconMenu, MoneyBill, Popover } from "@dub/ui";
-import { BoltFill, CurrencyDollar, Gear3, Users2 } from "@dub/ui/icons";
+import { BoltFill, CurrencyDollar, Users2 } from "@dub/ui/icons";
+import { Gift } from "lucide-react";
 import { useState } from "react";
 
 export function RewardSettings() {
@@ -15,35 +17,6 @@ export function RewardSettings() {
     </div>
   );
 }
-
-const EmptyState = ({ icon: Icon, title, description }: { icon: any; title: string; description: string }) => {
-  return (
-    <div className="flex h-[200px] flex-col items-center justify-center gap-4 rounded-lg bg-neutral-50 p-4">
-      <div className="flex size-12 items-center justify-center rounded-full border border-neutral-200 bg-white">
-        <Icon className="size-5 text-neutral-600" />
-      </div>
-      <div className="flex flex-col items-center space-y-2">
-        <h3 className="text-sm font-medium text-neutral-600">{title}</h3>
-        <p className="text-center text-sm text-neutral-500">{description}</p>
-      </div>
-    </div>
-  );
-};
-
-const RewardSkeleton = () => {
-  return (
-    <div className="flex animate-pulse items-center gap-4 rounded-lg border border-neutral-200 p-4">
-      <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-neutral-50" />
-      <div className="flex flex-1 items-center justify-between">
-        <div className="space-y-3">
-          <div className="h-4 w-64 rounded bg-neutral-100" />
-          <div className="h-4 w-32 rounded bg-neutral-100" />
-        </div>
-        <div className="h-6 w-24 rounded-full bg-neutral-100" />
-      </div>
-    </div>
-  );
-};
 
 const SaleReward = () => {
   const { program } = useProgram();
@@ -64,21 +37,14 @@ const SaleReward = () => {
               The default rewarded offered to all partners
             </p>
           </div>
-          {!program?.defaultRewardId && !loading && (
-            <Button text="Create default reward" variant="primary" />
-          )}
         </div>
         {loading ? (
           <RewardSkeleton />
-        ) : program?.defaultRewardId ? (
-          defaultReward ? (
-            <Reward reward={defaultReward} />
-          ) : (
-            <RewardSkeleton />
-          )
+        ) : defaultReward ? (
+          <Reward reward={defaultReward} />
         ) : (
           <EmptyState
-            icon={Gear3}
+            event="sale"
             title="No default reward created"
             description="Create a default reward that will be offered to all partners"
           />
@@ -122,9 +88,8 @@ const AdditionalRewards = () => {
           </div>
         ) : (
           <EmptyState
-            icon={MoneyBill}
-            title="No additional rewards"
-            description="Create additional rewards for specific partners or reward groups"
+            title="Additional Rewards"
+            description="No additional rewards have been added yet"
           />
         )}
       </div>
@@ -164,67 +129,133 @@ const Reward = ({ reward }: { reward: RewardType }) => {
 
 const CreateRewardButton = () => {
   const [openPopover, setOpenPopover] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<EventType | null>(null);
+  const { rewardSheet, setIsOpen } = useRewardSheet({
+    event: selectedEvent || "sale", // default to sale, but it won't show unless setIsOpen is true
+  });
 
   const rewardTypes = [
     {
       key: "click",
       text: "Click reward",
       icon: <BoltFill className="size-4 text-neutral-600" />,
+      event: "click" as const,
     },
     {
       key: "lead",
       text: "Lead reward",
       icon: <Users2 className="size-4 text-neutral-600" />,
+      event: "lead" as const,
     },
     {
       key: "sale",
       text: "Sale reward",
       icon: <CurrencyDollar className="size-4 text-neutral-600" />,
+      event: "sale" as const,
     },
   ];
 
   return (
-    <Popover
-      content={
-        <div className="w-full p-2 md:w-48">
-          <div className="grid gap-px">
-            {rewardTypes.map((type) => (
-              <button
-                key={type.key}
-                className="w-full rounded-md p-2 text-left text-sm hover:bg-neutral-100 active:bg-neutral-200"
-                onClick={() => {
-                  setOpenPopover(false);
-                  // TODO: Handle reward creation
-                }}
-              >
-                <IconMenu text={type.text} icon={type.icon} />
-              </button>
-            ))}
+    <>
+      <Popover
+        content={
+          <div className="w-full p-2 md:w-48">
+            <div className="grid gap-px">
+              {rewardTypes.map((type) => (
+                <button
+                  key={type.key}
+                  className="w-full rounded-md p-2 text-left text-sm hover:bg-neutral-100 active:bg-neutral-200"
+                  onClick={() => {
+                    setSelectedEvent(type.event);
+                    setIsOpen(true);
+                    setOpenPopover(false);
+                  }}
+                >
+                  <IconMenu text={type.text} icon={type.icon} />
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      }
-      openPopover={openPopover}
-      setOpenPopover={setOpenPopover}
-      align="end"
-    >
-      <button
-        onClick={() => setOpenPopover(!openPopover)}
-        className="group inline-flex items-center justify-center gap-1 rounded-md bg-black px-4 py-1.5 text-sm font-medium text-white transition-all hover:bg-gray-700 active:bg-gray-800"
+        }
+        openPopover={openPopover}
+        setOpenPopover={setOpenPopover}
+        align="end"
       >
-        <span>Create reward</span>
-        <svg
-          className="h-4 w-4 transition-all group-hover:rotate-180"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+        <button
+          onClick={() => setOpenPopover(!openPopover)}
+          className="group inline-flex items-center justify-center gap-1 rounded-md bg-black px-4 py-1.5 text-sm font-medium text-white transition-all hover:bg-gray-700 active:bg-gray-800"
         >
-          <polyline points="6 9 12 15 18 9"></polyline>
-        </svg>
-      </button>
-    </Popover>
+          <span>Create reward</span>
+          <svg
+            className="h-4 w-4 transition-all group-hover:rotate-180"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+      </Popover>
+      {rewardSheet}
+    </>
+  );
+};
+
+const RewardSkeleton = () => {
+  return (
+    <div className="flex animate-pulse items-center gap-4 rounded-lg border border-neutral-200 p-4">
+      <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-neutral-50" />
+      <div className="flex flex-1 items-center justify-between">
+        <div className="space-y-3">
+          <div className="h-4 w-64 rounded bg-neutral-100" />
+          <div className="h-4 w-32 rounded bg-neutral-100" />
+        </div>
+        <div className="h-6 w-24 rounded-full bg-neutral-100" />
+      </div>
+    </div>
+  );
+};
+
+const EmptyState = ({
+  title,
+  description,
+  event,
+}: {
+  title: string;
+  description: string;
+  event?: EventType;
+}) => {
+  if (event === "sale") {
+    return (
+      <div className="flex items-center justify-between gap-4 rounded-lg bg-neutral-50 p-4">
+        <div className="flex items-center gap-4">
+          <div className="flex size-10 items-center justify-center rounded-full border border-neutral-300">
+            <MoneyBill className="size-5 text-neutral-600" />
+          </div>
+          <p className="text-sm text-neutral-600">No default reward created</p>
+        </div>
+        <Button
+          text="Create default reward"
+          variant="primary"
+          className="h-[32px] w-fit"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-neutral-50 py-12">
+      <div className="flex items-center justify-center">
+        <Gift className="size-6 text-neutral-800" />
+      </div>
+      <div className="flex flex-col items-center gap-1 px-4 text-center">
+        <p className="text-base font-medium text-neutral-900">{title}</p>
+        <p className="text-sm text-neutral-600">{description}</p>
+      </div>
+    </div>
   );
 };
