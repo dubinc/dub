@@ -4,7 +4,7 @@ import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { generateRandomName } from "@/lib/names";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
-import { ratelimit } from "@/lib/upstash";
+import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import {
@@ -41,19 +41,29 @@ export const POST = withWorkspaceEdge(
       });
     }
 
-    // deduplicate lead events – only record 1 unique event per 7 days
-    // TODO: maybe convert to redis.set nx like how we're doing it for invoice deduplication?
-    const { success } = await ratelimit(1, "7 d").limit(
-      `recordLead:${workspace.id}:${customerExternalId}:${eventName.toLowerCase().replace(" ", "-")}`,
+    // deduplicate lead events – only record 1 unique event for the same customer and event name
+    const ok = await redis.set(
+      `trackLead:${workspace.id}:${customerExternalId}:${eventName.toLowerCase().replace(" ", "-")}`,
+      {
+        timestamp: Date.now(),
+        clickId,
+        eventName,
+        customerExternalId,
+        customerName,
+        customerEmail,
+        customerAvatar,
+      },
+      {
+        nx: true,
+      },
     );
 
-    if (!success) {
+    if (!ok) {
       throw new DubApiError({
         code: "conflict",
-        message: `Customer with externalId ${customerExternalId} and event name: ${eventName} has already been recorded in the last hour.`,
+        message: `Customer with externalId "${customerExternalId}" and event name "${eventName}" has already been recorded.`,
       });
     }
-
     // Find click event
     const clickEvent = await getClickEvent({ clickId });
 
