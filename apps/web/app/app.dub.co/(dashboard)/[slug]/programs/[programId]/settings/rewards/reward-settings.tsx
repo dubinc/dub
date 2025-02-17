@@ -109,10 +109,16 @@ const AdditionalRewards = () => {
 };
 
 const Reward = ({ reward }: { reward: Reward }) => {
+  const eventIcons = {
+    click: <CursorRays className="size-4 text-neutral-600" />,
+    lead: <UserPlus className="size-4 text-neutral-600" />,
+    sale: <MoneyBill className="size-4 text-neutral-600" />,
+  } as const;
+
   return (
     <div className="flex items-center gap-4 rounded-lg border border-neutral-200 p-4">
       <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
-        <MoneyBill className="size-5 text-neutral-600" />
+        {eventIcons[reward.event]}
       </div>
       <div className="flex flex-1 items-center justify-between">
         <div className="flex items-center gap-2">
