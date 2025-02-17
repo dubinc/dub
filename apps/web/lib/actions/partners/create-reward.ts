@@ -4,6 +4,7 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { createId } from "@/lib/api/utils";
 import { createRewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
+import { EventType } from "@dub/prisma/client";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
@@ -46,15 +47,6 @@ export const createRewardAction = authActionClient
       }
     }
 
-    const hasDefaultReward = !!program.defaultRewardId;
-
-    // if (event === "sale") {
-
-    // }
-
-    // TODO:
-    // Partners can't be more than one reward of the same type.
-
     const reward = await prisma.reward.create({
       data: {
         id: createId({ prefix: "rew_" }),
@@ -75,7 +67,8 @@ export const createRewardAction = authActionClient
       },
     });
 
-    if (!hasDefaultReward) {
+    // set the default reward if it doesn't exist
+    if (!program.defaultRewardId && event === EventType.sale) {
       await prisma.program.update({
         where: {
           id: programId,

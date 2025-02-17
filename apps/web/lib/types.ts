@@ -66,6 +66,7 @@ import {
   webhookEventSchemaTB,
   WebhookSchema,
 } from "./zod/schemas/webhooks";
+import { rewardSchema } from "./zod/schemas/rewards";
 
 export type LinkProps = Link;
 
@@ -429,3 +430,5 @@ export type FolderSummary = Pick<
   Folder,
   "id" | "name" | "accessLevel" | "linkCount"
 >;
+
+export type Reward = z.infer<typeof rewardSchema>;

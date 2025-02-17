@@ -17,6 +17,7 @@ export const rewardSchema = z.object({
   type: z.nativeEnum(CommissionType),
   amount: z.number(),
   maxDuration: z.number().nullish(),
+  partnersCount: z.number(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -30,22 +31,10 @@ export const createOrUpdateRewardSchema = z.object({
 });
 
 export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
-  (data, ctx) => {
+  (data) => {
     if (data.event !== EventType.sale) {
-      if (data.maxDuration) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Duration is only allowed for sale rewards.",
-          path: ["maxDuration"],
-        });
-      }
-
-      if (data.type !== "flat") {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `Type must be flat for ${data.event} rewards.`,
-        });
-      }
+      data.maxDuration = "0";
+      data.type = "flat";
     }
   },
 );

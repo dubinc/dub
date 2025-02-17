@@ -2,8 +2,9 @@
 
 import useProgram from "@/lib/swr/use-program";
 import useRewards from "@/lib/swr/use-rewards";
+import { Reward } from "@/lib/types";
 import { useRewardSheet } from "@/ui/partners/add-edit-reward-sheet";
-import { EventType, Reward as RewardType } from "@dub/prisma/client";
+import { EventType } from "@dub/prisma/client";
 import { Badge, Button, IconMenu, MoneyBill, Popover } from "@dub/ui";
 import { BoltFill, CurrencyDollar, Users2 } from "@dub/ui/icons";
 import { Gift } from "lucide-react";
@@ -107,7 +108,7 @@ const AdditionalRewards = () => {
   );
 };
 
-const Reward = ({ reward }: { reward: RewardType }) => {
+const Reward = ({ reward }: { reward: Reward }) => {
   return (
     <div className="flex items-center gap-4 rounded-lg border border-neutral-200 p-4">
       <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
@@ -116,24 +117,48 @@ const Reward = ({ reward }: { reward: RewardType }) => {
       <div className="flex flex-1 items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-sm font-normal">
-            Earn{" "}
-            <span className="text-blue-500">
-              {reward.type === "percentage"
-                ? `${reward.amount}%`
-                : `$${(reward.amount / 100).toFixed(2)}`}
-            </span>{" "}
-            for each {reward.event.toLowerCase()}
-            {reward.maxDuration && (
-              <>
-                , and again for {reward.maxDuration}{" "}
-                {reward.maxDuration === 0 ? "forever" : "months"}
-              </>
-            )}
+            <RewardDescription reward={reward} />
           </span>
         </div>
-        <Badge variant="gray">All partners</Badge>
+        {reward.partnersCount > 0 ? (
+          <Badge variant="green">{reward.partnersCount} partners</Badge>
+        ) : (
+          <Badge variant="gray">All partners</Badge>
+        )}
       </div>
     </div>
+  );
+};
+
+const RewardDescription = ({ reward }: { reward: Reward }) => {
+  const amount =
+    reward.type === "percentage"
+      ? `${reward.amount}%`
+      : `$${(reward.amount / 100).toFixed(2)}`;
+
+  const eventText = {
+    click: "click",
+    lead: "signup",
+    sale: "sale",
+  }[reward.event];
+
+  const getRecurringText = () => {
+    if (reward.maxDuration === null) {
+      return ", and again for every conversion of the customers lifetime";
+    }
+    if (reward.maxDuration === 0) {
+      return ""; // No recurring text for one-time rewards
+    }
+    return `, and again for every conversion of ${reward.maxDuration} months`;
+  };
+
+  return (
+    <>
+      Earn <span className="text-blue-500">{amount}</span> for each {eventText}
+      {reward.event === "sale" && (
+        <span className="text-neutral-900">{getRecurringText()}</span>
+      )}
+    </>
   );
 };
 
