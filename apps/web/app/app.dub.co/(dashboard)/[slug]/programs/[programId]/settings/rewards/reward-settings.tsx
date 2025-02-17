@@ -5,10 +5,37 @@ import useRewards from "@/lib/swr/use-rewards";
 import type { Reward } from "@/lib/types";
 import { useRewardSheet } from "@/ui/partners/add-edit-reward-sheet";
 import { EventType } from "@dub/prisma/client";
-import { Badge, Button, MoneyBill, Popover } from "@dub/ui";
+import {
+  Badge,
+  Button,
+  MoneyBill,
+  Popover,
+  useKeyboardShortcut,
+} from "@dub/ui";
 import { CursorRays } from "@dub/ui/icons";
 import { Gift, UserPlus } from "lucide-react";
 import { useState } from "react";
+
+const events = {
+  click: {
+    icon: CursorRays,
+    text: "Click reward",
+    event: "click",
+    shortcut: "C",
+  },
+  lead: {
+    icon: UserPlus,
+    text: "Lead reward",
+    event: "signup",
+    shortcut: "L",
+  },
+  sale: {
+    icon: MoneyBill,
+    text: "Sale reward",
+    event: "sale",
+    shortcut: "S",
+  },
+} as const;
 
 export function RewardSettings() {
   return (
@@ -109,16 +136,12 @@ const AdditionalRewards = () => {
 };
 
 const Reward = ({ reward }: { reward: Reward }) => {
-  const eventIcons = {
-    click: <CursorRays className="size-4 text-neutral-600" />,
-    lead: <UserPlus className="size-4 text-neutral-600" />,
-    sale: <MoneyBill className="size-4 text-neutral-600" />,
-  } as const;
+  const Icon = events[reward.event].icon;
 
   return (
     <div className="flex items-center gap-4 rounded-lg border border-neutral-200 p-4">
       <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
-        {eventIcons[reward.event]}
+        <Icon className="size-4 text-neutral-600" />
       </div>
       <div className="flex flex-1 items-center justify-between">
         <div className="flex items-center gap-2">
@@ -142,12 +165,6 @@ const RewardDescription = ({ reward }: { reward: Reward }) => {
       ? `${reward.amount}%`
       : `$${(reward.amount / 100).toFixed(2)}`;
 
-  const eventText = {
-    click: "click",
-    lead: "signup",
-    sale: "sale",
-  }[reward.event];
-
   const getRecurringText = () => {
     if (reward.maxDuration === null) {
       return ", and again for every conversion of <strong>the customers lifetime</strong>";
@@ -162,7 +179,8 @@ const RewardDescription = ({ reward }: { reward: Reward }) => {
 
   return (
     <>
-      Earn <span className="text-blue-500">{amount}</span> for each {eventText}
+      Earn <span className="text-blue-500">{amount}</span> for each{" "}
+      {events[reward.event].text}
       {reward.event === "sale" && (
         <span
           className="text-neutral-900"
@@ -180,26 +198,24 @@ const CreateRewardButton = () => {
     event: selectedEvent || "sale",
   });
 
-  const rewardTypes = [
-    {
-      event: "click",
-      text: "Click reward",
-      icon: <CursorRays className="size-4" />,
-      shortcut: "C",
+  useKeyboardShortcut(
+    Object.values(events).map((type) => type.shortcut.toLowerCase()),
+    (e) => {
+      setOpenPopover(false);
+
+      const eventType = Object.values(events).find(
+        (type) => type.shortcut.toLowerCase() === e.key,
+      );
+
+      if (eventType) {
+        setSelectedEvent(eventType.event as EventType);
+        setIsOpen(true);
+      }
     },
     {
-      event: "lead",
-      text: "Lead reward",
-      icon: <UserPlus className="size-4" />,
-      shortcut: "L",
+      enabled: openPopover,
     },
-    {
-      event: "sale",
-      text: "Sale reward",
-      icon: <MoneyBill className="size-4" />,
-      shortcut: "S",
-    },
-  ];
+  );
 
   return (
     <>
@@ -207,11 +223,11 @@ const CreateRewardButton = () => {
         content={
           <div className="w-full p-2 md:w-48">
             <div className="grid gap-px">
-              {rewardTypes.map((type) => (
+              {Object.values(events).map((type) => (
                 <Button
                   key={type.event}
                   text={type.text}
-                  icon={type.icon}
+                  icon={<type.icon className="size-4" />}
                   variant="outline"
                   onClick={() => {
                     setSelectedEvent(type.event as EventType);
