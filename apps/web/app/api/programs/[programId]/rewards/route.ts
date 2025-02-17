@@ -25,6 +25,9 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
         },
       },
     },
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 
   const rewardsWithPartnersCount = rewards.map((reward) => ({
