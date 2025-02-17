@@ -6,12 +6,19 @@ import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { createRewardSchema } from "@/lib/zod/schemas/rewards";
-import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { SelectEligiblePartnersSheet } from "@/ui/partners/select-eligible-partners-sheet";
 import { X } from "@/ui/shared/icons";
 import { EventType } from "@dub/prisma/client";
-import { Button, CircleCheckFill, Gift, Sheet, Users } from "@dub/ui";
+import {
+  Button,
+  CircleCheckFill,
+  Sheet,
+  Table,
+  Users,
+  useTable,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
+import { DICEBEAR_AVATAR_URL } from "@dub/utils/src/constants";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -104,6 +111,60 @@ function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
   ]);
 
   const buttonDisabled = isPending || amount == null;
+
+  const selectedPartnersTable = useTable({
+    data: partners?.filter((p) => partnerIds.includes(p.id)) || [],
+    columns: [
+      {
+        header: "Partner",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <img
+              src={
+                row.original.image ||
+                `${DICEBEAR_AVATAR_URL}${row.original.name}`
+              }
+              alt={row.original.name}
+              className="size-6 rounded-full"
+            />
+            <span className="text-sm text-neutral-700">
+              {row.original.name}
+            </span>
+          </div>
+        ),
+      },
+      {
+        header: "Email",
+        cell: ({ row }) => (
+          <div className="text-sm text-neutral-600">{row.original.email}</div>
+        ),
+      },
+      {
+        id: "actions",
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Button
+              variant="secondary"
+              icon={<X className="size-4" />}
+              className="h-8 w-8 rounded-md border-0 bg-neutral-50 p-0"
+              onClick={() => {
+                setValue(
+                  "partnerIds",
+                  partnerIds.filter((id) => id !== row.original.id),
+                );
+              }}
+            />
+          </div>
+        ),
+        size: 50,
+      },
+    ],
+    thClassName: (id) => cn("border-l-0"),
+    tdClassName: (id) => cn("border-l-0"),
+    className: "[&_tr:last-child>td]:border-b-transparent",
+    scrollWrapperClassName: "min-h-[40px]",
+    resourceName: (p) => `eligible partner${p ? "s" : ""}`,
+  });
 
   return (
     <>
@@ -216,29 +277,7 @@ function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
                 </div>
                 <div className="mt-4">
                   {partnerIds.length > 0 ? (
-                    <div className="flex flex-col gap-2">
-                      {partners
-                        ?.filter((p) => partnerIds.includes(p.id))
-                        .map((partner) => (
-                          <div
-                            key={partner.id}
-                            className="flex items-center justify-between rounded-lg border border-neutral-200 p-3"
-                          >
-                            <PartnerRowItem partner={partner} />
-                            <Button
-                              variant="secondary"
-                              icon={<X className="size-4" />}
-                              className="h-8 w-8 p-0"
-                              onClick={() => {
-                                setValue(
-                                  "partnerIds",
-                                  partnerIds.filter((id) => id !== partner.id),
-                                );
-                              }}
-                            />
-                          </div>
-                        ))}
-                    </div>
+                    <Table {...selectedPartnersTable} />
                   ) : (
                     <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-neutral-50 py-12">
                       <div className="flex items-center justify-center">

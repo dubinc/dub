@@ -57,7 +57,6 @@ export function SelectEligiblePartnersSheet({
         ),
       },
     ],
-
     thClassName: (id) =>
       cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
     tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
