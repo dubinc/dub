@@ -60,7 +60,7 @@ export const GET = withWorkspace(
         partner: true,
         _count: {
           select: {
-            sales: true,
+            commissions: true,
           },
         },
       },

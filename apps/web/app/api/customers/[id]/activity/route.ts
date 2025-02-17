@@ -3,9 +3,10 @@ import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
 import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
-import { CustomerActivity, SaleEvent } from "@/lib/types";
+import { CustomerActivity, LeadEvent, SaleEvent } from "@/lib/types";
 import { customerActivityResponseSchema } from "@/lib/zod/schemas/customers";
 import { prisma } from "@dub/prisma";
+import { EventType } from "@dub/prisma/client";
 import { currencyFormatter, getPrettyUrl } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -31,7 +32,17 @@ export const GET = withWorkspace(async ({ workspace, params, session }) => {
     );
   }
 
-  const [events, link] = await Promise.all([
+  const [leadEvents, saleEvents, link] = await Promise.all([
+    getEvents({
+      customerId: customer.id,
+      event: "leads",
+      sortOrder: "desc",
+      sortBy: "timestamp",
+      interval: "1y",
+      page: 1,
+      limit: 50,
+    }),
+
     getEvents({
       customerId: customer.id,
       event: "sales",
@@ -65,10 +76,19 @@ export const GET = withWorkspace(async ({ workspace, params, session }) => {
     });
   }
 
-  const activity: CustomerActivity[] = events.map((event: SaleEvent) => {
+  const leadActivity = leadEvents.map((event: LeadEvent) => {
     return {
       timestamp: new Date(event.timestamp),
-      event: "sale",
+      event: EventType.lead,
+      eventName: event.eventName,
+      metadata: null,
+    };
+  });
+
+  const saleActivity = saleEvents.map((event: SaleEvent) => {
+    return {
+      timestamp: new Date(event.timestamp),
+      event: EventType.sale,
       eventName: event.eventName,
       eventDetails: currencyFormatter(event.sale.amount / 100, {
         maximumFractionDigits: 2,
@@ -80,13 +100,9 @@ export const GET = withWorkspace(async ({ workspace, params, session }) => {
     };
   });
 
-  // Add lead event to activities
-  activity.push({
-    timestamp: customer.createdAt,
-    event: "lead",
-    eventName: "Lead created",
-    metadata: null,
-  });
+  const activity: CustomerActivity[] = [...leadActivity, ...saleActivity].sort(
+    (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
+  );
 
   // Add click event to activities
   activity.push({
