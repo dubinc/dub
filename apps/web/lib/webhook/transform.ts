@@ -52,6 +52,7 @@ const transformWebhookCustomer = (customer: any) => {
   return {
     ...customer,
     name: customer.name || customer.email || generateRandomName(),
+    externalId: customer.externalId || "",
     country: undefined,
     avatar:
       customer.avatar ||

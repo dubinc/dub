@@ -203,7 +203,7 @@ const getCustomersMap = async (customerIds: string[]) => {
     (acc, customer) => {
       acc[customer.id] = CustomerSchema.parse({
         id: customer.id,
-        externalId: customer.externalId,
+        externalId: customer.externalId || "",
         name: customer.name || customer.email || generateRandomName(),
         email: customer.email || "",
         avatar:
