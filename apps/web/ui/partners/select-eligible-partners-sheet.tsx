@@ -1,13 +1,14 @@
 import usePartners from "@/lib/swr/use-partners";
+import usePartnersCount from "@/lib/swr/use-partners-count";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet, Table, useTable } from "@dub/ui";
+import { Button, Sheet, Table, usePagination, useTable } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
-interface SelectEligiblePartnersSheetProps {
+interface SheetProps {
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   onSelect: (partnerIds: string[]) => void;
@@ -19,11 +20,33 @@ export function SelectEligiblePartnersSheet({
   setIsOpen,
   onSelect,
   selectedPartnerIds,
-}: SelectEligiblePartnersSheetProps) {
-  const { data: partners, error: partnersError, loading } = usePartners();
+}: SheetProps) {
+  const { pagination, setPagination } = usePagination(20);
+
+  const {
+    data: partners,
+    error: partnersError,
+    loading,
+  } = usePartners({
+    query: {
+      pageSize: pagination.pageSize,
+      page: pagination.pageIndex,
+    },
+  });
+
+  const { partnersCount } = usePartnersCount<number>({
+    ignoreParams: true,
+  });
+
   const [selectedPartners, setSelectedPartners] = useState<
     EnrolledPartnerProps[]
   >([]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    }
+  }, [isOpen, setPagination]);
 
   const table = useTable({
     data: partners || [],
@@ -65,6 +88,9 @@ export function SelectEligiblePartnersSheet({
     resourceName: (p) => `eligible partner${p ? "s" : ""}`,
     loading,
     error: partnersError ? "Failed to load partners." : undefined,
+    pagination,
+    onPaginationChange: setPagination,
+    rowCount: partnersCount || 0,
     getRowId: (originalRow: EnrolledPartnerProps) => originalRow.id,
     onRowSelectionChange: (rows: Row<EnrolledPartnerProps>[]) => {
       setSelectedPartners(
