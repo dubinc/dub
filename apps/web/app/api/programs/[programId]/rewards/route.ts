@@ -22,7 +22,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     },
   });
 
-  return NextResponse.json(z.array(rewardSchema).parse(rewards));
+  return NextResponse.json([]);
 });
 
 // POST /api/programs/[programId]/rewards - create a new reward
