@@ -10,13 +10,13 @@ import { SelectEligiblePartnersSheet } from "@/ui/partners/select-eligible-partn
 import { X } from "@/ui/shared/icons";
 import { EventType } from "@dub/prisma/client";
 import {
+  AnimatedSizeContainer,
   Button,
   CircleCheckFill,
   Sheet,
   Table,
   Users,
   useTable,
-  AnimatedSizeContainer,
 } from "@dub/ui";
 import { cn, INFINITY_NUMBER, pluralize } from "@dub/utils";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils/src/constants";
@@ -127,22 +127,20 @@ function RewardSheetContent({
   };
 
   const [
-    partnerIds = [], 
-    amount, 
+    partnerIds = [],
+    amount,
     type,
     isDefaultReward,
     commissionDuration,
-    commissionInterval
+    commissionInterval,
   ] = watch([
     "partnerIds",
     "amount",
     "type",
     "isDefault",
     "commissionDuration",
-    "commissionInterval"
+    "commissionInterval",
   ]);
-
-  const buttonDisabled = isPending || amount == null;
 
   const selectedPartnersTable = useTable({
     data: partners?.filter((p) => partnerIds.includes(p.id)) || [],
@@ -198,6 +196,8 @@ function RewardSheetContent({
     resourceName: (p) => `eligible partner${p ? "s" : ""}`,
   });
 
+  const buttonDisabled = isPending || amount == null;
+
   return (
     <>
       <form
@@ -248,56 +248,54 @@ function RewardSheetContent({
               </div>
             )}
 
-            <div className={cn("mt-6", event === "sale" && "mt-0")}>
-              <label className="text-sm font-medium text-neutral-800">
-                Partner eligibility
-              </label>
-              <p className="mb-4 text-sm text-neutral-600">
-                Select who is eligible for this reward
-              </p>
-              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                {partnerTypes.map((partnerType) => {
-                  const isSelected = selectedPartnerType === partnerType.key;
+            {event !== "sale" && (
+              <div className="mt-2">
+                <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                  {partnerTypes.map((partnerType) => {
+                    const isSelected = selectedPartnerType === partnerType.key;
 
-                  return (
-                    <label
-                      key={partnerType.label}
-                      className={cn(
-                        "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                        "transition-all duration-150",
-                        isSelected &&
-                          "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                      )}
-                    >
-                      <input
-                        type="radio"
-                        value={partnerType.label}
-                        className="hidden"
-                        checked={isSelected}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedPartnerType(partnerType.key);
-                            if (partnerType.key === "all") {
-                              setValue("partnerIds", []);
-                            }
-                          }
-                        }}
-                      />
-                      <div className="flex grow flex-col text-sm">
-                        <span className="font-medium">{partnerType.label}</span>
-                        <span>{partnerType.description}</span>
-                      </div>
-                      <CircleCheckFill
+                    return (
+                      <label
+                        key={partnerType.label}
                         className={cn(
-                          "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                          isSelected && "scale-100 opacity-100",
+                          "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                          "transition-all duration-150",
+                          isSelected &&
+                            "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
                         )}
-                      />
-                    </label>
-                  );
-                })}
+                      >
+                        <input
+                          type="radio"
+                          value={partnerType.label}
+                          className="hidden"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedPartnerType(partnerType.key);
+                              if (partnerType.key === "all") {
+                                setValue("partnerIds", []);
+                              }
+                            }
+                          }}
+                        />
+                        <div className="flex grow flex-col text-sm">
+                          <span className="font-medium">
+                            {partnerType.label}
+                          </span>
+                          <span>{partnerType.description}</span>
+                        </div>
+                        <CircleCheckFill
+                          className={cn(
+                            "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                            isSelected && "scale-100 opacity-100",
+                          )}
+                        />
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
             {selectedPartnerType === "specific" && !isDefault && (
               <div className="mt-2">
@@ -335,7 +333,7 @@ function RewardSheetContent({
 
             {event === "sale" && (
               <>
-                <div className="mt-6">
+                <div>
                   <label className="text-sm font-medium text-neutral-800">
                     Commission
                   </label>
@@ -352,7 +350,8 @@ function RewardSheetContent({
                           {commissionTypes.map((commissionType) => {
                             const isSelected =
                               commissionDuration &&
-                              commissionDuration > 1 === commissionType.recurring
+                              commissionDuration > 1 ===
+                                commissionType.recurring
                                 ? true
                                 : false;
 
@@ -397,6 +396,7 @@ function RewardSheetContent({
                             );
                           })}
                         </div>
+
                         <div
                           className={cn(
                             "transition-opacity duration-200",
@@ -404,9 +404,13 @@ function RewardSheetContent({
                               ? "h-auto"
                               : "h-0 opacity-0",
                           )}
-                          aria-hidden={!(commissionDuration && commissionDuration > 1)}
+                          aria-hidden={
+                            !(commissionDuration && commissionDuration > 1)
+                          }
                           {...{
-                            inert: !(commissionDuration && commissionDuration > 1),
+                            inert: !(
+                              commissionDuration && commissionDuration > 1
+                            ),
                           }}
                         >
                           <div className="pt-6">
@@ -421,7 +425,9 @@ function RewardSheetContent({
                                 className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                                 {...register("commissionDuration")}
                               >
-                                <option value={INFINITY_NUMBER}>Lifetime</option>
+                                <option value={INFINITY_NUMBER}>
+                                  Lifetime
+                                </option>
                                 {[1, 3, 6, 12, 18, 24].map((v) => (
                                   <option value={v} key={v}>
                                     {v} {pluralize("month", v)}
@@ -456,7 +462,7 @@ function RewardSheetContent({
                           className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                           {...register("type", { required: true })}
                         >
-                          <option value="flat">Fixed amount</option>
+                          <option value="flat">Flat</option>
                           <option value="percentage">Percentage</option>
                         </select>
                       </div>

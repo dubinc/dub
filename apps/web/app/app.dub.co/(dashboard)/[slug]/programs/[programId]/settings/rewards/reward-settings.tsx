@@ -21,13 +21,15 @@ export function RewardSettings() {
 const SaleReward = () => {
   const { program } = useProgram();
   const { rewards, loading } = useRewards();
-  const { rewardSheet, setIsOpen } = useRewardSheet({
-    event: "sale",
-    isDefault: true,
-  });
+
   const defaultReward =
     program?.defaultRewardId &&
     rewards?.find((r) => r.id === program.defaultRewardId);
+
+  const { rewardSheet, setIsOpen } = useRewardSheet({
+    event: "sale",
+    isDefault: !!defaultReward,
+  });
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
