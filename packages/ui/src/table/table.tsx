@@ -18,6 +18,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   CSSProperties,
   Dispatch,
+  memo,
   MouseEvent,
   PropsWithChildren,
   ReactNode,
@@ -183,6 +184,89 @@ export function useTable<T extends any>(
   };
 }
 
+// Memoized row component to prevent re-renders during column resizing
+const TableRow = memo(
+  function TableRow<T>({
+    row,
+    onRowClick,
+    cellRight,
+    tdClassName,
+    table,
+  }: {
+    row: Row<T>;
+    onRowClick?: (row: Row<T>, e: MouseEvent) => void;
+    cellRight?: (cell: Cell<T, any>) => ReactNode;
+    tdClassName?: string | ((columnId: string) => string);
+    table: TableType<T>;
+  }) {
+    return (
+      <tr
+        key={row.id}
+        className={cn(
+          "group/row",
+          onRowClick && "cursor-pointer select-none",
+          // hacky fix: if there are more than 8 rows, remove the bottom border from the last row
+          table.getRowModel().rows.length > 8 &&
+            row.index === table.getRowModel().rows.length - 1 &&
+            "[&_td]:border-b-0",
+        )}
+        onClick={
+          onRowClick
+            ? (e) => {
+                // Ignore if click is on an interactive child
+                if (isClickOnInteractiveChild(e)) return;
+                onRowClick(row, e);
+              }
+            : undefined
+        }
+      >
+        {row.getVisibleCells().map((cell) => (
+          <td
+            key={cell.id}
+            className={cn(
+              tableCellClassName(cell.column.id, !!onRowClick),
+              "group text-neutral-600",
+              getCommonPinningClassNames(
+                cell.column,
+                row.index === table.getRowModel().rows.length - 1,
+              ),
+              typeof tdClassName === "function"
+                ? tdClassName(cell.column.id)
+                : tdClassName,
+            )}
+            style={{
+              width: cell.column.getSize(),
+              ...getCommonPinningStyles(cell.column),
+            }}
+          >
+            <div className="flex w-full items-center justify-between overflow-hidden truncate">
+              <div className="min-w-0 shrink grow truncate">
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </div>
+              {cellRight?.(cell)}
+            </div>
+          </td>
+        ))}
+      </tr>
+    );
+  },
+  (prevProps, nextProps) => {
+    // Only re-render if row data or selection state changes
+    const prevRow = prevProps.row;
+    const nextRow = nextProps.row;
+    return (
+      prevRow.original === nextRow.original &&
+      prevRow.getIsSelected() === nextRow.getIsSelected()
+    );
+  },
+) as <T>(props: {
+  row: Row<T>;
+  onRowClick?: (row: Row<T>, e: MouseEvent) => void;
+  cellRight?: (cell: Cell<T, any>) => ReactNode;
+  tdClassName?: string | ((columnId: string) => string);
+  table: TableType<T>;
+}) => JSX.Element;
+
 export function Table<T>({
   columns,
   data,
@@ -323,57 +407,14 @@ export function Table<T>({
             </thead>
             <tbody>
               {table.getRowModel().rows.map((row) => (
-                <tr
+                <TableRow
                   key={row.id}
-                  className={cn(
-                    "group/row",
-                    onRowClick && "cursor-pointer select-none",
-                    // hacky fix: if there are more than 8 rows, remove the bottom border from the last row
-                    table.getRowModel().rows.length > 8 &&
-                      row.index === table.getRowModel().rows.length - 1 &&
-                      "[&_td]:border-b-0",
-                  )}
-                  onClick={
-                    onRowClick
-                      ? (e) => {
-                          // Ignore if click is on an interactive child
-                          if (isClickOnInteractiveChild(e)) return;
-                          onRowClick(row, e);
-                        }
-                      : undefined
-                  }
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
-                      className={cn(
-                        tableCellClassName(cell.column.id, !!onRowClick),
-                        "group text-neutral-600",
-                        getCommonPinningClassNames(
-                          cell.column,
-                          row.index === table.getRowModel().rows.length - 1,
-                        ),
-                        typeof tdClassName === "function"
-                          ? tdClassName(cell.column.id)
-                          : tdClassName,
-                      )}
-                      style={{
-                        width: cell.column.getSize(),
-                        ...getCommonPinningStyles(cell.column),
-                      }}
-                    >
-                      <div className="flex w-full items-center justify-between overflow-hidden truncate">
-                        <div className="min-w-0 shrink grow truncate">
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </div>
-                        {cellRight?.(cell)}
-                      </div>
-                    </td>
-                  ))}
-                </tr>
+                  row={row}
+                  onRowClick={onRowClick}
+                  cellRight={cellRight}
+                  tdClassName={tdClassName}
+                  table={table}
+                />
               ))}
             </tbody>
           </table>
