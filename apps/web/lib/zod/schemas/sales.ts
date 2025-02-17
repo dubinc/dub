@@ -33,7 +33,7 @@ export const trackSaleRequestSchema = z.object({
     .describe("The payment processor via which the sale was made."),
   eventName: z
     .string()
-    .max(50)
+    .max(255)
     .optional()
     .default("Purchase")
     .describe(
