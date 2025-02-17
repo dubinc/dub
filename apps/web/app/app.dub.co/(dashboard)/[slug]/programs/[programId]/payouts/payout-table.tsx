@@ -264,7 +264,7 @@ function RowMenuButton({ row }: { row: Row<PayoutResponse> }) {
               label="View sales"
               onSelect={() => {
                 router.push(
-                  `/${slug}/programs/${programId}/sales?payoutId=${row.original.id}&start=${row.original.periodStart}&end=${row.original.periodEnd}`,
+                  `/${slug}/programs/${programId}/sales?payoutId=${row.original.id}&interval=all`,
                 );
                 setIsOpen(false);
               }}
