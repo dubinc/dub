@@ -43,7 +43,7 @@ export const createProgramSchema = z.object({
   commissionAmount: z.number(),
   commissionDuration: z.number().nullable(),
   commissionInterval: z.nativeEnum(CommissionInterval).nullable(),
-  holdingPeriodDays: z
+  holdingPeriodDays: z.coerce
     .number()
     .refine((val) => HOLDING_PERIOD_DAYS.includes(val), {
       message: `Holding period must be ${HOLDING_PERIOD_DAYS.join(", ")} days`,
