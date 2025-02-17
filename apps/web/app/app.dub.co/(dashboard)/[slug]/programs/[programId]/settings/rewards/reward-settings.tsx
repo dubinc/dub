@@ -5,9 +5,9 @@ import useRewards from "@/lib/swr/use-rewards";
 import type { Reward } from "@/lib/types";
 import { useRewardSheet } from "@/ui/partners/add-edit-reward-sheet";
 import { EventType } from "@dub/prisma/client";
-import { Badge, Button, IconMenu, MoneyBill, Popover } from "@dub/ui";
-import { BoltFill, CurrencyDollar, Users2 } from "@dub/ui/icons";
-import { Gift } from "lucide-react";
+import { Badge, Button, MoneyBill, Popover } from "@dub/ui";
+import { CursorRays } from "@dub/ui/icons";
+import { Gift, UserPlus } from "lucide-react";
 import { useState } from "react";
 
 export function RewardSettings() {
@@ -171,27 +171,27 @@ const CreateRewardButton = () => {
   const [openPopover, setOpenPopover] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventType | null>(null);
   const { RewardSheet, setIsOpen } = useRewardSheet({
-    event: selectedEvent || "sale", // default to sale, but it won't show unless setIsOpen is true
+    event: selectedEvent || "sale",
   });
 
   const rewardTypes = [
     {
-      key: "click",
+      event: "click",
       text: "Click reward",
-      icon: <BoltFill className="size-4" />,
-      event: "click" as const,
+      icon: <CursorRays className="size-4" />,
+      shortcut: "C",
     },
     {
-      key: "lead",
+      event: "lead",
       text: "Lead reward",
-      icon: <Users2 className="size-4" />,
-      event: "lead" as const,
+      icon: <UserPlus className="size-4" />,
+      shortcut: "L",
     },
     {
-      key: "sale",
+      event: "sale",
       text: "Sale reward",
-      icon: <CurrencyDollar className="size-4" />,
-      event: "sale" as const,
+      icon: <MoneyBill className="size-4" />,
+      shortcut: "S",
     },
   ];
 
@@ -202,17 +202,19 @@ const CreateRewardButton = () => {
           <div className="w-full p-2 md:w-48">
             <div className="grid gap-px">
               {rewardTypes.map((type) => (
-                <button
-                  key={type.key}
-                  className="w-full rounded-md p-2 text-left text-sm hover:bg-neutral-100 active:bg-neutral-200"
+                <Button
+                  key={type.event}
+                  text={type.text}
+                  icon={type.icon}
+                  variant="outline"
                   onClick={() => {
-                    setSelectedEvent(type.event);
+                    setSelectedEvent(type.event as EventType);
                     setIsOpen(true);
                     setOpenPopover(false);
                   }}
-                >
-                  <IconMenu text={type.text} icon={type.icon} />
-                </button>
+                  shortcut={type.shortcut}
+                  className="h-9 px-2"
+                />
               ))}
             </div>
           </div>
@@ -221,24 +223,26 @@ const CreateRewardButton = () => {
         setOpenPopover={setOpenPopover}
         align="end"
       >
-        <button
+        <Button
+          text="Create reward"
+          variant="primary"
+          className="h-8 w-fit"
           onClick={() => setOpenPopover(!openPopover)}
-          className="group inline-flex items-center justify-center gap-1 rounded-md bg-black px-4 py-1.5 text-sm font-medium text-white transition-all hover:bg-gray-700 active:bg-gray-800"
-        >
-          <span>Create reward</span>
-          <svg
-            className="h-4 w-4 transition-all group-hover:rotate-180"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polyline points="6 9 12 15 18 9"></polyline>
-          </svg>
-        </button>
+          right={
+            <svg
+              className="h-4 w-4 transition-all group-hover:rotate-180"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          }
+        />
       </Popover>
       {RewardSheet}
     </>
