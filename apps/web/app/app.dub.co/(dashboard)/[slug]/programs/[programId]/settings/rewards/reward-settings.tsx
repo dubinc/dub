@@ -22,18 +22,21 @@ const events = {
     text: "Click reward",
     event: "click",
     shortcut: "C",
+    eventName: "click",
   },
   lead: {
     icon: UserPlus,
     text: "Lead reward",
-    event: "signup",
+    event: "lead",
     shortcut: "L",
+    eventName: "signup",
   },
   sale: {
     icon: MoneyBill,
     text: "Sale reward",
     event: "sale",
     shortcut: "S",
+    eventName: "sale",
   },
 } as const;
 
@@ -171,7 +174,7 @@ const RewardDescription = ({ reward }: { reward: Reward }) => {
     }
 
     if (reward.maxDuration === 0) {
-      return ""; // No recurring text for one-time rewards
+      return "";
     }
 
     return `, and again for every conversion of ${reward.maxDuration} months`;
@@ -180,7 +183,7 @@ const RewardDescription = ({ reward }: { reward: Reward }) => {
   return (
     <>
       Earn <span className="text-blue-500">{amount}</span> for each{" "}
-      {events[reward.event].text}
+      {events[reward.event].eventName}
       {reward.event === "sale" && (
         <span
           className="text-neutral-900"
