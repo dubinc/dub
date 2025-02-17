@@ -3,6 +3,18 @@ export const E2E_LINK = {
   url: "https://github.com/dubinc",
 };
 
+export const E2E_TAG = {
+  id: "clvkopm8b0009nf98azsp9epk",
+  name: "E2E Tests (DO NOT DELETE)",
+  color: "red",
+};
+
+export const E2E_TAG_2 = {
+  id: "tag_8eyd9MfjUCCkRnGDt1hbe4v3",
+  name: "E2E Tests 2 (DO NOT DELETE)",
+  color: "blue",
+};
+
 export const E2E_CLICK_ID = "GWGrkftJdYlZD2mq";
 export const E2E_CUSTOMER_ID = "cm25onzuv0001s1bbxchrc0ae";
 export const E2E_CUSTOMER_EXTERNAL_ID = "cus_jTrfVKYN3Buc3F80JoqBiY0g";
