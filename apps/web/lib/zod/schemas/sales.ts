@@ -33,7 +33,7 @@ export const trackSaleRequestSchema = z.object({
     .describe("The payment processor via which the sale was made."),
   eventName: z
     .string()
-    .max(50)
+    .max(255)
     .optional()
     .default("Purchase")
     .describe(
@@ -55,6 +55,11 @@ export const trackSaleRequestSchema = z.object({
     .nullish()
     .default(null)
     .describe("Additional metadata to be stored with the sale event."),
+  leadEventName: z
+    .string()
+    .nullish()
+    .default(null)
+    .describe("The name of the lead event that occurred before the sale."),
 });
 
 export const trackSaleResponseSchema = z.object({
