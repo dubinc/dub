@@ -46,8 +46,8 @@ export function SelectEligiblePartnersSheet({
             onChange={row.getToggleSelectedHandler()}
           />
         ),
-        minSize: 10,
-        size: 10,
+        minSize: 5,
+        size: 5,
       },
       {
         id: "partner",

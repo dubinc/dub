@@ -4,6 +4,7 @@ import { createRewardAction } from "@/lib/actions/partners/create-reward";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
+import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   createRewardSchema,
@@ -65,6 +66,7 @@ const commissionTypes = [
 
 function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
   const { program } = useProgram();
+  const { rewards } = useRewards();
   const { data: partners } = usePartners();
   const { id: workspaceId } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
@@ -81,7 +83,6 @@ function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
     handleSubmit,
     watch,
     setValue,
-    clearErrors,
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
@@ -196,6 +197,23 @@ function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
     (event !== "sale" && selectedPartnerType === "specific") ||
     (event === "sale" && hasDefaultReward);
 
+  // Click reward
+  // Can create 1 “all partner” reward
+  // Can create infinite “specific parter” rewards
+  // Partners can’t be on more than one “specific reward”
+
+  const hasAllPartnerClickReward = rewards?.some(
+    (reward) => reward.event === "click" && reward.partnersCount === 0,
+  );
+
+  const hasAllPartnerLeadReward = rewards?.some(
+    (reward) => reward.event === "lead" && reward.partnersCount === 0,
+  );
+
+  const hasAllPartnerSaleReward = rewards?.some(
+    (reward) => reward.event === "sale" && reward.partnersCount === 0,
+  );
+
   return (
     <>
       <form
@@ -206,7 +224,7 @@ function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
         <div>
           <div className="flex items-start justify-between border-b border-neutral-200 p-6">
             <Sheet.Title className="text-xl font-semibold">
-              {`Create ${!program?.defaultRewardId ? "default" : ""} ${event} reward`}
+              {`Create ${!program?.defaultRewardId && event === "sale" ? "default" : ""} ${event} reward`}
             </Sheet.Title>
             <Sheet.Close asChild>
               <Button

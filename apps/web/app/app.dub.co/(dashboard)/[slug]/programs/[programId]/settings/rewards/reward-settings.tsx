@@ -2,7 +2,7 @@
 
 import useProgram from "@/lib/swr/use-program";
 import useRewards from "@/lib/swr/use-rewards";
-import { Reward } from "@/lib/types";
+import type { Reward } from "@/lib/types";
 import { useRewardSheet } from "@/ui/partners/add-edit-reward-sheet";
 import { EventType } from "@dub/prisma/client";
 import { Badge, Button, IconMenu, MoneyBill, Popover } from "@dub/ui";
