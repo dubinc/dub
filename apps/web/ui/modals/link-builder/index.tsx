@@ -183,12 +183,6 @@ function LinkBuilderInner({
   useEffect(() => {
     if (key?.endsWith("-copy")) keyRef.current?.select();
   }, []);
-  const searchParamsFolderId = searchParams.get("folderId");
-  useEffect(() => {
-    if (searchParamsFolderId) {
-      setValue("folderId", searchParamsFolderId);
-    }
-  }, [searchParamsFolderId]);
 
   const { domains, loading, primaryDomain } = useAvailableDomains({
     currentDomain: domain,
@@ -354,6 +348,9 @@ function LinkBuilderInner({
                     }}
                     buttonClassName="max-w-60 md:max-w-[24rem]"
                     buttonTextClassName="text-lg md:text-lg font-medium"
+                    {...(props?.folderId && {
+                      selectedFolderId: props.folderId,
+                    })}
                   />
 
                   <ChevronRight className="hidden size-4 text-neutral-500 md:block" />

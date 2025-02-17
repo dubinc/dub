@@ -19,6 +19,7 @@ interface FolderDropdownProps {
   buttonClassName?: string;
   buttonTextClassName?: string;
   disableAutoRedirect?: boolean; // decide if we should auto redirect to the folder after it's created
+  selectedFolderId?: string;
 }
 
 export const FolderDropdown = ({
@@ -28,6 +29,7 @@ export const FolderDropdown = ({
   buttonClassName,
   buttonTextClassName,
   disableAutoRedirect = false,
+  selectedFolderId,
 }: FolderDropdownProps) => {
   const router = useRouter();
   const { slug, plan } = useWorkspace();
@@ -39,7 +41,7 @@ export const FolderDropdown = ({
     unsortedLinks,
   );
 
-  const folderId = searchParams.get("folderId");
+  const folderId = selectedFolderId || searchParams.get("folderId");
 
   const { AddFolderModal, setShowAddFolderModal } = useAddFolderModal({
     onSuccess: (folder) => {
