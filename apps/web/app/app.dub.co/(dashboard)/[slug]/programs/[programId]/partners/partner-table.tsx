@@ -308,7 +308,7 @@ function RowMenuButton({ row }: { row: Row<EnrolledPartnerProps> }) {
               label="View sales"
               onSelect={() => {
                 router.push(
-                  `/${slug}/programs/${programId}/sales?partnerId=${row.original.id}`,
+                  `/${slug}/programs/${programId}/sales?partnerId=${row.original.id}&interval=all`,
                 );
                 setIsOpen(false);
               }}

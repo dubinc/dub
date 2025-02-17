@@ -43,6 +43,32 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     expect(response.status).toBe(302);
   });
 
+  test("with dub_id", async () => {
+    const response = await fetch(`${h.baseUrl}/conversion-tracking`, {
+      ...fetchOptions,
+      headers: {},
+    });
+
+    // the location should contain `?dub_id=` query param
+    expect(response.headers.get("location")).toMatch(/dub_id=[a-zA-Z0-9]+/);
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
+  test("with dub_client_reference_id", async () => {
+    const response = await fetch(`${h.baseUrl}/client_reference_id`, {
+      ...fetchOptions,
+      headers: {},
+    });
+
+    // the location should contain `?client_reference_id=dub_id_` query param
+    expect(response.headers.get("location")).toMatch(
+      /client_reference_id=dub_id_[a-zA-Z0-9]+/,
+    );
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
   test("with passthrough query", async () => {
     const response = await fetch(
       `${h.baseUrl}/checkly-check-passthrough?utm_source=checkly`,
