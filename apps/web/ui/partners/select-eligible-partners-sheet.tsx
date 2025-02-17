@@ -4,9 +4,11 @@ import { EnrolledPartnerProps } from "@/lib/types";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet, Table, usePagination, useTable } from "@dub/ui";
+import { Search } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { useDebounce } from "use-debounce";
 
 interface SheetProps {
   isOpen: boolean;
@@ -22,6 +24,8 @@ export function SelectEligiblePartnersSheet({
   selectedPartnerIds,
 }: SheetProps) {
   const { pagination, setPagination } = usePagination(20);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 500);
 
   const {
     data: partners,
@@ -31,6 +35,7 @@ export function SelectEligiblePartnersSheet({
     query: {
       pageSize: pagination.pageSize,
       page: pagination.pageIndex,
+      search: debouncedSearch,
     },
   });
 
@@ -45,8 +50,14 @@ export function SelectEligiblePartnersSheet({
   useEffect(() => {
     if (!isOpen) {
       setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+      setSearch("");
     }
   }, [isOpen, setPagination]);
+
+  // Reset pagination when search changes
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+  }, [debouncedSearch, setPagination]);
 
   const table = useTable({
     data: partners || [],
@@ -130,10 +141,15 @@ export function SelectEligiblePartnersSheet({
         </div>
         <div className="flex flex-col gap-4 p-6">
           <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <Search className="size-4 text-neutral-400" />
+            </div>
             <input
               type="text"
               placeholder="Search partners"
-              className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="block w-full rounded-full border-neutral-200 bg-neutral-50 pl-10 text-sm text-neutral-900 placeholder-neutral-500 focus:border-neutral-300 focus:outline-none focus:ring-0"
             />
           </div>
           <Table {...table} />
