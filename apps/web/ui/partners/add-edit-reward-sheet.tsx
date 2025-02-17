@@ -101,20 +101,15 @@ function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
   ]);
 
   const { executeAsync, isPending } = useAction(createRewardAction, {
-    onSuccess: async ({ data }) => {
-      if (!data?.ok && data?.reason === "DUPLICATE_PARTNER_ASSIGNMENT") {
-        toast.error(data?.reason);
-        return;
-      }
-
+    onSuccess: async () => {
       setIsOpen(false);
-      toast.success("Successfully created reward!");
+      toast.success("Reward created!");
       await mutate(`/api/programs/${program?.id}`);
       await mutatePrefix(`/api/programs/${program?.id}/rewards`);
     },
     onError({ error }) {
-      console.error(error);
       toast.error(error.serverError);
+      console.error(error);
     },
   });
 
@@ -190,8 +185,8 @@ function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
         size: 50,
       },
     ],
-    thClassName: (id) => cn("border-l-0"),
-    tdClassName: (id) => cn("border-l-0"),
+    thClassName: () => cn("border-l-0"),
+    tdClassName: () => cn("border-l-0"),
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
     resourceName: (p) => `eligible partner${p ? "s" : ""}`,

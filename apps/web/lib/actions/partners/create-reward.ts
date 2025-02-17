@@ -73,15 +73,7 @@ export const createRewardAction = authActionClient
       });
 
       if (existingAssignments.length > 0) {
-        const duplicatePartners = existingAssignments.map((assignment) => ({
-          id: assignment.programEnrollment.partner.id,
-        }));
-
-        return {
-          ok: false,
-          reason: "DUPLICATE_PARTNER_ASSIGNMENT",
-          partnerIds: duplicatePartners,
-        };
+        throw new Error("DUPLICATE_PARTNER_ASSIGNMENT");
       }
     }
 
