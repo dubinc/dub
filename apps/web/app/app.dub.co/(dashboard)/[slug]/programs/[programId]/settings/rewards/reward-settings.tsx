@@ -144,11 +144,13 @@ const RewardDescription = ({ reward }: { reward: Reward }) => {
 
   const getRecurringText = () => {
     if (reward.maxDuration === null) {
-      return ", and again for every conversion of the customers lifetime";
+      return ", and again for every conversion of <strong>the customers lifetime</strong>";
     }
+
     if (reward.maxDuration === 0) {
       return ""; // No recurring text for one-time rewards
     }
+
     return `, and again for every conversion of ${reward.maxDuration} months`;
   };
 
@@ -156,7 +158,10 @@ const RewardDescription = ({ reward }: { reward: Reward }) => {
     <>
       Earn <span className="text-blue-500">{amount}</span> for each {eventText}
       {reward.event === "sale" && (
-        <span className="text-neutral-900">{getRecurringText()}</span>
+        <span
+          className="text-neutral-900"
+          dangerouslySetInnerHTML={{ __html: getRecurringText() }}
+        />
       )}
     </>
   );
