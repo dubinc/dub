@@ -61,7 +61,7 @@ export const POST = withWorkspaceEdge(
     if (!ok) {
       throw new DubApiError({
         code: "conflict",
-        message: `Customer with externalId "${customerExternalId}" and event name "${eventName}" has already been recorded.`,
+        message: `Customer with externalId ${customerExternalId} and event name ${eventName} has already been recorded.`,
       });
     }
     // Find click event
