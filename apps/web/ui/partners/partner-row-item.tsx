@@ -1,10 +1,13 @@
-import { PartnerProps } from "@/lib/types";
+import { EnrolledPartnerProps } from "@/lib/types";
 import { GreekTemple, Tooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils/src/constants";
 import { CircleMinus } from "lucide-react";
 
-export function PartnerRowItem({ partner }: { partner: PartnerProps }) {
+// TODO:
+// Co-locate this with the sheet component
+
+export function PartnerRowItem({ partner }: { partner: EnrolledPartnerProps }) {
   return (
     <div className="flex items-center gap-2">
       <Tooltip
