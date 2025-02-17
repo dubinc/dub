@@ -1,6 +1,7 @@
 "use client";
 
 import { createRewardAction } from "@/lib/actions/partners/create-reward";
+import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
@@ -100,14 +101,19 @@ function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
   ]);
 
   const { executeAsync, isPending } = useAction(createRewardAction, {
-    onSuccess: async () => {
+    onSuccess: async ({ data }) => {
+      if (!data?.ok && data?.reason === "DUPLICATE_PARTNER_ASSIGNMENT") {
+        toast.error(data?.reason);
+        return;
+      }
+
       setIsOpen(false);
       toast.success("Successfully created reward!");
       await mutate(`/api/programs/${program?.id}`);
       await mutatePrefix(`/api/programs/${program?.id}/rewards`);
     },
     onError({ error }) {
-      console.log({ error });
+      console.error(error);
       toast.error(error.serverError);
     },
   });
@@ -198,9 +204,9 @@ function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
     (event === "sale" && hasDefaultReward);
 
   // Click reward
-  // Can create 1 “all partner” reward
-  // Can create infinite “specific parter” rewards
-  // Partners can’t be on more than one “specific reward”
+  // Can create 1 "all partner" reward
+  // Can create infinite "specific parter" rewards
+  // Partners can't be on more than one "specific reward"
 
   const hasAllPartnerClickReward = rewards?.some(
     (reward) => reward.event === "click" && reward.partnersCount === 0,
@@ -255,7 +261,9 @@ function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
                       valueAsNumber: true,
                       min: 0,
                       max: 1000,
+                      onChange: handleMoneyInputChange,
                     })}
+                    onKeyDown={handleMoneyKeyDown}
                   />
                   <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
                     USD
@@ -465,7 +473,9 @@ function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
                             valueAsNumber: true,
                             min: 0,
                             max: type === "flat" ? 1000 : 100,
+                            onChange: handleMoneyInputChange,
                           })}
+                          onKeyDown={handleMoneyKeyDown}
                         />
                         <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
                           {type === "flat" ? "USD" : "%"}

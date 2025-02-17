@@ -45,6 +45,44 @@ export const createRewardAction = authActionClient
       if (programEnrollments.length !== partnerIds.length) {
         throw new Error("Invalid partner IDs provided.");
       }
+
+      const existingAssignments = await prisma.partnerReward.findMany({
+        where: {
+          reward: {
+            event,
+            programId,
+          },
+          programEnrollment: {
+            partnerId: {
+              in: partnerIds,
+            },
+          },
+        },
+        include: {
+          programEnrollment: {
+            include: {
+              partner: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (existingAssignments.length > 0) {
+        const duplicatePartners = existingAssignments.map((assignment) => ({
+          id: assignment.programEnrollment.partner.id,
+        }));
+
+        return {
+          ok: false,
+          reason: "DUPLICATE_PARTNER_ASSIGNMENT",
+          partnerIds: duplicatePartners,
+        };
+      }
     }
 
     const reward = await prisma.reward.create({
