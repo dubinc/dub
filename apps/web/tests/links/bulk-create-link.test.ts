@@ -29,7 +29,7 @@ interface VerifyBulkLinksParams {
     projectId: string;
     workspaceId: string;
   };
-  expectedTags?: { tag: { id: string; name: string; color: string } }[];
+  expectedTags?: { id: string; name: string; color: string }[];
 }
 
 const verifyBulkLinks = ({
@@ -50,7 +50,7 @@ const verifyBulkLinks = ({
     workspaceId,
     shortLink: `https://${domain}/${firstLink?.key}`,
     qrCode: `https://api.dub.co/qr?url=https://${domain}/${firstLink?.key}?qr=1`,
-    ...(expectedTags ? { tags: expectedTags } : {}),
+    ...(expectedTags ? { tags: expectedTags, tagId: expectedTags[0].id } : {}),
   });
   expect(secondLink).toStrictEqual({
     ...expectedLink,
@@ -60,7 +60,7 @@ const verifyBulkLinks = ({
     workspaceId,
     shortLink: `https://${domain}/${secondLink?.key}`,
     qrCode: `https://api.dub.co/qr?url=https://${domain}/${secondLink?.key}?qr=1`,
-    ...(expectedTags ? { tags: expectedTags } : {}),
+    ...(expectedTags ? { tags: expectedTags, tagId: expectedTags[0].id } : {}),
   });
   expect(z.array(LinkSchema.strict()).parse(links)).toBeTruthy();
 };
@@ -111,7 +111,7 @@ test("POST /links/bulk with tag ID", async (ctx) => {
     links,
     bulkLinks,
     context: testContext,
-    expectedTags: [{ tag: E2E_TAG }],
+    expectedTags: [E2E_TAG],
   });
 });
 
@@ -139,7 +139,7 @@ test("POST /links/bulk with tag name", async (ctx) => {
     links,
     bulkLinks,
     context: testContext,
-    expectedTags: [{ tag: E2E_TAG }],
+    expectedTags: [E2E_TAG],
   });
 });
 
@@ -167,7 +167,7 @@ test("POST /links/bulk with multiple tags (by ID)", async (ctx) => {
     links,
     bulkLinks,
     context: testContext,
-    expectedTags: [{ tag: E2E_TAG_2 }, { tag: E2E_TAG }],
+    expectedTags: [E2E_TAG_2, E2E_TAG],
   });
 });
 
@@ -195,6 +195,6 @@ test("POST /links/bulk with multiple tags (by name)", async (ctx) => {
     links,
     bulkLinks,
     context: testContext,
-    expectedTags: [{ tag: E2E_TAG_2 }, { tag: E2E_TAG }],
+    expectedTags: [E2E_TAG_2, E2E_TAG],
   });
 });
