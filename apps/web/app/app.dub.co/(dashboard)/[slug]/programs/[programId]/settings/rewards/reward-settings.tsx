@@ -77,7 +77,7 @@ const SaleReward = () => {
         {loading ? (
           <RewardSkeleton />
         ) : defaultReward ? (
-          <Reward reward={defaultReward} />
+            <Reward reward={defaultReward} />
         ) : (
           <>
             <EmptyState
@@ -140,25 +140,35 @@ const AdditionalRewards = () => {
 
 const Reward = ({ reward }: { reward: Reward }) => {
   const Icon = events[reward.event].icon;
+  const { RewardSheet, setIsOpen } = useRewardSheet({
+    event: reward.event,
+    reward,
+  });
 
   return (
-    <div className="flex items-center gap-4 rounded-lg border border-neutral-200 p-4">
-      <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
-        <Icon className="size-4 text-neutral-600" />
-      </div>
-      <div className="flex flex-1 items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-normal">
-            <RewardDescription reward={reward} />
-          </span>
+    <>
+      <div 
+        className="flex items-center gap-4 rounded-lg border border-neutral-200 p-4 cursor-pointer hover:border-neutral-300 transition-all"
+        onClick={() => setIsOpen(true)}
+      >
+        <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
+          <Icon className="size-4 text-neutral-600" />
         </div>
-        {reward.partnersCount > 0 ? (
-          <Badge variant="green">{reward.partnersCount} partners</Badge>
-        ) : (
-          <Badge variant="gray">All partners</Badge>
-        )}
+        <div className="flex flex-1 items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-normal">
+              <RewardDescription reward={reward} />
+            </span>
+          </div>
+          {reward.partnersCount > 0 ? (
+            <Badge variant="green">{reward.partnersCount} partners</Badge>
+          ) : (
+            <Badge variant="gray">All partners</Badge>
+          )}
+        </div>
       </div>
-    </div>
+      {RewardSheet}
+    </>
   );
 };
 

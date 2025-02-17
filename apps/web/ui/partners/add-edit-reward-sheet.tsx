@@ -1,12 +1,14 @@
 "use client";
 
 import { createRewardAction } from "@/lib/actions/partners/create-reward";
+import { updateRewardAction } from "@/lib/actions/partners/update-reward";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { Reward } from "@/lib/types";
 import {
   createRewardSchema,
   RECURRING_MAX_DURATIONS,
@@ -35,6 +37,7 @@ import { z } from "zod";
 interface RewardSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   event: EventType;
+  reward?: Reward;
 }
 
 type FormData = z.infer<typeof createRewardSchema>;
@@ -65,19 +68,18 @@ const commissionTypes = [
   },
 ];
 
-function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
+function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const { program } = useProgram();
   const { rewards } = useRewards();
   const { data: partners } = usePartners();
   const { id: workspaceId } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
   const [isAddPartnersOpen, setIsAddPartnersOpen] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(reward?.maxDuration !== 0);
 
   const [selectedPartnerType, setSelectedPartnerType] = useState<
     (typeof partnerTypes)[number]["key"]
-  >(event === "sale" ? "specific" : "all");
-
-  const [isRecurring, setIsRecurring] = useState(false);
+  >(reward?.partnersCount === 0 || event === "sale" ? "specific" : "all");
 
   const {
     register,
@@ -88,8 +90,13 @@ function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
   } = useForm<FormData>({
     defaultValues: {
       event,
-      type: "flat",
-      maxDuration: "0",
+      type: reward?.type || "flat",
+      maxDuration: reward?.maxDuration
+        ? (reward.maxDuration.toString() as (typeof RECURRING_MAX_DURATIONS)[number])
+        : "0",
+      amount:
+        reward?.type === "flat" ? reward.amount / 100 : reward?.amount || 0,
+      //  partnerIds: reward?.partnersCount === 0 ? null : reward?.partners?.map((p) => p.partnerId) || null,
     },
   });
 
@@ -100,38 +107,65 @@ function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
     "maxDuration",
   ]);
 
-  const { executeAsync, isPending } = useAction(createRewardAction, {
-    onSuccess: async () => {
-      setIsOpen(false);
-      toast.success("Reward created!");
-      await mutate(`/api/programs/${program?.id}`);
-      await mutatePrefix(`/api/programs/${program?.id}/rewards`);
+  const { executeAsync: createReward, isPending: isCreating } = useAction(
+    createRewardAction,
+    {
+      onSuccess: async () => {
+        setIsOpen(false);
+        toast.success("Reward created!");
+        await mutate(`/api/programs/${program?.id}`);
+        await mutatePrefix(`/api/programs/${program?.id}/rewards`);
+      },
+      onError({ error }) {
+        toast.error(error.serverError);
+        console.error(error);
+      },
     },
-    onError({ error }) {
-      toast.error(error.serverError);
-      console.error(error);
+  );
+
+  const { executeAsync: updateReward, isPending: isUpdating } = useAction(
+    updateRewardAction,
+    {
+      onSuccess: async () => {
+        setIsOpen(false);
+        toast.success("Reward updated!");
+        await mutate(`/api/programs/${program?.id}`);
+        await mutatePrefix(`/api/programs/${program?.id}/rewards`);
+      },
+      onError({ error }) {
+        toast.error(error.serverError);
+        console.error(error);
+      },
     },
-  });
+  );
 
   const onSubmit = async (data: FormData) => {
     if (!workspaceId || !program) {
       return;
     }
 
-    await executeAsync({
+    const payload = {
       ...data,
       workspaceId,
       programId: program.id,
       amount: type === "flat" ? data.amount * 100 : data.amount,
       ...(event === "sale"
         ? {
-            // @ts-ignore
-            maxDuration: maxDuration === "" ? null : maxDuration,
+            maxDuration: maxDuration === "0" ? null : maxDuration, // TODO: Fix it
           }
         : {
             maxDuration: undefined,
           }),
-    });
+    };
+
+    if (!reward) {
+      await createReward(payload);
+    } else {
+      await updateReward({
+        ...payload,
+        rewardId: reward.id,
+      });
+    }
   };
 
   useEffect(() => {
@@ -192,16 +226,11 @@ function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
     resourceName: (p) => `eligible partner${p ? "s" : ""}`,
   });
 
-  const buttonDisabled = isPending || amount == null;
+  const buttonDisabled = isCreating || isUpdating || amount == null;
   const hasDefaultReward = !!program?.defaultRewardId;
   const displayAddPartnerButton =
     (event !== "sale" && selectedPartnerType === "specific") ||
     (event === "sale" && hasDefaultReward);
-
-  // Click reward
-  // Can create 1 "all partner" reward
-  // Can create infinite "specific parter" rewards
-  // Partners can't be on more than one "specific reward"
 
   const hasAllPartnerClickReward = rewards?.some(
     (reward) => reward.event === "click" && reward.partnersCount === 0,
@@ -225,7 +254,9 @@ function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
         <div>
           <div className="flex items-start justify-between border-b border-neutral-200 p-6">
             <Sheet.Title className="text-xl font-semibold">
-              {`Create ${!program?.defaultRewardId && event === "sale" ? "default" : ""} ${event} reward`}
+              {reward ? "Edit" : "Create"}{" "}
+              {!program?.defaultRewardId && event === "sale" ? "default" : ""}{" "}
+              {event} reward
             </Sheet.Title>
             <Sheet.Close asChild>
               <Button
@@ -526,14 +557,14 @@ function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
               onClick={() => setIsOpen(false)}
               text="Cancel"
               className="w-fit"
-              disabled={isPending}
+              disabled={isCreating || isUpdating}
             />
             <Button
               type="submit"
               variant="primary"
-              text="Create reward"
+              text={reward ? "Save changes" : "Create reward"}
               className="w-fit"
-              loading={isPending}
+              loading={isCreating || isUpdating}
               disabled={buttonDisabled}
             />
           </div>
