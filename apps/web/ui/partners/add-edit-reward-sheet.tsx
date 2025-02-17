@@ -33,6 +33,7 @@ import { z } from "zod";
 interface RewardSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   event: EventType;
+  isDefault?: boolean;
 }
 
 type FormData = z.infer<typeof createRewardSchema> & {
@@ -52,7 +53,11 @@ const partnerTypes = [
   },
 ] as const;
 
-function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
+function RewardSheetContent({
+  setIsOpen,
+  event,
+  isDefault = false,
+}: RewardSheetProps) {
   const { program } = useProgram();
   const { data: partners } = usePartners();
   const { id: workspaceId } = useWorkspace();
@@ -71,7 +76,7 @@ function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
   } = useForm<FormData>({
     defaultValues: {
       type: "flat",
-      isDefault: false,
+      isDefault,
       maxDuration: null,
       partnerIds: [],
       event,
@@ -103,7 +108,7 @@ function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
     });
   };
 
-  const [partnerIds = [], amount, type, isDefault] = watch([
+  const [partnerIds = [], amount, type, isDefaultReward] = watch([
     "partnerIds",
     "amount",
     "type",
@@ -176,7 +181,7 @@ function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
         <div>
           <div className="flex items-start justify-between border-b border-neutral-200 p-6">
             <Sheet.Title className="text-xl font-semibold">
-              {`Create ${event} reward`}
+              {`Create ${isDefault ? "default" : ""} ${event} reward`}
             </Sheet.Title>
             <Sheet.Close asChild>
               <Button

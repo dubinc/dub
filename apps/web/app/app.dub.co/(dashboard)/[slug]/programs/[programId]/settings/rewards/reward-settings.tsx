@@ -21,6 +21,10 @@ export function RewardSettings() {
 const SaleReward = () => {
   const { program } = useProgram();
   const { rewards, loading } = useRewards();
+  const { rewardSheet, setIsOpen } = useRewardSheet({
+    event: "sale",
+    isDefault: true,
+  });
   const defaultReward =
     program?.defaultRewardId &&
     rewards?.find((r) => r.id === program.defaultRewardId);
@@ -43,11 +47,15 @@ const SaleReward = () => {
         ) : defaultReward ? (
           <Reward reward={defaultReward} />
         ) : (
-          <EmptyState
-            event="sale"
-            title="No default reward created"
-            description="Create a default reward that will be offered to all partners"
-          />
+          <>
+            <EmptyState
+              event="sale"
+              title="No default reward created"
+              description="Create a default reward that will be offered to all partners"
+              onClick={() => setIsOpen(true)}
+            />
+            {rewardSheet}
+          </>
         )}
       </div>
     </div>
@@ -138,19 +146,19 @@ const CreateRewardButton = () => {
     {
       key: "click",
       text: "Click reward",
-      icon: <BoltFill className="size-4 text-neutral-600" />,
+      icon: <BoltFill className="size-4" />,
       event: "click" as const,
     },
     {
       key: "lead",
       text: "Lead reward",
-      icon: <Users2 className="size-4 text-neutral-600" />,
+      icon: <Users2 className="size-4" />,
       event: "lead" as const,
     },
     {
       key: "sale",
       text: "Sale reward",
-      icon: <CurrencyDollar className="size-4 text-neutral-600" />,
+      icon: <CurrencyDollar className="size-4" />,
       event: "sale" as const,
     },
   ];
@@ -224,17 +232,19 @@ const EmptyState = ({
   title,
   description,
   event,
+  onClick,
 }: {
   title: string;
   description: string;
   event?: EventType;
+  onClick?: () => void;
 }) => {
   if (event === "sale") {
     return (
       <div className="flex items-center justify-between gap-4 rounded-lg bg-neutral-50 p-4">
         <div className="flex items-center gap-4">
           <div className="flex size-10 items-center justify-center rounded-full border border-neutral-300">
-            <MoneyBill className="size-5 text-neutral-600" />
+            <MoneyBill className="size-5" />
           </div>
           <p className="text-sm text-neutral-600">No default reward created</p>
         </div>
@@ -242,6 +252,7 @@ const EmptyState = ({
           text="Create default reward"
           variant="primary"
           className="h-[32px] w-fit"
+          onClick={onClick}
         />
       </div>
     );
