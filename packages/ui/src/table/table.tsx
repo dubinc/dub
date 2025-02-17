@@ -328,6 +328,7 @@ export function Table<T>({
                   className={cn(
                     "group/row",
                     onRowClick && "cursor-pointer select-none",
+                    // hacky fix: if there are more than 8 rows, remove the bottom border from the last row
                     table.getRowModel().rows.length > 8 &&
                       row.index === table.getRowModel().rows.length - 1 &&
                       "[&_td]:border-b-0",
@@ -335,6 +336,7 @@ export function Table<T>({
                   onClick={
                     onRowClick
                       ? (e) => {
+                          // Ignore if click is on an interactive child
                           if (isClickOnInteractiveChild(e)) return;
                           onRowClick(row, e);
                         }
