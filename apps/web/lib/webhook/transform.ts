@@ -52,7 +52,7 @@ const transformWebhookCustomer = (customer: any) => {
   return {
     ...customer,
     name: customer.name || customer.email || generateRandomName(),
-    country: undefined,
+    externalId: customer.externalId || "",
     avatar:
       customer.avatar ||
       `https://api.dicebear.com/9.x/notionists/svg?seed=${customer.id}`,
