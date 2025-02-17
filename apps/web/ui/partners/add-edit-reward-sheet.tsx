@@ -16,8 +16,9 @@ import {
   Table,
   Users,
   useTable,
+  AnimatedSizeContainer,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, INFINITY_NUMBER, pluralize } from "@dub/utils";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils/src/constants";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
@@ -38,6 +39,8 @@ interface RewardSheetProps {
 
 type FormData = z.infer<typeof createRewardSchema> & {
   partnerIds: string[];
+  commissionDuration: number;
+  commissionInterval: "month" | "year";
 };
 
 const partnerTypes = [
@@ -52,6 +55,19 @@ const partnerTypes = [
     description: "Select who is eligible",
   },
 ] as const;
+
+const commissionTypes = [
+  {
+    label: "One-off",
+    description: "Pay a one-time payout",
+    recurring: false,
+  },
+  {
+    label: "Recurring",
+    description: "Pay an ongoing payout",
+    recurring: true,
+  },
+];
 
 function RewardSheetContent({
   setIsOpen,
@@ -80,6 +96,8 @@ function RewardSheetContent({
       maxDuration: null,
       partnerIds: [],
       event,
+      commissionDuration: INFINITY_NUMBER,
+      commissionInterval: "month",
     },
   });
 
@@ -108,11 +126,20 @@ function RewardSheetContent({
     });
   };
 
-  const [partnerIds = [], amount, type, isDefaultReward] = watch([
+  const [
+    partnerIds = [], 
+    amount, 
+    type,
+    isDefaultReward,
+    commissionDuration,
+    commissionInterval
+  ] = watch([
     "partnerIds",
     "amount",
     "type",
     "isDefault",
+    "commissionDuration",
+    "commissionInterval"
   ]);
 
   const buttonDisabled = isPending || amount == null;
@@ -192,84 +219,88 @@ function RewardSheetContent({
             </Sheet.Close>
           </div>
           <div className="flex flex-col gap-4 p-6">
-            <div>
-              <label
-                htmlFor="amount"
-                className="text-sm font-medium text-neutral-800"
-              >
-                {`Amount per ${event}`}
-              </label>
-              <div className="relative mt-2 rounded-md shadow-sm">
-                {type === "flat" && (
+            {event !== "sale" && (
+              <div>
+                <label className="text-sm font-medium text-neutral-800">
+                  {`Amount per ${event}`}
+                </label>
+                <div className="relative mt-2 rounded-md shadow-sm">
                   <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
                     $
                   </span>
-                )}
-                <input
-                  className={cn(
-                    "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                    errors.amount &&
-                      "border-red-600 focus:border-red-500 focus:ring-red-600",
-                    type === "flat" ? "pl-6 pr-12" : "pr-7",
-                  )}
-                  {...register("amount", {
-                    required: true,
-                    valueAsNumber: true,
-                    min: 0,
-                    max: type === "flat" ? 1000 : 100,
-                  })}
-                />
-                <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-                  {type === "flat" ? "USD" : "%"}
-                </span>
+                  <input
+                    className={cn(
+                      "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                      errors.amount &&
+                        "border-red-600 focus:border-red-500 focus:ring-red-600",
+                    )}
+                    {...register("amount", {
+                      required: true,
+                      valueAsNumber: true,
+                      min: 0,
+                      max: 1000,
+                    })}
+                  />
+                  <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                    USD
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div className={cn("mt-6", event === "sale" && "mt-0")}>
+              <label className="text-sm font-medium text-neutral-800">
+                Partner eligibility
+              </label>
+              <p className="mb-4 text-sm text-neutral-600">
+                Select who is eligible for this reward
+              </p>
+              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                {partnerTypes.map((partnerType) => {
+                  const isSelected = selectedPartnerType === partnerType.key;
+
+                  return (
+                    <label
+                      key={partnerType.label}
+                      className={cn(
+                        "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                        "transition-all duration-150",
+                        isSelected &&
+                          "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        value={partnerType.label}
+                        className="hidden"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedPartnerType(partnerType.key);
+                            if (partnerType.key === "all") {
+                              setValue("partnerIds", []);
+                            }
+                          }
+                        }}
+                      />
+                      <div className="flex grow flex-col text-sm">
+                        <span className="font-medium">{partnerType.label}</span>
+                        <span>{partnerType.description}</span>
+                      </div>
+                      <CircleCheckFill
+                        className={cn(
+                          "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                          isSelected && "scale-100 opacity-100",
+                        )}
+                      />
+                    </label>
+                  );
+                })}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-              {partnerTypes.map((partnerType) => {
-                const isSelected = selectedPartnerType === partnerType.key;
-
-                return (
-                  <label
-                    key={partnerType.label}
-                    className={cn(
-                      "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                      "transition-all duration-150",
-                      isSelected &&
-                        "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                    )}
-                  >
-                    <input
-                      type="radio"
-                      value={partnerType.label}
-                      className="hidden"
-                      checked={isSelected}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedPartnerType(partnerType.key);
-                          if (partnerType.key === "all") {
-                            setValue("partnerIds", []);
-                          }
-                        }
-                      }}
-                    />
-                    <div className="flex grow flex-col text-sm">
-                      <span className="font-medium">{partnerType.label}</span>
-                      <span>{partnerType.description}</span>
-                    </div>
-                    <CircleCheckFill
-                      className={cn(
-                        "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                        isSelected && "scale-100 opacity-100",
-                      )}
-                    />
-                  </label>
-                );
-              })}
-            </div>
-
-            {selectedPartnerType === "specific" && (
-              <div className="mt-6">
+            {selectedPartnerType === "specific" && !isDefault && (
+              <div className="mt-2">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-neutral-800">
                     Eligible partners
@@ -300,6 +331,172 @@ function RewardSheetContent({
                   )}
                 </div>
               </div>
+            )}
+
+            {event === "sale" && (
+              <>
+                <div className="mt-6">
+                  <label className="text-sm font-medium text-neutral-800">
+                    Commission
+                  </label>
+                  <p className="mb-4 text-sm text-neutral-600">
+                    Set how the affiliate will get rewarded
+                  </p>
+                  <div className="-m-1">
+                    <AnimatedSizeContainer
+                      height
+                      transition={{ ease: "easeInOut", duration: 0.2 }}
+                    >
+                      <div className="p-1">
+                        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                          {commissionTypes.map((commissionType) => {
+                            const isSelected =
+                              commissionDuration &&
+                              commissionDuration > 1 === commissionType.recurring
+                                ? true
+                                : false;
+
+                            return (
+                              <label
+                                key={commissionType.label}
+                                className={cn(
+                                  "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                                  "transition-all duration-150",
+                                  isSelected &&
+                                    "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                                )}
+                              >
+                                <input
+                                  type="radio"
+                                  value={commissionType.label}
+                                  className="hidden"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setValue(
+                                        "commissionDuration",
+                                        commissionType.recurring ? 12 : 1,
+                                        { shouldDirty: true },
+                                      );
+                                    }
+                                  }}
+                                />
+                                <div className="flex grow flex-col text-sm">
+                                  <span className="font-medium">
+                                    {commissionType.label}
+                                  </span>
+                                  <span>{commissionType.description}</span>
+                                </div>
+                                <CircleCheckFill
+                                  className={cn(
+                                    "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                                    isSelected && "scale-100 opacity-100",
+                                  )}
+                                />
+                              </label>
+                            );
+                          })}
+                        </div>
+                        <div
+                          className={cn(
+                            "transition-opacity duration-200",
+                            commissionDuration && commissionDuration > 1
+                              ? "h-auto"
+                              : "h-0 opacity-0",
+                          )}
+                          aria-hidden={!(commissionDuration && commissionDuration > 1)}
+                          {...{
+                            inert: !(commissionDuration && commissionDuration > 1),
+                          }}
+                        >
+                          <div className="pt-6">
+                            <label
+                              htmlFor="duration"
+                              className="text-sm font-medium text-neutral-800"
+                            >
+                              Duration
+                            </label>
+                            <div className="relative mt-2 rounded-md shadow-sm">
+                              <select
+                                className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                                {...register("commissionDuration")}
+                              >
+                                <option value={INFINITY_NUMBER}>Lifetime</option>
+                                {[1, 3, 6, 12, 18, 24].map((v) => (
+                                  <option value={v} key={v}>
+                                    {v} {pluralize("month", v)}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </AnimatedSizeContainer>
+                  </div>
+                </div>
+
+                <div className="mt-6">
+                  <label className="text-sm font-medium text-neutral-800">
+                    Payout
+                  </label>
+                  <p className="mb-4 text-sm text-neutral-600">
+                    Set how much the affiliate will get rewarded
+                  </p>
+                  <div className="flex flex-col gap-6">
+                    <div>
+                      <label
+                        htmlFor="type"
+                        className="text-sm font-medium text-neutral-800"
+                      >
+                        Payout model
+                      </label>
+                      <div className="relative mt-2 rounded-md shadow-sm">
+                        <select
+                          className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                          {...register("type", { required: true })}
+                        >
+                          <option value="flat">Fixed amount</option>
+                          <option value="percentage">Percentage</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="amount"
+                        className="text-sm font-medium text-neutral-800"
+                      >
+                        Amount
+                      </label>
+                      <div className="relative mt-2 rounded-md shadow-sm">
+                        {type === "flat" && (
+                          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                            $
+                          </span>
+                        )}
+                        <input
+                          className={cn(
+                            "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                            errors.amount &&
+                              "border-red-600 focus:border-red-500 focus:ring-red-600",
+                            type === "flat" ? "pl-6 pr-12" : "pr-7",
+                          )}
+                          {...register("amount", {
+                            required: true,
+                            valueAsNumber: true,
+                            min: 0,
+                            max: type === "flat" ? 1000 : 100,
+                          })}
+                        />
+                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                          {type === "flat" ? "USD" : "%"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         </div>
