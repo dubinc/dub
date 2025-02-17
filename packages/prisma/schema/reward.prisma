@@ -2,12 +2,11 @@ model Reward {
   id        String @id @default(cuid())
   programId String
 
-  name     String?
-  event    EventType
-  type     CommissionType      @default(percentage)
-  amount   Int                 @default(0)
-  duration Int?
-  interval CommissionInterval?
+  name        String?
+  event       EventType
+  type        CommissionType @default(percentage)
+  amount      Int            @default(0)
+  maxDuration Int? // in months (0 -> not recurring, null -> infinite)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -19,10 +18,9 @@ model Reward {
 }
 
 model PartnerReward {
-  id                  String    @id @default(cuid())
+  id                  String @id @default(cuid())
   programEnrollmentId String
   rewardId            String
-  // event               EventType
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -31,7 +29,6 @@ model PartnerReward {
   reward            Reward            @relation(fields: [rewardId], references: [id], onDelete: Cascade)
 
   @@unique([programEnrollmentId, rewardId])
-  // @@unique([programEnrollmentId, event])
   @@index(programEnrollmentId)
   @@index(rewardId)
 }
