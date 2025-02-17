@@ -14,7 +14,7 @@ model Reward {
   program  Program         @relation(fields: [programId], references: [id], onDelete: Cascade)
   partners PartnerReward[]
 
-  @@index([programId])
+  @@index(programId)
 }
 
 model PartnerReward {
