@@ -33,7 +33,7 @@ export const deleteRewardAction = authActionClient
     if (program.defaultRewardId === rewardId) {
       throw new DubApiError({
         code: "bad_request",
-        message: "Default reward cannot be deleted.",
+        message: "This is a default reward and cannot be deleted.",
       });
     }
 

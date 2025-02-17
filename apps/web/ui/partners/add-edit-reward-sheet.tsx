@@ -1,6 +1,7 @@
 "use client";
 
 import { createRewardAction } from "@/lib/actions/partners/create-reward";
+import { deleteRewardAction } from "@/lib/actions/partners/delete-reward";
 import { updateRewardAction } from "@/lib/actions/partners/update-reward";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
@@ -139,6 +140,21 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     },
   );
 
+  const { executeAsync: deleteReward, isPending: isDeleting } = useAction(
+    deleteRewardAction,
+    {
+      onSuccess: async () => {
+        setIsOpen(false);
+        toast.success("Reward deleted!");
+        await mutate(`/api/programs/${program?.id}`);
+        await mutatePrefix(`/api/programs/${program?.id}/rewards`);
+      },
+      onError({ error }) {
+        toast.error(error.serverError);
+      },
+    },
+  );
+
   const onSubmit = async (data: FormData) => {
     if (!workspaceId || !program) {
       return;
@@ -166,6 +182,18 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         rewardId: reward.id,
       });
     }
+  };
+
+  const handleDelete = async () => {
+    if (!workspaceId || !program || !reward) {
+      return;
+    }
+
+    await deleteReward({
+      workspaceId,
+      programId: program.id,
+      rewardId: reward.id,
+    });
   };
 
   useEffect(() => {
@@ -243,6 +271,11 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const hasAllPartnerSaleReward = rewards?.some(
     (reward) => reward.event === "sale" && reward.partnersCount === 0,
   );
+
+  const canDeleteReward =
+    (reward && program?.defaultRewardId !== reward.id) ||
+    isCreating ||
+    isUpdating;
 
   return (
     <>
@@ -550,23 +583,44 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         </div>
 
         <div className="flex grow flex-col justify-end">
-          <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setIsOpen(false)}
-              text="Cancel"
-              className="w-fit"
-              disabled={isCreating || isUpdating}
-            />
-            <Button
-              type="submit"
-              variant="primary"
-              text={reward ? "Save changes" : "Create reward"}
-              className="w-fit"
-              loading={isCreating || isUpdating}
-              disabled={buttonDisabled}
-            />
+          <div className="flex items-center justify-between border-t border-neutral-200 p-5">
+            <div>
+              {reward && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  text="Remove reward"
+                  onClick={handleDelete}
+                  loading={isDeleting}
+                  disabled={!canDeleteReward}
+                  disabledTooltip={
+                    program?.defaultRewardId === reward.id
+                      ? "This is a default reward and cannot be deleted."
+                      : undefined
+                  }
+                />
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setIsOpen(false)}
+                text="Cancel"
+                className="w-fit"
+                disabled={isCreating || isUpdating || isDeleting}
+              />
+
+              <Button
+                type="submit"
+                variant="primary"
+                text={reward ? "Save changes" : "Create reward"}
+                className="w-fit"
+                loading={isCreating || isUpdating}
+                disabled={buttonDisabled || isDeleting}
+              />
+            </div>
           </div>
         </div>
       </form>
