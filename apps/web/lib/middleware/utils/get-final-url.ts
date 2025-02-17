@@ -17,11 +17,23 @@ export const getFinalUrl = (
   // get the query params of the target url
   const urlObj = redirectionUrl ? new URL(redirectionUrl) : new URL(url);
 
-  // if there's a clickId and no dub-no-track search param, then add clickId to the final url
-  // reasoning: if you're skipping tracking, there's no point in passing the clickId anyway
-  if (clickId && !searchParams.has("dub-no-track")) {
-    // add clickId to the final url if it exists
-    urlObj.searchParams.set("dub_id", clickId);
+  if (clickId) {
+    /*
+       custom query param for stripe payment links + Dub Conversions
+       - if there is a clickId and dub_client_reference_id is 1
+       - then set client_reference_id to dub_id_${clickId} and drop the dub_client_reference_id param
+       - our Stripe integration will then detect `dub_id_${clickId}` as the dubClickId in the `checkout.session.completed` webhook
+       - @see: https://github.com/dubinc/dub/blob/main/apps/web/app/api/stripe/integration/webhook/checkout-session-completed.ts
+    */
+    if (urlObj.searchParams.get("dub_client_reference_id") === "1") {
+      urlObj.searchParams.set("client_reference_id", `dub_id_${clickId}`);
+      urlObj.searchParams.delete("dub_client_reference_id");
+
+      // if there's a clickId and no dub-no-track search param, then add clickId to the final url
+      // reasoning: if you're skipping tracking, there's no point in passing the clickId anyway
+    } else if (!searchParams.has("dub-no-track")) {
+      urlObj.searchParams.set("dub_id", clickId);
+    }
   }
 
   // if there are no query params, then return the target url as is (no need to parse it)
@@ -38,18 +50,6 @@ export const getFinalUrl = (
   // remove qr param from the final url if the value is "1" (only used for detectQr function)
   if (urlObj.searchParams.get("qr") === "1") {
     urlObj.searchParams.delete("qr");
-  }
-
-  /*
-     custom query param for stripe payment links + Dub Conversions
-     - if there is a clickId and dub_client_reference_id is 1
-     - then set client_reference_id to dub_id_${clickId} and drop the dub_client_reference_id param
-     - our Stripe integration will then detect `dub_id_${clickId}` as the dubClickId in the `checkout.session.completed` webhook
-     - @see: https://github.com/dubinc/dub/blob/main/apps/web/app/api/stripe/integration/webhook/checkout-session-completed.ts
-  */
-  if (clickId && urlObj.searchParams.get("dub_client_reference_id") === "1") {
-    urlObj.searchParams.set("client_reference_id", `dub_id_${clickId}`);
-    urlObj.searchParams.delete("dub_client_reference_id");
   }
 
   return urlObj.toString();
