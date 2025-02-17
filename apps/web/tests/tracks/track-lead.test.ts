@@ -55,7 +55,7 @@ describe("POST /track/lead", async () => {
       error: {
         code: "conflict",
         doc_url: "https://dub.co/docs/api-reference/errors#conflict",
-        message: `Customer with externalId ${customer.id} and event name: Signup has already been recorded in the last hour.`,
+        message: `Customer with externalId ${customer.id} and event name Signup has already been recorded.`,
       },
     });
   });

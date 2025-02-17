@@ -79,7 +79,7 @@ export const withPartnerProfile = (
         }
 
         // rate limit
-        const { success } = await ratelimit(600, "1 m").limit(partner.id);
+        const { success } = await ratelimit(60, "1 m").limit(partner.id);
 
         if (!success) {
           throw new DubApiError({
