@@ -5,7 +5,6 @@ import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet, Table, usePagination, useTable } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { Row } from "@tanstack/react-table";
 import { Search } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useDebounce } from "use-debounce";
@@ -86,7 +85,7 @@ export function SelectEligiblePartnersSheet({
         id: "partner",
         header: "Partner",
         cell: ({ row }) => (
-          <PartnerRowItem partner={row.original as EnrolledPartnerProps} />
+          <PartnerRowItem partner={row.original} showPayoutsEnabled={false} />
         ),
       },
     ],
@@ -101,24 +100,17 @@ export function SelectEligiblePartnersSheet({
     pagination,
     onPaginationChange: setPagination,
     rowCount: partnersCount || 0,
-    getRowId: (originalRow: EnrolledPartnerProps) => originalRow.id,
-    onRowSelectionChange: (rows: Row<EnrolledPartnerProps>[]) => {
-      setSelectedPartners(
-        rows.map((row) => row.original as EnrolledPartnerProps),
-      );
+    getRowId: (originalRow) => originalRow.id,
+    onRowSelectionChange: (rows) => {
+      setSelectedPartners(rows.map((row) => row.original));
     },
   });
 
-  // pre-select partners based on selectedPartnerIds
   useEffect(() => {
     if (partners && selectedPartnerIds.length > 0) {
       const rowsToSelect = table.table
         .getRowModel()
-        .rows.filter((row) =>
-          selectedPartnerIds.includes(
-            (row.original as EnrolledPartnerProps).id,
-          ),
-        );
+        .rows.filter((row) => selectedPartnerIds.includes(row.original.id));
       rowsToSelect.forEach((row) => row.toggleSelected(true));
     }
   }, [partners, selectedPartnerIds]);

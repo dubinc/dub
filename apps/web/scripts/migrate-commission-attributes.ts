@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { createId } from "@/lib/api/utils";
 import { prisma } from "@dub/prisma";
 import { EventType } from "@prisma/client";
