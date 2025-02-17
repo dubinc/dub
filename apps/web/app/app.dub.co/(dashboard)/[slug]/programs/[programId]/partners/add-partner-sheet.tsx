@@ -242,7 +242,7 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
                   Referral link
                 </h2>
                 <a
-                  href={`/${slug}/programs/${program?.id}/settings`}
+                  href={`/${slug}/programs/${program?.id}/settings/links`}
                   target="_blank"
                   className="text-sm text-neutral-500 underline-offset-2 hover:underline"
                 >
