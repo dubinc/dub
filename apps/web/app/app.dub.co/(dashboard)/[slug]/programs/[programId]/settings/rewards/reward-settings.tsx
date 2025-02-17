@@ -116,10 +116,10 @@ const Reward = ({ reward }: { reward: RewardType }) => {
                 : `$${(reward.amount / 100).toFixed(2)}`}
             </span>{" "}
             for each {reward.event.toLowerCase()}
-            {reward.duration && (
+            {reward.maxDuration && (
               <>
-                , and again for {reward.duration}{" "}
-                {reward.interval?.toLowerCase() || "months"}
+                , and again for {reward.maxDuration}{" "}
+                {reward.maxDuration === 0 ? "forever" : "months"}
               </>
             )}
           </span>
