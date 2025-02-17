@@ -10,18 +10,18 @@ DESCRIPTION >
 
 SQL >
 
-    %
-    SELECT *
-    FROM dub_lead_events
-    WHERE
-        customer_id
-        = {{
-            String(
-                customerId,
-                "Otgts60IekQ17PMZ",
-                description="The unique ID for a given customer.",
-                required=True,
-            )
-        }}
-
-
+%
+SELECT *
+FROM dub_lead_events
+WHERE
+    customer_id
+    = {{
+        String(
+            customerId,
+            "cus_oC2X6GnlJm54w33Rb65hCMX4",
+            description="The unique ID for a given customer.",
+            required=True,
+        )
+    }}
+    {% if defined(eventName) %} AND event_name = {{ eventName }} {% end %}
+ORDER BY timestamp DESC
