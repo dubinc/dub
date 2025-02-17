@@ -5,7 +5,10 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { createRewardSchema } from "@/lib/zod/schemas/rewards";
+import {
+  createRewardSchema,
+  RECURRING_MAX_DURATIONS,
+} from "@/lib/zod/schemas/rewards";
 import { SelectEligiblePartnersSheet } from "@/ui/partners/select-eligible-partners-sheet";
 import { X } from "@/ui/shared/icons";
 import { EventType } from "@dub/prisma/client";
@@ -18,30 +21,21 @@ import {
   Users,
   useTable,
 } from "@dub/ui";
-import { cn, INFINITY_NUMBER, pluralize } from "@dub/utils";
+import { cn, pluralize } from "@dub/utils";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils/src/constants";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { mutate } from "swr";
 import { z } from "zod";
-
-// TODO:
-// Can create 1 "all partner" reward
-// Can create infinite "specific parter" rewards
-// Partners can't be on more than one "specific reward"
 
 interface RewardSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   event: EventType;
-  isDefault?: boolean;
 }
 
-type FormData = z.infer<typeof createRewardSchema> & {
-  partnerIds: string[];
-  commissionDuration: number;
-  commissionInterval: "month" | "year";
-};
+type FormData = z.infer<typeof createRewardSchema>;
 
 const partnerTypes = [
   {
@@ -69,18 +63,18 @@ const commissionTypes = [
   },
 ];
 
-function RewardSheetContent({
-  setIsOpen,
-  event,
-  isDefault = false,
-}: RewardSheetProps) {
+function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
   const { program } = useProgram();
   const { data: partners } = usePartners();
   const { id: workspaceId } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
-  const [selectedPartnerType, setSelectedPartnerType] =
-    useState<(typeof partnerTypes)[number]["key"]>("all");
   const [isAddPartnersOpen, setIsAddPartnersOpen] = useState(false);
+
+  const [selectedPartnerType, setSelectedPartnerType] = useState<
+    (typeof partnerTypes)[number]["key"]
+  >(event === "sale" ? "specific" : "all");
+
+  const [isRecurring, setIsRecurring] = useState(false);
 
   const {
     register,
@@ -91,59 +85,59 @@ function RewardSheetContent({
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
-      type: "flat",
-      isDefault,
-      maxDuration: null,
-      partnerIds: [],
       event,
-      commissionDuration: INFINITY_NUMBER,
-      commissionInterval: "month",
+      type: "flat",
+      maxDuration: "0",
     },
   });
 
+  const [partnerIds = [], amount, type, maxDuration] = watch([
+    "partnerIds",
+    "amount",
+    "type",
+    "maxDuration",
+  ]);
+
   const { executeAsync, isPending } = useAction(createRewardAction, {
-    onSuccess: async (res) => {
+    onSuccess: async () => {
       setIsOpen(false);
       toast.success("Successfully created reward!");
+      await mutate(`/api/programs/${program?.id}`);
       await mutatePrefix(`/api/programs/${program?.id}/rewards`);
     },
     onError({ error }) {
+      console.log({ error });
       toast.error(error.serverError);
     },
   });
 
   const onSubmit = async (data: FormData) => {
     if (!workspaceId || !program) {
-      toast.error("Please fill all required fields");
       return;
     }
 
     await executeAsync({
+      ...data,
       workspaceId,
       programId: program.id,
-      ...data,
-      amount: data.amount * 100,
+      amount: type === "flat" ? data.amount * 100 : data.amount,
+      ...(event === "sale"
+        ? {
+            // @ts-ignore
+            maxDuration: maxDuration === "" ? null : maxDuration,
+          }
+        : {
+            maxDuration: undefined,
+          }),
     });
   };
 
-  const [
-    partnerIds = [],
-    amount,
-    type,
-    isDefaultReward,
-    commissionDuration,
-    commissionInterval,
-  ] = watch([
-    "partnerIds",
-    "amount",
-    "type",
-    "isDefault",
-    "commissionDuration",
-    "commissionInterval",
-  ]);
+  useEffect(() => {
+    setIsRecurring(maxDuration === "0" ? false : true);
+  }, [maxDuration]);
 
   const selectedPartnersTable = useTable({
-    data: partners?.filter((p) => partnerIds.includes(p.id)) || [],
+    data: partners?.filter((p) => partnerIds?.includes(p.id)) || [],
     columns: [
       {
         header: "Partner",
@@ -180,7 +174,7 @@ function RewardSheetContent({
               onClick={() => {
                 setValue(
                   "partnerIds",
-                  partnerIds.filter((id) => id !== row.original.id),
+                  (partnerIds || []).filter((id) => id !== row.original.id),
                 );
               }}
             />
@@ -197,6 +191,10 @@ function RewardSheetContent({
   });
 
   const buttonDisabled = isPending || amount == null;
+  const hasDefaultReward = !!program?.defaultRewardId;
+  const displayAddPartnerButton =
+    (event !== "sale" && selectedPartnerType === "specific") ||
+    (event === "sale" && hasDefaultReward);
 
   return (
     <>
@@ -208,7 +206,7 @@ function RewardSheetContent({
         <div>
           <div className="flex items-start justify-between border-b border-neutral-200 p-6">
             <Sheet.Title className="text-xl font-semibold">
-              {`Create ${isDefault ? "default" : ""} ${event} reward`}
+              {`Create ${!program?.defaultRewardId ? "default" : ""} ${event} reward`}
             </Sheet.Title>
             <Sheet.Close asChild>
               <Button
@@ -272,8 +270,9 @@ function RewardSheetContent({
                           onChange={(e) => {
                             if (e.target.checked) {
                               setSelectedPartnerType(partnerType.key);
+
                               if (partnerType.key === "all") {
-                                setValue("partnerIds", []);
+                                setValue("partnerIds", null);
                               }
                             }
                           }}
@@ -297,40 +296,6 @@ function RewardSheetContent({
               </div>
             )}
 
-            {selectedPartnerType === "specific" && !isDefault && (
-              <div className="mt-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-neutral-800">
-                    Eligible partners
-                  </label>
-                  <Button
-                    text="Add partner"
-                    className="h-7 w-fit"
-                    onClick={() => setIsAddPartnersOpen(true)}
-                  />
-                </div>
-                <div className="mt-4">
-                  {partnerIds.length > 0 ? (
-                    <Table {...selectedPartnersTable} />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-neutral-50 py-12">
-                      <div className="flex items-center justify-center">
-                        <Users className="size-6 text-neutral-800" />
-                      </div>
-                      <div className="flex flex-col items-center gap-1 px-4 text-center">
-                        <p className="text-base font-medium text-neutral-900">
-                          Eligible partners
-                        </p>
-                        <p className="text-sm text-neutral-600">
-                          No eligible partners added yet
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
             {event === "sale" && (
               <>
                 <div>
@@ -347,70 +312,59 @@ function RewardSheetContent({
                     >
                       <div className="p-1">
                         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                          {commissionTypes.map((commissionType) => {
-                            const isSelected =
-                              commissionDuration &&
-                              commissionDuration > 1 ===
-                                commissionType.recurring
-                                ? true
-                                : false;
+                          {commissionTypes.map(
+                            ({ label, description, recurring }) => {
+                              const isSelected = isRecurring === recurring;
 
-                            return (
-                              <label
-                                key={commissionType.label}
-                                className={cn(
-                                  "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                                  "transition-all duration-150",
-                                  isSelected &&
-                                    "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                                )}
-                              >
-                                <input
-                                  type="radio"
-                                  value={commissionType.label}
-                                  className="hidden"
-                                  checked={isSelected}
-                                  onChange={(e) => {
-                                    if (e.target.checked) {
-                                      setValue(
-                                        "commissionDuration",
-                                        commissionType.recurring ? 12 : 1,
-                                        { shouldDirty: true },
-                                      );
-                                    }
-                                  }}
-                                />
-                                <div className="flex grow flex-col text-sm">
-                                  <span className="font-medium">
-                                    {commissionType.label}
-                                  </span>
-                                  <span>{commissionType.description}</span>
-                                </div>
-                                <CircleCheckFill
+                              return (
+                                <label
+                                  key={label}
                                   className={cn(
-                                    "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                                    isSelected && "scale-100 opacity-100",
+                                    "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                                    "transition-all duration-150",
+                                    isSelected &&
+                                      "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
                                   )}
-                                />
-                              </label>
-                            );
-                          })}
+                                >
+                                  <input
+                                    type="radio"
+                                    value={label}
+                                    className="hidden"
+                                    checked={isSelected}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        setIsRecurring(recurring);
+
+                                        if (!recurring) {
+                                          setValue("maxDuration", "0");
+                                        }
+                                      }
+                                    }}
+                                  />
+                                  <div className="flex grow flex-col text-sm">
+                                    <span className="font-medium">{label}</span>
+                                    <span>{description}</span>
+                                  </div>
+                                  <CircleCheckFill
+                                    className={cn(
+                                      "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                                      isSelected && "scale-100 opacity-100",
+                                    )}
+                                  />
+                                </label>
+                              );
+                            },
+                          )}
                         </div>
 
                         <div
                           className={cn(
                             "transition-opacity duration-200",
-                            commissionDuration && commissionDuration > 1
-                              ? "h-auto"
-                              : "h-0 opacity-0",
+                            isRecurring ? "h-auto" : "h-0 opacity-0",
                           )}
-                          aria-hidden={
-                            !(commissionDuration && commissionDuration > 1)
-                          }
+                          aria-hidden={!isRecurring}
                           {...{
-                            inert: !(
-                              commissionDuration && commissionDuration > 1
-                            ),
+                            inert: !isRecurring,
                           }}
                         >
                           <div className="pt-6">
@@ -423,16 +377,16 @@ function RewardSheetContent({
                             <div className="relative mt-2 rounded-md shadow-sm">
                               <select
                                 className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                                {...register("commissionDuration")}
+                                {...register("maxDuration")}
                               >
-                                <option value={INFINITY_NUMBER}>
-                                  Lifetime
-                                </option>
-                                {[1, 3, 6, 12, 18, 24].map((v) => (
+                                {RECURRING_MAX_DURATIONS.filter(
+                                  (v) => v !== "0",
+                                ).map((v) => (
                                   <option value={v} key={v}>
-                                    {v} {pluralize("month", v)}
+                                    {v} {pluralize("month", Number(v))}
                                   </option>
                                 ))}
+                                <option value="">Lifetime</option>
                               </select>
                             </div>
                           </div>
@@ -504,6 +458,40 @@ function RewardSheetContent({
                 </div>
               </>
             )}
+
+            {displayAddPartnerButton && (
+              <div className="mt-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-neutral-800">
+                    Eligible partners
+                  </label>
+                  <Button
+                    text="Add partner"
+                    className="h-7 w-fit"
+                    onClick={() => setIsAddPartnersOpen(true)}
+                  />
+                </div>
+                <div className="mt-4">
+                  {(partnerIds || []).length > 0 ? (
+                    <Table {...selectedPartnersTable} />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-neutral-50 py-12">
+                      <div className="flex items-center justify-center">
+                        <Users className="size-6 text-neutral-800" />
+                      </div>
+                      <div className="flex flex-col items-center gap-1 px-4 text-center">
+                        <p className="text-base font-medium text-neutral-900">
+                          Eligible partners
+                        </p>
+                        <p className="text-sm text-neutral-600">
+                          No eligible partners added yet
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -532,7 +520,7 @@ function RewardSheetContent({
       <SelectEligiblePartnersSheet
         isOpen={isAddPartnersOpen}
         setIsOpen={setIsAddPartnersOpen}
-        selectedPartnerIds={partnerIds}
+        selectedPartnerIds={partnerIds || []}
         onSelect={(ids) => {
           setValue("partnerIds", ids);
         }}
@@ -562,7 +550,7 @@ export function useRewardSheet(
   const [isOpen, setIsOpen] = useState(false);
 
   return {
-    rewardSheet: (
+    RewardSheet: (
       <RewardSheet setIsOpen={setIsOpen} isOpen={isOpen} {...props} />
     ),
     setIsOpen,

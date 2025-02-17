@@ -26,9 +26,8 @@ const SaleReward = () => {
     program?.defaultRewardId &&
     rewards?.find((r) => r.id === program.defaultRewardId);
 
-  const { rewardSheet, setIsOpen } = useRewardSheet({
+  const { RewardSheet, setIsOpen } = useRewardSheet({
     event: "sale",
-    isDefault: !!defaultReward,
   });
 
   return (
@@ -56,7 +55,7 @@ const SaleReward = () => {
               description="Create a default reward that will be offered to all partners"
               onClick={() => setIsOpen(true)}
             />
-            {rewardSheet}
+            {RewardSheet}
           </>
         )}
       </div>
@@ -67,6 +66,7 @@ const SaleReward = () => {
 const AdditionalRewards = () => {
   const { program } = useProgram();
   const { rewards, loading } = useRewards();
+
   const additionalRewards = rewards?.filter(
     (reward) => reward.id !== program?.defaultRewardId,
   );
@@ -140,7 +140,7 @@ const Reward = ({ reward }: { reward: RewardType }) => {
 const CreateRewardButton = () => {
   const [openPopover, setOpenPopover] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventType | null>(null);
-  const { rewardSheet, setIsOpen } = useRewardSheet({
+  const { RewardSheet, setIsOpen } = useRewardSheet({
     event: selectedEvent || "sale", // default to sale, but it won't show unless setIsOpen is true
   });
 
@@ -210,7 +210,7 @@ const CreateRewardButton = () => {
           </svg>
         </button>
       </Popover>
-      {rewardSheet}
+      {RewardSheet}
     </>
   );
 };

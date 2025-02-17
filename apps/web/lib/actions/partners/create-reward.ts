@@ -18,15 +18,8 @@ export const createRewardAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const {
-      programId,
-      event,
-      isDefault,
-      partnerIds,
-      amount,
-      type,
-      maxDuration,
-    } = parsedInput;
+    const { programId, partnerIds, event, amount, type, maxDuration } =
+      parsedInput;
 
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -53,21 +46,11 @@ export const createRewardAction = authActionClient
       }
     }
 
-    if (isDefault) {
-      if (program.defaultRewardId) {
-        throw new Error(
-          `A program can only have one default reward and you've already set one with id ${program.defaultRewardId}.`,
-        );
-      }
+    const hasDefaultReward = !!program.defaultRewardId;
 
-      if (event !== "sale") {
-        throw new Error("Default reward must be of type `sale`.");
-      }
+    // if (event === "sale") {
 
-      if (partnerIds && partnerIds.length > 0) {
-        throw new Error("Default reward should not be partner specific.");
-      }
-    }
+    // }
 
     // TODO:
     // Partners can't be more than one reward of the same type.
@@ -79,7 +62,7 @@ export const createRewardAction = authActionClient
         event,
         type,
         amount,
-        maxDuration,
+        maxDuration: maxDuration ? parseInt(maxDuration) : null,
         ...(programEnrollments && {
           partners: {
             createMany: {
@@ -92,7 +75,7 @@ export const createRewardAction = authActionClient
       },
     });
 
-    if (isDefault) {
+    if (!hasDefaultReward) {
       await prisma.program.update({
         where: {
           id: programId,
