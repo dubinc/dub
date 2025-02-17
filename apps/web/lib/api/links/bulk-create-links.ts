@@ -7,7 +7,11 @@ import { createId } from "../utils";
 import { includeTags } from "./include-tags";
 import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
 import { updateLinksUsage } from "./update-links-usage";
-import { checkIfLinksHaveTags, checkIfLinksHaveWebhooks } from "./utils";
+import {
+  checkIfLinksHaveTags,
+  checkIfLinksHaveWebhooks,
+  transformLink,
+} from "./utils";
 
 export async function bulkCreateLinks({
   links,
@@ -192,5 +196,5 @@ export async function bulkCreateLinks({
     ]),
   );
 
-  return finalCreatedLinks;
+  return finalCreatedLinks.map(transformLink);
 }
