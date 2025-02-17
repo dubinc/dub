@@ -93,7 +93,7 @@ export function SelectEligiblePartnersSheet({
       <div className="flex h-full flex-col">
         <div className="flex items-start justify-between border-b border-neutral-200 p-6">
           <Sheet.Title className="text-xl font-semibold">
-            Select eligible partners
+            Add partners
           </Sheet.Title>
           <Sheet.Close asChild>
             <Button
@@ -116,16 +116,14 @@ export function SelectEligiblePartnersSheet({
         <div className="flex grow flex-col justify-end">
           <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
             <Button
-              type="button"
               variant="secondary"
               onClick={() => setIsOpen(false)}
               text="Cancel"
               className="w-fit"
             />
             <Button
-              type="button"
               variant="primary"
-              text="Select"
+              text="Add"
               className="w-fit"
               onClick={() => {
                 onSelect(selectedPartners.map((p) => p.id));

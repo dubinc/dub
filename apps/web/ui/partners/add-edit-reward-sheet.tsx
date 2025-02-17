@@ -10,7 +10,7 @@ import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { SelectEligiblePartnersSheet } from "@/ui/partners/select-eligible-partners-sheet";
 import { X } from "@/ui/shared/icons";
 import { EventType } from "@dub/prisma/client";
-import { Button, CircleCheckFill, Sheet } from "@dub/ui";
+import { Button, CircleCheckFill, Gift, Sheet, Users } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
@@ -203,20 +203,18 @@ function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
             </div>
 
             {selectedPartnerType === "specific" && (
-              <div>
+              <div className="mt-6">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-neutral-800">
                     Eligible partners
                   </label>
                   <Button
-                    type="button"
-                    variant="secondary"
                     text="Add partner"
-                    className="h-8 w-fit"
+                    className="h-7 w-fit"
                     onClick={() => setIsAddPartnersOpen(true)}
                   />
                 </div>
-                <div className="mt-2">
+                <div className="mt-4">
                   {partnerIds.length > 0 ? (
                     <div className="flex flex-col gap-2">
                       {partners
@@ -228,7 +226,6 @@ function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
                           >
                             <PartnerRowItem partner={partner} />
                             <Button
-                              type="button"
                               variant="secondary"
                               icon={<X className="size-4" />}
                               className="h-8 w-8 p-0"
@@ -243,10 +240,18 @@ function RewardSheetContent({ setIsOpen, event }: RewardSheetProps) {
                         ))}
                     </div>
                   ) : (
-                    <div className="flex h-20 items-center justify-center rounded-lg border border-dashed border-neutral-200">
-                      <p className="text-sm text-neutral-500">
-                        No partners selected
-                      </p>
+                    <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-neutral-50 py-12">
+                      <div className="flex items-center justify-center">
+                        <Users className="size-6 text-neutral-800" />
+                      </div>
+                      <div className="flex flex-col items-center gap-1 px-4 text-center">
+                        <p className="text-base font-medium text-neutral-900">
+                          Eligible partners
+                        </p>
+                        <p className="text-sm text-neutral-600">
+                          No eligible partners added yet
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>
