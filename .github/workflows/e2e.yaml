@@ -36,9 +36,6 @@ jobs:
           E2E_BASE_URL: ${{ github.event.deployment_status.environment_url }}
           E2E_TOKEN: ${{ secrets.E2E_TOKEN }}
           E2E_TOKEN_OLD: ${{ secrets.E2E_TOKEN_OLD }}
-          E2E_USER_ID: ${{ secrets.E2E_USER_ID }}
-          E2E_USER_ID_OLD: ${{ secrets.E2E_USER_ID_OLD }}
-          E2E_WORKSPACE_ID: ${{ secrets.E2E_WORKSPACE_ID }}
           QSTASH_TOKEN: ${{ secrets.QSTASH_TOKEN }}
           QSTASH_CURRENT_SIGNING_KEY: ${{ secrets.QSTASH_CURRENT_SIGNING_KEY }}
           NEXT_PUBLIC_NGROK_URL: ${{ github.event.deployment_status.environment_url }}
