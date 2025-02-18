@@ -181,6 +181,7 @@ export const PartnerEarningsSchema = SaleResponseSchema.omit({
     type: z.string(),
     customer: z
       .object({
+        id: z.string(),
         email: z
           .string()
           .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
@@ -188,6 +189,7 @@ export const PartnerEarningsSchema = SaleResponseSchema.omit({
       })
       .nullable(),
     link: LinkSchema.pick({
+      id: true,
       shortLink: true,
       url: true,
     }),

@@ -62,6 +62,7 @@ export const GET = withPartnerProfile(
         customer: true,
         link: {
           select: {
+            id: true,
             shortLink: true,
             url: true,
           },

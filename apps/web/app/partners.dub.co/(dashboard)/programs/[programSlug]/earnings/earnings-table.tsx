@@ -2,6 +2,7 @@
 
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { CustomerProps, LinkProps, PartnerEarningsResponse } from "@/lib/types";
+import FilterButton from "@/ui/analytics/events/filter-button";
 import { LinkIcon } from "@/ui/links/link-icon";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
@@ -30,9 +31,16 @@ import {
   getPrettyUrl,
   linkConstructor,
 } from "@dub/utils";
+import { Cell } from "@tanstack/react-table";
 import { useMemo } from "react";
 import useSWR from "swr";
 import { EarningsCompositeChart } from "./earnings-composite-chart";
+
+type ColumnMeta = {
+  filterParams?: (
+    args: Pick<Cell<PartnerEarningsResponse, any>, "getValue">,
+  ) => Record<string, any>;
+};
 
 export function EarningsTablePartner({
   limit,
@@ -86,12 +94,22 @@ export function EarningsTablePartner({
         id: "type",
         header: "Type",
         accessorKey: "type",
+        meta: {
+          filterParams: ({ getValue }) => ({
+            type: getValue(),
+          }),
+        },
         cell: ({ row }) => <CommissionTypeBadge type={row.original.type} />,
       },
       {
         id: "link",
         header: "Link",
         accessorKey: "link",
+        meta: {
+          filterParams: ({ getValue }) => ({
+            linkId: getValue().id,
+          }),
+        },
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
             <LinkLogo
@@ -114,6 +132,11 @@ export function EarningsTablePartner({
         id: "customer",
         header: "Customer",
         accessorKey: "customer",
+        meta: {
+          filterParams: ({ getValue }) => ({
+            customerId: getValue().id,
+          }),
+        },
         cell: ({ row }) =>
           row.original.customer ? row.original.customer.email : "-",
       },
@@ -152,6 +175,12 @@ export function EarningsTablePartner({
         },
       },
     ],
+    cellRight: (cell) => {
+      const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
+      return (
+        meta?.filterParams && <FilterButton set={meta.filterParams(cell)} />
+      );
+    },
     ...(!limit && {
       pagination,
       onPaginationChange: setPagination,
@@ -258,8 +287,12 @@ function EarningsTableControls() {
   );
 
   const activeFilters = useMemo(() => {
-    const { type } = searchParamsObj;
-    return [...(type ? [{ key: "type", value: type }] : [])];
+    const { type, linkId, customerId } = searchParamsObj;
+    return [
+      ...(type ? [{ key: "type", value: type }] : []),
+      ...(linkId ? [{ key: "linkId", value: linkId }] : []),
+      ...(customerId ? [{ key: "customerId", value: customerId }] : []),
+    ];
   }, [searchParamsObj]);
 
   const onSelect = (key: string, value: any) =>
@@ -277,7 +310,7 @@ function EarningsTableControls() {
 
   const onRemoveAll = () =>
     queryParams({
-      del: ["type"],
+      del: ["type", "linkId", "customerId"],
     });
 
   return (
