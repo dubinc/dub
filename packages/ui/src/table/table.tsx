@@ -117,7 +117,7 @@ export function useTable<T extends any>(
     pagination,
     onPaginationChange,
     getRowId,
-    enableColumnResizing = true,
+    enableColumnResizing = false,
     columnResizeMode = "onChange",
   } = props;
 
@@ -152,10 +152,10 @@ export function useTable<T extends any>(
     rowCount,
     columns,
     defaultColumn: {
-      minSize: 100,
-      size: 200,
-      maxSize: 1000,
-      enableResizing: true,
+      minSize: 120,
+      size: 0,
+      maxSize: 300,
+      enableResizing: enableColumnResizing,
       ...defaultColumn,
     },
     getCoreRowModel: getCoreRowModel(),
@@ -185,8 +185,8 @@ export function useTable<T extends any>(
 }
 
 // Memoized row component to prevent re-renders during column resizing
-const TableRow = memo(
-  function TableRow<T>({
+const ResizableTableRow = memo(
+  function ResizableTableRow<T>({
     row,
     onRowClick,
     cellRight,
@@ -289,7 +289,7 @@ export function Table<T>({
   onRowClick,
   rowCount,
   children,
-  enableColumnResizing = true,
+  enableColumnResizing = false,
 }: TableProps<T>) {
   return (
     <div
@@ -319,7 +319,7 @@ export function Table<T>({
             )}
             style={{
               width: "100%",
-              tableLayout: "fixed",
+              tableLayout: enableColumnResizing ? "fixed" : "auto",
               ...(enableColumnResizing && {
                 minWidth: table
                   .getVisibleLeafColumns()
@@ -342,7 +342,7 @@ export function Table<T>({
                         colSpan={header.colSpan}
                         className={cn(
                           tableCellClassName(header.id),
-                          "group select-none font-medium",
+                          "select-none font-medium",
                           getCommonPinningClassNames(
                             header.column,
                             !table.getRowModel().rows.length,
@@ -353,7 +353,13 @@ export function Table<T>({
                           enableColumnResizing && "relative",
                         )}
                         style={{
-                          width: header.getSize(),
+                          ...(enableColumnResizing
+                            ? { width: header.getSize() }
+                            : {
+                                minWidth: header.column.columnDef.minSize,
+                                maxWidth: header.column.columnDef.maxSize,
+                                width: header.column.columnDef.size || "auto",
+                              }),
                           ...getCommonPinningStyles(header.column),
                         }}
                       >
@@ -376,10 +382,12 @@ export function Table<T>({
                                 }),
                             })}
                           >
-                            {flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext(),
+                                )}
                             {isSortableColumn &&
                               sortBy === header.column.id && (
                                 <SortOrder
@@ -406,16 +414,72 @@ export function Table<T>({
               ))}
             </thead>
             <tbody>
-              {table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  row={row}
-                  onRowClick={onRowClick}
-                  cellRight={cellRight}
-                  tdClassName={tdClassName}
-                  table={table}
-                />
-              ))}
+              {table.getRowModel().rows.map((row) =>
+                enableColumnResizing ? (
+                  <ResizableTableRow
+                    key={row.id}
+                    row={row}
+                    onRowClick={onRowClick}
+                    cellRight={cellRight}
+                    tdClassName={tdClassName}
+                    table={table}
+                  />
+                ) : (
+                  <tr
+                    key={row.id}
+                    className={cn(
+                      "group/row",
+                      onRowClick && "cursor-pointer select-none",
+                      // hacky fix: if there are more than 8 rows, remove the bottom border from the last row
+                      table.getRowModel().rows.length > 8 &&
+                        row.index === table.getRowModel().rows.length - 1 &&
+                        "[&_td]:border-b-0",
+                    )}
+                    onClick={
+                      onRowClick
+                        ? (e) => {
+                            // Ignore if click is on an interactive child
+                            if (isClickOnInteractiveChild(e)) return;
+                            onRowClick(row, e);
+                          }
+                        : undefined
+                    }
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td
+                        key={cell.id}
+                        className={cn(
+                          tableCellClassName(cell.column.id, !!onRowClick),
+                          "group text-neutral-600",
+                          getCommonPinningClassNames(
+                            cell.column,
+                            row.index === table.getRowModel().rows.length - 1,
+                          ),
+                          typeof tdClassName === "function"
+                            ? tdClassName(cell.column.id)
+                            : tdClassName,
+                        )}
+                        style={{
+                          minWidth: cell.column.columnDef.minSize,
+                          maxWidth: cell.column.columnDef.maxSize,
+                          width: cell.column.columnDef.size || "auto",
+                          ...getCommonPinningStyles(cell.column),
+                        }}
+                      >
+                        <div className="flex w-full items-center justify-between overflow-hidden truncate">
+                          <div className="min-w-0 shrink grow truncate">
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </div>
+                          {cellRight?.(cell)}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                ),
+              )}
             </tbody>
           </table>
           {children}
