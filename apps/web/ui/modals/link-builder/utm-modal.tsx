@@ -183,14 +183,15 @@ function UTMModalInner({ setShowUTMModal }: UTMModalProps) {
         <div className="max-md:hidden">
           <Tooltip
             content={
-              <div className="px-2 py-1 text-xs text-gray-700">
-                Press <strong className="font-medium text-gray-950">U</strong>{" "}
-                to open this quickly
+              <div className="px-2 py-1 text-xs text-neutral-700">
+                Press{" "}
+                <strong className="font-medium text-neutral-950">U</strong> to
+                open this quickly
               </div>
             }
             side="right"
           >
-            <kbd className="flex size-6 cursor-default items-center justify-center rounded-md border border-gray-200 font-sans text-xs text-gray-950">
+            <kbd className="flex size-6 cursor-default items-center justify-center rounded-md border border-neutral-200 font-sans text-xs text-neutral-950">
               U
             </kbd>
           </Tooltip>
@@ -223,10 +224,10 @@ function UTMModalInner({ setShowUTMModal }: UTMModalProps) {
 
       {isValidUrl(url) && (
         <div className="mt-4 grid gap-y-1">
-          <span className="block text-sm font-medium text-gray-700">
+          <span className="block text-sm font-medium text-neutral-700">
             URL Preview
           </span>
-          <div className="scrollbar-hide mt-2 overflow-scroll break-words rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-2 font-mono text-xs text-gray-500">
+          <div className="scrollbar-hide mt-2 overflow-scroll break-words rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 font-mono text-xs text-neutral-500">
             {url}
           </div>
         </div>
@@ -301,7 +302,7 @@ function UTMButton({
           className={cn("size-4", enabled && "text-blue-500")}
         />
       }
-      className="h-9 w-fit px-2.5 font-medium text-gray-700"
+      className="h-9 w-fit px-2.5 font-medium text-neutral-700"
       onClick={() => setShowUTMModal(true)}
     />
   );

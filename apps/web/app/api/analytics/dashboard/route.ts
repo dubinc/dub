@@ -13,6 +13,7 @@ import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { ipAddress } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
+// GET /api/analytics/dashboard – get analytics for the dashboard
 export const GET = async (req: Request) => {
   try {
     const searchParams = getSearchParams(req.url);
@@ -70,6 +71,7 @@ export const GET = async (req: Request) => {
 
       validDateRangeForPlan({
         plan: workspace?.plan || "free",
+        dataAvailableFrom: workspace?.createdAt,
         interval,
         start,
         end,

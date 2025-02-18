@@ -84,10 +84,10 @@ export function ResourcesContent({ domain }: { domain: string }) {
                   getUtmParams({ domain, utm_content: title }),
                 )}
                 icon={
-                  <div className="shrink-0 rounded-[10px] border border-gray-200 bg-white/50 p-1 dark:border-white/20 dark:bg-white/10">
+                  <div className="shrink-0 rounded-[10px] border border-neutral-200 bg-white/50 p-1 dark:border-white/20 dark:bg-white/10">
                     <Icon
                       className={cn(
-                        "size-5 text-gray-600 transition-colors dark:text-white/60",
+                        "size-5 text-neutral-600 transition-colors dark:text-white/60",
                         iconClassName,
                       )}
                     />

@@ -11,7 +11,7 @@ export default function DeleteAccountSection() {
       <DeleteAccountModal />
       <div className="flex flex-col space-y-3 p-5 sm:p-10">
         <h2 className="text-xl font-medium">Delete Account</h2>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-neutral-500">
           Permanently delete your {process.env.NEXT_PUBLIC_APP_NAME} account,
           all of your workspaces, links and their respective stats. This action
           cannot be undone - please proceed with caution.

@@ -122,7 +122,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     const payload = {
       name: stripeCustomerName,
       email: stripeCustomerEmail,
-      externalId: stripeCustomerId, // using Stripe customer ID as externalId
+      // stripeCustomerId can potentially be null, so we use email as fallback
+      externalId: stripeCustomerId || stripeCustomerEmail,
       projectId: workspace.id,
       projectConnectId: stripeAccountId,
       stripeCustomerId,
@@ -153,7 +154,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     leadEvent = {
       ...rest,
       event_id: nanoid(16),
-      event_name: "Checkout session completed",
+      event_name: "Sign up",
       customer_id: customer.id,
       metadata: "",
     };
@@ -172,6 +173,10 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   if (charge.amount_total === 0) {
     return `Checkout session completed for Stripe customer ${stripeCustomerId} with invoice ID ${invoiceId} but amount is 0, skipping...`;
+  }
+
+  if (charge.mode === "setup") {
+    return `Checkout session completed for Stripe customer ${stripeCustomerId} but mode is setup, skipping...`;
   }
 
   if (invoiceId) {
@@ -201,7 +206,9 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   const saleData = {
     ...leadEvent,
     event_id: eventId,
-    event_name: "Subscription creation",
+    // if the charge is a one-time payment, we set the event name to "Purchase"
+    event_name:
+      charge.mode === "payment" ? "Purchase" : "Subscription creation",
     payment_processor: "stripe",
     amount: charge.amount_total!,
     currency: charge.currency!,

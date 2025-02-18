@@ -7,6 +7,8 @@ import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
+  CopyText,
+  LinkLogo,
   StatusBadge,
   Table,
   usePagination,
@@ -19,6 +21,8 @@ import {
   fetcher,
   formatDate,
   formatDateTime,
+  getApexDomain,
+  getPrettyUrl,
 } from "@dub/utils";
 import useSWR from "swr";
 
@@ -33,7 +37,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
 
   const { data: earningsCount } = useSWR<{ count: number }>(
     programEnrollment &&
-      `/api/partner-profile/programs/${programEnrollment.programId}/commissions/count${getQueryString()}`,
+      `/api/partner-profile/programs/${programEnrollment.programId}/earnings/count${getQueryString()}`,
     fetcher,
   );
 
@@ -43,7 +47,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
     error,
   } = useSWR<PartnerEarningsResponse[]>(
     programEnrollment &&
-      `/api/partner-profile/programs/${programEnrollment.programId}/commissions${getQueryString()}`,
+      `/api/partner-profile/programs/${programEnrollment.programId}/earnings${getQueryString()}`,
     fetcher,
   );
 
@@ -65,17 +69,39 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         ),
       },
       {
+        id: "type",
+        header: "Type",
+        accessorKey: "type",
+        cell: ({ row }) => <CommissionTypeBadge type={row.original.type} />,
+      },
+      {
+        id: "link",
+        header: "Link",
+        accessorKey: "link",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-3">
+            <LinkLogo
+              apexDomain={getApexDomain(row.original.link.url)}
+              className="size-4 shrink-0 sm:size-4"
+            />
+            <CopyText
+              value={row.original.link.shortLink}
+              successMessage="Copied link to clipboard!"
+              className="truncate"
+            >
+              <span className="truncate" title={row.original.link.shortLink}>
+                {getPrettyUrl(row.original.link.shortLink)}
+              </span>
+            </CopyText>
+          </div>
+        ),
+      },
+      {
         id: "customer",
         header: "Customer",
         accessorKey: "customer",
         cell: ({ row }) =>
           row.original.customer ? row.original.customer.email : "-",
-      },
-      {
-        id: "type",
-        header: "Type",
-        accessorKey: "type",
-        cell: ({ row }) => <CommissionTypeBadge type={row.original.type} />,
       },
       {
         id: "saleAmount",

@@ -16,7 +16,7 @@ export const trackLeadRequestSchema = z.object({
     .string({ required_error: "eventName is required" })
     .trim()
     .min(1, "eventName is required")
-    .max(50)
+    .max(255)
     .describe("The name of the event to track.")
     .openapi({ example: "Sign up" }),
   externalId: z
@@ -76,7 +76,7 @@ export const trackLeadResponseSchema = z.object({
 
 export const leadEventSchemaTB = clickEventSchemaTB
   .omit({ timestamp: true }) // remove timestamp from lead data because tinybird will generate its own at ingestion time
-  .and(
+  .merge(
     z.object({
       event_id: z.string(),
       event_name: z.string(),

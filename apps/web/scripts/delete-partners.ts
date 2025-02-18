@@ -3,13 +3,9 @@ import "dotenv-flow/config";
 import { bulkDeleteLinks } from "../lib/api/links/bulk-delete-links";
 
 async function main() {
-  const partners = await prisma.partner.findMany({
+  const partner = await prisma.partner.findUniqueOrThrow({
     where: {
-      programs: {
-        some: {
-          programId: "prog_xxx",
-        },
-      },
+      id: "pn_d43H73P1HU58aDq7Ty30qFyW",
     },
     include: {
       programs: {
@@ -18,46 +14,52 @@ async function main() {
         },
       },
     },
-    take: 1,
   });
 
-  for (const partner of partners) {
-    const programEnrollment = partner.programs[0];
-    const links = programEnrollment.links;
+  const programEnrollment = partner.programs[0];
+  const links = programEnrollment.links;
 
-    const deleteLinkCaches = await bulkDeleteLinks(links);
-    console.log("Deleted link caches", deleteLinkCaches);
+  const deleteLinkCaches = await bulkDeleteLinks(links);
+  console.log("Deleted link caches", deleteLinkCaches);
 
-    const deleteLinks = await prisma.link.deleteMany({
-      where: {
-        id: {
-          in: links.map((link) => link.id),
-        },
+  const deleteCustomers = await prisma.customer.deleteMany({
+    where: {
+      linkId: {
+        in: links.map((link) => link.id),
       },
-    });
-    console.log("Deleted links", deleteLinks);
+    },
+  });
+  console.log("Deleted customers", deleteCustomers);
 
-    const deleteSales = await prisma.commission.deleteMany({
-      where: {
-        partnerId: partner.id,
+  const deleteLinks = await prisma.link.deleteMany({
+    where: {
+      id: {
+        in: links.map((link) => link.id),
       },
-    });
-    console.log("Deleted sales", deleteSales);
+    },
+  });
+  console.log("Deleted links", deleteLinks);
 
-    const deletePayouts = await prisma.payout.deleteMany({
-      where: {
-        partnerId: partner.id,
-      },
-    });
-    console.log("Deleted payouts", deletePayouts);
+  const deleteSales = await prisma.commission.deleteMany({
+    where: {
+      partnerId: partner.id,
+    },
+  });
+  console.log("Deleted sales", deleteSales);
 
-    const deletePartner = await prisma.partner.delete({
-      where: {
-        id: partner.id,
-      },
-    });
-    console.log("Deleted partner", deletePartner);
-  }
+  const deletePayouts = await prisma.payout.deleteMany({
+    where: {
+      partnerId: partner.id,
+    },
+  });
+  console.log("Deleted payouts", deletePayouts);
+
+  const deletePartner = await prisma.partner.delete({
+    where: {
+      id: partner.id,
+    },
+  });
+  console.log("Deleted partner", deletePartner);
 }
 
 main();

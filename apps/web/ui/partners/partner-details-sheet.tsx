@@ -143,21 +143,14 @@ function PartnerDetailsSheetContent({
                 ],
                 [
                   "Revenue",
-                  !partner.salesAmount
+                  !partner.saleAmount
                     ? "-"
-                    : currencyFormatter(partner.salesAmount / 100, {
+                    : currencyFormatter(partner.saleAmount / 100, {
                         minimumFractionDigits:
-                          partner.salesAmount % 1 === 0 ? 0 : 2,
+                          partner.saleAmount % 1 === 0 ? 0 : 2,
                         maximumFractionDigits: 2,
                       }),
                 ],
-                // [
-                //   "Earnings",
-                //   currencyFormatter(earnings, {
-                //     minimumFractionDigits: earnings % 1 === 0 ? 0 : 2,
-                //     maximumFractionDigits: 2,
-                //   }),
-                // ],
               ].map(([label, value]) => (
                 <div key={label} className="flex flex-col bg-neutral-50 p-3">
                   <span className="text-xs text-neutral-500">{label}</span>
@@ -222,7 +215,7 @@ function PartnerDetailsSheetContent({
               <div>
                 <h4 className="font-semibold text-neutral-900">Description</h4>
                 <p className="mt-1.5">
-                  {partner.bio || (
+                  {partner.description || (
                     <span className="italic text-neutral-400">
                       No description provided
                     </span>
@@ -356,7 +349,6 @@ function PartnerApproval({
         >
           <div className="w-[calc(100%-8px)]">
             <PartnerLinkSelector
-              programDomain={program?.domain ?? undefined}
               selectedLinkId={selectedLinkId}
               setSelectedLinkId={setSelectedLinkId}
               showDestinationUrl={false}
@@ -369,7 +361,6 @@ function PartnerApproval({
                 }
                 return false;
               }}
-              domain={program?.domain ?? undefined}
               error={linkError}
             />
           </div>
@@ -579,8 +570,7 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
         minSize: 1,
       },
       {
-        id: "amount",
-        header: "Amount",
+        header: "Revenue",
         accessorFn: (d) =>
           currencyFormatter(d.saleAmount / 100, {
             minimumFractionDigits: 2,
@@ -592,7 +582,7 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
     ],
     onRowClick: (row) => {
       window.open(
-        `/${slug}/analytics?domain=${row.original.domain}&key=${row.original.key}&interval=all`,
+        `/${slug}/events?domain=${row.original.domain}&key=${row.original.key}&interval=all`,
         "_blank",
       );
     },

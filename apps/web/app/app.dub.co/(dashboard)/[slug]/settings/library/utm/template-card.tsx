@@ -76,8 +76,8 @@ export function TemplateCard({
       >
         <div className="flex min-w-0 grow items-center gap-3">
           <div className="flex min-w-0 items-center gap-2">
-            <DiamondTurnRight className="size-5 shrink-0 text-gray-500" />
-            <span className="min-w-0 truncate whitespace-nowrap font-medium text-gray-800">
+            <DiamondTurnRight className="size-5 shrink-0 text-neutral-500" />
+            <span className="min-w-0 truncate whitespace-nowrap font-medium text-neutral-800">
               {template.name}
             </span>
           </div>
@@ -91,8 +91,8 @@ export function TemplateCard({
             <div className="grid max-w-[225px] grid-cols-[1fr,minmax(0,min-content)] gap-x-2 gap-y-1 whitespace-nowrap p-2 text-sm sm:min-w-[150px]">
               {includedParams.map(({ key, label, icon: Icon }) => (
                 <Fragment key={key}>
-                  <span className="font-medium text-gray-600">{label}</span>
-                  <span className="truncate text-gray-500">
+                  <span className="font-medium text-neutral-600">{label}</span>
+                  <span className="truncate text-neutral-500">
                     {template[key]}
                   </span>
                 </Fragment>
@@ -100,14 +100,14 @@ export function TemplateCard({
             </div>
           }
         >
-          <div className="xs:flex hidden shrink-0 items-center gap-1 px-2 text-gray-500">
+          <div className="xs:flex hidden shrink-0 items-center gap-1 px-2 text-neutral-500">
             {includedParams.map(({ icon: Icon }) => (
               <Icon className="size-3.5" />
             ))}
           </div>
         </Tooltip>
 
-        <div className="hidden text-sm text-gray-500 sm:block">
+        <div className="hidden text-sm text-neutral-500 sm:block">
           {formatDate(template.updatedAt, { month: "short" })}
         </div>
 
@@ -144,7 +144,7 @@ export function TemplateCard({
               variant="secondary"
               className={cn(
                 "h-8 px-1.5 outline-none transition-all duration-200",
-                "border-transparent data-[state=open]:border-gray-500 sm:group-hover/card:data-[state=closed]:border-gray-200",
+                "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
               )}
               icon={
                 processing ? (
@@ -207,11 +207,11 @@ function UserAvatar({ template }: { template: UtmTemplateWithUserProps }) {
         <div className="w-full p-3">
           <Avatar user={user} className="h-8 w-8" />
           <div className="mt-2 flex items-center gap-1.5">
-            <p className="text-sm font-semibold text-gray-700">
+            <p className="text-sm font-semibold text-neutral-700">
               {user?.name || user?.email || "Anonymous User"}
             </p>
           </div>
-          <div className="flex flex-col gap-1 text-xs text-gray-500">
+          <div className="flex flex-col gap-1 text-xs text-neutral-500">
             {user?.name && user.email && <p>{user.email}</p>}
           </div>
         </div>

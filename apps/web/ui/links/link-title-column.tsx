@@ -1,10 +1,12 @@
 "use client";
 
 import useDomain from "@/lib/swr/use-domain";
+import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   ArrowTurnRight2,
   Avatar,
+  CardList,
   CopyButton,
   LinkLogo,
   Switch,
@@ -36,7 +38,10 @@ import {
 } from "@dub/utils";
 import * as HoverCard from "@radix-ui/react-hover-card";
 import { Mail } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { memo, PropsWithChildren, useContext, useRef, useState } from "react";
+import { FolderIcon } from "../folders/folder-icon";
 import { useLinkBuilder } from "../modals/link-builder";
 import { CommentsBadge } from "./comments-badge";
 import { ResponseLink } from "./links-container";
@@ -56,17 +61,38 @@ const quickViewSettings = [
 export function LinkTitleColumn({ link }: { link: ResponseLink }) {
   const { url, domain, key } = link;
 
+  const { variant } = useContext(CardList.Context);
   const { displayProperties } = useContext(LinksDisplayContext);
 
   const ref = useRef<HTMLDivElement>(null);
 
   const hasQuickViewSettings = quickViewSettings.some(({ key }) => link?.[key]);
 
+  const searchParams = useSearchParams();
+  const { slug } = useWorkspace();
+  const { folders } = useFolders();
+  const folder = folders?.find((folder) => folder.id === link.folderId);
+
   return (
     <div
       ref={ref}
       className="flex h-[32px] items-center gap-3 transition-[height] group-data-[variant=loose]/card-list:h-[60px]"
     >
+      {variant === "compact" &&
+        link.folderId &&
+        searchParams.get("folderId") !== link.folderId && (
+          <Link href={`/${slug}?folderId=${link.folderId}`}>
+            {folder ? (
+              <FolderIcon
+                folder={folder}
+                shape="square"
+                innerClassName="p-1.5"
+              />
+            ) : (
+              <div className="size-4 rounded-md bg-neutral-200" />
+            )}
+          </Link>
+        )}
       <div
         className={cn(
           "relative hidden shrink-0 items-center justify-center",
@@ -74,14 +100,14 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
         )}
       >
         {/* Link logo background circle */}
-        <div className="absolute inset-0 shrink-0 rounded-full border border-gray-200 opacity-0 transition-opacity group-data-[variant=loose]/card-list:sm:opacity-100">
-          <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-gray-100" />
+        <div className="absolute inset-0 shrink-0 rounded-full border border-neutral-200 opacity-0 transition-opacity group-data-[variant=loose]/card-list:sm:opacity-100">
+          <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
         </div>
         <div className="relative pr-0.5 transition-[padding] group-data-[variant=loose]/card-list:sm:p-2">
           {link.archived ? (
             <Tooltip content="Archived">
               <div>
-                <BoxArchive className="size-4 shrink-0 p-0.5 text-gray-600 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5" />
+                <BoxArchive className="size-4 shrink-0 p-0.5 text-neutral-600 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5" />
               </div>
             </Tooltip>
           ) : (
@@ -97,13 +123,13 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
       </div>
       <div className="h-[24px] min-w-0 overflow-hidden transition-[height] group-data-[variant=loose]/card-list:h-[46px]">
         <div className="flex items-center gap-2">
-          <div className="min-w-0 shrink grow-0 text-gray-950">
+          <div className="min-w-0 shrink grow-0 text-neutral-950">
             <div className="flex items-center gap-2">
               {displayProperties.includes("title") && link.title ? (
                 <span
                   className={cn(
-                    "truncate font-semibold leading-6 text-gray-800",
-                    link.archived && "text-gray-600",
+                    "truncate font-semibold leading-6 text-neutral-800",
+                    link.archived && "text-neutral-600",
                   )}
                 >
                   {link.title}
@@ -116,8 +142,8 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
                     rel="noopener noreferrer"
                     title={linkConstructor({ domain, key, pretty: true })}
                     className={cn(
-                      "truncate font-semibold leading-6 text-gray-800 transition-colors hover:text-black",
-                      link.archived && "text-gray-600",
+                      "truncate font-semibold leading-6 text-neutral-800 transition-colors hover:text-black",
+                      link.archived && "text-neutral-600",
                     )}
                   >
                     {linkConstructor({ domain, key, pretty: true })}
@@ -170,7 +196,7 @@ function UnverifiedTooltip({
             />
           }
         >
-          <p className="cursor-default truncate font-semibold leading-6 text-gray-500 line-through">
+          <p className="cursor-default truncate font-semibold leading-6 text-neutral-500 line-through">
             {linkConstructor({ domain, key: _key, pretty: true })}
           </p>
         </Tooltip>
@@ -198,7 +224,7 @@ function SettingsBadge({ link }: { link: ResponseLink }) {
           <HoverCard.Content
             side="bottom"
             sideOffset={8}
-            className="animate-slide-up-fade z-[99] items-center overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+            className="animate-slide-up-fade z-[99] items-center overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm"
           >
             <div className="flex w-[340px] flex-col p-3 text-sm">
               {settings.map(({ label, icon: Icon }) => (
@@ -209,11 +235,11 @@ function SettingsBadge({ link }: { link: ResponseLink }) {
                     setOpen(false);
                     setShowLinkBuilder(true);
                   }}
-                  className="flex items-center justify-between gap-4 rounded-lg p-3 transition-colors hover:bg-gray-100"
+                  className="flex items-center justify-between gap-4 rounded-lg p-3 transition-colors hover:bg-neutral-100"
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className="size-4 text-gray-600" />
-                    <span className="text-gray-950">{label}</span>
+                    <Icon className="size-4 text-neutral-600" />
+                    <span className="text-neutral-950">{label}</span>
                   </div>
                   <Switch checked />
                 </button>
@@ -222,7 +248,7 @@ function SettingsBadge({ link }: { link: ResponseLink }) {
           </HoverCard.Content>
         </HoverCard.Portal>
         <HoverCard.Trigger asChild>
-          <div className="rounded-full p-1.5 hover:bg-gray-100">
+          <div className="rounded-full p-1.5 hover:bg-neutral-100">
             <Bolt className="size-3.5" />
           </div>
         </HoverCard.Trigger>
@@ -252,9 +278,9 @@ const Details = memo(
         <div className="flex min-w-0 items-center gap-1">
           {displayProperties.includes("url") &&
             (compact ? (
-              <ArrowRight className="mr-1 h-3 w-3 shrink-0 text-gray-400" />
+              <ArrowRight className="mr-1 h-3 w-3 shrink-0 text-neutral-400" />
             ) : (
-              <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-gray-400" />
+              <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
             ))}
           {displayProperties.includes("url") ? (
             url ? (
@@ -263,15 +289,19 @@ const Details = memo(
                 target="_blank"
                 rel="noopener noreferrer"
                 title={url}
-                className="truncate text-gray-500 transition-colors hover:text-gray-700 hover:underline hover:underline-offset-2"
+                className="truncate text-neutral-500 transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2"
               >
                 {getPrettyUrl(url)}
               </a>
             ) : (
-              <span className="truncate text-gray-400">No URL configured</span>
+              <span className="truncate text-neutral-400">
+                No URL configured
+              </span>
             )
           ) : (
-            <span className="truncate text-gray-500">{link.description}</span>
+            <span className="truncate text-neutral-500">
+              {link.description}
+            </span>
           )}
         </div>
         <div
@@ -289,7 +319,7 @@ const Details = memo(
           )}
         >
           <Tooltip content={formatDateTime(createdAt)} delayDuration={150}>
-            <span className="text-gray-400">{timeAgo(createdAt)}</span>
+            <span className="text-neutral-400">{timeAgo(createdAt)}</span>
           </Tooltip>
         </div>
       </div>
@@ -307,7 +337,7 @@ function UserAvatar({ link }: { link: ResponseLink }) {
         <div className="w-full p-3">
           <Avatar user={user} className="h-8 w-8" />
           <div className="mt-2 flex items-center gap-1.5">
-            <p className="text-sm font-semibold text-gray-700">
+            <p className="text-sm font-semibold text-neutral-700">
               {user?.name || user?.email || "Anonymous User"}
             </p>
             {!slug && // this is only shown in admin mode (where there's no slug)
@@ -319,7 +349,7 @@ function UserAvatar({ link }: { link: ResponseLink }) {
                 />
               )}
           </div>
-          <div className="flex flex-col gap-1 text-xs text-gray-500">
+          <div className="flex flex-col gap-1 text-xs text-neutral-500">
             {user?.name && user.email && <p>{user.email}</p>}
           </div>
         </div>

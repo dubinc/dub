@@ -25,23 +25,25 @@ enum ProgramResourceType {
 }
 
 model Program {
-  id           String      @id @default(cuid())
-  workspaceId  String
-  name         String
-  slug         String      @unique
-  logo         String?
-  wordmark     String?
-  brandColor   String?
-  domain       String?
-  url          String?
-  type         ProgramType @default(affiliate)
-  cookieLength Int         @default(90)
+  id              String      @id @default(cuid())
+  workspaceId     String
+  defaultFolderId String?
+  name            String
+  slug            String      @unique
+  logo            String?
+  wordmark        String?
+  brandColor      String?
+  domain          String?
+  url             String?
+  type            ProgramType @default(affiliate)
+  cookieLength    Int         @default(90)
 
   // Commission details
   commissionAmount   Int                 @default(0)
   commissionType     CommissionType      @default(percentage)
   commissionDuration Int?
   commissionInterval CommissionInterval?
+  holdingPeriodDays  Int                 @default(0) // number of days to wait before earnings are added to a payout
 
   // Discounts (for dual-sided incentives)
   discounts Discount[]
@@ -55,13 +57,12 @@ model Program {
   primaryDomain Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
   partners      ProgramEnrollment[]
   payouts       Payout[]
-  sales         Sale[]
   invoices      Invoice[]
   resources     ProgramResource[]
   applications  ProgramApplication[]
   invites       ProgramInvite[]
   links         Link[]
-  commissions Commission[]
+  commissions   Commission[]
 
   @@index([workspaceId])
   @@index([domain])

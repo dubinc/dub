@@ -85,4 +85,11 @@ export class IntegrationHarness {
       path: `/customers/${id}`,
     });
   }
+
+  // Delete folder
+  public async deleteFolder(id: string) {
+    await this.http.delete({
+      path: `/folders/${id}`,
+    });
+  }
 }

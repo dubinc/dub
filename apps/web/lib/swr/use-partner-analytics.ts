@@ -9,10 +9,10 @@ export default function usePartnerAnalytics(
   params?: PartnerAnalyticsFilters & { programId?: string },
 ) {
   const { data: session } = useSession();
-  const partnerId = session?.user?.["defaultPartnerId"];
   const { programSlug } = useParams();
   const searchParams = useSearchParams();
 
+  const partnerId = session?.user?.["defaultPartnerId"];
   const programIdToUse = params?.programId ?? programSlug;
 
   const { data, error } = useSWR<any>(

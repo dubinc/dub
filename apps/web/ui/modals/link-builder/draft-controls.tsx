@@ -101,11 +101,11 @@ export const DraftControls = forwardRef<
       content={
         <div className="w-full min-w-36 px-1 py-1 sm:w-auto">
           {drafts.length > 0 ? (
-            <span className="block pb-2 pl-2.5 pt-2 text-xs font-medium text-gray-500">
+            <span className="block pb-2 pl-2.5 pt-2 text-xs font-medium text-neutral-500">
               Restore drafts
             </span>
           ) : (
-            <span className="flex gap-1 px-2.5 pb-2 pt-2 text-xs text-gray-500">
+            <span className="flex gap-1 px-2.5 pb-2 pt-2 text-xs text-neutral-500">
               <CircleInfo className="size-3.5" />
               Your drafts will appear here
             </span>
@@ -145,10 +145,10 @@ export const DraftControls = forwardRef<
         type="button"
         variant="outline"
         className={cn(
-          "animate-fade-in group h-9 text-sm transition-colors data-[state=open]:bg-gray-100",
+          "animate-fade-in group h-9 text-sm transition-colors data-[state=open]:bg-neutral-100",
           isDirty && hasSaved
-            ? "pl-3 pr-4 text-gray-400 hover:text-gray-600"
-            : "pl-4 pr-3 text-gray-500 hover:text-gray-700",
+            ? "pl-3 pr-4 text-neutral-400 hover:text-neutral-600"
+            : "pl-4 pr-3 text-neutral-500 hover:text-neutral-700",
         )}
         text={
           isDirty && hasSaved ? (
@@ -193,24 +193,26 @@ function DraftOption({
     <li
       key={draft.id}
       role="button"
-      className="group flex items-center justify-between gap-2 overflow-hidden rounded py-1.5 pl-2 pr-1.5 text-sm transition-colors hover:bg-gray-100 sm:gap-1"
+      className="group flex items-center justify-between gap-2 overflow-hidden rounded py-1.5 pl-2 pr-1.5 text-sm transition-colors hover:bg-neutral-100 sm:gap-1"
       onClick={() => {
         onSelect();
       }}
     >
       <div className="flex min-w-0 grow items-center justify-between gap-4 sm:gap-8">
         <div className="flex min-w-0 items-center gap-1.5 sm:gap-2.5">
-          <RestoreDraftIcon className="size-3.5 shrink-0 text-gray-400" />
-          <span className="min-w-0 max-w-40 truncate text-gray-800">
+          <RestoreDraftIcon className="size-3.5 shrink-0 text-neutral-400" />
+          <span className="min-w-0 max-w-40 truncate text-neutral-800">
             {truncate(punycode(draft.link.domain), 16)}/
             {draft.link.key ? (
               punycode(draft.link.key)
             ) : (
-              <span className="text-gray-400">(link)</span>
+              <span className="text-neutral-400">(link)</span>
             )}
           </span>
         </div>
-        <span className="whitespace-nowrap text-xs text-gray-500">{time}</span>
+        <span className="whitespace-nowrap text-xs text-neutral-500">
+          {time}
+        </span>
       </div>
       <button
         type="button"
@@ -219,7 +221,7 @@ function DraftOption({
           window.confirm("Are you sure you want to delete this draft?") &&
             onDelete();
         }}
-        className="p-1 text-gray-400 transition-colors hover:text-gray-500"
+        className="p-1 text-neutral-400 transition-colors hover:text-neutral-500"
         title="Delete draft"
       >
         <Xmark className="size-3.5" />

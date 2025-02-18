@@ -41,13 +41,13 @@ export const UpdatePassword = () => {
 
   return (
     <form
-      className="rounded-lg border border-gray-200 bg-white"
+      className="rounded-lg border border-neutral-200 bg-white"
       onSubmit={onSubmit}
     >
       <div>
-        <div className="flex flex-col gap-3 border-b border-gray-200 p-5 sm:p-10">
+        <div className="flex flex-col gap-3 border-b border-neutral-200 p-5 sm:p-10">
           <h2 className="text-xl font-medium">Password</h2>
-          <p className="pb-2 text-sm text-gray-500">
+          <p className="pb-2 text-sm text-neutral-500">
             Manage your account password on {process.env.NEXT_PUBLIC_APP_NAME}.
           </p>
         </div>
@@ -84,9 +84,9 @@ export const UpdatePassword = () => {
         </div>
       </div>
 
-      <div className="flex items-center justify-between space-x-4 rounded-b-lg border-t border-gray-200 bg-gray-50 p-3 sm:px-10">
+      <div className="flex items-center justify-between space-x-4 rounded-b-lg border-t border-neutral-200 bg-neutral-50 p-3 sm:px-10">
         <Tooltip content="Passwords must be at least 8 characters long containing at least one number, one uppercase, and one lowercase letter.">
-          <p className="text-sm text-gray-500 underline decoration-dotted underline-offset-2 hover:text-gray-700">
+          <p className="text-sm text-neutral-500 underline decoration-dotted underline-offset-2 hover:text-neutral-700">
             Password requirements
           </p>
         </Tooltip>

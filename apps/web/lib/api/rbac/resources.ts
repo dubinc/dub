@@ -4,6 +4,7 @@ export const RESOURCE_KEYS = [
   "analytics",
   "domains",
   "tags",
+  "folders",
   "tokens",
   "webhooks",
 ] as const;
@@ -39,5 +40,10 @@ export const RESOURCES: {
     name: "Tags",
     key: "tags",
     description: "Create, read, update, and delete tags",
+  },
+  {
+    name: "Folders",
+    key: "folders",
+    description: "Create, read, update, and delete folders",
   },
 ];

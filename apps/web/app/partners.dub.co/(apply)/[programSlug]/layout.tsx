@@ -62,7 +62,7 @@ export default async function ApplyLayout({
   return (
     <div className="relative">
       <div className="relative z-10 mx-auto min-h-screen w-full max-w-screen-sm bg-white">
-        <div className="pointer-events-none absolute left-0 top-0 h-screen w-full border-x border-gray-200 [mask-image:linear-gradient(black,transparent)]" />
+        <div className="pointer-events-none absolute left-0 top-0 h-screen w-full border-x border-neutral-200 [mask-image:linear-gradient(black,transparent)]" />
         {children}
         {/* Footer */}
         <footer className="mt-14 flex flex-col items-center gap-4 py-6 text-center text-xs text-neutral-500">

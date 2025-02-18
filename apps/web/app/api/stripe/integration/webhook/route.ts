@@ -2,14 +2,18 @@ import { stripe } from "@/lib/stripe";
 import { withAxiom } from "next-axiom";
 import Stripe from "stripe";
 import { accountApplicationDeauthorized } from "./account-application-deauthorized";
+import { chargeRefunded } from "./charge-refunded";
 import { checkoutSessionCompleted } from "./checkout-session-completed";
 import { customerCreated } from "./customer-created";
+import { customerUpdated } from "./customer-updated";
 import { invoicePaid } from "./invoice-paid";
 
 const relevantEvents = new Set([
   "customer.created",
+  "customer.updated",
   "checkout.session.completed",
   "invoice.paid",
+  "charge.refunded",
   "account.application.deauthorized",
 ]);
 
@@ -53,11 +57,17 @@ export const POST = withAxiom(
       case "customer.created":
         response = await customerCreated(event);
         break;
+      case "customer.updated":
+        response = await customerUpdated(event);
+        break;
       case "checkout.session.completed":
         response = await checkoutSessionCompleted(event);
         break;
       case "invoice.paid":
         response = await invoicePaid(event);
+        break;
+      case "charge.refunded":
+        response = await chargeRefunded(event);
         break;
       case "account.application.deauthorized":
         response = await accountApplicationDeauthorized(event);

@@ -54,10 +54,10 @@ function SendTestWebhookModal({
       showModal={showSendTestWebhookModal}
       setShowModal={setShowSendTestWebhookModal}
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
+      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 text-center sm:px-16">
         <Logo />
         <h3 className="text-lg font-medium">Send test webhook event</h3>
-        <p className="text-center text-sm text-gray-500">
+        <p className="text-center text-sm text-neutral-500">
           Choose a webhook event to send to your receiver endpoint
         </p>
       </div>
@@ -76,7 +76,7 @@ function SendTestWebhookModal({
           });
         }}
       >
-        <div className="flex flex-col space-y-28 bg-gray-50 px-4 py-8 text-left sm:space-y-3 sm:rounded-b-2xl sm:px-16">
+        <div className="flex flex-col space-y-28 bg-neutral-50 px-4 py-8 text-left sm:space-y-3 sm:rounded-b-2xl sm:px-16">
           <InputSelect
             items={triggers}
             selectedItem={selectedTrigger}

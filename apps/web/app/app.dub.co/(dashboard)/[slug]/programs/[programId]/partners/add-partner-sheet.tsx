@@ -242,7 +242,7 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
                   Referral link
                 </h2>
                 <a
-                  href={`/${slug}/programs/${program?.id}/settings`}
+                  href={`/${slug}/programs/${program?.id}/settings/links`}
                   target="_blank"
                   className="text-sm text-neutral-500 underline-offset-2 hover:underline"
                 >
@@ -257,7 +257,6 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
               >
                 <div className="p-1">
                   <PartnerLinkSelector
-                    programDomain={program?.domain ?? undefined}
                     selectedLinkId={selectedLinkId}
                     setSelectedLinkId={(id) => {
                       clearErrors("linkId");
@@ -272,7 +271,6 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
                       }
                       return false;
                     }}
-                    domain={program?.domain ?? undefined}
                     error={!!errors.linkId}
                   />
                   {errors.linkId && (
