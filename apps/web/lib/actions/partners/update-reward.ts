@@ -19,7 +19,8 @@ export const updateRewardAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, rewardId, partnerIds, ...data } = parsedInput;
+    const { programId, rewardId, partnerIds, amount, maxDuration, type } =
+      parsedInput;
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -56,13 +57,14 @@ export const updateRewardAction = authActionClient
       }
     }
 
-    const reward = await prisma.reward.update({
+    await prisma.reward.update({
       where: {
         id: rewardId,
       },
       data: {
-        ...data,
-        maxDuration: data.maxDuration ? parseInt(data.maxDuration) : null,
+        type,
+        amount,
+        maxDuration,
         ...(programEnrollments && {
           partners: {
             deleteMany: {},
