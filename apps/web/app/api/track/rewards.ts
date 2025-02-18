@@ -50,7 +50,7 @@ export const determinePartnerReward = async ({
   }
 
   const partnerSpecificReward = rewards.find(
-    (reward) => reward._count.partners === 1,
+    (reward) => reward._count.partners > 0,
   );
 
   const programWideReward = rewards.find(
