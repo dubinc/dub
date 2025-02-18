@@ -3,8 +3,8 @@ import { IntervalOptions } from "@/lib/analytics/types";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import { LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
-import { currencyFormatter } from "@dub/utils";
-import { useMemo } from "react";
+import { cn, currencyFormatter, getPrettyUrl } from "@dub/utils";
+import { Fragment, useMemo } from "react";
 
 const LINE_COLORS = [
   "text-teal-500",
@@ -61,7 +61,7 @@ export function EarningsCompositeChart() {
             .map((linkId, idx) => ({
               id: linkId,
               isActive: true,
-              valueAccessor: (d) => d.values[linkId],
+              valueAccessor: (d) => (d.values[linkId] || 0) / 100,
               colorClassName: LINE_COLORS[idx % LINE_COLORS.length],
             }))
         : [],
@@ -77,40 +77,47 @@ export function EarningsCompositeChart() {
             data={chartData}
             series={series}
             tooltipClassName="p-0"
-            // tooltipContent={(d) => {
-            //   return (
-            //     <>
-            //       <p className="border-b border-neutral-200 px-4 py-3 text-sm text-neutral-900">
-            //         {formatDateTooltip(d.date, {
-            //           interval: demo ? "day" : interval,
-            //           start,
-            //           end,
-            //           dataAvailableFrom: createdAt,
-            //         })}
-            //       </p>
-            //       <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
-            //         <Fragment key={resource}>
-            //           <div className="flex items-center gap-2">
-            //             {activeSeries && (
-            //               <div
-            //                 className={cn(
-            //                   activeSeries.colorClassName,
-            //                   "h-2 w-2 rounded-sm bg-current opacity-50 shadow-[inset_0_0_0_1px_#0003]",
-            //                 )}
-            //               />
-            //             )}
-            //             <p className="capitalize text-neutral-600">{resource}</p>
-            //           </div>
-            //           <p className="text-right font-medium text-neutral-900">
-            //             {resource === "sales" && saleUnit === "saleAmount"
-            //               ? currencyFormatter(d.values.saleAmount)
-            //               : nFormatter(d.values[resource], { full: true })}
-            //           </p>
-            //         </Fragment>
-            //       </div>
-            //     </>
-            //   );
-            // }}
+            tooltipContent={(d) => {
+              return (
+                <>
+                  <p className="border-b border-neutral-200 p-3 text-xs font-medium leading-none text-neutral-900">
+                    {formatDateTooltip(d.date, {
+                      interval,
+                      start,
+                      end,
+                    })}
+                  </p>
+                  <div className="grid max-w-64 grid-cols-[minmax(0,1fr),min-content] gap-x-6 gap-y-2 px-4 py-3 text-xs">
+                    {series.map(({ id, colorClassName, valueAccessor }) => {
+                      const link = data?.links?.find((l) => l.id === id);
+                      return (
+                        <Fragment key={id}>
+                          <div className="flex items-center gap-2">
+                            <div
+                              className={cn(
+                                colorClassName,
+                                "size-2 shrink-0 rounded-sm bg-current opacity-50 shadow-[inset_0_0_0_1px_#0003]",
+                              )}
+                            />
+                            <span className="min-w-0 truncate font-medium text-neutral-700">
+                              {link?.shortLink
+                                ? getPrettyUrl(link.shortLink)
+                                : "Short link"}
+                            </span>
+                          </div>
+                          <p className="text-right text-neutral-500">
+                            {currencyFormatter(valueAccessor(d), {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </p>
+                        </Fragment>
+                      );
+                    })}
+                  </div>
+                </>
+              );
+            }}
           >
             <Areas />
             <XAxis
