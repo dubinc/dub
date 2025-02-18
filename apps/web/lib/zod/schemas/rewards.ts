@@ -1,5 +1,6 @@
 import { CommissionType, EventType } from "@dub/prisma/client";
 import { z } from "zod";
+import { getPaginationQuerySchema } from "./misc";
 
 export const RECURRING_MAX_DURATIONS = [0, 3, 6, 12, 18, 24];
 
@@ -42,3 +43,15 @@ export const updateRewardSchema = createOrUpdateRewardSchema
     event: true,
   })
   .partial();
+
+export const rewardPartnersQuerySchema = z
+  .object({
+    search: z.string().optional(),
+    rewardId: z.string().optional(),
+    event: z.nativeEnum(EventType).optional(),
+  })
+  .merge(
+    getPaginationQuerySchema({
+      pageSize: 25,
+    }),
+  );

@@ -710,6 +710,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         isOpen={isAddPartnersOpen}
         setIsOpen={setIsAddPartnersOpen}
         selectedPartnerIds={partnerIds || []}
+        event={event}
         onSelect={(ids) => {
           setValue("partnerIds", ids);
         }}

@@ -1,10 +1,11 @@
-import usePartners from "@/lib/swr/use-partners";
+import { usePartnersForReward } from "@/lib/swr/use-partners";
 import usePartnersCount from "@/lib/swr/use-partners-count";
-import { EnrolledPartnerProps } from "@/lib/types";
+import { PartnerProps } from "@/lib/types";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet, Table, usePagination, useTable } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { EventType } from "@prisma/client";
 import { Search } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useDebounce } from "use-debounce";
@@ -14,6 +15,7 @@ interface SheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   onSelect: (partnerIds: string[]) => void;
   selectedPartnerIds: string[];
+  event: EventType;
 }
 
 export function SelectEligiblePartnersSheet({
@@ -21,30 +23,32 @@ export function SelectEligiblePartnersSheet({
   setIsOpen,
   onSelect,
   selectedPartnerIds,
+  event,
 }: SheetProps) {
-  const { pagination, setPagination } = usePagination(20);
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
+  const { pagination, setPagination } = usePagination(25);
 
   const {
     data: partners,
     error: partnersError,
     loading,
-  } = usePartners({
+  } = usePartnersForReward({
     query: {
-      pageSize: pagination.pageSize,
-      page: pagination.pageIndex,
+      event,
       search: debouncedSearch,
+      pageSize: pagination.pageSize,
+      page: pagination.pageIndex || 1,
     },
   });
 
+  // TODO:
+  // Fix this count to use usePartnersForReward
   const { partnersCount } = usePartnersCount<number>({
     search: debouncedSearch,
   });
 
-  const [selectedPartners, setSelectedPartners] = useState<
-    EnrolledPartnerProps[]
-  >([]);
+  const [selectedPartners, setSelectedPartners] = useState<PartnerProps[]>([]);
 
   useEffect(() => {
     if (!isOpen) {
