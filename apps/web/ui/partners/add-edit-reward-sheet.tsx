@@ -73,12 +73,15 @@ const commissionTypes = [
 ];
 
 function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
-  const { program } = useProgram();
+  const { program, mutate: mutateProgram } = useProgram();
   const { rewards } = useRewards();
   const { data: partners } = usePartners();
   const { id: workspaceId } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
   const [isAddPartnersOpen, setIsAddPartnersOpen] = useState(false);
+
+  const [selectedPartnerType, setSelectedPartnerType] =
+    useState<(typeof partnerTypes)[number]["key"]>("all");
 
   const hasProgramWideClickReward = rewards?.some(
     (reward) => reward.event === "click" && reward.partnersCount === 0,
@@ -88,23 +91,33 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     (reward) => reward.event === "lead" && reward.partnersCount === 0,
   );
 
+  const hasProgramWideSaleReward = rewards?.some(
+    (reward) => reward.event === "sale" && reward.partnersCount === 0,
+  );
+
   const [isRecurring, setIsRecurring] = useState(
     reward ? reward.maxDuration !== 0 : false,
   );
 
-  const [selectedPartnerType, setSelectedPartnerType] = useState<
-    (typeof partnerTypes)[number]["key"]
-  >(
-    reward
-      ? reward.partnersCount === 0
-        ? "all"
-        : "specific"
-      : event === "sale" ||
-          (event === "click" && hasProgramWideClickReward) ||
-          (event === "lead" && hasProgramWideLeadReward)
-        ? "specific"
-        : "all",
-  );
+  useEffect(() => {
+    if (reward) {
+      setSelectedPartnerType(reward.partnersCount === 0 ? "all" : "specific");
+    } else if (
+      (event === "click" && hasProgramWideClickReward) ||
+      (event === "lead" && hasProgramWideLeadReward) ||
+      (event === "sale" && hasProgramWideSaleReward)
+    ) {
+      setSelectedPartnerType("specific");
+    } else {
+      setSelectedPartnerType("all");
+    }
+  }, [
+    reward,
+    event,
+    hasProgramWideClickReward,
+    hasProgramWideLeadReward,
+    hasProgramWideSaleReward,
+  ]);
 
   const {
     register,
@@ -164,7 +177,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       onSuccess: async () => {
         setIsOpen(false);
         toast.success("Reward created!");
-        await mutate(`/api/programs/${program?.id}`);
+        await mutateProgram();
         await mutatePrefix(`/api/programs/${program?.id}/rewards`);
       },
       onError({ error }) {
@@ -180,7 +193,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       onSuccess: async () => {
         setIsOpen(false);
         toast.success("Reward updated!");
-        await mutate(`/api/programs/${program?.id}`);
+        await mutateProgram();
         await mutatePrefix(`/api/programs/${program?.id}/rewards`);
       },
       onError({ error }) {
