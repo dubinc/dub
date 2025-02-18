@@ -53,9 +53,13 @@ export default function LinksContainer({
 }
 
 export const LinksListContext = createContext<{
+  selectedLinkIds: string[];
+  setSelectedLinkIds: Dispatch<SetStateAction<string[]>>;
   openMenuLinkId: string | null;
   setOpenMenuLinkId: Dispatch<SetStateAction<string | null>>;
 }>({
+  selectedLinkIds: [],
+  setSelectedLinkIds: () => {},
   openMenuLinkId: null,
   setOpenMenuLinkId: () => {},
 });
@@ -77,6 +81,7 @@ function LinksList({
 
   const { pagination, setPagination } = usePagination();
 
+  const [selectedLinkIds, setSelectedLinkIds] = useState<string[]>([]);
   const [openMenuLinkId, setOpenMenuLinkId] = useState<string | null>(null);
 
   const isFiltered = [
@@ -92,7 +97,12 @@ function LinksList({
     <>
       {!links || links.length ? (
         <LinksListContext.Provider
-          value={{ openMenuLinkId, setOpenMenuLinkId }}
+          value={{
+            selectedLinkIds,
+            setSelectedLinkIds,
+            openMenuLinkId,
+            setOpenMenuLinkId,
+          }}
         >
           {/* Cards */}
           <CardList variant={compact ? "compact" : "loose"} loading={loading}>

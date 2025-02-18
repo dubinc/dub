@@ -20,6 +20,7 @@ import {
   Bolt,
   BoxArchive,
   Cards,
+  Check2,
   CircleHalfDottedClock,
   EarthPosition,
   Incognito,
@@ -44,7 +45,7 @@ import { memo, PropsWithChildren, useContext, useRef, useState } from "react";
 import { FolderIcon } from "../folders/folder-icon";
 import { useLinkBuilder } from "../modals/link-builder";
 import { CommentsBadge } from "./comments-badge";
-import { ResponseLink } from "./links-container";
+import { LinksListContext, ResponseLink } from "./links-container";
 import { LinksDisplayContext } from "./links-display-provider";
 
 const quickViewSettings = [
@@ -58,11 +59,15 @@ const quickViewSettings = [
   { label: "Geo Targeting", icon: EarthPosition, key: "geo" },
 ];
 
+const LOGO_SIZE_CLASS_NAME =
+  "size-4 sm:size-6 group-data-[variant=loose]/card-list:sm:size-5";
+
 export function LinkTitleColumn({ link }: { link: ResponseLink }) {
   const { url, domain, key } = link;
 
   const { variant } = useContext(CardList.Context);
   const { displayProperties } = useContext(LinksDisplayContext);
+  const { selectedLinkIds, setSelectedLinkIds } = useContext(LinksListContext);
 
   const ref = useRef<HTMLDivElement>(null);
 
@@ -72,6 +77,8 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
   const { slug } = useWorkspace();
   const { folders } = useFolders();
   const folder = folders?.find((folder) => folder.id === link.folderId);
+
+  const isSelected = selectedLinkIds.includes(link.id);
 
   return (
     <div
@@ -93,9 +100,20 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
             )}
           </Link>
         )}
-      <div
+      <button
+        type="button"
+        role="checkbox"
+        aria-checked={isSelected}
+        data-checked={isSelected}
+        onClick={() => {
+          setSelectedLinkIds((prev) =>
+            prev.includes(link.id)
+              ? prev.filter((id) => id !== link.id)
+              : [...prev, link.id],
+          );
+        }}
         className={cn(
-          "relative hidden shrink-0 items-center justify-center",
+          "group relative hidden shrink-0 items-center justify-center outline-none",
           displayProperties.includes("icon") && "sm:flex",
         )}
       >
@@ -103,24 +121,49 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
         <div className="absolute inset-0 shrink-0 rounded-full border border-neutral-200 opacity-0 transition-opacity group-data-[variant=loose]/card-list:sm:opacity-100">
           <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
         </div>
-        <div className="relative pr-0.5 transition-[padding] group-data-[variant=loose]/card-list:sm:p-2">
+        <div className="relative pr-0.5 transition-[padding,transform] group-hover:scale-90 group-data-[variant=loose]/card-list:sm:p-2">
           {link.archived ? (
             <Tooltip content="Archived">
               <div>
-                <BoxArchive className="size-4 shrink-0 p-0.5 text-neutral-600 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5" />
+                <BoxArchive
+                  className={cn(
+                    "shrink-0 p-0.5 text-neutral-600 transition-[width,height]",
+                    LOGO_SIZE_CLASS_NAME,
+                  )}
+                />
               </div>
             </Tooltip>
           ) : (
             <LinkLogo
               apexDomain={getApexDomain(url)}
-              className="size-4 shrink-0 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5"
+              className={cn(
+                "shrink-0 transition-[width,height]",
+                LOGO_SIZE_CLASS_NAME,
+              )}
               imageProps={{
                 loading: "lazy",
               }}
             />
           )}
         </div>
-      </div>
+        {/* Checkbox */}
+        <div
+          className={cn(
+            "pointer-events-none absolute inset-0 flex items-center justify-center rounded-full border border-neutral-400 bg-white ring-0 ring-black/5",
+            "opacity-0 transition-all duration-150 group-hover:opacity-100 group-hover:ring group-focus-visible:opacity-100 group-focus-visible:ring",
+            "group-data-[checked=true]:opacity-100",
+          )}
+        >
+          <div
+            className={cn(
+              "rounded-full bg-neutral-800 p-1",
+              "scale-90 opacity-0 transition-[transform,opacity] duration-100 group-data-[checked=true]:scale-100 group-data-[checked=true]:opacity-100",
+            )}
+          >
+            <Check2 className="size-3 text-white" />
+          </div>
+        </div>
+      </button>
       <div className="h-[24px] min-w-0 overflow-hidden transition-[height] group-data-[variant=loose]/card-list:h-[46px]">
         <div className="flex items-center gap-2">
           <div className="min-w-0 shrink grow-0 text-neutral-950">
