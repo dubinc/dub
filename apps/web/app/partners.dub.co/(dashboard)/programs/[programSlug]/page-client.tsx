@@ -52,8 +52,6 @@ export default function ProgramPageClient() {
   const { programEnrollment } = useProgramEnrollment();
   const [copied, copyToClipboard] = useCopyToClipboard();
 
-  console.log(programEnrollment);
-
   const {
     start,
     end,
