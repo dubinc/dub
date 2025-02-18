@@ -16,23 +16,25 @@ import {
 } from "@/lib/zod/schemas/rewards";
 import { SelectEligiblePartnersSheet } from "@/ui/partners/select-eligible-partners-sheet";
 import { X } from "@/ui/shared/icons";
-import { EventType } from "@dub/prisma/client";
+import { EventType, Partner } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
   CircleCheckFill,
+  LoadingSpinner,
   Sheet,
   Table,
   Users,
   useTable,
 } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
+import { fetcher } from "@dub/utils/src";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils/src/constants";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { mutate } from "swr";
+import useSWR, { mutate } from "swr";
 import { z } from "zod";
 
 interface RewardSheetProps {
@@ -75,8 +77,11 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const { data: partners } = usePartners();
   const { id: workspaceId } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
-  const [isRecurring, setIsRecurring] = useState(reward ? reward.maxDuration !== 0 : false);
   const [isAddPartnersOpen, setIsAddPartnersOpen] = useState(false);
+
+  const [isRecurring, setIsRecurring] = useState(
+    reward ? reward.maxDuration !== 0 : false,
+  );
 
   const [selectedPartnerType, setSelectedPartnerType] = useState<
     (typeof partnerTypes)[number]["key"]
@@ -94,9 +99,25 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       type: reward?.type || "flat",
       maxDuration: reward?.maxDuration ?? 0,
       amount: reward?.type === "flat" ? reward.amount / 100 : reward?.amount,
-      //  partnerIds: reward?.partnersCount === 0 ? null : reward?.partners?.map((p) => p.partnerId) || null,
+      partnerIds: null,
     },
   });
+
+  const { data: rewardPartners, isLoading: isLoadingRewardPartners } = useSWR<
+    Pick<Partner, "id" | "name" | "email" | "image">[]
+  >(
+    reward && program && reward.partnersCount > 0
+      ? `/api/programs/${program.id}/rewards/${reward.id}/partners?workspaceId=${workspaceId}`
+      : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      onError: (err) => {
+        console.error("Failed to fetch reward partners:", err);
+        toast.error("Failed to load reward partners");
+      },
+    },
+  );
 
   const [partnerIds = [], amount, type, maxDuration] = watch([
     "partnerIds",
@@ -106,10 +127,17 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   ]);
 
   useEffect(() => {
-    // Set isRecurring based on maxDuration value
-    const duration = Number(maxDuration);
-    setIsRecurring(duration !== 0);
+    setIsRecurring(Number(maxDuration) !== 0);
   }, [maxDuration]);
+
+  useEffect(() => {
+    if (rewardPartners) {
+      setValue(
+        "partnerIds",
+        rewardPartners.map((p) => p.id),
+      );
+    }
+  }, [rewardPartners, setValue]);
 
   const { executeAsync: createReward, isPending: isCreating } = useAction(
     createRewardAction,
@@ -415,7 +443,10 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                                     onChange={(e) => {
                                       if (e.target.checked) {
                                         setIsRecurring(recurring);
-                                        setValue("maxDuration", recurring ? 3 : 0);
+                                        setValue(
+                                          "maxDuration",
+                                          recurring ? 3 : 0,
+                                        );
                                       }
                                     }}
                                   />
@@ -552,7 +583,11 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                   />
                 </div>
                 <div className="mt-4">
-                  {(partnerIds || []).length > 0 ? (
+                  {isLoadingRewardPartners ? (
+                    <div className="flex items-center justify-center py-8">
+                      <LoadingSpinner className="size-4" />
+                    </div>
+                  ) : (partnerIds || []).length > 0 ? (
                     <Table {...selectedPartnersTable} />
                   ) : (
                     <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-neutral-50 py-12">
