@@ -17,8 +17,6 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     programId: programEnrollment.programId,
   });
 
-  console.log({reward});
-
   return NextResponse.json(
     ProgramEnrollmentSchema.parse({
       ...programEnrollment,
