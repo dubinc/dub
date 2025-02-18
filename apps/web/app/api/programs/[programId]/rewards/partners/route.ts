@@ -14,7 +14,7 @@ export const GET = withWorkspace(
       programId,
     });
 
-    const { rewardId, page, pageSize, event } =
+    const { rewardId, page, pageSize, event, search } =
       rewardPartnersQuerySchema.parse(searchParams);
 
     const partners = await prisma.programEnrollment.findMany({
@@ -30,6 +30,14 @@ export const GET = withWorkspace(
             },
           },
         },
+        ...(search && {
+          partner: {
+            OR: [
+              { name: { contains: search } },
+              { email: { contains: search } },
+            ],
+          },
+        }),
       },
       select: {
         partner: {

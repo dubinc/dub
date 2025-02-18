@@ -67,3 +67,31 @@ export function usePartnersForReward({
     error,
   };
 }
+
+export function usePartnersForRewardCount({
+  query,
+  enabled = true,
+}: {
+  query?: Omit<z.infer<typeof rewardPartnersPartialQuerySchema>, "page" | "pageSize">;
+  enabled?: boolean;
+}) {
+  const { programId } = useParams();
+  const { id: workspaceId } = useWorkspace();
+
+  const { data: partnersCount, error } = useSWR<number>(
+    enabled && workspaceId && programId
+      ? `/api/programs/${programId}/rewards/partners/count?${new URLSearchParams({
+          workspaceId,
+          programId,
+          ...query,
+        } as Record<string, any>).toString()}`
+      : null,
+    fetcher,
+  );
+
+  return {
+    partnersCount,
+    loading: !partnersCount && !error,
+    error,
+  };
+}

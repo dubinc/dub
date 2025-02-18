@@ -47,7 +47,7 @@ export const updateRewardSchema = createOrUpdateRewardSchema
 export const rewardPartnersQuerySchema = z
   .object({
     search: z.string().optional(),
-    rewardId: z.string().optional(),
+    rewardId: z.string().optional(), // TODO: do we need this?
     event: z.nativeEnum(EventType).optional(),
   })
   .merge(

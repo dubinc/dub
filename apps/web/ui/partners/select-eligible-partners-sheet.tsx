@@ -1,5 +1,4 @@
-import { usePartnersForReward } from "@/lib/swr/use-partners";
-import usePartnersCount from "@/lib/swr/use-partners-count";
+import { usePartnersForReward, usePartnersForRewardCount } from "@/lib/swr/use-partners";
 import { PartnerProps } from "@/lib/types";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { X } from "@/ui/shared/icons";
@@ -42,10 +41,11 @@ export function SelectEligiblePartnersSheet({
     },
   });
 
-  // TODO:
-  // Fix this count to use usePartnersForReward
-  const { partnersCount } = usePartnersCount<number>({
-    search: debouncedSearch,
+  const { partnersCount, loading: loadingCount } = usePartnersForRewardCount({
+    query: {
+      event,
+      search: debouncedSearch,
+    },
   });
 
   const [selectedPartners, setSelectedPartners] = useState<PartnerProps[]>([]);
@@ -99,7 +99,7 @@ export function SelectEligiblePartnersSheet({
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
     resourceName: (p) => `eligible partner${p ? "s" : ""}`,
-    loading,
+    loading: loading || loadingCount,
     error: partnersError ? "Failed to load partners." : undefined,
     pagination,
     onPaginationChange: setPagination,
