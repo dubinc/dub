@@ -99,12 +99,11 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       ? reward.partnersCount === 0
         ? "all"
         : "specific"
-      : // For new rewards, use the previous logic
-      event === "sale" ||
-        (event === "click" && hasProgramWideClickReward) ||
-        (event === "lead" && hasProgramWideLeadReward)
-      ? "specific"
-      : "all"
+      : event === "sale" ||
+          (event === "click" && hasProgramWideClickReward) ||
+          (event === "lead" && hasProgramWideLeadReward)
+        ? "specific"
+        : "all",
   );
 
   const {
@@ -296,7 +295,13 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     resourceName: (p) => `eligible partner${p ? "s" : ""}`,
   });
 
-  const buttonDisabled = isCreating || isUpdating || amount == null;
+  const buttonDisabled =
+    isCreating ||
+    isUpdating ||
+    amount == null ||
+    (selectedPartnerType === "specific" &&
+      (!partnerIds || partnerIds.length === 0));
+
   const hasDefaultReward = !!program?.defaultRewardId;
   const displayAddPartnerButton =
     (event !== "sale" && selectedPartnerType === "specific") ||
@@ -676,6 +681,12 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                 className="w-fit"
                 loading={isCreating || isUpdating}
                 disabled={buttonDisabled || isDeleting}
+                disabledTooltip={
+                  selectedPartnerType === "specific" &&
+                  (!partnerIds || partnerIds.length === 0)
+                    ? "Please select at least one partner"
+                    : undefined
+                }
               />
             </div>
           </div>
