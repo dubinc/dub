@@ -3,7 +3,14 @@ import useRewardPartnersCount from "@/lib/swr/use-reward-partners-count";
 import { PartnerProps } from "@/lib/types";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet, Table, usePagination, useTable, LoadingSpinner } from "@dub/ui";
+import {
+  Button,
+  LoadingSpinner,
+  Sheet,
+  Table,
+  usePagination,
+  useTable,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import { EventType } from "@prisma/client";
 import { Search, Users } from "lucide-react";
@@ -28,6 +35,7 @@ export function SelectEligiblePartnersSheet({
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
   const { pagination, setPagination } = usePagination(25);
+  const [selectedPartners, setSelectedPartners] = useState<PartnerProps[]>([]);
 
   const {
     data: partners,
@@ -49,8 +57,6 @@ export function SelectEligiblePartnersSheet({
     },
   });
 
-  const [selectedPartners, setSelectedPartners] = useState<PartnerProps[]>([]);
-
   useEffect(() => {
     if (!isOpen) {
       setPagination((prev) => ({ ...prev, pageIndex: 0 }));
@@ -61,6 +67,15 @@ export function SelectEligiblePartnersSheet({
   useEffect(() => {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [debouncedSearch, setPagination]);
+
+  useEffect(() => {
+    if (partners && selectedPartnerIds.length > 0) {
+      const rowsToSelect = table.table
+        .getRowModel()
+        .rows.filter((row) => selectedPartnerIds.includes(row.original.id));
+      rowsToSelect.forEach((row) => row.toggleSelected(true));
+    }
+  }, [partners, selectedPartnerIds]);
 
   const table = useTable({
     data: partners || [],
@@ -111,15 +126,6 @@ export function SelectEligiblePartnersSheet({
     },
   });
 
-  useEffect(() => {
-    if (partners && selectedPartnerIds.length > 0) {
-      const rowsToSelect = table.table
-        .getRowModel()
-        .rows.filter((row) => selectedPartnerIds.includes(row.original.id));
-      rowsToSelect.forEach((row) => row.toggleSelected(true));
-    }
-  }, [partners, selectedPartnerIds]);
-
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <div className="flex h-full flex-col">
@@ -162,7 +168,9 @@ export function SelectEligiblePartnersSheet({
                   No partners found
                 </p>
                 <p className="text-sm text-neutral-600">
-                  {search ? "Try a different search term" : "No eligible partners available"}
+                  {search
+                    ? "Try a different search term"
+                    : "No eligible partners available"}
                 </p>
               </div>
             </div>
@@ -190,7 +198,7 @@ export function SelectEligiblePartnersSheet({
               disabledTooltip={
                 selectedPartners.length === 0
                   ? "At least one partner must be selected."
-                  : ""
+                  : undefined
               }
             />
           </div>
