@@ -23,12 +23,14 @@ export const ProgramSchema = z.object({
   type: z.nativeEnum(ProgramType),
   cookieLength: z.number(),
   defaultRewardId: z.string().nullable(),
+
   // Commission details
   commissionAmount: z.number(),
   commissionType: z.nativeEnum(CommissionType),
   commissionDuration: z.number().nullable(),
   commissionInterval: z.nativeEnum(CommissionInterval).nullable(),
   holdingPeriodDays: z.number(),
+
   // Discounts (for dual-sided incentives)
   discounts: z.array(DiscountSchema).nullish(),
   defaultFolderId: z.string().nullable(),

@@ -1,20 +1,14 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
-import { DiscountProps, ProgramProps } from "@/lib/types";
-import { cn, INFINITY_NUMBER, pluralize } from "@dub/utils";
+import { DiscountProps, Reward } from "@/lib/types";
+import { cn, pluralize } from "@dub/utils";
 
-export function ProgramCommissionDescription({
-  program,
+export function ProgramRewardDescription({
+  reward,
   discount,
   amountClassName,
   periodClassName,
 }: {
-  program: Pick<
-    ProgramProps,
-    | "commissionAmount"
-    | "commissionType"
-    | "commissionDuration"
-    | "commissionInterval"
-  >;
+  reward: Reward;
   discount?: DiscountProps | null;
   amountClassName?: string;
   periodClassName?: string;
@@ -24,26 +18,21 @@ export function ProgramCommissionDescription({
       Earn{" "}
       <strong className={cn("font-semibold", amountClassName)}>
         {constructRewardAmount({
-          amount: program.commissionAmount,
-          type: program.commissionType,
+          amount: reward.amount,
+          type: reward.type,
         })}{" "}
       </strong>
       for each sale
-      {program.commissionDuration === INFINITY_NUMBER ? (
+      {reward.maxDuration === null ? (
         <strong className={cn("font-semibold", periodClassName)}>
           {" "}
           for the customer's lifetime.
         </strong>
-      ) : program.commissionDuration && program.commissionDuration > 1 ? (
+      ) : reward.maxDuration && reward.maxDuration > 1 ? (
         <>
           , and again{" "}
           <strong className={cn("font-semibold", periodClassName)}>
-            every {program.commissionInterval || "cycle"} for{" "}
-            {program.commissionDuration}{" "}
-            {pluralize(
-              program.commissionInterval || "cycle",
-              program.commissionDuration,
-            )}
+            every month for {reward.maxDuration} months
           </strong>
           .
         </>

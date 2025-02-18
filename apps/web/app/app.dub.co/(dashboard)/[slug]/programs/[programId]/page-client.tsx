@@ -1,7 +1,7 @@
 "use client";
 
 import useProgram from "@/lib/swr/use-program";
-import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
+import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { buttonVariants, Grid, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
@@ -15,8 +15,8 @@ import { TopPartners } from "./top-partners";
 export default function ProgramOverviewPageClient() {
   const { slug, programId } = useParams();
   const { getQueryString } = useRouterStuff();
-
   const { program } = useProgram();
+
   if (!program) {
     redirect(`/${slug}`);
   }
@@ -46,7 +46,7 @@ export default function ProgramOverviewPageClient() {
               <div className="relative p-5 pt-10">
                 <div className="absolute inset-0 bg-neutral-800 [mask-image:linear-gradient(to_bottom,transparent,black_30%)]" />
                 <p className="relative text-xl text-white">
-                  <ProgramCommissionDescription
+                  <ProgramRewardDescription
                     program={program}
                     discount={program.discounts?.[0]}
                     amountClassName="text-blue-400 font-medium"

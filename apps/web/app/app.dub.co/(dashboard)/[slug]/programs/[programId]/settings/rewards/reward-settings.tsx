@@ -4,6 +4,7 @@ import useProgram from "@/lib/swr/use-program";
 import useRewards from "@/lib/swr/use-rewards";
 import type { Reward } from "@/lib/types";
 import { useRewardSheet } from "@/ui/partners/add-edit-reward-sheet";
+import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { EventType } from "@dub/prisma/client";
 import {
   Badge,
@@ -77,7 +78,7 @@ const SaleReward = () => {
         {loading ? (
           <RewardSkeleton />
         ) : defaultReward ? (
-            <Reward reward={defaultReward} />
+          <Reward reward={defaultReward} />
         ) : (
           <>
             <EmptyState
@@ -147,8 +148,8 @@ const Reward = ({ reward }: { reward: Reward }) => {
 
   return (
     <>
-      <div 
-        className="flex items-center gap-4 rounded-lg border border-neutral-200 p-4 cursor-pointer hover:border-neutral-300 transition-all"
+      <div
+        className="flex cursor-pointer items-center gap-4 rounded-lg border border-neutral-200 p-4 transition-all hover:border-neutral-300"
         onClick={() => setIsOpen(true)}
       >
         <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
@@ -157,7 +158,10 @@ const Reward = ({ reward }: { reward: Reward }) => {
         <div className="flex flex-1 items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-sm font-normal">
-              <RewardDescription reward={reward} />
+              <ProgramRewardDescription
+                reward={reward}
+                amountClassName="text-blue-600"
+              />
             </span>
           </div>
           {reward.partnersCount > 0 ? (
@@ -168,38 +172,6 @@ const Reward = ({ reward }: { reward: Reward }) => {
         </div>
       </div>
       {RewardSheet}
-    </>
-  );
-};
-
-const RewardDescription = ({ reward }: { reward: Reward }) => {
-  const amount =
-    reward.type === "percentage"
-      ? `${reward.amount}%`
-      : `$${(reward.amount / 100).toFixed(2)}`;
-
-  const getRecurringText = () => {
-    if (reward.maxDuration === null) {
-      return ", and again for every conversion of <strong>the customers lifetime</strong>";
-    }
-
-    if (reward.maxDuration === 0) {
-      return "";
-    }
-
-    return `, and again for every conversion of ${reward.maxDuration} months`;
-  };
-
-  return (
-    <>
-      Earn <span className="text-blue-500">{amount}</span> for each{" "}
-      {events[reward.event].eventName}
-      {reward.event === "sale" && (
-        <span
-          className="text-neutral-900"
-          dangerouslySetInnerHTML={{ __html: getRecurringText() }}
-        />
-      )}
     </>
   );
 };

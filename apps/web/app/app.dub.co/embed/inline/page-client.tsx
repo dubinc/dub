@@ -2,7 +2,7 @@
 
 import { DiscountProps } from "@/lib/types";
 import { HeroBackground } from "@/ui/partners/hero-background";
-import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
+import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { Link, PayoutStatus, Program } from "@dub/prisma/client";
 import {
   Button,
@@ -64,7 +64,7 @@ export function EmbedInlinePageClient({
             Refer and earn
           </span>
           <div className="relative mt-16 text-lg text-neutral-900 sm:max-w-[50%]">
-            <ProgramCommissionDescription
+            <ProgramRewardDescription
               program={program}
               discount={discount}
             />
