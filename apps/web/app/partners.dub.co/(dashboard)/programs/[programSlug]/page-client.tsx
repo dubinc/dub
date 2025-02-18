@@ -182,7 +182,7 @@ export default function ProgramPageClient() {
 function EarningsChart() {
   const { programSlug } = useParams();
   const { getQueryString } = useRouterStuff();
-  const { start, end, interval, color } = useContext(ProgramOverviewContext);
+  const { start, end, interval } = useContext(ProgramOverviewContext);
 
   const { data: { earnings: total } = {} } = usePartnerEarnings({
     event: "composite",
