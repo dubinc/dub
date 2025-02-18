@@ -12,7 +12,6 @@ export const dynamic = "force-dynamic";
 
 const schema = z.object({
   domain: z.string(),
-  workspaceId: z.string(),
 });
 
 // POST /api/cron/domains/delete
@@ -21,7 +20,7 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const { domain, workspaceId } = schema.parse(JSON.parse(rawBody));
+    const { domain } = schema.parse(JSON.parse(rawBody));
 
     const domainRecord = await prisma.domain.findUnique({
       where: {
@@ -78,7 +77,6 @@ export async function POST(req: Request) {
         console.error("deleteDomainAndLinks", {
           reason: promise.reason,
           domain,
-          workspaceId,
         });
       }
     });
@@ -93,7 +91,6 @@ export async function POST(req: Request) {
 
     if (remainingLinks > 0) {
       await queueDomainDeletion({
-        workspaceId,
         domain,
         delay: 2,
       });
