@@ -18,7 +18,7 @@ export const rewardSchema = z.object({
 export const createOrUpdateRewardSchema = z.object({
   event: z.nativeEnum(EventType),
   type: z.nativeEnum(CommissionType).default("flat"),
-  amount: z.number().int().min(0),
+  amount: z.number().min(0),
   maxDuration: z.coerce
     .number()
     .refine((val) => RECURRING_MAX_DURATIONS.includes(val), {
@@ -40,6 +40,5 @@ export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
 export const updateRewardSchema = createOrUpdateRewardSchema
   .omit({
     event: true,
-    isDefault: true,
   })
   .partial();
