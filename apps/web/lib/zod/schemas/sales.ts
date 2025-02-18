@@ -59,7 +59,10 @@ export const trackSaleRequestSchema = z.object({
     .string()
     .nullish()
     .default(null)
-    .describe("The name of the lead event that occurred before the sale."),
+    .describe(
+      "The name of the lead event that occurred before the sale (case-sensitive).",
+    )
+    .openapi({ example: "Cloned template 1481267" }),
 });
 
 export const trackSaleResponseSchema = z.object({
