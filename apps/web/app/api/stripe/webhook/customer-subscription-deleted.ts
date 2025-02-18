@@ -96,6 +96,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         usersLimit: FREE_PLAN.limits.users!,
         salesLimit: FREE_PLAN.limits.sales!,
         paymentFailedAt: null,
+        foldersUsage: 0,
       },
     }),
 
@@ -203,17 +204,6 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       },
       select: {
         id: true,
-      },
-    });
-
-    await prisma.project.update({
-      where: {
-        id: workspace.id,
-      },
-      data: {
-        foldersUsage: {
-          decrement: folders.length,
-        },
       },
     });
 
