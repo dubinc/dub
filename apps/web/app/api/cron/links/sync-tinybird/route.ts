@@ -7,6 +7,8 @@ import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
+const MAX_LINKS_PER_BATCH = 500;
+
 const schema = z.object({
   folderId: z.string(),
 });
@@ -65,7 +67,7 @@ export async function POST(req: Request) {
           orderBy: {
             id: "asc",
           },
-          take: 1,
+          take: MAX_LINKS_PER_BATCH,
         });
 
         await recordLink(
