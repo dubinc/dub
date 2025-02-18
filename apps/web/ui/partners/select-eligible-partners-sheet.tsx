@@ -1,11 +1,12 @@
-import { usePartnersForReward, usePartnersForRewardCount } from "@/lib/swr/use-partners";
+import useRewardPartners from "@/lib/swr/use-reward-partners";
+import useRewardPartnersCount from "@/lib/swr/use-reward-partners-count";
 import { PartnerProps } from "@/lib/types";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet, Table, usePagination, useTable } from "@dub/ui";
+import { Button, Sheet, Table, usePagination, useTable, LoadingSpinner } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { EventType } from "@prisma/client";
-import { Search } from "lucide-react";
+import { Search, Users } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -32,7 +33,7 @@ export function SelectEligiblePartnersSheet({
     data: partners,
     error: partnersError,
     loading,
-  } = usePartnersForReward({
+  } = useRewardPartners({
     query: {
       event,
       search: debouncedSearch,
@@ -41,7 +42,7 @@ export function SelectEligiblePartnersSheet({
     },
   });
 
-  const { partnersCount, loading: loadingCount } = usePartnersForRewardCount({
+  const { partnersCount, loading: loadingCount } = useRewardPartnersCount({
     query: {
       event,
       search: debouncedSearch,
@@ -147,7 +148,27 @@ export function SelectEligiblePartnersSheet({
               className="block w-full rounded-lg border-neutral-300 pl-10 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
             />
           </div>
-          <Table {...table} />
+          {loading || loadingCount ? (
+            <div className="flex items-center justify-center py-8">
+              <LoadingSpinner className="size-4" />
+            </div>
+          ) : partners?.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-neutral-50 py-12">
+              <div className="flex items-center justify-center">
+                <Users className="size-6 text-neutral-800" />
+              </div>
+              <div className="flex flex-col items-center gap-1 px-4 text-center">
+                <p className="text-base font-medium text-neutral-900">
+                  No partners found
+                </p>
+                <p className="text-sm text-neutral-600">
+                  {search ? "Try a different search term" : "No eligible partners available"}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <Table {...table} />
+          )}
         </div>
         <div className="flex grow flex-col justify-end">
           <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
