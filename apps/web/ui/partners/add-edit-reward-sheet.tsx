@@ -95,12 +95,16 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const [selectedPartnerType, setSelectedPartnerType] = useState<
     (typeof partnerTypes)[number]["key"]
   >(
-    reward?.partnersCount === 0 ||
+    reward
+      ? reward.partnersCount === 0
+        ? "all"
+        : "specific"
+      : // For new rewards, use the previous logic
       event === "sale" ||
-      (event === "click" && hasProgramWideClickReward) ||
-      (event === "lead" && hasProgramWideLeadReward)
+        (event === "click" && hasProgramWideClickReward) ||
+        (event === "lead" && hasProgramWideLeadReward)
       ? "specific"
-      : "all",
+      : "all"
   );
 
   const {
@@ -364,12 +368,15 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                     const isSelected = selectedPartnerType === partnerType.key;
 
                     const isDisabled =
-                      partnerType.key === "all" &&
-                      ((event === "click" && hasProgramWideClickReward) ||
-                        (event === "lead" && hasProgramWideLeadReward));
+                      (partnerType.key === "all" &&
+                        ((event === "click" && hasProgramWideClickReward) ||
+                          (event === "lead" && hasProgramWideLeadReward))) ||
+                      !!reward;
 
                     const tooltipContent = isDisabled
-                      ? `You can only have one program-wide ${event} reward.`
+                      ? reward
+                        ? "Partner type cannot be changed for existing rewards"
+                        : `You can only have one program-wide ${event} reward.`
                       : undefined;
 
                     const labelContent = (
@@ -380,7 +387,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                           "transition-all duration-150",
                           isSelected &&
                             "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                          isDisabled &&
+                          (isDisabled || !!reward) &&
                             "cursor-not-allowed opacity-60 hover:bg-white",
                         )}
                       >
