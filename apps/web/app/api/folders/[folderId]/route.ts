@@ -106,7 +106,7 @@ export const DELETE = withWorkspace(
   async ({ params, workspace, session }) => {
     const { folderId } = params;
 
-    const folder = await verifyFolderAccess({
+    await verifyFolderAccess({
       workspace,
       userId: session.user.id,
       folderId,
