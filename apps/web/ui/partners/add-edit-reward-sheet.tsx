@@ -24,6 +24,7 @@ import {
   LoadingSpinner,
   Sheet,
   Table,
+  Tooltip,
   Users,
   useTable,
 } from "@dub/ui";
@@ -79,13 +80,28 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [isAddPartnersOpen, setIsAddPartnersOpen] = useState(false);
 
+  const hasProgramWideClickReward = rewards?.some(
+    (reward) => reward.event === "click" && reward.partnersCount === 0,
+  );
+
+  const hasProgramWideLeadReward = rewards?.some(
+    (reward) => reward.event === "lead" && reward.partnersCount === 0,
+  );
+
   const [isRecurring, setIsRecurring] = useState(
     reward ? reward.maxDuration !== 0 : false,
   );
 
   const [selectedPartnerType, setSelectedPartnerType] = useState<
     (typeof partnerTypes)[number]["key"]
-  >(reward?.partnersCount === 0 || event === "sale" ? "specific" : "all");
+  >(
+    reward?.partnersCount === 0 ||
+      event === "sale" ||
+      (event === "click" && hasProgramWideClickReward) ||
+      (event === "lead" && hasProgramWideLeadReward)
+      ? "specific"
+      : "all",
+  );
 
   const {
     register,
@@ -200,8 +216,6 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,
     };
 
-    console.log(payload);
-
     if (!reward) {
       await createReward(payload);
     } else {
@@ -284,18 +298,6 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     (event !== "sale" && selectedPartnerType === "specific") ||
     (event === "sale" && hasDefaultReward);
 
-  const hasAllPartnerClickReward = rewards?.some(
-    (reward) => reward.event === "click" && reward.partnersCount === 0,
-  );
-
-  const hasAllPartnerLeadReward = rewards?.some(
-    (reward) => reward.event === "lead" && reward.partnersCount === 0,
-  );
-
-  const hasAllPartnerSaleReward = rewards?.some(
-    (reward) => reward.event === "sale" && reward.partnersCount === 0,
-  );
-
   const canDeleteReward =
     (reward && program?.defaultRewardId !== reward.id) ||
     isCreating ||
@@ -361,7 +363,16 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                   {partnerTypes.map((partnerType) => {
                     const isSelected = selectedPartnerType === partnerType.key;
 
-                    return (
+                    const isDisabled =
+                      partnerType.key === "all" &&
+                      ((event === "click" && hasProgramWideClickReward) ||
+                        (event === "lead" && hasProgramWideLeadReward));
+
+                    const tooltipContent = isDisabled
+                      ? `You can only have one program-wide ${event} reward.`
+                      : undefined;
+
+                    const labelContent = (
                       <label
                         key={partnerType.label}
                         className={cn(
@@ -369,6 +380,8 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                           "transition-all duration-150",
                           isSelected &&
                             "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                          isDisabled &&
+                            "cursor-not-allowed opacity-60 hover:bg-white",
                         )}
                       >
                         <input
@@ -376,6 +389,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                           value={partnerType.label}
                           className="hidden"
                           checked={isSelected}
+                          disabled={isDisabled}
                           onChange={(e) => {
                             if (e.target.checked) {
                               setSelectedPartnerType(partnerType.key);
@@ -399,6 +413,14 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                           )}
                         />
                       </label>
+                    );
+
+                    return isDisabled ? (
+                      <Tooltip key={partnerType.label} content={tooltipContent}>
+                        {labelContent}
+                      </Tooltip>
+                    ) : (
+                      labelContent
                     );
                   })}
                 </div>
