@@ -1,6 +1,6 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { DiscountProps, Reward } from "@/lib/types";
-import { cn, pluralize } from "@dub/utils";
+import { capitalize, cn, pluralize } from "@dub/utils";
 
 export function ProgramRewardDescription({
   reward,
@@ -22,7 +22,7 @@ export function ProgramRewardDescription({
           type: reward.type,
         })}{" "}
       </strong>
-      for each sale
+      for each {reward.event}
       {reward.maxDuration === null ? (
         <strong className={cn("font-semibold", periodClassName)}>
           {" "}
