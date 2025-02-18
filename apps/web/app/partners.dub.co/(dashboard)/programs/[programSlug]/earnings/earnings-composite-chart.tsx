@@ -46,9 +46,17 @@ export function EarningsCompositeChart() {
       data?.timeseries
         ? [
             ...new Set<string>(
-              data?.timeseries.flatMap(({ data }) => Object.keys(data)),
+              data.timeseries.flatMap(({ data }) => Object.keys(data)),
             ),
           ]
+            // Sort by total earnings for the period
+            .sort((a, b) => {
+              const [earningsA, earningsB] = data.timeseries.reduce(
+                (acc, { data }) => [acc[0] + data[a], acc[1] + data[b]],
+                [0, 0],
+              );
+              return earningsB - earningsA;
+            })
             .slice(0, MAX_LINES)
             .map((linkId, idx) => ({
               id: linkId,
