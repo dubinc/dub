@@ -341,7 +341,12 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const hasDefaultReward = !!program?.defaultRewardId;
   const displayAddPartnerButton =
     (event !== "sale" && selectedPartnerType === "specific") ||
-    (event === "sale" && hasDefaultReward && !((!program?.defaultRewardId && event === "sale") || (reward?.id === program?.defaultRewardId)));
+    (event === "sale" &&
+      hasDefaultReward &&
+      !(
+        (!program?.defaultRewardId && event === "sale") ||
+        reward?.id === program?.defaultRewardId
+      ));
 
   const canDeleteReward =
     (reward && program?.defaultRewardId !== reward.id) ||
