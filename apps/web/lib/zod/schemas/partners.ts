@@ -350,3 +350,12 @@ export const partnerAnalyticsResponseSchema = {
     title: "PartnerAnalyticsTopLinks",
   }),
 } as const;
+
+export const updateSaleSchema = z.object({
+  amount: z
+    .number({ required_error: "Amount is required." })
+    .min(0)
+    .describe("The new amount for the sale."),
+  programId: z.string(),
+  invoiceId: z.string(),
+});
