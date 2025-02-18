@@ -5,6 +5,6 @@ export const transformReward = (
 ) => {
   return {
     ...reward,
-    partners: reward.partners
+    partners: reward.partners,
   };
 };

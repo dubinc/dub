@@ -1,6 +1,6 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { DiscountProps, Reward } from "@/lib/types";
-import { capitalize, cn, pluralize } from "@dub/utils";
+import { cn, pluralize } from "@dub/utils";
 
 export function ProgramRewardDescription({
   reward,

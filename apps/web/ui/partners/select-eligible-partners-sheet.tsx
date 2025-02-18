@@ -35,7 +35,9 @@ export function SelectEligiblePartnersSheet({
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
   const { pagination, setPagination } = usePagination(25);
-  const [selectedPartners, setSelectedPartners] = useState<EnrolledPartnerProps[]>([]);
+  const [selectedPartners, setSelectedPartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
 
   const {
     data: partners,
