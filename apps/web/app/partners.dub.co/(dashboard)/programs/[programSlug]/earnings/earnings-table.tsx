@@ -219,7 +219,7 @@ export function EarningsTablePartner({
         <Table
           {...tableProps}
           table={table}
-          containerClassName="border-neutral-300"
+          containerClassName="border-neutral-200"
         />
       ) : (
         <AnimatedEmptyState
