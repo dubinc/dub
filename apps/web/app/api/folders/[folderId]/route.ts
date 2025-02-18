@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { scheduleLinkSync } from "@/lib/api/links/utils/sync-links";
+import { queueFolderDeletion } from "@/lib/api/folders/queue-folder-deletion";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
@@ -118,26 +118,31 @@ export const DELETE = withWorkspace(
         folderId,
       },
     });
-
-    await prisma.$transaction(async (tx) => {
-      if (linksCount === 0) {
-        await tx.folder.delete({
-          where: {
-            id: folderId,
-          },
-        });
-      } else {
-        await tx.folder.update({
+    // if there are no links associated with the folder, we can just delete it
+    if (linksCount === 0) {
+      await prisma.folder.delete({
+        where: {
+          id: folderId,
+        },
+      });
+    } else {
+      await Promise.all([
+        prisma.folder.update({
           where: {
             id: folderId,
           },
           data: {
             projectId: "",
           },
-        });
-      }
+        }),
+        queueFolderDeletion({
+          folderId,
+        }),
+      ]);
+    }
 
-      await tx.project.update({
+    waitUntil(
+      prisma.project.update({
         where: {
           id: workspace.id,
         },
@@ -146,16 +151,8 @@ export const DELETE = withWorkspace(
             decrement: 1,
           },
         },
-      });
-    });
-
-    if (linksCount > 0) {
-      waitUntil(
-        scheduleLinkSync({
-          folderId,
-        }),
-      );
-    }
+      }),
+    );
 
     return NextResponse.json({ id: folderId });
   },
