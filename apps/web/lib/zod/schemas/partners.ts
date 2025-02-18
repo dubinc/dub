@@ -352,10 +352,10 @@ export const partnerAnalyticsResponseSchema = {
 } as const;
 
 export const updateSaleSchema = z.object({
+  programId: z.string(),
+  invoiceId: z.string(),
   amount: z
     .number({ required_error: "Amount is required." })
     .min(0)
     .describe("The new amount for the sale."),
-  programId: z.string(),
-  invoiceId: z.string(),
 });
