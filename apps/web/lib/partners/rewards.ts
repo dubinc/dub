@@ -26,8 +26,8 @@ export const determinePartnerReward = async ({
           partners: {
             some: {
               programEnrollment: {
-                partnerId,
                 programId,
+                partnerId,
               },
             },
           },
@@ -35,6 +35,7 @@ export const determinePartnerReward = async ({
       ],
     },
     select: {
+      id: true,
       amount: true,
       type: true,
       _count: {
@@ -50,7 +51,7 @@ export const determinePartnerReward = async ({
   }
 
   const partnerSpecificReward = rewards.find(
-    (reward) => reward._count.partners === 1,
+    (reward) => reward._count.partners > 0,
   );
 
   const programWideReward = rewards.find(
