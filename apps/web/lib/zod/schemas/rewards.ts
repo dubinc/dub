@@ -1,14 +1,7 @@
 import { CommissionType, EventType } from "@dub/prisma/client";
 import { z } from "zod";
 
-export const RECURRING_MAX_DURATIONS = [
-  "0",
-  "3",
-  "6",
-  "12",
-  "18",
-  "24",
-] as const;
+export const RECURRING_MAX_DURATIONS = [0, 3, 6, 12, 18, 24];
 
 export const rewardSchema = z.object({
   id: z.string(),
@@ -26,14 +19,19 @@ export const createOrUpdateRewardSchema = z.object({
   event: z.nativeEnum(EventType),
   type: z.nativeEnum(CommissionType).default("flat"),
   amount: z.number().int().min(0),
-  maxDuration: z.enum(RECURRING_MAX_DURATIONS).nullish(),
+  maxDuration: z.coerce
+    .number()
+    .refine((val) => RECURRING_MAX_DURATIONS.includes(val), {
+      message: `Max duration must be ${RECURRING_MAX_DURATIONS.join(", ")}`,
+    })
+    .nullish(),
   partnerIds: z.array(z.string()).nullish(),
 });
 
 export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
   (data) => {
     if (data.event !== EventType.sale) {
-      data.maxDuration = "0";
+      data.maxDuration = 0;
       data.type = "flat";
     }
   },

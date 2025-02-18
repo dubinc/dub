@@ -94,7 +94,7 @@ export const createRewardAction = authActionClient
         event,
         type,
         amount,
-        maxDuration: maxDuration ? parseInt(maxDuration) : null,
+        maxDuration,
         ...(programEnrollments && {
           partners: {
             createMany: {

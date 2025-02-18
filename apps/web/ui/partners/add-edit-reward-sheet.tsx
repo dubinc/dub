@@ -75,8 +75,8 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const { data: partners } = usePartners();
   const { id: workspaceId } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
+  const [isRecurring, setIsRecurring] = useState(reward ? reward.maxDuration !== 0 : false);
   const [isAddPartnersOpen, setIsAddPartnersOpen] = useState(false);
-  const [isRecurring, setIsRecurring] = useState(reward?.maxDuration !== 0);
 
   const [selectedPartnerType, setSelectedPartnerType] = useState<
     (typeof partnerTypes)[number]["key"]
@@ -92,11 +92,8 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     defaultValues: {
       event,
       type: reward?.type || "flat",
-      maxDuration: reward?.maxDuration
-        ? (reward.maxDuration.toString() as (typeof RECURRING_MAX_DURATIONS)[number])
-        : "0",
-      amount:
-        reward?.type === "flat" ? reward.amount / 100 : reward?.amount,
+      maxDuration: reward?.maxDuration ?? 0,
+      amount: reward?.type === "flat" ? reward.amount / 100 : reward?.amount,
       //  partnerIds: reward?.partnersCount === 0 ? null : reward?.partners?.map((p) => p.partnerId) || null,
     },
   });
@@ -107,6 +104,12 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     "type",
     "maxDuration",
   ]);
+
+  useEffect(() => {
+    // Set isRecurring based on maxDuration value
+    const duration = Number(maxDuration);
+    setIsRecurring(duration !== 0);
+  }, [maxDuration]);
 
   const { executeAsync: createReward, isPending: isCreating } = useAction(
     createRewardAction,
@@ -165,14 +168,11 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       workspaceId,
       programId: program.id,
       amount: type === "flat" ? data.amount * 100 : data.amount,
-      ...(event === "sale"
-        ? {
-            maxDuration: maxDuration === "0" ? null : maxDuration, // TODO: Fix it
-          }
-        : {
-            maxDuration: undefined,
-          }),
+      maxDuration:
+        Infinity === Number(data.maxDuration) ? null : data.maxDuration,
     };
+
+    console.log(payload);
 
     if (!reward) {
       await createReward(payload);
@@ -195,10 +195,6 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       rewardId: reward.id,
     });
   };
-
-  useEffect(() => {
-    setIsRecurring(maxDuration === "0" ? false : true);
-  }, [maxDuration]);
 
   const selectedPartnersTable = useTable({
     data: partners?.filter((p) => partnerIds?.includes(p.id)) || [],
@@ -419,10 +415,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                                     onChange={(e) => {
                                       if (e.target.checked) {
                                         setIsRecurring(recurring);
-
-                                        if (!recurring) {
-                                          setValue("maxDuration", "0");
-                                        }
+                                        setValue("maxDuration", recurring ? 3 : 0);
                                       }
                                     }}
                                   />
@@ -465,13 +458,13 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                                 {...register("maxDuration")}
                               >
                                 {RECURRING_MAX_DURATIONS.filter(
-                                  (v) => v !== "0",
+                                  (v) => v !== 0,
                                 ).map((v) => (
                                   <option value={v} key={v}>
                                     {v} {pluralize("month", Number(v))}
                                   </option>
                                 ))}
-                                <option value="">Lifetime</option>
+                                <option value={Infinity}>Lifetime</option>
                               </select>
                             </div>
                           </div>
