@@ -96,7 +96,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         ? (reward.maxDuration.toString() as (typeof RECURRING_MAX_DURATIONS)[number])
         : "0",
       amount:
-        reward?.type === "flat" ? reward.amount / 100 : reward?.amount || 0,
+        reward?.type === "flat" ? reward.amount / 100 : reward?.amount,
       //  partnerIds: reward?.partnersCount === 0 ? null : reward?.partners?.map((p) => p.partnerId) || null,
     },
   });
