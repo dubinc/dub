@@ -573,8 +573,8 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
         header: "Revenue",
         accessorFn: (d) =>
           currencyFormatter(d.saleAmount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
           }),
         size: 1,
         minSize: 1,

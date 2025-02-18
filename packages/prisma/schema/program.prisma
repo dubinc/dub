@@ -60,7 +60,6 @@ model Program {
   primaryDomain Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
   partners      ProgramEnrollment[]
   payouts       Payout[]
-  sales         Sale[]
   invoices      Invoice[]
   resources     ProgramResource[]
   applications  ProgramApplication[]

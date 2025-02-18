@@ -74,7 +74,7 @@ export const PayoutSchema = z.object({
 export const PayoutResponseSchema = PayoutSchema.merge(
   z.object({
     partner: PartnerSchema,
-    _count: z.object({ sales: z.number() }),
+    _count: z.object({ commissions: z.number() }),
   }),
 );
 

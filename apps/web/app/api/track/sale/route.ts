@@ -33,6 +33,7 @@ export const POST = withWorkspaceEdge(
       currency,
       metadata,
       eventName,
+      leadEventName,
     } = trackSaleRequestSchema.parse(await parseRequestBody(req));
 
     if (invoiceId) {
@@ -78,8 +79,11 @@ export const POST = withWorkspaceEdge(
       });
     }
 
-    // Find lead
-    const leadEvent = await getLeadEvent({ customerId: customer.id });
+    // Find lead event
+    const leadEvent = await getLeadEvent({
+      customerId: customer.id,
+      eventName: leadEventName,
+    });
 
     if (!leadEvent || leadEvent.data.length === 0) {
       throw new DubApiError({

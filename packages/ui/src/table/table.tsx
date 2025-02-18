@@ -4,6 +4,7 @@ import {
   Column,
   ColumnDef,
   ColumnPinningState,
+  ColumnResizeMode,
   flexRender,
   getCoreRowModel,
   PaginationState,
@@ -17,6 +18,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   CSSProperties,
   Dispatch,
+  memo,
   MouseEvent,
   PropsWithChildren,
   ReactNode,
@@ -35,7 +37,17 @@ const tableCellClassName = (columnId: string, clickable?: boolean) =>
     clickable && "group-hover/row:bg-neutral-50 transition-colors duration-75",
   ]);
 
-type UseTableProps<T> = {
+const resizingClassName = cn([
+  "absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none",
+  "bg-neutral-300/50",
+  "opacity-0 group-hover/resize:opacity-100 hover:opacity-100",
+  "group-hover/resize:bg-neutral-300 hover:bg-neutral-400",
+  "transition-all duration-200",
+  "-mr-px",
+  "after:absolute after:right-0 after:top-0 after:h-full after:w-4 after:translate-x-1/2",
+]);
+
+type BaseTableProps<T> = {
   columns: ColumnDef<T, any>[];
   data: T[];
   loading?: boolean;
@@ -55,6 +67,8 @@ type UseTableProps<T> = {
   columnPinning?: ColumnPinningState;
   resourceName?: (plural: boolean) => string;
   onRowClick?: (row: Row<T>, e: MouseEvent) => void;
+  enableColumnResizing?: boolean;
+  columnResizeMode?: ColumnResizeMode;
 
   // Row selection
   getRowId?: (row: T) => string;
@@ -67,19 +81,29 @@ type UseTableProps<T> = {
   scrollWrapperClassName?: string;
   thClassName?: string | ((columnId: string) => string);
   tdClassName?: string | ((columnId: string) => string);
-} & (
-  | {
-      pagination?: PaginationState;
-      onPaginationChange?: Dispatch<SetStateAction<PaginationState>>;
-      rowCount: number;
-    }
-  | { pagination?: never; onPaginationChange?: never; rowCount?: never }
-);
+};
 
-type TableProps<T> = UseTableProps<T> &
+type UseTableProps<T> = BaseTableProps<T> &
+  (
+    | {
+        pagination?: PaginationState;
+        onPaginationChange?: Dispatch<SetStateAction<PaginationState>>;
+        rowCount: number;
+      }
+    | { pagination?: never; onPaginationChange?: never; rowCount?: never }
+  );
+
+type TableProps<T> = BaseTableProps<T> &
   PropsWithChildren<{
     table: TableType<T>;
-  }>;
+  }> &
+  (
+    | {
+        pagination?: PaginationState;
+        rowCount: number;
+      }
+    | { pagination?: never; rowCount?: never }
+  );
 
 export function useTable<T extends any>(
   props: UseTableProps<T>,
@@ -93,6 +117,8 @@ export function useTable<T extends any>(
     pagination,
     onPaginationChange,
     getRowId,
+    enableColumnResizing = false,
+    columnResizeMode = "onChange",
   } = props;
 
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
@@ -129,6 +155,7 @@ export function useTable<T extends any>(
       minSize: 120,
       size: 0,
       maxSize: 300,
+      enableResizing: enableColumnResizing,
       ...defaultColumn,
     },
     getCoreRowModel: getCoreRowModel(),
@@ -145,14 +172,100 @@ export function useTable<T extends any>(
     autoResetPageIndex: false,
     manualSorting: true,
     getRowId,
+    enableColumnResizing,
+    columnResizeMode,
   });
 
   return {
     ...props,
     columnVisibility,
     table,
+    enableColumnResizing,
   };
 }
+
+// Memoized row component to prevent re-renders during column resizing
+const ResizableTableRow = memo(
+  function ResizableTableRow<T>({
+    row,
+    onRowClick,
+    cellRight,
+    tdClassName,
+    table,
+  }: {
+    row: Row<T>;
+    onRowClick?: (row: Row<T>, e: MouseEvent) => void;
+    cellRight?: (cell: Cell<T, any>) => ReactNode;
+    tdClassName?: string | ((columnId: string) => string);
+    table: TableType<T>;
+  }) {
+    return (
+      <tr
+        key={row.id}
+        className={cn(
+          "group/row",
+          onRowClick && "cursor-pointer select-none",
+          // hacky fix: if there are more than 8 rows, remove the bottom border from the last row
+          table.getRowModel().rows.length > 8 &&
+            row.index === table.getRowModel().rows.length - 1 &&
+            "[&_td]:border-b-0",
+        )}
+        onClick={
+          onRowClick
+            ? (e) => {
+                // Ignore if click is on an interactive child
+                if (isClickOnInteractiveChild(e)) return;
+                onRowClick(row, e);
+              }
+            : undefined
+        }
+      >
+        {row.getVisibleCells().map((cell) => (
+          <td
+            key={cell.id}
+            className={cn(
+              tableCellClassName(cell.column.id, !!onRowClick),
+              "group text-neutral-600",
+              getCommonPinningClassNames(
+                cell.column,
+                row.index === table.getRowModel().rows.length - 1,
+              ),
+              typeof tdClassName === "function"
+                ? tdClassName(cell.column.id)
+                : tdClassName,
+            )}
+            style={{
+              width: cell.column.getSize(),
+              ...getCommonPinningStyles(cell.column),
+            }}
+          >
+            <div className="flex w-full items-center justify-between overflow-hidden truncate">
+              <div className="min-w-0 shrink grow truncate">
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </div>
+              {cellRight?.(cell)}
+            </div>
+          </td>
+        ))}
+      </tr>
+    );
+  },
+  (prevProps, nextProps) => {
+    // Only re-render if row data or selection state changes
+    const prevRow = prevProps.row;
+    const nextRow = nextProps.row;
+    return (
+      prevRow.original === nextRow.original &&
+      prevRow.getIsSelected() === nextRow.getIsSelected()
+    );
+  },
+) as <T>(props: {
+  row: Row<T>;
+  onRowClick?: (row: Row<T>, e: MouseEvent) => void;
+  cellRight?: (cell: Cell<T, any>) => ReactNode;
+  tdClassName?: string | ((columnId: string) => string);
+  table: TableType<T>;
+}) => JSX.Element;
 
 export function Table<T>({
   columns,
@@ -176,6 +289,7 @@ export function Table<T>({
   onRowClick,
   rowCount,
   children,
+  enableColumnResizing = false,
 }: TableProps<T>) {
   return (
     <div
@@ -195,13 +309,23 @@ export function Table<T>({
             className={cn(
               [
                 "group/table w-full border-separate border-spacing-0 transition-[border-spacing,margin-top]",
-                // Remove side borders from table to avoid interfering with outer border
-                "[&_tr>*:first-child]:border-l-transparent", // Left column
-                "[&_tr>*:last-child]:border-r-transparent", // Right column
-                "[&_tr>*:last-child]:border-r-transparent", // Bottom column
+                "[&_tr>*:first-child]:border-l-transparent",
+                "[&_tr>*:last-child]:border-r-transparent",
+                "[&_tr>*:last-child]:border-r-transparent",
+                "[&_th]:relative [&_th]:select-none",
+                enableColumnResizing && "[&_th]:group/resize",
               ],
               className,
             )}
+            style={{
+              width: "100%",
+              tableLayout: enableColumnResizing ? "fixed" : "auto",
+              ...(enableColumnResizing && {
+                minWidth: table
+                  .getVisibleLeafColumns()
+                  .reduce((acc, column) => acc + column.getSize(), 0),
+              }),
+            }}
           >
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -215,6 +339,7 @@ export function Table<T>({
                     return (
                       <th
                         key={header.id}
+                        colSpan={header.colSpan}
                         className={cn(
                           tableCellClassName(header.id),
                           "select-none font-medium",
@@ -225,11 +350,16 @@ export function Table<T>({
                           typeof thClassName === "function"
                             ? thClassName(header.column.id)
                             : thClassName,
+                          enableColumnResizing && "relative",
                         )}
                         style={{
-                          minWidth: header.column.columnDef.minSize,
-                          maxWidth: header.column.columnDef.maxSize,
-                          width: header.column.columnDef.size || "auto",
+                          ...(enableColumnResizing
+                            ? { width: header.getSize() }
+                            : {
+                                minWidth: header.column.columnDef.minSize,
+                                maxWidth: header.column.columnDef.maxSize,
+                                width: header.column.columnDef.size || "auto",
+                              }),
                           ...getCommonPinningStyles(header.column),
                         }}
                       >
@@ -252,25 +382,31 @@ export function Table<T>({
                                 }),
                             })}
                           >
-                            <span>
-                              {header.isPlaceholder
-                                ? null
-                                : flexRender(
-                                    header.column.columnDef.header,
-                                    header.getContext(),
-                                  )}
-                            </span>
-                            {isSortableColumn && (
-                              <SortOrder
-                                order={
-                                  sortBy === header.column.id
-                                    ? sortOrder || "desc"
-                                    : null
-                                }
-                              />
-                            )}
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext(),
+                                )}
+                            {isSortableColumn &&
+                              sortBy === header.column.id && (
+                                <SortOrder
+                                  className="h-3 w-3 shrink-0"
+                                  order={sortOrder || "desc"}
+                                />
+                              )}
                           </ButtonOrDiv>
                         </div>
+                        {enableColumnResizing &&
+                          header.column.getCanResize() &&
+                          header.column.id !== "menu" && (
+                            <div
+                              onMouseDown={header.getResizeHandler()}
+                              onTouchStart={header.getResizeHandler()}
+                              onClick={(e) => e.stopPropagation()}
+                              className={resizingClassName}
+                            />
+                          )}
                       </th>
                     );
                   })}
@@ -278,61 +414,72 @@ export function Table<T>({
               ))}
             </thead>
             <tbody>
-              {table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className={cn(
-                    "group/row",
-                    onRowClick && "cursor-pointer select-none",
-                    // hacky fix: if there are more than 8 rows, remove the bottom border from the last row
-                    table.getRowModel().rows.length > 8 &&
-                      row.index === table.getRowModel().rows.length - 1 &&
-                      "[&_td]:border-b-0",
-                  )}
-                  onClick={
-                    onRowClick
-                      ? (e) => {
-                          // Ignore if click is on an interactive child
-                          if (isClickOnInteractiveChild(e)) return;
-                          onRowClick(row, e);
-                        }
-                      : undefined
-                  }
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
-                      className={cn(
-                        tableCellClassName(cell.column.id, !!onRowClick),
-                        "group text-neutral-600",
-                        getCommonPinningClassNames(
-                          cell.column,
-                          row.index === table.getRowModel().rows.length - 1,
-                        ),
-                        typeof tdClassName === "function"
-                          ? tdClassName(cell.column.id)
-                          : tdClassName,
-                      )}
-                      style={{
-                        minWidth: cell.column.columnDef.minSize,
-                        maxWidth: cell.column.columnDef.maxSize,
-                        width: cell.column.columnDef.size || "auto",
-                        ...getCommonPinningStyles(cell.column),
-                      }}
-                    >
-                      <div className="flex w-full items-center justify-between overflow-hidden truncate">
-                        <div className="min-w-0 shrink grow truncate">
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
+              {table.getRowModel().rows.map((row) =>
+                enableColumnResizing ? (
+                  <ResizableTableRow
+                    key={row.id}
+                    row={row}
+                    onRowClick={onRowClick}
+                    cellRight={cellRight}
+                    tdClassName={tdClassName}
+                    table={table}
+                  />
+                ) : (
+                  <tr
+                    key={row.id}
+                    className={cn(
+                      "group/row",
+                      onRowClick && "cursor-pointer select-none",
+                      // hacky fix: if there are more than 8 rows, remove the bottom border from the last row
+                      table.getRowModel().rows.length > 8 &&
+                        row.index === table.getRowModel().rows.length - 1 &&
+                        "[&_td]:border-b-0",
+                    )}
+                    onClick={
+                      onRowClick
+                        ? (e) => {
+                            // Ignore if click is on an interactive child
+                            if (isClickOnInteractiveChild(e)) return;
+                            onRowClick(row, e);
+                          }
+                        : undefined
+                    }
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td
+                        key={cell.id}
+                        className={cn(
+                          tableCellClassName(cell.column.id, !!onRowClick),
+                          "group text-neutral-600",
+                          getCommonPinningClassNames(
+                            cell.column,
+                            row.index === table.getRowModel().rows.length - 1,
+                          ),
+                          typeof tdClassName === "function"
+                            ? tdClassName(cell.column.id)
+                            : tdClassName,
+                        )}
+                        style={{
+                          minWidth: cell.column.columnDef.minSize,
+                          maxWidth: cell.column.columnDef.maxSize,
+                          width: cell.column.columnDef.size || "auto",
+                          ...getCommonPinningStyles(cell.column),
+                        }}
+                      >
+                        <div className="flex w-full items-center justify-between overflow-hidden truncate">
+                          <div className="min-w-0 shrink grow truncate">
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </div>
+                          {cellRight?.(cell)}
                         </div>
-                        {cellRight?.(cell)}
-                      </div>
-                    </td>
-                  ))}
-                </tr>
-              ))}
+                      </td>
+                    ))}
+                  </tr>
+                ),
+              )}
             </tbody>
           </table>
           {children}
