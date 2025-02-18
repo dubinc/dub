@@ -24,6 +24,7 @@ export const GET = withPartnerProfile(
       status,
       sortBy,
       sortOrder,
+      linkId,
       customerId,
       payoutId,
       interval,
@@ -43,6 +44,7 @@ export const GET = withPartnerProfile(
         partnerId: partner.id,
         type,
         status,
+        linkId,
         customerId,
         payoutId,
         createdAt: {

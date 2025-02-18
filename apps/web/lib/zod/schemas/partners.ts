@@ -160,6 +160,7 @@ export const getPartnerSalesQuerySchema = getSalesQuerySchema
   })
   .extend({
     type: z.enum(["click", "lead", "sale"]).optional(),
+    linkId: z.string().optional(),
     sortBy: z.enum(["createdAt", "amount", "earnings"]).default("createdAt"),
   });
 
@@ -202,6 +203,7 @@ export const getPartnerSalesCountQuerySchema = getSalesCountQuerySchema
   })
   .extend({
     type: z.enum(["click", "lead", "sale"]).optional(),
+    linkId: z.string().optional(),
     groupBy: z.enum(["customer"]).optional(),
   });
 

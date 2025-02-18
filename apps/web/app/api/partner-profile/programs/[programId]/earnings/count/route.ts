@@ -13,7 +13,7 @@ export const GET = withPartnerProfile(
       programId: params.programId,
     });
 
-    const { type, status, customerId, payoutId, interval, start, end } =
+    const { type, status, linkId, customerId, payoutId, interval, start, end } =
       getPartnerSalesCountQuerySchema.parse(searchParams);
 
     const { startDate, endDate } = getStartEndDates({
@@ -28,6 +28,7 @@ export const GET = withPartnerProfile(
         partnerId: partner.id,
         ...(type && { type }),
         ...(status && { status }),
+        ...(linkId && { linkId }),
         ...(customerId && { customerId }),
         ...(payoutId && { payoutId }),
         createdAt: {
