@@ -43,39 +43,49 @@ export async function POST(req: Request) {
       return new Response("No links found in the folder. Skipping...");
     }
 
-    const links = await prisma.link.findMany({
-      where: {
-        folderId,
-      },
-      include: {
-        tags: {
-          select: {
-            tag: true,
+    await prisma.$transaction(
+      async (tx) => {
+        const links = await tx.link.findMany({
+          where: {
+            folderId,
           },
-        },
-      },
-      take: 500,
-    });
+          include: {
+            tags: {
+              select: {
+                tag: true,
+              },
+            },
+          },
+          orderBy: {
+            id: "asc",
+          },
+          take: 500,
+        });
 
-    await recordLink(links);
+        await recordLink(links);
 
-    await prisma.link.updateMany({
-      where: {
-        id: {
-          in: links.map((link) => link.id),
-        },
+        await tx.link.updateMany({
+          where: {
+            id: {
+              in: links.map((link) => link.id),
+            },
+          },
+          data: {
+            folderId: null,
+          },
+        });
       },
-      data: {
-        folderId: null,
+      {
+        timeout: 10000,
       },
-    });
+    );
 
     await scheduleLinkSync({
       folderId,
       delay: 2,
     });
 
-    return new Response(`Processed ${links.length} links in the folder.`);
+    return new Response(`Processed ${countOfLinks} links in the folder.`);
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
