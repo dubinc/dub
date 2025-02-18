@@ -8,6 +8,7 @@ import {
 /* 
   Calculate the commission earned for a sale
 */
+// TODO: Remove this
 export const calculateSaleEarningsOld = ({
   program,
   partner,
