@@ -83,6 +83,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
           usersLimit: plan.limits.users!,
           salesLimit: plan.limits.sales!,
           paymentFailedAt: null,
+          ...(shouldDeleteFolders && { foldersUsage: 0 }),
         },
       }),
 
@@ -144,17 +145,6 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
         },
         select: {
           id: true,
-        },
-      });
-
-      await prisma.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          foldersUsage: {
-            decrement: folders.length,
-          },
         },
       });
 
