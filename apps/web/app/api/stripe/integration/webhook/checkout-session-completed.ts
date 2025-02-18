@@ -269,29 +269,13 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   // for program links
   if (link.programId && link.partnerId) {
-    const { program, ...partner } =
-      await prisma.programEnrollment.findFirstOrThrow({
-        where: {
-          links: {
-            some: {
-              id: link.id,
-            },
-          },
-        },
-        select: {
-          program: true,
-          partnerId: true,
-          commissionAmount: true,
-        },
-      });
-
     const reward = await determinePartnerReward({
+      programId: link.programId,
+      partnerId: link.partnerId,
       event: "sale",
-      partnerId: partner.partnerId,
-      programId: program.id,
     });
 
-    if (reward) {
+    if (reward && reward.amount) {
       const earnings = calculateSaleEarnings({
         reward,
         sale: {
@@ -304,8 +288,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         data: {
           id: createId({ prefix: "cm_" }),
           linkId: link.id,
-          programId: program.id,
-          partnerId: partner.partnerId,
+          programId: link.programId,
+          partnerId: link.partnerId,
           customerId: customer.id,
           eventId,
           quantity: 1,
@@ -317,17 +301,30 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       });
 
       waitUntil(
-        notifyPartnerSale({
-          partner: {
-            id: partner.partnerId,
-            referralLink: link.shortLink,
-          },
-          program,
-          sale: {
-            amount: saleData.amount,
-            earnings,
-          },
-        }),
+        (async () => {
+          const program = await prisma.program.findUniqueOrThrow({
+            where: {
+              id: link.programId!,
+            },
+            select: {
+              id: true,
+              name: true,
+              logo: true,
+            },
+          });
+
+          await notifyPartnerSale({
+            program,
+            partner: {
+              id: link.partnerId!,
+              referralLink: link.shortLink,
+            },
+            sale: {
+              amount: saleData.amount,
+              earnings,
+            },
+          });
+        })(),
       );
     }
   }

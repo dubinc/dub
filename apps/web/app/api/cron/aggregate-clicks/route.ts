@@ -138,6 +138,8 @@ export async function GET(req: Request) {
       });
     }
 
+    console.log(processedLinks);
+
     return NextResponse.json(processedLinks);
   } catch (error) {
     return handleAndReturnErrorResponse(error);

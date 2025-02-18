@@ -122,31 +122,14 @@ export async function createShopifySale({
   );
 
   // for program links
-  // TODO: check if link.partnerId as well, so we can just do findUnique partnerId_programId
-  if (link.programId) {
-    const { program, ...partner } =
-      await prisma.programEnrollment.findFirstOrThrow({
-        where: {
-          links: {
-            some: {
-              id: linkId,
-            },
-          },
-        },
-        select: {
-          program: true,
-          partnerId: true,
-          commissionAmount: true,
-        },
-      });
-
+  if (link.programId && link.partnerId) {
     const reward = await determinePartnerReward({
+      programId: link.programId,
+      partnerId: link.partnerId,
       event: "sale",
-      partnerId: partner.partnerId,
-      programId: program.id,
     });
 
-    if (reward) {
+    if (reward && reward.amount) {
       const earnings = calculateSaleEarnings({
         reward,
         sale: {
@@ -158,9 +141,9 @@ export async function createShopifySale({
       await prisma.commission.create({
         data: {
           id: createId({ prefix: "cm_" }),
-          programId: program.id,
+          programId: link.programId,
           linkId: link.id,
-          partnerId: partner.partnerId,
+          partnerId: link.partnerId,
           eventId: saleData.event_id,
           customerId: customer.id,
           quantity: 1,
@@ -173,17 +156,30 @@ export async function createShopifySale({
       });
 
       waitUntil(
-        notifyPartnerSale({
-          partner: {
-            id: partner.partnerId,
-            referralLink: link.shortLink,
-          },
-          program,
-          sale: {
-            amount,
-            earnings,
-          },
-        }),
+        (async () => {
+          const program = await prisma.program.findUniqueOrThrow({
+            where: {
+              id: link.programId!,
+            },
+            select: {
+              id: true,
+              name: true,
+              logo: true,
+            },
+          });
+
+          await notifyPartnerSale({
+            program,
+            partner: {
+              id: link.partnerId!,
+              referralLink: link.shortLink,
+            },
+            sale: {
+              amount: saleData.amount,
+              earnings,
+            },
+          });
+        })(),
       );
     }
   }

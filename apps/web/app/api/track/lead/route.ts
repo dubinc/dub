@@ -144,12 +144,12 @@ export const POST = withWorkspaceEdge(
 
         if (link.programId && link.partnerId) {
           const reward = await determinePartnerReward({
-            event: "lead",
-            partnerId: link.partnerId,
             programId: link.programId,
+            partnerId: link.partnerId,
+            event: "lead",
           });
 
-          if (reward) {
+          if (reward && reward.amount) {
             await prismaEdge.commission.create({
               data: {
                 id: createId({ prefix: "cm_" }),

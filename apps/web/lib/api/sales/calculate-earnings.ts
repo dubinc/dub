@@ -46,7 +46,7 @@ export const calculateSaleEarnings = ({
   reward: Pick<Reward, "amount" | "type">;
   sale: Pick<Commission, "quantity" | "amount">;
 }) => {
-  if (!reward.amount) {
+  if (!reward || !reward.amount) {
     return 0;
   }
 
