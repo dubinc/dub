@@ -8,6 +8,7 @@ import { SaleSchema, updateSaleSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
+// PATCH /api/partners/sales - update a sale
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
     const { programId, invoiceId, amount } = updateSaleSchema.parse(

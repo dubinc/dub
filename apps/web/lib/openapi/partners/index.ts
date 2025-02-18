@@ -18,7 +18,7 @@ export const partnersPaths: ZodOpenApiPathsObject = {
   "/partners/analytics": {
     get: retrievePartnerAnalytics,
   },
-  "/partners/sale": {
+  "/partners/sales": {
     patch: updateSale,
   },
 };
