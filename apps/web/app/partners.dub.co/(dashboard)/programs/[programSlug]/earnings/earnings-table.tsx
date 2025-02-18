@@ -316,7 +316,7 @@ function EarningsTableControls() {
   return (
     <div>
       <div className="flex flex-col gap-3 md:flex-row">
-        <Filter.Select
+        {/* <Filter.Select
           filters={filters}
           activeFilters={activeFilters}
           onSelect={onSelect}
@@ -345,7 +345,7 @@ function EarningsTableControls() {
           //     </div>
           //   ),
           // }}
-        />
+        /> */}
         <SimpleDateRangePicker
           className="w-full sm:min-w-[200px] md:w-fit"
           align="start"
