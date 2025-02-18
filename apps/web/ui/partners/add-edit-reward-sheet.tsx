@@ -70,7 +70,7 @@ const commissionTypes = [
     description: "Pay an ongoing payout",
     recurring: true,
   },
-];
+] as const;
 
 function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const { program, mutate: mutateProgram } = useProgram();
@@ -83,41 +83,9 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const [selectedPartnerType, setSelectedPartnerType] =
     useState<(typeof partnerTypes)[number]["key"]>("all");
 
-  const hasProgramWideClickReward = rewards?.some(
-    (reward) => reward.event === "click" && reward.partnersCount === 0,
-  );
-
-  const hasProgramWideLeadReward = rewards?.some(
-    (reward) => reward.event === "lead" && reward.partnersCount === 0,
-  );
-
-  const hasProgramWideSaleReward = rewards?.some(
-    (reward) => reward.event === "sale" && reward.partnersCount === 0,
-  );
-
   const [isRecurring, setIsRecurring] = useState(
     reward ? reward.maxDuration !== 0 : false,
   );
-
-  useEffect(() => {
-    if (reward) {
-      setSelectedPartnerType(reward.partnersCount === 0 ? "all" : "specific");
-    } else if (
-      (event === "click" && hasProgramWideClickReward) ||
-      (event === "lead" && hasProgramWideLeadReward) ||
-      (event === "sale" && hasProgramWideSaleReward)
-    ) {
-      setSelectedPartnerType("specific");
-    } else {
-      setSelectedPartnerType("all");
-    }
-  }, [
-    reward,
-    event,
-    hasProgramWideClickReward,
-    hasProgramWideLeadReward,
-    hasProgramWideSaleReward,
-  ]);
 
   const {
     register,
@@ -158,6 +126,18 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     "maxDuration",
   ]);
 
+  const hasProgramWideClickReward = rewards?.some(
+    (reward) => reward.event === "click" && reward.partnersCount === 0,
+  );
+
+  const hasProgramWideLeadReward = rewards?.some(
+    (reward) => reward.event === "lead" && reward.partnersCount === 0,
+  );
+
+  const hasProgramWideSaleReward = rewards?.some(
+    (reward) => reward.event === "sale" && reward.partnersCount === 0,
+  );
+
   useEffect(() => {
     setIsRecurring(Number(maxDuration) !== 0);
   }, [maxDuration]);
@@ -170,6 +150,26 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       );
     }
   }, [rewardPartners, setValue]);
+
+  useEffect(() => {
+    if (reward) {
+      setSelectedPartnerType(reward.partnersCount === 0 ? "all" : "specific");
+    } else if (
+      (event === "click" && hasProgramWideClickReward) ||
+      (event === "lead" && hasProgramWideLeadReward) ||
+      (event === "sale" && hasProgramWideSaleReward)
+    ) {
+      setSelectedPartnerType("specific");
+    } else {
+      setSelectedPartnerType("all");
+    }
+  }, [
+    reward,
+    event,
+    hasProgramWideClickReward,
+    hasProgramWideLeadReward,
+    hasProgramWideSaleReward,
+  ]);
 
   const { executeAsync: createReward, isPending: isCreating } = useAction(
     createRewardAction,
@@ -242,7 +242,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     }
   };
 
-  const handleDelete = async () => {
+  const onDelete = async () => {
     if (!workspaceId || !program || !reward) {
       return;
     }
@@ -665,7 +665,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                   type="button"
                   variant="outline"
                   text="Remove reward"
-                  onClick={handleDelete}
+                  onClick={onDelete}
                   loading={isDeleting}
                   disabled={!canDeleteReward}
                   disabledTooltip={
