@@ -112,16 +112,13 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
               : [...prev, link.id],
           );
         }}
-        className={cn(
-          "group relative hidden shrink-0 items-center justify-center outline-none",
-          displayProperties.includes("icon") && "sm:flex",
-        )}
+        className="group relative hidden shrink-0 items-center justify-center outline-none sm:flex"
       >
         {/* Link logo background circle */}
         <div className="absolute inset-0 shrink-0 rounded-full border border-neutral-200 opacity-0 transition-opacity group-data-[variant=loose]/card-list:sm:opacity-100">
           <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
         </div>
-        <div className="relative pr-0.5 transition-[padding,transform] group-hover:scale-90 group-data-[variant=loose]/card-list:sm:p-2">
+        <div className="relative transition-[padding,transform] group-hover:scale-90 group-data-[variant=loose]/card-list:sm:p-2">
           {link.archived ? (
             <Tooltip content="Archived">
               <div>
@@ -156,7 +153,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
         >
           <div
             className={cn(
-              "rounded-full bg-neutral-800 p-1",
+              "rounded-full bg-neutral-800 p-0.5 group-data-[variant=loose]/card-list:p-1",
               "scale-90 opacity-0 transition-[transform,opacity] duration-100 group-data-[checked=true]:scale-100 group-data-[checked=true]:opacity-100",
             )}
           >
