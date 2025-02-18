@@ -15,6 +15,9 @@ const schema = updateRewardSchema.and(
   }),
 );
 
+// TODO:
+// Make sure all cases are added that are handled in the create-reward.ts file
+
 export const updateRewardAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
@@ -25,13 +28,6 @@ export const updateRewardAction = authActionClient
     await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
-    });
-
-    await prisma.reward.findUniqueOrThrow({
-      where: {
-        id: rewardId,
-        programId,
-      },
     });
 
     let programEnrollments: { id: string }[] = [];
