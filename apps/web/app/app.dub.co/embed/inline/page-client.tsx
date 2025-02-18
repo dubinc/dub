@@ -64,6 +64,7 @@ export function EmbedInlinePageClient({
             Refer and earn
           </span>
           <div className="relative mt-16 text-lg text-neutral-900 sm:max-w-[50%]">
+            {/* TODO: Fix it */}
             {/* <ProgramRewardDescription program={program} discount={discount} /> */}
           </div>
           <span className="mb-1.5 mt-6 block text-sm text-neutral-800">
