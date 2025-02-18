@@ -491,6 +491,7 @@ export default function EventsTable({
     loading: isLoading,
     error: error && !requiresUpgrade ? "Failed to fetch events." : undefined,
     columns,
+    enableColumnResizing: true,
     pagination,
     onPaginationChange: setPagination,
     rowCount: requiresUpgrade ? 0 : totalEvents?.[tab] ?? 0,
