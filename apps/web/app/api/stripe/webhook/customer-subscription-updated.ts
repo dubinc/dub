@@ -1,4 +1,4 @@
-import { scheduleLinkSync } from "@/lib/api/links/utils/sync-links";
+import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
 import { getPlanFromPriceId, log } from "@dub/utils";
@@ -139,23 +139,9 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
     // Delete the folders if the new plan is free
     // For downgrade from Business → Pro, it should be fine since we're accounting that to make sure all folders get write access.
     if (shouldDeleteFolders) {
-      const folders = await prisma.folder.findMany({
-        where: {
-          projectId: workspace.id,
-        },
-        select: {
-          id: true,
-        },
+      await deleteWorkspaceFolders({
+        workspaceId: workspace.id,
       });
-
-      await Promise.all(
-        folders.map(({ id }) =>
-          scheduleLinkSync({
-            folderId: id,
-            delay: 5,
-          }),
-        ),
-      );
     }
   } else if (workspace.paymentFailedAt) {
     await prisma.project.update({

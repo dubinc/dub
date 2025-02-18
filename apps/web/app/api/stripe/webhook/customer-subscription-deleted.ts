@@ -1,4 +1,4 @@
-import { scheduleLinkSync } from "@/lib/api/links/utils/sync-links";
+import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { webhookCache } from "@/lib/webhook/cache";
@@ -198,22 +198,8 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
   await webhookCache.mset(webhooks);
 
   if (workspace.foldersUsage > 0) {
-    const folders = await prisma.folder.findMany({
-      where: {
-        projectId: workspace.id,
-      },
-      select: {
-        id: true,
-      },
+    await deleteWorkspaceFolders({
+      workspaceId: workspace.id,
     });
-
-    await Promise.all(
-      folders.map(({ id }) =>
-        scheduleLinkSync({
-          folderId: id,
-          delay: 5,
-        }),
-      ),
-    );
   }
 }
