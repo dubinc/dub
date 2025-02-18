@@ -4,6 +4,7 @@ import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-tim
 import { LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { cn, currencyFormatter, getPrettyUrl } from "@dub/utils";
+import NumberFlow from "@number-flow/react";
 import { Fragment, useMemo } from "react";
 
 const LINE_COLORS = [
@@ -37,11 +38,16 @@ export function EarningsCompositeChart() {
     end: end ? new Date(end) : undefined,
   });
 
+  const total = useMemo(
+    () => data?.timeseries?.reduce((acc, { earnings }) => acc + earnings, 0),
+    [data],
+  );
+
   const [chartData, series] = useMemo(
     () => [
-      data?.timeseries?.map(({ start, data }) => ({
+      data?.timeseries?.map(({ start, earnings, data }) => ({
         date: new Date(start),
-        values: data,
+        values: { ...data, total: earnings },
       })),
       data?.timeseries
         ? [
@@ -71,7 +77,26 @@ export function EarningsCompositeChart() {
 
   return (
     <div className="rounded-lg border border-neutral-200 p-6">
-      <div className="h-80">
+      <div className="flex flex-col gap-1">
+        <span className="text-sm text-neutral-500">Total Earnings</span>
+        <div className="mt-1">
+          {total !== undefined ? (
+            <NumberFlow
+              className="text-lg font-medium leading-none text-neutral-800"
+              value={total / 100}
+              format={{
+                style: "currency",
+                currency: "USD",
+                // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                trailingZeroDisplay: "stripIfInteger",
+              }}
+            />
+          ) : (
+            <div className="h-[27px] w-24 animate-pulse rounded-md bg-neutral-200" />
+          )}
+        </div>
+      </div>
+      <div className="mt-5 h-80">
         {chartData ? (
           <TimeSeriesChart
             data={chartData}
@@ -80,13 +105,21 @@ export function EarningsCompositeChart() {
             tooltipContent={(d) => {
               return (
                 <>
-                  <p className="border-b border-neutral-200 p-3 text-xs font-medium leading-none text-neutral-900">
-                    {formatDateTooltip(d.date, {
-                      interval,
-                      start,
-                      end,
-                    })}
-                  </p>
+                  <div className="flex justify-between border-b border-neutral-200 p-3 text-xs">
+                    <p className="font-medium leading-none text-neutral-900">
+                      {formatDateTooltip(d.date, {
+                        interval,
+                        start,
+                        end,
+                      })}
+                    </p>
+                    <p className="text-right leading-none text-neutral-500">
+                      {currencyFormatter((d.values.total || 0) / 100, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
+                  </div>
                   <div className="grid max-w-64 grid-cols-[minmax(0,1fr),min-content] gap-x-6 gap-y-2 px-4 py-3 text-xs">
                     {series.map(({ id, colorClassName, valueAccessor }) => {
                       const link = data?.links?.find((l) => l.id === id);
