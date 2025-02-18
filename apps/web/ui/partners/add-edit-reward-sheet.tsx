@@ -12,6 +12,7 @@ import useRewardPartnersCount from "@/lib/swr/use-reward-partners-count";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Reward } from "@/lib/types";
+import { EnrolledPartnerProps } from "@/lib/types";
 import {
   createRewardSchema,
   RECURRING_MAX_DURATIONS,
@@ -274,8 +275,21 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     });
   };
 
+  const [selectedPartners, setSelectedPartners] = useState<EnrolledPartnerProps[]>(displayPartners);
+
+  useEffect(() => {
+    setSelectedPartners(displayPartners);
+  }, [displayPartners]);
+
+  useEffect(() => {
+    if (allPartners && partnerIds) {
+      const newSelectedPartners = allPartners.filter(p => partnerIds.includes(p.id));
+      setSelectedPartners(newSelectedPartners);
+    }
+  }, [allPartners, partnerIds]);
+
   const selectedPartnersTable = useTable({
-    data: displayPartners,
+    data: selectedPartners,
     columns: [
       {
         header: "Partner",
@@ -310,9 +324,12 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
               icon={<X className="size-4" />}
               className="h-8 w-8 rounded-md border-0 bg-neutral-50 p-0"
               onClick={() => {
-                setValue(
-                  "partnerIds",
-                  (partnerIds || []).filter((id) => id !== row.original.id),
+                const newPartnerIds = (partnerIds || []).filter(
+                  (id) => id !== row.original.id
+                );
+                setValue("partnerIds", newPartnerIds);
+                setSelectedPartners(prev => 
+                  prev.filter(p => p.id !== row.original.id)
                 );
               }}
             />
@@ -328,7 +345,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     resourceName: (p) => `eligible partner${p ? "s" : ""}`,
     pagination: reward ? pagination : undefined,
     onPaginationChange: reward ? setPagination : undefined,
-    rowCount: reward ? partnersCount || 0 : displayPartners.length,
+    rowCount: reward ? partnersCount || 0 : selectedPartners.length,
   });
 
   const buttonDisabled =
@@ -737,10 +754,13 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       <SelectEligiblePartnersSheet
         isOpen={isAddPartnersOpen}
         setIsOpen={setIsAddPartnersOpen}
-        selectedPartnerIds={partnerIds || []}
+        selectedPartnerIds={watch("partnerIds") || []}
         event={event}
         onSelect={(ids) => {
-          setValue("partnerIds", ids);
+          const existingIds = partnerIds || [];
+          const newIds = ids.filter(id => !existingIds.includes(id));
+          const combinedIds = [...existingIds, ...newIds];
+          setValue("partnerIds", combinedIds);
         }}
       />
     </>

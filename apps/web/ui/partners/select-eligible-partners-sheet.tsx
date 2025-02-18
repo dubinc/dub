@@ -63,21 +63,13 @@ export function SelectEligiblePartnersSheet({
     if (!isOpen) {
       setPagination((prev) => ({ ...prev, pageIndex: 0 }));
       setSearch("");
+      setSelectedPartners([]);
     }
   }, [isOpen, setPagination]);
 
   useEffect(() => {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [debouncedSearch, setPagination]);
-
-  useEffect(() => {
-    if (partners && selectedPartnerIds.length > 0) {
-      const rowsToSelect = table.table
-        .getRowModel()
-        .rows.filter((row) => selectedPartnerIds.includes(row.original.id));
-      rowsToSelect.forEach((row) => row.toggleSelected(true));
-    }
-  }, [partners, selectedPartnerIds]);
 
   const table = useTable({
     data: partners || [],
@@ -127,6 +119,17 @@ export function SelectEligiblePartnersSheet({
       setSelectedPartners(rows.map((row) => row.original));
     },
   });
+
+  useEffect(() => {
+    if (partners && selectedPartnerIds.length > 0) {
+      const selectedRows = partners.filter(p => selectedPartnerIds.includes(p.id));
+      setSelectedPartners(selectedRows);
+      const rowsToSelect = table.table
+        .getRowModel()
+        .rows.filter((row) => selectedPartnerIds.includes(row.original.id));
+      rowsToSelect.forEach((row) => row.toggleSelected(true));
+    }
+  }, [partners, selectedPartnerIds, table.table]);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
