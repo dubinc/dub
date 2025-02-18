@@ -92,6 +92,13 @@ export const GET = withPartnerProfile(
       currentDate = dateIncrement(currentDate);
     }
 
-    return NextResponse.json(timeseries);
+    return NextResponse.json({
+      timeseries,
+      links: links.map((link) => ({
+        id: link.id,
+        shortLink: link.shortLink,
+        url: link.url,
+      })),
+    });
   },
 );

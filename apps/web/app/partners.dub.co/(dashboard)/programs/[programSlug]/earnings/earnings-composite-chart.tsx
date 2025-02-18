@@ -6,6 +6,17 @@ import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { currencyFormatter } from "@dub/utils";
 import { useMemo } from "react";
 
+const LINE_COLORS = [
+  "text-teal-500",
+  "text-purple-500",
+  "text-blue-500",
+  "text-green-500",
+  "text-orange-500",
+  "text-yellow-500",
+];
+
+const MAX_LINES = LINE_COLORS.length;
+
 export function EarningsCompositeChart() {
   const { searchParamsObj } = useRouterStuff();
 
@@ -19,44 +30,36 @@ export function EarningsCompositeChart() {
     interval?: IntervalOptions;
   };
 
-  const { data: timeseries } = usePartnerEarningsTimeseries({
+  const { data } = usePartnerEarningsTimeseries({
     interval,
-    groupBy: "type",
+    groupBy: "linkId",
     start: start ? new Date(start) : undefined,
     end: end ? new Date(end) : undefined,
   });
 
-  const series = [
-    {
-      id: "clicks",
-      isActive: true,
-      valueAccessor: (d) => d.values.clicks,
-      colorClassName: "text-blue-500",
-    },
-    {
-      id: "leads",
-      isActive: true,
-      valueAccessor: (d) => d.values.leads,
-      colorClassName: "text-violet-600",
-    },
-    {
-      id: "sales",
-      isActive: true,
-      valueAccessor: (d) => d.values.sales,
-      colorClassName: "text-teal-400",
-    },
-  ];
-
-  const chartData = useMemo(() => {
-    return timeseries?.map(({ start, data }) => ({
-      date: new Date(start),
-      values: {
-        clicks: data.click,
-        leads: data.lead,
-        sales: data.sale,
-      },
-    }));
-  }, [timeseries]);
+  const [chartData, series] = useMemo(
+    () => [
+      data?.timeseries?.map(({ start, data }) => ({
+        date: new Date(start),
+        values: data,
+      })),
+      data?.timeseries
+        ? [
+            ...new Set<string>(
+              data?.timeseries.flatMap(({ data }) => Object.keys(data)),
+            ),
+          ]
+            .slice(0, MAX_LINES)
+            .map((linkId, idx) => ({
+              id: linkId,
+              isActive: true,
+              valueAccessor: (d) => d.values[linkId],
+              colorClassName: LINE_COLORS[idx % LINE_COLORS.length],
+            }))
+        : [],
+    ],
+    [data],
+  );
 
   return (
     <div className="rounded-lg border border-neutral-200 p-6">
