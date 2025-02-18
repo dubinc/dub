@@ -29,6 +29,25 @@ export const createRewardAction = authActionClient
 
     let programEnrollments: { id: string }[] = [];
 
+    // only one program-wide reward is allowed for each event
+    if (!partnerIds || partnerIds.length === 0) {
+      const programWideRewardCount = await prisma.reward.count({
+        where: {
+          event,
+          programId,
+          partners: {
+            none: {},
+          },
+        },
+      });
+
+      if (programWideRewardCount > 0) {
+        throw new Error(
+          `There is an existing program-wide reward for ${event}.`,
+        );
+      }
+    }
+
     if (partnerIds) {
       programEnrollments = await prisma.programEnrollment.findMany({
         where: {
@@ -46,7 +65,8 @@ export const createRewardAction = authActionClient
         throw new Error("Invalid partner IDs provided.");
       }
 
-      const existingAssignments = await prisma.partnerReward.findMany({
+      // only one partner-specific reward is allowed for each event for a partner
+      const existingRewardCount = await prisma.partnerReward.count({
         where: {
           reward: {
             event,
@@ -58,22 +78,12 @@ export const createRewardAction = authActionClient
             },
           },
         },
-        include: {
-          programEnrollment: {
-            include: {
-              partner: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-          },
-        },
       });
 
-      if (existingAssignments.length > 0) {
-        throw new Error("DUPLICATE_PARTNER_ASSIGNMENT");
+      if (existingRewardCount > 0) {
+        throw new Error(
+          `Some of these partners already have an existing reward for ${event}.`,
+        );
       }
     }
 
@@ -98,7 +108,11 @@ export const createRewardAction = authActionClient
     });
 
     // set the default reward if it doesn't exist
-    if (!program.defaultRewardId && event === EventType.sale) {
+    if (
+      event === EventType.sale &&
+      !program.defaultRewardId &&
+      (!partnerIds || partnerIds.length === 0)
+    ) {
       await prisma.program.update({
         where: {
           id: programId,
@@ -108,9 +122,4 @@ export const createRewardAction = authActionClient
         },
       });
     }
-
-    // TODO:
-    // Send an email to partners who are eligible for the reward.
-
-    console.log("New reward created", reward);
   });
