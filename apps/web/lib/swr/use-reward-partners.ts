@@ -18,8 +18,6 @@ export default function useRewardPartners({
   const { programId } = useParams();
   const { id: workspaceId } = useWorkspace();
 
-  console.log({ query });
-
   const { data, error } = useSWR<EnrolledPartnerProps[]>(
     enabled && workspaceId && programId
       ? `/api/programs/${programId}/rewards/partners?${new URLSearchParams({

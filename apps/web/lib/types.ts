@@ -55,7 +55,7 @@ import {
   ProgramInviteSchema,
   ProgramSchema,
 } from "./zod/schemas/programs";
-import { rewardSchema } from "./zod/schemas/rewards";
+import { RewardSchema } from "./zod/schemas/rewards";
 import {
   saleEventResponseSchema,
   trackSaleResponseSchema,
@@ -433,4 +433,4 @@ export type FolderSummary = Pick<
 
 // Rewards
 
-export type Reward = z.infer<typeof rewardSchema>;
+export type Reward = z.infer<typeof RewardSchema>;

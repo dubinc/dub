@@ -4,16 +4,14 @@ import { getPaginationQuerySchema } from "./misc";
 
 export const RECURRING_MAX_DURATIONS = [0, 3, 6, 12, 18, 24];
 
-export const rewardSchema = z.object({
+export const RewardSchema = z.object({
   id: z.string(),
   programId: z.string(),
   event: z.nativeEnum(EventType),
   type: z.nativeEnum(CommissionType),
   amount: z.number(),
   maxDuration: z.number().nullish(),
-  partnersCount: z.number(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  partnersCount: z.number().nullish(),
 });
 
 export const createOrUpdateRewardSchema = z.object({

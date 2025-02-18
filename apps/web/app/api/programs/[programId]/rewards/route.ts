@@ -1,6 +1,6 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { rewardSchema } from "@/lib/zod/schemas/rewards";
+import { RewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -36,6 +36,6 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   }));
 
   return NextResponse.json(
-    z.array(rewardSchema).parse(rewardsWithPartnersCount),
+    z.array(RewardSchema).parse(rewardsWithPartnersCount),
   );
 });

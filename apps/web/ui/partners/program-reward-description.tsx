@@ -8,37 +8,42 @@ export function ProgramRewardDescription({
   amountClassName,
   periodClassName,
 }: {
-  reward: Reward;
+  reward?: Reward | null;
   discount?: DiscountProps | null;
   amountClassName?: string;
   periodClassName?: string;
 }) {
   return (
     <>
-      Earn{" "}
-      <strong className={cn("font-semibold", amountClassName)}>
-        {constructRewardAmount({
-          amount: reward.amount,
-          type: reward.type,
-        })}{" "}
-      </strong>
-      for each {reward.event}
-      {reward.maxDuration === null ? (
-        <strong className={cn("font-semibold", periodClassName)}>
-          {" "}
-          for the customer's lifetime.
-        </strong>
-      ) : reward.maxDuration && reward.maxDuration > 1 ? (
+      {reward ? (
         <>
-          , and again{" "}
-          <strong className={cn("font-semibold", periodClassName)}>
-            every month for {reward.maxDuration} months
+          Earn{" "}
+          <strong className={cn("font-semibold", amountClassName)}>
+            {constructRewardAmount({
+              amount: reward.amount,
+              type: reward.type,
+            })}{" "}
           </strong>
-          .
+          for each {reward.event}
+          {reward.maxDuration === null ? (
+            <strong className={cn("font-semibold", periodClassName)}>
+              {" "}
+              for the customer's lifetime.
+            </strong>
+          ) : reward.maxDuration && reward.maxDuration > 1 ? (
+            <>
+              , and again{" "}
+              <strong className={cn("font-semibold", periodClassName)}>
+                every month for {reward.maxDuration} months
+              </strong>
+              .
+            </>
+          ) : (
+            "."
+          )}
         </>
-      ) : (
-        "."
-      )}
+      ) : null}
+
       {discount ? (
         <>
           {" "}

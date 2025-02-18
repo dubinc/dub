@@ -52,6 +52,8 @@ export default function ProgramPageClient() {
   const { programEnrollment } = useProgramEnrollment();
   const [copied, copyToClipboard] = useCopyToClipboard();
 
+  console.log(programEnrollment);
+
   const {
     start,
     end,
@@ -78,7 +80,7 @@ export default function ProgramPageClient() {
         <div className="relative mt-24 text-lg text-neutral-900 sm:max-w-[50%]">
           {program ? (
             <ProgramRewardDescription
-              program={program}
+              reward={programEnrollment?.reward}
               discount={programEnrollment?.discount}
             />
           ) : (

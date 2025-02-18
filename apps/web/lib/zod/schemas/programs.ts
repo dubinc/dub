@@ -8,6 +8,7 @@ import {
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
+import { RewardSchema } from "./rewards";
 import { parseDateSchema } from "./utils";
 
 export const HOLDING_PERIOD_DAYS = [0, 30, 60, 90];
@@ -23,6 +24,7 @@ export const ProgramSchema = z.object({
   type: z.nativeEnum(ProgramType),
   cookieLength: z.number(),
   defaultRewardId: z.string().nullable(),
+  rewards: z.array(RewardSchema).nullish(),
 
   // Commission details
   commissionAmount: z.number(),
@@ -75,6 +77,7 @@ export const ProgramEnrollmentSchema = z.object({
   program: ProgramSchema,
   status: z.nativeEnum(ProgramEnrollmentStatus),
   links: z.array(PartnerLinkSchema).nullable(),
+  reward: RewardSchema.nullish(),
   discount: DiscountSchema.nullish(),
   commissionAmount: z.number().nullable(),
   createdAt: z.date(),

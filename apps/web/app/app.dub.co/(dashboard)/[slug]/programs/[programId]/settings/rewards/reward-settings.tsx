@@ -140,11 +140,12 @@ const AdditionalRewards = () => {
 };
 
 const Reward = ({ reward }: { reward: Reward }) => {
-  const Icon = events[reward.event].icon;
   const { RewardSheet, setIsOpen } = useRewardSheet({
     event: reward.event,
     reward,
   });
+
+  const Icon = events[reward.event].icon;
 
   return (
     <>
@@ -164,7 +165,7 @@ const Reward = ({ reward }: { reward: Reward }) => {
               />
             </span>
           </div>
-          {reward.partnersCount > 0 ? (
+          {reward.partnersCount && reward?.partnersCount > 0 ? (
             <Badge variant="green">{reward.partnersCount} partners</Badge>
           ) : (
             <Badge variant="gray">All partners</Badge>

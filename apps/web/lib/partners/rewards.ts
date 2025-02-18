@@ -34,10 +34,7 @@ export const determinePartnerReward = async ({
         },
       ],
     },
-    select: {
-      id: true,
-      amount: true,
-      type: true,
+    include: {
       _count: {
         select: {
           partners: true,
