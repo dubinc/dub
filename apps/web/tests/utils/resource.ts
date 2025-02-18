@@ -1,6 +1,21 @@
+export const E2E_USER_ID = "clxz1q7c7000hbqx5ckv4r82h";
+export const E2E_WORKSPACE_ID = "ws_clrei1gld0002vs9mzn93p8ik";
+
 export const E2E_LINK = {
   domain: "dub.sh",
   url: "https://github.com/dubinc",
+};
+
+export const E2E_TAG = {
+  id: "clvkopm8b0009nf98azsp9epk",
+  name: "E2E Tests (DO NOT DELETE)",
+  color: "red",
+};
+
+export const E2E_TAG_2 = {
+  id: "tag_8eyd9MfjUCCkRnGDt1hbe4v3",
+  name: "E2E Tests 2 (DO NOT DELETE)",
+  color: "blue",
 };
 
 export const E2E_CLICK_ID = "GWGrkftJdYlZD2mq";
