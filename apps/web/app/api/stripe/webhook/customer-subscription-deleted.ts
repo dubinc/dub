@@ -1,3 +1,4 @@
+import { scheduleLinkSync } from "@/lib/api/links/utils/sync-links";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { webhookCache } from "@/lib/webhook/cache";
@@ -22,6 +23,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       id: true,
       slug: true,
       domains: true,
+      foldersUsage: true,
       links: {
         where: {
           key: "_root",
@@ -65,7 +67,6 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
   }
 
   const workspaceLinks = workspace.links;
-
   const workspaceUsers = workspace.users.map(({ user }) => user);
 
   const pipeline = redis.pipeline();
@@ -177,13 +178,6 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         webhookEnabled: false,
       },
     }),
-
-    // Remove all folders for the workspace
-    prisma.folder.deleteMany({
-      where: {
-        projectId: workspace.id,
-      },
-    }),
   ]);
 
   // Update the webhooks cache
@@ -201,4 +195,35 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
   });
 
   await webhookCache.mset(webhooks);
+
+  if (workspace.foldersUsage > 0) {
+    const folders = await prisma.folder.findMany({
+      where: {
+        projectId: workspace.id,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    await prisma.project.update({
+      where: {
+        id: workspace.id,
+      },
+      data: {
+        foldersUsage: {
+          decrement: folders.length,
+        },
+      },
+    });
+
+    await Promise.all(
+      folders.map(({ id }) =>
+        scheduleLinkSync({
+          folderId: id,
+          delay: 5,
+        }),
+      ),
+    );
+  }
 }

@@ -40,10 +40,16 @@ export async function POST(req: Request) {
     const countOfLinks = folder._count.links;
 
     if (countOfLinks === 0) {
-      return new Response("No links found in the folder. Skipping...");
+      await prisma.folder.delete({
+        where: {
+          id: folderId,
+        },
+      });
+
+      return new Response("No more links to process. Deleting folder...");
     }
 
-    await prisma.$transaction(
+    const processedLinks = await prisma.$transaction(
       async (tx) => {
         const links = await tx.link.findMany({
           where: {
@@ -59,10 +65,15 @@ export async function POST(req: Request) {
           orderBy: {
             id: "asc",
           },
-          take: 500,
+          take: 1,
         });
 
-        await recordLink(links);
+        await recordLink(
+          links.map((link) => ({
+            ...link,
+            folderId: null,
+          })),
+        );
 
         await tx.link.updateMany({
           where: {
@@ -74,6 +85,8 @@ export async function POST(req: Request) {
             folderId: null,
           },
         });
+
+        return links;
       },
       {
         timeout: 10000,
@@ -85,7 +98,9 @@ export async function POST(req: Request) {
       delay: 2,
     });
 
-    return new Response(`Processed ${countOfLinks} links in the folder.`);
+    return new Response(
+      `Processed ${processedLinks.length} links in the folder.`,
+    );
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }

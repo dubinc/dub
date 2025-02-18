@@ -1,3 +1,4 @@
+import { scheduleLinkSync } from "@/lib/api/links/utils/sync-links";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
 import { getPlanFromPriceId, log } from "@dub/utils";
@@ -29,6 +30,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
       id: true,
       plan: true,
       paymentFailedAt: true,
+      foldersUsage: true,
       users: {
         select: {
           user: {
@@ -61,7 +63,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
 
   const newPlan = plan.name.toLowerCase();
   const shouldDisableWebhooks = newPlan === "free" || newPlan === "pro";
-  const shouldDeleteFolders = newPlan === "free";
+  const shouldDeleteFolders = newPlan === "free" && workspace.foldersUsage > 0;
 
   // If a workspace upgrades/downgrades their subscription, update their usage limit in the database.
   if (workspace.plan !== newPlan) {
@@ -136,14 +138,34 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
     // Delete the folders if the new plan is free
     // For downgrade from Business → Pro, it should be fine since we're accounting that to make sure all folders get write access.
     if (shouldDeleteFolders) {
-      await prisma.folder.deleteMany({
+      const folders = await prisma.folder.findMany({
         where: {
           projectId: workspace.id,
         },
+        select: {
+          id: true,
+        },
       });
 
-      // TODO
-      // call recordLink to update the Links in TB
+      await prisma.project.update({
+        where: {
+          id: workspace.id,
+        },
+        data: {
+          foldersUsage: {
+            decrement: folders.length,
+          },
+        },
+      });
+
+      await Promise.all(
+        folders.map(({ id }) =>
+          scheduleLinkSync({
+            folderId: id,
+            delay: 5,
+          }),
+        ),
+      );
     }
   } else if (workspace.paymentFailedAt) {
     await prisma.project.update({
