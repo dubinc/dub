@@ -11,7 +11,10 @@ export default function useRewardPartnersCount({
   query,
   enabled = true,
 }: {
-  query?: Omit<z.infer<typeof rewardPartnersPartialQuerySchema>, "page" | "pageSize">;
+  query?: Omit<
+    z.infer<typeof rewardPartnersPartialQuerySchema>,
+    "page" | "pageSize"
+  >;
   enabled?: boolean;
 }) {
   const { programId } = useParams();
@@ -19,18 +22,20 @@ export default function useRewardPartnersCount({
 
   const { data: partnersCount, error } = useSWR<number>(
     enabled && workspaceId && programId
-      ? `/api/programs/${programId}/rewards/partners/count?${new URLSearchParams({
-          workspaceId,
-          programId,
-          ...query,
-        } as Record<string, any>).toString()}`
+      ? `/api/programs/${programId}/rewards/partners/count?${new URLSearchParams(
+          {
+            workspaceId,
+            programId,
+            ...query,
+          } as Record<string, any>,
+        ).toString()}`
       : null,
     fetcher,
   );
 
   return {
     partnersCount,
-    loading: typeof partnersCount === "undefined" && !error,
+    loading: !partnersCount && !error && enabled,
     error,
   };
-} 
+}

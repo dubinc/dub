@@ -1,6 +1,6 @@
 import useRewardPartners from "@/lib/swr/use-reward-partners";
 import useRewardPartnersCount from "@/lib/swr/use-reward-partners-count";
-import { PartnerProps } from "@/lib/types";
+import { EnrolledPartnerProps } from "@/lib/types";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { X } from "@/ui/shared/icons";
 import {
@@ -35,7 +35,7 @@ export function SelectEligiblePartnersSheet({
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
   const { pagination, setPagination } = usePagination(25);
-  const [selectedPartners, setSelectedPartners] = useState<PartnerProps[]>([]);
+  const [selectedPartners, setSelectedPartners] = useState<EnrolledPartnerProps[]>([]);
 
   const {
     data: partners,

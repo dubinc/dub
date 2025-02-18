@@ -31,7 +31,7 @@ export default function usePartners({
 
   return {
     data,
-    loading: typeof data === "undefined" && !error,
+    loading: !data && !error,
     error,
   };
 }

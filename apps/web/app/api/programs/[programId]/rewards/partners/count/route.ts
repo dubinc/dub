@@ -20,16 +20,25 @@ export const GET = withWorkspace(
     const count = await prisma.programEnrollment.count({
       where: {
         programId,
-        NOT: {
-          rewards: {
-            some: {
-              reward: {
-                ...(rewardId && { id: rewardId }),
-                ...(event && { event }),
+        ...(!rewardId
+          ? {
+              NOT: {
+                rewards: {
+                  some: {
+                    reward: {
+                      event,
+                    },
+                  },
+                },
               },
-            },
-          },
-        },
+            }
+          : {
+              rewards: {
+                some: {
+                  rewardId,
+                },
+              },
+            }),
         ...(search && {
           partner: {
             OR: [

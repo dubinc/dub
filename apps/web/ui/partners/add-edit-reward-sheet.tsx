@@ -7,6 +7,8 @@ import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
+import useRewardPartners from "@/lib/swr/use-reward-partners";
+import useRewardPartnersCount from "@/lib/swr/use-reward-partners-count";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Reward } from "@/lib/types";
@@ -16,7 +18,7 @@ import {
 } from "@/lib/zod/schemas/rewards";
 import { SelectEligiblePartnersSheet } from "@/ui/partners/select-eligible-partners-sheet";
 import { X } from "@/ui/shared/icons";
-import { EventType, Partner } from "@dub/prisma/client";
+import { EventType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -25,17 +27,24 @@ import {
   Sheet,
   Table,
   Tooltip,
+  usePagination,
   Users,
   useTable,
 } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
-import { fetcher } from "@dub/utils/src";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils/src/constants";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import useSWR, { mutate } from "swr";
+import { mutate } from "swr";
 import { z } from "zod";
 
 interface RewardSheetProps {
@@ -75,9 +84,10 @@ const commissionTypes = [
 function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const { program, mutate: mutateProgram } = useProgram();
   const { rewards } = useRewards();
-  const { data: partners } = usePartners();
+  const { data: allPartners } = usePartners();
   const { id: workspaceId } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
+  const { pagination, setPagination } = usePagination(25);
   const [isAddPartnersOpen, setIsAddPartnersOpen] = useState(false);
 
   const [selectedPartnerType, setSelectedPartnerType] =
@@ -103,21 +113,25 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     },
   });
 
-  const { data: rewardPartners, isLoading: isLoadingRewardPartners } = useSWR<
-    Pick<Partner, "id" | "name" | "email" | "image">[]
-  >(
-    reward && program && reward.partnersCount > 0
-      ? `/api/programs/${program.id}/rewards/${reward.id}/partners?workspaceId=${workspaceId}`
-      : null,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      onError: (err) => {
-        console.error("Failed to fetch reward partners:", err);
-        toast.error("Failed to load reward partners");
-      },
+  const {
+    data: rewardPartners,
+    loading: isLoadingRewardPartners,
+    error: rewardPartnersError,
+  } = useRewardPartners({
+    query: {
+      rewardId: reward?.id,
+      pageSize: pagination.pageSize,
+      page: pagination.pageIndex || 1,
     },
-  );
+    enabled: Boolean(reward && program),
+  });
+
+  const { partnersCount, loading: isLoadingCount } = useRewardPartnersCount({
+    query: {
+      rewardId: reward?.id,
+    },
+    enabled: Boolean(reward && program),
+  });
 
   const [partnerIds = [], amount, type, maxDuration] = watch([
     "partnerIds",
@@ -125,6 +139,12 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     "type",
     "maxDuration",
   ]);
+
+  const displayPartners = useMemo(() => {
+    if (reward && rewardPartners) return rewardPartners;
+    if (!allPartners) return [];
+    return allPartners.filter((p) => partnerIds && partnerIds.includes(p.id));
+  }, [reward, rewardPartners, allPartners, partnerIds]);
 
   const hasProgramWideClickReward = rewards?.some(
     (reward) => reward.event === "click" && reward.partnersCount === 0,
@@ -255,7 +275,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   };
 
   const selectedPartnersTable = useTable({
-    data: partners?.filter((p) => partnerIds?.includes(p.id)) || [],
+    data: displayPartners,
     columns: [
       {
         header: "Partner",
@@ -306,6 +326,9 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
     resourceName: (p) => `eligible partner${p ? "s" : ""}`,
+    pagination: reward ? pagination : undefined,
+    onPaginationChange: reward ? setPagination : undefined,
+    rowCount: reward ? partnersCount || 0 : displayPartners.length,
   });
 
   const buttonDisabled =
@@ -630,11 +653,11 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                   />
                 </div>
                 <div className="mt-4">
-                  {isLoadingRewardPartners ? (
+                  {isLoadingRewardPartners || isLoadingCount ? (
                     <div className="flex items-center justify-center py-8">
                       <LoadingSpinner className="size-4" />
                     </div>
-                  ) : (partnerIds || []).length > 0 ? (
+                  ) : displayPartners.length > 0 ? (
                     <Table {...selectedPartnersTable} />
                   ) : (
                     <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-neutral-50 py-12">

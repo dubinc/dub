@@ -2,7 +2,7 @@ import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { z } from "zod";
-import { PartnerProps } from "../types";
+import { EnrolledPartnerProps } from "../types";
 import { rewardPartnersQuerySchema } from "../zod/schemas/rewards";
 import useWorkspace from "./use-workspace";
 
@@ -18,7 +18,9 @@ export default function useRewardPartners({
   const { programId } = useParams();
   const { id: workspaceId } = useWorkspace();
 
-  const { data, error } = useSWR<PartnerProps[]>(
+  console.log({ query });
+
+  const { data, error } = useSWR<EnrolledPartnerProps[]>(
     enabled && workspaceId && programId
       ? `/api/programs/${programId}/rewards/partners?${new URLSearchParams({
           workspaceId,
@@ -31,7 +33,7 @@ export default function useRewardPartners({
 
   return {
     data,
-    loading: typeof data === "undefined" && !error,
+    loading: !data && !error && enabled,
     error,
   };
-} 
+}
