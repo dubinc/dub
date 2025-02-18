@@ -1,5 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { scheduleLinkSync } from "@/lib/api/links/utils/sync-links";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
 
@@ -41,15 +43,39 @@ export async function POST(req: Request) {
       return new Response("No links found in the folder. Skipping...");
     }
 
-    // TODO:
-    // Find 100 of 5 batches of links
-    // - call recordLink for each link
-    // - Update the folderId to null for each link
-    // invoke scheduleLinkSync with another batch
+    const links = await prisma.link.findMany({
+      where: {
+        folderId,
+      },
+      include: {
+        tags: {
+          select: {
+            tag: true,
+          },
+        },
+      },
+      take: 500,
+    });
 
+    await recordLink(links);
 
+    await prisma.link.updateMany({
+      where: {
+        id: {
+          in: links.map((link) => link.id),
+        },
+      },
+      data: {
+        folderId: null,
+      },
+    });
 
-    return new Response("Link synced to Tinybird.");
+    await scheduleLinkSync({
+      folderId,
+      delay: 2,
+    });
+
+    return new Response(`Processed ${links.length} links in the folder.`);
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
