@@ -193,6 +193,7 @@ export function EarningsTablePartner({
             ...(sortBy && { sortBy }),
             ...(sortOrder && { sortOrder }),
           },
+          del: "page",
         }),
     }),
     rowCount: earningsCount?.count || 0,
