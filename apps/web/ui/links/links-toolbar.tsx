@@ -1,6 +1,8 @@
+import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BoxArchive,
   Button,
+  Folder,
   LoadingSpinner,
   PaginationControls,
   Trash,
@@ -9,6 +11,7 @@ import {
 import { cn } from "@dub/utils";
 import { useArchiveLinkModal } from "../modals/archive-link-modal";
 import { useDeleteLinkModal } from "../modals/delete-link-modal";
+import { useMoveLinkToFolderModal } from "../modals/move-link-to-folder-modal";
 import { X } from "../shared/icons";
 import ArchivedLinksHint from "./archived-links-hint";
 import { useLinkSelection } from "./link-selection-provider";
@@ -23,6 +26,8 @@ export const LinksToolbar = ({
   links: ResponseLink[];
   linksCount: number;
 }) => {
+  const { flags } = useWorkspace();
+
   const { selectedLinkIds, setSelectedLinkIds } = useLinkSelection();
   const { pagination, setPagination } = usePagination();
 
@@ -36,7 +41,21 @@ export const LinksToolbar = ({
     props: selectedLinks,
   });
 
+  const { setShowMoveLinkToFolderModal, MoveLinkToFolderModal } =
+    useMoveLinkToFolderModal({
+      links: selectedLinks,
+    });
+
   const bulkActions = [
+    ...(flags?.linkFolders
+      ? [
+          {
+            label: "Folder",
+            icon: Folder,
+            action: () => setShowMoveLinkToFolderModal(true),
+          },
+        ]
+      : []),
     {
       label: selectedLinks.every(({ archived }) => archived)
         ? "Unarchive"
@@ -58,6 +77,7 @@ export const LinksToolbar = ({
     <>
       <ArchiveLinkModal />
       <DeleteLinkModal />
+      <MoveLinkToFolderModal />
 
       {/* Leave room at bottom of list */}
       <div className="h-[90px]" />
