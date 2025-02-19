@@ -88,15 +88,20 @@ export function TagSelect() {
     return false;
   };
 
-  const options = useMemo(
-    () => availableTags?.map((tag) => getTagOption(tag)),
-    [availableTags],
-  );
+  const options = useMemo(() => {
+    return (
+      (availableTags || [])
+        .filter((tag): tag is TagProps => tag !== null && tag !== undefined)
+        .map((tag) => getTagOption(tag)) 
+    );
+  }, [availableTags]);
 
-  const selectedTags = useMemo(
-    () => tags.map((tag) => getTagOption(tag)),
-    [tags],
-  );
+  const selectedTags = useMemo(() => {
+    if (!tags || tags.length === 0) return [];
+    return tags
+      .filter((tag): tag is TagProps => tag !== null && tag !== undefined) 
+      .map((tag) => getTagOption(tag)); 
+  }, [tags]);  
 
   useKeyboardShortcut("t", () => setIsOpen(true), { modal: true });
 
@@ -182,7 +187,8 @@ export function TagSelect() {
               [...(availableTags || []), ...(tags || [])]?.find(
                 (t) => t.id === id,
               ),
-            ),
+            )
+            .filter(Boolean),
             { shouldDirty: true },
           );
         }}
