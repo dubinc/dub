@@ -100,4 +100,5 @@ export const PartnerProgramInviteSchema = z.object({
   id: z.string(),
   email: z.string(),
   program: ProgramSchema,
+  reward: RewardSchema.nullable(),
 });
