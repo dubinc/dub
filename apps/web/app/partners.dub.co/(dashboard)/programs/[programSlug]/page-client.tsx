@@ -41,9 +41,11 @@ import { PayoutsCard } from "./payouts-card";
 const ProgramOverviewContext = createContext<{
   start?: Date;
   end?: Date;
-  interval?: IntervalOptions;
+  interval: IntervalOptions;
   color?: string;
-}>({});
+}>({
+  interval: "1y",
+});
 
 export default function ProgramPageClient() {
   const { getQueryString, searchParamsObj } = useRouterStuff();
