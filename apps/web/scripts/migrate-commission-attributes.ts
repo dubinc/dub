@@ -1,20 +1,19 @@
-// @ts-nocheck
-
 import { createId } from "@/lib/api/utils";
 import { prisma } from "@dub/prisma";
 import { EventType } from "@prisma/client";
 import "dotenv-flow/config";
 
 // Migrate the commission attributes from Program table to Reward table.
-
 async function main() {
   const programs = await prisma.program.findMany();
 
   for (const program of programs) {
     const maxDuration =
-      program.commissionInterval === "year"
-        ? program.commissionDuration * 12
-        : program.commissionDuration;
+      program.commissionDuration === null
+        ? program.commissionDuration
+        : program.commissionInterval === "year"
+          ? program.commissionDuration * 12
+          : program.commissionDuration;
 
     const reward = await prisma.reward.create({
       data: {
@@ -32,7 +31,7 @@ async function main() {
     if (!program.defaultRewardId) {
       await prisma.program.update({
         where: {
-          id: reward.programId,
+          id: program.id,
         },
         data: {
           defaultRewardId: reward.id,

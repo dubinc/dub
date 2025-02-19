@@ -2,8 +2,10 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
 import { enrollPartner } from "@/lib/api/partners/enroll-partner";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
+import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { determinePartnerReward } from "@/lib/partners/rewards";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
@@ -60,7 +62,6 @@ export const GET = withWorkspace(
       SELECT 
         p.*, 
         pe.id as enrollmentId, 
-        pe.commissionAmount, 
         pe.status, 
         pe.programId, 
         pe.partnerId, 
@@ -104,21 +105,42 @@ export const GET = withWorkspace(
       ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)}
       LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
 
-    const response = partners.map((partner) => ({
-      ...partner,
-      createdAt: new Date(partner.enrollmentCreatedAt),
-      payoutsEnabled: Boolean(partner.payoutsEnabled),
-      clicks: Number(partner.totalClicks),
-      leads: Number(partner.totalLeads),
-      sales: Number(partner.totalSales),
-      saleAmount: Number(partner.totalSaleAmount),
-      earnings:
-        ((program.commissionType === "percentage"
-          ? partner.totalSaleAmount
-          : partner.totalSales) ?? 0) *
-        (program.commissionAmount / 100),
-      links: partner.links.filter((link: any) => link !== null),
-    }));
+    const partnerRewards = await Promise.all(
+      partners.map((partner) =>
+        determinePartnerReward({
+          programId: program.id,
+          partnerId: partner.id,
+          event: "sale",
+        }),
+      ),
+    );
+
+    const response = partners.map((partner, index) => {
+      const totalSaleAmount = Number(partner.totalSaleAmount);
+      const totalSales = Number(partner.totalSales);
+
+      const earnings = !partnerRewards[index]
+        ? 0
+        : calculateSaleEarnings({
+            reward: partnerRewards[index],
+            sale: {
+              quantity: totalSales,
+              amount: totalSaleAmount,
+            },
+          });
+
+      return {
+        ...partner,
+        createdAt: new Date(partner.enrollmentCreatedAt),
+        payoutsEnabled: Boolean(partner.payoutsEnabled),
+        clicks: Number(partner.totalClicks),
+        leads: Number(partner.totalLeads),
+        sales: totalSales,
+        saleAmount: totalSaleAmount,
+        earnings,
+        links: partner.links.filter((link: any) => link !== null),
+      };
+    });
 
     return NextResponse.json(z.array(EnrolledPartnerSchema).parse(response));
   },
