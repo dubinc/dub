@@ -1,6 +1,7 @@
 "use server";
 
 import { DubApiError } from "@/lib/api/errors";
+import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { updateRewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
@@ -18,31 +19,16 @@ export const updateRewardAction = authActionClient
       programId,
     });
 
-    const reward = await prisma.reward.findUniqueOrThrow({
-      where: {
-        id: rewardId,
-      },
-      select: {
-        programId: true,
-        _count: {
-          select: {
-            partners: true,
-          },
-        },
-      },
+    const reward = await getRewardOrThrow({
+      rewardId,
+      programId,
+      includePartnersCount: true,
     });
-
-    if (reward.programId !== programId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "Reward is not associated with the program.",
-      });
-    }
 
     let programEnrollments: { id: string }[] = [];
 
     if (partnerIds && partnerIds.length > 0) {
-      if (reward._count.partners === 0) {
+      if (reward.partnersCount === 0) {
         throw new DubApiError({
           code: "bad_request",
           message: "Cannot add partners to a program-wide reward.",
@@ -68,7 +54,7 @@ export const updateRewardAction = authActionClient
         });
       }
     } else {
-      if (reward._count.partners > 0) {
+      if (reward.partnersCount && reward.partnersCount > 0) {
         throw new DubApiError({
           code: "bad_request",
           message:
