@@ -161,6 +161,7 @@ const Reward = ({ reward }: { reward: Reward }) => {
             <span className="text-sm font-normal">
               <ProgramRewardDescription
                 reward={reward}
+                hideIfZero={false}
                 amountClassName="text-blue-600"
               />
             </span>

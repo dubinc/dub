@@ -7,15 +7,17 @@ export function ProgramRewardDescription({
   discount,
   amountClassName,
   periodClassName,
+  hideIfZero = true,
 }: {
   reward?: Reward | null;
   discount?: DiscountProps | null;
   amountClassName?: string;
   periodClassName?: string;
+  hideIfZero?: boolean; // if true, don't display the reward description if the reward amount is 0
 }) {
   return (
     <>
-      {reward && reward.amount > 0 ? (
+      {reward && (reward.amount > 0 || !hideIfZero) ? (
         <>
           Earn{" "}
           <strong className={cn("font-semibold", amountClassName)}>
