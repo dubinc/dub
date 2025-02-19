@@ -165,8 +165,8 @@ export const LinksToolbar = ({
                       <Button
                         type="button"
                         variant="secondary"
-                        className="h-7 px-2.5"
-                        icon={<Icon className="size-4" />}
+                        className="h-7 gap-1.5 px-2.5 text-xs"
+                        icon={<Icon className="size-3.5" />}
                         text={label}
                         onClick={action}
                         disabledTooltip={disabledTooltip}
