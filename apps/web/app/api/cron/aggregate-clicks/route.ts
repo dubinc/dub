@@ -125,7 +125,7 @@ export async function GET(req: Request) {
           type: "click",
           quantity,
           amount: 0,
-          earnings: reward.amount,
+          earnings: reward.amount * quantity,
         },
       });
 
