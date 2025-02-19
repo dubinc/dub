@@ -59,7 +59,6 @@ import {
   COUNTRIES,
   DUB_DEMO_LINKS,
   DUB_LOGO,
-  fetcher,
   getApexDomain,
   getNextPlan,
   GOOGLE_FAVICON_URL,
@@ -76,9 +75,9 @@ import {
   useMemo,
   useState,
 } from "react";
-import useSWR from "swr";
 import { useDebounce } from "use-debounce";
 import { FolderIcon } from "../folders/folder-icon";
+import { LinkIcon } from "../links/link-icon";
 import TagBadge from "../links/tag-badge";
 import AnalyticsOptions from "./analytics-options";
 import { AnalyticsContext } from "./analytics-provider";
@@ -996,33 +995,5 @@ function UpgradeTooltip({
       cta={`Upgrade to ${isAllTime ? "Business" : getNextPlan(plan).name}`}
       href={slug ? `/${slug}/upgrade` : APP_DOMAIN}
     />
-  );
-}
-
-function LinkIcon({
-  url: urlProp,
-  domain,
-  linkKey,
-}: {
-  url?: string;
-  domain?: string;
-  linkKey?: string;
-}) {
-  const { id: workspaceId } = useWorkspace();
-  const { data } = useSWR<{ url: string }>(
-    !urlProp && workspaceId && domain && linkKey
-      ? `/api/links/info?${new URLSearchParams({ workspaceId, domain, key: linkKey }).toString()}`
-      : null,
-    fetcher,
-  );
-
-  const url = urlProp || data?.url;
-  return url ? (
-    <LinkLogo
-      apexDomain={getApexDomain(url)}
-      className="h-4 w-4 sm:h-4 sm:w-4"
-    />
-  ) : (
-    <Hyperlink className="h-4 w-4" />
   );
 }
