@@ -112,7 +112,7 @@ export async function GET(req: Request) {
         event: "click",
       });
 
-      if (!reward || !reward.amount) {
+      if (!reward) {
         continue;
       }
 

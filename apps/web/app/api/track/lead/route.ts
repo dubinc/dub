@@ -149,7 +149,7 @@ export const POST = withWorkspaceEdge(
             event: "lead",
           });
 
-          if (reward && reward.amount) {
+          if (reward) {
             await prismaEdge.commission.create({
               data: {
                 id: createId({ prefix: "cm_" }),

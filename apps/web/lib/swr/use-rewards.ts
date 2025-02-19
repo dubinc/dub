@@ -1,14 +1,14 @@
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-import { Reward } from "../types";
+import { RewardProp } from "../types";
 import useWorkspace from "./use-workspace";
 
 export default function useRewards() {
   const { programId } = useParams();
   const { id: workspaceId } = useWorkspace();
 
-  const { data: rewards, error } = useSWR<Reward[]>(
+  const { data: rewards, error } = useSWR<RewardProp[]>(
     programId &&
       workspaceId &&
       `/api/programs/${programId}/rewards?workspaceId=${workspaceId}`,

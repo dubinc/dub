@@ -11,7 +11,7 @@ import useRewardPartners from "@/lib/swr/use-reward-partners";
 import useRewardPartnersCount from "@/lib/swr/use-reward-partners-count";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps, Reward } from "@/lib/types";
+import { EnrolledPartnerProps, RewardProp } from "@/lib/types";
 import {
   createRewardSchema,
   RECURRING_MAX_DURATIONS,
@@ -50,7 +50,7 @@ import { z } from "zod";
 interface RewardSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   event: EventType;
-  reward?: Reward;
+  reward?: RewardProp;
 }
 
 type FormData = z.infer<typeof createRewardSchema>;

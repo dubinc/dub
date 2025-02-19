@@ -275,7 +275,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       event: "sale",
     });
 
-    if (reward && reward.amount) {
+    if (reward) {
       const earnings = calculateSaleEarnings({
         reward,
         sale: {

@@ -104,7 +104,7 @@ export async function createNewCustomer(event: Stripe.Event) {
       event: "lead",
     });
 
-    if (reward && reward.amount) {
+    if (reward) {
       await prisma.commission.create({
         data: {
           id: createId({ prefix: "cm_" }),

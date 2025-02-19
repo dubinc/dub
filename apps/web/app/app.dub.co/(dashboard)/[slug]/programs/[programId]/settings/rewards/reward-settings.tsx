@@ -2,7 +2,7 @@
 
 import useProgram from "@/lib/swr/use-program";
 import useRewards from "@/lib/swr/use-rewards";
-import type { Reward } from "@/lib/types";
+import type { RewardProp } from "@/lib/types";
 import { useRewardSheet } from "@/ui/partners/add-edit-reward-sheet";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { EventType } from "@dub/prisma/client";
@@ -139,7 +139,7 @@ const AdditionalRewards = () => {
   );
 };
 
-const Reward = ({ reward }: { reward: Reward }) => {
+const Reward = ({ reward }: { reward: RewardProp }) => {
   const { RewardSheet, setIsOpen } = useRewardSheet({
     event: reward.event,
     reward,

@@ -154,7 +154,7 @@ export const POST = withWorkspaceEdge(
             event: "sale",
           });
 
-          if (reward && reward.amount) {
+          if (reward) {
             const earnings = calculateSaleEarnings({
               reward,
               sale: {

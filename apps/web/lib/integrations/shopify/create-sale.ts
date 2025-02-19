@@ -129,7 +129,7 @@ export async function createShopifySale({
       event: "sale",
     });
 
-    if (reward && reward.amount) {
+    if (reward) {
       const earnings = calculateSaleEarnings({
         reward,
         sale: {

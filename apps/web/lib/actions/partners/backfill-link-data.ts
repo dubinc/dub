@@ -41,7 +41,7 @@ export const backfillLinkData = async ({
     event: "sale",
   });
 
-  if (!reward || reward.amount === 0) {
+  if (!reward) {
     return;
   }
 

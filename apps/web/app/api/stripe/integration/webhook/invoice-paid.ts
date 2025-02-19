@@ -122,7 +122,7 @@ export async function invoicePaid(event: Stripe.Event) {
       event: "sale",
     });
 
-    if (reward && reward.amount) {
+    if (reward) {
       const earnings = calculateSaleEarnings({
         reward,
         sale: {

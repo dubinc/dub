@@ -44,7 +44,7 @@ export const determinePartnerReward = async ({
   });
 
   if (rewards.length === 0) {
-    return;
+    return null;
   }
 
   const partnerSpecificReward = rewards.find(
@@ -55,5 +55,11 @@ export const determinePartnerReward = async ({
     (reward) => reward._count.partners === 0,
   );
 
-  return partnerSpecificReward || programWideReward || null;
+  const partnerReward = partnerSpecificReward || programWideReward;
+
+  if (!partnerReward || partnerReward.amount === 0) {
+    return null;
+  }
+
+  return partnerReward;
 };

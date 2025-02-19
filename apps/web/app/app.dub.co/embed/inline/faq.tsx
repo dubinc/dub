@@ -1,3 +1,5 @@
+import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
+import { RewardProp } from "@/lib/types";
 import { BlockMarkdown } from "@/ui/partners/lander-blocks/BlockMarkdown";
 import { Program } from "@dub/prisma/client";
 import {
@@ -9,12 +11,35 @@ import {
 import { TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
 
-export function EmbedFAQ({ program }: { program: Program }) {
+export function EmbedFAQ({
+  program,
+  reward,
+}: {
+  program: Program;
+  reward: RewardProp | null;
+}) {
+  const rewardDescription =
+    reward
+      ? `For each new customer you refer, you'll earn a ${constructRewardAmount(
+          {
+            amount: reward.amount,
+            type: reward.type,
+          },
+        )} commission on their subscription${
+          reward.maxDuration === null
+            ? " for their lifetime"
+            : reward.maxDuration && reward.maxDuration > 1
+              ? ` for up to ${reward.maxDuration} months`
+              : ""
+        }. There are no limits to how much you can earn.`
+      : "";
+
   const items = [
     {
       title: `What is the ${program.name} Affiliate Program?`,
-      content: `The ${program.name} Affiliate Program is a way for you to earn money by referring new customers to ${program.name}. For each new customer you refer, you'll earn a ${program.commissionAmount}% commission on their subscription for up to ${program.commissionDuration} ${program.commissionInterval}s. There are no limits to how much you can earn.`,
+      content: `The ${program.name} Affiliate Program is a way for you to earn money by referring new customers to ${program.name}. ${rewardDescription}`,
     },
+
     {
       title: "What counts as a successful conversion?",
       content: `New customers that sign up for a paid plan within ${program.cookieLength} days of using your referral link will be counted as a successful conversion. Attributions are done on a last-click basis, so your link must be the last link clicked before the customer signs up for an account on ${program.name}.`,

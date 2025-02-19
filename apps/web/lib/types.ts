@@ -433,4 +433,4 @@ export type FolderSummary = Pick<
 
 // Rewards
 
-export type Reward = z.infer<typeof RewardSchema>;
+export type RewardProp = z.infer<typeof RewardSchema>;

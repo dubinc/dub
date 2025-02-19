@@ -1,5 +1,5 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
-import { DiscountProps, Reward } from "@/lib/types";
+import { DiscountProps, RewardProp } from "@/lib/types";
 import { cn, pluralize } from "@dub/utils";
 
 export function ProgramRewardDescription({
@@ -9,7 +9,7 @@ export function ProgramRewardDescription({
   periodClassName,
   hideIfZero = true,
 }: {
-  reward?: Reward | null;
+  reward?: RewardProp | null;
   discount?: DiscountProps | null;
   amountClassName?: string;
   periodClassName?: string;
