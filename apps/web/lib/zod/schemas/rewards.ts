@@ -25,6 +25,8 @@ export const createOrUpdateRewardSchema = z.object({
     })
     .nullish(),
   partnerIds: z.array(z.string()).nullish(),
+  workspaceId: z.string(),
+  programId: z.string(),
 });
 
 export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
@@ -40,7 +42,11 @@ export const updateRewardSchema = createOrUpdateRewardSchema
   .omit({
     event: true,
   })
-  .partial();
+  .merge(
+    z.object({
+      rewardId: z.string(),
+    }),
+  );
 
 export const rewardPartnersQuerySchema = z
   .object({

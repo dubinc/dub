@@ -4,22 +4,10 @@ import { DubApiError } from "@/lib/api/errors";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { updateRewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
-import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
-const schema = updateRewardSchema.and(
-  z.object({
-    workspaceId: z.string(),
-    programId: z.string(),
-    rewardId: z.string(),
-  }),
-);
-
-// TODO:
-// Make sure all cases are added that are handled in the create-reward.ts file
-
 export const updateRewardAction = authActionClient
-  .schema(schema)
+  .schema(updateRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { programId, rewardId, partnerIds, amount, maxDuration, type } =
@@ -30,9 +18,37 @@ export const updateRewardAction = authActionClient
       programId,
     });
 
+    const reward = await prisma.reward.findUniqueOrThrow({
+      where: {
+        id: rewardId,
+      },
+      select: {
+        programId: true,
+        _count: {
+          select: {
+            partners: true,
+          },
+        },
+      },
+    });
+
+    if (reward.programId !== programId) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Reward is not associated with the program.",
+      });
+    }
+
     let programEnrollments: { id: string }[] = [];
 
-    if (partnerIds) {
+    if (partnerIds && partnerIds.length > 0) {
+      if (reward._count.partners === 0) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: "Cannot add partners to a program-wide reward.",
+        });
+      }
+
       programEnrollments = await prisma.programEnrollment.findMany({
         where: {
           programId,
@@ -49,6 +65,14 @@ export const updateRewardAction = authActionClient
         throw new DubApiError({
           code: "bad_request",
           message: "Invalid partner IDs provided.",
+        });
+      }
+    } else {
+      if (reward._count.partners > 0) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "At least one partner must be selected for a partner-specific reward.",
         });
       }
     }

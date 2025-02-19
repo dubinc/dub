@@ -5,18 +5,10 @@ import { createId } from "@/lib/api/utils";
 import { createRewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { EventType } from "@dub/prisma/client";
-import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
-const schema = createRewardSchema.and(
-  z.object({
-    workspaceId: z.string(),
-    programId: z.string(),
-  }),
-);
-
 export const createRewardAction = authActionClient
-  .schema(schema)
+  .schema(createRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { programId, partnerIds, event, amount, type, maxDuration } =
