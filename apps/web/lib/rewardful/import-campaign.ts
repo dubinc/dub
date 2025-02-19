@@ -1,4 +1,5 @@
 import { prisma } from "@dub/prisma";
+import { createId } from "../api/utils";
 import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 
@@ -18,7 +19,7 @@ export async function importCampaign({ programId }: { programId: string }) {
     reward_type,
   } = campaign;
 
-  const program = await prisma.program.update({
+  const { defaultRewardId } = await prisma.program.update({
     where: {
       id: programId,
     },
@@ -27,20 +28,19 @@ export async function importCampaign({ programId }: { programId: string }) {
     },
   });
 
-  if (!program.defaultRewardId) {
-    const reward = await prisma.reward.create({
-      data: {
-        programId,
-        event: "sale",
-        maxDuration: max_commission_period_months,
-        type: reward_type === "amount" ? "flat" : "percentage",
-        amount:
-          reward_type === "amount"
-            ? commission_amount_cents
-            : commission_percent,
-      },
-    });
+  const reward = await prisma.reward.create({
+    data: {
+      id: createId({ prefix: "rew_" }),
+      programId,
+      event: "sale",
+      maxDuration: max_commission_period_months,
+      type: reward_type === "amount" ? "flat" : "percentage",
+      amount:
+        reward_type === "amount" ? commission_amount_cents : commission_percent,
+    },
+  });
 
+  if (!defaultRewardId) {
     await prisma.program.update({
       where: {
         id: programId,
@@ -53,6 +53,7 @@ export async function importCampaign({ programId }: { programId: string }) {
 
   return await rewardfulImporter.queue({
     programId,
+    ...(defaultRewardId && { rewardId: reward.id }),
     action: "import-affiliates",
   });
 }
