@@ -1,8 +1,11 @@
+import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
+import { createId } from "@/lib/api/utils";
+import { determinePartnerReward } from "@/lib/partners/rewards";
 import { prisma } from "@dub/prisma";
+import { EventType } from "@dub/prisma/client";
 import "dotenv-flow/config";
 import { getEvents } from "../lib/analytics/get-events";
 import { includeTags } from "../lib/api/links/include-tags";
-import { createSaleData } from "../lib/api/sales/create-sale-data";
 import { recordLink } from "../lib/tinybird";
 import { SaleEvent } from "../lib/types";
 
@@ -37,33 +40,43 @@ async function main() {
       sortBy: "timestamp",
     });
 
-    const program = await prisma.program.findUnique({
+    const program = await prisma.program.findUniqueOrThrow({
       where: {
         id: link.programId,
       },
     });
 
+    const reward = await determinePartnerReward({
+      programId: program.id,
+      partnerId: link.partnerId,
+      event: "sale",
+    });
+
+    if (!reward || reward.amount === 0) {
+      console.log("No reward.", reward);
+      return;
+    }
+
     const data = saleEvents.map((e: SaleEvent) => ({
-      ...createSaleData({
-        program: program!,
-        partner: {
-          id: link.partnerId!,
-          commissionAmount: null,
-        },
-        customer: {
-          id: e.customer.id,
-          linkId: e.link.id,
-          clickId: e.click.id,
-        },
+      id: createId({ prefix: "cm_" }),
+      programId: program.id,
+      partnerId: link.partnerId!,
+      linkId: link.id,
+      invoiceId: e.invoice_id || null,
+      customerId: e.customer.id,
+      eventId: e.eventId,
+      amount: e.sale.amount,
+      type: EventType.sale,
+      quantity: 1,
+      currency: "usd",
+      createdAt: new Date(e.timestamp),
+      earnings: calculateSaleEarnings({
+        reward,
         sale: {
+          quantity: 1,
           amount: e.sale.amount,
-          currency: "usd",
-          invoiceId: e.invoice_id,
-          eventId: e.eventId,
-          paymentProcessor: e.payment_processor,
         },
       }),
-      createdAt: new Date(e.timestamp),
     }));
 
     console.table(data.slice(0, 10));

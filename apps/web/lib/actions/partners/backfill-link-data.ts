@@ -1,9 +1,12 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { includeTags } from "@/lib/api/links/include-tags";
-import { createSaleData } from "@/lib/api/sales/create-sale-data";
+import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
+import { createId } from "@/lib/api/utils";
+import { determinePartnerReward } from "@/lib/partners/rewards";
 import { recordLink } from "@/lib/tinybird";
 import { SaleEvent } from "@/lib/types";
 import { prisma } from "@dub/prisma";
+import { EventType } from "@prisma/client";
 
 export const backfillLinkData = async ({
   programId,
@@ -32,25 +35,36 @@ export const backfillLinkData = async ({
     return;
   }
 
-  const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
-    where: {
-      partnerId_programId: {
-        partnerId,
-        programId,
-      },
-    },
-    include: {
-      program: {
-        include: {
-          workspace: true,
-        },
-      },
-      partner: true,
-    },
+  const reward = await determinePartnerReward({
+    programId,
+    partnerId,
+    event: "sale",
   });
 
-  const { program, partner, commissionAmount } = programEnrollment;
-  const workspace = program.workspace;
+  if (!reward || reward.amount === 0) {
+    return;
+  }
+
+  const { program, partner } = await prisma.programEnrollment.findUniqueOrThrow(
+    {
+      where: {
+        partnerId_programId: {
+          partnerId,
+          programId,
+        },
+      },
+      include: {
+        program: {
+          include: {
+            workspace: true,
+          },
+        },
+        partner: true,
+      },
+    },
+  );
+
+  const { workspace } = program;
 
   const saleEvents = await getEvents({
     workspaceId: workspace.id,
@@ -64,26 +78,25 @@ export const backfillLinkData = async ({
   });
 
   const data = saleEvents.map((e: SaleEvent) => ({
-    ...createSaleData({
-      program,
-      partner: {
-        id: partner.id,
-        commissionAmount,
-      },
-      customer: {
-        id: e.customer.id,
-        clickId: e.click.id,
-        linkId: e.link.id,
-      },
+    id: createId({ prefix: "cm_" }),
+    programId: program.id,
+    partnerId: partner.id,
+    linkId: linkId,
+    invoiceId: e.invoice_id || null,
+    customerId: e.customer.id,
+    eventId: e.eventId,
+    amount: e.sale.amount,
+    type: EventType.sale,
+    quantity: 1,
+    currency: "usd",
+    createdAt: new Date(e.timestamp),
+    earnings: calculateSaleEarnings({
+      reward,
       sale: {
-        invoiceId: e.invoice_id,
-        eventId: e.eventId,
-        paymentProcessor: e.payment_processor,
+        quantity: 1,
         amount: e.sale.amount,
-        currency: "usd",
       },
     }),
-    createdAt: new Date(e.timestamp),
   }));
 
   if (data.length > 0) {

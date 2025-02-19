@@ -1,10 +1,5 @@
 import { intervals } from "@/lib/analytics/constants";
-import {
-  CommissionInterval,
-  CommissionType,
-  ProgramEnrollmentStatus,
-  ProgramType,
-} from "@dub/prisma/client";
+import { ProgramEnrollmentStatus, ProgramType } from "@dub/prisma/client";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
@@ -25,12 +20,6 @@ export const ProgramSchema = z.object({
   cookieLength: z.number(),
   defaultRewardId: z.string().nullable(),
   rewards: z.array(RewardSchema).nullish(),
-
-  // Commission details
-  commissionAmount: z.number(),
-  commissionType: z.nativeEnum(CommissionType),
-  commissionDuration: z.number().nullable(),
-  commissionInterval: z.nativeEnum(CommissionInterval).nullable(),
   holdingPeriodDays: z.number(),
 
   // Discounts (for dual-sided incentives)
@@ -43,19 +32,15 @@ export const ProgramSchema = z.object({
 
 export const createProgramSchema = z.object({
   name: z.string(),
-  commissionType: z.nativeEnum(CommissionType),
-  commissionAmount: z.number(),
-  commissionDuration: z.number().nullable(),
-  commissionInterval: z.nativeEnum(CommissionInterval).nullable(),
+  cookieLength: z.number().min(1).max(180),
+  domain: z.string().nullable(),
+  url: z.string().nullable(),
+  defaultFolderId: z.string().nullable(),
   holdingPeriodDays: z.coerce
     .number()
     .refine((val) => HOLDING_PERIOD_DAYS.includes(val), {
       message: `Holding period must be ${HOLDING_PERIOD_DAYS.join(", ")} days`,
     }),
-  cookieLength: z.number().min(1).max(180),
-  domain: z.string().nullable(),
-  url: z.string().nullable(),
-  defaultFolderId: z.string().nullable(),
 });
 
 export const PartnerLinkSchema = LinkSchema.pick({
@@ -79,7 +64,6 @@ export const ProgramEnrollmentSchema = z.object({
   links: z.array(PartnerLinkSchema).nullable(),
   reward: RewardSchema.nullish(),
   discount: DiscountSchema.nullish(),
-  commissionAmount: z.number().nullable(),
   createdAt: z.date(),
 });
 
