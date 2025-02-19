@@ -107,7 +107,11 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     defaultValues: {
       event,
       type: reward?.type || "flat",
-      maxDuration: reward?.maxDuration ?? 0,
+      maxDuration: reward
+        ? reward.maxDuration === null
+          ? Infinity
+          : reward.maxDuration
+        : 0,
       amount: reward?.type === "flat" ? reward.amount / 100 : reward?.amount,
       partnerIds: null,
     },
@@ -149,10 +153,6 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const hasProgramWideSaleReward = rewards?.some(
     (reward) => reward.event === "sale" && reward.partnersCount === 0,
   );
-
-  useEffect(() => {
-    setIsRecurring(Number(maxDuration) !== 0);
-  }, [maxDuration]);
 
   useEffect(() => {
     if (rewardPartners) {
