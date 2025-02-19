@@ -12,7 +12,6 @@ import {
   useTable,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { EventType } from "@prisma/client";
 import { Search, Users } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useDebounce } from "use-debounce";
@@ -22,7 +21,6 @@ interface SheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   onSelect: (partnerIds: string[]) => void;
   selectedPartnerIds: string[];
-  event: EventType;
 }
 
 export function SelectEligiblePartnersSheet({
@@ -30,7 +28,6 @@ export function SelectEligiblePartnersSheet({
   setIsOpen,
   onSelect,
   selectedPartnerIds,
-  event,
 }: SheetProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);

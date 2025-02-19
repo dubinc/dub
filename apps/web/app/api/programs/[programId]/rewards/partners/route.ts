@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { rewardPartnersQuerySchema } from "@/lib/zod/schemas/rewards";
@@ -14,77 +15,37 @@ export const GET = withWorkspace(
       programId,
     });
 
-    const { rewardId, page, pageSize, event, search } =
+    const { rewardId, page, pageSize } =
       rewardPartnersQuerySchema.parse(searchParams);
 
-    // TODO:
-    // Combine these two queries
+    const reward = await prisma.reward.findUniqueOrThrow({
+      where: {
+        id: rewardId,
+      },
+    });
 
-    if (rewardId) {
-      await prisma.reward.findUniqueOrThrow({
-        where: {
-          id: rewardId,
-          programId,
-        },
+    if (reward.programId !== programId) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Reward not found.",
       });
-
-      const partners = await prisma.partnerReward.findMany({
-        where: {
-          rewardId,
-        },
-        select: {
-          programEnrollment: {
-            select: {
-              partner: {
-                select: {
-                  id: true,
-                  name: true,
-                  image: true,
-                  email: true,
-                },
-              },
-            },
-          },
-        },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-      });
-
-      const flatPartners = partners.map(
-        ({ programEnrollment: { partner } }) => partner,
-      );
-
-      return NextResponse.json(flatPartners);
     }
 
-    const partners = await prisma.programEnrollment.findMany({
+    const partners = await prisma.partnerReward.findMany({
       where: {
-        programId,
-        NOT: {
-          rewards: {
-            some: {
-              reward: {
-                event,
-              },
-            },
-          },
-        },
-        ...(search && {
-          partner: {
-            OR: [
-              { name: { contains: search } },
-              { email: { contains: search } },
-            ],
-          },
-        }),
+        rewardId,
       },
       select: {
-        partner: {
+        programEnrollment: {
           select: {
-            id: true,
-            name: true,
-            image: true,
-            email: true,
+            partner: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                email: true,
+              },
+            },
           },
         },
       },
@@ -92,6 +53,10 @@ export const GET = withWorkspace(
       take: pageSize,
     });
 
-    return NextResponse.json(partners.map(({ partner }) => partner));
+    const flatPartners = partners.map(
+      ({ programEnrollment: { partner } }) => partner,
+    );
+
+    return NextResponse.json(flatPartners);
   },
 );

@@ -49,9 +49,7 @@ export const updateRewardSchema = createOrUpdateRewardSchema
 
 export const rewardPartnersQuerySchema = z
   .object({
-    search: z.string().optional(),
-    rewardId: z.string().optional(),
-    event: z.nativeEnum(EventType).optional(),
+    rewardId: z.string(),
   })
   .merge(
     getPaginationQuerySchema({

@@ -8,7 +8,6 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useRewardPartners from "@/lib/swr/use-reward-partners";
-import useRewardPartnersCount from "@/lib/swr/use-reward-partners-count";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, RewardProp } from "@/lib/types";
@@ -82,11 +81,12 @@ const commissionTypes = [
 ] as const;
 
 function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
-  const { program, mutate: mutateProgram } = useProgram();
+  const formRef = useRef<HTMLFormElement>(null);
+
   const { rewards } = useRewards();
   const { data: allPartners } = usePartners();
   const { id: workspaceId } = useWorkspace();
-  const formRef = useRef<HTMLFormElement>(null);
+  const { program, mutate: mutateProgram } = useProgram();
   const { pagination, setPagination } = usePagination(25);
   const [isAddPartnersOpen, setIsAddPartnersOpen] = useState(false);
 
@@ -123,12 +123,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       enabled: Boolean(reward && program),
     });
 
-  const { partnersCount, loading: isLoadingCount } = useRewardPartnersCount({
-    query: {
-      rewardId: reward?.id,
-    },
-    enabled: Boolean(reward && program),
-  });
+  const partnersCount = reward?.partnersCount || 0;
 
   const [partnerIds = [], amount, type, maxDuration] = watch([
     "partnerIds",
@@ -674,7 +669,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                   />
                 </div>
                 <div className="mt-4">
-                  {isLoadingRewardPartners || isLoadingCount ? (
+                  {isLoadingRewardPartners ? (
                     <div className="flex items-center justify-center py-8">
                       <LoadingSpinner className="size-4" />
                     </div>
@@ -754,7 +749,6 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         isOpen={isAddPartnersOpen}
         setIsOpen={setIsAddPartnersOpen}
         selectedPartnerIds={watch("partnerIds") || []}
-        event={event}
         onSelect={(ids) => {
           const existingIds = partnerIds || [];
           const newIds = ids.filter((id) => !existingIds.includes(id));
