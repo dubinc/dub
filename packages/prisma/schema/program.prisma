@@ -39,6 +39,7 @@ model Program {
   cookieLength      Int         @default(90)
   holdingPeriodDays Int         @default(0) // number of days to wait before earnings are added to a payout
   defaultRewardId   String? // default reward for the program
+  defaultDiscountId String? // default discount for the program
   landerData        Json?       @db.Json
 
   // Commission details
@@ -87,6 +88,7 @@ model ProgramEnrollment {
   discount    Discount?           @relation(fields: [discountId], references: [id])
   application ProgramApplication? @relation(fields: [applicationId], references: [id])
   rewards     PartnerReward[]
+  discounts   PartnerDiscount[]
 
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])
