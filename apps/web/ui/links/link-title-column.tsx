@@ -115,16 +115,12 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
         </div>
         <div className="relative transition-[padding,transform] group-hover:scale-90 group-data-[variant=loose]/card-list:sm:p-2">
           {link.archived ? (
-            <Tooltip content="Archived">
-              <div>
-                <BoxArchive
-                  className={cn(
-                    "shrink-0 p-0.5 text-neutral-600 transition-[width,height]",
-                    LOGO_SIZE_CLASS_NAME,
-                  )}
-                />
-              </div>
-            </Tooltip>
+            <BoxArchive
+              className={cn(
+                "shrink-0 p-0.5 text-neutral-600 transition-[width,height]",
+                LOGO_SIZE_CLASS_NAME,
+              )}
+            />
           ) : (
             <LinkLogo
               apexDomain={getApexDomain(url)}
