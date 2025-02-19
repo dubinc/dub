@@ -43,18 +43,30 @@ const DefaultDiscount = () => {
             </p>
           </div>
         </div>
+
         {loading ? (
           <DiscountSkeleton />
         ) : defaultDiscount ? (
           <Discount discount={defaultDiscount} />
         ) : (
           <>
-            <EmptyState
-              event="sale"
-              title="No default reward created"
-              description="Create a default reward that will be offered to all partners"
-              onClick={() => setIsOpen(true)}
-            />
+            <div className="flex items-center justify-between gap-4 rounded-lg bg-neutral-50 p-4">
+              <div className="flex items-center gap-4">
+                <div className="flex size-10 items-center justify-center rounded-full border border-neutral-300">
+                  <MoneyBill className="size-5" />
+                </div>
+                <p className="text-sm text-neutral-600">
+                  No default referral discount created
+                </p>
+              </div>
+              <Button
+                text="Create default discount"
+                variant="primary"
+                className="h-9 w-fit"
+                onClick={() => setIsOpen(true)}
+              />
+            </div>
+
             {RewardSheet}
           </>
         )}
@@ -86,7 +98,7 @@ const AdditionalDiscounts = () => {
           <Button
             text="Create discount"
             variant="primary"
-            className="h-9 px-2"
+            className="h-9 w-fit"
           />
         </div>
         {loading ? (
@@ -183,10 +195,12 @@ const EmptyState = ({
           <div className="flex size-10 items-center justify-center rounded-full border border-neutral-300">
             <MoneyBill className="size-5" />
           </div>
-          <p className="text-sm text-neutral-600">No default reward created</p>
+          <p className="text-sm text-neutral-600">
+            No default referral discount created
+          </p>
         </div>
         <Button
-          text="Create default reward"
+          text="Create default discount"
           variant="primary"
           className="h-[32px] w-fit"
           onClick={onClick}

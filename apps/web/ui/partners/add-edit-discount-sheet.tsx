@@ -80,7 +80,7 @@ const commissionTypes = [
   },
 ] as const;
 
-function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
+function DiscountSheetContent({ setIsOpen, event, discount }: DiscountSheetProps) {
   const formRef = useRef<HTMLFormElement>(null);
 
   const { rewards } = useRewards();
