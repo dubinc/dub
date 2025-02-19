@@ -3,6 +3,7 @@ import {
   SetStateAction,
   createContext,
   useContext,
+  useEffect,
   useState,
 } from "react";
 import { ResponseLink } from "./links-container";
@@ -27,6 +28,12 @@ export function LinkSelectionProvider({
   const [lastSelectedLinkId, setLastSelectedLinkId] = useState<string | null>(
     null,
   );
+
+  useEffect(() => {
+    setSelectedLinkIds((prev) =>
+      links ? prev.filter((id) => links.find((l) => l.id === id)) : [],
+    );
+  }, [links]);
 
   const handleLinkSelection = (linkId: string, e: React.MouseEvent) => {
     if (e.shiftKey && lastSelectedLinkId && links) {

@@ -36,7 +36,6 @@ type ArchiveLinkModalProps = {
   showArchiveLinkModal: boolean;
   setShowArchiveLinkModal: Dispatch<SetStateAction<boolean>>;
   links: LinkProps[];
-  onSuccess?: () => void;
 };
 
 function ArchiveLinkModal(props: ArchiveLinkModalProps) {
@@ -53,7 +52,6 @@ function ArchiveLinkModal(props: ArchiveLinkModalProps) {
 function ArchiveLinkModalInner({
   setShowArchiveLinkModal,
   links,
-  onSuccess,
 }: ArchiveLinkModalProps) {
   const toastWithUndo = useToastWithUndo();
 
@@ -62,14 +60,6 @@ function ArchiveLinkModalInner({
 
   const { id: workspaceId } = useWorkspace();
   const [archiving, setArchiving] = useState(false);
-
-  // const shortlink = useMemo(() => {
-  //   return linkConstructor({
-  //     key,
-  //     domain,
-  //     pretty: true,
-  //   });
-  // }, [key, domain]);
 
   const handleArchiveRequest = async (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -96,7 +86,6 @@ function ArchiveLinkModalInner({
       undo: undoAction,
       duration: 5000,
     });
-    onSuccess?.();
   };
 
   const undoAction = () => {
@@ -162,10 +151,8 @@ function ArchiveLinkModalInner({
 
 export function useArchiveLinkModal({
   props,
-  onSuccess,
 }: {
   props: LinkProps | LinkProps[];
-  onSuccess?: () => void;
 }) {
   const [showArchiveLinkModal, setShowArchiveLinkModal] = useState(false);
 
@@ -175,7 +162,6 @@ export function useArchiveLinkModal({
         showArchiveLinkModal={showArchiveLinkModal}
         setShowArchiveLinkModal={setShowArchiveLinkModal}
         links={Array.isArray(props) ? props : [props]}
-        onSuccess={onSuccess}
       />
     ) : null;
   }, [showArchiveLinkModal, setShowArchiveLinkModal]);

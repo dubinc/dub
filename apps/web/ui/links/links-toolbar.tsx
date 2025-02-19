@@ -29,7 +29,6 @@ export const LinksToolbar = ({
 
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
     props: selectedLinks,
-    onSuccess: () => setSelectedLinkIds([]),
   });
 
   const bulkActions = [
