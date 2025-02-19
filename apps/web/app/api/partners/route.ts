@@ -2,10 +2,8 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
 import { enrollPartner } from "@/lib/api/partners/enroll-partner";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
-import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { determinePartnerReward } from "@/lib/partners/rewards";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
@@ -70,7 +68,8 @@ export const GET = withWorkspace(
         COALESCE(SUM(l.clicks), 0) as totalClicks,
         COALESCE(SUM(l.leads), 0) as totalLeads,
         COALESCE(SUM(l.sales), 0) as totalSales,
-        COALESCE(SUM(l.saleAmount), 0) as totalSaleAmount,
+        COALESCE(SUM(c.amount), 0) as totalSaleAmount,
+        COALESCE(SUM(c.earnings), 0) as totalEarnings,
         JSON_ARRAYAGG(
           IF(l.id IS NOT NULL,
             JSON_OBJECT(
@@ -93,6 +92,8 @@ export const GET = withWorkspace(
         Partner p ON p.id = pe.partnerId 
       LEFT JOIN 
         Link l ON l.programId = pe.programId AND l.partnerId = pe.partnerId
+      LEFT JOIN
+        Commission c ON c.programId = pe.programId AND c.partnerId = pe.partnerId
       WHERE 
         pe.programId = ${program.id}
         ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status != 'rejected'`}
@@ -105,39 +106,16 @@ export const GET = withWorkspace(
       ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)}
       LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
 
-    const partnerRewards = await Promise.all(
-      partners.map((partner) =>
-        determinePartnerReward({
-          programId: program.id,
-          partnerId: partner.id,
-          event: "sale",
-        }),
-      ),
-    );
-
-    const response = partners.map((partner, index) => {
-      const totalSaleAmount = Number(partner.totalSaleAmount);
-      const totalSales = Number(partner.totalSales);
-
-      const earnings = !partnerRewards[index]
-        ? 0
-        : calculateSaleEarnings({
-            reward: partnerRewards[index],
-            sale: {
-              quantity: totalSales,
-              amount: totalSaleAmount,
-            },
-          });
-
+    const response = partners.map((partner) => {
       return {
         ...partner,
         createdAt: new Date(partner.enrollmentCreatedAt),
         payoutsEnabled: Boolean(partner.payoutsEnabled),
         clicks: Number(partner.totalClicks),
         leads: Number(partner.totalLeads),
-        sales: totalSales,
-        saleAmount: totalSaleAmount,
-        earnings,
+        sales: Number(partner.totalSales),
+        saleAmount: Number(partner.totalSaleAmount),
+        earnings: Number(partner.totalEarnings),
         links: partner.links.filter((link: any) => link !== null),
       };
     });
