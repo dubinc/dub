@@ -71,7 +71,7 @@ const prefixes = [
   "pga_",
   "dub_embed_",
   "inv_",
-  "rew_",
+  "rw_",
   "fold_",
   "dis_",
 ] as const;

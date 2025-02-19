@@ -13,7 +13,7 @@ export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
 
-    const sales = await prisma.commission.groupBy({
+    const commissions = await prisma.commission.groupBy({
       by: ["programId", "partnerId"],
       where: {
         type: "sale",
@@ -22,14 +22,14 @@ export async function GET(req: Request) {
       },
     });
 
-    if (!sales.length) {
+    if (!commissions.length) {
       return NextResponse.json({
-        message: "No pending sales found. Skipping...",
+        message: "No pending sale commissions found. Skipping...",
       });
     }
 
     // TODO: Find a batter way to handle this recursively (e.g. /api/cron/usage)
-    for (const { programId, partnerId } of sales) {
+    for (const { programId, partnerId } of commissions) {
       await createPayout({
         programId,
         partnerId,
@@ -38,8 +38,8 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json({
-      message: "Sales payout created.",
-      sales,
+      message: "Sale commissions payout created.",
+      commissions,
     });
   } catch (error) {
     return handleAndReturnErrorResponse(error);
