@@ -18,21 +18,18 @@ export function EmbedFAQ({
   program: Program;
   reward: RewardProp | null;
 }) {
-  const rewardDescription =
-    reward
-      ? `For each new customer you refer, you'll earn a ${constructRewardAmount(
-          {
-            amount: reward.amount,
-            type: reward.type,
-          },
-        )} commission on their subscription${
-          reward.maxDuration === null
-            ? " for their lifetime"
-            : reward.maxDuration && reward.maxDuration > 1
-              ? ` for up to ${reward.maxDuration} months`
-              : ""
-        }. There are no limits to how much you can earn.`
-      : "";
+  const rewardDescription = reward
+    ? `For each new customer you refer, you'll earn a ${constructRewardAmount({
+        amount: reward.amount,
+        type: reward.type,
+      })} commission on their subscription${
+        reward.maxDuration === null
+          ? " for their lifetime"
+          : reward.maxDuration && reward.maxDuration > 1
+            ? ` for up to ${reward.maxDuration} months`
+            : ""
+      }. There are no limits to how much you can earn.`
+    : "";
 
   const items = [
     {
