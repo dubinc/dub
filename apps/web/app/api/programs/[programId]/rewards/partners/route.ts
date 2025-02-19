@@ -1,4 +1,4 @@
-import { DubApiError } from "@/lib/api/errors";
+import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { rewardPartnersQuerySchema } from "@/lib/zod/schemas/rewards";
@@ -10,26 +10,18 @@ export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
 
+    const { rewardId, page, pageSize } =
+      rewardPartnersQuerySchema.parse(searchParams);
+
     await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
 
-    const { rewardId, page, pageSize } =
-      rewardPartnersQuerySchema.parse(searchParams);
-
-    const reward = await prisma.reward.findUniqueOrThrow({
-      where: {
-        id: rewardId,
-      },
+    await getRewardOrThrow({
+      rewardId,
+      programId,
     });
-
-    if (reward.programId !== programId) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Reward not found.",
-      });
-    }
 
     const partners = await prisma.partnerReward.findMany({
       where: {

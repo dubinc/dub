@@ -1,6 +1,7 @@
 "use server";
 
 import { DubApiError } from "@/lib/api/errors";
+import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
@@ -23,11 +24,9 @@ export const deleteRewardAction = authActionClient
       programId,
     });
 
-    await prisma.reward.findUniqueOrThrow({
-      where: {
-        id: rewardId,
-        programId,
-      },
+    await getRewardOrThrow({
+      rewardId,
+      programId,
     });
 
     if (program.defaultRewardId === rewardId) {

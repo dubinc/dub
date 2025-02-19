@@ -3,6 +3,7 @@ import { ProgramSchema } from "@/lib/zod/schemas/programs";
 import { RewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { DubApiError } from "../errors";
+import { getRewardOrThrow } from "../partners/get-reward-or-throw";
 
 export const getProgramOrThrow = async (
   {
@@ -48,10 +49,9 @@ export const getProgramOrThrow = async (
   let defaultReward: RewardProp | null = null;
 
   if (includeDefaultReward && program.defaultRewardId) {
-    defaultReward = await prisma.reward.findUniqueOrThrow({
-      where: {
-        id: program.defaultRewardId,
-      },
+    defaultReward = await getRewardOrThrow({
+      rewardId: program.defaultRewardId,
+      programId,
     });
 
     defaultReward = RewardSchema.parse(defaultReward);
