@@ -4,7 +4,7 @@ import { withWorkspace } from "@/lib/auth";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { prisma } from "@dub/prisma";
-import { format } from "date-fns";
+import { DateTime } from "luxon";
 import { NextResponse } from "next/server";
 
 const programAnalyticsQuerySchema = analyticsQuerySchema.pick({
@@ -34,7 +34,7 @@ export const GET = withWorkspace(
       programId,
     });
 
-    const { start, end, interval } =
+    const { start, end, interval, timezone } =
       programAnalyticsQuerySchema.parse(searchParams);
 
     const { startDate, endDate, granularity } = getStartEndDates({
@@ -48,7 +48,7 @@ export const GET = withWorkspace(
 
     const commissions = await prisma.$queryRaw<Revenue[]>`
       SELECT 
-        DATE_FORMAT(createdAt, ${dateFormat}) AS start, 
+      DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone || "UTC"}), ${dateFormat}) AS start, 
         COUNT(CASE WHEN type = 'click' THEN 1 END) AS clicks,
         COUNT(CASE WHEN type = 'lead' THEN 1 END) AS leads,
         COUNT(CASE WHEN type = 'sale' THEN 1 END) AS sales,
@@ -63,7 +63,9 @@ export const GET = withWorkspace(
     `;
 
     const timeseries: Revenue[] = [];
-    let currentDate = startFunction(startDate);
+    let currentDate = startFunction(
+      DateTime.fromJSDate(startDate).setZone(timezone || "UTC"),
+    );
 
     const revenueLookup = Object.fromEntries(
       commissions.map((item) => [
@@ -78,10 +80,10 @@ export const GET = withWorkspace(
     );
 
     while (currentDate < endDate) {
-      const periodKey = format(currentDate, formatString);
+      const periodKey = currentDate.toFormat(formatString);
 
       timeseries.push({
-        start: format(currentDate, "yyyy-MM-dd'T'HH:mm:ssxxx"),
+        start: currentDate.toISO(),
         ...(revenueLookup[periodKey] || {
           clicks: 0,
           leads: 0,

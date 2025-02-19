@@ -3,6 +3,7 @@ import {
   analyticsQuerySchema,
   eventsQuerySchema,
 } from "../zod/schemas/analytics";
+import { partnerEarningsTimeseriesSchema } from "../zod/schemas/partners";
 import {
   ANALYTICS_SALE_UNIT,
   ANALYTICS_VIEWS,
@@ -31,16 +32,18 @@ export type DeviceTabs = "devices" | "browsers" | "os" | "triggers";
 
 export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
   workspaceId?: string;
+  dataAvailableFrom?: Date;
   isDemo?: boolean;
   isDeprecatedClicksEndpoint?: boolean;
-  programId?: string;
-  partnerId?: string;
+  folderIds?: string[];
 };
 
 export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
   workspaceId?: string;
+  dataAvailableFrom?: Date;
   isDemo?: boolean;
   customerId?: string;
+  folderIds?: string[];
 };
 
 const partnerAnalyticsSchema = analyticsQuerySchema
@@ -54,6 +57,9 @@ const partnerAnalyticsSchema = analyticsQuerySchema
   .partial();
 
 export type PartnerAnalyticsFilters = z.infer<typeof partnerAnalyticsSchema>;
+export type PartnerEarningsTimeseriesFilters = z.infer<
+  typeof partnerEarningsTimeseriesSchema
+>;
 
 const partnerEventsSchema = eventsQuerySchema
   .pick({

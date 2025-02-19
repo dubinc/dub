@@ -2,24 +2,25 @@
 
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { PayoutsCount } from "@/lib/types";
 import StripeConnectButton from "@/ui/partners/stripe-connect-button";
+import { PayoutStatus } from "@dub/prisma/client";
 import { MatrixLines } from "@dub/ui";
 import { CONNECT_SUPPORTED_COUNTRIES, COUNTRIES, fetcher } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { PayoutStatus } from "@prisma/client";
 import { Stripe } from "stripe";
 import useSWR from "swr";
 
 export function PayoutStatsAndSettings() {
   const { partner } = usePartnerProfile();
-  const { payoutsCount } = usePartnerPayoutsCount();
+  const { payoutsCount } = usePartnerPayoutsCount<PayoutsCount[]>({
+    groupBy: "status",
+  });
 
   const { data: bankAccount } = useSWR<Stripe.BankAccount | null>(
     partner && `/api/partner-profile/payouts/settings`,
     fetcher,
   );
-
-  console.log({ partner });
 
   return (
     <div className="grid grid-cols-1 divide-neutral-200 rounded-lg border border-neutral-200 bg-neutral-50 max-sm:divide-y sm:grid-cols-2 sm:divide-x">

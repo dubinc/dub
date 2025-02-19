@@ -107,7 +107,7 @@ export function InviteTeammatesForm({
           <div key={field.id} className="relative">
             <label>
               {index === 0 && (
-                <span className="mb-2 block text-sm font-medium text-gray-700">
+                <span className="mb-2 block text-sm font-medium text-neutral-700">
                   {pluralize("Email", fields.length)}
                 </span>
               )}
@@ -117,7 +117,7 @@ export function InviteTeammatesForm({
                   placeholder="panic@thedis.co"
                   autoFocus={index === 0 && !isMobile}
                   autoComplete="off"
-                  className="z-10 block w-full rounded-l-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                  className="z-10 block w-full rounded-l-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                   {...register(`teammates.${index}.email`, {
                     required: index === 0,
                   })}
@@ -127,7 +127,7 @@ export function InviteTeammatesForm({
                     required: index === 0,
                   })}
                   defaultValue="member"
-                  className="rounded-r-md border border-l-0 border-gray-300 bg-white pl-4 pr-8 text-gray-600 focus:border-gray-300 focus:outline-none focus:ring-0 sm:text-sm"
+                  className="rounded-r-md border border-l-0 border-neutral-300 bg-white pl-4 pr-8 text-neutral-600 focus:border-neutral-300 focus:outline-none focus:ring-0 sm:text-sm"
                 >
                   {roles.map((role) => (
                     <option key={role} value={role}>
@@ -172,13 +172,13 @@ function InviteSavedToast({ teammates }: { teammates: number }) {
   return (
     <div className="flex items-center gap-1.5 rounded-lg bg-white p-4 text-sm shadow-[0_4px_12px_#0000001a]">
       <CheckCircleFill className="size-5 shrink-0 text-black" />
-      <p className="text-[13px] font-medium text-gray-900">
+      <p className="text-[13px] font-medium text-neutral-900">
         {pluralize("Invitation", teammates)} saved. You'll need a pro plan to
         invite teammates.{" "}
         <a
           href="https://dub.co/help/article/how-to-invite-teammates"
           target="_blank"
-          className="text-gray-500 underline transition-colors hover:text-gray-800"
+          className="text-neutral-500 underline transition-colors hover:text-neutral-800"
         >
           Learn more
         </a>

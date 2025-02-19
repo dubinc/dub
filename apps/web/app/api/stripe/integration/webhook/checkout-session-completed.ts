@@ -122,7 +122,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     const payload = {
       name: stripeCustomerName,
       email: stripeCustomerEmail,
-      externalId: stripeCustomerId, // using Stripe customer ID as externalId
+      // stripeCustomerId can potentially be null, so we use email as fallback
+      externalId: stripeCustomerId || stripeCustomerEmail,
       projectId: workspace.id,
       projectConnectId: stripeAccountId,
       stripeCustomerId,

@@ -23,7 +23,6 @@ import { AnimatedEmptyState } from "../shared/animated-empty-state";
 import ArchivedLinksHint from "./archived-links-hint";
 import { LinkCard } from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";
-import LinkNotFound from "./link-not-found";
 import { LinksDisplayContext } from "./links-display-provider";
 
 export type ResponseLink = ExpandedLinkProps & {
@@ -81,8 +80,9 @@ function LinksList({
   const [openMenuLinkId, setOpenMenuLinkId] = useState<string | null>(null);
 
   const isFiltered = [
+    "folderId",
+    "tagIds",
     "domain",
-    "tagId",
     "userId",
     "search",
     "showArchived",
@@ -111,28 +111,32 @@ function LinksList({
                 ))}
           </CardList>
         </LinksListContext.Provider>
-      ) : isFiltered ? (
-        <LinkNotFound />
       ) : (
         <AnimatedEmptyState
-          title="No links found"
-          description="Start creating short links for your marketing campaigns, referral programs, and more."
+          title={isFiltered ? "No links found" : "No links yet"}
+          description={
+            isFiltered
+              ? "Bummer! There are no links that match your filters. Adjust your filters to yield more results."
+              : "Start creating short links for your marketing campaigns, referral programs, and more."
+          }
           cardContent={
             <>
               <Hyperlink className="size-4 text-neutral-700" />
               <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-              <div className="xs:flex hidden grow items-center justify-end gap-1.5 text-gray-500">
+              <div className="xs:flex hidden grow items-center justify-end gap-1.5 text-neutral-500">
                 <CursorRays className="size-3.5" />
               </div>
             </>
           }
-          addButton={
-            <div>
-              <CreateLinkButton />
-            </div>
-          }
-          learnMoreHref="https://dub.co/help/article/how-to-create-link"
-          learnMoreClassName="h-10"
+          {...(!isFiltered && {
+            addButton: (
+              <div>
+                <CreateLinkButton />
+              </div>
+            ),
+            learnMoreHref: "https://dub.co/help/article/how-to-create-link",
+            learnMoreClassName: "h-10",
+          })}
         />
       )}
 
@@ -147,7 +151,7 @@ function LinksList({
                 "max-[1330px]:left-0 max-[1330px]:translate-x-0",
               )}
             >
-              <div className="rounded-xl border border-gray-200 bg-white px-4 py-3.5 [filter:drop-shadow(0_5px_8px_#222A351d)]">
+              <div className="rounded-xl border border-neutral-200 bg-white px-4 py-3.5 [filter:drop-shadow(0_5px_8px_#222A351d)]">
                 <PaginationControls
                   pagination={pagination}
                   setPagination={setPagination}

@@ -4,6 +4,7 @@ import "dotenv-flow/config";
 import { createId } from "../lib/api/utils";
 
 async function main() {
+  // @ts-ignore (old sales table)
   const sales = await prisma.sale.findMany({
     select: {
       id: true,

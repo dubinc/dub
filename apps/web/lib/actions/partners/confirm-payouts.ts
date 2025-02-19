@@ -3,11 +3,7 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { createId } from "@/lib/api/utils";
 import { limiter } from "@/lib/cron/limiter";
-import {
-  DUB_PARTNERS_PAYOUT_FEE_ACH,
-  DUB_PARTNERS_PAYOUT_FEE_CARD,
-  MIN_PAYOUT_AMOUNT,
-} from "@/lib/partners/constants";
+import { MIN_PAYOUT_AMOUNT, PAYOUT_FEES } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import { PartnerPayoutConfirmed } from "@dub/email/templates/partner-payout-confirmed";
@@ -112,9 +108,10 @@ export const confirmPayoutsAction = authActionClient
       );
 
       const fee =
-        paymentMethod.type === "us_bank_account"
-          ? amount * DUB_PARTNERS_PAYOUT_FEE_ACH
-          : amount * DUB_PARTNERS_PAYOUT_FEE_CARD;
+        amount *
+        PAYOUT_FEES[workspace.plan?.split(" ")[0] ?? "business"][
+          paymentMethod.type === "us_bank_account" ? "ach" : "card"
+        ];
 
       const total = amount + fee;
 

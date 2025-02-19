@@ -32,7 +32,7 @@ export default function useLinksCount<T = any>(
                   ...opts,
                 },
                 {
-                  ignore: ["import", "upgrade", "newLink"],
+                  exclude: ["import", "upgrade", "newLink"],
                 },
               )
         }`

@@ -62,7 +62,7 @@ export function PayoutTable() {
     `/api/programs/${programId}/payouts${getQueryString(
       { workspaceId },
       {
-        ignore: ["payoutId"],
+        exclude: ["payoutId"],
       },
     )}`,
     fetcher,
@@ -264,7 +264,7 @@ function RowMenuButton({ row }: { row: Row<PayoutResponse> }) {
               label="View sales"
               onSelect={() => {
                 router.push(
-                  `/${slug}/programs/${programId}/sales?payoutId=${row.original.id}&start=${row.original.periodStart}&end=${row.original.periodEnd}`,
+                  `/${slug}/programs/${programId}/sales?payoutId=${row.original.id}&interval=all`,
                 );
                 setIsOpen(false);
               }}
@@ -297,7 +297,7 @@ function MenuItem({
     <Command.Item
       className={cn(
         "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-600",
-        "data-[selected=true]:bg-gray-100",
+        "data-[selected=true]:bg-neutral-100",
       )}
       onSelect={onSelect}
     >

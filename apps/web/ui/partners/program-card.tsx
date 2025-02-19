@@ -1,4 +1,4 @@
-import { usePartnerEarnings } from "@/lib/swr/use-partner-earnings";
+import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import { ProgramEnrollmentProps, ProgramProps } from "@/lib/types";
 import { BlurImage, MiniAreaChart, StatusBadge } from "@dub/ui";
 import {
@@ -44,7 +44,7 @@ export function ProgramCard({
       )}
     >
       <div className="flex items-center gap-4">
-        <div className="flex size-10 items-center justify-center rounded-full border border-gray-200 bg-gradient-to-t from-gray-100">
+        <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-gradient-to-t from-neutral-100">
           <BlurImage
             width={96}
             height={96}
@@ -88,16 +88,15 @@ export function ProgramCard({
 }
 
 function ProgramCardEarnings({ program }: { program: ProgramProps }) {
-  const { data: analytics } = usePartnerEarnings({
+  const { data: timeseries } = usePartnerEarningsTimeseries({
     programId: program.id,
     interval: "1y",
   });
 
-  const { data: timeseries } = usePartnerEarnings({
-    programId: program.id,
-    groupBy: "timeseries",
-    interval: "1y",
-  });
+  const total = useMemo(
+    () => timeseries?.reduce((acc, { earnings }) => acc + earnings, 0),
+    [timeseries],
+  );
 
   const chartData = useMemo(
     () =>
@@ -113,9 +112,9 @@ function ProgramCardEarnings({ program }: { program: ProgramProps }) {
         <div className="whitespace-nowrap text-sm text-neutral-500">
           Earnings
         </div>
-        {analytics ? (
+        {total !== undefined ? (
           <div className="mt-1 text-2xl font-medium leading-none text-neutral-800">
-            {currencyFormatter(analytics?.earnings / 100 || 0)}
+            {currencyFormatter(total / 100 || 0)}
           </div>
         ) : (
           <div className="mt-1 h-6 w-20 animate-pulse rounded-md bg-neutral-200" />

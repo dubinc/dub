@@ -61,14 +61,14 @@ export function Tooltip({
         <TooltipPrimitive.Content
           sideOffset={8}
           side={side}
-          className="animate-slide-up-fade pointer-events-auto z-[99] items-center overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+          className="animate-slide-up-fade pointer-events-auto z-[99] items-center overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm"
           collisionPadding={0}
           {...rest}
         >
           {typeof content === "string" ? (
             <span
               className={cn(
-                "block max-w-xs text-pretty px-4 py-2 text-center text-sm text-gray-700",
+                "block max-w-xs text-pretty px-4 py-2 text-center text-sm text-neutral-700",
                 contentClassName,
               )}
             >
@@ -100,7 +100,7 @@ export function TooltipContent({
 }) {
   return (
     <div className="flex max-w-xs flex-col items-center space-y-3 p-4 text-center">
-      <p className="text-sm text-gray-700">{title}</p>
+      <p className="text-sm text-neutral-700">{title}</p>
       {cta &&
         (href ? (
           <Link
@@ -135,14 +135,14 @@ export function SimpleTooltipContent({
   href: string;
 }) {
   return (
-    <div className="max-w-xs px-4 py-2 text-center text-sm text-gray-700">
+    <div className="max-w-xs px-4 py-2 text-center text-sm text-neutral-700">
       {title}{" "}
       <a
         href={href}
         target="_blank"
         rel="noopener noreferrer"
         onClick={(e) => e.stopPropagation()}
-        className="inline-flex text-gray-500 underline underline-offset-4 hover:text-gray-800"
+        className="inline-flex text-neutral-500 underline underline-offset-4 hover:text-neutral-800"
       >
         {cta}
       </a>
@@ -152,14 +152,14 @@ export function SimpleTooltipContent({
 
 export function LinkifyTooltipContent({ children }: { children: ReactNode }) {
   return (
-    <div className="block max-w-md whitespace-pre-wrap px-4 py-2 text-center text-sm text-gray-700">
+    <div className="block max-w-md whitespace-pre-wrap px-4 py-2 text-center text-sm text-neutral-700">
       <Linkify
         as="p"
         options={{
           target: "_blank",
           rel: "noopener noreferrer nofollow",
           className:
-            "underline underline-offset-4 text-gray-400 hover:text-gray-700",
+            "underline underline-offset-4 text-neutral-400 hover:text-neutral-700",
         }}
       >
         {children}
@@ -171,7 +171,7 @@ export function LinkifyTooltipContent({ children }: { children: ReactNode }) {
 export function InfoTooltip(props: Omit<TooltipProps, "children">) {
   return (
     <Tooltip {...props}>
-      <HelpCircle className="h-4 w-4 text-gray-500" />
+      <HelpCircle className="h-4 w-4 text-neutral-500" />
     </Tooltip>
   );
 }
@@ -195,13 +195,16 @@ export function NumberTooltip({
   return (
     <Tooltip
       content={
-        <div className="block max-w-xs px-4 py-2 text-center text-sm text-gray-700">
-          <p className="text-sm font-semibold text-gray-700">
+        <div className="block max-w-xs px-4 py-2 text-center text-sm text-neutral-700">
+          <p className="text-sm font-semibold text-neutral-700">
             {prefix}
             {nFormatter(value || 0, { full: true })} {unit}
           </p>
           {lastClicked && (
-            <p className="mt-1 text-xs text-gray-500" suppressHydrationWarning>
+            <p
+              className="mt-1 text-xs text-neutral-500"
+              suppressHydrationWarning
+            >
               Last clicked {timeAgo(lastClicked, { withAgo: true })}
             </p>
           )}
@@ -219,7 +222,7 @@ export function BadgeTooltip({ children, content, ...props }: TooltipProps) {
       <div className="flex cursor-pointer items-center">
         <Badge
           variant="gray"
-          className="border-gray-300 transition-all hover:bg-gray-200"
+          className="border-neutral-300 transition-all hover:bg-neutral-200"
         >
           {children}
         </Badge>
@@ -242,7 +245,7 @@ export function ButtonTooltip({
         type="button"
         {...props}
         className={cn(
-          "flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed disabled:hover:bg-transparent",
+          "flex h-6 w-6 items-center justify-center rounded-md text-neutral-500 transition-colors duration-75 hover:bg-neutral-100 active:bg-neutral-200 disabled:cursor-not-allowed disabled:hover:bg-transparent",
           props.className,
         )}
       >

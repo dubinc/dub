@@ -19,14 +19,17 @@ export async function getLinksForWorkspace({
   userId,
   showArchived,
   withTags,
+  folderId,
+  folderIds,
+  linkIds,
   includeUser,
   includeWebhooks,
   includeDashboard,
-  linkIds,
   tenantId,
   partnerId,
 }: z.infer<typeof getLinksQuerySchemaExtended> & {
   workspaceId: string;
+  folderIds?: string[];
 }) {
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
@@ -39,6 +42,22 @@ export async function getLinksForWorkspace({
     where: {
       projectId: workspaceId,
       archived: showArchived ? undefined : false,
+      ...(folderIds
+        ? {
+            OR: [
+              {
+                folderId: {
+                  in: folderIds.filter((id) => id !== ""),
+                },
+              },
+              {
+                folderId: null,
+              },
+            ],
+          }
+        : {
+            folderId: folderId || null,
+          }),
       ...(domain && { domain }),
       ...(search && {
         OR: [

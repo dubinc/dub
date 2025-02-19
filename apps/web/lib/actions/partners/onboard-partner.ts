@@ -1,7 +1,6 @@
 "use server";
 
 import { createId } from "@/lib/api/utils";
-import { userIsInBeta } from "@/lib/edge-config";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { storage } from "@/lib/storage";
 import { createConnectedAccount } from "@/lib/stripe/create-connected-account";
@@ -20,28 +19,23 @@ export const onboardPartnerAction = authUserActionClient
     const { user } = ctx;
     const { name, image, country, description } = parsedInput;
 
-    const partnersPortalEnabled = await userIsInBeta(
-      user.email,
-      "partnersPortal",
-    );
-
-    if (!partnersPortalEnabled) {
-      throw new Error("Partners portal feature flag disabled.");
-    }
-
     const existingPartner = await prisma.partner.findUnique({
       where: {
         email: user.email,
       },
     });
 
-    const connectedAccount = CONNECT_SUPPORTED_COUNTRIES.includes(country)
-      ? await createConnectedAccount({
-          name,
-          email: user.email,
-          country,
-        })
-      : null;
+    // only create a connected account if the partner doesn't already have one
+    // and the country is supported
+    const connectedAccount =
+      !existingPartner?.stripeConnectId &&
+      CONNECT_SUPPORTED_COUNTRIES.includes(country)
+        ? await createConnectedAccount({
+            name,
+            email: user.email,
+            country,
+          })
+        : null;
 
     const partnerId = existingPartner
       ? existingPartner.id
@@ -55,7 +49,7 @@ export const onboardPartnerAction = authUserActionClient
       name,
       email: user.email,
       country,
-      bio: description,
+      ...(description && { description }),
       image: imageUrl,
       ...(connectedAccount && { stripeConnectId: connectedAccount.id }),
       users: {

@@ -1,6 +1,7 @@
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { createId } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { dashboardSchema } from "@/lib/zod/schemas/dashboard";
 import { domainKeySchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
@@ -24,7 +25,7 @@ export const GET = withWorkspace(
 
 // POST /api/dashboards – create a new dashboard
 export const POST = withWorkspace(
-  async ({ searchParams, workspace }) => {
+  async ({ searchParams, workspace, session }) => {
     const { domain, key } = domainKeySchema.parse(searchParams);
 
     const link = await getLinkOrThrow({
@@ -32,6 +33,15 @@ export const POST = withWorkspace(
       domain,
       key,
     });
+
+    if (link.folderId) {
+      await verifyFolderAccess({
+        workspace,
+        userId: session.user.id,
+        folderId: link.folderId,
+        requiredPermission: "folders.links.write",
+      });
+    }
 
     const dashboard = await prisma.dashboard.create({
       data: {

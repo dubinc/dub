@@ -1,8 +1,10 @@
 "use server";
 
 import { createId } from "@/lib/api/utils";
-import { updateConfig } from "@/lib/edge-config";
 import { recordLink } from "@/lib/tinybird";
+import { PartnerLinkProps, ProgramProps, WorkspaceProps } from "@/lib/types";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -10,14 +12,15 @@ import { DubApiError } from "../errors";
 import { includeTags } from "../links/include-tags";
 
 export const enrollPartner = async ({
-  programId,
-  linkId,
+  program,
   tenantId,
+  workspace,
+  link,
   partner,
 }: {
-  programId: string;
-  linkId: string;
+  program: Pick<ProgramProps, "id" | "defaultFolderId">;
   tenantId?: string;
+  workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
   partner: {
     name: string;
     email?: string | null;
@@ -25,11 +28,12 @@ export const enrollPartner = async ({
     country?: string | null;
     description?: string | null;
   };
+  link: PartnerLinkProps;
 }) => {
   if (partner.email) {
     const programEnrollment = await prisma.programEnrollment.findFirst({
       where: {
-        programId,
+        programId: program.id,
         partner: {
           email: partner.email,
         },
@@ -50,7 +54,7 @@ export const enrollPartner = async ({
       where: {
         tenantId_programId: {
           tenantId,
-          programId,
+          programId: program.id,
         },
       },
     });
@@ -66,11 +70,11 @@ export const enrollPartner = async ({
   const payload: Pick<Prisma.PartnerUpdateInput, "programs"> = {
     programs: {
       create: {
-        programId,
+        programId: program.id,
         tenantId,
         links: {
           connect: {
-            id: linkId,
+            id: link.id,
           },
         },
         status: "approved",
@@ -90,8 +94,22 @@ export const enrollPartner = async ({
       email: partner.email,
       image: partner.image,
       country: partner.country ?? "US",
-      bio: partner.description,
+      description: partner.description,
     },
+    include: {
+      programs: {
+        where: {
+          programId: program.id,
+        },
+      },
+    },
+  });
+
+  const enrolledPartner = EnrolledPartnerSchema.parse({
+    ...upsertedPartner,
+    ...upsertedPartner.programs[0],
+    id: upsertedPartner.id,
+    links: [link],
   });
 
   waitUntil(
@@ -100,23 +118,24 @@ export const enrollPartner = async ({
       prisma.link
         .update({
           where: {
-            id: linkId,
+            id: link.id,
           },
           data: {
-            programId,
+            programId: program.id,
             partnerId: upsertedPartner.id,
+            folderId: program.defaultFolderId,
           },
           include: includeTags,
         })
         .then((link) => recordLink(link)),
-      // TODO: Remove this once we open up partners.dub.co to everyone
-      partner.email &&
-        updateConfig({
-          key: "partnersPortal",
-          value: partner.email,
-        }),
+
+      sendWorkspaceWebhook({
+        workspace,
+        trigger: "partner.created",
+        data: enrolledPartner,
+      }),
     ]),
   );
 
-  return upsertedPartner;
+  return enrolledPartner;
 };

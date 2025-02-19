@@ -29,6 +29,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     timezone = "UTC",
     isDemo,
     isDeprecatedClicksEndpoint = false,
+    dataAvailableFrom,
   } = params;
 
   const tagIds = combineTagIds(params);
@@ -61,6 +62,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     interval,
     start,
     end,
+    dataAvailableFrom,
   });
 
   if (trigger) {

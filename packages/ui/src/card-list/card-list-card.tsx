@@ -10,16 +10,19 @@ import {
 } from "react";
 import { CardListContext } from "./card-list";
 
-const cardListCardVariants = cva("w-full group/card border-gray-200 bg-white", {
-  variants: {
-    variant: {
-      compact:
-        "first-of-type:rounded-t-xl last-of-type:rounded-b-xl first-of-type:border-t border-b border-x data-[hover-state-enabled=true]:hover:bg-gray-50 transition-colors",
-      loose:
-        "border rounded-xl transition-[filter] data-[hover-state-enabled=true]:hover:drop-shadow-card-hover",
+const cardListCardVariants = cva(
+  "w-full group/card border-neutral-200 bg-white",
+  {
+    variants: {
+      variant: {
+        compact:
+          "first-of-type:rounded-t-xl last-of-type:rounded-b-xl first-of-type:border-t border-b border-x data-[hover-state-enabled=true]:hover:bg-neutral-50 transition-colors",
+        loose:
+          "border rounded-xl transition-[filter] data-[hover-state-enabled=true]:hover:drop-shadow-card-hover",
+      },
     },
   },
-});
+);
 
 const cardListCardInnerClassName = "w-full py-2.5 px-4";
 
@@ -33,11 +36,13 @@ export function CardListCard({
   children,
   onClick,
   hoverStateEnabled = true,
+  banner,
 }: PropsWithChildren<{
   outerClassName?: string;
   innerClassName?: string;
   onClick?: () => void;
   hoverStateEnabled?: boolean;
+  banner?: React.ReactNode;
 }>) {
   const { variant } = useContext(CardListContext);
 
@@ -65,6 +70,7 @@ export function CardListCard({
       onPointerLeave={() => setHovered(false)}
       data-hover-state-enabled={hoverStateEnabled}
     >
+      {banner}
       <div
         className={cn(cardListCardInnerClassName, innerClassName)}
         onClick={

@@ -151,7 +151,7 @@ export default function WorkspaceDomainsClient() {
                     text="Connect a domain you own"
                     variant="outline"
                     icon={<Globe className="h-4 w-4" />}
-                    className="h-9 justify-start px-2 text-gray-800"
+                    className="h-9 justify-start px-2 text-neutral-800"
                     onClick={() => setShowAddEditDomainModal(true)}
                   />
                   <Button
@@ -175,7 +175,7 @@ export default function WorkspaceDomainsClient() {
                     }
                     variant="outline"
                     icon={<LinkBroken className="size-4" />}
-                    className="h-9 justify-start px-2 text-gray-800 disabled:border-none disabled:bg-transparent disabled:text-gray-500"
+                    className="h-9 justify-start px-2 text-neutral-800 disabled:border-none disabled:bg-transparent disabled:text-neutral-500"
                     onClick={() => setShowRegisterDomainModal(true)}
                     disabled={dotLinkClaimed}
                   />
@@ -221,7 +221,7 @@ export default function WorkspaceDomainsClient() {
                 ))}
               </ul>
             ) : archived || search ? (
-              <div className="flex flex-col items-center gap-4 rounded-xl border border-gray-200 py-10">
+              <div className="flex flex-col items-center gap-4 rounded-xl border border-neutral-200 py-10">
                 <EmptyState
                   icon={Globe}
                   title={
@@ -240,7 +240,7 @@ export default function WorkspaceDomainsClient() {
                   <>
                     <Globe className="size-4 text-neutral-700" />
                     <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-                    <div className="xs:flex hidden grow items-center justify-end gap-1.5 text-gray-500">
+                    <div className="xs:flex hidden grow items-center justify-end gap-1.5 text-neutral-500">
                       <CursorRays className="size-3.5" />
                     </div>
                   </>
@@ -259,7 +259,7 @@ export default function WorkspaceDomainsClient() {
             </ul>
           )}
         </div>
-        <div className="sticky bottom-0 rounded-b-[inherit] border-t border-gray-200 bg-white px-3.5 py-2">
+        <div className="sticky bottom-0 rounded-b-[inherit] border-t border-neutral-200 bg-white px-3.5 py-2">
           <PaginationControls
             pagination={pagination}
             setPagination={setPagination}

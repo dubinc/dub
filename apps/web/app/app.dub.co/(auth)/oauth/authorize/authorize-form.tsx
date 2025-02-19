@@ -140,7 +140,7 @@ export const AuthorizeForm = ({
             value={code_challenge_method}
           />
         )}
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-neutral-500">
           Select a workspace to grant API access to
         </p>
         <div className="max-w-md py-2">
@@ -156,7 +156,7 @@ export const AuthorizeForm = ({
                 text="Create new workspace"
                 variant="outline"
                 onClick={() => setShowAddWorkspaceModal(true)}
-                className="justify-start text-gray-700"
+                className="justify-start text-neutral-700"
               />
             }
           />

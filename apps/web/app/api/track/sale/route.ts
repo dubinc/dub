@@ -5,6 +5,7 @@ import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
 import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
+import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
@@ -31,7 +32,24 @@ export const POST = withWorkspaceEdge(
       currency,
       metadata,
       eventName,
+      leadEventName,
     } = trackSaleRequestSchema.parse(await parseRequestBody(req));
+
+    if (invoiceId) {
+      // Skip if invoice id is already processed
+      const ok = await redis.set(`dub_sale_events:invoiceId:${invoiceId}`, 1, {
+        ex: 60 * 60 * 24 * 7,
+        nx: true,
+      });
+
+      if (!ok) {
+        return NextResponse.json({
+          eventName,
+          customer: null,
+          sale: null,
+        });
+      }
+    }
 
     const customerExternalId = customerId || externalId;
 
@@ -60,8 +78,11 @@ export const POST = withWorkspaceEdge(
       });
     }
 
-    // Find lead
-    const leadEvent = await getLeadEvent({ customerId: customer.id });
+    // Find lead event
+    const leadEvent = await getLeadEvent({
+      customerId: customer.id,
+      eventName: leadEventName,
+    });
 
     if (!leadEvent || leadEvent.data.length === 0) {
       throw new DubApiError({
