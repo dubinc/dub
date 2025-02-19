@@ -2,20 +2,23 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BoxArchive,
   Button,
+  CircleDollar,
   Folder,
   Icon,
   LoadingSpinner,
   PaginationControls,
   Popover,
   Tag,
+  TooltipContent,
   Trash,
   usePagination,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Command } from "cmdk";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { useArchiveLinkModal } from "../modals/archive-link-modal";
 import { useDeleteLinkModal } from "../modals/delete-link-modal";
+import { useLinkConversionTrackingModal } from "../modals/link-conversion-tracking-modal";
 import { useMoveLinkToFolderModal } from "../modals/move-link-to-folder-modal";
 import { useTagLinkModal } from "../modals/tag-link-modal";
 import { ThreeDots, X } from "../shared/icons";
@@ -27,7 +30,7 @@ type BulkAction = {
   label: string;
   icon: Icon;
   action: () => void;
-  disabledTooltip?: string;
+  disabledTooltip?: string | ReactNode;
 };
 
 export const LinksToolbar = ({
@@ -39,7 +42,9 @@ export const LinksToolbar = ({
   links: ResponseLink[];
   linksCount: number;
 }) => {
-  const { flags } = useWorkspace();
+  const { flags, slug, plan } = useWorkspace();
+
+  const conversionsEnabled = !!plan && plan !== "free" && plan !== "pro";
 
   const { selectedLinkIds, setSelectedLinkIds } = useLinkSelection();
   const { pagination, setPagination } = usePagination();
@@ -52,6 +57,10 @@ export const LinksToolbar = ({
   const { setShowMoveLinkToFolderModal, MoveLinkToFolderModal } =
     useMoveLinkToFolderModal({
       links: selectedLinks,
+    });
+  const { setShowLinkConversionTrackingModal, LinkConversionTrackingModal } =
+    useLinkConversionTrackingModal({
+      props: selectedLinks,
     });
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
     props: selectedLinks,
@@ -76,6 +85,19 @@ export const LinksToolbar = ({
         ]
       : []),
     {
+      label: "Conversion",
+      icon: CircleDollar,
+      action: () => setShowLinkConversionTrackingModal(true),
+      disabledTooltip: conversionsEnabled ? undefined : (
+        <TooltipContent
+          title="Conversion tracking is only available on Business plans and above."
+          cta="Upgrade to Business"
+          href={slug ? `/${slug}/upgrade?exit=close` : "https://dub.co/pricing"}
+          target="_blank"
+        />
+      ),
+    },
+    {
       label:
         selectedLinks.length && selectedLinks.every(({ archived }) => archived)
           ? "Unarchive"
@@ -97,6 +119,7 @@ export const LinksToolbar = ({
     <>
       <TagLinkModal />
       <MoveLinkToFolderModal />
+      <LinkConversionTrackingModal />
       <ArchiveLinkModal />
       <DeleteLinkModal />
 
@@ -159,7 +182,7 @@ export const LinksToolbar = ({
                 </div>
 
                 {/* Large screen controls */}
-                <div className="hidden items-center gap-2 lg:flex">
+                <div className="hidden items-center gap-2 min-[1040px]:flex">
                   {bulkActions.map(
                     ({ label, icon: Icon, action, disabledTooltip }) => (
                       <Button
@@ -176,7 +199,7 @@ export const LinksToolbar = ({
                 </div>
 
                 {/* Small screen controls */}
-                <div className="block lg:hidden">
+                <div className="block min-[1040px]:hidden">
                   <BulkActionMenu bulkActions={bulkActions} />
                 </div>
               </div>

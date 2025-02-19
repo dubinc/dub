@@ -117,9 +117,7 @@ function TagLinkModalInner({ setShowTagLinkModal, links }: TagLinkModalProps) {
         <Button
           onClick={handleSubmit}
           loading={updating}
-          text={
-            updating ? "Saving..." : `Save ${links.length > 1 ? "changes" : ""}`
-          }
+          text={updating ? "Saving..." : "Update tags"}
           className="h-8 w-fit px-3"
         />
       </div>
