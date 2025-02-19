@@ -7,6 +7,7 @@ import {
   LoadingSpinner,
   PaginationControls,
   Popover,
+  Tag,
   Trash,
   usePagination,
 } from "@dub/ui";
@@ -16,6 +17,7 @@ import { useState } from "react";
 import { useArchiveLinkModal } from "../modals/archive-link-modal";
 import { useDeleteLinkModal } from "../modals/delete-link-modal";
 import { useMoveLinkToFolderModal } from "../modals/move-link-to-folder-modal";
+import { useTagLinkModal } from "../modals/tag-link-modal";
 import { ThreeDots, X } from "../shared/icons";
 import ArchivedLinksHint from "./archived-links-hint";
 import { useLinkSelection } from "./link-selection-provider";
@@ -44,20 +46,26 @@ export const LinksToolbar = ({
 
   const selectedLinks = links.filter(({ id }) => selectedLinkIds.includes(id));
 
-  const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
+  const { setShowTagLinkModal, TagLinkModal } = useTagLinkModal({
     props: selectedLinks,
   });
-
-  const { setShowDeleteLinkModal, DeleteLinkModal } = useDeleteLinkModal({
-    props: selectedLinks,
-  });
-
   const { setShowMoveLinkToFolderModal, MoveLinkToFolderModal } =
     useMoveLinkToFolderModal({
       links: selectedLinks,
     });
+  const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
+    props: selectedLinks,
+  });
+  const { setShowDeleteLinkModal, DeleteLinkModal } = useDeleteLinkModal({
+    props: selectedLinks,
+  });
 
   const bulkActions: BulkAction[] = [
+    {
+      label: "Tags",
+      icon: Tag,
+      action: () => setShowTagLinkModal(true),
+    },
     ...(flags?.linkFolders
       ? [
           {
@@ -87,9 +95,10 @@ export const LinksToolbar = ({
 
   return (
     <>
+      <TagLinkModal />
+      <MoveLinkToFolderModal />
       <ArchiveLinkModal />
       <DeleteLinkModal />
-      <MoveLinkToFolderModal />
 
       {/* Leave room at bottom of list */}
       <div className="h-[90px]" />

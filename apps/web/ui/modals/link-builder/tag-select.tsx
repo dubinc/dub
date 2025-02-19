@@ -17,12 +17,12 @@ import {
 import { cn } from "@dub/utils";
 import { useCompletion } from "ai/react";
 import posthog from "posthog-js";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
-import { LinkFormData, LinkModalContext } from ".";
+import { LinkFormData } from ".";
 import { MultiTagsIcon } from "./multi-tags-icon";
 
 function getTagOption(tag: TagProps) {
@@ -35,8 +35,12 @@ function getTagOption(tag: TagProps) {
 }
 
 export function TagSelect() {
-  const { slug, mutate: mutateWorkspace, exceededAI } = useWorkspace();
-  const { workspaceId } = useContext(LinkModalContext);
+  const {
+    id: workspaceId,
+    slug,
+    mutate: mutateWorkspace,
+    exceededAI,
+  } = useWorkspace();
 
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
