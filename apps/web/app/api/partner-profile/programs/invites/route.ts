@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 // GET /api/partner-profile/programs/invites - get all invites for a given partnerId/email
-export const GET = withPartnerProfile(async ({ session, partner }) => {
+export const GET = withPartnerProfile(async ({ session }) => {
   const invites = await prisma.programInvite.findMany({
     where: {
       email: session.user.email, // in the future we will check for invites for a given partnerId as well
@@ -28,9 +28,10 @@ export const GET = withPartnerProfile(async ({ session, partner }) => {
 
   const invitesWithRewards = invites.map((invite) => ({
     ...invite,
-    reward: programWideRewards.find(
-      (reward) => reward.id === invite.program.defaultRewardId,
-    ),
+    reward:
+      programWideRewards.find(
+        (reward) => reward.id === invite.program.defaultRewardId,
+      ) ?? null,
   }));
 
   return NextResponse.json(
