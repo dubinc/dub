@@ -30,6 +30,7 @@ export function LinkSelectionProvider({
   );
 
   useEffect(() => {
+    // Deselect any links no longer in the list
     setSelectedLinkIds((prev) =>
       links ? prev.filter((id) => links.find((l) => l.id === id)) : [],
     );

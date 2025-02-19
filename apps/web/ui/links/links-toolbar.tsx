@@ -3,10 +3,12 @@ import {
   Button,
   LoadingSpinner,
   PaginationControls,
+  Trash,
   usePagination,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useArchiveLinkModal } from "../modals/archive-link-modal";
+import { useDeleteLinkModal } from "../modals/delete-link-modal";
 import { X } from "../shared/icons";
 import ArchivedLinksHint from "./archived-links-hint";
 import { useLinkSelection } from "./link-selection-provider";
@@ -25,23 +27,38 @@ export const LinksToolbar = ({
   const { pagination, setPagination } = usePagination();
 
   const selectedLinks = links.filter(({ id }) => selectedLinkIds.includes(id));
-  const allArchived = selectedLinks.every(({ archived }) => archived);
 
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
     props: selectedLinks,
   });
 
+  const { setShowDeleteLinkModal, DeleteLinkModal } = useDeleteLinkModal({
+    props: selectedLinks,
+  });
+
   const bulkActions = [
     {
-      label: allArchived ? "Unarchive" : "Archive",
+      label: selectedLinks.every(({ archived }) => archived)
+        ? "Unarchive"
+        : "Archive",
       icon: BoxArchive,
       action: () => setShowArchiveLinkModal(true),
+    },
+    {
+      label: "Delete",
+      icon: Trash,
+      action: () => setShowDeleteLinkModal(true),
+      disabledTooltip: selectedLinks.some(({ programId }) => programId)
+        ? "You can't delete a link that's part of a program."
+        : undefined,
     },
   ];
 
   return (
     <>
       <ArchiveLinkModal />
+      <DeleteLinkModal />
+
       {/* Leave room at bottom of list */}
       <div className="h-[90px]" />
 
@@ -57,7 +74,7 @@ export const LinksToolbar = ({
               className={cn(
                 "relative px-4 py-3.5 transition-[opacity,transform] duration-100",
                 selectedLinkIds.length > 0 &&
-                  "absolute inset-0 translate-y-1/2 opacity-0",
+                  "pointer-events-none absolute inset-0 translate-y-1/2 opacity-0",
               )}
             >
               <PaginationControls
@@ -80,7 +97,7 @@ export const LinksToolbar = ({
               className={cn(
                 "relative px-4 py-3.5 transition-[opacity,transform] duration-100",
                 !selectedLinkIds.length &&
-                  "absolute inset-0 translate-y-1/2 opacity-0",
+                  "pointer-events-none absolute inset-0 translate-y-1/2 opacity-0",
               )}
             >
               <div className="flex items-center justify-between">
@@ -102,16 +119,19 @@ export const LinksToolbar = ({
 
                 {/* Controls */}
                 <div className="flex items-center gap-2">
-                  {bulkActions.map(({ label, icon: Icon, action }) => (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      className="h-7 px-2.5"
-                      icon={<Icon className="size-4" />}
-                      text={label}
-                      onClick={action}
-                    />
-                  ))}
+                  {bulkActions.map(
+                    ({ label, icon: Icon, action, disabledTooltip }) => (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="h-7 px-2.5"
+                        icon={<Icon className="size-4" />}
+                        text={label}
+                        onClick={action}
+                        disabledTooltip={disabledTooltip}
+                      />
+                    ),
+                  )}
                 </div>
               </div>
             </div>
