@@ -1,6 +1,5 @@
 "use client";
 
-import useFoldersCount from "@/lib/swr/use-folders-count";
 import useTagsCount from "@/lib/swr/use-tags-count";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -42,6 +41,7 @@ export default function PlanUsage() {
     linksLimit,
     domains,
     domainsLimit,
+    foldersUsage,
     foldersLimit,
     tagsLimit,
     usersLimit,
@@ -49,7 +49,6 @@ export default function PlanUsage() {
     flags,
   } = useWorkspace();
 
-  const { data: folders } = useFoldersCount();
   const { data: tags } = useTagsCount();
   const { users } = useUsers();
 
@@ -169,7 +168,7 @@ export default function PlanUsage() {
             <UsageCategory
               title="Folders"
               icon={Folder5}
-              usage={folders}
+              usage={foldersUsage}
               usageLimit={foldersLimit}
             />
           )}

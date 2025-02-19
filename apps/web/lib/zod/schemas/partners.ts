@@ -9,7 +9,7 @@ import { z } from "zod";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
 import { CustomerSchema } from "./customers";
-import { createLinkBodySchema } from "./links";
+import { createLinkBodySchema, LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { ProgramEnrollmentSchema } from "./programs";
 import { parseDateSchema, parseUrlSchema } from "./utils";
@@ -153,9 +153,26 @@ export const getSaleAmountQuerySchema = getSalesQuerySchema.pick({
   partnerId: true,
 });
 
-export const getPartnerSalesQuerySchema = getSalesQuerySchema.omit({
-  partnerId: true,
-});
+export const getPartnerSalesQuerySchema = getSalesQuerySchema
+  .omit({
+    partnerId: true,
+    sortBy: true,
+  })
+  .extend({
+    type: z.enum(["click", "lead", "sale"]).optional(),
+    linkId: z.string().optional(),
+    sortBy: z.enum(["createdAt", "amount", "earnings"]).default("createdAt"),
+  });
+
+export const PARTNER_CUSTOMERS_MAX_PAGE_SIZE = 100;
+
+export const getPartnerCustomersQuerySchema = z
+  .object({
+    search: z.string().optional(),
+  })
+  .merge(
+    getPaginationQuerySchema({ pageSize: PARTNER_CUSTOMERS_MAX_PAGE_SIZE }),
+  );
 
 export const PartnerEarningsSchema = SaleResponseSchema.omit({
   partner: true,
@@ -165,18 +182,20 @@ export const PartnerEarningsSchema = SaleResponseSchema.omit({
     type: z.string(),
     customer: z
       .object({
+        id: z.string(),
         email: z
           .string()
           .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
         avatar: z.string().nullable(),
       })
       .nullable(),
+    link: LinkSchema.pick({
+      id: true,
+      shortLink: true,
+      url: true,
+    }),
   }),
 );
-
-export const getPartnerSalesCountQuerySchema = getSalesCountQuerySchema.omit({
-  partnerId: true,
-});
 
 export const createPartnerSchema = z.object({
   programId: z
@@ -346,3 +365,18 @@ export const partnerAnalyticsResponseSchema = {
     title: "PartnerAnalyticsTopLinks",
   }),
 } as const;
+
+export const getPartnerEarningsCountQuerySchema = getSalesCountQuerySchema
+  .omit({
+    partnerId: true,
+  })
+  .extend({
+    type: z.enum(["click", "lead", "sale"]).optional(),
+    linkId: z.string().optional(),
+    groupBy: z.enum(["linkId", "customerId", "status", "type"]).optional(),
+  });
+
+export const partnerEarningsTimeseriesSchema =
+  getPartnerEarningsCountQuerySchema.extend({
+    timezone: z.string().optional(),
+  });

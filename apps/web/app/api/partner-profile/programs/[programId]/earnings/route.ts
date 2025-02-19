@@ -20,9 +20,11 @@ export const GET = withPartnerProfile(
     const {
       page,
       pageSize,
+      type,
       status,
       sortBy,
       sortOrder,
+      linkId,
       customerId,
       payoutId,
       interval,
@@ -40,7 +42,9 @@ export const GET = withPartnerProfile(
       where: {
         programId: program.id,
         partnerId: partner.id,
+        type,
         status,
+        linkId,
         customerId,
         payoutId,
         createdAt: {
@@ -58,6 +62,13 @@ export const GET = withPartnerProfile(
         createdAt: true,
         updatedAt: true,
         customer: true,
+        link: {
+          select: {
+            id: true,
+            shortLink: true,
+            url: true,
+          },
+        },
       },
       skip: (page - 1) * pageSize,
       take: pageSize,

@@ -2,7 +2,6 @@
 
 import { createId, getIP } from "@/lib/api/utils";
 import { getSession } from "@/lib/auth";
-import { updateConfig } from "@/lib/edge-config";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { Partner, Program, ProgramEnrollment } from "@dub/prisma/client";
@@ -125,20 +124,13 @@ async function createApplication({
   program: Program;
   data: z.infer<typeof createProgramApplicationSchema>;
 }) {
-  const [application, _] = await Promise.all([
-    prisma.programApplication.create({
-      data: {
-        ...data,
-        id: createId({ prefix: "pga_" }),
-        programId: program.id,
-      },
-    }),
-    // TODO: Remove this once we open up partners.dub.co to everyone
-    updateConfig({
-      key: "partnersPortal",
-      value: data.email,
-    }),
-  ]);
+  const application = await prisma.programApplication.create({
+    data: {
+      ...data,
+      id: createId({ prefix: "pga_" }),
+      programId: program.id,
+    },
+  });
 
   // Add application ID to cookie
   const cookieStore = cookies();

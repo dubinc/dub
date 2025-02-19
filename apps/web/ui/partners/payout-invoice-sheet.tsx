@@ -1,9 +1,5 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
-import {
-  DUB_PARTNERS_PAYOUT_FEE_ACH,
-  DUB_PARTNERS_PAYOUT_FEE_CARD,
-  MIN_PAYOUT_AMOUNT,
-} from "@/lib/partners/constants";
+import { MIN_PAYOUT_AMOUNT, PAYOUT_FEES } from "@/lib/partners/constants";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import usePayouts from "@/lib/swr/use-payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -16,6 +12,7 @@ import {
   Gear,
   GreekTemple,
   Sheet,
+  SimpleTooltipContent,
   Table,
   Tooltip,
   useRouterStuff,
@@ -45,42 +42,42 @@ interface PayoutInvoiceSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-const paymentMethodsTypes = Object.freeze({
-  link: {
-    label: "link",
-    type: "link",
-    icon: CreditCard,
-    fee: DUB_PARTNERS_PAYOUT_FEE_CARD,
-    duration: "Instantly",
-  },
-  card: {
-    label: "card",
-    type: "card",
-    icon: CreditCard,
-    fee: DUB_PARTNERS_PAYOUT_FEE_CARD,
-    duration: "Instantly",
-  },
-  us_bank_account: {
-    label: "ACH",
-    type: "us_bank_account",
-    icon: GreekTemple,
-    fee: DUB_PARTNERS_PAYOUT_FEE_ACH,
-    duration: "4 business days",
-  },
-});
-
-type PaymentMethodWithFee =
-  (typeof paymentMethodsTypes)[keyof typeof paymentMethodsTypes] & {
-    id: string;
-  };
-
 function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
-  const { id: workspaceId, slug } = useWorkspace();
+  const { id: workspaceId, slug, plan } = useWorkspace();
   const { programId } = useParams<{ programId: string }>();
   const { paymentMethods, loading: paymentMethodsLoading } =
     usePaymentMethods();
 
   const [selectedPayouts, setSelectedPayouts] = useState<PayoutResponse[]>([]);
+
+  const paymentMethodsTypes = Object.freeze({
+    link: {
+      label: "link",
+      type: "link",
+      icon: CreditCard,
+      fee: PAYOUT_FEES[plan?.split(" ")[0] ?? "business"].card,
+      duration: "Instantly",
+    },
+    card: {
+      label: "card",
+      type: "card",
+      icon: CreditCard,
+      fee: PAYOUT_FEES[plan?.split(" ")[0] ?? "business"].card,
+      duration: "Instantly",
+    },
+    us_bank_account: {
+      label: "ACH",
+      type: "us_bank_account",
+      icon: GreekTemple,
+      fee: PAYOUT_FEES[plan?.split(" ")[0] ?? "business"].ach,
+      duration: "4 business days",
+    },
+  });
+
+  type PaymentMethodWithFee =
+    (typeof paymentMethodsTypes)[keyof typeof paymentMethodsTypes] & {
+      id: string;
+    };
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<PaymentMethodWithFee | null>(null);
@@ -218,14 +215,14 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         maximumFractionDigits: 2,
       }),
 
-      Fee: (
+      Fee: selectedPaymentMethod ? (
         <Tooltip
           content={
-            selectedPaymentMethod
-              ? `${selectedPaymentMethod.fee * 100}% ${capitalize(
-                  selectedPaymentMethod.label,
-                )} fees`
-              : "Loading..."
+            <SimpleTooltipContent
+              title={`${selectedPaymentMethod.fee * 100}% processing fee.${selectedPaymentMethod.type !== "us_bank_account" ? " Switch to ACH for a reduced fee." : ""}`}
+              cta="Learn more"
+              href="https://d.to/payouts"
+            />
           }
         >
           <span className="underline decoration-dotted underline-offset-2">
@@ -235,6 +232,8 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
             })}
           </span>
         </Tooltip>
+      ) : (
+        <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
       ),
 
       Duration: (

@@ -349,7 +349,6 @@ function PartnerApproval({
         >
           <div className="w-[calc(100%-8px)]">
             <PartnerLinkSelector
-              programDomain={program?.domain ?? undefined}
               selectedLinkId={selectedLinkId}
               setSelectedLinkId={setSelectedLinkId}
               showDestinationUrl={false}
@@ -362,7 +361,6 @@ function PartnerApproval({
                 }
                 return false;
               }}
-              domain={program?.domain ?? undefined}
               error={linkError}
             />
           </div>
@@ -575,8 +573,8 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
         header: "Revenue",
         accessorFn: (d) =>
           currencyFormatter(d.saleAmount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
           }),
         size: 1,
         minSize: 1,
@@ -584,7 +582,7 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
     ],
     onRowClick: (row) => {
       window.open(
-        `/${slug}/analytics?domain=${row.original.domain}&key=${row.original.key}&interval=all`,
+        `/${slug}/events?domain=${row.original.domain}&key=${row.original.key}&interval=all`,
         "_blank",
       );
     },

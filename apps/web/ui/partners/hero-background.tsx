@@ -316,7 +316,8 @@ export function HeroBackground({
             src={logo}
             alt="Program Logo"
             fill
-            className="absolute object-cover object-center"
+            className="absolute rounded-full border border-white/20 object-cover object-center"
+            draggable={false}
           />
         )}
       </div>

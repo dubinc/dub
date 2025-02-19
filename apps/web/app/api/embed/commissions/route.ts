@@ -28,8 +28,16 @@ export const GET = withEmbedToken(
         updatedAt: true,
         customer: {
           select: {
+            id: true,
             email: true,
             avatar: true,
+          },
+        },
+        link: {
+          select: {
+            id: true,
+            shortLink: true,
+            url: true,
           },
         },
       },
