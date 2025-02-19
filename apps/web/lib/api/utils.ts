@@ -69,6 +69,7 @@ const prefixes = [
   "pn_",
   "cm_",
   "pga_",
+  "dub_embed_",
   "inv_",
   "rw_",
   "fold_",
