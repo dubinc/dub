@@ -1,5 +1,5 @@
-import useRewardPartners from "@/lib/swr/use-reward-partners";
-import useRewardPartnersCount from "@/lib/swr/use-reward-partners-count";
+import usePartners from "@/lib/swr/use-partners";
+import usePartnersCount from "@/lib/swr/use-partners-count";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { X } from "@/ui/shared/icons";
@@ -43,20 +43,18 @@ export function SelectEligiblePartnersSheet({
     data: partners,
     error: partnersError,
     loading,
-  } = useRewardPartners({
+  } = usePartners({
     query: {
-      event,
       search: debouncedSearch,
       page: pagination.pageIndex || 1,
     },
   });
 
-  const { partnersCount, loading: loadingCount } = useRewardPartnersCount({
-    query: {
-      event,
+  const { partnersCount, error: partnersCountError } = usePartnersCount<number>(
+    {
       search: debouncedSearch,
     },
-  });
+  );
 
   useEffect(() => {
     if (!isOpen) {
@@ -108,8 +106,11 @@ export function SelectEligiblePartnersSheet({
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
     resourceName: (p) => `eligible partner${p ? "s" : ""}`,
-    loading: loading || loadingCount,
-    error: partnersError ? "Failed to load partners." : undefined,
+    loading,
+    error:
+      partnersError || partnersCountError
+        ? "Failed to load partners."
+        : undefined,
     pagination,
     onPaginationChange: setPagination,
     rowCount: partnersCount || 0,
@@ -160,7 +161,7 @@ export function SelectEligiblePartnersSheet({
               className="block w-full rounded-lg border-neutral-300 pl-10 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
             />
           </div>
-          {loading || loadingCount ? (
+          {loading ? (
             <div className="flex items-center justify-center py-8">
               <LoadingSpinner className="size-4" />
             </div>
