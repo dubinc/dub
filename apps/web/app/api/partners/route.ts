@@ -65,9 +65,9 @@ export const GET = withWorkspace(
         pe.partnerId, 
         pe.tenantId,
         pe.createdAt as enrollmentCreatedAt,
-        COALESCE(SUM(l.clicks), 0) as totalClicks,
-        COALESCE(SUM(l.leads), 0) as totalLeads,
-        COALESCE(SUM(l.sales), 0) as totalSales,
+        COALESCE(SUM(DISTINCT l.clicks), 0) as totalClicks,
+        COALESCE(SUM(DISTINCT l.leads), 0) as totalLeads,
+        COALESCE(SUM(DISTINCT l.sales), 0) as totalSales,
         COALESCE(SUM(c.amount), 0) as totalSaleAmount,
         COALESCE(SUM(c.earnings), 0) as totalEarnings,
         JSON_ARRAYAGG(
@@ -93,7 +93,7 @@ export const GET = withWorkspace(
       LEFT JOIN 
         Link l ON l.programId = pe.programId AND l.partnerId = pe.partnerId
       LEFT JOIN
-        Commission c ON c.programId = pe.programId AND c.partnerId = pe.partnerId
+        Commission c ON c.linkId = l.id
       WHERE 
         pe.programId = ${program.id}
         ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status != 'rejected'`}
