@@ -137,6 +137,7 @@ function LinksList({
       {links && (
         <LinksToolbar
           loading={!!loading}
+          links={links}
           linksCount={count ?? links?.length ?? 0}
         />
       )}

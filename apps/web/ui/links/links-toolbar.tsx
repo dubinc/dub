@@ -1,21 +1,48 @@
-import { LoadingSpinner, PaginationControls, usePagination } from "@dub/ui";
+import {
+  BoxArchive,
+  Button,
+  LoadingSpinner,
+  PaginationControls,
+  usePagination,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
+import { useArchiveLinkModal } from "../modals/archive-link-modal";
 import { X } from "../shared/icons";
 import ArchivedLinksHint from "./archived-links-hint";
 import { useLinkSelection } from "./link-selection-provider";
+import { ResponseLink } from "./links-container";
 
 export const LinksToolbar = ({
   loading,
+  links,
   linksCount,
 }: {
   loading: boolean;
+  links: ResponseLink[];
   linksCount: number;
 }) => {
   const { selectedLinkIds, setSelectedLinkIds } = useLinkSelection();
   const { pagination, setPagination } = usePagination();
 
+  const selectedLinks = links.filter(({ id }) => selectedLinkIds.includes(id));
+  const allArchived = selectedLinks.every(({ archived }) => archived);
+
+  const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
+    props: selectedLinks,
+    onSuccess: () => setSelectedLinkIds([]),
+  });
+
+  const bulkActions = [
+    {
+      label: allArchived ? "Unarchive" : "Archive",
+      icon: BoxArchive,
+      action: () => setShowArchiveLinkModal(true),
+    },
+  ];
+
   return (
     <>
+      <ArchiveLinkModal />
       {/* Leave room at bottom of list */}
       <div className="h-[90px]" />
 
@@ -75,7 +102,18 @@ export const LinksToolbar = ({
                 </div>
 
                 {/* Controls */}
-                <div className="flex items-center gap-2"></div>
+                <div className="flex items-center gap-2">
+                  {bulkActions.map(({ label, icon: Icon, action }) => (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="h-7 px-2.5"
+                      icon={<Icon className="size-4" />}
+                      text={label}
+                      onClick={action}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           </div>
