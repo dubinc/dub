@@ -1,13 +1,11 @@
-import { unsortedLinks } from "@/lib/folder/constants";
-import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps } from "@/lib/types";
-import { Button, InputSelect, InputSelectItemProps, LinkLogo } from "@dub/ui";
+import { Button, LinkLogo } from "@dub/ui";
 import { getApexDomain, getPrettyUrl, pluralize } from "@dub/utils";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { FolderIcon } from "./folder-icon";
+import { FolderDropdown } from "./folder-dropdown";
 
 interface MoveLinkFormProps {
   links: ExpandedLinkProps[];
@@ -20,37 +18,16 @@ export const MoveLinkForm = ({
   onSuccess,
   onCancel,
 }: MoveLinkFormProps) => {
-  const { folders } = useFolders();
   const workspace = useWorkspace();
   const [isMoving, setIsMoving] = useState(false);
 
-  const selectOptions = useMemo(() => {
-    return folders
-      ? [...folders, unsortedLinks].map((folder) => {
-          const isCurrent = links.every(
-            (link) =>
-              link.folderId === folder.id ||
-              (link.folderId === null && folder.id === "unsorted"),
-          );
-          return {
-            id: folder.id,
-            value: `${folder.name} ${folder.id === "unsorted" ? "(Unsorted)" : ""}`,
-            icon: <FolderIcon folder={folder} shape="square" />,
-            disabled: isCurrent,
-            label: isCurrent ? "Current" : "",
-          };
-        })
-      : [];
-  }, [folders, links, workspace.logo, workspace.name]);
-
-  const [selectedFolder, setSelectedFolder] =
-    useState<InputSelectItemProps | null>(
-      selectOptions.find((option) => option.id === links[0].folderId) || null,
-    );
+  const [selectedFolderId, setSelectedFolderId] = useState<string>(
+    links[0].folderId ?? "unsorted",
+  );
 
   // Move link to selected folder
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    if (!selectedFolder) {
+    if (!selectedFolderId) {
       return;
     }
 
@@ -64,7 +41,7 @@ export const MoveLinkForm = ({
         body: JSON.stringify({
           linkIds: links.map(({ id }) => id),
           data: {
-            folderId: selectedFolder.id === "unsorted" ? "" : selectedFolder.id,
+            folderId: selectedFolderId === "unsorted" ? "" : selectedFolderId,
           },
         }),
       },
@@ -108,16 +85,16 @@ export const MoveLinkForm = ({
               <label className="text-sm font-normal text-neutral-500">
                 Folder
               </label>
-              <div className="mt-2">
-                <InputSelect
-                  items={selectOptions}
-                  adjustForMobile
-                  selectedItem={selectedFolder}
-                  setSelectedItem={setSelectedFolder}
-                  className="w-full"
-                  inputAttrs={{
-                    placeholder: "Search...",
+              <div className="mt-1">
+                <FolderDropdown
+                  hideViewAll={true}
+                  disableAutoRedirect={true}
+                  onFolderSelect={(folder) => {
+                    setSelectedFolderId(folder.id);
                   }}
+                  buttonClassName="w-full max-w-full md:max-w-full border border-neutral-200 bg-white"
+                  buttonTextClassName="text-base md:text-base font-normal"
+                  selectedFolderId={selectedFolderId ?? undefined}
                 />
               </div>
             </div>
@@ -139,7 +116,7 @@ export const MoveLinkForm = ({
                   ? "Moving..."
                   : `Move ${pluralize("link", links.length)}`
               }
-              disabled={isMoving || !selectedFolder}
+              disabled={isMoving}
               loading={isMoving}
               className="h-8 w-fit px-3"
             />
