@@ -1,5 +1,6 @@
 "use server";
 
+import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { updateDiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
@@ -12,20 +13,15 @@ export const updateDiscountAction = authActionClient
     const { programId, partnerIds, discountId, amount, maxDuration } =
       parsedInput;
 
-    const program = await getProgramOrThrow({
+    await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
 
-    const discount = await prisma.discount.findUniqueOrThrow({
-      where: {
-        id: discountId,
-      },
+    await getDiscountOrThrow({
+      discountId,
+      programId,
     });
-
-    if (discount.workspaceId !== workspace.id) {
-      throw new Error("Discount not found");
-    }
 
     let programEnrollments: { id: string }[] = [];
 
