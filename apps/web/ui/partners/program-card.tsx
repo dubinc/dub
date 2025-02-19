@@ -88,11 +88,10 @@ export function ProgramCard({
 }
 
 function ProgramCardEarnings({ program }: { program: ProgramProps }) {
-  const { data: timeseriesData } = usePartnerEarningsTimeseries({
+  const { data: timeseries } = usePartnerEarningsTimeseries({
     programId: program.id,
     interval: "1y",
   });
-  const timeseries = timeseriesData?.timeseries;
 
   const total = useMemo(
     () => timeseries?.reduce((acc, { earnings }) => acc + earnings, 0),
