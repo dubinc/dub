@@ -14,6 +14,7 @@ import {
   useKeyboardShortcut,
 } from "@dub/ui";
 import { CursorRays } from "@dub/ui/icons";
+import { pluralize } from "@dub/utils";
 import { Gift, UserPlus } from "lucide-react";
 import { useState } from "react";
 
@@ -185,7 +186,10 @@ const Reward = ({ reward }: { reward: RewardProp }) => {
             </span>
           </div>
           {reward.partnersCount && reward?.partnersCount > 0 ? (
-            <Badge variant="green">{reward.partnersCount} partners</Badge>
+            <Badge variant="green">
+              {reward.partnersCount}{" "}
+              {pluralize("partner", reward.partnersCount)}
+            </Badge>
           ) : (
             <Badge variant="gray">All partners</Badge>
           )}
