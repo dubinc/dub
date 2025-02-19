@@ -1,13 +1,6 @@
+import { STORE_KEYS, useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { useLocalStorage } from "@dub/ui";
-import { useSearchParams } from "next/navigation";
-import {
-  Dispatch,
-  PropsWithChildren,
-  SetStateAction,
-  createContext,
-  useMemo,
-  useState,
-} from "react";
+import { PropsWithChildren, createContext, useMemo } from "react";
 
 export const linkViewModes = ["cards", "rows"] as const;
 
@@ -65,6 +58,9 @@ export const linkDisplayProperties: {
 
 export type LinkDisplayProperty = (typeof linkDisplayPropertyIds)[number];
 
+const defaultViewMode = linkViewModes[0];
+const defaultSortBy = sortOptions[0].slug;
+const defaultShowArchived = false;
 export const defaultDisplayProperties: LinkDisplayProperty[] = [
   "icon",
   "link",
@@ -75,37 +71,40 @@ export const defaultDisplayProperties: LinkDisplayProperty[] = [
   "analytics",
 ];
 
+type PersistedLinksDisplay = {
+  viewMode: LinksViewMode;
+  sortBy: LinksSortSlug;
+  showArchived: boolean;
+  displayProperties: LinkDisplayProperty[];
+};
+
 function useLinksDisplayOption<T>(
   key: string,
-  parsePersisted: (value: T) => T,
   defaultValue: T,
-  overrideValue?: T,
+  parseValue: (value: any) => T,
 ) {
-  const [valuePersisted, setValuePersisted] = useLocalStorage<T>(
+  const [value, setValue, { remove }] = useLocalStorage<T | undefined>(
     `links-display-${key}`,
-    defaultValue,
+    undefined,
   );
-  const [value, setValue] = useState(overrideValue ?? valuePersisted);
 
   return {
-    value,
+    value: parseValue(value ?? defaultValue),
     setValue,
-    valuePersisted,
-    setValuePersisted,
-    persist: () => setValuePersisted(value),
-    reset: () => setValue(parsePersisted(valuePersisted)),
+    reset: remove,
   };
 }
 
 export const LinksDisplayContext = createContext<{
   viewMode: LinksViewMode;
-  setViewMode: Dispatch<SetStateAction<LinksViewMode>>;
+  setViewMode: (mode: LinksViewMode) => void;
   displayProperties: LinkDisplayProperty[];
-  setDisplayProperties: Dispatch<SetStateAction<LinkDisplayProperty[]>>;
+  setDisplayProperties: (properties: LinkDisplayProperty[]) => void;
   sortBy: LinksSortSlug;
-  setSort: Dispatch<SetStateAction<LinksSortSlug>>;
+  setSort: (sort: LinksSortSlug) => void;
   showArchived: boolean;
-  setShowArchived: Dispatch<SetStateAction<boolean>>;
+  setShowArchived: (show: boolean) => void;
+  isLoading: boolean;
   isDirty: boolean;
   persist: () => void;
   reset: () => void;
@@ -118,6 +117,8 @@ export const LinksDisplayContext = createContext<{
   setSort: () => {},
   showArchived: false,
   setShowArchived: () => {},
+  /** Whether the persisted values are being loaded */
+  isLoading: false,
   /** Whether the current values differ from the persisted values */
   isDirty: false,
   /** Updates the persisted values to the current values */
@@ -134,77 +135,79 @@ const parseDisplayProperties = (displayPropertiesRaw: string[]) =>
     (p) => displayPropertiesRaw.findIndex((pr) => pr === p) !== -1,
   );
 
-const parseSort = (sort: string) =>
-  sortOptions.find(({ slug }) => slug === sort)?.slug ?? sortOptions[0].slug;
+const parseSortBy = (sortBy: string) =>
+  sortOptions.find(({ slug }) => slug === sortBy)?.slug ?? sortOptions[0].slug;
 
 const parseShowArchived = (showArchived: boolean) => showArchived === true;
 
+const parseObject = (object: any): PersistedLinksDisplay | undefined =>
+  object
+    ? {
+        viewMode: parseViewMode(object.viewMode),
+        sortBy: parseSortBy(object.sortBy),
+        showArchived: parseShowArchived(object.showArchived),
+        displayProperties: parseDisplayProperties(object.displayProperties),
+      }
+    : undefined;
+
 export function LinksDisplayProvider({ children }: PropsWithChildren) {
-  const searchParams = useSearchParams();
-  const sortRaw = searchParams?.get("sortBy");
-  const showArchivedRaw = searchParams?.get("showArchived");
+  // Persisted values to workspace store
+  const [persistedRaw, setPersisted, { loading: isLoading }] =
+    useWorkspaceStore<PersistedLinksDisplay>(STORE_KEYS.linksDisplay);
+  const persisted = useMemo(() => parseObject(persistedRaw), [persistedRaw]);
 
   // View mode
   const {
     value: viewMode,
     setValue: setViewMode,
-    valuePersisted: viewModePersisted,
-    persist: persistViewMode,
     reset: resetViewMode,
-  } = useLinksDisplayOption<string>(
+  } = useLinksDisplayOption<LinksViewMode>(
     "view-mode",
+    persisted?.viewMode ?? defaultViewMode,
     parseViewMode,
-    linkViewModes[0],
   );
 
   // Sort
   const {
     value: sortBy,
     setValue: setSort,
-    valuePersisted: sortPersisted,
-    persist: persistSort,
     reset: resetSort,
-  } = useLinksDisplayOption<string>(
+  } = useLinksDisplayOption<LinksSortSlug>(
     "sortBy",
-    parseSort,
-    sortOptions[0].slug,
-    sortRaw ? parseSort(sortRaw) : undefined,
+    persisted?.sortBy ?? defaultSortBy,
+    parseSortBy,
   );
 
   // Show archived
   const {
     value: showArchived,
     setValue: setShowArchived,
-    valuePersisted: showArchivedPersisted,
-    persist: persistShowArchived,
     reset: resetShowArchived,
   } = useLinksDisplayOption<boolean>(
     "show-archived",
+    persisted?.showArchived ?? defaultShowArchived,
     parseShowArchived,
-    false,
-    showArchivedRaw ? showArchivedRaw === "true" : undefined,
   );
 
   // Display properties
   const {
     value: displayProperties,
     setValue: setDisplayProperties,
-    valuePersisted: displayPropertiesPersisted,
-    persist: persistDisplayProperties,
     reset: resetDisplayProperties,
   } = useLinksDisplayOption<LinkDisplayProperty[]>(
     "display-properties",
+    persisted?.displayProperties ?? defaultDisplayProperties,
     parseDisplayProperties,
-    defaultDisplayProperties,
   );
 
   const isDirty = useMemo(() => {
-    if (viewMode !== parseViewMode(viewModePersisted)) return true;
-    if (sortBy !== parseSort(sortPersisted)) return true;
-    if (showArchived !== parseShowArchived(showArchivedPersisted)) return true;
+    if (viewMode !== (persisted?.viewMode ?? defaultViewMode)) return true;
+    if (sortBy !== (persisted?.sortBy ?? defaultSortBy)) return true;
+    if (showArchived !== (persisted?.showArchived ?? defaultShowArchived))
+      return true;
     if (
       displayProperties.slice().sort().join(",") !==
-      parseDisplayProperties(displayPropertiesPersisted)
+      (persisted?.displayProperties ?? defaultDisplayProperties)
         .slice()
         .sort()
         .join(",")
@@ -212,16 +215,7 @@ export function LinksDisplayProvider({ children }: PropsWithChildren) {
       return true;
 
     return false;
-  }, [
-    viewModePersisted,
-    viewMode,
-    sortPersisted,
-    sortBy,
-    showArchivedPersisted,
-    showArchived,
-    displayPropertiesPersisted,
-    displayProperties,
-  ]);
+  }, [persisted, viewMode, sortBy, showArchived, displayProperties]);
 
   return (
     <LinksDisplayContext.Provider
@@ -234,18 +228,21 @@ export function LinksDisplayProvider({ children }: PropsWithChildren) {
         setSort,
         showArchived,
         setShowArchived,
+        isLoading,
         isDirty,
         persist: () => {
-          persistViewMode();
-          persistDisplayProperties();
-          persistSort();
-          persistShowArchived();
+          setPersisted({
+            viewMode: viewMode,
+            sortBy: sortBy,
+            showArchived: showArchived,
+            displayProperties: displayProperties,
+          });
         },
         reset: () => {
           resetViewMode();
-          resetDisplayProperties();
           resetSort();
           resetShowArchived();
+          resetDisplayProperties();
         },
       }}
     >

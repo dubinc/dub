@@ -8,6 +8,7 @@ import useWorkspace from "./use-workspace";
 
 export const STORE_KEYS = {
   conversionsOnboarding: "conversionsOnboarding",
+  linksDisplay: "linksDisplay",
 };
 
 export function useWorkspaceStore<T>(
