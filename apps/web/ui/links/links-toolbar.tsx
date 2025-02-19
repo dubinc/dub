@@ -57,9 +57,10 @@ export const LinksToolbar = ({
         ]
       : []),
     {
-      label: selectedLinks.every(({ archived }) => archived)
-        ? "Unarchive"
-        : "Archive",
+      label:
+        selectedLinks.length && selectedLinks.every(({ archived }) => archived)
+          ? "Unarchive"
+          : "Archive",
       icon: BoxArchive,
       action: () => setShowArchiveLinkModal(true),
     },
