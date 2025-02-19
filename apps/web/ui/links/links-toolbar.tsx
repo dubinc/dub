@@ -3,19 +3,30 @@ import {
   BoxArchive,
   Button,
   Folder,
+  Icon,
   LoadingSpinner,
   PaginationControls,
+  Popover,
   Trash,
   usePagination,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { Command } from "cmdk";
+import { useState } from "react";
 import { useArchiveLinkModal } from "../modals/archive-link-modal";
 import { useDeleteLinkModal } from "../modals/delete-link-modal";
 import { useMoveLinkToFolderModal } from "../modals/move-link-to-folder-modal";
-import { X } from "../shared/icons";
+import { ThreeDots, X } from "../shared/icons";
 import ArchivedLinksHint from "./archived-links-hint";
 import { useLinkSelection } from "./link-selection-provider";
 import { ResponseLink } from "./links-container";
+
+type BulkAction = {
+  label: string;
+  icon: Icon;
+  action: () => void;
+  disabledTooltip?: string;
+};
 
 export const LinksToolbar = ({
   loading,
@@ -46,7 +57,7 @@ export const LinksToolbar = ({
       links: selectedLinks,
     });
 
-  const bulkActions = [
+  const bulkActions: BulkAction[] = [
     ...(flags?.linkFolders
       ? [
           {
@@ -138,8 +149,8 @@ export const LinksToolbar = ({
                   </span>
                 </div>
 
-                {/* Controls */}
-                <div className="flex items-center gap-2">
+                {/* Large screen controls */}
+                <div className="hidden items-center gap-2 lg:flex">
                   {bulkActions.map(
                     ({ label, icon: Icon, action, disabledTooltip }) => (
                       <Button
@@ -154,6 +165,11 @@ export const LinksToolbar = ({
                     ),
                   )}
                 </div>
+
+                {/* Small screen controls */}
+                <div className="block lg:hidden">
+                  <BulkActionMenu bulkActions={bulkActions} />
+                </div>
               </div>
             </div>
           </div>
@@ -162,3 +178,45 @@ export const LinksToolbar = ({
     </>
   );
 };
+
+function BulkActionMenu({ bulkActions }: { bulkActions: BulkAction[] }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <Popover
+      content={
+        <div>
+          <Command tabIndex={0} loop className="focus:outline-none">
+            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
+              {bulkActions.map(({ label, icon: Icon, action }) => (
+                <Command.Item
+                  className={cn(
+                    "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-800",
+                    "data-[selected=true]:bg-neutral-100",
+                  )}
+                  onSelect={() => {
+                    setIsOpen(false);
+                    action();
+                  }}
+                >
+                  <Icon className="size-4 shrink-0" />
+                  {label}
+                </Command.Item>
+              ))}
+            </Command.List>
+          </Command>
+        </div>
+      }
+      align="end"
+      openPopover={isOpen}
+      setOpenPopover={setIsOpen}
+    >
+      <Button
+        type="button"
+        variant="secondary"
+        className="h-7 px-1.5"
+        icon={<ThreeDots className="size-4" />}
+      />
+    </Popover>
+  );
+}
