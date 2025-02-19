@@ -81,6 +81,14 @@ export const LinksToolbar = ({
             label: "Folder",
             icon: Folder,
             action: () => setShowMoveLinkToFolderModal(true),
+            disabledTooltip:
+              plan === "free" ? (
+                <TooltipContent
+                  title="You can only use Link Folders on a Pro plan and above. Upgrade to Pro to continue."
+                  cta="Upgrade to Pro"
+                  href={`/${slug}/upgrade`}
+                />
+              ) : undefined,
           },
         ]
       : []),
@@ -220,21 +228,25 @@ function BulkActionMenu({ bulkActions }: { bulkActions: BulkAction[] }) {
         <div>
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
-              {bulkActions.map(({ label, icon: Icon, action }) => (
-                <Command.Item
-                  className={cn(
-                    "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-800",
-                    "data-[selected=true]:bg-neutral-100",
-                  )}
-                  onSelect={() => {
-                    setIsOpen(false);
-                    action();
-                  }}
-                >
-                  <Icon className="size-4 shrink-0" />
-                  {label}
-                </Command.Item>
-              ))}
+              {bulkActions.map(
+                ({ label, icon: Icon, action, disabledTooltip }) => (
+                  <Command.Item
+                    disabled={!!disabledTooltip}
+                    className={cn(
+                      "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-800",
+                      "data-[selected=true]:bg-neutral-100",
+                      disabledTooltip && "cursor-not-allowed opacity-50",
+                    )}
+                    onSelect={() => {
+                      setIsOpen(false);
+                      action();
+                    }}
+                  >
+                    <Icon className="size-4 shrink-0" />
+                    {label}
+                  </Command.Item>
+                ),
+              )}
             </Command.List>
           </Command>
         </div>
