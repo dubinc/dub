@@ -3,7 +3,6 @@ import { PartnerProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { AxiomRequest, withAxiom } from "next-axiom";
-import { ratelimit } from "../upstash";
 import { Session, getSession } from "./utils";
 
 interface WithPartnerProfileHandler {
@@ -75,16 +74,6 @@ export const withPartnerProfile = (
           throw new DubApiError({
             code: "not_found",
             message: "Partner profile not found.",
-          });
-        }
-
-        // rate limit
-        const { success } = await ratelimit(600, "1 m").limit(partner.id);
-
-        if (!success) {
-          throw new DubApiError({
-            code: "rate_limit_exceeded",
-            message: "Too many requests.",
           });
         }
 

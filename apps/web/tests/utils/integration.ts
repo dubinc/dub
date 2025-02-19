@@ -3,6 +3,7 @@ import { type TaskContext } from "vitest";
 import { z } from "zod";
 import { HttpClient } from "../utils/http";
 import { env, integrationTestEnv } from "./env";
+import { E2E_USER_ID, E2E_WORKSPACE_ID } from "./resource";
 
 interface Resources {
   user: Pick<User, "id">;
@@ -31,7 +32,7 @@ export class IntegrationHarness {
 
   async init() {
     const user = {
-      id: this.env.E2E_USER_ID,
+      id: E2E_USER_ID,
     };
 
     const apiKey = {
@@ -39,7 +40,7 @@ export class IntegrationHarness {
     };
 
     const workspace = {
-      id: this.env.E2E_WORKSPACE_ID,
+      id: E2E_WORKSPACE_ID,
       slug: "acme",
       name: "Acme, Inc.",
       webhookEnabled: true,

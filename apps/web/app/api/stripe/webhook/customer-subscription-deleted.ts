@@ -1,3 +1,4 @@
+import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { webhookCache } from "@/lib/webhook/cache";
@@ -22,6 +23,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       id: true,
       slug: true,
       domains: true,
+      foldersUsage: true,
       links: {
         where: {
           key: "_root",
@@ -65,7 +67,6 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
   }
 
   const workspaceLinks = workspace.links;
-
   const workspaceUsers = workspace.users.map(({ user }) => user);
 
   const pipeline = redis.pipeline();
@@ -95,6 +96,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         usersLimit: FREE_PLAN.limits.users!,
         salesLimit: FREE_PLAN.limits.sales!,
         paymentFailedAt: null,
+        foldersUsage: 0,
       },
     }),
 
@@ -194,4 +196,10 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
   });
 
   await webhookCache.mset(webhooks);
+
+  if (workspace.foldersUsage > 0) {
+    await deleteWorkspaceFolders({
+      workspaceId: workspace.id,
+    });
+  }
 }

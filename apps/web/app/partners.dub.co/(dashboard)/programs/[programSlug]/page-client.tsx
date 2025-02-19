@@ -3,7 +3,7 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
-import { usePartnerEarnings } from "@/lib/swr/use-partner-earnings";
+import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
@@ -41,9 +41,11 @@ import { PayoutsCard } from "./payouts-card";
 const ProgramOverviewContext = createContext<{
   start?: Date;
   end?: Date;
-  interval?: IntervalOptions;
+  interval: IntervalOptions;
   color?: string;
-}>({});
+}>({
+  interval: "1y",
+});
 
 export default function ProgramPageClient() {
   const { getQueryString, searchParamsObj } = useRouterStuff();
@@ -182,20 +184,16 @@ function EarningsChart() {
   const { getQueryString } = useRouterStuff();
   const { start, end, interval } = useContext(ProgramOverviewContext);
 
-  const { data: { earnings: total } = {} } = usePartnerEarnings({
-    event: "composite",
+  const { data: timeseries, error } = usePartnerEarningsTimeseries({
     interval,
     start,
     end,
   });
 
-  const { data: timeseries, error } = usePartnerEarnings({
-    event: "sales",
-    groupBy: "timeseries",
-    interval,
-    start,
-    end,
-  });
+  const total = useMemo(
+    () => timeseries?.reduce((acc, { earnings }) => acc + earnings, 0),
+    [timeseries],
+  );
 
   const data = useMemo(
     () =>
