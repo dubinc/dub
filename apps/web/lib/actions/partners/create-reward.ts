@@ -81,7 +81,7 @@ export const createRewardAction = authActionClient
 
     const reward = await prisma.reward.create({
       data: {
-        id: createId({ prefix: "rew_" }),
+        id: createId({ prefix: "rw_" }),
         programId,
         event,
         type,
