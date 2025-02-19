@@ -13,9 +13,9 @@ import { CursorRays, Hyperlink, LoadingSpinner } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useSearchParams } from "next/navigation";
 import {
+  createContext,
   Dispatch,
   SetStateAction,
-  createContext,
   useContext,
   useState,
 } from "react";
@@ -24,6 +24,10 @@ import { X } from "../shared/icons";
 import ArchivedLinksHint from "./archived-links-hint";
 import { LinkCard } from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";
+import {
+  LinkSelectionProvider,
+  useLinkSelection,
+} from "./link-selection-provider";
 import { LinksDisplayContext } from "./links-display-provider";
 
 export type ResponseLink = ExpandedLinkProps & {
@@ -54,13 +58,9 @@ export default function LinksContainer({
 }
 
 export const LinksListContext = createContext<{
-  selectedLinkIds: string[];
-  setSelectedLinkIds: Dispatch<SetStateAction<string[]>>;
   openMenuLinkId: string | null;
   setOpenMenuLinkId: Dispatch<SetStateAction<string | null>>;
 }>({
-  selectedLinkIds: [],
-  setSelectedLinkIds: () => {},
   openMenuLinkId: null,
   setOpenMenuLinkId: () => {},
 });
@@ -80,7 +80,6 @@ function LinksList({
 }) {
   const searchParams = useSearchParams();
 
-  const [selectedLinkIds, setSelectedLinkIds] = useState<string[]>([]);
   const [openMenuLinkId, setOpenMenuLinkId] = useState<string | null>(null);
 
   const isFiltered = [
@@ -93,31 +92,28 @@ function LinksList({
   ].some((param) => searchParams.has(param));
 
   return (
-    <LinksListContext.Provider
-      value={{
-        selectedLinkIds,
-        setSelectedLinkIds,
-        openMenuLinkId,
-        setOpenMenuLinkId,
-      }}
-    >
+    <LinkSelectionProvider links={links}>
       {!links || links.length ? (
-        // Cards
-        <CardList variant={compact ? "compact" : "loose"} loading={loading}>
-          {links?.length
-            ? // Link cards
-              links.map((link) => <LinkCard key={link.id} link={link} />)
-            : // Loading placeholder cards
-              Array.from({ length: 12 }).map((_, idx) => (
-                <CardList.Card
-                  key={idx}
-                  outerClassName="pointer-events-none"
-                  innerClassName="flex items-center gap-4"
-                >
-                  <LinkCardPlaceholder />
-                </CardList.Card>
-              ))}
-        </CardList>
+        <LinksListContext.Provider
+          value={{ openMenuLinkId, setOpenMenuLinkId }}
+        >
+          {/* Cards */}
+          <CardList variant={compact ? "compact" : "loose"} loading={loading}>
+            {links?.length
+              ? // Link cards
+                links.map((link) => <LinkCard key={link.id} link={link} />)
+              : // Loading placeholder cards
+                Array.from({ length: 12 }).map((_, idx) => (
+                  <CardList.Card
+                    key={idx}
+                    outerClassName="pointer-events-none"
+                    innerClassName="flex items-center gap-4"
+                  >
+                    <LinkCardPlaceholder />
+                  </CardList.Card>
+                ))}
+          </CardList>
+        </LinksListContext.Provider>
       ) : (
         <AnimatedEmptyState
           title={isFiltered ? "No links found" : "No links yet"}
@@ -154,7 +150,7 @@ function LinksList({
           linksCount={count ?? links?.length ?? 0}
         />
       )}
-    </LinksListContext.Provider>
+    </LinkSelectionProvider>
   );
 }
 
@@ -165,7 +161,7 @@ const FloatingToolbar = ({
   loading: boolean;
   linksCount: number;
 }) => {
-  const { selectedLinkIds, setSelectedLinkIds } = useContext(LinksListContext);
+  const { selectedLinkIds, setSelectedLinkIds } = useLinkSelection();
   const { pagination, setPagination } = usePagination();
 
   return (

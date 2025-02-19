@@ -45,7 +45,8 @@ import { memo, PropsWithChildren, useContext, useRef, useState } from "react";
 import { FolderIcon } from "../folders/folder-icon";
 import { useLinkBuilder } from "../modals/link-builder";
 import { CommentsBadge } from "./comments-badge";
-import { LinksListContext, ResponseLink } from "./links-container";
+import { useLinkSelection } from "./link-selection-provider";
+import { ResponseLink } from "./links-container";
 import { LinksDisplayContext } from "./links-display-provider";
 
 const quickViewSettings = [
@@ -67,7 +68,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
 
   const { variant } = useContext(CardList.Context);
   const { displayProperties } = useContext(LinksDisplayContext);
-  const { selectedLinkIds, setSelectedLinkIds } = useContext(LinksListContext);
+  const { selectedLinkIds, handleLinkSelection } = useLinkSelection();
 
   const ref = useRef<HTMLDivElement>(null);
 
@@ -105,13 +106,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
         role="checkbox"
         aria-checked={isSelected}
         data-checked={isSelected}
-        onClick={() => {
-          setSelectedLinkIds((prev) =>
-            prev.includes(link.id)
-              ? prev.filter((id) => id !== link.id)
-              : [...prev, link.id],
-          );
-        }}
+        onClick={(e) => handleLinkSelection(link.id, e)}
         className="group relative hidden shrink-0 items-center justify-center outline-none sm:flex"
       >
         {/* Link logo background circle */}
