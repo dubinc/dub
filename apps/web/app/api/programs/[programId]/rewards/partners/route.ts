@@ -5,7 +5,7 @@ import { rewardPartnersQuerySchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
-// GET /api/programs/[programId]/rewards/partners
+// GET /api/programs/[programId]/rewards/partners – get partners that are part of a reward rule
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;

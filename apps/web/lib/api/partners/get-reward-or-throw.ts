@@ -3,15 +3,20 @@ import { prisma } from "@dub/prisma";
 import { Reward } from "@prisma/client";
 import { DubApiError } from "../errors";
 
-export async function getRewardOrThrow({
-  rewardId,
-  programId,
-  includePartnersCount = false,
-}: {
-  rewardId: string;
-  programId: string;
-  includePartnersCount?: boolean;
-}) {
+export async function getRewardOrThrow(
+  {
+    rewardId,
+    programId,
+  }: {
+    rewardId: string;
+    programId: string;
+  },
+  {
+    includePartnersCount = false,
+  }: {
+    includePartnersCount?: boolean;
+  } = {},
+) {
   const reward = (await prisma.reward.findUnique({
     where: {
       id: rewardId,
