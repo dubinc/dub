@@ -15,7 +15,7 @@ export function ProgramRewardDescription({
 }) {
   return (
     <>
-      {reward ? (
+      {reward && reward.amount > 0 ? (
         <>
           Earn{" "}
           <strong className={cn("font-semibold", amountClassName)}>
