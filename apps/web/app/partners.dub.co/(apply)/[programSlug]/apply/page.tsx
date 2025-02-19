@@ -1,4 +1,5 @@
 import { getProgram } from "@/lib/fetchers/get-program";
+import { getReward } from "@/lib/fetchers/get-reward";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 import { DetailsGrid } from "../details-grid";
@@ -12,9 +13,11 @@ export default async function ApplicationPage({
 }) {
   const program = await getProgram({ slug: programSlug });
 
-  if (!program) {
+  if (!program || !program.defaultRewardId) {
     notFound();
   }
+
+  const reward = await getReward({ id: program.defaultRewardId });
 
   return (
     <div
@@ -47,7 +50,7 @@ export default async function ApplicationPage({
         </div>
 
         {/* Program details grid */}
-        <DetailsGrid program={program} className="mt-10" />
+        <DetailsGrid reward={reward} className="mt-10" />
 
         {/* Application form */}
         <div className="mt-10">
