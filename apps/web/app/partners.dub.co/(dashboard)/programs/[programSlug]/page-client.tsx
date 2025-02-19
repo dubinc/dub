@@ -184,13 +184,11 @@ function EarningsChart() {
   const { programSlug } = useParams();
   const { getQueryString } = useRouterStuff();
 
-  const { data: timeseriesData, error } = usePartnerEarningsTimeseries({
+  const { data: timeseries, error } = usePartnerEarningsTimeseries({
     interval,
     start,
     end,
   });
-
-  const timeseries = timeseriesData?.timeseries;
 
   const total = useMemo(
     () => timeseries?.reduce((acc, { earnings }) => acc + earnings, 0),

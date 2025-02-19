@@ -4,6 +4,7 @@ import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerEarningsCount from "@/lib/swr/use-partner-earnings-count";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
+import usePartnerLinks from "@/lib/swr/use-partner-links";
 import { LinkIcon } from "@/ui/links/link-icon";
 import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
@@ -44,6 +45,8 @@ export function EarningsCompositeChart() {
     interval?: IntervalOptions;
   };
 
+  const { links } = usePartnerLinks();
+
   const { data } = usePartnerEarningsTimeseries({
     interval,
     groupBy: "linkId",
@@ -52,25 +55,21 @@ export function EarningsCompositeChart() {
   });
 
   const total = useMemo(
-    () => data?.timeseries?.reduce((acc, { earnings }) => acc + earnings, 0),
+    () => data?.reduce((acc, { earnings }) => acc + earnings, 0),
     [data],
   );
 
   const [chartData, series] = useMemo(
     () => [
-      data?.timeseries?.map(({ start, earnings, data }) => ({
+      data?.map(({ start, earnings, data }) => ({
         date: new Date(start),
         values: { ...data, total: earnings },
       })),
-      data?.timeseries
-        ? [
-            ...new Set<string>(
-              data.timeseries.flatMap(({ data }) => Object.keys(data)),
-            ),
-          ]
+      data
+        ? [...new Set<string>(data.flatMap(({ data }) => Object.keys(data)))]
             // Sort by total earnings for the period
             .sort((a, b) => {
-              const [earningsA, earningsB] = data.timeseries.reduce(
+              const [earningsA, earningsB] = data.reduce(
                 (acc, { data }) => [acc[0] + data[a], acc[1] + data[b]],
                 [0, 0],
               );
@@ -137,7 +136,7 @@ export function EarningsCompositeChart() {
                     </div>
                     <div className="grid max-w-64 grid-cols-[minmax(0,1fr),min-content] gap-x-6 gap-y-2 px-4 py-3 text-xs">
                       {series.map(({ id, colorClassName, valueAccessor }) => {
-                        const link = data?.links?.find((l) => l.id === id);
+                        const link = links?.find((link) => link.id === id);
                         return (
                           <Fragment key={id}>
                             <div className="flex items-center gap-2">
@@ -150,7 +149,7 @@ export function EarningsCompositeChart() {
                               <span className="min-w-0 truncate font-medium text-neutral-700">
                                 {link?.shortLink
                                   ? getPrettyUrl(link.shortLink)
-                                  : "Short link"}
+                                  : id}
                               </span>
                             </div>
                             <p className="text-right text-neutral-500">

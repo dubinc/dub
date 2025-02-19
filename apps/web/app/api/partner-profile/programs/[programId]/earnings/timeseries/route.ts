@@ -54,6 +54,7 @@ export const GET = withPartnerProfile(
         AND createdAt < ${endDate}
         AND programId = ${program.id}
         AND partnerId = ${partner.id}
+        ${payoutId ? Prisma.sql`AND payoutId = ${payoutId}` : Prisma.sql``}
         ${linkId ? Prisma.sql`AND linkId = ${linkId}` : Prisma.sql``}
         ${customerId ? Prisma.sql`AND customerId = ${customerId}` : Prisma.sql``}
         ${status ? Prisma.sql`AND status = ${status}` : Prisma.sql``}
@@ -99,7 +100,7 @@ export const GET = withPartnerProfile(
                 : Object.fromEntries(
                     links
                       // only show filtered link if linkId filter is provided
-                      .filter((link) => linkId && link.id === linkId)
+                      .filter((link) => (linkId ? link.id === linkId : true))
                       .map((link) => [link.id, 0]),
                   )),
               ...rest,
@@ -110,13 +111,6 @@ export const GET = withPartnerProfile(
       currentDate = dateIncrement(currentDate);
     }
 
-    return NextResponse.json({
-      timeseries,
-      links: links.map((link) => ({
-        id: link.id,
-        shortLink: link.shortLink,
-        url: link.url,
-      })),
-    });
+    return NextResponse.json(timeseries);
   },
 );
