@@ -47,7 +47,6 @@ export function SelectEligiblePartnersSheet({
     query: {
       event,
       search: debouncedSearch,
-      pageSize: pagination.pageSize,
       page: pagination.pageIndex || 1,
     },
   });
@@ -61,14 +60,14 @@ export function SelectEligiblePartnersSheet({
 
   useEffect(() => {
     if (!isOpen) {
-      setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+      setPagination((prev) => ({ ...prev, pageIndex: 1 }));
       setSearch("");
       setSelectedPartners([]);
     }
   }, [isOpen, setPagination]);
 
   useEffect(() => {
-    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    setPagination((prev) => ({ ...prev, pageIndex: 1 }));
   }, [debouncedSearch, setPagination]);
 
   const table = useTable({
@@ -122,7 +121,9 @@ export function SelectEligiblePartnersSheet({
 
   useEffect(() => {
     if (partners && selectedPartnerIds.length > 0) {
-      const selectedRows = partners.filter(p => selectedPartnerIds.includes(p.id));
+      const selectedRows = partners.filter((p) =>
+        selectedPartnerIds.includes(p.id),
+      );
       setSelectedPartners(selectedRows);
       const rowsToSelect = table.table
         .getRowModel()
