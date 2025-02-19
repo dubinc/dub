@@ -127,9 +127,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       enabled: Boolean(reward && program),
     });
 
-  const partnersCount = reward?.partnersCount || 0;
-
-  const [partnerIds = [], amount, type, maxDuration] = watch([
+  const [partnerIds = [], amount, type] = watch([
     "partnerIds",
     "amount",
     "type",
@@ -137,8 +135,14 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   ]);
 
   const displayPartners = useMemo(() => {
-    if (reward && rewardPartners) return rewardPartners;
-    if (!allPartners) return [];
+    if (reward && rewardPartners) {
+      return rewardPartners;
+    }
+
+    if (!allPartners) {
+      return [];
+    }
+
     return allPartners.filter((p) => partnerIds && partnerIds.includes(p.id));
   }, [reward, rewardPartners, allPartners, partnerIds]);
 
@@ -153,6 +157,8 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const hasProgramWideSaleReward = rewards?.some(
     (reward) => reward.event === "sale" && reward.partnersCount === 0,
   );
+
+  const partnersCount = reward?.partnersCount || 0;
 
   useEffect(() => {
     if (rewardPartners) {
@@ -342,6 +348,8 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     rowCount: reward ? partnersCount || 0 : selectedPartners.length,
   });
 
+  const hasDefaultReward = !!program?.defaultRewardId;
+
   const buttonDisabled =
     isCreating ||
     isUpdating ||
@@ -349,15 +357,11 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     (selectedPartnerType === "specific" &&
       (!partnerIds || partnerIds.length === 0));
 
-  const hasDefaultReward = !!program?.defaultRewardId;
   const displayAddPartnerButton =
-    (event !== "sale" && selectedPartnerType === "specific") ||
     (event === "sale" &&
       hasDefaultReward &&
-      !(
-        (!program?.defaultRewardId && event === "sale") ||
-        reward?.id === program?.defaultRewardId
-      ));
+      reward?.id !== program?.defaultRewardId) ||
+    (event !== "sale" && selectedPartnerType === "specific");
 
   const canDeleteReward =
     (reward && program?.defaultRewardId !== reward.id) ||
