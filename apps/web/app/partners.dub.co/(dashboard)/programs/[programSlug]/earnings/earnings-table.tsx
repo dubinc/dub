@@ -1,5 +1,6 @@
 "use client";
 
+import usePartnerEarningsCount from "@/lib/swr/use-partner-earnings-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerEarningsResponse } from "@/lib/types";
 import FilterButton from "@/ui/analytics/events/filter-button";
@@ -41,11 +42,9 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
     sortOrder?: "asc" | "desc";
   };
 
-  const { data: earningsCount } = useSWR<{ count: number }>(
-    programEnrollment &&
-      `/api/partner-profile/programs/${programEnrollment.programId}/earnings/count${getQueryString()}`,
-    fetcher,
-  );
+  const { earningsCount } = usePartnerEarningsCount<{ count: number }>({
+    enabled: programEnrollment ? true : false,
+  });
 
   const {
     data: earnings,

@@ -1,6 +1,6 @@
 import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { PartnerEarningsTimeseriesFilters } from "../analytics/types";
 
@@ -8,10 +8,8 @@ export function usePartnerEarningsTimeseries(
   params?: PartnerEarningsTimeseriesFilters & { programId?: string },
 ) {
   const { data: session } = useSession();
-  const { programSlug } = useParams();
-  const searchParams = useSearchParams();
-
   const partnerId = session?.user?.["defaultPartnerId"];
+  const { programSlug } = useParams();
   const programIdToUse = params?.programId ?? programSlug;
 
   const { data, error } = useSWR<any>(

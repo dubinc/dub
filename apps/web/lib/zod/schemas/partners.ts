@@ -197,14 +197,14 @@ export const PartnerEarningsSchema = SaleResponseSchema.omit({
   }),
 );
 
-export const getPartnerSalesCountQuerySchema = getSalesCountQuerySchema
+export const getPartnerEarningsCountQuerySchema = getSalesCountQuerySchema
   .omit({
     partnerId: true,
   })
   .extend({
     type: z.enum(["click", "lead", "sale"]).optional(),
     linkId: z.string().optional(),
-    groupBy: z.enum(["customer"]).optional(),
+    groupBy: z.enum(["linkId", "customerId", "status"]).optional(),
   });
 
 export const createPartnerSchema = z.object({

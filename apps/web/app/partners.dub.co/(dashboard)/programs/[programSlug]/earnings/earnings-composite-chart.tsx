@@ -2,23 +2,23 @@
 
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
+import usePartnerEarningsCount from "@/lib/swr/use-partner-earnings-count";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
-import { CustomerProps, LinkProps } from "@/lib/types";
 import { LinkIcon } from "@/ui/links/link-icon";
-import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
+import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { Filter, LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
-import { Hyperlink, Sliders, User } from "@dub/ui/icons";
+import { CircleDotted, Hyperlink, User } from "@dub/ui/icons";
 import {
-  capitalize,
   cn,
   currencyFormatter,
   getPrettyUrl,
   linkConstructor,
+  nFormatter,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { Fragment, useMemo } from "react";
+import { Fragment, useMemo, useState } from "react";
 
 const LINE_COLORS = [
   "text-teal-500",
@@ -195,37 +195,49 @@ export function EarningsCompositeChart() {
 
 function EarningsTableControls() {
   const { queryParams, searchParamsObj } = useRouterStuff();
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
 
-  // TODO: Fetch links and customers
-  const links = [] as LinkProps[];
-  const customers = [] as CustomerProps[];
+  const { earningsCount: links } = usePartnerEarningsCount<
+    { id: string; domain: string; key: string; url: string; _count: number }[]
+  >({ groupBy: "linkId", enabled: selectedFilter === "linkId" });
+
+  const { earningsCount: customers } = usePartnerEarningsCount<
+    { id: string; name: string; email: string; _count: number }[]
+  >({ groupBy: "customerId", enabled: selectedFilter === "customerId" });
+
+  const { earningsCount: statuses } = usePartnerEarningsCount<
+    { status: string; _count: number }[]
+  >({ groupBy: "status", enabled: selectedFilter === "status" });
 
   const filters = useMemo(
     () => [
-      {
-        key: "type",
-        icon: Sliders,
-        label: "Type",
-        options: ["click", "lead", "sale"].map((slug) => ({
-          value: slug,
-          label: capitalize(slug) as string,
-          icon: <CommissionTypeIcon type={slug} />,
-        })),
-      },
+      // TODO: add this back once we support CPC and CPL rewards
+      // {
+      //   key: "type",
+      //   icon: Sliders,
+      //   label: "Type",
+      //   options: ["click", "lead", "sale"].map((slug) => ({
+      //     value: slug,
+      //     label: capitalize(slug) as string,
+      //     icon: <CommissionTypeIcon type={slug} />,
+      //   })),
+      // },
       {
         key: "linkId",
         icon: Hyperlink,
         label: "Link",
-        getOptionIcon: (value, props) => {
-          const url = props.option?.data?.url;
-          const [domain, key] = value.split("/");
-
-          return <LinkIcon url={url} domain={domain} linkKey={key} />;
+        getOptionIcon: (_value, props) => {
+          return <LinkIcon url={props.option?.data?.url} />;
         },
         options:
-          links?.map(({ id, domain, key }) => ({
+          links?.map(({ id, domain, key, url }) => ({
             value: id,
-            label: linkConstructor({ domain, key, pretty: true }),
+            label: linkConstructor({
+              domain,
+              key,
+              pretty: true,
+            }),
+            data: { url },
           })) ?? null,
       },
       {
@@ -233,21 +245,42 @@ function EarningsTableControls() {
         icon: User,
         label: "Customer",
         options:
-          customers?.map(({ id, name, email }) => ({
+          customers?.map(({ id, email }) => ({
             value: id,
-            label: name || email || "-",
+            label: email || id,
           })) ?? null,
       },
+      {
+        key: "status",
+        icon: CircleDotted,
+        label: "Status",
+        options: statuses?.map(({ status, _count }) => {
+          const Icon = SaleStatusBadges[status].icon;
+          return {
+            value: status,
+            label: SaleStatusBadges[status].label,
+            icon: (
+              <Icon
+                className={cn(
+                  SaleStatusBadges[status].className,
+                  "size-4 bg-transparent",
+                )}
+              />
+            ),
+            right: nFormatter(_count, { full: true }),
+          };
+        }),
+      },
     ],
-    [],
+    [links, customers, statuses],
   );
 
   const activeFilters = useMemo(() => {
-    const { type, linkId, customerId } = searchParamsObj;
+    const { linkId, customerId, status } = searchParamsObj;
     return [
-      ...(type ? [{ key: "type", value: type }] : []),
       ...(linkId ? [{ key: "linkId", value: linkId }] : []),
       ...(customerId ? [{ key: "customerId", value: customerId }] : []),
+      ...(status ? [{ key: "status", value: status }] : []),
     ];
   }, [searchParamsObj]);
 
@@ -257,51 +290,31 @@ function EarningsTableControls() {
         [key]: value,
       },
       del: "page",
+      scroll: false,
     });
 
-  const onRemove = (key: string, value: any) =>
+  const onRemove = (key: string, _value: any) =>
     queryParams({
       del: [key, "page"],
+      scroll: false,
     });
 
   const onRemoveAll = () =>
     queryParams({
-      del: ["type", "linkId", "customerId"],
+      del: ["linkId", "customerId", "status", "page"],
+      scroll: false,
     });
 
   return (
     <div>
       <div className="flex flex-col gap-3 md:flex-row">
-        {/* <Filter.Select
+        <Filter.Select
           filters={filters}
           activeFilters={activeFilters}
           onSelect={onSelect}
           onRemove={onRemove}
-          // onSearchChange={setSearch}
-          // onSelectedFilterChange={setSelectedFilter}
-          // emptyState={{
-          //   domain: (
-          //     <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
-          //       <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-          //         <Globe className="size-6 text-neutral-700" />
-          //       </div>
-          //       <p className="mt-2 font-medium text-neutral-950">
-          //         No domains found
-          //       </p>
-          //       <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">
-          //         Add a custom domain to match your brand
-          //       </p>
-          //       <div>
-          //         <Button
-          //           className="mt-1 h-8"
-          //           onClick={() => router.push(`/${slug}/settings/domains`)}
-          //           text="Add domain"
-          //         />
-          //       </div>
-          //     </div>
-          //   ),
-          // }}
-        /> */}
+          onSelectedFilterChange={setSelectedFilter}
+        />
         <SimpleDateRangePicker
           className="w-full sm:min-w-[200px] md:w-fit"
           align="start"
