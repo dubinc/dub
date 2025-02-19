@@ -11,8 +11,7 @@ import useRewardPartners from "@/lib/swr/use-reward-partners";
 import useRewardPartnersCount from "@/lib/swr/use-reward-partners-count";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Reward } from "@/lib/types";
-import { EnrolledPartnerProps } from "@/lib/types";
+import { EnrolledPartnerProps, Reward } from "@/lib/types";
 import {
   createRewardSchema,
   RECURRING_MAX_DURATIONS,
@@ -114,18 +113,15 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     },
   });
 
-  const {
-    data: rewardPartners,
-    loading: isLoadingRewardPartners,
-    error: rewardPartnersError,
-  } = useRewardPartners({
-    query: {
-      rewardId: reward?.id,
-      pageSize: pagination.pageSize,
-      page: pagination.pageIndex || 1,
-    },
-    enabled: Boolean(reward && program),
-  });
+  const { data: rewardPartners, loading: isLoadingRewardPartners } =
+    useRewardPartners({
+      query: {
+        rewardId: reward?.id,
+        pageSize: pagination.pageSize,
+        page: pagination.pageIndex || 1,
+      },
+      enabled: Boolean(reward && program),
+    });
 
   const { partnersCount, loading: isLoadingCount } = useRewardPartnersCount({
     query: {
@@ -275,7 +271,8 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     });
   };
 
-  const [selectedPartners, setSelectedPartners] = useState<EnrolledPartnerProps[]>(displayPartners);
+  const [selectedPartners, setSelectedPartners] =
+    useState<EnrolledPartnerProps[]>(displayPartners);
 
   useEffect(() => {
     setSelectedPartners(displayPartners);
@@ -283,7 +280,9 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
 
   useEffect(() => {
     if (allPartners && partnerIds) {
-      const newSelectedPartners = allPartners.filter(p => partnerIds.includes(p.id));
+      const newSelectedPartners = allPartners.filter((p) =>
+        partnerIds.includes(p.id),
+      );
       setSelectedPartners(newSelectedPartners);
     }
   }, [allPartners, partnerIds]);
@@ -325,11 +324,11 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
               className="h-8 w-8 rounded-md border-0 bg-neutral-50 p-0"
               onClick={() => {
                 const newPartnerIds = (partnerIds || []).filter(
-                  (id) => id !== row.original.id
+                  (id) => id !== row.original.id,
                 );
                 setValue("partnerIds", newPartnerIds);
-                setSelectedPartners(prev => 
-                  prev.filter(p => p.id !== row.original.id)
+                setSelectedPartners((prev) =>
+                  prev.filter((p) => p.id !== row.original.id),
                 );
               }}
             />
@@ -735,7 +734,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
               <Button
                 type="submit"
                 variant="primary"
-                text={reward ? "Save changes" : "Create reward"}
+                text={reward ? "Update reward" : "Create reward"}
                 className="w-fit"
                 loading={isCreating || isUpdating}
                 disabled={buttonDisabled || isDeleting}
@@ -758,7 +757,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         event={event}
         onSelect={(ids) => {
           const existingIds = partnerIds || [];
-          const newIds = ids.filter(id => !existingIds.includes(id));
+          const newIds = ids.filter((id) => !existingIds.includes(id));
           const combinedIds = [...existingIds, ...newIds];
           setValue("partnerIds", combinedIds);
         }}
