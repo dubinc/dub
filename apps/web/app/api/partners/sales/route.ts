@@ -4,14 +4,15 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth/workspace";
-import { SaleSchema, updateSaleSchema } from "@/lib/zod/schemas/partners";
+import { updatePartnerSaleSchema } from "@/lib/zod/schemas/partners";
+import { ProgramSaleSchema } from "@/lib/zod/schemas/program-sales";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // PATCH /api/partners/sales - update a sale
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
-    const { programId, invoiceId, amount } = updateSaleSchema.parse(
+    const { programId, invoiceId, amount } = updatePartnerSaleSchema.parse(
       await parseRequestBody(req),
     );
 
@@ -65,7 +66,7 @@ export const PATCH = withWorkspace(
       },
     });
 
-    return NextResponse.json(SaleSchema.parse(updatedSale));
+    return NextResponse.json(ProgramSaleSchema.parse(updatedSale));
   },
   {
     requiredPlan: [

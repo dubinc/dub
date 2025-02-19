@@ -4,11 +4,11 @@ import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { SalesCount } from "../types";
 import z from "../zod";
-import { getSalesCountQuerySchema } from "../zod/schemas/partners";
+import { getProgramSalesCountQuerySchema } from "../zod/schemas/program-sales";
 import useWorkspace from "./use-workspace";
 
 export default function useSalesCount(
-  opts?: z.infer<typeof getSalesCountQuerySchema>,
+  opts?: z.infer<typeof getProgramSalesCountQuerySchema>,
 ) {
   const { programId } = useParams();
   const { id: workspaceId } = useWorkspace() as { id: string };

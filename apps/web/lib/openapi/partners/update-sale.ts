@@ -1,7 +1,7 @@
-import { openApiErrorResponses } from "@/lib/openapi/responses";
-import { updateSaleSchema } from "@/lib/zod/schemas/partners";
 import { ZodOpenApiOperationObject } from "zod-openapi";
-import { SaleSchema } from "../../zod/schemas/partners";
+import { updatePartnerSaleSchema } from "../../zod/schemas/partners";
+import { ProgramSaleSchema } from "../../zod/schemas/program-sales";
+import { openApiErrorResponses } from "../responses";
 
 export const updateSale: ZodOpenApiOperationObject = {
   operationId: "updateSale",
@@ -12,7 +12,7 @@ export const updateSale: ZodOpenApiOperationObject = {
   requestBody: {
     content: {
       "application/json": {
-        schema: updateSaleSchema,
+        schema: updatePartnerSaleSchema,
       },
     },
   },
@@ -21,7 +21,7 @@ export const updateSale: ZodOpenApiOperationObject = {
       description: "The updated sale.",
       content: {
         "application/json": {
-          schema: SaleSchema,
+          schema: ProgramSaleSchema,
         },
       },
     },

@@ -1,5 +1,9 @@
 import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
+import {
+  ProgramSaleResponseSchema,
+  ProgramSaleSchema,
+} from "@/lib/zod/schemas/program-sales";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
   CommissionStatus,
@@ -40,8 +44,6 @@ import {
   EnrolledPartnerSchema,
   PartnerEarningsSchema,
   PartnerSchema,
-  SaleResponseSchema,
-  SaleSchema,
 } from "./zod/schemas/partners";
 import {
   PartnerPayoutResponseSchema,
@@ -351,11 +353,11 @@ export type UsageResponse = z.infer<typeof usageResponse>;
 
 export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
 
-export type SaleProps = z.infer<typeof SaleSchema>;
+export type SaleProps = z.infer<typeof ProgramSaleSchema>;
 
 export type SalesCount = Record<CommissionStatus | "all", number>;
 
-export type SaleResponse = z.infer<typeof SaleResponseSchema>;
+export type SaleResponse = z.infer<typeof ProgramSaleResponseSchema>;
 
 export type PartnerEarningsResponse = z.infer<typeof PartnerEarningsSchema>;
 
