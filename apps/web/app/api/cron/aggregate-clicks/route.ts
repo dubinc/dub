@@ -2,7 +2,7 @@ import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { createId } from "@/lib/api/utils";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { determinePartnerReward } from "@/lib/partners/rewards";
+import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 

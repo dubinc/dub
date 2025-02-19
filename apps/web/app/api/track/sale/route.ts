@@ -17,7 +17,7 @@ import { prismaEdge } from "@dub/prisma/edge";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { determinePartnerReward } from "../rewards";
+import { determinePartnerReward } from "../determine-partner-reward-edge";
 
 export const runtime = "edge";
 

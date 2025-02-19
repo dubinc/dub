@@ -1,6 +1,6 @@
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { determinePartnerReward } from "@/lib/partners/rewards";
+import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
 import { NextResponse } from "next/server";
 

@@ -2,7 +2,7 @@ import { getEvents } from "@/lib/analytics/get-events";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
 import { createId } from "@/lib/api/utils";
-import { determinePartnerReward } from "@/lib/partners/rewards";
+import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { recordLink } from "@/lib/tinybird";
 import { SaleEvent } from "@/lib/types";
 import { prisma } from "@dub/prisma";

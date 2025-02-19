@@ -15,6 +15,7 @@ model Reward {
   partners PartnerReward[]
 
   @@index(programId)
+  @@index(event) // used in /api/cron/aggregate-clicks
 }
 
 model PartnerReward {
