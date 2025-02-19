@@ -1,5 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { EventType } from "@dub/prisma/client";
+import { RewardSchema } from "../zod/schemas/rewards";
 
 export const determinePartnerReward = async ({
   event,
@@ -61,5 +62,5 @@ export const determinePartnerReward = async ({
     return null;
   }
 
-  return partnerReward;
+  return RewardSchema.parse(partnerReward);
 };

@@ -1,4 +1,5 @@
-import { Commission, Reward } from "@dub/prisma/client";
+import { RewardProp } from "@/lib/types";
+import { Commission } from "@dub/prisma/client";
 
 /* 
   Calculate the commission earned for a sale
@@ -7,7 +8,7 @@ export const calculateSaleEarnings = ({
   reward,
   sale,
 }: {
-  reward: Pick<Reward, "amount" | "type">;
+  reward: Pick<RewardProp, "amount" | "type">;
   sale: Pick<Commission, "quantity" | "amount">;
 }) => {
   if (!reward) {

@@ -1,5 +1,5 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
-import { Reward } from "@dub/prisma/client";
+import { RewardProp } from "@/lib/types";
 import { Calendar6, MoneyBills2 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 
@@ -7,7 +7,7 @@ export function DetailsGrid({
   reward,
   className,
 }: {
-  reward: Reward;
+  reward: RewardProp;
   className?: string;
 }) {
   return (

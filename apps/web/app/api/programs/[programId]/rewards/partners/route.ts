@@ -92,8 +92,6 @@ export const GET = withWorkspace(
       take: pageSize,
     });
 
-    const flatPartners = partners.map(({ partner }) => partner);
-
-    return NextResponse.json(flatPartners);
+    return NextResponse.json(partners.map(({ partner }) => partner));
   },
 );
