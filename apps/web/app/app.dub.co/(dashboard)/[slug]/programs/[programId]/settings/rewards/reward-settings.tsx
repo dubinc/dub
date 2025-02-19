@@ -80,16 +80,25 @@ const SaleReward = () => {
         ) : defaultReward ? (
           <Reward reward={defaultReward} />
         ) : (
-          <>
-            <EmptyState
-              event="sale"
-              title="No default reward created"
-              description="Create a default reward that will be offered to all partners"
+          <div className="flex items-center justify-between gap-4 rounded-lg bg-neutral-50 p-4">
+            <div className="flex items-center gap-4">
+              <div className="flex size-10 items-center justify-center rounded-full border border-neutral-300">
+                <MoneyBill className="size-5" />
+              </div>
+              <p className="text-sm text-neutral-600">
+                No default reward created
+              </p>
+            </div>
+            <Button
+              text="Create default reward"
+              variant="primary"
+              className="h-9 w-fit"
               onClick={() => setIsOpen(true)}
             />
-            {RewardSheet}
-          </>
+          </div>
         )}
+
+        {RewardSheet}
       </div>
     </div>
   );
@@ -129,10 +138,19 @@ const AdditionalRewards = () => {
             ))}
           </div>
         ) : (
-          <EmptyState
-            title="Additional Rewards"
-            description="No additional rewards have been added yet"
-          />
+          <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-neutral-50 py-12">
+            <div className="flex items-center justify-center">
+              <Gift className="size-6 text-neutral-800" />
+            </div>
+            <div className="flex flex-col items-center gap-1 px-4 text-center">
+              <p className="text-base font-medium text-neutral-900">
+                Additional Rewards
+              </p>
+              <p className="text-sm text-neutral-600">
+                No additional rewards have been added yet
+              </p>
+            </div>
+          </div>
         )}
       </div>
     </div>
@@ -268,49 +286,6 @@ const RewardSkeleton = () => {
           <div className="h-4 w-32 rounded bg-neutral-100" />
         </div>
         <div className="h-6 w-24 rounded-full bg-neutral-100" />
-      </div>
-    </div>
-  );
-};
-
-const EmptyState = ({
-  title,
-  description,
-  event,
-  onClick,
-}: {
-  title: string;
-  description: string;
-  event?: EventType;
-  onClick?: () => void;
-}) => {
-  if (event === "sale") {
-    return (
-      <div className="flex items-center justify-between gap-4 rounded-lg bg-neutral-50 p-4">
-        <div className="flex items-center gap-4">
-          <div className="flex size-10 items-center justify-center rounded-full border border-neutral-300">
-            <MoneyBill className="size-5" />
-          </div>
-          <p className="text-sm text-neutral-600">No default reward created</p>
-        </div>
-        <Button
-          text="Create default reward"
-          variant="primary"
-          className="h-[32px] w-fit"
-          onClick={onClick}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-neutral-50 py-12">
-      <div className="flex items-center justify-center">
-        <Gift className="size-6 text-neutral-800" />
-      </div>
-      <div className="flex flex-col items-center gap-1 px-4 text-center">
-        <p className="text-base font-medium text-neutral-900">{title}</p>
-        <p className="text-sm text-neutral-600">{description}</p>
       </div>
     </div>
   );
