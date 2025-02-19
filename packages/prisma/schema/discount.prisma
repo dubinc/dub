@@ -16,27 +16,10 @@ model Discount {
 
   program            Program             @relation(fields: [programId], references: [id])
   programEnrollments ProgramEnrollment[]
-  partners           PartnerDiscount[]
 
   // TO be removed
   duration Int?
   interval CommissionInterval?
 
   @@index(programId)
-}
-
-model PartnerDiscount {
-  id                  String @id @default(cuid())
-  programEnrollmentId String
-  discountId          String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  programEnrollment ProgramEnrollment @relation(fields: [programEnrollmentId], references: [id], onDelete: Cascade)
-  discount          Discount          @relation(fields: [discountId], references: [id], onDelete: Cascade)
-
-  @@unique([programEnrollmentId, discountId])
-  @@index(programEnrollmentId)
-  @@index(discountId)
 }
