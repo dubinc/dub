@@ -1,7 +1,6 @@
 import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program-invite";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { PartnerProgramInviteProps } from "@/lib/types";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { BlurImage, Button, StatusBadge } from "@dub/ui";
@@ -15,7 +14,6 @@ export function ProgramInviteCard({
   invite: PartnerProgramInviteProps;
 }) {
   const { partner } = usePartnerProfile();
-  const { programEnrollments, isLoading } = useProgramEnrollments();
 
   const { executeAsync, isPending } = useAction(acceptProgramInviteAction, {
     onSuccess: () => {
@@ -52,7 +50,7 @@ export function ProgramInviteCard({
         <p className="font-medium text-neutral-900">{invite.program.name}</p>
         <p className="text-balance text-xs text-neutral-600">
           <ProgramRewardDescription
-            reward={programEnrollments?.[0]?.reward}
+            reward={invite.reward}
             discount={invite.program.discounts?.[0]}
             amountClassName="font-light"
             periodClassName="font-light"
