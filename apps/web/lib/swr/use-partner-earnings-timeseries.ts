@@ -1,3 +1,4 @@
+import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
@@ -12,10 +13,12 @@ export function usePartnerEarningsTimeseries(
   const { programSlug } = useParams();
   const programIdToUse = params?.programId ?? programSlug;
 
+  const { getQueryString } = useRouterStuff();
+
   const { data, error } = useSWR<any>(
     partnerId &&
       programIdToUse &&
-      `/api/partner-profile/programs/${programIdToUse}/earnings/timeseries?${new URLSearchParams(
+      `/api/partner-profile/programs/${programIdToUse}/earnings/timeseries${getQueryString(
         {
           ...(params?.groupBy && { groupBy: params.groupBy }),
           ...(params?.start && params?.end
@@ -26,7 +29,8 @@ export function usePartnerEarningsTimeseries(
             : { interval: params?.interval ?? "1y" }),
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
-      ).toString()}`,
+        { include: ["linkId", "customerId", "status"] },
+      )}`,
     fetcher,
     {
       dedupingInterval: 60000,

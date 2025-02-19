@@ -197,16 +197,6 @@ export const PartnerEarningsSchema = SaleResponseSchema.omit({
   }),
 );
 
-export const getPartnerEarningsCountQuerySchema = getSalesCountQuerySchema
-  .omit({
-    partnerId: true,
-  })
-  .extend({
-    type: z.enum(["click", "lead", "sale"]).optional(),
-    linkId: z.string().optional(),
-    groupBy: z.enum(["linkId", "customerId", "status"]).optional(),
-  });
-
 export const createPartnerSchema = z.object({
   programId: z
     .string()
@@ -376,13 +366,17 @@ export const partnerAnalyticsResponseSchema = {
   }),
 } as const;
 
-export const partnerEarningsTimeseriesSchema = analyticsQuerySchema
-  .pick({
-    start: true,
-    end: true,
-    interval: true,
-    timezone: true,
+export const getPartnerEarningsCountQuerySchema = getSalesCountQuerySchema
+  .omit({
+    partnerId: true,
   })
   .extend({
-    groupBy: z.enum(["type", "linkId"]).optional(),
+    type: z.enum(["click", "lead", "sale"]).optional(),
+    linkId: z.string().optional(),
+    groupBy: z.enum(["linkId", "customerId", "status", "type"]).optional(),
+  });
+
+export const partnerEarningsTimeseriesSchema =
+  getPartnerEarningsCountQuerySchema.extend({
+    timezone: z.string().optional(),
   });

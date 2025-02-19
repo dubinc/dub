@@ -16,8 +16,18 @@ export const GET = withPartnerProfile(
       programId: params.programId,
     });
 
-    const { start, end, interval, groupBy, timezone } =
-      partnerEarningsTimeseriesSchema.parse(searchParams);
+    const {
+      groupBy,
+      type = "sale",
+      status,
+      linkId,
+      customerId,
+      payoutId,
+      interval,
+      start,
+      end,
+      timezone,
+    } = partnerEarningsTimeseriesSchema.parse(searchParams);
 
     const { startDate, endDate, granularity } = getStartEndDates({
       interval,
@@ -44,7 +54,10 @@ export const GET = withPartnerProfile(
         AND createdAt < ${endDate}
         AND programId = ${program.id}
         AND partnerId = ${partner.id}
-      GROUP BY start${groupBy ? (groupBy === "type" ? Prisma.sql`, type` : Prisma.sql`, linkId`) : Prisma.sql``}
+        ${linkId ? Prisma.sql`AND linkId = ${linkId}` : Prisma.sql``}
+        ${customerId ? Prisma.sql`AND customerId = ${customerId}` : Prisma.sql``}
+        ${status ? Prisma.sql`AND status = ${status}` : Prisma.sql``}
+        GROUP BY start${groupBy ? (groupBy === "type" ? Prisma.sql`, type` : Prisma.sql`, linkId`) : Prisma.sql``}
       ORDER BY start ASC;
     `;
 
@@ -83,7 +96,12 @@ export const GET = withPartnerProfile(
                     lead: 0,
                     click: 0,
                   }
-                : Object.fromEntries(links.map((link) => [link.id, 0]))),
+                : Object.fromEntries(
+                    links
+                      // only show filtered link if linkId filter is provided
+                      .filter((link) => linkId && link.id === linkId)
+                      .map((link) => [link.id, 0]),
+                  )),
               ...rest,
             }
           : undefined,
