@@ -40,11 +40,8 @@ import {
 } from "./zod/schemas/leads";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
-import {
-  EnrolledPartnerSchema,
-  PartnerEarningsSchema,
-  PartnerSchema,
-} from "./zod/schemas/partners";
+import { PartnerEarningsSchema } from "./zod/schemas/partner-profile";
+import { EnrolledPartnerSchema, PartnerSchema } from "./zod/schemas/partners";
 import {
   PartnerPayoutResponseSchema,
   PayoutResponseSchema,
