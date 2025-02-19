@@ -1,17 +1,12 @@
 "use client";
 
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { CustomerProps, LinkProps, PartnerEarningsResponse } from "@/lib/types";
+import { PartnerEarningsResponse } from "@/lib/types";
 import FilterButton from "@/ui/analytics/events/filter-button";
-import { LinkIcon } from "@/ui/links/link-icon";
-import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
-import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   CopyText,
-  Filter,
   LinkLogo,
   StatusBadge,
   Table,
@@ -19,22 +14,17 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CircleDollar, Hyperlink, Sliders, User } from "@dub/ui/icons";
+import { CircleDollar } from "@dub/ui/icons";
 import {
-  capitalize,
-  cn,
   currencyFormatter,
   fetcher,
   formatDate,
   formatDateTime,
   getApexDomain,
   getPrettyUrl,
-  linkConstructor,
 } from "@dub/utils";
 import { Cell } from "@tanstack/react-table";
-import { useMemo } from "react";
 import useSWR from "swr";
-import { EarningsCompositeChart } from "./earnings-composite-chart";
 
 type ColumnMeta = {
   filterParams?: (
@@ -42,13 +32,7 @@ type ColumnMeta = {
   ) => Record<string, any>;
 };
 
-export function EarningsTablePartner({
-  limit,
-  withChart,
-}: {
-  limit?: number;
-  withChart?: boolean;
-}) {
+export function EarningsTablePartner({ limit }: { limit?: number }) {
   const { programEnrollment } = useProgramEnrollment();
   const { queryParams, searchParamsObj, getQueryString } = useRouterStuff();
 
@@ -69,14 +53,16 @@ export function EarningsTablePartner({
     error,
   } = useSWR<PartnerEarningsResponse[]>(
     programEnrollment &&
-      `/api/partner-profile/programs/${programEnrollment.programId}/earnings${getQueryString()}`,
+      `/api/partner-profile/programs/${programEnrollment.programId}/earnings${getQueryString(
+        limit ? { pageSize: limit } : {},
+      )}`,
     fetcher,
   );
 
   const { pagination, setPagination } = usePagination(limit);
 
   const { table, ...tableProps } = useTable({
-    data: earnings?.slice(0, limit) || [],
+    data: earnings || [],
     loading: isLoading,
     error: error ? "Failed to fetch earnings." : undefined,
     columns: [
@@ -90,17 +76,18 @@ export function EarningsTablePartner({
           </p>
         ),
       },
-      {
-        id: "type",
-        header: "Type",
-        accessorKey: "type",
-        meta: {
-          filterParams: ({ getValue }) => ({
-            type: getValue(),
-          }),
-        },
-        cell: ({ row }) => <CommissionTypeBadge type={row.original.type} />,
-      },
+      // TODO: add this back once we have a way to hide/show column visibility
+      // {
+      //   id: "type",
+      //   header: "Type",
+      //   accessorKey: "type",
+      //   meta: {
+      //     filterParams: ({ getValue }) => ({
+      //       type: getValue(),
+      //     }),
+      //   },
+      //   cell: ({ row }) => <CommissionTypeBadge type={row.original.type} />,
+      // },
       {
         id: "link",
         header: "Link",
@@ -194,7 +181,9 @@ export function EarningsTablePartner({
             ...(sortOrder && { sortOrder }),
           },
           del: "page",
+          scroll: false,
         }),
+      enableColumnResizing: true,
     }),
     rowCount: earningsCount?.count || 0,
     emptyState: (
@@ -212,159 +201,22 @@ export function EarningsTablePartner({
     resourceName: (plural) => `earning${plural ? "s" : ""}`,
   });
 
-  return (
-    <div className="flex flex-col gap-6">
-      {!limit && <EarningsTableControls />}
-      {withChart && <EarningsCompositeChart />}
-      {isLoading || earnings?.length ? (
-        <Table
-          {...tableProps}
-          table={table}
-          containerClassName="border-neutral-200"
-        />
-      ) : (
-        <AnimatedEmptyState
-          title="No earnings found"
-          description="No earnings have been made for this program yet."
-          cardContent={() => (
-            <>
-              <CircleDollar className="size-4 text-neutral-700" />
-              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-            </>
-          )}
-        />
+  return isLoading || earnings?.length ? (
+    <Table
+      {...tableProps}
+      table={table}
+      containerClassName="border-neutral-200"
+    />
+  ) : (
+    <AnimatedEmptyState
+      title="No earnings found"
+      description="No earnings have been made for this program yet."
+      cardContent={() => (
+        <>
+          <CircleDollar className="size-4 text-neutral-700" />
+          <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+        </>
       )}
-    </div>
-  );
-}
-
-function EarningsTableControls() {
-  const { queryParams, searchParamsObj } = useRouterStuff();
-
-  // TODO: Fetch links and customers
-  const links = [] as LinkProps[];
-  const customers = [] as CustomerProps[];
-
-  const filters = useMemo(
-    () => [
-      {
-        key: "type",
-        icon: Sliders,
-        label: "Type",
-        options: ["click", "lead", "sale"].map((slug) => ({
-          value: slug,
-          label: capitalize(slug) as string,
-          icon: <CommissionTypeIcon type={slug} />,
-        })),
-      },
-      {
-        key: "linkId",
-        icon: Hyperlink,
-        label: "Link",
-        getOptionIcon: (value, props) => {
-          const url = props.option?.data?.url;
-          const [domain, key] = value.split("/");
-
-          return <LinkIcon url={url} domain={domain} linkKey={key} />;
-        },
-        options:
-          links?.map(({ id, domain, key }) => ({
-            value: id,
-            label: linkConstructor({ domain, key, pretty: true }),
-          })) ?? null,
-      },
-      {
-        key: "customerId",
-        icon: User,
-        label: "Customer",
-        options:
-          customers?.map(({ id, name, email }) => ({
-            value: id,
-            label: name || email || "-",
-          })) ?? null,
-      },
-    ],
-    [],
-  );
-
-  const activeFilters = useMemo(() => {
-    const { type, linkId, customerId } = searchParamsObj;
-    return [
-      ...(type ? [{ key: "type", value: type }] : []),
-      ...(linkId ? [{ key: "linkId", value: linkId }] : []),
-      ...(customerId ? [{ key: "customerId", value: customerId }] : []),
-    ];
-  }, [searchParamsObj]);
-
-  const onSelect = (key: string, value: any) =>
-    queryParams({
-      set: {
-        [key]: value,
-      },
-      del: "page",
-    });
-
-  const onRemove = (key: string, value: any) =>
-    queryParams({
-      del: [key, "page"],
-    });
-
-  const onRemoveAll = () =>
-    queryParams({
-      del: ["type", "linkId", "customerId"],
-    });
-
-  return (
-    <div>
-      <div className="flex flex-col gap-3 md:flex-row">
-        {/* <Filter.Select
-          filters={filters}
-          activeFilters={activeFilters}
-          onSelect={onSelect}
-          onRemove={onRemove}
-          // onSearchChange={setSearch}
-          // onSelectedFilterChange={setSelectedFilter}
-          // emptyState={{
-          //   domain: (
-          //     <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
-          //       <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-          //         <Globe className="size-6 text-neutral-700" />
-          //       </div>
-          //       <p className="mt-2 font-medium text-neutral-950">
-          //         No domains found
-          //       </p>
-          //       <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">
-          //         Add a custom domain to match your brand
-          //       </p>
-          //       <div>
-          //         <Button
-          //           className="mt-1 h-8"
-          //           onClick={() => router.push(`/${slug}/settings/domains`)}
-          //           text="Add domain"
-          //         />
-          //       </div>
-          //     </div>
-          //   ),
-          // }}
-        /> */}
-        <SimpleDateRangePicker
-          className="w-full sm:min-w-[200px] md:w-fit"
-          align="start"
-        />
-      </div>
-
-      <div
-        className={cn(
-          "transition-[height] duration-[300ms]",
-          activeFilters.length ? "h-3" : "h-0",
-        )}
-      />
-      <Filter.List
-        filters={filters}
-        activeFilters={activeFilters}
-        onRemove={onRemove}
-        onRemoveAll={onRemoveAll}
-      />
-    </div>
+    />
   );
 }
