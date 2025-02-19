@@ -531,7 +531,9 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                                         setIsRecurring(recurring);
                                         setValue(
                                           "maxDuration",
-                                          recurring ? 3 : 0,
+                                          recurring
+                                            ? reward?.maxDuration || 3
+                                            : 0,
                                         );
                                       }
                                     }}
