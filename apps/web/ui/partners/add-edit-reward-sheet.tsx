@@ -265,6 +265,10 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       return;
     }
 
+    if (!window.confirm("Are you sure you want to delete this reward?")) {
+      return;
+    }
+
     await deleteReward({
       workspaceId,
       programId: program.id,
