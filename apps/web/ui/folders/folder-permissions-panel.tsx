@@ -87,7 +87,7 @@ const FolderPermissionsPanel = ({
     setIsUpdating(false);
 
     if (!response.ok) {
-      const error = await response.json();
+      const { error } = await response.json();
       toast.error(error.message);
       return;
     }
@@ -105,7 +105,12 @@ const FolderPermissionsPanel = ({
         !canUpdateFolder && "cursor-not-allowed bg-neutral-100",
       )}
       value={workspaceAccessLevel || folder?.accessLevel || ""}
-      disabled={isUpdating || !canUpdateFolder || isLoadingPermissions}
+      disabled={
+        isUpdating ||
+        isLoadingPermissions ||
+        !canUpdateFolder ||
+        !canManageFolderPermissions
+      }
       onChange={(e) => updateWorkspaceAccessLevel(e.target.value)}
     >
       {Object.keys(FOLDER_WORKSPACE_ACCESS).map((access) => (

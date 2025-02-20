@@ -164,7 +164,7 @@ function WorkspaceLinks() {
                 </div>
               ) : canCreateLinks ? (
                 <>
-                  <div className="grow-0">
+                  <div className="hidden grow-0 sm:block">
                     <CreateLinkButton />
                   </div>
                   <MoreLinkOptions />

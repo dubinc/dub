@@ -32,6 +32,7 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {
   text?: ReactNode | string;
   textWrapperClassName?: string;
+  shortcutClassName?: string;
   loading?: boolean;
   icon?: ReactNode;
   shortcut?: string;
@@ -46,6 +47,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       variant = "primary",
       className,
       textWrapperClassName,
+      shortcutClassName,
       loading,
       icon,
       shortcut,
@@ -87,6 +89,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
                   {
                     "bg-neutral-100": variant?.endsWith("outline"),
                   },
+                  shortcutClassName,
                 )}
               >
                 {shortcut}
@@ -137,6 +140,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
                 "bg-red-100 text-red-600 group-hover:bg-red-500 group-hover:text-white":
                   variant === "danger-outline",
               },
+              shortcutClassName,
             )}
           >
             {shortcut}

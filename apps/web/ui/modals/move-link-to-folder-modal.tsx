@@ -4,13 +4,13 @@ import { useCallback, useMemo, useState } from "react";
 import { MoveLinkForm } from "../folders/move-link-form";
 
 interface MoveLinkToFolderModalProps {
-  link: ExpandedLinkProps;
+  links: ExpandedLinkProps[];
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
 }
 
 const MoveLinkToFolderModal = ({
-  link,
+  links,
   showModal,
   setShowModal,
 }: MoveLinkToFolderModalProps) => {
@@ -21,7 +21,7 @@ const MoveLinkToFolderModal = ({
       className="overflow-y-visible"
     >
       <MoveLinkForm
-        link={link}
+        links={links}
         onSuccess={() => setShowModal(false)}
         onCancel={() => setShowModal(false)}
       />
@@ -29,18 +29,22 @@ const MoveLinkToFolderModal = ({
   );
 };
 
-export function useMoveLinkToFolderModal({
-  link,
-}: {
-  link: ExpandedLinkProps;
-}) {
+export function useMoveLinkToFolderModal(
+  props:
+    | {
+        link: ExpandedLinkProps;
+      }
+    | {
+        links: ExpandedLinkProps[];
+      },
+) {
   const [showMoveLinkToFolderModal, setShowMoveLinkToFolderModal] =
     useState(false);
 
   const MoveLinkToFolderModalCallback = useCallback(() => {
     return (
       <MoveLinkToFolderModal
-        link={link}
+        links={"link" in props ? [props.link] : props.links}
         showModal={showMoveLinkToFolderModal}
         setShowModal={setShowMoveLinkToFolderModal}
       />

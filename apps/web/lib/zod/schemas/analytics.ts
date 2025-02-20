@@ -241,6 +241,11 @@ export const analyticsFilterTB = z
       .string()
       .optional()
       .describe("The UTM tag to group by. Defaults to `utm_source`."),
+    folderIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .optional()
+      .describe("The folder IDs to retrieve analytics for."),
   })
   .merge(
     analyticsQuerySchema.pick({

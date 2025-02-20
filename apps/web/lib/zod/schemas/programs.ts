@@ -1,14 +1,12 @@
 import { intervals } from "@/lib/analytics/constants";
-import {
-  CommissionInterval,
-  CommissionType,
-  ProgramEnrollmentStatus,
-  ProgramType,
-} from "@dub/prisma/client";
+import { ProgramEnrollmentStatus, ProgramType } from "@dub/prisma/client";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
+import { RewardSchema } from "./rewards";
 import { parseDateSchema } from "./utils";
+
+export const HOLDING_PERIOD_DAYS = [0, 30, 60, 90];
 
 export const ProgramSchema = z.object({
   id: z.string(),
@@ -20,11 +18,10 @@ export const ProgramSchema = z.object({
   url: z.string().nullable(),
   type: z.nativeEnum(ProgramType),
   cookieLength: z.number(),
-  // Commission details
-  commissionAmount: z.number(),
-  commissionType: z.nativeEnum(CommissionType),
-  commissionDuration: z.number().nullable(),
-  commissionInterval: z.nativeEnum(CommissionInterval).nullable(),
+  defaultRewardId: z.string().nullable(),
+  rewards: z.array(RewardSchema).nullish(),
+  holdingPeriodDays: z.number(),
+
   // Discounts (for dual-sided incentives)
   discounts: z.array(DiscountSchema).nullish(),
   defaultFolderId: z.string().nullable(),
@@ -35,14 +32,15 @@ export const ProgramSchema = z.object({
 
 export const createProgramSchema = z.object({
   name: z.string(),
-  commissionType: z.nativeEnum(CommissionType),
-  commissionAmount: z.number(),
-  commissionDuration: z.number().nullable(),
-  commissionInterval: z.nativeEnum(CommissionInterval).nullable(),
   cookieLength: z.number().min(1).max(180),
   domain: z.string().nullable(),
   url: z.string().nullable(),
   defaultFolderId: z.string().nullable(),
+  holdingPeriodDays: z.coerce
+    .number()
+    .refine((val) => HOLDING_PERIOD_DAYS.includes(val), {
+      message: `Holding period must be ${HOLDING_PERIOD_DAYS.join(", ")} days`,
+    }),
 });
 
 export const PartnerLinkSchema = LinkSchema.pick({
@@ -64,8 +62,8 @@ export const ProgramEnrollmentSchema = z.object({
   program: ProgramSchema,
   status: z.nativeEnum(ProgramEnrollmentStatus),
   links: z.array(PartnerLinkSchema).nullable(),
+  reward: RewardSchema.nullish(),
   discount: DiscountSchema.nullish(),
-  commissionAmount: z.number().nullable(),
   createdAt: z.date(),
 });
 
@@ -86,4 +84,5 @@ export const PartnerProgramInviteSchema = z.object({
   id: z.string(),
   email: z.string(),
   program: ProgramSchema,
+  reward: RewardSchema.nullable(),
 });

@@ -2,7 +2,6 @@
 
 import { useRouterStuff } from "@dub/ui";
 import {
-  ChartActivity2,
   CircleDollar,
   ColorPalette2,
   Gauge6,
@@ -70,11 +69,6 @@ const NAV_AREAS: SidebarNavAreas<{
             name: "Earnings",
             icon: CircleDollar,
             href: `/programs/${programSlug}/earnings${queryString}`,
-          },
-          {
-            name: "Analytics",
-            icon: ChartActivity2,
-            href: `/programs/${programSlug}/analytics${queryString}`,
           },
           {
             name: "Links",

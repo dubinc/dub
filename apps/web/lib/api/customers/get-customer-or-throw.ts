@@ -54,7 +54,7 @@ export const getCustomerOrThrow = async (
   }
 
   if (!customer.avatar) {
-    customer.avatar = `https://api.dicebear.com/9.x/notionists/png?seed=${customer.id}`;
+    customer.avatar = `https://api.dicebear.com/9.x/notionists/svg?seed=${customer.id}`;
   }
 
   return customer;

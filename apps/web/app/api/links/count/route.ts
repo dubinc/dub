@@ -1,3 +1,4 @@
+import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinksCount } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
@@ -9,7 +10,8 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ headers, searchParams, workspace, session }) => {
     const params = getLinksCountQuerySchema.parse(searchParams);
-    const { domain, folderId } = params;
+    const { groupBy, domain, folderId, search, tagId, tagIds, tagNames } =
+      params;
 
     if (domain) {
       await getDomainOrThrow({ domain, workspace: workspace });
@@ -24,9 +26,23 @@ export const GET = withWorkspace(
       });
     }
 
+    /* we only need to get the folder ids if we are:
+      - not filtering by folder
+      - there's a groupBy
+      - filtering by search, domain, or tags
+    */
+    const folderIds =
+      !folderId && (groupBy || search || domain || tagId || tagIds || tagNames)
+        ? await getFolderIdsToFilter({
+            workspace,
+            userId: session.user.id,
+          })
+        : undefined;
+
     const count = await getLinksCount({
       searchParams: params,
       workspaceId: workspace.id,
+      folderIds,
     });
 
     return NextResponse.json(count, {

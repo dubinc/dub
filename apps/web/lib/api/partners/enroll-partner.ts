@@ -1,7 +1,6 @@
 "use server";
 
 import { createId } from "@/lib/api/utils";
-import { updateConfig } from "@/lib/edge-config";
 import { recordLink } from "@/lib/tinybird";
 import { PartnerLinkProps, ProgramProps, WorkspaceProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -129,13 +128,6 @@ export const enrollPartner = async ({
           include: includeTags,
         })
         .then((link) => recordLink(link)),
-
-      // TODO: Remove this once we open up partners.dub.co to everyone
-      partner.email &&
-        updateConfig({
-          key: "partnersPortal",
-          value: partner.email,
-        }),
 
       sendWorkspaceWebhook({
         workspace,

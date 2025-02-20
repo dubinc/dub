@@ -12,7 +12,7 @@ export function FolderShield(props: SVGProps<SVGSVGElement>) {
     >
       <g clipPath="url(#clip0_563_3026)">
         <g
-          stroke="#3730A3"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"

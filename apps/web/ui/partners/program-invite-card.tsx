@@ -2,7 +2,7 @@ import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProgramInviteProps } from "@/lib/types";
-import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
+import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { BlurImage, Button, StatusBadge } from "@dub/ui";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -14,6 +14,7 @@ export function ProgramInviteCard({
   invite: PartnerProgramInviteProps;
 }) {
   const { partner } = usePartnerProfile();
+
   const { executeAsync, isPending } = useAction(acceptProgramInviteAction, {
     onSuccess: () => {
       toast.success("Program invite accepted!");
@@ -48,8 +49,8 @@ export function ProgramInviteCard({
       <div className="grid max-w-xs gap-1 pb-1 text-center">
         <p className="font-medium text-neutral-900">{invite.program.name}</p>
         <p className="text-balance text-xs text-neutral-600">
-          <ProgramCommissionDescription
-            program={invite.program}
+          <ProgramRewardDescription
+            reward={invite.reward}
             discount={invite.program.discounts?.[0]}
             amountClassName="font-light"
             periodClassName="font-light"

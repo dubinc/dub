@@ -19,19 +19,21 @@ export function useRouterStuff() {
       exclude?: string[];
     },
   ) => {
-    const newParams = new URLSearchParams(searchParams);
-    if (kv) {
-      Object.entries(kv).forEach(([k, v]) => newParams.set(k, v));
-    }
+    let newParams = new URLSearchParams(searchParams);
     if (opts?.include && Array.isArray(opts.include)) {
-      newParams.forEach((_value, key) => {
-        if (!opts?.include?.includes(key)) {
-          newParams.delete(key);
+      const filteredParams = new URLSearchParams();
+      searchParams.forEach((value, key) => {
+        if (opts.include?.includes(key)) {
+          filteredParams.set(key, value);
         }
       });
+      newParams = filteredParams;
     }
     if (opts?.exclude && Array.isArray(opts.exclude)) {
       opts.exclude.forEach((k) => newParams.delete(k));
+    }
+    if (kv) {
+      Object.entries(kv).forEach(([k, v]) => newParams.set(k, v));
     }
     const queryString = newParams.toString();
     return queryString.length > 0 ? `?${queryString}` : "";
