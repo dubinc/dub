@@ -5,7 +5,7 @@ import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useEffect, useState } from "react";
 
-export function Sidebar() {
+export function Steps() {
   const [isOpen, setIsOpen] = useState(false);
   const { isMobile } = useMediaQuery();
 

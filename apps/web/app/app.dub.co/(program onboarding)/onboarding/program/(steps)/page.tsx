@@ -1,3 +1,5 @@
+import { StepPage } from "./step-page";
+
 export default async function GetStarted() {
-  return <>Get Started</>;
+  return <StepPage title="Getting started" />;
 }

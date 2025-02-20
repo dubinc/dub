@@ -1,7 +1,7 @@
 import { Button, Wordmark } from "@dub/ui";
 import Link from "next/link";
 import { PropsWithChildren, ReactNode } from "react";
-import { Sidebar } from "./onboarding/program/_components/sidebar";
+import { Steps } from "./onboarding/program/(steps)/steps";
 
 export default function Layout({
   children,
@@ -30,7 +30,7 @@ export default function Layout({
       </header>
 
       <div className="md:grid md:grid-cols-[240px_minmax(0,1fr)]">
-        <Sidebar />
+        <Steps />
         <main className="px-4 py-6 md:px-8">{children}</main>
       </div>
     </div>

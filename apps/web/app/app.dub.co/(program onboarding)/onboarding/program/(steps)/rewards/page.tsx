@@ -1,3 +1,5 @@
-export default async function ProgramNewRewards() {
-  return <>New Program Rewards</>;
+import { StepPage } from "../step-page";
+
+export default async function Rewards() {
+  return <StepPage title="Configure rewards" />;
 }
