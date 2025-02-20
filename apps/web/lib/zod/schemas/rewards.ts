@@ -4,6 +4,19 @@ import { getPaginationQuerySchema } from "./misc";
 
 export const RECURRING_MAX_DURATIONS = [0, 3, 6, 12, 18, 24];
 
+export const COMMISSION_TYPES = [
+  {
+    value: "one-off",
+    label: "One-off",
+    description: "Pay a one-time payout",
+  },
+  {
+    value: "recurring",
+    label: "Recurring",
+    description: "Pay an ongoing payout",
+  },
+] as const;
+
 export const RewardSchema = z.object({
   id: z.string(),
   event: z.nativeEnum(EventType),
