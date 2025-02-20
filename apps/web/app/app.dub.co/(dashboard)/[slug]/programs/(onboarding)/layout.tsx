@@ -1,7 +1,7 @@
 import { Button, Wordmark } from "@dub/ui";
 import Link from "next/link";
 import { PropsWithChildren, ReactNode } from "react";
-import { Steps } from "./onboarding/program/(steps)/steps";
+import { Steps } from "./onboarding/(steps)/steps";
 
 export default function Layout({
   children,
