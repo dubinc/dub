@@ -63,7 +63,7 @@ export function Switch({
   if (disabledTooltip) {
     return (
       <Tooltip content={disabledTooltip}>
-        <div>{switchRoot}</div>
+        <div className="leading-none">{switchRoot}</div>
       </Tooltip>
     );
   }
