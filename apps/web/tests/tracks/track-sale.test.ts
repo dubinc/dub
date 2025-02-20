@@ -39,7 +39,7 @@ test("POST /track/sale", async () => {
       externalId: E2E_CUSTOMER_EXTERNAL_ID,
     },
     sale: {
-      amount: 100,
+      amount: sale.amount,
       currency: sale.currency,
       paymentProcessor: sale.paymentProcessor,
       invoiceId: sale.invoiceId,
