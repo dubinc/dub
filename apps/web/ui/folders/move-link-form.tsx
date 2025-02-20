@@ -87,6 +87,7 @@ export const MoveLinkForm = ({
               </label>
               <div className="mt-1">
                 <FolderDropdown
+                  variant="input"
                   hideViewAll={true}
                   disableAutoRedirect={true}
                   onFolderSelect={(folder) => {

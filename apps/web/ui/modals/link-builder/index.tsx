@@ -12,6 +12,7 @@ import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
   ArrowTurnLeft,
   Button,
+  ButtonProps,
   InfoTooltip,
   LinkLogo,
   Modal,
@@ -557,11 +558,14 @@ function LinkBuilderInner({
   );
 }
 
+type CreateLinkButtonProps = Partial<ButtonProps>;
+
 export function CreateLinkButton({
   setShowLinkBuilder,
+  ...buttonProps
 }: {
   setShowLinkBuilder: Dispatch<SetStateAction<boolean>>;
-}) {
+} & CreateLinkButtonProps) {
   const { slug, nextPlan, exceededLinks } = useWorkspace();
 
   useKeyboardShortcut("c", () => setShowLinkBuilder(true));
@@ -608,6 +612,7 @@ export function CreateLinkButton({
         ) : undefined
       }
       onClick={() => setShowLinkBuilder(true)}
+      {...buttonProps}
     />
   );
 }
@@ -635,9 +640,14 @@ export function useLinkBuilder({
     );
   }, [showLinkBuilder]);
 
-  const CreateLinkButtonCallback = useCallback(() => {
-    return <CreateLinkButton setShowLinkBuilder={setShowLinkBuilder} />;
-  }, []);
+  const CreateLinkButtonCallback = useCallback(
+    (props?: CreateLinkButtonProps) => {
+      return (
+        <CreateLinkButton setShowLinkBuilder={setShowLinkBuilder} {...props} />
+      );
+    },
+    [],
+  );
 
   return useMemo(
     () => ({

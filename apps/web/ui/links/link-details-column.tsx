@@ -25,6 +25,7 @@ import {
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
+  memo,
   PropsWithChildren,
   useContext,
   useMemo,
@@ -33,6 +34,7 @@ import {
 } from "react";
 import { useShareDashboardModal } from "../modals/share-dashboard-modal";
 import { LinkControls } from "./link-controls";
+import { useLinkSelection } from "./link-selection-provider";
 import { ResponseLink } from "./links-container";
 import { LinksDisplayContext } from "./links-display-provider";
 import TagBadge from "./tag-badge";
@@ -81,10 +83,20 @@ export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
       {displayProperties.includes("analytics") && (
         <AnalyticsBadge link={link} />
       )}
-      <LinkControls link={link} />
+      <Controls link={link} />
     </div>
   );
 }
+
+const Controls = memo(({ link }: { link: ResponseLink }) => {
+  const { isSelectMode } = useLinkSelection();
+
+  return (
+    <div className={cn(isSelectMode && "hidden sm:block")}>
+      <LinkControls link={link} />
+    </div>
+  );
+});
 
 function TagsTooltip({
   additionalTags,

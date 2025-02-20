@@ -80,12 +80,11 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         id: "type",
         header: "Type",
         accessorKey: "type",
-        // TODO: add this back once we have a way to filter by type
-        // meta: {
-        //   filterParams: ({ getValue }) => ({
-        //     type: getValue(),
-        //   }),
-        // },
+        meta: {
+          filterParams: ({ getValue }) => ({
+            type: getValue(),
+          }),
+        },
         cell: ({ row }) => <CommissionTypeBadge type={row.original.type} />,
       },
       {
@@ -121,9 +120,12 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         header: "Customer",
         accessorKey: "customer",
         meta: {
-          filterParams: ({ getValue }) => ({
-            customerId: getValue().id,
-          }),
+          filterParams: ({ getValue }) =>
+            getValue()
+              ? {
+                  customerId: getValue().id,
+                }
+              : {},
         },
         cell: ({ row }) =>
           row.original.customer ? row.original.customer.email : "-",
