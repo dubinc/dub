@@ -60,7 +60,7 @@ export const trackSaleRequestSchema = z.object({
     .nullish()
     .default(null)
     .describe(
-      "The name of the lead event that occurred before the sale (case-sensitive).",
+      "The name of the lead event that occurred before the sale (case-sensitive). This is used to associate the sale event with a particular lead event (instead of the latest lead event, which is the default behavior).",
     )
     .openapi({ example: "Cloned template 1481267" }),
 });

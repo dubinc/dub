@@ -25,6 +25,7 @@ export const POST = withWorkspaceEdge(
     const {
       clickId,
       eventName,
+      eventQuantity,
       externalId,
       customerId, // deprecated (but we'll support it for backwards compatibility)
       customerName,
@@ -106,15 +107,25 @@ export const POST = withWorkspaceEdge(
         });
 
         const eventId = nanoid(16);
+        const leadEventPayload = {
+          ...clickData,
+          event_id: eventId,
+          event_name: eventName,
+          customer_id: customer.id,
+          metadata: metadata ? JSON.stringify(metadata) : "",
+        };
 
         const [_lead, link, _project] = await Promise.all([
-          recordLead({
-            ...clickData,
-            event_id: eventId,
-            event_name: eventName,
-            customer_id: customer.id,
-            metadata: metadata ? JSON.stringify(metadata) : "",
-          }),
+          recordLead(
+            eventQuantity
+              ? Array(eventQuantity)
+                  .fill(null)
+                  .map(() => ({
+                    ...leadEventPayload,
+                    event_id: nanoid(16),
+                  }))
+              : leadEventPayload,
+          ),
 
           // update link leads count
           prismaEdge.link.update({
@@ -123,7 +134,7 @@ export const POST = withWorkspaceEdge(
             },
             data: {
               leads: {
-                increment: 1,
+                increment: eventQuantity ?? 1,
               },
             },
             include: includeTags,
@@ -136,7 +147,7 @@ export const POST = withWorkspaceEdge(
             },
             data: {
               usage: {
-                increment: 1,
+                increment: eventQuantity ?? 1,
               },
             },
           }),
@@ -160,8 +171,10 @@ export const POST = withWorkspaceEdge(
                 customerId: customer.id,
                 type: "lead",
                 amount: 0,
-                quantity: 1,
-                earnings: reward.amount,
+                quantity: eventQuantity ?? 1,
+                earnings: eventQuantity
+                  ? reward.amount * eventQuantity
+                  : reward.amount,
               },
             });
           }
