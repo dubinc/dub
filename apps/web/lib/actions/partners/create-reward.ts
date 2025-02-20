@@ -74,7 +74,7 @@ export const createRewardAction = authActionClient
 
       if (existingRewardCount > 0) {
         throw new Error(
-          `Some of these partners already have an existing reward for ${event}.`,
+          `Some of these partners already have an existing partner-specific ${event} reward. Remove those partners to continue.`,
         );
       }
     }
@@ -99,7 +99,7 @@ export const createRewardAction = authActionClient
       },
     });
 
-    // set the default reward if it doesn't exist
+    // set the default sale reward if it doesn't exist
     if (
       event === EventType.sale &&
       !program.defaultRewardId &&
