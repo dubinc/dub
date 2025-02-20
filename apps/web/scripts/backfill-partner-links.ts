@@ -1,4 +1,4 @@
-import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
+import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { createId } from "@/lib/api/utils";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { prisma } from "@dub/prisma";
