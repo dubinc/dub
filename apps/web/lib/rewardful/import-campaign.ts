@@ -12,19 +12,15 @@ export async function importCampaign({ programId }: { programId: string }) {
   const campaign = await rewardfulApi.retrieveCampaign(campaignId);
 
   const {
-    url,
     commission_amount_cents,
     commission_percent,
     max_commission_period_months,
     reward_type,
   } = campaign;
 
-  const { defaultRewardId } = await prisma.program.update({
+  const { defaultRewardId } = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
-    },
-    data: {
-      url,
     },
   });
 

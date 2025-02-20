@@ -1,4 +1,5 @@
 import { TrackSaleResponse } from "@/lib/types";
+import { randomValue } from "@dub/utils";
 import { randomId } from "tests/utils/helpers";
 import {
   E2E_CUSTOMER_EXTERNAL_ID,
@@ -13,7 +14,7 @@ test("POST /track/sale", async () => {
 
   const sale = {
     eventName: "Subscription",
-    amount: 100,
+    amount: randomValue([400, 900, 1900]),
     currency: "usd",
     invoiceId: `INV_${randomId()}`,
     paymentProcessor: "stripe",
