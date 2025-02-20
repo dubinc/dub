@@ -124,8 +124,6 @@ export const GET = withWorkspace(
       };
     });
 
-    console.log(response);
-
     return NextResponse.json(z.array(EnrolledPartnerSchema).parse(response));
   },
   {
