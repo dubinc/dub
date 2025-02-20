@@ -128,8 +128,9 @@ export function Form() {
   );
 }
 
-function NewProgramForm({ register, watch }: FormProps) {
+const NewProgramForm = ({ register, watch }: FormProps) => {
   const [isRecurring, setIsRecurring] = useState(false);
+
   const type = watch("type");
 
   return (
@@ -263,13 +264,13 @@ function NewProgramForm({ register, watch }: FormProps) {
       </div>
     </>
   );
-}
+};
 
-function ImportProgramForm({ register, watch }: FormProps) {
-  const selectedCampaign = watch("campaignId");
+const ImportProgramForm = ({ register, watch }: FormProps) => {
+  const selectedCampaignId = watch("campaignId");
 
   return (
-    <>
+    <div className="space-y-6">
       <div>
         <label className="text-sm font-medium text-neutral-800">
           Import source
@@ -283,9 +284,14 @@ function ImportProgramForm({ register, watch }: FormProps) {
           </select>
           <ChevronDown className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
         </div>
-        <button className="mt-2 text-sm text-neutral-600 underline">
+        <Link
+          href="#"
+          className="mt-2 text-xs font-normal leading-[1.1] text-neutral-600 underline decoration-solid decoration-auto underline-offset-auto"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           See what data is migrated
-        </button>
+        </Link>
       </div>
 
       <div>
@@ -296,11 +302,16 @@ function ImportProgramForm({ register, watch }: FormProps) {
           {...register("apiToken")}
           type="password"
           placeholder="API token"
-          className="mt-2"
+          className="mt-2 max-w-full"
         />
-        <div className="mt-1.5 text-sm text-neutral-600">
+        <div className="mt-2 text-xs font-normal leading-[1.1] text-neutral-600">
           Find your Rewardful API secret on your{" "}
-          <Link href="#" className="text-blue-600 hover:text-blue-700">
+          <Link
+            href="#"
+            className="underline decoration-solid decoration-auto underline-offset-auto"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Company settings page
           </Link>
         </div>
@@ -319,33 +330,38 @@ function ImportProgramForm({ register, watch }: FormProps) {
           </select>
           <ChevronDown className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
         </div>
-        <button className="mt-2 text-sm text-neutral-600 underline">
+        <Link
+          href="#"
+          className="mt-2 text-xs font-normal leading-[1.1] text-neutral-600 underline decoration-solid decoration-auto underline-offset-auto"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           Want to migrate more than one campaign?
-        </button>
+        </Link>
       </div>
 
-      {selectedCampaign && (
-        <div className="grid grid-cols-2 gap-6 rounded-lg border border-neutral-200 bg-white p-6">
+      {selectedCampaignId && (
+        <div className="grid grid-cols-2 gap-6 rounded-lg border border-neutral-300 bg-neutral-50 p-6">
           <div>
-            <div className="text-sm text-neutral-600">Type</div>
-            <div className="text-sm font-medium text-neutral-900">Flat</div>
+            <div className="text-sm text-neutral-500">Type</div>
+            <div className="text-sm font-medium text-neutral-800">Flat</div>
           </div>
           <div>
-            <div className="text-sm text-neutral-600">Duration</div>
-            <div className="text-sm font-medium text-neutral-900">
+            <div className="text-sm text-neutral-500">Duration</div>
+            <div className="text-sm font-medium text-neutral-800">
               24 months
             </div>
           </div>
           <div>
-            <div className="text-sm text-neutral-600">Commission</div>
-            <div className="text-sm font-medium text-neutral-900">$50.00</div>
+            <div className="text-sm text-neutral-500">Commission</div>
+            <div className="text-sm font-medium text-neutral-800">$50.00</div>
           </div>
           <div>
-            <div className="text-sm text-neutral-600">Affiliates</div>
-            <div className="text-sm font-medium text-neutral-900">12</div>
+            <div className="text-sm text-neutral-500">Affiliates</div>
+            <div className="text-sm font-medium text-neutral-800">12</div>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
-}
+};
