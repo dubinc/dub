@@ -1,10 +1,10 @@
 import { StepPage } from "../step-page";
-import { GettingStarted } from "./page-client";
+import { Form } from "./form";
 
 export default async function Page() {
   return (
     <StepPage title="Getting started">
-      <GettingStarted />
+      <Form />
     </StepPage>
   );
 }

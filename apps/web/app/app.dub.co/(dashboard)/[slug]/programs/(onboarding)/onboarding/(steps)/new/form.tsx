@@ -18,7 +18,7 @@ const formSchema = z.object({
   linkType: z.enum(["short", "query", "dynamic"]).default("short"),
 });
 
-type GettingStartedFormData = z.infer<typeof formSchema>;
+type Form = z.infer<typeof formSchema>;
 
 const LINK_TYPES = [
   {
@@ -42,23 +42,23 @@ const LINK_TYPES = [
   },
 ];
 
-export function GettingStarted() {
+export function Form() {
   const { isMobile } = useMediaQuery();
   const { activeWorkspaceDomains, loading } = useDomains();
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting, isValid },
+    formState: { isSubmitting, isValid },
     watch,
-  } = useForm<GettingStartedFormData>({
+  } = useForm<Form>({
     defaultValues: {
       linkType: "short",
     },
     mode: "onChange",
   });
 
-  const onSubmit = async (data: GettingStartedFormData) => {
+  const onSubmit = async (data: Form) => {
     console.log(data);
     // TODO: Handle form submission
   };
