@@ -183,6 +183,7 @@ export const FolderDropdown = ({
         }}
         optionClassName="md:min-w-[250px]"
         searchPlaceholder="Search folders..."
+        matchTriggerWidth={variant === "input"}
         emptyState={
           <div className="flex w-full flex-col items-center gap-2 py-4">
             No folders found
