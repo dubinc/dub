@@ -1,60 +1,23 @@
 "use server";
 
 import { createId } from "@/lib/api/utils";
+import {
+  configureRewardSchema,
+  connectDubSchema,
+  createProgramSchema,
+  fillBasicInfoSchema,
+  invitePartnersSchema,
+  onboardProgramSchema,
+} from "@/lib/zod/schemas/program-onboarding";
 import { prisma } from "@dub/prisma";
 import { Project } from "@prisma/client";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
-const PROGRAM_ONBOARDING_STEPS = [
-  "fill-basic-info",
-  "configure-reward",
-  "invite-partners",
-  "connect-dub",
-  "create-program",
-] as const;
-
-const fillBasicInfoSchema = z.object({
-  step: z.literal("fill-basic-info"),
-  name: z.string().max(100),
-  logo: z.string().nullish(),
-  domain: z.string().nullish(),
-  url: z.string().url("Enter a valid URL").max(255).nullish(),
-  linkType: z.enum(["short", "query", "dynamic"]).default("short"),
-  workspaceId: z.string(),
-});
-
-const configureRewardSchema = z.object({
-  step: z.literal("configure-reward"),
-});
-
-const invitePartnersSchema = z.object({
-  step: z.literal("invite-partners"),
-});
-
-const connectDubSchema = z.object({
-  step: z.literal("connect-dub"),
-});
-
-const createProgramSchema = z.object({
-  step: z.literal("create-program"),
-});
-
-const onboardProgramSchema = z.discriminatedUnion("step", [
-  fillBasicInfoSchema,
-  configureRewardSchema,
-  invitePartnersSchema,
-  connectDubSchema,
-  createProgramSchema,
-]);
-
 export const onboardProgramAction = authActionClient
   .schema(onboardProgramSchema)
-  .action(async ({ ctx, parsedInput }) => {
+  .action(async ({ ctx, parsedInput: data }) => {
     const { workspace } = ctx;
-    const data = parsedInput;
-
-    console.log("onboardProgramAction", data);
 
     switch (data.step) {
       case "fill-basic-info":

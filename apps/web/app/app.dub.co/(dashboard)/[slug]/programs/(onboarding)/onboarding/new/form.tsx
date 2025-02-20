@@ -3,6 +3,8 @@
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
+import { ProgramBasicInfo } from "@/lib/zod/schemas/program-onboarding";
 import { Badge, Button, CircleCheckFill, Input, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -45,8 +47,14 @@ const LINK_TYPES = [
 export function Form() {
   const router = useRouter();
   const { isMobile } = useMediaQuery();
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { activeWorkspaceDomains, loading } = useDomains();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+
+  const [programOnboarding, _, { loading: loadingProgram }] = useWorkspaceStore<
+    ProgramBasicInfo | undefined
+  >("programOnboarding");
+
+  console.log(programOnboarding);
 
   const {
     register,
@@ -56,6 +64,10 @@ export function Form() {
   } = useForm<Form>({
     defaultValues: {
       linkType: "short",
+      domain: programOnboarding?.domain,
+      url: programOnboarding?.url,
+      name: programOnboarding?.name,
+      logo: programOnboarding?.logo,
     },
   });
 
