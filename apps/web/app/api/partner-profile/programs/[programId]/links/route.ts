@@ -3,7 +3,7 @@ import { withPartnerProfile } from "@/lib/auth/partner";
 import { PartnerLinkSchema } from "@/lib/zod/schemas/programs";
 import { NextResponse } from "next/server";
 
-// GET /api/partner-profile/programs/[programId]/earnings/timeseries - get timeseries chart for a partner's earnings
+// GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
 export const GET = withPartnerProfile(async ({ partner, params }) => {
   const { links } = await getProgramEnrollmentOrThrow({
     partnerId: partner.id,
