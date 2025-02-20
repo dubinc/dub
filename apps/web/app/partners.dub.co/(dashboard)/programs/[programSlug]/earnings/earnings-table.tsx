@@ -121,9 +121,12 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         header: "Customer",
         accessorKey: "customer",
         meta: {
-          filterParams: ({ getValue }) => ({
-            customerId: getValue().id,
-          }),
+          filterParams: ({ getValue }) =>
+            getValue()
+              ? {
+                  customerId: getValue().id,
+                }
+              : {},
         },
         cell: ({ row }) =>
           row.original.customer ? row.original.customer.email : "-",
