@@ -232,5 +232,7 @@ export async function GET(request: NextRequest) {
   const endIndex = startIndex + limit;
   const paginatedAffiliates = affiliates.slice(startIndex, endIndex);
 
-  return NextResponse.json(paginatedAffiliates);
+  return NextResponse.json({
+    data: paginatedAffiliates,
+  });
 }

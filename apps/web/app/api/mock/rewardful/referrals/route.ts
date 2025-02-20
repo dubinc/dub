@@ -95,5 +95,7 @@ export async function GET(request: NextRequest) {
   const endIndex = startIndex + limit;
   const slicedReferrals = referrals.slice(startIndex, endIndex);
 
-  return NextResponse.json(slicedReferrals.length > 0 ? slicedReferrals : []);
+  return NextResponse.json({
+    data: slicedReferrals.length > 0 ? slicedReferrals : [],
+  });
 }
