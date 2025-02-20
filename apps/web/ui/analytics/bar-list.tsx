@@ -50,7 +50,10 @@ export default function BarList({
   const [search, setSearch] = useState("");
 
   // Calculate total sum for percentage calculations
-  const totalSum = useMemo(() => data.reduce((sum, item) => sum + item.value, 0), [data]);
+  const totalSum = useMemo(
+    () => data.reduce((sum, item) => sum + item.value, 0),
+    [data],
+  );
 
   // TODO: mock pagination for better perf in React
   const filteredData = useMemo(() => {
@@ -177,7 +180,7 @@ export function LineItem({
 
   // Calculate percentage against total sum and round to 1 decimal
   const percentage = Math.round((value / totalSum) * 1000) / 10;
-  
+
   // Check if we're in modal view - if limit is undefined, we're in the modal view
   const isModalView = !limit;
 
@@ -192,7 +195,7 @@ export function LineItem({
       className={cn(
         `block min-w-0 border-l-2 border-transparent px-4 py-1 transition-all`,
         href && hoverBackground,
-        (isMobile || isModalView) ? "group" : ""
+        isMobile || isModalView ? "group" : "",
       )}
     >
       <div className="flex items-center justify-between">
@@ -230,17 +233,22 @@ export function LineItem({
         <div className="z-10 flex items-center">
           <NumberFlow
             value={
-              unit === "sales" && saleUnit === "saleAmount" ? value / 100 : value
+              unit === "sales" && saleUnit === "saleAmount"
+                ? value / 100
+                : value
             }
             className={cn(
               "z-10 px-2 text-sm text-neutral-600 transition-transform duration-300",
-              (isMobile || isModalView) ? "-translate-x-14" : "group-hover:-translate-x-14"
+              isMobile || isModalView
+                ? "-translate-x-14"
+                : "group-hover:-translate-x-14",
             )}
             format={
               unit === "sales" && saleUnit === "saleAmount"
                 ? {
                     style: "currency",
                     currency: "USD",
+                    // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
                     trailingZeroDisplay: "stripIfInteger",
                   }
                 : {
@@ -248,12 +256,12 @@ export function LineItem({
                   }
             }
           />
-          <div 
+          <div
             className={cn(
               "absolute right-0 px-6 text-sm text-neutral-600/70 transition-all duration-300",
-              (isMobile || isModalView)
-                ? "translate-x-0 visible opacity-100" 
-                : "translate-x-14 invisible opacity-0 group-hover:visible group-hover:translate-x-0 group-hover:opacity-100"
+              isMobile || isModalView
+                ? "visible translate-x-0 opacity-100"
+                : "invisible translate-x-14 opacity-0 group-hover:visible group-hover:translate-x-0 group-hover:opacity-100",
             )}
           >
             {percentage}%
