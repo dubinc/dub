@@ -5,9 +5,9 @@ import { PropsWithChildren } from "react";
 export default function Layout({ children }: PropsWithChildren) {
   return (
     <>
-      <NewBackground />
+      {/* <NewBackground /> */}
       {children}
-      <Toolbar show={["help"]} />
+      {/* <Toolbar show={["help"]} /> */}
     </>
   );
 }

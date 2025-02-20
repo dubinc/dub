@@ -8,7 +8,7 @@ export default function Layout({ children }: PropsWithChildren) {
         {/* <div className="absolute right-0 top-0">
           <ExitButton />
         </div> */}
-        <Wordmark className="mt-6 h-8" />
+        {/* <Wordmark className="mt-6 h-8" /> */}
         <div className="mt-8 flex w-full flex-col items-center px-3 pb-16 md:mt-20 lg:px-8">
           {children}
         </div>
