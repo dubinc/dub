@@ -1,0 +1,50 @@
+{
+  "name": "@dub/email",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules",
+    "dev": "email dev --dir ./src/templates -p 3333"
+  },
+  "dependencies": {
+    "@dub/utils": "workspace:*",
+    "@react-email/components": "^0.0.22",
+    "react-email": "^2.1.6",
+    "lucide-react": "^0.462.0",
+    "resend": "^4.0.0",
+    "nodemailer": "^6.9.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.4",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.14",
+    "@types/nodemailer": "~6.4.17"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "require": "./src/index.ts"
+    },
+    "./templates/*": {
+      "import": "./src/templates/*.tsx",
+      "require": "./src/templates/*.tsx"
+    },
+    "./resend": {
+      "import": "./src/resend/index.ts",
+      "require": "./src/resend/index.ts"
+    },
+    "./resend/*": {
+      "import": "./src/resend/*.ts",
+      "require": "./src/resend/*.ts"
+    },
+    "./send-via-nodemailer": {
+      "import": "./src/send-via-nodemailer.ts",
+      "require": "./src/send-via-nodemailer.ts"
+    }
+  }
+}

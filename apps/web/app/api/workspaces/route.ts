@@ -1,12 +1,16 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import { checkIfUserExists } from "@/lib/planetscale";
-import { prisma } from "@/lib/prisma";
 import {
   WorkspaceSchema,
   createWorkspaceSchema,
 } from "@/lib/zod/schemas/workspaces";
-import { FREE_WORKSPACES_LIMIT, nanoid } from "@dub/utils";
+import { prisma } from "@dub/prisma";
+import {
+  FREE_WORKSPACES_LIMIT,
+  generateRandomString,
+  nanoid,
+} from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -37,10 +41,16 @@ export const GET = withSession(async ({ session }) => {
         },
       },
     },
+    orderBy: {
+      createdAt: "asc",
+    },
   });
   return NextResponse.json(
     workspaces.map((project) =>
-      WorkspaceSchema.parse({ ...project, id: `ws_${project.id}` }),
+      WorkspaceSchema.parse({
+        ...project,
+        id: `ws_${project.id}`,
+      }),
     ),
   );
 });
@@ -93,6 +103,7 @@ export const POST = withSession(async ({ req, session }) => {
           },
         },
         billingCycleStart: new Date().getDate(),
+        invoicePrefix: generateRandomString(8),
         inviteCode: nanoid(24),
         defaultDomains: {
           create: {}, // by default, we give users all the default domains when they create a project

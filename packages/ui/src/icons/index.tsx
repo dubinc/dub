@@ -5,8 +5,11 @@ import { ComponentType, SVGProps } from "react";
 
 // custom icons
 export { default as Copy } from "./copy";
+export * from "./crown-small";
+export * from "./dub-crafted-shield";
 export { default as ExpandingArrow } from "./expanding-arrow";
 export { default as Magic } from "./magic";
+export * from "./matrix-lines";
 export { default as Photo } from "./photo";
 export { default as SortOrder } from "./sort-order";
 export { default as Success } from "./success";
@@ -30,6 +33,12 @@ export * from "./twitter";
 export * from "./unsplash";
 export * from "./youtube";
 
+// Card types
+export * from "./card-amex";
+export * from "./card-discover";
+export * from "./card-mastercard";
+export * from "./card-visa";
+
 // SDKs
 export * from "./go";
 export * from "./php";
@@ -47,6 +56,9 @@ export * from "./default-domains/figma";
 export * from "./default-domains/github-enhanced";
 export * from "./default-domains/google-enhanced";
 export * from "./default-domains/spotify";
+
+// payout platforms
+export * from "./payout-platforms";
 
 // Nucleo icons
 export * from "./nucleo";

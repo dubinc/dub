@@ -1,11 +1,11 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody, ratelimitOrThrow } from "@/lib/api/utils";
 import { hashPassword } from "@/lib/auth/password";
-import { prisma } from "@/lib/prisma";
 import { resetPasswordSchema } from "@/lib/zod/schemas/auth";
+import { sendEmail } from "@dub/email";
+import { PasswordUpdated } from "@dub/email/templates/password-updated";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { sendEmail } from "emails";
-import PasswordUpdated from "emails/password-updated";
 import { NextRequest, NextResponse } from "next/server";
 
 // POST /api/auth/reset-password - reset password using the reset token

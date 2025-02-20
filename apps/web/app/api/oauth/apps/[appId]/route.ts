@@ -2,9 +2,9 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { deleteScreenshots } from "@/lib/integrations/utils";
-import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { oAuthAppSchema, updateOAuthAppSchema } from "@/lib/zod/schemas/oauth";
+import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -113,20 +113,7 @@ export const PATCH = withWorkspace(
             },
           },
         },
-        select: {
-          id: true,
-          createdAt: true,
-          updatedAt: true,
-          name: true,
-          slug: true,
-          description: true,
-          developer: true,
-          logo: true,
-          website: true,
-          installUrl: true,
-          readme: true,
-          screenshots: true,
-          verified: true,
+        include: {
           oAuthApp: true,
         },
       });

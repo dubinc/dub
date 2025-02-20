@@ -5,7 +5,7 @@ import useLinksCount from "@/lib/swr/use-links-count";
 import useUsers from "@/lib/swr/use-users";
 import { CheckCircleFill, ThreeDots } from "@/ui/shared/icons";
 import { Button, Popover, useLocalStorage, useMediaQuery } from "@dub/ui";
-import { CircleDotted, ExpandingArrow } from "@dub/ui/src/icons";
+import { CircleDotted, ExpandingArrow } from "@dub/ui/icons";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -78,7 +78,7 @@ function OnboardingButtonInner({
             <div className="flex items-start justify-between gap-2">
               <div>
                 <span className="text-base font-medium">Getting Started</span>
-                <p className="mt-1 text-sm text-gray-300">
+                <p className="mt-1 text-sm text-neutral-300">
                   Get familiar with Dub by completing the{" "}
                   <br className="hidden sm:block" />
                   following tasks
@@ -98,7 +98,7 @@ function OnboardingButtonInner({
             </div>
           </div>
           <div className="p-3">
-            <div className="grid divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white">
+            <div className="grid divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
               {tasks.map(({ display, cta, checked }) => {
                 return (
                   <Link
@@ -111,12 +111,12 @@ function OnboardingButtonInner({
                         {checked ? (
                           <CheckCircleFill className="size-5 text-green-500" />
                         ) : (
-                          <CircleDotted className="size-5 text-gray-400" />
+                          <CircleDotted className="size-5 text-neutral-400" />
                         )}
-                        <p className="text-sm text-gray-800">{display}</p>
+                        <p className="text-sm text-neutral-800">{display}</p>
                       </div>
                       <div className="mr-5">
-                        <ExpandingArrow className="text-gray-500" />
+                        <ExpandingArrow className="text-neutral-500" />
                       </div>
                     </div>
                   </Link>
@@ -131,10 +131,10 @@ function OnboardingButtonInner({
     >
       <button
         type="button"
-        className="animate-slide-up-fade -mt-1 flex h-12 flex-col items-center justify-center rounded-full border border-gray-950 bg-gray-950 px-6 text-xs font-medium leading-tight text-white shadow-md transition-all [--offset:10px] hover:bg-gray-800 hover:ring-4 hover:ring-gray-200"
+        className="animate-slide-up-fade -mt-1 flex h-12 flex-col items-center justify-center rounded-full border border-neutral-950 bg-neutral-950 px-6 text-xs font-medium leading-tight text-white shadow-md transition-all [--offset:10px] hover:bg-neutral-800 hover:ring-4 hover:ring-neutral-200"
       >
         <span>Getting Started</span>
-        <span className="text-gray-400">
+        <span className="text-neutral-400">
           {Math.round((completedTasks / tasks.length) * 100)}% complete
         </span>
       </button>
@@ -149,7 +149,7 @@ const MiniButton = forwardRef(
         ref={ref}
         type="button"
         {...props}
-        className="rounded-md px-1 py-1 text-gray-400 transition-colors hover:bg-white/20 active:text-white"
+        className="rounded-md px-1 py-1 text-neutral-400 transition-colors hover:bg-white/20 active:text-white"
       />
     );
   },

@@ -1,12 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { prisma } from "@/lib/prisma";
-import {
-  AddOns,
-  BetaFeatures,
-  PlanProps,
-  WorkspaceWithUsers,
-} from "@/lib/types";
+import { BetaFeatures, PlanProps, WorkspaceWithUsers } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
@@ -52,13 +47,11 @@ export const withWorkspace = (
       "business extra",
       "enterprise",
     ], // if the action needs a specific plan
-    requiredAddOn,
     featureFlag, // if the action needs a specific feature flag
     requiredPermissions = [],
     skipPermissionChecks, // if the action doesn't need to check for required permission(s)
   }: {
     requiredPlan?: Array<PlanProps>;
-    requiredAddOn?: AddOns;
     featureFlag?: BetaFeatures;
     requiredPermissions?: PermissionAction[];
     skipPermissionChecks?: boolean;
@@ -108,7 +101,10 @@ export const withWorkspace = (
         */
         if (!idOrSlug && !isRestrictedToken) {
           // special case for anonymous link creation
-          if (req.headers.has("dub-anonymous-link-creation")) {
+          if (
+            req.headers.has("dub-anonymous-link-creation") &&
+            ["/links", "/api/links"].includes(req.nextUrl.pathname)
+          ) {
             // @ts-expect-error
             return await handler({
               req,
@@ -152,6 +148,7 @@ export const withWorkspace = (
                 rateLimit: true,
                 projectId: true,
                 expires: true,
+                installationId: true,
               }),
               user: {
                 select: {
@@ -321,6 +318,15 @@ export const withWorkspace = (
           permissions = mapScopesToPermissions(tokenScopes).filter((p) =>
             permissions.includes(p),
           );
+
+          // Prevent integration tokens from accessing API endpoints without explicit permissions
+          if (token.installationId && requiredPermissions.length === 0) {
+            throw new DubApiError({
+              code: "forbidden",
+              message:
+                "You don't have the necessary permissions to complete this request.",
+            });
+          }
         }
 
         // Check user has permission to make the action
@@ -329,12 +335,15 @@ export const withWorkspace = (
             permissions,
             requiredPermissions,
             workspaceId: workspace.id,
+            externalRequest: Boolean(apiKey),
           });
         }
 
         // beta feature checks
         if (featureFlag) {
-          const flags = await getFeatureFlags({ workspaceId: workspace.id });
+          const flags = await getFeatureFlags({
+            workspaceId: workspace.id,
+          });
 
           if (!flags[featureFlag]) {
             throw new DubApiError({
@@ -347,25 +356,10 @@ export const withWorkspace = (
         const url = new URL(req.url || "", API_DOMAIN);
 
         // plan checks
-        // special scenario – /events and /webhooks API is available for conversionEnabled workspaces (even if they're on a Pro plan)
-        if (
-          !requiredPlan.includes(workspace.plan) &&
-          (url.pathname.includes("/events") ||
-            url.pathname.includes("/webhooks")) &&
-          !workspace.conversionEnabled
-        ) {
+        if (!requiredPlan.includes(workspace.plan)) {
           throw new DubApiError({
             code: "forbidden",
             message: "Unauthorized: Need higher plan.",
-          });
-        }
-
-        // add-ons checks
-        if (requiredAddOn && !workspace[`${requiredAddOn}Enabled`]) {
-          throw new DubApiError({
-            code: "forbidden",
-            message:
-              "Unauthorized: This feature is not available on your plan.",
           });
         }
 
@@ -394,6 +388,9 @@ export const withWorkspace = (
         req.log.error(error);
         return handleAndReturnErrorResponse(error, headers);
       }
+    },
+    {
+      logRequestDetails: ["body", "nextUrl"],
     },
   );
 };

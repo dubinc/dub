@@ -2,8 +2,7 @@
 
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { ModalContext } from "@/ui/modals/modal-provider";
-import { Button } from "@dub/ui";
-import { TooltipContent } from "@dub/ui/src/tooltip";
+import { Button, TooltipContent } from "@dub/ui";
 import { FREE_WORKSPACES_LIMIT } from "@dub/utils";
 import { useContext } from "react";
 

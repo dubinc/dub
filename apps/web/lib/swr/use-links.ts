@@ -3,7 +3,7 @@ import { fetcher } from "@dub/utils";
 import { useEffect, useState } from "react";
 import useSWR, { SWRConfiguration } from "swr";
 import { z } from "zod";
-import { LinkWithTagsProps, UserProps } from "../types";
+import { ExpandedLinkProps, UserProps } from "../types";
 import { getLinksQuerySchemaExtended } from "../zod/schemas/links";
 import useWorkspace from "./use-workspace";
 
@@ -23,8 +23,12 @@ export default function useLinks(
     }
   }, []);
 
-  const { data: links, isValidating } = useSWR<
-    (LinkWithTagsProps & {
+  const {
+    data: links,
+    isValidating,
+    error,
+  } = useSWR<
+    (ExpandedLinkProps & {
       user: UserProps;
     })[]
   >(
@@ -34,10 +38,11 @@ export default function useLinks(
             workspaceId,
             includeUser: "true",
             includeWebhooks: "true",
+            includeDashboard: "true",
             ...opts,
           },
           {
-            ignore: ["import", "upgrade", "newLink"],
+            exclude: ["import", "upgrade", "newLink"],
           },
         )}`
       : admin
@@ -55,5 +60,6 @@ export default function useLinks(
   return {
     links,
     isValidating,
+    error,
   };
 }

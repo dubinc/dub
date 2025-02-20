@@ -4,6 +4,7 @@ import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { usePathname } from "next/navigation";
 import {
+  ComponentType,
   createContext,
   Dispatch,
   PropsWithChildren,
@@ -12,7 +13,6 @@ import {
   useEffect,
   useState,
 } from "react";
-import { SidebarNav } from "./sidebar/sidebar-nav";
 
 type SideNavContext = {
   isOpen: boolean;
@@ -26,9 +26,17 @@ export const SideNavContext = createContext<SideNavContext>({
 
 export function MainNav({
   children,
+  sidebar: Sidebar,
   toolContent,
   newsContent,
-}: PropsWithChildren<{ toolContent?: ReactNode; newsContent?: ReactNode }>) {
+}: PropsWithChildren<{
+  sidebar: ComponentType<{
+    toolContent?: ReactNode;
+    newsContent?: ReactNode;
+  }>;
+  toolContent?: ReactNode;
+  newsContent?: ReactNode;
+}>) {
   const pathname = usePathname();
 
   const { isMobile } = useMediaQuery();
@@ -76,7 +84,7 @@ export function MainNav({
               )}
             />
           </div>
-          <SidebarNav toolContent={toolContent} newsContent={newsContent} />
+          <Sidebar toolContent={toolContent} newsContent={newsContent} />
         </div>
       </div>
       <div className="bg-neutral-100 md:pt-1.5">

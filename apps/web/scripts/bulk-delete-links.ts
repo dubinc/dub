@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
-import { recordLink } from "@/lib/tinybird";
+import { recordLinkTB, transformLinkTB } from "@/lib/tinybird";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 const domain = "song.fyi";
@@ -9,14 +9,12 @@ async function main() {
     where: {
       domain,
     },
-    select: {
-      id: true,
-      domain: true,
-      key: true,
-      url: true,
-      projectId: true,
-      tags: true,
-      createdAt: true,
+    include: {
+      tags: {
+        select: {
+          tag: true,
+        },
+      },
     },
     // take: 10000,
   });
@@ -30,15 +28,9 @@ async function main() {
       },
     }),
     // redis.del(domain),
-    recordLink(
+    recordLinkTB(
       links.map((link) => ({
-        link_id: link.id,
-        domain: link.domain,
-        key: link.key,
-        url: link.url,
-        tag_ids: link.tags.map((tag) => tag.tagId),
-        workspace_id: link.projectId,
-        created_at: link.createdAt,
+        ...transformLinkTB(link),
         deleted: true,
       })),
     ),

@@ -1,6 +1,6 @@
 import z from "@/lib/zod";
 import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
-import { Project } from "@prisma/client";
+import { Project } from "@dub/prisma/client";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
@@ -22,7 +22,10 @@ describe("GET /workspaces/{idOrSlug}", async () => {
       slug: workspace.slug,
     });
 
-    WorkspaceSchema.extend({ createdAt: z.string() })
+    WorkspaceSchema.extend({
+      createdAt: z.string(),
+      yearInReview: z.object({}).nullable(),
+    })
       .strict()
       .parse(workspaceFetched);
   });
@@ -41,7 +44,10 @@ describe("GET /workspaces/{idOrSlug}", async () => {
       slug: workspace.slug,
     });
 
-    WorkspaceSchema.extend({ createdAt: z.string() })
+    WorkspaceSchema.extend({
+      createdAt: z.string(),
+      yearInReview: z.object({}).nullable(),
+    })
       .strict()
       .parse(workspaceFetched);
   });

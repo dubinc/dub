@@ -25,7 +25,6 @@ describe("POST /track/lead", async () => {
     expect(response.status).toEqual(200);
     expect(response.data).toStrictEqual({
       clickId: E2E_CLICK_ID,
-      customerId: customer.id,
       customerName: customer.name,
       customerEmail: customer.email,
       customerAvatar: customer.avatar,
@@ -33,10 +32,10 @@ describe("POST /track/lead", async () => {
         id: E2E_CLICK_ID,
       },
       customer: {
-        id: customer.id,
         name: customer.name,
         email: customer.email,
         avatar: customer.avatar,
+        externalId: customer.id,
       },
     });
   });
@@ -51,12 +50,12 @@ describe("POST /track/lead", async () => {
       },
     });
 
-    expect(response.status).toEqual(429);
+    expect(response.status).toEqual(409);
     expect(response.data).toStrictEqual({
       error: {
-        code: "rate_limit_exceeded",
-        doc_url: "https://dub.co/docs/api-reference/errors#rate-limit_exceeded",
-        message: `Rate limit exceeded for customer ${customer.id}: Signup`,
+        code: "conflict",
+        doc_url: "https://dub.co/docs/api-reference/errors#conflict",
+        message: `Customer with externalId ${customer.id} and event name Signup has already been recorded.`,
       },
     });
   });

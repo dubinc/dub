@@ -1,19 +1,28 @@
 import z from "@/lib/zod";
 import { clickEventSchema, clickEventSchemaTB } from "./clicks";
-import { customerSchema } from "./customers";
+import { CustomerSchema } from "./customers";
 import { commonDeprecatedEventFields } from "./deprecated";
 import { linkEventSchema } from "./links";
 
 export const trackSaleRequestSchema = z.object({
-  // Required
-  customerId: z
-    .string({ required_error: "customerId is required" })
+  externalId: z
+    .string()
     .trim()
-    .min(1, "customerId is required")
     .max(100)
+    .default("") // Remove this after migrating users from customerId to externalId
     .describe(
       "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
     ),
+  customerId: z
+    .string()
+    .trim()
+    .max(100)
+    .nullish()
+    .default(null)
+    .describe(
+      "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
+    )
+    .openapi({ deprecated: true }),
   amount: z
     .number({ required_error: "amount is required" })
     .int()
@@ -22,11 +31,9 @@ export const trackSaleRequestSchema = z.object({
   paymentProcessor: z
     .enum(["stripe", "shopify", "paddle"])
     .describe("The payment processor via which the sale was made."),
-
-  // Optional
   eventName: z
     .string()
-    .max(50)
+    .max(255)
     .optional()
     .default("Purchase")
     .describe(
@@ -41,29 +48,43 @@ export const trackSaleRequestSchema = z.object({
   currency: z
     .string()
     .default("usd")
+    .transform((val) => val.toLowerCase())
     .describe("The currency of the sale. Accepts ISO 4217 currency codes."),
   metadata: z
     .record(z.unknown())
     .nullish()
     .default(null)
     .describe("Additional metadata to be stored with the sale event."),
+  leadEventName: z
+    .string()
+    .nullish()
+    .default(null)
+    .describe(
+      "The name of the lead event that occurred before the sale (case-sensitive). This is used to associate the sale event with a particular lead event (instead of the latest lead event, which is the default behavior).",
+    )
+    .openapi({ example: "Cloned template 1481267" }),
 });
 
 export const trackSaleResponseSchema = z.object({
   eventName: z.string(),
-  customer: z.object({
-    id: z.string(),
-    name: z.string().nullable(),
-    email: z.string().nullable(),
-    avatar: z.string().nullable(),
-  }),
-  sale: z.object({
-    amount: z.number(),
-    currency: z.string(),
-    paymentProcessor: z.string(),
-    invoiceId: z.string().nullable(),
-    metadata: z.record(z.unknown()).nullable(),
-  }),
+  customer: z
+    .object({
+      id: z.string(),
+      name: z.string().nullable(),
+      email: z.string().nullable(),
+      avatar: z.string().nullable(),
+      externalId: z.string().nullable(),
+    })
+    .nullable(),
+  sale: z
+    .object({
+      amount: z.number(),
+      currency: z.string(),
+      paymentProcessor: z.string(),
+      invoiceId: z.string().nullable(),
+      metadata: z.record(z.unknown()).nullable(),
+    })
+    .nullable(),
 });
 
 export const saleEventSchemaTB = clickEventSchemaTB
@@ -98,6 +119,8 @@ export const saleEventSchemaTBEndpoint = z.object({
   continent: z.string().nullable(),
   country: z.string().nullable(),
   city: z.string().nullable(),
+  region: z.string().nullable(),
+  region_processed: z.string().nullable(),
   device: z.string().nullable(),
   browser: z.string().nullable(),
   os: z.string().nullable(),
@@ -118,7 +141,7 @@ export const saleEventResponseSchema = z
     // nested objects
     link: linkEventSchema,
     click: clickEventSchema,
-    customer: customerSchema,
+    customer: CustomerSchema,
     sale: trackSaleRequestSchema.pick({
       amount: true,
       invoiceId: true,

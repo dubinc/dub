@@ -1,11 +1,13 @@
 {
   "name": "com.example.dub",
-  "version": "0.0.1",
-  "description": "Test",
+  "version": "0.0.5",
+  "description": "Dub Conversions",
   "private": true,
   "license": "~~proprietary~~",
   "dependencies": {
     "@stripe/ui-extension-sdk": "^8.8.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "stripe": "^13.11.0"
   },
   "engines": {
@@ -24,6 +26,8 @@
     "@types/react": "^17.0.2"
   },
   "devDependencies": {
-    "@stripe/ui-extension-tools": "^0.0.1"
+    "@stripe/ui-extension-tools": "^0.0.1",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2"
   }
 }

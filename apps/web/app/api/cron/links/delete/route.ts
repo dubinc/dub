@@ -1,15 +1,20 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { deleteLink } from "@/lib/api/links";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 
 export const dynamic = "force-dynamic";
 
+/*
+    This route is used to delete demo links that are not claimed
+    It is called by QStash 30 minutes after a demo link is created
+*/
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    await verifyQstashSignature(req, body);
-    const { linkId } = body;
+    const rawBody = await req.text();
+    await verifyQstashSignature({ req, rawBody });
+
+    const { linkId } = JSON.parse(rawBody);
 
     const link = await prisma.link.findUnique({
       where: {

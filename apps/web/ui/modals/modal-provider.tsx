@@ -1,12 +1,12 @@
 "use client";
 
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { SimpleLinkProps } from "@/lib/types";
 import { useAcceptInviteModal } from "@/ui/modals/accept-invite-modal";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
 import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
-import { useCompleteSetupModal } from "@/ui/modals/complete-setup-modal";
 import { useImportBitlyModal } from "@/ui/modals/import-bitly-modal";
 import { useImportCsvModal } from "@/ui/modals/import-csv-modal";
 import { useImportShortModal } from "@/ui/modals/import-short-modal";
@@ -24,15 +24,14 @@ import {
   useMemo,
 } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 import { useAddEditTagModal } from "./add-edit-tag-modal";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
+import { useImportRewardfulModal } from "./import-rewardful-modal";
 import { useLinkBuilder } from "./link-builder";
 import { useWelcomeModal } from "./welcome-modal";
 
 export const ModalContext = createContext<{
   setShowAddWorkspaceModal: Dispatch<SetStateAction<boolean>>;
-  setShowCompleteSetupModal: Dispatch<SetStateAction<boolean>>;
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
   setShowLinkBuilder: Dispatch<SetStateAction<boolean>>;
   setShowAddEditTagModal: Dispatch<SetStateAction<boolean>>;
@@ -40,9 +39,9 @@ export const ModalContext = createContext<{
   setShowImportShortModal: Dispatch<SetStateAction<boolean>>;
   setShowImportRebrandlyModal: Dispatch<SetStateAction<boolean>>;
   setShowImportCsvModal: Dispatch<SetStateAction<boolean>>;
+  setShowImportRewardfulModal: Dispatch<SetStateAction<boolean>>;
 }>({
   setShowAddWorkspaceModal: () => {},
-  setShowCompleteSetupModal: () => {},
   setShowAddEditDomainModal: () => {},
   setShowLinkBuilder: () => {},
   setShowAddEditTagModal: () => {},
@@ -50,6 +49,7 @@ export const ModalContext = createContext<{
   setShowImportShortModal: () => {},
   setShowImportRebrandlyModal: () => {},
   setShowImportCsvModal: () => {},
+  setShowImportRewardfulModal: () => {},
 });
 
 export function ModalProvider({ children }: { children: ReactNode }) {
@@ -76,8 +76,6 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
 
   const { AddWorkspaceModal, setShowAddWorkspaceModal } =
     useAddWorkspaceModal();
-  const { CompleteSetupModal, setShowCompleteSetupModal } =
-    useCompleteSetupModal();
   const { AcceptInviteModal, setShowAcceptInviteModal } =
     useAcceptInviteModal();
   const { setShowAddEditDomainModal, AddEditDomainModal } =
@@ -100,6 +98,8 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
     useImportRebrandlyModal();
   const { setShowImportCsvModal, ImportCsvModal } = useImportCsvModal();
   const { setShowWelcomeModal, WelcomeModal } = useWelcomeModal();
+  const { setShowImportRewardfulModal, ImportRewardfulModal } =
+    useImportRewardfulModal();
 
   useEffect(
     () =>
@@ -126,11 +126,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
           body: JSON.stringify(hashes),
         }).then(async (res) => {
           if (res.status === 200) {
-            await mutate(
-              (key) => typeof key === "string" && key.startsWith("/api/links"),
-              undefined,
-              { revalidate: true },
-            );
+            await mutatePrefix("/api/links");
             setHashes([]);
           }
         }),
@@ -187,7 +183,6 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
     <ModalContext.Provider
       value={{
         setShowAddWorkspaceModal,
-        setShowCompleteSetupModal,
         setShowAddEditDomainModal,
         setShowLinkBuilder,
         setShowAddEditTagModal,
@@ -195,11 +190,11 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
         setShowImportShortModal,
         setShowImportRebrandlyModal,
         setShowImportCsvModal,
+        setShowImportRewardfulModal,
       }}
     >
       <AddWorkspaceModal />
       <AcceptInviteModal />
-      <CompleteSetupModal />
       <AddEditDomainModal />
       <LinkBuilder />
       <AddEditTagModal />
@@ -207,6 +202,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       <ImportShortModal />
       <ImportRebrandlyModal />
       <ImportCsvModal />
+      <ImportRewardfulModal />
       <WelcomeModal />
       {children}
     </ModalContext.Provider>

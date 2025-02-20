@@ -1,9 +1,10 @@
 import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
-import { prisma } from "@/lib/prisma";
 import { isStored } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
+import { prisma } from "@dub/prisma";
 import {
   DUB_DOMAINS,
   UTMTags,
@@ -16,8 +17,10 @@ import {
   isValidUrl,
   log,
   parseDateTime,
+  pluralize,
 } from "@dub/utils";
-import { combineTagIds, keyChecks, processKey } from "./utils";
+import { combineTagIds } from "../tags/combine-tag-ids";
+import { keyChecks, processKey } from "./utils";
 
 export async function processLink<T extends Record<string, any>>({
   payload,
@@ -25,19 +28,18 @@ export async function processLink<T extends Record<string, any>>({
   userId,
   bulk = false,
   skipKeyChecks = false, // only skip when key doesn't change (e.g. when editing a link)
-  skipIdentifierChecks = false, // only skip when identifier doesn't change (e.g. when editing a link)
   skipExternalIdChecks = false, // only skip when externalId doesn't change (e.g. when editing a link)
+  skipFolderChecks = false, // only skip for update / upsert links
+  skipProgramChecks = false, // only skip for when program is already validated
 }: {
   payload: NewLinkProps & T;
-  workspace?: Pick<
-    WorkspaceProps,
-    "id" | "plan" | "conversionEnabled" | "flags"
-  >;
+  workspace?: Pick<WorkspaceProps, "id" | "plan" | "flags">;
   userId?: string;
   bulk?: boolean;
   skipKeyChecks?: boolean;
-  skipIdentifierChecks?: boolean;
   skipExternalIdChecks?: boolean;
+  skipFolderChecks?: boolean;
+  skipProgramChecks?: boolean;
 }): Promise<
   | {
       link: NewLinkProps & T;
@@ -67,12 +69,16 @@ export async function processLink<T extends Record<string, any>>({
     geo,
     doIndex,
     tagNames,
+    folderId,
     externalId,
-    identifier,
+    tenantId,
+    partnerId,
+    programId,
     webhookIds,
   } = payload;
 
   let expiresAt: string | Date | null | undefined = payload.expiresAt;
+  let defaultProgramFolderId: string | null = null;
   const tagIds = combineTagIds(payload);
 
   // if URL is defined, perform URL checks
@@ -192,15 +198,17 @@ export async function processLink<T extends Record<string, any>>({
   } else if (isDubDomain(domain)) {
     // coerce type with ! cause we already checked if it exists
     const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
-    const urlDomain = getApexDomain(url) || "";
+    const urlDomain = getDomainWithoutWWW(url) || "";
+    const apexDomain = getApexDomain(url);
     if (
       key !== "_root" &&
       allowedHostnames &&
-      !allowedHostnames.includes(urlDomain)
+      !allowedHostnames.includes(urlDomain) &&
+      !allowedHostnames.includes(apexDomain)
     ) {
       return {
         link: payload,
-        error: `Invalid destination URL. You can only create ${domain} short links for URLs with the domain${allowedHostnames.length > 1 ? "s" : ""} ${allowedHostnames
+        error: `Invalid destination URL. You can only create ${domain} short links for URLs with the ${pluralize("domain", allowedHostnames.length)} ${allowedHostnames
           .map((d) => `"${d}"`)
           .join(", ")}.`,
         code: "unprocessable_entity",
@@ -277,10 +285,11 @@ export async function processLink<T extends Record<string, any>>({
   }
 
   if (trackConversion) {
-    if (!workspace || !workspace.conversionEnabled) {
+    if (!workspace || workspace.plan === "free" || workspace.plan === "pro") {
       return {
         link: payload,
-        error: "Conversion tracking is not enabled for this workspace.",
+        error:
+          "Conversion tracking is only available for workspaces with a Business plan and above. Please upgrade to continue.",
         code: "forbidden",
       };
     }
@@ -305,25 +314,6 @@ export async function processLink<T extends Record<string, any>>({
     }
   }
 
-  if (identifier && workspace && !skipIdentifierChecks) {
-    const link = await prisma.link.findUnique({
-      where: {
-        projectId_identifier: {
-          projectId: workspace.id,
-          identifier,
-        },
-      },
-    });
-
-    if (link) {
-      return {
-        link: payload,
-        error: "A link with this identifier already exists in this workspace.",
-        code: "conflict",
-      };
-    }
-  }
-
   if (bulk) {
     if (proxy && image && !isStored(image)) {
       return {
@@ -332,25 +322,24 @@ export async function processLink<T extends Record<string, any>>({
         code: "unprocessable_entity",
       };
     }
-    if (rewrite) {
-      return {
-        link: payload,
-        error: "You cannot use link cloaking with bulk link creation.",
-        code: "unprocessable_entity",
-      };
-    }
-
+  } else {
     // only perform tag validity checks if:
     // - not bulk creation (we do that check separately in the route itself)
     // - tagIds are present
-  } else {
-    // Tag validity checks
     if (tagIds && tagIds.length > 0) {
+      if (!workspace) {
+        return {
+          link: payload,
+          error:
+            "Workspace not found. You can't add tags to a link without a workspace.",
+          code: "not_found",
+        };
+      }
       const tags = await prisma.tag.findMany({
         select: {
           id: true,
         },
-        where: { projectId: workspace?.id, id: { in: tagIds } },
+        where: { projectId: workspace.id, id: { in: tagIds } },
       });
 
       if (tags.length !== tagIds.length) {
@@ -367,12 +356,20 @@ export async function processLink<T extends Record<string, any>>({
         };
       }
     } else if (tagNames && tagNames.length > 0) {
+      if (!workspace) {
+        return {
+          link: payload,
+          error:
+            "Workspace not found. You can't add tags to a link without a workspace.",
+          code: "not_found",
+        };
+      }
       const tags = await prisma.tag.findMany({
         select: {
           name: true,
         },
         where: {
-          projectId: workspace?.id,
+          projectId: workspace.id,
           name: { in: tagNames },
         },
       });
@@ -391,6 +388,78 @@ export async function processLink<T extends Record<string, any>>({
           code: "unprocessable_entity",
         };
       }
+    }
+
+    // only perform folder validity checks if:
+    // - not bulk creation (we do that check separately in the route itself)
+    // - folderId is present and we're not skipping folder checks
+    if (folderId && !skipFolderChecks) {
+      if (!workspace || !userId) {
+        return {
+          link: payload,
+          error:
+            "Workspace or user ID not found. You can't add a folder to a link without a workspace or user ID.",
+          code: "not_found",
+        };
+      }
+
+      if (workspace.plan === "free") {
+        return {
+          link: payload,
+          error: "You can't add a folder to a link on a free plan.",
+          code: "forbidden",
+        };
+      }
+
+      try {
+        await verifyFolderAccess({
+          workspace,
+          userId,
+          folderId,
+          requiredPermission: "folders.links.write",
+        });
+      } catch (error) {
+        return {
+          link: payload,
+          error: error.message,
+          code: error.code,
+        };
+      }
+    }
+
+    // Program validity checks
+    if (programId && !skipProgramChecks) {
+      const program = await prisma.program.findUnique({
+        where: { id: programId },
+        select: {
+          workspaceId: true,
+          defaultFolderId: true,
+          ...(!partnerId && tenantId
+            ? {
+                partners: {
+                  where: {
+                    tenantId,
+                  },
+                },
+              }
+            : {}),
+        },
+      });
+
+      if (!program || program.workspaceId !== workspace?.id) {
+        return {
+          link: payload,
+          error: "Program not found.",
+          code: "not_found",
+        };
+      }
+
+      if (!partnerId) {
+        partnerId =
+          program?.partners?.length > 0 ? program.partners[0].partnerId : null;
+      }
+
+      defaultProgramFolderId = program.defaultFolderId;
     }
 
     // Webhook validity checks
@@ -477,6 +546,8 @@ export async function processLink<T extends Record<string, any>>({
       url,
       expiresAt,
       expiredUrl,
+      // partnerId derived from payload or program enrollment
+      partnerId: partnerId || null,
       // make sure projectId is set to the current workspace
       projectId: workspace?.id || null,
       // if userId is passed, set it (we don't change the userId if it's already set, e.g. when editing a link)
@@ -486,6 +557,7 @@ export async function processLink<T extends Record<string, any>>({
       ...(webhookIds && {
         webhookIds,
       }),
+      folderId: folderId || defaultProgramFolderId,
     },
     error: null,
   };
@@ -498,7 +570,7 @@ async function maliciousLinkCheck(url: string) {
     return false;
   }
 
-  const domainBlacklisted = await isBlacklistedDomain({ domain, apexDomain });
+  const domainBlacklisted = await isBlacklistedDomain(domain);
   if (domainBlacklisted === true) {
     return true;
   } else if (domainBlacklisted === "whitelisted") {
@@ -514,10 +586,6 @@ async function maliciousLinkCheck(url: string) {
       console.log("Pangea verdict for domain", apexDomain, verdict);
 
       if (verdict === "benign") {
-        await updateConfig({
-          key: "whitelistedDomains",
-          value: domain,
-        });
         return false;
       } else if (verdict === "malicious" || verdict === "suspicious") {
         await Promise.all([

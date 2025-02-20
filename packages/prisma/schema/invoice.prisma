@@ -1,0 +1,25 @@
+enum InvoiceStatus {
+  processing
+  completed
+  failed
+}
+
+model Invoice {
+  id          String        @id @default(cuid())
+  programId   String
+  workspaceId String
+  number      String?       @unique // This starts with the customer’s unique invoicePrefix
+  status      InvoiceStatus @default(processing)
+  amount      Int           @default(0)
+  fee         Int           @default(0)
+  total       Int           @default(0)
+  receiptUrl  String?       @db.LongText
+  createdAt   DateTime      @default(now())
+
+  payouts   Payout[]
+  program   Program  @relation(fields: [programId], references: [id])
+  workspace Project  @relation(fields: [workspaceId], references: [id])
+
+  @@index([programId])
+  @@index([workspaceId])
+}

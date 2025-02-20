@@ -1,11 +1,12 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { TagSchema, updateTagBodySchema } from "@/lib/zod/schemas/tags";
+import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-// PATCH /api/workspaces/[idOrSlug]/tags/[id] – update a tag for a workspace
+// PATCH /api/tags/[id] – update a tag for a workspace
 export const PATCH = withWorkspace(
   async ({ req, params, workspace }) => {
     const { id } = params;
@@ -69,12 +70,12 @@ export const DELETE = withWorkspace(
           links: {
             select: {
               link: {
-                select: {
-                  id: true,
-                  domain: true,
-                  key: true,
-                  url: true,
-                  createdAt: true,
+                include: {
+                  tags: {
+                    select: {
+                      tag: true,
+                    },
+                  },
                 },
               },
             },
@@ -90,16 +91,13 @@ export const DELETE = withWorkspace(
       }
 
       // update links metadata in tinybird after deleting a tag
-      await recordLink(
-        response.links.map(({ link }) => ({
-          link_id: link.id,
-          domain: link.domain,
-          key: link.key,
-          url: link.url,
-          tag_ids: [],
-          workspace_id: workspace.id,
-          created_at: link.createdAt,
-        })),
+      waitUntil(
+        recordLink(
+          response.links.map(({ link }) => ({
+            ...link,
+            tags: link.tags.filter(({ tag }) => tag.id !== id),
+          })),
+        ),
       );
 
       return NextResponse.json({ id });

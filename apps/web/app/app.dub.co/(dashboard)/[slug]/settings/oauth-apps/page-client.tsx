@@ -6,8 +6,7 @@ import { OAuthAppProps } from "@/lib/types";
 import OAuthAppCard from "@/ui/oauth-apps/oauth-app-card";
 import OAuthAppPlaceholder from "@/ui/oauth-apps/oauth-app-placeholder";
 import EmptyState from "@/ui/shared/empty-state";
-import { Button, Cube, TooltipContent } from "@dub/ui";
-import { InfoTooltip } from "@dub/ui/src/tooltip";
+import { Button, Cube, InfoTooltip, TooltipContent } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
@@ -63,7 +62,7 @@ export default function OAuthAppsPageClient() {
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center gap-4 rounded-xl border border-gray-200 py-10">
+            <div className="flex flex-col items-center gap-4 rounded-xl border border-neutral-200 py-10">
               <EmptyState icon={Cube} title={"No OAuth applications found"} />
             </div>
           )

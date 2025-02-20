@@ -1,24 +1,40 @@
+import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TagProps } from "@/lib/types";
 import {
-  AnimatedSizeContainer,
+  Button,
   CardList,
+  CopyButton,
+  CursorRays,
+  InvoiceDollar,
   Tooltip,
   useMediaQuery,
+  UserCheck,
   useRouterStuff,
 } from "@dub/ui";
-import { CursorRays, InvoiceDollar, UserCheck } from "@dub/ui/src/icons";
-import { cn, currencyFormatter, nFormatter, timeAgo } from "@dub/utils";
+import { ReferredVia } from "@dub/ui/icons";
+import {
+  APP_DOMAIN,
+  cn,
+  currencyFormatter,
+  INFINITY_NUMBER,
+  nFormatter,
+  pluralize,
+  timeAgo,
+} from "@dub/utils";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
+  memo,
   PropsWithChildren,
   useContext,
   useMemo,
   useRef,
   useState,
 } from "react";
+import { useShareDashboardModal } from "../modals/share-dashboard-modal";
 import { LinkControls } from "./link-controls";
+import { useLinkSelection } from "./link-selection-provider";
 import { ResponseLink } from "./links-container";
 import { LinksDisplayContext } from "./links-display-provider";
 import TagBadge from "./tag-badge";
@@ -67,10 +83,20 @@ export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
       {displayProperties.includes("analytics") && (
         <AnalyticsBadge link={link} />
       )}
-      <LinkControls link={link} />
+      <Controls link={link} />
     </div>
   );
 }
+
+const Controls = memo(({ link }: { link: ResponseLink }) => {
+  const { isSelectMode } = useLinkSelection();
+
+  return (
+    <div className={cn(isSelectMode && "hidden sm:block")}>
+      <LinkControls link={link} />
+    </div>
+  );
+});
 
 function TagsTooltip({
   additionalTags,
@@ -85,7 +111,7 @@ function TagsTooltip({
           ))}
         </div>
       }
-      side="bottom"
+      side="top"
       align="end"
     >
       <div>{children}</div>
@@ -123,104 +149,151 @@ function TagButton({ tag, plus }: { tag: TagProps; plus?: number }) {
 }
 
 function AnalyticsBadge({ link }: { link: ResponseLink }) {
-  const { domain, key, trackConversion } = link;
+  const { slug, plan } = useWorkspace();
+  const { domain, key, trackConversion, clicks, leads, saleAmount } = link;
 
-  const { slug } = useWorkspace();
   const { isMobile } = useMediaQuery();
   const { variant } = useContext(CardList.Context);
 
-  const [hoveredTab, setHoveredTab] = useState<string>("clicks");
-  const hoveredValue = link[hoveredTab === "sales" ? "saleAmount" : hoveredTab];
+  const stats = useMemo(
+    () => [
+      {
+        id: "clicks",
+        icon: CursorRays,
+        value: clicks,
+        iconClassName: "data-[active=true]:text-blue-500",
+      },
+      // show leads and sales if:
+      // 1. link has trackConversion enabled
+      // 2. link has leads or sales
+      ...(trackConversion || leads > 0 || saleAmount > 0
+        ? [
+            {
+              id: "leads",
+              icon: UserCheck,
+              value: leads,
+              className: "hidden sm:flex",
+              iconClassName: "data-[active=true]:text-purple-500",
+            },
+            {
+              id: "sales",
+              icon: InvoiceDollar,
+              value: saleAmount,
+              className: "hidden sm:flex",
+              iconClassName: "data-[active=true]:text-teal-500",
+            },
+          ]
+        : []),
+    ],
+    [link],
+  );
+
+  const { ShareDashboardModal, setShowShareDashboardModal } =
+    useShareDashboardModal({ domain, _key: key });
+
+  // Hacky fix for making sure the tooltip closes (by rerendering) when the modal opens
+  const [modalShowCount, setModalShowCount] = useState(0);
+
+  const canManageLink = useCheckFolderPermission(
+    link.folderId,
+    "folders.links.write",
+  );
 
   return isMobile ? (
     <Link
-      href={`/${slug}/analytics?domain=${domain}&key=${key}`}
-      className="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-sm text-gray-800"
+      href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
+      className="flex items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-sm text-neutral-800"
     >
-      <CursorRays className="h-4 w-4 text-gray-600" />
-      {nFormatter(hoveredValue)}
+      <CursorRays className="h-4 w-4 text-neutral-600" />
+      {nFormatter(link.clicks)}
     </Link>
   ) : (
-    <Tooltip
-      content={
-        <AnimatedSizeContainer width height>
-          <div
-            key={hoveredTab}
-            className="whitespace-nowrap px-3 py-2 text-gray-600"
-          >
-            <p className="text-sm">
-              <span className="font-medium text-gray-950">
-                {hoveredTab === "sales"
-                  ? currencyFormatter(hoveredValue / 100)
-                  : nFormatter(hoveredValue)}
-              </span>{" "}
-              {hoveredValue !== 1 ? hoveredTab : hoveredTab.slice(0, -1)}
+    <>
+      <ShareDashboardModal />
+      <Tooltip
+        key={modalShowCount}
+        side="top"
+        content={
+          <div className="flex flex-col gap-2.5 whitespace-nowrap p-3 text-neutral-600">
+            {stats.map(({ id: tab, value }) => (
+              <div key={tab} className="text-sm leading-none">
+                <span className="font-medium text-neutral-950">
+                  {tab === "sales"
+                    ? currencyFormatter(value / 100)
+                    : nFormatter(value, { full: value < INFINITY_NUMBER })}
+                </span>{" "}
+                {tab === "sales" ? "total " : ""}
+                {pluralize(tab.slice(0, -1), value)}
+              </div>
+            ))}
+            <p className="text-xs leading-none text-neutral-400">
+              {link.lastClicked
+                ? `Last clicked ${timeAgo(link.lastClicked, {
+                    withAgo: true,
+                  })}`
+                : "No clicks yet"}
             </p>
-            {hoveredTab === "clicks" && (
-              <p className="mt-1 text-xs text-gray-500">
-                {link.lastClicked
-                  ? `Last clicked ${timeAgo(link.lastClicked, {
-                      withAgo: true,
-                    })}`
-                  : "No clicks recorded yet"}
-              </p>
+
+            <div className="inline-flex items-start justify-start gap-2">
+              <Button
+                text={link.dashboardId ? "Edit sharing" : "Share dashboard"}
+                className="h-7 w-full px-2"
+                onClick={() => {
+                  setShowShareDashboardModal(true);
+                  setModalShowCount((c) => c + 1);
+                }}
+                disabled={!canManageLink}
+              />
+
+              {link.dashboardId && (
+                <CopyButton
+                  value={`${APP_DOMAIN}/share/${link.dashboardId}`}
+                  variant="neutral"
+                  className="h-7 items-center justify-center rounded-md border border-neutral-300 bg-white p-1.5 hover:bg-neutral-50 active:bg-neutral-100"
+                />
+              )}
+            </div>
+          </div>
+        }
+      >
+        <Link
+          href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
+          className={cn(
+            "overflow-hidden rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600 transition-colors",
+            variant === "loose" ? "hover:bg-neutral-100" : "hover:bg-white",
+          )}
+        >
+          <div className="hidden items-center gap-0.5 sm:flex">
+            {stats.map(
+              ({ id: tab, icon: Icon, value, className, iconClassName }) => (
+                <div
+                  key={tab}
+                  className={cn(
+                    "flex items-center gap-1 whitespace-nowrap rounded-md px-1 py-px transition-colors",
+                    className,
+                  )}
+                >
+                  <Icon
+                    data-active={value > 0}
+                    className={cn("h-4 w-4 shrink-0", iconClassName)}
+                  />
+                  <span>
+                    {tab === "sales"
+                      ? currencyFormatter(value / 100)
+                      : nFormatter(value)}
+                    {stats.length === 1 && " clicks"}
+                  </span>
+                </div>
+              ),
+            )}
+            {link.dashboardId && (
+              <div className="border-l border-neutral-200 px-1.5">
+                <ReferredVia className="h-4 w-4 shrink-0 text-neutral-600" />
+              </div>
             )}
           </div>
-        </AnimatedSizeContainer>
-      }
-    >
-      <div className="overflow-hidden rounded-md border border-gray-200 bg-gray-50 text-sm text-gray-800">
-        <div className="hidden items-center sm:flex">
-          {[
-            {
-              id: "clicks",
-              icon: CursorRays,
-              value: link.clicks,
-              label: trackConversion ? undefined : "clicks",
-            },
-            ...(trackConversion
-              ? [
-                  {
-                    id: "leads",
-                    icon: UserCheck,
-                    value: link.leads,
-                    className: "hidden sm:flex",
-                  },
-                  {
-                    id: "sales",
-                    icon: InvoiceDollar,
-                    value: link.saleAmount,
-                    className: "hidden sm:flex",
-                  },
-                ]
-              : []),
-          ].map(({ id: tab, icon: Icon, value, className, label }) => (
-            <Link
-              key={tab}
-              href={`/${slug}/analytics?domain=${domain}&key=${key}&tab=${tab}`}
-              className={cn(
-                "flex items-center gap-1 whitespace-nowrap px-1.5 py-0.5 transition-colors",
-                variant === "loose" ? "hover:bg-gray-100" : "hover:bg-white",
-                className,
-              )}
-              onPointerEnter={() => setHoveredTab(tab)}
-              onPointerLeave={() =>
-                setHoveredTab((i) => (i === tab ? "clicks" : i))
-              }
-            >
-              <Icon className="text-gray-6000 h-4 w-4 shrink-0" />
-              <span>
-                {tab === "sales"
-                  ? currencyFormatter(value / 100)
-                  : nFormatter(value)}
-                {label && (
-                  <span className="hidden md:inline-block">&nbsp;{label}</span>
-                )}
-              </span>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </Tooltip>
+        </Link>
+      </Tooltip>
+    </>
   );
 }

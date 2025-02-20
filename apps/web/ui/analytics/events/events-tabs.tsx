@@ -1,9 +1,8 @@
 import { AnalyticsResponseOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
-import useWorkspace from "@/lib/swr/use-workspace";
-import { MiniAreaChart } from "@dub/blocks";
-import { CountingNumbers, useMediaQuery, useRouterStuff } from "@dub/ui";
+import { MiniAreaChart, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { capitalize, cn, fetcher } from "@dub/utils";
+import NumberFlow from "@number-flow/react";
 import { useCallback, useContext, useEffect } from "react";
 import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
@@ -22,9 +21,7 @@ export default function EventsTabs() {
   const { isMobile } = useMediaQuery();
 
   const tab = searchParams.get("event") || "clicks";
-  const { demoPage } = useContext(AnalyticsContext);
 
-  const { conversionEnabled } = useWorkspace();
   const { baseApiPath, queryString, requiresUpgrade } =
     useContext(AnalyticsContext);
 
@@ -32,7 +29,7 @@ export default function EventsTabs() {
     [key in AnalyticsResponseOptions]: number;
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
-      event: demoPage || conversionEnabled ? "composite" : "clicks",
+      event: "composite",
     })}`,
     fetcher,
     {
@@ -44,8 +41,7 @@ export default function EventsTabs() {
     useSWRImmutable<TimeseriesData>(
       `${baseApiPath}?${editQueryString(queryString, {
         groupBy: "timeseries",
-        event: demoPage || conversionEnabled ? "composite" : "clicks",
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        event: "composite",
       })}`,
       fetcher,
       {
@@ -81,39 +77,49 @@ export default function EventsTabs() {
 
   return (
     <div className="grid w-full grid-cols-3 gap-2 overflow-x-auto sm:gap-4">
-      {[
-        "clicks",
-        ...(demoPage || conversionEnabled ? ["leads", "sales"] : []),
-      ].map((event) => (
+      {["clicks", "leads", "sales"].map((event) => (
         <button
           key={event}
           className={cn(
             "flex justify-between gap-4 rounded-xl border bg-white px-5 py-4 text-left transition-[box-shadow] focus:outline-none",
-            tab === event && conversionEnabled
+            tab === event
               ? "border-black shadow-[0_0_0_1px_black_inset]"
-              : "border-gray-200 focus-visible:border-black",
+              : "border-neutral-200 focus-visible:border-black",
           )}
           onClick={() => onEventTabClick(event)}
         >
           <div>
-            <p className="text-sm text-gray-600">{capitalize(event)}</p>
+            <p className="text-sm text-neutral-600">{capitalize(event)}</p>
             <div className="mt-2">
               {totalEvents ? (
-                <CountingNumbers
-                  as="p"
+                <NumberFlow
+                  value={
+                    event === "sales"
+                      ? totalEvents?.saleAmount / 100
+                      : totalEvents?.[event]
+                  }
                   className={cn(
                     "text-2xl transition-opacity",
                     isLoadingTotalEvents && "opacity-40",
                   )}
-                  prefix={event === "sales" && "$"}
-                  {...(event === "sales" && { variant: "full" })}
-                >
-                  {event === "sales"
-                    ? (totalEvents?.saleAmount ?? 0) / 100
-                    : totalEvents?.[event] ?? 0}
-                </CountingNumbers>
+                  format={
+                    event === "sales"
+                      ? {
+                          style: "currency",
+                          currency: "USD",
+                          // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                          trailingZeroDisplay: "stripIfInteger",
+                        }
+                      : {
+                          notation:
+                            totalEvents?.[event] > 999999
+                              ? "compact"
+                              : "standard",
+                        }
+                  }
+                />
               ) : (
-                <div className="h-8 w-12 animate-pulse rounded-md bg-gray-200" />
+                <div className="h-8 w-12 animate-pulse rounded-md bg-neutral-200" />
               )}
             </div>
           </div>

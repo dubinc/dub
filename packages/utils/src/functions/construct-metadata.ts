@@ -2,8 +2,9 @@ import { Metadata } from "next";
 import { HOME_DOMAIN } from "../constants";
 
 export function constructMetadata({
-  title = `${process.env.NEXT_PUBLIC_APP_NAME} - Link Management for Modern Marketing Teams`,
-  description = `${process.env.NEXT_PUBLIC_APP_NAME} is the open-source link management platform for modern marketing teams to create marketing campaigns, link sharing features, and referral programs.`,
+  title,
+  fullTitle,
+  description = "Dub.co is the open-source link management platform for modern marketing teams to create marketing campaigns, link sharing features, and referral programs.",
   image = "https://assets.dub.co/thumbnail.jpg",
   video,
   icons = [
@@ -25,19 +26,28 @@ export function constructMetadata({
       url: "https://assets.dub.co/favicons/favicon-16x16.png",
     },
   ],
+  url,
   canonicalUrl,
   noIndex = false,
+  manifest,
 }: {
   title?: string;
+  fullTitle?: string;
   description?: string;
   image?: string | null;
   video?: string | null;
   icons?: Metadata["icons"];
+  url?: string;
   canonicalUrl?: string;
   noIndex?: boolean;
+  manifest?: string | URL | null;
 } = {}): Metadata {
   return {
-    title,
+    title:
+      fullTitle ||
+      (title
+        ? `${title} | Dub.co`
+        : "Dub.co - Link Management for Modern Marketing Teams"),
     description,
     openGraph: {
       title,
@@ -45,6 +55,7 @@ export function constructMetadata({
       ...(image && {
         images: image,
       }),
+      url,
       ...(video && {
         videos: video,
       }),
@@ -63,9 +74,9 @@ export function constructMetadata({
     },
     icons,
     metadataBase: new URL(HOME_DOMAIN),
-    ...(canonicalUrl && {
+    ...((url || canonicalUrl) && {
       alternates: {
-        canonical: canonicalUrl,
+        canonical: url || canonicalUrl,
       },
     }),
     ...(noIndex && {
@@ -73,6 +84,9 @@ export function constructMetadata({
         index: false,
         follow: false,
       },
+    }),
+    ...(manifest && {
+      manifest,
     }),
   };
 }

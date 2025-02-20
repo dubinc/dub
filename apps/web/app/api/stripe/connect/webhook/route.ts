@@ -1,28 +1,16 @@
 import { stripe } from "@/lib/stripe";
+import { log } from "@dub/utils";
+import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { accountApplicationDeauthorized } from "./account-application-deauthorized";
-import { checkoutSessionCompleted } from "./checkout-session-completed";
-import { customerCreated } from "./customer-created";
-import { invoicePaid } from "./invoice-paid";
+import { accountUpdated } from "./account-updated";
 
-const relevantEvents = new Set([
-  "customer.created",
-  "checkout.session.completed",
-  "invoice.paid",
-  "account.application.deauthorized",
-]);
+const relevantEvents = new Set(["account.updated"]);
 
+// POST /api/stripe/connect/webhook – listen to Stripe Connect webhooks (for connected accounts)
 export const POST = async (req: Request) => {
   const buf = await req.text();
-  const sig = req.headers.get("Stripe-Signature");
-  const webhookSecret = process.env.STRIPE_APP_WEBHOOK_SECRET;
-
-  if (!sig || !webhookSecret) {
-    return new Response("Invalid request", {
-      status: 400,
-    });
-  }
-
+  const sig = req.headers.get("Stripe-Signature") as string;
+  const webhookSecret = process.env.STRIPE_CONNECT_WEBHOOK_SECRET;
   let event: Stripe.Event;
   try {
     if (!sig || !webhookSecret) return;
@@ -40,25 +28,21 @@ export const POST = async (req: Request) => {
       status: 200,
     });
   }
-
-  let response = "OK";
-
-  switch (event.type) {
-    case "customer.created":
-      response = await customerCreated(event);
-      break;
-    case "checkout.session.completed":
-      response = await checkoutSessionCompleted(event);
-      break;
-    case "invoice.paid":
-      response = await invoicePaid(event);
-      break;
-    case "account.application.deauthorized":
-      response = await accountApplicationDeauthorized(event);
-      break;
+  try {
+    switch (event.type) {
+      case "account.updated":
+        await accountUpdated(event);
+        break;
+    }
+  } catch (error) {
+    await log({
+      message: `Stripe webhook failed. Error: ${error.message}`,
+      type: "errors",
+    });
+    return new Response('Webhook error: "Webhook handler failed. View logs."', {
+      status: 400,
+    });
   }
 
-  return new Response(response, {
-    status: 200,
-  });
+  return NextResponse.json({ received: true });
 };

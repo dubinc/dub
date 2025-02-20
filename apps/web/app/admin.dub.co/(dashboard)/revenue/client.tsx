@@ -1,9 +1,6 @@
 "use client";
 
-import Areas from "@/ui/charts/areas";
-import TimeSeriesChart from "@/ui/charts/time-series-chart";
-import XAxis from "@/ui/charts/x-axis";
-import YAxis from "@/ui/charts/y-axis";
+import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { currencyFormatter } from "@dub/utils";
 import { Fragment } from "react";
 
@@ -44,9 +41,9 @@ export default function RevenueClient({
   ).toFixed(0);
 
   return (
-    <div className="mx-auto my-24 w-full max-w-screen-lg overflow-hidden border border-gray-200 bg-white sm:rounded-xl">
+    <div className="mx-auto my-24 w-full max-w-screen-lg overflow-hidden border border-neutral-200 bg-white sm:rounded-xl">
       <div className="w-fit border-b-2 border-black px-8 py-6">
-        <div className="flex items-center gap-2.5 text-sm text-gray-600">
+        <div className="flex items-center gap-2.5 text-sm text-neutral-600">
           <div className="h-2 w-2 rounded-sm bg-green-200 shadow-[inset_0_0_0_1px_#00000019]" />
           <span>MRR</span>
         </div>
@@ -60,7 +57,7 @@ export default function RevenueClient({
           </div>
         </div>
       </div>
-      <div className="border-t border-gray-200 p-5 sm:p-10">
+      <div className="border-t border-neutral-200 p-5 sm:p-10">
         <div className="flex h-96 w-full items-center justify-center">
           <TimeSeriesChart
             data={chartData}
@@ -68,16 +65,16 @@ export default function RevenueClient({
             tooltipClassName="p-0"
             tooltipContent={(d) => (
               <>
-                <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
+                <p className="border-b border-neutral-200 px-4 py-3 text-sm text-neutral-900">
                   {dateFormatter(d.date)}
                 </p>
                 <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
                   <Fragment>
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-sm bg-current bg-green-200 opacity-50 shadow-[inset_0_0_0_1px_#0003]" />
-                      <p className="capitalize text-gray-600">MRR</p>
+                      <p className="capitalize text-neutral-600">MRR</p>
                     </div>
-                    <p className="text-right font-medium text-gray-900">
+                    <p className="text-right font-medium text-neutral-900">
                       {currencyFormatter(d.values.value)}
                     </p>
                   </Fragment>

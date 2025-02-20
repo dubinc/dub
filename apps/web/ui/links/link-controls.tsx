@@ -1,3 +1,7 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
+import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
+import useFolders from "@/lib/swr/use-folders";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
 import {
@@ -7,25 +11,34 @@ import {
   PenWriting,
   Popover,
   SimpleTooltipContent,
+  useCopyToClipboard,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { BoxArchive, CircleCheck, Copy, QRCode } from "@dub/ui/src/icons";
+import {
+  BoxArchive,
+  CircleCheck,
+  Copy,
+  FolderBookmark,
+  QRCode,
+} from "@dub/ui/icons";
 import { cn, isDubDomain, nanoid, punycode } from "@dub/utils";
 import { CopyPlus, Delete, FolderInput } from "lucide-react";
-import { useParams } from "next/navigation";
-import { useContext, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
+import { useContext } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 import { useLinkBuilder } from "../modals/link-builder";
 import { useLinkQRModal } from "../modals/link-qr-modal";
+import { useMoveLinkToFolderModal } from "../modals/move-link-to-folder-modal";
 import { useTransferLinkModal } from "../modals/transfer-link-modal";
 import { ThreeDots } from "../shared/icons";
 import { LinksListContext, ResponseLink } from "./links-container";
 
 export function LinkControls({ link }: { link: ResponseLink }) {
+  const { flags } = useWorkspace();
   const { slug } = useParams() as { slug?: string };
-
+  const { folders } = useFolders();
   const { hovered } = useContext(CardList.Card.Context);
+  const searchParams = useSearchParams();
 
   const { openMenuLinkId, setOpenMenuLinkId } = useContext(LinksListContext);
   const openPopover = openMenuLinkId === link.id;
@@ -33,13 +46,12 @@ export function LinkControls({ link }: { link: ResponseLink }) {
     setOpenMenuLinkId(open ? link.id : null);
   };
 
-  const [copiedLinkId, setCopiedLinkId] = useState(false);
+  const [copiedLinkId, copyToClipboard] = useCopyToClipboard();
 
   const copyLinkId = () => {
-    navigator.clipboard.writeText(link.id);
-    setCopiedLinkId(true);
-    toast.success("Link ID copied!");
-    setTimeout(() => setCopiedLinkId(false), 3000);
+    toast.promise(copyToClipboard(link.id), {
+      success: "Link ID copied!",
+    });
   };
 
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
@@ -57,13 +69,20 @@ export function LinkControls({ link }: { link: ResponseLink }) {
   const { setShowLinkBuilder, LinkBuilder } = useLinkBuilder({
     props: link,
   });
+  const { setShowMoveLinkToFolderModal, MoveLinkToFolderModal } =
+    useMoveLinkToFolderModal({ link });
+
+  const isRootLink = link.key === "_root";
+  const isProgramLink = link.programId !== null;
+  const folderId = link.folderId || searchParams.get("folderId");
 
   // Duplicate link Modal
   const {
     id: _,
     createdAt: __,
     updatedAt: ___,
-    userId: ____,
+    userId: ____, // don't duplicate userId since the current user can be different
+    externalId: _____, // don't duplicate externalId since it should be unique
     ...propsToDuplicate
   } = link;
   const {
@@ -73,7 +92,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
     // @ts-expect-error
     duplicateProps: {
       ...propsToDuplicate,
-      key: link.key === "_root" ? nanoid(7) : `${punycode(link.key)}-copy`,
+      key: isRootLink ? nanoid(7) : `${punycode(link.key)}-copy`,
       clicks: 0,
     },
   });
@@ -84,15 +103,10 @@ export function LinkControls({ link }: { link: ResponseLink }) {
     ) &&
       (setOpenPopover(false),
       toast.promise(
-        fetch(`/api/admin/links/ban?key=${link.key}`, {
+        fetch(`/api/admin/links/ban?domain=${link.domain}&key=${link.key}`, {
           method: "DELETE",
         }).then(async () => {
-          await mutate(
-            (key) =>
-              typeof key === "string" && key.startsWith("/api/admin/links"),
-            undefined,
-            { revalidate: true },
-          );
+          await mutatePrefix("/api/admin/links");
         }),
         {
           loading: "Banning link...",
@@ -102,31 +116,44 @@ export function LinkControls({ link }: { link: ResponseLink }) {
       ));
   };
 
+  const canManageLink = useCheckFolderPermission(
+    folderId,
+    "folders.links.write",
+  );
+
   useKeyboardShortcut(
-    ["e", "d", "q", "a", "t", "i", "x", "b"],
+    ["e", "d", "q", "m", "a", "t", "i", "x", "b"],
     (e) => {
       setOpenPopover(false);
       switch (e.key) {
         case "e":
-          setShowLinkBuilder(true);
+          canManageLink && setShowLinkBuilder(true);
           break;
         case "d":
-          setShowDuplicateLinkModal(true);
+          canManageLink && setShowDuplicateLinkModal(true);
           break;
         case "q":
           setShowLinkQRModal(true);
           break;
+        case "m":
+          canManageLink && setShowMoveLinkToFolderModal(true);
+          break;
         case "a":
-          setShowArchiveLinkModal(true);
+          canManageLink && setShowArchiveLinkModal(true);
           break;
         case "t":
-          if (isDubDomain(link.domain)) setShowTransferLinkModal(true);
+          canManageLink &&
+            isDubDomain(link.domain) &&
+            setShowTransferLinkModal(true);
           break;
         case "i":
           copyLinkId();
           break;
         case "x":
-          if (link.key !== "_root") setShowDeleteLinkModal(true);
+          canManageLink &&
+            !isRootLink &&
+            !isProgramLink &&
+            setShowDeleteLinkModal(true);
           break;
         case "b":
           if (!slug) handleBanLink();
@@ -135,6 +162,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
     },
     {
       enabled: openPopover || (hovered && openMenuLinkId === null),
+      priority: 1, // Take priority over display options
     },
   );
 
@@ -146,6 +174,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
       <ArchiveLinkModal />
       <TransferLinkModal />
       <DeleteLinkModal />
+      <MoveLinkToFolderModal />
       <Popover
         content={
           <div className="w-full sm:w-48">
@@ -157,9 +186,14 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                   setOpenPopover(false);
                   setShowLinkBuilder(true);
                 }}
-                icon={<PenWriting className="h-4 w-4" />}
+                icon={<PenWriting className="size-4" />}
                 shortcut="E"
                 className="h-9 px-2 font-medium"
+                disabledTooltip={
+                  !canManageLink
+                    ? "You don't have permission to update this link."
+                    : undefined
+                }
               />
               <Button
                 text="QR Code"
@@ -168,7 +202,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                   setOpenPopover(false);
                   setShowLinkQRModal(true);
                 }}
-                icon={<QRCode className="h-4 w-4" />}
+                icon={<QRCode className="size-4" />}
                 shortcut="Q"
                 className="h-9 px-2 font-medium"
               />
@@ -179,9 +213,14 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                   setOpenPopover(false);
                   setShowDuplicateLinkModal(true);
                 }}
-                icon={<CopyPlus className="h-4 w-4" />}
+                icon={<CopyPlus className="size-4" />}
                 shortcut="D"
                 className="h-9 px-2 font-medium"
+                disabledTooltip={
+                  !canManageLink
+                    ? "You don't have permission to duplicate this link."
+                    : undefined
+                }
               />
               <Button
                 text="Copy Link ID"
@@ -189,17 +228,36 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                 onClick={() => copyLinkId()}
                 icon={
                   copiedLinkId ? (
-                    <CircleCheck className="h-4 w-4" />
+                    <CircleCheck className="size-4" />
                   ) : (
-                    <Copy className="h-4 w-4" />
+                    <Copy className="size-4" />
                   )
                 }
                 shortcut="I"
                 className="h-9 px-2 font-medium"
               />
             </div>
-            <div className="border-t border-gray-200" />
+            <div className="border-t border-neutral-200" />
             <div className="grid gap-px p-2">
+              {flags?.linkFolders && folders && folders.length > 0 && (
+                <Button
+                  text="Move"
+                  variant="outline"
+                  shortcut="M"
+                  className="h-9 px-2 font-medium"
+                  icon={<FolderBookmark className="size-4 text-neutral-600" />}
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowMoveLinkToFolderModal(true);
+                  }}
+                  disabledTooltip={
+                    !canManageLink
+                      ? "You don't have permission to move this link to another folder."
+                      : undefined
+                  }
+                />
+              )}
+
               <Button
                 text={link.archived ? "Unarchive" : "Archive"}
                 variant="outline"
@@ -207,10 +265,16 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                   setOpenPopover(false);
                   setShowArchiveLinkModal(true);
                 }}
-                icon={<BoxArchive className="h-4 w-4" />}
+                icon={<BoxArchive className="size-4" />}
                 shortcut="A"
                 className="h-9 px-2 font-medium"
+                disabledTooltip={
+                  !canManageLink
+                    ? "You don't have permission to archive this link."
+                    : undefined
+                }
               />
+
               <Button
                 text="Transfer"
                 variant="outline"
@@ -218,38 +282,50 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                   setOpenPopover(false);
                   setShowTransferLinkModal(true);
                 }}
-                icon={<FolderInput className="h-4 w-4" />}
+                icon={<FolderInput className="size-4" />}
                 shortcut="T"
                 className="h-9 px-2 font-medium"
-                {...(!isDubDomain(link.domain) && {
-                  disabledTooltip: (
+                disabledTooltip={
+                  !isDubDomain(link.domain) ? (
                     <SimpleTooltipContent
                       title="Since this is a custom domain link, you can only transfer it to another workspace if you transfer the domain as well."
                       cta="Learn more."
                       href="https://dub.co/help/article/how-to-transfer-domains"
                     />
-                  ),
-                })}
+                  ) : !canManageLink ? (
+                    "You don't have permission to transfer this link."
+                  ) : undefined
+                }
               />
-              {link.key !== "_root" && (
-                <Button
-                  text="Delete"
-                  variant="danger-outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowDeleteLinkModal(true);
-                  }}
-                  icon={<Delete className="h-4 w-4" />}
-                  shortcut="X"
-                  className="h-9 px-2 font-medium"
-                />
-              )}
+
+              <Button
+                text="Delete"
+                variant="danger-outline"
+                onClick={() => {
+                  setOpenPopover(false);
+                  setShowDeleteLinkModal(true);
+                }}
+                icon={<Delete className="size-4" />}
+                shortcut="X"
+                className="h-9 px-2 font-medium"
+                disabled={isRootLink || isProgramLink}
+                disabledTooltip={
+                  !canManageLink
+                    ? "You don't have permission to delete this link."
+                    : isRootLink
+                      ? "You can't delete a custom domain link. You can delete the domain instead."
+                      : isProgramLink
+                        ? "You can't delete a link that's part of a program."
+                        : undefined
+                }
+              />
+
               {!slug && ( // this is only shown in admin mode (where there's no slug)
                 <button
                   onClick={() => handleBanLink()}
                   className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
                 >
-                  <IconMenu text="Ban" icon={<Delete className="h-4 w-4" />} />
+                  <IconMenu text="Ban" icon={<Delete className="size-4" />} />
                   <kbd className="hidden rounded bg-red-100 px-2 py-0.5 text-xs font-light text-red-600 transition-all duration-75 group-hover:bg-red-500 group-hover:text-white sm:inline-block">
                     B
                   </kbd>
@@ -266,7 +342,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
           variant="secondary"
           className={cn(
             "h-8 px-1.5 outline-none transition-all duration-200",
-            "border-transparent data-[state=open]:border-gray-500 sm:group-hover/card:data-[state=closed]:border-gray-200",
+            "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
           )}
           icon={<ThreeDots className="h-5 w-5 shrink-0" />}
           onClick={() => {

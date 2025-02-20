@@ -1,3 +1,4 @@
+import { REDIRECTION_QUERY_PARAM } from "@dub/utils/src/constants";
 import { describe, expect, test } from "vitest";
 import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
@@ -42,6 +43,32 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     expect(response.status).toBe(302);
   });
 
+  test("with dub_id", async () => {
+    const response = await fetch(`${h.baseUrl}/conversion-tracking`, {
+      ...fetchOptions,
+      headers: {},
+    });
+
+    // the location should contain `?dub_id=` query param
+    expect(response.headers.get("location")).toMatch(/dub_id=[a-zA-Z0-9]+/);
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
+  test("with dub_client_reference_id", async () => {
+    const response = await fetch(`${h.baseUrl}/client_reference_id`, {
+      ...fetchOptions,
+      headers: {},
+    });
+
+    // the location should contain `?client_reference_id=dub_id_` query param
+    expect(response.headers.get("location")).toMatch(
+      /client_reference_id=dub_id_[a-zA-Z0-9]+/,
+    );
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
   test("with passthrough query", async () => {
     const response = await fetch(
       `${h.baseUrl}/checkly-check-passthrough?utm_source=checkly`,
@@ -68,6 +95,19 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     expect(response.status).toBe(302);
   });
 
+  test("query params with no value", async () => {
+    const response = await fetch(
+      `${h.baseUrl}/query-params-no-value`,
+      fetchOptions,
+    );
+
+    expect(response.headers.get("location")).toBe(
+      "https://dub.co/blog?emptyquery",
+    );
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
   test("with password", async () => {
     const response = await fetch(
       `${h.baseUrl}/password/check?pw=dub`,
@@ -89,4 +129,21 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
     expect(response.status).toBe(302);
   });
+
+  test("redirection url", async () => {
+    const response = await fetch(
+      `${h.baseUrl}/redir-url-test?${REDIRECTION_QUERY_PARAM}=https://dub.co/blog`,
+      {
+        ...fetchOptions,
+        headers: {},
+      },
+    );
+
+    expect(response.headers.get("location")).toBe("https://dub.co/blog");
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
+  //  DUMMY test to record a hit on track-test
+  await fetch(`${h.baseUrl}/track-test`);
 });

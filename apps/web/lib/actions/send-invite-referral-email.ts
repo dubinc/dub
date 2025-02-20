@@ -1,13 +1,13 @@
 "use server";
 
-import { sendEmail } from "emails";
-import ReferralInvite from "emails/referral-invite";
+import { sendEmail } from "@dub/email";
+import { ReferralInvite } from "@dub/email/templates/referral-invite";
 import { z } from "zod";
 import { ratelimit } from "../upstash";
 import { emailSchema } from "../zod/schemas/auth";
 import { authActionClient } from "./safe-action";
 
-// Generate a new client secret for an integration
+// send invite referral email for Dub Referrals (soon to be deprecated?)
 export const sendInviteReferralEmail = authActionClient
   .schema(
     z.object({

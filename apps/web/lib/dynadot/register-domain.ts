@@ -2,6 +2,17 @@ import z from "@/lib/zod";
 import { DubApiError } from "../api/errors";
 import { DYNADOT_API_KEY, DYNADOT_BASE_URL, DYNADOT_COUPON } from "./constants";
 
+/*
+Possible statuses:
+  success
+  error
+  not_available
+  insufficient_funds
+  over_quota – When Dynadot's system detects an unusually high number of registration calls within a specific timeframe. This is a rare occurrence and typically not triggered under normal conditions.
+  order_pending_process –  means the order was created for the command, however there is something need additional investigation, and our team will step in later on to process the order accordingtly.
+  system_busy – normally means the system/connection is currently busy, you may retry command after a period of time
+*/
+
 const schema = z.object({
   RegisterResponse: z.object({
     Status: z.string(),
@@ -39,11 +50,20 @@ export const registerDomain = async ({ domain }: { domain: string }) => {
 
   const data = schema.parse(await response.json());
 
-  if (data.RegisterResponse.Status !== "success")
+  const { Status, Error } = data.RegisterResponse;
+
+  const errorCodes = {
+    error: Error,
+    not_available: "Domain not available.",
+    system_busy: "System is busy. Please try again.",
+  };
+
+  if (Status !== "success") {
     throw new DubApiError({
-      code: "forbidden",
-      message: `Failed to register domain: ${data.RegisterResponse.Error}`,
+      code: "bad_request",
+      message: `Failed to register domain: ${errorCodes[Status] || "Please try again."}`,
     });
+  }
 
   return data;
 };

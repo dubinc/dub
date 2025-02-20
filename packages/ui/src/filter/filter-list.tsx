@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { ReactNode, isValidElement } from "react";
 import { AnimatedSizeContainer } from "../animated-size-container";
+import { useKeyboardShortcut } from "../hooks";
 import { Filter, FilterOption } from "./types";
 
 type FilterListProps = {
@@ -23,6 +24,7 @@ export function FilterList({
   onRemoveAll,
   className,
 }: FilterListProps) {
+  useKeyboardShortcut("Escape", onRemoveAll, { priority: 1 });
   return (
     <AnimatedSizeContainer
       height
@@ -44,16 +46,17 @@ export function FilterList({
                     key={`loader-${filterValue}`}
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="h-9 w-48 animate-pulse rounded-md border border-gray-200 bg-white"
+                    className="h-9 w-48 animate-pulse rounded-md border border-neutral-200 bg-white"
                   />
                 );
               }
 
               const filter = filters.find((f) => f.key === key);
               if (!filter) {
-                throw new Error(
+                console.error(
                   "Filter.List received an activeFilter without a corresponding filter",
                 );
+                return null;
               }
 
               return (
@@ -82,14 +85,14 @@ export function FilterList({
 
                 return (
                   <motion.div
-                    key={key}
+                    key={`${key}-${value}`}
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center divide-x rounded-md border border-gray-200 bg-white text-sm text-black"
+                    className="flex items-center divide-x rounded-md border border-neutral-200 bg-white text-sm text-black"
                   >
                     {/* Filter */}
                     <div className="flex items-center gap-2.5 px-3 py-2">
-                      <span className="shrink-0 text-gray-600">
+                      <span className="shrink-0 text-neutral-600">
                         {isReactNode(filter.icon) ? (
                           filter.icon
                         ) : (
@@ -100,13 +103,13 @@ export function FilterList({
                     </div>
 
                     {/* is */}
-                    <div className="px-3 py-2 text-gray-500">is</div>
+                    <div className="px-3 py-2 text-neutral-500">is</div>
 
                     {/* Option */}
                     <div className="flex items-center gap-2.5 px-3 py-2">
                       {filter.options ? (
                         <>
-                          <span className="shrink-0 text-gray-600">
+                          <span className="shrink-0 text-neutral-600">
                             {isReactNode(OptionIcon) ? (
                               OptionIcon
                             ) : (
@@ -116,14 +119,14 @@ export function FilterList({
                           {truncate(optionLabel, 30)}
                         </>
                       ) : (
-                        <div className="h-5 w-12 animate-pulse rounded-md bg-gray-200" />
+                        <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-200" />
                       )}
                     </div>
 
                     {/* Remove */}
                     <button
                       type="button"
-                      className="h-full rounded-r-md p-2 text-gray-500 ring-inset ring-gray-500 hover:bg-gray-100 hover:text-gray-800 focus:outline-none focus-visible:ring-1"
+                      className="h-full rounded-r-md p-2 text-neutral-500 ring-inset ring-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 focus:outline-none focus-visible:ring-1"
                       onClick={() => onRemove(key, value)}
                     >
                       <X className="h-3.5 w-3.5" />
@@ -137,10 +140,13 @@ export function FilterList({
         {activeFilters?.length !== 0 && (
           <button
             type="button"
-            className="mt-px whitespace-nowrap rounded-lg border border-transparent px-3 py-2 text-sm text-gray-500 ring-inset ring-gray-500 transition-colors hover:border-gray-200 hover:bg-white hover:text-black focus:outline-none"
+            className="group mt-px flex items-center gap-2 whitespace-nowrap rounded-lg border border-transparent px-3 py-2 text-sm text-neutral-500 ring-inset ring-neutral-500 transition-colors hover:border-neutral-200 hover:bg-white hover:text-black focus:outline-none"
             onClick={onRemoveAll}
           >
             Clear Filters
+            <kbd className="rounded-md border border-neutral-200 px-1.5 py-0.5 text-xs text-neutral-950 group-hover:bg-neutral-50">
+              ESC
+            </kbd>
           </button>
         )}
       </div>

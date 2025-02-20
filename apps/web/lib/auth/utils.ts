@@ -5,11 +5,14 @@ import { authOptions } from "./options";
 
 export interface Session {
   user: {
-    email: string;
     id: string;
     name: string;
+    email: string;
     image?: string;
     isMachine: boolean;
+    defaultWorkspace?: string;
+    defaultPartnerId?: string;
+    dubPartnerId?: string;
   };
 }
 

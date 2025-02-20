@@ -1,12 +1,12 @@
 import { DubApiError } from "@/lib/api/errors";
 import { OAUTH_CONFIG } from "@/lib/api/oauth/constants";
 import { createToken } from "@/lib/api/oauth/utils";
-import { parseRequestBody } from "@/lib/api/utils";
+import { createId, parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import z from "@/lib/zod";
 import { createOAuthAppSchema, oAuthAppSchema } from "@/lib/zod/schemas/oauth";
+import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -85,6 +85,7 @@ export const POST = withWorkspace(
     try {
       const { oAuthApp, ...integration } = await prisma.integration.create({
         data: {
+          id: createId({ prefix: "int_" }),
           projectId: workspace.id,
           userId: session.user.id,
           name,
@@ -97,6 +98,7 @@ export const POST = withWorkspace(
           screenshots,
           oAuthApp: {
             create: {
+              id: createId({ prefix: "app_" }),
               clientId,
               hashedClientSecret: clientSecret
                 ? await hashToken(clientSecret)

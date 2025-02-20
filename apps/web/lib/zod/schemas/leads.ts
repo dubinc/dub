@@ -1,35 +1,48 @@
 import z from "@/lib/zod";
 import { clickEventSchema, clickEventSchemaTB } from "./clicks";
-import { customerSchema } from "./customers";
+import { CustomerSchema } from "./customers";
 import { commonDeprecatedEventFields } from "./deprecated";
 import { linkEventSchema } from "./links";
 
 export const trackLeadRequestSchema = z.object({
-  // Required
   clickId: z
     .string({ required_error: "clickId is required" })
     .trim()
     .min(1, "clickId is required")
     .describe(
-      "The ID of the click in th Dub. You can read this value from `dub_id` cookie.",
+      "The ID of the click in Dub. You can read this value from `dub_id` cookie.",
     ),
   eventName: z
     .string({ required_error: "eventName is required" })
     .trim()
     .min(1, "eventName is required")
-    .max(50)
-    .describe("The name of the event to track.")
+    .max(255)
+    .describe("The name of the lead event to track.")
     .openapi({ example: "Sign up" }),
-  customerId: z
-    .string({ required_error: "customerId is required" })
+  eventQuantity: z
+    .number()
+    .nullish()
+    .describe(
+      "The numerical value associated with this lead event (e.g., number of provisioned seats in a free trial). If defined as N, the lead event will be tracked N times.",
+    ),
+  externalId: z
+    .string()
     .trim()
-    .min(1, "customerId is required")
     .max(100)
+    .default("") // Remove this after migrating users from customerId to externalId
     .describe(
       "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
     ),
-
-  // Optional
+  customerId: z
+    .string()
+    .trim()
+    .max(100)
+    .nullish()
+    .default(null)
+    .describe(
+      "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
+    )
+    .openapi({ deprecated: true }),
   customerName: z
     .string()
     .max(100)
@@ -45,7 +58,6 @@ export const trackLeadRequestSchema = z.object({
     .describe("Email of the customer in the client's app."),
   customerAvatar: z
     .string()
-    .max(100)
     .nullish()
     .default(null)
     .describe("Avatar of the customer in the client's app."),
@@ -61,16 +73,16 @@ export const trackLeadResponseSchema = z.object({
     id: z.string(),
   }),
   customer: z.object({
-    id: z.string(),
     name: z.string().nullable(),
     email: z.string().nullable(),
     avatar: z.string().nullable(),
+    externalId: z.string().nullable(),
   }),
 });
 
 export const leadEventSchemaTB = clickEventSchemaTB
-  .omit({ timestamp: true })
-  .and(
+  .omit({ timestamp: true }) // remove timestamp from lead data because tinybird will generate its own at ingestion time
+  .merge(
     z.object({
       event_id: z.string(),
       event_name: z.string(),
@@ -92,6 +104,8 @@ export const leadEventSchemaTBEndpoint = z.object({
   continent: z.string().nullable(),
   country: z.string().nullable(),
   city: z.string().nullable(),
+  region: z.string().nullable(),
+  region_processed: z.string().nullable(),
   device: z.string().nullable(),
   browser: z.string().nullable(),
   os: z.string().nullable(),
@@ -112,7 +126,7 @@ export const leadEventResponseSchema = z
     // nested objects
     click: clickEventSchema,
     link: linkEventSchema,
-    customer: customerSchema,
+    customer: CustomerSchema,
   })
   .merge(commonDeprecatedEventFields)
   .openapi({ ref: "LeadEvent" });

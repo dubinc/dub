@@ -1,5 +1,7 @@
+"use client";
+
 import { LoadingSpinner, useRouterStuff } from "@dub/ui";
-import { CircleXmark, Magnifier } from "@dub/ui/src/icons";
+import { CircleXmark, Magnifier } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import {
   forwardRef,
@@ -54,6 +56,8 @@ export const SearchBox = forwardRef(
       ) {
         e.preventDefault();
         inputRef.current?.focus();
+      } else if (e.key === "Escape") {
+        inputRef.current?.blur();
       }
     }, []);
 
@@ -68,15 +72,15 @@ export const SearchBox = forwardRef(
           {loading && value.length > 0 ? (
             <LoadingSpinner className="h-4 w-4" />
           ) : (
-            <Magnifier className="h-4 w-4 text-gray-400" />
+            <Magnifier className="h-4 w-4 text-neutral-400" />
           )}
         </div>
         <input
           ref={inputRef}
           type="text"
           className={cn(
-            "peer w-full rounded-md border border-gray-200 px-10 text-black outline-none placeholder:text-gray-400 sm:text-sm",
-            "transition-all focus:border-gray-500 focus:ring-4 focus:ring-gray-200",
+            "peer w-full rounded-md border border-neutral-200 px-10 text-black outline-none placeholder:text-neutral-400 sm:text-sm",
+            "transition-all focus:border-neutral-500 focus:ring-4 focus:ring-neutral-200",
             inputClassName,
           )}
           placeholder="Search..."
@@ -95,7 +99,7 @@ export const SearchBox = forwardRef(
             }}
             className="pointer-events-auto absolute inset-y-0 right-0 flex items-center pr-4"
           >
-            <CircleXmark className="h-4 w-4 text-gray-600" />
+            <CircleXmark className="h-4 w-4 text-neutral-600" />
           </button>
         )}
       </div>

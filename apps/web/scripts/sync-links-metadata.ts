@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 const count = 16;
@@ -8,7 +8,11 @@ const limit = 20000;
 async function main() {
   const links = await prisma.link.findMany({
     include: {
-      tags: true,
+      tags: {
+        select: {
+          tag: true,
+        },
+      },
     },
     orderBy: [
       {
@@ -46,17 +50,7 @@ async function main() {
   //       }));
   //     });
 
-  const res = await recordLink(
-    links.map((link) => ({
-      link_id: link.id,
-      domain: link.domain,
-      key: link.key,
-      url: link.url,
-      tag_ids: link.tags.map((tag) => tag.tagId),
-      workspace_id: link.projectId,
-      created_at: link.createdAt,
-    })),
-  );
+  const res = await recordLink(links);
 
   console.log(res);
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { OAUTH_SCOPE_DESCRIPTIONS } from "@/lib/api/oauth/constants";
+import { consolidateScopes } from "@/lib/api/tokens/scopes";
 import { Check } from "lucide-react";
 
 interface ScopesProps {
@@ -34,7 +35,7 @@ export const ScopesRequested = ({ scopes }: ScopesProps) => {
 
   return (
     <>
-      <span className="text-gray-600">Grant permissions:</span>
+      <span className="text-neutral-600">Grant permissions:</span>
       <ul className="text-md space-y-1">
         {scopeWithDescriptions.map((scope) => {
           return (
@@ -47,21 +48,4 @@ export const ScopesRequested = ({ scopes }: ScopesProps) => {
       </ul>
     </>
   );
-};
-
-// Consolidate scopes to avoid duplication and show only the most permissive scope
-const consolidateScopes = (scopes: string[]) => {
-  const consolidated = new Set();
-
-  scopes.forEach((scope) => {
-    const [resource, action] = scope.split(".");
-
-    if (action === "write") {
-      consolidated.add(`${resource}.write`);
-    } else if (action === "read" && !consolidated.has(`${resource}.write`)) {
-      consolidated.add(`${resource}.read`);
-    }
-  });
-
-  return Array.from(consolidated) as string[];
 };

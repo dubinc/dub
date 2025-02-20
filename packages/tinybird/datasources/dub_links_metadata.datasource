@@ -1,4 +1,3 @@
-
 SCHEMA >
     `timestamp` DateTime `json:$.timestamp` DEFAULT now(),
     `link_id` String `json:$.link_id`,
@@ -8,7 +7,11 @@ SCHEMA >
     `tag_ids` Array(String) `json:$.tag_ids[:]`,
     `workspace_id` String `json:$.workspace_id`,
     `created_at` DateTime64(3) `json:$.created_at`,
-    `deleted` UInt8 `json:$.deleted`
+    `deleted` UInt8 `json:$.deleted`,
+    `program_id` String `json:$.program_id`,
+    `tenant_id` String `json:$.tenant_id`,
+    `partner_id` String `json:$.partner_id`,
+    `folder_id` String `json:$.folder_id`
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYear(timestamp)"

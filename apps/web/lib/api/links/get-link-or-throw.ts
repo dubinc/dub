@@ -1,23 +1,21 @@
-import { prisma } from "@/lib/prisma";
-import { WorkspaceWithUsers } from "@/lib/types";
-import { Link } from "@prisma/client";
+import { prisma } from "@dub/prisma";
+import { Link } from "@dub/prisma/client";
 import { DubApiError } from "../errors";
 
 interface GetLinkParams {
-  workspace: WorkspaceWithUsers;
+  workspaceId: string;
   linkId?: string;
   externalId?: string;
   domain?: string;
   key?: string;
 }
 
-// Find link
+// Get link or throw error if not found or doesn't belong to workspace
 export const getLinkOrThrow = async (params: GetLinkParams) => {
-  let { workspace, domain, key, externalId } = params;
+  let { workspaceId, domain, key, externalId } = params;
   let link: Link | null = null;
 
   const linkId = params.linkId || params.externalId || undefined;
-  const { id: workspaceId } = workspace;
 
   if (domain && (!key || key === "")) {
     key = "_root";
@@ -68,7 +66,7 @@ export const getLinkOrThrow = async (params: GetLinkParams) => {
   if (link.projectId !== workspaceId) {
     throw new DubApiError({
       code: "unauthorized",
-      message: `Link does not belong to workspace ws_${workspace.id}.`,
+      message: `Link does not belong to workspace ws_${workspaceId}.`,
     });
   }
 

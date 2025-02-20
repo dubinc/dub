@@ -2,18 +2,19 @@ import { DubApiError } from "@/lib/api/errors";
 import { createLink } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
 import { registerDomain } from "@/lib/dynadot/register-domain";
-import { prisma } from "@/lib/prisma";
 import { WorkspaceWithUsers } from "@/lib/types";
+import { sendEmail } from "@dub/email";
+import { DomainClaimed } from "@dub/email/templates/domain-claimed";
+import { prisma } from "@dub/prisma";
 import {
   ACME_WORKSPACE_ID,
   APP_DOMAIN_WITH_NGROK,
   DEFAULT_LINK_PROPS,
 } from "@dub/utils";
+import { get } from "@vercel/edge-config";
 import { waitUntil } from "@vercel/functions";
-import { sendEmail } from "emails";
-import DomainClaimed from "emails/domain-claimed";
 import { addDomainToVercel } from "./add-domain-vercel";
-import { deleteDomainAndLinks } from "./delete-domain-links";
+import { markDomainAsDeleted } from "./mark-domain-deleted";
 
 export async function claimDotLinkDomain({
   domain,
@@ -30,11 +31,33 @@ export async function claimDotLinkDomain({
       message: "Free workspaces cannot register .link domains.",
     });
 
-  if (workspace.id !== ACME_WORKSPACE_ID) {
-    if (workspace.dotLinkClaimed) {
+  if (!workspace.stripeId) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "You cannot register a .link domain on a free trial.",
+    });
+  }
+
+  if (workspace.id !== ACME_WORKSPACE_ID && workspace.dotLinkClaimed) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "Workspace is limited to one free .link domain.",
+    });
+  }
+
+  const customDomainTerms = await get("customDomainTerms");
+
+  if (customDomainTerms && Array.isArray(customDomainTerms)) {
+    const customDomainTermsRegex = new RegExp(
+      customDomainTerms
+        .map((term: string) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) // replace special characters with escape sequences
+        .join("|"),
+    );
+
+    if (customDomainTermsRegex.test(domain)) {
       throw new DubApiError({
         code: "forbidden",
-        message: "Workspace is limited to one free .link domain.",
+        message: "Domain is not allowed.",
       });
     }
   }
@@ -58,18 +81,15 @@ export async function claimDotLinkDomain({
     }),
   ]);
 
-  // if for some reason the domain is already registered, we should fail
-  if (response.RegisterResponse.Error) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: response.RegisterResponse.Error,
-    });
-  }
-
   // if the domain was added to a different workspace but is not verified
   // we should remove it to free up the domain for the current workspace
   if (matchingUnverifiedDomain) {
-    await deleteDomainAndLinks(matchingUnverifiedDomain.slug);
+    const { projectId, slug } = matchingUnverifiedDomain;
+
+    await markDomainAsDeleted({
+      domain: slug,
+      workspaceId: projectId!,
+    });
   }
 
   await Promise.all([

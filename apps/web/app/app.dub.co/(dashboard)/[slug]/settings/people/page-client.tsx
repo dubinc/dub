@@ -13,7 +13,15 @@ import {
   Link as LinkIcon,
   ThreeDots,
 } from "@/ui/shared/icons";
-import { Avatar, Badge, Button, Copy, IconMenu, Popover } from "@dub/ui";
+import {
+  Avatar,
+  Badge,
+  Button,
+  Copy,
+  IconMenu,
+  Popover,
+  useCopyToClipboard,
+} from "@dub/ui";
 import { capitalize, cn, timeAgo } from "@dub/utils";
 import { UserMinus } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -40,11 +48,11 @@ export default function WorkspacePeopleClient() {
     <>
       <InviteTeammateModal />
       <InviteCodeModal />
-      <div className="rounded-lg border border-gray-200 bg-white">
+      <div className="rounded-lg border border-neutral-200 bg-white">
         <div className="flex flex-col items-center justify-between space-y-3 p-5 sm:flex-row sm:space-y-0 sm:p-10">
           <div className="flex flex-col space-y-3">
             <h2 className="text-xl font-medium">People</h2>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-neutral-500">
               Teammates that have access to this workspace.
             </p>
           </div>
@@ -62,7 +70,7 @@ export default function WorkspacePeopleClient() {
               }
             />
             <Button
-              icon={<LinkIcon className="h-4 w-4 text-gray-800" />}
+              icon={<LinkIcon className="h-4 w-4 text-neutral-800" />}
               variant="secondary"
               onClick={() => setShowInviteCodeModal(true)}
               className="h-9 space-x-0"
@@ -76,7 +84,7 @@ export default function WorkspacePeopleClient() {
             />
           </div>
         </div>
-        <div className="flex space-x-3 border-b border-gray-200 px-3 sm:px-7">
+        <div className="flex space-x-3 border-b border-neutral-200 px-3 sm:px-7">
           {tabs.map((tab) => (
             <div
               key={tab}
@@ -86,14 +94,14 @@ export default function WorkspacePeopleClient() {
             >
               <button
                 onClick={() => setCurrentTab(tab)}
-                className="rounded-md px-3 py-1.5 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
+                className="rounded-md px-3 py-1.5 text-sm transition-all duration-75 hover:bg-neutral-100 active:bg-neutral-200"
               >
                 {tab}
               </button>
             </div>
           ))}
         </div>
-        <div className="grid divide-y divide-gray-200">
+        <div className="grid divide-y divide-neutral-200">
           {users ? (
             users.length > 0 ? (
               users.map((user) => (
@@ -108,7 +116,7 @@ export default function WorkspacePeopleClient() {
                   height={300}
                   className="pointer-events-none -my-8"
                 />
-                <p className="text-sm text-gray-500">No invitations sent</p>
+                <p className="text-sm text-neutral-500">No invitations sent</p>
               </div>
             )
           ) : (
@@ -157,13 +165,12 @@ const UserCard = ({
     createdAt &&
     Date.now() - new Date(createdAt).getTime() > 14 * 24 * 60 * 60 * 1000;
 
-  const [copiedUserId, setCopiedUserId] = useState(false);
+  const [copiedUserId, copyToClipboard] = useCopyToClipboard();
 
   const copyUserId = () => {
-    navigator.clipboard.writeText(id);
-    setCopiedUserId(true);
-    toast.success("User ID copied!");
-    setTimeout(() => setCopiedUserId(false), 3000);
+    toast.promise(copyToClipboard(id), {
+      success: "User ID copied!",
+    });
   };
 
   return (
@@ -176,10 +183,15 @@ const UserCard = ({
       >
         <div className="flex items-start space-x-3">
           <div className="flex items-center space-x-3">
-            <Avatar user={user} />
+            <Avatar
+              user={{
+                ...user,
+                id: currentTab === "Invitations" ? user.email : user.id,
+              }}
+            />
             <div className="flex flex-col">
               <h3 className="text-sm font-medium">{name || email}</h3>
-              <p className="text-xs text-gray-500">{email}</p>
+              <p className="text-xs text-neutral-500">{email}</p>
             </div>
           </div>
 
@@ -188,14 +200,14 @@ const UserCard = ({
         <div className="flex items-center gap-x-3">
           {currentTab === "Members" ? (
             session?.user?.email === email ? (
-              <p className="text-xs capitalize text-gray-500">{role}</p>
+              <p className="text-xs capitalize text-neutral-500">{role}</p>
             ) : (
               !isMachine && (
                 <select
                   className={cn(
-                    "rounded-md border border-gray-200 text-xs text-gray-500 focus:border-gray-600 focus:ring-gray-600",
+                    "rounded-md border border-neutral-200 text-xs text-neutral-500 focus:border-neutral-600 focus:ring-neutral-600",
                     {
-                      "cursor-not-allowed bg-gray-100": permissionsError,
+                      "cursor-not-allowed bg-neutral-100": permissionsError,
                     },
                   )}
                   value={role}
@@ -214,13 +226,13 @@ const UserCard = ({
           ) : (
             <>
               <p
-                className="hidden text-xs text-gray-500 sm:block"
+                className="hidden text-xs text-neutral-500 sm:block"
                 suppressHydrationWarning
               >
                 {capitalize(user.role)}
               </p>
               <p
-                className="text-right text-xs text-gray-500 sm:min-w-28"
+                className="text-right text-xs text-neutral-500 sm:min-w-28"
                 suppressHydrationWarning
               >
                 Invited {timeAgo(createdAt)}
@@ -275,7 +287,7 @@ const UserCard = ({
                   e.stopPropagation();
                   setOpenPopover(!openPopover);
                 }}
-                icon={<ThreeDots className="h-5 w-5 text-gray-500" />}
+                icon={<ThreeDots className="h-5 w-5 text-neutral-500" />}
                 className="h-8 space-x-0 px-1 py-2"
                 variant="outline"
                 {...(permissionsError &&
@@ -294,12 +306,12 @@ const UserCard = ({
 const UserPlaceholder = () => (
   <div className="flex items-center justify-between space-x-3 px-4 py-3 sm:px-8">
     <div className="flex items-center space-x-3">
-      <div className="h-10 w-10 animate-pulse rounded-full bg-gray-200" />
+      <div className="h-10 w-10 animate-pulse rounded-full bg-neutral-200" />
       <div className="flex flex-col">
-        <div className="h-4 w-24 animate-pulse rounded bg-gray-200" />
-        <div className="mt-1 h-3 w-32 animate-pulse rounded bg-gray-200" />
+        <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
+        <div className="mt-1 h-3 w-32 animate-pulse rounded bg-neutral-200" />
       </div>
     </div>
-    <div className="h-3 w-24 animate-pulse rounded bg-gray-200" />
+    <div className="h-3 w-24 animate-pulse rounded bg-neutral-200" />
   </div>
 );

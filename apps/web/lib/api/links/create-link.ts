@@ -1,9 +1,10 @@
 import { qstash } from "@/lib/cron";
-import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
-import { formatRedisLink, redis } from "@/lib/upstash";
+import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
+import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   R2_URL,
@@ -11,13 +12,26 @@ import {
   truncate,
 } from "@dub/utils";
 import { linkConstructorSimple } from "@dub/utils/src/functions/link-constructor";
-import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { combineTagIds } from "../tags/combine-tag-ids";
+import { createId } from "../utils";
+import { linkCache } from "./cache";
+import { includeTags } from "./include-tags";
 import { updateLinksUsage } from "./update-links-usage";
-import { combineTagIds, transformLink } from "./utils";
+import { transformLink } from "./utils";
 
 export async function createLink(link: ProcessedLinkProps) {
-  let { key, url, expiresAt, title, description, image, proxy, geo } = link;
+  let {
+    key,
+    url,
+    expiresAt,
+    title,
+    description,
+    image,
+    proxy,
+    geo,
+    publicStats,
+  } = link;
 
   const combinedTagIds = combineTagIds(link);
 
@@ -29,6 +43,7 @@ export async function createLink(link: ProcessedLinkProps) {
   const response = await prisma.link.create({
     data: {
       ...rest,
+      id: createId({ prefix: "link_" }),
       key,
       shortLink: linkConstructorSimple({ domain: link.domain, key: link.key }),
       title: truncate(title, 120),
@@ -47,7 +62,7 @@ export async function createLink(link: ProcessedLinkProps) {
       ...(tagNames?.length &&
         link.projectId && {
           tags: {
-            create: tagNames.map((tagName) => ({
+            create: tagNames.map((tagName, idx) => ({
               tag: {
                 connect: {
                   name_projectId: {
@@ -56,6 +71,7 @@ export async function createLink(link: ProcessedLinkProps) {
                   },
                 },
               },
+              createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
             })),
           },
         }),
@@ -65,7 +81,10 @@ export async function createLink(link: ProcessedLinkProps) {
         combinedTagIds.length > 0 && {
           tags: {
             createMany: {
-              data: combinedTagIds.map((tagId) => ({ tagId })),
+              data: combinedTagIds.map((tagId, idx) => ({
+                tagId,
+                createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
+              })),
             },
           },
         }),
@@ -81,19 +100,20 @@ export async function createLink(link: ProcessedLinkProps) {
             },
           },
         }),
-    },
-    include: {
-      tags: {
-        select: {
-          tag: {
-            select: {
-              id: true,
-              name: true,
-              color: true,
-            },
+
+      // Shared dashboard
+      ...(publicStats && {
+        dashboard: {
+          create: {
+            id: createId({ prefix: "dash_" }),
+            projectId: link.projectId,
+            userId: link.userId,
           },
         },
-      },
+      }),
+    },
+    include: {
+      ...includeTags,
       webhooks: webhookIds ? true : false,
     },
   });
@@ -101,22 +121,11 @@ export async function createLink(link: ProcessedLinkProps) {
   const uploadedImageUrl = `${R2_URL}/images/${response.id}`;
 
   waitUntil(
-    Promise.all([
-      // record link in Redis
-      redis.hset(link.domain.toLowerCase(), {
-        [link.key.toLowerCase()]: await formatRedisLink(response),
-      }),
-
+    Promise.allSettled([
+      // cache link in Redis
+      linkCache.set(response),
       // record link in Tinybird
-      recordLink({
-        link_id: response.id,
-        domain: response.domain,
-        key: response.key,
-        url: response.url,
-        tag_ids: response.tags.map(({ tag }) => tag.id),
-        workspace_id: response.projectId,
-        created_at: response.createdAt,
-      }),
+      recordLink(response),
       // Upload image to R2 and update the link with the uploaded image URL when
       // proxy is enabled and image is set and not stored in R2
       ...(proxy && image && !isStored(image)
@@ -152,6 +161,11 @@ export async function createLink(link: ProcessedLinkProps) {
         updateLinksUsage({
           workspaceId: link.projectId,
           increment: 1,
+        }),
+
+      webhookIds &&
+        propagateWebhookTriggerChanges({
+          webhookIds,
         }),
     ]),
   );

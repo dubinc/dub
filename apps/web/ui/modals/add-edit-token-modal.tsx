@@ -1,4 +1,5 @@
 import { ResourceKey, RESOURCES } from "@/lib/api/rbac/resources";
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import {
   getScopesByResourceForRole,
   Scope,
@@ -7,18 +8,16 @@ import {
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   AnimatedSizeContainer,
-  BlurImage,
   Button,
   ButtonProps,
   InfoTooltip,
   Label,
-  Logo,
   Modal,
   RadioGroup,
   RadioGroupItem,
+  SimpleTooltipContent,
+  ToggleGroup,
 } from "@dub/ui";
-import { ToggleGroup } from "@dub/ui/src/toggle-group";
-import { SimpleTooltipContent } from "@dub/ui/src/tooltip";
 import { cn } from "@dub/utils";
 import {
   Dispatch,
@@ -52,26 +51,23 @@ function AddEditTokenModal({
   setShowAddEditTokenModal,
   token,
   onTokenCreated,
+  setSelectedToken,
 }: {
   showAddEditTokenModal: boolean;
   setShowAddEditTokenModal: Dispatch<SetStateAction<boolean>>;
   token?: APIKeyProps;
   onTokenCreated?: (token: string) => void;
+  setSelectedToken: Dispatch<SetStateAction<null>>;
 }) {
   const [saving, setSaving] = useState(false);
-  const {
-    id: workspaceId,
-    logo,
-    slug,
-    role,
-    isOwner,
-    conversionEnabled,
-  } = useWorkspace();
+  const { id: workspaceId, role, isOwner, flags } = useWorkspace();
   const [data, setData] = useState<APIKeyProps>(token || newToken);
   const [preset, setPreset] = useState<ScopePreset>("all_access");
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      return;
+    }
 
     const scopes = Object.values(token.scopes);
 
@@ -122,9 +118,14 @@ function AddEditTokenModal({
     if (response.ok) {
       mutate(`/api/tokens?workspaceId=${workspaceId}`);
       toast.success(endpoint.successMessage);
-      onTokenCreated?.(result.token);
       setShowAddEditTokenModal(false);
+      setSelectedToken(null);
+
+      if (!token) {
+        onTokenCreated?.(result.token);
+      }
     } else {
+      setSaving(false);
       toast.error(result.error.message);
     }
   };
@@ -133,60 +134,70 @@ function AddEditTokenModal({
   const buttonDisabled =
     (!name || token?.name === name) && token?.scopes === scopes;
 
-  const scopesByResources = useMemo(
-    () =>
-      transformScopesForUI(getScopesByResourceForRole(role)).filter(
-        ({ key }) => key !== "conversions" || conversionEnabled,
-      ),
-    [role, conversionEnabled],
-  );
+  const scopesByResources = useMemo(() => {
+    let scopes = transformScopesForUI(getScopesByResourceForRole(role)).filter(
+      ({ name }) => name,
+    );
+
+    if (!flags?.linkFolders) {
+      scopes = scopes.filter(({ key }) => key !== "folders");
+    }
+
+    return scopes;
+  }, [role, flags?.linkFolders]);
 
   return (
     <>
       <Modal
         showModal={showAddEditTokenModal}
         setShowModal={setShowAddEditTokenModal}
-        className="scrollbar-hide h-fit max-h-[95vh] overflow-auto"
+        className="max-w-lg"
+        onClose={() => setSelectedToken(null)}
       >
-        <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
-          {logo ? (
-            <BlurImage
-              src={logo}
-              alt={`Logo for ${slug}`}
-              className="h-10 w-10 rounded-full border border-gray-200"
-              width={20}
-              height={20}
-            />
-          ) : (
-            <Logo />
-          )}
-          <h1 className="text-lg font-medium">
-            {token ? "Edit" : "Add New"} API Key
-          </h1>
-        </div>
+        <h3 className="border-b border-neutral-200 px-4 py-4 text-lg font-medium sm:px-6">
+          {token ? "Edit" : "Create New"} API Key
+        </h3>
 
         <form
           onSubmit={onSubmit}
-          className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:px-10"
+          className="flex flex-col space-y-4 bg-neutral-50 px-4 py-8 text-left sm:px-10"
         >
+          <div>
+            <label htmlFor="name">
+              <h2 className="text-sm font-medium text-neutral-900">Name</h2>
+            </label>
+            <div className="relative mt-2 rounded-md shadow-sm">
+              <input
+                id="name"
+                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                required
+                value={name}
+                onChange={(e) => setData({ ...data, name: e.target.value })}
+                autoFocus
+                autoComplete="off"
+              />
+            </div>
+          </div>
+
           {/* Can't change the type of the token */}
           {!token && (
             <div>
+              <h2 className="text-sm font-medium text-neutral-900">Type</h2>
               <RadioGroup
-                className="flex"
+                className="mt-2 flex"
                 defaultValue="user"
                 required
                 onValueChange={(value) =>
                   setData({ ...data, isMachine: value === "machine" })
                 }
               >
-                <div className="flex w-1/2 items-center space-x-2 rounded-md border border-gray-300 bg-white transition-all hover:bg-gray-50 active:bg-gray-100">
+                <div className="flex w-1/2 items-center space-x-2 rounded-md border border-neutral-300 bg-white transition-all hover:bg-neutral-50 active:bg-neutral-100">
                   <RadioGroupItem value="user" id="user" className="ml-3" />
                   <Label
                     htmlFor="user"
                     className="flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0"
                   >
-                    <p className="text-gray-600">You</p>
+                    <p className="text-neutral-600">You</p>
                     <InfoTooltip
                       content={
                         <SimpleTooltipContent
@@ -200,7 +211,7 @@ function AddEditTokenModal({
                 </div>
                 <div
                   className={cn(
-                    "flex w-1/2 items-center space-x-2 rounded-md border border-gray-300 bg-white transition-all hover:bg-gray-50 active:bg-gray-100",
+                    "flex w-1/2 items-center space-x-2 rounded-md border border-neutral-300 bg-white transition-all hover:bg-neutral-50 active:bg-neutral-100",
                     {
                       "cursor-not-allowed opacity-75": !isOwner,
                     },
@@ -221,7 +232,7 @@ function AddEditTokenModal({
                       },
                     )}
                   >
-                    <p className="text-gray-600">Machine</p>
+                    <p className="text-neutral-600">Machine</p>
                     <InfoTooltip
                       content={
                         <SimpleTooltipContent
@@ -241,47 +252,37 @@ function AddEditTokenModal({
             </div>
           )}
 
-          <div>
-            <label htmlFor="name" className="flex items-center space-x-2">
-              <h2 className="text-sm font-medium text-gray-900">Name</h2>
-            </label>
-            <div className="relative mt-2 rounded-md shadow-sm">
-              <input
-                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                required
-                value={name}
-                onChange={(e) => setData({ ...data, name: e.target.value })}
-                autoFocus
-                autoComplete="off"
-              />
-            </div>
-          </div>
-
           <div className="flex flex-col gap-2">
-            <h2 className="text-sm font-medium text-gray-900">Permissions</h2>
-            <div className="flex">
-              <ToggleGroup
-                options={scopePresets}
-                selected={preset}
-                selectAction={(value: ScopePreset) => {
-                  setPreset(value);
+            <h2 className="text-sm font-medium text-neutral-900">
+              Permissions
+            </h2>
 
-                  if (value === "all_access") {
-                    setData({ ...data, scopes: { api: "apis.all" } });
-                  } else if (value === "read_only") {
-                    setData({ ...data, scopes: { api: "apis.read" } });
-                  } else {
-                    setData({ ...data, scopes: {} });
-                  }
-                }}
-              />
-            </div>
+            <ToggleGroup
+              options={scopePresets}
+              selected={preset}
+              selectAction={(value: ScopePreset) => {
+                setPreset(value);
+
+                if (value === "all_access") {
+                  setData({ ...data, scopes: { api: "apis.all" } });
+                } else if (value === "read_only") {
+                  setData({ ...data, scopes: { api: "apis.read" } });
+                } else {
+                  setData({ ...data, scopes: {} });
+                }
+              }}
+              className="grid grid-cols-3 rounded-md border border-neutral-300 bg-neutral-100"
+              optionClassName="w-full h-8 flex items-center justify-center text-sm text-neutral-800"
+              indicatorClassName="rounded-md bg-white border border-neutral-300 shadow-sm"
+            />
           </div>
 
           <AnimatedSizeContainer height>
-            <div className="p-1 pt-0 text-sm text-gray-500">
+            <div className="p-1 pt-0 text-sm text-neutral-500">
               This API key will have{" "}
-              {scopePresets.find((p) => p.value === preset)?.description}
+              <span className="font-medium text-neutral-700">
+                {scopePresets.find((p) => p.value === preset)?.description}
+              </span>
             </div>
             {preset === "restricted" && (
               <div className="flex flex-col divide-y text-sm">
@@ -290,8 +291,10 @@ function AddEditTokenModal({
                     className="flex items-center justify-between py-4"
                     key={resource.key}
                   >
-                    <div className="flex items-center gap-1.5 text-gray-500">
-                      <p>{resource.name}</p>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-medium text-neutral-800">
+                        {resource.name}
+                      </span>
                       <InfoTooltip content={resource.description} />
                     </div>
                     <div>
@@ -318,7 +321,9 @@ function AddEditTokenModal({
                             key={scope.scope}
                           >
                             <RadioGroupItem value={scope.scope} />
-                            <div className="capitalize">{scope.type}</div>
+                            <div className="text-sm font-normal capitalize text-neutral-800">
+                              {scope.type}
+                            </div>
                           </div>
                         ))}
                       </RadioGroup>
@@ -347,26 +352,35 @@ function AddTokenButton({
   setShowAddEditTokenModal: Dispatch<SetStateAction<boolean>>;
   buttonProps?: Partial<ButtonProps>;
 }) {
+  const { role } = useWorkspace();
+
   return (
     <div>
       <Button
-        text="Create"
+        text="Create API key"
         onClick={() => setShowAddEditTokenModal(true)}
+        disabledTooltip={
+          clientAccessCheck({
+            action: "tokens.write",
+            role,
+            customPermissionDescription: "create new API keys",
+          }).error || undefined
+        }
         {...buttonProps}
       />
     </div>
   );
 }
 
-export function useAddEditTokenModal(
-  {
-    token,
-    onTokenCreated,
-  }: {
-    token?: APIKeyProps;
-    onTokenCreated?: (token: string) => void;
-  } = { onTokenCreated: () => {} },
-) {
+export function useAddEditTokenModal({
+  token,
+  onTokenCreated,
+  setSelectedToken,
+}: {
+  token?: APIKeyProps;
+  onTokenCreated?: (token: string) => void;
+  setSelectedToken: Dispatch<SetStateAction<null>>;
+}) {
   const [showAddEditTokenModal, setShowAddEditTokenModal] = useState(false);
 
   const AddEditTokenModalCallback = useCallback(() => {
@@ -376,6 +390,7 @@ export function useAddEditTokenModal(
         setShowAddEditTokenModal={setShowAddEditTokenModal}
         token={token}
         onTokenCreated={onTokenCreated}
+        setSelectedToken={setSelectedToken}
       />
     );
   }, [showAddEditTokenModal, setShowAddEditTokenModal]);

@@ -1,13 +1,16 @@
+import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { tb } from "@/lib/tinybird";
-import { getDaysDifference, linkConstructor, punyEncode } from "@dub/utils";
+import { UTM_TAGS_PLURAL_LIST } from "@/lib/zod/schemas/utm";
+import { prismaEdge } from "@dub/prisma/edge";
+import { linkConstructor, punyEncode } from "@dub/utils";
 import { conn } from "../planetscale";
-import { prismaEdge } from "../prisma/edge";
 import { tbDemo } from "../tinybird/demo-client";
 import z from "../zod";
 import { analyticsFilterTB } from "../zod/schemas/analytics";
 import { analyticsResponse } from "../zod/schemas/analytics-response";
-import { INTERVAL_DATA } from "./constants";
+import { SINGULAR_ANALYTICS_ENDPOINTS } from "./constants";
 import { AnalyticsFilters } from "./types";
+import { getStartEndDates } from "./utils/get-start-end-dates";
 
 // Fetch data for /api/analytics
 export const getAnalytics = async (params: AnalyticsFilters) => {
@@ -21,16 +24,20 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     end,
     qr,
     trigger,
+    region,
+    country,
     timezone = "UTC",
     isDemo,
     isDeprecatedClicksEndpoint = false,
+    dataAvailableFrom,
   } = params;
 
+  const tagIds = combineTagIds(params);
+
   // get all-time clicks count if:
-  // 1. type is count
-  // 2. linkId is defined
-  // 3. interval is all time
-  // 4. call is made from dashboard
+  // 1. linkId is defined
+  // 2. type is count
+  // 3. interval is all_unfiltered
   if (linkId && groupBy === "count" && interval === "all_unfiltered") {
     const columns =
       event === "composite"
@@ -39,7 +46,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
           ? `sales, saleAmount`
           : `${event}`;
 
-    let response = await conn.execute(
+    const response = await conn.execute(
       `SELECT ${columns} FROM Link WHERE id = ?`,
       [linkId],
     );
@@ -47,34 +54,16 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     return response.rows[0];
   }
 
-  let granularity: "minute" | "hour" | "day" | "month" = "day";
-
   if (groupBy === "trigger") {
     groupBy = "triggers";
   }
 
-  if (start) {
-    start = new Date(start);
-    end = end ? new Date(end) : new Date(Date.now());
-
-    const daysDifference = getDaysDifference(start, end);
-
-    if (daysDifference <= 2) {
-      granularity = "hour";
-    } else if (daysDifference > 180) {
-      granularity = "month";
-    }
-
-    // Swap start and end if start is greater than end
-    if (start > end) {
-      [start, end] = [end, start];
-    }
-  } else {
-    interval = interval ?? "24h";
-    start = INTERVAL_DATA[interval].startDate;
-    end = new Date(Date.now());
-    granularity = INTERVAL_DATA[interval].granularity;
-  }
+  const { startDate, endDate, granularity } = getStartEndDates({
+    interval,
+    start,
+    end,
+    dataAvailableFrom,
+  });
 
   if (trigger) {
     if (trigger === "qr") {
@@ -84,22 +73,37 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     }
   }
 
+  if (region) {
+    const split = region.split("-");
+    country = split[0];
+    region = split[1];
+  }
+
   // Create a Tinybird pipe
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
-    pipe: `v1_${groupBy}`,
+    pipe: `v2_${UTM_TAGS_PLURAL_LIST.includes(groupBy) ? "utms" : groupBy}`,
     parameters: analyticsFilterTB,
-    data: groupBy === "top_links" ? z.any() : analyticsResponse[groupBy],
+    data:
+      groupBy === "top_links" || UTM_TAGS_PLURAL_LIST.includes(groupBy)
+        ? z.any()
+        : analyticsResponse[groupBy],
   });
 
   const response = await pipe({
     ...params,
+    ...(UTM_TAGS_PLURAL_LIST.includes(groupBy)
+      ? { groupByUtmTag: SINGULAR_ANALYTICS_ENDPOINTS[groupBy] }
+      : {}),
     eventType: event,
     workspaceId,
+    tagIds,
     qr,
-    start: start.toISOString().replace("T", " ").replace("Z", ""),
-    end: end.toISOString().replace("T", " ").replace("Z", ""),
+    start: startDate.toISOString().replace("T", " ").replace("Z", ""),
+    end: endDate.toISOString().replace("T", " ").replace("Z", ""),
     granularity,
     timezone,
+    country,
+    region,
   });
 
   if (groupBy === "count") {
@@ -127,6 +131,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         domain: true,
         key: true,
         url: true,
+        comments: true,
         createdAt: true,
       },
     });
@@ -146,11 +151,23 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
             domain: link.domain,
             key: punyEncode(link.key),
           }),
+          comments: link.comments,
           createdAt: link.createdAt.toISOString(),
           ...topLink,
         });
       })
       .filter((d) => d !== null);
+
+    // special case for utm tags
+  } else if (UTM_TAGS_PLURAL_LIST.includes(groupBy)) {
+    const schema = analyticsResponse[groupBy];
+
+    return response.data.map((item) =>
+      schema.parse({
+        ...item,
+        [SINGULAR_ANALYTICS_ENDPOINTS[groupBy]]: item.utm,
+      }),
+    );
   }
 
   // Return array for other endpoints

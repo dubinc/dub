@@ -1,7 +1,7 @@
 import useLinksCount from "@/lib/swr/use-links-count";
-import { Button } from "@dub/ui";
-import { BoxArchive } from "@dub/ui/src/icons";
-import { Tooltip } from "@dub/ui/src/tooltip";
+import { Button, Tooltip } from "@dub/ui";
+import { BoxArchive } from "@dub/ui/icons";
+import { pluralize } from "@dub/utils";
 import { useSearchParams } from "next/navigation";
 import { useContext } from "react";
 import { LinksDisplayContext } from "./links-display-provider";
@@ -26,14 +26,14 @@ function ArchivedLinksHintHelper() {
       <Tooltip
         side="top"
         content={
-          <div className="px-3 py-2 text-sm text-gray-500">
+          <div className="px-3 py-2 text-sm text-neutral-500">
             <div className="flex items-center gap-4">
               <span>
                 You have{" "}
-                <span className="font-medium text-gray-950">
+                <span className="font-medium text-neutral-950">
                   {archivedCount}
                 </span>{" "}
-                archived link{archivedCount !== 1 && "s"} that match
+                archived {pluralize("link", archivedCount)} that match
                 {archivedCount === 1 && "es"} the applied filters
               </span>
               <div>
@@ -48,7 +48,7 @@ function ArchivedLinksHintHelper() {
           </div>
         }
       >
-        <div className="flex cursor-default items-center gap-1.5 rounded-md bg-gray-100 px-2 py-0.5 text-sm font-medium text-gray-950 hover:bg-gray-200">
+        <div className="flex cursor-default items-center gap-1.5 rounded-md bg-neutral-100 px-2 py-0.5 text-sm font-medium text-neutral-950 hover:bg-neutral-200">
           <BoxArchive className="h-3 w-3" />
           {archivedCount}
         </div>

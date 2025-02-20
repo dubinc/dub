@@ -12,6 +12,10 @@ export const randomCustomer = () => {
     id: customerId,
     name: customerName,
     email: `${customerName.split(" ").join(".").toLowerCase()}@example.com`,
-    avatar: `https://api.dicebear.com/9.x/notionists/png?seed=${customerId}`,
+    avatar: `https://api.dicebear.com/9.x/notionists/svg?seed=${customerId}`,
   };
+};
+
+export const randomTagName = () => {
+  return `e2e-${randomId()}`;
 };

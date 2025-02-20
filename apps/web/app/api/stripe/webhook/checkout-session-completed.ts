@@ -1,19 +1,23 @@
 import { claimDotLinkDomain } from "@/lib/api/domains/claim-dot-link-domain";
 import { inviteUser } from "@/lib/api/users";
 import { limiter } from "@/lib/cron/limiter";
-import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { Invite } from "@/lib/zod/schemas/invites";
+import { sendEmail } from "@dub/email";
+import { UpgradeEmail } from "@dub/email/templates/upgrade-email";
+import { prisma } from "@dub/prisma";
+import { User } from "@dub/prisma/client";
 import { getPlanFromPriceId, log } from "@dub/utils";
-import { User } from "@prisma/client";
-import { sendEmail } from "emails";
-import UpgradeEmail from "emails/upgrade-email";
 import Stripe from "stripe";
 
 export async function checkoutSessionCompleted(event: Stripe.Event) {
   const checkoutSession = event.data.object as Stripe.Checkout.Session;
+
+  if (checkoutSession.mode === "setup") {
+    return;
+  }
 
   if (
     checkoutSession.client_reference_id === null ||
@@ -62,7 +66,9 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       domainsLimit: plan.limits.domains!,
       aiLimit: plan.limits.ai!,
       tagsLimit: plan.limits.tags!,
+      foldersLimit: plan.limits.folders!,
       usersLimit: plan.limits.users!,
+      salesLimit: plan.limits.sales!,
     },
     select: {
       users: {
@@ -96,6 +102,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       limiter.schedule(() =>
         sendEmail({
           email: user.email as string,
+          replyTo: "steven.tey@dub.co",
           subject: `Thank you for upgrading to Dub.co ${plan.name}!`,
           react: UpgradeEmail({
             name: user.name,

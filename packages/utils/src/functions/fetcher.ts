@@ -1,4 +1,5 @@
 interface SWRError extends Error {
+  info: any;
   status: number;
 }
 
@@ -9,10 +10,14 @@ export async function fetcher<JSON = any>(
   const res = await fetch(input, init);
 
   if (!res.ok) {
-    const error = await res.text();
-    const err = new Error(error) as SWRError;
-    err.status = res.status;
-    throw err;
+    const message =
+      (await res.json())?.error?.message ||
+      "An error occurred while fetching the data.";
+    const error = new Error(message) as SWRError;
+    error.info = message;
+    error.status = res.status;
+
+    throw error;
   }
 
   return res.json();

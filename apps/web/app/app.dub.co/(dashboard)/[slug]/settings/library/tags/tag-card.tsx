@@ -1,34 +1,33 @@
 "use client";
 
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TagProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
 import { Delete, ThreeDots } from "@/ui/shared/icons";
-import { Button, CardList, Popover, useKeyboardShortcut } from "@dub/ui";
 import {
-  CircleCheck,
-  Copy,
-  LoadingSpinner,
-  PenWriting,
-} from "@dub/ui/src/icons";
-import { cn, nFormatter } from "@dub/utils";
+  Button,
+  CardList,
+  Popover,
+  useCopyToClipboard,
+  useKeyboardShortcut,
+} from "@dub/ui";
+import { CircleCheck, Copy, LoadingSpinner, PenWriting } from "@dub/ui/icons";
+import { cn, nFormatter, pluralize } from "@dub/utils";
 import Link from "next/link";
 import { useContext, useState } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 import { TagsListContext } from "./page-client";
 
 export function TagCard({
   tag,
-  tagsCount,
 }: {
-  tag: TagProps;
-  tagsCount?: { tagId: string; _count: number }[];
+  tag: TagProps & { _count?: { links: number } };
 }) {
   const { id, slug } = useWorkspace();
 
-  const linksCount = tagsCount?.find(({ tagId }) => tagId === tag.id)?._count;
+  const linksCount = tag._count?.links;
 
   const { openMenuTagId, setOpenMenuTagId } = useContext(TagsListContext);
   const openPopover = openMenuTagId === tag.id;
@@ -42,13 +41,12 @@ export function TagCard({
     props: tag,
   });
 
-  const [copiedTagId, setCopiedTagId] = useState(false);
+  const [copiedTagId, copyToClipboard] = useCopyToClipboard();
 
   const copyTagId = () => {
-    navigator.clipboard.writeText(tag.id);
-    setCopiedTagId(true);
-    toast.success("Tag ID copied!");
-    setTimeout(() => setCopiedTagId(false), 3000);
+    toast.promise(copyToClipboard(tag.id), {
+      success: "Tag ID copied!",
+    });
   };
 
   const handleDelete = async () => {
@@ -66,16 +64,8 @@ export function TagCard({
       .then(async (res) => {
         if (res.ok) {
           await Promise.all([
-            mutate(
-              (key) => typeof key === "string" && key.startsWith("/api/tags"),
-              undefined,
-              { revalidate: true },
-            ),
-            mutate(
-              (key) => typeof key === "string" && key.startsWith("/api/links"),
-              undefined,
-              { revalidate: true },
-            ),
+            mutatePrefix("/api/tags"),
+            mutatePrefix("/api/links"),
           ]);
           toast.success("Tag deleted");
         } else {
@@ -100,18 +90,18 @@ export function TagCard({
       >
         <div className="flex min-w-0 grow items-center gap-3">
           <TagBadge color={tag.color} withIcon className="sm:p-1.5" />
-          <span className="min-w-0 truncate whitespace-nowrap text-gray-800">
+          <span className="min-w-0 truncate whitespace-nowrap text-neutral-800">
             {tag.name}
           </span>
         </div>
 
         <div className="flex items-center gap-5 sm:gap-8 md:gap-12">
-          {tagsCount !== undefined && (
+          {linksCount !== undefined && (
             <Link
               href={`/${slug}?tagIds=${tag.id}`}
-              className="whitespace-nowrap rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-sm text-gray-800 transition-colors hover:bg-gray-100"
+              className="whitespace-nowrap rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-sm text-neutral-800 transition-colors hover:bg-neutral-100"
             >
-              {nFormatter(linksCount || 0)} link{linksCount !== 1 && "s"}
+              {nFormatter(linksCount || 0)} {pluralize("link", linksCount || 0)}
             </Link>
           )}
           <Popover
@@ -160,7 +150,7 @@ export function TagCard({
               variant="secondary"
               className={cn(
                 "h-8 px-1.5 outline-none transition-all duration-200",
-                "border-transparent data-[state=open]:border-gray-500 sm:group-hover/card:data-[state=closed]:border-gray-200",
+                "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
               )}
               icon={
                 processing ? (

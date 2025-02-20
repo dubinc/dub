@@ -3,85 +3,92 @@
 import useIntegrations from "@/lib/swr/use-integrations";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationProps } from "@/lib/types";
-import { BlurImage, TokenAvatar } from "@dub/ui";
-import {
-  CircleWarning,
-  Download,
-  OfficeBuilding,
-  ShieldCheck,
-} from "@dub/ui/src/icons";
-import { Tooltip } from "@dub/ui/src/tooltip";
+import { DubCraftedShield, Tooltip } from "@dub/ui";
+import { DUB_WORKSPACE_ID } from "@dub/utils";
+import { cn } from "@dub/utils/src";
+import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
+import { HTMLProps, PropsWithChildren } from "react";
+import { IntegrationLogo } from "./integration-logo";
 
 export default function IntegrationCard(
   integration: InstalledIntegrationProps,
 ) {
-  const { slug } = useWorkspace();
   const { integrations: activeIntegrations } = useIntegrations();
 
   const installed = activeIntegrations?.some((i) => i.id === integration.id);
 
+  const dubCrafted = integration.projectId === DUB_WORKSPACE_ID;
+
   return (
+    <Wrapper integration={integration}>
+      {installed ? (
+        <Badge className="bg-green-100 text-green-800">Enabled</Badge>
+      ) : integration.comingSoon ? (
+        <Badge className="bg-violet-100 text-violet-800">Coming Soon</Badge>
+      ) : integration.guideUrl ? (
+        <Badge className="bg-blue-100 text-blue-800">
+          <span>Guide</span>
+          <div className="flex w-0 justify-end overflow-hidden opacity-0 transition-[width,opacity] group-hover:w-3 group-hover:opacity-100">
+            <ArrowUpRight className="size-2.5" strokeWidth={2.5} />
+          </div>
+        </Badge>
+      ) : undefined}
+      <IntegrationLogo src={integration.logo ?? null} alt={integration.name} />
+      <h3 className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-neutral-800">
+        {integration.name}
+        {dubCrafted && (
+          <Tooltip content="This is an official integration built and maintained by Dub">
+            <div>
+              <DubCraftedShield className="size-4 -translate-y-px" />
+            </div>
+          </Tooltip>
+        )}
+      </h3>
+      <p className="mt-2 line-clamp-3 text-sm text-neutral-600">
+        {integration.description}
+      </p>
+    </Wrapper>
+  );
+}
+
+function Wrapper({
+  integration,
+  children,
+}: PropsWithChildren<{
+  integration: InstalledIntegrationProps;
+}>) {
+  const { slug } = useWorkspace();
+
+  const className = cn(
+    "group relative rounded-lg border border-neutral-200 bg-white p-4 transition-[filter]",
+    integration.comingSoon ? "cursor-default" : "hover:drop-shadow-card-hover",
+  );
+
+  return integration.comingSoon ? (
+    <div className={className}>{children}</div>
+  ) : (
     <Link
-      href={`/${slug}/settings/integrations/${integration.slug}`}
-      className="hover:drop-shadow-card-hover relative rounded-xl border border-gray-200 bg-white px-5 py-4 transition-[filter]"
+      href={
+        integration.guideUrl ||
+        `/${slug}/settings/integrations/${integration.slug}`
+      }
+      target={integration.guideUrl ? "_blank" : undefined}
+      className={className}
     >
-      {installed && (
-        <p className="absolute right-4 top-4 text-xs text-gray-500">
-          INSTALLED
-        </p>
-      )}
-      <div className="flex items-center gap-x-3">
-        <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2.5">
-          {integration.logo ? (
-            <BlurImage
-              src={integration.logo}
-              alt={`Logo for ${integration.name}`}
-              className="size-6 rounded-full"
-              width={20}
-              height={20}
-            />
-          ) : (
-            <TokenAvatar id={integration.id} className="size-6" />
-          )}
-        </div>
-        <div>
-          <div className="flex items-center gap-1">
-            <p className="font-semibold text-gray-700">{integration.name}</p>
-            <Tooltip
-              content={
-                integration.verified
-                  ? "This is a verified integration."
-                  : "Dub hasn't verified this integration. Install it at your own risk."
-              }
-            >
-              <div>
-                {integration.verified ? (
-                  <ShieldCheck className="size-4 text-[#E2B719]" invert />
-                ) : (
-                  <CircleWarning className="size-4 text-gray-500" invert />
-                )}
-              </div>
-            </Tooltip>
-          </div>
-          <div className="flex items-center gap-1 text-gray-500">
-            <OfficeBuilding className="size-3" />
-            <span className="text-sm">{integration.developer}</span>
-          </div>
-        </div>
-      </div>
-      <div className="items-between grid h-24 pt-4">
-        <p className="line-clamp-3 text-sm text-gray-500">
-          {integration.description}
-        </p>
-        <div className="flex items-center justify-end gap-1 text-gray-500">
-          <Download className="size-4" />
-          <span className="text-sm">
-            {integration.installations} install
-            {integration.installations === 1 ? "" : "s"}
-          </span>
-        </div>
-      </div>
+      {children}
     </Link>
+  );
+}
+
+function Badge({ className, ...rest }: HTMLProps<HTMLDivElement>) {
+  return (
+    <div
+      className={cn(
+        "absolute right-4 top-4 flex items-center rounded px-2 py-1 text-[0.625rem] font-semibold uppercase leading-none",
+        className,
+      )}
+      {...rest}
+    />
   );
 }

@@ -1,7 +1,7 @@
-import { prisma } from "@/lib/prisma";
+import { sendEmail } from "@dub/email";
+import { FailedPayment } from "@dub/email/templates/failed-payment";
+import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
-import { sendEmail } from "emails";
-import FailedPayment from "emails/failed-payment";
 import Stripe from "stripe";
 
 export async function invoicePaymentFailed(event: Stripe.Event) {
@@ -65,7 +65,6 @@ export async function invoicePaymentFailed(event: Stripe.Event) {
     ...workspace.users.map(({ user }) =>
       sendEmail({
         email: user.email as string,
-        from: "steven@dub.co",
         subject: `${
           attemptCount == 2
             ? "2nd notice: "

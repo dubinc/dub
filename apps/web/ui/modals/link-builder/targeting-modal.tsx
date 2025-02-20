@@ -6,15 +6,16 @@ import {
   SimpleTooltipContent,
   Tooltip,
   useKeyboardShortcut,
+  UTM_PARAMETERS,
 } from "@dub/ui";
-import { Crosshairs3, Trash } from "@dub/ui/src/icons";
-import { UTM_PARAMETERS } from "@dub/ui/src/utm-builder";
+import { Crosshairs3, Trash } from "@dub/ui/icons";
 import {
   cn,
   constructURLFromUTMParams,
   COUNTRIES,
   getParamsFromURL,
   isValidUrl,
+  pluralize,
 } from "@dub/utils";
 import {
   Dispatch,
@@ -122,15 +123,15 @@ function TargetingModal({
             <div className="max-md:hidden">
               <Tooltip
                 content={
-                  <div className="px-2 py-1 text-xs text-gray-700">
+                  <div className="px-2 py-1 text-xs text-neutral-700">
                     Press{" "}
-                    <strong className="font-medium text-gray-950">G</strong> to
-                    open this quickly
+                    <strong className="font-medium text-neutral-950">G</strong>{" "}
+                    to open this quickly
                   </div>
                 }
                 side="right"
               >
-                <kbd className="flex size-6 cursor-default items-center justify-center gap-1 rounded-md border border-gray-200 font-sans text-xs text-gray-950">
+                <kbd className="flex size-6 cursor-default items-center justify-center gap-1 rounded-md border border-neutral-200 font-sans text-xs text-neutral-950">
                   G
                 </kbd>
               </Tooltip>
@@ -141,7 +142,7 @@ function TargetingModal({
             {/* Geo */}
             <div>
               <div className="flex items-center gap-2">
-                <span className="block text-sm font-medium text-gray-700">
+                <span className="block text-sm font-medium text-neutral-700">
                   Geo Targeting
                 </span>
                 <ProBadgeTooltip
@@ -203,9 +204,9 @@ function TargetingModal({
                             buttonProps={{
                               className: cn(
                                 "w-32 sm:w-40 rounded-r-none border-r-transparent justify-start px-2.5",
-                                "data-[state=open]:ring-1 data-[state=open]:ring-gray-500 data-[state=open]:border-gray-500",
-                                "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
-                                !key && "text-gray-600",
+                                "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
+                                "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+                                !key && "text-neutral-600",
                               ),
                             }}
                             optionClassName="sm:max-w-[200px]"
@@ -215,7 +216,7 @@ function TargetingModal({
                           type="text"
                           id={`${id}-${key}`}
                           placeholder="https://example.com"
-                          className="z-0 h-full grow rounded-r-md border border-gray-300 text-sm placeholder-gray-400 focus:z-[1] focus:border-gray-500 focus:ring-gray-500"
+                          className="z-0 h-full grow rounded-r-md border border-neutral-300 text-sm placeholder-neutral-400 focus:z-[1] focus:border-neutral-500 focus:ring-neutral-500"
                           value={value}
                           onChange={(e) => {
                             setValue(
@@ -282,7 +283,7 @@ function TargetingModal({
               <div className="flex items-center gap-2">
                 <label
                   htmlFor={`${id}-ios-url`}
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-neutral-700"
                 >
                   iOS Targeting
                 </label>
@@ -300,7 +301,7 @@ function TargetingModal({
                 <input
                   id={`${id}-ios-url`}
                   placeholder="https://apps.apple.com/app/1611158928"
-                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                  className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                   {...register("ios", {
                     onBlur: (e) => {
                       const newParams = getNewParams(e.target.value);
@@ -322,7 +323,7 @@ function TargetingModal({
               <div className="flex items-center gap-2">
                 <label
                   htmlFor={`${id}-android-url`}
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-neutral-700"
                 >
                   Android Targeting
                 </label>
@@ -340,7 +341,7 @@ function TargetingModal({
                 <input
                   id={`${id}-android-url`}
                   placeholder="https://play.google.com/store/apps/details?id=com.disney.disneyplus"
-                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                  className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                   {...register("android", {
                     onBlur: (e) => {
                       const newParams = getNewParams(e.target.value);
@@ -363,7 +364,7 @@ function TargetingModal({
               {parentEnabled && (
                 <button
                   type="button"
-                  className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
+                  className="text-xs font-medium text-neutral-700 transition-colors hover:text-neutral-950"
                   onClick={() => {
                     setValueParent("ios", null, { shouldDirty: true });
                     setValueParent("android", null, { shouldDirty: true });
@@ -420,7 +421,7 @@ export function getTargetingLabel({
 
     // Geo
     if (countries.length === 1 && countries[0]) return countries[0];
-    return `${countries.length} Target${countries.length === 1 ? "" : "s"}`;
+    return `${countries.length} ${pluralize("Target", countries.length)}`;
   }
 
   return `${count + (countries.length > 1 ? countries.length - 1 : 0)} Targets`;
@@ -453,7 +454,7 @@ function TargetingButton({
       icon={
         <Crosshairs3 className={cn("size-4", enabled && "text-blue-500")} />
       }
-      className="h-9 w-fit px-2.5 font-medium text-gray-700"
+      className="h-9 w-fit px-2.5 font-medium text-neutral-700"
       onClick={() => setShowTargetingModal(true)}
     />
   );

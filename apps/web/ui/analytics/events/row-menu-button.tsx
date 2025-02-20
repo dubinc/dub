@@ -1,5 +1,5 @@
-import { Button, Icon, Popover } from "@dub/ui";
-import { Copy, Dots } from "@dub/ui/src/icons";
+import { Button, Icon, Popover, useCopyToClipboard } from "@dub/ui";
+import { Copy, Dots } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
@@ -9,7 +9,7 @@ import { EventDatum } from "./events-table";
 
 export function RowMenuButton({ row }: { row: Row<EventDatum> }) {
   const [isOpen, setIsOpen] = useState(false);
-
+  const [, copyToClipboard] = useCopyToClipboard();
   return (
     <Popover
       openPopover={isOpen}
@@ -23,8 +23,10 @@ export function RowMenuButton({ row }: { row: Row<EventDatum> }) {
                 label="Copy event ID"
                 onSelect={() => {
                   if (!("eventId" in row.original)) return;
-                  navigator.clipboard.writeText(row.original.eventId as string);
-                  toast.success("Copied to clipboard");
+                  const eventId = row.original.eventId as string;
+                  toast.promise(copyToClipboard(eventId), {
+                    success: "Copied to clipboard",
+                  });
                   setIsOpen(false);
                 }}
               />
@@ -33,8 +35,10 @@ export function RowMenuButton({ row }: { row: Row<EventDatum> }) {
               icon={Copy}
               label="Copy click ID"
               onSelect={() => {
-                navigator.clipboard.writeText(row.original.click_id);
-                toast.success("Copied to clipboard");
+                const clickId = row.original.click_id as string;
+                toast.promise(copyToClipboard(clickId), {
+                  success: "Copied to clipboard",
+                });
                 setIsOpen(false);
               }}
             />
@@ -54,7 +58,7 @@ export function RowMenuButton({ row }: { row: Row<EventDatum> }) {
 }
 
 function MenuItem({
-  icon: Icon,
+  icon: IconComp,
   label,
   onSelect,
 }: {
@@ -65,12 +69,12 @@ function MenuItem({
   return (
     <Command.Item
       className={cn(
-        "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md px-3.5 py-2 text-sm text-gray-950",
-        "data-[selected=true]:bg-gray-100",
+        "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md px-3.5 py-2 text-sm text-neutral-950",
+        "data-[selected=true]:bg-neutral-100",
       )}
       onSelect={onSelect}
     >
-      <Icon className="h-4 w-4 shrink-0 text-gray-600" />
+      <IconComp className="h-4 w-4 shrink-0 text-neutral-600" />
       {label}
     </Command.Item>
   );

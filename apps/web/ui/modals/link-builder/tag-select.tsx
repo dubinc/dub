@@ -17,12 +17,12 @@ import {
 import { cn } from "@dub/utils";
 import { useCompletion } from "ai/react";
 import posthog from "posthog-js";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
-import { LinkFormData, LinkModalContext } from ".";
+import { LinkFormData } from ".";
 import { MultiTagsIcon } from "./multi-tags-icon";
 
 function getTagOption(tag: TagProps) {
@@ -35,8 +35,12 @@ function getTagOption(tag: TagProps) {
 }
 
 export function TagSelect() {
-  const { mutate: mutateWorkspace, exceededAI } = useWorkspace();
-  const { workspaceId } = useContext(LinkModalContext);
+  const {
+    id: workspaceId,
+    slug,
+    mutate: mutateWorkspace,
+    exceededAI,
+  } = useWorkspace();
 
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
@@ -45,7 +49,11 @@ export function TagSelect() {
   const useAsync = tagsCount && tagsCount > TAGS_MAX_PAGE_SIZE;
 
   const { tags: availableTags, loading: loadingTags } = useTags({
-    query: useAsync ? { search: debouncedSearch } : undefined,
+    query: {
+      sortBy: "createdAt",
+      sortOrder: "desc",
+      ...(useAsync ? { search: debouncedSearch } : {}),
+    },
   });
 
   const { watch, setValue } = useFormContext<LinkFormData>();
@@ -71,7 +79,7 @@ export function TagSelect() {
 
     if (res.ok) {
       const newTag = await res.json();
-      setValue("tags", [...tags, newTag]);
+      setValue("tags", [...tags, newTag], { shouldDirty: true });
       toast.success(`Successfully created tag!`);
       setIsOpen(false);
       await mutate(`/api/tags?workspaceId=${workspaceId}`);
@@ -94,7 +102,7 @@ export function TagSelect() {
     [tags],
   );
 
-  useKeyboardShortcut("t", () => setIsOpen(true), { modal: true });
+  useKeyboardShortcut("t", () => setIsOpen(true), { modal: true, priority: 2 });
 
   const [suggestedTags, setSuggestedTags] = useState<TagProps[]>([]);
 
@@ -102,9 +110,6 @@ export function TagSelect() {
     api: `/api/ai/completion?workspaceId=${workspaceId}`,
     body: {
       model: "claude-3-haiku-20240307",
-    },
-    onError: (error) => {
-      toast.error(error.message);
     },
     onFinish: (_, completion) => {
       mutateWorkspace();
@@ -114,7 +119,8 @@ export function TagSelect() {
           .map((tag: string) => {
             return availableTags?.find(({ name }) => name === tag) || null;
           })
-          .filter(Boolean);
+          .filter(Boolean)
+          .slice(0, 5);
         setSuggestedTags(suggestedTags as TagProps[]);
       }
     },
@@ -148,22 +154,26 @@ export function TagSelect() {
 
   return (
     <div>
-      <div className="mb-1 flex items-center gap-2">
-        <label
-          htmlFor="comments"
-          className="block text-sm font-medium text-gray-700"
+      <div className="mb-1 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium text-neutral-700">Tags</p>
+          <InfoTooltip
+            content={
+              <SimpleTooltipContent
+                title={`Tags are used to organize your links in your ${process.env.NEXT_PUBLIC_APP_NAME} dashboard.`}
+                cta="Learn more."
+                href="https://dub.co/help/article/how-to-use-tags"
+              />
+            }
+          />
+        </div>
+        <a
+          href={`/${slug}/settings/library/tags`}
+          target="_blank"
+          className="text-sm text-neutral-400 underline-offset-2 transition-all hover:text-neutral-600 hover:underline"
         >
-          Tags
-        </label>
-        <InfoTooltip
-          content={
-            <SimpleTooltipContent
-              title={`Tags are used to organize your links in your ${process.env.NEXT_PUBLIC_APP_NAME} dashboard.`}
-              cta="Learn more."
-              href="https://dub.co/help/article/how-to-use-tags"
-            />
-          }
-        />
+          Manage
+        </a>
       </div>
       <Combobox
         multiple
@@ -181,13 +191,13 @@ export function TagSelect() {
           );
         }}
         options={loadingTags ? undefined : options}
-        icon={<Tag className="mt-[5px] size-4 text-gray-500" />}
+        icon={<Tag className="mt-[5px] size-4 text-neutral-500" />}
         searchPlaceholder="Search or add tags..."
         shortcutHint="T"
         buttonProps={{
           className: cn(
-            "h-auto py-1.5 px-2.5 w-full text-gray-700 border-gray-300 items-start",
-            selectedTags.length === 0 && "text-gray-400",
+            "h-auto py-1.5 px-2.5 w-full text-neutral-700 border-neutral-300 items-start",
+            selectedTags.length === 0 && "text-neutral-400",
           ),
         }}
         onCreate={(search) => createTag(search)}
@@ -209,7 +219,7 @@ export function TagSelect() {
             ))}
           </div>
         ) : loadingTags && availableTags === undefined && tags.length ? (
-          <div className="my-px h-6 w-1/4 animate-pulse rounded bg-gray-200" />
+          <div className="my-px h-6 w-1/4 animate-pulse rounded bg-neutral-200" />
         ) : (
           <span className="my-px block py-0.5">Select tags...</span>
         )}
@@ -222,7 +232,7 @@ export function TagSelect() {
           <div className="animate-fade-in flex flex-wrap items-center gap-2 pt-3">
             <Tooltip content="AI-suggested tags based on the content of the link. Click a suggested tag to add it.">
               <div className="group">
-                <Magic className="size-4 text-gray-600 transition-colors group-hover:text-gray-500" />
+                <Magic className="size-4 text-neutral-600 transition-colors group-hover:text-neutral-500" />
               </div>
             </Tooltip>
             {suggestedTags.map((tag) => (

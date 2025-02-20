@@ -1,8 +1,16 @@
 "use client";
 
 import { DomainProps } from "@/lib/types";
-import { InfoTooltip, SimpleTooltipContent, useMediaQuery } from "@dub/ui";
+import {
+  InfoTooltip,
+  SimpleTooltipContent,
+  useMediaQuery,
+  UTM_PARAMETERS,
+} from "@dub/ui";
+import { getParamsFromURL } from "@dub/utils";
 import { forwardRef, HTMLProps, ReactNode, useId } from "react";
+import { useFormContext } from "react-hook-form";
+import { LinkFormData } from "../modals/link-builder";
 import { AlertCircleFill } from "../shared/icons";
 import { ProBadgeTooltip } from "../shared/pro-badge-tooltip";
 
@@ -32,13 +40,15 @@ export const DestinationUrlInput = forwardRef<
     const inputId = useId();
     const { isMobile } = useMediaQuery();
 
+    const formContext = useFormContext<LinkFormData>();
+
     return (
       <div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <label
               htmlFor={inputId}
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-neutral-700"
             >
               Destination URL
             </label>
@@ -80,10 +90,24 @@ export const DestinationUrlInput = forwardRef<
             className={`${
               error
                 ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
+                : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500"
             } block w-full rounded-md focus:outline-none sm:text-sm`}
             aria-invalid="true"
             {...inputProps}
+            {...(formContext && {
+              onChange: (e) => {
+                const url = e.target.value;
+
+                formContext.setValue("url", url);
+                const parentParams = getParamsFromURL(url);
+
+                UTM_PARAMETERS.filter((p) => p.key !== "ref").forEach((p) =>
+                  formContext.setValue(p.key as any, parentParams?.[p.key], {
+                    shouldDirty: true,
+                  }),
+                );
+              },
+            })}
           />
           {error && (
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">

@@ -1,5 +1,6 @@
 "use client";
 
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   AnimatedSizeContainer,
@@ -8,7 +9,7 @@ import {
   Modal,
   useRouterStuff,
 } from "@dub/ui";
-import { TableIcon } from "@dub/ui/src/icons";
+import { TableIcon } from "@dub/ui/icons";
 import { ArrowRight } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -135,23 +136,23 @@ function ImportCsvModal({
     <Modal
       showModal={showImportCsvModal}
       setShowModal={setShowImportCsvModal}
+      className="max-h-[95dvh] max-w-lg"
       onClose={() =>
         queryParams({
           del: "import",
         })
       }
-      className="h-fit max-h-[95dvh] max-w-lg overflow-y-auto"
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-8 sm:px-16">
+      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-8 sm:px-16">
         <div className="flex items-center gap-x-3 py-4">
-          <div className="flex size-10 items-center justify-center rounded-xl border border-gray-200 bg-gray-50">
+          <div className="flex size-10 items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50">
             <TableIcon className="size-5" />
           </div>
-          <ArrowRight className="size-5 text-gray-600" />
+          <ArrowRight className="size-5 text-neutral-600" />
           <Logo className="size-10" />
         </div>
         <h3 className="text-lg font-medium">Import Links From a CSV File</h3>
-        <p className="text-balance text-center text-sm text-gray-500">
+        <p className="text-balance text-center text-sm text-neutral-500">
           Easily import all your links into {process.env.NEXT_PUBLIC_APP_NAME}{" "}
           with just a few clicks.
         </p>
@@ -159,9 +160,9 @@ function ImportCsvModal({
 
       <div className="relative">
         {page === "confirm-import" && (
-          <div className="absolute inset-x-0 -top-6 mx-4 grid grid-cols-[1fr_min-content_1fr] items-center gap-x-4 gap-y-2 rounded-md border border-gray-200 bg-white p-2 text-center text-sm font-medium uppercase text-gray-600 sm:mx-12">
+          <div className="absolute inset-x-0 -top-6 mx-4 grid grid-cols-[1fr_min-content_1fr] items-center gap-x-4 gap-y-2 rounded-md border border-neutral-200 bg-white p-2 text-center text-sm font-medium uppercase text-neutral-600 sm:mx-12">
             <p>CSV data column</p>
-            <ArrowRight className="size-4 text-gray-500" />
+            <ArrowRight className="size-4 text-neutral-500" />
             <p>Dub data field</p>
           </div>
         )}
@@ -178,7 +179,7 @@ function ImportCsvModal({
               setValue,
             }}
           >
-            <div className="flex flex-col gap-y-6 bg-gray-50 px-4 py-8 text-left sm:px-12">
+            <div className="flex flex-col gap-y-6 bg-neutral-50 px-4 py-8 text-left sm:px-12">
               <form
                 onSubmit={handleSubmit(async (data) => {
                   const loadingId = toast.loading(
@@ -228,12 +229,10 @@ function ImportCsvModal({
                     if (!res.ok) throw new Error();
 
                     router.push(`/${slug}`);
-                    mutate(
-                      (key) =>
-                        typeof key === "string" &&
-                        (key.startsWith("/api/links") ||
-                          key.startsWith("/api/domains")),
-                    );
+                    await Promise.all([
+                      mutatePrefix("/api/links"),
+                      mutate(`/api/workspaces/${slug}`),
+                    ]);
 
                     toast.success(
                       "Successfully added links to import queue! You can now safely navigate from this tab – we will send you an email when your links have been fully imported.",
@@ -258,7 +257,7 @@ function ImportCsvModal({
                     />
                     <button
                       type="button"
-                      className="-mt-1 text-center text-xs text-gray-600 underline underline-offset-2 transition-colors hover:text-gray-800"
+                      className="-mt-1 text-center text-xs text-neutral-600 underline underline-offset-2 transition-colors hover:text-neutral-800"
                       onClick={() => {
                         setPageNumber(0);
                         reset();

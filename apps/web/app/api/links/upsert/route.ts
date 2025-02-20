@@ -7,10 +7,13 @@ import {
 } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { NewLinkProps } from "@/lib/types";
-import { createLinkBodySchema } from "@/lib/zod/schemas/links";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { createLinkBodySchema, linkEventSchema } from "@/lib/zod/schemas/links";
+import { prisma } from "@dub/prisma";
 import { deepEqual } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // PUT /api/links/upsert – update or create a link
@@ -27,6 +30,30 @@ export const PUT = withWorkspace(
     });
 
     if (link) {
+      await Promise.all([
+        ...(link.folderId
+          ? [
+              verifyFolderAccess({
+                workspace,
+                userId: session.user.id,
+                folderId: link.folderId,
+                requiredPermission: "folders.links.write",
+              }),
+            ]
+          : []),
+
+        ...(body.folderId
+          ? [
+              verifyFolderAccess({
+                workspace,
+                userId: session.user.id,
+                folderId: body.folderId,
+                requiredPermission: "folders.links.write",
+              }),
+            ]
+          : []),
+      ]);
+
       // proceed with /api/links/[linkId] PATCH logic
       const updatedLink = {
         ...link,
@@ -85,11 +112,6 @@ export const PUT = withWorkspace(
         link.externalId?.toLowerCase() ===
         updatedLink.externalId?.toLowerCase();
 
-      // if identifier is the same, we don't need to check if it exists
-      const skipIdentifierChecks =
-        link.identifier?.toLowerCase() ===
-        updatedLink.identifier?.toLowerCase();
-
       const {
         link: processedLink,
         error,
@@ -99,7 +121,7 @@ export const PUT = withWorkspace(
         workspace,
         skipKeyChecks,
         skipExternalIdChecks,
-        skipIdentifierChecks,
+        skipFolderChecks: true,
       });
 
       if (error) {
@@ -118,6 +140,14 @@ export const PUT = withWorkspace(
           },
           updatedLink: processedLink,
         });
+
+        waitUntil(
+          sendWorkspaceWebhook({
+            trigger: "link.updated",
+            workspace,
+            data: linkEventSchema.parse(response),
+          }),
+        );
 
         return NextResponse.json(response, {
           headers,

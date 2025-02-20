@@ -8,7 +8,7 @@ import {
   Popover,
   useMediaQuery,
 } from "@dub/ui";
-import { DiamondTurnRight, LoadingSpinner, Note } from "@dub/ui/src/icons";
+import { DiamondTurnRight, LoadingSpinner, Note } from "@dub/ui/icons";
 import { fetcher } from "@dub/utils";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -61,7 +61,7 @@ export function UTMTemplatesButton({
               <LoadingSpinner className="size-4" />
             </div>
           ) : (
-            <div className="flex w-full items-center justify-center p-2 text-center text-xs text-gray-500 md:w-32">
+            <div className="flex w-full items-center justify-center p-2 text-center text-xs text-neutral-500 md:w-32">
               Failed to load templates
             </div>
           )}
@@ -94,7 +94,7 @@ function UTMTemplateList({
 
   return data.length ? (
     <div className="scrollbar-hide grid max-h-64 overflow-y-auto p-1 md:min-w-48">
-      <span className="block pb-2 pl-2.5 pt-2 text-xs font-medium text-gray-500">
+      <span className="block pb-2 pl-2.5 pt-2 text-xs font-medium text-neutral-500">
         UTM Templates
       </span>
       {data.map((template) => (
@@ -116,7 +116,7 @@ function UTMTemplateList({
       ))}
     </div>
   ) : (
-    <div className="flex items-center justify-center p-3 text-center text-xs text-gray-500">
+    <div className="flex items-center justify-center p-3 text-center text-xs text-neutral-500">
       No templates found
     </div>
   );
@@ -129,16 +129,14 @@ function UTMTemplateOption({
   template: UtmTemplateProps;
   onClick: () => void;
 }) {
-  const [deleting, setDeleting] = useState(false);
-
   return (
     <div className="group relative">
       <button
         onClick={onClick}
-        className="flex w-full items-center justify-between gap-2 rounded-md p-2 text-gray-700 outline-none hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-gray-500 active:bg-gray-200 group-hover:bg-gray-100"
+        className="flex w-full items-center justify-between gap-2 rounded-md p-2 text-neutral-700 outline-none hover:bg-neutral-100 focus-visible:ring-2 focus-visible:ring-neutral-500 active:bg-neutral-200 group-hover:bg-neutral-100"
       >
         <span className="flex items-center gap-2">
-          <Note className="size-4 text-gray-500" />
+          <Note className="size-4 text-neutral-500" />
           {template.name}
         </span>
       </button>

@@ -1,14 +1,18 @@
-import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
+import useWorkspace from "@/lib/swr/use-workspace";
 import {
   Button,
   FileUpload,
   Icon,
+  InfoTooltip,
   ShimmerDots,
   SimpleTooltipContent,
+  Switch,
+  TooltipContent,
   useKeyboardShortcut,
   useMediaQuery,
 } from "@dub/ui";
 import {
+  CrownSmall,
   Facebook,
   GlobePointer,
   LinkedIn,
@@ -16,7 +20,7 @@ import {
   NucleoPhoto,
   Pen2,
   Twitter,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import { cn, getDomainWithoutWWW, resizeImage } from "@dub/utils";
 import {
   ChangeEvent,
@@ -35,7 +39,7 @@ import { useDebounce } from "use-debounce";
 import { LinkFormData, LinkModalContext } from ".";
 import { useOGModal } from "./og-modal";
 
-const tabs = ["default", "facebook", "linkedin", "x"] as const;
+const tabs = ["default", "x", "linkedin", "facebook"] as const;
 type Tab = (typeof tabs)[number];
 
 const tabTitles: Record<Tab, string> = {
@@ -47,9 +51,9 @@ const tabTitles: Record<Tab, string> = {
 
 const tabIcons: Record<Tab, Icon> = {
   default: GlobePointer,
-  facebook: Facebook,
-  linkedin: LinkedIn,
   x: Twitter,
+  linkedin: LinkedIn,
+  facebook: Facebook,
 };
 
 type OGPreviewProps = PropsWithChildren<{
@@ -61,14 +65,15 @@ type OGPreviewProps = PropsWithChildren<{
 
 const tabComponents: Record<Tab, ComponentType<OGPreviewProps>> = {
   default: DefaultOGPreview,
-  facebook: FacebookOGPreview,
-  linkedin: LinkedInOGPreview,
   x: XOGPreview,
+  linkedin: LinkedInOGPreview,
+  facebook: FacebookOGPreview,
 };
 
 export function LinkPreview() {
+  const { slug, plan } = useWorkspace();
   const { watch, setValue } = useFormContext<LinkFormData>();
-  const { title, description, image, url, password } = watch();
+  const { proxy, title, description, image, url, password } = watch();
 
   const [debouncedUrl] = useDebounce(url, 500);
   const hostname = useMemo(() => {
@@ -84,7 +89,7 @@ export function LinkPreview() {
   const [selectedTab, setSelectedTab] = useState<Tab>("default");
 
   const onImageChange = (image: string) => {
-    setValue("image", image);
+    setValue("image", image, { shouldDirty: true });
     setValue("proxy", true);
   };
 
@@ -95,23 +100,44 @@ export function LinkPreview() {
       <OGModal />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-medium text-gray-700">Link Preview</h2>
-          <ProBadgeTooltip
+          <h2 className="text-sm font-medium text-neutral-700">
+            Custom Link Preview
+          </h2>
+          <InfoTooltip
             content={
               <SimpleTooltipContent
-                title="Customize how your links look when shared on social media to improve click-through rates."
+                title="Customize how your links look when shared on social media to improve click-through rates. When enabled, the preview settings below will be shown publicly (instead of the URL's original metatags)."
                 cta="Learn more."
-                href="https://dub.co/help/article/custom-social-media-cards"
+                href="https://dub.co/help/article/custom-link-previews"
               />
             }
           />
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          icon={<Pen2 className="mx-px size-4" />}
-          className="h-7 w-fit px-1"
-          onClick={() => setShowOGModal(true)}
+
+        <Switch
+          checked={proxy}
+          fn={(checked) => setValue("proxy", checked, { shouldDirty: true })}
+          disabledTooltip={
+            !url ? (
+              "Enter a URL to enable custom link previews."
+            ) : !plan || plan === "free" ? (
+              <TooltipContent
+                title="Custom Link Previews are only available on the Pro plan and above."
+                cta="Upgrade to Pro"
+                href={
+                  slug
+                    ? `/${slug}/upgrade?exit=close`
+                    : "https://dub.co/pricing"
+                }
+                target="_blank"
+              />
+            ) : undefined
+          }
+          thumbIcon={
+            !plan || plan === "free" ? (
+              <CrownSmall className="size-full text-neutral-500" />
+            ) : undefined
+          }
         />
       </div>
       <div className="mt-2.5 grid grid-cols-4 gap-2">
@@ -126,17 +152,24 @@ export function LinkPreview() {
                 <Icon className="size-4 text-current" fill="currentColor" />
               }
               className={cn(
-                "h-7 text-gray-800",
+                "h-7 text-neutral-800",
                 tab === selectedTab
-                  ? "border-gray-400 bg-white drop-shadow-sm"
-                  : "border-gray-300 bg-transparent hover:bg-white",
+                  ? "border-neutral-400 bg-white drop-shadow-sm"
+                  : "border-neutral-300 bg-transparent hover:bg-white",
               )}
               title={tabTitles[tab]}
             />
           );
         })}
       </div>
-      <div className="mt-2">
+      <div className="relative mt-2">
+        <Button
+          type="button"
+          variant="secondary"
+          icon={<Pen2 className="mx-px size-4" />}
+          className="absolute right-2 top-2 z-10 h-8 w-fit px-1.5"
+          onClick={() => setShowOGModal(true)}
+        />
         <OGPreview
           title={title}
           description={description}
@@ -189,7 +222,7 @@ export const ImagePreview = ({
   const previewImage = useMemo(() => {
     if (generatingMetatags || resizing) {
       return (
-        <div className="flex aspect-[var(--aspect,1200/630)] w-full flex-col items-center justify-center bg-gray-100">
+        <div className="flex aspect-[var(--aspect,1200/630)] w-full flex-col items-center justify-center bg-neutral-100">
           <LoadingCircle />
         </div>
       );
@@ -240,8 +273,8 @@ export const ImagePreview = ({
             <ShimmerDots className="pointer-events-none opacity-30 [mask-image:radial-gradient(40%_80%,transparent_50%,black)]" />
           )}
           <div className="pointer-events-none relative flex size-full flex-col items-center justify-center gap-2">
-            <NucleoPhoto className="size-5 text-gray-700" />
-            <p className="max-w-32 text-center text-xs text-gray-700">
+            <NucleoPhoto className="size-5 text-neutral-700" />
+            <p className="max-w-32 text-center text-xs text-neutral-700">
               Enter a link to generate a preview
             </p>
           </div>
@@ -266,35 +299,38 @@ export const ImagePreview = ({
 };
 
 function DefaultOGPreview({ title, description, children }: OGPreviewProps) {
+  const { plan } = useWorkspace();
   const { setValue } = useFormContext<LinkFormData>();
 
   return (
     <div>
-      <div className="group relative overflow-hidden rounded-md border border-gray-300">
+      <div className="group relative overflow-hidden rounded-md border border-neutral-300">
         {children}
       </div>
-      {title && (
-        <ReactTextareaAutosize
-          className="mt-4 line-clamp-2 w-full resize-none border-none p-0 text-xs font-medium text-gray-700 outline-none focus:ring-0"
-          value={title}
-          maxRows={2}
-          onChange={(e) => {
-            setValue("title", e.currentTarget.value);
-            setValue("proxy", true);
-          }}
-        />
-      )}
-      {description && (
-        <ReactTextareaAutosize
-          className="mt-2.5 line-clamp-2 w-full resize-none border-none p-0 text-xs text-gray-700/80 outline-none focus:ring-0"
-          value={description}
-          maxRows={2}
-          onChange={(e) => {
-            setValue("description", e.currentTarget.value);
-            setValue("proxy", true);
-          }}
-        />
-      )}
+      <ReactTextareaAutosize
+        className="mt-4 line-clamp-2 w-full resize-none border-none p-0 text-xs font-medium text-neutral-700 outline-none focus:ring-0"
+        value={title || "Add a title..."}
+        maxRows={2}
+        onChange={(e) => {
+          setValue("title", e.currentTarget.value, { shouldDirty: true });
+          if (plan && plan !== "free") {
+            setValue("proxy", true, { shouldDirty: true });
+          }
+        }}
+      />
+      <ReactTextareaAutosize
+        className="mt-1.5 line-clamp-2 w-full resize-none border-none p-0 text-xs text-neutral-700/80 outline-none focus:ring-0"
+        value={description || "Add a description..."}
+        maxRows={2}
+        onChange={(e) => {
+          setValue("description", e.currentTarget.value, {
+            shouldDirty: true,
+          });
+          if (plan && plan !== "free") {
+            setValue("proxy", true, { shouldDirty: true });
+          }
+        }}
+      />
     </div>
   );
 }
@@ -305,38 +341,43 @@ function FacebookOGPreview({
   hostname,
   children,
 }: OGPreviewProps) {
+  const { plan } = useWorkspace();
   const { setValue } = useFormContext<LinkFormData>();
 
   return (
     <div>
-      <div className="relative border border-gray-300">
+      <div className="relative border border-neutral-300">
         {children}
         {(hostname || title || description) && (
-          <div className="grid gap-1 border-t border-gray-300 bg-[#f2f3f5] p-2">
+          <div className="grid gap-1 border-t border-neutral-300 bg-[#f2f3f5] p-2">
             {hostname && (
               <p className="text-xs uppercase text-[#606770]">{hostname}</p>
             )}
-            {(title || title === "") && (
-              <input
-                className="truncate border-none bg-transparent p-0 text-xs font-semibold text-[#1d2129] outline-none focus:ring-0"
-                value={title}
-                onChange={(e) => {
-                  setValue("title", e.currentTarget.value);
-                  setValue("proxy", true);
-                }}
-              />
-            )}
-            {(description || description === "") && (
-              <ReactTextareaAutosize
-                className="mb-1 line-clamp-2 w-full resize-none rounded-md border-none bg-gray-200 bg-transparent p-0 text-xs text-[#606770] outline-none focus:ring-0"
-                value={description}
-                maxRows={2}
-                onChange={(e) => {
-                  setValue("description", e.currentTarget.value);
-                  setValue("proxy", true);
-                }}
-              />
-            )}
+            <input
+              className="truncate border-none bg-transparent p-0 text-xs font-semibold text-[#1d2129] outline-none focus:ring-0"
+              value={title || "Add a title..."}
+              onChange={(e) => {
+                setValue("title", e.currentTarget.value, {
+                  shouldDirty: true,
+                });
+                if (plan && plan !== "free") {
+                  setValue("proxy", true, { shouldDirty: true });
+                }
+              }}
+            />
+            <ReactTextareaAutosize
+              className="mb-1 line-clamp-2 w-full resize-none rounded-md border-none bg-neutral-200 bg-transparent p-0 text-xs text-[#606770] outline-none focus:ring-0"
+              value={description || "Add a description..."}
+              maxRows={2}
+              onChange={(e) => {
+                setValue("description", e.currentTarget.value, {
+                  shouldDirty: true,
+                });
+                if (plan && plan !== "free") {
+                  setValue("proxy", true, { shouldDirty: true });
+                }
+              }}
+            />
           </div>
         )}
       </div>
@@ -345,6 +386,7 @@ function FacebookOGPreview({
 }
 
 function LinkedInOGPreview({ title, hostname, children }: OGPreviewProps) {
+  const { plan } = useWorkspace();
   const { setValue } = useFormContext<LinkFormData>();
 
   return (
@@ -355,44 +397,36 @@ function LinkedInOGPreview({ title, hostname, children }: OGPreviewProps) {
       >
         {children}
       </div>
-      {(hostname || title) && (
-        <div className="grid gap-2">
-          {(title || title === "") && (
-            <ReactTextareaAutosize
-              className="line-clamp-2 w-full resize-none border-none p-0 text-sm font-semibold text-[#000000E6] outline-none focus:ring-0"
-              value={title}
-              maxRows={2}
-              onChange={(e) => {
-                setValue("title", e.currentTarget.value);
-                setValue("proxy", true);
-              }}
-            />
-          )}
-          {hostname && <p className="text-xs text-[#00000099]">{hostname}</p>}
-        </div>
-      )}
+      <div className="grid gap-2">
+        <ReactTextareaAutosize
+          className="line-clamp-2 w-full resize-none border-none p-0 text-sm font-semibold text-[#000000E6] outline-none focus:ring-0"
+          value={title || "Add a title..."}
+          maxRows={2}
+          onChange={(e) => {
+            setValue("title", e.currentTarget.value, {
+              shouldDirty: true,
+            });
+            if (plan && plan !== "free") {
+              setValue("proxy", true, { shouldDirty: true });
+            }
+          }}
+        />
+        <p className="text-xs text-[#00000099]">{hostname || "domain.com"}</p>
+      </div>
     </div>
   );
 }
 
 function XOGPreview({ title, hostname, children }: OGPreviewProps) {
-  const hasTitle = title || title === "";
   return (
     <div>
-      <div className="group relative overflow-hidden rounded-2xl border border-gray-300">
+      <div className="group relative overflow-hidden rounded-2xl border border-neutral-300">
         {children}
         <div className="absolute bottom-2 left-0 w-full px-2">
-          <div
-            className={cn(
-              "w-fit max-w-full rounded px-1.5 py-px",
-              hasTitle ? "bg-black/[0.77]" : "bg-gray-200",
-            )}
-          >
-            {hasTitle && (
-              <span className="block max-w-sm truncate text-xs text-white">
-                {title}
-              </span>
-            )}
+          <div className="w-fit max-w-full rounded bg-black/[0.77] px-1.5 py-px">
+            <span className="block max-w-sm truncate text-xs text-white">
+              {title || "Add a title..."}
+            </span>
           </div>
         </div>
       </div>

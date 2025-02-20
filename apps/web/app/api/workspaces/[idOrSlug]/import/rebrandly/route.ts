@@ -1,9 +1,11 @@
 import { addDomainToVercel } from "@/lib/api/domains";
+import { DubApiError } from "@/lib/api/errors";
 import { bulkCreateLinks } from "@/lib/api/links";
+import { createId } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -11,7 +13,10 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(async ({ workspace }) => {
   const accessToken = await redis.get(`import:rebrandly:${workspace.id}`);
   if (!accessToken) {
-    return new Response("No Rebrandly access token found", { status: 400 });
+    throw new DubApiError({
+      code: "bad_request",
+      message: "No Rebrandly access token found",
+    });
   }
 
   const response = await fetch(`https://api.rebrandly.com/v1/domains`, {
@@ -20,10 +25,22 @@ export const GET = withWorkspace(async ({ workspace }) => {
       apikey: accessToken as string,
     },
   });
-  const data = await response.json();
-  if (data.error === "Unauthorized") {
-    return new Response("Invalid Rebrandly access token", { status: 403 });
+  if (!response.ok) {
+    const error = await response.text();
+    if (error === "Unauthorized") {
+      // delete the access token
+      await redis.del(`import:rebrandly:${workspace.id}`);
+      throw new DubApiError({
+        code: "unauthorized",
+        message: "Invalid Rebrandly access token",
+      });
+    }
+    throw new DubApiError({
+      code: "bad_request",
+      message: error,
+    });
   }
+  const data = await response.json();
 
   const domains = await Promise.all(
     data
@@ -83,6 +100,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
     await Promise.allSettled([
       prisma.domain.createMany({
         data: domainsNotInWorkspace.map(({ domain }) => ({
+          id: createId({ prefix: "dom_" }),
           slug: domain,
           projectId: workspace.id,
           primary: false,

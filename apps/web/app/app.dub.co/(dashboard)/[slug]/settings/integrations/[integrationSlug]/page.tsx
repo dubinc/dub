@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
+import { prisma } from "@dub/prisma";
+import { notFound, redirect } from "next/navigation";
 import IntegrationPageClient from "./page-client";
 
 export const revalidate = 0;
@@ -30,7 +30,13 @@ export default async function IntegrationPage({
             select: {
               id: true,
               name: true,
+              email: true,
               image: true,
+            },
+          },
+          webhook: {
+            select: {
+              id: true,
             },
           },
         },
@@ -42,25 +48,47 @@ export default async function IntegrationPage({
     notFound();
   }
 
+  if (integration.comingSoon) {
+    redirect(`/${params.slug}/settings/integrations`);
+  }
+
+  if (integration.guideUrl) {
+    redirect(integration.guideUrl);
+  }
+
+  const installed = integration.installations.length > 0;
+
+  const credentials = installed
+    ? integration.installations[0]?.credentials
+    : undefined;
+
+  const webhookId = installed
+    ? integration.installations[0]?.webhook?.id
+    : undefined;
+
   return (
-    <IntegrationPageClient
-      integration={{
-        ...integration,
-        screenshots: integration.screenshots as string[],
-        installations: integration._count.installations,
-        installed:
-          integration.installations.length > 0
+    <div className="mx-auto w-full max-w-screen-md">
+      <IntegrationPageClient
+        integration={{
+          ...integration,
+          screenshots: integration.screenshots as string[],
+          installations: integration._count.installations,
+          installed: installed
             ? {
                 id: integration.installations[0].id,
                 by: {
                   id: integration.installations[0].userId,
                   name: integration.installations[0].user.name,
+                  email: integration.installations[0].user.email,
                   image: integration.installations[0].user.image,
                 },
                 createdAt: integration.installations[0].createdAt,
               }
             : null,
-      }}
-    />
+          credentials,
+          webhookId,
+        }}
+      />
+    </div>
   );
 }

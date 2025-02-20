@@ -6,12 +6,12 @@ import {
   useKeyboardShortcut,
   useMediaQuery,
 } from "@dub/ui";
-import { Dots } from "@dub/ui/src/icons";
+import { Dots } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Settings } from "lucide-react";
-import { useContext, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { LinkFormData, LinkModalContext } from ".";
+import { LinkFormData } from ".";
 import { useAdvancedModal } from "./advanced-modal";
 import { MOBILE_MORE_ITEMS, TOGGLES } from "./constants";
 import { useExpirationModal } from "./expiration-modal";
@@ -21,20 +21,14 @@ import { useTargetingModal } from "./targeting-modal";
 export function MoreDropdown() {
   const { isMobile } = useMediaQuery();
 
-  const { conversionEnabled } = useContext(LinkModalContext);
-
   const { watch, setValue } = useFormContext<LinkFormData>();
   const data = watch();
 
   const [openPopover, setOpenPopover] = useState(false);
 
   const options = useMemo(() => {
-    const toggles = TOGGLES.filter((toggle) =>
-      toggle.conversionEnabled ? conversionEnabled || data[toggle.key] : true,
-    );
-
-    return [...(isMobile ? MOBILE_MORE_ITEMS : []), ...toggles];
-  }, [conversionEnabled, data, isMobile]);
+    return [...(isMobile ? MOBILE_MORE_ITEMS : []), ...TOGGLES];
+  }, [data, isMobile]);
 
   useKeyboardShortcut(
     options.map(({ shortcutKey }) => shortcutKey),
@@ -65,7 +59,9 @@ export function MoreDropdown() {
           <div className="grid p-1 max-sm:w-full md:min-w-72">
             {options.map((option) => {
               const enabled =
-                "enabled" in option ? option.enabled(data) : data[option.key];
+                "enabled" in option && typeof option.enabled === "function"
+                  ? option.enabled(data)
+                  : data[option.key];
 
               return (
                 <Button
@@ -86,12 +82,12 @@ export function MoreDropdown() {
                         shouldDirty: true,
                       });
                   }}
-                  className="h-9 w-full justify-start px-2 text-sm text-gray-700"
+                  className="h-9 w-full justify-start px-2 text-sm text-neutral-700"
                   textWrapperClassName="grow"
                   text={
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-1">
-                        <option.icon className="mr-1 size-4 text-gray-950" />
+                        <option.icon className="mr-1 size-4 text-neutral-950" />
                         {option.type === "modal"
                           ? enabled
                             ? ""
@@ -110,7 +106,7 @@ export function MoreDropdown() {
                           }
                         />
                       </div>
-                      <kbd className="hidden size-6 cursor-default items-center justify-center rounded-md border border-gray-200 font-sans text-xs text-gray-800 sm:flex">
+                      <kbd className="hidden size-6 cursor-default items-center justify-center rounded-md border border-neutral-200 font-sans text-xs text-neutral-800 sm:flex">
                         {option.shortcutKey.toUpperCase()}
                       </kbd>
                     </div>
@@ -121,7 +117,7 @@ export function MoreDropdown() {
 
             <Button
               variant="outline"
-              className="h-9 justify-start px-2 text-sm text-gray-700"
+              className="h-9 justify-start px-2 text-sm text-neutral-700"
               textWrapperClassName="grow"
               onClick={() => {
                 setOpenPopover(false);
@@ -132,13 +128,13 @@ export function MoreDropdown() {
                   <div className="flex items-center gap-1">
                     <Settings
                       className={cn(
-                        "mr-1 size-4 text-gray-950",
-                        (data.externalId || data.identifier) && "text-blue-500",
+                        "mr-1 size-4 text-neutral-950",
+                        data.externalId && "text-blue-500",
                       )}
                     />
                     Advanced Settings
                   </div>
-                  <kbd className="hidden size-6 cursor-default items-center justify-center rounded-md border border-gray-200 font-sans text-xs text-gray-800 sm:flex">
+                  <kbd className="hidden size-6 cursor-default items-center justify-center rounded-md border border-neutral-200 font-sans text-xs text-neutral-800 sm:flex">
                     A
                   </kbd>
                 </div>

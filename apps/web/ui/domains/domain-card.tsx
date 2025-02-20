@@ -16,6 +16,7 @@ import {
   Refresh2,
   StatusBadge,
   Tooltip,
+  useCopyToClipboard,
   useInViewport,
   useMediaQuery,
   Wordmark,
@@ -27,7 +28,7 @@ import {
   Globe,
   Hyperlink,
   PenWriting,
-} from "@dub/ui/src/icons";
+} from "@dub/ui/icons";
 import { cn, DEFAULT_LINK_PROPS, fetcher, nFormatter } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Archive, ChevronDown, FolderInput, QrCode } from "lucide-react";
@@ -62,7 +63,6 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   }>(
     workspaceId &&
       isVisible &&
-      !props.verified &&
       `/api/domains/${domain}/verify?workspaceId=${workspaceId}`,
     fetcher,
   );
@@ -96,22 +96,22 @@ export default function DomainCard({ props }: { props: DomainProps }) {
     <>
       <div
         ref={domainRef}
-        className="hover:drop-shadow-card-hover group rounded-xl border border-gray-200 bg-white transition-[filter]"
+        className="hover:drop-shadow-card-hover group rounded-xl border border-neutral-200 bg-white transition-[filter]"
         onPointerEnter={() => setGroupHover(true)}
         onPointerLeave={() => setGroupHover(false)}
       >
         {isDubProvisioned && (
-          <div className="flex items-center justify-between gap-2 rounded-t-xl border-b border-gray-100 bg-gray-50 px-5 py-2 text-xs">
+          <div className="flex items-center justify-between gap-2 rounded-t-xl border-b border-neutral-100 bg-neutral-50 px-5 py-2 text-xs">
             <div className="flex items-center gap-1.5">
               <Wordmark className="h-4" />
-              <span className="font-medium text-gray-900">
+              <span className="font-medium text-neutral-900">
                 Provisioned by Dub
               </span>
             </div>
             <a
               href="https://dub.co/help/article/free-dot-link-domain"
               target="_blank"
-              className="text-gray-500 underline transition-colors hover:text-gray-800"
+              className="text-neutral-500 underline transition-colors hover:text-neutral-800"
             >
               Learn more
             </a>
@@ -131,10 +131,10 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               <NumberTooltip value={props.link?.clicks || 0}>
                 <Link
                   href={`/${slug}/analytics?domain=${domain}&key=_root`}
-                  className="flex items-center space-x-1 whitespace-nowrap rounded-md border border-gray-200 bg-gray-50 px-3 py-1 transition-colors hover:bg-gray-100"
+                  className="flex items-center space-x-1 whitespace-nowrap rounded-md border border-neutral-200 bg-neutral-50 px-3 py-1 transition-colors hover:bg-neutral-100"
                 >
-                  <CursorRays className="h-4 w-4 text-gray-700" />
-                  <p className="text-xs font-medium text-gray-900">
+                  <CursorRays className="h-4 w-4 text-neutral-700" />
+                  <p className="text-xs font-medium text-neutral-900">
                     {nFormatter(props.link?.clicks || 0)}
                     <span className="ml-1 hidden sm:inline-block">clicks</span>
                   </p>
@@ -169,7 +169,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                         : "Invalid"}
                 </StatusBadge>
               ) : (
-                <div className="h-6 w-16 animate-pulse rounded-md bg-gray-200" />
+                <div className="h-6 w-16 animate-pulse rounded-md bg-neutral-200" />
               )}
             </div>
 
@@ -182,7 +182,9 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                         <Gear
                           className={cn(
                             "h-4 w-4",
-                            showDetails ? "text-gray-800" : "text-gray-600",
+                            showDetails
+                              ? "text-neutral-800"
+                              : "text-neutral-600",
                           )}
                         />
                         {/* Error indicator */}
@@ -194,7 +196,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                       </div>
                       <ChevronDown
                         className={cn(
-                          "hidden h-4 w-4 text-gray-400 transition-transform sm:block",
+                          "hidden h-4 w-4 text-neutral-400 transition-transform sm:block",
                           showDetails && "rotate-180",
                         )}
                       />
@@ -244,7 +246,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                 <DomainConfiguration data={verificationData} />
               )
             ) : (
-              <div className="mt-6 h-6 w-32 animate-pulse rounded-md bg-gray-200" />
+              <div className="mt-6 h-6 w-32 animate-pulse rounded-md bg-neutral-200" />
             )}
           </motion.div>
         </div>
@@ -314,17 +316,16 @@ function Menu({
     props: linkProps || DEFAULT_LINK_PROPS,
   });
 
-  const [copiedLinkId, setCopiedLinkId] = useState(false);
+  const [copiedLinkId, copyToClipboard] = useCopyToClipboard();
 
   const copyLinkId = () => {
     if (!linkProps) {
       toast.error("Link ID not found");
       return;
     }
-    navigator.clipboard.writeText(linkProps.id);
-    setCopiedLinkId(true);
-    toast.success("Link ID copied!");
-    setTimeout(() => setCopiedLinkId(false), 3000);
+    toast.promise(copyToClipboard(linkProps.id), {
+      success: "Link ID copied!",
+    });
   };
 
   const activeDomainsCount = activeWorkspaceDomains?.length || 0;
@@ -344,7 +345,7 @@ function Menu({
           width: groupHover && !isMobile ? "auto" : isMobile ? 79 : 39,
         }}
         initial={false}
-        className="flex items-center justify-end divide-x divide-gray-200 overflow-hidden rounded-md border border-gray-200 sm:divide-transparent sm:group-hover:divide-gray-200"
+        className="flex items-center justify-end divide-x divide-neutral-200 overflow-hidden rounded-md border border-neutral-200 sm:divide-transparent sm:group-hover:divide-neutral-200"
       >
         <Button
           icon={<PenWriting className={cn("h-4 w-4 shrink-0")} />}
@@ -358,12 +359,12 @@ function Menu({
               <Refresh2
                 className={cn(
                   "h-4 w-4 shrink-0 -scale-100 transition-colors [animation-duration:0.25s]",
-                  refreshProps.isValidating && "animate-spin text-gray-500",
+                  refreshProps.isValidating && "animate-spin text-neutral-500",
                 )}
               />
             }
             variant="outline"
-            className="h-8 rounded-none border-0 px-3 text-gray-600"
+            className="h-8 rounded-none border-0 px-3 text-neutral-600"
             onClick={() => refreshProps.mutate()}
           />
         </Tooltip>
@@ -371,7 +372,7 @@ function Menu({
           content={
             <div className="w-full sm:w-48">
               <div className="grid gap-px p-2">
-                <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-gray-500">
+                <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-neutral-500">
                   Link Settings
                 </p>
                 <Button
@@ -417,9 +418,9 @@ function Menu({
                   className="h-9 justify-start px-2 font-medium"
                 />
               </div>
-              <div className="border-t border-gray-200" />
+              <div className="border-t border-neutral-200" />
               <div className="grid gap-px p-2">
-                <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-gray-500">
+                <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-neutral-500">
                   Domain Settings
                 </p>
                 <Button

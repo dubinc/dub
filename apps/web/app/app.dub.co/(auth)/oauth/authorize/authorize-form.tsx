@@ -1,11 +1,12 @@
 "use client";
 
+import { consolidateScopes, getScopesForRole } from "@/lib/api/tokens/scopes";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import z from "@/lib/zod";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
 import { Button, InputSelect, InputSelectItemProps } from "@dub/ui";
-import { OfficeBuilding } from "@dub/ui/src/icons";
+import { OfficeBuilding } from "@dub/ui/icons";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
@@ -32,6 +33,9 @@ export const AuthorizeForm = ({
   const [selectedWorkspace, setSelectedWorkspace] =
     useState<InputSelectItemProps | null>(null);
 
+  // missing scopes for the user's role on the workspace selected
+  const [missingScopes, setMissingScopes] = useState<string[]>([]);
+
   const selectOptions = useMemo(() => {
     return workspaces
       ? workspaces.map((workspace) => ({
@@ -49,6 +53,29 @@ export const AuthorizeForm = ({
       ) || null,
     );
   }, [selectOptions, session]);
+
+  // Check if the user has the required scopes for the workspace selected
+  useEffect(() => {
+    if (!selectedWorkspace) {
+      return;
+    }
+
+    const workspace = workspaces?.find(
+      (workspace) => workspace.slug === selectedWorkspace.id,
+    );
+
+    if (!workspace) {
+      return;
+    }
+
+    const userRole = workspace.users[0].role;
+    const scopesForRole = getScopesForRole(userRole);
+    const scopesMissing = consolidateScopes(scope).filter(
+      (scope) => !scopesForRole.includes(scope) && scope !== "user.read",
+    );
+
+    setMissingScopes(scopesMissing);
+  }, [selectedWorkspace]);
 
   // Decline the request
   const onDecline = () => {
@@ -113,7 +140,7 @@ export const AuthorizeForm = ({
             value={code_challenge_method}
           />
         )}
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-neutral-500">
           Select a workspace to grant API access to
         </p>
         <div className="max-w-md py-2">
@@ -129,7 +156,7 @@ export const AuthorizeForm = ({
                 text="Create new workspace"
                 variant="outline"
                 onClick={() => setShowAddWorkspaceModal(true)}
-                className="justify-start text-gray-700"
+                className="justify-start text-neutral-700"
               />
             }
           />
@@ -148,7 +175,11 @@ export const AuthorizeForm = ({
             loading={submitting}
             disabled={!selectedWorkspace}
             disabledTooltip={
-              !selectedWorkspace ? "Please select a workspace to continue" : ""
+              !selectedWorkspace
+                ? "Please select a workspace to continue"
+                : missingScopes.length > 0
+                  ? "You don't have the permission to install this integration"
+                  : undefined
             }
           />
         </div>

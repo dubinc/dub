@@ -1,6 +1,12 @@
 import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { useRouterStuff } from "@dub/ui";
-import { CONTINENTS, COUNTRIES } from "@dub/utils";
+import {
+  FlagWavy,
+  LocationPin,
+  MapPosition,
+  OfficeBuilding,
+} from "@dub/ui/icons";
+import { CONTINENTS, COUNTRIES, REGIONS } from "@dub/utils";
 import { useContext, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
@@ -10,23 +16,25 @@ import ContinentIcon from "./continent-icon";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Locations() {
-  const { queryParams } = useRouterStuff();
+  const { queryParams, searchParams } = useRouterStuff();
 
-  const { selectedTab } = useContext(AnalyticsContext);
-  const dataKey = selectedTab === "sales" ? "saleAmount" : "count";
+  const { selectedTab, saleUnit } = useContext(AnalyticsContext);
+  const dataKey = selectedTab === "sales" ? saleUnit : "count";
 
-  const [tab, setTab] = useState<"countries" | "cities" | "continents">(
-    "countries",
-  );
-  const data = useAnalyticsFilterOption(tab);
+  const [tab, setTab] = useState<
+    "countries" | "cities" | "continents" | "regions"
+  >("countries");
+
+  const { data } = useAnalyticsFilterOption(tab);
   const singularTabName = SINGULAR_ANALYTICS_ENDPOINTS[tab];
 
   return (
     <AnalyticsCard
       tabs={[
-        { id: "countries", label: "Countries" },
-        { id: "cities", label: "Cities" },
-        { id: "continents", label: "Continents" },
+        { id: "countries", label: "Countries", icon: FlagWavy },
+        { id: "cities", label: "Cities", icon: OfficeBuilding },
+        { id: "regions", label: "Regions", icon: LocationPin },
+        { id: "continents", label: "Continents", icon: MapPosition },
       ]}
       selectedTabId={tab}
       onSelectTab={setTab}
@@ -59,11 +67,17 @@ export default function Locations() {
                         ? CONTINENTS[d.continent]
                         : tab === "countries"
                           ? COUNTRIES[d.country]
-                          : d.city,
+                          : tab === "regions"
+                            ? REGIONS[d.region] || d.region.split("-")[1]
+                            : d.city,
                     href: queryParams({
-                      set: {
-                        [singularTabName]: d[singularTabName],
-                      },
+                      ...(searchParams.has(singularTabName)
+                        ? { del: singularTabName }
+                        : {
+                            set: {
+                              [singularTabName]: d[singularTabName],
+                            },
+                          }),
                       getNewPath: true,
                     }) as string,
                     value: d[dataKey] || 0,
@@ -79,11 +93,11 @@ export default function Locations() {
             />
           ) : (
             <div className="flex h-[300px] items-center justify-center">
-              <p className="text-sm text-gray-600">No data available</p>
+              <p className="text-sm text-neutral-600">No data available</p>
             </div>
           )
         ) : (
-          <div className="flex h-[300px] items-center justify-center">
+          <div className="absolute inset-0 flex h-[300px] w-full items-center justify-center bg-white/50">
             <AnalyticsLoadingSpinner />
           </div>
         )

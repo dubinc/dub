@@ -6,7 +6,7 @@ import {
   parse,
 } from "@/lib/middleware/utils";
 import { recordClick } from "@/lib/tinybird";
-import { formatRedisLink, redis } from "@/lib/upstash";
+import { formatRedisLink } from "@/lib/upstash";
 import {
   DUB_HEADERS,
   LEGAL_WORKSPACE_ID,
@@ -23,9 +23,10 @@ import {
   NextResponse,
   userAgent,
 } from "next/server";
+import { linkCache } from "../api/links/cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
-import { RedisLinkProps } from "../types";
+import { hasEmptySearchParams } from "./utils/has-empty-search-params";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -64,7 +65,7 @@ export default async function LinkMiddleware(
     });
   }
 
-  let link = await redis.hget<RedisLinkProps>(domain, key);
+  let link = await linkCache.get({ domain, key });
 
   if (!link) {
     const linkData = await getLinkViaEdge(domain, key);
@@ -77,6 +78,8 @@ export default async function LinkMiddleware(
           headers: {
             ...DUB_HEADERS,
             "X-Robots-Tag": "googlebot: noindex",
+            // pass the Referer value to the not found URL
+            Referer: req.url,
           },
           status: 302,
         });
@@ -88,13 +91,9 @@ export default async function LinkMiddleware(
     }
 
     // format link to fit the RedisLinkProps interface
-    link = await formatRedisLink(linkData as any);
+    link = formatRedisLink(linkData as any);
 
-    ev.waitUntil(
-      redis.hset(domain, {
-        [key]: link,
-      }),
-    );
+    ev.waitUntil(linkCache.set(linkData as any));
   }
 
   const {
@@ -104,7 +103,6 @@ export default async function LinkMiddleware(
     trackConversion,
     proxy,
     rewrite,
-    iframeable,
     expiresAt,
     ios,
     android,
@@ -112,6 +110,7 @@ export default async function LinkMiddleware(
     expiredUrl,
     doIndex,
     webhookIds,
+    projectId: workspaceId,
   } = link;
 
   // by default, we only index default dub domain links (e.g. dub.sh)
@@ -133,24 +132,23 @@ export default async function LinkMiddleware(
 
   // if the link is password protected
   if (password) {
-    const pw = req.nextUrl.searchParams.get("pw");
+    const pw =
+      req.nextUrl.searchParams.get("pw") ||
+      req.cookies.get(`dub_password_${linkId}`)?.value;
 
     // rewrite to auth page (/password/[domain]/[key]) if:
     // - no `pw` param is provided
     // - the `pw` param is incorrect
     // this will also ensure that no clicks are tracked unless the password is correct
     if (!pw || (await getLinkViaEdge(domain, key))?.password !== pw) {
-      return NextResponse.rewrite(
-        new URL(`/password/${domain}/${encodeURIComponent(key)}`, req.url),
-        {
-          headers: {
-            ...DUB_HEADERS,
-            ...(!shouldIndex && {
-              "X-Robots-Tag": "googlebot: noindex",
-            }),
-          },
+      return NextResponse.rewrite(new URL(`/password/${linkId}`, req.url), {
+        headers: {
+          ...DUB_HEADERS,
+          ...(!shouldIndex && {
+            "X-Robots-Tag": "googlebot: noindex",
+          }),
         },
-      );
+      });
     } else if (pw) {
       // strip it from the URL if it's correct
       req.nextUrl.searchParams.delete("pw");
@@ -188,8 +186,7 @@ export default async function LinkMiddleware(
   }
 
   const cookieStore = cookies();
-  let clickId =
-    cookieStore.get("dub_id")?.value || cookieStore.get("dclid")?.value;
+  let clickId = cookieStore.get("dub_id")?.value;
   if (!clickId) {
     clickId = nanoid(16);
   }
@@ -203,6 +200,7 @@ export default async function LinkMiddleware(
         clickId,
         url,
         webhookIds,
+        workspaceId,
       }),
     );
 
@@ -247,6 +245,7 @@ export default async function LinkMiddleware(
         clickId,
         url,
         webhookIds,
+        workspaceId,
       }),
     );
 
@@ -280,44 +279,32 @@ export default async function LinkMiddleware(
         clickId,
         url,
         webhookIds,
+        workspaceId,
       }),
     );
 
-    if (iframeable) {
-      return createResponseWithCookie(
-        NextResponse.rewrite(
-          new URL(
-            `/cloaked/${encodeURIComponent(
-              getFinalUrl(url, {
-                req,
-                clickId: trackConversion ? clickId : undefined,
-              }),
-            )}`,
-            req.url,
-          ),
-          {
-            headers: {
-              ...DUB_HEADERS,
-              ...(!shouldIndex && {
-                "X-Robots-Tag": "googlebot: noindex",
-              }),
-            },
-          },
+    return createResponseWithCookie(
+      NextResponse.rewrite(
+        new URL(
+          `/cloaked/${encodeURIComponent(
+            getFinalUrl(url, {
+              req,
+              clickId: trackConversion ? clickId : undefined,
+            }),
+          )}`,
+          req.url,
         ),
-        { clickId, path: `/${originalKey}` },
-      );
-    } else {
-      // if link is not iframeable, use Next.js rewrite instead
-      return createResponseWithCookie(
-        NextResponse.rewrite(url, {
+        {
           headers: {
             ...DUB_HEADERS,
-            ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+            ...(!shouldIndex && {
+              "X-Robots-Tag": "googlebot: noindex",
+            }),
           },
-        }),
-        { clickId, path: `/${originalKey}` },
-      );
-    }
+        },
+      ),
+      { clickId, path: `/${originalKey}` },
+    );
 
     // redirect to iOS link if it is specified and the user is on an iOS device
   } else if (ios && userAgent(req).os?.name === "iOS") {
@@ -328,6 +315,7 @@ export default async function LinkMiddleware(
         clickId,
         url: ios,
         webhookIds,
+        workspaceId,
       }),
     );
 
@@ -357,6 +345,7 @@ export default async function LinkMiddleware(
         clickId,
         url: android,
         webhookIds,
+        workspaceId,
       }),
     );
 
@@ -386,6 +375,7 @@ export default async function LinkMiddleware(
         clickId,
         url: geo[country],
         webhookIds,
+        workspaceId,
       }),
     );
 
@@ -415,8 +405,22 @@ export default async function LinkMiddleware(
         clickId,
         url,
         webhookIds,
+        workspaceId,
       }),
     );
+
+    if (hasEmptySearchParams(url)) {
+      return NextResponse.rewrite(new URL("/api/patch-redirect", req.url), {
+        request: {
+          headers: new Headers({
+            destination: getFinalUrl(url, {
+              req,
+              clickId: trackConversion ? clickId : undefined,
+            }),
+          }),
+        },
+      });
+    }
 
     return createResponseWithCookie(
       NextResponse.redirect(

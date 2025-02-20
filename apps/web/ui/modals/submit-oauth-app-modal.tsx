@@ -28,7 +28,7 @@ function SubmitOAuthAppModal({
   const workspace = useWorkspace();
   const [message, setMessage] = useState(DEFAULT_MESSAGE);
 
-  const { execute, isExecuting } = useAction(submitOAuthAppForReview, {
+  const { execute, isPending } = useAction(submitOAuthAppForReview, {
     onSuccess: () => {
       toast.success(
         "OAuth app submitted for review. We'll be in touch shortly.",
@@ -36,7 +36,7 @@ function SubmitOAuthAppModal({
       setShowSubmitOAuthAppModal(false);
     },
     onError: ({ error }) => {
-      toast.error(error.serverError?.serverError);
+      toast.error(error.serverError);
     },
   });
 
@@ -49,7 +49,7 @@ function SubmitOAuthAppModal({
       showModal={showSubmitOAuthAppModal}
       setShowModal={setShowSubmitOAuthAppModal}
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
+      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 sm:px-16">
         {oAuthApp.logo ? (
           <BlurImage
             src={oAuthApp.logo}
@@ -66,7 +66,7 @@ function SubmitOAuthAppModal({
           Submit {oAuthApp.name} for review
         </h3>
 
-        <p className="text-center text-sm text-gray-500">
+        <p className="text-center text-sm text-neutral-500">
           Please provide any additional information or comments for us to review
           your app.
         </p>
@@ -82,7 +82,7 @@ function SubmitOAuthAppModal({
             workspaceId: workspace.id!,
           });
         }}
-        className="flex flex-col gap-4 bg-gray-50 px-4 pb-8 pt-6 text-left sm:px-16"
+        className="flex flex-col gap-4 bg-neutral-50 px-4 pb-8 pt-6 text-left sm:px-16"
       >
         <TextareaAutosize
           id="message"
@@ -90,12 +90,12 @@ function SubmitOAuthAppModal({
           minRows={5}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm"
+          className="mt-1 block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
           maxLength={1000}
         />
         <Button
-          text={isExecuting ? "Submitting..." : "Submit"}
-          loading={isExecuting}
+          text={isPending ? "Submitting..." : "Submit"}
+          loading={isPending}
           disabled={message.trim().length === 0}
           type="submit"
         />

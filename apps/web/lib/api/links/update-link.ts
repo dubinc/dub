@@ -1,8 +1,9 @@
-import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { LinkProps, ProcessedLinkProps } from "@/lib/types";
-import { formatRedisLink, redis } from "@/lib/upstash";
+import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
+import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import {
   R2_URL,
   getParamsFromURL,
@@ -10,9 +11,12 @@ import {
   nanoid,
   truncate,
 } from "@dub/utils";
-import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { combineTagIds, transformLink } from "./utils";
+import { combineTagIds } from "../tags/combine-tag-ids";
+import { createId } from "../utils";
+import { linkCache } from "./cache";
+import { includeTags } from "./include-tags";
+import { transformLink } from "./utils";
 
 export async function updateLink({
   oldLink,
@@ -33,6 +37,7 @@ export async function updateLink({
     image,
     proxy,
     geo,
+    publicStats,
   } = updatedLink;
   const changedKey = key.toLowerCase() !== oldLink.key.toLowerCase();
   const changedDomain = domain !== oldLink.domain;
@@ -87,7 +92,7 @@ export async function updateLink({
         updatedLink.projectId && {
           tags: {
             deleteMany: {},
-            create: tagNames.map((tagName) => ({
+            create: tagNames.map((tagName, idx) => ({
               tag: {
                 connect: {
                   name_projectId: {
@@ -96,6 +101,7 @@ export async function updateLink({
                   },
                 },
               },
+              createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
             })),
           },
         }),
@@ -104,8 +110,9 @@ export async function updateLink({
       ...(combinedTagIds && {
         tags: {
           deleteMany: {},
-          create: combinedTagIds.map((tagId) => ({
+          create: combinedTagIds.map((tagId, idx) => ({
             tagId,
+            createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
           })),
         },
       }),
@@ -121,42 +128,35 @@ export async function updateLink({
           },
         },
       }),
-    },
-    include: {
-      tags: {
-        select: {
-          tag: {
-            select: {
-              id: true,
-              name: true,
-              color: true,
-            },
+
+      // Shared dashboard
+      ...(publicStats && {
+        dashboard: {
+          create: {
+            id: createId({ prefix: "dash_" }),
+            projectId: updatedLink.projectId,
+            userId: updatedLink.userId,
           },
         },
-      },
+      }),
+    },
+    include: {
+      ...includeTags,
       webhooks: webhookIds ? true : false,
     },
   });
 
   waitUntil(
-    Promise.all([
+    Promise.allSettled([
       // record link in Redis
-      redis.hset(updatedLink.domain.toLowerCase(), {
-        [updatedLink.key.toLowerCase()]: await formatRedisLink(response),
-      }),
+      linkCache.set(response),
+
       // record link in Tinybird
-      recordLink({
-        link_id: response.id,
-        domain: response.domain,
-        key: response.key,
-        url: response.url,
-        tag_ids: response.tags.map(({ tag }) => tag.id),
-        workspace_id: response.projectId,
-        created_at: response.createdAt,
-      }),
+      recordLink(response),
+
       // if key is changed: delete the old key in Redis
-      (changedDomain || changedKey) &&
-        redis.hdel(oldLink.domain.toLowerCase(), oldLink.key.toLowerCase()),
+      (changedDomain || changedKey) && linkCache.delete(oldLink),
+
       // if proxy is true and image is not stored in R2, upload image to R2
       proxy &&
         image &&
@@ -170,6 +170,11 @@ export async function updateLink({
         oldLink.image.startsWith(`${R2_URL}/images/${id}`) &&
         oldLink.image !== image &&
         storage.delete(oldLink.image.replace(`${R2_URL}/`, "")),
+
+      webhookIds != undefined &&
+        propagateWebhookTriggerChanges({
+          webhookIds,
+        }),
     ]),
   );
 

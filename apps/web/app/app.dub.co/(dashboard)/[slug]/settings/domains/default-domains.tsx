@@ -5,7 +5,7 @@ import useDefaultDomains from "@/lib/swr/use-default-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainCardTitleColumn } from "@/ui/domains/domain-card-title-column";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
-import { Logo, Switch } from "@dub/ui";
+import { Logo, Switch, TooltipContent } from "@dub/ui";
 import {
   Amazon,
   CalendarDays,
@@ -14,8 +14,7 @@ import {
   GitHubEnhanced,
   GoogleEnhanced,
   Spotify,
-} from "@dub/ui/src/icons";
-import { TooltipContent } from "@dub/ui/src/tooltip";
+} from "@dub/ui/icons";
 import { DUB_DOMAINS } from "@dub/utils";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -60,17 +59,17 @@ export function DefaultDomains() {
   const [submitting, setSubmitting] = useState(false);
 
   return (
-    <div className="my-10 grid gap-5 border-t border-gray-200 py-10">
+    <div className="my-10 grid gap-5 border-t border-neutral-200 py-10">
       <div>
         <h2 className="text-xl font-semibold tracking-tight text-black">
           Default Domains
         </h2>
-        <p className="mt-3 text-sm text-gray-500">
+        <p className="mt-3 text-sm text-neutral-500">
           Leverage default branded domains from Dub for specific links.{" "}
           <Link
             href="https://dub.co/help/article/default-dub-domains"
             target="_blank"
-            className="underline transition-colors hover:text-gray-800"
+            className="underline transition-colors hover:text-neutral-800"
           >
             Learn more.
           </Link>
@@ -78,7 +77,9 @@ export function DefaultDomains() {
       </div>
       <div className="mt-2 grid grid-cols-1 gap-3">
         {DUB_DOMAINS.filter((domain) => {
-          if (domain.slug === "loooooooo.ng") {
+          if (domain.slug === "dub.link") {
+            return flags?.noDubLink ? false : true;
+          } else if (domain.slug === "loooooooo.ng") {
             return false;
           }
           return true;
@@ -86,7 +87,7 @@ export function DefaultDomains() {
           return (
             <div
               key={slug}
-              className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white p-5"
+              className="flex items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-white p-5"
             >
               <DomainCardTitleColumn
                 domain={slug}

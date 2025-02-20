@@ -24,33 +24,34 @@ const githubLink = {
 };
 
 const steven = {
-  name: "Steven",
-  email: "",
+  name: "Steven Tey",
+  email: "steven@dub.co",
   avatar: "https://avatar.vercel.sh/s.png?text=S",
 };
 
 const tim = {
-  name: "Tim",
-  email: "",
+  name: "Tim Wilson",
+  email: "tim@dub.co",
   avatar: "https://avatar.vercel.sh/t.png?text=T",
 };
 
 const kiran = {
-  name: "Kiran",
-  email: "",
+  name: "Kiran Kuriya",
+  email: "kiran@dub.co",
   avatar: "https://avatar.vercel.sh/k.png?text=K",
 };
 
-export const exampleData = {
+export const EXAMPLE_EVENTS_DATA = {
   clicks: [
     {
       event: "click",
       timestamp: new Date().toISOString(),
       click: {
         id: "1",
-        continent: "NA",
         country: "US",
         city: "San Francisco",
+        region: "US-CA",
+        continent: "NA",
         ...common,
       },
       link: dubLink,
@@ -60,9 +61,10 @@ export const exampleData = {
       timestamp: new Date(Date.now() - 3 * 60 * 1000).toISOString(),
       click: {
         id: "2",
-        continent: "NA",
         country: "US",
-        city: "San Francisco",
+        city: "New York",
+        region: "US-NY",
+        continent: "NA",
         ...common,
       },
       link: dubLink,
@@ -72,9 +74,10 @@ export const exampleData = {
       timestamp: new Date(Date.now() - 7 * 60 * 1000).toISOString(),
       click: {
         id: "3",
-        continent: "NA",
         country: "US",
-        city: "New York",
+        city: "Pittsburgh",
+        region: "US-PA",
+        continent: "NA",
         ...common,
       },
       link: githubLink,
@@ -88,9 +91,10 @@ export const exampleData = {
       eventName: "Sign up",
       click: {
         id: "1",
-        continent: "NA",
         country: "US",
         city: "San Francisco",
+        region: "US-CA",
+        continent: "NA",
         ...common,
       },
       link: dubLink,
@@ -103,9 +107,10 @@ export const exampleData = {
       eventName: "Sign up",
       click: {
         id: "1",
-        continent: "NA",
-        country: "US",
-        city: "San Francisco",
+        country: "IN",
+        city: "Kerala",
+        region: "IN-KL",
+        continent: "AS",
         ...common,
       },
       link: dubLink,
@@ -118,9 +123,10 @@ export const exampleData = {
       eventName: "Sign up",
       click: {
         id: "3",
-        continent: "NA",
         country: "US",
         city: "Pittsburgh",
+        region: "US-PA",
+        continent: "NA",
         ...common,
       },
       link: githubLink,
@@ -134,15 +140,16 @@ export const exampleData = {
       eventId: "Nffk2cwShKu5lQ7E",
       eventName: "Purchase",
       sale: {
-        amount: 900,
+        amount: 49_90,
         paymentProcessor: "stripe",
         invoiceId: "123456",
       },
       click: {
         id: "1",
-        continent: "NA",
         country: "US",
         city: "San Francisco",
+        region: "US-CA",
+        continent: "NA",
         ...common,
       },
       link: dubLink,
@@ -154,15 +161,16 @@ export const exampleData = {
       eventId: "Nffk2cwShKu5lQ7E",
       eventName: "Purchase",
       sale: {
-        amount: 700,
+        amount: 79_90,
         paymentProcessor: "stripe",
         invoiceId: "123456",
       },
       click: {
         id: "2",
-        continent: "NA",
         country: "US",
         city: "Pittsburgh",
+        region: "US-PA",
+        continent: "NA",
         ...common,
       },
       link: dubLink,
@@ -174,15 +182,16 @@ export const exampleData = {
       eventId: "Nffk2cwShKu5lQ7E",
       eventName: "Purchase",
       sale: {
-        amount: 1000,
+        amount: 99_90,
         paymentProcessor: "stripe",
         invoiceId: "123456",
       },
       click: {
         id: "3",
-        continent: "AS",
         country: "IN",
         city: "Kerala",
+        region: "IN-KL",
+        continent: "AS",
         ...common,
       },
       link: dubLink,

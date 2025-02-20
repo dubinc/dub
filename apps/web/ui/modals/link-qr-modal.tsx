@@ -1,4 +1,5 @@
 import { getQRAsCanvas, getQRAsSVGDataUri, getQRData } from "@/lib/qr";
+import useDomain from "@/lib/swr/use-domain";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { QRLinkProps } from "@/lib/types";
 import { QRCode } from "@/ui/shared/qr-code";
@@ -14,6 +15,7 @@ import {
   Switch,
   Tooltip,
   TooltipContent,
+  useCopyToClipboard,
   useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
@@ -21,12 +23,12 @@ import {
   Check,
   Check2,
   Copy,
+  CrownSmall,
   Download,
   Hyperlink,
   Photo,
-} from "@dub/ui/src/icons";
-import { API_DOMAIN, cn, linkConstructor } from "@dub/utils";
-import { DUB_QR_LOGO } from "@dub/utils/src/constants";
+} from "@dub/ui/icons";
+import { API_DOMAIN, cn, DUB_QR_LOGO, linkConstructor } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Dispatch,
@@ -41,6 +43,7 @@ import {
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
+import { ProBadgeTooltip } from "../shared/pro-badge-tooltip";
 
 const DEFAULT_COLORS = [
   "#000000",
@@ -89,9 +92,13 @@ function LinkQRModalInner({
   showLinkQRModal: boolean;
   setShowLinkQRModal: Dispatch<SetStateAction<boolean>>;
 } & LinkQRModalProps) {
-  const { logo: workspaceLogo, plan, id: workspaceId, slug } = useWorkspace();
+  const { id: workspaceId, slug, plan, logo: workspaceLogo } = useWorkspace();
   const id = useId();
   const { isMobile } = useMediaQuery();
+  const { logo: domainLogo } = useDomain({
+    slug: props.domain,
+    enabled: showLinkQRModal,
+  });
 
   const url = useMemo(() => {
     return props.key && props.domain
@@ -106,11 +113,12 @@ function LinkQRModalInner({
       hideLogo: false,
     },
   );
+
   const [data, setData] = useState(dataPersisted);
 
-  const logo = workspaceLogo && plan !== "free" ? workspaceLogo : DUB_QR_LOGO;
-
   const hideLogo = data.hideLogo && plan !== "free";
+  const logo =
+    plan === "free" ? DUB_QR_LOGO : domainLogo || workspaceLogo || DUB_QR_LOGO;
 
   const qrData = useMemo(
     () =>
@@ -143,18 +151,30 @@ function LinkQRModalInner({
       }}
     >
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">QR Code Design</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-medium">QR Code</h3>
+          <ProBadgeTooltip
+            content={
+              <SimpleTooltipContent
+                title="Set a custom QR code design to improve click-through rates."
+                cta="Learn more."
+                href="https://dub.co/help/article/custom-qr-codes"
+              />
+            }
+          />
+        </div>
         <div className="max-md:hidden">
           <Tooltip
             content={
-              <div className="px-2 py-1 text-xs text-gray-700">
-                Press <strong className="font-medium text-gray-950">Q</strong>{" "}
-                to open this quickly
+              <div className="px-2 py-1 text-xs text-neutral-700">
+                Press{" "}
+                <strong className="font-medium text-neutral-950">Q</strong> to
+                open this quickly
               </div>
             }
             side="right"
           >
-            <kbd className="flex size-6 cursor-default items-center justify-center rounded-md border border-gray-200 font-sans text-xs text-gray-950">
+            <kbd className="flex size-6 cursor-default items-center justify-center rounded-md border border-neutral-200 font-sans text-xs text-neutral-950">
               Q
             </kbd>
           </Tooltip>
@@ -164,7 +184,7 @@ function LinkQRModalInner({
       <div>
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-neutral-700">
               QR Code Preview
             </span>
             <InfoTooltip
@@ -186,7 +206,7 @@ function LinkQRModalInner({
                       content: "Download QR code",
                     }}
                   >
-                    <Download className="h-4 w-4 text-gray-500" />
+                    <Download className="h-4 w-4 text-neutral-500" />
                   </ButtonTooltip>
                 </div>
               </DownloadPopover>
@@ -197,14 +217,14 @@ function LinkQRModalInner({
                       content: "Copy QR code",
                     }}
                   >
-                    <Copy className="h-4 w-4 text-gray-500" />
+                    <Copy className="h-4 w-4 text-neutral-500" />
                   </ButtonTooltip>
                 </div>
               </CopyPopover>
             </div>
           )}
         </div>
-        <div className="relative mt-2 flex h-44 items-center justify-center overflow-hidden rounded-md border border-gray-300">
+        <div className="relative mt-2 flex h-44 items-center justify-center overflow-hidden rounded-md border border-neutral-300">
           {!isMobile && (
             <ShimmerDots className="opacity-30 [mask-image:radial-gradient(40%_80%,transparent_50%,black)]" />
           )}
@@ -235,7 +255,7 @@ function LinkQRModalInner({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <label
-            className="text-sm font-medium text-gray-700"
+            className="text-sm font-medium text-neutral-700"
             htmlFor={`${id}-show-logo`}
           >
             Logo
@@ -257,12 +277,22 @@ function LinkQRModalInner({
             setData((d) => ({ ...d, hideLogo: !d.hideLogo }));
           }}
           disabledTooltip={
-            plan === "free" ? (
+            !plan || plan === "free" ? (
               <TooltipContent
                 title="You need to be on the Pro plan and above to customize your QR Code logo."
                 cta="Upgrade to Pro"
-                href={slug ? `/${slug}/upgrade` : "https://dub.co/pricing"}
+                href={
+                  slug
+                    ? `/${slug}/upgrade?exit=close`
+                    : "https://dub.co/pricing"
+                }
+                target="_blank"
               />
+            ) : undefined
+          }
+          thumbIcon={
+            !plan || plan === "free" ? (
+              <CrownSmall className="size-full text-neutral-500" />
             ) : undefined
           }
         />
@@ -270,7 +300,7 @@ function LinkQRModalInner({
 
       {/* Color selector */}
       <div>
-        <span className="block text-sm font-medium text-gray-700">
+        <span className="block text-sm font-medium text-neutral-700">
           QR Code Color
         </span>
         <div className="mt-2 flex gap-6">
@@ -300,7 +330,7 @@ function LinkQRModalInner({
               onChange={onColorChange}
               prefixed
               style={{ borderColor: data.fgColor }}
-              className="block w-full rounded-r-md border-2 border-l-0 pl-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-black sm:text-sm"
+              className="block w-full rounded-r-md border-2 border-l-0 pl-3 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-black sm:text-sm"
             />
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-3">
@@ -379,7 +409,7 @@ function DownloadPopover({
               onClick={async () => {
                 download(await getQRAsSVGDataUri(qrData), "svg");
               }}
-              className="rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+              className="rounded-md p-2 text-left text-sm font-medium text-neutral-500 transition-all duration-75 hover:bg-neutral-100"
             >
               <IconMenu
                 text="Download SVG"
@@ -394,7 +424,7 @@ function DownloadPopover({
                   "png",
                 );
               }}
-              className="rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+              className="rounded-md p-2 text-left text-sm font-medium text-neutral-500 transition-all duration-75 hover:bg-neutral-100"
             >
               <IconMenu
                 text="Download PNG"
@@ -409,7 +439,7 @@ function DownloadPopover({
                   "jpg",
                 );
               }}
-              className="rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+              className="rounded-md p-2 text-left text-sm font-medium text-neutral-500 transition-all duration-75 hover:bg-neutral-100"
             >
               <IconMenu
                 text="Download JPEG"
@@ -442,24 +472,22 @@ function CopyPopover({
   props: QRLinkProps;
 }>) {
   const [openPopover, setOpenPopover] = useState(false);
+  const [copiedURL, copyUrlToClipboard] = useCopyToClipboard(2000);
+  const [copiedImage, copyImageToClipboard] = useCopyToClipboard(2000);
 
-  const [copiedImage, setCopiedImage] = useState(false);
   const copyToClipboard = async () => {
     try {
       const canvas = await getQRAsCanvas(qrData, "image/png", true);
       (canvas as HTMLCanvasElement).toBlob(async function (blob) {
         // @ts-ignore
         const item = new ClipboardItem({ "image/png": blob });
-        await navigator.clipboard.write([item]);
-        setCopiedImage(true);
-        setTimeout(() => setCopiedImage(false), 2000);
+        await copyImageToClipboard(item);
         setOpenPopover(false);
       });
     } catch (e) {
       throw e;
     }
   };
-  const [copiedURL, setCopiedURL] = useState(false);
 
   return (
     <Popover
@@ -474,7 +502,7 @@ function CopyPopover({
                 error: "Failed to copy",
               });
             }}
-            className="rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+            className="rounded-md p-2 text-left text-sm font-medium text-neutral-500 transition-all duration-75 hover:bg-neutral-100"
           >
             <IconMenu
               text="Copy Image"
@@ -490,21 +518,19 @@ function CopyPopover({
           <button
             type="button"
             onClick={() => {
-              navigator.clipboard.writeText(
-                `${API_DOMAIN}/qr?url=${linkConstructor({
-                  key: props.key,
-                  domain: props.domain,
-                  searchParams: {
-                    qr: "1",
-                  },
-                })}${qrData.hideLogo ? "&hideLogo=true" : ""}`,
-              );
-              toast.success("Copied QR code URL to clipboard!");
-              setCopiedURL(true);
-              setTimeout(() => setCopiedURL(false), 2000);
+              const url = `${API_DOMAIN}/qr?url=${linkConstructor({
+                key: props.key,
+                domain: props.domain,
+                searchParams: {
+                  qr: "1",
+                },
+              })}${qrData.hideLogo ? "&hideLogo=true" : ""}`;
+              toast.promise(copyUrlToClipboard(url), {
+                success: "Copied QR code URL to clipboard!",
+              });
               setOpenPopover(false);
             }}
-            className="rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+            className="rounded-md p-2 text-left text-sm font-medium text-neutral-500 transition-all duration-75 hover:bg-neutral-100"
           >
             <IconMenu
               text="Copy URL"

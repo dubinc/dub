@@ -1,11 +1,12 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { DubApiError } from "@/lib/api/errors";
+import { linkCache } from "@/lib/api/links/cache";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { recordLink } from "@/lib/tinybird";
-import { formatRedisLink, redis } from "@/lib/upstash";
 import z from "@/lib/zod";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -21,9 +22,18 @@ const transferLinkBodySchema = z.object({
 export const POST = withWorkspace(
   async ({ req, headers, session, params, workspace }) => {
     const link = await getLinkOrThrow({
-      workspace,
+      workspaceId: workspace.id,
       linkId: params.linkId,
     });
+
+    if (link.folderId) {
+      await verifyFolderAccess({
+        workspace,
+        userId: session.user.id,
+        folderId: link.folderId,
+        requiredPermission: "folders.links.write",
+      });
+    }
 
     const { newWorkspaceId } = transferLinkBodySchema.parse(await req.json());
 
@@ -64,7 +74,7 @@ export const POST = withWorkspace(
       interval: "30d",
     });
 
-    const response = await prisma.link.update({
+    const updatedLink = await prisma.link.update({
       where: {
         id: link.id,
       },
@@ -74,40 +84,17 @@ export const POST = withWorkspace(
         tags: {
           deleteMany: {},
         },
+        // remove folder when transferring link
+        folderId: null,
       },
     });
 
     waitUntil(
       Promise.all([
-        redis.hset(link.domain.toLowerCase(), {
-          [link.key.toLowerCase()]: await formatRedisLink({
-            ...link,
-            projectId: newWorkspaceId,
-          }),
-        }),
-        recordLink({
-          link_id: link.id,
-          domain: link.domain,
-          key: link.key,
-          url: link.url,
-          tag_ids: [],
-          workspace_id: newWorkspaceId,
-          created_at: link.createdAt,
-        }),
-        // decrement old workspace usage
-        prisma.project.update({
-          where: {
-            id: workspace.id,
-          },
-          data: {
-            usage: {
-              decrement: linkClicks,
-            },
-            linksUsage: {
-              decrement: 1,
-            },
-          },
-        }),
+        linkCache.set(updatedLink),
+
+        recordLink(updatedLink),
+
         // increment new workspace usage
         prisma.project.update({
           where: {
@@ -132,7 +119,7 @@ export const POST = withWorkspace(
       ]),
     );
 
-    return NextResponse.json(response, {
+    return NextResponse.json(updatedLink, {
       headers,
     });
   },

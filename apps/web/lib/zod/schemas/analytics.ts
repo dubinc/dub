@@ -18,6 +18,7 @@ import {
 } from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
+import { utmTagsSchema } from "./utm";
 
 const analyticsEvents = z
   .enum([...EVENT_TYPES, "composite"], {
@@ -43,7 +44,7 @@ const analyticsGroupBy = z
   })
   .default("count")
   .describe(
-    "The parameter to group the analytics data points by. Defaults to `count` if undefined. Note that `trigger` is deprecated (use `triggers` instead), but kept for backwards compatibility.",
+    "The parameter to group the analytics data points by. Defaults to `count` if undefined.",
   );
 
 const oldAnalyticsEndpoints = z
@@ -66,114 +67,154 @@ export const analyticsPathParamsSchema = z.object({
 });
 
 // Query schema for /api/analytics endpoint
-export const analyticsQuerySchema = z.object({
-  event: analyticsEvents,
-  groupBy: analyticsGroupBy,
-  domain: z.string().optional().describe("The domain to filter analytics for."),
-  key: z.string().optional().describe("The short link slug."),
-  linkId: z
-    .string()
-    .optional()
-    .describe("The unique ID of the short link on Dub."),
-  externalId: z
-    .string()
-    .optional()
-    .describe(
-      "This is the ID of the link in the your database. Must be prefixed with 'ext_' when passed as a query parameter.",
-    ),
-  interval: z
-    .enum(intervals)
-    .optional()
-    .describe(
-      "The interval to retrieve analytics for. Takes precedence over start and end. If undefined, defaults to 24h.",
-    ),
-  start: parseDateSchema
-    .refine((value: Date) => value >= DUB_FOUNDING_DATE, {
-      message: `The start date cannot be earlier than ${formatDate(DUB_FOUNDING_DATE)}.`,
-    })
-    .optional()
-    .describe("The start date and time when to retrieve analytics from."),
-  end: parseDateSchema
-    .optional()
-    .describe(
-      "The end date and time when to retrieve analytics from. If not provided, defaults to the current date.",
-    ),
-  timezone: z
-    .string()
-    .optional()
-    .describe(
-      "The IANA time zone code for aligning timeseries granularity (e.g. America/New_York). Defaults to UTC.",
-    )
-    .openapi({ example: "America/New_York", default: "UTC" }),
-  continent: z
-    .enum(CONTINENT_CODES)
-    .optional()
-    .describe("The continent to retrieve analytics for.")
-    .openapi({ ref: "continentCode" }),
-  country: z
-    .enum(COUNTRY_CODES)
-    .optional()
-    .describe("The country to retrieve analytics for.")
-    .openapi({ ref: "countryCode" }),
-  city: z
-    .string()
-    .optional()
-    .describe("The city to retrieve analytics for.")
-    .openapi({ example: "New York" }),
-  device: z
-    .string()
-    .optional()
-    .transform((v) => capitalize(v) as string | undefined)
-    .describe("The device to retrieve analytics for.")
-    .openapi({ example: "Desktop" }),
-  browser: z
-    .string()
-    .optional()
-    .transform((v) => capitalize(v) as string | undefined)
-    .describe("The browser to retrieve analytics for.")
-    .openapi({ example: "Chrome" }),
-  os: z
-    .string()
-    .optional()
-    .transform((v) => {
-      if (v === "iOS") return "iOS";
-      return capitalize(v) as string | undefined;
-    })
-    .describe("The OS to retrieve analytics for.")
-    .openapi({ example: "Windows" }),
-  trigger: z
-    .enum(TRIGGER_TYPES)
-    .optional()
-    .describe(
-      "The trigger to retrieve analytics for. If undefined, return both QR and link clicks.",
-    ),
-  referer: z
-    .string()
-    .optional()
-    .describe("The referer to retrieve analytics for.")
-    .openapi({ example: "google.com" }),
-  refererUrl: z
-    .string()
-    .optional()
-    .describe("The full referer URL to retrieve analytics for.")
-    .openapi({ example: "https://dub.co/blog" }),
-  url: z.string().optional().describe("The URL to retrieve analytics for."),
-  tagId: z
-    .string()
-    .optional()
-    .describe("The tag ID to retrieve analytics for."),
-  qr: booleanQuerySchema
-    .optional()
-    .describe(
-      "Deprecated. Use the `trigger` field instead. Filter for QR code scans. If true, filter for QR codes only. If false, filter for links only. If undefined, return both.",
-    )
-    .openapi({ deprecated: true }),
-  root: booleanQuerySchema
-    .optional()
-    .describe(
-      "Filter for root domains. If true, filter for domains only. If false, filter for links only. If undefined, return both.",
-    ),
-});
+export const analyticsQuerySchema = z
+  .object({
+    event: analyticsEvents,
+    groupBy: analyticsGroupBy,
+    domain: z
+      .string()
+      .optional()
+      .describe("The domain to filter analytics for."),
+    key: z.string().optional().describe("The short link slug."),
+    linkId: z
+      .string()
+      .optional()
+      .describe("The unique ID of the short link on Dub."),
+    externalId: z
+      .string()
+      .optional()
+      .describe(
+        "This is the ID of the link in the your database. Must be prefixed with 'ext_' when passed as a query parameter.",
+      ),
+    tenantId: z
+      .string()
+      .optional()
+      .describe(
+        "The ID of the tenant that created the link inside your system.",
+      ),
+    programId: z
+      .string()
+      .optional()
+      .describe("The ID of the program to retrieve analytics for."),
+    partnerId: z
+      .string()
+      .optional()
+      .describe("The ID of the partner to retrieve analytics for."),
+    interval: z
+      .enum(intervals)
+      .optional()
+      .describe(
+        "The interval to retrieve analytics for. If undefined, defaults to 24h.",
+      ),
+    start: parseDateSchema
+      .refine((value: Date) => value >= DUB_FOUNDING_DATE, {
+        message: `The start date cannot be earlier than ${formatDate(DUB_FOUNDING_DATE)}.`,
+      })
+      .optional()
+      .describe(
+        "The start date and time when to retrieve analytics from. Takes precedence over `interval`.",
+      ),
+    end: parseDateSchema
+      .optional()
+      .describe(
+        "The end date and time when to retrieve analytics from. If not provided, defaults to the current date. Takes precedence over `interval`.",
+      ),
+    timezone: z
+      .string()
+      .optional()
+      .describe(
+        "The IANA time zone code for aligning timeseries granularity (e.g. America/New_York). Defaults to UTC.",
+      )
+      .openapi({ example: "America/New_York", default: "UTC" }),
+    country: z
+      .enum(COUNTRY_CODES)
+      .optional()
+      .describe("The country to retrieve analytics for.")
+      .openapi({ ref: "countryCode" }),
+    city: z
+      .string()
+      .optional()
+      .describe("The city to retrieve analytics for.")
+      .openapi({ example: "New York" }),
+    region: z
+      .string()
+      .optional()
+      .describe("The ISO 3166-2 region code to retrieve analytics for.")
+      .openapi({ ref: "regionCode" }),
+    continent: z
+      .enum(CONTINENT_CODES)
+      .optional()
+      .describe("The continent to retrieve analytics for.")
+      .openapi({ ref: "continentCode" }),
+    device: z
+      .string()
+      .optional()
+      .transform((v) => capitalize(v) as string | undefined)
+      .describe("The device to retrieve analytics for.")
+      .openapi({ example: "Desktop" }),
+    browser: z
+      .string()
+      .optional()
+      .transform((v) => capitalize(v) as string | undefined)
+      .describe("The browser to retrieve analytics for.")
+      .openapi({ example: "Chrome" }),
+    os: z
+      .string()
+      .optional()
+      .transform((v) => {
+        if (v === "iOS") return "iOS";
+        return capitalize(v) as string | undefined;
+      })
+      .describe("The OS to retrieve analytics for.")
+      .openapi({ example: "Windows" }),
+    trigger: z
+      .enum(TRIGGER_TYPES)
+      .optional()
+      .describe(
+        "The trigger to retrieve analytics for. If undefined, return both QR and link clicks.",
+      ),
+    referer: z
+      .string()
+      .optional()
+      .describe("The referer to retrieve analytics for.")
+      .openapi({ example: "google.com" }),
+    refererUrl: z
+      .string()
+      .optional()
+      .describe("The full referer URL to retrieve analytics for.")
+      .openapi({ example: "https://dub.co/blog" }),
+    url: z.string().optional().describe("The URL to retrieve analytics for."),
+    tagId: z
+      .string()
+      .optional()
+      .describe(
+        "Deprecated. Use `tagIds` instead. The tag ID to retrieve analytics for.",
+      )
+      .openapi({ deprecated: true }),
+    tagIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .optional()
+      .describe("The tag IDs to retrieve analytics for."),
+    folderId: z
+      .string()
+      .optional()
+      .describe(
+        "The folder ID to retrieve analytics for. If not provided, return analytics for unsorted links.",
+      ),
+    qr: booleanQuerySchema
+      .optional()
+      .describe(
+        "Deprecated. Use the `trigger` field instead. Filter for QR code scans. If true, filter for QR codes only. If false, filter for links only. If undefined, return both.",
+      )
+      .openapi({ deprecated: true }),
+    root: booleanQuerySchema
+      .optional()
+      .describe(
+        "Filter for root domains. If true, filter for domains only. If false, filter for links only. If undefined, return both.",
+      ),
+  })
+  .merge(utmTagsSchema);
 
 // Analytics filter params for Tinybird endpoints
 export const analyticsFilterTB = z
@@ -189,12 +230,22 @@ export const analyticsFilterTB = z
           return v;
         }
       }),
+    customerId: z.string().optional(),
     root: z.boolean().optional(),
     qr: z.boolean().optional(),
     start: z.string(),
     end: z.string(),
     granularity: z.enum(["minute", "hour", "day", "month"]).optional(),
     timezone: z.string().optional(),
+    groupByUtmTag: z
+      .string()
+      .optional()
+      .describe("The UTM tag to group by. Defaults to `utm_source`."),
+    folderIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .optional()
+      .describe("The folder IDs to retrieve analytics for."),
   })
   .merge(
     analyticsQuerySchema.pick({
@@ -202,14 +253,24 @@ export const analyticsFilterTB = z
       city: true,
       country: true,
       continent: true,
+      region: true,
       device: true,
       domain: true,
       linkId: true,
       os: true,
       referer: true,
       refererUrl: true,
-      tagId: true,
+      tagIds: true,
       url: true,
+      utm_source: true,
+      utm_medium: true,
+      utm_campaign: true,
+      utm_term: true,
+      utm_content: true,
+      programId: true,
+      partnerId: true,
+      tenantId: true,
+      folderId: true,
     }),
   );
 
@@ -223,6 +284,12 @@ export const eventsFilterTB = analyticsFilterTB
       sortBy: z.enum(["timestamp"]).default("timestamp"),
     }),
   );
+
+const sortOrder = z
+  .enum(["asc", "desc"])
+  .default("desc")
+  .optional()
+  .describe("The sort order. The default is `desc`.");
 
 export const eventsQuerySchema = analyticsQuerySchema
   .omit({ groupBy: true })
@@ -241,6 +308,13 @@ export const eventsQuerySchema = analyticsQuerySchema
       ),
     page: z.coerce.number().default(1),
     limit: z.coerce.number().default(PAGINATION_LIMIT),
-    order: z.enum(["asc", "desc"]).default("desc"),
-    sortBy: z.enum(["timestamp"]).default("timestamp"),
+    sortOrder,
+    sortBy: z
+      .enum(["timestamp"])
+      .optional()
+      .default("timestamp")
+      .describe("The field to sort the events by. The default is `timestamp`."),
+    order: sortOrder
+      .describe("DEPRECATED. Use `sortOrder` instead.")
+      .openapi({ deprecated: true }),
   });

@@ -1,4 +1,10 @@
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import {
+  ReadonlyURLSearchParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 
 export function useRouterStuff() {
   const pathname = usePathname();
@@ -9,15 +15,25 @@ export function useRouterStuff() {
   const getQueryString = (
     kv?: Record<string, any>,
     opts?: {
-      ignore?: string[];
+      include?: string[];
+      exclude?: string[];
     },
   ) => {
-    const newParams = new URLSearchParams(searchParams);
+    let newParams = new URLSearchParams(searchParams);
+    if (opts?.include && Array.isArray(opts.include)) {
+      const filteredParams = new URLSearchParams();
+      searchParams.forEach((value, key) => {
+        if (opts.include?.includes(key)) {
+          filteredParams.set(key, value);
+        }
+      });
+      newParams = filteredParams;
+    }
+    if (opts?.exclude && Array.isArray(opts.exclude)) {
+      opts.exclude.forEach((k) => newParams.delete(k));
+    }
     if (kv) {
       Object.entries(kv).forEach(([k, v]) => newParams.set(k, v));
-    }
-    if (opts?.ignore) {
-      opts.ignore.forEach((k) => newParams.delete(k));
     }
     const queryString = newParams.toString();
     return queryString.length > 0 ? `?${queryString}` : "";
@@ -27,12 +43,14 @@ export function useRouterStuff() {
     set,
     del,
     replace,
+    scroll = true,
     getNewPath,
     arrayDelimiter = ",",
   }: {
     set?: Record<string, string | string[]>;
     del?: string | string[];
     replace?: boolean;
+    scroll?: boolean;
     getNewPath?: boolean;
     arrayDelimiter?: string;
   }) => {
@@ -57,14 +75,14 @@ export function useRouterStuff() {
     if (replace) {
       router.replace(newPath, { scroll: false });
     } else {
-      router.push(newPath);
+      router.push(newPath, { scroll });
     }
   };
 
   return {
-    pathname,
-    router,
-    searchParams,
+    pathname: pathname as string,
+    router: router as AppRouterInstance,
+    searchParams: searchParams as ReadonlyURLSearchParams,
     searchParamsObj,
     queryParams,
     getQueryString,

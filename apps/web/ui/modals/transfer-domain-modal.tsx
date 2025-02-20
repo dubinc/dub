@@ -1,3 +1,4 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { DomainProps } from "@/lib/types";
@@ -17,7 +18,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 
 function TransferDomainModal({
   showTransferDomainModal,
@@ -48,11 +48,7 @@ function TransferDomainModal({
       },
     ).then(async (res) => {
       if (res.ok) {
-        mutate(
-          (key) => typeof key === "string" && key.startsWith("/api/domains"),
-          undefined,
-          { revalidate: true },
-        );
+        mutatePrefix("/api/domains");
         setShowTransferDomainModal(false);
         return true;
       } else {
@@ -67,7 +63,6 @@ function TransferDomainModal({
     <Modal
       showModal={showTransferDomainModal}
       setShowModal={setShowTransferDomainModal}
-      className="overflow-visible"
     >
       <form
         onSubmit={async (e) => {
@@ -83,15 +78,15 @@ function TransferDomainModal({
           }
         }}
       >
-        <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
+        <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 text-center sm:px-16">
           <LinkLogo apexDomain={domain} />
           <h3 className="text-lg font-medium">Transfer {domain}</h3>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-neutral-500">
             Transfer this domain and its links to another {APP_NAME} workspace.
             Link tags will not be transferred.
           </p>
         </div>
-        <div className="flex flex-col space-y-28 bg-gray-50 px-4 py-8 text-left sm:space-y-3 sm:rounded-b-2xl sm:px-16">
+        <div className="flex flex-col space-y-28 bg-neutral-50 px-4 py-8 text-left sm:space-y-3 sm:rounded-b-2xl sm:px-16">
           <InputSelect
             items={(workspaces || []).map((workspace) => ({
               id: workspace.id,

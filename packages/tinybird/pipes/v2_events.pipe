@@ -1,0 +1,171 @@
+DESCRIPTION >
+	Top countries
+
+
+TOKEN "v2_events_endpoint_read_6623" READ
+
+TAGS "Dub Endpoints"
+
+NODE workspace_links
+SQL >
+
+    %
+    SELECT link_id, domain, key
+    from dub_links_metadata_latest FINAL
+    WHERE
+        deleted == 0
+        {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
+        {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
+        {% if defined(partnerId) %} AND partner_id = {{ partnerId }} {% end %}
+        {% if defined(tenantId) %} AND tenant_id = {{ tenantId }} {% end %}
+        {% if defined(folderId) %} AND folder_id = {{ folderId }} {% end %}
+        {% if defined(domain) %} AND domain IN {{ Array(domain, 'String') }} {% end %}
+        {% if defined(tagIds) %} AND arrayIntersect(tag_ids, {{ Array(tagIds, 'String') }}) != [] {% end %}
+        {% if defined(root) %}
+            {% if Boolean(root) == 1 %} AND key = '_root' {% else %} AND key != '_root' {% end %}
+        {% end %}
+
+
+
+NODE click_events
+SQL >
+
+    %
+    SELECT
+        *,
+        splitByString('?', referer_url)[1] as referer_url_processed,
+        CONCAT(country, '-', region) as region_processed,
+        'click' as event
+    FROM dub_click_events_mv
+    WHERE
+        timestamp >= {{ DateTime(start, '2024-06-01 00:00:00') }}
+        AND timestamp < {{ DateTime(end, '2024-06-07 00:00:00') }}
+        {% if defined(linkId) %} AND link_id = {{ String(linkId) }}
+        {% elif defined(workspaceId) or defined(partnerId) or defined(programId) %}
+            AND link_id IN (SELECT link_id FROM workspace_links)
+        {% end %}
+        {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
+        {% if defined(continent) %} AND continent = {{ continent }} {% end %}
+        {% if defined(country) %} AND country = {{ country }} {% end %}
+        {% if defined(region) %} AND region = {{ region }} {% end %}
+        {% if defined(city) %} AND city = {{ city }} {% end %}
+        {% if defined(device) %} AND device = {{ device }} {% end %}
+        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+        {% if defined(os) %} AND os = {{ os }} {% end %}
+        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
+        {% if defined(utm_source) %}
+            AND url LIKE concat('%utm_source=', {{ String(utm_source) }}, '%')
+        {% end %}
+        {% if defined(utm_medium) %}
+            AND url LIKE concat('%utm_medium=', {{ String(utm_medium) }}, '%')
+        {% end %}
+        {% if defined(utm_campaign) %}
+            AND url LIKE concat('%utm_campaign=', {{ String(utm_campaign) }}, '%')
+        {% end %}
+        {% if defined(utm_term) %}
+            AND url LIKE concat('%utm_term=', {{ String(utm_term) }}, '%')
+        {% end %}
+        {% if defined(utm_content) %}
+            AND url LIKE concat('%utm_content=', {{ String(utm_content) }}, '%')
+        {% end %}
+        {% if defined(url) %} AND url = {{ url }} {% end %}
+    ORDER BY timestamp {% if order == 'asc' %} ASC {% else %} DESC {% end %}
+    LIMIT {{ Int32(limit, 100) }}
+    {% if defined(offset) %} OFFSET {{ Int32(offset, 0) }} {% end %}
+
+
+
+NODE lead_events
+SQL >
+
+    %
+    SELECT
+        *,
+        splitByString('?', referer_url)[1] as referer_url_processed,
+        CONCAT(country, '-', region) as region_processed,
+        'lead' as event
+    FROM dub_lead_events_mv
+    WHERE
+        timestamp >= {{ DateTime(start, '2024-06-01 00:00:00') }}
+        AND timestamp < {{ DateTime(end, '2024-06-07 00:00:00') }}
+        {% if defined(linkId) %} AND link_id = {{ String(linkId) }}
+        {% elif defined(customerId) %} AND customer_id = {{ String(customerId) }}
+        {% elif defined(workspaceId) or defined(partnerId) or defined(programId) %}
+            AND link_id IN (SELECT link_id FROM workspace_links)
+        {% end %}
+        {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
+        {% if defined(continent) %} AND continent = {{ continent }} {% end %}
+        {% if defined(country) %} AND country = {{ country }} {% end %}
+        {% if defined(region) %} AND region = {{ region }} {% end %}
+        {% if defined(city) %} AND city = {{ city }} {% end %}
+        {% if defined(device) %} AND device = {{ device }} {% end %}
+        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+        {% if defined(os) %} AND os = {{ os }} {% end %}
+        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
+        {% if defined(utm_source) %} AND url LIKE concat('%utm_source=', {{ String(utm_source) }}, '%') {% end %}
+        {% if defined(utm_medium) %} AND url LIKE concat('%utm_medium=', {{ String(utm_medium) }}, '%') {% end %}
+        {% if defined(utm_campaign) %} AND url LIKE concat('%utm_campaign=', {{ String(utm_campaign) }}, '%') {% end %}
+        {% if defined(utm_term) %} AND url LIKE concat('%utm_term=', {{ String(utm_term) }}, '%') {% end %}
+        {% if defined(utm_content) %} AND url LIKE concat('%utm_content=', {{ String(utm_content) }}, '%') {% end %}
+        {% if defined(url) %} AND url = {{ url }} {% end %}
+    ORDER BY timestamp {% if order == 'asc' %} ASC {% else %} DESC {% end %}
+    LIMIT {{ Int32(limit, 100) }}
+    {% if defined(offset) %} OFFSET {{ Int32(offset, 0) }} {% end %}
+
+
+
+NODE sale_events
+SQL >
+
+    %
+    SELECT
+        *,
+        amount as saleAmount,
+        CONCAT(country, '-', region) as region_processed,
+        splitByString('?', referer_url)[1] as referer_url_processed,
+        'sale' as event
+    FROM dub_sale_events_mv
+    WHERE
+        timestamp >= {{ DateTime(start, '2024-06-01 00:00:00') }}
+        AND timestamp < {{ DateTime(end, '2024-06-07 00:00:00') }}
+        {% if defined(linkId) %} AND link_id = {{ String(linkId) }}
+        {% elif defined(customerId) %} AND customer_id = {{ String(customerId) }}
+        {% elif defined(workspaceId) or defined(partnerId) or defined(programId) %}
+            AND link_id IN (SELECT link_id FROM workspace_links)
+        {% end %}
+        {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
+        {% if defined(continent) %} AND continent = {{ continent }} {% end %}
+        {% if defined(country) %} AND country = {{ country }} {% end %}
+        {% if defined(region) %} AND region = {{ region }} {% end %}
+        {% if defined(city) %} AND city = {{ city }} {% end %}
+        {% if defined(device) %} AND device = {{ device }} {% end %}
+        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+        {% if defined(os) %} AND os = {{ os }} {% end %}
+        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
+        {% if defined(utm_source) %} AND url LIKE concat('%utm_source=', {{ String(utm_source) }}, '%') {% end %}
+        {% if defined(utm_medium) %} AND url LIKE concat('%utm_medium=', {{ String(utm_medium) }}, '%') {% end %}
+        {% if defined(utm_campaign) %} AND url LIKE concat('%utm_campaign=', {{ String(utm_campaign) }}, '%') {% end %}
+        {% if defined(utm_term) %} AND url LIKE concat('%utm_term=', {{ String(utm_term) }}, '%') {% end %}
+        {% if defined(utm_content) %} AND url LIKE concat('%utm_content=', {{ String(utm_content) }}, '%') {% end %}
+        {% if defined(url) %} AND url = {{ url }} {% end %}
+    ORDER BY timestamp {% if order == 'asc' %} ASC {% else %} DESC {% end %}
+    LIMIT {{ Int32(limit, 100) }}
+    {% if defined(offset) %} OFFSET {{ Int32(offset, 0) }} {% end %}
+
+
+
+NODE endpoint
+SQL >
+
+    %
+    SELECT *
+    FROM
+        {% if eventType == 'leads' %} lead_events
+        {% elif eventType == 'sales' %} sale_events
+        {% else %} click_events
+        {% end %}
+
+

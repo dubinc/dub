@@ -1,12 +1,13 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { linkCache } from "@/lib/api/links/cache";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import z from "@/lib/zod";
+import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { sendDomainTransferredEmail, updateLinksInRedis } from "./utils";
+import { sendDomainTransferredEmail } from "./utils";
 
 const schema = z.object({
   currentWorkspaceId: z.string(),
@@ -18,11 +19,12 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const rawBody = await req.text();
+    await verifyQstashSignature({ req, rawBody });
 
-    await verifyQstashSignature(req, body);
-
-    const { currentWorkspaceId, newWorkspaceId, domain } = schema.parse(body);
+    const { currentWorkspaceId, newWorkspaceId, domain } = schema.parse(
+      JSON.parse(rawBody),
+    );
 
     const links = await prisma.link.findMany({
       where: { domain, projectId: currentWorkspaceId },
@@ -51,16 +53,24 @@ export async function POST(req: Request) {
           where: {
             domain,
             projectId: currentWorkspaceId,
-            id: { in: linkIds },
+            id: {
+              in: linkIds,
+            },
           },
-          data: { projectId: newWorkspaceId },
+          data: {
+            projectId: newWorkspaceId,
+            folderId: null,
+          },
         }),
 
         prisma.linkTag.deleteMany({
           where: { linkId: { in: linkIds } },
         }),
 
-        updateLinksInRedis({ links, newWorkspaceId, domain }),
+        // Update links in redis
+        linkCache.mset(
+          links.map((link) => ({ ...link, projectId: newWorkspaceId })),
+        ),
 
         // Remove the webhooks associated with the links
         prisma.linkWebhook.deleteMany({
@@ -69,13 +79,9 @@ export async function POST(req: Request) {
 
         recordLink(
           links.map((link) => ({
-            link_id: link.id,
-            domain: link.domain,
-            key: link.key,
-            url: link.url,
-            tag_ids: [],
-            workspace_id: newWorkspaceId,
-            created_at: link.createdAt,
+            ...link,
+            projectId: newWorkspaceId,
+            folderId: null,
           })),
         ),
       ]);

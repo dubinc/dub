@@ -1,8 +1,8 @@
 {
   "id": "dub.co",
-  "version": "0.0.2",
-  "name": "Dub Conversions",
-  "icon": "./logo.png",
+  "version": "0.0.10",
+  "name": "Dub - Conversion Analytics",
+  "icon": "./stripe-icon.png",
   "permissions": [
     {
       "permission": "customer_read",
@@ -35,18 +35,37 @@
     {
       "permission": "event_read",
       "purpose": "Allows Dub to read event information."
+    },
+    {
+      "permission": "secret_write",
+      "purpose": "Allows storing Dub access tokens in Stripe for an account."
     }
   ],
   "ui_extension": {
+    "views": [
+      {
+        "viewport": "settings",
+        "component": "AppSettings"
+      }
+    ],
     "content_security_policy": {
-      "connect-src": null,
+      "connect-src": [
+        "https://api.dub.co/oauth/",
+        "https://api-staging.dub.co/oauth/",
+        "https://api.dub.co/stripe/integration",
+        "https://api-staging.dub.co/stripe/integration"
+      ],
       "image-src": null,
       "purpose": ""
     }
   },
+  "post_install_action": {
+    "type": "settings",
+    "url": ""
+  },
   "allowed_redirect_uris": [
-    "https://app.dub.co/api/stripe/connect/callback",
-    "https://preview.dub.co/api/stripe/connect/callback"
+    "https://app.dub.co/api/stripe/integration/callback",
+    "https://preview.dub.co/api/stripe/integration/callback"
   ],
   "stripe_api_access_type": "oauth",
   "distribution_type": "public"

@@ -11,7 +11,7 @@ import {
   useMediaQuery,
   Wordmark,
 } from "@dub/ui";
-import { Globe } from "@dub/ui/src/icons";
+import { Globe } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
 import { useContext, useState } from "react";
@@ -65,7 +65,7 @@ export default function SurveyForm({
   return (
     <div className="grid gap-4">
       <Wordmark className="h-8" />
-      <p className="text-sm font-medium text-gray-800">
+      <p className="text-sm font-medium text-neutral-800">
         Where did you hear about Dub?
       </p>
       <form
@@ -88,10 +88,10 @@ export default function SurveyForm({
             <div
               key={option.value}
               className={cn(
-                "group flex flex-col rounded-md border border-gray-200 bg-white transition-all active:scale-[0.98]",
+                "group flex flex-col rounded-md border border-neutral-200 bg-white transition-all active:scale-[0.98]",
                 source === option.value
-                  ? "border-white ring-2 ring-gray-600"
-                  : "hover:border-gray-500 hover:ring hover:ring-gray-200 active:ring-2",
+                  ? "border-white ring-2 ring-neutral-600"
+                  : "hover:border-neutral-500 hover:ring hover:ring-neutral-200 active:ring-2",
               )}
             >
               <RadioGroupItem
@@ -101,7 +101,7 @@ export default function SurveyForm({
               />
               <Label
                 htmlFor={option.value}
-                className="flex h-full cursor-pointer select-none items-center gap-2 px-4 py-2 text-gray-600"
+                className="flex h-full cursor-pointer select-none items-center gap-2 px-4 py-2 text-neutral-600"
               >
                 <option.icon
                   className={cn(
@@ -109,7 +109,7 @@ export default function SurveyForm({
                     {
                       grayscale: source !== option.value,
                       "h-4 w-4": option.value === "twitter",
-                      "text-gray-600": option.value === "other",
+                      "text-neutral-600": option.value === "other",
                     },
                   )}
                 />
@@ -138,7 +138,7 @@ export default function SurveyForm({
                   maxLength={32}
                   autoFocus={!isMobile}
                   autoComplete="off"
-                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                  className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                   placeholder="Reddit, Indie Hackers, etc."
                   value={otherSource}
                   onChange={(e) => setOtherSource(e.target.value)}

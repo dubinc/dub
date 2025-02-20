@@ -1,9 +1,11 @@
+import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -11,50 +13,45 @@ import {
   getLinksQuerySchemaExtended,
   linkEventSchema,
 } from "@/lib/zod/schemas/links";
-import { LOCALHOST_IP, getSearchParamsWithArray } from "@dub/utils";
+import { LOCALHOST_IP } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/links – get all links for a workspace
 export const GET = withWorkspace(
-  async ({ req, headers, workspace }) => {
-    const searchParams = getSearchParamsWithArray(req.url);
-
-    const {
-      domain,
-      tagId,
-      tagIds,
-      search,
-      sort,
-      page,
-      pageSize,
-      userId,
-      showArchived,
-      withTags,
-      includeUser,
-      includeWebhooks,
-      linkIds,
-    } = getLinksQuerySchemaExtended.parse(searchParams);
+  async ({ headers, searchParams, workspace, session }) => {
+    const params = getLinksQuerySchemaExtended.parse(searchParams);
+    const { domain, folderId, search, tagId, tagIds, tagNames } = params;
 
     if (domain) {
       await getDomainOrThrow({ workspace, domain });
     }
 
+    if (folderId) {
+      await verifyFolderAccess({
+        workspace,
+        userId: session.user.id,
+        folderId,
+        requiredPermission: "folders.read",
+      });
+    }
+
+    /* we only need to get the folder ids if we are:
+      - not filtering by folder
+      - filtering by search, domain, or tags
+    */
+    const folderIds =
+      !folderId && (search || domain || tagId || tagIds || tagNames)
+        ? await getFolderIdsToFilter({
+            workspace,
+            userId: session.user.id,
+          })
+        : undefined;
+
     const response = await getLinksForWorkspace({
+      ...params,
       workspaceId: workspace.id,
-      domain,
-      tagId,
-      tagIds,
-      search,
-      sort,
-      page,
-      pageSize,
-      userId,
-      showArchived,
-      withTags,
-      includeUser,
-      includeWebhooks,
-      linkIds,
+      folderIds,
     });
 
     return NextResponse.json(response, {
@@ -114,7 +111,9 @@ export const POST = withWorkspace(
         );
       }
 
-      return NextResponse.json(response, { headers });
+      return NextResponse.json(response, {
+        headers,
+      });
     } catch (error) {
       throw new DubApiError({
         code: "unprocessable_entity",

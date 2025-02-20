@@ -1,4 +1,4 @@
-import { handleSlashCommand } from "@/lib/integrations/slack/slash-commands";
+import { handleSlashCommand } from "@/lib/integrations/slack/commands";
 import { NextResponse } from "next/server";
 
 // Slack will send an HTTP POST request information to this URL when a user run the slash command

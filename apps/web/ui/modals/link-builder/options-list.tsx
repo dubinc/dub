@@ -1,7 +1,7 @@
 import { AlertCircleFill, CheckCircleFill, X } from "@/ui/shared/icons";
-import { Tooltip, useMediaQuery } from "@dub/ui";
-import { LoadingSpinner } from "@dub/ui/src/icons";
-import { cn, fetcher, isValidUrl as isValidUrlFn } from "@dub/utils";
+import { SimpleTooltipContent, Tooltip, useMediaQuery } from "@dub/ui";
+import { LoadingSpinner } from "@dub/ui/icons";
+import { fetcher, isValidUrl as isValidUrlFn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ReactNode, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
@@ -50,11 +50,12 @@ export function OptionsList() {
                 toggle={item}
                 {...(item.type === "modal" &&
                   "enabled" in item &&
+                  typeof item.enabled === "function" &&
                   item.enabled(data) && {
                     icon: <item.icon className="size-3.5 text-blue-500" />,
                   })}
                 onRemove={() =>
-                  "remove" in item
+                  "remove" in item && typeof item.remove === "function"
                     ? item.remove(setValue)
                     : setValue(item.key as any, false, { shouldDirty: true })
                 }
@@ -77,13 +78,13 @@ function ToggleBadge({
   icon?: ReactNode;
 }) {
   return (
-    <span className="group flex cursor-default items-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 pl-1.5 text-xs text-gray-600">
+    <span className="group flex cursor-default items-center gap-1.5 rounded-md border border-neutral-200 bg-neutral-50 pl-1.5 text-xs text-neutral-600">
       {icon}
       {toggle.label}
       <button
         type="button"
         onClick={onRemove}
-        className="-ml-1 p-1 text-gray-400 hover:text-gray-500"
+        className="-ml-1 p-1 text-neutral-400 hover:text-neutral-500"
       >
         <X className="size-3.5" />
       </button>
@@ -121,10 +122,10 @@ function LinkCloakingToggleBadge({
         icon={
           isLoading ? (
             <LoadingSpinner className="size-3.5" />
-          ) : !data ? null : data?.iframeable ? (
+          ) : !data ? null : data.iframeable ? (
             <CheckCircleFill className="size-3.5 text-green-500" />
           ) : (
-            <AlertCircleFill className="size-3.5 text-yellow-500" />
+            <AlertCircleFill className="size-3.5 text-amber-500" />
           )
         }
       />
@@ -135,48 +136,26 @@ function LinkCloakingToggleBadge({
   return data ? (
     <Tooltip
       content={
-        <div
-          className={cn(
-            "block max-w-lg text-pretty p-4 text-center text-sm text-gray-700",
-            {
-              "max-w-sm": !data.iframeable,
-            },
-          )}
-        >
-          {data.iframeable ? (
-            <div className="grid gap-2">
-              <div className="h-[250px] w-[444px] overflow-hidden rounded-lg border border-gray-200">
-                <iframe
-                  src={url}
-                  style={{
-                    zoom: 0.5,
-                  }}
-                  className="h-[500px] w-[888px]"
-                />
-              </div>
-              <p>Your link will be successfully cloaked.</p>
+        data.iframeable ? (
+          <div className="grid max-w-lg gap-2 text-pretty p-4 text-center text-sm text-neutral-700">
+            <div className="h-[250px] w-[444px] overflow-hidden rounded-lg border border-neutral-200">
+              <iframe
+                src={url}
+                style={{
+                  zoom: 0.5,
+                }}
+                className="h-[500px] w-[888px]"
+              />
             </div>
-          ) : (
-            <span>
-              We will try to cloak it with{" "}
-              <a
-                href="https://nextjs.org/docs/pages/api-reference/functions/next-response#rewrite"
-                target="_blank"
-                className="text-gray-500 underline underline-offset-2 hover:text-gray-700"
-              >
-                Next.js Rewrites
-              </a>
-              , but it might not work as expected.{" "}
-              <a
-                href="https://dub.co/help/article/link-cloaking"
-                target="_blank"
-                className="text-gray-500 underline underline-offset-2 hover:text-gray-700"
-              >
-                Learn more.
-              </a>
-            </span>
-          )}
-        </div>
+            <p>Your link will be successfully cloaked.</p>
+          </div>
+        ) : (
+          <SimpleTooltipContent
+            title="Your link is not cloakable – make sure you have the right security headers set on your target URL."
+            cta="Learn more"
+            href="https://dub.co/help/article/link-cloaking#link-cloaking-with-security-headers"
+          />
+        )
       }
     >
       <div>{badge}</div>

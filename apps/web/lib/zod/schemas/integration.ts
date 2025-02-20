@@ -3,6 +3,7 @@ import { z } from "zod";
 
 export const integrationSchema = z.object({
   id: z.string(),
+  projectId: z.string(),
   name: z.string(),
   slug: z.string(),
   description: z.string().nullish(),
@@ -13,6 +14,8 @@ export const integrationSchema = z.object({
   screenshots: z.array(z.string()).nullish(),
   installUrl: z.string().nullish(),
   verified: z.boolean(),
+  guideUrl: z.string().nullish(),
+  comingSoon: z.boolean().nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
   installations: z.number().default(0),
@@ -54,8 +57,8 @@ export const createIntegrationSchema = z.object({
     .nullish(),
   screenshots: z
     .array(z.string())
-    .max(4, {
-      message: "only 4 screenshots are allowed",
+    .max(6, {
+      message: "up to 6 screenshots are allowed",
     })
     .transform((screenshots) =>
       screenshots.map((screenshot) =>

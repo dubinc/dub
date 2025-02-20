@@ -1,5 +1,5 @@
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/workspaces/[idOrSlug]/notification-preferences – get notification preferences for a workspace for the current user
@@ -16,8 +16,6 @@ export const GET = withWorkspace(async ({ workspace, session }) => {
       },
     },
   });
-
-  console.log({ response });
 
   return NextResponse.json(response);
 });

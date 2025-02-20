@@ -3,11 +3,11 @@ import {
   exceededLimitError,
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
-import { AddOns, BetaFeatures, PlanProps, WorkspaceProps } from "@/lib/types";
+import { BetaFeatures, PlanProps, WorkspaceProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
+import { prismaEdge } from "@dub/prisma/edge";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { StreamingTextResponse } from "ai";
 import { getToken } from "next-auth/jwt";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextRequest } from "next/server";
@@ -18,7 +18,6 @@ import {
 import { throwIfNoAccess } from "../api/tokens/permissions";
 import { Scope, mapScopesToPermissions } from "../api/tokens/scopes";
 import { getFeatureFlags } from "../edge-config";
-import { prismaEdge } from "../prisma/edge";
 import { hashToken } from "./hash-token";
 import type { Session } from "./utils";
 
@@ -39,7 +38,7 @@ interface WithWorkspaceEdgeHandler {
     session: Session;
     workspace: WorkspaceProps;
     permissions: PermissionAction[];
-  }): Promise<Response | StreamingTextResponse>;
+  }): Promise<Response>;
 }
 
 export const withWorkspaceEdge = (
@@ -54,13 +53,11 @@ export const withWorkspaceEdge = (
       "business extra",
       "enterprise",
     ], // if the action needs a specific plan
-    requiredAddOn,
     needNotExceededAI, // if the action needs the user to not have exceeded their AI usage
     featureFlag, // if the action needs a specific feature flag
     requiredPermissions = [],
   }: {
     requiredPlan?: Array<PlanProps>;
-    requiredAddOn?: AddOns;
     needNotExceededAI?: boolean;
     featureFlag?: BetaFeatures;
     requiredPermissions?: PermissionAction[];
@@ -154,6 +151,7 @@ export const withWorkspaceEdge = (
                 rateLimit: true,
                 projectId: true,
                 expires: true,
+                installationId: true,
               }),
               user: {
                 select: {
@@ -301,6 +299,15 @@ export const withWorkspaceEdge = (
           permissions = mapScopesToPermissions(tokenScopes).filter((p) =>
             permissions.includes(p),
           );
+
+          // Prevent integration tokens from accessing API endpoints without explicit permissions
+          if (token.installationId && requiredPermissions.length === 0) {
+            throw new DubApiError({
+              code: "forbidden",
+              message:
+                "You don't have the necessary permissions to complete this request.",
+            });
+          }
         }
 
         // Check user has permission to make the action
@@ -308,11 +315,14 @@ export const withWorkspaceEdge = (
           permissions,
           requiredPermissions,
           workspaceId: workspace.id,
+          externalRequest: Boolean(apiKey),
         });
 
         // beta feature checks
         if (featureFlag) {
-          const flags = await getFeatureFlags({ workspaceId: workspace.id });
+          const flags = await getFeatureFlags({
+            workspaceId: workspace.id,
+          });
 
           if (!flags[featureFlag]) {
             throw new DubApiError({
@@ -368,25 +378,10 @@ export const withWorkspaceEdge = (
         const url = new URL(req.url || "", API_DOMAIN);
 
         // plan checks
-        // special scenario – /events API is available for conversionEnabled workspaces
-        // (even if they're on a Pro plan)
-        if (
-          !requiredPlan.includes(workspace.plan) &&
-          url.pathname.includes("/events") &&
-          !workspace.conversionEnabled
-        ) {
+        if (!requiredPlan.includes(workspace.plan)) {
           throw new DubApiError({
             code: "forbidden",
             message: "Unauthorized: Need higher plan.",
-          });
-        }
-
-        // add-ons checks
-        if (requiredAddOn && !workspace[`${requiredAddOn}Enabled`]) {
-          throw new DubApiError({
-            code: "forbidden",
-            message:
-              "Unauthorized: This feature is not available on your plan.",
           });
         }
 
@@ -415,6 +410,9 @@ export const withWorkspaceEdge = (
         req.log.error(error);
         return handleAndReturnErrorResponse(error, headers);
       }
+    },
+    {
+      logRequestDetails: ["body", "nextUrl"],
     },
   );
 };

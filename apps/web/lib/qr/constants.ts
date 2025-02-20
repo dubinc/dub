@@ -11,9 +11,7 @@ export const DEFAULT_SIZE = 128;
 export const DEFAULT_LEVEL = "L";
 export const DEFAULT_BGCOLOR = "#FFFFFF";
 export const DEFAULT_FGCOLOR = "#000000";
-export const DEFAULT_INCLUDEMARGIN = false;
-
-export const MARGIN_SIZE = 4;
+export const DEFAULT_MARGIN = 2;
 
 export const QR_LEVELS = ["L", "M", "Q", "H"] as const;
 

@@ -45,6 +45,19 @@ export const ADMIN_HOSTNAMES = new Set([
   "admin.localhost:8888",
 ]);
 
+export const PARTNERS_DOMAIN =
+  process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
+    ? `https://partners.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+    : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
+      ? `https://partners-staging.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+      : "http://partners.localhost:8888";
+
+export const PARTNERS_HOSTNAMES = new Set([
+  `partners.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
+  `partners-staging.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
+  "partners.localhost:8888",
+]);
+
 export const DUB_LOGO = "https://assets.dub.co/logo.png";
 export const DUB_QR_LOGO = "https://assets.dub.co/logo.png";
 export const DUB_WORDMARK = "https://assets.dub.co/wordmark.png";

@@ -40,3 +40,14 @@ export const tokenSchema = z.object({
     isMachine: z.boolean(),
   }),
 });
+
+export const createEmbedTokenSchema = z.object({
+  programId: z.string().min(1),
+  partnerId: z.string().nullish(),
+  tenantId: z.string().nullish(),
+});
+
+export const EmbedTokenSchema = z.object({
+  publicToken: z.string(),
+  expires: z.date(),
+});

@@ -1,4 +1,4 @@
-import { prismaEdge } from "../prisma/edge";
+import { prismaEdge } from "@dub/prisma/edge";
 import { WebhookTrigger, WorkspaceProps } from "../types";
 import { sendWebhooks } from "./qstash";
 import { LeadEventDataProps, SaleEventDataProps } from "./types";
@@ -20,6 +20,7 @@ export const sendWorkspaceWebhookOnEdge = async ({
   const webhooks = await prismaEdge.webhook.findMany({
     where: {
       projectId: workspace.id,
+      disabledAt: null,
       triggers: {
         array_contains: [trigger],
       },

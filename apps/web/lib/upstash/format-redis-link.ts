@@ -1,14 +1,9 @@
-import { isIframeable } from "@dub/utils";
-import { LinkProps, RedisLinkProps } from "../types";
+import { ExpandedLink } from "../api/links/utils/transform-link";
+import { RedisLinkProps } from "../types";
 
-export async function formatRedisLink(
-  link: LinkProps & {
-    webhooks?: { webhookId: string }[];
-  },
-): Promise<RedisLinkProps> {
+export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
   const {
     id,
-    domain,
     url,
     trackConversion,
     password,
@@ -35,7 +30,6 @@ export async function formatRedisLink(
     ...(url &&
       rewrite && {
         rewrite: true,
-        iframeable: await isIframeable({ url, requestDomain: domain }),
       }),
     ...(expiresAt && { expiresAt: new Date(expiresAt) }),
     ...(expiredUrl && { expiredUrl }),

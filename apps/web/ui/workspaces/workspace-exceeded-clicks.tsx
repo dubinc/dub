@@ -11,14 +11,14 @@ export default function WorkspaceExceededClicks() {
 
   return (
     <MaxWidthWrapper>
-      <div className="my-10 flex flex-col items-center justify-center rounded-md border border-gray-200 bg-white py-12">
-        <div className="rounded-full bg-gray-100 p-3">
-          <Lock className="h-6 w-6 text-gray-600" />
+      <div className="my-10 flex flex-col items-center justify-center rounded-md border border-neutral-200 bg-white py-12">
+        <div className="rounded-full bg-neutral-100 p-3">
+          <Lock className="h-6 w-6 text-neutral-600" />
         </div>
-        <h1 className="my-3 text-xl font-semibold text-gray-700">
+        <h1 className="my-3 text-xl font-semibold text-neutral-700">
           Stats Locked
         </h1>
-        <p className="z-10 max-w-sm text-center text-sm text-gray-600">
+        <p className="z-10 max-w-sm text-center text-sm text-neutral-600">
           Your workspace has exceeded your monthly clicks limits. We're still
           collecting data on your links, but you need to upgrade to view them.
         </p>

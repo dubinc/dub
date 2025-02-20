@@ -1,8 +1,9 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { DUB_WORKSPACE_ID, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { createId } from "../api/utils";
 import { deleteScreenshots } from "../integrations/utils";
 import { isStored, storage } from "../storage";
 import z from "../zod";
@@ -18,7 +19,7 @@ export const addEditIntegration = authActionClient
       }),
     ),
   )
-  .action(async ({ parsedInput }) => {
+  .action(async ({ parsedInput, ctx }) => {
     const { id, workspaceId, ...integration } = parsedInput;
 
     // this is only available for Dub workspace for now
@@ -27,9 +28,11 @@ export const addEditIntegration = authActionClient
       throw new Error("Not authorized");
     }
 
+    const newIntegrationId = createId({ prefix: "int_" });
+
     if (integration.logo && !isStored(integration.logo)) {
       const result = await storage.upload(
-        `integrations/${id}_${nanoid(7)}`,
+        `integrations/${id || newIntegrationId}_${nanoid(7)}`,
         integration.logo,
       );
       integration.logo = result.url;
@@ -47,13 +50,12 @@ export const addEditIntegration = authActionClient
 
       waitUntil(
         (async () => {
-          const logoUpdated = integration.logo !== oldIntegration.logo;
           if (
-            logoUpdated &&
-            integration.logo &&
-            integration.logo.startsWith(`${R2_URL}/integrations/${id}`)
+            oldIntegration.logo &&
+            integration.logo !== oldIntegration.logo &&
+            oldIntegration.logo.startsWith(`${R2_URL}/integrations/${id}`)
           ) {
-            await storage.delete(integration.logo.replace(`${R2_URL}/`, ""));
+            await storage.delete(oldIntegration.logo.replace(`${R2_URL}/`, ""));
           }
 
           const removedScreenshots =
@@ -75,7 +77,9 @@ export const addEditIntegration = authActionClient
       await prisma.integration.create({
         data: {
           ...integration,
+          id: newIntegrationId,
           projectId: workspaceId,
+          userId: ctx.user.id,
         },
       });
     }

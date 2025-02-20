@@ -37,20 +37,20 @@ function AddWorkspaceModalHelper({
         }
       }}
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
+      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 sm:px-16">
         <Logo />
         <h3 className="text-lg font-medium">Create a new workspace</h3>
         <a
           href="https://dub.co/help/article/what-is-a-workspace"
           target="_blank"
-          className="-translate-y-2 text-center text-xs text-gray-500 underline underline-offset-4 hover:text-gray-800"
+          className="-translate-y-2 text-center text-xs text-neutral-500 underline underline-offset-4 hover:text-neutral-800"
         >
           What is a workspace?
         </a>
       </div>
 
       <CreateWorkspaceForm
-        className="bg-gray-50 px-4 py-8 sm:px-16"
+        className="bg-neutral-50 px-4 py-8 sm:px-16"
         onSuccess={({ slug }) => {
           if (oauthFlow) {
             router.refresh();

@@ -1,17 +1,22 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { uninstallSlackIntegration } from "@/lib/integrations/slack/uninstall";
-import { prisma } from "@/lib/prisma";
+import { webhookCache } from "@/lib/webhook/cache";
+import { isLinkLevelWebhook } from "@/lib/webhook/utils";
+import { prisma } from "@dub/prisma";
+import { SLACK_INTEGRATION_ID } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // DELETE /api/integrations/uninstall - uninstall an installation by id
 export const DELETE = withWorkspace(
-  async ({ searchParams, session }) => {
+  async ({ searchParams, session, workspace }) => {
     const { installationId } = searchParams;
 
     const installation = await prisma.installedIntegration.findUnique({
       where: {
         id: installationId,
+        projectId: workspace.id,
       },
     });
 
@@ -30,23 +35,34 @@ export const DELETE = withWorkspace(
       });
     }
 
-    await prisma.installedIntegration.delete({
-      where: {
-        id: installationId,
+    const { integrationId, webhook } = await prisma.installedIntegration.delete(
+      {
+        where: {
+          id: installationId,
+        },
+        select: {
+          integrationId: true,
+          webhook: {
+            select: {
+              id: true,
+              triggers: true,
+            },
+          },
+        },
       },
-    });
+    );
 
-    const integration = await prisma.integration.findUniqueOrThrow({
-      where: {
-        id: installation.integrationId,
-      },
-    });
+    waitUntil(
+      Promise.all([
+        ...(integrationId === SLACK_INTEGRATION_ID
+          ? [uninstallSlackIntegration({ installation })]
+          : []),
 
-    if (integration.slug === "slack") {
-      await uninstallSlackIntegration({
-        installation,
-      });
-    }
+        ...(webhook && isLinkLevelWebhook(webhook)
+          ? [webhookCache.delete(webhook.id)]
+          : []),
+      ]),
+    );
 
     return NextResponse.json({ id: installationId });
   },

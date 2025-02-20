@@ -1,6 +1,8 @@
-import { prisma } from "@/lib/prisma";
+import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
+import { webhookCache } from "@/lib/webhook/cache";
+import { prisma } from "@dub/prisma";
 import { FREE_PLAN, log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
@@ -21,12 +23,17 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       id: true,
       slug: true,
       domains: true,
+      foldersUsage: true,
       links: {
         where: {
           key: "_root",
         },
         include: {
-          tags: true,
+          tags: {
+            select: {
+              tag: true,
+            },
+          },
         },
       },
       users: {
@@ -60,7 +67,6 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
   }
 
   const workspaceLinks = workspace.links;
-
   const workspaceUsers = workspace.users.map(({ user }) => user);
 
   const pipeline = redis.pipeline();
@@ -86,8 +92,11 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         domainsLimit: FREE_PLAN.limits.domains!,
         aiLimit: FREE_PLAN.limits.ai!,
         tagsLimit: FREE_PLAN.limits.tags!,
+        foldersLimit: FREE_PLAN.limits.folders!,
         usersLimit: FREE_PLAN.limits.users!,
+        salesLimit: FREE_PLAN.limits.sales!,
         paymentFailedAt: null,
+        foldersUsage: 0,
       },
     }),
 
@@ -111,6 +120,16 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       },
     }),
 
+    // remove logo from all domains for the workspace
+    prisma.domain.updateMany({
+      where: {
+        projectId: workspace.id,
+      },
+      data: {
+        logo: null,
+      },
+    }),
+
     // remove root domain link for all domains from MySQL
     prisma.link.updateMany({
       where: {
@@ -128,13 +147,8 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     // record root domain link for all domains from Tinybird
     recordLink(
       workspaceLinks.map((link) => ({
-        link_id: link.id,
-        domain: link.domain,
-        key: link.key,
-        url: link.url,
-        tag_ids: link.tags.map((tag) => tag.tagId),
-        workspace_id: link.projectId,
-        created_at: link.createdAt,
+        ...link,
+        url: "",
       })),
     ),
     log({
@@ -146,5 +160,46 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     sendCancellationFeedback({
       owners: workspaceUsers,
     }),
+
+    // Disable the webhooks
+    prisma.webhook.updateMany({
+      where: {
+        projectId: workspace.id,
+      },
+      data: {
+        disabledAt: new Date(),
+      },
+    }),
+
+    prisma.project.update({
+      where: {
+        id: workspace.id,
+      },
+      data: {
+        webhookEnabled: false,
+      },
+    }),
   ]);
+
+  // Update the webhooks cache
+  const webhooks = await prisma.webhook.findMany({
+    where: {
+      projectId: workspace.id,
+    },
+    select: {
+      id: true,
+      url: true,
+      secret: true,
+      triggers: true,
+      disabledAt: true,
+    },
+  });
+
+  await webhookCache.mset(webhooks);
+
+  if (workspace.foldersUsage > 0) {
+    await deleteWorkspaceFolders({
+      workspaceId: workspace.id,
+    });
+  }
 }

@@ -1,10 +1,10 @@
-import { deleteDomainAndLinks } from "@/lib/api/domains";
+import { markDomainAsDeleted } from "@/lib/api/domains";
 import { limiter } from "@/lib/cron/limiter";
-import { prisma } from "@/lib/prisma";
+import { sendEmail } from "@dub/email";
+import { DomainDeleted } from "@dub/email/templates/domain-deleted";
+import { InvalidDomain } from "@dub/email/templates/invalid-domain";
+import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
-import { sendEmail } from "emails";
-import DomainDeleted from "emails/domain-deleted";
-import InvalidDomain from "emails/invalid-domain";
 
 export const handleDomainUpdates = async ({
   domain,
@@ -99,9 +99,13 @@ export const handleDomainUpdates = async ({
         type: "cron",
       });
     }
+
     // else, delete the domain
     return await Promise.allSettled([
-      deleteDomainAndLinks(domain).then(async () => {
+      markDomainAsDeleted({
+        domain,
+        workspaceId: workspace.id,
+      }).then(async () => {
         // if the deleted domain was primary, make another domain primary
         if (primary) {
           const anotherDomain = await prisma.domain.findFirst({

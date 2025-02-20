@@ -6,18 +6,13 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import EmptyState from "@/ui/shared/empty-state";
 import WebhookCard from "@/ui/webhooks/webhook-card";
 import WebhookPlaceholder from "@/ui/webhooks/webhook-placeholder";
-import { Button, TooltipContent } from "@dub/ui";
-import { InfoTooltip } from "@dub/ui/src/tooltip";
+import { Button, InfoTooltip, TooltipContent } from "@dub/ui";
 import { Webhook } from "lucide-react";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function WebhooksPageClient() {
   const router = useRouter();
-  const { slug, plan, role, conversionEnabled, flags } = useWorkspace();
-
-  if (!flags?.webhooks) {
-    redirect(`/${slug}/settings`);
-  }
+  const { slug, plan, role } = useWorkspace();
 
   const { webhooks, isLoading } = useWebhooks();
 
@@ -26,12 +21,11 @@ export default function WebhooksPageClient() {
     role: role,
   });
 
-  const needsHigherPlan =
-    (plan === "free" || plan === "pro") && !conversionEnabled;
+  const needsHigherPlan = plan === "free" || plan === "pro";
 
   if (needsHigherPlan) {
     return (
-      <div className="rounded-md border border-gray-200 bg-white p-10">
+      <div className="rounded-md border border-neutral-200 bg-white p-10">
         <EmptyState
           icon={Webhook}
           title="Webhooks"
@@ -81,7 +75,7 @@ export default function WebhooksPageClient() {
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center gap-4 rounded-xl border border-gray-200 py-10">
+            <div className="flex flex-col items-center gap-4 rounded-xl border border-neutral-200 py-10">
               <EmptyState
                 icon={Webhook}
                 title="You haven't set up any webhooks yet."
@@ -93,7 +87,7 @@ export default function WebhooksPageClient() {
         ) : (
           <div className="grid grid-cols-1 gap-3">
             {Array.from({ length: 3 }).map((_, idx) => (
-              <WebhookPlaceholder />
+              <WebhookPlaceholder key={idx} />
             ))}
           </div>
         )}

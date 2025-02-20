@@ -10,9 +10,12 @@ export default function BanLink() {
     <div className="flex flex-col space-y-5">
       <form
         action={async (data) =>
-          await fetch(`/api/admin/links/ban?key=${data.get("key")}`, {
-            method: "DELETE",
-          })
+          await fetch(
+            `/api/admin/links/ban?domain=dub.sh&key=${data.get("key")}`,
+            {
+              method: "DELETE",
+            },
+          )
             .then((res) => res.json())
             .then((res) => {
               if (res.error) {
@@ -34,7 +37,7 @@ const Form = () => {
 
   return (
     <div className="relative flex w-full rounded-md shadow-sm">
-      <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-gray-500 sm:text-sm">
+      <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-5 text-neutral-500 sm:text-sm">
         dub.sh
       </span>
       <input
@@ -45,8 +48,8 @@ const Form = () => {
         disabled={pending}
         autoComplete="off"
         className={cn(
-          "block w-full rounded-r-md border-gray-300 text-sm text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500",
-          pending && "bg-gray-100",
+          "block w-full rounded-r-md border-neutral-300 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
+          pending && "bg-neutral-100",
         )}
         placeholder="IG47WZs"
         aria-invalid="true"
@@ -67,7 +70,7 @@ const Form = () => {
         }}
       />
       {pending && (
-        <LoadingSpinner className="absolute inset-y-0 right-2 my-auto h-full w-5 text-gray-400" />
+        <LoadingSpinner className="absolute inset-y-0 right-2 my-auto h-full w-5 text-neutral-400" />
       )}
     </div>
   );

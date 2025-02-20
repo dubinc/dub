@@ -93,6 +93,7 @@ export const analyticsResponse = {
         .describe(
           "The 2-letter ISO 3166-1 country code for the country associated with the location of the user. Learn more: https://d.to/geo",
         ),
+      region: z.literal("*").default("*"),
       city: z.literal("*").default("*"),
       clicks: z
         .number()
@@ -113,12 +114,43 @@ export const analyticsResponse = {
     })
     .openapi({ ref: "AnalyticsCountries" }),
 
+  regions: z
+    .object({
+      country: z
+        .enum(COUNTRY_CODES)
+        .describe("The 2-letter country code of the region: https://d.to/geo"),
+      region: z
+        .string()
+        .describe(
+          "The 2-letter ISO 3166-2 region code representing the region associated with the location of the user.",
+        ),
+      city: z.literal("*").default("*"),
+      clicks: z
+        .number()
+        .describe("The number of clicks from this region")
+        .default(0),
+      leads: z
+        .number()
+        .describe("The number of leads from this region")
+        .default(0),
+      sales: z
+        .number()
+        .describe("The number of sales from this region")
+        .default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales from this region, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsRegions" }),
+
   cities: z
     .object({
-      city: z.string().describe("The name of the city"),
       country: z
         .enum(COUNTRY_CODES)
         .describe("The 2-letter country code of the city: https://d.to/geo"),
+      region: z.literal("*").default("*"),
+      city: z.string().describe("The name of the city"),
       clicks: z
         .number()
         .describe("The number of clicks from this city")
@@ -266,6 +298,7 @@ export const analyticsResponse = {
       key: z.string().describe("The key of the short link"),
       shortLink: z.string().describe("The short link URL"),
       url: z.string().describe("The destination URL of the short link"),
+      comments: z.string().nullish().describe("The comments of the short link"),
       createdAt: z
         .string()
         .describe("The creation timestamp of the short link"),
@@ -309,4 +342,114 @@ export const analyticsResponse = {
         .default(0),
     })
     .openapi({ ref: "AnalyticsTopUrls" }),
+
+  utm_sources: z
+    .object({
+      utm_source: z.string().describe("The UTM source"),
+      clicks: z
+        .number()
+        .describe("The number of clicks with this UTM source")
+        .default(0),
+      leads: z
+        .number()
+        .describe("The number of leads with this UTM source")
+        .default(0),
+      sales: z
+        .number()
+        .describe("The number of sales with this UTM source")
+        .default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales with this UTM source, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsUTMSources" }),
+
+  utm_mediums: z
+    .object({
+      utm_medium: z.string().describe("The UTM medium"),
+      clicks: z
+        .number()
+        .describe("The number of clicks with this UTM medium")
+        .default(0),
+      leads: z
+        .number()
+        .describe("The number of leads with this UTM medium")
+        .default(0),
+      sales: z
+        .number()
+        .describe("The number of sales with this UTM medium")
+        .default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales with this UTM medium, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsUTMMediums" }),
+
+  utm_campaigns: z
+    .object({
+      utm_campaign: z.string().describe("The UTM campaign"),
+      clicks: z
+        .number()
+        .describe("The number of clicks with this UTM campaign")
+        .default(0),
+      leads: z
+        .number()
+        .describe("The number of leads with this UTM campaign")
+        .default(0),
+      sales: z
+        .number()
+        .describe("The number of sales with this UTM campaign")
+        .default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales with this UTM campaign, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsUTMCampaigns" }),
+
+  utm_terms: z
+    .object({
+      utm_term: z.string().describe("The UTM term"),
+      clicks: z
+        .number()
+        .describe("The number of clicks with this UTM term")
+        .default(0),
+      leads: z
+        .number()
+        .describe("The number of leads with this UTM term")
+        .default(0),
+      sales: z
+        .number()
+        .describe("The number of sales with this UTM term")
+        .default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales with this UTM term, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsUTMTerms" }),
+
+  utm_contents: z
+    .object({
+      utm_content: z.string().describe("The UTM content"),
+      clicks: z
+        .number()
+        .describe("The number of clicks with this UTM content")
+        .default(0),
+      leads: z
+        .number()
+        .describe("The number of leads with this UTM content")
+        .default(0),
+      sales: z
+        .number()
+        .describe("The number of sales with this UTM content")
+        .default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales with this UTM content, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsUTMContents" }),
 } as const;

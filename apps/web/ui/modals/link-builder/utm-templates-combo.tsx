@@ -71,8 +71,10 @@ export function UTMTemplatesCombo({
               <div className="grid max-w-[225px] grid-cols-[1fr,minmax(0,min-content)] gap-x-2 gap-y-1 whitespace-nowrap p-2 text-sm sm:min-w-[150px]">
                 {includedParams.map(({ key, label, icon: Icon }) => (
                   <Fragment key={key}>
-                    <span className="font-medium text-gray-600">{label}</span>
-                    <span className="truncate text-gray-500">
+                    <span className="font-medium text-neutral-600">
+                      {label}
+                    </span>
+                    <span className="truncate text-neutral-500">
                       {template[key]}
                     </span>
                   </Fragment>
@@ -80,7 +82,7 @@ export function UTMTemplatesCombo({
               </div>
             }
           >
-            <div className="ml-4 flex shrink-0 items-center gap-1 text-gray-500">
+            <div className="ml-4 flex shrink-0 items-center gap-1 text-neutral-500">
               {includedParams.map(({ icon: Icon }) => (
                 <Icon className="size-3.5" />
               ))}
@@ -132,17 +134,19 @@ const NoUTMTemplatesFound = () => {
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-2 px-2 py-4 text-center text-sm">
-      <div className="flex items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 p-3">
-        <DiamondTurnRight className="size-6 text-gray-700" />
+      <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+        <DiamondTurnRight className="size-6 text-neutral-700" />
       </div>
-      <p className="mt-2 font-medium text-gray-950">No UTM templates found</p>
-      <p className="mx-auto mt-1 w-full max-w-[180px] text-gray-700">
+      <p className="mt-2 font-medium text-neutral-950">
+        No UTM templates found
+      </p>
+      <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">
         Add a UTM template to easily create links with the same UTM parameters.
       </p>
       <div>
         <Button
           className="mt-1 h-8"
-          onClick={() => router.push(`/${slug}/settings/library/utm`)}
+          onClick={() => window.open(`/${slug}/settings/library/utm`, "_blank")}
           text="Add UTM template"
         />
       </div>

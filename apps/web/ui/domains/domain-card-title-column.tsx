@@ -1,4 +1,4 @@
-import { ArrowTurnRight2, Flag2, Globe } from "@dub/ui/src/icons";
+import { ArrowTurnRight2, Flag2, Globe } from "@dub/ui/icons";
 import { cn, getPrettyUrl, punycode } from "@dub/utils";
 import { Star } from "lucide-react";
 
@@ -19,12 +19,12 @@ export function DomainCardTitleColumn({
 }) {
   return (
     <div className="flex min-w-0 items-center gap-4">
-      <div className="hidden rounded-full border border-gray-200 sm:block">
+      <div className="hidden rounded-full border border-neutral-200 sm:block">
         <div
           className={cn(
             "rounded-full",
             (!defaultDomain || domain === "cal.link") &&
-              "border border-white bg-gradient-to-t from-gray-100 p-1 md:p-2",
+              "border border-white bg-gradient-to-t from-neutral-100 p-1 md:p-2",
           )}
         >
           <Icon
@@ -62,31 +62,31 @@ export function DomainCardTitleColumn({
           <div className="mt-1 flex items-center gap-1 text-xs">
             {description ? (
               <span
-                className="whitespace-pre-wrap text-gray-500"
+                className="whitespace-pre-wrap text-neutral-500"
                 title={description}
               >
                 {description}
               </span>
             ) : (
               <>
-                <ArrowTurnRight2 className="h-3 w-3 text-gray-400" />
+                <ArrowTurnRight2 className="h-3 w-3 text-neutral-400" />
                 {url !== undefined ? (
                   url ? (
                     <a
                       href={url}
                       target="_blank"
                       rel="noreferrer"
-                      className="truncate text-gray-500 transition-all hover:text-gray-700 hover:underline hover:underline-offset-2"
+                      className="truncate text-neutral-500 transition-all hover:text-neutral-700 hover:underline hover:underline-offset-2"
                     >
                       {getPrettyUrl(url)}
                     </a>
                   ) : (
-                    <span className="truncate text-gray-400">
+                    <span className="truncate text-neutral-400">
                       No redirect configured
                     </span>
                   )
                 ) : (
-                  <div className="h-4 w-16 animate-pulse rounded-md bg-gray-200" />
+                  <div className="h-4 w-16 animate-pulse rounded-md bg-neutral-200" />
                 )}
               </>
             )}

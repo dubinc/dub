@@ -1,4 +1,4 @@
-import { cn } from "@dub/utils";
+import { cn, isClickOnInteractiveChild } from "@dub/utils";
 import { cva } from "class-variance-authority";
 import {
   PropsWithChildren,
@@ -10,16 +10,19 @@ import {
 } from "react";
 import { CardListContext } from "./card-list";
 
-const cardListCardVariants = cva("w-full group/card border-gray-200 bg-white", {
-  variants: {
-    variant: {
-      compact:
-        "first-of-type:rounded-t-xl last-of-type:rounded-b-xl first-of-type:border-t border-b border-x data-[hover-state-enabled=true]:hover:bg-gray-50 transition-colors",
-      loose:
-        "border rounded-xl transition-[filter] data-[hover-state-enabled=true]:hover:drop-shadow-card-hover",
+const cardListCardVariants = cva(
+  "w-full group/card border-neutral-200 bg-white",
+  {
+    variants: {
+      variant: {
+        compact:
+          "first-of-type:rounded-t-xl last-of-type:rounded-b-xl first-of-type:border-t border-b border-x data-[hover-state-enabled=true]:hover:bg-neutral-50 transition-colors",
+        loose:
+          "border rounded-xl transition-[filter] data-[hover-state-enabled=true]:hover:drop-shadow-card-hover",
+      },
     },
   },
-});
+);
 
 const cardListCardInnerClassName = "w-full py-2.5 px-4";
 
@@ -33,11 +36,13 @@ export function CardListCard({
   children,
   onClick,
   hoverStateEnabled = true,
+  banner,
 }: PropsWithChildren<{
   outerClassName?: string;
   innerClassName?: string;
   onClick?: () => void;
   hoverStateEnabled?: boolean;
+  banner?: React.ReactNode;
 }>) {
   const { variant } = useContext(CardListContext);
 
@@ -65,6 +70,7 @@ export function CardListCard({
       onPointerLeave={() => setHovered(false)}
       data-hover-state-enabled={hoverStateEnabled}
     >
+      {banner}
       <div
         className={cn(cardListCardInnerClassName, innerClassName)}
         onClick={
@@ -78,22 +84,8 @@ export function CardListCard({
                   return;
                 }
 
-                // Traverse up the DOM tree to see if there's a clickable element between this card and the click
-                for (
-                  let target = e.target as HTMLElement, i = 0;
-                  target && target !== e.currentTarget && i < 100; // Only go 100 levels deep
-                  target = target.parentElement as HTMLElement, i++
-                ) {
-                  // Don't trigger onClick if a clickable element inside the card was clicked
-                  if (
-                    ["button", "a", "input", "textarea"].includes(
-                      target.tagName.toLowerCase(),
-                    ) ||
-                    target.getAttribute("data-radix-popper-content-wrapper") !==
-                      null
-                  )
-                    return;
-                }
+                // Don't trigger onClick if an interactive child is clicked
+                if (isClickOnInteractiveChild(e)) return;
 
                 onClick();
               }

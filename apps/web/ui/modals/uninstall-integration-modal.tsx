@@ -38,7 +38,7 @@ function UninstallIntegrationModal({
       showModal={showUninstallIntegrationModal}
       setShowModal={setShowUninstallIntegrationModal}
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
+      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 sm:px-16">
         {logo ? (
           <BlurImage
             src={logo}
@@ -51,19 +51,19 @@ function UninstallIntegrationModal({
           <Logo />
         )}
         <h3 className="text-lg font-medium">Uninstall Integration</h3>
-        <p className="text-center text-sm text-gray-500">
+        <p className="text-center text-sm text-neutral-500">
           This will remove the integration from your workspace. Are you sure you
           want to continue?
         </p>
       </div>
 
-      <div className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:px-16">
-        <div className="flex items-center space-x-3 rounded-md border border-gray-300 bg-white p-3">
+      <div className="flex flex-col space-y-4 bg-neutral-50 px-4 py-8 text-left sm:px-16">
+        <div className="flex items-center space-x-3 rounded-md border border-neutral-300 bg-white p-3">
           {integration.logo ? (
             <BlurImage
               src={integration.logo}
               alt={`Logo for ${integration.name}`}
-              className="size-8 rounded-full border border-gray-200"
+              className="size-8 rounded-full border border-neutral-200"
               width={20}
               height={20}
             />
@@ -72,7 +72,9 @@ function UninstallIntegrationModal({
           )}
           <div className="flex flex-col">
             <h3 className="text-sm font-medium">{name}</h3>
-            <p className="line-clamp-1 text-xs text-gray-500">{description}</p>
+            <p className="line-clamp-1 text-xs text-neutral-500">
+              {description}
+            </p>
           </div>
         </div>
         <Button
@@ -90,6 +92,7 @@ function UninstallIntegrationModal({
               },
             ).then(async (res) => {
               if (res.status === 200) {
+                setShowUninstallIntegrationModal(false);
                 router.refresh();
                 toast.success("Successfully removed integration!");
               } else {

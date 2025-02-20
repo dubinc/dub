@@ -192,15 +192,16 @@ export function Combobox({
           height
           style={{ transform: "translateZ(0)" }} // Fixes overflow on some browsers
           transition={{ ease: "easeInOut", duration: 0.1 }}
+          className="pointer-events-auto"
         >
           <Command loop shouldFilter={shouldFilter}>
-            <div className="flex items-center overflow-hidden rounded-t-lg border-b border-gray-200">
+            <div className="flex items-center overflow-hidden rounded-t-lg border-b border-neutral-200">
               <CommandInput
                 placeholder={searchPlaceholder}
                 value={search}
                 onValueChange={setSearch}
                 className={cn(
-                  "grow border-0 py-3 pl-4 pr-2 outline-none placeholder:text-gray-400 focus:ring-0 sm:text-sm",
+                  "grow border-0 py-3 pl-4 pr-2 outline-none placeholder:text-neutral-400 focus:ring-0 sm:text-sm",
                   inputClassName,
                 )}
                 onKeyDown={(e) => {
@@ -215,7 +216,7 @@ export function Combobox({
                 }}
               />
               {shortcutHint && (
-                <kbd className="mr-2 hidden shrink-0 rounded border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 md:block">
+                <kbd className="mr-2 hidden shrink-0 rounded border border-neutral-200 bg-neutral-100 px-2 py-0.5 text-xs font-light text-neutral-500 md:block">
                   {shortcutHint}
                 </kbd>
               )}
@@ -242,8 +243,8 @@ export function Combobox({
                     {search.length > 0 && onCreate && (
                       <CommandItem
                         className={cn(
-                          "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm text-gray-700",
-                          "data-[selected=true]:bg-gray-100",
+                          "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm text-neutral-700",
+                          "data-[selected=true]:bg-neutral-100",
                           optionClassName,
                         )}
                         onSelect={async () => {
@@ -267,11 +268,11 @@ export function Combobox({
                       </CommandItem>
                     )}
                     {shouldFilter ? (
-                      <Empty className="flex min-h-12 items-center justify-center text-sm text-gray-500">
+                      <Empty className="flex min-h-12 items-center justify-center text-sm text-neutral-500">
                         {emptyState ? emptyState : "No matches"}
                       </Empty>
                     ) : sortedOptions.length === 0 ? (
-                      <div className="flex min-h-12 items-center justify-center text-sm text-gray-500">
+                      <div className="flex min-h-12 items-center justify-center text-sm text-neutral-500">
                         {emptyState ? emptyState : "No matches"}
                       </div>
                     ) : null}
@@ -307,7 +308,7 @@ export function Combobox({
             </div>
             {caret && (
               <ChevronDown
-                className={`ml-1 size-4 shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180`}
+                className={`ml-1 size-4 shrink-0 text-neutral-400 transition-transform duration-75 group-data-[state=open]:rotate-180`}
               />
             )}
           </>
@@ -368,24 +369,24 @@ function Option({
     <Command.Item
       className={cn(
         "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm",
-        "data-[selected=true]:bg-gray-100",
+        "data-[selected=true]:bg-neutral-100",
         className,
       )}
       onSelect={onSelect}
       value={option.label + option?.value}
     >
       {multiple && (
-        <div className="shrink-0 text-gray-600">
+        <div className="shrink-0 text-neutral-600">
           {selected ? (
-            <CheckboxCheckedFill className="size-4 text-gray-600" />
+            <CheckboxCheckedFill className="size-4 text-neutral-600" />
           ) : (
-            <CheckboxUnchecked className="size-4 text-gray-400" />
+            <CheckboxUnchecked className="size-4 text-neutral-400" />
           )}
         </div>
       )}
       <div className="flex min-w-0 grow items-center gap-1">
         {option.icon && (
-          <span className="shrink-0 text-gray-600">
+          <span className="shrink-0 text-neutral-600">
             {isReactNode(option.icon) ? (
               option.icon
             ) : (
@@ -397,7 +398,7 @@ function Option({
       </div>
       {right}
       {!multiple && selected && (
-        <Check2 className="size-4 shrink-0 text-gray-600" />
+        <Check2 className="size-4 shrink-0 text-neutral-600" />
       )}
     </Command.Item>
   );

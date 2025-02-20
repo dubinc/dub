@@ -55,7 +55,6 @@ function ExportLinksModal({
   const { getQueryString } = useRouterStuff();
   const dateRangePickerId = useId();
   const columnCheckboxId = useId();
-  const useFiltersCheckboxId = useId();
 
   const {
     control,
@@ -88,11 +87,13 @@ function ExportLinksModal({
           ",",
         ),
       };
+
       const queryString = data.useFilters
         ? getQueryString(params, {
-            ignore: ["import", "upgrade", "newLink"],
+            exclude: ["import", "upgrade", "newLink"],
           })
         : "?" + new URLSearchParams(params).toString();
+
       const response = await fetch(`/api/links/export${queryString}`, {
         method: "GET",
         headers: {
@@ -101,7 +102,8 @@ function ExportLinksModal({
       });
 
       if (!response.ok) {
-        throw new Error(response.statusText);
+        const { error } = await response.json();
+        throw new Error(error.message);
       }
 
       const blob = await response.blob();
@@ -126,11 +128,11 @@ function ExportLinksModal({
       showModal={showExportLinksModal}
       setShowModal={setShowExportLinksModal}
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
+      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 sm:px-16">
         <Logo />
         <div className="flex flex-col space-y-1 text-center">
           <h3 className="text-lg font-medium">Export links</h3>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-neutral-500">
             Export this workspace's links to a CSV file
           </p>
         </div>
@@ -138,7 +140,7 @@ function ExportLinksModal({
 
       <form
         onSubmit={onSubmit}
-        className="flex flex-col gap-6 bg-gray-50 px-4 py-8 text-left sm:rounded-b-2xl sm:px-16"
+        className="flex flex-col gap-6 bg-neutral-50 px-4 py-8 text-left sm:rounded-b-2xl sm:px-16"
       >
         <Controller
           name="dateRange"
@@ -147,7 +149,7 @@ function ExportLinksModal({
             <div className="flex flex-col gap-2">
               <label
                 htmlFor={dateRangePickerId}
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-neutral-700"
               >
                 Date Range
               </label>
@@ -183,7 +185,7 @@ function ExportLinksModal({
         />
 
         <div>
-          <p className="block text-sm font-medium text-gray-700">Columns</p>
+          <p className="block text-sm font-medium text-neutral-700">Columns</p>
           <Controller
             name="columns"
             control={control}
@@ -205,7 +207,7 @@ function ExportLinksModal({
                     />
                     <label
                       htmlFor={`${columnCheckboxId}-${id}`}
-                      className="select-none text-sm font-medium text-gray-600 group-hover:text-gray-800"
+                      className="select-none text-sm font-medium text-neutral-600 group-hover:text-neutral-800"
                     >
                       {label}
                     </label>
@@ -216,14 +218,14 @@ function ExportLinksModal({
           />
         </div>
 
-        <div className="border-t border-gray-200" />
+        <div className="border-t border-neutral-200" />
 
         <Controller
           name="useFilters"
           control={control}
           render={({ field }) => (
             <div className="flex items-center justify-between gap-2">
-              <span className="flex select-none items-center gap-2 text-sm font-medium text-gray-600 group-hover:text-gray-800">
+              <span className="flex select-none items-center gap-2 text-sm font-medium text-neutral-600 group-hover:text-neutral-800">
                 Apply current filters
                 <InfoTooltip content="Filter exported links by your currently selected filters" />
               </span>

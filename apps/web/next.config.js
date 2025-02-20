@@ -1,3 +1,6 @@
+const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
+const { withAxiom } = require("next-axiom");
+
 const REDIRECT_SEGMENTS = [
   "pricing",
   "blog",
@@ -7,19 +10,10 @@ const REDIRECT_SEGMENTS = [
   "_static",
 ];
 
-const { withAxiom } = require("next-axiom");
-
 /** @type {import('next').NextConfig} */
 module.exports = withAxiom({
   reactStrictMode: false,
-  transpilePackages: ["shiki"],
-  experimental: {
-    serverComponentsExternalPackages: [
-      "@react-email/components",
-      "@react-email/render",
-      "@react-email/tailwind",
-    ],
-  },
+  transpilePackages: ["shiki", "@dub/prisma", "@dub/email"],
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
       config.plugins.push(
@@ -29,6 +23,8 @@ module.exports = withAxiom({
             /(^@google-cloud\/spanner|^@mongodb-js\/zstd|^aws-crt|^aws4$|^pg-native$|^mongodb-client-encryption$|^@sap\/hana-client$|^@sap\/hana-client\/extension\/Stream$|^snappy$|^react-native-sqlite-storage$|^bson-ext$|^cardinal$|^kerberos$|^hdb-pool$|^sql.js$|^sqlite3$|^better-sqlite3$|^ioredis$|^typeorm-aurora-data-api-driver$|^pg-query-stream$|^oracledb$|^mysql$|^snappy\/package\.json$|^cloudflare:sockets$)/,
         }),
       );
+
+      config.plugins = [...config.plugins, new PrismaPlugin()];
     }
 
     config.module = {
@@ -91,6 +87,15 @@ module.exports = withAxiom({
           {
             key: "X-Frame-Options",
             value: "DENY",
+          },
+        ],
+      },
+      {
+        source: "/embed/:path*",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: "frame-ancestors *",
           },
         ],
       },
@@ -214,6 +219,11 @@ module.exports = withAxiom({
   },
   async rewrites() {
     return [
+      // for dub proxy
+      {
+        source: "/_proxy/dub/track/click",
+        destination: "https://api.dub.co/track/click",
+      },
       // for posthog proxy
       {
         source: "/_proxy/posthog/ingest/static/:path*",

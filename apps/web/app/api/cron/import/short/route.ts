@@ -1,7 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { importLinksFromShort } from "./utils";
@@ -10,8 +10,10 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    await verifyQstashSignature(req, body);
+    const rawBody = await req.text();
+    await verifyQstashSignature({ req, rawBody });
+
+    const body = JSON.parse(rawBody);
     const {
       workspaceId,
       userId,

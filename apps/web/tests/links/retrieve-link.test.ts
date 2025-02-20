@@ -1,4 +1,4 @@
-import { Link } from "@prisma/client";
+import { Link } from "@dub/prisma/client";
 import { expectedLink } from "tests/utils/schema";
 import { afterAll, describe, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";
@@ -7,7 +7,7 @@ import { E2E_LINK } from "../utils/resource";
 
 const { domain, url } = E2E_LINK;
 
-describe.sequential("GET /links/{linkId}", async () => {
+describe.concurrent("GET /links/{linkId}", async () => {
   const h = new IntegrationHarness();
   const { workspace, http, user } = await h.init();
   const workspaceId = workspace.id;
@@ -66,6 +66,10 @@ describe.sequential("GET /links/info", async () => {
   const externalId = randomId();
   const key = randomId();
 
+  afterAll(async () => {
+    await h.deleteLink(newLink.id);
+  });
+
   const { data: newLink } = await http.post<Link>({
     path: "/links",
     body: {
@@ -74,10 +78,6 @@ describe.sequential("GET /links/info", async () => {
       key,
       externalId,
     },
-  });
-
-  afterAll(async () => {
-    await h.deleteLink(newLink.id);
   });
 
   test("by domain and key", async () => {

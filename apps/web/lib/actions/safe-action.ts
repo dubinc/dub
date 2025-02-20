@@ -1,22 +1,16 @@
+import { prisma } from "@dub/prisma";
 import { createSafeActionClient } from "next-safe-action";
 import { getSession } from "../auth";
-import { prisma } from "../prisma";
 
 export const actionClient = createSafeActionClient({
-  handleReturnedServerError: (e) => {
+  handleServerError: (e) => {
+    console.error("Server action error:", e);
+
     if (e instanceof Error) {
-      return {
-        serverError: e.message,
-      };
+      return e.message;
     }
 
-    return {
-      serverError: "An unknown error occurred.",
-    };
-  },
-
-  handleServerErrorLog(originalError) {
-    console.error("Action error:", originalError.message);
+    return "An unknown error occurred.";
   },
 });
 
@@ -79,3 +73,33 @@ export const authActionClient = actionClient.use(
     });
   },
 );
+
+export const authPartnerActionClient = actionClient.use(async ({ next }) => {
+  const session = await getSession();
+
+  if (!session?.user.id) {
+    throw new Error("Unauthorized: Login required.");
+  }
+
+  const partner = await prisma.partner.findFirst({
+    where: {
+      ...(session.user.defaultPartnerId && {
+        id: session.user.defaultPartnerId,
+      }),
+      users: {
+        some: { userId: session.user.id },
+      },
+    },
+  });
+
+  if (!partner) {
+    throw new Error("Partner not found.");
+  }
+
+  return next({
+    ctx: {
+      user: session.user,
+      partner,
+    },
+  });
+});

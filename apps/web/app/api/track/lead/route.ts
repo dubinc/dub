@@ -1,20 +1,21 @@
 import { DubApiError } from "@/lib/api/errors";
-import { parseRequestBody } from "@/lib/api/utils";
+import { includeTags } from "@/lib/api/links/include-tags";
+import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { generateRandomName } from "@/lib/names";
-import { prismaEdge } from "@/lib/prisma/edge";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
-import { ratelimit } from "@/lib/upstash";
+import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
 import { transformLeadEventData } from "@/lib/webhook/transform";
-import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import {
   trackLeadRequestSchema,
   trackLeadResponseSchema,
 } from "@/lib/zod/schemas/leads";
+import { prismaEdge } from "@dub/prisma/edge";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { determinePartnerReward } from "../determine-partner-reward-edge";
 
 export const runtime = "edge";
 
@@ -24,25 +25,47 @@ export const POST = withWorkspaceEdge(
     const {
       clickId,
       eventName,
-      customerId: externalId,
+      eventQuantity,
+      externalId,
+      customerId, // deprecated (but we'll support it for backwards compatibility)
       customerName,
       customerEmail,
       customerAvatar,
       metadata,
     } = trackLeadRequestSchema.parse(await parseRequestBody(req));
 
-    // deduplicate lead events – only record 1 event per hour
-    const { success } = await ratelimit(1, "1 h").limit(
-      `recordLead:${externalId}:${eventName.toLowerCase().replace(" ", "-")}`,
-    );
+    const customerExternalId = externalId || customerId;
 
-    if (!success) {
+    if (!customerExternalId) {
       throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: `Rate limit exceeded for customer ${externalId}: ${eventName}`,
+        code: "bad_request",
+        message: "externalId is required",
       });
     }
 
+    // deduplicate lead events – only record 1 unique event for the same customer and event name
+    const ok = await redis.set(
+      `trackLead:${workspace.id}:${customerExternalId}:${eventName.toLowerCase().replace(" ", "-")}`,
+      {
+        timestamp: Date.now(),
+        clickId,
+        eventName,
+        customerExternalId,
+        customerName,
+        customerEmail,
+        customerAvatar,
+      },
+      {
+        nx: true,
+      },
+    );
+
+    if (!ok) {
+      throw new DubApiError({
+        code: "conflict",
+        message: `Customer with externalId ${customerExternalId} and event name ${eventName} has already been recorded.`,
+      });
+    }
     // Find click event
     const clickEvent = await getClickEvent({ clickId });
 
@@ -58,41 +81,51 @@ export const POST = withWorkspaceEdge(
 
     waitUntil(
       (async () => {
-        const clickData = clickEventSchemaTB
-          .omit({ timestamp: true })
-          .parse(clickEvent.data[0]);
+        const clickData = clickEvent.data[0];
 
-        // Find customer or create if not exists
         const customer = await prismaEdge.customer.upsert({
           where: {
             projectId_externalId: {
               projectId: workspace.id,
-              externalId,
+              externalId: customerExternalId,
             },
           },
           create: {
+            id: createId({ prefix: "cus_" }),
             name: finalCustomerName,
             email: customerEmail,
             avatar: customerAvatar,
-            externalId,
+            externalId: customerExternalId,
             projectId: workspace.id,
             projectConnectId: workspace.stripeConnectId,
+            clickId: clickData.click_id,
+            linkId: clickData.link_id,
+            country: clickData.country,
+            clickedAt: new Date(clickData.timestamp + "Z"),
           },
-          update: {
-            name: finalCustomerName,
-            email: customerEmail,
-            avatar: customerAvatar,
-          },
+          update: {}, // no updates needed if the customer exists
         });
 
+        const eventId = nanoid(16);
+        const leadEventPayload = {
+          ...clickData,
+          event_id: eventId,
+          event_name: eventName,
+          customer_id: customer.id,
+          metadata: metadata ? JSON.stringify(metadata) : "",
+        };
+
         const [_lead, link, _project] = await Promise.all([
-          recordLead({
-            ...clickData,
-            event_id: nanoid(16),
-            event_name: eventName,
-            customer_id: customer.id,
-            metadata: metadata ? JSON.stringify(metadata) : "",
-          }),
+          recordLead(
+            eventQuantity
+              ? Array(eventQuantity)
+                  .fill(null)
+                  .map(() => ({
+                    ...leadEventPayload,
+                    event_id: nanoid(16),
+                  }))
+              : leadEventPayload,
+          ),
 
           // update link leads count
           prismaEdge.link.update({
@@ -101,35 +134,60 @@ export const POST = withWorkspaceEdge(
             },
             data: {
               leads: {
-                increment: 1,
+                increment: eventQuantity ?? 1,
               },
             },
+            include: includeTags,
           }),
+
+          // update workspace usage
           prismaEdge.project.update({
             where: {
               id: workspace.id,
             },
             data: {
               usage: {
-                increment: 1,
+                increment: eventQuantity ?? 1,
               },
             },
           }),
         ]);
 
-        const lead = transformLeadEventData({
-          ...clickData,
-          link,
-          eventName,
-          customerId: customer.externalId,
-          customerName: customer.name,
-          customerEmail: customer.email,
-          customerAvatar: customer.avatar,
-        });
+        if (link.programId && link.partnerId) {
+          const reward = await determinePartnerReward({
+            programId: link.programId,
+            partnerId: link.partnerId,
+            event: "lead",
+          });
+
+          if (reward) {
+            await prismaEdge.commission.create({
+              data: {
+                id: createId({ prefix: "cm_" }),
+                programId: link.programId,
+                linkId: link.id,
+                partnerId: link.partnerId,
+                eventId,
+                customerId: customer.id,
+                type: "lead",
+                amount: 0,
+                quantity: eventQuantity ?? 1,
+                earnings: eventQuantity
+                  ? reward.amount * eventQuantity
+                  : reward.amount,
+              },
+            });
+          }
+        }
 
         await sendWorkspaceWebhookOnEdge({
           trigger: "lead.created",
-          data: lead,
+          data: transformLeadEventData({
+            ...clickData,
+            eventName,
+            link,
+            customer,
+          }),
           workspace,
         });
       })(),
@@ -140,25 +198,29 @@ export const POST = withWorkspaceEdge(
         id: clickId,
       },
       customer: {
-        id: externalId,
         name: finalCustomerName,
         email: customerEmail,
         avatar: customerAvatar,
+        externalId: customerExternalId,
       },
     });
 
     return NextResponse.json({
       ...lead,
-      // for backwards compatibility – will remove soon
+      // for backwards compatibility – will remove soon
       clickId,
-      customerId: externalId,
       customerName: finalCustomerName,
       customerEmail: customerEmail,
       customerAvatar: customerAvatar,
     });
   },
   {
-    requiredAddOn: "conversion",
-    requiredPermissions: ["conversions.write"],
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "enterprise",
+    ],
   },
 );

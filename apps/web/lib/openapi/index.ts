@@ -1,17 +1,22 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import { DomainSchema } from "@/lib/zod/schemas/domains";
-import { LinkSchema } from "@/lib/zod/schemas/links";
+import { LinkErrorSchema, LinkSchema } from "@/lib/zod/schemas/links";
 import { TagSchema } from "@/lib/zod/schemas/tags";
 import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
 import { createDocument } from "zod-openapi";
 import { webhookEventSchema } from "../webhook/schemas";
+import { FolderSchema } from "../zod/schemas/folders";
 import { analyticsPath } from "./analytics";
+import { customersPaths } from "./customers";
 import { domainsPaths } from "./domains";
 import { eventsPath } from "./events";
+import { foldersPaths } from "./folders";
 import { linksPaths } from "./links";
 import { metatagsPath } from "./metatags";
+import { partnersPaths } from "./partners";
 import { qrCodePaths } from "./qr";
 import { tagsPaths } from "./tags";
+import { tokensPaths } from "./tokens";
 import { trackPaths } from "./track";
 import { workspacesPaths } from "./workspaces";
 
@@ -40,13 +45,17 @@ export const document = createDocument({
   ],
   paths: {
     ...linksPaths,
-    ...qrCodePaths,
     ...analyticsPath,
     ...eventsPath,
-    ...workspacesPaths,
     ...tagsPaths,
+    ...foldersPaths,
     ...domainsPaths,
     ...trackPaths,
+    ...customersPaths,
+    ...partnersPaths,
+    ...workspacesPaths,
+    ...tokensPaths,
+    ...qrCodePaths,
     ...metatagsPath,
   },
   components: {
@@ -54,8 +63,10 @@ export const document = createDocument({
       LinkSchema,
       WorkspaceSchema,
       TagSchema,
+      FolderSchema,
       DomainSchema,
       webhookEventSchema,
+      LinkErrorSchema,
     },
     securitySchemes: {
       token: {

@@ -1,7 +1,8 @@
-import { prisma } from "@/lib/prisma";
 import { tb } from "@/lib/tinybird";
-import { Link } from "@prisma/client";
+import { prisma } from "@dub/prisma";
+import { Link } from "@dub/prisma/client";
 import { transformLink } from "../api/links";
+import { generateRandomName } from "../names";
 import { tbDemo } from "../tinybird/demo-client";
 import z from "../zod";
 import { eventsFilterTB } from "../zod/schemas/analytics";
@@ -10,7 +11,7 @@ import {
   clickEventSchema,
   clickEventSchemaTBEndpoint,
 } from "../zod/schemas/clicks";
-import { customerSchema } from "../zod/schemas/customers";
+import { CustomerSchema } from "../zod/schemas/customers";
 import {
   leadEventResponseSchema,
   leadEventSchemaTBEndpoint,
@@ -19,8 +20,8 @@ import {
   saleEventResponseSchema,
   saleEventSchemaTBEndpoint,
 } from "../zod/schemas/sales";
-import { INTERVAL_DATA } from "./constants";
 import { EventsFilters } from "./types";
+import { getStartEndDates } from "./utils/get-start-end-dates";
 
 // Fetch data for /api/events
 export const getEvents = async (params: EventsFilters) => {
@@ -32,22 +33,20 @@ export const getEvents = async (params: EventsFilters) => {
     end,
     qr,
     trigger,
+    region,
+    country,
     isDemo,
+    order,
+    sortOrder,
+    dataAvailableFrom,
   } = params;
 
-  if (start) {
-    start = new Date(start);
-    end = end ? new Date(end) : new Date(Date.now());
-
-    // Swap start and end if start is greater than end
-    if (start > end) {
-      [start, end] = [end, start];
-    }
-  } else {
-    interval = interval ?? "24h";
-    start = INTERVAL_DATA[interval].startDate;
-    end = new Date(Date.now());
-  }
+  const { startDate, endDate } = getStartEndDates({
+    interval,
+    start,
+    end,
+    dataAvailableFrom,
+  });
 
   if (trigger) {
     if (trigger === "qr") {
@@ -57,8 +56,19 @@ export const getEvents = async (params: EventsFilters) => {
     }
   }
 
+  if (region) {
+    const split = region.split("-");
+    country = split[0];
+    region = split[1];
+  }
+
+  // support legacy order param
+  if (order && order !== "desc") {
+    sortOrder = order;
+  }
+
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
-    pipe: "v1_events",
+    pipe: "v2_events",
     parameters: eventsFilterTB,
     data:
       {
@@ -73,9 +83,12 @@ export const getEvents = async (params: EventsFilters) => {
     eventType,
     workspaceId,
     qr,
+    country,
+    region,
+    order: sortOrder,
     offset: (params.page - 1) * params.limit,
-    start: start.toISOString().replace("T", " ").replace("Z", ""),
-    end: end.toISOString().replace("T", " ").replace("Z", ""),
+    start: startDate.toISOString().replace("T", " ").replace("Z", ""),
+    end: endDate.toISOString().replace("T", " ").replace("Z", ""),
   });
 
   const [linksMap, customersMap] = await Promise.all([
@@ -109,7 +122,8 @@ export const getEvents = async (params: EventsFilters) => {
         click: clickEventSchema.parse({
           ...evt,
           id: evt.click_id,
-          // normalize referer_url_processed to camelCase
+          // normalize processed values
+          region: evt.region_processed ?? "",
           refererUrl: evt.referer_url_processed ?? "",
         }),
         // transformLink -> add shortLink, qrCode, workspaceId, etc.
@@ -123,6 +137,8 @@ export const getEvents = async (params: EventsFilters) => {
                 name: "Deleted Customer",
                 email: "deleted@customer.com",
                 avatar: `https://api.dicebear.com/9.x/micah/svg?seed=${evt.customer_id}`,
+                externalId: evt.customer_id,
+                createdAt: new Date("1970-01-01"),
               },
               ...(evt.event === "sale"
                 ? {
@@ -185,16 +201,19 @@ const getCustomersMap = async (customerIds: string[]) => {
 
   return customers.reduce(
     (acc, customer) => {
-      acc[customer.id] = customerSchema.parse({
-        id: customer.externalId ?? customer.id,
-        name: customer.name || "",
+      acc[customer.id] = CustomerSchema.parse({
+        id: customer.id,
+        externalId: customer.externalId || "",
+        name: customer.name || customer.email || generateRandomName(),
         email: customer.email || "",
         avatar:
           customer.avatar ||
-          `https://api.dicebear.com/9.x/notionists/png?seed=${customer.id}`,
+          `https://api.dicebear.com/9.x/notionists/svg?seed=${customer.id}`,
+        country: customer.country || "",
+        createdAt: customer.createdAt,
       });
       return acc;
     },
-    {} as Record<string, z.infer<typeof customerSchema>>,
+    {} as Record<string, z.infer<typeof CustomerSchema>>,
   );
 };

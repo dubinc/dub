@@ -1,8 +1,9 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { createId } from "@/lib/api/utils";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
+import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { importLinksFromBitly } from "./utils";
@@ -11,8 +12,10 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    await verifyQstashSignature(req, body);
+    const rawBody = await req.text();
+    await verifyQstashSignature({ req, rawBody });
+
+    const body = JSON.parse(rawBody);
     const { workspaceId, bitlyGroup, importTags } = body;
 
     try {
@@ -39,6 +42,7 @@ export async function POST(req: Request) {
 
           await prisma.tag.createMany({
             data: tags.map((tag) => ({
+              id: createId({ prefix: "tag_" }),
               name: tag,
               color: randomBadgeColor(),
               projectId: workspaceId,

@@ -1,7 +1,8 @@
-import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { getLinksQuerySchemaExtended } from "@/lib/zod/schemas/links";
-import { combineTagIds, transformLink } from "./utils";
+import { prisma } from "@dub/prisma";
+import { combineTagIds } from "../tags/combine-tag-ids";
+import { transformLink } from "./utils";
 
 export async function getLinksForWorkspace({
   workspaceId,
@@ -10,24 +11,53 @@ export async function getLinksForWorkspace({
   tagIds,
   tagNames,
   search,
-  sort = "createdAt",
+  sort, // Deprecated
+  sortBy,
+  sortOrder,
   page,
   pageSize,
   userId,
   showArchived,
   withTags,
+  folderId,
+  folderIds,
+  linkIds,
   includeUser,
   includeWebhooks,
-  linkIds,
+  includeDashboard,
+  tenantId,
+  partnerId,
 }: z.infer<typeof getLinksQuerySchemaExtended> & {
   workspaceId: string;
+  folderIds?: string[];
 }) {
   const combinedTagIds = combineTagIds({ tagId, tagIds });
+
+  // support legacy sort param
+  if (sort && sort !== "createdAt") {
+    sortBy = sort;
+  }
 
   const links = await prisma.link.findMany({
     where: {
       projectId: workspaceId,
       archived: showArchived ? undefined : false,
+      ...(folderIds
+        ? {
+            OR: [
+              {
+                folderId: {
+                  in: folderIds.filter((id) => id !== ""),
+                },
+              },
+              {
+                folderId: null,
+              },
+            ],
+          }
+        : {
+            folderId: folderId || null,
+          }),
       ...(domain && { domain }),
       ...(search && {
         OR: [
@@ -61,6 +91,8 @@ export async function getLinksForWorkspace({
               },
             }
           : {}),
+      ...(tenantId && { tenantId }),
+      ...(partnerId && { partnerId }),
       ...(userId && { userId }),
       ...(linkIds && { id: { in: linkIds } }),
     },
@@ -78,9 +110,10 @@ export async function getLinksForWorkspace({
       },
       user: includeUser,
       webhooks: includeWebhooks,
+      dashboard: includeDashboard,
     },
     orderBy: {
-      [sort]: "desc",
+      [sortBy]: sortOrder,
     },
     take: pageSize,
     skip: (page - 1) * pageSize,

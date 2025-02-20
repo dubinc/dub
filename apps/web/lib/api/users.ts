@@ -1,10 +1,10 @@
 import { Session, hashToken } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { Role, WorkspaceWithUsers } from "@/lib/types";
+import { sendEmail } from "@dub/email";
+import { WorkspaceInvite } from "@dub/email/templates/workspace-invite";
+import { prisma } from "@dub/prisma";
 import { TWO_WEEKS_IN_SECONDS } from "@dub/utils";
 import { randomBytes } from "crypto";
-import { sendEmail } from "emails";
-import WorkspaceInvite from "emails/workspace-invite";
 import { DubApiError } from "./errors";
 
 export async function inviteUser({
@@ -52,7 +52,7 @@ export async function inviteUser({
   });
 
   const params = new URLSearchParams({
-    callbackUrl: `${process.env.NEXTAUTH_URL}/${workspace.slug}?invite=true`,
+    callbackUrl: `${process.env.NEXTAUTH_URL}/${workspace.slug}?invite=1`,
     email,
     token,
   });

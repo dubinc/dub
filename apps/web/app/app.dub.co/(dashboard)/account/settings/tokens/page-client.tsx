@@ -29,7 +29,7 @@ export default function TokensPageClient() {
         <AlertTitle>
           User API Keys have been replaced by Workspace API Keys.
         </AlertTitle>
-        <AlertDescription className="text-gray-500">
+        <AlertDescription className="text-neutral-500">
           We recommend creating a new{" "}
           <a
             href="https://dub.co/docs/api-reference/tokens"
@@ -50,10 +50,10 @@ export default function TokensPageClient() {
         </AlertDescription>
       </Alert>
 
-      <div className="rounded-lg border border-gray-200 bg-white">
+      <div className="rounded-lg border border-neutral-200 bg-white">
         <div className="flex flex-col space-y-3 p-5 sm:p-10">
           <h2 className="text-xl font-medium">Your API Keys</h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-neutral-500">
             These API keys allow other apps to access your account. Use it with
             caution – do not share your API key with others, or expose it in the
             browser or other client-side code
@@ -61,17 +61,17 @@ export default function TokensPageClient() {
         </div>
         {isLoading || !tokens ? (
           <div className="flex flex-col items-center justify-center space-y-4 pb-20 pt-10">
-            <LoadingSpinner className="h-6 w-6 text-gray-500" />
-            <p className="text-sm text-gray-500">Fetching API keys...</p>
+            <LoadingSpinner className="h-6 w-6 text-neutral-500" />
+            <p className="text-sm text-neutral-500">Fetching API keys...</p>
           </div>
         ) : tokens.length > 0 ? (
           <div>
-            <div className="grid grid-cols-5 border-b border-gray-200 px-5 py-2 text-sm font-medium text-gray-500 sm:px-10">
+            <div className="grid grid-cols-5 border-b border-neutral-200 px-5 py-2 text-sm font-medium text-neutral-500 sm:px-10">
               <div className="col-span-3">Name</div>
               <div>Key</div>
               <div className="text-center">Last used</div>
             </div>
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-neutral-200">
               {tokens.map((token) => (
                 <TokenRow key={token.id} {...token} />
               ))}
@@ -79,8 +79,8 @@ export default function TokensPageClient() {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center space-y-4 pb-20 pt-10">
-            <FolderOpen className="h-6 w-6 text-gray-500" />
-            <p className="text-sm text-gray-500">
+            <FolderOpen className="h-6 w-6 text-neutral-500" />
+            <p className="text-sm text-neutral-500">
               No API keys found. Create one above.
             </p>
           </div>
@@ -104,15 +104,15 @@ const TokenRow = (token: TokenProps) => {
         <div className="col-span-3 flex items-center space-x-3">
           <TokenAvatar id={token.id} />
           <div className="flex flex-col space-y-px">
-            <p className="font-semibold text-gray-700">{token.name}</p>
-            <p className="text-sm text-gray-500" suppressHydrationWarning>
+            <p className="font-semibold text-neutral-700">{token.name}</p>
+            <p className="text-sm text-neutral-500" suppressHydrationWarning>
               Created {timeAgo(token.createdAt, { withAgo: true })}
             </p>
           </div>
         </div>
         <div className="font-mono text-sm">{token.partialKey}</div>
         <div
-          className="text-center text-sm text-gray-500"
+          className="text-center text-sm text-neutral-500"
           suppressHydrationWarning
         >
           {timeAgo(token.lastUsed)}
@@ -142,9 +142,9 @@ const TokenRow = (token: TokenProps) => {
             onClick={() => {
               setOpenPopover(!openPopover);
             }}
-            className="absolute right-4 rounded-md px-1 py-2 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
+            className="absolute right-4 rounded-md px-1 py-2 transition-all duration-75 hover:bg-neutral-100 active:bg-neutral-200"
           >
-            <MoreVertical className="h-5 w-5 text-gray-500" />
+            <MoreVertical className="h-5 w-5 text-neutral-500" />
           </button>
         </Popover>
       </div>

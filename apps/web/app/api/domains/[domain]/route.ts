@@ -1,21 +1,22 @@
 import {
   addDomainToVercel,
-  deleteDomainAndLinks,
+  markDomainAsDeleted,
   removeDomainFromVercel,
   validateDomain,
 } from "@/lib/api/domains";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
+import { queueDomainUpdate } from "@/lib/api/domains/queue";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { recordLink } from "@/lib/tinybird";
-import { redis } from "@/lib/upstash";
+import { storage } from "@/lib/storage";
 import {
   DomainSchema,
   updateDomainBodySchema,
 } from "@/lib/zod/schemas/domains";
-import { Prisma } from "@prisma/client";
+import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
+import { combineWords, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -39,8 +40,10 @@ export const GET = withWorkspace(
 export const PATCH = withWorkspace(
   async ({ req, workspace, params }) => {
     const {
+      id: domainId,
       slug: domain,
       registeredDomain,
+      logo: oldLogo,
       deepLink: existingDeepLink,
     } = await getDomainOrThrow({
       workspace,
@@ -53,22 +56,38 @@ export const PATCH = withWorkspace(
       placeholder,
       expiredUrl,
       notFoundUrl,
+      logo,
       archived,
       deepLink,
     } = updateDomainBodySchema.parse(await parseRequestBody(req));
 
-    if (workspace.plan === "free" && expiredUrl) {
-      throw new DubApiError({
-        code: "forbidden",
-        message:
-          "You can only use Default Expiration URLs on a Pro plan and above. Upgrade to Pro to use these features.",
-      });
+    if (workspace.plan === "free") {
+      if (logo || expiredUrl || notFoundUrl) {
+        const proFeaturesString = combineWords(
+          [
+            logo && "custom QR code logos",
+            expiredUrl && "default expiration URLs",
+            notFoundUrl && "not found URLs",
+          ].filter(Boolean) as string[],
+        );
+
+        throw new DubApiError({
+          code: "forbidden",
+          message: `You can only set ${proFeaturesString} on a Pro plan and above. Upgrade to Pro to use these features.`,
+        });
+      }
     }
 
     const domainUpdated =
       newDomain && newDomain.toLowerCase() !== domain.toLowerCase();
 
     if (domainUpdated) {
+      if (registeredDomain) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: "You cannot update a Dub-provisioned domain.",
+        });
+      }
       const validDomain = await validateDomain(newDomain);
       if (validDomain.error && validDomain.code) {
         throw new DubApiError({
@@ -85,18 +104,24 @@ export const PATCH = withWorkspace(
       }
     }
 
+    const logoUploaded = logo
+      ? await storage.upload(`domains/${domainId}/logo_${nanoid(7)}`, logo)
+      : null;
+
+    // If logo is null, we want to delete the logo (explicitly set in the request body to null or "")
+    const deleteLogo = logo === null && oldLogo;
+
     const domainRecord = await prisma.domain.update({
       where: {
         slug: domain,
       },
       data: {
+        ...(domainUpdated && { slug: newDomain }),
         archived,
-        ...(domainUpdated && !registeredDomain && { slug: newDomain }),
-        ...(placeholder && { placeholder }),
-        ...(workspace.plan != "free" && {
-          expiredUrl,
-          notFoundUrl,
-        }),
+        placeholder,
+        expiredUrl,
+        notFoundUrl,
+        logo: deleteLogo ? null : logoUploaded?.url || oldLogo,
         ...(deepLink && {
           deepLink: {
             ...(existingDeepLink as Prisma.JsonObject),
@@ -111,35 +136,24 @@ export const PATCH = withWorkspace(
 
     waitUntil(
       (async () => {
+        // remove old logo
+        if (oldLogo && (logo === null || logoUploaded)) {
+          await storage.delete(oldLogo.replace(`${R2_URL}/`, ""));
+        }
+
         if (domainUpdated) {
           await Promise.all([
             // remove old domain from Vercel
             removeDomainFromVercel(domain),
-            // rename redis key
-            redis.rename(domain.toLowerCase(), newDomain.toLowerCase()),
+
+            // trigger the queue to rename the redis keys and update the links in Tinybird
+            queueDomainUpdate({
+              workspaceId: workspace.id,
+              oldDomain: domain,
+              newDomain: newDomain,
+              page: 1,
+            }),
           ]);
-
-          const allLinks = await prisma.link.findMany({
-            where: {
-              domain: newDomain,
-            },
-            include: {
-              tags: true,
-            },
-          });
-
-          // update all links in Tinybird
-          recordLink(
-            allLinks.map((link) => ({
-              link_id: link.id,
-              domain: link.domain,
-              key: link.key,
-              url: link.url,
-              tag_ids: link.tags.map((tag) => tag.tagId),
-              workspace_id: link.projectId,
-              created_at: link.createdAt,
-            })),
-          );
         }
       })(),
     );
@@ -167,7 +181,10 @@ export const DELETE = withWorkspace(
       });
     }
 
-    await deleteDomainAndLinks(domain);
+    await markDomainAsDeleted({
+      domain,
+      workspaceId: workspace.id,
+    });
 
     return NextResponse.json({ slug: domain });
   },

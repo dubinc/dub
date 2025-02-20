@@ -2,11 +2,11 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withSession } from "@/lib/auth";
 import { hashPassword, validatePassword } from "@/lib/auth/password";
-import { prisma } from "@/lib/prisma";
 import { updatePasswordSchema } from "@/lib/zod/schemas/auth";
+import { sendEmail } from "@dub/email";
+import { PasswordUpdated } from "@dub/email/templates/password-updated";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { sendEmail } from "emails";
-import PasswordUpdated from "emails/password-updated";
 import { NextResponse } from "next/server";
 
 // PATCH /api/user/password - updates the user's password
@@ -43,14 +43,22 @@ export const PATCH = withSession(async ({ req, session }) => {
     });
   }
 
-  await prisma.user.update({
-    where: {
-      id: session.user.id,
-    },
-    data: {
-      passwordHash: await hashPassword(newPassword),
-    },
-  });
+  await Promise.all([
+    prisma.user.update({
+      where: {
+        id: session.user.id,
+      },
+      data: {
+        passwordHash: await hashPassword(newPassword),
+      },
+    }),
+
+    prisma.passwordResetToken.deleteMany({
+      where: {
+        identifier: session.user.email,
+      },
+    }),
+  ]);
 
   // Send the email to inform the user that their password has been updated
   waitUntil(

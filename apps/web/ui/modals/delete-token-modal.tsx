@@ -1,14 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TokenProps } from "@/lib/types";
-import {
-  Badge,
-  Button,
-  Logo,
-  Modal,
-  TokenAvatar,
-  useMediaQuery,
-} from "@dub/ui";
-import { timeAgo } from "@dub/utils";
+import { Button, Key, Modal, Tooltip, useMediaQuery } from "@dub/ui";
+import { DICEBEAR_AVATAR_URL } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -53,33 +46,58 @@ function DeleteTokenModal({
     <Modal
       showModal={showDeleteTokenModal}
       setShowModal={setShowDeleteTokenModal}
+      className="max-w-md"
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
-        <Logo />
+      <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
         <h3 className="text-lg font-medium">Delete API Key</h3>
-        <p className="text-center text-sm text-gray-500">
+        <p className="text-sm text-neutral-500">
           This will permanently delete the API key for and revoke all access to
           your account. Are you sure you want to continue?
         </p>
       </div>
 
-      <div className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:px-16">
-        <div className="relative flex items-center space-x-3 rounded-md border border-gray-300 bg-white px-1 py-3">
-          <Badge variant="neutral" className="absolute right-2 top-2">
-            {token.partialKey}
-          </Badge>
-          <TokenAvatar id={token.id} />
-          <div className="flex flex-col">
-            <h3 className="line-clamp-1 w-48 font-semibold text-gray-700">
+      <div className="flex flex-col space-y-4 bg-neutral-50 px-4 py-4 sm:px-6">
+        <div className="relative flex items-center gap-2 space-x-3 rounded-md border border-neutral-300 bg-white px-4 py-2">
+          <Key className="size-5 text-neutral-500" />
+
+          <div className="flex flex-1 flex-col gap-0.5">
+            <h3 className="line-clamp-1 text-sm font-medium text-neutral-600">
               {token.name}
             </h3>
-            <p className="text-xs text-gray-500" suppressHydrationWarning>
-              Last used {timeAgo(token.lastUsed, { withAgo: true })}
+            <p
+              className="text-xs font-medium text-neutral-500"
+              suppressHydrationWarning
+            >
+              {token.partialKey}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {token.user && (
+              <Tooltip content={token.user.name}>
+                <img
+                  src={
+                    token.user.isMachine
+                      ? "https://api.dicebear.com/7.x/bottts/svg?seed=Sara"
+                      : token.user.image ||
+                        `${DICEBEAR_AVATAR_URL}${token.user.id}`
+                  }
+                  alt={token.user.name!}
+                  className="size-5 rounded-full"
+                />
+              </Tooltip>
+            )}
+            <p className="text-xs text-neutral-500">
+              {new Date(token.createdAt).toLocaleDateString("en-us", {
+                month: "short",
+                day: "numeric",
+              })}
             </p>
           </div>
         </div>
+
         <Button
-          text="Confirm"
+          text="Delete"
           variant="danger"
           autoFocus={!isMobile}
           loading={removing}
@@ -95,8 +113,8 @@ function DeleteTokenModal({
                 mutate(endpoint.mutate);
                 setShowDeleteTokenModal(false);
               } else {
-                const error = await res.text();
-                toast.error(error);
+                const { error } = await res.json();
+                toast.error(error.message);
               }
             });
           }}

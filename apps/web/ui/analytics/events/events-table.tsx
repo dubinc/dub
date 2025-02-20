@@ -1,15 +1,10 @@
 "use client";
 
 import { editQueryString } from "@/lib/analytics/utils";
-import { generateRandomName } from "@/lib/names";
-import useWorkspace from "@/lib/swr/use-workspace";
-import { clickEventResponseSchema } from "@/lib/zod/schemas/clicks";
-import { leadEventResponseSchema } from "@/lib/zod/schemas/leads";
-import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
+import { ClickEvent, Customer, LeadEvent, SaleEvent } from "@/lib/types";
+import { CustomerDetailsSheet } from "@/ui/partners/customer-details-sheet";
 import EmptyState from "@/ui/shared/empty-state";
 import {
-  Avatar,
-  CopyButton,
   CopyText,
   LinkLogo,
   Table,
@@ -18,17 +13,11 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import {
-  CursorRays,
-  FilterBars,
-  Globe,
-  Magnifier,
-  Menu3,
-  QRCode,
-} from "@dub/ui/src/icons";
+import { CursorRays, Globe, Magnifier, QRCode } from "@dub/ui/icons";
 import {
   CONTINENTS,
   COUNTRIES,
+  REGIONS,
   capitalize,
   fetcher,
   getApexDomain,
@@ -37,23 +26,20 @@ import {
 } from "@dub/utils";
 import { Cell, ColumnDef } from "@tanstack/react-table";
 import { Link2 } from "lucide-react";
-import Link from "next/link";
-import { useContext, useEffect, useMemo } from "react";
+import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
-import z from "zod";
 import { AnalyticsContext } from "../analytics-provider";
 import ContinentIcon from "../continent-icon";
 import DeviceIcon from "../device-icon";
+import { CustomerRowItem } from "./customer-row-item";
 import EditColumnsButton from "./edit-columns-button";
 import { EventsContext } from "./events-provider";
-import { exampleData } from "./example-data";
+import { EXAMPLE_EVENTS_DATA } from "./example-data";
+import FilterButton from "./filter-button";
 import { RowMenuButton } from "./row-menu-button";
 import { eventColumns, useColumnVisibility } from "./use-column-visibility";
 
-export type EventDatum =
-  | z.infer<typeof clickEventResponseSchema>
-  | z.infer<typeof leadEventResponseSchema>
-  | z.infer<typeof saleEventResponseSchema>;
+export type EventDatum = ClickEvent | LeadEvent | SaleEvent;
 
 type ColumnMeta = {
   filterParams?: (
@@ -61,37 +47,26 @@ type ColumnMeta = {
   ) => Record<string, any>;
 };
 
-const FilterButton = ({ set }: { set: Record<string, any> }) => {
-  const { queryParams } = useRouterStuff();
-
-  return (
-    <div className="absolute right-1 top-0 flex h-full shrink-0 translate-x-3 items-center justify-center bg-[linear-gradient(to_right,transparent,white_10%)] p-2 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100">
-      <Link
-        href={
-          queryParams({
-            set,
-            del: "page",
-            getNewPath: true,
-          }) as string
-        }
-        className="block rounded-md border border-transparent bg-white p-0.5 text-gray-600 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-gray-950"
-      >
-        <span className="sr-only">Filter</span>
-        <FilterBars className="h-3.5 w-3.5" />
-      </Link>
-    </div>
-  );
-};
-
-export default function EventsTable() {
-  const { slug, plan, conversionEnabled } = useWorkspace();
+export default function EventsTable({
+  requiresUpgrade,
+  upgradeOverlay,
+}: {
+  requiresUpgrade?: boolean;
+  upgradeOverlay?: ReactNode;
+}) {
   const { searchParams, queryParams } = useRouterStuff();
   const { setExportQueryString } = useContext(EventsContext);
-  const { selectedTab: tab } = useContext(AnalyticsContext);
+  const {
+    selectedTab: tab,
+    queryString: originalQueryString,
+    eventsApiPath,
+    totalEvents,
+  } = useContext(AnalyticsContext);
+
   const { columnVisibility, setColumnVisibility } = useColumnVisibility();
 
-  const sortBy = searchParams.get("sort") || "timestamp";
-  const order = searchParams.get("order") === "asc" ? "asc" : "desc";
+  const sortBy = searchParams.get("sortBy") || "timestamp";
+  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const columns = useMemo<ColumnDef<EventDatum, any>[]>(
     () =>
@@ -134,18 +109,21 @@ export default function EventsTable() {
           accessorKey: "eventName",
           enableHiding: false,
           cell: ({ getValue }) =>
-            (
+            getValue() ? (
               <span className="truncate" title={getValue()}>
                 {getValue()}
               </span>
-            ) || <span className="text-gray-400">-</span>,
+            ) : (
+              <span className="text-neutral-400">-</span>
+            ),
         },
         {
           id: "link",
           header: "Link",
           accessorKey: "link",
-          minSize: 250,
-          maxSize: 200,
+          minSize: 150,
+          size: 200,
+          maxSize: 400,
           meta: {
             filterParams: ({ getValue }) => ({
               domain: getValue().domain,
@@ -161,6 +139,7 @@ export default function EventsTable() {
               <CopyText
                 value={getValue().shortLink}
                 successMessage="Copied link to clipboard!"
+                className="truncate"
               >
                 <span className="truncate" title={getValue().shortLink}>
                   {getPrettyUrl(getValue().shortLink)}
@@ -173,67 +152,10 @@ export default function EventsTable() {
           id: "customer",
           header: "Customer",
           accessorKey: "customer",
-          cell: ({ getValue }) => {
-            const customer = getValue();
-            const display =
-              customer.name || customer.email || generateRandomName();
-            return (
-              <Tooltip
-                content={
-                  <div className="w-full p-3">
-                    <Avatar
-                      user={{
-                        name: customer.name,
-                        email: customer.email,
-                        image: customer.avatar,
-                      }}
-                      className="h-8 w-8"
-                    />
-                    <p className="mt-2 text-sm font-semibold text-gray-700">
-                      {display}
-                    </p>
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <p>{customer.email}</p>
-                      <CopyButton
-                        value={customer.email}
-                        variant="neutral"
-                        className="p-1 [&>*]:h-3 [&>*]:w-3"
-                        successMessage="Copied email to clipboard!"
-                      />
-                    </div>
-                  </div>
-                }
-              >
-                <div className="flex items-center gap-3" title={display}>
-                  <img
-                    alt={display}
-                    src={customer.avatar}
-                    className="size-4 shrink-0 rounded-full border border-gray-200"
-                  />
-                  <span className="truncate">{display}</span>
-                </div>
-              </Tooltip>
-            );
-          },
-        },
-        {
-          id: "continent",
-          header: "Continent",
-          accessorKey: "click.continent",
-          meta: {
-            filterParams: ({ getValue }) => ({ continent: getValue() }),
-          },
-          cell: ({ getValue }) => (
-            <div
-              className="flex items-center gap-3"
-              title={CONTINENTS[getValue()] ?? "Unknown"}
-            >
-              <ContinentIcon display={getValue()} className="size-4 shrink-0" />
-              <span className="truncate">
-                {CONTINENTS[getValue()] ?? "Unknown"}
-              </span>
-            </div>
-          ),
+          minSize: 150,
+          size: 230,
+          maxSize: 400,
+          cell: ({ getValue }) => <CustomerRowItem customer={getValue()} />,
         },
         {
           id: "country",
@@ -266,6 +188,9 @@ export default function EventsTable() {
           id: "city",
           header: "City",
           accessorKey: "click.city",
+          meta: {
+            filterParams: ({ getValue }) => ({ city: getValue() }),
+          },
           minSize: 160,
           cell: ({ getValue, row }) => (
             <div className="flex items-center gap-3" title={getValue()}>
@@ -279,6 +204,50 @@ export default function EventsTable() {
                 />
               )}
               <span className="truncate">{getValue()}</span>
+            </div>
+          ),
+        },
+        {
+          id: "region",
+          header: "Region",
+          accessorKey: "click.region",
+          meta: {
+            filterParams: ({ getValue }) => ({ region: getValue() }),
+          },
+          minSize: 160,
+          cell: ({ getValue, row }) => (
+            <div className="flex items-center gap-3" title={getValue()}>
+              {!row.original.country || row.original.country === "Unknown" ? (
+                <Globe className="size-4 shrink-0" />
+              ) : (
+                <img
+                  alt={row.original.country}
+                  src={`https://hatscripts.github.io/circle-flags/flags/${row.original.country.toLowerCase()}.svg`}
+                  className="size-4 shrink-0"
+                />
+              )}
+              <span className="truncate">
+                {REGIONS[getValue()] || getValue().split("-")[1]}
+              </span>
+            </div>
+          ),
+        },
+        {
+          id: "continent",
+          header: "Continent",
+          accessorKey: "click.continent",
+          meta: {
+            filterParams: ({ getValue }) => ({ continent: getValue() }),
+          },
+          cell: ({ getValue }) => (
+            <div
+              className="flex items-center gap-3"
+              title={CONTINENTS[getValue()] ?? "Unknown"}
+            >
+              <ContinentIcon display={getValue()} className="size-4 shrink-0" />
+              <span className="truncate">
+                {CONTINENTS[getValue()] ?? "Unknown"}
+              </span>
             </div>
           ),
         },
@@ -353,7 +322,7 @@ export default function EventsTable() {
         },
         {
           id: "refererUrl",
-          header: "Referer URL",
+          header: "Referrer URL",
           accessorKey: "click.refererUrl",
           meta: {
             filterParams: ({ getValue }) => ({ refererUrl: getValue() }),
@@ -370,7 +339,7 @@ export default function EventsTable() {
               )}
               <CopyText
                 value={getValue()}
-                successMessage="Copied referer URL to clipboard!"
+                successMessage="Copied referrer URL to clipboard!"
               >
                 <span className="truncate" title={getValue()}>
                   {getPrettyUrl(getValue())}
@@ -401,12 +370,11 @@ export default function EventsTable() {
           id: "saleAmount",
           header: "Sale Amount",
           accessorKey: "sale.amount",
-          enableHiding: false,
           minSize: 120,
           cell: ({ getValue }) => (
             <div className="flex items-center gap-2">
               <span>${nFormatter(getValue() / 100)}</span>
-              <span className="text-gray-400">USD</span>
+              <span className="text-neutral-400">USD</span>
             </div>
           ),
         },
@@ -417,11 +385,13 @@ export default function EventsTable() {
           accessorKey: "sale.invoiceId",
           maxSize: 200,
           cell: ({ getValue }) =>
-            (
+            getValue() ? (
               <span className="truncate" title={getValue()}>
                 {getValue()}
               </span>
-            ) || <span className="text-gray-400">-</span>,
+            ) : (
+              <span className="text-neutral-400">-</span>
+            ),
         },
         // Date
         {
@@ -464,14 +434,19 @@ export default function EventsTable() {
           header: ({ table }) => <EditColumnsButton table={table} />,
           cell: ({ row }) => <RowMenuButton row={row} />,
         },
-      ].filter((c) => c.id === "menu" || eventColumns[tab].all.includes(c.id)),
+      ]
+        .filter((c) => c.id === "menu" || eventColumns[tab].all.includes(c.id))
+        .map((col) => ({
+          ...col,
+          enableResizing: true,
+          size: col.size || Math.max(200, col.minSize || 100),
+          minSize: col.minSize || 100,
+          maxSize: col.maxSize || 1000,
+        })),
     [tab],
   );
 
   const { pagination, setPagination } = usePagination();
-
-  const { queryString: originalQueryString, totalEvents } =
-    useContext(AnalyticsContext);
 
   const queryString = useMemo(
     () =>
@@ -479,9 +454,9 @@ export default function EventsTable() {
         event: tab,
         page: pagination.pageIndex.toString(),
         sortBy,
-        order,
+        sortOrder,
       }).toString(),
-    [originalQueryString, tab, pagination, sortBy, order],
+    [originalQueryString, tab, pagination, sortBy, sortOrder],
   );
 
   // Update export query string
@@ -502,11 +477,8 @@ export default function EventsTable() {
     [setExportQueryString, queryString, columnVisibility, tab],
   );
 
-  const needsHigherPlan =
-    (plan === "free" || plan === "pro") && !conversionEnabled;
-
   const { data, isLoading, error } = useSWR<EventDatum[]>(
-    !needsHigherPlan && `/api/events?${queryString}`,
+    !requiresUpgrade && `${eventsApiPath || "/api/events"}?${queryString}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -514,35 +486,35 @@ export default function EventsTable() {
   );
 
   const { table, ...tableProps } = useTable({
-    data: (data ?? (needsHigherPlan ? exampleData[tab] : [])) as EventDatum[],
+    data: (data ??
+      (requiresUpgrade ? EXAMPLE_EVENTS_DATA[tab] : [])) as EventDatum[],
     loading: isLoading,
-    error: error && !needsHigherPlan ? "Failed to fetch events." : undefined,
+    error: error && !requiresUpgrade ? "Failed to fetch events." : undefined,
     columns,
+    enableColumnResizing: true,
     pagination,
     onPaginationChange: setPagination,
-    rowCount: needsHigherPlan ? 0 : totalEvents?.[tab] ?? 0,
+    rowCount: requiresUpgrade ? 0 : totalEvents?.[tab] ?? 0,
     columnVisibility: columnVisibility[tab],
     onColumnVisibilityChange: (args) => setColumnVisibility(tab, args),
     sortableColumns: ["timestamp"],
-    sortBy: sortBy,
-    sortOrder: order,
+    sortBy,
+    sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
       queryParams({
         set: {
-          ...(sortBy && { sort: sortBy }),
-          ...(sortOrder && { order: sortOrder }),
+          ...(sortBy && { sortBy }),
+          ...(sortOrder && { sortOrder }),
         },
       }),
     columnPinning: { right: ["menu"] },
     cellRight: (cell) => {
       const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
-
       return (
-        <>
-          {meta?.filterParams && <FilterButton set={meta.filterParams(cell)} />}
-        </>
+        meta?.filterParams && <FilterButton set={meta.filterParams(cell)} />
       );
     },
+    tdClassName: (columnId) => (columnId === "customer" ? "p-0" : ""),
     emptyState: (
       <EmptyState
         icon={Magnifier}
@@ -553,27 +525,54 @@ export default function EventsTable() {
     resourceName: (plural) => `event${plural ? "s" : ""}`,
   });
 
+  const [customerDetailsSheet, setCustomerDetailsSheet] = useState<
+    | { open: false; customer: Customer | null }
+    | { open: true; customer: Customer }
+  >({ open: false, customer: null });
+
+  useEffect(() => {
+    const customerId = searchParams.get("customerId");
+    if (!data || data.every((d) => !("customer" in d))) return;
+    if (customerId) {
+      const customerEvent = data.find(
+        (d) => "customer" in d && d.customer?.id === customerId,
+      );
+      if (customerEvent && "customer" in customerEvent) {
+        setCustomerDetailsSheet({
+          open: true,
+          customer: customerEvent.customer,
+        });
+      }
+    }
+  }, [searchParams, data]);
+
   return (
-    <Table
-      {...tableProps}
-      table={table}
-      scrollWrapperClassName={needsHigherPlan ? "overflow-x-hidden" : undefined}
-    >
-      {needsHigherPlan && (
-        <>
-          <div className="absolute inset-0 flex touch-pan-y items-center justify-center bg-gradient-to-t from-[#fff_70%] to-[#fff6]">
-            <EmptyState
-              icon={Menu3}
-              title="Real-time Events Stream"
-              description={`Want more data on your link ${tab === "clicks" ? "clicks & QR code scans" : tab}? Upgrade to our Business Plan to get a detailed, real-time stream of events in your workspace.`}
-              learnMore="https://d.to/events"
-              buttonText="Upgrade to Business"
-              buttonLink={`/${slug}/upgrade`}
-            />
-          </div>
-          <div className="h-[400px]" />
-        </>
+    <>
+      {customerDetailsSheet.customer && (
+        <CustomerDetailsSheet
+          isOpen={customerDetailsSheet.open}
+          setIsOpen={(open) =>
+            setCustomerDetailsSheet((s) => ({ ...s, open }) as any)
+          }
+          customer={customerDetailsSheet.customer}
+        />
       )}
-    </Table>
+      <Table
+        {...tableProps}
+        table={table}
+        scrollWrapperClassName={
+          requiresUpgrade ? "overflow-x-hidden" : undefined
+        }
+      >
+        {requiresUpgrade && (
+          <>
+            <div className="absolute inset-0 flex touch-pan-y items-center justify-center bg-gradient-to-t from-[#fff_70%] to-[#fff6]">
+              {upgradeOverlay}
+            </div>
+            <div className="h-[400px]" />
+          </>
+        )}
+      </Table>
+    </>
   );
 }

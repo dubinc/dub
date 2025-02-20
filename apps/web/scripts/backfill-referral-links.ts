@@ -1,5 +1,5 @@
 import { dub } from "@/lib/dub";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 async function main() {

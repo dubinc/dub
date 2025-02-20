@@ -1,0 +1,176 @@
+DESCRIPTION >
+	Timeseries data
+
+
+TOKEN "v1_usage_endpoint_read_1647" READ
+
+NODE day_intervals
+SQL >
+
+    %
+    WITH
+        toStartOfDay(
+            toDateTime64({{ DateTime64(start, '2024-09-03 00:00:00.000') }}, 3),
+            {{ String(timezone, 'UTC') }}
+        ) AS start,
+        toStartOfDay(
+            toDateTime64({{ DateTime64(end, '2024-10-03 00:00:00.000') }}, 3),
+            {{ String(timezone, 'UTC') }}
+        ) AS
+    end
+    SELECT
+        arrayJoin(
+            arrayMap(
+                x -> toDateTime64(toStartOfDay(toDateTime64(x, 3), {{ String(timezone, 'UTC') }}), 3),
+                range(toUInt32(start + 86400), toUInt32(end + 86400),
+                86400
+            )
+        )
+    ) as interval
+
+
+
+NODE workspace_links
+SQL >
+
+    %
+    SELECT link_id
+    from dub_links_metadata_latest FINAL
+    WHERE
+        workspace_id
+        = {{
+            String(
+                workspaceId,
+                'ws_clrei1gld0002vs9mzn93p8ik',
+                description="The ID of the workspace",
+                required=True,
+            )
+        }}
+
+
+
+NODE usage_clicks_data
+SQL >
+
+    %
+    SELECT 
+        toDateTime64(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}), 3) AS interval,
+        uniq(*) as clicks
+    FROM
+        dub_click_events_mv
+        PREWHERE link_id in (SELECT link_id from workspace_links)
+    WHERE
+        timestamp >= {{ DateTime(start, '2024-09-03 00:00:00') }}
+        AND timestamp < {{ DateTime(end, '2024-10-03 00:00:00') }}
+    GROUP BY interval
+    ORDER BY interval
+
+
+
+NODE usage_leads_data
+SQL >
+
+    %
+    SELECT
+        toDateTime64(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}), 3) AS interval,
+        uniq(*) as leads
+    FROM
+        dub_lead_events_mv
+        PREWHERE link_id in (SELECT link_id from workspace_links)
+    WHERE
+        timestamp >= {{ DateTime(start, '2024-09-03 00:00:00') }}
+        AND timestamp < {{ DateTime(end, '2024-10-03 00:00:00') }}
+    GROUP BY interval
+    ORDER BY interval
+
+
+
+NODE usage_events
+SQL >
+
+    SELECT
+        formatDateTime(di.interval, '%FT%T.000%z') as date, clicks, leads, (clicks + leads) as value
+    FROM day_intervals as di
+    LEFT JOIN (SELECT * FROM usage_clicks_data) AS uc ON di.interval = uc.interval
+    LEFT JOIN (SELECT * FROM usage_leads_data) AS ul ON di.interval = ul.interval
+
+
+
+NODE usage_links_data
+DESCRIPTION >
+    undefined
+
+SQL >
+
+    %
+    SELECT
+        toDateTime64(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}), 3) AS interval,
+        uniq(*) as links
+    FROM dub_links_metadata_latest FINAL
+    WHERE
+        workspace_id
+        = {{
+            String(
+                workspaceId,
+                'ws_clrei1gld0002vs9mzn93p8ik',
+                description="The ID of the workspace",
+                required=True,
+            )
+        }}
+        AND created_at >= {{ DateTime(start, '2024-09-03 00:00:00') }}
+        AND created_at < {{ DateTime(end, '2024-10-03 00:00:00') }}
+    GROUP BY interval
+    ORDER BY interval
+
+
+
+NODE usage_links
+SQL >
+
+    %
+    SELECT formatDateTime(interval, '%FT%T.000%z') as date, links as value
+    FROM day_intervals
+    LEFT JOIN usage_links_data USING interval
+
+
+
+NODE usage_revenue_data
+SQL >
+
+    %
+    SELECT
+        toDateTime64(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}), 3) AS interval,
+        sum(amount) as revenue
+    FROM
+        dub_sale_events_mv
+        PREWHERE link_id in (SELECT link_id from workspace_links)
+    WHERE
+        timestamp >= {{ DateTime(start, '2024-09-03 00:00:00') }}
+        AND timestamp < {{ DateTime(end, '2024-10-03 00:00:00') }}
+    GROUP BY interval
+    ORDER BY interval
+
+
+
+NODE usage_revenue
+SQL >
+
+    %
+    SELECT formatDateTime(interval, '%FT%T.000%z') as date, revenue as value
+    FROM day_intervals
+    LEFT JOIN usage_revenue_data USING interval
+
+
+
+NODE endpoint
+SQL >
+
+    %
+    SELECT *
+    FROM
+        {% if resource == 'events' %} usage_events
+        {% elif resource == 'revenue' %} usage_revenue
+        {% else %} usage_links
+        {% end %}
+
+

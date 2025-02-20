@@ -1,6 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Grid, useLocalStorage } from "@dub/ui";
-import { LinkBroken } from "@dub/ui/src/icons";
+import { LinkBroken } from "@dub/ui/icons";
 import { useRegisterDomainModal } from "../modals/register-domain-modal";
 import { X } from "../shared/icons";
 
@@ -29,13 +29,13 @@ export function FreeDotLinkBanner() {
             <div className="hidden rounded-full border border-green-600/50 bg-white/50 p-1 shadow-[inset_0_0_1px_1px_#fff] sm:block">
               <LinkBroken className="m-px size-4 text-green-800" />
             </div>
-            <p className="text-sm text-gray-900">
+            <p className="text-sm text-neutral-900">
               Claim a free <span className="font-semibold">.link</span> domain,
               free for 1 year.{" "}
               <a
                 href="https://dub.co/help/article/free-dot-link-domain"
                 target="_blank"
-                className="text-gray-700 underline transition-colors hover:text-black"
+                className="text-neutral-700 underline transition-colors hover:text-black"
               >
                 Learn more
               </a>
@@ -45,7 +45,7 @@ export function FreeDotLinkBanner() {
           <div className="flex items-center sm:-my-1">
             <button
               type="button"
-              className="whitespace-nowrap rounded-md border border-green-700/50 px-3 py-1 text-sm text-gray-800 transition-colors hover:bg-green-500/10"
+              className="whitespace-nowrap rounded-md border border-green-700/50 px-3 py-1 text-sm text-neutral-800 transition-colors hover:bg-green-500/10"
               onClick={() => setShowRegisterDomainModal(true)}
             >
               Claim Domain

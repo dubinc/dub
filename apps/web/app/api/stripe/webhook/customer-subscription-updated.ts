@@ -1,4 +1,6 @@
-import { prisma } from "@/lib/prisma";
+import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
+import { webhookCache } from "@/lib/webhook/cache";
+import { prisma } from "@dub/prisma";
 import { getPlanFromPriceId, log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
@@ -28,6 +30,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
       id: true,
       plan: true,
       paymentFailedAt: true,
+      foldersUsage: true,
       users: {
         select: {
           user: {
@@ -59,6 +62,8 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
   }
 
   const newPlan = plan.name.toLowerCase();
+  const shouldDisableWebhooks = newPlan === "free" || newPlan === "pro";
+  const shouldDeleteFolders = newPlan === "free" && workspace.foldersUsage > 0;
 
   // If a workspace upgrades/downgrades their subscription, update their usage limit in the database.
   if (workspace.plan !== newPlan) {
@@ -74,10 +79,14 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
           domainsLimit: plan.limits.domains!,
           aiLimit: plan.limits.ai!,
           tagsLimit: plan.limits.tags!,
+          foldersLimit: plan.limits.folders!,
           usersLimit: plan.limits.users!,
+          salesLimit: plan.limits.sales!,
           paymentFailedAt: null,
+          ...(shouldDeleteFolders && { foldersUsage: 0 }),
         },
       }),
+
       prisma.restrictedToken.updateMany({
         where: {
           projectId: workspace.id,
@@ -87,6 +96,53 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
         },
       }),
     ]);
+
+    // Disable the webhooks if the new plan does not support webhooks
+    if (shouldDisableWebhooks) {
+      await Promise.all([
+        prisma.project.update({
+          where: {
+            id: workspace.id,
+          },
+          data: {
+            webhookEnabled: false,
+          },
+        }),
+
+        prisma.webhook.updateMany({
+          where: {
+            projectId: workspace.id,
+          },
+          data: {
+            disabledAt: new Date(),
+          },
+        }),
+      ]);
+
+      // Update the webhooks cache
+      const webhooks = await prisma.webhook.findMany({
+        where: {
+          projectId: workspace.id,
+        },
+        select: {
+          id: true,
+          url: true,
+          secret: true,
+          triggers: true,
+          disabledAt: true,
+        },
+      });
+
+      await webhookCache.mset(webhooks);
+    }
+
+    // Delete the folders if the new plan is free
+    // For downgrade from Business → Pro, it should be fine since we're accounting that to make sure all folders get write access.
+    if (shouldDeleteFolders) {
+      await deleteWorkspaceFolders({
+        workspaceId: workspace.id,
+      });
+    }
   } else if (workspace.paymentFailedAt) {
     await prisma.project.update({
       where: {

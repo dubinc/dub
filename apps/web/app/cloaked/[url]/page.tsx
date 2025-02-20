@@ -20,7 +20,7 @@ export async function generateMetadata({
   const apexDomain = getApexDomain(url);
 
   return constructMetadata({
-    title: metatags.title,
+    fullTitle: metatags.title,
     description: metatags.description,
     image: metatags.image,
     icons: `${GOOGLE_FAVICON_URL}${apexDomain}`,
@@ -28,11 +28,7 @@ export async function generateMetadata({
   });
 }
 
-export default async function RewritePage({
-  params,
-}: {
-  params: { url: string };
-}) {
+export default function CloakedPage({ params }: { params: { url: string } }) {
   const url = decodeURIComponent(params.url);
 
   return <iframe src={url} className="min-h-screen w-full border-none" />;

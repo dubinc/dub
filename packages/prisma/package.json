@@ -1,0 +1,50 @@
+{
+  "name": "@dub/prisma",
+  "version": "1.0.0",
+  "license": "MIT",
+  "main": "./index.ts",
+  "module": "./index.ts",
+  "types": "./index.ts",
+  "scripts": {
+    "generate": "npx prisma generate --schema=./schema",
+    "push": "npx prisma db push --schema=./schema",
+    "studio": "npx prisma studio --schema=./schema --browser none",
+    "prebuild": "pnpm run generate",
+    "predev": "pnpm run generate",
+    "format": "npx prisma format --schema=./schema"
+  },
+  "dependencies": {
+    "@planetscale/database": "^1.18.0",
+    "@prisma/adapter-planetscale": "^5.18.0",
+    "@prisma/client": "5.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "18.11.9",
+    "prisma": "5.18.0",
+    "tsx": "^4.11.0",
+    "typescript": "5.2.2"
+  },
+  "exports": {
+    ".": "./index.ts",
+    "./edge": "./edge.ts",
+    "./client": "./client.ts"
+  },
+  "author": "Steven Tey <stevensteel97@gmail.com>",
+  "homepage": "https://dub.co",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dubinc/dub.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dubinc/dub/issues"
+  },
+  "keywords": [
+    "dub",
+    "dub.co",
+    "prisma",
+    "planetscale"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

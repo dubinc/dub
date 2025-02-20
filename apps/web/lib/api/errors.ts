@@ -34,6 +34,10 @@ const errorCodeToHttpStatus: Record<z.infer<typeof ErrorCode>, number> = {
   internal_server_error: 500,
 };
 
+export const httpStatusToErrorCode = Object.fromEntries(
+  Object.entries(errorCodeToHttpStatus).map(([code, status]) => [status, code]),
+) as Record<number, z.infer<typeof ErrorCode>>;
+
 const speakeasyErrorOverrides: Record<z.infer<typeof ErrorCode>, string> = {
   bad_request: "BadRequest",
   unauthorized: "Unauthorized",
@@ -229,7 +233,7 @@ export const exceededLimitError = ({
 }: {
   plan: PlanProps;
   limit: number;
-  type: "clicks" | "links" | "AI" | "domains" | "tags" | "users";
+  type: "clicks" | "links" | "AI" | "domains" | "tags" | "users" | "folders";
 }) => {
   return `You've reached your ${
     type === "links" || type === "AI" ? "monthly" : ""
