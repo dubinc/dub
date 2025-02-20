@@ -29,7 +29,7 @@ export function usePartnerEarningsTimeseries(
             : { interval: params?.interval ?? "30d" }),
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
-        { include: ["linkId", "customerId", "status"] },
+        { include: ["type", "linkId", "customerId", "status"] },
       )}`,
     fetcher,
     {

@@ -6,12 +6,14 @@ import usePartnerEarningsCount from "@/lib/swr/use-partner-earnings-count";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import usePartnerLinks from "@/lib/swr/use-partner-links";
 import { LinkIcon } from "@/ui/links/link-icon";
+import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { Filter, LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
-import { CircleDotted, Hyperlink, User } from "@dub/ui/icons";
+import { CircleDotted, Hyperlink, Sliders, User } from "@dub/ui/icons";
 import {
+  capitalize,
   cn,
   currencyFormatter,
   getPrettyUrl,
@@ -30,6 +32,12 @@ const LINE_COLORS = [
   "text-yellow-500",
 ];
 
+const EVENT_TYPE_LINE_COLORS = {
+  sale: "text-teal-500",
+  lead: "text-purple-500",
+  click: "text-blue-500",
+};
+
 const MAX_LINES = LINE_COLORS.length;
 
 export function EarningsCompositeChart() {
@@ -39,17 +47,19 @@ export function EarningsCompositeChart() {
     start,
     end,
     interval = "30d",
+    groupBy = "linkId",
   } = searchParamsObj as {
     start?: string;
     end?: string;
     interval?: IntervalOptions;
+    groupBy?: "linkId" | "type";
   };
 
   const { links } = usePartnerLinks();
 
   const { data } = usePartnerEarningsTimeseries({
     interval,
-    groupBy: "linkId",
+    groupBy,
     start: start ? new Date(start) : undefined,
     end: end ? new Date(end) : undefined,
   });
@@ -76,11 +86,14 @@ export function EarningsCompositeChart() {
               return earningsB - earningsA;
             })
             .slice(0, MAX_LINES)
-            .map((linkId, idx) => ({
-              id: linkId,
+            .map((item, idx) => ({
+              id: item,
               isActive: true,
-              valueAccessor: (d) => (d.values[linkId] || 0) / 100,
-              colorClassName: LINE_COLORS[idx % LINE_COLORS.length],
+              valueAccessor: (d) => (d.values[item] || 0) / 100,
+              colorClassName:
+                groupBy === "type"
+                  ? EVENT_TYPE_LINE_COLORS[item]
+                  : LINE_COLORS[idx % LINE_COLORS.length],
             }))
         : [],
     ],
@@ -149,7 +162,7 @@ export function EarningsCompositeChart() {
                               <span className="min-w-0 truncate font-medium text-neutral-700">
                                 {link?.shortLink
                                   ? getPrettyUrl(link.shortLink)
-                                  : id}
+                                  : capitalize(id)}
                               </span>
                             </div>
                             <p className="text-right text-neutral-500">
@@ -210,17 +223,16 @@ function EarningsTableControls() {
 
   const filters = useMemo(
     () => [
-      // TODO: add this back once we support CPC and CPL rewards
-      // {
-      //   key: "type",
-      //   icon: Sliders,
-      //   label: "Type",
-      //   options: ["click", "lead", "sale"].map((slug) => ({
-      //     value: slug,
-      //     label: capitalize(slug) as string,
-      //     icon: <CommissionTypeIcon type={slug} />,
-      //   })),
-      // },
+      {
+        key: "type",
+        icon: Sliders,
+        label: "Type",
+        options: ["click", "lead", "sale"].map((slug) => ({
+          value: slug,
+          label: capitalize(slug) as string,
+          icon: <CommissionTypeIcon type={slug} />,
+        })),
+      },
       {
         key: "linkId",
         icon: Hyperlink,
@@ -275,8 +287,9 @@ function EarningsTableControls() {
   );
 
   const activeFilters = useMemo(() => {
-    const { linkId, customerId, status } = searchParamsObj;
+    const { type, linkId, customerId, status } = searchParamsObj;
     return [
+      ...(type ? [{ key: "type", value: type }] : []),
       ...(linkId ? [{ key: "linkId", value: linkId }] : []),
       ...(customerId ? [{ key: "customerId", value: customerId }] : []),
       ...(status ? [{ key: "status", value: status }] : []),
