@@ -66,6 +66,9 @@ export const LinksToolbar = memo(
     );
 
     const hasAllFolderPermissions = useMemo(() => {
+      // `folders` is undefined for users without access, so just check if all links are not in a folder first
+      if (selectedLinks.every((link) => !link.folderId)) return true;
+
       if (!folders || !Array.isArray(folders)) return false;
 
       return selectedLinks.every(
