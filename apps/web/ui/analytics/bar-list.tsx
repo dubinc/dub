@@ -243,6 +243,10 @@ export function LineItem({
                 ? "-translate-x-14"
                 : "group-hover:-translate-x-14",
             )}
+            style={{
+              // Adds translateZ(0) to fix transition jitter
+              transform: `translateX(var(--tw-translate-x, 0)) translateZ(0)`,
+            }}
             format={
               unit === "sales" && saleUnit === "saleAmount"
                 ? {
@@ -263,6 +267,10 @@ export function LineItem({
                 ? "visible translate-x-0 opacity-100"
                 : "invisible translate-x-14 opacity-0 group-hover:visible group-hover:translate-x-0 group-hover:opacity-100",
             )}
+            style={{
+              // Adds translateZ(0) to fix transition jitter
+              transform: `translateX(var(--tw-translate-x, 0)) translateZ(0)`,
+            }}
           >
             {percentage}%
           </div>
