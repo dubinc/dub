@@ -88,12 +88,14 @@ export function Steps() {
                 <Link
                   key={step}
                   href={href}
-                  className="flex items-center gap-3 rounded-md bg-neutral-50 px-3 py-2"
+                  className="flex items-center gap-2 rounded-md bg-neutral-50 px-3 py-2"
                 >
                   <div className="flex h-5 w-5 items-center justify-center rounded-full bg-black text-xs text-white">
                     {step}
                   </div>
-                  <span className="text-sm font-medium">{label}</span>
+                  <span className="text-sm font-medium text-neutral-600">
+                    {label}
+                  </span>
                 </Link>
               ))}
             </nav>
