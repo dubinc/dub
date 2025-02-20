@@ -282,14 +282,11 @@ const CreateRewardButton = () => {
 
 const RewardSkeleton = () => {
   return (
-    <div className="flex animate-pulse items-center gap-4 rounded-lg border border-neutral-200 p-4">
-      <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-neutral-50" />
+    <div className="flex items-center gap-4 rounded-lg border border-neutral-200 p-4">
+      <div className="flex size-10 animate-pulse items-center justify-center rounded-full border border-neutral-200 bg-neutral-100" />
       <div className="flex flex-1 items-center justify-between">
-        <div className="space-y-3">
-          <div className="h-4 w-64 rounded bg-neutral-100" />
-          <div className="h-4 w-32 rounded bg-neutral-100" />
-        </div>
-        <div className="h-6 w-24 rounded-full bg-neutral-100" />
+        <div className="h-4 w-64 animate-pulse rounded bg-neutral-100" />
+        <div className="h-6 w-24 animate-pulse rounded-full bg-neutral-100" />
       </div>
     </div>
   );

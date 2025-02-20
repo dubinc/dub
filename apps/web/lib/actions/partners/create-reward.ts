@@ -35,7 +35,7 @@ export const createRewardAction = authActionClient
 
       if (programWideRewardCount > 0) {
         throw new Error(
-          `There is an existing program-wide reward for ${event}.`,
+          `There is an existing program-wide ${event} reward already. Either update the existing reward to be partner-specific or create a partner-specific reward.`,
         );
       }
     }

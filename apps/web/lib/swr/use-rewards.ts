@@ -15,6 +15,7 @@ export default function useRewards() {
     fetcher,
     {
       dedupingInterval: 60000,
+      keepPreviousData: true,
     },
   );
 
