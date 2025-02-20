@@ -1,5 +1,5 @@
 import { StepPage } from "../step-page";
 
-export default function Connect() {
+export default async function Page() {
   return <StepPage title="Connecting Dub" />;
 }
