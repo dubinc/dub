@@ -9,7 +9,7 @@ import { LinkIcon } from "@/ui/links/link-icon";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { Filter, LoadingSpinner, useRouterStuff } from "@dub/ui";
+import { Filter, LoadingSpinner, ToggleGroup, useRouterStuff } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { CircleDotted, Hyperlink, Sliders, User } from "@dub/ui/icons";
 import {
@@ -41,7 +41,7 @@ const EVENT_TYPE_LINE_COLORS = {
 const MAX_LINES = LINE_COLORS.length;
 
 export function EarningsCompositeChart() {
-  const { searchParamsObj } = useRouterStuff();
+  const { queryParams, searchParamsObj } = useRouterStuff();
 
   const {
     start,
@@ -104,24 +104,59 @@ export function EarningsCompositeChart() {
     <div className="flex flex-col gap-6">
       <EarningsTableControls />
       <div className="rounded-lg border border-neutral-200 p-6">
-        <div className="flex flex-col gap-1">
-          <span className="text-sm text-neutral-500">Total Earnings</span>
-          <div className="mt-1">
-            {total !== undefined ? (
-              <NumberFlow
-                className="text-lg font-medium leading-none text-neutral-800"
-                value={total / 100}
-                format={{
-                  style: "currency",
-                  currency: "USD",
-                  // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-                  trailingZeroDisplay: "stripIfInteger",
-                }}
-              />
-            ) : (
-              <div className="h-[27px] w-24 animate-pulse rounded-md bg-neutral-200" />
-            )}
+        <div className="flex w-full items-center justify-between">
+          <div className="flex flex-col gap-1">
+            <span className="text-sm text-neutral-500">Total Earnings</span>
+            <div className="mt-1">
+              {total !== undefined ? (
+                <NumberFlow
+                  className="text-lg font-medium leading-none text-neutral-800"
+                  value={total / 100}
+                  format={{
+                    style: "currency",
+                    currency: "USD",
+                    // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                    trailingZeroDisplay: "stripIfInteger",
+                  }}
+                />
+              ) : (
+                <div className="h-[27px] w-24 animate-pulse rounded-md bg-neutral-200" />
+              )}
+            </div>
           </div>
+
+          <ToggleGroup
+            className="flex w-fit shrink-0 items-center gap-1 border-neutral-100 bg-neutral-100"
+            optionClassName="h-8 px-2.5 flex items-center justify-center"
+            indicatorClassName="border border-neutral-200 bg-white"
+            options={[
+              {
+                label: (
+                  <div className="flex items-center gap-1.5 text-neutral-600">
+                    <Hyperlink className="size-4" />
+                    <span className="text-sm">Link</span>
+                  </div>
+                ),
+                value: "linkId",
+              },
+              {
+                label: (
+                  <div className="flex items-center gap-1.5 text-neutral-600">
+                    <Sliders className="size-4" />
+                    <span className="text-sm">Type</span>
+                  </div>
+                ),
+                value: "type",
+              },
+            ]}
+            selected={groupBy}
+            selectAction={(option) => {
+              queryParams({
+                set: { groupBy: option },
+                scroll: false,
+              });
+            }}
+          />
         </div>
         <div className="mt-5 h-80">
           {chartData ? (
