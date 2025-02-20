@@ -1,10 +1,10 @@
+import { getProgramSalesCountQuerySchema } from "@/lib/zod/schemas/program-sales";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { SalesCount } from "../types";
 import z from "../zod";
-import { getProgramSalesCountQuerySchema } from "../zod/schemas/program-sales";
 import useWorkspace from "./use-workspace";
 
 export default function useSalesCount(

@@ -1,9 +1,6 @@
 import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
-import {
-  ProgramSaleResponseSchema,
-  ProgramSaleSchema,
-} from "@/lib/zod/schemas/program-sales";
+import { PartnerEarningsSchema } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
   CommissionStatus,
@@ -40,7 +37,6 @@ import {
 } from "./zod/schemas/leads";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
-import { PartnerEarningsSchema } from "./zod/schemas/partner-profile";
 import { EnrolledPartnerSchema, PartnerSchema } from "./zod/schemas/partners";
 import {
   PartnerPayoutResponseSchema,
@@ -48,12 +44,17 @@ import {
   PayoutSchema,
 } from "./zod/schemas/payouts";
 import {
+  ProgramSaleResponseSchema,
+  ProgramSaleSchema,
+} from "./zod/schemas/program-sales";
+import {
   PartnerLinkSchema,
   PartnerProgramInviteSchema,
   ProgramEnrollmentSchema,
   ProgramInviteSchema,
   ProgramSchema,
 } from "./zod/schemas/programs";
+import { RewardSchema } from "./zod/schemas/rewards";
 import {
   saleEventResponseSchema,
   trackSaleResponseSchema,
@@ -428,3 +429,7 @@ export type FolderSummary = Pick<
   Folder,
   "id" | "name" | "accessLevel" | "linkCount"
 >;
+
+// Rewards
+
+export type RewardProps = z.infer<typeof RewardSchema>;

@@ -1,8 +1,8 @@
 "use client";
 
-import { DiscountProps } from "@/lib/types";
+import { DiscountProps, RewardProps } from "@/lib/types";
 import { HeroBackground } from "@/ui/partners/hero-background";
-import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
+import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { Link, PayoutStatus, Program } from "@dub/prisma/client";
 import {
   Button,
@@ -24,15 +24,19 @@ import { EmbedLeaderboard } from "./leaderboard";
 import { EmbedPayouts } from "./payouts";
 import { EmbedQuickstart } from "./quickstart";
 
+const tabs = ["Quickstart", "Earnings", "Leaderboard", "FAQ"];
+
 export function EmbedInlinePageClient({
   program,
   links,
+  reward,
   discount,
   payouts,
   stats,
 }: {
   program: Program;
   links: Link[];
+  reward: RewardProps | null;
   discount?: DiscountProps | null;
   payouts: {
     status: PayoutStatus;
@@ -45,8 +49,6 @@ export function EmbedInlinePageClient({
   };
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
-
-  const tabs = ["Quickstart", "Earnings", "Leaderboard", "FAQ"];
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
 
   return (
@@ -64,10 +66,7 @@ export function EmbedInlinePageClient({
             Refer and earn
           </span>
           <div className="relative mt-16 text-lg text-neutral-900 sm:max-w-[50%]">
-            <ProgramCommissionDescription
-              program={program}
-              discount={discount}
-            />
+            <ProgramRewardDescription reward={reward} discount={discount} />
           </div>
           <span className="mb-1.5 mt-6 block text-sm text-neutral-800">
             Referral link
@@ -149,7 +148,7 @@ export function EmbedInlinePageClient({
               ) : selectedTab === "Leaderboard" ? (
                 <EmbedLeaderboard />
               ) : selectedTab === "FAQ" ? (
-                <EmbedFAQ program={program} />
+                <EmbedFAQ program={program} reward={reward} />
               ) : null}
             </AnimatePresence>
           </div>

@@ -22,8 +22,6 @@ export function EmbedEarnings({ salesCount }: { salesCount: number }) {
     },
   );
 
-  console.log({ earnings });
-
   const { table, ...tableProps } = useTable({
     data: earnings || [],
     loading: isLoading,

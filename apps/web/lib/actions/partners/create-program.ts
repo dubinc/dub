@@ -12,15 +12,7 @@ export const createProgramAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const {
-      name,
-      commissionType,
-      commissionAmount,
-      commissionDuration,
-      commissionInterval,
-      cookieLength,
-      domain,
-    } = parsedInput;
+    const { name, cookieLength, domain } = parsedInput;
 
     if (domain) {
       await prisma.domain.findUniqueOrThrow({
@@ -31,19 +23,13 @@ export const createProgramAction = authActionClient
       });
     }
 
-    const program = await prisma.program.create({
+    await prisma.program.create({
       data: {
         workspaceId: workspace.id,
         name,
         slug: slugify(name),
-        commissionType,
-        commissionAmount,
-        commissionDuration,
-        commissionInterval,
         cookieLength,
         domain,
       },
     });
-
-    return program;
   });

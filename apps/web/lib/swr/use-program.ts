@@ -8,7 +8,11 @@ export default function useProgram() {
   const { id: workspaceId } = useWorkspace();
   const { programId } = useParams();
 
-  const { data: program, error } = useSWR<ProgramProps>(
+  const {
+    data: program,
+    error,
+    mutate,
+  } = useSWR<ProgramProps>(
     programId &&
       workspaceId &&
       `/api/programs/${programId}?workspaceId=${workspaceId}`,
@@ -21,6 +25,7 @@ export default function useProgram() {
   return {
     program,
     error,
+    mutate,
     loading: programId && !program && !error ? true : false,
   };
 }

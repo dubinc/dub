@@ -3,8 +3,8 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { withPartnerProfile } from "@/lib/auth/partner";
 import z from "@/lib/zod";
 import {
-  getPartnerEarningsQuerySchema,
   PartnerEarningsSchema,
+  getPartnerEarningsQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";

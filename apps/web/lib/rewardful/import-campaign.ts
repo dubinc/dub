@@ -1,5 +1,4 @@
 import { prisma } from "@dub/prisma";
-import { CommissionInterval, CommissionType } from "@prisma/client";
 import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 
@@ -19,22 +18,38 @@ export async function importCampaign({ programId }: { programId: string }) {
     reward_type,
   } = campaign;
 
-  await prisma.program.update({
+  const program = await prisma.program.update({
     where: {
       id: programId,
     },
     data: {
       url,
-      commissionType:
-        reward_type === "amount"
-          ? CommissionType.flat
-          : CommissionType.percentage,
-      commissionAmount:
-        reward_type === "amount" ? commission_amount_cents : commission_percent,
-      commissionDuration: max_commission_period_months,
-      commissionInterval: CommissionInterval.month,
     },
   });
+
+  if (!program.defaultRewardId) {
+    const reward = await prisma.reward.create({
+      data: {
+        programId,
+        event: "sale",
+        maxDuration: max_commission_period_months,
+        type: reward_type === "amount" ? "flat" : "percentage",
+        amount:
+          reward_type === "amount"
+            ? commission_amount_cents
+            : commission_percent,
+      },
+    });
+
+    await prisma.program.update({
+      where: {
+        id: programId,
+      },
+      data: {
+        defaultRewardId: reward.id,
+      },
+    });
+  }
 
   return await rewardfulImporter.queue({
     programId,
