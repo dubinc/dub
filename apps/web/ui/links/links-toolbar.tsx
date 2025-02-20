@@ -268,7 +268,7 @@ export const LinksToolbar = memo(
                               : undefined)
                           }
                           shortcut={keyboardShortcut?.toUpperCase()}
-                          shortcutClassName="py-0 px-1 text-[0.625rem] leading-snug"
+                          shortcutClassName="py-px px-1 text-[0.625rem] leading-snug"
                         />
                       ),
                     )}
