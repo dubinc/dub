@@ -1,9 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
-import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth/workspace";
+import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { updatePartnerSaleSchema } from "@/lib/zod/schemas/partners";
 import { ProgramSaleSchema } from "@/lib/zod/schemas/program-sales";
 import { prisma } from "@dub/prisma";
@@ -28,6 +28,9 @@ export const PATCH = withWorkspace(
           invoiceId,
         },
       },
+      include: {
+        partner: true,
+      },
     });
 
     if (!sale) {
@@ -44,16 +47,24 @@ export const PATCH = withWorkspace(
       });
     }
 
-    const partner = await getProgramEnrollmentOrThrow({
-      programId,
-      partnerId: sale.partnerId,
+    const { partner } = sale;
+
+    const reward = await determinePartnerReward({
+      event: "sale",
+      partnerId: partner.id,
+      programId: program.id,
     });
 
+    if (!reward) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `No reward found for partner ${partner.id} in program ${program.id}.`,
+      });
+    }
+
     const earnings = calculateSaleEarnings({
-      program,
-      partner,
-      sales: sale.quantity,
-      saleAmount: amount,
+      reward,
+      sale,
     });
 
     const updatedSale = await prisma.commission.update({
