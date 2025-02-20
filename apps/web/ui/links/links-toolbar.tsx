@@ -20,6 +20,7 @@ import { Command } from "cmdk";
 import { memo, ReactNode, useContext, useMemo, useState } from "react";
 import { useArchiveLinkModal } from "../modals/archive-link-modal";
 import { useDeleteLinkModal } from "../modals/delete-link-modal";
+import { useLinkBuilder } from "../modals/link-builder";
 import { useLinkConversionTrackingModal } from "../modals/link-conversion-tracking-modal";
 import { useMoveLinkToFolderModal } from "../modals/move-link-to-folder-modal";
 import { useTagLinkModal } from "../modals/tag-link-modal";
@@ -70,6 +71,8 @@ export const LinksToolbar = memo(
             ?.permissions.includes("folders.links.write"),
       );
     }, [selectedLinks, folders]);
+
+    const { LinkBuilder, CreateLinkButton } = useLinkBuilder();
 
     const { setShowTagLinkModal, TagLinkModal } = useTagLinkModal({
       props: selectedLinks,
@@ -185,6 +188,7 @@ export const LinksToolbar = memo(
         <LinkConversionTrackingModal />
         <ArchiveLinkModal />
         <DeleteLinkModal />
+        <LinkBuilder />
 
         {/* Leave room at bottom of list */}
         <div className="h-[90px]" />
@@ -218,6 +222,12 @@ export const LinksToolbar = memo(
                     </div>
                   )}
                 </PaginationControls>
+                <div className="flex items-center gap-2 pt-3 sm:hidden">
+                  <CreateLinkButton
+                    className="h-8"
+                    textWrapperClassName="text-center"
+                  />
+                </div>
               </div>
 
               <div
