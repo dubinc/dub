@@ -102,7 +102,7 @@ export function TagSelect() {
     [tags],
   );
 
-  useKeyboardShortcut("t", () => setIsOpen(true), { modal: true });
+  useKeyboardShortcut("t", () => setIsOpen(true), { modal: true, priority: 2 });
 
   const [suggestedTags, setSuggestedTags] = useState<TagProps[]>([]);
 
