@@ -3,15 +3,46 @@
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Menu, X } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export function Steps() {
-  const [isOpen, setIsOpen] = useState(false);
   const { isMobile } = useMediaQuery();
+  const [isOpen, setIsOpen] = useState(false);
+  const { slug } = useParams<{ slug: string }>();
 
   useEffect(() => {
     document.body.style.overflow = isOpen && isMobile ? "hidden" : "auto";
   }, [isOpen, isMobile]);
+
+  const steps = [
+    {
+      step: 1,
+      label: "Getting started",
+      href: `/${slug}/programs/onboarding/new`,
+    },
+    {
+      step: 2,
+      label: "Configure reward",
+      href: `/${slug}/programs/onboarding/rewards`,
+    },
+    {
+      step: 3,
+      label: "Invite partners",
+      href: `/${slug}/programs/onboarding/partners`,
+    },
+    {
+      step: 4,
+      label: "Connect Dub",
+      href: `/${slug}/programs/onboarding/connect`,
+    },
+    {
+      step: 5,
+      label: "Overview",
+      href: `/${slug}/programs/onboarding/overview`,
+    },
+  ];
 
   return (
     <>
@@ -53,51 +84,22 @@ export function Steps() {
               </button>
             </div>
             <nav className="space-y-1">
-              <div className="flex items-center gap-3 rounded-md bg-neutral-50 px-3 py-2">
-                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-black text-xs text-white">
-                  1
-                </div>
-                <span className="text-sm font-medium">Getting started</span>
-              </div>
-              <div className="flex items-center gap-3 px-3 py-2 text-neutral-500">
-                <div className="flex h-5 w-5 items-center justify-center rounded-full border border-neutral-300 text-xs">
-                  2
-                </div>
-                <span className="text-sm">Configure reward</span>
-              </div>
-              <div className="flex items-center gap-3 px-3 py-2 text-neutral-500">
-                <div className="flex h-5 w-5 items-center justify-center rounded-full border border-neutral-300 text-xs">
-                  3
-                </div>
-                <span className="text-sm">Invite partners</span>
-              </div>
-              <div className="flex items-center gap-3 px-3 py-2 text-neutral-500">
-                <div className="flex h-5 w-5 items-center justify-center rounded-full border border-neutral-300 text-xs">
-                  4
-                </div>
-                <span className="text-sm">Connect Dub</span>
-              </div>
-              <div className="flex items-center gap-3 px-3 py-2 text-neutral-500">
-                <div className="flex h-5 w-5 items-center justify-center rounded-full border border-neutral-300 text-xs">
-                  5
-                </div>
-                <span className="text-sm">Overview</span>
-              </div>
+              {steps.map(({ step, label, href }) => (
+                <Link
+                  key={step}
+                  href={href}
+                  className="flex items-center gap-3 rounded-md bg-neutral-50 px-3 py-2"
+                >
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-black text-xs text-white">
+                    {step}
+                  </div>
+                  <span className="text-sm font-medium">{label}</span>
+                </Link>
+              ))}
             </nav>
           </div>
         </div>
       </div>
     </>
-  );
-}
-
-export function SidebarTrigger({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="rounded-md p-1 hover:bg-neutral-100 md:hidden"
-    >
-      <Menu className="h-5 w-5 text-neutral-600" />
-    </button>
   );
 }
