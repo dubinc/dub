@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
-import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
+import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth/workspace";
 import { updatePartnerSaleSchema } from "@/lib/zod/schemas/partners";
