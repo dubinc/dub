@@ -3,7 +3,6 @@
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import {
   COMMISSION_TYPES,
-  createOrUpdateRewardSchema,
   RECURRING_MAX_DURATIONS,
 } from "@/lib/zod/schemas/rewards";
 import { Button, CircleCheckFill, Input } from "@dub/ui";
@@ -11,7 +10,7 @@ import { cn } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormRegister, UseFormWatch } from "react-hook-form";
 import { z } from "zod";
 
 const formSchema = z.object({
@@ -25,6 +24,11 @@ const formSchema = z.object({
 });
 
 type Form = z.infer<typeof formSchema>;
+
+type FormProps = {
+  register: UseFormRegister<Form>;
+  watch: UseFormWatch<Form>;
+};
 
 const PROGRAM_TYPES = [
   {
@@ -40,7 +44,6 @@ const PROGRAM_TYPES = [
 ] as const;
 
 export function Form() {
-  const [isRecurring, setIsRecurring] = useState(false);
   const {
     register,
     handleSubmit,
@@ -55,14 +58,11 @@ export function Form() {
   });
 
   const programType = watch("programType");
-  const selectedCampaign = watch("campaignId");
 
   const onSubmit = async (data: Form) => {
     console.log(data);
     // TODO: Handle form submission
   };
-
-  const type = watch("type");
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
@@ -113,163 +113,106 @@ export function Form() {
       </div>
 
       {programType === "import" ? (
-        <>
-          <div>
-            <label className="text-sm font-medium text-neutral-800">
-              Import source
-            </label>
-            <div className="relative mt-2">
-              <select
-                className="block w-full appearance-none rounded-md border border-neutral-200 bg-white px-3 py-2 pr-8 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
-                defaultValue="rewardful"
-              >
-                <option value="rewardful">Rewardful</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
-            </div>
-            <button className="mt-2 text-sm text-neutral-600 underline">
-              See what data is migrated
-            </button>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-neutral-800">
-              Rewardful API secret
-            </label>
-            <Input
-              {...register("apiToken")}
-              type="password"
-              placeholder="API token"
-              className="mt-2"
-            />
-            <div className="mt-1.5 text-sm text-neutral-600">
-              Find your Rewardful API secret on your{" "}
-              <Link href="#" className="text-blue-600 hover:text-blue-700">
-                Company settings page
-              </Link>
-            </div>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-neutral-800">
-              Campaign to import
-            </label>
-            <div className="relative mt-2">
-              <select
-                {...register("campaignId")}
-                className="block w-full appearance-none rounded-md border border-neutral-200 bg-white px-3 py-2 pr-8 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
-              >
-                <option value="campaign2">Campaign 2</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
-            </div>
-            <button className="mt-2 text-sm text-neutral-600 underline">
-              Want to migrate more than one campaign?
-            </button>
-          </div>
-
-          {selectedCampaign && (
-            <div className="grid grid-cols-2 gap-6 rounded-lg border border-neutral-200 bg-white p-6">
-              <div>
-                <div className="text-sm text-neutral-600">Type</div>
-                <div className="text-sm font-medium text-neutral-900">Flat</div>
-              </div>
-              <div>
-                <div className="text-sm text-neutral-600">Duration</div>
-                <div className="text-sm font-medium text-neutral-900">24 months</div>
-              </div>
-              <div>
-                <div className="text-sm text-neutral-600">Commission</div>
-                <div className="text-sm font-medium text-neutral-900">$50.00</div>
-              </div>
-              <div>
-                <div className="text-sm text-neutral-600">Affiliates</div>
-                <div className="text-sm font-medium text-neutral-900">12</div>
-              </div>
-            </div>
-          )}
-        </>
+        <ImportProgramForm register={register} watch={watch} />
       ) : (
-        <div className="space-y-6">
-          <div className="space-y-1">
-            <h2 className="text-base font-medium text-neutral-900">
-              Commission structure
-            </h2>
-            <p className="text-sm font-normal text-neutral-600">
-              Set how the affiliate will get rewarded
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-            {COMMISSION_TYPES.map(({ value, label, description }) => {
-              const isSelected = (value === "recurring") === isRecurring;
-
-              return (
-                <label
-                  key={value}
-                  className={cn(
-                    "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                    "transition-all duration-150",
-                    isSelected &&
-                      "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                  )}
-                >
-                  <input
-                    type="radio"
-                    value={value}
-                    className="hidden"
-                    checked={isSelected}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setIsRecurring(value === "recurring");
-                        register("maxDuration", {
-                          value: value === "recurring" ? 3 : 0,
-                          valueAsNumber: true,
-                        });
-                      }
-                    }}
-                  />
-                  <div className="flex grow flex-col text-sm">
-                    <span className="text-sm font-semibold text-neutral-900">
-                      {label}
-                    </span>
-                    <span className="text-sm font-normal text-neutral-600">
-                      {description}
-                    </span>
-                  </div>
-                  <CircleCheckFill
-                    className={cn(
-                      "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                      isSelected && "scale-100 opacity-100",
-                    )}
-                  />
-                </label>
-              );
-            })}
-          </div>
-
-          {isRecurring && (
-            <div>
-              <label className="text-sm font-medium text-neutral-800">
-                Duration
-              </label>
-              <select
-                {...register("maxDuration", { valueAsNumber: true })}
-                className="mt-2 block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
-              >
-                {RECURRING_MAX_DURATIONS.filter((v) => v !== 0).map(
-                  (duration) => (
-                    <option key={duration} value={duration}>
-                      {duration} {duration === 1 ? "month" : "months"}
-                    </option>
-                  ),
-                )}
-                <option value={Infinity}>Lifetime</option>
-              </select>
-            </div>
-          )}
-        </div>
+        <NewProgramForm register={register} watch={watch} />
       )}
+
+      <Button
+        text="Continue"
+        className="w-full"
+        loading={isSubmitting}
+        disabled={isSubmitting}
+      />
+    </form>
+  );
+}
+
+function NewProgramForm({ register, watch }: FormProps) {
+  const [isRecurring, setIsRecurring] = useState(false);
+  const type = watch("type");
+
+  return (
+    <>
+      <div className="space-y-6">
+        <div className="space-y-1">
+          <h2 className="text-base font-medium text-neutral-900">
+            Commission structure
+          </h2>
+          <p className="text-sm font-normal text-neutral-600">
+            Set how the affiliate will get rewarded
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          {COMMISSION_TYPES.map(({ value, label, description }) => {
+            const isSelected = (value === "recurring") === isRecurring;
+
+            return (
+              <label
+                key={value}
+                className={cn(
+                  "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                  "transition-all duration-150",
+                  isSelected &&
+                    "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                )}
+              >
+                <input
+                  type="radio"
+                  value={value}
+                  className="hidden"
+                  checked={isSelected}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setIsRecurring(value === "recurring");
+                      register("maxDuration", {
+                        value: value === "recurring" ? 3 : 0,
+                        valueAsNumber: true,
+                      });
+                    }
+                  }}
+                />
+                <div className="flex grow flex-col text-sm">
+                  <span className="text-sm font-semibold text-neutral-900">
+                    {label}
+                  </span>
+                  <span className="text-sm font-normal text-neutral-600">
+                    {description}
+                  </span>
+                </div>
+                <CircleCheckFill
+                  className={cn(
+                    "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                    isSelected && "scale-100 opacity-100",
+                  )}
+                />
+              </label>
+            );
+          })}
+        </div>
+
+        {isRecurring && (
+          <div>
+            <label className="text-sm font-medium text-neutral-800">
+              Duration
+            </label>
+            <select
+              {...register("maxDuration", { valueAsNumber: true })}
+              className="mt-2 block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
+            >
+              {RECURRING_MAX_DURATIONS.filter((v) => v !== 0).map(
+                (duration) => (
+                  <option key={duration} value={duration}>
+                    {duration} {duration === 1 ? "month" : "months"}
+                  </option>
+                ),
+              )}
+              <option value={Infinity}>Lifetime</option>
+            </select>
+          </div>
+        )}
+      </div>
 
       <div className="space-y-6">
         <div className="space-y-1">
@@ -318,13 +261,91 @@ export function Form() {
           </div>
         </div>
       </div>
+    </>
+  );
+}
 
-      <Button
-        text="Continue"
-        className="w-full"
-        loading={isSubmitting}
-        disabled={isSubmitting}
-      />
-    </form>
+function ImportProgramForm({ register, watch }: FormProps) {
+  const selectedCampaign = watch("campaignId");
+
+  return (
+    <>
+      <div>
+        <label className="text-sm font-medium text-neutral-800">
+          Import source
+        </label>
+        <div className="relative mt-2">
+          <select
+            className="block w-full appearance-none rounded-md border border-neutral-200 bg-white px-3 py-2 pr-8 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
+            defaultValue="rewardful"
+          >
+            <option value="rewardful">Rewardful</option>
+          </select>
+          <ChevronDown className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+        </div>
+        <button className="mt-2 text-sm text-neutral-600 underline">
+          See what data is migrated
+        </button>
+      </div>
+
+      <div>
+        <label className="text-sm font-medium text-neutral-800">
+          Rewardful API secret
+        </label>
+        <Input
+          {...register("apiToken")}
+          type="password"
+          placeholder="API token"
+          className="mt-2"
+        />
+        <div className="mt-1.5 text-sm text-neutral-600">
+          Find your Rewardful API secret on your{" "}
+          <Link href="#" className="text-blue-600 hover:text-blue-700">
+            Company settings page
+          </Link>
+        </div>
+      </div>
+
+      <div>
+        <label className="text-sm font-medium text-neutral-800">
+          Campaign to import
+        </label>
+        <div className="relative mt-2">
+          <select
+            {...register("campaignId")}
+            className="block w-full appearance-none rounded-md border border-neutral-200 bg-white px-3 py-2 pr-8 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
+          >
+            <option value="campaign2">Campaign 2</option>
+          </select>
+          <ChevronDown className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+        </div>
+        <button className="mt-2 text-sm text-neutral-600 underline">
+          Want to migrate more than one campaign?
+        </button>
+      </div>
+
+      {selectedCampaign && (
+        <div className="grid grid-cols-2 gap-6 rounded-lg border border-neutral-200 bg-white p-6">
+          <div>
+            <div className="text-sm text-neutral-600">Type</div>
+            <div className="text-sm font-medium text-neutral-900">Flat</div>
+          </div>
+          <div>
+            <div className="text-sm text-neutral-600">Duration</div>
+            <div className="text-sm font-medium text-neutral-900">
+              24 months
+            </div>
+          </div>
+          <div>
+            <div className="text-sm text-neutral-600">Commission</div>
+            <div className="text-sm font-medium text-neutral-900">$50.00</div>
+          </div>
+          <div>
+            <div className="text-sm text-neutral-600">Affiliates</div>
+            <div className="text-sm font-medium text-neutral-900">12</div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
