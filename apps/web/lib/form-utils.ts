@@ -1,7 +1,7 @@
 import { type ChangeEvent, type KeyboardEvent } from "react";
 
 export const handleMoneyKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-  // Allow: backspace, delete, tab, escape, enter, decimal point
+  // Allow: backspace, delete, tab, escape, enter, decimal point, and CMD/CTRL+A
   if (
     e.key === "Backspace" ||
     e.key === "Delete" ||
@@ -12,7 +12,8 @@ export const handleMoneyKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     e.key === "ArrowRight" ||
     e.key === "ArrowUp" ||
     e.key === "ArrowDown" ||
-    (e.key === "." && !e.currentTarget.value.includes("."))
+    (e.key === "." && !e.currentTarget.value.includes(".")) ||
+    (e.key === "a" && (e.metaKey || e.ctrlKey)) // Allow CMD+A or CTRL+A
   ) {
     return;
   }
