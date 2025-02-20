@@ -70,21 +70,25 @@ export const GET = withWorkspace(
         COALESCE(SUM(DISTINCT l.sales), 0) as totalSales,
         COALESCE(SUM(c.amount), 0) as totalSaleAmount,
         COALESCE(SUM(c.earnings), 0) as totalEarnings,
-        JSON_ARRAYAGG(
-          IF(l.id IS NOT NULL,
+        (
+          SELECT JSON_ARRAYAGG(
             JSON_OBJECT(
-              'id', l.id,
-              'domain', l.domain,
-              'key', l.key,
-              'shortLink', l.shortLink,
-              'url', l.url,
-              'clicks', CAST(l.clicks AS SIGNED),
-              'leads', CAST(l.leads AS SIGNED),
-              'sales', CAST(l.sales AS SIGNED),
-              'saleAmount', CAST(l.saleAmount AS SIGNED)
-            ),
-            NULL
+              'id', l2.id,
+              'domain', l2.domain,
+              'key', l2.key,
+              'shortLink', l2.shortLink,
+              'url', l2.url,
+              'clicks', CAST(l2.clicks AS SIGNED),
+              'leads', CAST(l2.leads AS SIGNED),
+              'sales', CAST(l2.sales AS SIGNED),
+              'saleAmount', CAST(l2.saleAmount AS SIGNED)
+            )
           )
+          FROM (
+            SELECT DISTINCT l.id, l.domain, l.key, l.shortLink, l.url, l.clicks, l.leads, l.sales, l.saleAmount
+            FROM Link l
+            WHERE l.programId = pe.programId AND l.partnerId = pe.partnerId
+          ) l2
         ) as links
       FROM 
         ProgramEnrollment pe 

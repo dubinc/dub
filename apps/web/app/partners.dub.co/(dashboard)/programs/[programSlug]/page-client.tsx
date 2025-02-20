@@ -44,7 +44,7 @@ const ProgramOverviewContext = createContext<{
   interval: IntervalOptions;
   color?: string;
 }>({
-  interval: "1y",
+  interval: "30d",
 });
 
 export default function ProgramPageClient() {
@@ -57,7 +57,7 @@ export default function ProgramPageClient() {
   const {
     start,
     end,
-    interval = "1y",
+    interval = "30d",
   } = searchParamsObj as {
     start?: string;
     end?: string;
@@ -235,6 +235,7 @@ function EarningsChart() {
           <SimpleDateRangePicker
             className="h-7 w-full px-2.5 text-xs font-medium md:w-fit"
             align="end"
+            defaultInterval="30d"
           />
         </div>
       </div>
@@ -304,7 +305,7 @@ function StatCard({
           )}
         </div>
         <ViewMoreButton
-          href={`/programs/${programSlug}/analytics?event=${event}${getQueryString()?.replace("?", "&")}`}
+          href={`/programs/${programSlug}/links/analytics?event=${event}${getQueryString()?.replace("?", "&")}`}
         />
       </div>
       <div className="mt-2 h-44 w-full">

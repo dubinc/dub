@@ -10,9 +10,11 @@ import { RewardfulAffiliate } from "./types";
 // Import Rewardful affiliates
 export async function importAffiliates({
   programId,
+  rewardId,
   page,
 }: {
   programId: string;
+  rewardId?: string;
   page: number;
 }) {
   const { token, userId, campaignId } =
@@ -62,6 +64,7 @@ export async function importAffiliates({
             program,
             affiliate,
             userId,
+            rewardId,
           }),
         ),
       );
@@ -72,9 +75,12 @@ export async function importAffiliates({
     processedBatches++;
   }
 
+  const action = hasMoreAffiliates ? "import-affiliates" : "import-referrals";
+
   await rewardfulImporter.queue({
     programId: program.id,
-    action: hasMoreAffiliates ? "import-affiliates" : "import-referrals",
+    action,
+    ...(action === "import-affiliates" && rewardId && { rewardId }),
     ...(hasMoreAffiliates ? { page: currentPage } : {}),
   });
 }
@@ -85,11 +91,13 @@ async function createPartnerAndLinks({
   program,
   affiliate,
   userId,
+  rewardId,
 }: {
   workspace: Project;
   program: Program;
   affiliate: RewardfulAffiliate;
   userId: string;
+  rewardId?: string;
 }) {
   const partner = await prisma.partner.upsert({
     where: {
@@ -146,4 +154,19 @@ async function createPartnerAndLinks({
       projectId: workspace.id,
     })),
   });
+
+  if (rewardId) {
+    const partnerReward = {
+      programEnrollmentId: programEnrollment.id,
+      rewardId,
+    };
+
+    await prisma.partnerReward.upsert({
+      where: {
+        programEnrollmentId_rewardId: partnerReward,
+      },
+      create: partnerReward,
+      update: {},
+    });
+  }
 }
