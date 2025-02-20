@@ -10,7 +10,6 @@ import {
   Icon,
   LoadingSpinner,
   PaginationControls,
-  Popover,
   Tag,
   TooltipContent,
   Trash,
@@ -18,15 +17,14 @@ import {
   usePagination,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { Command } from "cmdk";
-import { memo, ReactNode, useContext, useMemo, useState } from "react";
+import { memo, ReactNode, useContext, useMemo } from "react";
 import { useArchiveLinkModal } from "../modals/archive-link-modal";
 import { useDeleteLinkModal } from "../modals/delete-link-modal";
 import { useLinkBuilder } from "../modals/link-builder";
 import { useLinkConversionTrackingModal } from "../modals/link-conversion-tracking-modal";
 import { useMoveLinkToFolderModal } from "../modals/move-link-to-folder-modal";
 import { useTagLinkModal } from "../modals/tag-link-modal";
-import { ThreeDots, X } from "../shared/icons";
+import { X } from "../shared/icons";
 import ArchivedLinksHint from "./archived-links-hint";
 import { useLinkSelection } from "./link-selection-provider";
 import { LinksListContext, ResponseLink } from "./links-container";
@@ -254,7 +252,7 @@ export const LinksToolbar = memo(
                       "pointer-events-none absolute inset-0 translate-y-1/2 opacity-0",
                   )}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
@@ -275,7 +273,14 @@ export const LinksToolbar = memo(
                     </div>
 
                     {/* Large screen controls */}
-                    <div className="hidden items-center gap-2 min-[1120px]:flex">
+                    <div
+                      className={cn(
+                        "xs:gap-2 flex items-center gap-1.5 transition-[transform,opacity] duration-150",
+                        selectedLinkIds.length > 0
+                          ? "translate-y-0 opacity-100"
+                          : "pointer-events-none translate-y-1/2 opacity-0",
+                      )}
+                    >
                       {bulkActions.map(
                         ({
                           label,
@@ -287,7 +292,8 @@ export const LinksToolbar = memo(
                           <Button
                             type="button"
                             variant="secondary"
-                            className="h-7 gap-1.5 pl-2.5 pr-1.5 text-xs"
+                            className="xs:px-2.5 h-7 gap-1.5 px-2 text-xs min-[1120px]:pr-1.5"
+                            textWrapperClassName="max-[1120px]:hidden"
                             icon={<Icon className="size-3.5" />}
                             text={label}
                             onClick={action}
@@ -298,15 +304,10 @@ export const LinksToolbar = memo(
                                 : undefined)
                             }
                             shortcut={keyboardShortcut?.toUpperCase()}
-                            shortcutClassName="py-0 px-1 text-[0.625rem] leading-snug"
+                            shortcutClassName="py-0 px-1 text-[0.625rem] leading-snug md:hidden min-[1120px]:inline-block"
                           />
                         ),
                       )}
-                    </div>
-
-                    {/* Small screen controls */}
-                    <div className="block min-[1120px]:hidden">
-                      <BulkActionMenu bulkActions={bulkActions} />
                     </div>
                   </div>
                 </div>
@@ -318,49 +319,3 @@ export const LinksToolbar = memo(
     );
   },
 );
-
-function BulkActionMenu({ bulkActions }: { bulkActions: BulkAction[] }) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <Popover
-      content={
-        <div>
-          <Command tabIndex={0} loop className="focus:outline-none">
-            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
-              {bulkActions.map(
-                ({ label, icon: Icon, action, disabledTooltip }) => (
-                  <Command.Item
-                    disabled={!!disabledTooltip}
-                    className={cn(
-                      "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-800",
-                      "data-[selected=true]:bg-neutral-100",
-                      disabledTooltip && "cursor-not-allowed opacity-50",
-                    )}
-                    onSelect={() => {
-                      setIsOpen(false);
-                      action();
-                    }}
-                  >
-                    <Icon className="size-4 shrink-0" />
-                    {label}
-                  </Command.Item>
-                ),
-              )}
-            </Command.List>
-          </Command>
-        </div>
-      }
-      align="end"
-      openPopover={isOpen}
-      setOpenPopover={setIsOpen}
-    >
-      <Button
-        type="button"
-        variant="secondary"
-        className="h-7 px-1.5"
-        icon={<ThreeDots className="size-4" />}
-      />
-    </Popover>
-  );
-}
