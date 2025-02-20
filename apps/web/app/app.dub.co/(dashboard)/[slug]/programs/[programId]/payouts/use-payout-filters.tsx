@@ -14,7 +14,6 @@ import { useDebounce } from "use-debounce";
 export function usePayoutFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
-  const { interval, start, end } = searchParamsObj;
 
   const { payoutsCount } = usePayoutsCount<PayoutsCount[]>({
     groupBy: "status",

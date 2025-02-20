@@ -1,18 +1,12 @@
-import { intervals } from "@/lib/analytics/constants";
-import {
-  CommissionStatus,
-  PartnerStatus,
-  ProgramEnrollmentStatus,
-} from "@dub/prisma/client";
+import { PartnerStatus, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
-import { CustomerSchema } from "./customers";
-import { createLinkBodySchema, LinkSchema } from "./links";
+import { createLinkBodySchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { ProgramEnrollmentSchema } from "./programs";
-import { parseDateSchema, parseUrlSchema } from "./utils";
+import { parseUrlSchema } from "./utils";
 
 export const PARTNERS_MAX_PAGE_SIZE = 100;
 export const PAYOUTS_MAX_PAGE_SIZE = 100;
@@ -109,78 +103,15 @@ export const LeaderboardPartnerSchema = z.object({
   saleAmount: z.number().default(0),
 });
 
-export const SaleSchema = z.object({
-  id: z.string(),
-  amount: z.number(),
-  earnings: z.number(),
-  currency: z.string(),
-  status: z.nativeEnum(CommissionStatus),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
+export const PARTNER_CUSTOMERS_MAX_PAGE_SIZE = 100;
 
-export const getSalesQuerySchema = z
+export const getPartnerCustomersQuerySchema = z
   .object({
-    status: z.nativeEnum(CommissionStatus).optional(),
-    sortBy: z.enum(["createdAt", "amount"]).default("createdAt"),
-    sortOrder: z.enum(["asc", "desc"]).default("desc"),
-    interval: z.enum(intervals).default("1y"),
-    start: parseDateSchema.optional(),
-    end: parseDateSchema.optional(),
-    customerId: z.string().optional(),
-    payoutId: z.string().optional(),
-    partnerId: z.string().optional(),
+    search: z.string().optional(),
   })
-  .merge(getPaginationQuerySchema({ pageSize: 100 }));
-
-export const SaleResponseSchema = SaleSchema.merge(
-  z.object({
-    customer: CustomerSchema,
-    partner: PartnerSchema,
-  }),
-);
-
-export const getSalesCountQuerySchema = getSalesQuerySchema.omit({
-  page: true,
-  pageSize: true,
-  sortOrder: true,
-  sortBy: true,
-});
-
-export const getSaleAmountQuerySchema = getSalesQuerySchema.pick({
-  start: true,
-  end: true,
-  partnerId: true,
-});
-
-export const getPartnerSalesQuerySchema = getSalesQuerySchema.omit({
-  partnerId: true,
-});
-
-export const PartnerEarningsSchema = SaleResponseSchema.omit({
-  partner: true,
-  customer: true,
-}).merge(
-  z.object({
-    type: z.string(),
-    customer: z
-      .object({
-        email: z
-          .string()
-          .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
-        avatar: z.string().nullable(),
-      })
-      .nullable(),
-    link: LinkSchema.pick({
-      shortLink: true,
-      url: true,
-    }),
-  }),
-);
-
-export const getPartnerSalesCountQuerySchema = getSalesCountQuerySchema.omit({
-  partnerId: true,
-});
+  .merge(
+    getPaginationQuerySchema({ pageSize: PARTNER_CUSTOMERS_MAX_PAGE_SIZE }),
+  );
 
 export const createPartnerSchema = z.object({
   programId: z

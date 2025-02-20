@@ -60,16 +60,16 @@ export const GET = withWorkspace(
       SELECT 
         p.*, 
         pe.id as enrollmentId, 
-        pe.commissionAmount, 
         pe.status, 
         pe.programId, 
         pe.partnerId, 
         pe.tenantId,
         pe.createdAt as enrollmentCreatedAt,
-        COALESCE(SUM(l.clicks), 0) as totalClicks,
-        COALESCE(SUM(l.leads), 0) as totalLeads,
-        COALESCE(SUM(l.sales), 0) as totalSales,
-        COALESCE(SUM(l.saleAmount), 0) as totalSaleAmount,
+        COALESCE(SUM(DISTINCT l.clicks), 0) as totalClicks,
+        COALESCE(SUM(DISTINCT l.leads), 0) as totalLeads,
+        COALESCE(SUM(DISTINCT l.sales), 0) as totalSales,
+        COALESCE(SUM(c.amount), 0) as totalSaleAmount,
+        COALESCE(SUM(c.earnings), 0) as totalEarnings,
         JSON_ARRAYAGG(
           IF(l.id IS NOT NULL,
             JSON_OBJECT(
@@ -92,6 +92,8 @@ export const GET = withWorkspace(
         Partner p ON p.id = pe.partnerId 
       LEFT JOIN 
         Link l ON l.programId = pe.programId AND l.partnerId = pe.partnerId
+      LEFT JOIN
+        Commission c ON c.linkId = l.id
       WHERE 
         pe.programId = ${program.id}
         ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status != 'rejected'`}
@@ -104,21 +106,19 @@ export const GET = withWorkspace(
       ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)}
       LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
 
-    const response = partners.map((partner) => ({
-      ...partner,
-      createdAt: new Date(partner.enrollmentCreatedAt),
-      payoutsEnabled: Boolean(partner.payoutsEnabled),
-      clicks: Number(partner.totalClicks),
-      leads: Number(partner.totalLeads),
-      sales: Number(partner.totalSales),
-      saleAmount: Number(partner.totalSaleAmount),
-      earnings:
-        ((program.commissionType === "percentage"
-          ? partner.totalSaleAmount
-          : partner.totalSales) ?? 0) *
-        (program.commissionAmount / 100),
-      links: partner.links.filter((link: any) => link !== null),
-    }));
+    const response = partners.map((partner) => {
+      return {
+        ...partner,
+        createdAt: new Date(partner.enrollmentCreatedAt),
+        payoutsEnabled: Boolean(partner.payoutsEnabled),
+        clicks: Number(partner.totalClicks),
+        leads: Number(partner.totalLeads),
+        sales: Number(partner.totalSales),
+        saleAmount: Number(partner.totalSaleAmount),
+        earnings: Number(partner.totalEarnings),
+        links: partner.links.filter((link: any) => link !== null),
+      };
+    });
 
     return NextResponse.json(z.array(EnrolledPartnerSchema).parse(response));
   },

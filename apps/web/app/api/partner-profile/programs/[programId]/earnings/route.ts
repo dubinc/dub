@@ -3,9 +3,9 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { withPartnerProfile } from "@/lib/auth/partner";
 import z from "@/lib/zod";
 import {
-  getPartnerSalesQuerySchema,
   PartnerEarningsSchema,
-} from "@/lib/zod/schemas/partners";
+  getPartnerEarningsQuerySchema,
+} from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -20,15 +20,17 @@ export const GET = withPartnerProfile(
     const {
       page,
       pageSize,
+      type,
       status,
       sortBy,
       sortOrder,
+      linkId,
       customerId,
       payoutId,
       interval,
       start,
       end,
-    } = getPartnerSalesQuerySchema.parse(searchParams);
+    } = getPartnerEarningsQuerySchema.parse(searchParams);
 
     const { startDate, endDate } = getStartEndDates({
       interval,
@@ -40,7 +42,9 @@ export const GET = withPartnerProfile(
       where: {
         programId: program.id,
         partnerId: partner.id,
+        type,
         status,
+        linkId,
         customerId,
         payoutId,
         createdAt: {
@@ -60,6 +64,7 @@ export const GET = withPartnerProfile(
         customer: true,
         link: {
           select: {
+            id: true,
             shortLink: true,
             url: true,
           },

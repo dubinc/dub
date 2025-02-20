@@ -9,6 +9,7 @@ import {
   listFoldersQuerySchema,
 } from "@/lib/zod/schemas/folders";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/folders - get all folders for a workspace
@@ -70,26 +71,27 @@ export const POST = withWorkspace(
     }
 
     try {
-      const [newFolder] = await prisma.$transaction([
-        prisma.folder.create({
-          data: {
-            id: createId({ prefix: "fold_" }),
-            projectId: workspace.id,
-            name,
-            accessLevel,
-            users: {
-              create: {
-                userId: session.user.id,
-                role: "owner",
-              },
+      const newFolder = await prisma.folder.create({
+        data: {
+          id: createId({ prefix: "fold_" }),
+          projectId: workspace.id,
+          name,
+          accessLevel,
+          users: {
+            create: {
+              userId: session.user.id,
+              role: "owner",
             },
           },
-        }),
+        },
+      });
+
+      waitUntil(
         prisma.project.update({
           where: { id: workspace.id },
           data: { foldersUsage: { increment: 1 } },
         }),
-      ]);
+      );
 
       return NextResponse.json(FolderSchema.parse(newFolder), {
         headers,
