@@ -49,9 +49,9 @@ export async function importCampaign({ programId }: { programId: string }) {
 
   return await rewardfulImporter.queue({
     programId,
-    // we will only need to assign rewardId to affiliates if it's not
-    // the defaultRewardId of the program
-    ...(!defaultRewardId && { rewardId: reward.id }),
+    // we will only need to assign rewardId to affiliates
+    // if it's not the defaultRewardId of the program (there's already a defaultRewardId)
+    ...(defaultRewardId && { rewardId: reward.id }),
     action: "import-affiliates",
   });
 }
