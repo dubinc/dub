@@ -1,9 +1,18 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { parseRequestBody } from "@/lib/api/utils";
+import { linkCache } from "@/lib/api/links/cache";
+import { includeTags } from "@/lib/api/links/include-tags";
+import { createId, parseRequestBody } from "@/lib/api/utils";
 import { conn } from "@/lib/planetscale/connection";
-import { recordClick } from "@/lib/tinybird";
+import { recordClick, recordLink } from "@/lib/tinybird";
 import { ratelimit, redis } from "@/lib/upstash";
-import { isValidUrl, LOCALHOST_IP, nanoid, punyEncode } from "@dub/utils";
+import { prismaEdge } from "@dub/prisma/edge";
+import {
+  isValidUrl,
+  linkConstructorSimple,
+  LOCALHOST_IP,
+  nanoid,
+  punyEncode,
+} from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextResponse } from "next/server";
@@ -16,7 +25,7 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-// POST /api/track/click – Track a click event from the client-side
+// POST /api/track/visit – Track a visit event from the client-side
 export const POST = withAxiom(
   async (req: AxiomRequest) => {
     try {
@@ -28,6 +37,8 @@ export const POST = withAxiom(
           message: "Missing domain or key",
         });
       }
+
+      const urlObj = new URL(url);
 
       const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
@@ -42,6 +53,8 @@ export const POST = withAxiom(
         });
       }
 
+      const linkKey = urlObj.pathname.slice(1);
+
       const { rows } = await conn.execute<{
         id: string;
         url: string;
@@ -49,17 +62,42 @@ export const POST = withAxiom(
         allowedHostnames: string[];
       }>(
         "SELECT Link.id, Link.url, projectId, allowedHostnames FROM Link LEFT JOIN Project ON Link.projectId = Project.id WHERE domain = ? AND `key` = ?",
-        [domain, punyEncode(decodeURIComponent(key))],
+        [domain, punyEncode(decodeURIComponent(linkKey))],
       );
 
-      const link =
+      let link =
         rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
 
       if (!link) {
-        throw new DubApiError({
-          code: "not_found",
-          message: `Link not found for domain: ${domain} and key: ${key}.`,
+        // create new link if not exist
+        const newLink = await prismaEdge.link.create({
+          data: {
+            id: createId("link_"),
+            domain,
+            key: linkKey,
+            url,
+            shortLink: linkConstructorSimple({ domain, key: linkKey }),
+          },
+          include: {
+            ...includeTags,
+            project: {
+              select: {
+                allowedHostnames: true,
+              },
+            },
+          },
         });
+        waitUntil(
+          Promise.allSettled([linkCache.set(newLink), recordLink(newLink)]),
+        );
+
+        link = {
+          id: newLink.id,
+          url: newLink.url,
+          projectId: newLink.projectId!,
+          allowedHostnames:
+            (newLink.project?.allowedHostnames as string[]) || [],
+        };
       }
 
       const allowedHostnames = link.allowedHostnames;
