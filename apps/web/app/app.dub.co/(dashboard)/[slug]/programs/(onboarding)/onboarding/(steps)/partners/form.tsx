@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, Input } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { Plus, Trash2 } from "lucide-react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -26,7 +27,7 @@ export function Form() {
     formState: { isSubmitting, isValid },
   } = useForm<Form>({
     defaultValues: {
-      partners: [{ email: "", referralLink: "" }],
+      partners: [{ email: "", referralLink: "refer.dub.co/steven" }],
     },
     mode: "onChange",
   });
@@ -45,7 +46,10 @@ export function Form() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
       <div className="flex flex-col gap-4">
         {fields.map((field, index) => (
-          <div key={field.id} className="flex items-start gap-4">
+          <div
+            key={field.id}
+            className="flex flex-col gap-4 sm:flex-row sm:items-start"
+          >
             <div className="flex-1">
               <label className="block text-sm font-medium text-neutral-800">
                 {index === 0 && "Email"}
@@ -62,22 +66,25 @@ export function Form() {
               <label className="block text-sm font-medium text-neutral-800">
                 {index === 0 && "Referral link"}
               </label>
-              <div className="relative mt-2">
-                <Input
+              <div className="mt-2 flex gap-2">
+                <select
                   {...register(`partners.${index}.referralLink`, {
                     required: true,
                   })}
-                  placeholder="refer.dub.co/steven"
-                />
+                  className={cn(
+                    "flex-1 rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
+                  )}
+                >
+                  <option value="refer.dub.co/steven">refer.dub.co/steven</option>
+                  <option value="refer.dub.co/stevens">refer.dub.co/stevens</option>
+                </select>
                 {index > 0 && (
-                  <div className="absolute -right-12 top-1/2 -translate-y-1/2">
-                    <Button
-                      variant="outline"
-                      icon={<Trash2 className="size-4" />}
-                      className="h-10 w-10 p-0"
-                      onClick={() => remove(index)}
-                    />
-                  </div>
+                  <Button
+                    variant="outline"
+                    icon={<Trash2 className="size-4" />}
+                    className="h-10 w-10 shrink-0 p-0"
+                    onClick={() => remove(index)}
+                  />
                 )}
               </div>
             </div>
@@ -91,7 +98,7 @@ export function Form() {
           className="w-fit"
           onClick={() => {
             if (fields.length < 10) {
-              append({ email: "", referralLink: "" });
+              append({ email: "", referralLink: "refer.dub.co/steven" });
             }
           }}
           disabled={fields.length >= 10}
@@ -102,8 +109,6 @@ export function Form() {
           </p>
         )}
       </div>
-
-      <div className="flex items-center gap-4"></div>
 
       <Button
         text="Continue"
