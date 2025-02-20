@@ -20,7 +20,7 @@ export function StepPage({
       <h1 className="mt-4 text-2xl font-medium leading-tight text-neutral-900">
         {title}
       </h1>
-      <div className="mt-8 w-full">{children}</div>
+      <div className="mb-8 mt-8 w-full">{children}</div>
     </div>
   );
 }
