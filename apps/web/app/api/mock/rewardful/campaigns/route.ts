@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  return NextResponse.json([
+  const campaigns = [
     {
       id: "ceaef6d9-767e-49aa-a6ab-46c02aa79604",
       created_at: "2021-11-24T06:31:06.672Z",
@@ -56,7 +56,7 @@ export async function GET() {
       parameter_type: "query",
       stripe_coupon_id: "jo45MTj3",
       default: false,
-      reward_type: "flat",
+      reward_type: "amount",
       commission_percent: null,
       minimum_payout_currency: "USD",
       visitors: 150,
@@ -64,5 +64,9 @@ export async function GET() {
       conversions: 7,
       affiliates: 12,
     },
-  ]);
+  ];
+
+  return NextResponse.json({
+    data: campaigns,
+  });
 }

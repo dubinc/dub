@@ -82,7 +82,7 @@ export function useKeyboardShortcut(
       const topListener = stableSort(
         matchingListeners,
         (a, b) => (b.priority ?? 0) - (a.priority ?? 0),
-      ).slice(-1)[0];
+      )[0];
 
       // Check if this is the top listener
       if (topListener.id !== id) return;
@@ -90,7 +90,7 @@ export function useKeyboardShortcut(
       e.preventDefault();
       callback(e);
     },
-    [key, listeners, id, callback],
+    [key, listeners, id, callback, options.modal],
   );
 
   useEffect(() => {
