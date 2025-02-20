@@ -82,12 +82,10 @@ function LinksList({
   ].some((param) => searchParams.has(param));
 
   return (
-    <LinkSelectionProvider links={links}>
-      {!links || links.length ? (
-        <LinksListContext.Provider
-          value={{ openMenuLinkId, setOpenMenuLinkId }}
-        >
-          {/* Cards */}
+    <LinksListContext.Provider value={{ openMenuLinkId, setOpenMenuLinkId }}>
+      <LinkSelectionProvider links={links}>
+        {!links || links.length ? (
+          // Cards
           <CardList variant={compact ? "compact" : "loose"} loading={loading}>
             {links?.length
               ? // Link cards
@@ -103,44 +101,44 @@ function LinksList({
                   </CardList.Card>
                 ))}
           </CardList>
-        </LinksListContext.Provider>
-      ) : (
-        <AnimatedEmptyState
-          title={isFiltered ? "No links found" : "No links yet"}
-          description={
-            isFiltered
-              ? "Bummer! There are no links that match your filters. Adjust your filters to yield more results."
-              : "Start creating short links for your marketing campaigns, referral programs, and more."
-          }
-          cardContent={
-            <>
-              <Hyperlink className="size-4 text-neutral-700" />
-              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-              <div className="xs:flex hidden grow items-center justify-end gap-1.5 text-neutral-500">
-                <CursorRays className="size-3.5" />
-              </div>
-            </>
-          }
-          {...(!isFiltered && {
-            addButton: (
-              <div>
-                <CreateLinkButton />
-              </div>
-            ),
-            learnMoreHref: "https://dub.co/help/article/how-to-create-link",
-            learnMoreClassName: "h-10",
-          })}
-        />
-      )}
+        ) : (
+          <AnimatedEmptyState
+            title={isFiltered ? "No links found" : "No links yet"}
+            description={
+              isFiltered
+                ? "Bummer! There are no links that match your filters. Adjust your filters to yield more results."
+                : "Start creating short links for your marketing campaigns, referral programs, and more."
+            }
+            cardContent={
+              <>
+                <Hyperlink className="size-4 text-neutral-700" />
+                <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+                <div className="xs:flex hidden grow items-center justify-end gap-1.5 text-neutral-500">
+                  <CursorRays className="size-3.5" />
+                </div>
+              </>
+            }
+            {...(!isFiltered && {
+              addButton: (
+                <div>
+                  <CreateLinkButton />
+                </div>
+              ),
+              learnMoreHref: "https://dub.co/help/article/how-to-create-link",
+              learnMoreClassName: "h-10",
+            })}
+          />
+        )}
 
-      {/* Pagination */}
-      {links && (
-        <LinksToolbar
-          loading={!!loading}
-          links={links}
-          linksCount={count ?? links?.length ?? 0}
-        />
-      )}
-    </LinkSelectionProvider>
+        {/* Pagination */}
+        {links && (
+          <LinksToolbar
+            loading={!!loading}
+            links={links}
+            linksCount={count ?? links?.length ?? 0}
+          />
+        )}
+      </LinkSelectionProvider>
+    </LinksListContext.Provider>
   );
 }

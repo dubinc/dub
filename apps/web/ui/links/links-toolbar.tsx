@@ -173,7 +173,7 @@ export const LinksToolbar = memo(
     );
 
     useKeyboardShortcut("Escape", () => setSelectedLinkIds([]), {
-      enabled: selectedLinkIds.length > 0,
+      enabled: selectedLinkIds.length > 0 && openMenuLinkId === null,
       priority: 2, // Take priority over clearing filters
       modal: false,
     });
