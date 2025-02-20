@@ -39,6 +39,7 @@ class RewardfulImporter {
 
   async queue(body: {
     programId: string;
+    rewardId?: string;
     action?: z.infer<typeof importSteps>;
     page?: number;
   }) {

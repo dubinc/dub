@@ -1,57 +1,33 @@
-import { unsortedLinks } from "@/lib/folder/constants";
-import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps } from "@/lib/types";
-import { Button, InputSelect, InputSelectItemProps, LinkLogo } from "@dub/ui";
-import { getApexDomain, linkConstructor } from "@dub/utils";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { Button, LinkLogo } from "@dub/ui";
+import { getApexDomain, getPrettyUrl, pluralize } from "@dub/utils";
+import { FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { FolderIcon } from "./folder-icon";
+import { FolderDropdown } from "./folder-dropdown";
 
 interface MoveLinkFormProps {
-  link: ExpandedLinkProps;
+  links: ExpandedLinkProps[];
   onSuccess: () => void;
   onCancel: () => void;
 }
 
 export const MoveLinkForm = ({
-  link,
+  links,
   onSuccess,
   onCancel,
 }: MoveLinkFormProps) => {
-  const { folders } = useFolders();
   const workspace = useWorkspace();
   const [isMoving, setIsMoving] = useState(false);
-  const [selectedFolder, setSelectedFolder] =
-    useState<InputSelectItemProps | null>(null);
 
-  const selectOptions = useMemo(() => {
-    return folders
-      ? [...folders, unsortedLinks].map((folder) => {
-          const isCurrent =
-            folder.id === link.folderId ||
-            (link.folderId === null && folder.id === "unsorted");
-          return {
-            id: folder.id,
-            value: `${folder.name} ${folder.id === "unsorted" ? "(Unsorted)" : ""}`,
-            icon: <FolderIcon folder={folder} shape="square" />,
-            disabled: isCurrent,
-            label: isCurrent ? "Current" : "",
-          };
-        })
-      : [];
-  }, [folders, link.folderId, workspace.logo, workspace.name]);
-
-  useEffect(() => {
-    setSelectedFolder(
-      selectOptions.find((option) => option.id === link.folderId) || null,
-    );
-  }, [selectOptions]);
+  const [selectedFolderId, setSelectedFolderId] = useState<string>(
+    links[0].folderId ?? "unsorted",
+  );
 
   // Move link to selected folder
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    if (!selectedFolder) {
+    if (!selectedFolderId) {
       return;
     }
 
@@ -59,11 +35,14 @@ export const MoveLinkForm = ({
     setIsMoving(true);
 
     const response = await fetch(
-      `/api/links/${link.id}?workspaceId=${workspace.id}`,
+      `/api/links/bulk?workspaceId=${workspace.id}`,
       {
         method: "PATCH",
         body: JSON.stringify({
-          folderId: selectedFolder.id === "unsorted" ? "" : selectedFolder.id,
+          linkIds: links.map(({ id }) => id),
+          data: {
+            folderId: selectedFolderId === "unsorted" ? "" : selectedFolderId,
+          },
         }),
       },
     );
@@ -85,26 +64,18 @@ export const MoveLinkForm = ({
     onSuccess();
   };
 
-  const apexDomain = getApexDomain(link.url);
-
-  const shortlink = useMemo(() => {
-    return linkConstructor({
-      key: link.key,
-      domain: link.domain,
-      pretty: true,
-    });
-  }, [link.key, link.domain]);
-
-  const folderChanged = selectedFolder?.id !== link.folderId;
-
   return (
     <>
-      <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
-        <LinkLogo apexDomain={apexDomain} />
-        <h3 className="text-lg font-medium">Move {shortlink}</h3>
-        <p className="text-sm text-neutral-500">
-          Select a folder below to move the link to.
-        </p>
+      <div className="space-y-2 border-b border-neutral-200 p-4 sm:p-6">
+        {links.length === 1 && (
+          <LinkLogo apexDomain={getApexDomain(links[0].url)} className="mb-4" />
+        )}
+        <h3 className="truncate text-lg font-medium leading-none">
+          Move{" "}
+          {links.length > 1
+            ? `${links.length} links`
+            : getPrettyUrl(links[0].shortLink)}
+        </h3>
       </div>
 
       <div className="bg-neutral-50 sm:rounded-b-2xl">
@@ -112,18 +83,18 @@ export const MoveLinkForm = ({
           <div className="flex flex-col gap-y-6 px-4 text-left sm:px-6">
             <div className="mt-6">
               <label className="text-sm font-normal text-neutral-500">
-                Folders
+                Folder
               </label>
-              <div className="mt-2">
-                <InputSelect
-                  items={selectOptions}
-                  adjustForMobile
-                  selectedItem={selectedFolder}
-                  setSelectedItem={setSelectedFolder}
-                  className="w-full"
-                  inputAttrs={{
-                    placeholder: "Search...",
+              <div className="mt-1">
+                <FolderDropdown
+                  hideViewAll={true}
+                  disableAutoRedirect={true}
+                  onFolderSelect={(folder) => {
+                    setSelectedFolderId(folder.id);
                   }}
+                  buttonClassName="w-full max-w-full md:max-w-full border border-neutral-200 bg-white"
+                  buttonTextClassName="text-base md:text-base font-normal"
+                  selectedFolderId={selectedFolderId ?? undefined}
                 />
               </div>
             </div>
@@ -134,16 +105,20 @@ export const MoveLinkForm = ({
               type="button"
               variant="secondary"
               text="Cancel"
-              className="h-9 w-fit"
+              className="h-8 w-fit px-3"
               onClick={onCancel}
               disabled={isMoving}
             />
             <Button
               type="submit"
-              text={isMoving ? "Moving..." : "Move link"}
-              disabled={isMoving || !selectedFolder || !folderChanged}
+              text={
+                isMoving
+                  ? "Moving..."
+                  : `Move ${pluralize("link", links.length)}`
+              }
+              disabled={isMoving}
               loading={isMoving}
-              className="h-9 w-fit"
+              className="h-8 w-fit px-3"
             />
           </div>
         </form>

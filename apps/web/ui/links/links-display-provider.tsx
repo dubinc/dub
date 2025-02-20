@@ -52,7 +52,6 @@ export const linkDisplayProperties: {
   switch?: LinkDisplayProperty;
   mobile?: boolean;
 }[] = [
-  { id: "icon", label: "Icon", mobile: false },
   { id: "link", label: "Short link", switch: "title" },
   { id: "url", label: "Destination URL", switch: "description" },
   { id: "title", label: "Title", switch: "link" },
