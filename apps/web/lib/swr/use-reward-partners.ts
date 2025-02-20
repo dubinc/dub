@@ -18,7 +18,7 @@ export default function useRewardPartners({
   const { programId } = useParams();
   const { id: workspaceId } = useWorkspace();
 
-  const { data, error } = useSWR<EnrolledPartnerProps[]>(
+  const { data, error, isLoading } = useSWR<EnrolledPartnerProps[]>(
     enabled && workspaceId && programId
       ? `/api/programs/${programId}/rewards/partners?${new URLSearchParams({
           workspaceId,
@@ -27,11 +27,14 @@ export default function useRewardPartners({
         } as Record<string, any>).toString()}`
       : null,
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   return {
     data,
-    loading: !data && !error && enabled,
+    loading: isLoading,
     error,
   };
 }

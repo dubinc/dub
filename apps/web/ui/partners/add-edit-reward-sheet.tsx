@@ -293,7 +293,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   }, [allPartners, partnerIds]);
 
   const selectedPartnersTable = useTable({
-    data: selectedPartners,
+    data: displayPartners,
     columns: [
       {
         header: "Partner",
@@ -342,6 +342,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         size: 50,
       },
     ],
+    loading: isLoadingRewardPartners,
     thClassName: () => cn("border-l-0"),
     tdClassName: () => cn("border-l-0"),
     className: "[&_tr:last-child>td]:border-b-transparent",
@@ -679,7 +680,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                   />
                 </div>
                 <div className="mt-4">
-                  {isLoadingRewardPartners ? (
+                  {!rewardPartners ? (
                     <div className="flex items-center justify-center py-8">
                       <LoadingSpinner className="size-4" />
                     </div>
