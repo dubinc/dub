@@ -1,6 +1,6 @@
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { prisma } from "@dub/prisma";
-import { Integration } from "@prisma/client";
+import { Integration } from "@dub/prisma/client";
 import { Suspense } from "react";
 import { EnabledIntegrations } from "./enabled-integrations";
 import {

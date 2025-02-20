@@ -1,4 +1,5 @@
 import { getProgram } from "@/lib/fetchers/get-program";
+import { getReward } from "@/lib/fetchers/get-reward";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander-blocks";
 import { cn } from "@dub/utils";
@@ -15,10 +16,11 @@ export default async function ApplyPage({
 }) {
   const program = await getProgram({ slug: programSlug });
 
-  if (!program || !program.landerData) {
+  if (!program || !program.landerData || !program.defaultRewardId) {
     notFound();
   }
 
+  const reward = await getReward({ id: program.defaultRewardId });
   const landerData = programLanderSchema.parse(program.landerData);
 
   return (
@@ -78,7 +80,7 @@ export default async function ApplyPage({
 
         {/* Program details grid */}
         <DetailsGrid
-          program={program}
+          reward={reward}
           className="animate-slide-up-fade mt-10 [animation-delay:300ms] [animation-duration:1s] [animation-fill-mode:both]"
         />
 

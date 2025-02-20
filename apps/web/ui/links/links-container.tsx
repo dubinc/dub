@@ -3,27 +3,22 @@
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import { ExpandedLinkProps, UserProps } from "@/lib/types";
-import {
-  CardList,
-  MaxWidthWrapper,
-  PaginationControls,
-  usePagination,
-} from "@dub/ui";
-import { CursorRays, Hyperlink, LoadingSpinner } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { CardList, MaxWidthWrapper } from "@dub/ui";
+import { CursorRays, Hyperlink } from "@dub/ui/icons";
 import { useSearchParams } from "next/navigation";
 import {
+  createContext,
   Dispatch,
   SetStateAction,
-  createContext,
   useContext,
   useState,
 } from "react";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
-import ArchivedLinksHint from "./archived-links-hint";
 import { LinkCard } from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";
+import { LinkSelectionProvider } from "./link-selection-provider";
 import { LinksDisplayContext } from "./links-display-provider";
+import { LinksToolbar } from "./links-toolbar";
 
 export type ResponseLink = ExpandedLinkProps & {
   user: UserProps;
@@ -75,8 +70,6 @@ function LinksList({
 }) {
   const searchParams = useSearchParams();
 
-  const { pagination, setPagination } = usePagination();
-
   const [openMenuLinkId, setOpenMenuLinkId] = useState<string | null>(null);
 
   const isFiltered = [
@@ -89,12 +82,10 @@ function LinksList({
   ].some((param) => searchParams.has(param));
 
   return (
-    <>
-      {!links || links.length ? (
-        <LinksListContext.Provider
-          value={{ openMenuLinkId, setOpenMenuLinkId }}
-        >
-          {/* Cards */}
+    <LinksListContext.Provider value={{ openMenuLinkId, setOpenMenuLinkId }}>
+      <LinkSelectionProvider links={links}>
+        {!links || links.length ? (
+          // Cards
           <CardList variant={compact ? "compact" : "loose"} loading={loading}>
             {links?.length
               ? // Link cards
@@ -110,67 +101,44 @@ function LinksList({
                   </CardList.Card>
                 ))}
           </CardList>
-        </LinksListContext.Provider>
-      ) : (
-        <AnimatedEmptyState
-          title={isFiltered ? "No links found" : "No links yet"}
-          description={
-            isFiltered
-              ? "Bummer! There are no links that match your filters. Adjust your filters to yield more results."
-              : "Start creating short links for your marketing campaigns, referral programs, and more."
-          }
-          cardContent={
-            <>
-              <Hyperlink className="size-4 text-neutral-700" />
-              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-              <div className="xs:flex hidden grow items-center justify-end gap-1.5 text-neutral-500">
-                <CursorRays className="size-3.5" />
-              </div>
-            </>
-          }
-          {...(!isFiltered && {
-            addButton: (
-              <div>
-                <CreateLinkButton />
-              </div>
-            ),
-            learnMoreHref: "https://dub.co/help/article/how-to-create-link",
-            learnMoreClassName: "h-10",
-          })}
-        />
-      )}
+        ) : (
+          <AnimatedEmptyState
+            title={isFiltered ? "No links found" : "No links yet"}
+            description={
+              isFiltered
+                ? "Bummer! There are no links that match your filters. Adjust your filters to yield more results."
+                : "Start creating short links for your marketing campaigns, referral programs, and more."
+            }
+            cardContent={
+              <>
+                <Hyperlink className="size-4 text-neutral-700" />
+                <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+                <div className="xs:flex hidden grow items-center justify-end gap-1.5 text-neutral-500">
+                  <CursorRays className="size-3.5" />
+                </div>
+              </>
+            }
+            {...(!isFiltered && {
+              addButton: (
+                <div>
+                  <CreateLinkButton />
+                </div>
+              ),
+              learnMoreHref: "https://dub.co/help/article/how-to-create-link",
+              learnMoreClassName: "h-10",
+            })}
+          />
+        )}
 
-      {/* Pagination */}
-      {links && (
-        <>
-          <div className="h-[90px]" />
-          <div className="fixed bottom-4 left-0 w-full sm:max-[1330px]:w-[calc(100%-150px)] md:left-[240px] md:w-[calc(100%-240px)] md:max-[1330px]:w-[calc(100%-240px-150px)]">
-            <div
-              className={cn(
-                "relative left-1/2 w-full max-w-[768px] -translate-x-1/2 px-5",
-                "max-[1330px]:left-0 max-[1330px]:translate-x-0",
-              )}
-            >
-              <div className="rounded-xl border border-neutral-200 bg-white px-4 py-3.5 [filter:drop-shadow(0_5px_8px_#222A351d)]">
-                <PaginationControls
-                  pagination={pagination}
-                  setPagination={setPagination}
-                  totalCount={count ?? links?.length ?? 0}
-                  unit={(plural) => `${plural ? "links" : "link"}`}
-                >
-                  {loading ? (
-                    <LoadingSpinner className="size-3.5" />
-                  ) : (
-                    <div className="hidden sm:block">
-                      <ArchivedLinksHint />
-                    </div>
-                  )}
-                </PaginationControls>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-    </>
+        {/* Pagination */}
+        {links && (
+          <LinksToolbar
+            loading={!!loading}
+            links={links}
+            linksCount={count ?? links?.length ?? 0}
+          />
+        )}
+      </LinkSelectionProvider>
+    </LinksListContext.Provider>
   );
 }

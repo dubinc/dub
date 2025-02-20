@@ -4,6 +4,7 @@ import usePartnerEarningsCount from "@/lib/swr/use-partner-earnings-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerEarningsResponse } from "@/lib/types";
 import FilterButton from "@/ui/analytics/events/filter-button";
+import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import {
@@ -75,18 +76,17 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
           </p>
         ),
       },
-      // TODO: add this back once we have a way to hide/show column visibility
-      // {
-      //   id: "type",
-      //   header: "Type",
-      //   accessorKey: "type",
-      //   meta: {
-      //     filterParams: ({ getValue }) => ({
-      //       type: getValue(),
-      //     }),
-      //   },
-      //   cell: ({ row }) => <CommissionTypeBadge type={row.original.type} />,
-      // },
+      {
+        id: "type",
+        header: "Type",
+        accessorKey: "type",
+        meta: {
+          filterParams: ({ getValue }) => ({
+            type: getValue(),
+          }),
+        },
+        cell: ({ row }) => <CommissionTypeBadge type={row.original.type} />,
+      },
       {
         id: "link",
         header: "Link",
@@ -113,18 +113,23 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
             </CopyText>
           </div>
         ),
+        size: 250,
       },
       {
         id: "customer",
         header: "Customer",
         accessorKey: "customer",
         meta: {
-          filterParams: ({ getValue }) => ({
-            customerId: getValue().id,
-          }),
+          filterParams: ({ getValue }) =>
+            getValue()
+              ? {
+                  customerId: getValue().id,
+                }
+              : {},
         },
         cell: ({ row }) =>
           row.original.customer ? row.original.customer.email : "-",
+        size: 250,
       },
       {
         id: "amount",

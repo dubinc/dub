@@ -140,7 +140,7 @@ export default function AnalyticsProvider({
     };
   }, [searchParams?.get("start"), searchParams?.get("end")]);
 
-  const defaultInterval = partnerPage ? "1y" : "30d";
+  const defaultInterval = "30d";
 
   // Only set interval if start and end are not provided
   const interval =
@@ -204,9 +204,9 @@ export default function AnalyticsProvider({
       };
     } else if (partner?.id && programSlug) {
       return {
-        basePath: `/api/partner-profile/programs/${programSlug}/analytics`,
+        basePath: `/api/partner-profile/programs/${programSlug}/links/analytics`,
         baseApiPath: `/api/partner-profile/programs/${programSlug}/analytics`,
-        eventsApiPath: `/api/partner-profile/programs/${programSlug}/events`,
+        eventsApiPath: `/api/partner-profile/programs/${programSlug}/links/events`,
         domain: domainSlug,
       };
     } else if (dashboardId) {

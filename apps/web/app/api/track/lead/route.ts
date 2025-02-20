@@ -15,6 +15,7 @@ import { prismaEdge } from "@dub/prisma/edge";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { determinePartnerReward } from "../determine-partner-reward-edge";
 
 export const runtime = "edge";
 
@@ -24,6 +25,7 @@ export const POST = withWorkspaceEdge(
     const {
       clickId,
       eventName,
+      eventQuantity,
       externalId,
       customerId, // deprecated (but we'll support it for backwards compatibility)
       customerName,
@@ -105,15 +107,25 @@ export const POST = withWorkspaceEdge(
         });
 
         const eventId = nanoid(16);
+        const leadEventPayload = {
+          ...clickData,
+          event_id: eventId,
+          event_name: eventName,
+          customer_id: customer.id,
+          metadata: metadata ? JSON.stringify(metadata) : "",
+        };
 
         const [_lead, link, _project] = await Promise.all([
-          recordLead({
-            ...clickData,
-            event_id: eventId,
-            event_name: eventName,
-            customer_id: customer.id,
-            metadata: metadata ? JSON.stringify(metadata) : "",
-          }),
+          recordLead(
+            eventQuantity
+              ? Array(eventQuantity)
+                  .fill(null)
+                  .map(() => ({
+                    ...leadEventPayload,
+                    event_id: nanoid(16),
+                  }))
+              : leadEventPayload,
+          ),
 
           // update link leads count
           prismaEdge.link.update({
@@ -122,7 +134,7 @@ export const POST = withWorkspaceEdge(
             },
             data: {
               leads: {
-                increment: 1,
+                increment: eventQuantity ?? 1,
               },
             },
             include: includeTags,
@@ -135,27 +147,37 @@ export const POST = withWorkspaceEdge(
             },
             data: {
               usage: {
-                increment: 1,
+                increment: eventQuantity ?? 1,
               },
             },
           }),
         ]);
 
         if (link.programId && link.partnerId) {
-          // TODO: check if there is a Lead Reward Rule for this partner and if yes, create a lead commission
-          // await prismaEdge.commission.create({
-          //   data: {
-          //     id: createId({ prefix: "cm_" }),
-          //     programId: link.programId,
-          //     linkId: link.id,
-          //     partnerId: link.partnerId,
-          //     eventId,
-          //     customerId: customer.id,
-          //     type: "lead",
-          //     amount: 0,
-          //     quantity: 1,
-          //   },
-          // });
+          const reward = await determinePartnerReward({
+            programId: link.programId,
+            partnerId: link.partnerId,
+            event: "lead",
+          });
+
+          if (reward) {
+            await prismaEdge.commission.create({
+              data: {
+                id: createId({ prefix: "cm_" }),
+                programId: link.programId,
+                linkId: link.id,
+                partnerId: link.partnerId,
+                eventId,
+                customerId: customer.id,
+                type: "lead",
+                amount: 0,
+                quantity: eventQuantity ?? 1,
+                earnings: eventQuantity
+                  ? reward.amount * eventQuantity
+                  : reward.amount,
+              },
+            });
+          }
         }
 
         await sendWorkspaceWebhookOnEdge({

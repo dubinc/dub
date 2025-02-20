@@ -1,7 +1,7 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { getPartnerEarningsCountQuerySchema } from "@/lib/zod/schemas/partners";
+import { getPartnerEarningsCountQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
