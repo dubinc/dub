@@ -1,8 +1,8 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
-import { Button, LinkLogo, Modal, useMediaQuery } from "@dub/ui";
-import { getApexDomain, linkConstructor } from "@dub/utils";
+import { Button, Modal, useMediaQuery } from "@dub/ui";
+import { getPrettyUrl, pluralize } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -11,11 +11,12 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { SimpleLinkCard } from "../links/simple-link-card";
 
 type DeleteLinkModalProps = {
   showDeleteLinkModal: boolean;
   setShowDeleteLinkModal: Dispatch<SetStateAction<boolean>>;
-  props: LinkProps;
+  links: LinkProps[];
 };
 
 function DeleteLinkModal(props: DeleteLinkModalProps) {
@@ -31,46 +32,60 @@ function DeleteLinkModal(props: DeleteLinkModalProps) {
 
 function DeleteLinkModalInner({
   setShowDeleteLinkModal,
-  props,
+  links,
 }: DeleteLinkModalProps) {
   const { id } = useWorkspace();
   const [deleting, setDeleting] = useState(false);
-  const apexDomain = getApexDomain(props.url);
-
-  const { key, domain } = props;
-
-  const shortlink = useMemo(() => {
-    return linkConstructor({
-      key,
-      domain,
-      pretty: true,
-    });
-  }, [key, domain]);
 
   const { isMobile } = useMediaQuery();
 
+  const pattern =
+    links.length > 1
+      ? `delete ${links.length} links`
+      : getPrettyUrl(links[0].shortLink);
+
   return (
     <>
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 text-center sm:px-16">
-        <LinkLogo apexDomain={apexDomain} />
-        <h3 className="text-lg font-medium">Delete {shortlink}</h3>
-        <p className="text-sm text-neutral-500">
-          Warning: Deleting this link will remove all of its analytics. This
-          action cannot be undone – proceed with caution.
+      <div className="space-y-2 border-b border-neutral-200 p-4 sm:p-6">
+        <h3 className="text-lg font-medium leading-none">
+          Delete {links.length > 1 ? `${links.length} links` : "link"}
+        </h3>
+      </div>
+
+      <div className="bg-neutral-50 p-4 sm:p-6">
+        <p className="text-sm text-neutral-800">
+          Are you sure you want to delete the following{" "}
+          {pluralize("link", links.length)}?
         </p>
+
+        <p className="mt-4 text-sm font-medium text-neutral-800">
+          Deleting these links will remove all of their analytics. This action
+          cannot be undone – proceed with caution.
+        </p>
+
+        <div className="scrollbar-hide mt-4 flex max-h-[190px] flex-col gap-2 overflow-y-auto rounded-2xl border border-neutral-200 p-2">
+          {links.map((link) => (
+            <SimpleLinkCard key={link.id} link={link} />
+          ))}
+        </div>
       </div>
 
       <form
         onSubmit={async (e) => {
           e.preventDefault();
           setDeleting(true);
-          fetch(`/api/links/${props.id}?workspaceId=${id}`, {
-            method: "DELETE",
-          }).then(async (res) => {
+          fetch(
+            `/api/links/bulk?workspaceId=${id}&linkIds=${links.map(({ id }) => id).join(",")}`,
+            {
+              method: "DELETE",
+            },
+          ).then(async (res) => {
             if (res.status === 200) {
               await mutatePrefix("/api/links");
               setShowDeleteLinkModal(false);
-              toast.success("Successfully deleted shortlink!");
+              toast.success(
+                `Successfully deleted ${pluralize("link", links.length)}!`,
+              );
             } else {
               const { error } = await res.json();
               toast.error(error.message);
@@ -78,22 +93,22 @@ function DeleteLinkModalInner({
             setDeleting(false);
           });
         }}
-        className="flex flex-col space-y-3 bg-neutral-50 px-4 py-8 text-left sm:px-16"
+        className="flex flex-col bg-neutral-50 text-left"
       >
-        <div>
+        <div className="px-4 sm:px-6">
           <label
             htmlFor="verification"
             className="block text-sm text-neutral-700"
           >
-            To verify, type <span className="font-semibold">{shortlink}</span>{" "}
+            To verify, type <span className="font-semibold">{pattern}</span>{" "}
             below
           </label>
-          <div className="relative mt-1 rounded-md shadow-sm">
+          <div className="relative mt-1.5 rounded-md shadow-sm">
             <input
               type="text"
               name="verification"
               id="verification"
-              pattern={shortlink}
+              pattern={pattern}
               required
               autoFocus={!isMobile}
               autoComplete="off"
@@ -102,13 +117,30 @@ function DeleteLinkModalInner({
           </div>
         </div>
 
-        <Button variant="danger" text="Confirm delete" loading={deleting} />
+        <div className="mt-8 flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">
+          <Button
+            onClick={() => setShowDeleteLinkModal(false)}
+            variant="secondary"
+            text="Cancel"
+            className="h-8 w-fit px-3"
+          />
+          <Button
+            variant="danger"
+            text={`Delete ${pluralize("link", links.length)}`}
+            loading={deleting}
+            className="h-8 w-fit px-3"
+          />
+        </div>
       </form>
     </>
   );
 }
 
-export function useDeleteLinkModal({ props }: { props?: LinkProps }) {
+export function useDeleteLinkModal({
+  props,
+}: {
+  props?: LinkProps | LinkProps[];
+}) {
   const [showDeleteLinkModal, setShowDeleteLinkModal] = useState(false);
 
   const DeleteLinkModalCallback = useCallback(() => {
@@ -116,7 +148,7 @@ export function useDeleteLinkModal({ props }: { props?: LinkProps }) {
       <DeleteLinkModal
         showDeleteLinkModal={showDeleteLinkModal}
         setShowDeleteLinkModal={setShowDeleteLinkModal}
-        props={props}
+        links={Array.isArray(props) ? props : [props]}
       />
     ) : null;
   }, [showDeleteLinkModal, setShowDeleteLinkModal]);
