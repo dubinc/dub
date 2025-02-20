@@ -179,32 +179,28 @@ export const POST = withWorkspaceEdge(
               },
             });
 
-            waitUntil(
-              (async () => {
-                const program = await prismaEdge.program.findUniqueOrThrow({
-                  where: {
-                    id: link.programId!,
-                  },
-                  select: {
-                    id: true,
-                    name: true,
-                    logo: true,
-                  },
-                });
+            const program = await prismaEdge.program.findUniqueOrThrow({
+              where: {
+                id: link.programId!,
+              },
+              select: {
+                id: true,
+                name: true,
+                logo: true,
+              },
+            });
 
-                await notifyPartnerSale({
-                  program,
-                  partner: {
-                    id: link.partnerId!,
-                    referralLink: link.shortLink,
-                  },
-                  sale: {
-                    amount: saleData.amount,
-                    earnings,
-                  },
-                });
-              })(),
-            );
+            await notifyPartnerSale({
+              program,
+              partner: {
+                id: link.partnerId!,
+                referralLink: link.shortLink,
+              },
+              sale: {
+                amount: saleData.amount,
+                earnings,
+              },
+            });
           }
         }
 
