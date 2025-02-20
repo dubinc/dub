@@ -1,30 +1,27 @@
 "use client";
 
-import { Menu, X } from "lucide-react";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function Steps() {
   const [isOpen, setIsOpen] = useState(false);
   const { isMobile } = useMediaQuery();
 
-  // Prevent body scroll when side nav is open
   useEffect(() => {
     document.body.style.overflow = isOpen && isMobile ? "hidden" : "auto";
   }, [isOpen, isMobile]);
 
   return (
     <>
-      {/* Mobile menu button */}
-      <button 
+      <button
         onClick={() => setIsOpen(true)}
-        className="rounded-md p-1 hover:bg-neutral-100 md:hidden fixed left-4 top-[72px] z-20"
+        className="fixed left-4 top-[72px] z-20 rounded-md p-1 hover:bg-neutral-100 md:hidden"
       >
         <Menu className="h-5 w-5 text-neutral-600" />
       </button>
 
-      {/* Side nav backdrop */}
       <div
         className={cn(
           "fixed left-0 top-14 z-20 h-[calc(100vh-3.5rem)] w-screen transition-[background-color,backdrop-filter] md:sticky md:top-0 md:z-0 md:h-[calc(100vh-3.5rem)] md:w-full md:bg-transparent",
@@ -39,17 +36,16 @@ export function Steps() {
           }
         }}
       >
-        {/* Side nav */}
         <div
           className={cn(
-            "relative h-full w-[240px] max-w-full bg-white border-r border-neutral-200 transition-transform md:translate-x-0",
+            "relative h-full w-[240px] max-w-full bg-white transition-transform md:translate-x-0",
             !isOpen && "-translate-x-full",
           )}
         >
           <div className="p-4">
             <div className="mb-4 flex items-center justify-between md:hidden">
               <h2 className="text-sm font-medium">Program Setup</h2>
-              <button 
+              <button
                 onClick={() => setIsOpen(false)}
                 className="rounded-md p-1 hover:bg-neutral-100"
               >
@@ -97,11 +93,11 @@ export function Steps() {
 
 export function SidebarTrigger({ onClick }: { onClick: () => void }) {
   return (
-    <button 
+    <button
       onClick={onClick}
       className="rounded-md p-1 hover:bg-neutral-100 md:hidden"
     >
       <Menu className="h-5 w-5 text-neutral-600" />
     </button>
   );
-} 
+}

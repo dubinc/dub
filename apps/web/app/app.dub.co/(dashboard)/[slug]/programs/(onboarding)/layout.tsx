@@ -12,12 +12,13 @@ export default function Layout({
   return (
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-neutral-200 bg-white px-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-5">
           <Link href="/" className="flex items-center">
             <Wordmark className="h-7" />
           </Link>
-          <div className="h-6 w-px bg-neutral-200" />
-          <h1 className="text-base font-medium">{title}</h1>
+          <h1 className="hidden text-base font-semibold text-neutral-700 md:block">
+            {title}
+          </h1>
         </div>
         <div className="flex items-center gap-2">
           <Button text="Cancel" variant="outline" className="h-7 w-auto" />
