@@ -8,14 +8,14 @@ import { useParams, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export function Steps() {
+  const pathname = usePathname();
   const { isMobile } = useMediaQuery();
   const [isOpen, setIsOpen] = useState(false);
   const { slug } = useParams<{ slug: string }>();
-  const pathname = usePathname();
 
-  useEffect(() => {
-    document.body.style.overflow = isOpen && isMobile ? "hidden" : "auto";
-  }, [isOpen, isMobile]);
+  // useEffect(() => {
+  //   document.body.style.overflow = isOpen && isMobile ? "hidden" : "auto";
+  // }, [isOpen, isMobile]);
 
   const steps = [
     {
@@ -89,33 +89,32 @@ export function Steps() {
             </div>
             <nav className="space-y-1">
               {steps.map(({ step, label, href, isLocked }) => {
-                const isActive = pathname === href;
-                const isCompleted = pathname !== href && step < currentStep;
+                const current = pathname === href;
+                const completed = pathname !== href && step < currentStep;
 
                 return (
                   <Link
                     key={step}
                     href={href}
                     className={cn(
-                      "flex items-center gap-2 rounded-md px-3 py-2",
-                      isActive && "bg-blue-50",
-                      !isActive && !isCompleted && "bg-neutral-50",
+                      "flex items-center gap-2 rounded-md px-3 py-2 hover:bg-neutral-100",
+                      current && "bg-blue-50",
                     )}
                   >
                     <div
                       className={cn(
                         "flex h-5 w-5 items-center justify-center rounded-full text-xs",
-                        isCompleted && "bg-black text-white",
-                        isActive && "bg-blue-500 text-white",
-                        !isActive &&
-                          !isCompleted &&
+                        completed && "bg-black text-white",
+                        current && "bg-blue-500 text-white",
+                        !current &&
+                          !completed &&
                           "bg-neutral-200 text-neutral-600",
                         isLocked && "bg-neutral-200",
                       )}
                     >
                       {isLocked ? (
                         <Lock className="h-3 w-3" />
-                      ) : isCompleted ? (
+                      ) : completed ? (
                         <Check className="h-3 w-3" />
                       ) : (
                         step
@@ -124,8 +123,8 @@ export function Steps() {
                     <span
                       className={cn(
                         "text-sm font-medium",
-                        isActive && "text-blue-500",
-                        !isActive && !isCompleted && "text-neutral-600",
+                        current && "text-blue-500",
+                        !current && !completed && "text-neutral-600",
                       )}
                     >
                       {label}
