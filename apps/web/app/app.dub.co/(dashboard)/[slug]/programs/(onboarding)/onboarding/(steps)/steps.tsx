@@ -2,15 +2,16 @@
 
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { Menu, X } from "lucide-react";
+import { Check, Lock, Menu, X } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export function Steps() {
   const { isMobile } = useMediaQuery();
   const [isOpen, setIsOpen] = useState(false);
   const { slug } = useParams<{ slug: string }>();
+  const pathname = usePathname();
 
   useEffect(() => {
     document.body.style.overflow = isOpen && isMobile ? "hidden" : "auto";
@@ -41,8 +42,11 @@ export function Steps() {
       step: 5,
       label: "Overview",
       href: `/${slug}/programs/onboarding/overview`,
+      isLocked: true,
     },
   ];
+
+  const currentStep = steps.find((s) => s.href === pathname)?.step || 1;
 
   return (
     <>
@@ -84,20 +88,51 @@ export function Steps() {
               </button>
             </div>
             <nav className="space-y-1">
-              {steps.map(({ step, label, href }) => (
-                <Link
-                  key={step}
-                  href={href}
-                  className="flex items-center gap-2 rounded-md bg-neutral-50 px-3 py-2"
-                >
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-black text-xs text-white">
-                    {step}
-                  </div>
-                  <span className="text-sm font-medium text-neutral-600">
-                    {label}
-                  </span>
-                </Link>
-              ))}
+              {steps.map(({ step, label, href, isLocked }) => {
+                const isActive = pathname === href;
+                const isCompleted = pathname !== href && step < currentStep;
+
+                return (
+                  <Link
+                    key={step}
+                    href={href}
+                    className={cn(
+                      "flex items-center gap-2 rounded-md px-3 py-2",
+                      isActive && "bg-blue-50",
+                      !isActive && !isCompleted && "bg-neutral-50",
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "flex h-5 w-5 items-center justify-center rounded-full text-xs",
+                        isCompleted && "bg-black text-white",
+                        isActive && "bg-blue-500 text-white",
+                        !isActive &&
+                          !isCompleted &&
+                          "bg-neutral-200 text-neutral-600",
+                        isLocked && "bg-neutral-200",
+                      )}
+                    >
+                      {isLocked ? (
+                        <Lock className="h-3 w-3" />
+                      ) : isCompleted ? (
+                        <Check className="h-3 w-3" />
+                      ) : (
+                        step
+                      )}
+                    </div>
+                    <span
+                      className={cn(
+                        "text-sm font-medium",
+                        isActive && "text-blue-500",
+                        !isActive && !isCompleted && "text-neutral-600",
+                      )}
+                    >
+                      {label}
+                    </span>
+                  </Link>
+                );
+              })}
             </nav>
           </div>
         </div>
