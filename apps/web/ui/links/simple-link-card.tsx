@@ -23,7 +23,7 @@ export function SimpleLinkCard({
           className="size-4 shrink-0 sm:size-5"
         />
       </div>
-      <div className="flex flex-col text-sm leading-tight">
+      <div className="flex min-w-0 flex-col text-sm leading-tight">
         <span className="truncate text-sm font-semibold text-neutral-800">
           {getPrettyUrl(link.shortLink)}
         </span>
