@@ -80,11 +80,12 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         id: "type",
         header: "Type",
         accessorKey: "type",
-        meta: {
-          filterParams: ({ getValue }) => ({
-            type: getValue(),
-          }),
-        },
+        // TODO: add this back once we have a way to filter by type
+        // meta: {
+        //   filterParams: ({ getValue }) => ({
+        //     type: getValue(),
+        //   }),
+        // },
         cell: ({ row }) => <CommissionTypeBadge type={row.original.type} />,
       },
       {
@@ -113,6 +114,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
             </CopyText>
           </div>
         ),
+        size: 250,
       },
       {
         id: "customer",
@@ -125,6 +127,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         },
         cell: ({ row }) =>
           row.original.customer ? row.original.customer.email : "-",
+        size: 250,
       },
       {
         id: "amount",
