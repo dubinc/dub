@@ -1,375 +1,293 @@
 "use client";
 
-import { updateProgramAction } from "@/lib/actions/partners/update-program";
 import useProgram from "@/lib/swr/use-program";
-import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramProps } from "@/lib/types";
-import { HOLDING_PERIOD_DAYS } from "@/lib/zod/schemas/programs";
-import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
-import { AnimatedSizeContainer, Button } from "@dub/ui";
-import { CircleCheckFill, LoadingSpinner } from "@dub/ui/icons";
-import { cn, INFINITY_NUMBER, pluralize } from "@dub/utils";
-import { useAction } from "next-safe-action/hooks";
+import useRewards from "@/lib/swr/use-rewards";
+import type { RewardProps } from "@/lib/types";
+import { useRewardSheet } from "@/ui/partners/add-edit-reward-sheet";
+import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
+import { EventType } from "@dub/prisma/client";
 import {
-  FormProvider,
-  useForm,
-  useFormContext,
-  useWatch,
-} from "react-hook-form";
-import { toast } from "sonner";
-import { mutate } from "swr";
-import { SettingsRow } from "../settings-row";
+  Badge,
+  Button,
+  MoneyBill,
+  Popover,
+  useKeyboardShortcut,
+} from "@dub/ui";
+import { CursorRays } from "@dub/ui/icons";
+import { pluralize } from "@dub/utils";
+import { Gift, UserPlus } from "lucide-react";
+import { useState } from "react";
 
-const commissionTypes = [
-  {
-    label: "One-off",
-    description: "Pay a one-time payout",
-    recurring: false,
+const events = {
+  click: {
+    icon: CursorRays,
+    text: "Click reward",
+    event: "click",
+    shortcut: "C",
+    eventName: "click",
   },
-  {
-    label: "Recurring",
-    description: "Pay an ongoing payout",
-    recurring: true,
+  lead: {
+    icon: UserPlus,
+    text: "Lead reward",
+    event: "lead",
+    shortcut: "L",
+    eventName: "signup",
   },
-];
+  sale: {
+    icon: MoneyBill,
+    text: "Sale reward",
+    event: "sale",
+    shortcut: "S",
+    eventName: "sale",
+  },
+} as const;
 
 export function RewardSettings() {
-  const { program } = useProgram();
-
   return (
-    <div className="flex flex-col gap-10">
-      {program ? (
-        <RewardSettingsForm program={program} />
-      ) : (
-        <div className="flex h-32 items-center justify-center">
-          <LoadingSpinner />
-        </div>
-      )}
+    <div className="flex flex-col gap-6">
+      <SaleReward />
+      <AdditionalRewards />
     </div>
   );
 }
 
-type FormData = Pick<
-  ProgramProps,
-  | "commissionAmount"
-  | "commissionType"
-  | "commissionDuration"
-  | "commissionInterval"
-  | "holdingPeriodDays"
->;
+const SaleReward = () => {
+  const { program } = useProgram();
+  const { rewards, loading } = useRewards();
 
-function RewardSettingsForm({ program }: { program: ProgramProps }) {
-  const { id: workspaceId } = useWorkspace();
+  const defaultReward =
+    program?.defaultRewardId &&
+    rewards?.find((r) => r.id === program.defaultRewardId);
 
-  const form = useForm<FormData>({
-    mode: "onBlur",
-    defaultValues: {
-      ...program,
-      commissionAmount:
-        program.commissionType === "flat"
-          ? program.commissionAmount / 100
-          : program.commissionAmount,
-    },
-  });
-
-  const {
-    register,
-    watch,
-    setValue,
-    handleSubmit,
-    reset,
-    formState: { isDirty, isValid, isSubmitting, errors },
-  } = form;
-
-  const [
-    commissionAmount,
-    commissionType,
-    commissionDuration,
-    commissionInterval,
-  ] = watch([
-    "commissionAmount",
-    "commissionType",
-    "commissionDuration",
-    "commissionInterval",
-    "holdingPeriodDays",
-  ]);
-
-  const { executeAsync } = useAction(updateProgramAction, {
-    async onSuccess() {
-      toast.success("Program updated successfully.");
-      mutate(`/api/programs/${program.id}?workspaceId=${workspaceId}`);
-    },
-    onError({ error }) {
-      console.error(error);
-      toast.error("Failed to update program.");
-    },
+  const { RewardSheet, setIsOpen } = useRewardSheet({
+    event: "sale",
   });
 
   return (
-    <form
-      className="rounded-lg border border-neutral-200 bg-white"
-      onSubmit={handleSubmit(async (data) => {
-        await executeAsync({
-          workspaceId: workspaceId || "",
-          programId: program.id,
-          ...data,
-          commissionAmount:
-            data.commissionType === "flat"
-              ? data.commissionAmount * 100
-              : data.commissionAmount,
-          holdingPeriodDays: Number(data.holdingPeriodDays),
-        });
-
-        // Reset isDirty state
-        reset(data);
-      })}
-    >
-      <div className="divide-y divide-neutral-200 px-6">
-        <FormProvider {...form}>
-          <Summary program={program} />
-        </FormProvider>
-
-        <SettingsRow
-          heading="Commission"
-          description="See how the affiliate will get rewarded"
-        >
-          <div className="-m-1">
-            <AnimatedSizeContainer
-              height
-              transition={{ ease: "easeInOut", duration: 0.2 }}
-            >
-              <div className="p-1">
-                <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                  {commissionTypes.map((commissionType) => {
-                    const isSelected =
-                      commissionDuration &&
-                      commissionDuration > 1 === commissionType.recurring
-                        ? true
-                        : false;
-
-                    return (
-                      <label
-                        key={commissionType.label}
-                        className={cn(
-                          "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                          "transition-all duration-150",
-                          isSelected &&
-                            "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                        )}
-                      >
-                        <input
-                          type="radio"
-                          value={commissionType.label}
-                          className="hidden"
-                          checked={isSelected}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setValue(
-                                "commissionDuration",
-                                commissionType.recurring ? 12 : 1,
-                                { shouldDirty: true },
-                              );
-                            }
-                          }}
-                        />
-                        <div className="flex grow flex-col text-sm">
-                          <span className="font-medium">
-                            {commissionType.label}
-                          </span>
-                          <span>{commissionType.description}</span>
-                        </div>
-                        <CircleCheckFill
-                          className={cn(
-                            "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                            isSelected && "scale-100 opacity-100",
-                          )}
-                        />
-                      </label>
-                    );
-                  })}
-                </div>
-                <div
-                  className={cn(
-                    "transition-opacity duration-200",
-                    commissionDuration && commissionDuration > 1
-                      ? "h-auto"
-                      : "h-0 opacity-0",
-                  )}
-                  aria-hidden={!(commissionDuration && commissionDuration > 1)}
-                  {...{
-                    inert: !(commissionDuration && commissionDuration > 1),
-                  }}
-                >
-                  <div className="pt-6">
-                    <label
-                      htmlFor="duration"
-                      className="pt-6 text-sm font-medium text-neutral-800"
-                    >
-                      Duration
-                    </label>
-                    <div className="relati`ve mt-2 rounded-md shadow-sm">
-                      <select
-                        className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value);
-                          setValue("commissionDuration", value, {
-                            shouldDirty: true,
-                          });
-                        }}
-                        value={commissionDuration ?? 1}
-                      >
-                        {(commissionInterval === "year"
-                          ? [1, 2]
-                          : [1, 3, 6, 12, 18, 24]
-                        ).map((v) => (
-                          <option value={v} key={v}>
-                            {v} {pluralize(commissionInterval ?? "month", v)}
-                          </option>
-                        ))}
-                        <option value={INFINITY_NUMBER}>Lifetime</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </AnimatedSizeContainer>
-          </div>
-        </SettingsRow>
-
-        <SettingsRow
-          heading="Payout"
-          description="Set how much the affiliate will get rewarded"
-        >
-          <div className="flex flex-col gap-6">
-            <div>
-              <label
-                htmlFor="commissionType"
-                className="text-sm font-medium text-neutral-800"
-              >
-                Payout model
-              </label>
-              <div className="relative mt-2 rounded-md shadow-sm">
-                <select
-                  className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  {...register("commissionType", { required: true })}
-                >
-                  <option value="flat">Flat</option>
-                  <option value="percentage">Percentage</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="amount"
-                className="text-sm font-medium text-neutral-800"
-              >
-                Amount
-              </label>
-              <div className="relative mt-2 rounded-md shadow-sm">
-                {commissionType === "flat" && (
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-                    $
-                  </span>
-                )}
-                <input
-                  className={cn(
-                    "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                    errors.commissionAmount &&
-                      "border-red-600 focus:border-red-500 focus:ring-red-600",
-                    commissionType === "flat" ? "pl-6 pr-12" : "pr-7",
-                  )}
-                  {...register("commissionAmount", {
-                    required: true,
-                    valueAsNumber: true,
-                    min: 0,
-                    max: commissionType === "flat" ? 1000 : 100,
-                  })}
-                />
-                <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-                  {commissionType === "flat" ? "USD" : "%"}
-                </span>
-              </div>
-            </div>
-          </div>
-        </SettingsRow>
-
-        <SettingsRow
-          heading="Holding period"
-          description="Set the holding period before payouts are released"
-        >
+    <div className="rounded-lg border border-neutral-200 bg-white">
+      <div className="flex flex-col gap-6 px-6 py-8">
+        <div className="flex items-center justify-between">
           <div>
-            <label
-              htmlFor="holdingPeriodDays"
-              className="text-sm font-medium text-neutral-800"
-            >
-              Hold period
-            </label>
-            <div className="relative mt-2 rounded-md shadow-sm">
-              <select
-                className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                {...register("holdingPeriodDays", { required: true })}
-              >
-                {HOLDING_PERIOD_DAYS.map((v) => (
-                  <option value={v} key={v}>
-                    {v} days {v === 30 && " (recommended)"}
-                  </option>
-                ))}
-              </select>
+            <h2 className="inline-flex items-center gap-2 text-lg font-semibold text-neutral-900">
+              Sale Reward <Badge variant="gray">Default</Badge>
+            </h2>
+            <p className="mt-1 text-sm text-neutral-600">
+              The default rewarded offered to all partners
+            </p>
+          </div>
+        </div>
+        {loading ? (
+          <RewardSkeleton />
+        ) : defaultReward ? (
+          <Reward reward={defaultReward} />
+        ) : (
+          <div className="flex items-center justify-between gap-4 rounded-lg bg-neutral-50 p-4">
+            <div className="flex items-center gap-4">
+              <div className="flex size-10 items-center justify-center rounded-full border border-neutral-300">
+                <MoneyBill className="size-5" />
+              </div>
+              <p className="text-sm text-neutral-600">
+                No default reward created
+              </p>
+            </div>
+            <Button
+              text="Create default reward"
+              variant="primary"
+              className="h-9 w-fit"
+              onClick={() => setIsOpen(true)}
+            />
+          </div>
+        )}
+
+        {RewardSheet}
+      </div>
+    </div>
+  );
+};
+
+const AdditionalRewards = () => {
+  const { program } = useProgram();
+  const { rewards, loading } = useRewards();
+
+  const additionalRewards = rewards?.filter(
+    (reward) => reward.id !== program?.defaultRewardId,
+  );
+
+  return (
+    <div className="rounded-lg border border-neutral-200 bg-white">
+      <div className="flex flex-col gap-6 px-6 py-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="inline-flex items-center gap-2 text-lg font-semibold text-neutral-900">
+              Additional Rewards
+            </h2>
+            <p className="mt-1 text-sm text-neutral-600">
+              Add more reward types or reward groups
+            </p>
+          </div>
+          <CreateRewardButton />
+        </div>
+        {loading ? (
+          <div className="flex flex-col gap-4">
+            <RewardSkeleton />
+            <RewardSkeleton />
+          </div>
+        ) : additionalRewards && additionalRewards.length > 0 ? (
+          <div className="flex flex-col gap-4">
+            {additionalRewards.map((reward) => (
+              <Reward key={reward.id} reward={reward} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-neutral-50 py-12">
+            <div className="flex items-center justify-center">
+              <Gift className="size-6 text-neutral-800" />
+            </div>
+            <div className="flex flex-col items-center gap-1 px-4 text-center">
+              <p className="text-base font-medium text-neutral-900">
+                Additional Rewards
+              </p>
+              <p className="text-sm text-neutral-600">
+                No additional rewards have been added yet
+              </p>
             </div>
           </div>
-        </SettingsRow>
+        )}
       </div>
+    </div>
+  );
+};
 
-      <div className="flex items-center justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-6 py-5">
-        <div>
-          <Button
-            text="Save changes"
-            className="h-8"
-            loading={isSubmitting}
-            disabled={!isValid || !isDirty}
-          />
+const Reward = ({ reward }: { reward: RewardProps }) => {
+  const { RewardSheet, setIsOpen } = useRewardSheet({
+    event: reward.event,
+    reward,
+  });
+
+  const Icon = events[reward.event].icon;
+
+  return (
+    <>
+      <div
+        className="flex cursor-pointer items-center gap-4 rounded-lg border border-neutral-200 p-4 transition-all hover:border-neutral-300"
+        onClick={() => setIsOpen(true)}
+      >
+        <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
+          <Icon className="size-4 text-neutral-600" />
+        </div>
+        <div className="flex flex-1 items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-normal">
+              <ProgramRewardDescription
+                reward={reward}
+                hideIfZero={false}
+                amountClassName="text-blue-600"
+              />
+            </span>
+          </div>
+          {reward.partnersCount && reward?.partnersCount > 0 ? (
+            <Badge variant="green">
+              {reward.partnersCount}{" "}
+              {pluralize("partner", reward.partnersCount)}
+            </Badge>
+          ) : (
+            <Badge variant="gray">All partners</Badge>
+          )}
         </div>
       </div>
-    </form>
+      {RewardSheet}
+    </>
   );
-}
+};
 
-function Summary({ program }: { program: ProgramProps }) {
-  const { control } = useFormContext<FormData>();
+const CreateRewardButton = () => {
+  const [openPopover, setOpenPopover] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<EventType | null>(null);
+  const { RewardSheet, setIsOpen } = useRewardSheet({
+    event: selectedEvent || "sale",
+  });
 
-  const data = useWatch({
-    control,
-    defaultValue: {
-      ...program,
-      commissionAmount:
-        program.commissionType === "flat"
-          ? program.commissionAmount * 100
-          : program.commissionAmount,
+  useKeyboardShortcut(
+    Object.values(events).map((type) => type.shortcut.toLowerCase()),
+    (e) => {
+      setOpenPopover(false);
+
+      const eventType = Object.values(events).find(
+        (type) => type.shortcut.toLowerCase() === e.key,
+      );
+
+      if (eventType) {
+        setSelectedEvent(eventType.event as EventType);
+        setIsOpen(true);
+      }
     },
-  }) as FormData;
+    {
+      enabled: openPopover,
+    },
+  );
 
   return (
-    <SettingsRow heading="Summary">
-      <div className="rounded-md border border-neutral-200 bg-[#f9f9f9]">
-        <AnimatedSizeContainer
-          height
-          transition={{ ease: "easeInOut", duration: 0.2 }}
-        >
-          <p className="p-4 text-sm font-normal leading-relaxed text-neutral-900">
-            <ProgramCommissionDescription
-              program={{
-                ...data,
-                commissionAmount:
-                  (data.commissionType === "flat"
-                    ? data.commissionAmount * 100
-                    : data.commissionAmount) || 0,
-              }}
-              amountClassName="text-blue-600"
-            />
-          </p>
-        </AnimatedSizeContainer>
-      </div>
-    </SettingsRow>
+    <>
+      <Popover
+        content={
+          <div className="w-full p-2 md:w-48">
+            <div className="grid gap-px">
+              {Object.values(events).map((type) => (
+                <Button
+                  key={type.event}
+                  text={type.text}
+                  icon={<type.icon className="size-4" />}
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedEvent(type.event as EventType);
+                    setIsOpen(true);
+                    setOpenPopover(false);
+                  }}
+                  shortcut={type.shortcut}
+                  className="h-9 px-2"
+                />
+              ))}
+            </div>
+          </div>
+        }
+        openPopover={openPopover}
+        setOpenPopover={setOpenPopover}
+        align="end"
+      >
+        <Button
+          text="Create reward"
+          variant="primary"
+          className="h-8 w-fit"
+          onClick={() => setOpenPopover(!openPopover)}
+          right={
+            <svg
+              className="h-4 w-4 transition-all group-hover:rotate-180"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          }
+        />
+      </Popover>
+      {RewardSheet}
+    </>
   );
-}
+};
+
+const RewardSkeleton = () => {
+  return (
+    <div className="flex items-center gap-4 rounded-lg border border-neutral-200 p-4">
+      <div className="flex size-10 animate-pulse items-center justify-center rounded-full border border-neutral-200 bg-neutral-100" />
+      <div className="flex flex-1 items-center justify-between">
+        <div className="h-4 w-64 animate-pulse rounded bg-neutral-100" />
+        <div className="h-6 w-24 animate-pulse rounded-full bg-neutral-100" />
+      </div>
+    </div>
+  );
+};

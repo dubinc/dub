@@ -2,8 +2,8 @@ import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { createId } from "@/lib/api/utils";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { prisma } from "@dub/prisma";
-import { EventType, Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -26,10 +26,25 @@ export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
 
+    const programIds = await prisma.reward.findMany({
+      where: {
+        event: "click",
+      },
+      select: {
+        programId: true,
+      },
+    });
+
+    if (!programIds.length) {
+      return NextResponse.json({
+        message: "No programs with click rewards found. Skipping...",
+      });
+    }
+
     const links = await prisma.link.findMany({
       where: {
         programId: {
-          not: null,
+          in: programIds.map(({ programId }) => programId),
         },
         partnerId: {
           not: null,
@@ -38,7 +53,7 @@ export async function GET(req: Request) {
           gt: 0,
         },
         lastClicked: {
-          gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // find links that were clicked in the last 24 hours
+          gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // links that were clicked in the last 24 hours
         },
       },
       select: {
@@ -50,60 +65,82 @@ export async function GET(req: Request) {
 
     if (!links.length) {
       return NextResponse.json({
-        message: "No program links found. Skipping...",
+        message: "No links found. Skipping...",
       });
     }
 
-    const now = new Date();
+    const processedLinks: {
+      linkId: string;
+      programId: string;
+      partnerId: string;
+      commissionId: string;
+      rewardId: string;
+    }[] = [];
 
-    // Set 'start' to the beginning of the previous day (00:00:00)
-    const start = new Date(now);
-    start.setDate(start.getDate() - 1);
-    start.setHours(0, 0, 0, 0);
+    for (const { id: linkId, programId, partnerId } of links) {
+      if (!linkId || !programId || !partnerId) {
+        continue;
+      }
 
-    // Set 'end' to the end of the previous day (23:59:59)
-    const end = new Date(now);
-    end.setDate(end.getDate() - 1);
-    end.setHours(23, 59, 59, 999);
+      const now = new Date();
 
-    let commissions: Prisma.CommissionUncheckedCreateInput[] =
-      await Promise.all(
-        links.map(async ({ id: linkId, programId, partnerId }) => {
-          const { clicks: quantity } = await getAnalytics({
-            start,
-            end,
-            linkId,
-            groupBy: "count",
-            event: "clicks",
-          });
+      // set 'start' to the beginning of the previous day (00:00:00)
+      const start = new Date(now);
+      start.setDate(start.getDate() - 1);
+      start.setHours(0, 0, 0, 0);
 
-          return {
-            id: createId({ prefix: "cm_" }),
-            linkId,
-            programId: programId!,
-            partnerId: partnerId!,
-            type: EventType.click,
-            quantity,
-            amount: 0,
-          };
-        }),
-      );
+      // set 'end' to the end of the previous day (23:59:59)
+      const end = new Date(now);
+      end.setDate(end.getDate() - 1);
+      end.setHours(23, 59, 59, 999);
 
-    commissions = commissions.filter((earning) => earning.amount > 0);
+      const { clicks: quantity } = await getAnalytics({
+        linkId,
+        start,
+        end,
+        groupBy: "count",
+        event: "clicks",
+      });
 
-    console.log({ start, end, commissions });
+      if (!quantity || quantity === 0) {
+        continue;
+      }
 
-    if (commissions.length) {
-      await prisma.commission.createMany({
-        data: commissions,
+      const reward = await determinePartnerReward({
+        programId,
+        partnerId,
+        event: "click",
+      });
+
+      if (!reward) {
+        continue;
+      }
+
+      const commission = await prisma.commission.create({
+        data: {
+          id: createId({ prefix: "cm_" }),
+          linkId,
+          programId,
+          partnerId,
+          type: "click",
+          quantity,
+          amount: 0,
+          earnings: reward.amount * quantity,
+        },
+      });
+
+      processedLinks.push({
+        linkId,
+        programId,
+        partnerId,
+        rewardId: reward.id,
+        commissionId: commission.id,
       });
     }
 
-    return NextResponse.json({
-      start,
-      end,
-      commissions,
-    });
+    console.log(processedLinks);
+
+    return NextResponse.json(processedLinks);
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }

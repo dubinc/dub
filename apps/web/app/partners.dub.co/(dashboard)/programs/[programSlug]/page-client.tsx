@@ -6,7 +6,7 @@ import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { HeroBackground } from "@/ui/partners/hero-background";
-import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
+import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   Button,
@@ -79,8 +79,8 @@ export default function ProgramPageClient() {
         </span>
         <div className="relative mt-24 text-lg text-neutral-900 sm:max-w-[50%]">
           {program ? (
-            <ProgramCommissionDescription
-              program={program}
+            <ProgramRewardDescription
+              reward={programEnrollment?.reward}
               discount={programEnrollment?.discount}
             />
           ) : (
@@ -180,9 +180,9 @@ export default function ProgramPageClient() {
 }
 
 function EarningsChart() {
-  const { start, end, interval } = useContext(ProgramOverviewContext);
   const { programSlug } = useParams();
   const { getQueryString } = useRouterStuff();
+  const { start, end, interval } = useContext(ProgramOverviewContext);
 
   const { data: timeseries, error } = usePartnerEarningsTimeseries({
     interval,

@@ -1,6 +1,5 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
@@ -30,30 +29,6 @@ export const GET = withPartnerProfile(
       partnerId: partner.id,
     });
 
-    let data;
-
-    if (response instanceof Array) {
-      data = response.map((item) => {
-        return {
-          ...item,
-          earnings: calculateSaleEarnings({
-            program,
-            sales: item.sales ?? 0,
-            saleAmount: item.saleAmount ?? 0,
-          }),
-        };
-      });
-    } else {
-      data = {
-        ...response,
-        earnings: calculateSaleEarnings({
-          program,
-          sales: response.sales,
-          saleAmount: response.saleAmount,
-        }),
-      };
-    }
-
-    return NextResponse.json(data);
+    return NextResponse.json(response);
   },
 );

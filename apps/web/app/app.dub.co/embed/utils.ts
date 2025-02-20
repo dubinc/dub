@@ -1,4 +1,5 @@
 import { embedToken } from "@/lib/embed/embed-token";
+import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
 import { notFound } from "next/navigation";
@@ -12,7 +13,10 @@ export const getEmbedData = async (token: string) => {
 
   const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
-      partnerId_programId: { partnerId, programId },
+      partnerId_programId: {
+        partnerId,
+        programId,
+      },
     },
     include: {
       links: true,
@@ -24,6 +28,12 @@ export const getEmbedData = async (token: string) => {
   if (!programEnrollment) {
     notFound();
   }
+
+  const reward = await determinePartnerReward({
+    programId,
+    partnerId,
+    event: "sale",
+  });
 
   const { program, links } = programEnrollment;
 
@@ -41,6 +51,7 @@ export const getEmbedData = async (token: string) => {
   return {
     program,
     links,
+    reward,
     discount: programEnrollment.discount
       ? DiscountSchema.parse(programEnrollment.discount)
       : null,

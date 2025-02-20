@@ -25,30 +25,28 @@ enum ProgramResourceType {
 }
 
 model Program {
-  id              String      @id @default(cuid())
-  workspaceId     String
-  defaultFolderId String?
-  name            String
-  slug            String      @unique
-  logo            String?
-  wordmark        String?
-  brandColor      String?
-  domain          String?
-  url             String?
-  type            ProgramType @default(affiliate)
-  cookieLength    Int         @default(90)
+  id                String      @id @default(cuid())
+  workspaceId       String
+  defaultFolderId   String?
+  name              String
+  slug              String      @unique
+  logo              String?
+  wordmark          String?
+  brandColor        String?
+  domain            String?
+  url               String?
+  type              ProgramType @default(affiliate)
+  cookieLength      Int         @default(90)
+  holdingPeriodDays Int         @default(0) // number of days to wait before earnings are added to a payout
+  defaultRewardId   String? // default reward for the program
+  landerData        Json?       @db.Json
 
   // Commission details
+  // TODO: Remove this after merging Rewards PR
   commissionAmount   Int                 @default(0)
   commissionType     CommissionType      @default(percentage)
   commissionDuration Int?
   commissionInterval CommissionInterval?
-  holdingPeriodDays  Int                 @default(0) // number of days to wait before earnings are added to a payout
-
-  // Discounts (for dual-sided incentives)
-  discounts Discount[]
-
-  landerData Json? @db.Json
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -63,6 +61,8 @@ model Program {
   invites       ProgramInvite[]
   links         Link[]
   commissions   Commission[]
+  rewards       Reward[]
+  discounts     Discount[]
 
   @@index([workspaceId])
   @@index([domain])
@@ -74,7 +74,7 @@ model ProgramEnrollment {
   programId        String
   tenantId         String?
   linkId           String?                 @unique // TODO: Remove after the migration
-  commissionAmount Int? // custom commission amount for this partner
+  commissionAmount Int? // custom commission amount for this partner // TODO: Remove after the migration
   discountId       String? // custom discount for this partner
   applicationId    String?                 @unique
   status           ProgramEnrollmentStatus @default(pending)
@@ -86,6 +86,7 @@ model ProgramEnrollment {
   links       Link[]
   discount    Discount?           @relation(fields: [discountId], references: [id])
   application ProgramApplication? @relation(fields: [applicationId], references: [id])
+  rewards     PartnerReward[]
 
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])

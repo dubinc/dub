@@ -15,5 +15,26 @@ export const GET = withPartnerProfile(async ({ session }) => {
     },
   });
 
-  return NextResponse.json(z.array(PartnerProgramInviteSchema).parse(invites));
+  // no need to consider the partner-specific rewards here, as the invite is still pending there is no programEnrollment
+  const programWideRewards = await prisma.reward.findMany({
+    where: {
+      id: {
+        in: invites
+          .map((invite) => invite.program.defaultRewardId)
+          .filter((id): id is string => id !== null),
+      },
+    },
+  });
+
+  const invitesWithRewards = invites.map((invite) => ({
+    ...invite,
+    reward:
+      programWideRewards.find(
+        (reward) => reward.id === invite.program.defaultRewardId,
+      ) ?? null,
+  }));
+
+  return NextResponse.json(
+    z.array(PartnerProgramInviteSchema).parse(invitesWithRewards),
+  );
 });

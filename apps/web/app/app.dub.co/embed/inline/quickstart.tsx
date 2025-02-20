@@ -1,3 +1,4 @@
+import { Link, Program } from "@dub/prisma/client";
 import {
   Button,
   Carousel,
@@ -10,7 +11,6 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import { cn, DUB_LOGO, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
-import { Link, Program } from "@prisma/client";
 import { motion } from "framer-motion";
 
 const BUTTON_CLASSNAME = "h-9 rounded-lg bg-neutral-900 hover:bg-neutral-800";

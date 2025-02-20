@@ -300,7 +300,7 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
                   </h3>
                   <p className="text-sm text-neutral-500">
                     {program?.name || "Dub"} uses Dub Partners to power their
-                    partnership programs and wants to partner with great people
+                    affiliate program and wants to partner with great people
                     like yourself!
                   </p>
                   <Button
