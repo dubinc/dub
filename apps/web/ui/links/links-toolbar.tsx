@@ -1,8 +1,10 @@
 import { useFolderPermissions } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
+  AnimatedSizeContainer,
   BoxArchive,
   Button,
+  CircleCheck,
   CircleDollar,
   Folder,
   Icon,
@@ -52,7 +54,12 @@ export const LinksToolbar = memo(
     const conversionsEnabled = !!plan && plan !== "free" && plan !== "pro";
 
     const { openMenuLinkId } = useContext(LinksListContext);
-    const { selectedLinkIds, setSelectedLinkIds } = useLinkSelection();
+    const {
+      isSelectMode,
+      setIsSelectMode,
+      selectedLinkIds,
+      setSelectedLinkIds,
+    } = useLinkSelection();
     const { pagination, setPagination } = usePagination();
 
     const selectedLinks = useMemo(
@@ -181,6 +188,8 @@ export const LinksToolbar = memo(
       modal: false,
     });
 
+    const isSelecting = isSelectMode || selectedLinkIds.length > 0;
+
     return (
       <>
         <TagLinkModal />
@@ -201,95 +210,107 @@ export const LinksToolbar = memo(
             )}
           >
             <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white [filter:drop-shadow(0_5px_8px_#222A351d)]">
-              <div
-                className={cn(
-                  "relative px-4 py-3.5 transition-[opacity,transform] duration-100",
-                  selectedLinkIds.length > 0 &&
-                    "pointer-events-none absolute inset-0 translate-y-1/2 opacity-0",
-                )}
-              >
-                <PaginationControls
-                  pagination={pagination}
-                  setPagination={setPagination}
-                  totalCount={linksCount}
-                  unit={(plural) => `${plural ? "links" : "link"}`}
-                >
-                  {loading ? (
-                    <LoadingSpinner className="size-3.5" />
-                  ) : (
-                    <div className="hidden sm:block">
-                      <ArchivedLinksHint />
-                    </div>
+              <AnimatedSizeContainer height>
+                <div
+                  className={cn(
+                    "relative px-4 py-3.5 transition-[opacity,transform] duration-100",
+                    isSelecting &&
+                      "pointer-events-none absolute inset-0 translate-y-1/2 opacity-0",
                   )}
-                </PaginationControls>
-                <div className="flex items-center gap-2 pt-3 sm:hidden">
-                  <CreateLinkButton
-                    className="h-8"
-                    textWrapperClassName="text-center"
-                  />
-                </div>
-              </div>
-
-              <div
-                className={cn(
-                  "relative px-4 py-3.5 transition-[opacity,transform] duration-100",
-                  !selectedLinkIds.length &&
-                    "pointer-events-none absolute inset-0 translate-y-1/2 opacity-0",
-                )}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedLinkIds([])}
-                      className="rounded-md p-1.5 transition-colors duration-75 hover:bg-neutral-50 active:bg-neutral-100"
-                    >
-                      <X className="size-4 text-neutral-900" />
-                    </button>
-                    <span className="whitespace-nowrap text-sm font-medium text-neutral-600">
-                      <strong className="font-semibold">
-                        {selectedLinkIds.length}
-                      </strong>{" "}
-                      selected
-                    </span>
-                  </div>
-
-                  {/* Large screen controls */}
-                  <div className="hidden items-center gap-2 min-[1120px]:flex">
-                    {bulkActions.map(
-                      ({
-                        label,
-                        icon: Icon,
-                        action,
-                        disabledTooltip,
-                        keyboardShortcut,
-                      }) => (
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          className="h-7 gap-1.5 pl-2.5 pr-1.5 text-xs"
-                          icon={<Icon className="size-3.5" />}
-                          text={label}
-                          onClick={action}
-                          disabledTooltip={
-                            disabledTooltip ||
-                            (!hasAllFolderPermissions
-                              ? "You don't have permission to perform this action."
-                              : undefined)
-                          }
-                          shortcut={keyboardShortcut?.toUpperCase()}
-                          shortcutClassName="py-0 px-1 text-[0.625rem] leading-snug"
-                        />
-                      ),
+                >
+                  <PaginationControls
+                    pagination={pagination}
+                    setPagination={setPagination}
+                    totalCount={linksCount}
+                    unit={(plural) => `${plural ? "links" : "link"}`}
+                  >
+                    {loading ? (
+                      <LoadingSpinner className="size-3.5" />
+                    ) : (
+                      <div className="hidden sm:block">
+                        <ArchivedLinksHint />
+                      </div>
                     )}
-                  </div>
-
-                  {/* Small screen controls */}
-                  <div className="block min-[1120px]:hidden">
-                    <BulkActionMenu bulkActions={bulkActions} />
+                  </PaginationControls>
+                  <div className="flex items-center gap-2 pt-3 sm:hidden">
+                    <CreateLinkButton
+                      className="h-8"
+                      textWrapperClassName="text-center"
+                    />
+                    <Button
+                      variant="secondary"
+                      className="h-8 w-fit px-3.5"
+                      icon={<CircleCheck className="size-4" />}
+                      text="Select"
+                      onClick={() => setIsSelectMode(true)}
+                    />
                   </div>
                 </div>
-              </div>
+
+                <div
+                  className={cn(
+                    "relative px-4 py-3.5 transition-[opacity,transform] duration-100",
+                    !isSelecting &&
+                      "pointer-events-none absolute inset-0 translate-y-1/2 opacity-0",
+                  )}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedLinkIds([]);
+                          setIsSelectMode(false);
+                        }}
+                        className="rounded-md p-1.5 transition-colors duration-75 hover:bg-neutral-50 active:bg-neutral-100"
+                      >
+                        <X className="size-4 text-neutral-900" />
+                      </button>
+                      <span className="whitespace-nowrap text-sm font-medium text-neutral-600">
+                        <strong className="font-semibold">
+                          {selectedLinkIds.length}
+                        </strong>{" "}
+                        selected
+                      </span>
+                    </div>
+
+                    {/* Large screen controls */}
+                    <div className="hidden items-center gap-2 min-[1120px]:flex">
+                      {bulkActions.map(
+                        ({
+                          label,
+                          icon: Icon,
+                          action,
+                          disabledTooltip,
+                          keyboardShortcut,
+                        }) => (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            className="h-7 gap-1.5 pl-2.5 pr-1.5 text-xs"
+                            icon={<Icon className="size-3.5" />}
+                            text={label}
+                            onClick={action}
+                            disabledTooltip={
+                              disabledTooltip ||
+                              (!hasAllFolderPermissions
+                                ? "You don't have permission to perform this action."
+                                : undefined)
+                            }
+                            shortcut={keyboardShortcut?.toUpperCase()}
+                            shortcutClassName="py-0 px-1 text-[0.625rem] leading-snug"
+                          />
+                        ),
+                      )}
+                    </div>
+
+                    {/* Small screen controls */}
+                    <div className="block min-[1120px]:hidden">
+                      <BulkActionMenu bulkActions={bulkActions} />
+                    </div>
+                  </div>
+                </div>
+              </AnimatedSizeContainer>
             </div>
           </div>
         </div>
