@@ -47,7 +47,7 @@ function ImportRewardfulModal({
 
   const {
     executeAsync: setRewardfulToken,
-    isExecuting: isSettingRewardfulToken,
+    isPending: isSettingRewardfulToken,
   } = useAction(setRewardfulTokenAction, {
     onError: ({ error }) => {
       toast.error(error.serverError);
@@ -60,7 +60,7 @@ function ImportRewardfulModal({
 
   const {
     executeAsync: startRewardfulImport,
-    isExecuting: isStartingRewardfulImport,
+    isPending: isStartingRewardfulImport,
   } = useAction(startRewardfulImportAction, {
     onError: ({ error }) => {
       toast.error(error.serverError);

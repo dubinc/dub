@@ -73,6 +73,7 @@ const prefixes = [
   "inv_",
   "rw_",
   "fold_",
+  "prog_",
 ] as const;
 
 export const createId = ({

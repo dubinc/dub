@@ -1,24 +1,24 @@
 "use client";
 
+import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useDomains from "@/lib/swr/use-domains";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { Badge, Button, CircleCheckFill, Input, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { useAction } from "next-safe-action/hooks";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-const formSchema = z.object({
-  name: z.string().min(1, "Program name is required"),
-  logo: z.string().min(1, "Logo is required"),
-  domain: z.string().min(1, "Enter the program's default domain"),
-  url: z
-    .string()
-    .url("Enter a valid URL")
-    .min(1, "Enter the program's destination URL"),
-  allowCustomLinks: z.boolean().default(false),
+const schema = z.object({
+  name: z.string().max(100),
+  logo: z.string().nullish(),
+  domain: z.string().nullish(),
+  url: z.string().url("Enter a valid URL").max(255).nullish(),
   linkType: z.enum(["short", "query", "dynamic"]).default("short"),
 });
 
-type Form = z.infer<typeof formSchema>;
+type Form = z.infer<typeof schema>;
 
 const LINK_TYPES = [
   {
@@ -43,24 +43,41 @@ const LINK_TYPES = [
 ];
 
 export function Form() {
+  const router = useRouter();
   const { isMobile } = useMediaQuery();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { activeWorkspaceDomains, loading } = useDomains();
 
   const {
     register,
     handleSubmit,
-    formState: { isSubmitting, isValid },
     watch,
+    formState: { isSubmitting },
   } = useForm<Form>({
     defaultValues: {
       linkType: "short",
     },
-    mode: "onChange",
+  });
+
+  const { executeAsync, isPending } = useAction(onboardProgramAction, {
+    onSuccess: () => {
+      router.push(`/${workspaceSlug}/programs/onboarding/rewards`);
+    },
+    onError: (error) => {
+      console.error(error);
+    },
   });
 
   const onSubmit = async (data: Form) => {
-    console.log(data);
-    // TODO: Handle form submission
+    if (!workspaceId) {
+      return;
+    }
+
+    await executeAsync({
+      ...data,
+      workspaceId,
+      step: "fill-basic-info",
+    });
   };
 
   return (
@@ -173,6 +190,7 @@ export function Form() {
                   className="hidden"
                   disabled={type.disabled}
                 />
+
                 <div className="flex grow flex-col text-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-semibold text-neutral-900">
@@ -188,6 +206,7 @@ export function Form() {
                     {type.preview}
                   </span>
                 </div>
+
                 {!type.disabled && (
                   <CircleCheckFill
                     className={cn(
@@ -205,8 +224,8 @@ export function Form() {
       <Button
         text="Continue"
         className="w-full"
-        loading={isSubmitting}
-        disabled={!isValid || isSubmitting}
+        loading={isSubmitting || isPending}
+        disabled={isSubmitting || isPending}
       />
     </form>
   );
