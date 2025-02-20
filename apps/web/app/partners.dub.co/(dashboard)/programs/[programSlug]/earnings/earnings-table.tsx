@@ -1,11 +1,12 @@
 "use client";
 
+import usePartnerEarningsCount from "@/lib/swr/use-partner-earnings-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerEarningsResponse } from "@/lib/types";
+import FilterButton from "@/ui/analytics/events/filter-button";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   CopyText,
   LinkLogo,
@@ -24,7 +25,14 @@ import {
   getApexDomain,
   getPrettyUrl,
 } from "@dub/utils";
+import { Cell } from "@tanstack/react-table";
 import useSWR from "swr";
+
+type ColumnMeta = {
+  filterParams?: (
+    args: Pick<Cell<PartnerEarningsResponse, any>, "getValue">,
+  ) => Record<string, any>;
+};
 
 export function EarningsTablePartner({ limit }: { limit?: number }) {
   const { programEnrollment } = useProgramEnrollment();
@@ -35,11 +43,9 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
     sortOrder?: "asc" | "desc";
   };
 
-  const { data: earningsCount } = useSWR<{ count: number }>(
-    programEnrollment &&
-      `/api/partner-profile/programs/${programEnrollment.programId}/earnings/count${getQueryString()}`,
-    fetcher,
-  );
+  const { earningsCount } = usePartnerEarningsCount<{ count: number }>({
+    enabled: programEnrollment ? true : false,
+  });
 
   const {
     data: earnings,
@@ -47,14 +53,16 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
     error,
   } = useSWR<PartnerEarningsResponse[]>(
     programEnrollment &&
-      `/api/partner-profile/programs/${programEnrollment.programId}/earnings${getQueryString()}`,
+      `/api/partner-profile/programs/${programEnrollment.programId}/earnings${getQueryString(
+        limit ? { pageSize: limit } : {},
+      )}`,
     fetcher,
   );
 
   const { pagination, setPagination } = usePagination(limit);
 
   const { table, ...tableProps } = useTable({
-    data: earnings?.slice(0, limit) || [],
+    data: earnings || [],
     loading: isLoading,
     error: error ? "Failed to fetch earnings." : undefined,
     columns: [
@@ -72,12 +80,23 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         id: "type",
         header: "Type",
         accessorKey: "type",
+        // TODO: add this back once we have a way to filter by type
+        // meta: {
+        //   filterParams: ({ getValue }) => ({
+        //     type: getValue(),
+        //   }),
+        // },
         cell: ({ row }) => <CommissionTypeBadge type={row.original.type} />,
       },
       {
         id: "link",
         header: "Link",
         accessorKey: "link",
+        meta: {
+          filterParams: ({ getValue }) => ({
+            linkId: getValue().id,
+          }),
+        },
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
             <LinkLogo
@@ -95,18 +114,25 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
             </CopyText>
           </div>
         ),
+        size: 250,
       },
       {
         id: "customer",
         header: "Customer",
         accessorKey: "customer",
+        meta: {
+          filterParams: ({ getValue }) => ({
+            customerId: getValue().id,
+          }),
+        },
         cell: ({ row }) =>
           row.original.customer ? row.original.customer.email : "-",
+        size: 250,
       },
       {
-        id: "saleAmount",
+        id: "amount",
         header: "Sale Amount",
-        accessorKey: "sale",
+        accessorKey: "amount",
         cell: ({ row }) =>
           row.original.amount
             ? currencyFormatter(row.original.amount / 100, {
@@ -138,10 +164,16 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         },
       },
     ],
+    cellRight: (cell) => {
+      const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
+      return (
+        meta?.filterParams && <FilterButton set={meta.filterParams(cell)} />
+      );
+    },
     ...(!limit && {
       pagination,
       onPaginationChange: setPagination,
-      sortableColumns: ["createdAt"],
+      sortableColumns: ["createdAt", "amount", "earnings"],
       sortBy,
       sortOrder,
       onSortChange: ({ sortBy, sortOrder }) =>
@@ -150,7 +182,10 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
             ...(sortBy && { sortBy }),
             ...(sortOrder && { sortOrder }),
           },
+          del: "page",
+          scroll: false,
         }),
+      enableColumnResizing: true,
     }),
     rowCount: earningsCount?.count || 0,
     emptyState: (
@@ -168,31 +203,22 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
     resourceName: (plural) => `earning${plural ? "s" : ""}`,
   });
 
-  return (
-    <div className="flex flex-col gap-3">
-      {!limit && (
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <SimpleDateRangePicker className="w-full sm:min-w-[200px] md:w-fit" />
-        </div>
+  return isLoading || earnings?.length ? (
+    <Table
+      {...tableProps}
+      table={table}
+      containerClassName="border-neutral-200"
+    />
+  ) : (
+    <AnimatedEmptyState
+      title="No earnings found"
+      description="No earnings have been made for this program yet."
+      cardContent={() => (
+        <>
+          <CircleDollar className="size-4 text-neutral-700" />
+          <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+        </>
       )}
-      {isLoading || earnings?.length ? (
-        <Table
-          {...tableProps}
-          table={table}
-          containerClassName="border-neutral-300"
-        />
-      ) : (
-        <AnimatedEmptyState
-          title="No earnings found"
-          description="No earnings have been made for this program yet."
-          cardContent={() => (
-            <>
-              <CircleDollar className="size-4 text-neutral-700" />
-              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-            </>
-          )}
-        />
-      )}
-    </div>
+    />
   );
 }

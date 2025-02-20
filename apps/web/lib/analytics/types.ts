@@ -3,6 +3,7 @@ import {
   analyticsQuerySchema,
   eventsQuerySchema,
 } from "../zod/schemas/analytics";
+import { getPartnerEarningsTimeseriesSchema } from "../zod/schemas/partner-profile";
 import {
   ANALYTICS_SALE_UNIT,
   ANALYTICS_VIEWS,
@@ -56,6 +57,9 @@ const partnerAnalyticsSchema = analyticsQuerySchema
   .partial();
 
 export type PartnerAnalyticsFilters = z.infer<typeof partnerAnalyticsSchema>;
+export type PartnerEarningsTimeseriesFilters = z.infer<
+  typeof getPartnerEarningsTimeseriesSchema
+>;
 
 const partnerEventsSchema = eventsQuerySchema
   .pick({

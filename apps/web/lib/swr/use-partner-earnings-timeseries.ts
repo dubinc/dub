@@ -1,36 +1,26 @@
+import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import useSWR from "swr";
-import { VALID_ANALYTICS_FILTERS } from "../analytics/constants";
-import { PartnerAnalyticsFilters } from "../analytics/types";
+import { PartnerEarningsTimeseriesFilters } from "../analytics/types";
 
-export function usePartnerEarnings(
-  params?: PartnerAnalyticsFilters & { programId?: string },
+export function usePartnerEarningsTimeseries(
+  params?: PartnerEarningsTimeseriesFilters & { programId?: string },
 ) {
   const { data: session } = useSession();
-  const { programSlug } = useParams();
-  const searchParams = useSearchParams();
-
   const partnerId = session?.user?.["defaultPartnerId"];
+  const { programSlug } = useParams();
   const programIdToUse = params?.programId ?? programSlug;
+
+  const { getQueryString } = useRouterStuff();
 
   const { data, error } = useSWR<any>(
     partnerId &&
       programIdToUse &&
-      `/api/partner-profile/programs/${programIdToUse}/earnings/timeseries?${new URLSearchParams(
+      `/api/partner-profile/programs/${programIdToUse}/earnings/timeseries${getQueryString(
         {
-          event: params?.event ?? "composite",
-          groupBy: params?.groupBy ?? "count",
-          ...VALID_ANALYTICS_FILTERS.reduce(
-            (acc, filter) => ({
-              ...acc,
-              ...(searchParams?.get(filter) && {
-                [filter]: searchParams.get(filter),
-              }),
-            }),
-            {},
-          ),
+          ...(params?.groupBy && { groupBy: params.groupBy }),
           ...(params?.start && params?.end
             ? {
                 start: params.start.toISOString(),
@@ -39,7 +29,8 @@ export function usePartnerEarnings(
             : { interval: params?.interval ?? "1y" }),
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
-      ).toString()}`,
+        { include: ["linkId", "customerId", "status"] },
+      )}`,
     fetcher,
     {
       dedupingInterval: 60000,
