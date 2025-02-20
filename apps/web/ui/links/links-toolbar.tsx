@@ -175,7 +175,7 @@ export const LinksToolbar = memo(
       },
       {
         enabled: selectedLinkIds.length > 0 && openMenuLinkId === null,
-        priority: 1, // Take priority over individual link controls
+        priority: 2, // Take priority over individual link controls
         modal: false,
       },
     );
