@@ -1,8 +1,8 @@
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
+import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { createId } from "@/lib/api/utils";
-import { determinePartnerReward } from "@/lib/partners/rewards";
+import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import {
   getClickEvent,
   getLeadEvent,
@@ -219,7 +219,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     }),
   };
 
-  const link = await prisma.link.findUniqueOrThrow({
+  const link = await prisma.link.findUnique({
     where: {
       id: linkId,
     },
@@ -268,7 +268,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   ]);
 
   // for program links
-  if (link.programId && link.partnerId) {
+  if (link && link.programId && link.partnerId) {
     const reward = await determinePartnerReward({
       programId: link.programId,
       partnerId: link.partnerId,

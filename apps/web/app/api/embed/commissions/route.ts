@@ -1,7 +1,7 @@
 import { withEmbedToken } from "@/lib/embed/auth";
 import { SALES_PAGE_SIZE } from "@/lib/partners/constants";
 import z from "@/lib/zod";
-import { PartnerEarningsSchema } from "@/lib/zod/schemas/partners";
+import { PartnerEarningsSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 

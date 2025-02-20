@@ -35,7 +35,7 @@ export const createRewardAction = authActionClient
 
       if (programWideRewardCount > 0) {
         throw new Error(
-          `There is an existing program-wide reward for ${event}.`,
+          `There is an existing program-wide ${event} reward already. Either update the existing reward to be partner-specific or create a partner-specific reward.`,
         );
       }
     }
@@ -74,14 +74,14 @@ export const createRewardAction = authActionClient
 
       if (existingRewardCount > 0) {
         throw new Error(
-          `Some of these partners already have an existing reward for ${event}.`,
+          `Some of these partners already have an existing partner-specific ${event} reward. Remove those partners to continue.`,
         );
       }
     }
 
     const reward = await prisma.reward.create({
       data: {
-        id: createId({ prefix: "rew_" }),
+        id: createId({ prefix: "rw_" }),
         programId,
         event,
         type,
@@ -99,7 +99,7 @@ export const createRewardAction = authActionClient
       },
     });
 
-    // set the default reward if it doesn't exist
+    // set the default sale reward if it doesn't exist
     if (
       event === EventType.sale &&
       !program.defaultRewardId &&

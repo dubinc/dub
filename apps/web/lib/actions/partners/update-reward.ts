@@ -19,11 +19,15 @@ export const updateRewardAction = authActionClient
       programId,
     });
 
-    const reward = await getRewardOrThrow({
-      rewardId,
-      programId,
-      includePartnersCount: true,
-    });
+    const reward = await getRewardOrThrow(
+      {
+        rewardId,
+        programId,
+      },
+      {
+        includePartnersCount: true,
+      },
+    );
 
     let programEnrollments: { id: string }[] = [];
 

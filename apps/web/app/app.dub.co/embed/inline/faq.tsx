@@ -1,5 +1,5 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
-import { RewardProp } from "@/lib/types";
+import { RewardProps } from "@/lib/types";
 import { BlockMarkdown } from "@/ui/partners/lander-blocks/BlockMarkdown";
 import { Program } from "@dub/prisma/client";
 import {
@@ -16,7 +16,7 @@ export function EmbedFAQ({
   reward,
 }: {
   program: Program;
-  reward: RewardProp | null;
+  reward: RewardProps | null;
 }) {
   const rewardDescription = reward
     ? `For each new customer you refer, you'll earn a ${constructRewardAmount({

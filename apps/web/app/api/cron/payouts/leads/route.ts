@@ -13,7 +13,7 @@ export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
 
-    const leads = await prisma.commission.groupBy({
+    const commissions = await prisma.commission.groupBy({
       by: ["programId", "partnerId"],
       where: {
         type: "lead",
@@ -22,13 +22,13 @@ export async function GET(req: Request) {
       },
     });
 
-    if (!leads.length) {
+    if (!commissions.length) {
       return NextResponse.json({
-        message: "No pending leads found. Skipping...",
+        message: "No pending lead commissions found. Skipping...",
       });
     }
 
-    for (const { programId, partnerId } of leads) {
+    for (const { programId, partnerId } of commissions) {
       await createPayout({
         programId,
         partnerId,
@@ -37,8 +37,8 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json({
-      message: "Leads payout created.",
-      leads,
+      message: "Lead commissions payout created.",
+      commissions,
     });
   } catch (error) {
     return handleAndReturnErrorResponse(error);

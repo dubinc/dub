@@ -10,7 +10,7 @@ import useProgram from "@/lib/swr/use-program";
 import useRewardPartners from "@/lib/swr/use-reward-partners";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps, RewardProp } from "@/lib/types";
+import { EnrolledPartnerProps, RewardProps } from "@/lib/types";
 import {
   createRewardSchema,
   RECURRING_MAX_DURATIONS,
@@ -49,7 +49,7 @@ import { z } from "zod";
 interface RewardSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   event: EventType;
-  reward?: RewardProp;
+  reward?: RewardProps;
 }
 
 type FormData = z.infer<typeof createRewardSchema>;
@@ -262,6 +262,10 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
 
   const onDelete = async () => {
     if (!workspaceId || !program || !reward) {
+      return;
+    }
+
+    if (!window.confirm("Are you sure you want to delete this reward?")) {
       return;
     }
 

@@ -2,7 +2,7 @@
 
 import useProgram from "@/lib/swr/use-program";
 import useRewards from "@/lib/swr/use-rewards";
-import type { RewardProp } from "@/lib/types";
+import type { RewardProps } from "@/lib/types";
 import { useRewardSheet } from "@/ui/partners/add-edit-reward-sheet";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { EventType } from "@dub/prisma/client";
@@ -14,6 +14,7 @@ import {
   useKeyboardShortcut,
 } from "@dub/ui";
 import { CursorRays } from "@dub/ui/icons";
+import { pluralize } from "@dub/utils";
 import { Gift, UserPlus } from "lucide-react";
 import { useState } from "react";
 
@@ -157,7 +158,7 @@ const AdditionalRewards = () => {
   );
 };
 
-const Reward = ({ reward }: { reward: RewardProp }) => {
+const Reward = ({ reward }: { reward: RewardProps }) => {
   const { RewardSheet, setIsOpen } = useRewardSheet({
     event: reward.event,
     reward,
@@ -185,7 +186,10 @@ const Reward = ({ reward }: { reward: RewardProp }) => {
             </span>
           </div>
           {reward.partnersCount && reward?.partnersCount > 0 ? (
-            <Badge variant="green">{reward.partnersCount} partners</Badge>
+            <Badge variant="green">
+              {reward.partnersCount}{" "}
+              {pluralize("partner", reward.partnersCount)}
+            </Badge>
           ) : (
             <Badge variant="gray">All partners</Badge>
           )}
@@ -278,14 +282,11 @@ const CreateRewardButton = () => {
 
 const RewardSkeleton = () => {
   return (
-    <div className="flex animate-pulse items-center gap-4 rounded-lg border border-neutral-200 p-4">
-      <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-neutral-50" />
+    <div className="flex items-center gap-4 rounded-lg border border-neutral-200 p-4">
+      <div className="flex size-10 animate-pulse items-center justify-center rounded-full border border-neutral-200 bg-neutral-100" />
       <div className="flex flex-1 items-center justify-between">
-        <div className="space-y-3">
-          <div className="h-4 w-64 rounded bg-neutral-100" />
-          <div className="h-4 w-32 rounded bg-neutral-100" />
-        </div>
-        <div className="h-6 w-24 rounded-full bg-neutral-100" />
+        <div className="h-4 w-64 animate-pulse rounded bg-neutral-100" />
+        <div className="h-6 w-24 animate-pulse rounded-full bg-neutral-100" />
       </div>
     </div>
   );

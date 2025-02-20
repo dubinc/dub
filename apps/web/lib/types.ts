@@ -1,5 +1,6 @@
 import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
+import { PartnerEarningsSchema } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
   CommissionStatus,
@@ -36,18 +37,16 @@ import {
 } from "./zod/schemas/leads";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
-import {
-  EnrolledPartnerSchema,
-  PartnerEarningsSchema,
-  PartnerSchema,
-  SaleResponseSchema,
-  SaleSchema,
-} from "./zod/schemas/partners";
+import { EnrolledPartnerSchema, PartnerSchema } from "./zod/schemas/partners";
 import {
   PartnerPayoutResponseSchema,
   PayoutResponseSchema,
   PayoutSchema,
 } from "./zod/schemas/payouts";
+import {
+  ProgramSaleResponseSchema,
+  ProgramSaleSchema,
+} from "./zod/schemas/program-sales";
 import {
   PartnerLinkSchema,
   PartnerProgramInviteSchema,
@@ -352,11 +351,11 @@ export type UsageResponse = z.infer<typeof usageResponse>;
 
 export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
 
-export type SaleProps = z.infer<typeof SaleSchema>;
+export type SaleProps = z.infer<typeof ProgramSaleSchema>;
 
 export type SalesCount = Record<CommissionStatus | "all", number>;
 
-export type SaleResponse = z.infer<typeof SaleResponseSchema>;
+export type SaleResponse = z.infer<typeof ProgramSaleResponseSchema>;
 
 export type PartnerEarningsResponse = z.infer<typeof PartnerEarningsSchema>;
 
@@ -433,4 +432,4 @@ export type FolderSummary = Pick<
 
 // Rewards
 
-export type RewardProp = z.infer<typeof RewardSchema>;
+export type RewardProps = z.infer<typeof RewardSchema>;
