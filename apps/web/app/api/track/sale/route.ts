@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
+import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
@@ -17,6 +17,7 @@ import { prismaEdge } from "@dub/prisma/edge";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { determinePartnerReward } from "../determine-partner-reward-edge";
 
 export const runtime = "edge";
 
@@ -146,60 +147,61 @@ export const POST = withWorkspaceEdge(
         ]);
 
         // for program links
-        // TODO: check if link.partnerId as well, so we can just do findUnique partnerId_programId
-        if (link.programId) {
-          const { program, ...partner } =
-            await prismaEdge.programEnrollment.findFirstOrThrow({
-              where: {
-                links: {
-                  some: {
-                    id: link.id,
-                  },
-                },
-              },
-              select: {
-                program: true,
-                partnerId: true,
-                commissionAmount: true,
+        if (link.programId && link.partnerId) {
+          const reward = await determinePartnerReward({
+            programId: link.programId,
+            partnerId: link.partnerId,
+            event: "sale",
+          });
+
+          if (reward) {
+            const earnings = calculateSaleEarnings({
+              reward,
+              sale: {
+                quantity: 1,
+                amount: saleData.amount,
               },
             });
 
-          const saleEarnings = calculateSaleEarnings({
-            program,
-            partner,
-            sales: 1,
-            saleAmount: saleData.amount,
-          });
-
-          await Promise.allSettled([
-            prismaEdge.commission.create({
+            await prismaEdge.commission.create({
               data: {
                 id: createId({ prefix: "cm_" }),
-                programId: program.id,
+                programId: link.programId,
                 linkId: link.id,
-                partnerId: partner.partnerId,
+                partnerId: link.partnerId,
                 eventId,
                 customerId: customer.id,
                 quantity: 1,
                 type: "sale",
                 amount: saleData.amount,
-                earnings: saleEarnings,
+                earnings,
                 invoiceId,
               },
-            }),
+            });
 
-            notifyPartnerSale({
+            const program = await prismaEdge.program.findUniqueOrThrow({
+              where: {
+                id: link.programId!,
+              },
+              select: {
+                id: true,
+                name: true,
+                logo: true,
+              },
+            });
+
+            await notifyPartnerSale({
+              program,
               partner: {
-                id: partner.partnerId,
+                id: link.partnerId!,
                 referralLink: link.shortLink,
               },
-              program,
               sale: {
                 amount: saleData.amount,
-                earnings: saleEarnings,
+                earnings,
               },
-            }),
-          ]);
+            });
+          }
         }
 
         // Send workspace webhook

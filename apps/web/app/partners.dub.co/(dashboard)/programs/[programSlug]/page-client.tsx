@@ -6,7 +6,7 @@ import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { HeroBackground } from "@/ui/partners/hero-background";
-import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
+import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   Button,
@@ -44,7 +44,7 @@ const ProgramOverviewContext = createContext<{
   interval: IntervalOptions;
   color?: string;
 }>({
-  interval: "1y",
+  interval: "30d",
 });
 
 export default function ProgramPageClient() {
@@ -57,7 +57,7 @@ export default function ProgramPageClient() {
   const {
     start,
     end,
-    interval = "1y",
+    interval = "30d",
   } = searchParamsObj as {
     start?: string;
     end?: string;
@@ -79,8 +79,8 @@ export default function ProgramPageClient() {
         </span>
         <div className="relative mt-24 text-lg text-neutral-900 sm:max-w-[50%]">
           {program ? (
-            <ProgramCommissionDescription
-              program={program}
+            <ProgramRewardDescription
+              reward={programEnrollment?.reward}
               discount={programEnrollment?.discount}
             />
           ) : (
@@ -180,9 +180,9 @@ export default function ProgramPageClient() {
 }
 
 function EarningsChart() {
-  const { start, end, interval } = useContext(ProgramOverviewContext);
   const { programSlug } = useParams();
   const { getQueryString } = useRouterStuff();
+  const { start, end, interval } = useContext(ProgramOverviewContext);
 
   const { data: timeseries, error } = usePartnerEarningsTimeseries({
     interval,
@@ -235,6 +235,7 @@ function EarningsChart() {
           <SimpleDateRangePicker
             className="h-7 w-full px-2.5 text-xs font-medium md:w-fit"
             align="end"
+            defaultInterval="30d"
           />
         </div>
       </div>
@@ -304,7 +305,7 @@ function StatCard({
           )}
         </div>
         <ViewMoreButton
-          href={`/programs/${programSlug}/analytics?event=${event}${getQueryString()?.replace("?", "&")}`}
+          href={`/programs/${programSlug}/links/analytics?event=${event}${getQueryString()?.replace("?", "&")}`}
         />
       </div>
       <div className="mt-2 h-44 w-full">

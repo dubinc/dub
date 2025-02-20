@@ -118,6 +118,7 @@ export const DELETE = withWorkspace(
         folderId,
       },
     });
+
     // if there are no links associated with the folder, we can just delete it
     if (linksCount === 0) {
       await prisma.folder.delete({

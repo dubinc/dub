@@ -162,6 +162,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
     },
     {
       enabled: openPopover || (hovered && openMenuLinkId === null),
+      priority: 1, // Take priority over display options
     },
   );
 

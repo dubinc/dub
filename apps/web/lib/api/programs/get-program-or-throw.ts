@@ -1,6 +1,9 @@
+import { RewardProps } from "@/lib/types";
 import { ProgramSchema } from "@/lib/zod/schemas/programs";
+import { RewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { DubApiError } from "../errors";
+import { getRewardOrThrow } from "../partners/get-reward-or-throw";
 
 export const getProgramOrThrow = async (
   {
@@ -12,8 +15,10 @@ export const getProgramOrThrow = async (
   },
   {
     includeDiscounts = false,
+    includeDefaultReward = false,
   }: {
     includeDiscounts?: boolean;
+    includeDefaultReward?: boolean;
   } = {},
 ) => {
   const program = await prisma.program.findUnique({
@@ -41,5 +46,19 @@ export const getProgramOrThrow = async (
     });
   }
 
-  return ProgramSchema.parse(program);
+  let defaultReward: RewardProps | null = null;
+
+  if (includeDefaultReward && program.defaultRewardId) {
+    defaultReward = await getRewardOrThrow({
+      rewardId: program.defaultRewardId,
+      programId,
+    });
+
+    defaultReward = RewardSchema.parse(defaultReward);
+  }
+
+  return ProgramSchema.parse({
+    ...program,
+    ...(defaultReward ? { rewards: [defaultReward] } : {}),
+  });
 };

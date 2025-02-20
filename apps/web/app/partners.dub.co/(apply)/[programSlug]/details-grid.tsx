@@ -1,13 +1,13 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
-import { Program } from "@dub/prisma/client";
+import { RewardProps } from "@/lib/types";
 import { Calendar6, MoneyBills2 } from "@dub/ui/icons";
-import { cn, INFINITY_NUMBER, pluralize } from "@dub/utils";
+import { cn } from "@dub/utils";
 
 export function DetailsGrid({
-  program,
+  reward,
   className,
 }: {
-  program: Program;
+  reward: RewardProps;
   className?: string;
 }) {
   return (
@@ -17,20 +17,19 @@ export function DetailsGrid({
           icon: MoneyBills2,
           title: "Commission",
           value: constructRewardAmount({
-            amount: program.commissionAmount,
-            type: program.commissionType,
+            amount: reward.amount,
+            type: reward.type,
           }),
         },
         {
           icon: Calendar6,
           title: "Duration",
           value:
-            program.commissionDuration === INFINITY_NUMBER
+            reward.maxDuration === null
               ? "Lifetime"
-              : `${program.commissionDuration} ${pluralize(
-                  program.commissionInterval || "cycle",
-                  program.commissionDuration || 0,
-                )}`,
+              : reward.maxDuration === 0
+                ? "1 month"
+                : `${reward.maxDuration} months`,
         },
       ].map(({ icon: Icon, title, value }) => (
         <div className="rounded-xl bg-neutral-100 p-4">
