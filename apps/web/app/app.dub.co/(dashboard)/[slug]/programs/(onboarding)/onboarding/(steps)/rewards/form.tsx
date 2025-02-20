@@ -6,15 +6,27 @@ import {
   createOrUpdateRewardSchema,
   RECURRING_MAX_DURATIONS,
 } from "@/lib/zod/schemas/rewards";
-import { Button, CircleCheckFill } from "@dub/ui";
+import { Button, CircleCheckFill, Input } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { ChevronDown } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-type Form = z.infer<typeof createOrUpdateRewardSchema>;
+const formSchema = z.object({
+  programType: z.enum(["new", "import"]),
+  apiToken: z.string().optional(),
+  campaignId: z.string().optional(),
+  // Keep existing reward schema fields for new program flow
+  type: z.string().optional(),
+  maxDuration: z.number().optional(),
+  amount: z.number().optional(),
+});
 
-const PROGRAM_SOURCES = [
+type Form = z.infer<typeof formSchema>;
+
+const PROGRAM_TYPES = [
   {
     value: "new",
     label: "New program",
@@ -27,24 +39,23 @@ const PROGRAM_SOURCES = [
   },
 ] as const;
 
-type ProgramSource = (typeof PROGRAM_SOURCES)[number]["value"];
-
 export function Form() {
   const [isRecurring, setIsRecurring] = useState(false);
-  const [programSource, setProgramSource] = useState<ProgramSource>("new");
-
   const {
     register,
     handleSubmit,
-    formState: { isSubmitting },
     watch,
+    formState: { isSubmitting },
   } = useForm<Form>({
     defaultValues: {
-      event: "sale",
+      programType: "new",
       type: "flat",
       maxDuration: 0,
     },
   });
+
+  const programType = watch("programType");
+  const selectedCampaign = watch("campaignId");
 
   const onSubmit = async (data: Form) => {
     console.log(data);
@@ -60,18 +71,18 @@ export function Form() {
           <h2 className="text-base font-medium text-neutral-900">
             Reward creation
           </h2>
-          <p className="text-sm font-normal text-neutral-600">
+          <p className="text-sm text-neutral-600">
             Create a brand new reward or import an existing program.
           </p>
         </div>
 
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-          {PROGRAM_SOURCES.map((source) => {
-            const isSelected = programSource === source.value;
+          {PROGRAM_TYPES.map((type) => {
+            const isSelected = programType === type.value;
 
             return (
               <label
-                key={source.value}
+                key={type.value}
                 className={cn(
                   "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
                   "transition-all duration-150",
@@ -81,17 +92,13 @@ export function Form() {
               >
                 <input
                   type="radio"
-                  value={source.value}
+                  {...register("programType")}
+                  value={type.value}
                   className="hidden"
-                  onChange={() => setProgramSource(source.value)}
                 />
                 <div className="flex grow flex-col text-sm">
-                  <span className="text-sm font-semibold text-neutral-900">
-                    {source.label}
-                  </span>
-                  <span className="text-sm font-normal text-neutral-600">
-                    {source.description}
-                  </span>
+                  <span className="font-medium">{type.label}</span>
+                  <span>{type.description}</span>
                 </div>
                 <CircleCheckFill
                   className={cn(
@@ -105,85 +112,164 @@ export function Form() {
         </div>
       </div>
 
-      <div className="space-y-6">
-        <div className="space-y-1">
-          <h2 className="text-base font-medium text-neutral-900">
-            Commission structure
-          </h2>
-          <p className="text-sm font-normal text-neutral-600">
-            Set how the affiliate will get rewarded
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-          {COMMISSION_TYPES.map(({ value, label, description }) => {
-            const isSelected = (value === "recurring") === isRecurring;
-
-            return (
-              <label
-                key={value}
-                className={cn(
-                  "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                  "transition-all duration-150",
-                  isSelected &&
-                    "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                )}
-              >
-                <input
-                  type="radio"
-                  value={value}
-                  className="hidden"
-                  checked={isSelected}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setIsRecurring(value === "recurring");
-                      register("maxDuration", {
-                        value: value === "recurring" ? 3 : 0,
-                        valueAsNumber: true,
-                      });
-                    }
-                  }}
-                />
-                <div className="flex grow flex-col text-sm">
-                  <span className="text-sm font-semibold text-neutral-900">
-                    {label}
-                  </span>
-                  <span className="text-sm font-normal text-neutral-600">
-                    {description}
-                  </span>
-                </div>
-                <CircleCheckFill
-                  className={cn(
-                    "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                    isSelected && "scale-100 opacity-100",
-                  )}
-                />
-              </label>
-            );
-          })}
-        </div>
-
-        {isRecurring && (
+      {programType === "import" ? (
+        <>
           <div>
             <label className="text-sm font-medium text-neutral-800">
-              Duration
+              Import source
             </label>
-            <select
-              {...register("maxDuration", { valueAsNumber: true })}
-              className="mt-2 block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
-            >
-              {RECURRING_MAX_DURATIONS.filter((v) => v !== 0).map(
-                (duration) => (
-                  <option key={duration} value={duration}>
-                    {duration} {duration === 1 ? "month" : "months"}
-                  </option>
-                ),
-              )}
-              <option value={Infinity}>Lifetime</option>
-            </select>
+            <div className="relative mt-2">
+              <select
+                className="block w-full appearance-none rounded-md border border-neutral-200 bg-white px-3 py-2 pr-8 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
+                defaultValue="rewardful"
+              >
+                <option value="rewardful">Rewardful</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+            </div>
+            <button className="mt-2 text-sm text-neutral-600 underline">
+              See what data is migrated
+            </button>
           </div>
-        )}
-      </div>
+
+          <div>
+            <label className="text-sm font-medium text-neutral-800">
+              Rewardful API secret
+            </label>
+            <Input
+              {...register("apiToken")}
+              type="password"
+              placeholder="API token"
+              className="mt-2"
+            />
+            <div className="mt-1.5 text-sm text-neutral-600">
+              Find your Rewardful API secret on your{" "}
+              <Link href="#" className="text-blue-600 hover:text-blue-700">
+                Company settings page
+              </Link>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-neutral-800">
+              Campaign to import
+            </label>
+            <div className="relative mt-2">
+              <select
+                {...register("campaignId")}
+                className="block w-full appearance-none rounded-md border border-neutral-200 bg-white px-3 py-2 pr-8 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
+              >
+                <option value="campaign2">Campaign 2</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+            </div>
+            <button className="mt-2 text-sm text-neutral-600 underline">
+              Want to migrate more than one campaign?
+            </button>
+          </div>
+
+          {selectedCampaign && (
+            <div className="grid grid-cols-2 gap-6 rounded-lg border border-neutral-200 bg-white p-6">
+              <div>
+                <div className="text-sm text-neutral-600">Type</div>
+                <div className="text-sm font-medium text-neutral-900">Flat</div>
+              </div>
+              <div>
+                <div className="text-sm text-neutral-600">Duration</div>
+                <div className="text-sm font-medium text-neutral-900">24 months</div>
+              </div>
+              <div>
+                <div className="text-sm text-neutral-600">Commission</div>
+                <div className="text-sm font-medium text-neutral-900">$50.00</div>
+              </div>
+              <div>
+                <div className="text-sm text-neutral-600">Affiliates</div>
+                <div className="text-sm font-medium text-neutral-900">12</div>
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="space-y-6">
+          <div className="space-y-1">
+            <h2 className="text-base font-medium text-neutral-900">
+              Commission structure
+            </h2>
+            <p className="text-sm font-normal text-neutral-600">
+              Set how the affiliate will get rewarded
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+            {COMMISSION_TYPES.map(({ value, label, description }) => {
+              const isSelected = (value === "recurring") === isRecurring;
+
+              return (
+                <label
+                  key={value}
+                  className={cn(
+                    "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                    "transition-all duration-150",
+                    isSelected &&
+                      "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                  )}
+                >
+                  <input
+                    type="radio"
+                    value={value}
+                    className="hidden"
+                    checked={isSelected}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setIsRecurring(value === "recurring");
+                        register("maxDuration", {
+                          value: value === "recurring" ? 3 : 0,
+                          valueAsNumber: true,
+                        });
+                      }
+                    }}
+                  />
+                  <div className="flex grow flex-col text-sm">
+                    <span className="text-sm font-semibold text-neutral-900">
+                      {label}
+                    </span>
+                    <span className="text-sm font-normal text-neutral-600">
+                      {description}
+                    </span>
+                  </div>
+                  <CircleCheckFill
+                    className={cn(
+                      "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                      isSelected && "scale-100 opacity-100",
+                    )}
+                  />
+                </label>
+              );
+            })}
+          </div>
+
+          {isRecurring && (
+            <div>
+              <label className="text-sm font-medium text-neutral-800">
+                Duration
+              </label>
+              <select
+                {...register("maxDuration", { valueAsNumber: true })}
+                className="mt-2 block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
+              >
+                {RECURRING_MAX_DURATIONS.filter((v) => v !== 0).map(
+                  (duration) => (
+                    <option key={duration} value={duration}>
+                      {duration} {duration === 1 ? "month" : "months"}
+                    </option>
+                  ),
+                )}
+                <option value={Infinity}>Lifetime</option>
+              </select>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="space-y-6">
         <div className="space-y-1">
