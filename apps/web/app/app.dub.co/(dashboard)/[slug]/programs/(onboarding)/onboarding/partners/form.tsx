@@ -62,7 +62,7 @@ export function Form() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           {fields.map((field, index) => (
             <div
               key={field.id}
@@ -84,27 +84,29 @@ export function Form() {
                 <label className="block text-sm font-medium text-neutral-800">
                   {index === 0 && "Referral link"}
                 </label>
-                <div className="mt-2 flex gap-2">
-                  <div className="flex flex-1 items-stretch overflow-hidden rounded-md border border-neutral-200 bg-white focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500">
-                    <div className="flex items-center border-r border-neutral-200 bg-neutral-50 px-3">
-                      <span className="text-sm text-neutral-600">
-                        refer.dub.co
-                      </span>
+                <div className="flex items-center gap-2">
+                  <div className="mt-2 w-full">
+                    <div className="flex items-stretch overflow-hidden rounded-md border border-neutral-200 bg-white focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500">
+                      <div className="flex items-center border-r border-neutral-300 bg-neutral-100 px-3">
+                        <span className="text-sm font-medium text-neutral-800">
+                          refer.dub.co
+                        </span>
+                      </div>
+                      <input
+                        {...register(`partners.${index}.referralLink`, {
+                          required: true,
+                        })}
+                        type="text"
+                        placeholder="panic"
+                        className="w-full border-0 bg-transparent px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-0"
+                      />
                     </div>
-                    <input
-                      {...register(`partners.${index}.referralLink`, {
-                        required: true,
-                      })}
-                      type="text"
-                      placeholder="panic"
-                      className="w-full border-0 bg-transparent px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-0"
-                    />
                   </div>
                   {index > 0 && (
                     <Button
                       variant="outline"
                       icon={<Trash2 className="size-4" />}
-                      className="h-10 w-10 shrink-0 p-0"
+                      className="mt-2 h-10 w-10 shrink-0 p-0"
                       onClick={() => remove(index)}
                     />
                   )}
