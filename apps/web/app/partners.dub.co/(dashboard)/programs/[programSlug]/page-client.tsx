@@ -235,7 +235,6 @@ function EarningsChart() {
           <SimpleDateRangePicker
             className="h-7 w-full px-2.5 text-xs font-medium md:w-fit"
             align="end"
-            defaultInterval="30d"
           />
         </div>
       </div>

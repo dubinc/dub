@@ -34,7 +34,7 @@ export const payoutsQuerySchema = z
     sortBy: z.enum(["periodStart", "amount", "paidAt"]).default("periodStart"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     type: z.nativeEnum(PayoutType).optional(),
-    interval: z.enum(intervals).default("1y"),
+    interval: z.enum(intervals).default("all"),
     start: parseDateSchema.optional(),
     end: parseDateSchema.optional(),
   })
