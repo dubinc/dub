@@ -1,3 +1,4 @@
+import { intervals } from "@/lib/analytics/constants";
 import { z } from "zod";
 import { LinkSchema } from "./links";
 import {
@@ -34,22 +35,28 @@ export const getPartnerEarningsQuerySchema = getProgramSalesQuerySchema
     partnerId: true,
     sortBy: true,
   })
-  .extend({
-    type: z.enum(["click", "lead", "sale"]).optional(),
-    linkId: z.string().optional(),
-    sortBy: z.enum(["createdAt", "amount", "earnings"]).default("createdAt"),
-  });
+  .merge(
+    z.object({
+      interval: z.enum(intervals).default("30d"),
+      type: z.enum(["click", "lead", "sale"]).optional(),
+      linkId: z.string().optional(),
+      sortBy: z.enum(["createdAt", "amount", "earnings"]).default("createdAt"),
+    }),
+  );
 
 export const getPartnerEarningsCountQuerySchema =
   getProgramSalesCountQuerySchema
     .omit({
       partnerId: true,
     })
-    .extend({
-      type: z.enum(["click", "lead", "sale"]).optional(),
-      linkId: z.string().optional(),
-      groupBy: z.enum(["linkId", "customerId", "status", "type"]).optional(),
-    });
+    .merge(
+      z.object({
+        interval: z.enum(intervals).default("30d"),
+        type: z.enum(["click", "lead", "sale"]).optional(),
+        linkId: z.string().optional(),
+        groupBy: z.enum(["linkId", "customerId", "status", "type"]).optional(),
+      }),
+    );
 
 export const getPartnerEarningsTimeseriesSchema =
   getPartnerEarningsCountQuerySchema.extend({

@@ -9,6 +9,8 @@ import {
 import { ResponseLink } from "./links-container";
 
 interface LinkSelectionContext {
+  isSelectMode: boolean;
+  setIsSelectMode: Dispatch<SetStateAction<boolean>>;
   selectedLinkIds: string[];
   setSelectedLinkIds: Dispatch<SetStateAction<string[]>>;
   lastSelectedLinkId: string | null;
@@ -24,6 +26,7 @@ export function LinkSelectionProvider({
   children: React.ReactNode;
   links?: ResponseLink[];
 }) {
+  const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedLinkIds, setSelectedLinkIds] = useState<string[]>([]);
   const [lastSelectedLinkId, setLastSelectedLinkId] = useState<string | null>(
     null,
@@ -72,6 +75,8 @@ export function LinkSelectionProvider({
   return (
     <LinkSelectionContext.Provider
       value={{
+        isSelectMode,
+        setIsSelectMode,
         selectedLinkIds,
         setSelectedLinkIds,
         lastSelectedLinkId,
