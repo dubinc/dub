@@ -7,7 +7,7 @@ import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { Button, CardList, useRouterStuff } from "@dub/ui";
 import { ChartTooltipSync } from "@dub/ui/charts";
-import { createContext, useContext } from "react";
+import { createContext, useContext, useMemo } from "react";
 import { PartnerLinkCard } from "./partner-link-card";
 
 const PartnerLinksContext = createContext<{
@@ -40,6 +40,16 @@ export function ProgramLinksPageClient() {
     end?: string;
     interval?: IntervalOptions;
   };
+
+  // Get first link sorted by createdAt
+  const defaultLinkId = useMemo(
+    () =>
+      links?.sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      )[0]?.id,
+    [links],
+  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -76,7 +86,11 @@ export function ProgramLinksPageClient() {
               [...Array(3)].map((_, i) => <LinkCardSkeleton key={i} />)
             ) : (
               links?.map((link) => (
-                <PartnerLinkCard key={link.id} link={link} />
+                <PartnerLinkCard
+                  key={link.id}
+                  link={link}
+                  isDefaultLink={link.id === defaultLinkId}
+                />
               ))
             )}
           </CardList>

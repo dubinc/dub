@@ -54,6 +54,8 @@ export const PartnerLinkSchema = LinkSchema.pick({
   sales: true,
   saleAmount: true,
   comments: true,
+}).extend({
+  createdAt: z.string().or(z.date()),
 });
 
 export const ProgramEnrollmentSchema = z.object({
