@@ -29,7 +29,7 @@ function ProgramWelcomeModal({
       setShowModal={setShowProgramWelcomeModal}
       onClose={() =>
         queryParams({
-          del: ["onboarded", "upgraded", "plan", "period"],
+          del: ["program-onboarded"],
         })
       }
     >
