@@ -85,9 +85,9 @@ export function Form() {
                   {index === 0 && "Referral link"}
                 </label>
                 <div className="mt-2 flex gap-2">
-                  <div className="flex flex-1 items-stretch rounded-md border border-neutral-300 bg-white">
-                    <div className="flex items-center rounded-l-md border-r border-r-neutral-300 bg-neutral-100 px-3">
-                      <span className="text-sm font-medium text-neutral-800">
+                  <div className="flex flex-1 items-stretch overflow-hidden rounded-md border border-neutral-200 bg-white focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500">
+                    <div className="flex items-center border-r border-neutral-200 bg-neutral-50 px-3">
+                      <span className="text-sm text-neutral-600">
                         refer.dub.co
                       </span>
                     </div>
@@ -97,7 +97,7 @@ export function Form() {
                       })}
                       type="text"
                       placeholder="panic"
-                      className="w-full rounded-r-md border-0 px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:ring-0"
+                      className="w-full border-0 bg-transparent px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-0"
                     />
                   </div>
                   {index > 0 && (
