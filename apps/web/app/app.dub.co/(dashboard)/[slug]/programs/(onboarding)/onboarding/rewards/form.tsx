@@ -16,11 +16,17 @@ import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useForm, UseFormRegister, UseFormWatch } from "react-hook-form";
+import {
+  useForm,
+  UseFormRegister,
+  UseFormSetValue,
+  UseFormWatch,
+} from "react-hook-form";
 
 type FormProps = {
   register: UseFormRegister<ConfigureReward>;
   watch: UseFormWatch<ConfigureReward>;
+  setValue: UseFormSetValue<ConfigureReward>;
 };
 
 const PROGRAM_TYPES = [
@@ -43,18 +49,17 @@ export function Form() {
   const [programOnboarding, _, { mutateWorkspace }] =
     useWorkspaceStore<ConfigureReward>("programOnboarding");
 
-  console.log(programOnboarding);
-
   const {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { isSubmitting },
   } = useForm<ConfigureReward>({
     defaultValues: {
       programType: programOnboarding?.programType || "new",
       type: programOnboarding?.type || "flat",
-      maxDuration: programOnboarding?.maxDuration || 0,
+      maxDuration: programOnboarding?.maxDuration ?? 0,
       amount: programOnboarding?.amount || 0,
       rewardfulApiToken: programOnboarding?.rewardfulApiToken,
       rewardfulCampaignId: programOnboarding?.rewardfulCampaignId,
@@ -136,9 +141,13 @@ export function Form() {
       </div>
 
       {programType === "import" ? (
-        <ImportProgramForm register={register} watch={watch} />
+        <ImportProgramForm
+          register={register}
+          watch={watch}
+          setValue={setValue}
+        />
       ) : (
-        <NewProgramForm register={register} watch={watch} />
+        <NewProgramForm register={register} watch={watch} setValue={setValue} />
       )}
 
       <Button
@@ -151,7 +160,7 @@ export function Form() {
   );
 }
 
-const NewProgramForm = ({ register, watch }: FormProps) => {
+const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
   const [isRecurring, setIsRecurring] = useState(false);
   const [type, maxDuration] = watch(["type", "maxDuration"]);
 
@@ -193,17 +202,13 @@ const NewProgramForm = ({ register, watch }: FormProps) => {
                   onChange={(e) => {
                     if (value === "one-off") {
                       setIsRecurring(false);
-                      register("maxDuration", {
-                        value: 0,
-                        valueAsNumber: true,
-                      });
+                      setValue("maxDuration", 0, { shouldValidate: true });
                     }
 
                     if (value === "recurring") {
                       setIsRecurring(true);
-                      register("maxDuration", {
-                        value: 3,
-                        valueAsNumber: true,
+                      setValue("maxDuration", 3, {
+                        shouldValidate: true,
                       });
                     }
                   }}
@@ -243,7 +248,7 @@ const NewProgramForm = ({ register, watch }: FormProps) => {
                   </option>
                 ),
               )}
-              <option value={Infinity}>Lifetime</option>
+              <option value="">Lifetime</option>
             </select>
           </div>
         )}
@@ -300,7 +305,7 @@ const NewProgramForm = ({ register, watch }: FormProps) => {
   );
 };
 
-const ImportProgramForm = ({ register, watch }: FormProps) => {
+const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
   const selectedCampaignId = watch("rewardfulCampaignId");
 
   return (
