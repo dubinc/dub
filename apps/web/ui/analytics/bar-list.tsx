@@ -138,7 +138,6 @@ export function LineItem({
   title,
   href,
   value,
-  maxValue,
   totalSum,
   tab,
   unit,
@@ -152,7 +151,6 @@ export function LineItem({
   title: string;
   href?: string;
   value: number;
-  maxValue: number;
   totalSum: number;
   tab: string;
   unit: string;
@@ -174,7 +172,6 @@ export function LineItem({
   }, [icon, tab, title]);
 
   const { saleUnit } = useContext(AnalyticsContext);
-  const { isMobile } = useMediaQuery();
 
   const As = href ? Link : "div";
 
@@ -195,23 +192,22 @@ export function LineItem({
       className={cn(
         `block min-w-0 border-l-2 border-transparent px-4 py-1 transition-all`,
         href && hoverBackground,
-        isMobile || isModalView ? "group" : "",
+        isModalView ? "group" : "",
       )}
     >
-      <div className={cn(
-        "flex items-center justify-between relative",
-        (isMobile || isModalView) && "gap-16"
-      )}>
+      <div
+        className={cn(
+          "relative flex items-center justify-between",
+          isModalView && "gap-16",
+        )}
+      >
         <motion.div
           style={{
             width: `${percentage}%`,
-            position: 'absolute',
+            position: "absolute",
             inset: 0,
           }}
-          className={cn(
-            "h-full origin-left rounded-md -z-10",
-            barBackground,
-          )}
+          className={cn("-z-10 h-full origin-left rounded-md", barBackground)}
           transition={{ ease: "easeOut", duration: 0.3 }}
           initial={{ transform: "scaleX(0)" }}
           animate={{ transform: "scaleX(1)" }}
@@ -244,9 +240,7 @@ export function LineItem({
             }
             className={cn(
               "z-10 px-2 text-sm text-neutral-600 transition-transform duration-300",
-              isMobile || isModalView
-                ? "-translate-x-14"
-                : "group-hover:-translate-x-14",
+              isModalView ? "-translate-x-14" : "group-hover:-translate-x-14",
             )}
             style={{
               // Adds translateZ(0) to fix transition jitter
@@ -268,7 +262,7 @@ export function LineItem({
           <div
             className={cn(
               "absolute right-0 px-3 text-sm text-neutral-600/70 transition-all duration-300",
-              isMobile || isModalView
+              isModalView
                 ? "visible translate-x-0 opacity-100"
                 : "invisible translate-x-14 opacity-0 group-hover:visible group-hover:translate-x-0 group-hover:opacity-100",
             )}
